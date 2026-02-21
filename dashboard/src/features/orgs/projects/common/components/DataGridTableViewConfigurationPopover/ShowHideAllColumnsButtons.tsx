@@ -4,7 +4,10 @@ import { ButtonGroup } from '@/components/ui/v3/button-group';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
-import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import {
+  saveColumnOrder,
+  saveColumnVisibility,
+} from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 
 function ShowHideAllColumnsButtons() {
   const tablePath = useTablePath();
@@ -17,15 +20,12 @@ function ShowHideAllColumnsButtons() {
 
   function saveVisibility(visibility: VisibilityState) {
     setColumnVisibility(visibility);
-    PersistenDataTableConfigurationStorage.saveColumnVisibility(
-      tablePath,
-      visibility,
-    );
+    saveColumnVisibility(tablePath, visibility);
   }
 
   function showOriginalOrder() {
     setColumnOrder([]);
-    PersistenDataTableConfigurationStorage.saveColumnOrder(tablePath, []);
+    saveColumnOrder(tablePath, []);
   }
 
   function handleReset() {

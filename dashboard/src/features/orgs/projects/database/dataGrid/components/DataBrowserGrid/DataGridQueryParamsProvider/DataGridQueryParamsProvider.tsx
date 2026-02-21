@@ -13,16 +13,17 @@ import {
   useState,
 } from 'react';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import PersistenDataGrdiFilterStorage from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
+import {
+  getDataGridFilters,
+  saveDataGridFilters,
+} from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
 import type { DataGridFilterOperator } from './operators';
 
 function compareLoadedFiltersToStorage(
   tablePath: string,
   filters: DataGridFilter[],
 ) {
-  const filtersInStorage = JSON.stringify(
-    PersistenDataGrdiFilterStorage.getDataGridFilters(tablePath),
-  );
+  const filtersInStorage = JSON.stringify(getDataGridFilters(tablePath));
   const loadedFilters = JSON.stringify(filters);
 
   return filtersInStorage === loadedFilters;
@@ -67,15 +68,14 @@ function DataGridQueryParamsProvider({ children }: PropsWithChildren) {
     parseInt(page as string, 10) - 1 || 0,
   );
   const [appliedFilters, _setAppliedFilters] = useState<DataGridFilter[]>(() =>
-    PersistenDataGrdiFilterStorage.getDataGridFilters(tablePath),
+    getDataGridFilters(tablePath),
   );
   // NOTE: this ref will prevent fetching the table data until the filters are not loaded for the current table
   // navigating between tables
   const isFiltersLoadedFromStorage = useRef(false);
 
   useEffect(() => {
-    const filtersForTheTable =
-      PersistenDataGrdiFilterStorage.getDataGridFilters(tablePath);
+    const filtersForTheTable = getDataGridFilters(tablePath);
     _setAppliedFilters(filtersForTheTable);
     setSortBy([]);
   }, [tablePath]);
@@ -91,10 +91,7 @@ function DataGridQueryParamsProvider({ children }: PropsWithChildren) {
       appliedFilters,
       setAppliedFilters(newFilters: DataGridFilter[]) {
         _setAppliedFilters(newFilters);
-        PersistenDataGrdiFilterStorage.saveDataGridFilters(
-          tablePath,
-          newFilters,
-        );
+        saveDataGridFilters(tablePath, newFilters);
       },
       sortBy,
       setSortBy,
