@@ -1,3 +1,19 @@
+## [@nhost/dashboard@2.51.0] - 2026-02-21
+
+### 🚀 Features
+
+- *(dashboard)* Added oauth2/authorize page (#3939)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove react-table package (#3898)
+- *(deps)* Upgrade svelte due to vuln (#3935)
+- *(dashboard)* Reduce over-fetching of metadata export (#3937)
+- *(dashboard)* Avoid over-fetching table rows in event triggers page (#3940)
+- *(dashboard)* Use functions instead of static only classes (#3906)
+- *(dashboard)* Introduce new type to represent columns in BaseRecordForm (#3910)
+
 ## [@nhost/dashboard@2.50.0] - 2026-02-19
 
 ### 🚀 Features
