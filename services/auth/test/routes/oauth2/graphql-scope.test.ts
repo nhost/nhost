@@ -312,7 +312,7 @@ describe('oauth2-scope-claims', () => {
         'x-hasura-user-id': userId,
         'x-hasura-default-role': 'user',
         'x-hasura-allowed-roles': expect.arrayContaining(['user']),
-        'x-hasura-user-is-anonymous': 'false',
+        'x-hasura-user-is-anonymous': false,
         'x-hasura-displayname': DEMO_DISPLAY_NAME,
       },
     });

@@ -317,7 +317,7 @@ func (j *JWTGetter) RawGraphQLClaims(
 		"x-hasura-allowed-roles":     allowedRoles,
 		"x-hasura-default-role":      defaultRole,
 		"x-hasura-user-id":           userID.String(),
-		"x-hasura-user-is-anonymous": strconv.FormatBool(isAnonymous),
+		"x-hasura-user-is-anonymous": isAnonymous,
 	}
 
 	addRawClaimsToMap(c, customClaims, false)
