@@ -239,6 +239,31 @@ func (j *JWTGetter) addClaimsToMap(
 	return nil
 }
 
+// fetchCustomClaims fetches custom claims and returns them. If the custom
+// claimer is nil or returns an error, an empty map is returned.
+func (j *JWTGetter) fetchCustomClaims(
+	ctx context.Context,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) map[string]any {
+	if j.customClaimer == nil {
+		return nil
+	}
+
+	customClaims, err := j.customClaimer.GetClaims(ctx, userID.String())
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"error getting custom claims",
+			slog.String("error", err.Error()),
+		)
+
+		return map[string]any{}
+	}
+
+	return customClaims
+}
+
 func (j *JWTGetter) GraphQLClaims(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -248,22 +273,7 @@ func (j *JWTGetter) GraphQLClaims(
 	extraClaims map[string]any,
 	logger *slog.Logger,
 ) (string, map[string]any, error) {
-	var (
-		customClaims map[string]any
-		err          error
-	)
-	if j.customClaimer != nil {
-		customClaims, err = j.customClaimer.GetClaims(ctx, userID.String())
-		if err != nil {
-			logger.ErrorContext(
-				ctx,
-				"error getting custom claims",
-				slog.String("error", err.Error()),
-			)
-
-			customClaims = map[string]any{}
-		}
-	}
+	customClaims := j.fetchCustomClaims(ctx, userID, logger)
 
 	c := map[string]any{
 		"x-hasura-allowed-roles":     allowedRoles,
@@ -296,22 +306,7 @@ func (j *JWTGetter) RawGraphQLClaims(
 	extraClaims map[string]any,
 	logger *slog.Logger,
 ) (string, map[string]any, error) {
-	var (
-		customClaims map[string]any
-		err          error
-	)
-	if j.customClaimer != nil {
-		customClaims, err = j.customClaimer.GetClaims(ctx, userID.String())
-		if err != nil {
-			logger.ErrorContext(
-				ctx,
-				"error getting custom claims",
-				slog.String("error", err.Error()),
-			)
-
-			customClaims = map[string]any{}
-		}
-	}
+	customClaims := j.fetchCustomClaims(ctx, userID, logger)
 
 	c := map[string]any{
 		"x-hasura-allowed-roles":     allowedRoles,
