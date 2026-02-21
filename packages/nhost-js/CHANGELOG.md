@@ -1,3 +1,9 @@
+## [@nhost/nhost-js@4.5.1] - 2026-02-21
+
+### 🐛 Bug Fixes
+
+- *(deps)* Upgrade svelte due to vuln (#3935)
+
 ## [@nhost/nhost-js@4.5.0] - 2026-02-19
 
 ### 🚀 Features
