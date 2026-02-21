@@ -77,23 +77,14 @@ func (p *Provider) GetUserinfo( //nolint:cyclop,funlen
 	}
 
 	if slices.Contains(scopes, "graphql") {
-		userRoles, err := p.db.GetUserRoles(ctx, userID)
+		roles, err := p.resolveUserGraphQLRoles(ctx, user, userID)
 		if err != nil {
-			logger.ErrorContext(ctx, "error getting user roles", logError(err))
+			logger.ErrorContext(ctx, "error resolving user roles", logError(err))
 			return nil, &Error{Err: "server_error", Description: "Internal server error"}
 		}
 
-		allowedRoles := make([]string, 0, len(userRoles))
-		for _, role := range userRoles {
-			allowedRoles = append(allowedRoles, role.Role)
-		}
-
-		if !slices.Contains(allowedRoles, user.DefaultRole) {
-			allowedRoles = append(allowedRoles, user.DefaultRole)
-		}
-
 		ns, c, err := p.signer.RawGraphQLClaims(
-			ctx, userID, user.IsAnonymous, allowedRoles, user.DefaultRole, nil, logger,
+			ctx, userID, roles.IsAnonymous, roles.AllowedRoles, roles.DefaultRole, nil, logger,
 		)
 		if err != nil {
 			logger.ErrorContext(ctx, "error creating GraphQL claims", logError(err))
