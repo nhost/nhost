@@ -1,6 +1,6 @@
 import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import type { FetchTableReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 import { isNotEmptyValue } from '@/lib/utils';
 
 export interface UseColumnGroupsOptions {
@@ -15,7 +15,7 @@ export interface UseColumnGroupsOptions {
   /**
    * Table data to be used to determine the column groups.
    */
-  tableData?: FetchTableReturnType;
+  tableData?: FetchTableSchemaReturnType;
   /**
    * Metadata to be used to determine the column groups.
    */

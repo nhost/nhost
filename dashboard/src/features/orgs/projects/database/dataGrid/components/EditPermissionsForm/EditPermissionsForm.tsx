@@ -17,7 +17,7 @@ import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
@@ -73,7 +73,7 @@ export default function EditPermissionsForm({
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`default.${schema}.${table}`], { schema, table });
+  } = useTableSchemaQuery([`default.${schema}.${table}`], { schema, table });
 
   const {
     data: metadata,

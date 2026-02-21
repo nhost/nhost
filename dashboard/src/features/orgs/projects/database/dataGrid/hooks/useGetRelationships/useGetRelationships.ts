@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { useSuggestRelationshipsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 import type { RelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships';
 import { buildLocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/utils/buildLocalRelationshipViewModel';
 import { buildRemoteRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/utils/buildRemoteRelationshipViewModel';
@@ -40,11 +40,10 @@ export default function useGetRelationships({
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`${dataSource}.${schema}.${tableName}`], {
+  } = useTableSchemaQuery([`${dataSource}.${schema}.${tableName}`], {
     dataSource,
     schema,
     table: tableName,
-    preventRowFetching: true,
   });
 
   const foreignKeyRelations = useMemo(

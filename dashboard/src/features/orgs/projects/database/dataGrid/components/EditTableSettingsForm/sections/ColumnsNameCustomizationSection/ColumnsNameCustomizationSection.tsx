@@ -9,7 +9,7 @@ import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useSetTableCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation';
 import { useTableCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import { prepareCustomGraphQLColumnNameDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLColumnNameDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -70,7 +70,7 @@ export default function ColumnsNameCustomizationSection({
     error: tableDataError,
     isError: isTableDataError,
     isLoading: isLoadingTableQuery,
-  } = useTableQuery([`default.${schema}.${tableName}`], {
+  } = useTableSchemaQuery([`default.${schema}.${tableName}`], {
     schema,
     table: tableName,
   });

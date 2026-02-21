@@ -19,7 +19,7 @@ import {
 
 import useRuleGroupEditor from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/useRuleGroupEditor';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 import { cn } from '@/lib/utils';
 import type { UseAsyncValueOptions } from './useAsyncValue';
 import useAsyncValue from './useAsyncValue';
@@ -92,10 +92,9 @@ export default forwardRef(
       data: tableData,
       status: tableStatus,
       isFetching: isTableFetching,
-    } = useTableQuery([`default.${selectedSchema}.${selectedTable}`], {
+    } = useTableSchemaQuery([`default.${selectedSchema}.${selectedTable}`], {
       schema: selectedSchema,
       table: selectedTable,
-      preventRowFetching: true,
       queryOptions: { refetchOnWindowFocus: false },
     });
 

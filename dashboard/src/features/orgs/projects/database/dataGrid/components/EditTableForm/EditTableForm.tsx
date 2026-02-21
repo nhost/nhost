@@ -14,7 +14,7 @@ import {
   BaseTableForm,
   baseTableValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
 import type {
@@ -55,7 +55,7 @@ export default function EditTableForm({
     data,
     status: columnsStatus,
     error: columnsError,
-  } = useTableQuery([`default.${schema}.${originalTable.table_name}`], {
+  } = useTableSchemaQuery([`default.${schema}.${originalTable.table_name}`], {
     schema,
     table: originalTable.table_name,
   });
