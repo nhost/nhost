@@ -7,7 +7,7 @@ import { FormTextarea } from '@/components/form/FormTextarea';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { SelectItem } from '@/components/ui/v3/select';
-import type { DataBrowserGridColumnDef } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
+import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,7 @@ export interface DatabaseRecordInputGroupProps {
   /**
    * List of columns for which input fields should be generated.
    */
-  columns: DataBrowserGridColumnDef[];
+  columns: DataBrowserColumnMetadata[];
   /**
    * Title of the input group.
    */
@@ -121,8 +121,8 @@ export default function DatabaseRecordInputGroup({
       )}
       <div>
         {columns.map((column, index) => {
-          const { id: columnId, meta } = column;
           const {
+            id: columnId,
             type,
             specificType,
             defaultValue,
@@ -130,7 +130,7 @@ export default function DatabaseRecordInputGroup({
             isNullable,
             isIdentity,
             comment,
-          } = meta || {};
+          } = column;
 
           const isMultiline =
             specificType === 'text' ||
