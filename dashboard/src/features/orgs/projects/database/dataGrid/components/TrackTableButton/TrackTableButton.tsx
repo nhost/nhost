@@ -20,7 +20,7 @@ export default function TrackTableButton() {
   });
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
-  const { mutateAsync: setTableTracking, status } =
+  const { mutateAsync: setTableTracking, isPending: isMutatingTracking } =
     useSetTableTrackingMutation();
 
   const handleTrack = async () => {
@@ -39,7 +39,7 @@ export default function TrackTableButton() {
         });
       },
       {
-        successMessage: '',
+        successMessage: 'Table tracked successfully.',
         loadingMessage: 'Tracking table...',
         errorMessage: 'Failed to track table.',
       },
@@ -58,8 +58,8 @@ export default function TrackTableButton() {
       </span>
       <Button
         onClick={handleTrack}
-        disabled={status === 'loading'}
-        loading={status === 'loading'}
+        disabled={isMutatingTracking}
+        loading={isMutatingTracking}
         size="sm"
         variant="outline"
         className="border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
