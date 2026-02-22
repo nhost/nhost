@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
-import useGetMetadataResourceVersion from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion/useGetMetadataResourceVersion';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -27,10 +27,8 @@ export default function TrackUntrackSection({
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
-  const { mutateAsync: setTableTracking, status } =
+  const { mutateAsync: setTableTracking, isPending } =
     useSetTableTrackingMutation();
-
-  const isPending = status === 'loading';
 
   async function handleTrackToggle() {
     const tracked = !isTracked;

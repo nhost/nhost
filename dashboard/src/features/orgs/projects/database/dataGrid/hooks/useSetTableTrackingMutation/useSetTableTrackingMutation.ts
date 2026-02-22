@@ -32,8 +32,8 @@ export default function useSetTableTrackingMutation(
     SuccessResponse | MetadataOperation200,
     unknown,
     UseSetTableTrackingMutationVariables
-  >(
-    ({ tracked, resourceVersion, args }) => {
+  >({
+    mutationFn: ({ tracked, resourceVersion, args }) => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -54,13 +54,11 @@ export default function useSetTableTrackingMutation(
       }
       return setTableTrackingMigration({ tracked, args, ...base });
     },
-    {
-      ...mutationOptions,
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['export-metadata', project?.subdomain],
-        });
-      },
+    ...mutationOptions,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['export-metadata', project?.subdomain],
+      });
     },
-  );
+  });
 }

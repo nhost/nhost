@@ -28,7 +28,7 @@ export default function TrackTableButton() {
       async () => {
         await setTableTracking({
           tracked: true,
-          resourceVersion: resourceVersion,
+          resourceVersion,
           args: {
             source: dataSourceSlug as string,
             table: {

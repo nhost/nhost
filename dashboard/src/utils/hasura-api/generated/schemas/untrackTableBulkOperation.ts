@@ -12,6 +12,6 @@ export interface UntrackTableBulkOperation {
   type: UntrackTableBulkOperationType;
   source?: string;
   /** Resource version of the operation */
-  resource_version?: number;
+  resource_version: number;
   args: UntrackTableStep[];
 }

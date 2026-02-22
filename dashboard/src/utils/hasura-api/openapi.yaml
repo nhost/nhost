@@ -203,6 +203,7 @@ components:
       type: object
       required:
         - type
+        - resource_version
         - args
       properties:
         type:
