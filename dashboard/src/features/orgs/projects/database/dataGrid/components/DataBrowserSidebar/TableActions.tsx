@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
-import useGetTrackedTablesNames from '@/features/orgs/projects/common/hooks/useGetTrackedTablesNames/useGetTrackedTablesNames';
+import { useGetTrackedTablesNames } from '@/features/orgs/projects/common/hooks/useGetTrackedTablesNames';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 

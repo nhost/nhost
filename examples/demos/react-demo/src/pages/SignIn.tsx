@@ -22,15 +22,16 @@ export default function SignIn(): JSX.Element {
   const emailId = useId();
   const passwordId = useId();
 
+  const redirect = params.get('redirect');
   const magicLinkSent = params.get('magic') === 'success';
   const isVerifying = params.has('fromVerify');
 
   // Use useEffect for navigation after authentication is confirmed
   useEffect(() => {
     if (isAuthenticated && !isVerifying) {
-      navigate('/profile');
+      navigate(redirect || '/profile');
     }
-  }, [isAuthenticated, isVerifying, navigate]);
+  }, [isAuthenticated, isVerifying, navigate, redirect]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,13 +47,17 @@ export default function SignIn(): JSX.Element {
 
       // Check if MFA is required
       if (response.body?.mfa) {
-        navigate(`/signin/mfa?ticket=${response.body.mfa.ticket}`);
+        const mfaParams = new URLSearchParams({
+          ticket: response.body.mfa.ticket,
+        });
+        if (redirect) mfaParams.set('redirect', redirect);
+        navigate(`/signin/mfa?${mfaParams.toString()}`);
         return;
       }
 
       // If we have a session, sign in was successful
       if (response.body?.session) {
-        navigate('/profile');
+        navigate(redirect || '/profile');
       } else {
         setError('Failed to sign in');
       }

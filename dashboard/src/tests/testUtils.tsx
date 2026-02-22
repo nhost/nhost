@@ -1,5 +1,4 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: test utils */
-
 import {
   ApolloClient,
   ApolloProvider,

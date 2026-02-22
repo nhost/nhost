@@ -80,7 +80,7 @@ let
     ];
 
     src = nix-filter.lib.filter {
-      root = ./.;
+      root = ../..;
       include = [
         ./package.json
         ./bun.lock
@@ -89,8 +89,14 @@ let
     };
 
     buildPhase = ''
+      export HOME=$TMPDIR
+      mkdir -p packages
+      cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
+      cd ${submodule}
       bun install --frozen-lockfile
-      rm -r node_modules/.cache
+      rm -rf node_modules/.cache
+      rm -rf node_modules/@nhost/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js} node_modules/@nhost/nhost-js
     '';
 
     installPhase = ''

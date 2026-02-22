@@ -99,6 +99,24 @@ const (
 	IdTokenProviderGoogle IdTokenProvider = "google"
 )
 
+// Defines values for OAuth2IntrospectRequestTokenTypeHint.
+const (
+	OAuth2IntrospectRequestTokenTypeHintAccessToken  OAuth2IntrospectRequestTokenTypeHint = "access_token"
+	OAuth2IntrospectRequestTokenTypeHintRefreshToken OAuth2IntrospectRequestTokenTypeHint = "refresh_token"
+)
+
+// Defines values for OAuth2RevokeRequestTokenTypeHint.
+const (
+	OAuth2RevokeRequestTokenTypeHintAccessToken  OAuth2RevokeRequestTokenTypeHint = "access_token"
+	OAuth2RevokeRequestTokenTypeHintRefreshToken OAuth2RevokeRequestTokenTypeHint = "refresh_token"
+)
+
+// Defines values for OAuth2TokenRequestGrantType.
+const (
+	AuthorizationCode OAuth2TokenRequestGrantType = "authorization_code"
+	RefreshToken      OAuth2TokenRequestGrantType = "refresh_token"
+)
+
 // Defines values for OKResponse.
 const (
 	OK OKResponse = "OK"
@@ -163,6 +181,11 @@ const (
 	TicketTypeQueryEmailVerify        TicketTypeQuery = "emailVerify"
 	TicketTypeQueryPasswordReset      TicketTypeQuery = "passwordReset"
 	TicketTypeQuerySigninPasswordless TicketTypeQuery = "signinPasswordless"
+)
+
+// Defines values for Oauth2AuthorizeParamsCodeChallengeMethod.
+const (
+	S256 Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
 )
 
 // Defines values for SignInProviderParamsProvider.
@@ -451,6 +474,131 @@ type LinkIdTokenRequest struct {
 type MFAChallengePayload struct {
 	// Ticket Ticket to use when completing the MFA challenge
 	Ticket string `json:"ticket"`
+}
+
+// OAuth2DiscoveryResponse defines model for OAuth2DiscoveryResponse.
+type OAuth2DiscoveryResponse struct {
+	AuthorizationEndpoint                      string    `json:"authorization_endpoint"`
+	AuthorizationResponseIssParameterSupported *bool     `json:"authorization_response_iss_parameter_supported,omitempty"`
+	ClaimsSupported                            *[]string `json:"claims_supported,omitempty"`
+	ClientIdMetadataDocumentSupported          *bool     `json:"client_id_metadata_document_supported,omitempty"`
+	CodeChallengeMethodsSupported              *[]string `json:"code_challenge_methods_supported,omitempty"`
+	GrantTypesSupported                        *[]string `json:"grant_types_supported,omitempty"`
+	IdTokenSigningAlgValuesSupported           *[]string `json:"id_token_signing_alg_values_supported,omitempty"`
+	IntrospectionEndpoint                      *string   `json:"introspection_endpoint,omitempty"`
+	Issuer                                     string    `json:"issuer"`
+	JwksUri                                    string    `json:"jwks_uri"`
+	RequestParameterSupported                  *bool     `json:"request_parameter_supported,omitempty"`
+	ResponseTypesSupported                     []string  `json:"response_types_supported"`
+	RevocationEndpoint                         *string   `json:"revocation_endpoint,omitempty"`
+	ScopesSupported                            *[]string `json:"scopes_supported,omitempty"`
+	SubjectTypesSupported                      *[]string `json:"subject_types_supported,omitempty"`
+	TokenEndpoint                              string    `json:"token_endpoint"`
+	TokenEndpointAuthMethodsSupported          *[]string `json:"token_endpoint_auth_methods_supported,omitempty"`
+	UserinfoEndpoint                           *string   `json:"userinfo_endpoint,omitempty"`
+}
+
+// OAuth2ErrorResponse defines model for OAuth2ErrorResponse.
+type OAuth2ErrorResponse struct {
+	// Error OAuth2 error code
+	Error string `json:"error"`
+
+	// ErrorDescription Human-readable error description
+	ErrorDescription *string `json:"error_description,omitempty"`
+}
+
+// OAuth2IntrospectRequest defines model for OAuth2IntrospectRequest.
+type OAuth2IntrospectRequest struct {
+	ClientId      *string                               `json:"client_id"`
+	ClientSecret  *string                               `json:"client_secret"`
+	Token         string                                `json:"token"`
+	TokenTypeHint *OAuth2IntrospectRequestTokenTypeHint `json:"token_type_hint"`
+}
+
+// OAuth2IntrospectRequestTokenTypeHint defines model for OAuth2IntrospectRequest.TokenTypeHint.
+type OAuth2IntrospectRequestTokenTypeHint string
+
+// OAuth2IntrospectResponse defines model for OAuth2IntrospectResponse.
+type OAuth2IntrospectResponse struct {
+	Active    bool    `json:"active"`
+	ClientId  *string `json:"client_id,omitempty"`
+	Exp       *int    `json:"exp,omitempty"`
+	Iat       *int    `json:"iat,omitempty"`
+	Iss       *string `json:"iss,omitempty"`
+	Scope     *string `json:"scope,omitempty"`
+	Sub       *string `json:"sub,omitempty"`
+	TokenType *string `json:"token_type,omitempty"`
+}
+
+// OAuth2JWKSResponse defines model for OAuth2JWKSResponse.
+type OAuth2JWKSResponse struct {
+	Keys []JWK `json:"keys"`
+}
+
+// OAuth2LoginCompleteResponse defines model for OAuth2LoginCompleteResponse.
+type OAuth2LoginCompleteResponse struct {
+	RedirectUri string `json:"redirectUri"`
+}
+
+// OAuth2LoginRequest defines model for OAuth2LoginRequest.
+type OAuth2LoginRequest struct {
+	RequestId openapi_types.UUID `json:"requestId"`
+}
+
+// OAuth2LoginResponse defines model for OAuth2LoginResponse.
+type OAuth2LoginResponse struct {
+	ClientId    string             `json:"clientId"`
+	RedirectUri string             `json:"redirectUri"`
+	RequestId   openapi_types.UUID `json:"requestId"`
+	Scopes      []string           `json:"scopes"`
+}
+
+// OAuth2RevokeRequest defines model for OAuth2RevokeRequest.
+type OAuth2RevokeRequest struct {
+	ClientId      *string                           `json:"client_id"`
+	ClientSecret  *string                           `json:"client_secret"`
+	Token         string                            `json:"token"`
+	TokenTypeHint *OAuth2RevokeRequestTokenTypeHint `json:"token_type_hint"`
+}
+
+// OAuth2RevokeRequestTokenTypeHint defines model for OAuth2RevokeRequest.TokenTypeHint.
+type OAuth2RevokeRequestTokenTypeHint string
+
+// OAuth2TokenRequest defines model for OAuth2TokenRequest.
+type OAuth2TokenRequest struct {
+	ClientId     *string                     `json:"client_id"`
+	ClientSecret *string                     `json:"client_secret"`
+	Code         *string                     `json:"code"`
+	CodeVerifier *string                     `json:"code_verifier"`
+	GrantType    OAuth2TokenRequestGrantType `json:"grant_type"`
+	RedirectUri  *string                     `json:"redirect_uri"`
+	RefreshToken *string                     `json:"refresh_token"`
+	Resource     *string                     `json:"resource"`
+}
+
+// OAuth2TokenRequestGrantType defines model for OAuth2TokenRequest.GrantType.
+type OAuth2TokenRequestGrantType string
+
+// OAuth2TokenResponse defines model for OAuth2TokenResponse.
+type OAuth2TokenResponse struct {
+	AccessToken  string  `json:"access_token"`
+	ExpiresIn    int     `json:"expires_in"`
+	IdToken      *string `json:"id_token,omitempty"`
+	RefreshToken *string `json:"refresh_token,omitempty"`
+	Scope        *string `json:"scope,omitempty"`
+	TokenType    string  `json:"token_type"`
+}
+
+// OAuth2UserinfoResponse defines model for OAuth2UserinfoResponse.
+type OAuth2UserinfoResponse struct {
+	Email               *string `json:"email,omitempty"`
+	EmailVerified       *bool   `json:"email_verified,omitempty"`
+	Locale              *string `json:"locale,omitempty"`
+	Name                *string `json:"name,omitempty"`
+	PhoneNumber         *string `json:"phone_number,omitempty"`
+	PhoneNumberVerified *bool   `json:"phone_number_verified,omitempty"`
+	Picture             *string `json:"picture,omitempty"`
+	Sub                 string  `json:"sub"`
 }
 
 // OKResponse defines model for OKResponse.
@@ -893,6 +1041,64 @@ type TicketQuery = string
 // TicketTypeQuery Type of the ticket
 type TicketTypeQuery string
 
+// Oauth2AuthorizeParams defines parameters for Oauth2Authorize.
+type Oauth2AuthorizeParams struct {
+	// ClientId The OAuth2 client identifier (RFC 6749 Section 2.2).
+	ClientId string `form:"client_id" json:"client_id"`
+
+	// RedirectUri The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
+	RedirectUri string `form:"redirect_uri" json:"redirect_uri"`
+
+	// ResponseType The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+	ResponseType string `form:"response_type" json:"response_type"`
+
+	// Scope Space-delimited list of requested scopes (RFC 6749 Section 3.3).
+	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
+
+	// State Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
+	State *string `form:"state,omitempty" json:"state,omitempty"`
+
+	// Nonce String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
+	Nonce *string `form:"nonce,omitempty" json:"nonce,omitempty"`
+
+	// CodeChallenge PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
+	CodeChallenge *string `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+
+	// CodeChallengeMethod Only S256 is supported. The plain method is not allowed.
+	CodeChallengeMethod *Oauth2AuthorizeParamsCodeChallengeMethod `form:"code_challenge_method,omitempty" json:"code_challenge_method,omitempty"`
+
+	// Resource Resource indicator for the target service (RFC 8707).
+	Resource *string `form:"resource,omitempty" json:"resource,omitempty"`
+
+	// Prompt Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
+	Prompt *string `form:"prompt,omitempty" json:"prompt,omitempty"`
+}
+
+// Oauth2AuthorizeParamsCodeChallengeMethod defines parameters for Oauth2Authorize.
+type Oauth2AuthorizeParamsCodeChallengeMethod string
+
+// Oauth2AuthorizePostFormdataBody defines parameters for Oauth2AuthorizePost.
+type Oauth2AuthorizePostFormdataBody struct {
+	ClientId      string  `form:"client_id" json:"client_id"`
+	CodeChallenge *string `form:"code_challenge" json:"code_challenge"`
+
+	// CodeChallengeMethod Only S256 is supported. The plain method is not allowed.
+	CodeChallengeMethod *string `form:"code_challenge_method" json:"code_challenge_method"`
+	Nonce               *string `form:"nonce" json:"nonce"`
+	Prompt              *string `form:"prompt" json:"prompt"`
+	RedirectUri         string  `form:"redirect_uri" json:"redirect_uri"`
+	Resource            *string `form:"resource" json:"resource"`
+	ResponseType        string  `form:"response_type" json:"response_type"`
+	Scope               *string `form:"scope" json:"scope"`
+	State               *string `form:"state" json:"state"`
+}
+
+// Oauth2LoginGetParams defines parameters for Oauth2LoginGet.
+type Oauth2LoginGetParams struct {
+	// RequestId The pending authorization request identifier.
+	RequestId openapi_types.UUID `form:"request_id" json:"request_id"`
+}
+
 // SignInProviderParams defines parameters for SignInProvider.
 type SignInProviderParams struct {
 	// AllowedRoles Array of allowed roles for the user
@@ -1010,6 +1216,21 @@ type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest
 
 // LinkIdTokenJSONRequestBody defines body for LinkIdToken for application/json ContentType.
 type LinkIdTokenJSONRequestBody = LinkIdTokenRequest
+
+// Oauth2AuthorizePostFormdataRequestBody defines body for Oauth2AuthorizePost for application/x-www-form-urlencoded ContentType.
+type Oauth2AuthorizePostFormdataRequestBody Oauth2AuthorizePostFormdataBody
+
+// Oauth2IntrospectFormdataRequestBody defines body for Oauth2Introspect for application/x-www-form-urlencoded ContentType.
+type Oauth2IntrospectFormdataRequestBody = OAuth2IntrospectRequest
+
+// Oauth2LoginPostJSONRequestBody defines body for Oauth2LoginPost for application/json ContentType.
+type Oauth2LoginPostJSONRequestBody = OAuth2LoginRequest
+
+// Oauth2RevokeFormdataRequestBody defines body for Oauth2Revoke for application/x-www-form-urlencoded ContentType.
+type Oauth2RevokeFormdataRequestBody = OAuth2RevokeRequest
+
+// Oauth2TokenFormdataRequestBody defines body for Oauth2Token for application/x-www-form-urlencoded ContentType.
+type Oauth2TokenFormdataRequestBody = OAuth2TokenRequest
 
 // CreatePATJSONRequestBody defines body for CreatePAT for application/json ContentType.
 type CreatePATJSONRequestBody = CreatePATRequest

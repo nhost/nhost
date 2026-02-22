@@ -170,6 +170,18 @@ export default function SubscriptionPlan() {
                   <FormDescription className="w-2/3 text-xs">
                     {planDescriptions[plan.name]}
                   </FormDescription>
+                  {plan.isFree && !isFreeOrg && (
+                    <FormDescription className="text-muted-foreground text-xs">
+                      Downgrading is not available. To move to Starter, transfer
+                      your projects to a Starter organization and cancel this
+                      organization. See{' '}
+                      <TextLink href="https://docs.nhost.io/platform/cloud/billing#downgrading-to-starter">
+                        documentation
+                        <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
+                      </TextLink>{' '}
+                      for details.
+                    </FormDescription>
+                  )}
                 </div>
               </div>
 
@@ -180,7 +192,7 @@ export default function SubscriptionPlan() {
           </FormItem>
         );
       }),
-    [plans],
+    [plans, isFreeOrg],
   );
 
   return (

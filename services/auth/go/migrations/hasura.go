@@ -667,6 +667,30 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 							},
 						},
 					},
+					{
+						Name: "oauth2AuthRequests",
+						Using: ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
+								Table: Table{
+									Schema: "auth",
+									Name:   "oauth2_auth_requests",
+								},
+								Columns: []string{"user_id"},
+							},
+						},
+					},
+					{
+						Name: "oauth2RefreshTokens",
+						Using: ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
+								Table: Table{
+									Schema: "auth",
+									Name:   "oauth2_refresh_tokens",
+								},
+								Columns: []string{"user_id"},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -740,6 +764,250 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 					},
 				},
 				ObjectRelationships: []ObjectRelationshipConfig{
+					{
+						Name: "user",
+						Using: ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "user_id",
+						},
+					},
+				},
+			},
+		},
+		{ //nolint:exhaustruct
+			Type: "pg_track_table",
+			Args: PgTrackTableArgs{
+				Source: hasuraDBName,
+				Table: Table{
+					Schema: "auth",
+					Name:   "oauth2_clients",
+				},
+				Configuration: Configuration{
+					CustomName: "authOauth2Clients",
+					CustomRootFields: CustomRootFields{
+						Select:          "authOauth2Clients",
+						SelectByPk:      "authOauth2Client",
+						SelectAggregate: "authOauth2ClientsAggregate",
+						Insert:          "insertAuthOauth2Clients",
+						InsertOne:       "insertAuthOauth2Client",
+						Update:          "updateAuthOauth2Clients",
+						UpdateByPk:      "updateAuthOauth2Client",
+						Delete:          "deleteAuthOauth2Clients",
+						DeleteByPk:      "deleteAuthOauth2Client",
+					},
+					CustomColumnNames: map[string]string{
+						"client_id":                    "clientId",
+						"client_secret_hash":           "clientSecretHash",
+						"redirect_uris":                "redirectUris",
+						"scopes":                       "scopes",
+						"type":                         "type",
+						"metadata":                     "metadata",
+						"metadata_document_fetched_at": "metadataDocumentFetchedAt",
+						"created_by":                   "createdBy",
+						"created_at":                   "createdAt",
+						"updated_at":                   "updatedAt",
+					},
+				},
+				ObjectRelationships: []ObjectRelationshipConfig{
+					{
+						Name: "createdByUser",
+						Using: ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "created_by",
+						},
+					},
+				},
+				ArrayRelationships: []ArrayRelationshipConfig{
+					{
+						Name: "authRequests",
+						Using: ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
+								Table: Table{
+									Schema: "auth",
+									Name:   "oauth2_auth_requests",
+								},
+								Columns: []string{"client_id"},
+							},
+						},
+					},
+					{
+						Name: "oauth2RefreshTokens",
+						Using: ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
+								Table: Table{
+									Schema: "auth",
+									Name:   "oauth2_refresh_tokens",
+								},
+								Columns: []string{"client_id"},
+							},
+						},
+					},
+				},
+			},
+		},
+		{ //nolint:exhaustruct
+			Type: "pg_track_table",
+			Args: PgTrackTableArgs{
+				Source: hasuraDBName,
+				Table: Table{
+					Schema: "auth",
+					Name:   "oauth2_auth_requests",
+				},
+				Configuration: Configuration{
+					CustomName: "authOauth2AuthRequests",
+					CustomRootFields: CustomRootFields{
+						Select:          "authOauth2AuthRequests",
+						SelectByPk:      "authOauth2AuthRequest",
+						SelectAggregate: "authOauth2AuthRequestsAggregate",
+						Insert:          "insertAuthOauth2AuthRequests",
+						InsertOne:       "insertAuthOauth2AuthRequest",
+						Update:          "updateAuthOauth2AuthRequests",
+						UpdateByPk:      "updateAuthOauth2AuthRequest",
+						Delete:          "deleteAuthOauth2AuthRequests",
+						DeleteByPk:      "deleteAuthOauth2AuthRequest",
+					},
+					CustomColumnNames: map[string]string{
+						"id":                    "id",
+						"client_id":             "clientId",
+						"scopes":                "scopes",
+						"redirect_uri":          "redirectUri",
+						"state":                 "state",
+						"nonce":                 "nonce",
+						"response_type":         "responseType",
+						"code_challenge":        "codeChallenge",
+						"code_challenge_method": "codeChallengeMethod",
+						"resource":              "resource",
+						"user_id":               "userId",
+						"done":                  "done",
+						"auth_time":             "authTime",
+						"created_at":            "createdAt",
+						"expires_at":            "expiresAt",
+					},
+				},
+				ObjectRelationships: []ObjectRelationshipConfig{
+					{
+						Name: "client",
+						Using: ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "client_id",
+						},
+					},
+					{
+						Name: "user",
+						Using: ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "user_id",
+						},
+					},
+				},
+				ArrayRelationships: []ArrayRelationshipConfig{
+					{
+						Name: "authorizationCodes",
+						Using: ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
+								Table: Table{
+									Schema: "auth",
+									Name:   "oauth2_authorization_codes",
+								},
+								Columns: []string{"auth_request_id"},
+							},
+						},
+					},
+					{
+						Name: "refreshTokens",
+						Using: ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
+								Table: Table{
+									Schema: "auth",
+									Name:   "oauth2_refresh_tokens",
+								},
+								Columns: []string{"auth_request_id"},
+							},
+						},
+					},
+				},
+			},
+		},
+		{ //nolint:exhaustruct
+			Type: "pg_track_table",
+			Args: PgTrackTableArgs{ //nolint:exhaustruct
+				Source: hasuraDBName,
+				Table: Table{
+					Schema: "auth",
+					Name:   "oauth2_authorization_codes",
+				},
+				Configuration: Configuration{
+					CustomName: "authOauth2AuthorizationCodes",
+					CustomRootFields: CustomRootFields{
+						Select:          "authOauth2AuthorizationCodes",
+						SelectByPk:      "authOauth2AuthorizationCode",
+						SelectAggregate: "authOauth2AuthorizationCodesAggregate",
+						Insert:          "insertAuthOauth2AuthorizationCodes",
+						InsertOne:       "insertAuthOauth2AuthorizationCode",
+						Update:          "updateAuthOauth2AuthorizationCodes",
+						UpdateByPk:      "updateAuthOauth2AuthorizationCode",
+						Delete:          "deleteAuthOauth2AuthorizationCodes",
+						DeleteByPk:      "deleteAuthOauth2AuthorizationCode",
+					},
+					CustomColumnNames: map[string]string{
+						"id":              "id",
+						"code_hash":       "codeHash",
+						"auth_request_id": "authRequestId",
+						"created_at":      "createdAt",
+						"expires_at":      "expiresAt",
+					},
+				},
+				ObjectRelationships: []ObjectRelationshipConfig{
+					{
+						Name: "authRequest",
+						Using: ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "auth_request_id",
+						},
+					},
+				},
+			},
+		},
+		{ //nolint:exhaustruct
+			Type: "pg_track_table",
+			Args: PgTrackTableArgs{ //nolint:exhaustruct
+				Source: hasuraDBName,
+				Table: Table{
+					Schema: "auth",
+					Name:   "oauth2_refresh_tokens",
+				},
+				Configuration: Configuration{
+					CustomName: "authOauth2RefreshTokens",
+					CustomRootFields: CustomRootFields{
+						Select:          "authOauth2RefreshTokens",
+						SelectByPk:      "authOauth2RefreshToken",
+						SelectAggregate: "authOauth2RefreshTokensAggregate",
+						Insert:          "insertAuthOauth2RefreshTokens",
+						InsertOne:       "insertAuthOauth2RefreshToken",
+						Update:          "updateAuthOauth2RefreshTokens",
+						UpdateByPk:      "updateAuthOauth2RefreshToken",
+						Delete:          "deleteAuthOauth2RefreshTokens",
+						DeleteByPk:      "deleteAuthOauth2RefreshToken",
+					},
+					CustomColumnNames: map[string]string{
+						"id":              "id",
+						"token_hash":      "tokenHash",
+						"auth_request_id": "authRequestId",
+						"client_id":       "clientId",
+						"user_id":         "userId",
+						"scopes":          "scopes",
+						"created_at":      "createdAt",
+						"expires_at":      "expiresAt",
+					},
+				},
+				ObjectRelationships: []ObjectRelationshipConfig{
+					{
+						Name: "authRequest",
+						Using: ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "auth_request_id",
+						},
+					},
+					{
+						Name: "client",
+						Using: ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "client_id",
+						},
+					},
 					{
 						Name: "user",
 						Using: ObjectRelationshipConfigUsing{

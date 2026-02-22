@@ -62,7 +62,7 @@ jobs:
       - name: "Inspect artifacts"
         run: find ~/artifacts
 
-      - name: "Push docker image to docker hub"
+      - name: "Push docker image to ECR"
         run: |
           export NAME=${{ inputs.NAME }}
           export VERSION=${{ steps.vars.outputs.VERSION }}
@@ -72,8 +72,7 @@ jobs:
           for ARCH in "x86_64" "aarch64"; do
             skopeo copy --insecure-policy \
               dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image-$ARCH-$VERSION \
-              docker-daemon:$CONTAINER_NAME:$VERSION-$ARCH
-            docker push $CONTAINER_NAME:$VERSION-$ARCH
+              docker://$CONTAINER_NAME:$VERSION-$ARCH
           done
 
           docker manifest create \

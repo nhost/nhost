@@ -15,7 +15,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
 import { cn } from '@/lib/utils';
+import { isVersionGte } from '@/utils/compareVersions';
 
 type Option = {
   value: string;
@@ -23,7 +27,7 @@ type Option = {
   route: string;
 };
 
-const projectSettingsPages = [
+const allProjectSettingsPages = [
   { name: 'General', slug: 'general', route: '' },
   {
     name: 'Compute Resources',
@@ -72,6 +76,11 @@ const projectSettingsPages = [
     route: 'rate-limiting',
   },
   { name: 'AI', slug: 'ai', route: 'ai' },
+  {
+    name: 'OAuth2 Provider',
+    slug: 'oauth2-provider',
+    route: 'oauth2-provider',
+  },
   { name: 'Observability', slug: 'metrics', route: 'metrics' },
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ].map((item) => ({
@@ -86,6 +95,20 @@ export default function ProjectSettingsPagesComboBox() {
     push,
     asPath,
   } = useRouter();
+  const isPlatform = useIsPlatform();
+  const { auth } = useSoftwareVersionsInfo();
+
+  const isOAuth2Available =
+    !isPlatform ||
+    isVersionGte(auth.configuredVersion, MIN_AUTH_VERSION_OAUTH2);
+
+  const projectSettingsPages = useMemo(
+    () =>
+      allProjectSettingsPages.filter(
+        (page) => page.value !== 'oauth2-provider' || isOAuth2Available,
+      ),
+    [isOAuth2Available],
+  );
 
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
   const isSettingsPage = pathSegments.includes('settings');

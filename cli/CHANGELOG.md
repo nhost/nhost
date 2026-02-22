@@ -1,3 +1,20 @@
+## [cli@1.38.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(auth)* Added oauth2/oidc provider functionality (#3922)
+
+
+### 🐛 Bug Fixes
+
+- *(docs)* Fix CLI reference documentation (#3895)
+- *(nixops)* Bump go to 1.26.0 (#3907)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.50.0 (#3919)
+
 ## [cli@1.37.0] - 2026-02-05
 
 ### 🚀 Features

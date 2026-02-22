@@ -61,8 +61,8 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			Version: new(string),
 			JwtSecrets: []*model.ConfigJWTSecret{
 				{
-					Type: new("HS256"),
-					Key:  new("secret"),
+					Type: new("RS256"),
+					Key:  new("pubKey"),
 				},
 			},
 			AdminSecret:   "adminsecret",
@@ -386,6 +386,23 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				Global: &model.ConfigRateLimit{
 					Limit:    100,
 					Interval: "15m",
+				},
+				Oauth2Server: &model.ConfigRateLimit{
+					Limit:    100,
+					Interval: "5m",
+				},
+			},
+			Oauth2Provider: &model.ConfigAuthOauth2Provider{
+				Enabled: new(true),
+				AccessToken: &model.ConfigAuthOauth2ProviderAccessToken{
+					ExpiresIn: new(uint32(900)),
+				},
+				RefreshToken: &model.ConfigAuthOauth2ProviderRefreshToken{
+					ExpiresIn: new(uint32(2592000)),
+				},
+				LoginURL: new("https://example.com/oauth2/login"),
+				ClientIdMetadataDocument: &model.ConfigAuthOauth2ProviderClientIdMetadataDocument{
+					Enabled: new(true),
 				},
 			},
 		},

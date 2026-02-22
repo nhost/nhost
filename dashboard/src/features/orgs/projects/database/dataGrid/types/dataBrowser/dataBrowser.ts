@@ -1,5 +1,12 @@
-import type { Cell, CellProps, ColumnInstance, Row } from 'react-table';
+import type {
+  Cell,
+  CellContext,
+  Column,
+  ColumnDef,
+  Row,
+} from '@tanstack/react-table';
 import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 
 /**
  * Base options for functions that is used by data browser mutations or queries.
@@ -224,8 +231,7 @@ export interface ColumnInsertOptions {
   /**
    * Value for the column.
    */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  value?: any;
+  value?: unknown;
   /**
    * Fallback value if the column value is `undefined`.
    */
@@ -452,88 +458,119 @@ export interface DatabaseTable {
 }
 
 /**
- * Represents a column in the data browser.
+ * Represents the metadata of a column in the data browser.
  */
-export interface DataBrowserGridColumn<TData extends object = {}>
-  extends ColumnInstance<TData>,
-    Omit<DatabaseColumn, 'id' | 'name' | 'type' | 'defaultValue'> {
+export interface DataBrowserColumnMetadata {
   /**
-   * Function to be called when the cell is saved.
+   * Identifier of the column.
    */
-  onCellEdit?: (options: {
-    row: DataBrowserGridRow<TData>;
-    columnsToUpdate: Record<string, ColumnUpdateOptions>;
-  }) => Promise<Row<TData>>;
+  id: string;
   /**
-   * Determines whether or not the cell is editable.
+   * Simple type of the column.
    */
-  isEditable?: boolean;
+  type: 'text' | 'number' | 'boolean' | 'date' | 'uuid';
   /**
-   * Determines whether or not the column is disabled.
+   * Specific database type of the column (e.g. `timestamptz`).
    */
-  isDisabled?: boolean;
+  specificType: ColumnType;
+  /**
+   * Data type of the column (e.g. `timestamp with time zone`).
+   */
+  dataType: string;
   /**
    * Default value of the column.
    */
+  defaultValue?: string;
+  /**
+   * Determines whether or not the column is a primary key of the table.
+   */
+  isPrimary?: boolean;
+  /**
+   * Determines whether or not the column is nullable.
+   */
+  isNullable?: boolean;
+  /**
+   * Determines whether or not the column is identity.
+   */
+  isIdentity?: boolean;
+  /**
+   * Determines whether or not the column is unique.
+   */
+  isUnique?: boolean;
+  /**
+   * Comment of the column.
+   */
+  comment?: string | null;
+  /**
+   * Foreign key relation of the column.
+   */
   // biome-ignore lint/suspicious/noExplicitAny: TODO
-  defaultValue?: any;
+  foreignKeyRelation?: any;
+  /**
+   * Determines whether or not the column is editable.
+   */
+  isEditable?: boolean;
   /**
    * Determines whether or not the default value is custom.
    */
   isDefaultValueCustom?: boolean;
   /**
-   * More generic type of the column. Determines what type of input field is
-   * rendered.
+   * Name of unique constraints on the column.
    */
-  type?: 'text' | 'number' | 'date' | 'boolean' | 'uuid';
+  uniqueConstraints?: string[];
   /**
-   * The actual type alias of the column.
-   *
-   * @example 'character varying' | 'char' | 'int8' ...
+   * Name of primary key constraints on the column.
    */
-  specificType?: ColumnType;
-  /**
-   * Determines whether or not the cell content is copiable.
-   */
-  isCopiable?: boolean;
-  dataType?: string;
+  primaryConstraints?: string[];
 }
+
+/**
+ * Represents a column in the data browser.
+ */
+export type DataBrowserGridColumn<
+  TData extends object = {},
+  TValue = unknown,
+> = Column<TData, TValue>;
+
+/**
+ * Represents a column definition in the data browser.
+ */
+export type DataBrowserGridColumnDef<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+  TValue = unknown,
+> = ColumnDef<TData, TValue>;
 
 /**
  * Represents a cell in the data browser.
  */
-// biome-ignore lint/suspicious/noExplicitAny: TODO
-export interface DataBrowserGridCell<TData extends object = {}, TValue = any>
-  extends Omit<Cell<TData, TValue>, 'column'> {
+export interface DataBrowserGridCell<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+  TValue = unknown,
+> extends Omit<Cell<TData, TValue>, 'column'> {
   /**
    * Column name.
    */
-  column: DataBrowserGridColumn<TData>;
+  column: DataBrowserGridColumn<TData, TValue>;
 }
 
 /**
  * Represents a row in the data browser.
  */
-export interface DataBrowserGridRow<TData extends object = {}>
-  extends Row<TData> {
-  /**
-   * List of cells in the row.
-   */
-  cells: DataBrowserGridCell<TData>[];
-}
+export type DataBrowserGridRow<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+> = Row<TData>;
 
 /**
  * Represents the properties of a cell.
  */
 export interface DataBrowserGridCellProps<
-  TData extends object = {},
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  TValue = any,
-> extends CellProps<TData, TValue> {
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+  TValue = unknown,
+> extends CellContext<TData, TValue> {
   /**
    * Data browser grid column props.
    */
-  column: DataBrowserGridColumn<TData>;
+  column: DataBrowserGridColumn<TData, TValue>;
   /**
    * Data browser grid cell props.
    */
@@ -582,7 +619,12 @@ export type HasuraOperator =
   | '_clt'
   | '_cgte'
   | '_clte'
-  | '_is_null';
+  | '_is_null'
+  | '_contains'
+  | '_contained_in'
+  | '_has_key'
+  | '_has_keys_any'
+  | '_has_keys_all';
 
 /**
  * Represents a rule. A rule is a single condition in a rule group.

@@ -1,3 +1,7 @@
+- "!include auth_oauth2_auth_requests.yaml"
+- "!include auth_oauth2_authorization_codes.yaml"
+- "!include auth_oauth2_clients.yaml"
+- "!include auth_oauth2_refresh_tokens.yaml"
 - "!include auth_provider_requests.yaml"
 - "!include auth_providers.yaml"
 - "!include auth_refresh_token_types.yaml"

@@ -23,7 +23,7 @@ func expectedGraphql() *Service {
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
-			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,http://*.hasura.local.nhost.run:1337,http://*.dashboard.local.nhost.run:1337",
+			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,https://app.nhost.io,http://*.hasura.local.nhost.run:1337,http://*.dashboard.local.nhost.run:1337",
 			"HASURA_GRAPHQL_DATABASE_URL":                              "postgres://nhost_hasura@postgres:5432/local",
 			"HASURA_GRAPHQL_DEV_MODE":                                  "false",
 			"HASURA_GRAPHQL_DISABLE_CORS":                              "false",
@@ -162,7 +162,7 @@ func expectedConsole() *Service {
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
-			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,http://*.hasura.local.nhost.run:1337", //nolint:lll
+			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,https://app.nhost.io,http://*.hasura.local.nhost.run:1337", //nolint:lll
 			"HASURA_GRAPHQL_DATABASE_URL":                              "postgres://nhost_hasura@postgres:5432/local",
 			"HASURA_GRAPHQL_DEV_MODE":                                  "false",
 			"HASURA_GRAPHQL_DISABLE_CORS":                              "false",

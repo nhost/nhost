@@ -1,5 +1,5 @@
 import type { InputProps } from '@/components/ui/v2/Input';
-import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { ColumnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 /**
  * Get the input type based on the column type.
@@ -7,13 +7,13 @@ import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/da
  * @param column - Column
  * @returns Input type
  */
-export default function getInputType<T extends {}>({
+export default function getInputType({
   type,
   specificType,
-}: Pick<
-  DataBrowserGridColumn<T>,
-  'type' | 'specificType'
->): InputProps['type'] {
+}: {
+  type?: string;
+  specificType?: ColumnType | null;
+}): InputProps['type'] {
   if (
     type === 'date' &&
     ['timestamp', 'timestamptz'].includes(specificType as string)

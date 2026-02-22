@@ -29,7 +29,7 @@ type HIBPClient interface {
 
 type Workflows struct {
 	config               *Config
-	jwtGetter            JWTGetter
+	jwtGetter            *JWTGetter
 	db                   DBClient
 	hibp                 HIBPClient
 	email                Emailer
@@ -42,7 +42,7 @@ type Workflows struct {
 
 func NewWorkflows(
 	cfg *Config,
-	jwtGetter JWTGetter,
+	jwtGetter *JWTGetter,
 	db DBClient,
 	hibp HIBPClient,
 	email Emailer,
@@ -601,7 +601,7 @@ func (wf *Workflows) GetJWTInContext(
 	jwtToken, ok := wf.jwtGetter.FromContext(ctx)
 	if !ok {
 		logger.ErrorContext(ctx,
-			"jwt token not found in context, this should not be possilble due to middleware",
+			"jwt token not found in context, this should not be possible due to middleware",
 		)
 
 		return uuid.UUID{}, ErrInvalidRequest

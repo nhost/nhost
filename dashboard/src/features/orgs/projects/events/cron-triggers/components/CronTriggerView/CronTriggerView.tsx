@@ -9,9 +9,9 @@ import {
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { PaginationControls } from '@/features/orgs/projects/events/common/components/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
+import { useGetScheduledEventLogsQuery } from '@/features/orgs/projects/events/common/hooks/useGetScheduledEventLogsQuery';
 import { CronTriggerEventsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable';
 import type { CronTriggerEventsSection } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable/cronTriggerEventsDataTableColumns';
-import { useGetCronEventLogsQuery } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronEventLogsQuery';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { isEmptyValue } from '@/lib/utils';
 import CronTriggerViewSkeleton from './CronTriggerViewSkeleton';
@@ -48,8 +48,9 @@ export default function CronTriggerView() {
     isLoading: isEventsLoading,
   } = useEventPagination({
     initialLimit: 10,
-    useQueryHook: useGetCronEventLogsQuery,
+    useQueryHook: useGetScheduledEventLogsQuery,
     getQueryArgs: (limitArg, offsetArg) => ({
+      type: 'cron' as const,
       trigger_name: triggerName,
       eventLogsSection,
       limit: limitArg,

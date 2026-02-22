@@ -77,6 +77,7 @@ type ConfigAuth struct {
 	ElevatedPrivileges *ConfigAuthElevatedPrivileges `json:"elevatedPrivileges,omitempty"`
 	Method             *ConfigAuthMethod             `json:"method,omitempty"`
 	Misc               *ConfigAuthMisc               `json:"misc,omitempty"`
+	Oauth2Provider     *ConfigAuthOauth2Provider     `json:"oauth2Provider,omitempty"`
 	RateLimit          *ConfigAuthRateLimit          `json:"rateLimit,omitempty"`
 	Redirections       *ConfigAuthRedirections       `json:"redirections,omitempty"`
 	// Resources for the service
@@ -330,20 +331,62 @@ type ConfigAuthMiscUpdateInput struct {
 	ConcealErrors *bool `json:"concealErrors,omitempty"`
 }
 
+type ConfigAuthOauth2Provider struct {
+	AccessToken              *ConfigAuthOauth2ProviderAccessToken              `json:"accessToken,omitempty"`
+	ClientIDMetadataDocument *ConfigAuthOauth2ProviderClientIDMetadataDocument `json:"clientIdMetadataDocument,omitempty"`
+	Enabled                  *bool                                             `json:"enabled,omitempty"`
+	LoginURL                 *string                                           `json:"loginURL,omitempty"`
+	RefreshToken             *ConfigAuthOauth2ProviderRefreshToken             `json:"refreshToken,omitempty"`
+}
+
+type ConfigAuthOauth2ProviderAccessToken struct {
+	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
+}
+
+type ConfigAuthOauth2ProviderAccessTokenUpdateInput struct {
+	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
+}
+
+type ConfigAuthOauth2ProviderClientIDMetadataDocument struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+type ConfigAuthOauth2ProviderClientIDMetadataDocumentUpdateInput struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+type ConfigAuthOauth2ProviderRefreshToken struct {
+	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
+}
+
+type ConfigAuthOauth2ProviderRefreshTokenUpdateInput struct {
+	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
+}
+
+type ConfigAuthOauth2ProviderUpdateInput struct {
+	AccessToken              *ConfigAuthOauth2ProviderAccessTokenUpdateInput              `json:"accessToken,omitempty"`
+	ClientIDMetadataDocument *ConfigAuthOauth2ProviderClientIDMetadataDocumentUpdateInput `json:"clientIdMetadataDocument,omitempty"`
+	Enabled                  *bool                                                        `json:"enabled,omitempty"`
+	LoginURL                 *string                                                      `json:"loginURL,omitempty"`
+	RefreshToken             *ConfigAuthOauth2ProviderRefreshTokenUpdateInput             `json:"refreshToken,omitempty"`
+}
+
 type ConfigAuthRateLimit struct {
-	BruteForce *ConfigRateLimit `json:"bruteForce,omitempty"`
-	Emails     *ConfigRateLimit `json:"emails,omitempty"`
-	Global     *ConfigRateLimit `json:"global,omitempty"`
-	Signups    *ConfigRateLimit `json:"signups,omitempty"`
-	Sms        *ConfigRateLimit `json:"sms,omitempty"`
+	BruteForce   *ConfigRateLimit `json:"bruteForce,omitempty"`
+	Emails       *ConfigRateLimit `json:"emails,omitempty"`
+	Global       *ConfigRateLimit `json:"global,omitempty"`
+	Oauth2Server *ConfigRateLimit `json:"oauth2Server,omitempty"`
+	Signups      *ConfigRateLimit `json:"signups,omitempty"`
+	Sms          *ConfigRateLimit `json:"sms,omitempty"`
 }
 
 type ConfigAuthRateLimitUpdateInput struct {
-	BruteForce *ConfigRateLimitUpdateInput `json:"bruteForce,omitempty"`
-	Emails     *ConfigRateLimitUpdateInput `json:"emails,omitempty"`
-	Global     *ConfigRateLimitUpdateInput `json:"global,omitempty"`
-	Signups    *ConfigRateLimitUpdateInput `json:"signups,omitempty"`
-	Sms        *ConfigRateLimitUpdateInput `json:"sms,omitempty"`
+	BruteForce   *ConfigRateLimitUpdateInput `json:"bruteForce,omitempty"`
+	Emails       *ConfigRateLimitUpdateInput `json:"emails,omitempty"`
+	Global       *ConfigRateLimitUpdateInput `json:"global,omitempty"`
+	Oauth2Server *ConfigRateLimitUpdateInput `json:"oauth2Server,omitempty"`
+	Signups      *ConfigRateLimitUpdateInput `json:"signups,omitempty"`
+	Sms          *ConfigRateLimitUpdateInput `json:"sms,omitempty"`
 }
 
 type ConfigAuthRedirections struct {
@@ -425,6 +468,7 @@ type ConfigAuthUpdateInput struct {
 	ElevatedPrivileges *ConfigAuthElevatedPrivilegesUpdateInput `json:"elevatedPrivileges,omitempty"`
 	Method             *ConfigAuthMethodUpdateInput             `json:"method,omitempty"`
 	Misc               *ConfigAuthMiscUpdateInput               `json:"misc,omitempty"`
+	Oauth2Provider     *ConfigAuthOauth2ProviderUpdateInput     `json:"oauth2Provider,omitempty"`
 	RateLimit          *ConfigAuthRateLimitUpdateInput          `json:"rateLimit,omitempty"`
 	Redirections       *ConfigAuthRedirectionsUpdateInput       `json:"redirections,omitempty"`
 	Resources          *ConfigResourcesUpdateInput              `json:"resources,omitempty"`

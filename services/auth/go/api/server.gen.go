@@ -28,6 +28,12 @@ type ServerInterface interface {
 	// Get public keys for JWT verification in JWK Set format
 	// (GET /.well-known/jwks.json)
 	GetJWKs(c *gin.Context)
+	// OAuth2 Authorization Server Metadata
+	// (GET /.well-known/oauth-authorization-server)
+	GetOAuthAuthorizationServer(c *gin.Context)
+	// OpenID Connect Discovery
+	// (GET /.well-known/openid-configuration)
+	GetOpenIDConfiguration(c *gin.Context)
 	// Elevate access for an already signed in user using FIDO2 Webauthn
 	// (POST /elevate/webauthn)
 	ElevateWebauthn(c *gin.Context)
@@ -46,6 +52,36 @@ type ServerInterface interface {
 	// Generate TOTP secret
 	// (GET /mfa/totp/generate)
 	ChangeUserMfa(c *gin.Context)
+	// OAuth2 Authorization Endpoint
+	// (GET /oauth2/authorize)
+	Oauth2Authorize(c *gin.Context, params Oauth2AuthorizeParams)
+	// OAuth2 Authorization Endpoint (POST)
+	// (POST /oauth2/authorize)
+	Oauth2AuthorizePost(c *gin.Context)
+	// OAuth2 Token Introspection (RFC 7662)
+	// (POST /oauth2/introspect)
+	Oauth2Introspect(c *gin.Context)
+	// OAuth2 Provider JWKS Endpoint
+	// (GET /oauth2/jwks)
+	Oauth2Jwks(c *gin.Context)
+	// Get authorization request details for consent screen
+	// (GET /oauth2/login)
+	Oauth2LoginGet(c *gin.Context, params Oauth2LoginGetParams)
+	// Complete login/consent for an authorization request
+	// (POST /oauth2/login)
+	Oauth2LoginPost(c *gin.Context)
+	// OAuth2 Token Revocation (RFC 7009)
+	// (POST /oauth2/revoke)
+	Oauth2Revoke(c *gin.Context)
+	// OAuth2 Token Endpoint
+	// (POST /oauth2/token)
+	Oauth2Token(c *gin.Context)
+	// OpenID Connect UserInfo Endpoint (GET)
+	// (GET /oauth2/userinfo)
+	Oauth2UserinfoGet(c *gin.Context)
+	// OpenID Connect UserInfo Endpoint (POST)
+	// (POST /oauth2/userinfo)
+	Oauth2UserinfoPost(c *gin.Context)
 	// Create a Personal Access Token (PAT)
 	// (POST /pat)
 	CreatePAT(c *gin.Context)
@@ -175,6 +211,32 @@ func (siw *ServerInterfaceWrapper) GetJWKs(c *gin.Context) {
 	siw.Handler.GetJWKs(c)
 }
 
+// GetOAuthAuthorizationServer operation middleware
+func (siw *ServerInterfaceWrapper) GetOAuthAuthorizationServer(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetOAuthAuthorizationServer(c)
+}
+
+// GetOpenIDConfiguration operation middleware
+func (siw *ServerInterfaceWrapper) GetOpenIDConfiguration(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetOpenIDConfiguration(c)
+}
+
 // ElevateWebauthn operation middleware
 func (siw *ServerInterfaceWrapper) ElevateWebauthn(c *gin.Context) {
 
@@ -259,6 +321,268 @@ func (siw *ServerInterfaceWrapper) ChangeUserMfa(c *gin.Context) {
 	}
 
 	siw.Handler.ChangeUserMfa(c)
+}
+
+// Oauth2Authorize operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2Authorize(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params Oauth2AuthorizeParams
+
+	// ------------- Required query parameter "client_id" -------------
+
+	if paramValue := c.Query("client_id"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument client_id is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "client_id", c.Request.URL.Query(), &params.ClientId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter client_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "redirect_uri" -------------
+
+	if paramValue := c.Query("redirect_uri"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument redirect_uri is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "redirect_uri", c.Request.URL.Query(), &params.RedirectUri)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter redirect_uri: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "response_type" -------------
+
+	if paramValue := c.Query("response_type"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument response_type is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "response_type", c.Request.URL.Query(), &params.ResponseType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter response_type: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "scope" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "scope", c.Request.URL.Query(), &params.Scope)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter scope: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "state" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "state", c.Request.URL.Query(), &params.State)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter state: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "nonce" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "nonce", c.Request.URL.Query(), &params.Nonce)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter nonce: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "code_challenge" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "code_challenge", c.Request.URL.Query(), &params.CodeChallenge)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter code_challenge: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "code_challenge_method" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "code_challenge_method", c.Request.URL.Query(), &params.CodeChallengeMethod)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter code_challenge_method: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "resource" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "resource", c.Request.URL.Query(), &params.Resource)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter resource: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "prompt" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "prompt", c.Request.URL.Query(), &params.Prompt)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter prompt: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2Authorize(c, params)
+}
+
+// Oauth2AuthorizePost operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2AuthorizePost(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2AuthorizePost(c)
+}
+
+// Oauth2Introspect operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2Introspect(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2Introspect(c)
+}
+
+// Oauth2Jwks operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2Jwks(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2Jwks(c)
+}
+
+// Oauth2LoginGet operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2LoginGet(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params Oauth2LoginGetParams
+
+	// ------------- Required query parameter "request_id" -------------
+
+	if paramValue := c.Query("request_id"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument request_id is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "request_id", c.Request.URL.Query(), &params.RequestId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter request_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2LoginGet(c, params)
+}
+
+// Oauth2LoginPost operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2LoginPost(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2LoginPost(c)
+}
+
+// Oauth2Revoke operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2Revoke(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2Revoke(c)
+}
+
+// Oauth2Token operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2Token(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2Token(c)
+}
+
+// Oauth2UserinfoGet operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2UserinfoGet(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2UserinfoGet(c)
+}
+
+// Oauth2UserinfoPost operation middleware
+func (siw *ServerInterfaceWrapper) Oauth2UserinfoPost(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Oauth2UserinfoPost(c)
 }
 
 // CreatePAT operation middleware
@@ -1022,12 +1346,24 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/.well-known/jwks.json", wrapper.GetJWKs)
+	router.GET(options.BaseURL+"/.well-known/oauth-authorization-server", wrapper.GetOAuthAuthorizationServer)
+	router.GET(options.BaseURL+"/.well-known/openid-configuration", wrapper.GetOpenIDConfiguration)
 	router.POST(options.BaseURL+"/elevate/webauthn", wrapper.ElevateWebauthn)
 	router.POST(options.BaseURL+"/elevate/webauthn/verify", wrapper.VerifyElevateWebauthn)
 	router.GET(options.BaseURL+"/healthz", wrapper.HealthCheckGet)
 	router.HEAD(options.BaseURL+"/healthz", wrapper.HealthCheckHead)
 	router.POST(options.BaseURL+"/link/idtoken", wrapper.LinkIdToken)
 	router.GET(options.BaseURL+"/mfa/totp/generate", wrapper.ChangeUserMfa)
+	router.GET(options.BaseURL+"/oauth2/authorize", wrapper.Oauth2Authorize)
+	router.POST(options.BaseURL+"/oauth2/authorize", wrapper.Oauth2AuthorizePost)
+	router.POST(options.BaseURL+"/oauth2/introspect", wrapper.Oauth2Introspect)
+	router.GET(options.BaseURL+"/oauth2/jwks", wrapper.Oauth2Jwks)
+	router.GET(options.BaseURL+"/oauth2/login", wrapper.Oauth2LoginGet)
+	router.POST(options.BaseURL+"/oauth2/login", wrapper.Oauth2LoginPost)
+	router.POST(options.BaseURL+"/oauth2/revoke", wrapper.Oauth2Revoke)
+	router.POST(options.BaseURL+"/oauth2/token", wrapper.Oauth2Token)
+	router.GET(options.BaseURL+"/oauth2/userinfo", wrapper.Oauth2UserinfoGet)
+	router.POST(options.BaseURL+"/oauth2/userinfo", wrapper.Oauth2UserinfoPost)
 	router.POST(options.BaseURL+"/pat", wrapper.CreatePAT)
 	router.POST(options.BaseURL+"/signin/anonymous", wrapper.SignInAnonymous)
 	router.POST(options.BaseURL+"/signin/email-password", wrapper.SignInEmailPassword)
@@ -1087,6 +1423,62 @@ type GetJWKsdefaultJSONResponse struct {
 }
 
 func (response GetJWKsdefaultJSONResponse) VisitGetJWKsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type GetOAuthAuthorizationServerRequestObject struct {
+}
+
+type GetOAuthAuthorizationServerResponseObject interface {
+	VisitGetOAuthAuthorizationServerResponse(w http.ResponseWriter) error
+}
+
+type GetOAuthAuthorizationServer200JSONResponse OAuth2DiscoveryResponse
+
+func (response GetOAuthAuthorizationServer200JSONResponse) VisitGetOAuthAuthorizationServerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetOAuthAuthorizationServerdefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response GetOAuthAuthorizationServerdefaultJSONResponse) VisitGetOAuthAuthorizationServerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type GetOpenIDConfigurationRequestObject struct {
+}
+
+type GetOpenIDConfigurationResponseObject interface {
+	VisitGetOpenIDConfigurationResponse(w http.ResponseWriter) error
+}
+
+type GetOpenIDConfiguration200JSONResponse OAuth2DiscoveryResponse
+
+func (response GetOpenIDConfiguration200JSONResponse) VisitGetOpenIDConfigurationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetOpenIDConfigurationdefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response GetOpenIDConfigurationdefaultJSONResponse) VisitGetOpenIDConfigurationResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.StatusCode)
 
@@ -1256,6 +1648,312 @@ type ChangeUserMfadefaultJSONResponse struct {
 }
 
 func (response ChangeUserMfadefaultJSONResponse) VisitChangeUserMfaResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2AuthorizeRequestObject struct {
+	Params Oauth2AuthorizeParams
+}
+
+type Oauth2AuthorizeResponseObject interface {
+	VisitOauth2AuthorizeResponse(w http.ResponseWriter) error
+}
+
+type Oauth2Authorize302ResponseHeaders struct {
+	Location string
+}
+
+type Oauth2Authorize302Response struct {
+	Headers Oauth2Authorize302ResponseHeaders
+}
+
+func (response Oauth2Authorize302Response) VisitOauth2AuthorizeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
+	w.WriteHeader(302)
+	return nil
+}
+
+type Oauth2AuthorizedefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2AuthorizedefaultJSONResponse) VisitOauth2AuthorizeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2AuthorizePostRequestObject struct {
+	Body *Oauth2AuthorizePostFormdataRequestBody
+}
+
+type Oauth2AuthorizePostResponseObject interface {
+	VisitOauth2AuthorizePostResponse(w http.ResponseWriter) error
+}
+
+type Oauth2AuthorizePost302ResponseHeaders struct {
+	Location string
+}
+
+type Oauth2AuthorizePost302Response struct {
+	Headers Oauth2AuthorizePost302ResponseHeaders
+}
+
+func (response Oauth2AuthorizePost302Response) VisitOauth2AuthorizePostResponse(w http.ResponseWriter) error {
+	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
+	w.WriteHeader(302)
+	return nil
+}
+
+type Oauth2AuthorizePostdefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2AuthorizePostdefaultJSONResponse) VisitOauth2AuthorizePostResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2IntrospectRequestObject struct {
+	Body *Oauth2IntrospectFormdataRequestBody
+}
+
+type Oauth2IntrospectResponseObject interface {
+	VisitOauth2IntrospectResponse(w http.ResponseWriter) error
+}
+
+type Oauth2Introspect200JSONResponse OAuth2IntrospectResponse
+
+func (response Oauth2Introspect200JSONResponse) VisitOauth2IntrospectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Oauth2IntrospectdefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2IntrospectdefaultJSONResponse) VisitOauth2IntrospectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2JwksRequestObject struct {
+}
+
+type Oauth2JwksResponseObject interface {
+	VisitOauth2JwksResponse(w http.ResponseWriter) error
+}
+
+type Oauth2Jwks200JSONResponse OAuth2JWKSResponse
+
+func (response Oauth2Jwks200JSONResponse) VisitOauth2JwksResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Oauth2JwksdefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2JwksdefaultJSONResponse) VisitOauth2JwksResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2LoginGetRequestObject struct {
+	Params Oauth2LoginGetParams
+}
+
+type Oauth2LoginGetResponseObject interface {
+	VisitOauth2LoginGetResponse(w http.ResponseWriter) error
+}
+
+type Oauth2LoginGet200JSONResponse OAuth2LoginResponse
+
+func (response Oauth2LoginGet200JSONResponse) VisitOauth2LoginGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Oauth2LoginGetdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2LoginGetdefaultJSONResponse) VisitOauth2LoginGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2LoginPostRequestObject struct {
+	Body *Oauth2LoginPostJSONRequestBody
+}
+
+type Oauth2LoginPostResponseObject interface {
+	VisitOauth2LoginPostResponse(w http.ResponseWriter) error
+}
+
+type Oauth2LoginPost200JSONResponse OAuth2LoginCompleteResponse
+
+func (response Oauth2LoginPost200JSONResponse) VisitOauth2LoginPostResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Oauth2LoginPostdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2LoginPostdefaultJSONResponse) VisitOauth2LoginPostResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2RevokeRequestObject struct {
+	Body *Oauth2RevokeFormdataRequestBody
+}
+
+type Oauth2RevokeResponseObject interface {
+	VisitOauth2RevokeResponse(w http.ResponseWriter) error
+}
+
+type Oauth2Revoke200Response struct {
+}
+
+func (response Oauth2Revoke200Response) VisitOauth2RevokeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(200)
+	return nil
+}
+
+type Oauth2RevokedefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2RevokedefaultJSONResponse) VisitOauth2RevokeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2TokenRequestObject struct {
+	Body *Oauth2TokenFormdataRequestBody
+}
+
+type Oauth2TokenResponseObject interface {
+	VisitOauth2TokenResponse(w http.ResponseWriter) error
+}
+
+type Oauth2Token200ResponseHeaders struct {
+	CacheControl string
+	Pragma       string
+}
+
+type Oauth2Token200JSONResponse struct {
+	Body    OAuth2TokenResponse
+	Headers Oauth2Token200ResponseHeaders
+}
+
+func (response Oauth2Token200JSONResponse) VisitOauth2TokenResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", fmt.Sprint(response.Headers.CacheControl))
+	w.Header().Set("Pragma", fmt.Sprint(response.Headers.Pragma))
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2TokendefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2TokendefaultJSONResponse) VisitOauth2TokenResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2UserinfoGetRequestObject struct {
+}
+
+type Oauth2UserinfoGetResponseObject interface {
+	VisitOauth2UserinfoGetResponse(w http.ResponseWriter) error
+}
+
+type Oauth2UserinfoGet200JSONResponse OAuth2UserinfoResponse
+
+func (response Oauth2UserinfoGet200JSONResponse) VisitOauth2UserinfoGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Oauth2UserinfoGetdefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2UserinfoGetdefaultJSONResponse) VisitOauth2UserinfoGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type Oauth2UserinfoPostRequestObject struct {
+}
+
+type Oauth2UserinfoPostResponseObject interface {
+	VisitOauth2UserinfoPostResponse(w http.ResponseWriter) error
+}
+
+type Oauth2UserinfoPost200JSONResponse OAuth2UserinfoResponse
+
+func (response Oauth2UserinfoPost200JSONResponse) VisitOauth2UserinfoPostResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Oauth2UserinfoPostdefaultJSONResponse struct {
+	Body       OAuth2ErrorResponse
+	StatusCode int
+}
+
+func (response Oauth2UserinfoPostdefaultJSONResponse) VisitOauth2UserinfoPostResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.StatusCode)
 
@@ -2306,6 +3004,12 @@ type StrictServerInterface interface {
 	// Get public keys for JWT verification in JWK Set format
 	// (GET /.well-known/jwks.json)
 	GetJWKs(ctx context.Context, request GetJWKsRequestObject) (GetJWKsResponseObject, error)
+	// OAuth2 Authorization Server Metadata
+	// (GET /.well-known/oauth-authorization-server)
+	GetOAuthAuthorizationServer(ctx context.Context, request GetOAuthAuthorizationServerRequestObject) (GetOAuthAuthorizationServerResponseObject, error)
+	// OpenID Connect Discovery
+	// (GET /.well-known/openid-configuration)
+	GetOpenIDConfiguration(ctx context.Context, request GetOpenIDConfigurationRequestObject) (GetOpenIDConfigurationResponseObject, error)
 	// Elevate access for an already signed in user using FIDO2 Webauthn
 	// (POST /elevate/webauthn)
 	ElevateWebauthn(ctx context.Context, request ElevateWebauthnRequestObject) (ElevateWebauthnResponseObject, error)
@@ -2324,6 +3028,36 @@ type StrictServerInterface interface {
 	// Generate TOTP secret
 	// (GET /mfa/totp/generate)
 	ChangeUserMfa(ctx context.Context, request ChangeUserMfaRequestObject) (ChangeUserMfaResponseObject, error)
+	// OAuth2 Authorization Endpoint
+	// (GET /oauth2/authorize)
+	Oauth2Authorize(ctx context.Context, request Oauth2AuthorizeRequestObject) (Oauth2AuthorizeResponseObject, error)
+	// OAuth2 Authorization Endpoint (POST)
+	// (POST /oauth2/authorize)
+	Oauth2AuthorizePost(ctx context.Context, request Oauth2AuthorizePostRequestObject) (Oauth2AuthorizePostResponseObject, error)
+	// OAuth2 Token Introspection (RFC 7662)
+	// (POST /oauth2/introspect)
+	Oauth2Introspect(ctx context.Context, request Oauth2IntrospectRequestObject) (Oauth2IntrospectResponseObject, error)
+	// OAuth2 Provider JWKS Endpoint
+	// (GET /oauth2/jwks)
+	Oauth2Jwks(ctx context.Context, request Oauth2JwksRequestObject) (Oauth2JwksResponseObject, error)
+	// Get authorization request details for consent screen
+	// (GET /oauth2/login)
+	Oauth2LoginGet(ctx context.Context, request Oauth2LoginGetRequestObject) (Oauth2LoginGetResponseObject, error)
+	// Complete login/consent for an authorization request
+	// (POST /oauth2/login)
+	Oauth2LoginPost(ctx context.Context, request Oauth2LoginPostRequestObject) (Oauth2LoginPostResponseObject, error)
+	// OAuth2 Token Revocation (RFC 7009)
+	// (POST /oauth2/revoke)
+	Oauth2Revoke(ctx context.Context, request Oauth2RevokeRequestObject) (Oauth2RevokeResponseObject, error)
+	// OAuth2 Token Endpoint
+	// (POST /oauth2/token)
+	Oauth2Token(ctx context.Context, request Oauth2TokenRequestObject) (Oauth2TokenResponseObject, error)
+	// OpenID Connect UserInfo Endpoint (GET)
+	// (GET /oauth2/userinfo)
+	Oauth2UserinfoGet(ctx context.Context, request Oauth2UserinfoGetRequestObject) (Oauth2UserinfoGetResponseObject, error)
+	// OpenID Connect UserInfo Endpoint (POST)
+	// (POST /oauth2/userinfo)
+	Oauth2UserinfoPost(ctx context.Context, request Oauth2UserinfoPostRequestObject) (Oauth2UserinfoPostResponseObject, error)
 	// Create a Personal Access Token (PAT)
 	// (POST /pat)
 	CreatePAT(ctx context.Context, request CreatePATRequestObject) (CreatePATResponseObject, error)
@@ -2461,6 +3195,56 @@ func (sh *strictHandler) GetJWKs(ctx *gin.Context) {
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(GetJWKsResponseObject); ok {
 		if err := validResponse.VisitGetJWKsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetOAuthAuthorizationServer operation middleware
+func (sh *strictHandler) GetOAuthAuthorizationServer(ctx *gin.Context) {
+	var request GetOAuthAuthorizationServerRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetOAuthAuthorizationServer(ctx, request.(GetOAuthAuthorizationServerRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetOAuthAuthorizationServer")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetOAuthAuthorizationServerResponseObject); ok {
+		if err := validResponse.VisitGetOAuthAuthorizationServerResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetOpenIDConfiguration operation middleware
+func (sh *strictHandler) GetOpenIDConfiguration(ctx *gin.Context) {
+	var request GetOpenIDConfigurationRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetOpenIDConfiguration(ctx, request.(GetOpenIDConfigurationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetOpenIDConfiguration")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetOpenIDConfigurationResponseObject); ok {
+		if err := validResponse.VisitGetOpenIDConfigurationResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
@@ -2627,6 +3411,312 @@ func (sh *strictHandler) ChangeUserMfa(ctx *gin.Context) {
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(ChangeUserMfaResponseObject); ok {
 		if err := validResponse.VisitChangeUserMfaResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2Authorize operation middleware
+func (sh *strictHandler) Oauth2Authorize(ctx *gin.Context, params Oauth2AuthorizeParams) {
+	var request Oauth2AuthorizeRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2Authorize(ctx, request.(Oauth2AuthorizeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2Authorize")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2AuthorizeResponseObject); ok {
+		if err := validResponse.VisitOauth2AuthorizeResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2AuthorizePost operation middleware
+func (sh *strictHandler) Oauth2AuthorizePost(ctx *gin.Context) {
+	var request Oauth2AuthorizePostRequestObject
+
+	if err := ctx.Request.ParseForm(); err != nil {
+		ctx.Error(err)
+		return
+	}
+	var body Oauth2AuthorizePostFormdataRequestBody
+	if err := runtime.BindForm(&body, ctx.Request.Form, nil, nil); err != nil {
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2AuthorizePost(ctx, request.(Oauth2AuthorizePostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2AuthorizePost")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2AuthorizePostResponseObject); ok {
+		if err := validResponse.VisitOauth2AuthorizePostResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2Introspect operation middleware
+func (sh *strictHandler) Oauth2Introspect(ctx *gin.Context) {
+	var request Oauth2IntrospectRequestObject
+
+	if err := ctx.Request.ParseForm(); err != nil {
+		ctx.Error(err)
+		return
+	}
+	var body Oauth2IntrospectFormdataRequestBody
+	if err := runtime.BindForm(&body, ctx.Request.Form, nil, nil); err != nil {
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2Introspect(ctx, request.(Oauth2IntrospectRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2Introspect")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2IntrospectResponseObject); ok {
+		if err := validResponse.VisitOauth2IntrospectResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2Jwks operation middleware
+func (sh *strictHandler) Oauth2Jwks(ctx *gin.Context) {
+	var request Oauth2JwksRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2Jwks(ctx, request.(Oauth2JwksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2Jwks")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2JwksResponseObject); ok {
+		if err := validResponse.VisitOauth2JwksResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2LoginGet operation middleware
+func (sh *strictHandler) Oauth2LoginGet(ctx *gin.Context, params Oauth2LoginGetParams) {
+	var request Oauth2LoginGetRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2LoginGet(ctx, request.(Oauth2LoginGetRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2LoginGet")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2LoginGetResponseObject); ok {
+		if err := validResponse.VisitOauth2LoginGetResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2LoginPost operation middleware
+func (sh *strictHandler) Oauth2LoginPost(ctx *gin.Context) {
+	var request Oauth2LoginPostRequestObject
+
+	var body Oauth2LoginPostJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2LoginPost(ctx, request.(Oauth2LoginPostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2LoginPost")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2LoginPostResponseObject); ok {
+		if err := validResponse.VisitOauth2LoginPostResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2Revoke operation middleware
+func (sh *strictHandler) Oauth2Revoke(ctx *gin.Context) {
+	var request Oauth2RevokeRequestObject
+
+	if err := ctx.Request.ParseForm(); err != nil {
+		ctx.Error(err)
+		return
+	}
+	var body Oauth2RevokeFormdataRequestBody
+	if err := runtime.BindForm(&body, ctx.Request.Form, nil, nil); err != nil {
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2Revoke(ctx, request.(Oauth2RevokeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2Revoke")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2RevokeResponseObject); ok {
+		if err := validResponse.VisitOauth2RevokeResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2Token operation middleware
+func (sh *strictHandler) Oauth2Token(ctx *gin.Context) {
+	var request Oauth2TokenRequestObject
+
+	if err := ctx.Request.ParseForm(); err != nil {
+		ctx.Error(err)
+		return
+	}
+	var body Oauth2TokenFormdataRequestBody
+	if err := runtime.BindForm(&body, ctx.Request.Form, nil, nil); err != nil {
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2Token(ctx, request.(Oauth2TokenRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2Token")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2TokenResponseObject); ok {
+		if err := validResponse.VisitOauth2TokenResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2UserinfoGet operation middleware
+func (sh *strictHandler) Oauth2UserinfoGet(ctx *gin.Context) {
+	var request Oauth2UserinfoGetRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2UserinfoGet(ctx, request.(Oauth2UserinfoGetRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2UserinfoGet")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2UserinfoGetResponseObject); ok {
+		if err := validResponse.VisitOauth2UserinfoGetResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Oauth2UserinfoPost operation middleware
+func (sh *strictHandler) Oauth2UserinfoPost(ctx *gin.Context) {
+	var request Oauth2UserinfoPostRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.Oauth2UserinfoPost(ctx, request.(Oauth2UserinfoPostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Oauth2UserinfoPost")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(Oauth2UserinfoPostResponseObject); ok {
+		if err := validResponse.VisitOauth2UserinfoPostResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
@@ -3759,183 +4849,215 @@ func (sh *strictHandler) GetVersion(ctx *gin.Context) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"qw/Ogqo2QVdfr/5/AAAA//8HDxlk3QcBAA==",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

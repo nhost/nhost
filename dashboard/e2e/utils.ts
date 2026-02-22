@@ -234,7 +234,7 @@ export async function clickPermissionButton({
 }
 
 export async function gotoAuthURL(page: Page) {
-  const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
+  const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/auth/users`;
   await page.goto(authUrl);
   await page.waitForURL(authUrl, { waitUntil: 'load' });
 }

@@ -1,0 +1,78 @@
+---
+title: Confidential Clients
+description: Integrate server-side applications using confidential OAuth2 clients with a client secret
+keywords: ["oauth2", "confidential", "client secret", "server-side", "oidc", "outline", "integration"]
+sidebar:
+  label: Confidential Clients
+---
+
+
+Confidential clients are for **server-side applications** that can securely store a client secret — wikis, dashboards, internal tools, and similar backend services. The third-party app authenticates at the token endpoint using the secret, so there is no need for PKCE.
+
+## When to Use
+
+Use a confidential client when the third-party app:
+
+- Runs on a server (not in the user's browser or on a mobile device)
+- Can securely store a client secret (e.g. in environment variables)
+- Examples: Outline, Grafana, GitLab, custom internal tools
+
+## Creating the Client
+
+Create a confidential client by providing a bcrypt-hashed secret. See [Managing Clients](/products/auth/oauth2-provider/managing-clients) for full details on client creation, secret generation, and hashing.
+
+```graphql
+mutation {
+  insertAuthOauth2Client(object: {
+    clientSecretHash: "$2b$10$..."
+    redirectUris: ["https://thirdparty.example.com/auth/callback"]
+    scopes: ["openid", "profile", "email"]
+    metadata: { description: "My server-side app" }
+  }) {
+    clientId
+  }
+}
+```
+
+:::caution
+Save the plaintext secret immediately after creation. It cannot be retrieved later — only the bcrypt hash is stored.
+:::
+
+## Configuring the Third-Party App
+
+Most OIDC-compatible applications need these configuration values:
+
+| Setting | Value |
+|---------|-------|
+| **Client ID** | The `clientId` returned when you created the client (e.g. `nhoa_...`) |
+| **Client Secret** | The plaintext secret you saved during creation |
+| **Discovery URL** | `https://<auth-url>/v1/.well-known/openid-configuration` |
+
+Many applications support **OIDC Discovery** — you only need to provide the discovery URL and the app will automatically configure all other endpoints. If the app requires explicit endpoint URLs:
+
+| Purpose | URL |
+|---------|-----|
+| Authorization | `https://<auth-url>/v1/oauth2/authorize` |
+| Token | `https://<auth-url>/v1/oauth2/token` |
+| UserInfo | `https://<auth-url>/v1/oauth2/userinfo` |
+| JWKS | `https://<auth-url>/v1/oauth2/jwks` |
+
+:::note
+Some apps make the token and userinfo requests server-to-server. If the app runs in a container alongside Nhost, use the internal service URL (e.g. `http://hasura-auth-service:4000`, see [Run networking](/products/run/networking/)) for these endpoints, and the public URL for the authorization endpoint (which the browser accesses).
+:::
+
+## Example: Outline Wiki
+
+The [Outline demo](https://github.com/nhost/nhost/tree/main/examples/demos/outline) in the Nhost repository shows a full working setup of Outline wiki authenticating through a Nhost project using a confidential client.
+
+The Outline OIDC configuration looks like:
+
+```toml
+OIDC_CLIENT_ID = "nhoa_a1b2c3d4e5f67890"
+OIDC_CLIENT_SECRET = "your-client-secret"
+OIDC_AUTH_URI = "https://subdomain.auth.region.nhost.run/v1/oauth2/authorize"
+OIDC_TOKEN_URI = "https://subdomain.auth.region.nhost.run/v1/oauth2/token"
+OIDC_USERINFO_URI = "https://subdomain.auth.region.nhost.run/v1/oauth2/userinfo"
+OIDC_DISPLAY_NAME = "Nhost"
+OIDC_SCOPES = "openid profile email"
+```

@@ -9,14 +9,16 @@ export default function PreviewHeader() {
   };
 
   return (
-    <div className="flex h-8 items-center justify-between px-3">
-      Preview
-      <Switch
-        className="h-[1.15rem] w-8 self-center"
-        thumbClassName="h-4 w-4 "
-        checked={previewEnabled}
-        onCheckedChange={handleChange}
-      />
+    <div className="w-full focus:outline-none motion-safe:transition-colors">
+      <div className="flex h-8 items-center justify-between px-3">
+        Preview
+        <Switch
+          className="h-[1.15rem] w-8 self-center"
+          thumbClassName="h-4 w-4 "
+          checked={previewEnabled}
+          onCheckedChange={handleChange}
+        />
+      </div>
     </div>
   );
 }

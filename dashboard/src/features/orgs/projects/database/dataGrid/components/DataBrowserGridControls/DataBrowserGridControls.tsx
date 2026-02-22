@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
+import type { Row } from '@tanstack/react-table';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Badge } from '@/components/ui/v3/badge';
@@ -11,8 +11,8 @@ import { DataGridFiltersPopover } from '@/features/orgs/projects/common/componen
 import { DataGridTableViewConfigurationPopover } from '@/features/orgs/projects/common/components/DataGridTableViewConfigurationPopover';
 import { InvokeEventTriggerButton } from '@/features/orgs/projects/database/dataGrid/components/InvokeEventTriggerButton';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
-import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
@@ -47,18 +47,18 @@ export default function DataBrowserGridControls({
   const { className: paginationClassName, ...restPaginationProps } =
     paginationProps || ({} as DataGridPaginationProps);
 
-  const {
-    selectedFlatRows: selectedRows,
-    columns,
-    toggleAllRowsSelected,
-  } = useDataGridConfig();
+  const { getSelectedRowModel, getAllColumns, toggleAllRowsSelected } =
+    useDataGridConfig<Record<string, unknown>>();
+
+  const selectedRows = getSelectedRowModel().flatRows;
+  const columns = getAllColumns();
 
   const { mutateAsync: removeRows, status } = useDeleteRecordMutation();
 
   // note: this array ensures that there won't be a glitch with the submit
   // button when files are being deleted
   const [selectedRowsBeforeDelete, setSelectedRowsBeforeDelete] = useState<
-    Row[]
+    Row<UnknownDataGridRow>[]
   >([]);
 
   const router = useRouter();
@@ -94,10 +94,11 @@ export default function DataBrowserGridControls({
         selectedRows,
         primaryOrUniqueColumns: columns
           .filter(
-            (column: DataBrowserGridColumn) =>
-              column.isPrimary || column.isUnique,
+            (column) =>
+              column.columnDef.meta?.isPrimary ||
+              column.columnDef.meta?.isUnique,
           )
-          .map((column) => column.id),
+          .map((column) => column.id!),
       });
 
       triggerToast(
@@ -166,7 +167,7 @@ export default function DataBrowserGridControls({
             </Button>
             {showInvokeEventTriggerButton && (
               <InvokeEventTriggerButton
-                selectedValues={selectedRows[0].values}
+                selectedValues={selectedRows[0].original}
               />
             )}
           </div>

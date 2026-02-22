@@ -1,0 +1,177 @@
+---
+title: Tokens and Scopes
+description: Understand OAuth2 token formats, scopes, claims, and lifecycle management
+keywords: ["oauth2", "tokens", "scopes", "jwt", "access token", "id token", "refresh token", "introspection", "revocation", "graphql", "hasura"]
+sidebar:
+  label: Tokens and Scopes
+---
+
+
+## Token Types
+
+| Token | Format | Default Lifetime | Description |
+|-------|--------|-----------------|-------------|
+| **Access Token** | RSA-signed JWT | 15 minutes | Used to access protected resources |
+| **ID Token** | RSA-signed JWT | Same as access token | Contains user identity claims (OIDC) |
+| **Refresh Token** | UUID | 30 days | Used to obtain new access and ID tokens |
+
+## Access Token
+
+Access tokens are RSA-signed JWTs. They contain standard OAuth2 claims:
+
+```json
+{
+  "iss": "https://your-project.auth.nhost.run/v1",
+  "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+  "aud": "nhoa_a1b2c3d4e5f67890",
+  "iat": 1234567890,
+  "exp": 1234568790,
+  "scope": "openid profile email"
+}
+```
+
+The JWT header includes `typ: JWT` and `kid` identifying the signing key. The signing algorithm depends on your RSA key configuration (RS256, RS384, or RS512). See [Verify a JWT](/products/auth/jwt/#verify-a-jwt) for how to verify tokens using the JWKS endpoint.
+
+## The `graphql` Scope
+
+When the `graphql` scope is requested, the access token includes GraphQL-compatible claims. This allows the access token to be used directly with your GraphQL API for authorization.
+
+```json
+{
+  "iss": "https://your-project.auth.nhost.run/v1",
+  "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+  "aud": "nhoa_a1b2c3d4e5f67890",
+  "iat": 1234567890,
+  "exp": 1234568790,
+  "scope": "openid profile email graphql",
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-user-id": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+    "x-hasura-default-role": "user",
+    "x-hasura-allowed-roles": ["user", "me"],
+    "x-hasura-my-custom-claim": "custom value"
+  }
+}
+```
+
+Without the `graphql` scope, the `https://hasura.io/jwt/claims` namespace is omitted from the access token.
+
+## ID Token
+
+The ID token is issued when the `openid` scope is requested. It contains identity claims about the authenticated user, controlled by the scopes granted:
+
+### Base Claims (Always Present)
+
+| Claim | Description |
+|-------|-------------|
+| `iss` | Issuer URL |
+| `sub` | User UUID |
+| `aud` | Client ID |
+| `iat` | Issued at timestamp |
+| `exp` | Expiration timestamp |
+| `auth_time` | When the user authenticated |
+| `at_hash` | Access token hash (when access token is issued alongside) |
+
+### Scope-Controlled Claims
+
+| Scope | Claims | Condition |
+|-------|--------|-----------|
+| `profile` | `name`, `picture`, `locale` | Only if the user has these values set |
+| `email` | `email`, `email_verified` | Only if the user has an email |
+| `phone` | `phone_number`, `phone_number_verified` | Only if the user has a phone number |
+
+The `nonce` claim is included in the ID token if a `nonce` parameter was provided in the authorization request. It is **not** included on refresh.
+
+## UserInfo Endpoint
+
+The UserInfo endpoint returns user claims filtered by the scopes of the access token.
+
+```js
+const { body: userinfo } = await nhost.auth.oauth2UserinfoGet({
+  headers: { Authorization: `Bearer ${accessToken}` },
+});
+```
+
+Example response (with `openid profile email` scopes):
+
+```json
+{
+  "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+  "name": "Jane Doe",
+  "picture": "https://www.gravatar.com/avatar/...",
+  "locale": "en",
+  "email": "jane@example.com",
+  "email_verified": true
+}
+```
+
+Both `GET` and `POST` methods are supported, per the OIDC specification.
+
+## Refresh Tokens
+
+Refresh tokens are UUID strings (not JWTs). They implement **token rotation**: each time a refresh token is used, it is deleted and a new one is issued. The new token inherits the original scopes.
+
+```js
+const { body: tokens } = await nhost.auth.oauth2Token({
+  grant_type: 'refresh_token',
+  refresh_token: currentRefreshToken,
+  client_id: clientId,
+  client_secret: clientSecret, // required for confidential clients
+});
+
+// tokens.refresh_token is a NEW token — the old one is now invalid
+```
+
+The response format is the same as the initial token exchange — it includes a new access token, ID token (if `openid` scope), and refresh token.
+
+## Token Introspection
+
+Check whether a token is active by calling the introspection endpoint. Client authentication is required.
+
+```js
+const { body: result } = await nhost.auth.oauth2Introspect({
+  token: tokenToCheck,
+  token_type_hint: 'access_token', // or 'refresh_token'
+  client_id: clientId,
+  client_secret: clientSecret, // required for confidential clients
+});
+```
+
+Active token response:
+
+```json
+{
+  "active": true,
+  "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+  "client_id": "nhoa_a1b2c3d4e5f67890",
+  "scope": "openid profile email",
+  "exp": 1234568790,
+  "iat": 1234567890,
+  "iss": "https://your-project.auth.nhost.run/v1",
+  "token_type": "access_token"
+}
+```
+
+Inactive token response:
+
+```json
+{
+  "active": false
+}
+```
+
+## Token Revocation
+
+Revoke a refresh token to immediately invalidate it. The endpoint always returns `200 OK` regardless of whether the token existed, per the RFC 7009 security recommendation.
+
+```js
+await nhost.auth.oauth2Revoke({
+  token: refreshToken,
+  token_type_hint: 'refresh_token',
+  client_id: clientId,
+  client_secret: clientSecret, // required for confidential clients
+});
+```
+
+:::note
+Only **refresh tokens** can be revoked. Access tokens are stateless JWTs and cannot be invalidated server-side — they remain valid until they expire.
+:::

@@ -1,3 +1,44 @@
+## [@nhost/dashboard@2.50.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(dashboard)* Add metadata page (#3899)
+- *(dashboard)* Added oauth2 provider configuration form and oauth2 client management (customers) (#3930)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump Orval version and remove outdated pnpm overrides (#3920)
+- *(deps)* Bump ajv and tar due to cves (#3925)
+- *(docs)* Bump minimatch version (#3929)
+- *(dashboard)* Remove eslint (#3927)
+
+## [@nhost/dashboard@2.49.0] - 2026-02-17
+
+### 🚀 Features
+
+- *(dashboard)* Add jsonb specific operators to OperationComboBox (#3904)
+- *(dashboard)* Add one-off scheduled events (#3889)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up markdown-it to address vulnerability (#3914)
+- *(dashboard)* Allow transferring free and paused project to Starter orgs (#3918)
+
+## [@nhost/dashboard@2.48.0] - 2026-02-12
+
+### 🚀 Features
+
+- *(dashboard)* Edit table relationships (#3720)
+- *(ci)* Remove mintlify (#3887)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update brace-expansion due to cve (#3886)
+- *(dashboard)* Run type check before tests (#3894)
+
 ## [@nhost/dashboard@2.47.0] - 2026-02-04
 
 ### 🚀 Features

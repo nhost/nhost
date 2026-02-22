@@ -552,25 +552,6 @@ const currentSection = navLinks.find((link) => {
 </nav>
 
 <script>
-    // Force all top-level sidebar sections to be always open
-    function forceOpenSidebarSections() {
-        const sidebar = document.querySelector('.sidebar-content');
-        if (sidebar) {
-            // Open all top-level details elements
-            sidebar.querySelectorAll('ul.top-level > li > details').forEach(details => {
-                details.setAttribute('open', '');
-            });
-        }
-    }
-
-    // Run on initial load
-    forceOpenSidebarSections();
-
-    // Re-run after Astro view transitions
-    document.addEventListener('astro:after-swap', () => {
-        forceOpenSidebarSections();
-    });
-
     // Mobile navigation toggle
     const mobileNavToggle = document.getElementById('mobile-nav-toggle');
     const mobileNav = document.getElementById('mobile-nav');

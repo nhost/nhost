@@ -1,3 +1,10 @@
+## [storage@0.11.1] - 2026-02-16
+
+### 🐛 Bug Fixes
+
+- *(nixops)* Bump go to 1.26.0 (#3907)
+- *(storage)* Memory improvements (#3912)
+
 ## [storage@0.11.0] - 2026-02-02
 
 ### 🚀 Features

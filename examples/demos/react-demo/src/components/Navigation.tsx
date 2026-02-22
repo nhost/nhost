@@ -46,6 +46,12 @@ export default function Navigation(): JSX.Element {
                 >
                   Functions
                 </Link>
+                <Link
+                  to="/oauth2-providers"
+                  className={`nav-link ${isActive('/oauth2-providers')}`}
+                >
+                  OAuth2
+                </Link>
               </>
             ) : (
               <>

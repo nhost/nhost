@@ -472,6 +472,52 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`JWKSet`](#jwkset)&gt;&gt;
 
+#### getOAuthAuthorizationServer()
+
+```ts
+getOAuthAuthorizationServer(options?: RequestInit): Promise<FetchResponse<OAuth2DiscoveryResponse>>;
+```
+
+Summary: OAuth2 Authorization Server Metadata
+Returns the Authorization Server Metadata (RFC 8414). Same content as OpenID Discovery.
+
+This method may return different T based on the response code:
+
+- 200: OAuth2DiscoveryResponse
+
+##### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`OAuth2DiscoveryResponse`](#oauth2discoveryresponse)&gt;&gt;
+
+#### getOpenIDConfiguration()
+
+```ts
+getOpenIDConfiguration(options?: RequestInit): Promise<FetchResponse<OAuth2DiscoveryResponse>>;
+```
+
+Summary: OpenID Connect Discovery
+Returns the OpenID Provider Metadata (RFC 8414)
+
+This method may return different T based on the response code:
+
+- 200: OAuth2DiscoveryResponse
+
+##### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`OAuth2DiscoveryResponse`](#oauth2discoveryresponse)&gt;&gt;
+
 #### getProviderTokens()
 
 ```ts
@@ -611,6 +657,239 @@ This method may return different T based on the response code:
 ##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### oauth2AuthorizePostURL()
+
+```ts
+oauth2AuthorizePostURL(body: Oauth2AuthorizePostBody, options?: RequestInit): string;
+```
+
+Summary: OAuth2 Authorization Endpoint (POST)
+Initiates an OAuth2 authorization code flow via POST. Validates the request and redirects to the login UI for user authentication and consent.
+
+As this method is a redirect, it returns a URL string instead of a Promise
+
+##### Parameters
+
+| Parameter  | Type                                                  |
+| ---------- | ----------------------------------------------------- |
+| `body`     | [`Oauth2AuthorizePostBody`](#oauth2authorizepostbody) |
+| `options?` | `RequestInit`                                         |
+
+##### Returns
+
+`string`
+
+#### oauth2AuthorizeURL()
+
+```ts
+oauth2AuthorizeURL(params?: Oauth2AuthorizeParams, options?: RequestInit): string;
+```
+
+Summary: OAuth2 Authorization Endpoint
+Initiates an OAuth2 authorization code flow. Validates the request and redirects to the login UI for user authentication and consent.
+
+As this method is a redirect, it returns a URL string instead of a Promise
+
+##### Parameters
+
+| Parameter  | Type                                              |
+| ---------- | ------------------------------------------------- |
+| `params?`  | [`Oauth2AuthorizeParams`](#oauth2authorizeparams) |
+| `options?` | `RequestInit`                                     |
+
+##### Returns
+
+`string`
+
+#### oauth2Introspect()
+
+```ts
+oauth2Introspect(body: OAuth2IntrospectRequest, options?: RequestInit): Promise<FetchResponse<OAuth2IntrospectResponse>>;
+```
+
+Summary: OAuth2 Token Introspection (RFC 7662)
+Introspect a token to determine its current state and metadata.
+
+This method may return different T based on the response code:
+
+- 200: OAuth2IntrospectResponse
+
+##### Parameters
+
+| Parameter  | Type                                                  |
+| ---------- | ----------------------------------------------------- |
+| `body`     | [`OAuth2IntrospectRequest`](#oauth2introspectrequest) |
+| `options?` | `RequestInit`                                         |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`OAuth2IntrospectResponse`](#oauth2introspectresponse)&gt;&gt;
+
+#### oauth2Jwks()
+
+```ts
+oauth2Jwks(options?: RequestInit): Promise<FetchResponse<OAuth2JWKSResponse>>;
+```
+
+Summary: OAuth2 Provider JWKS Endpoint
+Returns the JSON Web Key Set containing public keys used for OAuth2/OIDC token signing.
+
+This method may return different T based on the response code:
+
+- 200: OAuth2JWKSResponse
+
+##### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`OAuth2JWKSResponse`](#oauth2jwksresponse)&gt;&gt;
+
+#### oauth2LoginGet()
+
+```ts
+oauth2LoginGet(params?: Oauth2LoginGetParams, options?: RequestInit): Promise<FetchResponse<OAuth2LoginResponse>>;
+```
+
+Summary: Get authorization request details for consent screen
+Called by the consent UI to get details about the pending authorization request.
+
+This method may return different T based on the response code:
+
+- 200: OAuth2LoginResponse
+
+##### Parameters
+
+| Parameter  | Type                                            |
+| ---------- | ----------------------------------------------- |
+| `params?`  | [`Oauth2LoginGetParams`](#oauth2logingetparams) |
+| `options?` | `RequestInit`                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`OAuth2LoginResponse`](#oauth2loginresponse)&gt;&gt;
+
+#### oauth2LoginPost()
+
+```ts
+oauth2LoginPost(body: OAuth2LoginRequest, options?: RequestInit): Promise<FetchResponse<OAuth2LoginCompleteResponse>>;
+```
+
+Summary: Complete login/consent for an authorization request
+Called by the consent UI after user authenticates and consents. Sets the user on the auth request and redirects back to the client with an authorization code.
+
+This method may return different T based on the response code:
+
+- 200: OAuth2LoginCompleteResponse
+
+##### Parameters
+
+| Parameter  | Type                                        |
+| ---------- | ------------------------------------------- |
+| `body`     | [`OAuth2LoginRequest`](#oauth2loginrequest) |
+| `options?` | `RequestInit`                               |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`OAuth2LoginCompleteResponse`](#oauth2logincompleteresponse)&gt;&gt;
+
+#### oauth2Revoke()
+
+```ts
+oauth2Revoke(body: OAuth2RevokeRequest, options?: RequestInit): Promise<FetchResponse<void>>;
+```
+
+Summary: OAuth2 Token Revocation (RFC 7009)
+Revoke an access token or refresh token.
+
+This method may return different T based on the response code:
+
+- 200: void
+
+##### Parameters
+
+| Parameter  | Type                                          |
+| ---------- | --------------------------------------------- |
+| `body`     | [`OAuth2RevokeRequest`](#oauth2revokerequest) |
+| `options?` | `RequestInit`                                 |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`void`&gt;&gt;
+
+#### oauth2Token()
+
+```ts
+oauth2Token(body: OAuth2TokenRequest, options?: RequestInit): Promise<FetchResponse<OAuth2TokenResponse>>;
+```
+
+Summary: OAuth2 Token Endpoint
+Exchange an authorization code for tokens, or refresh an existing token. Supports grant_type authorization_code and refresh_token.
+
+This method may return different T based on the response code:
+
+- 200: OAuth2TokenResponse
+
+##### Parameters
+
+| Parameter  | Type                                        |
+| ---------- | ------------------------------------------- |
+| `body`     | [`OAuth2TokenRequest`](#oauth2tokenrequest) |
+| `options?` | `RequestInit`                               |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`OAuth2TokenResponse`](#oauth2tokenresponse)&gt;&gt;
+
+#### oauth2UserinfoGet()
+
+```ts
+oauth2UserinfoGet(options?: RequestInit): Promise<FetchResponse<OAuth2UserinfoResponse>>;
+```
+
+Summary: OpenID Connect UserInfo Endpoint (GET)
+Returns claims about the authenticated user based on the access token scopes.
+
+This method may return different T based on the response code:
+
+- 200: OAuth2UserinfoResponse
+
+##### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`OAuth2UserinfoResponse`](#oauth2userinforesponse)&gt;&gt;
+
+#### oauth2UserinfoPost()
+
+```ts
+oauth2UserinfoPost(options?: RequestInit): Promise<FetchResponse<OAuth2UserinfoResponse>>;
+```
+
+Summary: OpenID Connect UserInfo Endpoint (POST)
+Returns claims about the authenticated user based on the access token scopes.
+
+This method may return different T based on the response code:
+
+- 200: OAuth2UserinfoResponse
+
+##### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`OAuth2UserinfoResponse`](#oauth2userinforesponse)&gt;&gt;
 
 #### pushChainFunction()
 
@@ -1643,6 +1922,696 @@ ticket: string
 (`string`) - Ticket to use when completing the MFA challenge
 
 - Example - `"mfaTotp:abc123def456"`
+
+---
+
+## Oauth2AuthorizeParams
+
+Parameters for the oauth2Authorize method.
+
+### Properties
+
+#### client_id
+
+```ts
+client_id: string
+```
+
+(string) - The OAuth2 client identifier (RFC 6749 Section 2.2).
+
+#### code_challenge?
+
+```ts
+optional code_challenge: string;
+```
+
+PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
+
+#### code_challenge_method?
+
+```ts
+optional code_challenge_method: "S256";
+```
+
+Only S256 is supported. The plain method is not allowed.
+
+#### nonce?
+
+```ts
+optional nonce: string;
+```
+
+String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
+
+#### prompt?
+
+```ts
+optional prompt: string;
+```
+
+Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
+
+#### redirect_uri
+
+```ts
+redirect_uri: string
+```
+
+(string) - The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
+
+#### resource?
+
+```ts
+optional resource: string;
+```
+
+Resource indicator for the target service (RFC 8707).
+
+#### response_type
+
+```ts
+response_type: string
+```
+
+(string) - The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+
+#### scope?
+
+```ts
+optional scope: string;
+```
+
+Space-delimited list of requested scopes (RFC 6749 Section 3.3).
+
+#### state?
+
+```ts
+optional state: string;
+```
+
+Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
+
+---
+
+## Oauth2AuthorizePostBody
+
+### Properties
+
+#### client_id
+
+```ts
+client_id: string
+```
+
+(`string`) -
+
+#### code_challenge?
+
+```ts
+optional code_challenge: string;
+```
+
+#### code_challenge_method?
+
+```ts
+optional code_challenge_method: string;
+```
+
+Only S256 is supported. The plain method is not allowed.
+
+#### nonce?
+
+```ts
+optional nonce: string;
+```
+
+#### prompt?
+
+```ts
+optional prompt: string;
+```
+
+#### redirect_uri
+
+```ts
+redirect_uri: string
+```
+
+(`string`) -
+
+#### resource?
+
+```ts
+optional resource: string;
+```
+
+#### response_type
+
+```ts
+response_type: string
+```
+
+(`string`) -
+
+#### scope?
+
+```ts
+optional scope: string;
+```
+
+#### state?
+
+```ts
+optional state: string;
+```
+
+---
+
+## OAuth2DiscoveryResponse
+
+### Properties
+
+#### authorization_endpoint
+
+```ts
+authorization_endpoint: string
+```
+
+(`string`) -
+
+#### authorization_response_iss_parameter_supported?
+
+```ts
+optional authorization_response_iss_parameter_supported: boolean;
+```
+
+#### claims_supported?
+
+```ts
+optional claims_supported: string[];
+```
+
+#### client_id_metadata_document_supported?
+
+```ts
+optional client_id_metadata_document_supported: boolean;
+```
+
+#### code_challenge_methods_supported?
+
+```ts
+optional code_challenge_methods_supported: string[];
+```
+
+#### grant_types_supported?
+
+```ts
+optional grant_types_supported: string[];
+```
+
+#### id_token_signing_alg_values_supported?
+
+```ts
+optional id_token_signing_alg_values_supported: string[];
+```
+
+#### introspection_endpoint?
+
+```ts
+optional introspection_endpoint: string;
+```
+
+#### issuer
+
+```ts
+issuer: string
+```
+
+(`string`) -
+
+#### jwks_uri
+
+```ts
+jwks_uri: string
+```
+
+(`string`) -
+
+#### request_parameter_supported?
+
+```ts
+optional request_parameter_supported: boolean;
+```
+
+#### response_types_supported
+
+```ts
+response_types_supported: string[];
+```
+
+(`string[]`) -
+
+#### revocation_endpoint?
+
+```ts
+optional revocation_endpoint: string;
+```
+
+#### scopes_supported?
+
+```ts
+optional scopes_supported: string[];
+```
+
+#### subject_types_supported?
+
+```ts
+optional subject_types_supported: string[];
+```
+
+#### token_endpoint
+
+```ts
+token_endpoint: string
+```
+
+(`string`) -
+
+#### token_endpoint_auth_methods_supported?
+
+```ts
+optional token_endpoint_auth_methods_supported: string[];
+```
+
+#### userinfo_endpoint?
+
+```ts
+optional userinfo_endpoint: string;
+```
+
+---
+
+## OAuth2ErrorResponse
+
+### Properties
+
+#### error
+
+```ts
+error: string
+```
+
+(`string`) - OAuth2 error code
+
+#### error_description?
+
+```ts
+optional error_description: string;
+```
+
+Human-readable error description
+
+---
+
+## OAuth2IntrospectRequest
+
+### Properties
+
+#### client_id?
+
+```ts
+optional client_id: string;
+```
+
+#### client_secret?
+
+```ts
+optional client_secret: string;
+```
+
+#### token
+
+```ts
+token: string
+```
+
+(`string`) -
+
+#### token_type_hint?
+
+```ts
+optional token_type_hint: OAuth2IntrospectRequestToken_type_hint;
+```
+
+---
+
+## OAuth2IntrospectResponse
+
+### Properties
+
+#### active
+
+```ts
+active: boolean
+```
+
+(`boolean`) -
+
+#### client_id?
+
+```ts
+optional client_id: string;
+```
+
+#### exp?
+
+```ts
+optional exp: number;
+```
+
+#### iat?
+
+```ts
+optional iat: number;
+```
+
+#### iss?
+
+```ts
+optional iss: string;
+```
+
+#### scope?
+
+```ts
+optional scope: string;
+```
+
+#### sub?
+
+```ts
+optional sub: string;
+```
+
+#### token_type?
+
+```ts
+optional token_type: string;
+```
+
+---
+
+## OAuth2JWKSResponse
+
+### Properties
+
+#### keys
+
+```ts
+keys: JWK[];
+```
+
+(`JWK[]`) -
+
+---
+
+## OAuth2LoginCompleteResponse
+
+### Properties
+
+#### redirectUri
+
+```ts
+redirectUri: string
+```
+
+(`string`) -
+
+- Format - uri
+
+---
+
+## Oauth2LoginGetParams
+
+Parameters for the oauth2LoginGet method.
+
+### Properties
+
+#### request_id
+
+```ts
+request_id: string
+```
+
+(string) - The pending authorization request identifier.
+
+---
+
+## OAuth2LoginRequest
+
+### Properties
+
+#### requestId
+
+```ts
+requestId: string
+```
+
+(`string`) -
+
+- Format - uuid
+
+---
+
+## OAuth2LoginResponse
+
+### Properties
+
+#### clientId
+
+```ts
+clientId: string
+```
+
+(`string`) -
+
+#### redirectUri
+
+```ts
+redirectUri: string
+```
+
+(`string`) -
+
+#### requestId
+
+```ts
+requestId: string
+```
+
+(`string`) -
+
+- Format - uuid
+
+#### scopes
+
+```ts
+scopes: string[];
+```
+
+(`string[]`) -
+
+---
+
+## OAuth2RevokeRequest
+
+### Properties
+
+#### client_id?
+
+```ts
+optional client_id: string;
+```
+
+#### client_secret?
+
+```ts
+optional client_secret: string;
+```
+
+#### token
+
+```ts
+token: string
+```
+
+(`string`) -
+
+#### token_type_hint?
+
+```ts
+optional token_type_hint: OAuth2RevokeRequestToken_type_hint;
+```
+
+---
+
+## OAuth2TokenRequest
+
+### Properties
+
+#### client_id?
+
+```ts
+optional client_id: string;
+```
+
+#### client_secret?
+
+```ts
+optional client_secret: string;
+```
+
+#### code?
+
+```ts
+optional code: string;
+```
+
+#### code_verifier?
+
+```ts
+optional code_verifier: string;
+```
+
+#### grant_type
+
+```ts
+grant_type: OAuth2TokenRequestGrant_type
+```
+
+(`OAuth2TokenRequestGrant_type`) -
+
+#### redirect_uri?
+
+```ts
+optional redirect_uri: string;
+```
+
+#### refresh_token?
+
+```ts
+optional refresh_token: string;
+```
+
+#### resource?
+
+```ts
+optional resource: string;
+```
+
+---
+
+## OAuth2TokenResponse
+
+### Properties
+
+#### access_token
+
+```ts
+access_token: string
+```
+
+(`string`) -
+
+#### expires_in
+
+```ts
+expires_in: number
+```
+
+(`number`) -
+
+#### id_token?
+
+```ts
+optional id_token: string;
+```
+
+#### refresh_token?
+
+```ts
+optional refresh_token: string;
+```
+
+#### scope?
+
+```ts
+optional scope: string;
+```
+
+#### token_type
+
+```ts
+token_type: string
+```
+
+(`string`) -
+
+---
+
+## OAuth2UserinfoResponse
+
+### Properties
+
+#### email?
+
+```ts
+optional email: string;
+```
+
+#### email_verified?
+
+```ts
+optional email_verified: boolean;
+```
+
+#### locale?
+
+```ts
+optional locale: string;
+```
+
+#### name?
+
+```ts
+optional name: string;
+```
+
+#### phone_number?
+
+```ts
+optional phone_number: string;
+```
+
+#### phone_number_verified?
+
+```ts
+optional phone_number_verified: boolean;
+```
+
+#### picture?
+
+```ts
+optional picture: string;
+```
+
+#### sub
+
+```ts
+sub: string
+```
+
+(`string`) -
 
 ---
 
@@ -3244,10 +4213,42 @@ Error code identifying the specific application error
 
 ---
 
+## GetCode_challenge_method
+
+```ts
+type GetCode_challenge_method = 'S256'
+```
+
+---
+
 ## IdTokenProvider
 
 ```ts
 type IdTokenProvider = 'apple' | 'google'
+```
+
+---
+
+## OAuth2IntrospectRequestToken_type_hint
+
+```ts
+type OAuth2IntrospectRequestToken_type_hint = 'access_token' | 'refresh_token'
+```
+
+---
+
+## OAuth2RevokeRequestToken_type_hint
+
+```ts
+type OAuth2RevokeRequestToken_type_hint = 'access_token' | 'refresh_token'
+```
+
+---
+
+## OAuth2TokenRequestGrant_type
+
+```ts
+type OAuth2TokenRequestGrant_type = 'authorization_code' | 'refresh_token'
 ```
 
 ---

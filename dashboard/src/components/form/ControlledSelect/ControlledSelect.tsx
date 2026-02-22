@@ -23,32 +23,32 @@ export interface ControlledSelectProps<TFieldValues extends FieldValues = any>
   control?: UseControllerProps<TFieldValues>['control'];
 }
 
-function ControlledSelect(
-  { controllerProps, name, control, ...props }: ControlledSelectProps,
-  ref: ForwardedRef<HTMLButtonElement>,
-) {
-  const { setValue } = useFormContext();
-  const nameAttr = controllerProps?.name || name || '';
-  const { field } = useController({
-    ...controllerProps,
-    name: nameAttr,
-    control: controllerProps?.control || control,
-  });
+export default forwardRef(
+  (
+    { controllerProps, name, control, ...props }: ControlledSelectProps,
+    ref: ForwardedRef<HTMLButtonElement>,
+  ) => {
+    const { setValue } = useFormContext();
+    const nameAttr = controllerProps?.name || name || '';
+    const { field } = useController({
+      ...controllerProps,
+      name: nameAttr,
+      control: controllerProps?.control || control,
+    });
 
-  return (
-    <Select
-      {...props}
-      {...field}
-      ref={mergeRefs([field.ref, ref])}
-      onChange={(event, value) => {
-        setValue(nameAttr, value, { shouldDirty: true });
+    return (
+      <Select
+        {...props}
+        {...field}
+        ref={mergeRefs([field.ref, ref])}
+        onChange={(event, value) => {
+          setValue(nameAttr, value, { shouldDirty: true });
 
-        if (props.onChange) {
-          props.onChange(event, value);
-        }
-      }}
-    />
-  );
-}
-
-export default forwardRef(ControlledSelect);
+          if (props.onChange) {
+            props.onChange(event, value);
+          }
+        }}
+      />
+    );
+  },
+);

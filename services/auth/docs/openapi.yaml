@@ -9,7 +9,6 @@ info:
     url: "https://opensource.org/licenses/MIT"
   contact:
     name: "Nhost Support"
-    email: "support@nhost.io"
     url: "https://nhost.io"
 
 servers:
@@ -444,16 +443,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInPasswordlessSmsRequest'
+              $ref: "#/components/schemas/SignInPasswordlessSmsRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             OTP sent to user's phone number successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
@@ -473,15 +472,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInPasswordlessSmsOtpRequest'
+              $ref: "#/components/schemas/SignInPasswordlessSmsOtpRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: User successfully authenticated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SignInPasswordlessSmsOtpResponse'
+                $ref: "#/components/schemas/SignInPasswordlessSmsOtpResponse"
         default:
           content:
             application/json:
@@ -1040,9 +1039,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/VerifyTokenRequest'
+              $ref: "#/components/schemas/VerifyTokenRequest"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
@@ -1066,11 +1065,11 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
           description: User information
         default:
           content:
@@ -1369,6 +1368,416 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
+
+  # =========================================================================
+  # OAuth2/OIDC Identity Provider endpoints
+  # =========================================================================
+
+  /.well-known/openid-configuration:
+    get:
+      summary: OpenID Connect Discovery
+      description: Returns the OpenID Provider Metadata (RFC 8414)
+      operationId: getOpenIDConfiguration
+      tags:
+        - system
+      responses:
+        "200":
+          description: OpenID Provider Metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2DiscoveryResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+
+  /.well-known/oauth-authorization-server:
+    get:
+      summary: OAuth2 Authorization Server Metadata
+      description: Returns the Authorization Server Metadata (RFC 8414). Same content as OpenID Discovery.
+      operationId: getOAuthAuthorizationServer
+      tags:
+        - system
+      responses:
+        "200":
+          description: Authorization Server Metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2DiscoveryResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+
+  /oauth2/authorize:
+    get:
+      summary: OAuth2 Authorization Endpoint
+      description: >-
+        Initiates an OAuth2 authorization code flow. Validates the request and redirects
+        to the login UI for user authentication and consent.
+      operationId: oauth2Authorize
+      tags:
+        - authentication
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          description: The OAuth2 client identifier (RFC 6749 Section 2.2).
+          schema:
+            type: string
+        - name: redirect_uri
+          in: query
+          required: true
+          description: The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
+          schema:
+            type: string
+        - name: response_type
+          in: query
+          required: true
+          description: The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+          schema:
+            type: string
+        - name: scope
+          in: query
+          required: false
+          description: Space-delimited list of requested scopes (RFC 6749 Section 3.3).
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          description: Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
+          schema:
+            type: string
+        - name: nonce
+          in: query
+          required: false
+          description: String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
+          schema:
+            type: string
+        - name: code_challenge
+          in: query
+          required: false
+          description: PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
+          schema:
+            type: string
+        - name: code_challenge_method
+          in: query
+          required: false
+          description: "Only S256 is supported. The plain method is not allowed."
+          schema:
+            type: string
+            enum: [S256]
+        - name: resource
+          in: query
+          required: false
+          description: Resource indicator for the target service (RFC 8707).
+          schema:
+            type: string
+        - name: prompt
+          in: query
+          required: false
+          description: Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to login UI or back to client with error
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+    post:
+      summary: OAuth2 Authorization Endpoint (POST)
+      description: >-
+        Initiates an OAuth2 authorization code flow via POST. Validates the request and redirects
+        to the login UI for user authentication and consent.
+      operationId: oauth2AuthorizePost
+      tags:
+        - authentication
+      requestBody:
+        description: OAuth2 authorization request parameters (RFC 6749 Section 4.1.1).
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                client_id:
+                  type: string
+                redirect_uri:
+                  type: string
+                response_type:
+                  type: string
+                scope:
+                  type: string
+                  nullable: true
+                state:
+                  type: string
+                  nullable: true
+                nonce:
+                  type: string
+                  nullable: true
+                code_challenge:
+                  type: string
+                  nullable: true
+                code_challenge_method:
+                  description: "Only S256 is supported. The plain method is not allowed."
+                  type: string
+                  nullable: true
+                resource:
+                  type: string
+                  nullable: true
+                prompt:
+                  type: string
+                  nullable: true
+              required:
+                - client_id
+                - redirect_uri
+                - response_type
+      responses:
+        "302":
+          description: Redirect to login UI or back to client with error
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/token:
+    post:
+      summary: OAuth2 Token Endpoint
+      description: >-
+        Exchange an authorization code for tokens, or refresh an existing token.
+        Supports grant_type authorization_code and refresh_token.
+      operationId: oauth2Token
+      tags:
+        - authentication
+      requestBody:
+        description: Token request parameters (RFC 6749 Section 4.1.3).
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OAuth2TokenRequest"
+      responses:
+        "200":
+          description: Token response
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              required: true
+            Pragma:
+              schema:
+                type: string
+              required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2TokenResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/userinfo:
+    get:
+      summary: OpenID Connect UserInfo Endpoint (GET)
+      description: Returns claims about the authenticated user based on the access token scopes.
+      operationId: oauth2UserinfoGet
+      tags:
+        - user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: UserInfo claims
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2UserinfoResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+    post:
+      summary: OpenID Connect UserInfo Endpoint (POST)
+      description: Returns claims about the authenticated user based on the access token scopes.
+      operationId: oauth2UserinfoPost
+      tags:
+        - user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: UserInfo claims
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2UserinfoResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/jwks:
+    get:
+      summary: OAuth2 Provider JWKS Endpoint
+      description: Returns the JSON Web Key Set containing public keys used for OAuth2/OIDC token signing.
+      operationId: oauth2Jwks
+      tags:
+        - system
+      responses:
+        "200":
+          description: JWKS response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2JWKSResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+
+  /oauth2/revoke:
+    post:
+      summary: OAuth2 Token Revocation (RFC 7009)
+      description: Revoke an access token or refresh token.
+      operationId: oauth2Revoke
+      tags:
+        - session
+      requestBody:
+        description: Token revocation request parameters (RFC 7009 Section 2.1).
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OAuth2RevokeRequest"
+      responses:
+        "200":
+          description: Token successfully revoked (or was already invalid)
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/introspect:
+    post:
+      summary: OAuth2 Token Introspection (RFC 7662)
+      description: Introspect a token to determine its current state and metadata.
+      operationId: oauth2Introspect
+      tags:
+        - session
+      requestBody:
+        description: Token introspection request parameters (RFC 7662 Section 2.1).
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OAuth2IntrospectRequest"
+      responses:
+        "200":
+          description: Token introspection response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2IntrospectResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/login:
+    get:
+      summary: Get authorization request details for consent screen
+      description: Called by the consent UI to get details about the pending authorization request.
+      operationId: oauth2LoginGet
+      tags:
+        - authentication
+      parameters:
+        - name: request_id
+          in: query
+          required: true
+          description: The pending authorization request identifier.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Authorization request details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2LoginResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
+    post:
+      summary: Complete login/consent for an authorization request
+      description: >-
+        Called by the consent UI after user authenticates and consents.
+        Sets the user on the auth request and redirects back to the client with an authorization code.
+      operationId: oauth2LoginPost
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Login consent completion with the authorization request ID.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuth2LoginRequest"
+      responses:
+        "200":
+          description: Authorization completed, redirect URL returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2LoginCompleteResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
 
 components:
   securitySchemes:
@@ -2165,7 +2574,7 @@ components:
       properties:
         phoneNumber:
           description: Phone number of the user
-          example: '+123456789'
+          example: "+123456789"
           type: string
         otp:
           type: string
@@ -2179,9 +2588,9 @@ components:
       additionalProperties: false
       properties:
         session:
-          $ref: '#/components/schemas/Session'
+          $ref: "#/components/schemas/Session"
         mfa:
-          $ref: '#/components/schemas/MFAChallengePayload'
+          $ref: "#/components/schemas/MFAChallengePayload"
 
     SignInPasswordlessSmsRequest:
       type: object
@@ -2189,10 +2598,10 @@ components:
       properties:
         phoneNumber:
           description: Phone number of the user
-          example: '+123456789'
+          example: "+123456789"
           type: string
         options:
-          $ref: '#/components/schemas/SignUpOptions'
+          $ref: "#/components/schemas/SignUpOptions"
       required:
         - phoneNumber
 
@@ -2598,6 +3007,273 @@ components:
           type: string
           description: JWT token to verify
 
+    # =========================================================================
+    # OAuth2/OIDC Identity Provider schemas
+    # =========================================================================
+
+    OAuth2ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: OAuth2 error code
+        error_description:
+          type: string
+          description: Human-readable error description
+      required:
+        - error
+
+    OAuth2DiscoveryResponse:
+      type: object
+
+      properties:
+        issuer:
+          type: string
+        authorization_endpoint:
+          type: string
+        token_endpoint:
+          type: string
+        userinfo_endpoint:
+          type: string
+        jwks_uri:
+          type: string
+        revocation_endpoint:
+          type: string
+        introspection_endpoint:
+          type: string
+        scopes_supported:
+          type: array
+          items:
+            type: string
+        response_types_supported:
+          type: array
+          items:
+            type: string
+        grant_types_supported:
+          type: array
+          items:
+            type: string
+        subject_types_supported:
+          type: array
+          items:
+            type: string
+        id_token_signing_alg_values_supported:
+          type: array
+          items:
+            type: string
+        token_endpoint_auth_methods_supported:
+          type: array
+          items:
+            type: string
+        code_challenge_methods_supported:
+          type: array
+          items:
+            type: string
+        claims_supported:
+          type: array
+          items:
+            type: string
+        request_parameter_supported:
+          type: boolean
+        authorization_response_iss_parameter_supported:
+          type: boolean
+        client_id_metadata_document_supported:
+          type: boolean
+      required:
+        - issuer
+        - authorization_endpoint
+        - token_endpoint
+        - jwks_uri
+        - response_types_supported
+
+    OAuth2TokenRequest:
+      type: object
+
+      properties:
+        grant_type:
+          type: string
+          enum: [authorization_code, refresh_token]
+        code:
+          type: string
+          nullable: true
+        redirect_uri:
+          type: string
+          nullable: true
+        client_id:
+          type: string
+          nullable: true
+        client_secret:
+          type: string
+          nullable: true
+        code_verifier:
+          type: string
+          nullable: true
+        refresh_token:
+          type: string
+          nullable: true
+        resource:
+          type: string
+          nullable: true
+      required:
+        - grant_type
+
+    OAuth2TokenResponse:
+      type: object
+
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: integer
+        refresh_token:
+          type: string
+        id_token:
+          type: string
+        scope:
+          type: string
+      required:
+        - access_token
+        - token_type
+        - expires_in
+
+    OAuth2UserinfoResponse:
+      type: object
+
+      additionalProperties: false
+      properties:
+        sub:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        email_verified:
+          type: boolean
+        picture:
+          type: string
+        locale:
+          type: string
+        phone_number:
+          type: string
+        phone_number_verified:
+          type: boolean
+      required:
+        - sub
+
+    OAuth2JWKSResponse:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: "#/components/schemas/JWK"
+      required:
+        - keys
+
+    OAuth2RevokeRequest:
+      type: object
+
+      properties:
+        token:
+          type: string
+        token_type_hint:
+          type: string
+          enum: [access_token, refresh_token]
+          nullable: true
+        client_id:
+          type: string
+          nullable: true
+        client_secret:
+          type: string
+          nullable: true
+      required:
+        - token
+
+    OAuth2IntrospectRequest:
+      type: object
+
+      properties:
+        token:
+          type: string
+        token_type_hint:
+          type: string
+          enum: [access_token, refresh_token]
+          nullable: true
+        client_id:
+          type: string
+          nullable: true
+        client_secret:
+          type: string
+          nullable: true
+      required:
+        - token
+
+    OAuth2IntrospectResponse:
+      type: object
+
+      properties:
+        active:
+          type: boolean
+        scope:
+          type: string
+        client_id:
+          type: string
+        sub:
+          type: string
+        exp:
+          type: integer
+        iat:
+          type: integer
+        iss:
+          type: string
+        token_type:
+          type: string
+      required:
+        - active
+
+    OAuth2LoginResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        redirectUri:
+          type: string
+      required:
+        - requestId
+        - clientId
+        - scopes
+        - redirectUri
+
+    OAuth2LoginRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId:
+          type: string
+          format: uuid
+      required:
+        - requestId
+
+    OAuth2LoginCompleteResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        redirectUri:
+          type: string
+          format: uri
+      required:
+        - redirectUri
+
   parameters:
     RedirectToQuery:
       in: query
@@ -2668,4 +3344,3 @@ components:
         type: string
         format: uri
       required: true
-

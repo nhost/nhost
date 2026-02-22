@@ -38,6 +38,39 @@ CREATE DOMAIN auth.email AS public.citext
 ALTER DOMAIN auth.email OWNER TO postgres;
 
 --
+-- Name: check_oauth2_client_secret_hash(); Type: FUNCTION; Schema: auth; Owner: postgres
+--
+
+CREATE FUNCTION auth.check_oauth2_client_secret_hash() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $_$
+BEGIN
+    IF NEW.client_secret_hash IS NOT NULL
+       AND NEW.client_secret_hash !~ '^\$2[aby]?\$' THEN
+        RAISE EXCEPTION 'client_secret_hash must be a bcrypt hash'
+            USING ERRCODE = 'check_violation';
+    END IF;
+    RETURN NEW;
+END;
+$_$;
+
+
+ALTER FUNCTION auth.check_oauth2_client_secret_hash() OWNER TO postgres;
+
+--
+-- Name: generate_oauth2_client_id(); Type: FUNCTION; Schema: auth; Owner: postgres
+--
+
+CREATE FUNCTION auth.generate_oauth2_client_id() RETURNS text
+    LANGUAGE sql
+    AS $$
+    SELECT 'nhoa_' || substring(encode(sha256(gen_random_uuid()::text::bytea), 'hex') from 1 for 16);
+$$;
+
+
+ALTER FUNCTION auth.generate_oauth2_client_id() OWNER TO postgres;
+
+--
 -- Name: set_current_timestamp_updated_at(); Type: FUNCTION; Schema: auth; Owner: postgres
 --
 
@@ -59,6 +92,116 @@ ALTER FUNCTION auth.set_current_timestamp_updated_at() OWNER TO postgres;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: oauth2_auth_requests; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.oauth2_auth_requests (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    client_id text NOT NULL,
+    scopes text[] DEFAULT '{}'::text[] NOT NULL,
+    redirect_uri text NOT NULL,
+    state text,
+    nonce text,
+    response_type text NOT NULL,
+    code_challenge text,
+    code_challenge_method text,
+    resource text,
+    user_id uuid,
+    done boolean DEFAULT false NOT NULL,
+    auth_time timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    CONSTRAINT oauth2_auth_requests_scopes_check CHECK ((scopes <@ ARRAY['openid'::text, 'profile'::text, 'email'::text, 'phone'::text, 'offline_access'::text, 'graphql'::text]))
+);
+
+
+ALTER TABLE auth.oauth2_auth_requests OWNER TO postgres;
+
+--
+-- Name: TABLE oauth2_auth_requests; Type: COMMENT; Schema: auth; Owner: postgres
+--
+
+COMMENT ON TABLE auth.oauth2_auth_requests IS 'In-flight OAuth2 authorization requests.';
+
+
+--
+-- Name: oauth2_authorization_codes; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.oauth2_authorization_codes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    code_hash text NOT NULL,
+    auth_request_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE auth.oauth2_authorization_codes OWNER TO postgres;
+
+--
+-- Name: TABLE oauth2_authorization_codes; Type: COMMENT; Schema: auth; Owner: postgres
+--
+
+COMMENT ON TABLE auth.oauth2_authorization_codes IS 'OAuth2 authorization codes pending exchange for tokens.';
+
+
+--
+-- Name: oauth2_clients; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.oauth2_clients (
+    client_id text DEFAULT auth.generate_oauth2_client_id() NOT NULL,
+    client_secret_hash text,
+    redirect_uris text[] DEFAULT '{}'::text[] NOT NULL,
+    scopes text[] DEFAULT '{openid,profile,email,phone,offline_access,graphql}'::text[] NOT NULL,
+    type text DEFAULT 'registered'::text NOT NULL,
+    metadata jsonb,
+    metadata_document_fetched_at timestamp with time zone,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT oauth2_clients_scopes_check CHECK ((scopes <@ ARRAY['openid'::text, 'profile'::text, 'email'::text, 'phone'::text, 'offline_access'::text, 'graphql'::text])),
+    CONSTRAINT oauth2_clients_type_check CHECK ((type = ANY (ARRAY['registered'::text, 'client_id_metadata_document'::text])))
+);
+
+
+ALTER TABLE auth.oauth2_clients OWNER TO postgres;
+
+--
+-- Name: TABLE oauth2_clients; Type: COMMENT; Schema: auth; Owner: postgres
+--
+
+COMMENT ON TABLE auth.oauth2_clients IS 'Registered OAuth2 client applications for the identity provider.';
+
+
+--
+-- Name: oauth2_refresh_tokens; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.oauth2_refresh_tokens (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    token_hash text NOT NULL,
+    auth_request_id uuid,
+    client_id text NOT NULL,
+    user_id uuid NOT NULL,
+    scopes text[] DEFAULT '{}'::text[] NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    CONSTRAINT oauth2_refresh_tokens_scopes_check CHECK ((scopes <@ ARRAY['openid'::text, 'profile'::text, 'email'::text, 'phone'::text, 'offline_access'::text, 'graphql'::text]))
+);
+
+
+ALTER TABLE auth.oauth2_refresh_tokens OWNER TO postgres;
+
+--
+-- Name: TABLE oauth2_refresh_tokens; Type: COMMENT; Schema: auth; Owner: postgres
+--
+
+COMMENT ON TABLE auth.oauth2_refresh_tokens IS 'OAuth2 refresh tokens with client and scope binding.';
+
 
 --
 -- Name: provider_requests; Type: TABLE; Schema: auth; Owner: postgres
@@ -284,6 +427,54 @@ COMMENT ON TABLE auth.users IS 'User account information. Don''t modify its stru
 
 
 --
+-- Name: oauth2_auth_requests oauth2_auth_requests_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_auth_requests
+    ADD CONSTRAINT oauth2_auth_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth2_authorization_codes oauth2_authorization_codes_code_hash_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_authorization_codes
+    ADD CONSTRAINT oauth2_authorization_codes_code_hash_key UNIQUE (code_hash);
+
+
+--
+-- Name: oauth2_authorization_codes oauth2_authorization_codes_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_authorization_codes
+    ADD CONSTRAINT oauth2_authorization_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth2_clients oauth2_clients_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_clients
+    ADD CONSTRAINT oauth2_clients_pkey PRIMARY KEY (client_id);
+
+
+--
+-- Name: oauth2_refresh_tokens oauth2_refresh_tokens_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_refresh_tokens
+    ADD CONSTRAINT oauth2_refresh_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth2_refresh_tokens oauth2_refresh_tokens_token_hash_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_refresh_tokens
+    ADD CONSTRAINT oauth2_refresh_tokens_token_hash_key UNIQUE (token_hash);
+
+
+--
 -- Name: provider_requests provider_requests_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
 --
 
@@ -404,10 +595,80 @@ ALTER TABLE ONLY auth.users
 
 
 --
+-- Name: oauth2_auth_requests_client_id_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_auth_requests_client_id_idx ON auth.oauth2_auth_requests USING btree (client_id);
+
+
+--
+-- Name: oauth2_auth_requests_expires_at_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_auth_requests_expires_at_idx ON auth.oauth2_auth_requests USING btree (expires_at);
+
+
+--
+-- Name: oauth2_auth_requests_user_id_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_auth_requests_user_id_idx ON auth.oauth2_auth_requests USING btree (user_id);
+
+
+--
+-- Name: oauth2_authorization_codes_expires_at_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_authorization_codes_expires_at_idx ON auth.oauth2_authorization_codes USING btree (expires_at);
+
+
+--
+-- Name: oauth2_clients_created_by_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_clients_created_by_idx ON auth.oauth2_clients USING btree (created_by);
+
+
+--
+-- Name: oauth2_refresh_tokens_client_id_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_refresh_tokens_client_id_idx ON auth.oauth2_refresh_tokens USING btree (client_id);
+
+
+--
+-- Name: oauth2_refresh_tokens_expires_at_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_refresh_tokens_expires_at_idx ON auth.oauth2_refresh_tokens USING btree (expires_at);
+
+
+--
+-- Name: oauth2_refresh_tokens_user_id_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_refresh_tokens_user_id_idx ON auth.oauth2_refresh_tokens USING btree (user_id);
+
+
+--
 -- Name: refresh_tokens_refresh_token_hash_expires_at_user_id_idx; Type: INDEX; Schema: auth; Owner: postgres
 --
 
 CREATE INDEX refresh_tokens_refresh_token_hash_expires_at_user_id_idx ON auth.refresh_tokens USING btree (refresh_token_hash, expires_at, user_id);
+
+
+--
+-- Name: oauth2_clients check_oauth2_client_secret_hash; Type: TRIGGER; Schema: auth; Owner: postgres
+--
+
+CREATE TRIGGER check_oauth2_client_secret_hash BEFORE INSERT OR UPDATE ON auth.oauth2_clients FOR EACH ROW EXECUTE FUNCTION auth.check_oauth2_client_secret_hash();
+
+
+--
+-- Name: oauth2_clients set_auth_oauth2_clients_updated_at; Type: TRIGGER; Schema: auth; Owner: postgres
+--
+
+CREATE TRIGGER set_auth_oauth2_clients_updated_at BEFORE UPDATE ON auth.oauth2_clients FOR EACH ROW EXECUTE FUNCTION auth.set_current_timestamp_updated_at();
 
 
 --
@@ -430,6 +691,62 @@ CREATE TRIGGER set_auth_users_updated_at BEFORE UPDATE ON auth.users FOR EACH RO
 
 ALTER TABLE ONLY auth.users
     ADD CONSTRAINT fk_default_role FOREIGN KEY (default_role) REFERENCES auth.roles(role) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: oauth2_auth_requests fk_oauth2_auth_requests_client; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_auth_requests
+    ADD CONSTRAINT fk_oauth2_auth_requests_client FOREIGN KEY (client_id) REFERENCES auth.oauth2_clients(client_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: oauth2_auth_requests fk_oauth2_auth_requests_user; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_auth_requests
+    ADD CONSTRAINT fk_oauth2_auth_requests_user FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: oauth2_authorization_codes fk_oauth2_authorization_codes_auth_request; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_authorization_codes
+    ADD CONSTRAINT fk_oauth2_authorization_codes_auth_request FOREIGN KEY (auth_request_id) REFERENCES auth.oauth2_auth_requests(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: oauth2_clients fk_oauth2_clients_created_by; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_clients
+    ADD CONSTRAINT fk_oauth2_clients_created_by FOREIGN KEY (created_by) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: oauth2_refresh_tokens fk_oauth2_refresh_tokens_auth_request; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_refresh_tokens
+    ADD CONSTRAINT fk_oauth2_refresh_tokens_auth_request FOREIGN KEY (auth_request_id) REFERENCES auth.oauth2_auth_requests(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: oauth2_refresh_tokens fk_oauth2_refresh_tokens_client; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_refresh_tokens
+    ADD CONSTRAINT fk_oauth2_refresh_tokens_client FOREIGN KEY (client_id) REFERENCES auth.oauth2_clients(client_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: oauth2_refresh_tokens fk_oauth2_refresh_tokens_user; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_refresh_tokens
+    ADD CONSTRAINT fk_oauth2_refresh_tokens_user FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

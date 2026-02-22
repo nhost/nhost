@@ -346,7 +346,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Workflows',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'products/auth/workflows/email-password' },
                     { slug: 'products/auth/workflows/passwordless-email' },
@@ -361,12 +361,47 @@ export default defineConfig({
                 },
                 {
                   label: 'Security',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'products/auth/elevated-permissions' },
                     { slug: 'products/auth/bot-protection' },
                     { slug: 'products/auth/custom-jwts' },
                     { slug: 'products/auth/restricting_emails_and_domains' },
+                  ],
+                },
+                {
+                  label: 'OAuth2 / OIDC Provider',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/auth/oauth2-provider' },
+                    {
+                      label: 'Authorization Flows',
+                      collapsed: true,
+                      items: [
+                        {
+                          label: 'Code Flow',
+                          collapsed: true,
+                          items: [
+                            {
+                              slug: 'products/auth/oauth2-provider/authorization-flow',
+                            },
+                            {
+                              slug: 'products/auth/oauth2-provider/confidential-clients',
+                            },
+                            {
+                              slug: 'products/auth/oauth2-provider/public-clients',
+                            },
+                            {
+                              slug: 'products/auth/oauth2-provider/cimd-clients',
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      slug: 'products/auth/oauth2-provider/tokens-and-scopes',
+                    },
+                    { slug: 'products/auth/oauth2-provider/managing-clients' },
                   ],
                 },
               ],
@@ -402,7 +437,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Platform',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'products/storage/cdn' },
                     { slug: 'products/storage/antivirus' },
@@ -513,7 +548,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Development',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'platform/cli' },
                     { slug: 'platform/cli/local-development' },
@@ -537,7 +572,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Self-Hosting',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'platform/self-hosting' },
                     { slug: 'platform/self-hosting/community' },
@@ -647,7 +682,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Deprecated Libraries',
-                  collapsed: true,
+                  collapsed: false,
                   autogenerate: { directory: 'reference/deprecated' },
                 },
               ],

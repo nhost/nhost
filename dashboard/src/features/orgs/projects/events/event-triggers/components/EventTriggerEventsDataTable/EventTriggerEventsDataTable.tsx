@@ -17,8 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
+import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/common/constants';
 import { EventTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerInvocationLogsDataTable';
-import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas';
