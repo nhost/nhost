@@ -1,15 +1,13 @@
-import type { UseQueryOptions } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
-import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
+import {
+  type UseExportMetadataOptions,
+  useExportMetadata,
+} from '@/features/orgs/projects/common/hooks/useExportMetadata';
 
 export interface UseGetTrackedTablesSetOptions {
   /**
    * Props passed to the underlying query hook.
    */
-  queryOptions?: UseQueryOptions<ExportMetadataResponse, unknown, Set<string>>;
+  queryOptions?: UseExportMetadataOptions;
   /**
    * The data source to get the tracked tables names for.
    */
@@ -28,41 +26,15 @@ export default function useGetTrackedTablesSet({
   dataSource,
   queryOptions,
 }: UseGetTrackedTablesSetOptions) {
-  const { project, loading } = useProject();
+  return useExportMetadata((data) => {
+    const sourceMetadata = data.metadata.sources?.find(
+      (item) => item.name === dataSource,
+    );
 
-  const query = useQuery<ExportMetadataResponse, unknown, Set<string>>({
-    queryKey: ['export-metadata', project?.subdomain],
-    queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
-
-      const adminSecret = project!.config!.hasura.adminSecret;
-
-      return fetchExportMetadata({ appUrl, adminSecret });
-    },
-    ...queryOptions,
-    enabled: !!(
-      project?.subdomain &&
-      project?.region &&
-      project?.config?.hasura.adminSecret &&
-      queryOptions?.enabled !== false &&
-      !loading
-    ),
-    select: (data) => {
-      const sourceMetadata = data.metadata.sources?.find(
-        (item) => item.name === dataSource,
-      );
-
-      return new Set(
-        sourceMetadata?.tables?.map(
-          (item) => `${item.table.schema}.${item.table.name}`,
-        ) ?? [],
-      );
-    },
-  });
-
-  return query;
+    return new Set(
+      sourceMetadata?.tables?.map(
+        (item) => `${item.table.schema}.${item.table.name}`,
+      ) ?? [],
+    );
+  }, queryOptions);
 }

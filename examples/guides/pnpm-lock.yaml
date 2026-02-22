@@ -39,6 +39,9 @@ overrides:
   ajv@<8.18.0: '>=8.18.0'
   tar@<7.5.8: '>=7.5.8'
   minimatch@<10.2.1: '>=10.2.1'
+  svelte@<=5.51.4: '>=5.51.5'
+  '@sveltejs/kit@>=2.49.0 <=2.52.1': '>=2.52.2'
+  devalue@<=5.6.2: '>=5.6.3'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 

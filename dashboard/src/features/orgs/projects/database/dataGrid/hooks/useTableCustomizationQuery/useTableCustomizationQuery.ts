@@ -1,30 +1,12 @@
-import type { UseQueryOptions } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
-import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { isEmptyValue } from '@/lib/utils';
 import type {
-  ExportMetadataResponse,
   QualifiedTable,
   TableConfig,
 } from '@/utils/hasura-api/generated/schemas';
 
 export interface UseTableCustomizationQueryOptions {
-  /**
-   * Props passed to the underlying query hook.
-   */
-  queryOptions?: UseQueryOptions<
-    ExportMetadataResponse,
-    unknown,
-    TableConfig | undefined
-  >;
-  /**
-   * The table to get the customization for.
-   */
   table: QualifiedTable;
-  /**
-   * The data source to get the customization for.
-   */
   dataSource: string;
 }
 
@@ -37,54 +19,23 @@ export interface UseTableCustomizationQueryOptions {
 export default function useTableCustomizationQuery({
   table,
   dataSource,
-  queryOptions,
 }: UseTableCustomizationQueryOptions) {
-  const { project, loading } = useProject();
+  return useExportMetadata((data): TableConfig | undefined => {
+    if (isEmptyValue(data.metadata.sources)) {
+      return undefined;
+    }
 
-  const query = useQuery<
-    ExportMetadataResponse,
-    unknown,
-    TableConfig | undefined
-  >({
-    queryKey: ['export-metadata', project?.subdomain],
-    queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+    const sourceMetadata = data.metadata.sources!.find(
+      (item) => item.name === dataSource,
+    );
+    if (isEmptyValue(sourceMetadata?.tables)) {
+      return undefined;
+    }
 
-      const adminSecret = project!.config!.hasura.adminSecret;
-
-      return fetchExportMetadata({ appUrl, adminSecret });
-    },
-    ...queryOptions,
-    enabled: !!(
-      project?.subdomain &&
-      project?.region &&
-      project?.config?.hasura.adminSecret &&
-      queryOptions?.enabled !== false &&
-      !loading
-    ),
-    select: (data) => {
-      if (!data.metadata.sources) {
-        return undefined;
-      }
-
-      const sourceMetadata = data.metadata.sources.find(
-        (item) => item.name === dataSource,
-      );
-      if (!sourceMetadata?.tables) {
-        return undefined;
-      }
-
-      const tableMetadata = sourceMetadata.tables.find(
-        (item) =>
-          item.table.name === table.name && item.table.schema === table.schema,
-      );
-      return tableMetadata?.configuration;
-    },
+    const tableMetadata = sourceMetadata!.tables!.find(
+      (item) =>
+        item.table.name === table.name && item.table.schema === table.schema,
+    );
+    return tableMetadata?.configuration;
   });
-
-  return query;
 }
