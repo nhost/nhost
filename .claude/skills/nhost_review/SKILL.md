@@ -45,14 +45,24 @@ Generate a structured PR description and publish it.
 
 Follow the format template in [template.md](template.md) exactly.
 
-Write the complete body (author content + your section) to `/tmp/pr-body.md` using the Write tool, then run:
-`bash .claude/skills/nhost_review/scripts/post-description.sh <PR_NUMBER> /tmp/pr-body.md`
-
-This writes `PR_<PR_NUMBER>_DESCRIPTION.md` at the repo root.
+Write the complete body (author content + your section) directly to `PR_<PR_NUMBER>_DESCRIPTION.md` at the repo root using the Write tool.
 
 ---
 
 ## Phase 2: Review the code
+
+### Parallelization strategy
+
+Before starting the review, group the changed files by project (top-level directory or module). If the PR touches **more than one project**, spawn one **review subagent per project** using the Task tool — launch them all **in parallel** in a single message. Each subagent receives:
+- The project name and its subset of the diff.
+- The full pre-fetched PR context (PR number, repo, base ref, etc.).
+- The review instructions below (severity levels, what to look for, finding validation loop).
+
+Each subagent must return a list of validated findings (file, line, severity, description, plan) so you can post comments and build the final review summary.
+
+If the PR only touches a **single project** or the diff is small (fewer than ~1000 changed lines across all files), review inline without spawning project-level subagents.
+
+---
 
 Review the PR diff from the pre-fetched context above. For each potential issue you identify, **do not post it immediately**.
 Instead, follow this validation loop:
@@ -64,9 +74,11 @@ Instead, follow this validation loop:
    - Explore the codebase freely (callers, interfaces, other packages, tests) to confirm or refute the issue.
    - If confirmed, propose the plan to address it.
    - Return: `{ confirmed: bool, reason: string, plan: string | null }`.
-3. **If confirmed**, write the plan (including severity and explanation) to `/tmp/pr-comment.md` using the Write tool, then run:
-   `bash .claude/skills/nhost_review/scripts/post-comment.sh <PR_NUMBER> <file-path> <line> /tmp/pr-comment.md`
-   - Always include the severity and a brief explanation of why it matters.
+3. **If confirmed**, write the finding directly to `PR_<PR_NUMBER>_COMMENT_<N>.md` at the repo root using the Write tool, where `<N>` is an incrementing counter starting at 1. The file must include:
+   - A `**File:**` header with the file path.
+   - A `**Line:**` header with the line number.
+   - The severity and a brief explanation of why it matters.
+   - The plan to address the issue.
 4. **If not confirmed**, discard the finding silently. Do not comment on false positives.
 
 ### Severity levels:
@@ -86,12 +98,9 @@ Instead, follow this validation loop:
 
 ### Writing the review:
 
-Post each validated finding using the `post-comment.sh` script as shown above.
+Post each validated finding as described above.
 
-After all findings are written, write the review summary to `/tmp/pr-review-summary.md` and run:
-`bash .claude/skills/nhost_review/scripts/submit-review.sh <PR_NUMBER> <event> /tmp/pr-review-summary.md`
-
-Where `<event>` is one of: `approve`, `request-changes`, `comment`.
+After all findings are written, write the review summary directly to `PR_<PR_NUMBER>_REVIEW.md` at the repo root using the Write tool. The file must start with a `**Decision:**` header containing one of: `approve`, `request-changes`, `comment`.
 
 The summary should list:
 - Count of findings by severity.
