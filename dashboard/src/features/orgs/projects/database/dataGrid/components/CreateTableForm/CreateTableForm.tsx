@@ -142,7 +142,7 @@ export default function CreateTableForm({
       triggerToast('The table has been created successfully.');
 
       await router.push(
-        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/${table.name}`,
+        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/tables/${table.name}`,
       );
     } catch {
       // This error is handled by the useCreateTableMutation hook.

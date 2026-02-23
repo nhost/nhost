@@ -26,7 +26,7 @@ test('should delete a table', async ({ authenticatedNhostPage: page }) => {
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${tableName}`,
   );
 
   await deleteTable({
@@ -36,7 +36,7 @@ test('should delete a table', async ({ authenticatedNhostPage: page }) => {
 
   // navigate to next URL
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/**`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/**`,
   );
 
   await expect(
@@ -64,7 +64,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${firstTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${firstTableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -110,7 +110,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${secondTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${secondTableName}`,
   );
 
   await expect(
