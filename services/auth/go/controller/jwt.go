@@ -239,6 +239,31 @@ func (j *JWTGetter) addClaimsToMap(
 	return nil
 }
 
+// fetchCustomClaims fetches custom claims and returns them. If the custom
+// claimer is nil or returns an error, an empty map is returned.
+func (j *JWTGetter) fetchCustomClaims(
+	ctx context.Context,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) map[string]any {
+	if j.customClaimer == nil {
+		return nil
+	}
+
+	customClaims, err := j.customClaimer.GetClaims(ctx, userID.String())
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"error getting custom claims",
+			slog.String("error", err.Error()),
+		)
+
+		return map[string]any{}
+	}
+
+	return customClaims
+}
+
 func (j *JWTGetter) GraphQLClaims(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -248,22 +273,7 @@ func (j *JWTGetter) GraphQLClaims(
 	extraClaims map[string]any,
 	logger *slog.Logger,
 ) (string, map[string]any, error) {
-	var (
-		customClaims map[string]any
-		err          error
-	)
-	if j.customClaimer != nil {
-		customClaims, err = j.customClaimer.GetClaims(ctx, userID.String())
-		if err != nil {
-			logger.ErrorContext(
-				ctx,
-				"error getting custom claims",
-				slog.String("error", err.Error()),
-			)
-
-			customClaims = map[string]any{}
-		}
-	}
+	customClaims := j.fetchCustomClaims(ctx, userID, logger)
 
 	c := map[string]any{
 		"x-hasura-allowed-roles":     allowedRoles,
@@ -281,6 +291,54 @@ func (j *JWTGetter) GraphQLClaims(
 	}
 
 	return j.claimsNamespace, c, nil
+}
+
+// RawGraphQLClaims returns the same claims as GraphQLClaims but without
+// Postgres-encoding values. Arrays remain as []any, booleans as bool, etc.
+// This is suitable for JSON responses (e.g. UserInfo) consumed by third
+// parties that expect standard JSON types.
+func (j *JWTGetter) RawGraphQLClaims(
+	ctx context.Context,
+	userID uuid.UUID,
+	isAnonymous bool,
+	allowedRoles []string,
+	defaultRole string,
+	extraClaims map[string]any,
+	logger *slog.Logger,
+) (string, map[string]any, error) {
+	customClaims := j.fetchCustomClaims(ctx, userID, logger)
+
+	c := map[string]any{
+		"x-hasura-allowed-roles":     allowedRoles,
+		"x-hasura-default-role":      defaultRole,
+		"x-hasura-user-id":           userID.String(),
+		"x-hasura-user-is-anonymous": isAnonymous,
+	}
+
+	addRawClaimsToMap(c, customClaims, false)
+	addRawClaimsToMap(c, extraClaims, true)
+
+	return j.claimsNamespace, c, nil
+}
+
+func addRawClaimsToMap(
+	claims map[string]any,
+	newClaims map[string]any,
+	allowOverwrite bool,
+) {
+	for k, v := range newClaims {
+		if !strings.HasPrefix(strings.ToLower(k), "x-hasura-") {
+			k = strings.ToLower("x-hasura-" + k)
+		}
+
+		if !allowOverwrite {
+			if _, ok := claims[k]; ok {
+				continue
+			}
+		}
+
+		claims[k] = v
+	}
 }
 
 func (j *JWTGetter) GetToken(
