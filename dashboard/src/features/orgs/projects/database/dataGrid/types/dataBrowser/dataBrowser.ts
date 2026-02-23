@@ -86,7 +86,6 @@ export interface HasuraMetadataTable {
     name: string;
     schema: string;
   };
-  is_enum?: boolean;
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   configuration: Record<string, Record<string, any>>;
   array_relationships?: HasuraMetadataRelationship[];
