@@ -1,3 +1,9 @@
+## [auth@0.47.0] - 2026-02-23
+
+### 🚀 Features
+
+- *(auth)* Added graphql scope support to oauth2's userinfo endpoint (#3942)
+
 ## [auth@0.46.0] - 2026-02-19
 
 ### 🚀 Features
