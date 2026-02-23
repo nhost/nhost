@@ -7,38 +7,38 @@ import type {
 import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 
-const typeToQuery = {
+export const typeToQuery = {
   'BASE TABLE': 'TABLE',
   VIEW: 'VIEW',
   'MATERIALIZED VIEW': 'MATERIALIZED VIEW',
-};
+} as const;
 
-export interface DeleteTableVariables {
+export interface DeleteDatabaseObjectVariables {
   /**
-   * Schema where the table is located.
+   * Schema where the database object is located.
    */
   schema: string;
   /**
-   * Table to delete.
+   * Database object to delete.
    */
   table: string;
   /**
-   * Type of the table to delete.
+   * Type of the database object to delete.
    */
   type: 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW';
 }
 
-export interface DeleteTableOptions
+export interface DeleteDatabaseObjectOptions
   extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}
 
-export default async function deleteTable({
+export default async function deleteDatabaseObject({
   dataSource,
   appUrl,
   adminSecret,
   schema,
   table,
   type,
-}: DeleteTableOptions & DeleteTableVariables) {
+}: DeleteDatabaseObjectOptions & DeleteDatabaseObjectVariables) {
   const response = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {

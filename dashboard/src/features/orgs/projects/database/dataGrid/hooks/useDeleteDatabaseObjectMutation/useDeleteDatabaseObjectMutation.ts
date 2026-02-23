@@ -5,37 +5,46 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
-import type { DeleteTableOptions, DeleteTableVariables } from './deleteTable';
-import deleteTable from './deleteTable';
-import deleteTableMigration from './deleteTableMigration';
+import type {
+  DeleteDatabaseObjectOptions,
+  DeleteDatabaseObjectVariables,
+} from './deleteDatabaseObject';
+import deleteDatabaseObject from './deleteDatabaseObject';
+import deleteDatabaseObjectMigration from './deleteDatabaseObjectMigration';
 
-export interface UseDeleteTableMutationOptions
-  extends Partial<DeleteTableOptions> {
+export interface UseDeleteDatabaseObjectMutationOptions
+  extends Partial<DeleteDatabaseObjectOptions> {
   /**
    * Props passed to the underlying mutation hook.
    */
-  mutationOptions?: MutationOptions<void, unknown, DeleteTableVariables>;
+  mutationOptions?: MutationOptions<
+    void,
+    unknown,
+    DeleteDatabaseObjectVariables
+  >;
 }
 
 /**
- * This hook is a wrapper around a fetch call that deletes a table from the
- * schema.
+ * This hook is a wrapper around a fetch call that deletes a database object
+ * from the schema.
  *
  * @param options - Options to use for the mutation.
  * @returns The result of the mutation.
  */
-export default function useDeleteTableMutation({
+export default function useDeleteDatabaseObjectMutation({
   dataSource: customDataSource,
   appUrl: customAppUrl,
   adminSecret: customAdminSecret,
   mutationOptions,
-}: UseDeleteTableMutationOptions = {}) {
+}: UseDeleteDatabaseObjectMutationOptions = {}) {
   const isPlatform = useIsPlatform();
   const {
     query: { dataSourceSlug },
   } = useRouter();
   const { project } = useProject();
-  const mutationFn = isPlatform ? deleteTable : deleteTableMigration;
+  const mutationFn = isPlatform
+    ? deleteDatabaseObject
+    : deleteDatabaseObjectMigration;
 
   const mutation = useMutation((variables) => {
     const appUrl = generateAppServiceUrl(

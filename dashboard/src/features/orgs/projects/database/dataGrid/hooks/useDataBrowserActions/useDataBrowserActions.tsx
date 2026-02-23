@@ -6,7 +6,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { Badge } from '@/components/ui/v3/badge';
 import { InlineCode } from '@/components/ui/v3/inline-code';
-import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
+import { useDeleteDatabaseObjectWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteDatabaseObjectMutation';
 import { isNotEmptyValue } from '@/lib/utils';
 
 const CreateTableForm = dynamic(
@@ -112,7 +112,8 @@ export function useDataBrowserActions({
     query: { orgSlug, appSubdomain },
   } = router;
 
-  const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
+  const { mutateAsync: deleteDatabaseObject } =
+    useDeleteDatabaseObjectWithToastMutation();
 
   const [removableTable, setRemovableTable] = useState<string>();
   const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
@@ -161,11 +162,7 @@ export function useDataBrowserActions({
           ? tablesInSelectedSchema[nextTableIndex]
           : null;
 
-      await deleteTable({
-        schema,
-        table,
-        type,
-      });
+      await deleteDatabaseObject({ schema, table, type });
       queryClient.removeQueries({
         queryKey: [`${dataSourceSlug}.${schema}.${table}`],
       });
