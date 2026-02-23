@@ -1,4 +1,4 @@
-import { Info, List, Lock, Plus, Table2, Terminal } from 'lucide-react';
+import { Info, Lock, Plus, Table2, Terminal } from 'lucide-react';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
@@ -26,7 +26,6 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -62,29 +61,9 @@ function DataBrowserSidebarContent({
     tables: [],
   };
 
-  const { data: metadataData } = useMetadataQuery(
-    ['export-metadata', dataSourceSlug as string],
-    {
-      queryOptions: {
-        enabled: !!dataSourceSlug && !!project?.config?.hasura.adminSecret,
-      },
-    },
-  );
-
   const { data: trackedTablesSet } = useGetTrackedTablesSet({
     dataSource: dataSourceSlug as string,
   });
-
-  // Create a Set of enum table paths for quick lookup
-  const enumTablePaths = new Set<string>();
-  if (metadataData?.tables) {
-    metadataData.tables.forEach((table) => {
-      // biome-ignore lint/suspicious/noExplicitAny: Metadata table may have is_enum property
-      if ((table as any).is_enum) {
-        enumTablePaths.add(`${table.table.schema}.${table.table.name}`);
-      }
-    });
-  }
 
   const [selectedSchema, setSelectedSchema] = useState<string>('');
   const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);
@@ -110,7 +89,6 @@ function DataBrowserSidebarContent({
     }
   }, [schemaSlug, schemas, selectedSchema]);
 
-  // Build unified list of table objects for the selected schema
   const allObjectsInSelectedSchema: DatabaseObject[] = (tables || [])
     .map((table) => ({
       table_schema: table.table_schema as string,
@@ -120,7 +98,6 @@ function DataBrowserSidebarContent({
     .filter(({ table_schema: tableSchema }) => tableSchema === selectedSchema)
     .sort((a, b) => a.table_name.localeCompare(b.table_name));
 
-  // Use the hook for all action handlers (must be called unconditionally)
   const {
     removableTable,
     optimisticlyRemovedTable,
@@ -141,13 +118,11 @@ function DataBrowserSidebarContent({
     allObjects: allObjectsInSelectedSchema,
   });
 
-  // Filter out optimistically removed tables from the displayed list
   const displayedObjects = allObjectsInSelectedSchema.filter(
     ({ table_schema: tableSchema, table_name: tableName }) =>
       `${tableSchema}.${tableName}` !== optimisticlyRemovedTable,
   );
 
-  // Early returns must come AFTER all hooks are called
   if (status === 'loading') {
     return (
       <Spinner
@@ -230,7 +205,6 @@ function DataBrowserSidebarContent({
                   dbObject.table_name === tableSlug;
                 const isSidebarMenuOpen = sidebarMenuTable === objectPath;
                 const tablePath = `${dbObject.table_schema}.${dbObject.table_name}`;
-                const isEnum = enumTablePaths.has(tablePath);
                 const isUntracked = !trackedTablesSet?.has(tablePath);
                 return (
                   <li className="group pb-1" key={objectPath}>
@@ -240,7 +214,7 @@ function DataBrowserSidebarContent({
                           asChild
                           variant="link"
                           size="sm"
-                          disabled={objectPath === removableTable}
+                          disabled={tablePath === removableTable}
                           className={cn(
                             'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
                             {
@@ -263,11 +237,7 @@ function DataBrowserSidebarContent({
                               }}
                               href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${dbObject.table_schema}/tables/${dbObject.table_name}`}
                             >
-                              {isEnum ? (
-                                <List className="h-4 w-4 shrink-0" />
-                              ) : (
-                                <Table2 className="h-4 w-4 shrink-0" />
-                              )}
+                              <Table2 className="h-4 w-4 shrink-0" />
                               <span
                                 className={cn('!truncate text-ellipsis', {
                                   italic: isUntracked,
@@ -281,7 +251,7 @@ function DataBrowserSidebarContent({
                               tableName={dbObject.table_name}
                               schema={dbObject.table_schema}
                               dataSource={dataSourceSlug as string}
-                              disabled={objectPath === removableTable}
+                              disabled={tablePath === removableTable}
                               open={isSidebarMenuOpen}
                               onOpen={() => setSidebarMenuTable(objectPath)}
                               onClose={() => setSidebarMenuTable(undefined)}

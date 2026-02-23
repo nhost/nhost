@@ -108,12 +108,15 @@ export function useDataBrowserActions({
   async function handleDeleteTableConfirmation(schema: string, table: string) {
     const tablePath = `${schema}.${table}`;
 
+    // We are greying out and disabling it in the sidebar
     setRemovableTable(tablePath);
 
     try {
       let nextTableIndex: number | null = null;
 
       if (isNotEmptyValue(allObjects) && allObjects.length > 1) {
+        // We go to the next table if available or to the previous one if the
+        // current one is the last one in the list
         const currentTableIndex = allObjects.findIndex(
           ({ table_schema: tableSchema, table_name: tableName }) =>
             `${tableSchema}.${tableName}` === tablePath,
@@ -136,9 +139,14 @@ export function useDataBrowserActions({
         queryKey: [`${dataSourceSlug}.${schema}.${table}`],
       });
 
+      // Note: At this point we can optimisticly assume that the table was
+      // removed, so we can improve the UX by removing it from the list right
+      // away, without waiting for the refetch to succeed.
       setOptimisticlyRemovedTable(tablePath);
       await refetch();
 
+      // If this was the last table in the schema, we go back to the data
+      // browser's main screen
       if (!nextTable) {
         await router.push(
           `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
@@ -156,6 +164,7 @@ export function useDataBrowserActions({
         );
       }
     } catch {
+      // TODO: Introduce logging
     } finally {
       setRemovableTable(undefined);
       setOptimisticlyRemovedTable(undefined);
