@@ -9,8 +9,6 @@ import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/
 
 const typeToQuery = {
   'BASE TABLE': 'TABLE',
-  VIEW: 'VIEW',
-  'MATERIALIZED VIEW': 'MATERIALIZED VIEW',
 };
 
 export interface DeleteTableVariables {
@@ -23,9 +21,9 @@ export interface DeleteTableVariables {
    */
   table: string;
   /**
-   *
+   * Type of the table to delete.
    */
-  type: 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW';
+  type: 'BASE TABLE';
 }
 
 export interface DeleteTableOptions
