@@ -95,6 +95,12 @@ function AuthProvider({ children }: PropsWithChildren) {
             console.error('Failed to fetch provider tokens:', err);
           }
         }
+
+        const postSignInRedirect = sessionStorage.getItem('postSignInRedirect');
+        if (postSignInRedirect?.startsWith('/')) {
+          sessionStorage.removeItem('postSignInRedirect');
+          await push(postSignInRedirect);
+        }
       } else {
         const currentSession = nhost.getUserSession();
         setSession(currentSession);

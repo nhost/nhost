@@ -13,19 +13,27 @@ import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { isEmptyValue } from '@/lib/utils';
 
-export default function UpdateTriggerColumnsSection() {
+interface UpdateTriggerColumnsSectionProps {
+  isSheetOpen: boolean;
+}
+
+export default function UpdateTriggerColumnsSection({
+  isSheetOpen,
+}: UpdateTriggerColumnsSectionProps) {
   const form = useFormContext<BaseEventTriggerFormValues>();
 
   const selectedTableSchema = form.watch('tableSchema');
   const selectedTableName = form.watch('tableName');
 
-  const canFetchColumns = Boolean(selectedTableSchema && selectedTableName);
+  const canFetchColumns =
+    isSheetOpen && Boolean(selectedTableSchema && selectedTableName);
 
   const { data: selectedTableData, isLoading } = useTableQuery(
     [`default.${selectedTableSchema}.${selectedTableName}`],
     {
       schema: selectedTableSchema,
       table: selectedTableName,
+      preventRowFetching: true,
       queryOptions: {
         enabled: canFetchColumns,
       },

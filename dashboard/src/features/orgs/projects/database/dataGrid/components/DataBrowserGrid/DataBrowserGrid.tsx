@@ -10,6 +10,7 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
+import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import {
   createTableQueryKey,
   useTableQuery,
@@ -17,6 +18,7 @@ import {
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import type {
+  DataBrowserColumnMetadata,
   DataBrowserGridColumnDef,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -50,14 +52,15 @@ const CreateRecordForm = dynamic(
 
 export interface DataBrowserGridProps extends Partial<DataGridProps> {}
 
-export function createDataGridColumn(
+export function extractColumnMetadata(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
-): DataBrowserGridColumnDef {
+): DataBrowserColumnMetadata {
   const { normalizedDefaultValue, custom: isDefaultValueCustom } =
     normalizeDefaultValue(column.column_default);
 
-  const meta = {
+  const metadata: DataBrowserColumnMetadata = {
+    id: column.column_name,
     isEditable,
     isPrimary: column.is_primary,
     isNullable: column.is_nullable !== 'NO',
@@ -73,6 +76,25 @@ export function createDataGridColumn(
     dataType: column.data_type,
     type: 'text',
   };
+
+  if (POSTGRESQL_NUMERIC_TYPES.includes(column.data_type)) {
+    metadata.type = 'number';
+  } else if (column.data_type === 'boolean') {
+    metadata.type = 'boolean';
+  } else if (column.udt_name === 'uuid') {
+    metadata.type = 'uuid';
+  } else if (POSTGRESQL_DATE_TIME_TYPES.includes(column.data_type)) {
+    metadata.type = 'date';
+  }
+
+  return metadata;
+}
+
+export function createDataGridColumn(
+  column: NormalizedQueryDataRow,
+  isEditable: boolean = true,
+): DataBrowserGridColumnDef {
+  const meta = extractColumnMetadata(column, isEditable);
 
   const defaultColumnConfiguration = {
     header: () => (
@@ -95,13 +117,9 @@ export function createDataGridColumn(
     ),
   };
 
-  if (POSTGRESQL_NUMERIC_TYPES.includes(column.data_type)) {
+  if (meta.type === 'number') {
     return {
       ...defaultColumnConfiguration,
-      meta: {
-        ...meta,
-        type: 'number',
-      },
       size: 250,
       cell: (props: CellContext<UnknownDataGridRow, number | null>) => (
         <DataGridNumericCell {...props} />
@@ -109,13 +127,9 @@ export function createDataGridColumn(
     };
   }
 
-  if (column.data_type === 'boolean') {
+  if (meta.type === 'boolean') {
     return {
       ...defaultColumnConfiguration,
-      meta: {
-        ...meta,
-        type: 'boolean',
-      },
       size: 140,
       cell: (
         props: CellContext<UnknownDataGridRow, boolean | undefined | null>,
@@ -129,10 +143,6 @@ export function createDataGridColumn(
   ) {
     return {
       ...defaultColumnConfiguration,
-      meta: {
-        ...meta,
-        type: 'text',
-      },
       size: 250,
       cell: (props: CellContext<UnknownDataGridRow, string>) => (
         <DataGridTextCell {...props} />
@@ -140,13 +150,9 @@ export function createDataGridColumn(
     };
   }
 
-  if (column.udt_name === 'uuid') {
+  if (meta.type === 'uuid') {
     return {
       ...defaultColumnConfiguration,
-      meta: {
-        ...meta,
-        type: 'uuid',
-      },
       size: 318,
       cell: (props: CellContext<UnknownDataGridRow, string>) => (
         <DataGridTextCell {...props} />
@@ -154,13 +160,9 @@ export function createDataGridColumn(
     };
   }
 
-  if (POSTGRESQL_DATE_TIME_TYPES.includes(column.data_type)) {
+  if (meta.type === 'date') {
     return {
       ...defaultColumnConfiguration,
-      meta: {
-        ...meta,
-        type: 'date',
-      },
       size: 200,
       cell: (props: CellContext<UnknownDataGridRow, string>) => (
         <DataGridDateCell {...props} />
@@ -170,7 +172,6 @@ export function createDataGridColumn(
 
   return defaultColumnConfiguration;
 }
-const LIMIT = 25;
 
 export default function DataBrowserGrid(props: DataBrowserGridProps) {
   const dataGridRef = useRef<HTMLDivElement | null>(null);
@@ -203,8 +204,8 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       appliedFilters,
     ),
     {
-      limit: LIMIT,
-      offset: currentOffset * LIMIT,
+      limit: DEFAULT_ROWS_LIMIT,
+      offset: currentOffset * DEFAULT_ROWS_LIMIT,
       orderBy:
         sortBy?.map(({ id, desc }) => ({
           columnName: id,
@@ -240,7 +241,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     }
   }, [currentTablePath]);
 
-  const numberOfPages = numberOfRows ? Math.ceil(numberOfRows / LIMIT) : 0;
+  const numberOfPages = numberOfRows
+    ? Math.ceil(numberOfRows / DEFAULT_ROWS_LIMIT)
+    : 0;
   const currentPage = Math.min(currentOffset + 1, numberOfPages);
 
   async function handleOpenPrevPage() {
@@ -318,6 +321,11 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     [columns, currentTablePath, queryClient, updateRow],
   );
 
+  const memoizedMetadata = useMemo(
+    () => columns.map((column) => extractColumnMetadata(column)),
+    [columns],
+  );
+
   const memoizedData = useMemo(() => rows, [rows]);
 
   async function handleInsertRowClick() {
@@ -325,7 +333,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       title: 'Insert a New Row',
       component: (
         <CreateRecordForm
-          columns={memoizedColumns}
+          columns={memoizedMetadata}
           onSubmit={refetch}
           currentOffset={currentOffset}
         />

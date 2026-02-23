@@ -5,7 +5,7 @@ import { useTablePath } from '@/features/orgs/projects/database/common/hooks/use
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
-import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import { saveColumnOrder } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 import { isEmptyValue } from '@/lib/utils';
 import ColumnCustomizerRow from './ColumnCustomizerRow';
 import ShowHideAllColumnsButtons from './ShowHideAllColumnsButtons';
@@ -33,17 +33,15 @@ function ColumnCustomizer() {
       return;
     }
 
-    const reordered = reorder(
-      columns,
-      result.source.index,
-      result.destination!.index,
-    ).map(({ id }) => id);
+    const reordered = [
+      SELECTION_COLUMN_ID,
+      ...reorder(columns, result.source.index, result.destination!.index).map(
+        ({ id }) => id,
+      ),
+    ];
 
-    setColumnOrder([SELECTION_COLUMN_ID, ...reordered]);
-    PersistenDataTableConfigurationStorage.saveColumnOrder(
-      tablePath,
-      reordered,
-    );
+    setColumnOrder(reordered);
+    saveColumnOrder(tablePath, reordered);
   }
 
   return (
