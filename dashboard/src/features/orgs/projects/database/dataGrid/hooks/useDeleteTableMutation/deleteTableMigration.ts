@@ -13,6 +13,8 @@ import { getHasuraMigrationsApiUrl } from '@/utils/env';
 
 const typeToQuery = {
   'BASE TABLE': 'TABLE',
+  VIEW: 'VIEW',
+  'MATERIALIZED VIEW': 'MATERIALIZED VIEW',
 };
 
 export interface DeleteTableMigrationVariables {
@@ -27,11 +29,11 @@ export interface DeleteTableMigrationVariables {
   /**
    * Type of the table to delete.
    */
-  type: 'BASE TABLE';
+  type: 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW';
 }
 
 export interface DeleteTableMigration
-  extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}
+  extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table' | 'type'> {}
 
 export default async function deleteTable({
   dataSource,

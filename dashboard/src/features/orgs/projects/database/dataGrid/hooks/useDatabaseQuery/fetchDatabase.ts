@@ -19,6 +19,14 @@ export interface FetchDatabaseReturnType {
    */
   tables?: NormalizedQueryDataRow[];
   /**
+   * List of available views in the database.
+   */
+  views?: NormalizedQueryDataRow[];
+  /**
+   * List of available materialized views in the database.
+   */
+  materializedViews?: NormalizedQueryDataRow[];
+  /**
    * Response metadata.
    */
   // biome-ignore lint/suspicious/noExplicitAny: TODO
@@ -59,6 +67,13 @@ export default async function fetchDatabase({
             ' AND ',
           ),
         ),
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT row_to_json(mv_data) as data FROM (SELECT schemaname as table_schema, matviewname as table_name, 'MATERIALIZED VIEW' as table_type FROM pg_matviews WHERE %s) mv_data ORDER BY table_name ASC`,
+          SYSTEM_TABLES.map((value) => `schemaname NOT LIKE '${value}'`).join(
+            ' AND ',
+          ),
+        ),
       ],
       type: 'bulk',
       version: 1,
@@ -83,6 +98,8 @@ export default async function fetchDatabase({
         return {
           schemas: [],
           tables: [],
+          views: [],
+          materializedViews: [],
           metadata: { dataSource, databaseNotFound: true },
         };
       }
@@ -93,12 +110,24 @@ export default async function fetchDatabase({
 
   const [, ...rawSchemas] = responseData[0].result;
   const [, ...rawTables] = responseData[1].result;
+  const [, ...rawMaterializedViews] = responseData[2].result;
+
+  // Parse all tables data
+  const allTables = rawTables.map((rawData) =>
+    JSON.parse(rawData),
+  ) as NormalizedQueryDataRow[];
+
+  // Separate base tables from views based on table_type
+  const tables = allTables.filter((table) => table.table_type === 'BASE TABLE');
+  const views = allTables.filter((table) => table.table_type === 'VIEW');
 
   return {
     schemas: rawSchemas.map((rawData) =>
       JSON.parse(rawData),
     ) as NormalizedQueryDataRow[],
-    tables: rawTables.map((rawData) =>
+    tables,
+    views,
+    materializedViews: rawMaterializedViews.map((rawData) =>
       JSON.parse(rawData),
     ) as NormalizedQueryDataRow[],
   };
