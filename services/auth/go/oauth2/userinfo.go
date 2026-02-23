@@ -11,7 +11,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
-func (p *Provider) GetUserinfo( //nolint:cyclop
+func (p *Provider) GetUserinfo( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID uuid.UUID,
 	scopes []string,
@@ -64,14 +64,35 @@ func (p *Provider) GetUserinfo( //nolint:cyclop
 		phoneNumberVerified = &user.PhoneNumberVerified
 	}
 
-	return &api.OAuth2UserinfoResponse{
-		Sub:                 userID.String(),
-		Email:               email,
-		EmailVerified:       emailVerified,
-		Locale:              locale,
-		Name:                name,
-		PhoneNumber:         phoneNumber,
-		PhoneNumberVerified: phoneNumberVerified,
-		Picture:             picture,
-	}, nil
+	resp := &api.OAuth2UserinfoResponse{
+		Sub:                  userID.String(),
+		Email:                email,
+		EmailVerified:        emailVerified,
+		Locale:               locale,
+		Name:                 name,
+		PhoneNumber:          phoneNumber,
+		PhoneNumberVerified:  phoneNumberVerified,
+		Picture:              picture,
+		AdditionalProperties: nil,
+	}
+
+	if slices.Contains(scopes, "graphql") {
+		roles, err := p.resolveUserGraphQLRoles(ctx, user, userID)
+		if err != nil {
+			logger.ErrorContext(ctx, "error resolving user roles", logError(err))
+			return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		}
+
+		ns, c, err := p.signer.RawGraphQLClaims(
+			ctx, userID, roles.IsAnonymous, roles.AllowedRoles, roles.DefaultRole, nil, logger,
+		)
+		if err != nil {
+			logger.ErrorContext(ctx, "error creating GraphQL claims", logError(err))
+			return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		}
+
+		resp.Set(ns, c)
+	}
+
+	return resp, nil
 }

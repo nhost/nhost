@@ -63,6 +63,15 @@ type Signer interface {
 		extraClaims map[string]any,
 		logger *slog.Logger,
 	) (string, map[string]any, error)
+	RawGraphQLClaims(
+		ctx context.Context,
+		userID uuid.UUID,
+		isAnonymous bool,
+		allowedRoles []string,
+		defaultRole string,
+		extraClaims map[string]any,
+		logger *slog.Logger,
+	) (string, map[string]any, error)
 }
 
 type VerifySecretFunc func(password, hash string) bool

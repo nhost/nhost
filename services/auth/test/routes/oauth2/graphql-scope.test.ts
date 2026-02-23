@@ -294,6 +294,47 @@ describe('oauth2-scope-claims', () => {
     });
   });
 
+  // --- Userinfo: graphql scope includes Hasura claims ---
+
+  it('userinfo should contain Hasura claims when graphql scope is present', async () => {
+    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid profile graphql');
+
+    const { body: userinfo } = await nhost.auth.oauth2UserinfoGet({
+      headers: { Authorization: `Bearer ${tokenResp.access_token}` },
+    });
+
+    expect(userinfo).toEqual({
+      sub: userId,
+      name: DEMO_DISPLAY_NAME,
+      locale: 'en',
+      picture: expect.stringContaining('gravatar.com'),
+      'https://hasura.io/jwt/claims': {
+        'x-hasura-user-id': userId,
+        'x-hasura-default-role': 'user',
+        'x-hasura-allowed-roles': expect.arrayContaining(['user']),
+        'x-hasura-user-is-anonymous': false,
+        'x-hasura-displayname': DEMO_DISPLAY_NAME,
+      },
+    });
+  });
+
+  it('userinfo should omit Hasura claims when graphql scope is absent', async () => {
+    const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid profile');
+
+    const { body: userinfo } = await nhost.auth.oauth2UserinfoGet({
+      headers: { Authorization: `Bearer ${tokenResp.access_token}` },
+    });
+
+    expect(userinfo).toEqual({
+      sub: userId,
+      name: DEMO_DISPLAY_NAME,
+      locale: 'en',
+      picture: expect.stringContaining('gravatar.com'),
+    });
+
+    expect(userinfo).not.toHaveProperty('https://hasura.io/jwt/claims');
+  });
+
   // --- Refresh token preserves scope behavior ---
 
   it('refresh should preserve Hasura claims when graphql scope was in original request', async () => {

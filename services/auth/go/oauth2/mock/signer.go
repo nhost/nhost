@@ -88,6 +88,22 @@ func (mr *MockSignerMockRecorder) Issuer() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Issuer", reflect.TypeOf((*MockSigner)(nil).Issuer))
 }
 
+// RawGraphQLClaims mocks base method.
+func (m *MockSigner) RawGraphQLClaims(ctx context.Context, userID uuid.UUID, isAnonymous bool, allowedRoles []string, defaultRole string, extraClaims map[string]any, logger *slog.Logger) (string, map[string]any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RawGraphQLClaims", ctx, userID, isAnonymous, allowedRoles, defaultRole, extraClaims, logger)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(map[string]any)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RawGraphQLClaims indicates an expected call of RawGraphQLClaims.
+func (mr *MockSignerMockRecorder) RawGraphQLClaims(ctx, userID, isAnonymous, allowedRoles, defaultRole, extraClaims, logger any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RawGraphQLClaims", reflect.TypeOf((*MockSigner)(nil).RawGraphQLClaims), ctx, userID, isAnonymous, allowedRoles, defaultRole, extraClaims, logger)
+}
+
 // SignTokenWithClaims mocks base method.
 func (m *MockSigner) SignTokenWithClaims(claims jwt.MapClaims, exp time.Time) (string, error) {
 	m.ctrl.T.Helper()

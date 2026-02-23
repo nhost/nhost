@@ -3141,7 +3141,7 @@ components:
     OAuth2UserinfoResponse:
       type: object
 
-      additionalProperties: false
+      additionalProperties: true
       properties:
         sub:
           type: string

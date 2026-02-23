@@ -318,22 +318,13 @@ func (p *Provider) createAccessToken(
 			return "", fmt.Errorf("error getting user: %w", err)
 		}
 
-		userRoles, err := p.db.GetUserRoles(ctx, userID)
+		roles, err := p.resolveUserGraphQLRoles(ctx, user, userID)
 		if err != nil {
-			return "", fmt.Errorf("error getting user roles: %w", err)
-		}
-
-		allowedRoles := make([]string, 0, len(userRoles))
-		for _, role := range userRoles {
-			allowedRoles = append(allowedRoles, role.Role)
-		}
-
-		if !slices.Contains(allowedRoles, user.DefaultRole) {
-			allowedRoles = append(allowedRoles, user.DefaultRole)
+			return "", fmt.Errorf("error resolving user roles: %w", err)
 		}
 
 		ns, c, err := p.signer.GraphQLClaims(
-			ctx, userID, user.IsAnonymous, allowedRoles, user.DefaultRole, nil, logger,
+			ctx, userID, roles.IsAnonymous, roles.AllowedRoles, roles.DefaultRole, nil, logger,
 		)
 		if err != nil {
 			return "", fmt.Errorf("error creating GraphQL claims: %w", err)
@@ -434,6 +425,42 @@ func (p *Provider) authenticateClient(
 	}
 
 	return nil
+}
+
+// userGraphQLRolesParams holds the resolved role information needed to build
+// GraphQL claims for a user.
+type userGraphQLRolesParams struct {
+	IsAnonymous  bool
+	AllowedRoles []string
+	DefaultRole  string
+}
+
+// resolveUserGraphQLRoles fetches the user's roles and ensures the default role
+// is included in the allowed set.
+func (p *Provider) resolveUserGraphQLRoles(
+	ctx context.Context,
+	user sql.AuthUser,
+	userID uuid.UUID,
+) (*userGraphQLRolesParams, error) {
+	userRoles, err := p.db.GetUserRoles(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting user roles: %w", err)
+	}
+
+	allowedRoles := make([]string, 0, len(userRoles))
+	for _, role := range userRoles {
+		allowedRoles = append(allowedRoles, role.Role)
+	}
+
+	if !slices.Contains(allowedRoles, user.DefaultRole) {
+		allowedRoles = append(allowedRoles, user.DefaultRole)
+	}
+
+	return &userGraphQLRolesParams{
+		IsAnonymous:  user.IsAnonymous,
+		AllowedRoles: allowedRoles,
+		DefaultRole:  user.DefaultRole,
+	}, nil
 }
 
 func logError(err error) slog.Attr {
