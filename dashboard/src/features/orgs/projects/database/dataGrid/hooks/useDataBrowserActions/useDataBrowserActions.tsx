@@ -6,8 +6,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { Badge } from '@/components/ui/v3/badge';
 import { InlineCode } from '@/components/ui/v3/inline-code';
-import { useDeleteFunctionWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteFunctionMutation';
-import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
+import { useDeleteDatabaseObjectWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteDatabaseObjectMutation';
 import { isNotEmptyValue } from '@/lib/utils';
 
 const CreateTableForm = dynamic(
@@ -155,8 +154,8 @@ export function useDataBrowserActions({
     query: { orgSlug, appSubdomain },
   } = router;
 
-  const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
-  const { mutateAsync: deleteFunction } = useDeleteFunctionWithToastMutation();
+  const { mutateAsync: deleteDatabaseObject } =
+    useDeleteDatabaseObjectWithToastMutation();
 
   const [removableTable, setRemovableTable] = useState<string>();
   const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
@@ -205,11 +204,7 @@ export function useDataBrowserActions({
           ? tablesInSelectedSchema[nextTableIndex]
           : null;
 
-      await deleteTable({
-        schema,
-        table,
-        type,
-      });
+      await deleteDatabaseObject({ schema, table, type });
       queryClient.removeQueries({
         queryKey: [`${dataSourceSlug}.${schema}.${table}`],
       });
@@ -320,13 +315,11 @@ export function useDataBrowserActions({
           ? functions[nextFunctionIndex]
           : null;
 
-      // The hook fetches inputArgTypes internally, so we only need to pass schema and functionName
-      // The mutation function signature requires inputArgTypes, but the hook handles fetching it internally
-      // Type assertion needed because the hook's type signature doesn't reflect that it fetches inputArgTypes
-      await deleteFunction({
+      await deleteDatabaseObject({
         schema,
-        functionName,
-      } as { schema: string; functionName: string; inputArgTypes: never });
+        table: functionName,
+        type: 'FUNCTION',
+      });
 
       queryClient.removeQueries({
         queryKey: [
