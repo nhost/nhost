@@ -1,4 +1,13 @@
-import { Info, List, Lock, Plus, Table2, Terminal, View } from 'lucide-react';
+import {
+  Info,
+  List,
+  Lock,
+  Plus,
+  SquareFunction,
+  Table2,
+  Terminal,
+  View,
+} from 'lucide-react';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
@@ -24,6 +33,7 @@ import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hoo
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import FunctionActions from './FunctionActions';
 import TableActions from './TableActions';
 import ViewActions from './ViewActions';
 
@@ -45,19 +55,28 @@ function DataBrowserSidebarContent({
 
   const {
     asPath,
-    query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
+    query: {
+      orgSlug,
+      appSubdomain,
+      dataSourceSlug,
+      schemaSlug,
+      tableSlug,
+      functionSlug,
+    },
   } = router;
 
   const { data, status, error, refetch } = useDatabaseQuery([
     dataSourceSlug as string,
   ]);
 
-  const { schemas, tables, views, materializedViews, metadata } = data || {
-    schemas: [],
-    tables: [],
-    views: [],
-    materializedViews: [],
-  };
+  const { schemas, tables, views, materializedViews, functions, metadata } =
+    data || {
+      schemas: [],
+      tables: [],
+      views: [],
+      materializedViews: [],
+      functions: [],
+    };
 
   // Get metadata to detect enum tables
   const { data: metadataData } = useMetadataQuery(
@@ -84,8 +103,11 @@ function DataBrowserSidebarContent({
    * Maps database object type to URL segment
    */
   function getObjectTypeUrlSegment(
-    _objectType: string,
+    objectType: string,
   ): 'tables' | 'views' | 'functions' {
+    if (objectType === 'FUNCTION') {
+      return 'functions';
+    }
     return 'tables';
   }
 
@@ -113,7 +135,8 @@ function DataBrowserSidebarContent({
     }
   }, [schemaSlug, schemas, selectedSchema]);
 
-  // Merge tables, views, and materialized views into a single list
+  // Merge tables, views, materialized views, and functions into a single list
+  // This needs to be computed before the hook is called (even if data is empty)
   const allObjectsInSelectedSchema: DatabaseObject[] = [
     ...(tables || []).map((table) => ({
       table_schema: table.table_schema as string,
@@ -130,14 +153,20 @@ function DataBrowserSidebarContent({
       table_name: mv.table_name as string,
       object_type: 'MATERIALIZED VIEW',
     })),
+    ...(functions || []).map((func) => ({
+      table_schema: func.table_schema,
+      table_name: func.table_name,
+      object_type: 'FUNCTION',
+    })),
   ]
     .filter(({ table_schema: tableSchema }) => tableSchema === selectedSchema)
     .sort((a, b) => {
-      // Define type order: BASE TABLE, MATERIALIZED VIEW, VIEW
+      // Define type order: MATERIALIZED VIEW, VIEW, BASE TABLE (and other tables), FUNCTION
       const typeOrder: Record<string, number> = {
         'BASE TABLE': 0,
         'MATERIALIZED VIEW': 1,
         VIEW: 2,
+        FUNCTION: 3,
       };
 
       const orderA = typeOrder[a.object_type] ?? 99;
@@ -159,19 +188,25 @@ function DataBrowserSidebarContent({
     sidebarMenuTable,
     setSidebarMenuTable,
     handleDeleteTableClick,
+    handleDeleteFunctionClick,
     handleEditPermissionClick,
+    handleEditFunctionPermissionClick,
     handleEditSettingsClick,
+    handleEditFunctionSettingsClick,
     handleRelationshipsClick,
     openEditTableDrawer,
     openEditViewDrawer,
+    openEditFunctionDrawer,
     openCreateTableDrawer,
   } = useDataBrowserActions({
     dataSourceSlug: dataSourceSlug as string,
     schemaSlug: schemaSlug as string | undefined,
     tableSlug: tableSlug as string | undefined,
+    functionSlug: functionSlug as string | undefined,
     selectedSchema,
     refetch,
     allObjects: allObjectsInSelectedSchema,
+    functions: functions || [],
   });
 
   // Filter out optimistically removed tables from the displayed list
@@ -258,12 +293,22 @@ function DataBrowserSidebarContent({
             <ul className="w-full max-w-full pb-6">
               {displayedObjects.map((dbObject) => {
                 const objectPath = `${dbObject.object_type}.${dbObject.table_schema}.${dbObject.table_name}`;
-                const isSelected =
-                  dbObject.table_schema === schemaSlug &&
-                  dbObject.table_name === tableSlug;
+                let isSelected = false;
+                if (functionSlug) {
+                  isSelected =
+                    dbObject.object_type === 'FUNCTION' &&
+                    dbObject.table_schema === schemaSlug &&
+                    dbObject.table_name === functionSlug;
+                } else if (tableSlug) {
+                  isSelected =
+                    dbObject.object_type !== 'FUNCTION' &&
+                    dbObject.table_schema === schemaSlug &&
+                    dbObject.table_name === tableSlug;
+                }
                 const isSidebarMenuOpen = sidebarMenuTable === objectPath;
                 const isMaterializedView =
                   dbObject.object_type === 'MATERIALIZED VIEW';
+                const isFunction = dbObject.object_type === 'FUNCTION';
                 const isView = dbObject.object_type === 'VIEW';
                 const tablePath = `${dbObject.table_schema}.${dbObject.table_name}`;
                 const isEnum = enumTablePaths.has(tablePath);
@@ -296,7 +341,9 @@ function DataBrowserSidebarContent({
                           }}
                           href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${dbObject.table_schema}/${getObjectTypeUrlSegment(dbObject.object_type)}/${dbObject.table_name}`}
                         >
-                          {isMaterializedView || isView ? (
+                          {isFunction ? (
+                            <SquareFunction className="h-4 w-4 shrink-0" />
+                          ) : isMaterializedView || isView ? (
                             <View className="h-4 w-4 shrink-0" />
                           ) : isEnum ? (
                             <List className="h-4 w-4 shrink-0" />
@@ -307,13 +354,67 @@ function DataBrowserSidebarContent({
                             {dbObject.table_name}
                           </span>
                         </NextLink>
-                        {isMaterializedView || isView ? (
-                          <ViewActions
+                        {isFunction ? (
+                          <FunctionActions
                             tableName={dbObject.table_name}
+                            disabled={objectPath === removableTable}
                             open={isSidebarMenuOpen}
                             onOpen={() => setSidebarMenuTable(objectPath)}
                             onClose={() => setSidebarMenuTable(undefined)}
+                            className={cn(
+                              'relative z-10 opacity-0 group-hover:opacity-100',
+                              {
+                                'opacity-100': isSelected || isSidebarMenuOpen,
+                              },
+                            )}
+                            isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
+                            onViewPermissions={() =>
+                              handleEditFunctionPermissionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                true,
+                              )
+                            }
+                            onEditPermissions={() =>
+                              handleEditFunctionPermissionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
+                            onEditFunction={() =>
+                              openEditFunctionDrawer(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
+                            onViewSettings={() =>
+                              handleEditFunctionSettingsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                true,
+                              )
+                            }
+                            onEditSettings={() => {
+                              handleEditFunctionSettingsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                false,
+                              );
+                            }}
+                            onDelete={() =>
+                              handleDeleteFunctionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
+                          />
+                        ) : isMaterializedView || isView ? (
+                          <ViewActions
+                            tableName={dbObject.table_name}
                             disabled={objectPath === removableTable}
+                            open={isSidebarMenuOpen}
+                            onOpen={() => setSidebarMenuTable(objectPath)}
+                            onClose={() => setSidebarMenuTable(undefined)}
                             className={cn(
                               'relative z-10 opacity-0 group-hover:opacity-100',
                               {
@@ -328,26 +429,6 @@ function DataBrowserSidebarContent({
                                 true,
                               )
                             }
-                            onEditPermissions={() =>
-                              handleEditPermissionClick(
-                                dbObject.table_schema,
-                                dbObject.table_name,
-                              )
-                            }
-                            onEditView={() =>
-                              openEditViewDrawer(
-                                dbObject.table_schema,
-                                dbObject,
-                              )
-                            }
-                            onEditSettings={() =>
-                              handleEditSettingsClick(
-                                dbObject.table_schema,
-                                dbObject.table_name,
-                                false,
-                                dbObject.object_type,
-                              )
-                            }
                             onViewSettings={() =>
                               handleEditSettingsClick(
                                 dbObject.table_schema,
@@ -356,6 +437,26 @@ function DataBrowserSidebarContent({
                                 dbObject.object_type,
                               )
                             }
+                            onEditView={() =>
+                              openEditViewDrawer(
+                                dbObject.table_schema,
+                                dbObject,
+                              )
+                            }
+                            onEditPermissions={() =>
+                              handleEditPermissionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
+                            onEditSettings={() => {
+                              handleEditSettingsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                false,
+                                dbObject.object_type,
+                              );
+                            }}
                             onDelete={() =>
                               handleDeleteTableClick(
                                 dbObject.table_schema,
@@ -367,7 +468,7 @@ function DataBrowserSidebarContent({
                           <TableActions
                             tableName={dbObject.table_name}
                             schema={dbObject.table_schema}
-                            dataSource={dataSourceSlug as string}
+                            dataSource="default"
                             disabled={objectPath === removableTable}
                             open={isSidebarMenuOpen}
                             onOpen={() => setSidebarMenuTable(objectPath)}
@@ -391,6 +492,7 @@ function DataBrowserSidebarContent({
                                 dbObject.table_schema,
                                 dbObject.table_name,
                                 true,
+                                dbObject.object_type,
                               )
                             }
                             onViewRelationships={() =>
@@ -417,6 +519,7 @@ function DataBrowserSidebarContent({
                                 dbObject.table_schema,
                                 dbObject.table_name,
                                 false,
+                                dbObject.object_type,
                               );
                             }}
                             onEditRelationships={() => {

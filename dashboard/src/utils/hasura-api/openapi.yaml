@@ -92,10 +92,11 @@ components:
         - $ref: "#/components/schemas/DropInconsistentMetadataOperation"
         - $ref: "#/components/schemas/ClearMetadataOperation"
         - $ref: "#/components/schemas/ReplaceMetadataOperation"
-        - $ref: "#/components/schemas/TrackTableBulkOperation"
-        - $ref: "#/components/schemas/UntrackTableBulkOperation"
+        - $ref: "#/components/schemas/SetFunctionCustomizationOperation"
         - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
         - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
+        - $ref: "#/components/schemas/CreateFunctionPermissionBulkOperation"
+        - $ref: "#/components/schemas/DropFunctionPermissionBulkOperation"
         - $ref: "#/components/schemas/SuggestRelationshipsOperation"
         - $ref: "#/components/schemas/DropRelationshipBulkOperation"
         - $ref: "#/components/schemas/DeleteRemoteRelationshipBulkOperation"
@@ -154,89 +155,6 @@ components:
                 type: string
                 example: success
 
-    TrackTableBulkOperation:
-      type: object
-      required:
-        - type
-        - resource_version
-        - args
-      properties:
-        type:
-          type: string
-          enum: [bulk]
-        source:
-          type: string
-          default: default
-        resource_version:
-          type: integer
-          description: Resource version of the operation
-          example: 1
-        args:
-          type: array
-          items:
-            $ref: "#/components/schemas/TrackTableStep"
-
-    TrackTableStep:
-      type: object
-      required:
-        - type
-        - args
-      properties:
-        type:
-          type: string
-          enum: [pg_track_table]
-        args:
-          $ref: "#/components/schemas/TrackTableArgs"
-
-    TrackTableArgs:
-      type: object
-      required:
-        - table
-      properties:
-        source:
-          type: string
-          default: default
-        table:
-          $ref: "#/components/schemas/QualifiedTable"
-
-    UntrackTableBulkOperation:
-      type: object
-      required:
-        - type
-        - resource_version
-        - args
-      properties:
-        type:
-          type: string
-          enum: [bulk]
-        source:
-          type: string
-          default: default
-        resource_version:
-          type: integer
-          description: Resource version of the operation
-          example: 1
-        args:
-          type: array
-          items:
-            $ref: "#/components/schemas/UntrackTableStep"
-
-    UntrackTableStep:
-      type: object
-      required:
-        - type
-        - args
-      properties:
-        type:
-          type: string
-          enum: [pg_untrack_table]
-        args:
-          $ref: "#/components/schemas/UntrackTableArgs"
-
-    UntrackTableArgs:
-      allOf:
-        - $ref: "#/components/schemas/TrackTableArgs"
-
     SetTableCustomizationBulkOperation:
       type: object
       required:
@@ -288,6 +206,73 @@ components:
         configuration:
           description: Configuration for the table/view
           $ref: "#/components/schemas/TableConfig"
+
+    SetFunctionCustomizationOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_set_function_customization]
+        args:
+          $ref: "#/components/schemas/SetFunctionCustomizationArgs"
+
+    SetFunctionCustomizationArgs:
+      type: object
+      required:
+        - function
+      properties:
+        function:
+          $ref: "#/components/schemas/Function"
+        configuration:
+          description: Configuration for the function
+          $ref: "#/components/schemas/FunctionConfiguration"
+        source:
+          type: string
+          description: Name of the source database of the function
+          default: default
+
+    Function:
+      type: object
+      required:
+        - name
+        - schema
+      properties:
+        name:
+          type: string
+          description: Name of the function
+        schema:
+          type: string
+          description: Schema of the function
+
+    FunctionConfiguration:
+      type: object
+      properties:
+        custom_name:
+          type: string
+          description: Customize the <function-name> with the provided custom name value. The GraphQL nodes for the function will be generated according to the custom name.
+        custom_root_fields:
+          $ref: "#/components/schemas/CustomFunctionRootFields"
+          description: Customize the root fields
+        session_argument:
+          type: string
+          description: Function argument which accepts session info JSON
+        exposed_as:
+          type: string
+          description: In which part of the schema to expose this function. Either "mutation" or "query".
+          enum: ["mutation", "query"]
+
+    CustomFunctionRootFields:
+      type: object
+      properties:
+        function:
+          type: string
+          description: Customize the <function-name> root field
+        function_aggregate:
+          type: string
+          description: Customize the <function-name>_aggregate root field
 
     TableConfig:
       type: object
@@ -534,6 +519,110 @@ components:
               properties:
                 constraint_name:
                   type: string
+
+    CreateFunctionPermissionBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateFunctionPermissionStep"
+
+    CreateFunctionPermissionStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_function_permission]
+        args:
+          $ref: "#/components/schemas/CreateFunctionPermissionArgs"
+
+    CreateFunctionPermissionArgs:
+      type: object
+      required:
+        - function
+        - role
+      properties:
+        function:
+          $ref: "#/components/schemas/Function"
+        role:
+          type: string
+          description: Name of the role
+        source:
+          type: string
+          description: Name of the source database of the function
+          default: default
+
+    DropFunctionPermissionBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropFunctionPermissionStep"
+
+    DropFunctionPermissionStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_drop_function_permission]
+        args:
+          $ref: "#/components/schemas/DropFunctionPermissionArgs"
+
+    DropFunctionPermissionArgs:
+      type: object
+      required:
+        - function
+        - role
+      properties:
+        function:
+          $ref: "#/components/schemas/Function"
+        role:
+          type: string
+          description: Name of the role
+        source:
+          type: string
+          description: Name of the source database of the function
+          default: default
 
     DropRelationshipBulkOperation:
       type: object
@@ -1024,8 +1113,8 @@ components:
         - $ref: "#/components/schemas/AddRemoteSchemaStep"
         - $ref: "#/components/schemas/CreateEventTriggerStep"
         - $ref: "#/components/schemas/DeleteEventTriggerStep"
-        - $ref: "#/components/schemas/TrackTableStep"
-        - $ref: "#/components/schemas/UntrackTableStep"
+        - $ref: "#/components/schemas/CreateFunctionPermissionStep"
+        - $ref: "#/components/schemas/DropFunctionPermissionStep"
 
     MigrationRequest:
       type: object
@@ -1190,6 +1279,30 @@ components:
                           description: List of remote relationships for the table
                           items:
                             $ref: "#/components/schemas/RemoteRelationshipItem"
+                  functions:
+                    type: array
+                    description: List of functions in the data source
+                    items:
+                      type: object
+                      required:
+                        - function
+                      properties:
+                        function:
+                          type: object
+                          $ref: "#/components/schemas/Function"
+                        configuration:
+                          $ref: "#/components/schemas/FunctionConfiguration"
+                        permissions:
+                          type: array
+                          description: List of permissions for the function
+                          items:
+                            type: object
+                            required:
+                              - role
+                            properties:
+                              role:
+                                type: string
+                                example: "user"
                 additionalProperties: true
             remote_schemas:
               type: array

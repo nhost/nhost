@@ -1,6 +1,7 @@
 import type {
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
+  NormalizedQueryFunctionRow,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -26,6 +27,10 @@ export interface FetchDatabaseReturnType {
    * List of available materialized views in the database.
    */
   materializedViews?: NormalizedQueryDataRow[];
+  /**
+   * List of available table-returning functions in the database.
+   */
+  functions?: NormalizedQueryFunctionRow[];
   /**
    * Response metadata.
    */
@@ -74,6 +79,24 @@ export default async function fetchDatabase({
             ' AND ',
           ),
         ),
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT row_to_json(func_data) as data FROM (
+            SELECT 
+              n.nspname as table_schema,
+              p.proname as table_name,
+              'FUNCTION' as table_type
+            FROM pg_proc p
+            JOIN pg_namespace n ON p.pronamespace = n.oid
+            JOIN pg_type ON p.prorettype = pg_type.oid
+            WHERE n.nspname NOT LIKE 'pg_%'
+              AND n.nspname != 'information_schema'
+              AND pg_type.typtype ='c'
+              AND p.proretset = true
+            ORDER BY p.proname ASC
+          ) func_data`,
+          '',
+        ),
       ],
       type: 'bulk',
       version: 1,
@@ -100,6 +123,7 @@ export default async function fetchDatabase({
           tables: [],
           views: [],
           materializedViews: [],
+          functions: [],
           metadata: { dataSource, databaseNotFound: true },
         };
       }
@@ -111,6 +135,7 @@ export default async function fetchDatabase({
   const [, ...rawSchemas] = responseData[0].result;
   const [, ...rawTables] = responseData[1].result;
   const [, ...rawMaterializedViews] = responseData[2].result;
+  const [, ...rawFunctions] = responseData[3].result;
 
   // Parse all tables data
   const allTables = rawTables.map((rawData) =>
@@ -130,5 +155,8 @@ export default async function fetchDatabase({
     materializedViews: rawMaterializedViews.map((rawData) =>
       JSON.parse(rawData),
     ) as NormalizedQueryDataRow[],
+    functions: rawFunctions.map((rawData) =>
+      JSON.parse(rawData),
+    ) satisfies NormalizedQueryFunctionRow[],
   };
 }

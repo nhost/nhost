@@ -6,6 +6,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { Badge } from '@/components/ui/v3/badge';
 import { InlineCode } from '@/components/ui/v3/inline-code';
+import { useDeleteFunctionWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteFunctionMutation';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
 import { isNotEmptyValue } from '@/lib/utils';
 
@@ -42,10 +43,43 @@ const EditViewForm = dynamic(
   },
 );
 
+const EditFunctionForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionForm/EditFunctionForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
+const EditFunctionSettingsForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionSettingsForm/EditFunctionSettingsForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
 const EditPermissionsForm = dynamic(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/EditPermissionsForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
+const EditFunctionPermissionsForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionPermissionsForm/EditFunctionPermissionsForm'
     ),
   {
     ssr: false,
@@ -85,15 +119,22 @@ export interface UseDataBrowserActionsParams {
   dataSourceSlug: string;
   schemaSlug: string | undefined;
   tableSlug: string | undefined;
+  functionSlug: string | undefined;
   selectedSchema: string;
   refetch: () => Promise<unknown>;
   allObjects: DatabaseObject[];
+  functions: Array<{ table_schema: string; table_name: string }>;
 }
 
 /**
  * Maps database object type to URL segment
  */
-function getObjectTypeUrlSegment(_objectType: string): 'tables' {
+function getObjectTypeUrlSegment(
+  objectType: string,
+): 'tables' | 'views' | 'functions' {
+  if (objectType === 'FUNCTION') {
+    return 'functions';
+  }
   return 'tables';
 }
 
@@ -101,9 +142,11 @@ export function useDataBrowserActions({
   dataSourceSlug,
   schemaSlug,
   tableSlug,
+  functionSlug,
   selectedSchema,
   refetch,
   allObjects,
+  functions,
 }: UseDataBrowserActionsParams) {
   const queryClient = useQueryClient();
   const { openDrawer, openAlertDialog } = useDialog();
@@ -113,6 +156,7 @@ export function useDataBrowserActions({
   } = router;
 
   const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
+  const { mutateAsync: deleteFunction } = useDeleteFunctionWithToastMutation();
 
   const [removableTable, setRemovableTable] = useState<string>();
   const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
@@ -244,6 +288,100 @@ export function useDataBrowserActions({
     });
   }
 
+  async function handleDeleteFunctionConfirmation(
+    schema: string,
+    functionName: string,
+  ) {
+    const functionPath = `${schema}.${functionName}`;
+
+    // We are greying out and disabling it in the sidebar
+    setRemovableTable(functionPath);
+
+    try {
+      let nextFunctionIndex: number | null = null;
+
+      if (isNotEmptyValue(functions) && functions.length > 1) {
+        // We go to the next function if available or to the previous one if the
+        // current one is the last one in the list
+        const currentFunctionIndex = functions.findIndex(
+          ({ table_schema: functionSchema, table_name: fnName }) =>
+            `${functionSchema}.${fnName}` === functionPath,
+        );
+
+        nextFunctionIndex = currentFunctionIndex + 1;
+
+        if (currentFunctionIndex + 1 === functions.length) {
+          nextFunctionIndex = currentFunctionIndex - 1;
+        }
+      }
+
+      const nextFunction =
+        isNotEmptyValue(nextFunctionIndex) && isNotEmptyValue(functions)
+          ? functions[nextFunctionIndex]
+          : null;
+
+      // The hook fetches inputArgTypes internally, so we only need to pass schema and functionName
+      // The mutation function signature requires inputArgTypes, but the hook handles fetching it internally
+      // Type assertion needed because the hook's type signature doesn't reflect that it fetches inputArgTypes
+      await deleteFunction({
+        schema,
+        functionName,
+      } as { schema: string; functionName: string; inputArgTypes: never });
+
+      queryClient.removeQueries({
+        queryKey: [
+          'function-definition',
+          `${dataSourceSlug}.${schema}.${functionName}`,
+        ],
+      });
+
+      // Note: At this point we can optimisticly assume that the function was
+      // removed, so we can improve the UX by removing it from the list right
+      // away, without waiting for the refetch to succeed.
+      setOptimisticlyRemovedTable(functionPath);
+      await refetch();
+
+      // If this was the last function in the schema, we go back to the data
+      // browser's main screen
+      if (!nextFunction) {
+        await router.push(
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
+        );
+
+        return;
+      }
+
+      if (schema === schemaSlug && functionName === functionSlug) {
+        await router.push(
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextFunction.table_schema}/functions/${nextFunction.table_name}`,
+        );
+      }
+    } catch {
+      // TODO: Introduce logging
+    } finally {
+      setRemovableTable(undefined);
+      setOptimisticlyRemovedTable(undefined);
+    }
+  }
+
+  function handleDeleteFunctionClick(schema: string, functionName: string) {
+    openAlertDialog({
+      title: 'Delete Function',
+      payload: (
+        <span>
+          Are you sure you want to delete the{' '}
+          <strong className="break-all">{functionName}</strong> function?
+        </span>
+      ),
+      props: {
+        primaryButtonText: 'Delete',
+        primaryButtonColor: 'error',
+        onPrimaryAction: () =>
+          handleDeleteFunctionConfirmation(schema, functionName),
+      },
+    });
+  }
+
   function handleEditPermissionClick(
     schema: string,
     table: string,
@@ -277,6 +415,35 @@ export function useDataBrowserActions({
     });
   }
 
+  function handleEditFunctionPermissionClick(
+    schema: string,
+    functionName: string,
+    disabled?: boolean,
+  ) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Permissions
+          <InlineCode className="!text-sm+ font-normal">
+            {functionName}
+          </InlineCode>
+        </span>
+      ),
+      component: (
+        <EditFunctionPermissionsForm
+          disabled={disabled}
+          schema={schema}
+          functionName={functionName}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'lg:w-[65%] lg:max-w-7xl',
+        },
+      },
+    });
+  }
+
   function handleEditSettingsClick(
     schema: string,
     table: string,
@@ -297,6 +464,36 @@ export function useDataBrowserActions({
           schema={schema}
           tableName={table}
           objectType={objectType}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'overflow-hidden ',
+        },
+      },
+    });
+  }
+
+  function handleEditFunctionSettingsClick(
+    schema: string,
+    functionName: string,
+    disabled?: boolean,
+  ) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          {disabled ? 'View settings for' : 'Edit settings for'}
+          <InlineCode className="!text-sm+ font-normal">
+            {functionName}
+          </InlineCode>
+          function
+        </span>
+      ),
+      component: (
+        <EditFunctionSettingsForm
+          disabled={disabled}
+          schema={schema}
+          functionName={functionName}
         />
       ),
       props: {
@@ -350,6 +547,24 @@ export function useDataBrowserActions({
     });
   }
 
+  function openEditFunctionDrawer(schema: string, functionName: string) {
+    openDrawer({
+      title: 'Function Definition',
+      component: (
+        <EditFunctionForm
+          onSubmit={async (fnName) => {
+            await queryClient.refetchQueries([
+              `${dataSourceSlug}.${schema}.${fnName}`,
+            ]);
+            await refetch();
+          }}
+          schema={schema}
+          functionName={functionName}
+        />
+      ),
+    });
+  }
+
   function handleRelationshipsClick(
     schema: string,
     table: string,
@@ -388,12 +603,15 @@ export function useDataBrowserActions({
 
     // Delete actions
     handleDeleteTableClick,
+    handleDeleteFunctionClick,
 
     // Permission actions
     handleEditPermissionClick,
+    handleEditFunctionPermissionClick,
 
     // Settings actions
     handleEditSettingsClick,
+    handleEditFunctionSettingsClick,
 
     // Relationships actions
     handleRelationshipsClick,
@@ -401,6 +619,7 @@ export function useDataBrowserActions({
     // Drawer openers
     openEditTableDrawer,
     openEditViewDrawer,
+    openEditFunctionDrawer,
     openCreateTableDrawer,
   };
 }
