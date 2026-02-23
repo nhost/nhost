@@ -38,7 +38,7 @@ const clientSideEmotionCache = createEmotionCache();
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30_000,
+      staleTime: 5_000,
     },
   },
 });
