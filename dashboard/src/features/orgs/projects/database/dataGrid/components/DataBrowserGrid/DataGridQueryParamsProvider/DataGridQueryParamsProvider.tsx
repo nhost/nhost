@@ -78,6 +78,7 @@ function DataGridQueryParamsProvider({ children }: PropsWithChildren) {
     const filtersForTheTable = getDataGridFilters(tablePath);
     _setAppliedFilters(filtersForTheTable);
     setSortBy([]);
+    setCurrentOffset(0);
   }, [tablePath]);
 
   isFiltersLoadedFromStorage.current = compareLoadedFiltersToStorage(
