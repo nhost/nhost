@@ -111,7 +111,11 @@ export default function CronTriggerView({
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
-      <Tabs value={tab} onValueChange={onTabChange} className="flex h-full flex-col">
+      <Tabs
+        value={tab}
+        onValueChange={onTabChange}
+        className="flex h-full flex-col"
+      >
         <div className="sticky top-0 z-10 border-b-1 bg-background">
           <div className="p-6">
             <h1 className="mb-1 font-semibold text-gray-900 text-xl dark:text-gray-100">
