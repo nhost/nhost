@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 import {
   Tabs,
   TabsContent,
@@ -17,7 +16,19 @@ import { isEmptyValue } from '@/lib/utils';
 import CronTriggerViewSkeleton from './CronTriggerViewSkeleton';
 import CronTriggerOverview from './sections/CronTriggerOverview';
 
-export default function CronTriggerView() {
+interface CronTriggerViewProps {
+  tab: string;
+  onTabChange: (tab: string) => void;
+  eventLogsSection: CronTriggerEventsSection;
+  onEventLogsSectionChange: (section: CronTriggerEventsSection) => void;
+}
+
+export default function CronTriggerView({
+  tab,
+  onTabChange,
+  eventLogsSection,
+  onEventLogsSectionChange,
+}: CronTriggerViewProps) {
   const router = useRouter();
 
   const { cronTriggerSlug } = router.query;
@@ -27,10 +38,6 @@ export default function CronTriggerView() {
   const cronTrigger = cronTriggers?.find(
     (trigger) => trigger.name === cronTriggerSlug,
   );
-
-  const [tab, setTab] = useState('overview');
-  const [eventLogsSection, setEventLogsSection] =
-    useState<CronTriggerEventsSection>('processed');
 
   const triggerName = cronTrigger?.name ?? '';
 
@@ -104,7 +111,7 @@ export default function CronTriggerView() {
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
-      <Tabs value={tab} onValueChange={setTab} className="flex h-full flex-col">
+      <Tabs value={tab} onValueChange={onTabChange} className="flex h-full flex-col">
         <div className="sticky top-0 z-10 border-b-1 bg-background">
           <div className="p-6">
             <h1 className="mb-1 font-semibold text-gray-900 text-xl dark:text-gray-100">
@@ -145,7 +152,7 @@ export default function CronTriggerView() {
         >
           <CronTriggerEventsDataTable
             eventLogsSection={eventLogsSection}
-            onEventLogsSectionChange={setEventLogsSection}
+            onEventLogsSectionChange={onEventLogsSectionChange}
             data={eventsData}
             isLoading={isEventsLoading}
             limit={limit}

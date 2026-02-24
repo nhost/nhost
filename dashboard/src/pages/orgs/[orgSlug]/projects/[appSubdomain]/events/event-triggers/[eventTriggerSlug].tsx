@@ -1,4 +1,5 @@
-import type { ReactElement } from 'react';
+import { useRouter } from 'next/router';
+import { type ReactElement, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -8,8 +9,11 @@ import { EventTriggerView } from '@/features/orgs/projects/events/event-triggers
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function EventTriggerDetailsPage() {
+  const router = useRouter();
+  const { eventTriggerSlug } = router.query;
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const [tab, setTab] = useState('overview');
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return <LoadingScreen />;
@@ -17,7 +21,11 @@ export default function EventTriggerDetailsPage() {
 
   return (
     <RetryableErrorBoundary>
-      <EventTriggerView />
+      <EventTriggerView
+        key={eventTriggerSlug as string}
+        tab={tab}
+        onTabChange={setTab}
+      />
     </RetryableErrorBoundary>
   );
 }
