@@ -1,11 +1,13 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { type PropsWithChildren, useMemo } from 'react';
+import { type PropsWithChildren, useEffect, useMemo } from 'react';
 import { Alert } from '@/components/ui/v2/Alert';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
 import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { usePreviousData } from '@/hooks/usePreviousData';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import PausedProjectContent from './PausedProjectContent';
@@ -15,6 +17,18 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
     query: { appSubdomain },
     route,
   } = useRouter();
+
+  const queryClient = useQueryClient();
+  const previousAppSubdomain = usePreviousData(appSubdomain);
+
+  useEffect(() => {
+    if (
+      previousAppSubdomain !== appSubdomain &&
+      previousAppSubdomain !== undefined
+    ) {
+      queryClient.clear();
+    }
+  }, [appSubdomain, previousAppSubdomain, queryClient]);
 
   const { state } = useAppState();
 
