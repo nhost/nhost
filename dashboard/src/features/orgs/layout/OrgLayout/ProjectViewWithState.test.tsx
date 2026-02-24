@@ -61,19 +61,23 @@ vi.mock(
   }),
 );
 
-const getUseRouterObject = (
-  route: string = '/orgs/[orgSlug]/projects/[appSubdomain]',
-) => ({
+const getUseRouterObject = ({
+  route = '/orgs/[orgSlug]/projects/[appSubdomain]',
+  appSubdomain = 'test-project',
+}: {
+  route?: string;
+  appSubdomain?: string;
+} = {}) => ({
   basePath: '',
-  pathname: '/orgs/xyz/projects/test-project',
+  pathname: `/orgs/xyz/projects/${appSubdomain}`,
   route,
-  asPath: '/orgs/xyz/projects/test-project',
+  asPath: `/orgs/xyz/projects/${appSubdomain}`,
   isLocaleDomain: false,
   isReady: true,
   isPreview: false,
   query: {
     orgSlug: 'xyz',
-    appSubdomain: 'test-project',
+    appSubdomain,
   },
   push: mocks.push,
   replace: vi.fn(),
@@ -241,5 +245,38 @@ describe('ProjectViewWithState', () => {
       await screen.findByText('Application Restoring'),
     ).toBeInTheDocument();
     expect(screen.queryByText('Application content')).not.toBeInTheDocument();
+  });
+
+  it('should not clear the query cache on initial render', async () => {
+    const clearSpy = vi.spyOn(queryClient, 'clear');
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject({ appSubdomain: 'project-a' }),
+    );
+    server.use(getProjectQuery);
+    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
+
+    render(<TestComponent />);
+    await screen.findByText('Application content');
+
+    expect(clearSpy).not.toHaveBeenCalled();
+  });
+
+  it('should clear the query cache when switching projects', async () => {
+    const clearSpy = vi.spyOn(queryClient, 'clear');
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject({ appSubdomain: 'project-a' }),
+    );
+    server.use(getProjectQuery);
+    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
+
+    const { rerender } = render(<TestComponent />);
+    await screen.findByText('Application content');
+
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject({ appSubdomain: 'project-b' }),
+    );
+    rerender(<TestComponent />);
+
+    expect(clearSpy).toHaveBeenCalledOnce();
   });
 });
