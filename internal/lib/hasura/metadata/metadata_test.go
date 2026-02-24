@@ -971,6 +971,392 @@ func TestApplyTableCustomizationWithoutExistingConfig(t *testing.T) {
 	}
 }
 
+func TestFkConstraintColumns(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name     string
+		input    any
+		expected []string
+	}{
+		{
+			name:     "plain string",
+			input:    "user_id",
+			expected: []string{"user_id"},
+		},
+		{
+			name:     "string slice",
+			input:    []string{"col_a", "col_b"},
+			expected: []string{"col_a", "col_b"},
+		},
+		{
+			name:     "any slice with all strings",
+			input:    []any{"col_a", "col_b"},
+			expected: []string{"col_a", "col_b"},
+		},
+		{
+			name:     "any slice with mixed types skips non-strings",
+			input:    []any{"col_a", 42, "col_b"},
+			expected: []string{"col_a", "col_b"},
+		},
+		{
+			name:     "unexpected type returns empty slice",
+			input:    12345,
+			expected: []string{},
+		},
+		{
+			name:     "nil returns empty slice",
+			input:    nil,
+			expected: []string{},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := fkConstraintColumns(tc.input)
+			if diff := cmp.Diff(tc.expected, got); diff != "" {
+				t.Errorf("unexpected result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestApplyMetadata(t *testing.T) { //nolint:cyclop,gocognit,maintidx
+	t.Parallel()
+
+	makeTable := func(schema, name string) TrackTable {
+		return TrackTable{
+			Type: "pg_track_table",
+			Args: PgTrackTableArgs{
+				Source: "default",
+				Table:  Table{Schema: schema, Name: name},
+				Configuration: Configuration{
+					CustomName: name + "_custom",
+					CustomRootFields: CustomRootFields{
+						Select: name + "_select",
+					},
+					CustomColumnNames: map[string]string{"id": name + "_id"},
+				},
+				ObjectRelationships: []ObjectRelationshipConfig{
+					{
+						Name: "parent",
+						Using: ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "parent_id",
+						},
+					},
+				},
+				ArrayRelationships: []ArrayRelationshipConfig{
+					{
+						Name: "children",
+						Using: ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
+								Table:   Table{Schema: schema, Name: "children"},
+								Columns: []string{name + "_id"},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
+	t.Run("happy path tracks new tables and creates relationships", func(t *testing.T) {
+		t.Parallel()
+
+		var requestTypes []string
+
+		server := httptest.NewServer(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body, _ := io.ReadAll(r.Body)
+				defer r.Body.Close()
+
+				var req map[string]any
+
+				_ = json.Unmarshal(body, &req)
+
+				reqType, _ := req["type"].(string)
+				requestTypes = append(requestTypes, reqType)
+
+				w.Header().Set("Content-Type", "application/json")
+
+				switch reqType {
+				case "export_metadata":
+					resp := map[string]any{
+						"metadata": map[string]any{
+							"sources": []any{
+								map[string]any{
+									"name":   "default",
+									"tables": []any{},
+								},
+							},
+						},
+					}
+					_ = json.NewEncoder(w).Encode(resp)
+				default:
+					_, _ = w.Write([]byte(`{"message":"success"}`))
+				}
+			}),
+		)
+		t.Cleanup(server.Close)
+
+		cfg := Config{URL: server.URL, AdminSecret: "secret"}
+		tables := []TrackTable{makeTable("auth", "users")}
+
+		err := ApplyMetadata(
+			context.Background(), cfg, tables, slog.Default(),
+		)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		expected := []string{
+			"export_metadata",
+			"pg_track_table",
+			"pg_create_object_relationship",
+			"pg_create_array_relationship",
+		}
+		if diff := cmp.Diff(expected, requestTypes); diff != "" {
+			t.Errorf("unexpected request sequence (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("already tracked table applies customization", func(t *testing.T) {
+		t.Parallel()
+
+		var customizationReceived bool
+
+		server := httptest.NewServer(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body, _ := io.ReadAll(r.Body)
+				defer r.Body.Close()
+
+				var req map[string]any
+
+				_ = json.Unmarshal(body, &req)
+
+				reqType, _ := req["type"].(string)
+
+				w.Header().Set("Content-Type", "application/json")
+
+				switch reqType {
+				case "export_metadata":
+					resp := map[string]any{
+						"metadata": map[string]any{
+							"sources": []any{
+								map[string]any{
+									"name": "default",
+									"tables": []any{
+										map[string]any{
+											"table": map[string]string{
+												"schema": "auth",
+												"name":   "users",
+											},
+											"configuration": map[string]any{
+												"custom_name":         "old_users",
+												"custom_root_fields":  map[string]any{},
+												"custom_column_names": map[string]any{},
+											},
+											"object_relationships": []any{},
+											"array_relationships":  []any{},
+										},
+									},
+								},
+							},
+						},
+					}
+					_ = json.NewEncoder(w).Encode(resp)
+				case "pg_track_table":
+					w.WriteHeader(http.StatusBadRequest)
+
+					resp := hasuraErrResponse{
+						Code:  errorCodeAlreadyTracked,
+						Error: "already tracked",
+					}
+					_ = json.NewEncoder(w).Encode(resp)
+				case "pg_set_table_customization":
+					customizationReceived = true
+					_, _ = w.Write([]byte(`{"message":"success"}`))
+				default:
+					_, _ = w.Write([]byte(`{"message":"success"}`))
+				}
+			}),
+		)
+		t.Cleanup(server.Close)
+
+		cfg := Config{URL: server.URL, AdminSecret: "secret"}
+		tables := []TrackTable{makeTable("auth", "users")}
+
+		err := ApplyMetadata(
+			context.Background(), cfg, tables, slog.Default(),
+		)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if !customizationReceived {
+			t.Error("expected pg_set_table_customization to be called")
+		}
+	})
+
+	t.Run("fetchExistingTableMetadata failure degrades gracefully", func(t *testing.T) {
+		t.Parallel()
+
+		requestCount := 0
+
+		server := httptest.NewServer(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body, _ := io.ReadAll(r.Body)
+				defer r.Body.Close()
+
+				var req map[string]any
+
+				_ = json.Unmarshal(body, &req)
+
+				reqType, _ := req["type"].(string)
+				requestCount++
+
+				w.Header().Set("Content-Type", "application/json")
+
+				switch reqType {
+				case "export_metadata":
+					w.WriteHeader(http.StatusInternalServerError)
+					_, _ = w.Write([]byte(`{"error":"internal error"}`))
+				default:
+					_, _ = w.Write([]byte(`{"message":"success"}`))
+				}
+			}),
+		)
+		t.Cleanup(server.Close)
+
+		cfg := Config{URL: server.URL, AdminSecret: "secret"}
+		tables := []TrackTable{makeTable("auth", "users")}
+
+		err := ApplyMetadata(
+			context.Background(), cfg, tables, slog.Default(),
+		)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		// export_metadata (failed) + pg_track_table + obj rel + arr rel = 4
+		if requestCount != 4 {
+			t.Errorf("expected 4 requests, got %d", requestCount)
+		}
+	})
+
+	t.Run("relationship already exists is not an error", func(t *testing.T) {
+		t.Parallel()
+
+		server := httptest.NewServer(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body, _ := io.ReadAll(r.Body)
+				defer r.Body.Close()
+
+				var req map[string]any
+
+				_ = json.Unmarshal(body, &req)
+
+				reqType, _ := req["type"].(string)
+
+				w.Header().Set("Content-Type", "application/json")
+
+				switch reqType {
+				case "export_metadata":
+					resp := map[string]any{
+						"metadata": map[string]any{
+							"sources": []any{
+								map[string]any{
+									"name":   "default",
+									"tables": []any{},
+								},
+							},
+						},
+					}
+					_ = json.NewEncoder(w).Encode(resp)
+				case "pg_track_table":
+					_, _ = w.Write([]byte(`{"message":"success"}`))
+				case "pg_create_object_relationship",
+					"pg_create_array_relationship":
+					w.WriteHeader(http.StatusBadRequest)
+
+					resp := hasuraErrResponse{
+						Code:  errorCodeAlreadyExists,
+						Error: "already exists",
+					}
+					_ = json.NewEncoder(w).Encode(resp)
+				default:
+					_, _ = w.Write([]byte(`{"message":"success"}`))
+				}
+			}),
+		)
+		t.Cleanup(server.Close)
+
+		cfg := Config{URL: server.URL, AdminSecret: "secret"}
+		tables := []TrackTable{makeTable("auth", "users")}
+
+		err := ApplyMetadata(
+			context.Background(), cfg, tables, slog.Default(),
+		)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("track table non-recoverable error is returned", func(t *testing.T) {
+		t.Parallel()
+
+		server := httptest.NewServer(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body, _ := io.ReadAll(r.Body)
+				defer r.Body.Close()
+
+				var req map[string]any
+
+				_ = json.Unmarshal(body, &req)
+
+				reqType, _ := req["type"].(string)
+
+				w.Header().Set("Content-Type", "application/json")
+
+				switch reqType {
+				case "export_metadata":
+					resp := map[string]any{
+						"metadata": map[string]any{
+							"sources": []any{
+								map[string]any{
+									"name":   "default",
+									"tables": []any{},
+								},
+							},
+						},
+					}
+					_ = json.NewEncoder(w).Encode(resp)
+				case "pg_track_table":
+					w.WriteHeader(http.StatusInternalServerError)
+					_, _ = w.Write([]byte(
+						`{"error":"something went wrong","code":"unexpected"}`,
+					))
+				default:
+					_, _ = w.Write([]byte(`{"message":"success"}`))
+				}
+			}),
+		)
+		t.Cleanup(server.Close)
+
+		cfg := Config{URL: server.URL, AdminSecret: "secret"}
+		tables := []TrackTable{makeTable("auth", "users")}
+
+		err := ApplyMetadata(
+			context.Background(), cfg, tables, slog.Default(),
+		)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+	})
+}
+
 func TestApplyTableCustomizationInvalidExistingConfig(t *testing.T) {
 	t.Parallel()
 
