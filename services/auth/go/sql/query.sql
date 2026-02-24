@@ -578,9 +578,16 @@ UPDATE auth.oauth2_device_codes
 SET status = 'denied'
 WHERE user_code = $1 AND status = 'pending';
 
--- name: UpdateOAuth2DeviceCodePolledAt :exec
+-- name: AtomicPollOAuth2DeviceCode :one
 UPDATE auth.oauth2_device_codes
 SET last_polled_at = now()
+WHERE device_code_hash = $1
+  AND (last_polled_at IS NULL OR now() - last_polled_at >= make_interval(secs => polling_interval))
+RETURNING id, device_code_hash, user_code, client_id, scopes, user_id, status, last_polled_at, polling_interval, created_at, expires_at;
+
+-- name: SlowDownOAuth2DeviceCode :exec
+UPDATE auth.oauth2_device_codes
+SET polling_interval = polling_interval + 5
 WHERE device_code_hash = $1;
 
 -- name: ConsumeOAuth2DeviceCodeAndInsertRefreshToken :one

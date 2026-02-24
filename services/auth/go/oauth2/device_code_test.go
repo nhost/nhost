@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
@@ -413,13 +412,6 @@ func TestValidateDeviceCodeGrant(t *testing.T) {
 		PollingInterval: 5,
 	}
 
-	recentlyPolledDC := sql.AuthOauth2DeviceCode{ //nolint:exhaustruct
-		ClientID:        clientID,
-		Status:          "pending",
-		PollingInterval: 5,
-		LastPolledAt:    sql.TimestampTz(time.Now()),
-	}
-
 	cases := []struct {
 		name           string
 		db             func(ctrl *gomock.Controller) *mock.MockDBClient
@@ -467,8 +459,8 @@ func TestValidateDeviceCodeGrant(t *testing.T) {
 					Return(pendingDC, nil)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(publicClient, nil)
-				m.EXPECT().UpdateOAuth2DeviceCodePolledAt(gomock.Any(), codeHash).
-					Return(nil)
+				m.EXPECT().AtomicPollOAuth2DeviceCode(gomock.Any(), codeHash).
+					Return(pendingDC, nil)
 
 				return m
 			},
@@ -488,9 +480,13 @@ func TestValidateDeviceCodeGrant(t *testing.T) {
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2DeviceCodeByHash(gomock.Any(), codeHash).
-					Return(recentlyPolledDC, nil)
+					Return(pendingDC, nil)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(publicClient, nil)
+				m.EXPECT().AtomicPollOAuth2DeviceCode(gomock.Any(), codeHash).
+					Return(sql.AuthOauth2DeviceCode{}, pgx.ErrNoRows) //nolint:exhaustruct
+				m.EXPECT().SlowDownOAuth2DeviceCode(gomock.Any(), codeHash).
+					Return(nil)
 
 				return m
 			},
@@ -513,8 +509,8 @@ func TestValidateDeviceCodeGrant(t *testing.T) {
 					Return(deniedDC, nil)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(publicClient, nil)
-				m.EXPECT().UpdateOAuth2DeviceCodePolledAt(gomock.Any(), codeHash).
-					Return(nil)
+				m.EXPECT().AtomicPollOAuth2DeviceCode(gomock.Any(), codeHash).
+					Return(deniedDC, nil)
 
 				return m
 			},
@@ -537,8 +533,8 @@ func TestValidateDeviceCodeGrant(t *testing.T) {
 					Return(approvedDC, nil)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(publicClient, nil)
-				m.EXPECT().UpdateOAuth2DeviceCodePolledAt(gomock.Any(), codeHash).
-					Return(nil)
+				m.EXPECT().AtomicPollOAuth2DeviceCode(gomock.Any(), codeHash).
+					Return(approvedDC, nil)
 
 				return m
 			},
@@ -730,6 +726,3 @@ func TestIssueTokensFromDeviceCode(t *testing.T) {
 func ctx() context.Context {
 	return context.Background()
 }
-
-//go:fix inline
-func ptr[T any](x T) *T { return new(x) }

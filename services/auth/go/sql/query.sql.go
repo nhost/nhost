@@ -43,6 +43,33 @@ func (q *Queries) ApproveOAuth2DeviceCode(ctx context.Context, arg ApproveOAuth2
 	return i, err
 }
 
+const atomicPollOAuth2DeviceCode = `-- name: AtomicPollOAuth2DeviceCode :one
+UPDATE auth.oauth2_device_codes
+SET last_polled_at = now()
+WHERE device_code_hash = $1
+  AND (last_polled_at IS NULL OR now() - last_polled_at >= make_interval(secs => polling_interval))
+RETURNING id, device_code_hash, user_code, client_id, scopes, user_id, status, last_polled_at, polling_interval, created_at, expires_at
+`
+
+func (q *Queries) AtomicPollOAuth2DeviceCode(ctx context.Context, deviceCodeHash string) (AuthOauth2DeviceCode, error) {
+	row := q.db.QueryRow(ctx, atomicPollOAuth2DeviceCode, deviceCodeHash)
+	var i AuthOauth2DeviceCode
+	err := row.Scan(
+		&i.ID,
+		&i.DeviceCodeHash,
+		&i.UserCode,
+		&i.ClientID,
+		&i.Scopes,
+		&i.UserID,
+		&i.Status,
+		&i.LastPolledAt,
+		&i.PollingInterval,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
 const completeOAuth2LoginAndInsertCode = `-- name: CompleteOAuth2LoginAndInsertCode :one
 WITH updated_request AS (
     UPDATE auth.oauth2_auth_requests
@@ -1718,14 +1745,14 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 	return items, nil
 }
 
-const updateOAuth2DeviceCodePolledAt = `-- name: UpdateOAuth2DeviceCodePolledAt :exec
+const slowDownOAuth2DeviceCode = `-- name: SlowDownOAuth2DeviceCode :exec
 UPDATE auth.oauth2_device_codes
-SET last_polled_at = now()
+SET polling_interval = polling_interval + 5
 WHERE device_code_hash = $1
 `
 
-func (q *Queries) UpdateOAuth2DeviceCodePolledAt(ctx context.Context, deviceCodeHash string) error {
-	_, err := q.db.Exec(ctx, updateOAuth2DeviceCodePolledAt, deviceCodeHash)
+func (q *Queries) SlowDownOAuth2DeviceCode(ctx context.Context, deviceCodeHash string) error {
+	_, err := q.db.Exec(ctx, slowDownOAuth2DeviceCode, deviceCodeHash)
 	return err
 }
 

@@ -240,17 +240,21 @@ func (p *Provider) ValidateDeviceCodeGrant( //nolint:cyclop,funlen
 		return nil, oauthErr
 	}
 
-	// Enforce polling interval (slow_down)
-	if dc.LastPolledAt.Valid {
-		elapsed := time.Since(dc.LastPolledAt.Time)
-		if elapsed < time.Duration(dc.PollingInterval)*time.Second {
-			return nil, &Error{Err: "slow_down", Description: "Polling too frequently"}
+	// Atomically enforce polling interval and update last_polled_at.
+	// Returns ErrNoRows when the interval hasn't elapsed yet.
+	dc, err = p.db.AtomicPollOAuth2DeviceCode(ctx, codeHash)
+	if errors.Is(err, pgx.ErrNoRows) {
+		// RFC 8628 Section 3.5: increment polling_interval by 5s on slow_down.
+		if dbErr := p.db.SlowDownOAuth2DeviceCode(ctx, codeHash); dbErr != nil {
+			logger.ErrorContext(ctx, "error incrementing polling interval", logError(dbErr))
 		}
+
+		return nil, &Error{Err: "slow_down", Description: "Polling too frequently"}
 	}
 
-	// Update last polled timestamp
-	if err := p.db.UpdateOAuth2DeviceCodePolledAt(ctx, codeHash); err != nil {
-		logger.ErrorContext(ctx, "error updating device code polled_at", logError(err))
+	if err != nil {
+		logger.ErrorContext(ctx, "error polling device code", logError(err))
+		return nil, &Error{Err: "server_error", Description: "Internal server error"}
 	}
 
 	switch dc.Status {

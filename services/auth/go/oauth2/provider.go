@@ -127,7 +127,11 @@ type DBClient interface { //nolint:interfacebloat
 		ctx context.Context, arg sql.ApproveOAuth2DeviceCodeParams,
 	) (sql.AuthOauth2DeviceCode, error)
 	DenyOAuth2DeviceCode(ctx context.Context, userCode string) error
-	UpdateOAuth2DeviceCodePolledAt(ctx context.Context, deviceCodeHash string) error
+	AtomicPollOAuth2DeviceCode(
+		ctx context.Context,
+		deviceCodeHash string,
+	) (sql.AuthOauth2DeviceCode, error)
+	SlowDownOAuth2DeviceCode(ctx context.Context, deviceCodeHash string) error
 	ConsumeOAuth2DeviceCodeAndInsertRefreshToken(
 		ctx context.Context, arg sql.ConsumeOAuth2DeviceCodeAndInsertRefreshTokenParams,
 	) (sql.AuthOauth2RefreshToken, error)
