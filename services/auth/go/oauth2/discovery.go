@@ -13,15 +13,20 @@ func (p *Provider) BuildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 	}
 
 	return api.OAuth2DiscoveryResponse{
-		Issuer:                 issuer,
-		AuthorizationEndpoint:  issuer + "/oauth2/authorize",
-		TokenEndpoint:          issuer + "/oauth2/token",
-		UserinfoEndpoint:       new(issuer + "/oauth2/userinfo"),
-		JwksUri:                issuer + "/oauth2/jwks",
-		RevocationEndpoint:     new(issuer + "/oauth2/revoke"),
-		IntrospectionEndpoint:  new(issuer + "/oauth2/introspect"),
-		ResponseTypesSupported: []string{"code"},
-		GrantTypesSupported:    &[]string{"authorization_code", "refresh_token"},
+		Issuer:                      issuer,
+		AuthorizationEndpoint:       issuer + "/oauth2/authorize",
+		TokenEndpoint:               issuer + "/oauth2/token",
+		UserinfoEndpoint:            new(issuer + "/oauth2/userinfo"),
+		JwksUri:                     issuer + "/oauth2/jwks",
+		RevocationEndpoint:          new(issuer + "/oauth2/revoke"),
+		IntrospectionEndpoint:       new(issuer + "/oauth2/introspect"),
+		ResponseTypesSupported:      []string{"code"},
+		DeviceAuthorizationEndpoint: new(issuer + "/oauth2/device"),
+		GrantTypesSupported: &[]string{
+			"authorization_code",
+			"refresh_token",
+			"urn:ietf:params:oauth:grant-type:device_code",
+		},
 		ScopesSupported: &[]string{
 			"openid",
 			"profile",

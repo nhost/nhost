@@ -396,6 +396,9 @@ export default defineConfig({
                             },
                           ],
                         },
+                        {
+                          slug: 'products/auth/oauth2-provider/device-flow',
+                        },
                       ],
                     },
                     {

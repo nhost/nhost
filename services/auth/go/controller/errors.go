@@ -249,6 +249,14 @@ func (response ErrorResponse) VisitOauth2LoginPostResponse(w http.ResponseWriter
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitOauth2DeviceVerifyGetResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitOauth2DeviceVerifyPostResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 type OAuth2ErrorResponse struct {
 	StatusCode int
 	Body       api.OAuth2ErrorResponse
@@ -266,6 +274,12 @@ func (response OAuth2ErrorResponse) VisitOauth2AuthorizeResponse(w http.Response
 }
 
 func (response OAuth2ErrorResponse) VisitOauth2AuthorizePostResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitOauth2DeviceAuthorizationResponse(
+	w http.ResponseWriter,
+) error {
 	return response.visit(w)
 }
 

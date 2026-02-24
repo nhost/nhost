@@ -19,6 +19,9 @@ const (
 	TokenTypeRefreshToken       = "refresh_token"
 	AuthRequestTTL              = 10 * time.Minute
 	AuthCodeTTL                 = 5 * time.Minute
+	DeviceCodeTTL               = 10 * time.Minute
+	DeviceCodePollingSec        = 5
+	UserCodeLength              = 8
 )
 
 // DefaultScopes returns the canonical set of scopes assigned to a new OAuth2
@@ -37,6 +40,7 @@ type Config struct {
 	RefreshTokenTTL            int
 	CIMDEnabled                bool
 	CIMDAllowInsecureTransport bool
+	DeviceVerifyURL            string
 }
 
 type ValidatedClaims struct {
@@ -110,6 +114,26 @@ type DBClient interface { //nolint:interfacebloat
 		ctx context.Context, arg sql.UpsertOAuth2CIMDClientParams,
 	) (sql.AuthOauth2Client, error)
 
+	InsertOAuth2DeviceCode(
+		ctx context.Context, arg sql.InsertOAuth2DeviceCodeParams,
+	) (sql.AuthOauth2DeviceCode, error)
+	GetOAuth2DeviceCodeByUserCode(
+		ctx context.Context, userCode string,
+	) (sql.AuthOauth2DeviceCode, error)
+	GetOAuth2DeviceCodeByHash(
+		ctx context.Context, deviceCodeHash string,
+	) (sql.AuthOauth2DeviceCode, error)
+	ApproveOAuth2DeviceCode(
+		ctx context.Context, arg sql.ApproveOAuth2DeviceCodeParams,
+	) (sql.AuthOauth2DeviceCode, error)
+	DenyOAuth2DeviceCode(ctx context.Context, userCode string) error
+	UpdateOAuth2DeviceCodePolledAt(ctx context.Context, deviceCodeHash string) error
+	ConsumeOAuth2DeviceCodeAndInsertRefreshToken(
+		ctx context.Context, arg sql.ConsumeOAuth2DeviceCodeAndInsertRefreshTokenParams,
+	) (sql.AuthOauth2RefreshToken, error)
+	DeleteOAuth2DeviceCode(ctx context.Context, id uuid.UUID) error
+	DeleteExpiredOAuth2DeviceCodes(ctx context.Context) error
+
 	GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)
 }
@@ -179,6 +203,10 @@ func (p *Provider) DeleteExpiredRecords(ctx context.Context, logger *slog.Logger
 
 	if err := p.db.DeleteExpiredOAuth2RefreshTokens(ctx); err != nil {
 		logger.ErrorContext(ctx, "error deleting expired OAuth2 refresh tokens", logError(err))
+	}
+
+	if err := p.db.DeleteExpiredOAuth2DeviceCodes(ctx); err != nil {
+		logger.ErrorContext(ctx, "error deleting expired OAuth2 device codes", logError(err))
 	}
 }
 

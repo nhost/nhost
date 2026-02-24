@@ -1779,6 +1779,99 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: An error occurred
 
+  /oauth2/device:
+    post:
+      summary: OAuth2 Device Authorization Endpoint (RFC 8628)
+      description: >-
+        Initiates a device authorization flow. Returns a device code, user code,
+        and verification URI for input-constrained devices.
+      operationId: oauth2DeviceAuthorization
+      tags:
+        - authentication
+      requestBody:
+        description: Device authorization request parameters (RFC 8628 Section 3.1).
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OAuth2DeviceAuthorizationRequest"
+      responses:
+        "200":
+          description: Device authorization response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2DeviceAuthorizationResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/device/verify:
+    get:
+      summary: Get device authorization request details
+      description: >-
+        Called by the verification UI to get details about a pending device authorization
+        request using the user_code.
+      operationId: oauth2DeviceVerifyGet
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_code
+          in: query
+          required: true
+          description: The user code displayed on the device.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Device authorization request details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2DeviceVerifyResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
+    post:
+      summary: Approve or deny a device authorization request
+      description: >-
+        Called by the verification UI after the user authenticates and decides
+        to approve or deny the device authorization request.
+      operationId: oauth2DeviceVerifyPost
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Device verification action (approve or deny).
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuth2DeviceVerifyRequest"
+      responses:
+        "200":
+          description: Device authorization request updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2DeviceVerifyResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
 components:
   securitySchemes:
     BearerAuth:
@@ -3041,6 +3134,8 @@ components:
           type: string
         introspection_endpoint:
           type: string
+        device_authorization_endpoint:
+          type: string
         scopes_supported:
           type: array
           items:
@@ -3092,7 +3187,7 @@ components:
       properties:
         grant_type:
           type: string
-          enum: [authorization_code, refresh_token]
+          enum: [authorization_code, refresh_token, "urn:ietf:params:oauth:grant-type:device_code"]
         code:
           type: string
           nullable: true
@@ -3112,6 +3207,9 @@ components:
           type: string
           nullable: true
         resource:
+          type: string
+          nullable: true
+        device_code:
           type: string
           nullable: true
       required:
@@ -3273,6 +3371,83 @@ components:
           format: uri
       required:
         - redirectUri
+
+    OAuth2DeviceAuthorizationRequest:
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: The client identifier.
+        scope:
+          type: string
+          description: Space-separated list of requested scopes.
+          nullable: true
+      required:
+        - client_id
+
+    OAuth2DeviceAuthorizationResponse:
+      type: object
+      properties:
+        device_code:
+          type: string
+          description: The device verification code.
+        user_code:
+          type: string
+          description: The end-user verification code.
+        verification_uri:
+          type: string
+          format: uri
+          description: The end-user verification URI.
+        verification_uri_complete:
+          type: string
+          format: uri
+          description: >-
+            The end-user verification URI that includes the user_code,
+            allowing a non-textual verification method (e.g., QR code).
+        expires_in:
+          type: integer
+          description: The lifetime in seconds of the device_code and user_code.
+        interval:
+          type: integer
+          description: >-
+            The minimum amount of time in seconds that the client should wait
+            between polling requests to the token endpoint.
+      required:
+        - device_code
+        - user_code
+        - verification_uri
+        - expires_in
+        - interval
+
+    OAuth2DeviceVerifyResponse:
+      type: object
+      properties:
+        clientId:
+          type: string
+          description: The client identifier.
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Requested scopes.
+      required:
+        - clientId
+        - scopes
+
+    OAuth2DeviceVerifyRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        userCode:
+          type: string
+          description: The user code displayed on the device.
+        action:
+          type: string
+          enum: [approve, deny]
+          description: Whether to approve or deny the device authorization request.
+      required:
+        - userCode
+        - action
 
   parameters:
     RedirectToQuery:

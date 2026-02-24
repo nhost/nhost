@@ -99,6 +99,12 @@ const (
 	IdTokenProviderGoogle IdTokenProvider = "google"
 )
 
+// Defines values for OAuth2DeviceVerifyRequestAction.
+const (
+	Approve OAuth2DeviceVerifyRequestAction = "approve"
+	Deny    OAuth2DeviceVerifyRequestAction = "deny"
+)
+
 // Defines values for OAuth2IntrospectRequestTokenTypeHint.
 const (
 	OAuth2IntrospectRequestTokenTypeHintAccessToken  OAuth2IntrospectRequestTokenTypeHint = "access_token"
@@ -113,8 +119,9 @@ const (
 
 // Defines values for OAuth2TokenRequestGrantType.
 const (
-	AuthorizationCode OAuth2TokenRequestGrantType = "authorization_code"
-	RefreshToken      OAuth2TokenRequestGrantType = "refresh_token"
+	AuthorizationCode                     OAuth2TokenRequestGrantType = "authorization_code"
+	RefreshToken                          OAuth2TokenRequestGrantType = "refresh_token"
+	UrnIetfParamsOauthGrantTypeDeviceCode OAuth2TokenRequestGrantType = "urn:ietf:params:oauth:grant-type:device_code"
 )
 
 // Defines values for OKResponse.
@@ -476,6 +483,57 @@ type MFAChallengePayload struct {
 	Ticket string `json:"ticket"`
 }
 
+// OAuth2DeviceAuthorizationRequest defines model for OAuth2DeviceAuthorizationRequest.
+type OAuth2DeviceAuthorizationRequest struct {
+	// ClientId The client identifier.
+	ClientId string `json:"client_id"`
+
+	// Scope Space-separated list of requested scopes.
+	Scope *string `json:"scope"`
+}
+
+// OAuth2DeviceAuthorizationResponse defines model for OAuth2DeviceAuthorizationResponse.
+type OAuth2DeviceAuthorizationResponse struct {
+	// DeviceCode The device verification code.
+	DeviceCode string `json:"device_code"`
+
+	// ExpiresIn The lifetime in seconds of the device_code and user_code.
+	ExpiresIn int `json:"expires_in"`
+
+	// Interval The minimum amount of time in seconds that the client should wait between polling requests to the token endpoint.
+	Interval int `json:"interval"`
+
+	// UserCode The end-user verification code.
+	UserCode string `json:"user_code"`
+
+	// VerificationUri The end-user verification URI.
+	VerificationUri string `json:"verification_uri"`
+
+	// VerificationUriComplete The end-user verification URI that includes the user_code, allowing a non-textual verification method (e.g., QR code).
+	VerificationUriComplete *string `json:"verification_uri_complete,omitempty"`
+}
+
+// OAuth2DeviceVerifyRequest defines model for OAuth2DeviceVerifyRequest.
+type OAuth2DeviceVerifyRequest struct {
+	// Action Whether to approve or deny the device authorization request.
+	Action OAuth2DeviceVerifyRequestAction `json:"action"`
+
+	// UserCode The user code displayed on the device.
+	UserCode string `json:"userCode"`
+}
+
+// OAuth2DeviceVerifyRequestAction Whether to approve or deny the device authorization request.
+type OAuth2DeviceVerifyRequestAction string
+
+// OAuth2DeviceVerifyResponse defines model for OAuth2DeviceVerifyResponse.
+type OAuth2DeviceVerifyResponse struct {
+	// ClientId The client identifier.
+	ClientId string `json:"clientId"`
+
+	// Scopes Requested scopes.
+	Scopes []string `json:"scopes"`
+}
+
 // OAuth2DiscoveryResponse defines model for OAuth2DiscoveryResponse.
 type OAuth2DiscoveryResponse struct {
 	AuthorizationEndpoint                      string    `json:"authorization_endpoint"`
@@ -483,6 +541,7 @@ type OAuth2DiscoveryResponse struct {
 	ClaimsSupported                            *[]string `json:"claims_supported,omitempty"`
 	ClientIdMetadataDocumentSupported          *bool     `json:"client_id_metadata_document_supported,omitempty"`
 	CodeChallengeMethodsSupported              *[]string `json:"code_challenge_methods_supported,omitempty"`
+	DeviceAuthorizationEndpoint                *string   `json:"device_authorization_endpoint,omitempty"`
 	GrantTypesSupported                        *[]string `json:"grant_types_supported,omitempty"`
 	IdTokenSigningAlgValuesSupported           *[]string `json:"id_token_signing_alg_values_supported,omitempty"`
 	IntrospectionEndpoint                      *string   `json:"introspection_endpoint,omitempty"`
@@ -570,6 +629,7 @@ type OAuth2TokenRequest struct {
 	ClientSecret *string                     `json:"client_secret"`
 	Code         *string                     `json:"code"`
 	CodeVerifier *string                     `json:"code_verifier"`
+	DeviceCode   *string                     `json:"device_code"`
 	GrantType    OAuth2TokenRequestGrantType `json:"grant_type"`
 	RedirectUri  *string                     `json:"redirect_uri"`
 	RefreshToken *string                     `json:"refresh_token"`
@@ -1094,6 +1154,12 @@ type Oauth2AuthorizePostFormdataBody struct {
 	State               *string `form:"state" json:"state"`
 }
 
+// Oauth2DeviceVerifyGetParams defines parameters for Oauth2DeviceVerifyGet.
+type Oauth2DeviceVerifyGetParams struct {
+	// UserCode The user code displayed on the device.
+	UserCode string `form:"user_code" json:"user_code"`
+}
+
 // Oauth2LoginGetParams defines parameters for Oauth2LoginGet.
 type Oauth2LoginGetParams struct {
 	// RequestId The pending authorization request identifier.
@@ -1220,6 +1286,12 @@ type LinkIdTokenJSONRequestBody = LinkIdTokenRequest
 
 // Oauth2AuthorizePostFormdataRequestBody defines body for Oauth2AuthorizePost for application/x-www-form-urlencoded ContentType.
 type Oauth2AuthorizePostFormdataRequestBody Oauth2AuthorizePostFormdataBody
+
+// Oauth2DeviceAuthorizationFormdataRequestBody defines body for Oauth2DeviceAuthorization for application/x-www-form-urlencoded ContentType.
+type Oauth2DeviceAuthorizationFormdataRequestBody = OAuth2DeviceAuthorizationRequest
+
+// Oauth2DeviceVerifyPostJSONRequestBody defines body for Oauth2DeviceVerifyPost for application/json ContentType.
+type Oauth2DeviceVerifyPostJSONRequestBody = OAuth2DeviceVerifyRequest
 
 // Oauth2IntrospectFormdataRequestBody defines body for Oauth2Introspect for application/x-www-form-urlencoded ContentType.
 type Oauth2IntrospectFormdataRequestBody = OAuth2IntrospectRequest

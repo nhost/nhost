@@ -126,6 +126,18 @@ Example response (with `openid profile graphql` scopes):
 
 Both `GET` and `POST` methods are supported, per the OIDC specification.
 
+## Grant Types
+
+Tokens can be obtained through three grant types:
+
+| Grant Type | Value | Description |
+|------------|-------|-------------|
+| **Authorization Code** | `authorization_code` | Standard browser-based flow — exchange an authorization code for tokens |
+| **Device Code** | `urn:ietf:params:oauth:grant-type:device_code` | For CLIs and input-constrained devices — poll with a device code until the user approves. See [Device Flow](/products/auth/oauth2-provider/device-flow). |
+| **Refresh Token** | `refresh_token` | Exchange a refresh token for new tokens |
+
+All three return the same token response: an access token, a refresh token, and an ID token (if the `openid` scope was requested).
+
 ## Refresh Tokens
 
 Refresh tokens are UUID strings (not JWTs). They implement **token rotation**: each time a refresh token is used, it is deleted and a new one is issued. The new token inherits the original scopes.

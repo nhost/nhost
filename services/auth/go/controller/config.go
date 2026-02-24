@@ -77,6 +77,7 @@ type Config struct {
 	OAuth2ProviderRefreshTokenTTL            int           `json:"AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL"`
 	OAuth2ProviderCIMDEnabled                bool          `json:"AUTH_OAUTH2_PROVIDER_CIMD_ENABLED"`
 	OAuth2ProviderCIMDAllowInsecureTransport bool          `json:"AUTH_OAUTH2_PROVIDER_CIMD_ALLOW_INSECURE_TRANSPORT"`
+	OAuth2ProviderDeviceVerifyURL            string        `json:"AUTH_OAUTH2_PROVIDER_DEVICE_VERIFY_URL"`
 }
 
 func (c *Config) UnmarshalJSON(b []byte) error {

@@ -67,6 +67,7 @@ func getConfig() *controller.Config {
 		OAuth2ProviderRefreshTokenTTL:            2592000,
 		OAuth2ProviderCIMDEnabled:                false,
 		OAuth2ProviderCIMDAllowInsecureTransport: false,
+		OAuth2ProviderDeviceVerifyURL:            "",
 	}
 }
 

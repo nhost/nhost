@@ -17,6 +17,13 @@ Use a public client when the third-party app:
 - Runs on a user's device (mobile app, desktop app, CLI tool)
 - Cannot securely store a secret because the code is accessible to the user
 
+## Supported Flows
+
+Public clients support two grant types:
+
+- **[Authorization Code with PKCE](/products/auth/oauth2-provider/authorization-flow)** — for apps that can handle browser redirects (SPAs, mobile apps with deep links)
+- **[Device Authorization](/products/auth/oauth2-provider/device-flow)** — for input-constrained devices and CLI tools that cannot easily handle redirects
+
 ## Creating the Client
 
 Create a public client by omitting the `clientSecretHash`. See [Managing Clients](/products/auth/oauth2-provider/managing-clients) for full details.

@@ -12,6 +12,37 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const approveOAuth2DeviceCode = `-- name: ApproveOAuth2DeviceCode :one
+UPDATE auth.oauth2_device_codes
+SET status = 'approved', user_id = $2
+WHERE user_code = $1 AND status = 'pending' AND expires_at > now()
+RETURNING id, device_code_hash, user_code, client_id, scopes, user_id, status, last_polled_at, polling_interval, created_at, expires_at
+`
+
+type ApproveOAuth2DeviceCodeParams struct {
+	UserCode string
+	UserID   pgtype.UUID
+}
+
+func (q *Queries) ApproveOAuth2DeviceCode(ctx context.Context, arg ApproveOAuth2DeviceCodeParams) (AuthOauth2DeviceCode, error) {
+	row := q.db.QueryRow(ctx, approveOAuth2DeviceCode, arg.UserCode, arg.UserID)
+	var i AuthOauth2DeviceCode
+	err := row.Scan(
+		&i.ID,
+		&i.DeviceCodeHash,
+		&i.UserCode,
+		&i.ClientID,
+		&i.Scopes,
+		&i.UserID,
+		&i.Status,
+		&i.LastPolledAt,
+		&i.PollingInterval,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
 const completeOAuth2LoginAndInsertCode = `-- name: CompleteOAuth2LoginAndInsertCode :one
 WITH updated_request AS (
     UPDATE auth.oauth2_auth_requests
@@ -96,6 +127,42 @@ func (q *Queries) ConsumeOAuth2CodeAndInsertRefreshToken(ctx context.Context, ar
 	return i, err
 }
 
+const consumeOAuth2DeviceCodeAndInsertRefreshToken = `-- name: ConsumeOAuth2DeviceCodeAndInsertRefreshToken :one
+WITH deleted_device_code AS (
+    DELETE FROM auth.oauth2_device_codes
+    WHERE device_code_hash = $1 AND status = 'approved' AND expires_at > now()
+    RETURNING client_id, user_id, scopes
+)
+INSERT INTO auth.oauth2_refresh_tokens (
+    token_hash, client_id, user_id, scopes, expires_at
+)
+SELECT $2, dc.client_id, dc.user_id, dc.scopes, $3
+FROM deleted_device_code dc
+RETURNING id, token_hash, auth_request_id, client_id, user_id, scopes, created_at, expires_at
+`
+
+type ConsumeOAuth2DeviceCodeAndInsertRefreshTokenParams struct {
+	DeviceCodeHash string
+	TokenHash      string
+	ExpiresAt      pgtype.Timestamptz
+}
+
+func (q *Queries) ConsumeOAuth2DeviceCodeAndInsertRefreshToken(ctx context.Context, arg ConsumeOAuth2DeviceCodeAndInsertRefreshTokenParams) (AuthOauth2RefreshToken, error) {
+	row := q.db.QueryRow(ctx, consumeOAuth2DeviceCodeAndInsertRefreshToken, arg.DeviceCodeHash, arg.TokenHash, arg.ExpiresAt)
+	var i AuthOauth2RefreshToken
+	err := row.Scan(
+		&i.ID,
+		&i.TokenHash,
+		&i.AuthRequestID,
+		&i.ClientID,
+		&i.UserID,
+		&i.Scopes,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
 const countSecurityKeysUser = `-- name: CountSecurityKeysUser :one
 SELECT COUNT(*) FROM auth.user_security_keys
 WHERE user_id = $1
@@ -128,6 +195,16 @@ func (q *Queries) DeleteExpiredOAuth2AuthorizationCodes(ctx context.Context) err
 	return err
 }
 
+const deleteExpiredOAuth2DeviceCodes = `-- name: DeleteExpiredOAuth2DeviceCodes :exec
+DELETE FROM auth.oauth2_device_codes
+WHERE expires_at < now()
+`
+
+func (q *Queries) DeleteExpiredOAuth2DeviceCodes(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredOAuth2DeviceCodes)
+	return err
+}
+
 const deleteExpiredOAuth2RefreshTokens = `-- name: DeleteExpiredOAuth2RefreshTokens :exec
 DELETE FROM auth.oauth2_refresh_tokens
 WHERE expires_at < now()
@@ -155,6 +232,16 @@ WHERE id = $1
 
 func (q *Queries) DeleteOAuth2AuthRequest(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteOAuth2AuthRequest, id)
+	return err
+}
+
+const deleteOAuth2DeviceCode = `-- name: DeleteOAuth2DeviceCode :exec
+DELETE FROM auth.oauth2_device_codes
+WHERE id = $1
+`
+
+func (q *Queries) DeleteOAuth2DeviceCode(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteOAuth2DeviceCode, id)
 	return err
 }
 
@@ -210,6 +297,17 @@ WHERE user_id = $1
 
 func (q *Queries) DeleteUserRoles(ctx context.Context, userID uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteUserRoles, userID)
+	return err
+}
+
+const denyOAuth2DeviceCode = `-- name: DenyOAuth2DeviceCode :exec
+UPDATE auth.oauth2_device_codes
+SET status = 'denied'
+WHERE user_code = $1 AND status = 'pending'
+`
+
+func (q *Queries) DenyOAuth2DeviceCode(ctx context.Context, userCode string) error {
+	_, err := q.db.Exec(ctx, denyOAuth2DeviceCode, userCode)
 	return err
 }
 
@@ -326,6 +424,56 @@ func (q *Queries) GetOAuth2ClientByClientID(ctx context.Context, clientID string
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getOAuth2DeviceCodeByHash = `-- name: GetOAuth2DeviceCodeByHash :one
+SELECT id, device_code_hash, user_code, client_id, scopes, user_id, status, last_polled_at, polling_interval, created_at, expires_at FROM auth.oauth2_device_codes
+WHERE device_code_hash = $1 AND expires_at > now()
+LIMIT 1
+`
+
+func (q *Queries) GetOAuth2DeviceCodeByHash(ctx context.Context, deviceCodeHash string) (AuthOauth2DeviceCode, error) {
+	row := q.db.QueryRow(ctx, getOAuth2DeviceCodeByHash, deviceCodeHash)
+	var i AuthOauth2DeviceCode
+	err := row.Scan(
+		&i.ID,
+		&i.DeviceCodeHash,
+		&i.UserCode,
+		&i.ClientID,
+		&i.Scopes,
+		&i.UserID,
+		&i.Status,
+		&i.LastPolledAt,
+		&i.PollingInterval,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const getOAuth2DeviceCodeByUserCode = `-- name: GetOAuth2DeviceCodeByUserCode :one
+SELECT id, device_code_hash, user_code, client_id, scopes, user_id, status, last_polled_at, polling_interval, created_at, expires_at FROM auth.oauth2_device_codes
+WHERE user_code = $1 AND expires_at > now()
+LIMIT 1
+`
+
+func (q *Queries) GetOAuth2DeviceCodeByUserCode(ctx context.Context, userCode string) (AuthOauth2DeviceCode, error) {
+	row := q.db.QueryRow(ctx, getOAuth2DeviceCodeByUserCode, userCode)
+	var i AuthOauth2DeviceCode
+	err := row.Scan(
+		&i.ID,
+		&i.DeviceCodeHash,
+		&i.UserCode,
+		&i.ClientID,
+		&i.Scopes,
+		&i.UserID,
+		&i.Status,
+		&i.LastPolledAt,
+		&i.PollingInterval,
+		&i.CreatedAt,
+		&i.ExpiresAt,
 	)
 	return i, err
 }
@@ -903,6 +1051,54 @@ func (q *Queries) InsertOAuth2AuthRequest(ctx context.Context, arg InsertOAuth2A
 		&i.UserID,
 		&i.Done,
 		&i.AuthTime,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const insertOAuth2DeviceCode = `-- name: InsertOAuth2DeviceCode :one
+
+INSERT INTO auth.oauth2_device_codes (
+    device_code_hash, user_code, client_id, scopes, polling_interval, expires_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+)
+RETURNING id, device_code_hash, user_code, client_id, scopes, user_id, status, last_polled_at, polling_interval, created_at, expires_at
+`
+
+type InsertOAuth2DeviceCodeParams struct {
+	DeviceCodeHash  string
+	UserCode        string
+	ClientID        string
+	Scopes          []string
+	PollingInterval int32
+	ExpiresAt       pgtype.Timestamptz
+}
+
+// =============================================================================
+// OAuth2 Provider - Device Codes (RFC 8628)
+// =============================================================================
+func (q *Queries) InsertOAuth2DeviceCode(ctx context.Context, arg InsertOAuth2DeviceCodeParams) (AuthOauth2DeviceCode, error) {
+	row := q.db.QueryRow(ctx, insertOAuth2DeviceCode,
+		arg.DeviceCodeHash,
+		arg.UserCode,
+		arg.ClientID,
+		arg.Scopes,
+		arg.PollingInterval,
+		arg.ExpiresAt,
+	)
+	var i AuthOauth2DeviceCode
+	err := row.Scan(
+		&i.ID,
+		&i.DeviceCodeHash,
+		&i.UserCode,
+		&i.ClientID,
+		&i.Scopes,
+		&i.UserID,
+		&i.Status,
+		&i.LastPolledAt,
+		&i.PollingInterval,
 		&i.CreatedAt,
 		&i.ExpiresAt,
 	)
@@ -1520,6 +1716,17 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateOAuth2DeviceCodePolledAt = `-- name: UpdateOAuth2DeviceCodePolledAt :exec
+UPDATE auth.oauth2_device_codes
+SET last_polled_at = now()
+WHERE device_code_hash = $1
+`
+
+func (q *Queries) UpdateOAuth2DeviceCodePolledAt(ctx context.Context, deviceCodeHash string) error {
+	_, err := q.db.Exec(ctx, updateOAuth2DeviceCodePolledAt, deviceCodeHash)
+	return err
 }
 
 const updateOAuth2RefreshToken = `-- name: UpdateOAuth2RefreshToken :one

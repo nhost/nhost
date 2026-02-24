@@ -186,6 +186,7 @@ const (
 	flagOAuth2ProviderRefreshTokenTTL            = "oauth2-provider-refresh-token-ttl" //nolint:gosec
 	flagOAuth2ProviderCIMDEnabled                = "oauth2-provider-cimd-enabled"
 	flagOAuth2ProviderCIMDAllowInsecureTransport = "oauth2-provider-cimd-allow-insecure-transport"
+	flagOAuth2ProviderDeviceVerifyURL            = "oauth2-provider-device-verify-url"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -1286,6 +1287,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "oauth2-provider",
 				Value:    false,
 				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_CIMD_ALLOW_INSECURE_TRANSPORT"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderDeviceVerifyURL,
+				Usage:    "URL for the device flow verification page shown to users",
+				Category: "oauth2-provider",
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_DEVICE_VERIFY_URL"),
 			},
 		},
 		Action: serve,

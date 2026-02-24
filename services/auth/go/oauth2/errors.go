@@ -23,6 +23,8 @@ func ErrorStatusCode(errCode string) int {
 		return http.StatusUnauthorized
 	case "server_error":
 		return http.StatusInternalServerError
+	case "authorization_pending", "slow_down", "expired_token", "access_denied":
+		return http.StatusBadRequest
 	default:
 		return http.StatusBadRequest
 	}

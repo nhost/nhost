@@ -1557,6 +1557,7 @@ export interface OAuth2ErrorResponse {
  @property jwks_uri (`string`) - 
  @property revocation_endpoint? (`string`) - 
  @property introspection_endpoint? (`string`) - 
+ @property device_authorization_endpoint? (`string`) - 
  @property scopes_supported? (`string[]`) - 
  @property response_types_supported (`string[]`) - 
  @property grant_types_supported? (`string[]`) - 
@@ -1597,6 +1598,10 @@ export interface OAuth2DiscoveryResponse {
    *
    */
   introspection_endpoint?: string;
+  /**
+   *
+   */
+  device_authorization_endpoint?: string;
   /**
    *
    */
@@ -1648,7 +1653,8 @@ export interface OAuth2DiscoveryResponse {
  */
 export type OAuth2TokenRequestGrant_type =
   | 'authorization_code'
-  | 'refresh_token';
+  | 'refresh_token'
+  | 'urn:ietf:params:oauth:grant-type:device_code';
 
 /**
  * 
@@ -1659,7 +1665,8 @@ export type OAuth2TokenRequestGrant_type =
  @property client_secret? (`string`) - 
  @property code_verifier? (`string`) - 
  @property refresh_token? (`string`) - 
- @property resource? (`string`) - */
+ @property resource? (`string`) - 
+ @property device_code? (`string`) - */
 export interface OAuth2TokenRequest {
   /**
    *
@@ -1693,6 +1700,10 @@ export interface OAuth2TokenRequest {
    *
    */
   resource?: string;
+  /**
+   *
+   */
+  device_code?: string;
 }
 
 /**
@@ -1943,6 +1954,95 @@ export interface OAuth2LoginCompleteResponse {
    *    Format - uri
    */
   redirectUri: string;
+}
+
+/**
+ * 
+ @property client_id (`string`) - The client identifier.
+ @property scope? (`string`) - Space-separated list of requested scopes.*/
+export interface OAuth2DeviceAuthorizationRequest {
+  /**
+   * The client identifier.
+   */
+  client_id: string;
+  /**
+   * Space-separated list of requested scopes.
+   */
+  scope?: string;
+}
+
+/**
+ * 
+ @property device_code (`string`) - The device verification code.
+ @property user_code (`string`) - The end-user verification code.
+ @property verification_uri (`string`) - The end-user verification URI.
+    *    Format - uri
+ @property verification_uri_complete? (`string`) - The end-user verification URI that includes the user_code, allowing a non-textual verification method (e.g., QR code).
+    *    Format - uri
+ @property expires_in (`number`) - The lifetime in seconds of the device_code and user_code.
+ @property interval (`number`) - The minimum amount of time in seconds that the client should wait between polling requests to the token endpoint.*/
+export interface OAuth2DeviceAuthorizationResponse {
+  /**
+   * The device verification code.
+   */
+  device_code: string;
+  /**
+   * The end-user verification code.
+   */
+  user_code: string;
+  /**
+   * The end-user verification URI.
+   *    Format - uri
+   */
+  verification_uri: string;
+  /**
+   * The end-user verification URI that includes the user_code, allowing a non-textual verification method (e.g., QR code).
+   *    Format - uri
+   */
+  verification_uri_complete?: string;
+  /**
+   * The lifetime in seconds of the device_code and user_code.
+   */
+  expires_in: number;
+  /**
+   * The minimum amount of time in seconds that the client should wait between polling requests to the token endpoint.
+   */
+  interval: number;
+}
+
+/**
+ * 
+ @property clientId (`string`) - The client identifier.
+ @property scopes (`string[]`) - Requested scopes.*/
+export interface OAuth2DeviceVerifyResponse {
+  /**
+   * The client identifier.
+   */
+  clientId: string;
+  /**
+   * Requested scopes.
+   */
+  scopes: string[];
+}
+
+/**
+ * Whether to approve or deny the device authorization request.
+ */
+export type OAuth2DeviceVerifyRequestAction = 'approve' | 'deny';
+
+/**
+ * 
+ @property userCode (`string`) - The user code displayed on the device.
+ @property action (`OAuth2DeviceVerifyRequestAction`) - Whether to approve or deny the device authorization request.*/
+export interface OAuth2DeviceVerifyRequest {
+  /**
+   * The user code displayed on the device.
+   */
+  userCode: string;
+  /**
+   * Whether to approve or deny the device authorization request.
+   */
+  action: OAuth2DeviceVerifyRequestAction;
 }
 
 /**
@@ -2239,6 +2339,17 @@ export interface Oauth2LoginGetParams {
   
    */
   request_id: string;
+}
+/**
+ * Parameters for the oauth2DeviceVerifyGet method.
+    @property user_code (string) - The user code displayed on the device.
+  */
+export interface Oauth2DeviceVerifyGetParams {
+  /**
+   * The user code displayed on the device.
+  
+   */
+  user_code: string;
 }
 
 export interface Client {
@@ -2843,6 +2954,42 @@ export interface Client {
     body: OAuth2LoginRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2LoginCompleteResponse>>;
+
+  /**
+     Summary: OAuth2 Device Authorization Endpoint (RFC 8628)
+     Initiates a device authorization flow. Returns a device code, user code, and verification URI for input-constrained devices.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2DeviceAuthorizationResponse
+     */
+  oauth2DeviceAuthorization(
+    body: OAuth2DeviceAuthorizationRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DeviceAuthorizationResponse>>;
+
+  /**
+     Summary: Get device authorization request details
+     Called by the verification UI to get details about a pending device authorization request using the user_code.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2DeviceVerifyResponse
+     */
+  oauth2DeviceVerifyGet(
+    params?: Oauth2DeviceVerifyGetParams,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DeviceVerifyResponse>>;
+
+  /**
+     Summary: Approve or deny a device authorization request
+     Called by the verification UI after the user authenticates and decides to approve or deny the device authorization request.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2DeviceVerifyResponse
+     */
+  oauth2DeviceVerifyPost(
+    body: OAuth2DeviceVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DeviceVerifyResponse>>;
 }
 
 export const createAPIClient = (
@@ -4301,6 +4448,9 @@ export const createAPIClient = (
     if (body['resource'] !== undefined) {
       params.append('resource', String(body['resource']));
     }
+    if (body['device_code'] !== undefined) {
+      params.append('device_code', String(body['device_code']));
+    }
 
     const res = await fetch(url, {
       ...options,
@@ -4605,6 +4755,133 @@ export const createAPIClient = (
     } as FetchResponse<OAuth2LoginCompleteResponse>;
   };
 
+  const oauth2DeviceAuthorization = async (
+    body: OAuth2DeviceAuthorizationRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DeviceAuthorizationResponse>> => {
+    const url = `${baseURL}/oauth2/device`;
+    const params = new URLSearchParams();
+    if (body['client_id'] !== undefined) {
+      params.append('client_id', String(body['client_id']));
+    }
+    if (body['scope'] !== undefined) {
+      params.append('scope', String(body['scope']));
+    }
+
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...options?.headers,
+      },
+      body: params.toString(),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2DeviceAuthorizationResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2DeviceAuthorizationResponse>;
+  };
+
+  const oauth2DeviceVerifyGet = async (
+    params?: Oauth2DeviceVerifyGetParams,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DeviceVerifyResponse>> => {
+    const encodedParameters =
+      params &&
+      Object.entries(params)
+        .flatMap(([key, value]) => {
+          // Default handling (scalars or explode: false)
+          const stringValue = Array.isArray(value)
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
+              ? JSON.stringify(value)
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
+        })
+        .join('&');
+
+    const url = encodedParameters
+      ? `${baseURL}/oauth2/device/verify?${encodedParameters}`
+      : `${baseURL}/oauth2/device/verify`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2DeviceVerifyResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2DeviceVerifyResponse>;
+  };
+
+  const oauth2DeviceVerifyPost = async (
+    body: OAuth2DeviceVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DeviceVerifyResponse>> => {
+    const url = `${baseURL}/oauth2/device/verify`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2DeviceVerifyResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2DeviceVerifyResponse>;
+  };
+
   return {
     baseURL,
     pushChainFunction,
@@ -4660,5 +4937,8 @@ export const createAPIClient = (
     oauth2Introspect,
     oauth2LoginGet,
     oauth2LoginPost,
+    oauth2DeviceAuthorization,
+    oauth2DeviceVerifyGet,
+    oauth2DeviceVerifyPost,
   };
 };

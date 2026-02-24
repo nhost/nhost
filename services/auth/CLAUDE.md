@@ -9,28 +9,66 @@ This document contains patterns, conventions, and workflows for implementing new
 - **Security first** - never expose secrets, always validate inputs, follow auth patterns
 - **Database safety** - use transactions where appropriate, handle errors gracefully
 
+## Environment Setup
+
+The project uses Nix for reproducible builds. Enter the dev shell with:
+
+```bash
+nix develop .#auth
+# or from the services/auth directory:
+make develop
+```
+
+This provides all necessary tools: go, golangci-lint, golines, gofumpt, mockgen, oapi-codegen, sqlc, vacuum-go, bun, etc.
+
+See `CONTRIBUTING.md` for setup details.
+
 ## Directory Structure
 
 ```
+docs/
+├── openapi.yaml            # OpenAPI 3.0 spec (source of truth for API)
+├── openapi.go              # Embeds openapi.yaml into Go binary
 go/
-├── api/                    # OpenAPI specs and generated types
-│   ├── server.cfg.yaml    # oapi-codegen server generation config
-│   ├── types.cfg.yaml     # oapi-codegen types generation config
-│   ├── server.gen.go      # Generated server code
-│   └── types.gen.go       # Generated types
-├── controller/            # HTTP handlers and business logic
-│   ├── sign_in_*.go       # Endpoint handlers (following naming pattern)
-│   ├── *_test.go          # Tests
-│   ├── workflows.go       # Business logic workflows
-│   ├── errors.go          # Error definitions and handling
-│   ├── controller.go      # Main controller and interfaces
-│   └── mock/              # Generated mocks
-├── sql/                   # Database layer
-│   ├── query.sql          # SQL queries
-│   ├── query.sql.go       # Generated Go code
-│   ├── sqlc.yaml          # sqlc configuration
-│   └── models.go          # Database models
-└── middleware/            # HTTP middleware
+├── api/                    # Generated API types and server stubs
+│   ├── server.cfg.yaml     # oapi-codegen server generation config
+│   ├── types.cfg.yaml      # oapi-codegen types generation config
+│   ├── server.gen.go       # Generated Gin server code (strict-server mode)
+│   └── types.gen.go        # Generated Go types
+├── cmd/                    # Application entrypoint
+├── controller/             # HTTP handlers and business logic
+│   ├── controller.go       # Main controller, interfaces (DBClient, Emailer, etc.)
+│   ├── workflows.go        # Business logic workflows
+│   ├── errors.go           # Error definitions and handling
+│   ├── config.go           # Configuration
+│   ├── jwt.go              # JWT token generation/validation
+│   ├── validator.go        # Input validation
+│   ├── sign_in_*.go        # Endpoint handlers (following naming pattern)
+│   ├── oauth2_*.go         # OAuth2 provider endpoints
+│   ├── *_test.go           # Tests
+│   ├── main_test.go        # Test helpers (testRequest, getController, etc.)
+│   └── mock/               # Generated mocks (controller, workflows, jwt, validator)
+├── sql/                    # Database layer
+│   ├── query.sql           # SQL queries (source for sqlc generation)
+│   ├── query.sql.go        # Generated Go code from queries
+│   ├── sqlc.yaml           # sqlc config (pgx/v5, type overrides for UUID, Text, etc.)
+│   ├── auth_schema_dump.sql # Schema used by sqlc for type inference
+│   ├── models.go           # Generated database models
+│   ├── data.go             # go:generate directive for schema.sh
+│   └── schema.sh           # Script to dump auth schema
+├── middleware/             # HTTP middleware (rate limiting, turnstile)
+├── migrations/             # Database migrations (postgres)
+├── notifications/          # Email template handling
+├── oauth2/                 # OAuth2 provider implementation
+├── oidc/                   # OpenID Connect ID token validation
+├── providers/              # OAuth/social login providers
+├── cryto/                  # Encryption utilities
+├── hibp/                   # Have I Been Pwned integration
+└── testhelpers/            # Test utilities (GomockCmpOpts, FilterPathLast, etc.)
+test/                       # E2E tests (TypeScript/Bun)
+email-templates/            # Email templates (bundled in Docker image)
+vacuum.yaml                 # OpenAPI spec linting rules
+vacuum-ignore.yaml          # OpenAPI spec lint suppressions
 ```
 
 ## Implementing New Endpoints
@@ -145,7 +183,7 @@ func (ctrl *Controller) YourEndpoint( //nolint:ireturn
 ```
 
 **Controller patterns**:
-- Always get logger from context: `middleware.LoggerFromContext(ctx)`
+- Always get logger from context: `oapimw.LoggerFromContext(ctx)`
 - Use workflows for business logic, not direct DB calls
 - Handle errors with `ctrl.respondWithError(apiErr)` or `ctrl.sendError(ErrType)`
 - Return appropriate HTTP status codes via generated response types
@@ -301,20 +339,25 @@ func TestYourEndpoint(t *testing.T) {
 
 ## Code Generation
 
-After making changes, always run:
+After making changes to OpenAPI specs, SQL queries, or interfaces, run from the repo root:
 
 ```bash
-go generate ./...
+go generate ./services/auth/...
 ```
 
-This generates:
-- API server code from OpenAPI spec (`api/server.gen.go`, `api/types.gen.go`)
-- SQL client code from queries (`sql/query.sql.go`)
-- Mocks from interfaces (`controller/mock/`)
+Then format the generated code:
 
-**Generation directives**:
-- OpenAPI: `//go:generate oapi-codegen -config go/api/server.cfg.yaml docs/openapi.yaml`
-- Mocks: `//go:generate mockgen -package mock -destination mock/controller.go --source=controller.go`
+```bash
+golines -w --base-formatter=gofumpt services/auth
+```
+
+**What gets generated** (all `go:generate` directives):
+- `go/api/`: server stubs and types from `docs/openapi.yaml` via oapi-codegen
+- `go/sql/`: Go code from `query.sql` via sqlc, schema dump via `schema.sh`
+- `go/controller/mock/`: mocks from `controller.go`, `workflows.go`, `jwt.go`, `validator.go` via mockgen
+- `go/oauth2/mock/`: mocks from `provider.go` (Signer, DBClient) via mockgen
+
+**CI verifies** that generated code is up to date by comparing sha1sums before and after running `go generate`.
 
 ## Authentication Patterns
 
@@ -396,22 +439,85 @@ return ctrl.respondWithError(apiErr), nil
 
 ## Development Workflow
 
+All commands below are run from the **repo root** (`/nhost4`), not from `services/auth/`.
+
+### Iterative development loop
+
 1. **Design**: Plan the endpoint, request/response, and database changes
-2. **OpenAPI**: Define the API specification
-3. **SQL**: Add required database queries
-4. **Generate**: Run `go generate ./...`
+2. **OpenAPI**: Define the API spec in `docs/openapi.yaml`
+3. **SQL**: Add required database queries to `go/sql/query.sql`
+4. **Generate**: `go generate ./services/auth/...`
 5. **Implement**: Write controller and workflow code
-6. **Test**: Write comprehensive tests
-7. **Format**: Run `golines -w --base-formatter=gofumpt .`
-8. **Lint**: Run `golangci-lint run --fix`
-9. **Test**: Run `go test -v ./...`
+6. **Format**: `golines -w --base-formatter=gofumpt services/auth`
+7. **Lint**: `golangci-lint run ./services/auth/...`
+8. **Test**: `go test -v ./services/auth/...`
 
-## Lint and Tests
+Repeat steps 5-8 as needed.
 
-- **Formatter**: `golines -w --base-formatter=gofumpt .`
-- **Linter**: `golangci-lint run --fix`
-- **Tests**: `go test -v ./...`
-- **Coverage**: `go test -v -cover ./...`
+### Quick reference commands
+
+```bash
+# Format code
+golines -w --base-formatter=gofumpt services/auth
+
+# Lint (no --fix in CI, so catch issues early)
+golangci-lint run ./services/auth/...
+
+# Run unit tests
+go test -v ./services/auth/...
+
+# Run a specific test
+go test -v -run TestYourEndpoint ./services/auth/go/controller/...
+
+# Lint OpenAPI spec
+vacuum lint -dqb -n info \
+  --ignore-file services/auth/vacuum-ignore.yaml \
+  --ruleset services/auth/vacuum.yaml \
+  services/auth/docs/openapi.yaml
+
+# Regenerate code after OpenAPI/SQL/interface changes
+go generate ./services/auth/...
+golines -w --base-formatter=gofumpt services/auth
+```
+
+### Pre-push (full CI-equivalent check)
+
+Before pushing, run the full nix check which also runs vulnerability scanning, verifies generated code is up to date, and runs e2e tests:
+
+```bash
+cd services/auth
+make check
+```
+
+This runs (in order): vacuum lint, golines format check, go generate + sha1sum verification, govulncheck, golangci-lint, unit tests (richgo), and e2e tests (bun).
+
+### Dev environment (for e2e tests)
+
+```bash
+cd services/auth
+make dev-env-up        # Start postgres, graphql, mailhog, memcached + auth docker image
+make dev-env-up-short  # Start dependencies only (no auth service)
+make dev-env-down      # Stop and remove volumes
+```
+
+## Linter Configuration
+
+The linter config lives at the repo root: `.golangci.yaml` (version 2 format).
+
+Key settings:
+- **Default**: all linters enabled, with specific disables
+- **funlen**: 65 lines max (relaxed for test files)
+- **Formatters**: gofmt, gofumpt, goimports
+- **Generated code**: excluded from linting (`generated: lax`)
+- **ireturn**: relaxed for test files and `schema.resolvers.go`
+
+## E2E / Integration Tests (TypeScript)
+
+- **Runtime**: Always use **bun**, never npm/npx/node. The project uses Bun as its JavaScript runtime and test runner.
+- **Test location**: `test/routes/` (organized by feature area, e.g. `test/routes/oauth2/`)
+- **Framework**: `bun:test` (imports: `describe`, `it`, `expect`, `beforeAll`)
+- **SDK**: Use `@nhost/nhost-js` (from `../../packages/nhost-js/`, already installed) for API calls instead of raw `fetch` wherever possible
+- **Running tests**: `bun test --env-file .env.example` from `services/auth/`, or `bun test --env-file .env.example test/routes/oauth2/your-test.test.ts` for a specific file
 
 ## Additional Notes
 

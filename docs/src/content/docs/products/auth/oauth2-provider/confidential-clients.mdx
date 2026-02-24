@@ -17,6 +17,8 @@ Use a confidential client when the third-party app:
 - Can securely store a client secret (e.g. in environment variables)
 - Examples: Outline, Grafana, GitLab, custom internal tools
 
+Confidential clients support both the [Authorization Code flow](/products/auth/oauth2-provider/authorization-flow) and the [Device Authorization flow](/products/auth/oauth2-provider/device-flow). The client authenticates with its secret in both cases.
+
 ## Creating the Client
 
 Create a confidential client by providing a bcrypt-hashed secret. See [Managing Clients](/products/auth/oauth2-provider/managing-clients) for full details on client creation, secret generation, and hashing.

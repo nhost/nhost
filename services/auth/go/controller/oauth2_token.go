@@ -44,6 +44,8 @@ func (ctrl *Controller) Oauth2Token( //nolint:ireturn
 		resp, oauthErr = ctrl.oauth2TokenAuthorizationCode(ctx, request.Body, logger)
 	case api.RefreshToken:
 		resp, oauthErr = ctrl.oauth2TokenRefreshToken(ctx, request.Body, logger)
+	case api.UrnIetfParamsOauthGrantTypeDeviceCode:
+		resp, oauthErr = ctrl.oauth2TokenDeviceCode(ctx, request.Body, logger)
 	default:
 		return oauth2Error("unsupported_grant_type", "Unsupported grant_type"), nil
 	}
@@ -98,6 +100,23 @@ func (ctrl *Controller) oauth2TokenRefreshToken(
 	}
 
 	return ctrl.oauth2.IssueTokensFromRefresh(ctx, validated, logger)
+}
+
+func (ctrl *Controller) oauth2TokenDeviceCode(
+	ctx context.Context,
+	req *api.OAuth2TokenRequest,
+	logger *slog.Logger,
+) (*api.OAuth2TokenResponse, *oauth2provider.Error) {
+	validated, oauthErr := ctrl.oauth2.ValidateDeviceCodeGrant(ctx, req, logger)
+	if oauthErr != nil {
+		return nil, oauthErr
+	}
+
+	if apiErr := ctrl.oauth2ValidateUser(ctx, validated.UserID, logger); apiErr != nil {
+		return nil, apiErr
+	}
+
+	return ctrl.oauth2.IssueTokensFromDeviceCode(ctx, validated, logger)
 }
 
 func (ctrl *Controller) oauth2ValidateUser(

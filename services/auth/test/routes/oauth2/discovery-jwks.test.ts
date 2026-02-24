@@ -79,7 +79,8 @@ describe('discovery-jwks', () => {
       revocation_endpoint: `${issuer}/oauth2/revoke`,
       request_parameter_supported: false,
       response_types_supported: ['code'],
-      grant_types_supported: ['authorization_code', 'refresh_token'],
+      device_authorization_endpoint: `${issuer}/oauth2/device`,
+      grant_types_supported: ['authorization_code', 'refresh_token', 'urn:ietf:params:oauth:grant-type:device_code'],
       subject_types_supported: ['public'],
       id_token_signing_alg_values_supported: ['RS256'],
       token_endpoint_auth_methods_supported: [

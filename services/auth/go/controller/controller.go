@@ -221,6 +221,7 @@ func (ctrl *Controller) newOAuth2Provider() *oauth2provider.Provider {
 			RefreshTokenTTL:            ctrl.config.OAuth2ProviderRefreshTokenTTL,
 			CIMDEnabled:                ctrl.config.OAuth2ProviderCIMDEnabled,
 			CIMDAllowInsecureTransport: ctrl.config.OAuth2ProviderCIMDAllowInsecureTransport,
+			DeviceVerifyURL:            ctrl.config.OAuth2ProviderDeviceVerifyURL,
 		},
 		nil,
 	)

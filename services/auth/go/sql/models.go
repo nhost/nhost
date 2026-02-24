@@ -51,6 +51,20 @@ type AuthOauth2Client struct {
 	UpdatedAt                 pgtype.Timestamptz
 }
 
+type AuthOauth2DeviceCode struct {
+	ID              uuid.UUID
+	DeviceCodeHash  string
+	UserCode        string
+	ClientID        string
+	Scopes          []string
+	UserID          pgtype.UUID
+	Status          string
+	LastPolledAt    pgtype.Timestamptz
+	PollingInterval int32
+	CreatedAt       pgtype.Timestamptz
+	ExpiresAt       pgtype.Timestamptz
+}
+
 // OAuth2 refresh tokens with client and scope binding.
 type AuthOauth2RefreshToken struct {
 	ID            uuid.UUID

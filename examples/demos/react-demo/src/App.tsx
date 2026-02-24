@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './lib/nhost/AuthProvider';
 import Communities from './pages/Communities';
 import Consent from './pages/Consent';
+import DeviceVerify from './pages/DeviceVerify';
 import Functions from './pages/Functions';
 import Home from './pages/Home';
 import OAuth2Providers from './pages/OAuth2Providers';
@@ -63,6 +64,7 @@ const router = createBrowserRouter(
       <Route path="signup" element={<SignUp />} />
       <Route path="verify" element={<Verify />} />
       <Route path="oauth2/consent" element={<Consent />} />
+      <Route path="oauth2/device" element={<DeviceVerify />} />
       <Route element={<ProtectedRoute />}>
         <Route path="profile" element={<Profile />} />
         <Route path="todos" element={<Todos />} />

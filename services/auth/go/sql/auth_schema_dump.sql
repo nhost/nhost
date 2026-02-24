@@ -178,6 +178,29 @@ COMMENT ON TABLE auth.oauth2_clients IS 'Registered OAuth2 client applications f
 
 
 --
+-- Name: oauth2_device_codes; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.oauth2_device_codes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    device_code_hash text NOT NULL,
+    user_code text NOT NULL,
+    client_id text NOT NULL,
+    scopes text[] DEFAULT '{}'::text[] NOT NULL,
+    user_id uuid,
+    status text DEFAULT 'pending'::text NOT NULL,
+    last_polled_at timestamp with time zone,
+    polling_interval integer DEFAULT 5 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    CONSTRAINT oauth2_device_codes_scopes_check CHECK ((scopes <@ ARRAY['openid'::text, 'profile'::text, 'email'::text, 'phone'::text, 'offline_access'::text, 'graphql'::text])),
+    CONSTRAINT oauth2_device_codes_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'approved'::text, 'denied'::text])))
+);
+
+
+ALTER TABLE auth.oauth2_device_codes OWNER TO postgres;
+
+--
 -- Name: oauth2_refresh_tokens; Type: TABLE; Schema: auth; Owner: postgres
 --
 
@@ -459,6 +482,30 @@ ALTER TABLE ONLY auth.oauth2_clients
 
 
 --
+-- Name: oauth2_device_codes oauth2_device_codes_device_code_hash_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_device_codes
+    ADD CONSTRAINT oauth2_device_codes_device_code_hash_key UNIQUE (device_code_hash);
+
+
+--
+-- Name: oauth2_device_codes oauth2_device_codes_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_device_codes
+    ADD CONSTRAINT oauth2_device_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth2_device_codes oauth2_device_codes_user_code_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_device_codes
+    ADD CONSTRAINT oauth2_device_codes_user_code_key UNIQUE (user_code);
+
+
+--
 -- Name: oauth2_refresh_tokens oauth2_refresh_tokens_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
 --
 
@@ -630,6 +677,20 @@ CREATE INDEX oauth2_clients_created_by_idx ON auth.oauth2_clients USING btree (c
 
 
 --
+-- Name: oauth2_device_codes_expires_at_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_device_codes_expires_at_idx ON auth.oauth2_device_codes USING btree (expires_at);
+
+
+--
+-- Name: oauth2_device_codes_user_id_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_device_codes_user_id_idx ON auth.oauth2_device_codes USING btree (user_id);
+
+
+--
 -- Name: oauth2_refresh_tokens_client_id_idx; Type: INDEX; Schema: auth; Owner: postgres
 --
 
@@ -795,6 +856,22 @@ ALTER TABLE ONLY auth.user_roles
 
 ALTER TABLE ONLY auth.user_security_keys
     ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: oauth2_device_codes oauth2_device_codes_client_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_device_codes
+    ADD CONSTRAINT oauth2_device_codes_client_id_fkey FOREIGN KEY (client_id) REFERENCES auth.oauth2_clients(client_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: oauth2_device_codes oauth2_device_codes_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_device_codes
+    ADD CONSTRAINT oauth2_device_codes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

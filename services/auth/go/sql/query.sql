@@ -544,3 +544,62 @@ ON CONFLICT (client_id) DO UPDATE SET
     scopes = EXCLUDED.scopes,
     metadata_document_fetched_at = now()
 RETURNING *;
+
+-- =============================================================================
+-- OAuth2 Provider - Device Codes (RFC 8628)
+-- =============================================================================
+
+-- name: InsertOAuth2DeviceCode :one
+INSERT INTO auth.oauth2_device_codes (
+    device_code_hash, user_code, client_id, scopes, polling_interval, expires_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+)
+RETURNING *;
+
+-- name: GetOAuth2DeviceCodeByUserCode :one
+SELECT * FROM auth.oauth2_device_codes
+WHERE user_code = $1 AND expires_at > now()
+LIMIT 1;
+
+-- name: GetOAuth2DeviceCodeByHash :one
+SELECT * FROM auth.oauth2_device_codes
+WHERE device_code_hash = $1 AND expires_at > now()
+LIMIT 1;
+
+-- name: ApproveOAuth2DeviceCode :one
+UPDATE auth.oauth2_device_codes
+SET status = 'approved', user_id = $2
+WHERE user_code = $1 AND status = 'pending' AND expires_at > now()
+RETURNING *;
+
+-- name: DenyOAuth2DeviceCode :exec
+UPDATE auth.oauth2_device_codes
+SET status = 'denied'
+WHERE user_code = $1 AND status = 'pending';
+
+-- name: UpdateOAuth2DeviceCodePolledAt :exec
+UPDATE auth.oauth2_device_codes
+SET last_polled_at = now()
+WHERE device_code_hash = $1;
+
+-- name: ConsumeOAuth2DeviceCodeAndInsertRefreshToken :one
+WITH deleted_device_code AS (
+    DELETE FROM auth.oauth2_device_codes
+    WHERE device_code_hash = $1 AND status = 'approved' AND expires_at > now()
+    RETURNING client_id, user_id, scopes
+)
+INSERT INTO auth.oauth2_refresh_tokens (
+    token_hash, client_id, user_id, scopes, expires_at
+)
+SELECT $2, dc.client_id, dc.user_id, dc.scopes, $3
+FROM deleted_device_code dc
+RETURNING *;
+
+-- name: DeleteOAuth2DeviceCode :exec
+DELETE FROM auth.oauth2_device_codes
+WHERE id = $1;
+
+-- name: DeleteExpiredOAuth2DeviceCodes :exec
+DELETE FROM auth.oauth2_device_codes
+WHERE expires_at < now();

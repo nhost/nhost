@@ -28,6 +28,7 @@ sequenceDiagram
 
 ## What It Supports
 
+- **Two grant types** — [Authorization Code](/products/auth/oauth2-provider/authorization-flow) (with PKCE for public clients) and [Device Authorization](/products/auth/oauth2-provider/device-flow) (for CLIs, IoT, and input-constrained devices)
 - **Three client types** — confidential (with secret), public (no secret, PKCE required), and URL-based (CIMD)
 - **Scopes** — `openid`, `profile`, `email`, `phone`, `offline_access`, `graphql`
 - **RSA-signed JWT tokens** — access tokens and ID tokens signed with RSA (RS256, RS384, or RS512), with a JWKS endpoint for verification
@@ -44,6 +45,7 @@ sequenceDiagram
 | [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636) | PKCE — Proof Key for Code Exchange (S256 only) |
 | [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662) | Token Introspection — Check token validity |
 | [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414) | Authorization Server Metadata — Discovery endpoints |
+| [RFC 8628](https://datatracker.ietf.org/doc/html/rfc8628) | Device Authorization Grant — For CLIs, IoT devices, and input-constrained devices |
 | [RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207) | Issuer Identification — `iss` parameter in authorization responses |
 | [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728) | Client ID Metadata Document — URL-based client IDs for MCP and similar tools |
 | [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html) | ID tokens, UserInfo, Discovery, standard claims |
@@ -82,17 +84,22 @@ expiresIn = 2592000 # default: 2592000 - 30 days
 # Enable URL-based client IDs per RFC 9728, used by MCP and similar tools
 enabled = true # default: false
 ```
+
+For the device flow, set the verification page URL with the `AUTH_OAUTH2_PROVIDER_DEVICE_VERIFY_URL` environment variable (defaults to `{clientUrl}/oauth2/device`). See [Device Flow](/products/auth/oauth2-provider/device-flow) for details.
 </TabItem>
 </Tabs>
 
 ## Next Steps
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
   <Card title="Managing Clients" icon="key" href="/products/auth/oauth2-provider/managing-clients">
     Create and manage OAuth2 clients via GraphQL
   </Card>
   <Card title="Authorization Code Flow" icon="shield-check" href="/products/auth/oauth2-provider/authorization-flow">
     Understand the flow and build your consent page
+  </Card>
+  <Card title="Device Flow" icon="terminal" href="/products/auth/oauth2-provider/device-flow">
+    Authenticate CLIs, IoT devices, and input-constrained devices
   </Card>
   <Card title="Tokens and Scopes" icon="ticket" href="/products/auth/oauth2-provider/tokens-and-scopes">
     Understand token formats, scopes, and claims

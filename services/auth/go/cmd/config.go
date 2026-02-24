@@ -128,5 +128,6 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		OAuth2ProviderCIMDAllowInsecureTransport: cmd.Bool(
 			flagOAuth2ProviderCIMDAllowInsecureTransport,
 		),
+		OAuth2ProviderDeviceVerifyURL: cmd.String(flagOAuth2ProviderDeviceVerifyURL),
 	}, nil
 }

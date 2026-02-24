@@ -1,0 +1,13 @@
+{
+  "name": "device-flow-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo": "tsx demo.ts"
+  },
+  "devDependencies": {
+    "@nhost/nhost-js": "../../packages/nhost-js",
+    "jose": "^5.2.3",
+    "tsx": "^4.19.0"
+  }
+}
