@@ -104,6 +104,26 @@ Example response (with `openid profile email` scopes):
 }
 ```
 
+When the `graphql` scope is present, the UserInfo response also includes the GraphQL claims namespace with roles and any custom claims. Unlike the access token (where values are Hasura-encoded strings), the UserInfo endpoint returns proper JSON types — arrays as JSON arrays, booleans as booleans, etc. This makes it suitable for third-party OIDC consumers (e.g. Grafana) that read user attributes from the UserInfo endpoint.
+
+Example response (with `openid profile graphql` scopes):
+
+```json
+{
+  "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+  "name": "Jane Doe",
+  "picture": "https://www.gravatar.com/avatar/...",
+  "locale": "en",
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-user-id": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+    "x-hasura-default-role": "user",
+    "x-hasura-allowed-roles": ["user", "me"],
+    "x-hasura-user-is-anonymous": false,
+    "x-hasura-organization-ids": ["org-1", "org-2"]
+  }
+}
+```
+
 Both `GET` and `POST` methods are supported, per the OIDC specification.
 
 ## Refresh Tokens

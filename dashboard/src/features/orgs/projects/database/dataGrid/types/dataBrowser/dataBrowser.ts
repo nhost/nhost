@@ -224,8 +224,7 @@ export interface ColumnInsertOptions {
   /**
    * Value for the column.
    */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  value?: any;
+  value?: unknown;
   /**
    * Fallback value if the column value is `undefined`.
    */
@@ -449,6 +448,73 @@ export interface DatabaseTable {
    * Foreign key relations of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
+}
+
+/**
+ * Represents the metadata of a column in the data browser.
+ */
+export interface DataBrowserColumnMetadata {
+  /**
+   * Identifier of the column.
+   */
+  id: string;
+  /**
+   * Simple type of the column.
+   */
+  type: 'text' | 'number' | 'boolean' | 'date' | 'uuid';
+  /**
+   * Specific database type of the column (e.g. `timestamptz`).
+   */
+  specificType: ColumnType;
+  /**
+   * Data type of the column (e.g. `timestamp with time zone`).
+   */
+  dataType: string;
+  /**
+   * Default value of the column.
+   */
+  defaultValue?: string;
+  /**
+   * Determines whether or not the column is a primary key of the table.
+   */
+  isPrimary?: boolean;
+  /**
+   * Determines whether or not the column is nullable.
+   */
+  isNullable?: boolean;
+  /**
+   * Determines whether or not the column is identity.
+   */
+  isIdentity?: boolean;
+  /**
+   * Determines whether or not the column is unique.
+   */
+  isUnique?: boolean;
+  /**
+   * Comment of the column.
+   */
+  comment?: string | null;
+  /**
+   * Foreign key relation of the column.
+   */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
+  foreignKeyRelation?: any;
+  /**
+   * Determines whether or not the column is editable.
+   */
+  isEditable?: boolean;
+  /**
+   * Determines whether or not the default value is custom.
+   */
+  isDefaultValueCustom?: boolean;
+  /**
+   * Name of unique constraints on the column.
+   */
+  uniqueConstraints?: string[];
+  /**
+   * Name of primary key constraints on the column.
+   */
+  primaryConstraints?: string[];
 }
 
 /**

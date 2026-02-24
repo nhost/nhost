@@ -591,14 +591,15 @@ type OAuth2TokenResponse struct {
 
 // OAuth2UserinfoResponse defines model for OAuth2UserinfoResponse.
 type OAuth2UserinfoResponse struct {
-	Email               *string `json:"email,omitempty"`
-	EmailVerified       *bool   `json:"email_verified,omitempty"`
-	Locale              *string `json:"locale,omitempty"`
-	Name                *string `json:"name,omitempty"`
-	PhoneNumber         *string `json:"phone_number,omitempty"`
-	PhoneNumberVerified *bool   `json:"phone_number_verified,omitempty"`
-	Picture             *string `json:"picture,omitempty"`
-	Sub                 string  `json:"sub"`
+	Email                *string                `json:"email,omitempty"`
+	EmailVerified        *bool                  `json:"email_verified,omitempty"`
+	Locale               *string                `json:"locale,omitempty"`
+	Name                 *string                `json:"name,omitempty"`
+	PhoneNumber          *string                `json:"phone_number,omitempty"`
+	PhoneNumberVerified  *bool                  `json:"phone_number_verified,omitempty"`
+	Picture              *string                `json:"picture,omitempty"`
+	Sub                  string                 `json:"sub"`
+	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
 // OKResponse defines model for OKResponse.
@@ -1559,6 +1560,177 @@ func (a AuthenticationExtensionsClientOutputs) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error marshaling 'hmacCreateSecret': %w", err)
 		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for OAuth2UserinfoResponse. Returns the specified
+// element and whether it was found
+func (a OAuth2UserinfoResponse) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for OAuth2UserinfoResponse
+func (a *OAuth2UserinfoResponse) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for OAuth2UserinfoResponse to handle AdditionalProperties
+func (a *OAuth2UserinfoResponse) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["email"]; found {
+		err = json.Unmarshal(raw, &a.Email)
+		if err != nil {
+			return fmt.Errorf("error reading 'email': %w", err)
+		}
+		delete(object, "email")
+	}
+
+	if raw, found := object["email_verified"]; found {
+		err = json.Unmarshal(raw, &a.EmailVerified)
+		if err != nil {
+			return fmt.Errorf("error reading 'email_verified': %w", err)
+		}
+		delete(object, "email_verified")
+	}
+
+	if raw, found := object["locale"]; found {
+		err = json.Unmarshal(raw, &a.Locale)
+		if err != nil {
+			return fmt.Errorf("error reading 'locale': %w", err)
+		}
+		delete(object, "locale")
+	}
+
+	if raw, found := object["name"]; found {
+		err = json.Unmarshal(raw, &a.Name)
+		if err != nil {
+			return fmt.Errorf("error reading 'name': %w", err)
+		}
+		delete(object, "name")
+	}
+
+	if raw, found := object["phone_number"]; found {
+		err = json.Unmarshal(raw, &a.PhoneNumber)
+		if err != nil {
+			return fmt.Errorf("error reading 'phone_number': %w", err)
+		}
+		delete(object, "phone_number")
+	}
+
+	if raw, found := object["phone_number_verified"]; found {
+		err = json.Unmarshal(raw, &a.PhoneNumberVerified)
+		if err != nil {
+			return fmt.Errorf("error reading 'phone_number_verified': %w", err)
+		}
+		delete(object, "phone_number_verified")
+	}
+
+	if raw, found := object["picture"]; found {
+		err = json.Unmarshal(raw, &a.Picture)
+		if err != nil {
+			return fmt.Errorf("error reading 'picture': %w", err)
+		}
+		delete(object, "picture")
+	}
+
+	if raw, found := object["sub"]; found {
+		err = json.Unmarshal(raw, &a.Sub)
+		if err != nil {
+			return fmt.Errorf("error reading 'sub': %w", err)
+		}
+		delete(object, "sub")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for OAuth2UserinfoResponse to handle AdditionalProperties
+func (a OAuth2UserinfoResponse) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Email != nil {
+		object["email"], err = json.Marshal(a.Email)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'email': %w", err)
+		}
+	}
+
+	if a.EmailVerified != nil {
+		object["email_verified"], err = json.Marshal(a.EmailVerified)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'email_verified': %w", err)
+		}
+	}
+
+	if a.Locale != nil {
+		object["locale"], err = json.Marshal(a.Locale)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'locale': %w", err)
+		}
+	}
+
+	if a.Name != nil {
+		object["name"], err = json.Marshal(a.Name)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'name': %w", err)
+		}
+	}
+
+	if a.PhoneNumber != nil {
+		object["phone_number"], err = json.Marshal(a.PhoneNumber)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'phone_number': %w", err)
+		}
+	}
+
+	if a.PhoneNumberVerified != nil {
+		object["phone_number_verified"], err = json.Marshal(a.PhoneNumberVerified)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'phone_number_verified': %w", err)
+		}
+	}
+
+	if a.Picture != nil {
+		object["picture"], err = json.Marshal(a.Picture)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'picture': %w", err)
+		}
+	}
+
+	object["sub"], err = json.Marshal(a.Sub)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'sub': %w", err)
 	}
 
 	for fieldName, field := range a.AdditionalProperties {

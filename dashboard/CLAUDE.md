@@ -1,6 +1,8 @@
-# AGENTS.md
+# Dashboard Development Guide
 
-This document provides guidelines for agentic coding assistants working in this repository.
+**Important**: Always load the root `CLAUDE.md` at the repository root for general monorepo conventions before working on this project.
+
+This document provides guidelines for agentic coding assistants working in this project.
 
 ## Build, Lint, and Test Commands
 

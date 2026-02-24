@@ -70,6 +70,6 @@ result
 
 .vitest
 
-.claude
+**/.claude/settings.local.json
 
 letsencrypt/*

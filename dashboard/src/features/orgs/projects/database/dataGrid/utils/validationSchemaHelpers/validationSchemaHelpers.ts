@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import type { DataBrowserGridColumnDef } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
+import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 
 export interface ColumnDetails {
   isNullable: boolean;
@@ -87,15 +87,15 @@ function createBooleanValidationSchema(details: ColumnDetails) {
  * @returns Validation schema for the data browser.
  */
 export function createDynamicValidationSchema(
-  columns: DataBrowserGridColumnDef[],
+  columns: DataBrowserColumnMetadata[],
 ) {
   const schema = columns.reduce((currentSchema, column) => {
-    const isNullable = column.meta?.isNullable;
-    const isIdentity = column.meta?.isIdentity;
+    const isNullable = column.isNullable;
+    const isIdentity = column.isIdentity;
 
     const hasDefaultValue =
-      typeof column.meta?.defaultValue !== 'undefined' &&
-      column.meta?.defaultValue !== null;
+      typeof column.defaultValue !== 'undefined' &&
+      column.defaultValue !== null;
 
     const details: ColumnDetails = {
       isNullable: !!isNullable,
@@ -103,55 +103,52 @@ export function createDynamicValidationSchema(
       hasDefaultValue,
     };
 
-    if (column.meta?.type === 'uuid') {
+    if (column.type === 'uuid') {
       return {
         ...currentSchema,
-        [column.id as string]: createUUIDValidationSchema(details),
+        [column.id]: createUUIDValidationSchema(details),
       };
     }
     if (
-      column.meta?.type === 'date' &&
-      ['time', 'timetz', 'interval'].includes(
-        column.meta?.specificType as string,
-      )
+      column.type === 'date' &&
+      ['time', 'timetz', 'interval'].includes(column.specificType)
     ) {
       return {
         ...currentSchema,
-        [column.id as string]: createTextValidationSchema(details).matches(
+        [column.id]: createTextValidationSchema(details).matches(
           /^\d{2}:\d{2}(:\d{2})?$/,
           'This is not a valid time (e.g: HH:MM:SS / HH:MM).',
         ),
       };
     }
 
-    if (column.meta?.type === 'date') {
+    if (column.type === 'date') {
       return {
         ...currentSchema,
-        [column.id as string]: createDateValidationSchema(details),
+        [column.id]: createDateValidationSchema(details),
       };
     }
 
-    if (column.meta?.type === 'boolean') {
+    if (column.type === 'boolean') {
       return {
         ...currentSchema,
-        [column.id as string]: createBooleanValidationSchema(details),
+        [column.id]: createBooleanValidationSchema(details),
       };
     }
 
     if (
-      column.meta?.type === 'text' &&
-      (column.meta?.specificType === 'jsonb' ||
-        column.meta?.specificType === 'json')
+      column.type === 'text' &&
+      (column.specificType === 'jsonb' || column.specificType === 'json')
     ) {
       return {
         ...currentSchema,
-        [column.id as string]: createJSONValidationSchema(details),
+        [column.id]: createJSONValidationSchema(details),
       };
     }
 
     return {
       ...currentSchema,
-      [column.id as string]: createTextValidationSchema(details),
+      [column.id]: createTextValidationSchema(details),
     };
   }, {});
 

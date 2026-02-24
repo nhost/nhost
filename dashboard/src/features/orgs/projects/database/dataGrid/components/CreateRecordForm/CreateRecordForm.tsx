@@ -32,14 +32,14 @@ export default function CreateRecordForm({
 
   const form = useForm({
     defaultValues: props.columns.reduce((defaultValues, column) => {
-      if (column.meta?.defaultValue && column.meta?.type === 'boolean') {
+      if (column.defaultValue && column.type === 'boolean') {
         return {
           ...defaultValues,
-          [column.id as string]: column.meta?.defaultValue,
+          [column.id]: column.defaultValue,
         };
       }
 
-      return { ...defaultValues, [column.id as string]: null };
+      return { ...defaultValues, [column.id]: null };
     }, {}),
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
