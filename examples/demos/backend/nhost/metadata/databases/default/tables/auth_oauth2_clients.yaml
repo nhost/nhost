@@ -11,8 +11,6 @@ configuration:
       custom_name: createdAt
     created_by:
       custom_name: createdBy
-    id:
-      custom_name: id
     metadata:
       custom_name: metadata
     metadata_document_fetched_at:
@@ -30,7 +28,6 @@ configuration:
     client_secret_hash: clientSecretHash
     created_at: createdAt
     created_by: createdBy
-    id: id
     metadata: metadata
     metadata_document_fetched_at: metadataDocumentFetchedAt
     redirect_uris: redirectUris
@@ -72,42 +69,45 @@ insert_permissions:
     permission:
       check: {}
       set:
-        created_by: X-Hasura-User-Id
+        created_by: x-hasura-User-Id
       columns:
         - client_secret_hash
+        - metadata
         - redirect_uris
         - scopes
-        - metadata
+    comment: ""
 select_permissions:
   - role: user
     permission:
       columns:
-        - id
         - client_id
+        - created_at
+        - created_by
+        - metadata
         - redirect_uris
         - scopes
-        - metadata
-        - created_by
-        - created_at
         - updated_at
       filter:
         created_by:
           _eq: X-Hasura-User-Id
+    comment: ""
 update_permissions:
   - role: user
     permission:
       columns:
         - client_secret_hash
+        - metadata
         - redirect_uris
         - scopes
-        - metadata
       filter:
         created_by:
           _eq: X-Hasura-User-Id
       check: null
+    comment: ""
 delete_permissions:
   - role: user
     permission:
       filter:
         created_by:
           _eq: X-Hasura-User-Id
+    comment: ""
