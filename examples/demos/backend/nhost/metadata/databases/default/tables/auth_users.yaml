@@ -153,7 +153,19 @@ select_permissions:
     permission:
       columns:
         - id
+        - created_at
+        - updated_at
+        - last_seen
         - display_name
-        - email
         - avatar_url
-      filter: {}
+        - locale
+        - email
+        - phone_number
+        - email_verified
+        - phone_number_verified
+        - default_role
+        - is_anonymous
+        - metadata
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
