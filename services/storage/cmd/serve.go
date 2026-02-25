@@ -212,7 +212,7 @@ func applyMigrations(
 		logger.InfoContext(ctx, "applying hasura metadata")
 
 		if err := migrations.ApplyHasuraMetadata(
-			ctx, hasuraEndpoint, hasuraSecret, hasuraDBName,
+			ctx, hasuraEndpoint, hasuraSecret, hasuraDBName, logger,
 		); err != nil {
 			return fmt.Errorf("problem applying hasura metadata: %w", err)
 		}

@@ -1,4 +1,4 @@
-package api //nolint:revive
+package api //nolint:revive,nolintlint
 
 // MarshalJSON delegates to OAuth2UserinfoResponse.MarshalJSON so that
 // AdditionalProperties (e.g. Hasura/GraphQL claims) are included in the
