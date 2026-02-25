@@ -90,12 +90,12 @@ function DataBrowserSidebarContent({
   }, [schemaSlug, schemas, selectedSchema]);
 
   const allObjectsInSelectedSchema: DatabaseObject[] = (tables || [])
+    .filter((table) => table.table_schema === selectedSchema)
     .map((table) => ({
       table_schema: table.table_schema as string,
       table_name: table.table_name as string,
       object_type: (table.table_type as string) || 'BASE TABLE',
     }))
-    .filter(({ table_schema: tableSchema }) => tableSchema === selectedSchema)
     .sort((a, b) => a.table_name.localeCompare(b.table_name));
 
   const {
