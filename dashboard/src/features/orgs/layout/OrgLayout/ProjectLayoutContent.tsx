@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import { useEffect } from 'react';
@@ -9,7 +8,6 @@ import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { usePreviousData } from '@/hooks/usePreviousData';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { getConfigServerUrl, isPlatform as isPlatformFn } from '@/utils/env';
@@ -50,23 +48,7 @@ function ProjectLayoutContent({
   children,
   mainContainerProps = {},
 }: ProjectLayoutContentProps) {
-  const {
-    route,
-    push,
-    query: { appSubdomain },
-  } = useRouter();
-
-  const queryClient = useQueryClient();
-  const previousAppSubdomain = usePreviousData(appSubdomain);
-
-  useEffect(() => {
-    if (
-      previousAppSubdomain !== appSubdomain &&
-      previousAppSubdomain !== undefined
-    ) {
-      queryClient.clear();
-    }
-  }, [appSubdomain, previousAppSubdomain, queryClient]);
+  const { route, push } = useRouter();
 
   const isPlatform = useIsPlatform();
 

@@ -13,7 +13,6 @@ import {
   screen,
   waitFor,
 } from '@/tests/testUtils';
-import { ApplicationStatus } from '@/types/application';
 import ProjectLayoutContent from './ProjectLayoutContent';
 
 const mocks = vi.hoisted(() => ({
@@ -35,23 +34,19 @@ function TestComponent() {
 
 const server = setupServer(tokenQuery, getProjectStateQuery());
 
-const getUseRouterObject = ({
-  route = '/orgs/[orgSlug]/projects/[appSubdomain]',
-  appSubdomain = 'test-project',
-}: {
-  route?: string;
-  appSubdomain?: string;
-} = {}) => ({
+const getUseRouterObject = (
+  route: string = '/orgs/[orgSlug]/projects/[appSubdomain]',
+) => ({
   basePath: '',
-  pathname: `/orgs/xyz/projects/${appSubdomain}`,
+  pathname: '/orgs/xyz/projects/test-project',
   route,
-  asPath: `/orgs/xyz/projects/${appSubdomain}`,
+  asPath: '/orgs/xyz/projects/test-project',
   isLocaleDomain: false,
   isReady: true,
   isPreview: false,
   query: {
     orgSlug: 'xyz',
-    appSubdomain,
+    appSubdomain: 'test-project',
   },
   push: mocks.push,
   replace: vi.fn(),
@@ -179,7 +174,7 @@ describe('ProjectLayoutContent', () => {
     },
   ])('$description', async ({ route }) => {
     vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
-    mocks.useRouter.mockImplementation(() => getUseRouterObject({ route }));
+    mocks.useRouter.mockImplementation(() => getUseRouterObject(route));
 
     render(<TestComponent />);
 
@@ -222,7 +217,7 @@ describe('ProjectLayoutContent', () => {
     },
   ])('$description', async ({ route }) => {
     vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
-    mocks.useRouter.mockImplementation(() => getUseRouterObject({ route }));
+    mocks.useRouter.mockImplementation(() => getUseRouterObject(route));
     const projectStateResolver = createGraphqlMockResolver(
       'getProjectState',
       'query',
@@ -259,38 +254,5 @@ describe('ProjectLayoutContent', () => {
       expect(screen.queryByText('Project loaded')).toBeInTheDocument();
       expect(mocks.push).not.toHaveBeenCalledWith('/404');
     });
-  });
-
-  it('should not clear the query cache on initial render', async () => {
-    const clearSpy = vi.spyOn(queryClient, 'clear');
-    mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject({ appSubdomain: 'project-a' }),
-    );
-    server.use(getProjectQuery);
-    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
-
-    render(<TestComponent />);
-    await screen.findByText('Project loaded');
-
-    expect(clearSpy).not.toHaveBeenCalled();
-  });
-
-  it('should clear the query cache when switching projects', async () => {
-    const clearSpy = vi.spyOn(queryClient, 'clear');
-    mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject({ appSubdomain: 'project-a' }),
-    );
-    server.use(getProjectQuery);
-    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
-
-    const { rerender } = render(<TestComponent />);
-    await screen.findByText('Project loaded');
-
-    mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject({ appSubdomain: 'project-b' }),
-    );
-    rerender(<TestComponent />);
-
-    expect(clearSpy).toHaveBeenCalledOnce();
   });
 });
