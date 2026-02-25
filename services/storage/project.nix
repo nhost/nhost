@@ -35,6 +35,7 @@ let
       (inDirectory "${submodule}/storage/testdata")
 
       (inDirectory ../../internal/lib/oapi)
+      (inDirectory ../../internal/lib/hasura/metadata)
     ];
 
     exclude = with nix-filter.lib; [

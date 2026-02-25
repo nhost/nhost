@@ -53,11 +53,11 @@ const EditPermissionsForm = dynamic(
   },
 );
 
-const EditTableSettingsForm = dynamic(
+const EditGraphQLSettingsForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm/EditTableSettingsForm'
-    ),
+      '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm'
+    ).then((mod) => mod.EditGraphQLSettingsForm),
   {
     ssr: false,
     loading: () => <FormActivityIndicator />,
@@ -90,9 +90,6 @@ export interface UseDataBrowserActionsParams {
   allObjects: DatabaseObject[];
 }
 
-/**
- * Maps database object type to URL segment
- */
 function getObjectTypeUrlSegment(_objectType: string): 'tables' {
   return 'tables';
 }
@@ -120,11 +117,6 @@ export function useDataBrowserActions({
     useState<string>();
   const [sidebarMenuTable, setSidebarMenuTable] = useState<string>();
 
-  // Keep tablesInSelectedSchema for backward compatibility with delete logic
-  const tablesInSelectedSchema = allObjects.filter(
-    (obj) => obj.object_type !== 'MATERIALIZED VIEW',
-  );
-
   async function handleDeleteTableConfirmation(
     schema: string,
     table: string,
@@ -138,28 +130,24 @@ export function useDataBrowserActions({
     try {
       let nextTableIndex: number | null = null;
 
-      if (
-        isNotEmptyValue(tablesInSelectedSchema) &&
-        tablesInSelectedSchema.length > 1
-      ) {
+      if (isNotEmptyValue(allObjects) && allObjects.length > 1) {
         // We go to the next table if available or to the previous one if the
         // current one is the last one in the list
-        const currentTableIndex = tablesInSelectedSchema.findIndex(
+        const currentTableIndex = allObjects.findIndex(
           ({ table_schema: tableSchema, table_name: tableName }) =>
             `${tableSchema}.${tableName}` === tablePath,
         );
 
         nextTableIndex = currentTableIndex + 1;
 
-        if (currentTableIndex + 1 === tablesInSelectedSchema.length) {
+        if (currentTableIndex + 1 === allObjects.length) {
           nextTableIndex = currentTableIndex - 1;
         }
       }
 
       const nextTable =
-        isNotEmptyValue(nextTableIndex) &&
-        isNotEmptyValue(tablesInSelectedSchema)
-          ? tablesInSelectedSchema[nextTableIndex]
+        isNotEmptyValue(nextTableIndex) && isNotEmptyValue(allObjects)
+          ? allObjects[nextTableIndex]
           : null;
 
       await deleteDatabaseObject({ schema, table, type });
@@ -278,22 +266,20 @@ export function useDataBrowserActions({
     schema: string,
     table: string,
     disabled?: boolean,
-    objectType?: string,
   ) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
-          {disabled ? 'View settings for' : 'Edit settings for'}
+          {disabled ? 'View GraphQL settings for' : 'Edit GraphQL settings for'}
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
           table
         </span>
       ),
       component: (
-        <EditTableSettingsForm
+        <EditGraphQLSettingsForm
           disabled={disabled}
           schema={schema}
           tableName={table}
-          objectType={objectType}
         />
       ),
       props: {
@@ -377,25 +363,14 @@ export function useDataBrowserActions({
   }
 
   return {
-    // State
     removableTable,
     optimisticlyRemovedTable,
     sidebarMenuTable,
     setSidebarMenuTable,
-
-    // Delete actions
     handleDeleteTableClick,
-
-    // Permission actions
     handleEditPermissionClick,
-
-    // Settings actions
     handleEditSettingsClick,
-
-    // Relationships actions
     handleRelationshipsClick,
-
-    // Drawer openers
     openEditTableDrawer,
     openEditViewDrawer,
     openCreateTableDrawer,

@@ -25,6 +25,7 @@ let
       ./vacuum-ignore.yaml
 
       (inDirectory ../../internal/lib/oapi)
+      (inDirectory ../../internal/lib/hasura/metadata)
 
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
