@@ -198,13 +198,13 @@ function DataBrowserSidebarContent({
         <nav aria-label="Database navigation">
           {isNotEmptyValue(displayedObjects) && (
             <ul className="w-full max-w-full pb-6">
-              {displayedObjects.map((dbObject) => {
-                const objectPath = `${dbObject.object_type}.${dbObject.table_schema}.${dbObject.table_name}`;
+              {displayedObjects.map((databaseObject) => {
+                const objectPath = `${databaseObject.object_type}.${databaseObject.table_schema}.${databaseObject.table_name}`;
                 const isSelected =
-                  dbObject.table_schema === schemaSlug &&
-                  dbObject.table_name === tableSlug;
+                  databaseObject.table_schema === schemaSlug &&
+                  databaseObject.table_name === tableSlug;
                 const isSidebarMenuOpen = sidebarMenuTable === objectPath;
-                const tablePath = `${dbObject.table_schema}.${dbObject.table_name}`;
+                const tablePath = `${databaseObject.table_schema}.${databaseObject.table_name}`;
                 const isUntracked = !trackedTablesSet?.has(tablePath);
                 return (
                   <li className="group pb-1" key={objectPath}>
@@ -235,7 +235,7 @@ function DataBrowserSidebarContent({
                                   onSidebarItemClick(`default.${objectPath}`);
                                 }
                               }}
-                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${dbObject.table_schema}/tables/${dbObject.table_name}`}
+                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.table_schema}/tables/${databaseObject.table_name}`}
                             >
                               <Table2 className="h-4 w-4 shrink-0" />
                               <span
@@ -244,12 +244,12 @@ function DataBrowserSidebarContent({
                                   'opacity-50': isUntracked && !isSelected,
                                 })}
                               >
-                                {dbObject.table_name}
+                                {databaseObject.table_name}
                               </span>
                             </NextLink>
                             <TableActions
-                              tableName={dbObject.table_name}
-                              schema={dbObject.table_schema}
+                              tableName={databaseObject.table_name}
+                              schema={databaseObject.table_schema}
                               dataSource={dataSourceSlug as string}
                               disabled={tablePath === removableTable}
                               open={isSidebarMenuOpen}
@@ -267,54 +267,54 @@ function DataBrowserSidebarContent({
                               }
                               onViewPermissions={() =>
                                 handleEditPermissionClick(
-                                  dbObject.table_schema,
-                                  dbObject.table_name,
+                                  databaseObject.table_schema,
+                                  databaseObject.table_name,
                                   true,
                                 )
                               }
                               onViewSettings={() =>
                                 handleEditSettingsClick(
-                                  dbObject.table_schema,
-                                  dbObject.table_name,
+                                  databaseObject.table_schema,
+                                  databaseObject.table_name,
                                   true,
                                 )
                               }
                               onViewRelationships={() =>
                                 handleRelationshipsClick(
-                                  dbObject.table_schema,
-                                  dbObject.table_name,
+                                  databaseObject.table_schema,
+                                  databaseObject.table_name,
                                   true,
                                 )
                               }
                               onEditTable={() =>
                                 openEditTableDrawer(
-                                  dbObject.table_schema,
-                                  dbObject.table_name,
+                                  databaseObject.table_schema,
+                                  databaseObject.table_name,
                                 )
                               }
                               onEditPermissions={() =>
                                 handleEditPermissionClick(
-                                  dbObject.table_schema,
-                                  dbObject.table_name,
+                                  databaseObject.table_schema,
+                                  databaseObject.table_name,
                                 )
                               }
                               onEditSettings={() => {
                                 handleEditSettingsClick(
-                                  dbObject.table_schema,
-                                  dbObject.table_name,
+                                  databaseObject.table_schema,
+                                  databaseObject.table_name,
                                   false,
                                 );
                               }}
                               onEditRelationships={() => {
                                 handleRelationshipsClick(
-                                  dbObject.table_schema,
-                                  dbObject.table_name,
+                                  databaseObject.table_schema,
+                                  databaseObject.table_name,
                                 );
                               }}
                               onDelete={() =>
                                 handleDeleteTableClick(
-                                  dbObject.table_schema,
-                                  dbObject.table_name,
+                                  databaseObject.table_schema,
+                                  databaseObject.table_name,
                                 )
                               }
                             />
