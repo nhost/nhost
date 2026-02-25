@@ -195,7 +195,7 @@ export default function EditTableForm({
 
       if (originalTable.table_name !== updatedTable.name) {
         await router.push(
-          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/${updatedTable.name}`,
+          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/tables/${updatedTable.name}`,
         );
       }
 

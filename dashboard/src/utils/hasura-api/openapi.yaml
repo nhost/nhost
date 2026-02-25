@@ -92,6 +92,8 @@ components:
         - $ref: "#/components/schemas/DropInconsistentMetadataOperation"
         - $ref: "#/components/schemas/ClearMetadataOperation"
         - $ref: "#/components/schemas/ReplaceMetadataOperation"
+        - $ref: "#/components/schemas/TrackTableBulkOperation"
+        - $ref: "#/components/schemas/UntrackTableBulkOperation"
         - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
         - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
         - $ref: "#/components/schemas/SuggestRelationshipsOperation"
@@ -151,6 +153,89 @@ components:
               message:
                 type: string
                 example: success
+
+    TrackTableBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          default: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackTableStep"
+
+    TrackTableStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_track_table]
+        args:
+          $ref: "#/components/schemas/TrackTableArgs"
+
+    TrackTableArgs:
+      type: object
+      required:
+        - table
+      properties:
+        source:
+          type: string
+          default: default
+        table:
+          $ref: "#/components/schemas/QualifiedTable"
+
+    UntrackTableBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          default: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/UntrackTableStep"
+
+    UntrackTableStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_untrack_table]
+        args:
+          $ref: "#/components/schemas/UntrackTableArgs"
+
+    UntrackTableArgs:
+      allOf:
+        - $ref: "#/components/schemas/TrackTableArgs"
 
     SetTableCustomizationBulkOperation:
       type: object
@@ -939,6 +1024,8 @@ components:
         - $ref: "#/components/schemas/AddRemoteSchemaStep"
         - $ref: "#/components/schemas/CreateEventTriggerStep"
         - $ref: "#/components/schemas/DeleteEventTriggerStep"
+        - $ref: "#/components/schemas/TrackTableStep"
+        - $ref: "#/components/schemas/UntrackTableStep"
 
     MigrationRequest:
       type: object

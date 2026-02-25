@@ -10,13 +10,13 @@ import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DataGridFiltersPopover } from '@/features/orgs/projects/common/components/DataGridFiltersPopover';
 import { DataGridTableViewConfigurationPopover } from '@/features/orgs/projects/common/components/DataGridTableViewConfigurationPopover';
 import { InvokeEventTriggerButton } from '@/features/orgs/projects/database/dataGrid/components/InvokeEventTriggerButton';
+import { TrackTableButton } from '@/features/orgs/projects/database/dataGrid/components/TrackTableButton';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
-import { cn } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 
 export interface DataBrowserGridControlsProps {
@@ -120,14 +120,9 @@ export default function DataBrowserGridControls({
 
   return (
     <div className="box sticky top-0 z-40 border-b-1 p-2">
-      <div
-        className={cn(
-          'mx-auto grid min-h-10 grid-flow-col items-center gap-3',
-          numberOfSelectedRows > 0 ? 'justify-between' : 'justify-end',
-        )}
-      >
+      <div className="mx-auto flex min-h-10 items-center gap-3">
         {numberOfSelectedRows > 0 && (
-          <div className="grid grid-flow-col place-content-start items-center gap-2">
+          <div className="flex items-center gap-2">
             <Badge
               variant="secondary"
               className="!bg-[#ebf3ff] dark:!bg-[#1b2534] text-primary"
@@ -174,22 +169,27 @@ export default function DataBrowserGridControls({
         )}
 
         {numberOfSelectedRows === 0 && (
-          <div className="col-span-6 grid grid-flow-col items-center gap-2">
-            {columns.length > 0 && (
-              <DataGridPagination
-                className={twMerge(
-                  'col-span-6 xs+:col-span-2 h-9 lg:col-span-2',
-                  paginationClassName,
-                )}
-                {...restPaginationProps}
-              />
-            )}
-            <DataGridFiltersPopover />
-            <DataGridTableViewConfigurationPopover />
-            <Button onClick={onInsertRowClick} size="sm">
-              <Plus className="h-4 w-4" /> Insert row
-            </Button>
-          </div>
+          <>
+            <TrackTableButton />
+            <div className="ml-auto flex items-center gap-2">
+              {columns.length > 0 && (
+                <DataGridPagination
+                  className={twMerge(
+                    'col-span-6 xs+:col-span-2 h-9 lg:col-span-2',
+                    paginationClassName,
+                  )}
+                  {...restPaginationProps}
+                />
+              )}
+              <DataGridFiltersPopover />
+              <DataGridTableViewConfigurationPopover />
+              <Button onClick={onInsertRowClick} size="sm">
+                <Plus className="h-4 w-4" />
+                <span className="sm:hidden">Insert</span>
+                <span className="hidden sm:inline">Insert row</span>
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </div>

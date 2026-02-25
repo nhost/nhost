@@ -28,7 +28,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${firstRefTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${firstRefTableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -46,7 +46,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${secondRefTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${secondRefTableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -64,7 +64,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${thirdRefTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${thirdRefTableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -141,7 +141,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${mainTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${mainTableName}`,
   );
 
   await expect(
@@ -242,7 +242,7 @@ test('should create table with multiple foreign keys pointing to the same column
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${addressTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${addressTableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -320,7 +320,7 @@ test('should create table with multiple foreign keys pointing to the same column
   await expect(page.getByText(/create a new table/i)).not.toBeVisible();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${userTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${userTableName}`,
   );
 
   await expect(
