@@ -324,7 +324,7 @@ test('should be able to untrack and re-track a table', async ({
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${tableName}`,
   );
 
   await expect(
