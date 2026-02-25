@@ -28,8 +28,8 @@ type Props = {
   onEditPermissions: () => void;
   onViewPermissions: () => void;
   onEditTable: () => void;
-  onEditSettings: () => void;
-  onViewSettings: () => void;
+  onEditGraphQLSettings: () => void;
+  onViewGraphQLSettings: () => void;
   onEditRelationships: () => void;
   onViewRelationships: () => void;
 };
@@ -48,8 +48,8 @@ function TableActions({
   onEditPermissions,
   onViewPermissions,
   onEditTable,
-  onEditSettings,
-  onViewSettings,
+  onEditGraphQLSettings,
+  onViewGraphQLSettings,
   onEditRelationships,
   onViewRelationships,
 }: Props) {
@@ -109,7 +109,7 @@ function TableActions({
             </DropdownMenuItem>
             <DropdownMenuItem
               className={menuItemClassName}
-              onClick={onViewSettings}
+              onClick={onViewGraphQLSettings}
             >
               <GraphQLIcon className="h-4 w-4" /> <span>View GraphQL</span>
             </DropdownMenuItem>
@@ -146,7 +146,7 @@ function TableActions({
             </DropdownMenuItem>
             <DropdownMenuItem
               className={menuItemClassName}
-              onClick={onEditSettings}
+              onClick={onEditGraphQLSettings}
             >
               <GraphQLIcon className="h-4 w-4" /> <span>Edit GraphQL</span>
             </DropdownMenuItem>

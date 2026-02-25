@@ -190,6 +190,22 @@ export type RawQueryDataRow = string[];
 export type NormalizedQueryDataRow = Record<string, any>;
 
 /**
+ * Represents an object that can be a table, view or materialized view in the database.
+ */
+
+export interface TableLikeObject extends Record<string, unknown> {
+  table_schema: string;
+  table_name: string;
+  table_type: TableLikeObjectType;
+}
+
+export type TableLikeObjectType =
+  | 'BASE TABLE'
+  | 'VIEW'
+  | 'MATERIALIZED VIEW'
+  | 'FOREIGN TABLE';
+
+/**
  * Represents an object that can be used to set up ordering in an SQL query.
  */
 export interface OrderBy {

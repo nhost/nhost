@@ -8,6 +8,16 @@ import { Badge } from '@/components/ui/v3/badge';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useDeleteDatabaseObjectWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteDatabaseObjectMutation';
 import { isNotEmptyValue } from '@/lib/utils';
+import type { TableLikeObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+
+const objectTypeLabels: Record<string, { label: string; title: string }> = {
+  'MATERIALIZED VIEW': {
+    label: 'materialized view',
+    title: 'Delete Materialized View',
+  },
+  VIEW: { label: 'view', title: 'Delete View' },
+  'BASE TABLE': { label: 'table', title: 'Delete Table' },
+};
 
 const CreateTableForm = dynamic(
   () =>
@@ -117,10 +127,10 @@ export function useDataBrowserActions({
     useState<string>();
   const [sidebarMenuTable, setSidebarMenuTable] = useState<string>();
 
-  async function handleDeleteTableConfirmation(
+  async function handleDeleteDatabaseObjectConfirmation(
     schema: string,
     table: string,
-    type: 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW',
+    type: TableLikeObjectType,
   ) {
     const tablePath = `${schema}.${table}`;
 
@@ -187,44 +197,27 @@ export function useDataBrowserActions({
     }
   }
 
-  function handleDeleteTableClick(schema: string, table: string) {
-    const tablePath = `${schema}.${table}`;
-    const object = allObjects.find(
-      ({ table_schema: tableSchema, table_name: tableName }) =>
-        `${tableSchema}.${tableName}` === tablePath,
-    );
-
-    const objectLabel =
-      object?.object_type === 'MATERIALIZED VIEW'
-        ? 'materialized view'
-        : object?.object_type === 'VIEW'
-          ? 'view'
-          : 'table';
-
-    const title =
-      objectLabel === 'materialized view'
-        ? 'Delete Materialized View'
-        : objectLabel === 'view'
-          ? 'Delete View'
-          : 'Delete Table';
+  function handleDeleteDatabaseObjectClick(
+    schema: string,
+    name: string,
+    objectType: TableLikeObjectType,
+  ) {
+    const { label: objectLabel, title } =
+      objectTypeLabels[objectType] ?? objectTypeLabels['BASE TABLE'];
 
     openAlertDialog({
       title,
       payload: (
         <span>
           Are you sure you want to delete the{' '}
-          <strong className="break-all">{table}</strong> {objectLabel}?
+          <strong className="break-all">{name}</strong> {objectLabel}?
         </span>
       ),
       props: {
         primaryButtonText: 'Delete',
         primaryButtonColor: 'error',
         onPrimaryAction: () =>
-          handleDeleteTableConfirmation(
-            schema,
-            table,
-            object?.object_type as 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW',
-          ),
+          handleDeleteDatabaseObjectConfirmation(schema, name, objectType),
       },
     });
   }
@@ -367,7 +360,7 @@ export function useDataBrowserActions({
     optimisticlyRemovedTable,
     sidebarMenuTable,
     setSidebarMenuTable,
-    handleDeleteTableClick,
+    handleDeleteDatabaseObjectClick,
     handleEditPermissionClick,
     handleEditSettingsClick,
     handleRelationshipsClick,

@@ -207,15 +207,14 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     },
   });
 
-  const views = databaseData?.views ?? [];
-  const materializedViews = databaseData?.materializedViews ?? [];
-  const isViewOrMaterializedView =
-    views.some(
-      (v) => v.table_schema === schemaSlug && v.table_name === tableSlug,
-    ) ||
-    materializedViews.some(
-      (mv) => mv.table_schema === schemaSlug && mv.table_name === tableSlug,
-    );
+  const isViewOrMaterializedView = (
+    databaseData?.tableLikeObjects ?? []
+  ).some(
+    (obj) =>
+      obj.table_schema === schemaSlug &&
+      obj.table_name === tableSlug &&
+      (obj.table_type === 'VIEW' || obj.table_type === 'MATERIALIZED VIEW'),
+  );
 
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
