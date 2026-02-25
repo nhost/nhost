@@ -52,6 +52,10 @@ function DataBrowserSidebarContent({
     query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
   } = router;
 
+  const { data: trackedTablesSet } = useGetTrackedTablesSet({
+    dataSource: dataSourceSlug as string,
+  });
+
   const { data, status, error, refetch } = useDatabaseQuery([
     dataSourceSlug as string,
   ]);
@@ -60,10 +64,6 @@ function DataBrowserSidebarContent({
     schemas: [],
     tables: [],
   };
-
-  const { data: trackedTablesSet } = useGetTrackedTablesSet({
-    dataSource: dataSourceSlug as string,
-  });
 
   const [selectedSchema, setSelectedSchema] = useState<string>('');
   const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);

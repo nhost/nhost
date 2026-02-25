@@ -34,12 +34,14 @@ import CustomGraphQLRootFieldsSectionSkeleton from './CustomGraphQLRootFieldsSec
 
 interface CustomGraphQLRootFieldsFormProps {
   disabled?: boolean;
+  isUntracked?: boolean;
   schema: string;
   tableName: string;
 }
 
 export default function CustomGraphQLRootFieldsSection({
   disabled,
+  isUntracked,
   schema,
   tableName,
 }: CustomGraphQLRootFieldsFormProps) {
@@ -226,7 +228,7 @@ export default function CustomGraphQLRootFieldsSection({
           ) : (
             <div className="grid grid-flow-row gap-4 px-4">
               <FormInput
-                disabled={disabled}
+                disabled={disabled || isUntracked}
                 control={form.control}
                 name="customTableName"
                 label="Custom Table Name"
@@ -261,7 +263,7 @@ export default function CustomGraphQLRootFieldsSection({
 
                         return (
                           <CustomGraphQLRootFieldsFieldGroup
-                            disabled={disabled}
+                            disabled={disabled || isUntracked}
                             fieldLabel={fieldConfig.label}
                             key={`query-${fieldConfig.key}`}
                             commentPath={commentPath}
@@ -298,7 +300,7 @@ export default function CustomGraphQLRootFieldsSection({
 
                         return (
                           <CustomGraphQLRootFieldsFieldGroup
-                            disabled={disabled}
+                            disabled={disabled || isUntracked}
                             fieldLabel={fieldConfig.label}
                             key={`mutation-${fieldConfig.key}`}
                             commentPath={commentPath}
@@ -315,7 +317,12 @@ export default function CustomGraphQLRootFieldsSection({
             </div>
           )}
 
-          {!disabled && (
+          {isUntracked && (
+            <p className="px-4 text-muted-foreground text-sm">
+              Track this table to customize its GraphQL settings.
+            </p>
+          )}
+          {!disabled && !isUntracked && (
             <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
               <div className="flex items-center gap-2">
                 <Button

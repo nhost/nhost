@@ -305,3 +305,49 @@ test('should not be able to create a table with a name that already exists', asy
     page.getByText(/error: a table with this name already exists/i),
   ).toBeVisible();
 });
+
+test('should be able to untrack and re-track a table', async ({
+  authenticatedNhostPage: page,
+}) => {
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  const tableName = snakeCase(faker.lorem.words(3));
+
+  await prepareTable({
+    page,
+    name: tableName,
+    primaryKeys: [],
+    columns: [{ name: 'title', type: 'text' }],
+  });
+
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+  );
+
+  await expect(
+    page.getByRole('link', { name: tableName, exact: true }),
+  ).toBeVisible();
+
+  await page
+    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .click();
+  await page.getByRole('menuitem', { name: /edit graphql/i }).click();
+
+  await expect(page.getByText('Tracked in GraphQL')).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Untrack', exact: true }),
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'Untrack', exact: true }).click();
+  await page.waitForSelector('div:has-text("Table untracked successfully.")');
+
+  await page.getByRole('button', { name: /back/i }).click();
+
+  await expect(page.getByRole('button', { name: /track now/i })).toBeVisible();
+
+  await page.getByRole('button', { name: /track now/i }).click();
+  await page.waitForSelector('div:has-text("Table tracked successfully.")');
+});

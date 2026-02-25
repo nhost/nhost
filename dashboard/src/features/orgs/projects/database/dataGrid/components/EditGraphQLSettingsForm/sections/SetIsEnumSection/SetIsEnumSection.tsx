@@ -26,12 +26,14 @@ const validationSchema = z.object({
 
 export interface SetIsEnumSectionProps {
   disabled?: boolean;
+  isUntracked?: boolean;
   schema: string;
   tableName: string;
 }
 
 export default function SetIsEnumSection({
   disabled,
+  isUntracked,
   schema,
   tableName,
 }: SetIsEnumSectionProps) {
@@ -170,7 +172,7 @@ export default function SetIsEnumSection({
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          disabled={disabled}
+                          disabled={disabled || isUntracked}
                         />
                       </FormControl>
                     </div>
@@ -180,7 +182,12 @@ export default function SetIsEnumSection({
               />
             </div>
           )}
-          {!disabled && (
+          {isUntracked && (
+            <p className="px-4 text-muted-foreground text-sm">
+              Track this table to customize its GraphQL settings.
+            </p>
+          )}
+          {!disabled && !isUntracked && (
             <div className="grid grid-flow-col items-center justify-end gap-x-2 border-t px-4 pt-3.5">
               <ButtonWithLoading
                 variant={isDirty ? 'default' : 'outline'}
