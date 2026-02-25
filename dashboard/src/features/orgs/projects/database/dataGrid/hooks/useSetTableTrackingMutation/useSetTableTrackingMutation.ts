@@ -39,20 +39,20 @@ export default function useSetTableTrackingMutation(
         project!.region,
         'hasura',
       );
-      const base = {
+      const commonParams = {
+        tracked,
+        args,
         appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
       if (isPlatform) {
         return setTableTracking({
-          tracked,
           resourceVersion: resourceVersion!,
-          args,
-          ...base,
+          ...common,
         });
       }
-      return setTableTrackingMigration({ tracked, args, ...base });
+      return setTableTrackingMigration(common);
     },
     ...mutationOptions,
     onSuccess: () => {
