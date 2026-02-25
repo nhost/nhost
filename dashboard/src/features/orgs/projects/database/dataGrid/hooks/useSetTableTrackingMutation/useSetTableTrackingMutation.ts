@@ -49,10 +49,10 @@ export default function useSetTableTrackingMutation(
       if (isPlatform) {
         return setTableTracking({
           resourceVersion: resourceVersion!,
-          ...common,
+          ...commonParams,
         });
       }
-      return setTableTrackingMigration(common);
+      return setTableTrackingMigration(commonParams);
     },
     ...mutationOptions,
     onSuccess: () => {

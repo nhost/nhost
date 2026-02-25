@@ -18,6 +18,7 @@ import ColumnsNameCustomizationSectionSkeleton from './ColumnsNameCustomizationS
 
 export interface ColumnsNameCustomizationSectionProps {
   disabled?: boolean;
+  isUntracked?: boolean;
   schema: string;
   tableName: string;
 }
@@ -39,6 +40,7 @@ export type ColumnsNameCustomizationFormValues = z.infer<
 
 export default function ColumnsNameCustomizationSection({
   disabled,
+  isUntracked,
   schema,
   tableName,
 }: ColumnsNameCustomizationSectionProps) {
@@ -260,7 +262,7 @@ export default function ColumnsNameCustomizationSection({
                         </span>
 
                         <FormInput
-                          disabled={disabled}
+                          disabled={disabled || isUntracked}
                           control={form.control}
                           name={fieldPath}
                           label=""
@@ -275,7 +277,12 @@ export default function ColumnsNameCustomizationSection({
               </div>
             </div>
           )}
-          {!disabled && (
+          {isUntracked && (
+            <p className="px-4 text-muted-foreground text-sm">
+              Track this table to customize its GraphQL settings.
+            </p>
+          )}
+          {!disabled && !isUntracked && (
             <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
               <div className="flex items-center gap-2">
                 <Button

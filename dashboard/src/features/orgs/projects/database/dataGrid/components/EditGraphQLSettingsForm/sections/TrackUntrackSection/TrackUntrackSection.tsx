@@ -1,58 +1,18 @@
-import { useRouter } from 'next/router';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
-import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
-import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 interface TrackUntrackSectionProps {
+  isTracked: boolean;
+  isPending: boolean;
+  onTrackToggle: () => void;
   disabled?: boolean;
-  schema: string;
-  tableName: string;
 }
 
 export default function TrackUntrackSection({
+  isTracked,
+  isPending,
+  onTrackToggle,
   disabled,
-  tableName,
-  schema,
 }: TrackUntrackSectionProps) {
-  const { query } = useRouter();
-  const { dataSourceSlug } = query;
-
-  const { data: isTracked } = useIsTrackedTable({
-    dataSource: dataSourceSlug as string,
-    schema,
-    tableName,
-  });
-
-  const { data: resourceVersion } = useGetMetadataResourceVersion();
-
-  const { mutateAsync: setTableTracking, isPending } =
-    useSetTableTrackingMutation();
-
-  async function handleTrackToggle() {
-    const tracked = !isTracked;
-    const action = tracked ? 'track' : 'untrack';
-
-    await execPromiseWithErrorToast(
-      async () => {
-        await setTableTracking({
-          tracked,
-          resourceVersion,
-          args: {
-            source: dataSourceSlug as string,
-            table: { name: tableName, schema },
-          },
-        });
-      },
-      {
-        loadingMessage: `${tracked ? 'Tracking' : 'Untracking'} table...`,
-        successMessage: `Table ${action}ed successfully.`,
-        errorMessage: `Failed to ${action} table.`,
-      },
-    );
-  }
-
   return (
     <div className="flex items-center justify-between border-b px-6 py-3">
       <div className="flex items-center gap-2">
@@ -66,7 +26,7 @@ export default function TrackUntrackSection({
       <ButtonWithLoading
         variant="outline"
         size="sm"
-        onClick={handleTrackToggle}
+        onClick={onTrackToggle}
         loading={isPending}
         disabled={disabled || isPending}
       >
