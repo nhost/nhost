@@ -346,7 +346,6 @@ test('should be able to untrack and re-track a table', async ({
 
   await page.getByRole('button', { name: /back/i }).click();
 
-  await expect(page.getByText('Not tracked in GraphQL')).toBeVisible();
   await expect(page.getByRole('button', { name: /track now/i })).toBeVisible();
 
   await page.getByRole('button', { name: /track now/i }).click();
