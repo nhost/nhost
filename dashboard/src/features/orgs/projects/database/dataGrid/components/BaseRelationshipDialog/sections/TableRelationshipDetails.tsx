@@ -5,8 +5,8 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { Button } from '@/components/ui/v3/button';
 import { FormField, FormItem, FormMessage } from '@/components/ui/v3/form';
 import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { BaseRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 
 export default function TableRelationshipDetails() {
   const form = useFormContext<BaseRelationshipFormValues>();

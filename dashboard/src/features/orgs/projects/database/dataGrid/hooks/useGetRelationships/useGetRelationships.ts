@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import { useSuggestRelationshipsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
-import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 import type { RelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships';
 import { buildLocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/utils/buildLocalRelationshipViewModel';
 import { buildRemoteRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/utils/buildRemoteRelationshipViewModel';

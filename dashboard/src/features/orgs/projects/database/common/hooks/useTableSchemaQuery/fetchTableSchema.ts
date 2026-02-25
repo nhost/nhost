@@ -1,3 +1,8 @@
+import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
+import {
+  COLUMN_DEFINITION_QUERY,
+  CONSTRAINT_DEFINITION_QUERY,
+} from '@/features/orgs/projects/database/common/utils/sqlTemplates';
 import type { FetchTableReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type {
   ForeignKeyRelation,
@@ -7,7 +12,6 @@ import type {
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
-import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 
 export type FetchTableSchemaOptions = MutationOrQueryBaseOptions;
@@ -40,59 +44,13 @@ export default async function fetchTableSchema({
       args: [
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `
-            SELECT ROW_TO_JSON(TABLE_DATA) FROM (
-                SELECT *,
-                    PG_CATALOG.FORMAT_TYPE(
-                        (SELECT ATTTYPID FROM PG_ATTRIBUTE
-                         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
-                         AND ATTNAME = COLS.COLUMN_NAME),
-                        (SELECT ATTTYPMOD FROM PG_ATTRIBUTE
-                         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
-                         AND ATTNAME = COLS.COLUMN_NAME)
-                    ) AS FULL_DATA_TYPE,
-                    EXISTS (
-                        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
-                        FROM PG_INDEX IND
-                        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
-                        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
-                        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
-                        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISPRIMARY
-                    ) AS IS_PRIMARY,
-                    EXISTS (
-                        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
-                        FROM PG_INDEX IND
-                        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
-                        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
-                        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
-                        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISUNIQUE
-                    ) AS IS_UNIQUE,
-                    (
-                        SELECT PG_CATALOG.COL_DESCRIPTION(CLS.OID, COLS.ORDINAL_POSITION::INT)
-                        FROM PG_CATALOG.PG_CLASS CLS
-                        WHERE CLS.OID = (SELECT '%1$I.%2$I'::REGCLASS::OID) AND CLS.RELNAME = COLS.TABLE_NAME
-                    ) AS COLUMN_COMMENT
-                FROM INFORMATION_SCHEMA.COLUMNS COLS
-                WHERE TABLE_SCHEMA = %1$L AND TABLE_NAME = %2$L
-            ) TABLE_DATA;
-          `,
+          COLUMN_DEFINITION_QUERY,
           schema,
           table,
         ),
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (\
-            SELECT CON.CONNAME AS CONSTRAINT_NAME, CON.CONTYPE AS CONSTRAINT_TYPE, PG_GET_CONSTRAINTDEF(CON.OID) AS CONSTRAINT_DEFINITION, ATTR.ATTNAME AS COLUMN_NAME\
-            FROM PG_CONSTRAINT CON
-            INNER JOIN PG_NAMESPACE NSP
-              ON NSP.OID = CON.CONNAMESPACE
-            CROSS JOIN LATERAL UNNEST(CON.CONKEY) AK(K)
-            INNER JOIN PG_ATTRIBUTE ATTR
-              ON ATTR.ATTRELID = CON.CONRELID
-              AND ATTR.ATTNUM = AK.K
-            WHERE CON.CONRELID = '%1$I.%2$I'::REGCLASS
-            ORDER BY CON.CONTYPE
-          ) TABLE_DATA`,
+          CONSTRAINT_DEFINITION_QUERY,
           schema,
           table,
         ),

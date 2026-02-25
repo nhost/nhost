@@ -1,13 +1,13 @@
+import {
+  getEmptyDownMigrationMessage,
+  getPreparedHasuraQuery,
+} from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   AffectedRowsResult,
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  getEmptyDownMigrationMessage,
-  getPreparedHasuraQuery,
-} from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import { typeToQuery } from './deleteDatabaseObject';
