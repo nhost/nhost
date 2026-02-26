@@ -207,14 +207,14 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     },
   });
 
-  const isReadOnlyObject = (databaseData?.tableLikeObjects ?? []).some(
-    (obj) =>
-      obj.table_schema === schemaSlug &&
-      obj.table_name === tableSlug &&
-      (obj.table_type === 'VIEW' ||
-        obj.table_type === 'MATERIALIZED VIEW' ||
-        obj.table_type === 'FOREIGN TABLE'),
+  const matchedObject = (databaseData?.tableLikeObjects ?? []).find(
+    (obj) => obj.table_schema === schemaSlug && obj.table_name === tableSlug,
   );
+
+  const isReadOnlyObject =
+    matchedObject?.table_type === 'VIEW' ||
+    matchedObject?.table_type === 'MATERIALIZED VIEW' ||
+    matchedObject?.table_type === 'FOREIGN TABLE';
 
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
@@ -232,6 +232,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
           mode: desc ? 'DESC' : 'ASC',
         })) || [],
       filters: appliedFilters,
+      objectType: matchedObject?.table_type,
       queryOptions: {
         enabled: isFiltersLoadedFromStorage.current,
       },

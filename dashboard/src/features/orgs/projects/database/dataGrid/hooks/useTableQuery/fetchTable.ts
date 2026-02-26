@@ -2,6 +2,7 @@ import { formatWithArray } from 'node-pg-format';
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import type {
+  DatabaseObjectType,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
@@ -13,6 +14,96 @@ import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dat
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { filtersToWhere } from './filtersToWhere';
+
+/**
+ * Column definition query for tables, views, and foreign tables.
+ * Uses INFORMATION_SCHEMA.COLUMNS as the base with PG_CATALOG enrichment.
+ */
+const COLUMN_DEFINITION_QUERY = `
+  SELECT ROW_TO_JSON(TABLE_DATA) FROM (
+    SELECT *,
+      PG_CATALOG.FORMAT_TYPE(
+        (SELECT ATTTYPID FROM PG_ATTRIBUTE
+         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
+         AND ATTNAME = COLS.COLUMN_NAME),
+        (SELECT ATTTYPMOD FROM PG_ATTRIBUTE
+         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
+         AND ATTNAME = COLS.COLUMN_NAME)
+      ) AS FULL_DATA_TYPE,
+      EXISTS (
+        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
+        FROM PG_INDEX IND
+        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
+        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
+        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
+        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISPRIMARY
+      ) AS IS_PRIMARY,
+      EXISTS (
+        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
+        FROM PG_INDEX IND
+        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
+        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
+        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
+        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISUNIQUE
+      ) AS IS_UNIQUE,
+      (
+        SELECT PG_CATALOG.COL_DESCRIPTION(CLS.OID, COLS.ORDINAL_POSITION::INT)
+        FROM PG_CATALOG.PG_CLASS CLS
+        WHERE CLS.OID = (SELECT '%1$I.%2$I'::REGCLASS::OID) AND CLS.RELNAME = COLS.TABLE_NAME
+      ) AS COLUMN_COMMENT
+    FROM INFORMATION_SCHEMA.COLUMNS COLS
+    WHERE TABLE_SCHEMA = %1$L AND TABLE_NAME = %2$L
+  ) TABLE_DATA;
+`;
+
+/**
+ * Column definition query for materialized views.
+ * Uses PG_ATTRIBUTE as the base since materialized views are absent
+ * from INFORMATION_SCHEMA.COLUMNS.
+ */
+const MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY = `
+  SELECT ROW_TO_JSON(TABLE_DATA) FROM (
+    SELECT
+      ATTR.ATTNAME AS COLUMN_NAME,
+      ATTR.ATTNUM AS ORDINAL_POSITION,
+      CASE WHEN AD.ADBIN IS NOT NULL THEN PG_GET_EXPR(AD.ADBIN, AD.ADRELID, true) ELSE NULL END AS COLUMN_DEFAULT,
+      CASE WHEN ATTR.ATTNOTNULL THEN 'NO' ELSE 'YES' END AS IS_NULLABLE,
+      TYP.TYPNAME AS DATA_TYPE,
+      TYP.TYPNAME AS UDT_NAME,
+      NULL AS CHARACTER_MAXIMUM_LENGTH,
+      NULL AS NUMERIC_PRECISION,
+      NULL AS NUMERIC_SCALE,
+      NULL AS DATETIME_PRECISION,
+      'NO' AS IS_IDENTITY,
+      PG_CATALOG.FORMAT_TYPE(ATTR.ATTTYPID, ATTR.ATTTYPMOD) AS FULL_DATA_TYPE,
+      EXISTS (
+        SELECT 1
+        FROM PG_INDEX IND
+        WHERE IND.INDRELID = CLS.OID
+        AND ATTR.ATTNUM = ANY(IND.INDKEY)
+        AND IND.INDISPRIMARY
+      ) AS IS_PRIMARY,
+      EXISTS (
+        SELECT 1
+        FROM PG_INDEX IND
+        WHERE IND.INDRELID = CLS.OID
+        AND ATTR.ATTNUM = ANY(IND.INDKEY)
+        AND IND.INDISUNIQUE
+        AND NOT IND.INDISPRIMARY
+      ) AS IS_UNIQUE,
+      PG_CATALOG.COL_DESCRIPTION(CLS.OID, ATTR.ATTNUM) AS COLUMN_COMMENT
+    FROM PG_ATTRIBUTE ATTR
+    JOIN PG_CLASS CLS ON CLS.OID = ATTR.ATTRELID
+    JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
+    JOIN PG_TYPE TYP ON TYP.OID = ATTR.ATTTYPID
+    LEFT JOIN PG_ATTRDEF AD ON AD.ADRELID = CLS.OID AND AD.ADNUM = ATTR.ATTNUM
+    WHERE NSP.NSPNAME = %1$L
+    AND CLS.RELNAME = %2$L
+    AND ATTR.ATTNUM > 0
+    AND NOT ATTR.ATTISDROPPED
+  ) TABLE_DATA
+  ORDER BY ORDINAL_POSITION;
+`;
 
 function isQueryError(payload: unknown): payload is QueryError {
   return 'error' in (payload as QueryError);
@@ -43,6 +134,11 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
    * @default []
    */
   filters?: DataGridFilter[];
+  /**
+   * The type of database object being queried. When set to 'MATERIALIZED VIEW',
+   * a PG_ATTRIBUTE-based query is used instead of INFORMATION_SCHEMA.COLUMNS.
+   */
+  objectType?: DatabaseObjectType;
 }
 
 export interface FetchTableReturnType {
@@ -91,6 +187,7 @@ export default async function fetchTable({
   orderBy,
   preventRowFetching,
   filters,
+  objectType,
 }: FetchTableOptions): Promise<FetchTableReturnType> {
   let limitAndOffsetClause = '';
 
@@ -136,99 +233,9 @@ export default async function fetchTable({
       args: [
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `
-            SELECT ROW_TO_JSON(TABLE_DATA) FROM (
-                SELECT 
-                    COLS.COLUMN_NAME,
-                    COLS.ORDINAL_POSITION,
-                    COLS.COLUMN_DEFAULT,
-                    COLS.IS_NULLABLE,
-                    COLS.DATA_TYPE,
-                    COLS.UDT_NAME,
-                    COLS.CHARACTER_MAXIMUM_LENGTH,
-                    COLS.NUMERIC_PRECISION,
-                    COLS.NUMERIC_SCALE,
-                    COLS.DATETIME_PRECISION,
-                    COLS.IS_IDENTITY,
-                    PG_CATALOG.FORMAT_TYPE(
-                        (SELECT ATTTYPID FROM PG_ATTRIBUTE
-                         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
-                         AND ATTNAME = COLS.COLUMN_NAME),
-                        (SELECT ATTTYPMOD FROM PG_ATTRIBUTE
-                         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
-                         AND ATTNAME = COLS.COLUMN_NAME)
-                    ) AS FULL_DATA_TYPE,
-                    EXISTS (
-                        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
-                        FROM PG_INDEX IND
-                        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
-                        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
-                        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
-                        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISPRIMARY
-                    ) AS IS_PRIMARY,
-                    EXISTS (
-                        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
-                        FROM PG_INDEX IND
-                        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
-                        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
-                        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
-                        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISUNIQUE
-                    ) AS IS_UNIQUE,
-                    (
-                        SELECT PG_CATALOG.COL_DESCRIPTION(CLS.OID, COLS.ORDINAL_POSITION::INT)
-                        FROM PG_CATALOG.PG_CLASS CLS
-                        WHERE CLS.OID = (SELECT '%1$I.%2$I'::REGCLASS::OID) AND CLS.RELNAME = COLS.TABLE_NAME
-                    ) AS COLUMN_COMMENT
-                FROM INFORMATION_SCHEMA.COLUMNS COLS
-                WHERE TABLE_SCHEMA = %1$L AND TABLE_NAME = %2$L
-                UNION ALL
-                SELECT 
-                    ATTR.ATTNAME AS COLUMN_NAME,
-                    ATTR.ATTNUM AS ORDINAL_POSITION,
-                    CASE WHEN AD.ADBIN IS NOT NULL THEN PG_GET_EXPR(AD.ADBIN, AD.ADRELID, true) ELSE NULL END AS COLUMN_DEFAULT,
-                    CASE WHEN ATTR.ATTNOTNULL THEN 'NO' ELSE 'YES' END AS IS_NULLABLE,
-                    TYP.TYPNAME AS DATA_TYPE,
-                    TYP.TYPNAME AS UDT_NAME,
-                    NULL AS CHARACTER_MAXIMUM_LENGTH,
-                    NULL AS NUMERIC_PRECISION,
-                    NULL AS NUMERIC_SCALE,
-                    NULL AS DATETIME_PRECISION,
-                    'NO' AS IS_IDENTITY,
-                    PG_CATALOG.FORMAT_TYPE(ATTR.ATTTYPID, ATTR.ATTTYPMOD) AS FULL_DATA_TYPE,
-                    EXISTS (
-                        SELECT 1
-                        FROM PG_INDEX IND
-                        WHERE IND.INDRELID = CLS.OID 
-                        AND ATTR.ATTNUM = ANY(IND.INDKEY)
-                        AND IND.INDISPRIMARY
-                    ) AS IS_PRIMARY,
-                    EXISTS (
-                        SELECT 1
-                        FROM PG_INDEX IND
-                        WHERE IND.INDRELID = CLS.OID 
-                        AND ATTR.ATTNUM = ANY(IND.INDKEY)
-                        AND IND.INDISUNIQUE
-                        AND NOT IND.INDISPRIMARY
-                    ) AS IS_UNIQUE,
-                    PG_CATALOG.COL_DESCRIPTION(CLS.OID, ATTR.ATTNUM) AS COLUMN_COMMENT
-                FROM PG_ATTRIBUTE ATTR
-                JOIN PG_CLASS CLS ON CLS.OID = ATTR.ATTRELID
-                JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
-                JOIN PG_TYPE TYP ON TYP.OID = ATTR.ATTTYPID
-                LEFT JOIN PG_ATTRDEF AD ON AD.ADRELID = CLS.OID AND AD.ADNUM = ATTR.ATTNUM
-                WHERE NSP.NSPNAME = %1$L 
-                AND CLS.RELNAME = %2$L
-                AND ATTR.ATTNUM > 0
-                AND NOT ATTR.ATTISDROPPED
-                AND NOT EXISTS (
-                    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS IC
-                    WHERE IC.TABLE_SCHEMA = %1$L 
-                    AND IC.TABLE_NAME = %2$L
-                    AND IC.COLUMN_NAME = ATTR.ATTNAME
-                )
-            ) TABLE_DATA
-            ORDER BY ORDINAL_POSITION;
-          `,
+          objectType === 'MATERIALIZED VIEW'
+            ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
+            : COLUMN_DEFINITION_QUERY,
           schema,
           table,
         ),
