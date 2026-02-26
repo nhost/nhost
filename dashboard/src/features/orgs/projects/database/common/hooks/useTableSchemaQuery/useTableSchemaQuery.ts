@@ -16,7 +16,10 @@ export interface UseTableSchemaQueryOptions
   /**
    * Props passed to the underlying query hook.
    */
-  queryOptions?: UseQueryOptions;
+  queryOptions?: Omit<
+    UseQueryOptions<FetchTableSchemaReturnType>,
+    'queryKey' | 'queryFn'
+  >;
 }
 
 /**
@@ -69,7 +72,7 @@ export default function useTableSchemaQuery(
     },
     retry: false,
     keepPreviousData: true,
-    ...(queryOptions && { queryOptions }),
+    ...queryOptions,
     enabled:
       isNotEmptyValue(project) && project?.config?.hasura.adminSecret && isReady
         ? queryOptions?.enabled

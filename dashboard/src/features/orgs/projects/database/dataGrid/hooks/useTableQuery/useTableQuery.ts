@@ -13,7 +13,10 @@ export interface UseDataBrowserDatabaseQueryOptions
   /**
    * Props passed to the underlying query hook.
    */
-  queryOptions?: UseQueryOptions;
+  queryOptions?: Omit<
+    UseQueryOptions<FetchTableReturnType>,
+    'queryKey' | 'queryFn'
+  >;
 }
 
 /**
@@ -65,7 +68,7 @@ export default function useTableQuery(
     },
     retry: false,
     keepPreviousData: true,
-    ...(queryOptions && { queryOptions }),
+    ...queryOptions,
     enabled:
       isNotEmptyValue(project) && project?.config?.hasura.adminSecret && isReady
         ? queryOptions?.enabled
