@@ -58,9 +58,7 @@ export default function EventTriggerView({
       source: dataSource,
     }),
     queryOptions: {
-      queryOptions: {
-        enabled: isEventsTab && !!triggerName,
-      },
+      enabled: isEventsTab && !!triggerName,
     },
     resetKey: `${dataSource}:${triggerName}`,
   });
