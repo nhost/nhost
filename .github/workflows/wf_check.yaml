@@ -92,4 +92,4 @@ jobs:
       uses: ./.github/actions/cache-nix
       with:
         NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      if: always()
+      if: ${{ always() && steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
