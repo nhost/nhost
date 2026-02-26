@@ -29,24 +29,4 @@ runs:
           keep-env-derivations = true
           keep-outputs = true
 
-    - name: Restore and save Nix store
-      uses: nix-community/cache-nix-action@v6
-      with:
-        primary-key: nix-${{ inputs.NAME }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-        restore-prefixes-first-match: nix-${{ inputs.NAME }}-${{ runner.os }}-${{ runner.arch }}-
-        gc-max-store-size-linux: 2G
-        purge: true
-        purge-prefixes: nix-${{ inputs.NAME }}-
-        purge-created: 0
-        purge-last-accessed: 0
-        purge-primary-key: never
-
-    # - name: "Verify if nixops is pre-built"
-    #   id: verify-nixops-build
-    #   run: |
-    #     export drvPath=$(make build-nixops-dry-run)
-    #     echo "Derivation path: $drvPath"
-    #     nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
-    #       || (echo "Wait until nixops is already built and cached and run again" && exit 1)
-    #   if: ${{ inputs.NAME != 'nixops' }}
 
