@@ -43,9 +43,9 @@ export default function useViewDefinitionQuery(
   } = router;
   const { project } = useProject();
 
-  const query = useQuery<FetchViewDefinitionReturnType>(
+  const query = useQuery<FetchViewDefinitionReturnType>({
     queryKey,
-    () => {
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -62,17 +62,15 @@ export default function useViewDefinitionQuery(
             : customAdminSecret || project!.config!.hasura.adminSecret,
       });
     },
-    {
-      ...queryOptions,
-      enabled:
-        project?.config?.hasura.adminSecret &&
-        isReady &&
-        (customSchema || schemaSlug) &&
-        (customTable || tableSlug)
-          ? queryOptions?.enabled
-          : false,
-    },
-  );
+    ...queryOptions,
+    enabled:
+      project?.config?.hasura.adminSecret &&
+      isReady &&
+      (customSchema || schemaSlug) &&
+      (customTable || tableSlug)
+        ? queryOptions?.enabled
+        : false,
+  });
 
   return query;
 }

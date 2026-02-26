@@ -7,16 +7,24 @@ import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { Badge } from '@/components/ui/v3/badge';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useDeleteDatabaseObjectWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteDatabaseObjectMutation';
+import type {
+  DatabaseObjectType,
+  DatabaseObjectViewModel,
+  TableLikeObjectType,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { TableLikeObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
-const objectTypeLabels: Record<string, { label: string; title: string }> = {
+const deleteObjectTypeLabels: Record<
+  DatabaseObjectType,
+  { label: string; title: string }
+> = {
   'MATERIALIZED VIEW': {
     label: 'materialized view',
     title: 'Delete Materialized View',
   },
   VIEW: { label: 'view', title: 'Delete View' },
-  'BASE TABLE': { label: 'table', title: 'Delete Table' },
+  'ORDINARY TABLE': { label: 'table', title: 'Delete Table' },
+  'FOREIGN TABLE': { label: 'foreign table', title: 'Delete Table' },
 };
 
 const CreateTableForm = dynamic(
@@ -85,19 +93,13 @@ const EditRelationshipsForm = dynamic(
   },
 );
 
-export interface DatabaseObject {
-  table_schema: string;
-  table_name: string;
-  object_type: string;
-}
-
 export interface UseDataBrowserActionsParams {
   dataSourceSlug: string;
   schemaSlug: string | undefined;
   tableSlug: string | undefined;
   selectedSchema: string;
   refetch: () => Promise<unknown>;
-  allObjects: DatabaseObject[];
+  allObjects: DatabaseObjectViewModel[];
 }
 
 function getObjectTypeUrlSegment(_objectType: string): 'tables' {
@@ -144,8 +146,7 @@ export function useDataBrowserActions({
         // We go to the next table if available or to the previous one if the
         // current one is the last one in the list
         const currentTableIndex = allObjects.findIndex(
-          ({ table_schema: tableSchema, table_name: tableName }) =>
-            `${tableSchema}.${tableName}` === tablePath,
+          (obj) => `${obj.schema}.${obj.name}` === tablePath,
         );
 
         nextTableIndex = currentTableIndex + 1;
@@ -182,11 +183,9 @@ export function useDataBrowserActions({
       }
 
       if (schema === schemaSlug && table === tableSlug) {
-        const objectTypeSegment = getObjectTypeUrlSegment(
-          nextTable.object_type,
-        );
+        const objectTypeSegment = getObjectTypeUrlSegment(nextTable.objectType);
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextTable.table_schema}/${objectTypeSegment}/${nextTable.table_name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextTable.schema}/${objectTypeSegment}/${nextTable.name}`,
         );
       }
     } catch {
@@ -203,7 +202,8 @@ export function useDataBrowserActions({
     objectType: TableLikeObjectType,
   ) {
     const { label: objectLabel, title } =
-      objectTypeLabels[objectType] ?? objectTypeLabels['BASE TABLE'];
+      deleteObjectTypeLabels[objectType] ??
+      deleteObjectTypeLabels['ORDINARY TABLE'];
 
     openAlertDialog({
       title,
@@ -255,7 +255,7 @@ export function useDataBrowserActions({
     });
   }
 
-  function handleEditSettingsClick(
+  function handleEditGraphQLSettingsClick(
     schema: string,
     table: string,
     disabled?: boolean,
@@ -284,10 +284,6 @@ export function useDataBrowserActions({
   }
 
   function openEditTableDrawer(schema: string, tableName: string) {
-    const tableObject = allObjects.find(
-      (obj) => obj.table_schema === schema && obj.table_name === tableName,
-    );
-
     openDrawer({
       title: 'Edit Table',
       component: (
@@ -299,28 +295,32 @@ export function useDataBrowserActions({
             await refetch();
           }}
           schema={schema}
-          table={tableObject || { table_schema: schema, table_name: tableName }}
+          tableName={tableName}
         />
       ),
     });
   }
 
-  function openEditViewDrawer(schema: string, table: DatabaseObject) {
-    const isMaterializedView = table.object_type === 'MATERIALIZED VIEW';
+  function openEditViewDrawer(
+    schema: string,
+    tableName: string,
+    objectType: TableLikeObjectType,
+  ) {
+    const isMaterializedView = objectType === 'MATERIALIZED VIEW';
     openDrawer({
       title: isMaterializedView
         ? 'Materialized View Definition'
         : 'View Definition',
       component: (
         <EditViewForm
-          onSubmit={async (tableName) => {
+          onSubmit={async (name) => {
             await queryClient.refetchQueries({
-              queryKey: [`${dataSourceSlug}.${schema}.${tableName}`],
+              queryKey: [`${dataSourceSlug}.${schema}.${name}`],
             });
             await refetch();
           }}
           schema={schema}
-          table={table}
+          tableName={tableName}
         />
       ),
     });
@@ -362,7 +362,7 @@ export function useDataBrowserActions({
     setSidebarMenuTable,
     handleDeleteDatabaseObjectClick,
     handleEditPermissionClick,
-    handleEditSettingsClick,
+    handleEditGraphQLSettingsClick,
     handleRelationshipsClick,
     openEditTableDrawer,
     openEditViewDrawer,

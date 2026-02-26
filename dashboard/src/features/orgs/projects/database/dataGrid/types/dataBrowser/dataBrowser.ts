@@ -200,10 +200,18 @@ export interface TableLikeObject extends Record<string, unknown> {
 }
 
 export type TableLikeObjectType =
-  | 'BASE TABLE'
+  | 'ORDINARY TABLE'
   | 'VIEW'
   | 'MATERIALIZED VIEW'
   | 'FOREIGN TABLE';
+
+export type DatabaseObjectType = TableLikeObjectType;
+
+export interface DatabaseObjectViewModel {
+  schema: string;
+  name: string;
+  objectType: DatabaseObjectType;
+}
 
 /**
  * Represents an object that can be used to set up ordering in an SQL query.

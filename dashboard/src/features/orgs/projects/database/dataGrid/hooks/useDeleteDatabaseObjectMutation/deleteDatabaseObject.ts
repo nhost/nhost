@@ -9,7 +9,7 @@ import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGr
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 
 export const typeToQuery: Record<TableLikeObjectType, string> = {
-  'BASE TABLE': 'TABLE',
+  'ORDINARY TABLE': 'TABLE',
   VIEW: 'VIEW',
   'MATERIALIZED VIEW': 'MATERIALIZED VIEW',
   'FOREIGN TABLE': 'FOREIGN TABLE',
