@@ -21,6 +21,7 @@ import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
+  DatabaseObjectType,
   HasuraMetadataPermission,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -29,6 +30,33 @@ import type { DialogFormProps } from '@/types/common';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import RolePermissionEditorForm from './RolePermissionEditorForm';
 import RolePermissionsRow from './RolePermissionsRow';
+
+const ALL_ACTIONS: DatabaseAction[] = ['insert', 'select', 'update', 'delete'];
+const SELECT_ONLY: DatabaseAction[] = ['select'];
+
+const actionLabels: Record<DatabaseAction, string> = {
+  insert: 'Insert',
+  select: 'Select',
+  update: 'Update',
+  delete: 'Delete',
+};
+
+const gridColsMap: Record<number, string> = {
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  5: 'grid-cols-5',
+};
+
+function getAllowedActions(objectType?: DatabaseObjectType): DatabaseAction[] {
+  if (
+    objectType === 'VIEW' ||
+    objectType === 'MATERIALIZED VIEW' ||
+    objectType === 'FOREIGN TABLE'
+  ) {
+    return SELECT_ONLY;
+  }
+  return ALL_ACTIONS;
+}
 
 export interface EditPermissionsFormProps extends DialogFormProps {
   /**
@@ -44,6 +72,10 @@ export interface EditPermissionsFormProps extends DialogFormProps {
    */
   table: string;
   /**
+   * The type of database object (table, view, etc.).
+   */
+  objectType?: DatabaseObjectType;
+  /**
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
@@ -53,11 +85,13 @@ export default function EditPermissionsForm({
   disabled,
   schema,
   table,
+  objectType,
   onCancel,
   location,
 }: EditPermissionsFormProps) {
   const [role, setRole] = useState<string>();
   const [action, setAction] = useState<DatabaseAction>();
+  const allowedActions = getAllowedActions(objectType);
 
   const { project } = useProject();
   const { org } = useCurrentOrg();
@@ -243,24 +277,19 @@ export default function EditPermissionsForm({
           <TableContainer sx={{ backgroundColor: 'background.paper' }}>
             <Table>
               <TableHead className="block">
-                <TableRow className="grid grid-cols-5 items-center">
+                <TableRow
+                  className={`grid ${gridColsMap[allowedActions.length + 1] || 'grid-cols-5'} items-center`}
+                >
                   <TableCell className="border-b-0 p-2">Role</TableCell>
 
-                  <TableCell className="border-b-0 p-2 text-center">
-                    Insert
-                  </TableCell>
-
-                  <TableCell className="border-b-0 p-2 text-center">
-                    Select
-                  </TableCell>
-
-                  <TableCell className="border-b-0 p-2 text-center">
-                    Update
-                  </TableCell>
-
-                  <TableCell className="border-b-0 p-2 text-center">
-                    Delete
-                  </TableCell>
+                  {allowedActions.map((actionKey) => (
+                    <TableCell
+                      key={actionKey}
+                      className="border-b-0 p-2 text-center"
+                    >
+                      {actionLabels[actionKey]}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
 
@@ -268,43 +297,50 @@ export default function EditPermissionsForm({
                 <RolePermissionsRow
                   name="admin"
                   disabled
-                  accessLevels={{
-                    insert: 'full',
-                    select: 'full',
-                    update: 'full',
-                    delete: 'full',
-                  }}
+                  actions={allowedActions}
+                  accessLevels={
+                    Object.fromEntries(
+                      allowedActions.map((a) => [a, 'full' as const]),
+                    ) as Record<DatabaseAction, DatabaseAccessLevel>
+                  }
                 />
 
                 {availableRoles.map((currentRole, index) => {
-                  const insertPermissions =
-                    metadataForTable?.insert_permissions?.find(
-                      ({ role: permissionRole }) =>
-                        permissionRole === currentRole,
-                    );
-
-                  const selectPermissions =
-                    metadataForTable?.select_permissions?.find(
-                      ({ role: permissionRole }) =>
-                        permissionRole === currentRole,
-                    );
-
-                  const updatePermissions =
-                    metadataForTable?.update_permissions?.find(
-                      ({ role: permissionRole }) =>
-                        permissionRole === currentRole,
-                    );
-
-                  const deletePermissions =
-                    metadataForTable?.delete_permissions?.find(
-                      ({ role: permissionRole }) =>
-                        permissionRole === currentRole,
-                    );
+                  const permissionsByAction: Record<
+                    DatabaseAction,
+                    ReturnType<typeof getAccessLevel>
+                  > = {
+                    insert: getAccessLevel(
+                      metadataForTable?.insert_permissions?.find(
+                        ({ role: permissionRole }) =>
+                          permissionRole === currentRole,
+                      )?.permission,
+                    ),
+                    select: getAccessLevel(
+                      metadataForTable?.select_permissions?.find(
+                        ({ role: permissionRole }) =>
+                          permissionRole === currentRole,
+                      )?.permission,
+                    ),
+                    update: getAccessLevel(
+                      metadataForTable?.update_permissions?.find(
+                        ({ role: permissionRole }) =>
+                          permissionRole === currentRole,
+                      )?.permission,
+                    ),
+                    delete: getAccessLevel(
+                      metadataForTable?.delete_permissions?.find(
+                        ({ role: permissionRole }) =>
+                          permissionRole === currentRole,
+                      )?.permission,
+                    ),
+                  };
 
                   return (
                     <RolePermissionsRow
                       name={currentRole}
                       key={currentRole}
+                      actions={allowedActions}
                       className={twMerge(
                         index === availableRoles.length - 1 && 'border-b-0',
                       )}
@@ -312,12 +348,7 @@ export default function EditPermissionsForm({
                         setRole(currentRole);
                         setAction(selectedAction);
                       }}
-                      accessLevels={{
-                        insert: getAccessLevel(insertPermissions?.permission),
-                        select: getAccessLevel(selectPermissions?.permission),
-                        update: getAccessLevel(updatePermissions?.permission),
-                        delete: getAccessLevel(deletePermissions?.permission),
-                      }}
+                      accessLevels={permissionsByAction}
                     />
                   );
                 })}

@@ -22,10 +22,14 @@ import {
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  DatabaseObjectType,
+  DatabaseObjectViewModel,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
+import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -57,6 +61,10 @@ function DataBrowserSidebarContent({
     dataSource: dataSourceSlug as string,
   });
 
+  const { data: enumTablePaths } = useGetEnumsSet({
+    dataSource: dataSourceSlug as string,
+  });
+
   const { data, status, error, refetch } = useDatabaseQuery([
     dataSourceSlug as string,
   ]);
@@ -65,36 +73,6 @@ function DataBrowserSidebarContent({
     schemas: [],
     tableLikeObjects: [],
   };
-
-  // Get metadata to detect enum tables
-  const { data: metadataData } = useMetadataQuery(
-    ['export-metadata', dataSourceSlug as string],
-    {
-      queryOptions: {
-        enabled: !!dataSourceSlug && !!project?.config?.hasura.adminSecret,
-      },
-    },
-  );
-
-  // Create a Set of enum table paths for quick lookup
-  const enumTablePaths = new Set<string>();
-  if (metadataData?.tables) {
-    metadataData.tables.forEach((table) => {
-      // biome-ignore lint/suspicious/noExplicitAny: Metadata table may have is_enum property
-      if ((table as any).is_enum) {
-        enumTablePaths.add(`${table.table.schema}.${table.table.name}`);
-      }
-    });
-  }
-
-  /**
-   * Maps database object type to URL segment
-   */
-  function getObjectTypeUrlSegment(
-    _objectType: string,
-  ): 'tables' | 'views' | 'functions' {
-    return 'tables';
-  }
 
   const [selectedSchema, setSelectedSchema] = useState<string>('');
   const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);
@@ -130,10 +108,11 @@ function DataBrowserSidebarContent({
       objectType: obj.table_type || 'ORDINARY TABLE',
     }))
     .sort((a, b) => {
-      const typeOrder: Record<string, number> = {
+      const typeOrder: Record<DatabaseObjectType, number> = {
         'ORDINARY TABLE': 0,
-        'MATERIALIZED VIEW': 1,
-        VIEW: 2,
+        'FOREIGN TABLE': 1,
+        'MATERIALIZED VIEW': 2,
+        VIEW: 3,
       };
 
       const orderA = typeOrder[a.objectType] ?? 99;
@@ -147,10 +126,10 @@ function DataBrowserSidebarContent({
     });
 
   const {
-    removableTable,
-    optimisticlyRemovedTable,
-    sidebarMenuTable,
-    setSidebarMenuTable,
+    removableObject,
+    optimisticlyRemovedObject,
+    sidebarMenuObject,
+    setSidebarMenuObject,
     handleDeleteDatabaseObjectClick,
     handleEditPermissionClick,
     handleEditGraphQLSettingsClick,
@@ -169,7 +148,7 @@ function DataBrowserSidebarContent({
 
   const displayedObjects = allObjectsInSelectedSchema.filter(
     ({ schema: tableSchema, name: tableName }) =>
-      `${tableSchema}.${tableName}` !== optimisticlyRemovedTable,
+      `${tableSchema}.${tableName}` !== optimisticlyRemovedObject,
   );
 
   if (status === 'loading') {
@@ -252,12 +231,12 @@ function DataBrowserSidebarContent({
                 const isSelected =
                   databaseObject.schema === schemaSlug &&
                   databaseObject.name === tableSlug;
-                const isSidebarMenuOpen = sidebarMenuTable === objectPath;
+                const isSidebarMenuOpen = sidebarMenuObject === objectPath;
                 const isView = ['MATERIALIZED VIEW', 'VIEW'].includes(
                   databaseObject.objectType,
                 );
                 const tablePath = `${databaseObject.schema}.${databaseObject.name}`;
-                const isEnum = enumTablePaths.has(tablePath);
+                const isEnum = Boolean(enumTablePaths?.has(tablePath));
                 const isUntracked = !trackedTablesSet?.has(tablePath);
                 const ObjectIcon = getDatabaseObjectIcon(
                   databaseObject.objectType,
@@ -271,7 +250,7 @@ function DataBrowserSidebarContent({
                           asChild
                           variant="link"
                           size="sm"
-                          disabled={objectPath === removableTable}
+                          disabled={objectPath === removableObject}
                           className={cn(
                             'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
                             {
@@ -310,9 +289,9 @@ function DataBrowserSidebarContent({
                                 schema={databaseObject.schema}
                                 dataSource={dataSourceSlug as string}
                                 open={isSidebarMenuOpen}
-                                onOpen={() => setSidebarMenuTable(objectPath)}
-                                onClose={() => setSidebarMenuTable(undefined)}
-                                disabled={objectPath === removableTable}
+                                onOpen={() => setSidebarMenuObject(objectPath)}
+                                onClose={() => setSidebarMenuObject(undefined)}
+                                disabled={objectPath === removableObject}
                                 className={cn(
                                   'relative z-10 opacity-0 group-hover:opacity-100',
                                   {
@@ -328,12 +307,15 @@ function DataBrowserSidebarContent({
                                     databaseObject.schema,
                                     databaseObject.name,
                                     true,
+                                    databaseObject.objectType,
                                   )
                                 }
                                 onEditPermissions={() =>
                                   handleEditPermissionClick(
                                     databaseObject.schema,
                                     databaseObject.name,
+                                    undefined,
+                                    databaseObject.objectType,
                                   )
                                 }
                                 onEditView={() =>
@@ -383,10 +365,10 @@ function DataBrowserSidebarContent({
                                 tableName={databaseObject.name}
                                 schema={databaseObject.schema}
                                 dataSource={dataSourceSlug as string}
-                                disabled={objectPath === removableTable}
+                                disabled={objectPath === removableObject}
                                 open={isSidebarMenuOpen}
-                                onOpen={() => setSidebarMenuTable(objectPath)}
-                                onClose={() => setSidebarMenuTable(undefined)}
+                                onOpen={() => setSidebarMenuObject(objectPath)}
+                                onClose={() => setSidebarMenuObject(undefined)}
                                 className={cn(
                                   'relative z-10 opacity-0 group-hover:opacity-100',
                                   {
@@ -402,6 +384,7 @@ function DataBrowserSidebarContent({
                                     databaseObject.schema,
                                     databaseObject.name,
                                     true,
+                                    databaseObject.objectType,
                                   )
                                 }
                                 onViewGraphQLSettings={() =>
@@ -428,6 +411,8 @@ function DataBrowserSidebarContent({
                                   handleEditPermissionClick(
                                     databaseObject.schema,
                                     databaseObject.name,
+                                    undefined,
+                                    databaseObject.objectType,
                                   )
                                 }
                                 onEditGraphQLSettings={() => {

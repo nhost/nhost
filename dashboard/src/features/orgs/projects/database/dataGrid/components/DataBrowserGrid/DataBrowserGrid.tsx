@@ -207,13 +207,13 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     },
   });
 
-  const isViewOrMaterializedView = (
-    databaseData?.tableLikeObjects ?? []
-  ).some(
+  const isReadOnlyObject = (databaseData?.tableLikeObjects ?? []).some(
     (obj) =>
       obj.table_schema === schemaSlug &&
       obj.table_name === tableSlug &&
-      (obj.table_type === 'VIEW' || obj.table_type === 'MATERIALIZED VIEW'),
+      (obj.table_type === 'VIEW' ||
+        obj.table_type === 'MATERIALIZED VIEW' ||
+        obj.table_type === 'FOREIGN TABLE'),
   );
 
   const { data, status, error, refetch } = useTableQuery(
@@ -427,16 +427,14 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       }
       loading={status === 'loading'}
       className="pb-17 sm:pb-0"
-      onInsertRow={isViewOrMaterializedView ? undefined : handleInsertRowClick}
+      onInsertRow={isReadOnlyObject ? undefined : handleInsertRowClick}
       options={{
         manualSorting: true,
         enableMultiSort: false,
       }}
       controls={
         <DataBrowserGridControls
-          onInsertRowClick={
-            isViewOrMaterializedView ? undefined : handleInsertRowClick
-          }
+          onInsertRowClick={isReadOnlyObject ? undefined : handleInsertRowClick}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
             totalPages: Math.max(numberOfPages, 1),

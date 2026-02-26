@@ -12,7 +12,15 @@ import type {
   DatabaseObjectViewModel,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
 import { isNotEmptyValue } from '@/lib/utils';
+
+const permissionTypeLabels: Record<DatabaseObjectType, string> = {
+  'ORDINARY TABLE': 'Table',
+  VIEW: 'View',
+  'MATERIALIZED VIEW': 'Materialized View',
+  'FOREIGN TABLE': 'Foreign Table',
+};
 
 const deleteObjectTypeLabels: Record<
   DatabaseObjectType,
@@ -102,10 +110,6 @@ export interface UseDataBrowserActionsParams {
   allObjects: DatabaseObjectViewModel[];
 }
 
-function getObjectTypeUrlSegment(_objectType: string): 'tables' {
-  return 'tables';
-}
-
 export function useDataBrowserActions({
   dataSourceSlug,
   schemaSlug,
@@ -124,41 +128,41 @@ export function useDataBrowserActions({
   const { mutateAsync: deleteDatabaseObject } =
     useDeleteDatabaseObjectWithToastMutation();
 
-  const [removableTable, setRemovableTable] = useState<string>();
-  const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
+  const [removableObject, setRemovableObject] = useState<string>();
+  const [optimisticlyRemovedObject, setOptimisticlyRemovedObject] =
     useState<string>();
-  const [sidebarMenuTable, setSidebarMenuTable] = useState<string>();
+  const [sidebarMenuObject, setSidebarMenuObject] = useState<string>();
 
   async function handleDeleteDatabaseObjectConfirmation(
     schema: string,
     table: string,
     type: TableLikeObjectType,
   ) {
-    const tablePath = `${schema}.${table}`;
+    const objectPath = `${schema}.${table}`;
 
     // We are greying out and disabling it in the sidebar
-    setRemovableTable(tablePath);
+    setRemovableObject(objectPath);
 
     try {
-      let nextTableIndex: number | null = null;
+      let nextObjectIndex: number | null = null;
 
       if (isNotEmptyValue(allObjects) && allObjects.length > 1) {
-        // We go to the next table if available or to the previous one if the
+        // We go to the next object if available or to the previous one if the
         // current one is the last one in the list
-        const currentTableIndex = allObjects.findIndex(
-          (obj) => `${obj.schema}.${obj.name}` === tablePath,
+        const currentObjectIndex = allObjects.findIndex(
+          (obj) => `${obj.schema}.${obj.name}` === objectPath,
         );
 
-        nextTableIndex = currentTableIndex + 1;
+        nextObjectIndex = currentObjectIndex + 1;
 
-        if (currentTableIndex + 1 === allObjects.length) {
-          nextTableIndex = currentTableIndex - 1;
+        if (currentObjectIndex + 1 === allObjects.length) {
+          nextObjectIndex = currentObjectIndex - 1;
         }
       }
 
-      const nextTable =
-        isNotEmptyValue(nextTableIndex) && isNotEmptyValue(allObjects)
-          ? allObjects[nextTableIndex]
+      const nextObject =
+        isNotEmptyValue(nextObjectIndex) && isNotEmptyValue(allObjects)
+          ? allObjects[nextObjectIndex]
           : null;
 
       await deleteDatabaseObject({ schema, table, type });
@@ -166,15 +170,15 @@ export function useDataBrowserActions({
         queryKey: [`${dataSourceSlug}.${schema}.${table}`],
       });
 
-      // Note: At this point we can optimisticly assume that the table was
+      // Note: At this point we can optimisticly assume that the object was
       // removed, so we can improve the UX by removing it from the list right
       // away, without waiting for the refetch to succeed.
-      setOptimisticlyRemovedTable(tablePath);
+      setOptimisticlyRemovedObject(objectPath);
       await refetch();
 
       // If this was the last table in the schema, we go back to the data
       // browser's main screen
-      if (!nextTable) {
+      if (!nextObject) {
         await router.push(
           `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
         );
@@ -183,16 +187,18 @@ export function useDataBrowserActions({
       }
 
       if (schema === schemaSlug && table === tableSlug) {
-        const objectTypeSegment = getObjectTypeUrlSegment(nextTable.objectType);
+        const objectTypeSegment = getObjectTypeUrlSegment(
+          nextObject.objectType,
+        );
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextTable.schema}/${objectTypeSegment}/${nextTable.name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextObject.schema}/${objectTypeSegment}/${nextObject.name}`,
         );
       }
     } catch {
       // TODO: Introduce logging
     } finally {
-      setRemovableTable(undefined);
-      setOptimisticlyRemovedTable(undefined);
+      setRemovableObject(undefined);
+      setOptimisticlyRemovedObject(undefined);
     }
   }
 
@@ -226,12 +232,16 @@ export function useDataBrowserActions({
     schema: string,
     table: string,
     disabled?: boolean,
+    objectType?: DatabaseObjectType,
   ) {
+    const typeLabel = objectType ? permissionTypeLabels[objectType] : 'Table';
+
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
-          Permissions
+          Permissions for
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
+          {typeLabel}
           <Badge
             variant="secondary"
             className="bg-[#ebf3ff] text-primary dark:bg-[#1b2534]"
@@ -245,6 +255,7 @@ export function useDataBrowserActions({
           disabled={disabled}
           schema={schema}
           table={table}
+          objectType={objectType}
         />
       ),
       props: {
@@ -356,10 +367,10 @@ export function useDataBrowserActions({
   }
 
   return {
-    removableTable,
-    optimisticlyRemovedTable,
-    sidebarMenuTable,
-    setSidebarMenuTable,
+    removableObject,
+    optimisticlyRemovedObject,
+    sidebarMenuObject,
+    setSidebarMenuObject,
     handleDeleteDatabaseObjectClick,
     handleEditPermissionClick,
     handleEditGraphQLSettingsClick,

@@ -1,10 +1,14 @@
-import { List, Table2, View } from 'lucide-react';
+import { List, ScanEye, Table2, View } from 'lucide-react';
+import type { DatabaseObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export default function getDatabaseObjectIcon(
-  objectType: string,
+  objectType: DatabaseObjectType,
   isEnum: boolean,
 ) {
-  if (objectType === 'VIEW' || objectType === 'MATERIALIZED VIEW') {
+  if (objectType === 'VIEW') {
+    return ScanEye;
+  }
+  if (objectType === 'MATERIALIZED VIEW') {
     return View;
   }
   if (isEnum) {
