@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import {
   Tabs,
   TabsContent,
@@ -15,15 +16,7 @@ import useGetEventLogsQuery from '@/features/orgs/projects/events/event-triggers
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import { isEmptyValue } from '@/lib/utils';
 
-interface EventTriggerViewProps {
-  tab: string;
-  onTabChange: (tab: string) => void;
-}
-
-export default function EventTriggerView({
-  tab,
-  onTabChange,
-}: EventTriggerViewProps) {
+export default function EventTriggerView() {
   const router = useRouter();
 
   const { eventTriggerSlug } = router.query;
@@ -34,6 +27,7 @@ export default function EventTriggerView({
     (trigger) => trigger.name === eventTriggerSlug,
   );
 
+  const [tab, setTab] = useState('overview');
   const isEventsTab = tab === 'pending-processed-events';
   const triggerName = eventTrigger?.name ?? '';
   const dataSource = eventTrigger?.dataSource ?? '';
@@ -103,11 +97,7 @@ export default function EventTriggerView({
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
-      <Tabs
-        value={tab}
-        onValueChange={onTabChange}
-        className="flex h-full flex-col"
-      >
+      <Tabs value={tab} onValueChange={setTab} className="flex h-full flex-col">
         <div className="sticky top-0 z-10 border-b-1 bg-background">
           <div className="p-6">
             <h1 className="mb-1 font-semibold text-gray-900 text-xl dark:text-gray-100">
