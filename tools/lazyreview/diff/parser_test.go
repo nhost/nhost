@@ -450,6 +450,112 @@ func TestHunkPatch_OutOfRange(t *testing.T) {
 	}
 }
 
+func TestParse_ModeOnlyChange(t *testing.T) {
+	t.Parallel()
+
+	raw := strings.Join([]string{
+		"diff --git a/script.sh b/script.sh",
+		"old mode 100644",
+		"new mode 100755",
+	}, "\n")
+
+	files := diff.Parse(raw)
+
+	// Mode-only changes have no --- / +++ lines so the path stays empty
+	// and the file is not included in the output.
+	if len(files) != 0 {
+		t.Errorf("expected 0 files for mode-only change, got %d", len(files))
+	}
+}
+
+func TestParse_NoNewlineMarker(t *testing.T) {
+	t.Parallel()
+
+	raw := strings.Join([]string{
+		"diff --git a/main.go b/main.go",
+		"index 1234567..abcdefg 100644",
+		"--- a/main.go",
+		"+++ b/main.go",
+		"@@ -1,1 +1,2 @@",
+		"-old line",
+		"+new line",
+		`\ No newline at end of file`,
+	}, "\n")
+
+	files := diff.Parse(raw)
+	if len(files) != 1 {
+		t.Fatalf("expected 1 file, got %d", len(files))
+	}
+
+	h := files[0].Hunks[0]
+
+	// The "\ No newline at end of file" marker is classified as a Context line
+	if len(h.Lines) != 3 {
+		t.Errorf("expected 3 lines (including no-newline marker), got %d", len(h.Lines))
+	}
+
+	lastLine := h.Lines[len(h.Lines)-1]
+	if lastLine.Type != diff.Context {
+		t.Errorf("no-newline marker should be classified as Context, got %d", lastLine.Type)
+	}
+}
+
+func TestHunkPatch_NegativeIndex(t *testing.T) {
+	t.Parallel()
+
+	raw := strings.Join([]string{
+		"diff --git a/main.go b/main.go",
+		"index 1234567..abcdefg 100644",
+		"--- a/main.go",
+		"+++ b/main.go",
+		"@@ -1,1 +1,1 @@",
+		"-old",
+		"+new",
+	}, "\n")
+
+	patch := diff.HunkPatch(raw, -1)
+	if patch != "" {
+		t.Errorf("expected empty patch for negative index, got %q", patch)
+	}
+}
+
+func TestHunkPatch_ThirdHunk(t *testing.T) {
+	t.Parallel()
+
+	raw := strings.Join([]string{
+		"diff --git a/main.go b/main.go",
+		"index 1234567..abcdefg 100644",
+		"--- a/main.go",
+		"+++ b/main.go",
+		"@@ -1,1 +1,1 @@",
+		"-first",
+		"+first_new",
+		"@@ -10,1 +10,1 @@",
+		"-second",
+		"+second_new",
+		"@@ -20,1 +20,1 @@",
+		"-third",
+		"+third_new",
+	}, "\n")
+
+	patch := diff.HunkPatch(raw, 2)
+	if patch == "" {
+		t.Fatal("expected non-empty patch for third hunk")
+	}
+
+	if !strings.Contains(patch, "@@ -20,1 +20,1 @@") {
+		t.Error("patch should contain third hunk header")
+	}
+
+	if !strings.Contains(patch, "-third") {
+		t.Error("patch should contain third hunk content")
+	}
+
+	if strings.Contains(patch, "-first") || strings.Contains(patch, "-second") {
+		t.Error("patch should not contain other hunks' content")
+	}
+}
+
 func TestParse_SingleLineRange(t *testing.T) {
 	t.Parallel()
 

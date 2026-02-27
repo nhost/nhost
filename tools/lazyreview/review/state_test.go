@@ -444,6 +444,167 @@ func TestHash(t *testing.T) {
 	}
 }
 
+func TestNewTransientState(t *testing.T) {
+	t.Parallel()
+
+	s := review.NewTransientState()
+
+	if s.Base != "" {
+		t.Errorf("expected empty base, got %s", s.Base)
+	}
+
+	if s.Files == nil {
+		t.Error("Files map should not be nil")
+	}
+
+	if len(s.Files) != 0 {
+		t.Errorf("expected 0 files, got %d", len(s.Files))
+	}
+}
+
+func TestNewTransientState_SaveFails(t *testing.T) {
+	t.Parallel()
+
+	s := review.NewTransientState()
+
+	err := s.Save()
+	if err == nil {
+		t.Error("expected error when saving transient state with empty path")
+	}
+}
+
+func TestLoadCorruptedStateFile(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	stateDir := filepath.Join(tmpDir, ".lazyreview")
+	if err := os.MkdirAll(stateDir, 0o755); err != nil {
+		t.Fatalf("failed to create state dir: %v", err)
+	}
+
+	corrupted := filepath.Join(stateDir, "branch.json")
+	if err := os.WriteFile(corrupted, []byte("not valid json{{{"), 0o600); err != nil {
+		t.Fatalf("failed to write corrupted file: %v", err)
+	}
+
+	_, err := review.Load(tmpDir, "branch", "main")
+	if err == nil {
+		t.Error("expected error for corrupted state file")
+	}
+}
+
+func TestReconcile_MultipleHunksPerFile(t *testing.T) {
+	t.Parallel()
+
+	s := review.NewTransientState()
+
+	files := []*diff.File{
+		{
+			Path: "multi.go",
+			Hunks: []*diff.Hunk{
+				{
+					Header:   "@@ -1,3 +1,3 @@",
+					OldStart: 1, OldCount: 3,
+					NewStart: 1, NewCount: 3,
+				},
+				{
+					Header:   "@@ -10,3 +10,3 @@",
+					OldStart: 10, OldCount: 3,
+					NewStart: 10, NewCount: 3,
+				},
+				{
+					Header:   "@@ -20,3 +20,3 @@",
+					OldStart: 20, OldCount: 3,
+					NewStart: 20, NewCount: 3,
+				},
+			},
+			RawDiff: "diff content for multi.go",
+		},
+	}
+
+	s.Reconcile(files)
+
+	hash := review.Hash("diff content for multi.go")
+
+	fs, ok := s.Files[hash]
+	if !ok {
+		t.Fatal("file not found in state")
+	}
+
+	if len(fs.Hunks) != 3 {
+		t.Fatalf("expected 3 hunks, got %d", len(fs.Hunks))
+	}
+
+	// Toggle first two hunks
+	s.ToggleHunkReviewed(hash, 0)
+	s.ToggleHunkReviewed(hash, 1)
+
+	if s.Files[hash].Reviewed {
+		t.Error("file should not be reviewed when only 2/3 hunks are reviewed")
+	}
+
+	// Toggle the last hunk
+	s.ToggleHunkReviewed(hash, 2)
+
+	if !s.Files[hash].Reviewed {
+		t.Error("file should be reviewed when all hunks are reviewed")
+	}
+}
+
+func TestReconcile_RemovesStaleFiles(t *testing.T) {
+	t.Parallel()
+
+	s := review.NewTransientState()
+
+	files := makeFiles("a.go", "b.go")
+	s.Reconcile(files)
+
+	if len(s.Files) != 2 {
+		t.Fatalf("expected 2 files, got %d", len(s.Files))
+	}
+
+	// Reconcile with only one file; the other should be removed
+	s.Reconcile(makeFiles("a.go"))
+
+	if len(s.Files) != 1 {
+		t.Fatalf("expected 1 file after reconcile, got %d", len(s.Files))
+	}
+}
+
+func TestReconcile_EmptyFiles(t *testing.T) {
+	t.Parallel()
+
+	s := review.NewTransientState()
+
+	files := makeFiles("a.go")
+	s.Reconcile(files)
+
+	if len(s.Files) != 1 {
+		t.Fatalf("expected 1 file, got %d", len(s.Files))
+	}
+
+	// Reconcile with empty list removes all files
+	s.Reconcile(nil)
+
+	if len(s.Files) != 0 {
+		t.Fatalf("expected 0 files after empty reconcile, got %d", len(s.Files))
+	}
+}
+
+func TestSetFilesReviewed_NonExistentHash(t *testing.T) {
+	t.Parallel()
+
+	s := review.NewTransientState()
+
+	// Should not panic
+	s.SetFilesReviewed([]string{"nonexistent1", "nonexistent2"}, true)
+
+	if len(s.Files) != 0 {
+		t.Errorf("expected 0 files, got %d", len(s.Files))
+	}
+}
+
 func TestIsHunkReviewed_Defaults(t *testing.T) {
 	t.Parallel()
 
