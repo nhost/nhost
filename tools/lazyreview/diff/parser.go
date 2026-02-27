@@ -70,6 +70,12 @@ func Parse(raw string) []*File {
 			continue
 		}
 
+		if strings.HasPrefix(line, "--- a/") && currentFile.Path == "" {
+			currentFile.Path = strings.TrimPrefix(line, "--- a/")
+
+			continue
+		}
+
 		if strings.HasPrefix(line, "+++ b/") {
 			currentFile.Path = strings.TrimPrefix(line, "+++ b/")
 

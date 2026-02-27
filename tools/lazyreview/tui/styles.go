@@ -56,8 +56,7 @@ func helpStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("6")).
-		Padding(1, 2).
-		Align(lipgloss.Center)
+		Padding(1, 2)
 }
 
 func hunkBorderReviewed() lipgloss.Style {
@@ -75,4 +74,16 @@ func hunkBorderActive() lipgloss.Style {
 func hunkBorderNormal() lipgloss.Style {
 	return lipgloss.NewStyle().
 		SetString("  ")
+}
+
+func dirExpandedIcon() string {
+	return lipgloss.NewStyle().Foreground(lipgloss.Color("245")).Render("▾")
+}
+
+func dirCollapsedIcon() string {
+	return lipgloss.NewStyle().Foreground(lipgloss.Color("245")).Render("▸")
+}
+
+func dirNameStyle() lipgloss.Style {
+	return lipgloss.NewStyle().Bold(true)
 }

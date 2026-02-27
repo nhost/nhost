@@ -13,7 +13,7 @@ const (
 )
 
 type Model struct {
-	FileList FileListModel
+	FileTree FileTreeModel
 	DiffView DiffViewModel
 	Help     HelpModel
 	State    *review.State
@@ -25,12 +25,12 @@ type Model struct {
 }
 
 func NewModel(files []*diff.File, hashes []string, state *review.State) Model {
-	fileList := NewFileListModel(files, hashes, state)
+	fileTree := NewFileTreeModel(files, hashes, state)
 	diffView := NewDiffViewModel(state)
 	help := NewHelpModel()
 
 	m := Model{
-		FileList: fileList,
+		FileTree: fileTree,
 		DiffView: diffView,
 		Help:     help,
 		State:    state,
@@ -83,33 +83,82 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:cyclop
 	case "tab":
 		m.toggleFocus()
 
-	case "enter", "l":
+	case "enter":
 		if m.Focus == panelFiles {
-			m.toggleFocus()
+			node := m.FileTree.SelectedNode()
+			if node != nil && node.IsDir {
+				m.FileTree.Expand()
+			} else {
+				m.toggleFocus()
+			}
 		}
 
-	case "a":
-		m.toggleCurrentFile()
+	case "l", "right":
+		if m.Focus == panelFiles {
+			node := m.FileTree.SelectedNode()
+			if node != nil && node.IsDir {
+				m.FileTree.Expand()
+			} else {
+				m.toggleFocus()
+			}
+		}
 
-	case " ":
+	case "h", "left":
+		if m.Focus == panelFiles {
+			m.FileTree.Collapse()
+			m.syncDiffToFile()
+		}
+
+	case "a", " ":
 		if m.Focus == panelDiff {
 			m.DiffView.ToggleCurrentHunk()
+			m.advanceAfterHunkToggle()
+		} else {
+			m.toggleCurrentNode()
+			m.FileTree.MoveDown()
+			m.syncDiffToFile()
 		}
 
 	case "j", "down":
-		m.handleDown()
+		if m.Focus == panelFiles {
+			m.FileTree.MoveDown()
+			m.syncDiffToFile()
+		} else {
+			m.DiffView.NextHunk()
+		}
 
 	case "k", "up":
-		m.handleUp()
+		if m.Focus == panelFiles {
+			m.FileTree.MoveUp()
+			m.syncDiffToFile()
+		} else {
+			m.DiffView.PrevHunk()
+		}
+
+	case "g", "home":
+		if m.Focus == panelFiles {
+			m.FileTree.MoveToTop()
+			m.syncDiffToFile()
+		} else {
+			m.DiffView.ScrollToTop()
+		}
+
+	case "G", "end":
+		if m.Focus == panelFiles {
+			m.FileTree.MoveToBottom()
+			m.syncDiffToFile()
+		} else {
+			m.DiffView.ScrollToBottom()
+		}
 
 	case "J":
 		if m.Focus == panelDiff {
-			m.DiffView.NextHunk()
+			m.DiffView.ScrollDown()
 		}
 
 	case "K":
 		if m.Focus == panelDiff {
-			m.DiffView.PrevHunk()
+			m.DiffView.ScrollUp()
 		}
 	}
 
@@ -123,26 +172,25 @@ func (m *Model) toggleFocus() {
 		m.Focus = panelFiles
 	}
 
-	m.FileList.Focused = m.Focus == panelFiles
+	m.FileTree.Focused = m.Focus == panelFiles
 	m.DiffView.Focused = m.Focus == panelDiff
 }
 
-func (m *Model) handleDown() {
-	if m.Focus == panelFiles {
-		m.FileList.MoveDown()
-		m.syncDiffToFile()
-	} else {
-		m.DiffView.ScrollDown()
+func (m *Model) advanceAfterHunkToggle() {
+	if m.DiffView.File == nil {
+		return
 	}
-}
 
-func (m *Model) handleUp() {
-	if m.Focus == panelFiles {
-		m.FileList.MoveUp()
-		m.syncDiffToFile()
-	} else {
-		m.DiffView.ScrollUp()
+	// if there's a next hunk, move to it
+	if m.DiffView.ActiveHunk < len(m.DiffView.File.Hunks)-1 {
+		m.DiffView.NextHunk()
+
+		return
 	}
+
+	// last hunk: advance to next file
+	m.FileTree.MoveDown()
+	m.syncDiffToFile()
 }
 
 func (m *Model) syncDiffToFile() {
@@ -150,26 +198,77 @@ func (m *Model) syncDiffToFile() {
 		return
 	}
 
-	idx := m.FileList.Selected
-	m.DiffView.SetFile(m.Files[idx], m.Hashes[idx])
+	node := m.FileTree.SelectedNode()
+	if node == nil || node.IsDir {
+		return
+	}
+
+	idx := node.FileIndex
+	if idx >= 0 && idx < len(m.Files) {
+		m.DiffView.SetFile(m.Files[idx], m.Hashes[idx])
+	}
 }
 
-func (m *Model) toggleCurrentFile() {
+func (m *Model) toggleCurrentNode() { //nolint:cyclop
 	if len(m.Files) == 0 {
 		return
 	}
 
-	idx := m.FileList.Selected
-	m.State.ToggleFileReviewed(m.Hashes[idx])
+	node := m.FileTree.SelectedNode()
+	if node == nil {
+		return
+	}
+
+	if !node.IsDir {
+		if node.FileIndex >= 0 && node.FileIndex < len(m.Hashes) {
+			m.State.ToggleFileReviewed(m.Hashes[node.FileIndex])
+		}
+
+		return
+	}
+
+	// directory: collect all file indices under this dir
+	indices := m.FileTree.FileIndicesUnder(node)
+	if len(indices) == 0 {
+		return
+	}
+
+	hashes := make([]string, 0, len(indices))
+
+	for _, idx := range indices {
+		if idx >= 0 && idx < len(m.Hashes) {
+			hashes = append(hashes, m.Hashes[idx])
+		}
+	}
+
+	// determine target state: if any file is unreviewed, mark all reviewed; otherwise unmark all
+	reviewed := true
+
+	for _, h := range hashes {
+		fs, ok := m.State.Files[h]
+		if !ok || !fs.Reviewed {
+			reviewed = false
+
+			break
+		}
+	}
+
+	if reviewed {
+		// all are reviewed, so unmark all
+		m.State.SetFilesReviewed(hashes, false)
+	} else {
+		// some unreviewed, mark all as reviewed
+		m.State.SetFilesReviewed(hashes, true)
+	}
 }
 
 func (m *Model) layoutPanels() {
-	leftWidth := m.Width * 3 / 10  //nolint:mnd
+	leftWidth := m.Width * 3 / 10 //nolint:mnd
 	rightWidth := m.Width - leftWidth - 1
 	height := m.Height - 1
 
-	m.FileList.Width = leftWidth
-	m.FileList.Height = height
+	m.FileTree.Width = leftWidth
+	m.FileTree.Height = height
 	m.DiffView.Width = rightWidth
 	m.DiffView.Height = height
 	m.Help.Width = m.Width
@@ -181,7 +280,7 @@ func (m Model) View() string {
 		return m.Help.View()
 	}
 
-	left := m.FileList.View()
+	left := m.FileTree.View()
 	right := m.DiffView.View()
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, left, right)

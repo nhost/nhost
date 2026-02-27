@@ -36,6 +36,21 @@ func (m *DiffViewModel) SetFile(f *diff.File, hash string) {
 	m.Hash = hash
 	m.ActiveHunk = 0
 	m.ScrollY = 0
+	m.renderedLen = m.computeRenderedLen()
+}
+
+func (m *DiffViewModel) computeRenderedLen() int {
+	if m.File == nil {
+		return 0
+	}
+
+	total := 0
+
+	for _, hunk := range m.File.Hunks {
+		total += 1 + len(hunk.Lines) // header + lines
+	}
+
+	return total
 }
 
 func (m *DiffViewModel) ScrollDown() {
@@ -47,6 +62,17 @@ func (m *DiffViewModel) ScrollDown() {
 func (m *DiffViewModel) ScrollUp() {
 	if m.ScrollY > 0 {
 		m.ScrollY--
+	}
+}
+
+func (m *DiffViewModel) ScrollToTop() {
+	m.ScrollY = 0
+}
+
+func (m *DiffViewModel) ScrollToBottom() {
+	bottom := m.renderedLen - m.viewHeight()
+	if bottom > 0 {
+		m.ScrollY = bottom
 	}
 }
 
@@ -102,7 +128,9 @@ func (m *DiffViewModel) View() string {
 
 		return panelStyle(m.Focused).
 			Width(m.Width).
+			MaxWidth(m.Width).
 			Height(m.Height).
+			MaxHeight(m.Height).
 			Render(content)
 	}
 
@@ -172,7 +200,9 @@ func (m *DiffViewModel) View() string {
 
 	return panelStyle(m.Focused).
 		Width(m.Width).
+		MaxWidth(m.Width).
 		Height(m.Height).
+		MaxHeight(m.Height).
 		Render(content)
 }
 

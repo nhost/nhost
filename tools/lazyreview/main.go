@@ -50,7 +50,12 @@ func run(_ context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get current branch: %w", err)
 	}
 
-	rawDiff, err := git.Diff(base)
+	mergeBase, err := git.MergeBase(base)
+	if err != nil {
+		return fmt.Errorf("failed to get merge-base: %w", err)
+	}
+
+	rawDiff, err := git.Diff(mergeBase)
 	if err != nil {
 		return fmt.Errorf("failed to get diff: %w", err)
 	}

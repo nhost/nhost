@@ -24,10 +24,19 @@ func CurrentBranch() (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-func Diff(base string) (string, error) {
-	out, err := exec.Command("git", "diff", base+"...HEAD").Output() //nolint:gosec
+func MergeBase(base string) (string, error) {
+	out, err := exec.Command("git", "merge-base", base, "HEAD").Output() //nolint:gosec
 	if err != nil {
-		return "", fmt.Errorf("failed to get diff against %s: %w", base, err)
+		return "", fmt.Errorf("failed to get merge-base for %s: %w", base, err)
+	}
+
+	return strings.TrimSpace(string(out)), nil
+}
+
+func Diff(mergeBase string) (string, error) {
+	out, err := exec.Command("git", "diff", mergeBase).Output() //nolint:gosec
+	if err != nil {
+		return "", fmt.Errorf("failed to get diff against %s: %w", mergeBase, err)
 	}
 
 	return string(out), nil

@@ -123,6 +123,24 @@ func (s *State) Reconcile(files []*diff.File) {
 	s.Files = newFiles
 }
 
+func (s *State) SetFilesReviewed(hashes []string, reviewed bool) {
+	for _, hash := range hashes {
+		fs, ok := s.Files[hash]
+		if !ok {
+			continue
+		}
+
+		fs.Reviewed = reviewed
+
+		for k, h := range fs.Hunks {
+			h.Reviewed = reviewed
+			fs.Hunks[k] = h
+		}
+
+		s.Files[hash] = fs
+	}
+}
+
 func (s *State) ToggleFileReviewed(hash string) {
 	fs, ok := s.Files[hash]
 	if !ok {
