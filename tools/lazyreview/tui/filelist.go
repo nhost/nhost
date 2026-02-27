@@ -14,6 +14,9 @@ const (
 	defaultTreeHeight = 20
 	panelChrome       = 3 // border top + title + border bottom
 	panelBorderWidth  = 2 // left + right border
+	panelPadding      = 2 // left + right padding in panelStyle
+	nodePrefix        = 5 // " " + indent_base(0) + icon/spaces(2) + indicator(1) + " "(1)
+	ellipsis          = "..."
 )
 
 type TreeNode struct {
@@ -406,6 +409,7 @@ func (m *FileTreeModel) View() string {
 
 func (m *FileTreeModel) renderNode(node *TreeNode) string {
 	indent := strings.Repeat("  ", node.Depth)
+	maxName := m.maxNameWidth(node.Depth)
 
 	if node.IsDir {
 		icon := dirExpandedIcon()
@@ -414,14 +418,35 @@ func (m *FileTreeModel) renderNode(node *TreeNode) string {
 		}
 
 		indicator := m.dirIndicator(node)
-		name := dirNameStyle().Render(node.Name + "/")
+		dirLabel := truncateName(node.Name+"/", maxName)
+		name := dirNameStyle().Render(dirLabel)
 
 		return fmt.Sprintf(" %s%s %s %s", indent, icon, indicator, name)
 	}
 
 	indicator := m.fileIndicator(node.FileIndex)
 
-	return fmt.Sprintf(" %s  %s %s", indent, indicator, node.Name)
+	return fmt.Sprintf(" %s  %s %s", indent, indicator, truncateName(node.Name, maxName))
+}
+
+func (m *FileTreeModel) maxNameWidth(depth int) int {
+	contentWidth := m.Width - panelBorderWidth - panelPadding
+	overhead := nodePrefix + depth*2
+
+	return max(contentWidth-overhead, 1)
+}
+
+func truncateName(name string, maxWidth int) string {
+	runes := []rune(name)
+	if len(runes) <= maxWidth {
+		return name
+	}
+
+	if maxWidth <= len(ellipsis) {
+		return string(runes[:maxWidth])
+	}
+
+	return string(runes[:maxWidth-len(ellipsis)]) + ellipsis
 }
 
 func (m *FileTreeModel) fileIndicator(fileIndex int) string {

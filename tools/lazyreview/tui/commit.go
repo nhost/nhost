@@ -3,8 +3,8 @@ package tui
 import (
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 type CommitModel struct {
@@ -39,7 +39,7 @@ type commitSubmitMsg struct {
 	Message string
 }
 
-func (m *CommitModel) Update(msg tea.KeyMsg) tea.Cmd {
+func (m *CommitModel) Update(msg tea.KeyPressMsg) tea.Cmd {
 	switch msg.String() {
 	case "esc":
 		m.Close()

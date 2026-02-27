@@ -97,7 +97,7 @@ func (p *parser) processLine(line string) {
 }
 
 func (p *parser) startNewFile(line string) {
-	if p.currentFile != nil {
+	if p.currentFile != nil && p.currentFile.Path != "" {
 		p.currentFile.RawDiff = strings.Join(p.rawLines, "\n")
 		p.files = append(p.files, p.currentFile)
 	}
@@ -117,6 +117,20 @@ func (p *parser) extractFilePath(line string) bool {
 	if after, ok := strings.CutPrefix(line, "+++ b/"); ok {
 		p.currentFile.Path = after
 
+		return true
+	}
+
+	// Handle renames: use the new path (rename to) for pure renames
+	// that have no --- / +++ lines.
+	if after, ok := strings.CutPrefix(line, "rename to "); ok {
+		if p.currentFile.Path == "" {
+			p.currentFile.Path = after
+		}
+
+		return true
+	}
+
+	if strings.HasPrefix(line, "rename from ") {
 		return true
 	}
 

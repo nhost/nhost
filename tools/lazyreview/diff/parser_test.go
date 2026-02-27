@@ -177,6 +177,61 @@ func TestParse_RenamedFile(t *testing.T) {
 	}
 }
 
+func TestParse_PureRename(t *testing.T) {
+	t.Parallel()
+
+	raw := strings.Join([]string{
+		"diff --git a/old_name.go b/new_name.go",
+		"similarity index 100%",
+		"rename from old_name.go",
+		"rename to new_name.go",
+	}, "\n")
+
+	files := diff.Parse(raw)
+	if len(files) != 1 {
+		t.Fatalf("expected 1 file for pure rename, got %d", len(files))
+	}
+
+	if files[0].Path != "new_name.go" {
+		t.Errorf("expected path new_name.go, got %s", files[0].Path)
+	}
+
+	if len(files[0].Hunks) != 0 {
+		t.Errorf("expected 0 hunks for pure rename, got %d", len(files[0].Hunks))
+	}
+}
+
+func TestParse_PureRenameBeforeOtherFile(t *testing.T) {
+	t.Parallel()
+
+	raw := strings.Join([]string{
+		"diff --git a/old.go b/new.go",
+		"similarity index 100%",
+		"rename from old.go",
+		"rename to new.go",
+		"diff --git a/main.go b/main.go",
+		"index 1234567..abcdefg 100644",
+		"--- a/main.go",
+		"+++ b/main.go",
+		"@@ -1,1 +1,1 @@",
+		"-old",
+		"+new",
+	}, "\n")
+
+	files := diff.Parse(raw)
+	if len(files) != 2 {
+		t.Fatalf("expected 2 files, got %d", len(files))
+	}
+
+	if files[0].Path != "new.go" {
+		t.Errorf("expected first file new.go, got %s", files[0].Path)
+	}
+
+	if files[1].Path != "main.go" {
+		t.Errorf("expected second file main.go, got %s", files[1].Path)
+	}
+}
+
 func TestParse_BinaryFile(t *testing.T) {
 	t.Parallel()
 

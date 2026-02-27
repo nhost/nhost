@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/nhost/nhost/tools/lazyreview/diff"
 	"github.com/nhost/nhost/tools/lazyreview/git"
 	"github.com/nhost/nhost/tools/lazyreview/review"
@@ -319,14 +319,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 
 		return m, commitCmd(msg.Message)
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		return m.handleKeyMsg(msg)
 	}
 
 	return m, nil
 }
 
-func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
+func (m Model) handleKeyMsg(msg tea.KeyPressMsg) (Model, tea.Cmd) {
 	if m.Commit.Visible {
 		return m, m.Commit.Update(msg)
 	}
@@ -552,7 +552,7 @@ func (m Model) handlePushDone(msg pushDoneMsg) Model {
 }
 
 func (m Model) handleKey(
-	msg tea.KeyMsg,
+	msg tea.KeyPressMsg,
 ) (Model, tea.Cmd) {
 	key := msg.String()
 
@@ -579,7 +579,7 @@ func (m Model) handleKey(
 			m.syncDiffToFile()
 		}
 
-	case "a", " ":
+	case "a", "space":
 		return m.handleToggleAction()
 
 	default:
@@ -998,22 +998,26 @@ func (m *Model) layoutPanels() {
 	m.Help.Height = m.Height
 }
 
-func (m Model) View() string {
+func (m Model) View() tea.View {
+	var content string
+
 	if m.Commit.Visible {
-		return m.Commit.View(m.Width, m.Height)
+		content = m.Commit.View(m.Width, m.Height)
+	} else if m.Help.Visible {
+		content = m.Help.View()
+	} else {
+		left := m.FileTree.View()
+		right := m.DiffView.View()
+		panels := lipgloss.JoinHorizontal(lipgloss.Top, left, right)
+
+		statusBar := m.renderStatusBar()
+		content = panels + "\n" + statusBar
 	}
 
-	if m.Help.Visible {
-		return m.Help.View()
-	}
+	v := tea.NewView(content)
+	v.AltScreen = true
 
-	left := m.FileTree.View()
-	right := m.DiffView.View()
-	panels := lipgloss.JoinHorizontal(lipgloss.Top, left, right)
-
-	statusBar := m.renderStatusBar()
-
-	return panels + "\n" + statusBar
+	return v
 }
 
 func (m Model) renderStatusBar() string {

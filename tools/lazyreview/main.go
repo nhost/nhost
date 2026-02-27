@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/urfave/cli/v3"
 
 	"github.com/nhost/nhost/tools/lazyreview/diff"
@@ -80,7 +80,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	state.Reconcile(files)
 
 	model := tui.NewModel(files, hashes, state, base)
-	p := tea.NewProgram(model, tea.WithAltScreen())
+	p := tea.NewProgram(model)
 
 	if _, err := p.Run(); err != nil {
 		return fmt.Errorf("TUI error: %w", err)
