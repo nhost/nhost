@@ -16,7 +16,7 @@ export interface FetchDatabaseReturnType {
    */
   schemas?: NormalizedQueryDataRow[];
   /**
-   * List of available tables, views, and materialized views in the database.
+   * List of available table-like objects in the database: tables, views, enums...
    */
   tableLikeObjects?: TableLikeObject[];
   /**
