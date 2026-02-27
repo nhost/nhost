@@ -109,7 +109,9 @@
     "@types/rollup-plugin-peer-deps-external": "^2.2.6",
     "graphql-tag": "^2.12.6",
     "jest": "^29.7.0",
+    "minimatch": "^10.2.4",
     "openapi3-ts": "^4.4.0",
+    "rollup": "^4.59.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "terser": "^5.39.0",
     "ts-jest": "^29.3.2"

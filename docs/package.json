@@ -35,7 +35,7 @@
   "devDependencies": {
     "linkinator": "^7.5.3",
     "prettier": "^3.5.3",
-    "typedoc": "^0.28.4",
+    "typedoc": "^0.28.17",
     "typedoc-plugin-markdown": "^4.6.3"
   }
 }
