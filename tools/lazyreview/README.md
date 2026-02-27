@@ -2,6 +2,8 @@
 
 A TUI tool for reviewing branch diffs file-by-file and hunk-by-hunk. It tracks your review progress across sessions so you can pick up where you left off.
 
+> **Note:** lazyreview is a read-only review aid. It does not and is not intended to perform any git operations (commit, push, checkout, etc.).
+
 ![lazyreview](lazyreview.png)
 
 ## Features
