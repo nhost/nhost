@@ -88,11 +88,6 @@ github.com/99designs/gqlgen/graphql/handler/lru
 github.com/99designs/gqlgen/graphql/handler/transport
 github.com/99designs/gqlgen/graphql/introspection
 github.com/99designs/gqlgen/graphql/playground
-# github.com/alecthomas/chroma/v2 v2.23.1
-## explicit; go 1.22
-github.com/alecthomas/chroma/v2
-github.com/alecthomas/chroma/v2/lexers
-github.com/alecthomas/chroma/v2/styles
 # github.com/MicahParks/jwkset v0.11.0
 ## explicit; go 1.21
 github.com/MicahParks/jwkset
@@ -142,6 +137,11 @@ github.com/Yamashou/gqlgenc/graphqljson
 # github.com/agnivade/levenshtein v1.2.1
 ## explicit; go 1.21
 github.com/agnivade/levenshtein
+# github.com/alecthomas/chroma/v2 v2.23.1
+## explicit; go 1.22
+github.com/alecthomas/chroma/v2
+github.com/alecthomas/chroma/v2/lexers
+github.com/alecthomas/chroma/v2/styles
 # github.com/apapsch/go-jsonmerge/v2 v2.0.0
 ## explicit; go 1.12
 github.com/apapsch/go-jsonmerge/v2
