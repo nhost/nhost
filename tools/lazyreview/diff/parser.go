@@ -36,12 +36,15 @@ type File struct {
 
 func Parse(raw string) []*File {
 	lines := strings.Split(raw, "\n")
-	var files []*File
-	var currentFile *File
-	var currentHunk *Hunk
-	var rawLines []string
 
-	for i := 0; i < len(lines); i++ {
+	var (
+		files       []*File
+		currentFile *File
+		currentHunk *Hunk
+		rawLines    []string
+	)
+
+	for i := range lines {
 		line := lines[i]
 
 		if strings.HasPrefix(line, "diff --git ") {
@@ -76,8 +79,8 @@ func Parse(raw string) []*File {
 			continue
 		}
 
-		if strings.HasPrefix(line, "+++ b/") {
-			currentFile.Path = strings.TrimPrefix(line, "+++ b/")
+		if after, ok := strings.CutPrefix(line, "+++ b/"); ok {
+			currentFile.Path = after
 
 			continue
 		}
@@ -127,6 +130,53 @@ func Parse(raw string) []*File {
 	}
 
 	return files
+}
+
+// HunkPatch extracts the file header and a single hunk from a raw diff
+// to produce a valid patch suitable for git apply.
+func HunkPatch(rawDiff string, hunkIndex int) string {
+	lines := strings.Split(rawDiff, "\n")
+
+	var header []string
+
+	hunkCount := -1
+
+	var hunkLines []string
+
+	for _, line := range lines {
+		if strings.HasPrefix(line, "@@") {
+			hunkCount++
+
+			if hunkCount == hunkIndex {
+				hunkLines = append(hunkLines, line)
+			} else if hunkCount > hunkIndex {
+				break
+			}
+
+			continue
+		}
+
+		if hunkCount < 0 {
+			header = append(header, line)
+
+			continue
+		}
+
+		if hunkCount == hunkIndex {
+			hunkLines = append(hunkLines, line)
+		}
+	}
+
+	if len(hunkLines) == 0 {
+		return ""
+	}
+
+	result := strings.Join(header, "\n") + "\n" + strings.Join(hunkLines, "\n")
+	if !strings.HasSuffix(result, "\n") {
+		result += "\n"
+	}
+
+	return result
 }
 
 func parseHunkHeader(header string) (*Hunk, error) {

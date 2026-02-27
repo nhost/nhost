@@ -49,6 +49,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ### Tools (`tools/`)
 
 - `tools/codegen` - code generation utilities
+- `tools/lazyreview` - TUI tool for reviewing branch diffs file-by-file and hunk-by-hunk with persistent review state
 
 ## Development Environment
 

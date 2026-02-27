@@ -2,10 +2,12 @@ package review
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/nhost/nhost/tools/lazyreview/diff"
@@ -28,14 +30,22 @@ type State struct {
 	path string
 }
 
+func NewTransientState() *State {
+	return &State{
+		Base:  "",
+		Files: make(map[string]FileState),
+		path:  "",
+	}
+}
+
 func Hash(content string) string {
 	h := sha256.Sum256([]byte(content))
 
-	return fmt.Sprintf("%x", h)
+	return hex.EncodeToString(h[:])
 }
 
 func hunkKey(index int) string {
-	return fmt.Sprintf("%d", index)
+	return strconv.Itoa(index)
 }
 
 func sanitizeBranch(branch string) string {

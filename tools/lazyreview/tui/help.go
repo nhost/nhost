@@ -9,13 +9,17 @@ import (
 
 type HelpModel struct {
 	Visible bool
+	Mode    AppMode
 	Width   int
 	Height  int
 }
 
-func NewHelpModel() HelpModel {
+func NewHelpModel(mode AppMode) HelpModel {
 	return HelpModel{
 		Visible: false,
+		Mode:    mode,
+		Width:   0,
+		Height:  0,
 	}
 }
 
@@ -28,22 +32,41 @@ type helpEntry struct {
 	desc string
 }
 
-func (m *HelpModel) View() string {
+func (m *HelpModel) View() string { //nolint:funlen
 	if !m.Visible {
 		return ""
 	}
 
 	entries := []helpEntry{
+		{"1", "Review mode"},
+		{"2", "Git mode"},
 		{"j/k, ↑/↓", "Navigate tree / navigate hunks"},
 		{"J/K", "Scroll diff up/down"},
 		{"g/G", "Go to top / bottom"},
 		{"h/←", "Collapse dir / go to parent"},
 		{"l/→, Enter", "Expand dir / focus diff"},
 		{"Tab", "Switch panel focus"},
-		{"Space, a", "Toggle reviewed (file/dir/hunk)"},
-		{"?", "Close help"},
-		{"q", "Quit"},
 	}
+
+	switch m.Mode { //nolint:exhaustive
+	case ModeGit:
+		entries = append(entries,
+			helpEntry{"Space, a", "Stage / unstage (file/dir/hunk)"},
+			helpEntry{"c", "Commit"},
+			helpEntry{"p", "Push"},
+			helpEntry{"P", "Force push (--force-with-lease)"},
+		)
+	default:
+		entries = append(entries,
+			helpEntry{"Space, a", "Toggle reviewed (file/dir/hunk)"},
+		)
+	}
+
+	entries = append(entries,
+		helpEntry{"r", "Refresh diff"},
+		helpEntry{"?", "Close help"},
+		helpEntry{"q", "Quit"},
+	)
 
 	keyWidth := 0
 
@@ -76,7 +99,10 @@ func (m *HelpModel) View() string {
 		}
 	}
 
-	title := lipgloss.NewStyle().Width(tableWidth).Align(lipgloss.Center).Render(titleStyle().Render("Key Bindings"))
+	title := lipgloss.NewStyle().
+		Width(tableWidth).
+		Align(lipgloss.Center).
+		Render(titleStyle().Render("Key Bindings"))
 	content := title + "\n\n" + table
 	overlay := helpStyle().Render(content)
 

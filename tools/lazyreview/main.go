@@ -79,7 +79,7 @@ func run(_ context.Context, cmd *cli.Command) error {
 
 	state.Reconcile(files)
 
-	model := tui.NewModel(files, hashes, state)
+	model := tui.NewModel(files, hashes, state, base)
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {

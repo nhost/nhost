@@ -2,9 +2,10 @@
 
 A TUI tool for reviewing branch diffs file-by-file and hunk-by-hunk. It tracks your review progress across sessions so you can pick up where you left off.
 
-> **Note:** lazyreview is a read-only review aid. It does not and is not intended to perform any git operations (commit, push, checkout, etc.).
+> **Note:** The main purpose of lazyreview is to help you review branches locally by keeping track of which files and hunks you've already reviewed. While it has some basic support for staging and committing changes to git (e.g. you can stage/unstage files and hunks directly from the interface), it's not intended to be a full git client. If you want an awesome terminal git UI, I recommend [lazygit](https://github.com/jesseduffield/lazygit).
 
 ![lazyreview](lazyreview.png)
+![lazyreview-git](lazyreview-git.png)
 
 ## Features
 

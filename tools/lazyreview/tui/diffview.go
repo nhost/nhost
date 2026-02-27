@@ -17,17 +17,22 @@ type DiffViewModel struct {
 	Width       int
 	Height      int
 	Focused     bool
+	Mode        AppMode
 	renderedLen int
 }
 
 func NewDiffViewModel(state *review.State) DiffViewModel {
 	return DiffViewModel{
-		File:    nil,
-		Hash:    "",
-		State:   state,
-		Width:   60, //nolint:mnd
-		Height:  20, //nolint:mnd
-		Focused: false,
+		File:        nil,
+		Hash:        "",
+		State:       state,
+		ActiveHunk:  0,
+		ScrollY:     0,
+		Width:       60, //nolint:mnd
+		Height:      20, //nolint:mnd
+		Focused:     false,
+		Mode:        ModeReview,
+		renderedLen: 0,
 	}
 }
 
@@ -77,10 +82,9 @@ func (m *DiffViewModel) ScrollToBottom() {
 }
 
 func (m *DiffViewModel) viewHeight() int {
-	h := m.Height - 3 //nolint:mnd
-	if h < 1 {
-		h = 1
-	}
+	h := max(
+		//nolint:mnd
+		m.Height-3, 1)
 
 	return h
 }
@@ -105,7 +109,7 @@ func (m *DiffViewModel) PrevHunk() {
 
 func (m *DiffViewModel) scrollToActiveHunk() {
 	lineNum := 0
-	for i := 0; i < m.ActiveHunk; i++ {
+	for i := range m.ActiveHunk {
 		lineNum += 1 + len(m.File.Hunks[i].Lines) // header + lines
 	}
 
@@ -122,7 +126,23 @@ func (m *DiffViewModel) ToggleCurrentHunk() {
 	m.State.ToggleHunkReviewed(m.Hash, m.ActiveHunk)
 }
 
-func (m *DiffViewModel) View() string {
+func (m *DiffViewModel) IsCurrentHunkReviewed() bool {
+	if m.File == nil || m.Hash == "" {
+		return false
+	}
+
+	return m.State.IsHunkReviewed(m.Hash, m.ActiveHunk)
+}
+
+func (m *DiffViewModel) CurrentHunkPatch() string {
+	if m.File == nil {
+		return ""
+	}
+
+	return diff.HunkPatch(m.File.RawDiff, m.ActiveHunk)
+}
+
+func (m *DiffViewModel) View() string { //nolint:cyclop,funlen
 	if m.File == nil {
 		content := contextStyle().Render("No file selected")
 
@@ -179,10 +199,7 @@ func (m *DiffViewModel) View() string {
 		m.ScrollY = 0
 	}
 
-	end := m.ScrollY + viewH
-	if end > len(allLines) {
-		end = len(allLines)
-	}
+	end := min(m.ScrollY+viewH, len(allLines))
 
 	visible := allLines[m.ScrollY:end]
 
@@ -192,6 +209,7 @@ func (m *DiffViewModel) View() string {
 	}
 
 	var lines []string
+
 	lines = append(lines, title+contextStyle().Render(scrollInfo))
 	lines = append(lines, "")
 	lines = append(lines, visible...)
@@ -212,7 +230,9 @@ func (m *DiffViewModel) styleLine(line diff.Line) string {
 		return addedStyle().Render(line.Content)
 	case diff.Removed:
 		return removedStyle().Render(line.Content)
-	default:
+	case diff.Context:
 		return contextStyle().Render(line.Content)
 	}
+
+	return contextStyle().Render(line.Content)
 }

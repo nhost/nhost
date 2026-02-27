@@ -31,9 +31,15 @@ type FileTreeModel struct {
 	Width    int
 	Height   int
 	Focused  bool
+	Mode     AppMode
 }
 
-func NewFileTreeModel(files []*diff.File, hashes []string, state *review.State) FileTreeModel {
+func NewFileTreeModel(
+	files []*diff.File,
+	hashes []string,
+	state *review.State,
+	mode AppMode,
+) FileTreeModel {
 	m := FileTreeModel{
 		Files:    files,
 		Hashes:   hashes,
@@ -45,6 +51,7 @@ func NewFileTreeModel(files []*diff.File, hashes []string, state *review.State) 
 		Width:    30, //nolint:mnd
 		Height:   20, //nolint:mnd
 		Focused:  true,
+		Mode:     mode,
 	}
 	m.Root = m.buildTree()
 	m.flatten()
@@ -288,9 +295,80 @@ func (m *FileTreeModel) FileIndicesUnder(node *TreeNode) []int {
 	return indices
 }
 
+func (m *FileTreeModel) ExpandedPaths() map[string]bool {
+	result := make(map[string]bool)
+	m.collectExpandedPaths(m.Root, result)
+
+	return result
+}
+
+func (m *FileTreeModel) collectExpandedPaths(nodes []*TreeNode, result map[string]bool) {
+	for _, n := range nodes {
+		if n.IsDir && n.Expanded {
+			result[n.FullPath] = true
+			m.collectExpandedPaths(n.Children, result)
+		}
+	}
+}
+
+func (m *FileTreeModel) SelectedPath() string {
+	node := m.SelectedNode()
+	if node == nil {
+		return ""
+	}
+
+	return node.FullPath
+}
+
+func (m *FileTreeModel) RestoreViewState(expandedPaths map[string]bool, selectedPath string) {
+	m.collapseNotIn(m.Root, expandedPaths)
+	m.flatten()
+
+	// find and select the node matching selectedPath
+	for i, n := range m.Visible {
+		if n.FullPath == selectedPath {
+			m.Selected = i
+			m.ensureVisible()
+
+			return
+		}
+	}
+
+	// fall back to first file node (skip directories)
+	for i, n := range m.Visible {
+		if !n.IsDir {
+			m.Selected = i
+			m.ensureVisible()
+
+			return
+		}
+	}
+
+	// last resort: first node
+	m.Selected = 0
+	m.ensureVisible()
+}
+
+func (m *FileTreeModel) collapseNotIn(nodes []*TreeNode, expandedPaths map[string]bool) {
+	for _, n := range nodes {
+		if n.IsDir {
+			n.Expanded = expandedPaths[n.FullPath]
+			m.collapseNotIn(n.Children, expandedPaths)
+		}
+	}
+}
+
 func (m *FileTreeModel) View() string {
-	reviewed := m.State.ReviewedFileCount()
-	title := titleStyle().Render(fmt.Sprintf("Files (%d/%d reviewed)", reviewed, len(m.Files)))
+	var title string
+
+	switch m.Mode { //nolint:exhaustive
+	case ModeGit:
+		staged := m.State.ReviewedFileCount()
+		title = titleStyle().Render(fmt.Sprintf("Files (%d/%d staged)", staged, len(m.Files)))
+	default:
+		reviewed := m.State.ReviewedFileCount()
+		title = titleStyle().Render(fmt.Sprintf("Files (%d/%d reviewed)", reviewed, len(m.Files)))
+	}
 
 	visibleHeight := max(m.Height-3, 1) //nolint:mnd
 

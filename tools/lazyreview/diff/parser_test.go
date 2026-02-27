@@ -7,7 +7,7 @@ import (
 	"github.com/nhost/nhost/tools/lazyreview/diff"
 )
 
-func TestParse_StandardDiff(t *testing.T) {
+func TestParse_StandardDiff(t *testing.T) { //nolint:cyclop
 	t.Parallel()
 
 	raw := strings.Join([]string{
@@ -39,7 +39,13 @@ func TestParse_StandardDiff(t *testing.T) {
 
 	h := f.Hunks[0]
 	if h.OldStart != 1 || h.OldCount != 3 || h.NewStart != 1 || h.NewCount != 4 {
-		t.Errorf("unexpected hunk ranges: old=%d,%d new=%d,%d", h.OldStart, h.OldCount, h.NewStart, h.NewCount)
+		t.Errorf(
+			"unexpected hunk ranges: old=%d,%d new=%d,%d",
+			h.OldStart,
+			h.OldCount,
+			h.NewStart,
+			h.NewCount,
+		)
 	}
 
 	if len(h.Lines) != 5 {
@@ -60,6 +66,7 @@ func TestParse_StandardDiff(t *testing.T) {
 		if h.Lines[i].Type != exp.lineType {
 			t.Errorf("line %d: expected type %d, got %d", i, exp.lineType, h.Lines[i].Type)
 		}
+
 		if h.Lines[i].Content != exp.content {
 			t.Errorf("line %d: expected content %q, got %q", i, exp.content, h.Lines[i].Content)
 		}
@@ -346,6 +353,103 @@ func TestParse_RawDiffPreserved(t *testing.T) {
 	}
 }
 
+func TestHunkPatch_SingleHunk(t *testing.T) {
+	t.Parallel()
+
+	raw := strings.Join([]string{
+		"diff --git a/main.go b/main.go",
+		"index 1234567..abcdefg 100644",
+		"--- a/main.go",
+		"+++ b/main.go",
+		"@@ -1,3 +1,3 @@",
+		" package main",
+		" ",
+		"-func old() {}",
+		"+func new1() {}",
+	}, "\n")
+
+	patch := diff.HunkPatch(raw, 0)
+	if patch == "" {
+		t.Fatal("expected non-empty patch")
+	}
+
+	if !strings.Contains(patch, "diff --git") {
+		t.Error("patch should contain file header")
+	}
+
+	if !strings.Contains(patch, "@@ -1,3 +1,3 @@") {
+		t.Error("patch should contain hunk header")
+	}
+
+	if !strings.Contains(patch, "-func old() {}") {
+		t.Error("patch should contain hunk content")
+	}
+}
+
+func TestHunkPatch_SecondHunk(t *testing.T) {
+	t.Parallel()
+
+	raw := strings.Join([]string{
+		"diff --git a/main.go b/main.go",
+		"index 1234567..abcdefg 100644",
+		"--- a/main.go",
+		"+++ b/main.go",
+		"@@ -1,3 +1,3 @@",
+		" package main",
+		" ",
+		"-func a() {}",
+		"+func aa() {}",
+		"@@ -10,3 +10,3 @@",
+		" ",
+		"-func b() {}",
+		"+func bb() {}",
+	}, "\n")
+
+	patch := diff.HunkPatch(raw, 1)
+	if patch == "" {
+		t.Fatal("expected non-empty patch")
+	}
+
+	if !strings.Contains(patch, "diff --git") {
+		t.Error("patch should contain file header")
+	}
+
+	if !strings.Contains(patch, "@@ -10,3 +10,3 @@") {
+		t.Error("patch should contain second hunk header")
+	}
+
+	if strings.Contains(patch, "@@ -1,3 +1,3 @@") {
+		t.Error("patch should not contain first hunk header")
+	}
+
+	if !strings.Contains(patch, "-func b() {}") {
+		t.Error("patch should contain second hunk content")
+	}
+
+	if strings.Contains(patch, "-func a() {}") {
+		t.Error("patch should not contain first hunk content")
+	}
+}
+
+func TestHunkPatch_OutOfRange(t *testing.T) {
+	t.Parallel()
+
+	raw := strings.Join([]string{
+		"diff --git a/main.go b/main.go",
+		"index 1234567..abcdefg 100644",
+		"--- a/main.go",
+		"+++ b/main.go",
+		"@@ -1,1 +1,1 @@",
+		"-old",
+		"+new",
+	}, "\n")
+
+	patch := diff.HunkPatch(raw, 5)
+	if patch != "" {
+		t.Errorf("expected empty patch for out of range index, got %q", patch)
+	}
+}
+
 func TestParse_SingleLineRange(t *testing.T) {
 	t.Parallel()
 
@@ -367,6 +471,10 @@ func TestParse_SingleLineRange(t *testing.T) {
 	h := files[0].Hunks[0]
 	// When count is omitted, it defaults to 1
 	if h.OldCount != 1 || h.NewCount != 1 {
-		t.Errorf("expected counts of 1 for single-line range; got old=%d new=%d", h.OldCount, h.NewCount)
+		t.Errorf(
+			"expected counts of 1 for single-line range; got old=%d new=%d",
+			h.OldCount,
+			h.NewCount,
+		)
 	}
 }

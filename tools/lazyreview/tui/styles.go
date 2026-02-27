@@ -56,7 +56,7 @@ func helpStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("6")).
-		Padding(1, 2)
+		Padding(1, 2) //nolint:mnd
 }
 
 func hunkBorderReviewed() lipgloss.Style {
@@ -86,4 +86,49 @@ func dirCollapsedIcon() string {
 
 func dirNameStyle() lipgloss.Style {
 	return lipgloss.NewStyle().Bold(true)
+}
+
+func modeIndicatorStyle(mode AppMode) lipgloss.Style {
+	bg := lipgloss.Color("6") // cyan for review
+	if mode == ModeGit {
+		bg = lipgloss.Color("208") // orange for git
+	}
+
+	return lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("0")).
+		Background(bg).
+		Padding(0, 1).
+		Width(10). //nolint:mnd
+		Align(lipgloss.Center)
+}
+
+func statusBarHintsStyle() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("245"))
+}
+
+func statusBarMsgStyle() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("245"))
+}
+
+func errorMsgStyle() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("1")).
+		Bold(true)
+}
+
+func successMsgStyle() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("2")).
+		Bold(true)
+}
+
+func commitOverlayStyle() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("3")).
+		Padding(1, 2). //nolint:mnd
+		Width(60)      //nolint:mnd
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/nhost/nhost/tools/lazyreview/review"
 )
 
-func TestLoadSaveRoundTrip(t *testing.T) {
+func TestLoadSaveRoundTrip(t *testing.T) { //nolint:cyclop
 	t.Parallel()
 
 	tmpDir := t.TempDir()
@@ -377,7 +377,7 @@ func TestReviewedFileCount(t *testing.T) {
 	}
 }
 
-func TestSetFilesReviewed(t *testing.T) {
+func TestSetFilesReviewed(t *testing.T) { //nolint:cyclop
 	t.Parallel()
 
 	tmpDir := t.TempDir()
