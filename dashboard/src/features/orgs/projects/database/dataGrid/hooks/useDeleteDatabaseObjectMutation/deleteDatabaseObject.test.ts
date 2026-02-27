@@ -1,0 +1,135 @@
+import { HttpResponse, http } from 'msw';
+import { setupServer } from 'msw/node';
+import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
+import type { TableLikeObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import deleteDatabaseObject from './deleteDatabaseObject';
+
+const defaultOptions = {
+  dataSource: 'default',
+  appUrl: 'http://localhost:1337',
+  adminSecret: 'test-admin-secret',
+};
+
+let capturedBody: unknown = null;
+
+const server = setupServer(
+  http.post('http://localhost:1337/v2/query', async ({ request }) => {
+    capturedBody = await request.json();
+    return HttpResponse.json([{ result_type: 'CommandOk', result: null }]);
+  }),
+);
+
+beforeAll(() => server.listen());
+afterEach(() => {
+  server.resetHandlers();
+  capturedBody = null;
+});
+afterAll(() => server.close());
+
+describe('deleteDatabaseObject', () => {
+  test('should produce DROP TABLE SQL for ORDINARY TABLE', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'public',
+      table: 'users',
+      type: 'ORDINARY TABLE',
+    });
+
+    const body = capturedBody as { args: Array<{ args: { sql: string } }> };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP TABLE');
+    expect(sql).toContain('public');
+    expect(sql).toContain('users');
+  });
+
+  test('should produce DROP VIEW SQL for VIEW', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'public',
+      table: 'active_users',
+      type: 'VIEW',
+    });
+
+    const body = capturedBody as { args: Array<{ args: { sql: string } }> };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP VIEW');
+    expect(sql).not.toContain('MATERIALIZED');
+    expect(sql).toContain('active_users');
+  });
+
+  test('should produce DROP MATERIALIZED VIEW SQL for MATERIALIZED VIEW', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'analytics',
+      table: 'daily_stats',
+      type: 'MATERIALIZED VIEW',
+    });
+
+    const body = capturedBody as { args: Array<{ args: { sql: string } }> };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP MATERIALIZED VIEW');
+    expect(sql).toContain('analytics');
+    expect(sql).toContain('daily_stats');
+  });
+
+  test('should produce DROP FOREIGN TABLE SQL for FOREIGN TABLE', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'public',
+      table: 'external_data',
+      type: 'FOREIGN TABLE',
+    });
+
+    const body = capturedBody as { args: Array<{ args: { sql: string } }> };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP FOREIGN TABLE');
+    expect(sql).toContain('external_data');
+  });
+
+  test('should send the correct data source', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      dataSource: 'my_source',
+      schema: 'public',
+      table: 'test',
+      type: 'ORDINARY TABLE',
+    });
+
+    const body = capturedBody as { args: Array<{ args: { source: string } }> };
+    expect(body.args[0].args.source).toBe('my_source');
+  });
+
+  test('should throw an error for unsupported object type', async () => {
+    await expect(
+      deleteDatabaseObject({
+        ...defaultOptions,
+        schema: 'public',
+        table: 'test',
+        type: 'UNKNOWN_TYPE' as TableLikeObjectType,
+      }),
+    ).rejects.toThrow('Unsupported database object type: UNKNOWN_TYPE');
+  });
+
+  test('should throw a normalized error when the server returns an error', async () => {
+    server.use(
+      http.post('http://localhost:1337/v2/query', () =>
+        HttpResponse.json(
+          {
+            error: 'relation "public.test" does not exist',
+            code: 'not-exists',
+          },
+          { status: 400 },
+        ),
+      ),
+    );
+
+    await expect(
+      deleteDatabaseObject({
+        ...defaultOptions,
+        schema: 'public',
+        table: 'test',
+        type: 'ORDINARY TABLE',
+      }),
+    ).rejects.toThrow();
+  });
+});
