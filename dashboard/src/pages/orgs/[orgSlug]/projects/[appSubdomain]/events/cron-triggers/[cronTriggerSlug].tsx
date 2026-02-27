@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -10,6 +11,8 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export default function CronTriggerDetailsPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const router = useRouter();
+  const { cronTriggerSlug } = router.query;
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return <LoadingScreen />;
@@ -17,7 +20,7 @@ export default function CronTriggerDetailsPage() {
 
   return (
     <RetryableErrorBoundary>
-      <CronTriggerView />
+      <CronTriggerView key={cronTriggerSlug as string} />
     </RetryableErrorBoundary>
   );
 }

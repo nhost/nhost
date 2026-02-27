@@ -1,3 +1,4 @@
+import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   AffectedRowsResult,
   MutationOrQueryBaseOptions,
@@ -5,7 +6,6 @@ import type {
   QueryResult,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 
 export const typeToQuery: Record<TableLikeObjectType, string> = {

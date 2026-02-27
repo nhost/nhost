@@ -1,3 +1,4 @@
+import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
@@ -5,7 +6,6 @@ import type {
   QueryResult,
   TableLikeObject,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 
 export interface FetchDatabaseOptions
   extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}

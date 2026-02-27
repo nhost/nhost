@@ -3,70 +3,79 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isNotEmptyValue } from '@/lib/utils';
 import { getHasuraAdminSecret } from '@/utils/env';
 import type {
-  FetchDatabaseOptions,
-  FetchDatabaseReturnType,
-} from './fetchDatabase';
-import fetchDatabase from './fetchDatabase';
+  FetchTableSchemaOptions,
+  FetchTableSchemaReturnType,
+} from './fetchTableSchema';
+import fetchTableSchema from './fetchTableSchema';
 
-const DATABASE_QUERY_STALE_TIME = 60_000;
-
-export interface UseDatabaseQueryOptions extends Partial<FetchDatabaseOptions> {
+export interface UseTableSchemaQueryOptions
+  extends Partial<FetchTableSchemaOptions> {
   /**
    * Props passed to the underlying query hook.
    */
-  queryOptions?: UseQueryOptions<FetchDatabaseReturnType>;
+  queryOptions?: Omit<
+    UseQueryOptions<FetchTableSchemaReturnType>,
+    'queryKey' | 'queryFn'
+  >;
 }
 
 /**
- * This hook is a wrapper around a fetch call that gets the available schemas
- * and tables of the current data source.
+ * Fetches the schema of a table (columns and foreign key relations) without
+ * fetching any row data.
  *
  * @param queryKey - Query key to use for caching.
  * @param options - Options to use for the query.
- * @returns The available schemas and tables.
+ * @returns The columns and foreign key relations of the table.
  */
-export default function useDatabaseQuery(
+export default function useTableSchemaQuery(
   queryKey: QueryKey,
   {
     dataSource: customDataSource,
+    schema: customSchema,
+    table: customTable,
     appUrl: customAppUrl,
     adminSecret: customAdminSecret,
     queryOptions,
-  }: UseDatabaseQueryOptions = {},
+  }: UseTableSchemaQueryOptions = {},
 ) {
   const {
-    query: { dataSourceSlug },
+    query: { dataSourceSlug, schemaSlug, tableSlug },
     isReady,
   } = useRouter();
-
   const { project } = useProject();
 
-  const query = useQuery<FetchDatabaseReturnType>({
+  return useQuery<FetchTableSchemaReturnType>({
     queryKey,
-    staleTime: DATABASE_QUERY_STALE_TIME,
-    queryFn: () => {
+    queryFn: async () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
         'hasura',
       );
-      return fetchDatabase({
+
+      const schema = customSchema || (schemaSlug as string);
+      const table = customTable || (tableSlug as string);
+
+      return await fetchTableSchema({
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
             : customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
+        schema,
+        table,
       });
     },
+    retry: false,
+    keepPreviousData: true,
     ...queryOptions,
     enabled:
-      project?.config?.hasura.adminSecret && isReady
+      isNotEmptyValue(project) && project?.config?.hasura.adminSecret && isReady
         ? queryOptions?.enabled
         : false,
   });
-
-  return query;
 }

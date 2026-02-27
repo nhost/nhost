@@ -57,9 +57,7 @@ export default function CronTriggerView() {
       offset: offsetArg,
     }),
     queryOptions: {
-      queryOptions: {
-        enabled: isEventsTab && !!triggerName,
-      },
+      enabled: isEventsTab && !!triggerName,
     },
     resetKey: `${triggerName}:${eventLogsSection}`,
   });

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Textarea } from '@/components/ui/v3/textarea';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import RootOperationFields from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/RootOperationFields';
 import SelectedFieldTree from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/SelectedFieldTree';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { RemoteFieldArgumentMappingsByPath } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { buildRemoteFieldFromSelection } from '@/features/orgs/projects/database/dataGrid/utils/buildRemoteFieldFromSelection';
 import extractLhsFieldsFromMappings from '@/features/orgs/projects/database/dataGrid/utils/extractLhsFieldsFromMappings/extractLhsFieldsFromMappings';
@@ -34,7 +34,7 @@ export default function RemoteSchemaRelationshipDetails() {
   const initialRemoteField = remoteSchemaFormValue?.remoteField;
   const selectedFromSource = watch('fromSource');
 
-  const { data: fromTableData } = useTableQuery(
+  const { data: fromTableData } = useTableSchemaQuery(
     [
       `${selectedFromSource?.source}.${selectedFromSource?.schema}.${selectedFromSource?.table}`,
     ],
@@ -42,7 +42,6 @@ export default function RemoteSchemaRelationshipDetails() {
       dataSource: selectedFromSource?.source,
       schema: selectedFromSource?.schema,
       table: selectedFromSource?.table,
-      preventRowFetching: true,
       queryOptions: {
         enabled: Boolean(
           selectedFromSource?.source &&

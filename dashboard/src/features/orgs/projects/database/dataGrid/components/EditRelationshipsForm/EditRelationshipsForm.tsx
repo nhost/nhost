@@ -12,13 +12,13 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { CreateRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/CreateRelationshipDialog';
 import { DeleteRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/DeleteRelationshipDialog';
 import { EditRemoteRelationshipButton } from '@/features/orgs/projects/database/dataGrid/components/EditRemoteRelationshipButton';
 import { RenameRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/RenameRelationshipDialog';
 import useGetRelationships from '@/features/orgs/projects/database/dataGrid/hooks/useGetRelationships/useGetRelationships';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { isRemoteRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import SuggestedRelationshipsSection from './sections/SuggestedRelationshipsSection';
 
@@ -60,12 +60,11 @@ export default function EditRelationshipsForm({
   });
   const tableQueryKey = [`${dataSource}.${schema}.${table}`];
 
-  const { status: tableStatus, error: tableError } = useTableQuery(
+  const { status: tableStatus, error: tableError } = useTableSchemaQuery(
     tableQueryKey,
     {
       schema,
       table,
-      preventRowFetching: true,
     },
   );
 

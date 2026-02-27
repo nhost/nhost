@@ -55,7 +55,7 @@ jobs:
           echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
 
       - name: "Get artifacts"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: ~/artifacts
 

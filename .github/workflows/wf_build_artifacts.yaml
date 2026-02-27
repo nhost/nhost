@@ -72,6 +72,15 @@ jobs:
         NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: "Verify if we need to build"
+      id: verify-build
+      run: |
+        export drvPath=$(make build-dry-run)
+        nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
+          && export BUILD_NEEDED=no \
+          || export BUILD_NEEDED=yes
+        echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
+
     - name: Compute common env vars
       id: vars
       run: |
@@ -111,4 +120,4 @@ jobs:
       uses: ./.github/actions/cache-nix
       with:
         NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      if: always()
+      if: ${{ always() && steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}

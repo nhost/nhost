@@ -1,4 +1,8 @@
 import { format } from 'node-pg-format';
+import {
+  getPreparedHasuraQuery,
+  type HasuraOperation,
+} from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import { prepareCreateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateColumnMutation';
 import { prepareUpdateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateColumnMutation';
 import type {
@@ -7,10 +11,6 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  getPreparedHasuraQuery,
-  type HasuraOperation,
-} from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import { prepareUpdateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
 import { areStrArraysEqual, isNotEmptyValue } from '@/lib/utils';

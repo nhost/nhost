@@ -6,6 +6,7 @@ import type * as Yup from 'yup';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type {
   BaseTableFormProps,
   BaseTableFormValues,
@@ -14,7 +15,6 @@ import {
   BaseTableForm,
   baseTableValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
 import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -52,10 +52,9 @@ export default function EditTableForm({
     data,
     status: columnsStatus,
     error: columnsError,
-  } = useTableQuery([`default.${schema}.${originalTableName}`], {
+  } = useTableSchemaQuery([`default.${schema}.${originalTableName}`], {
     schema,
     table: originalTableName,
-    preventRowFetching: true,
   });
 
   const columns = data?.columns;

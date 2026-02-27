@@ -1,4 +1,8 @@
 import { format } from 'node-pg-format';
+import {
+  getPreparedHasuraQuery,
+  getPreparedReadOnlyHasuraQuery,
+} from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   AffectedRowsResult,
   ColumnUpdateOptions,
@@ -7,10 +11,6 @@ import type {
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  getPreparedHasuraQuery,
-  getPreparedReadOnlyHasuraQuery,
-} from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 
