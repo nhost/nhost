@@ -36,6 +36,10 @@
           inherit self pkgs nix-filter nixops-lib;
         };
 
+        lazyreviewf = import ./tools/lazyreview/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         dashboardf = import ./dashboard/project.nix {
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
@@ -74,6 +78,7 @@
           auth = authf.check;
           cli = clif.check;
           codegen = codegenf.check;
+          lazyreview = lazyreviewf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
           guides = guidesf.check;
@@ -160,6 +165,7 @@
           auth = authf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
+          lazyreview = lazyreviewf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
           guides = guidesf.devShell;
@@ -177,6 +183,7 @@
           cli-multiplatform = clif.cli-multiplatform;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          lazyreview = lazyreviewf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
           demos = demosf.package;
