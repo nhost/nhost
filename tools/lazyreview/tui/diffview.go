@@ -25,9 +25,11 @@ type DiffViewModel struct {
 	Focused     bool
 	Mode        AppMode
 	renderedLen int
+	highlighter *Highlighter
+	hlCache     []string
 }
 
-func NewDiffViewModel(state *review.State) DiffViewModel {
+func NewDiffViewModel(state *review.State, hl *Highlighter) DiffViewModel {
 	return DiffViewModel{
 		File:        nil,
 		Hash:        "",
@@ -39,6 +41,8 @@ func NewDiffViewModel(state *review.State) DiffViewModel {
 		Focused:     false,
 		Mode:        ModeReview,
 		renderedLen: 0,
+		highlighter: hl,
+		hlCache:     nil,
 	}
 }
 
@@ -48,6 +52,7 @@ func (m *DiffViewModel) SetFile(f *diff.File, hash string) {
 	m.ActiveHunk = 0
 	m.ScrollY = 0
 	m.renderedLen = m.computeRenderedLen()
+	m.hlCache = m.highlighter.HighlightFile(f)
 }
 
 func (m *DiffViewModel) computeRenderedLen() int {
@@ -188,6 +193,8 @@ func (m *DiffViewModel) View() string {
 func (m *DiffViewModel) renderHunks() []string {
 	var allLines []string
 
+	lineIdx := 0
+
 	for hunkIdx, hunk := range m.File.Hunks {
 		isActive := hunkIdx == m.ActiveHunk && m.Focused
 		isReviewed := m.State.IsHunkReviewed(m.Hash, hunkIdx)
@@ -198,11 +205,13 @@ func (m *DiffViewModel) renderHunks() []string {
 		}
 
 		allLines = append(allLines, headerPrefix+hunkHeaderStyle().Render(hunk.Header))
+		lineIdx++ // hunk header
 
 		border := m.hunkBorder(isActive, isReviewed)
 
 		for _, line := range hunk.Lines {
-			allLines = append(allLines, border+m.styleLine(line))
+			allLines = append(allLines, border+m.styleLine(line, lineIdx))
+			lineIdx++
 		}
 	}
 
@@ -232,7 +241,18 @@ func (m *DiffViewModel) clampScroll(totalLines int) {
 	}
 }
 
-func (m *DiffViewModel) styleLine(line diff.Line) string {
+func (m *DiffViewModel) styleLine(line diff.Line, lineIdx int) string {
+	plain := m.plainStyleLine(line)
+
+	var highlight string
+	if lineIdx >= 0 && lineIdx < len(m.hlCache) {
+		highlight = m.hlCache[lineIdx]
+	}
+
+	return m.highlighter.StyleLine(line, highlight, plain)
+}
+
+func (m *DiffViewModel) plainStyleLine(line diff.Line) string {
 	switch line.Type {
 	case diff.Added:
 		return addedStyle().Render(line.Content)

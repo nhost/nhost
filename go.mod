@@ -4,6 +4,7 @@ go 1.26.0
 
 require (
 	github.com/99designs/gqlgen v0.17.86
+	github.com/alecthomas/chroma/v2 v2.23.1
 	github.com/MicahParks/keyfunc/v3 v3.7.0
 	github.com/Yamashou/gqlgenc v0.33.0
 	github.com/aws/aws-sdk-go-v2 v1.36.3
@@ -58,6 +59,7 @@ require (
 require (
 	cuelang.org/go v0.11.2 // indirect
 	dario.cat/mergo v1.0.0 // indirect
+	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/MicahParks/jwkset v0.11.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect

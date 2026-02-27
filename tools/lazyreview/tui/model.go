@@ -222,6 +222,7 @@ type Model struct { //nolint:recvcheck
 	DiffView          DiffViewModel
 	Help              HelpModel
 	Commit            CommitModel
+	Highlighter       *Highlighter
 	State             *review.State
 	GitState          *review.State
 	Files             []*diff.File
@@ -244,8 +245,9 @@ func NewModel(
 ) Model {
 	mode := ModeReview
 
+	hl := NewHighlighter()
 	fileTree := NewFileTreeModel(files, hashes, state, mode)
-	diffView := NewDiffViewModel(state)
+	diffView := NewDiffViewModel(state, hl)
 	help := NewHelpModel(mode)
 	commit := NewCommitModel()
 
@@ -254,6 +256,7 @@ func NewModel(
 		DiffView:          diffView,
 		Help:              help,
 		Commit:            commit,
+		Highlighter:       hl,
 		State:             state,
 		GitState:          review.NewTransientState(),
 		Files:             files,
@@ -347,6 +350,8 @@ func (m Model) handleRefreshMsg(msg refreshMsg) Model {
 		return m
 	}
 
+	m.Highlighter.Clear()
+
 	expandedPaths := m.FileTree.ExpandedPaths()
 	selectedPath := m.FileTree.SelectedPath()
 
@@ -370,6 +375,8 @@ func (m Model) handleGitRefreshMsg(msg gitRefreshMsg) Model {
 
 		return m
 	}
+
+	m.Highlighter.Clear()
 
 	// Save active hunk before syncDiffToFile resets it via SetFile
 	savedHunk := m.DiffView.ActiveHunk

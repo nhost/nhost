@@ -9,6 +9,13 @@ const (
 	commitOverlayWidth = 60
 )
 
+// ANSI background escape codes for syntax-highlighted diff lines.
+const (
+	addedBgANSI   = "\033[48;2;20;40;20m" // very dark green background
+	removedBgANSI = "\033[48;2;45;18;18m" // very dark red background
+	resetANSI     = "\033[0m"
+)
+
 func panelStyle(focused bool) lipgloss.Style {
 	borderColor := lipgloss.Color("240")
 	if focused {
