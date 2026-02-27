@@ -47,7 +47,7 @@ export default function useSetTableIsEnumMutation({
         'hasura',
       );
 
-      const base = {
+      const commonParams = {
         appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
@@ -55,20 +55,21 @@ export default function useSetTableIsEnumMutation({
       if (isPlatform) {
         return setTableIsEnum({
           ...(variables as SetTableIsEnumVariables),
-          ...base,
+          ...commonParams,
         });
       }
 
       return setTableIsEnumMigration({
         ...(variables as SetTableIsEnumMigrationVariables),
-        ...base,
+        ...commonParams,
       });
     },
     ...mutationOptions,
-    onSuccess: () => {
+    onSuccess: (...args) => {
       queryClient.invalidateQueries({
         queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
       });
+      mutationOptions?.onSuccess?.(...args);
     },
   });
 
