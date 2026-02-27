@@ -171,6 +171,22 @@ func unstageHunkCmd(patch string) tea.Cmd {
 	}
 }
 
+func discardFileCmd(path string) tea.Cmd {
+	return discardFilesCmd([]string{path})
+}
+
+func discardFilesCmd(paths []string) tea.Cmd {
+	return func() tea.Msg {
+		return stageResultMsg{Err: git.DiscardFiles(context.Background(), paths)}
+	}
+}
+
+func discardHunkCmd(patch string) tea.Cmd {
+	return func() tea.Msg {
+		return stageResultMsg{Err: git.DiscardHunk(context.Background(), patch)}
+	}
+}
+
 func commitCmd(message string) tea.Cmd {
 	return func() tea.Msg {
 		return commitDoneMsg{Err: git.Commit(context.Background(), message)}
@@ -197,24 +213,27 @@ const (
 	pendingNone        pendingAction = iota
 	pendingHunkAdvance               // advance to next hunk/file after git refresh
 	pendingFileAdvance               // advance to next file after git refresh
+	pendingFileDiscard               // select PendingSelectPath after git refresh (discard)
+	pendingHunkDiscard               // stay on same hunk index after git refresh (discard)
 )
 
 type Model struct { //nolint:recvcheck
-	FileTree      FileTreeModel
-	DiffView      DiffViewModel
-	Help          HelpModel
-	Commit        CommitModel
-	State         *review.State
-	GitState      *review.State
-	Files         []*diff.File
-	Hashes        []string
-	Base          string
-	Focus         int
-	Width         int
-	Height        int
-	Mode          AppMode
-	StatusMsg     string
-	PendingAction pendingAction
+	FileTree          FileTreeModel
+	DiffView          DiffViewModel
+	Help              HelpModel
+	Commit            CommitModel
+	State             *review.State
+	GitState          *review.State
+	Files             []*diff.File
+	Hashes            []string
+	Base              string
+	Focus             int
+	Width             int
+	Height            int
+	Mode              AppMode
+	StatusMsg         string
+	PendingAction     pendingAction
+	PendingSelectPath string // path to select after refresh (used by discard)
 }
 
 func NewModel(
@@ -231,21 +250,22 @@ func NewModel(
 	commit := NewCommitModel()
 
 	m := Model{
-		FileTree:      fileTree,
-		DiffView:      diffView,
-		Help:          help,
-		Commit:        commit,
-		State:         state,
-		GitState:      review.NewTransientState(),
-		Files:         files,
-		Hashes:        hashes,
-		Base:          base,
-		Focus:         panelFiles,
-		Width:         0,
-		Height:        0,
-		Mode:          mode,
-		StatusMsg:     "",
-		PendingAction: pendingNone,
+		FileTree:          fileTree,
+		DiffView:          diffView,
+		Help:              help,
+		Commit:            commit,
+		State:             state,
+		GitState:          review.NewTransientState(),
+		Files:             files,
+		Hashes:            hashes,
+		Base:              base,
+		Focus:             panelFiles,
+		Width:             0,
+		Height:            0,
+		Mode:              mode,
+		StatusMsg:         "",
+		PendingAction:     pendingNone,
+		PendingSelectPath: "",
 	}
 
 	if len(files) > 0 {
@@ -366,6 +386,11 @@ func (m Model) handleGitRefreshMsg(msg gitRefreshMsg) Model {
 
 	m.GitState = buildGitState(msg.HeadFiles, m.Hashes, msg.UnstagedFiles, msg.CachedFiles)
 
+	// For discard, override selectedPath with the pre-computed next file
+	if m.PendingAction == pendingFileDiscard && m.PendingSelectPath != "" {
+		selectedPath = m.PendingSelectPath
+	}
+
 	m.FileTree = NewFileTreeModel(msg.HeadFiles, m.Hashes, m.GitState, m.Mode)
 	m.FileTree.RestoreViewState(expandedPaths, selectedPath)
 	m.FileTree.Focused = m.Focus == panelFiles
@@ -373,7 +398,15 @@ func (m Model) handleGitRefreshMsg(msg gitRefreshMsg) Model {
 	m.syncDiffToFile()
 	m.layoutPanels()
 
-	// Execute pending advance from stage/unstage action
+	m.executePendingAction(savedHunk)
+
+	m.PendingAction = pendingNone
+	m.PendingSelectPath = ""
+
+	return m
+}
+
+func (m *Model) executePendingAction(savedHunk int) {
 	switch m.PendingAction {
 	case pendingHunkAdvance:
 		if m.DiffView.File != nil && savedHunk < len(m.DiffView.File.Hunks) {
@@ -381,15 +414,19 @@ func (m Model) handleGitRefreshMsg(msg gitRefreshMsg) Model {
 		}
 
 		m.advanceAfterHunkToggle()
+	case pendingHunkDiscard:
+		if m.DiffView.File != nil && savedHunk < len(m.DiffView.File.Hunks) {
+			m.DiffView.ActiveHunk = savedHunk
+		}
+
+		m.DiffView.scrollToActiveHunk()
 	case pendingFileAdvance:
 		m.FileTree.MoveDown()
 		m.syncDiffToFile()
+	case pendingFileDiscard:
+		m.syncDiffToFile()
 	case pendingNone:
 	}
-
-	m.PendingAction = pendingNone
-
-	return m
 }
 
 // buildGitState creates a transient review.State where "reviewed" means "staged".
@@ -606,6 +643,9 @@ func (m Model) handleGitModeKey(key string) (Model, tea.Cmd, bool) {
 		m.StatusMsg = "Force pushing..."
 
 		return m, pushForceCmd(), true
+
+	case "d":
+		return m.handleGitDiscardAction()
 	}
 
 	return m, nil, false
@@ -764,6 +804,76 @@ func (m Model) handleGitStageDirAction(node *TreeNode) (Model, tea.Cmd) {
 	}
 
 	return m, stageFilesCmd(paths)
+}
+
+func (m Model) handleGitDiscardAction() (Model, tea.Cmd, bool) {
+	if m.Focus == panelDiff {
+		patch := m.DiffView.CurrentHunkPatch()
+		if patch == "" {
+			return m, nil, true
+		}
+
+		m.PendingAction = pendingHunkDiscard
+
+		return m, discardHunkCmd(patch), true
+	}
+
+	node := m.FileTree.SelectedNode()
+	if node == nil {
+		return m, nil, true
+	}
+
+	m.PendingAction = pendingFileDiscard
+	m.PendingSelectPath = m.nextFilePath()
+
+	if !node.IsDir {
+		if node.FileIndex < 0 || node.FileIndex >= len(m.Files) {
+			return m, nil, true
+		}
+
+		path := m.Files[node.FileIndex].Path
+
+		return m, discardFileCmd(path), true
+	}
+
+	return m.handleGitDiscardDirAction(node)
+}
+
+func (m Model) handleGitDiscardDirAction(node *TreeNode) (Model, tea.Cmd, bool) {
+	indices := m.FileTree.FileIndicesUnder(node)
+	if len(indices) == 0 {
+		return m, nil, true
+	}
+
+	paths := make([]string, 0, len(indices))
+
+	for _, idx := range indices {
+		if idx < 0 || idx >= len(m.Files) {
+			continue
+		}
+
+		paths = append(paths, m.Files[idx].Path)
+	}
+
+	return m, discardFilesCmd(paths), true
+}
+
+// nextFilePath returns the path of the next file node after the current
+// selection. If no next file exists, it returns the previous file's path.
+func (m *Model) nextFilePath() string {
+	for i := m.FileTree.Selected + 1; i < len(m.FileTree.Visible); i++ {
+		if !m.FileTree.Visible[i].IsDir {
+			return m.FileTree.Visible[i].FullPath
+		}
+	}
+
+	for i := m.FileTree.Selected - 1; i >= 0; i-- {
+		if !m.FileTree.Visible[i].IsDir {
+			return m.FileTree.Visible[i].FullPath
+		}
+	}
+
+	return ""
 }
 
 func (m *Model) isFileStaged(hash string) bool {

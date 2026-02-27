@@ -199,6 +199,44 @@ func UnstageHunk(ctx context.Context, patch string) error {
 	return nil
 }
 
+func DiscardFile(ctx context.Context, path string) error {
+	// Try checkout first (works for tracked files, resets both index and working tree)
+	if err := runGit(ctx, "checkout", "HEAD", "--", path); err == nil {
+		return nil
+	}
+
+	// Fallback: remove untracked file
+	abs := filepath.Join(repoRoot, path)
+	if err := os.Remove(abs); err != nil {
+		return fmt.Errorf("failed to discard %s: %w", path, err)
+	}
+
+	return nil
+}
+
+func DiscardFiles(ctx context.Context, paths []string) error {
+	for _, path := range paths {
+		if err := DiscardFile(ctx, path); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func DiscardHunk(ctx context.Context, patch string) error {
+	cmd := newGitCmd(ctx, "apply", "-R")
+	cmd.Dir = repoRoot
+	cmd.Stdin = strings.NewReader(patch)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to discard hunk: %s: %w", strings.TrimSpace(string(out)), err)
+	}
+
+	return nil
+}
+
 func Commit(ctx context.Context, message string) error {
 	if err := runGit(ctx, "commit", "-m", message); err != nil {
 		return fmt.Errorf("failed to commit: %w", err)

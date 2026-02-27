@@ -80,9 +80,10 @@ func (m *CommitModel) handleEditKey(key string) {
 	case keyHome, "ctrl+a":
 		m.Cursor = 0
 	case keyEnd, "ctrl+e":
-		m.Cursor = len(m.Message)
+		m.Cursor = len([]rune(m.Message))
 	case "ctrl+u":
-		m.Message = m.Message[m.Cursor:]
+		runes := []rune(m.Message)
+		m.Message = string(runes[m.Cursor:])
 		m.Cursor = 0
 	default:
 		m.insertChar(key)
@@ -91,14 +92,16 @@ func (m *CommitModel) handleEditKey(key string) {
 
 func (m *CommitModel) deleteBack() {
 	if m.Cursor > 0 {
-		m.Message = m.Message[:m.Cursor-1] + m.Message[m.Cursor:]
+		runes := []rune(m.Message)
+		m.Message = string(runes[:m.Cursor-1]) + string(runes[m.Cursor:])
 		m.Cursor--
 	}
 }
 
 func (m *CommitModel) deleteForward() {
-	if m.Cursor < len(m.Message) {
-		m.Message = m.Message[:m.Cursor] + m.Message[m.Cursor+1:]
+	runes := []rune(m.Message)
+	if m.Cursor < len(runes) {
+		m.Message = string(runes[:m.Cursor]) + string(runes[m.Cursor+1:])
 	}
 }
 
@@ -109,14 +112,16 @@ func (m *CommitModel) moveCursorLeft() {
 }
 
 func (m *CommitModel) moveCursorRight() {
-	if m.Cursor < len(m.Message) {
+	if m.Cursor < len([]rune(m.Message)) {
 		m.Cursor++
 	}
 }
 
 func (m *CommitModel) insertChar(key string) {
-	if len(key) == 1 && key[0] >= ' ' {
-		m.Message = m.Message[:m.Cursor] + key + m.Message[m.Cursor:]
+	runes := []rune(key)
+	if len(runes) == 1 && runes[0] >= ' ' {
+		msgRunes := []rune(m.Message)
+		m.Message = string(msgRunes[:m.Cursor]) + key + string(msgRunes[m.Cursor:])
 		m.Cursor++
 	}
 }
@@ -132,13 +137,16 @@ func (m *CommitModel) View(width, height int) string {
 	prompt := promptStyle.Render("Commit message:")
 
 	// render the input with cursor
-	before := m.Message[:m.Cursor]
-	after := m.Message[m.Cursor:]
+	runes := []rune(m.Message)
+	before := string(runes[:m.Cursor])
+	afterRunes := runes[m.Cursor:]
 
 	cursorChar := " "
-	if len(after) > 0 {
-		cursorChar = string(after[0])
-		after = after[1:]
+	after := ""
+
+	if len(afterRunes) > 0 {
+		cursorChar = string(afterRunes[0])
+		after = string(afterRunes[1:])
 	}
 
 	cursorStyle := lipgloss.NewStyle().

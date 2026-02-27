@@ -63,6 +63,7 @@ func (m *HelpModel) buildEntries() []helpEntry {
 	case ModeGit:
 		entries = append(entries,
 			helpEntry{"Space, a", "Stage / unstage (file/dir/hunk)"},
+			helpEntry{"d", "Discard changes (file/dir/hunk)"},
 			helpEntry{"c", "Commit"},
 			helpEntry{"p", "Push"},
 			helpEntry{"P", "Force push (--force-with-lease)"},
