@@ -1,10 +1,13 @@
 import { describe, expect, test } from 'vitest';
-import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  DatabaseObjectType,
+  DatabaseObjectViewModel,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import sortDatabaseObjects from './sortDatabaseObjects';
 
 function obj(
   name: string,
-  objectType: DatabaseObjectViewModel['objectType'],
+  objectType: DatabaseObjectType,
   schema = 'public',
 ): DatabaseObjectViewModel {
   return { name, objectType, schema };
@@ -80,8 +83,6 @@ describe('sortDatabaseObjects', () => {
 
     const result = sortDatabaseObjects(input, enums);
 
-    // public.my_table is NOT an enum, so it stays in ordinary tables group (order 0)
-    // other_schema.my_table IS an enum, so it goes to enum group (order 1)
     expect(result.map((o) => `${o.schema}.${o.name}`)).toEqual([
       'public.my_table',
       'other_schema.my_table',

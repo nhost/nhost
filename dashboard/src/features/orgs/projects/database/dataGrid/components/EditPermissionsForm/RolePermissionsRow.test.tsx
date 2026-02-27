@@ -43,9 +43,8 @@ describe('RolePermissionsRow', () => {
       </table>,
     );
 
-    const cells = screen.getAllByRole('cell');
-    // 1 name cell + 4 action cells = 5
-    expect(cells).toHaveLength(5);
+    const allCells = screen.getAllByRole('cell');
+    expect(allCells).toHaveLength(5);
   });
 
   it('should render only the select column when actions is ["select"]', () => {
@@ -67,9 +66,8 @@ describe('RolePermissionsRow', () => {
       </table>,
     );
 
-    const cells = screen.getAllByRole('cell');
-    // 1 name cell + 1 action cell = 2
-    expect(cells).toHaveLength(2);
+    const allCells = screen.getAllByRole('cell');
+    expect(allCells).toHaveLength(2);
   });
 
   it('should call onActionSelect with the correct action when a cell is clicked', () => {
@@ -94,12 +92,12 @@ describe('RolePermissionsRow', () => {
     );
 
     const buttons = screen.getAllByRole('button');
-    // Click the first action button (select)
-    buttons[0].click();
+    const selectButton = buttons[0];
+    const insertButton = buttons[1];
+    selectButton.click();
     expect(onActionSelect).toHaveBeenCalledWith('select');
 
-    // Click the second action button (insert)
-    buttons[1].click();
+    insertButton.click();
     expect(onActionSelect).toHaveBeenCalledWith('insert');
   });
 
