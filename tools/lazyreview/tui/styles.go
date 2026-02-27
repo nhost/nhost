@@ -2,6 +2,13 @@ package tui
 
 import "github.com/charmbracelet/lipgloss"
 
+const (
+	overlayPaddingV    = 1
+	overlayPaddingH    = 2
+	modeIndicatorWidth = 10
+	commitOverlayWidth = 60
+)
+
 func panelStyle(focused bool) lipgloss.Style {
 	borderColor := lipgloss.Color("240")
 	if focused {
@@ -56,7 +63,7 @@ func helpStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("6")).
-		Padding(1, 2) //nolint:mnd
+		Padding(overlayPaddingV, overlayPaddingH)
 }
 
 func hunkBorderReviewed() lipgloss.Style {
@@ -99,7 +106,7 @@ func modeIndicatorStyle(mode AppMode) lipgloss.Style {
 		Foreground(lipgloss.Color("0")).
 		Background(bg).
 		Padding(0, 1).
-		Width(10). //nolint:mnd
+		Width(modeIndicatorWidth).
 		Align(lipgloss.Center)
 }
 
@@ -129,6 +136,6 @@ func commitOverlayStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("3")).
-		Padding(1, 2). //nolint:mnd
-		Width(60)      //nolint:mnd
+		Padding(overlayPaddingV, overlayPaddingH).
+		Width(commitOverlayWidth)
 }

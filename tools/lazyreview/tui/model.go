@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,8 +14,19 @@ import (
 )
 
 const (
+	keyHome = "home"
+	keyEnd  = "end"
+)
+
+const (
 	panelFiles = iota
 	panelDiff
+)
+
+const (
+	fileTreeWidthPct = 3  // numerator of file tree width ratio
+	fileTreeWidthDiv = 10 // denominator of file tree width ratio
+	statusBarLines   = 2  // lines reserved for status bar
 )
 
 // --- Messages ---
@@ -26,10 +38,10 @@ type refreshMsg struct {
 }
 
 type gitRefreshMsg struct {
-	HeadFiles      []*diff.File
-	UnstagedFiles  []*diff.File
-	CachedFiles    []*diff.File
-	Err            error
+	HeadFiles     []*diff.File
+	UnstagedFiles []*diff.File
+	CachedFiles   []*diff.File
+	Err           error
 }
 
 type stageResultMsg struct {
@@ -48,12 +60,14 @@ type pushDoneMsg struct {
 
 func refreshCmd(base string) tea.Cmd {
 	return func() tea.Msg {
-		mergeBase, err := git.MergeBase(base)
+		ctx := context.Background()
+
+		mergeBase, err := git.MergeBase(ctx, base)
 		if err != nil {
 			return refreshMsg{Files: nil, Hashes: nil, Err: err}
 		}
 
-		rawDiff, err := git.Diff(mergeBase)
+		rawDiff, err := git.Diff(ctx, mergeBase)
 		if err != nil {
 			return refreshMsg{Files: nil, Hashes: nil, Err: err}
 		}
@@ -75,21 +89,28 @@ func refreshCmd(base string) tea.Cmd {
 
 func gitRefreshCmd() tea.Cmd {
 	return func() tea.Msg {
-		headRaw, err := git.DiffHead()
+		ctx := context.Background()
+
+		headRaw, err := git.DiffHead(ctx)
 		if err != nil {
-			return gitRefreshMsg{Err: err}
+			return gitRefreshMsg{HeadFiles: nil, UnstagedFiles: nil, CachedFiles: nil, Err: err}
 		}
 
-		unstagedRaw, err := git.DiffUnstaged()
+		unstagedRaw, err := git.DiffUnstaged(ctx)
 		if err != nil {
-			return gitRefreshMsg{Err: err}
+			return gitRefreshMsg{HeadFiles: nil, UnstagedFiles: nil, CachedFiles: nil, Err: err}
 		}
 
 		// Append synthetic diffs for untracked files to both head and unstaged
-		untracked, err := git.UntrackedFiles()
+		untracked, err := git.UntrackedFiles(ctx)
 		if err != nil {
-			return gitRefreshMsg{Err: err}
+			return gitRefreshMsg{HeadFiles: nil, UnstagedFiles: nil, CachedFiles: nil, Err: err}
 		}
+
+		var (
+			headRawSb94     strings.Builder
+			unstagedRawSb94 strings.Builder
+		)
 
 		for _, path := range untracked {
 			fileDiff, genErr := git.NewFileDiff(path)
@@ -97,19 +118,23 @@ func gitRefreshCmd() tea.Cmd {
 				continue
 			}
 
-			headRaw += fileDiff
-			unstagedRaw += fileDiff
+			headRawSb94.WriteString(fileDiff)
+			unstagedRawSb94.WriteString(fileDiff)
 		}
 
-		cachedRaw, err := git.DiffStaged()
+		headRaw += headRawSb94.String()
+		unstagedRaw += unstagedRawSb94.String()
+
+		cachedRaw, err := git.DiffStaged(ctx)
 		if err != nil {
-			return gitRefreshMsg{Err: err}
+			return gitRefreshMsg{HeadFiles: nil, UnstagedFiles: nil, CachedFiles: nil, Err: err}
 		}
 
 		return gitRefreshMsg{
 			HeadFiles:     diff.Parse(headRaw),
 			UnstagedFiles: diff.Parse(unstagedRaw),
 			CachedFiles:   diff.Parse(cachedRaw),
+			Err:           nil,
 		}
 	}
 }
@@ -124,43 +149,43 @@ func unstageFileCmd(path string) tea.Cmd {
 
 func stageFilesCmd(paths []string) tea.Cmd {
 	return func() tea.Msg {
-		return stageResultMsg{Err: git.StageFiles(paths)}
+		return stageResultMsg{Err: git.StageFiles(context.Background(), paths)}
 	}
 }
 
 func unstageFilesCmd(paths []string) tea.Cmd {
 	return func() tea.Msg {
-		return stageResultMsg{Err: git.UnstageFiles(paths)}
+		return stageResultMsg{Err: git.UnstageFiles(context.Background(), paths)}
 	}
 }
 
 func stageHunkCmd(patch string) tea.Cmd {
 	return func() tea.Msg {
-		return stageResultMsg{Err: git.StageHunk(patch)}
+		return stageResultMsg{Err: git.StageHunk(context.Background(), patch)}
 	}
 }
 
 func unstageHunkCmd(patch string) tea.Cmd {
 	return func() tea.Msg {
-		return stageResultMsg{Err: git.UnstageHunk(patch)}
+		return stageResultMsg{Err: git.UnstageHunk(context.Background(), patch)}
 	}
 }
 
 func commitCmd(message string) tea.Cmd {
 	return func() tea.Msg {
-		return commitDoneMsg{Err: git.Commit(message)}
+		return commitDoneMsg{Err: git.Commit(context.Background(), message)}
 	}
 }
 
 func pushCmd() tea.Cmd {
 	return func() tea.Msg {
-		return pushDoneMsg{Err: git.Push()}
+		return pushDoneMsg{Err: git.Push(context.Background())}
 	}
 }
 
 func pushForceCmd() tea.Cmd {
 	return func() tea.Msg {
-		return pushDoneMsg{Err: git.PushForce()}
+		return pushDoneMsg{Err: git.PushForce(context.Background())}
 	}
 }
 
@@ -242,7 +267,7 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:cyclop,ireturn
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
@@ -275,20 +300,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:cyclop,iretur
 		return m, commitCmd(msg.Message)
 
 	case tea.KeyMsg:
-		if m.Commit.Visible {
-			return m, m.Commit.Update(msg)
-		}
-
-		if m.Help.Visible {
-			m.Help.Toggle()
-
-			return m, nil
-		}
-
-		return m.handleKey(msg)
+		return m.handleKeyMsg(msg)
 	}
 
 	return m, nil
+}
+
+func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.Commit.Visible {
+		return m, m.Commit.Update(msg)
+	}
+
+	if m.Help.Visible {
+		m.Help.Toggle()
+
+		return m, nil
+	}
+
+	return m.handleKey(msg)
 }
 
 func (m Model) handleRefreshMsg(msg refreshMsg) Model {
@@ -385,59 +414,68 @@ func buildGitState(
 	}
 
 	for i, f := range headFiles {
-		hash := hashes[i]
-		hunks := make(map[string]review.HunkState, len(f.Hunks))
-
 		unstaged, hasUnstaged := unstagedByPath[f.Path]
 		hasCached := cachedByPath[f.Path]
-
-		switch {
-		case hasCached && !hasUnstaged:
-			// fully staged — all changes are in the index
-			for j := range f.Hunks {
-				hunks[strconv.Itoa(j)] = review.HunkState{Reviewed: true}
-			}
-
-			state.Files[hash] = review.FileState{
-				Path:     f.Path,
-				Reviewed: true,
-				Hunks:    hunks,
-			}
-
-		case hasUnstaged && hasCached:
-			// partially staged — match HEAD hunks against unstaged by NewStart
-			// (both diffs share the working tree as the "new" side)
-			unstagedStarts := make(map[int]bool, len(unstaged.Hunks))
-			for _, uh := range unstaged.Hunks {
-				unstagedStarts[uh.NewStart] = true
-			}
-
-			for j, hunk := range f.Hunks {
-				staged := !unstagedStarts[hunk.NewStart]
-				hunks[strconv.Itoa(j)] = review.HunkState{Reviewed: staged}
-			}
-
-			state.Files[hash] = review.FileState{
-				Path:     f.Path,
-				Reviewed: false,
-				Hunks:    hunks,
-			}
-
-		default:
-			// fully unstaged (or untracked)
-			for j := range f.Hunks {
-				hunks[strconv.Itoa(j)] = review.HunkState{Reviewed: false}
-			}
-
-			state.Files[hash] = review.FileState{
-				Path:     f.Path,
-				Reviewed: false,
-				Hunks:    hunks,
-			}
-		}
+		state.Files[hashes[i]] = buildFileGitState(f, hasCached, hasUnstaged, unstaged)
 	}
 
 	return state
+}
+
+func buildFileGitState(
+	f *diff.File,
+	hasCached, hasUnstaged bool,
+	unstaged *diff.File,
+) review.FileState {
+	switch {
+	case hasCached && !hasUnstaged:
+		// fully staged
+		return review.FileState{
+			Path:     f.Path,
+			Reviewed: true,
+			Hunks:    buildHunkStates(f.Hunks, true),
+		}
+	case hasUnstaged && hasCached:
+		// partially staged
+		return buildPartiallyStaged(f, unstaged)
+	default:
+		// fully unstaged (or untracked)
+		return review.FileState{
+			Path:     f.Path,
+			Reviewed: false,
+			Hunks:    buildHunkStates(f.Hunks, false),
+		}
+	}
+}
+
+func buildHunkStates(hunks []*diff.Hunk, reviewed bool) map[string]review.HunkState {
+	states := make(map[string]review.HunkState, len(hunks))
+	for j := range hunks {
+		states[strconv.Itoa(j)] = review.HunkState{Reviewed: reviewed}
+	}
+
+	return states
+}
+
+func buildPartiallyStaged(f *diff.File, unstaged *diff.File) review.FileState {
+	// match HEAD hunks against unstaged by NewStart
+	// (both diffs share the working tree as the "new" side)
+	unstagedStarts := make(map[int]bool, len(unstaged.Hunks))
+	for _, uh := range unstaged.Hunks {
+		unstagedStarts[uh.NewStart] = true
+	}
+
+	hunks := make(map[string]review.HunkState, len(f.Hunks))
+	for j, hunk := range f.Hunks {
+		staged := !unstagedStarts[hunk.NewStart]
+		hunks[strconv.Itoa(j)] = review.HunkState{Reviewed: staged}
+	}
+
+	return review.FileState{
+		Path:     f.Path,
+		Reviewed: false,
+		Hunks:    hunks,
+	}
 }
 
 func (m Model) handleStageResult(msg stageResultMsg) (Model, tea.Cmd) {
@@ -478,56 +516,16 @@ func (m Model) handlePushDone(msg pushDoneMsg) Model {
 
 func (m Model) handleKey(
 	msg tea.KeyMsg,
-) (tea.Model, tea.Cmd) { //nolint:cyclop,gocognit,funlen,gocyclo,ireturn
-	switch msg.String() {
+) (Model, tea.Cmd) {
+	key := msg.String()
+
+	if model, cmd, handled := m.handleModeKey(key); handled {
+		return model, cmd
+	}
+
+	switch key {
 	case "q", "ctrl+c":
 		return m, tea.Quit
-
-	case "1":
-		if m.Mode != ModeReview {
-			m.Mode = ModeReview
-			m.Help.Mode = ModeReview
-			m.StatusMsg = ""
-
-			return m, refreshCmd(m.Base)
-		}
-
-	case "2":
-		if m.Mode != ModeGit {
-			m.Mode = ModeGit
-			m.Help.Mode = ModeGit
-			m.StatusMsg = ""
-
-			return m, gitRefreshCmd()
-		}
-
-	case "c":
-		if m.Mode == ModeGit {
-			m.Commit.Open()
-
-			return m, nil
-		}
-
-	case "p":
-		if m.Mode == ModeGit {
-			m.StatusMsg = "Pushing..."
-
-			return m, pushCmd()
-		}
-
-	case "P":
-		if m.Mode == ModeGit {
-			m.StatusMsg = "Force pushing..."
-
-			return m, pushForceCmd()
-		}
-
-	case "r":
-		if m.Mode == ModeGit {
-			return m, gitRefreshCmd()
-		}
-
-		return m, refreshCmd(m.Base)
 
 	case "?":
 		m.Help.Toggle()
@@ -535,25 +533,8 @@ func (m Model) handleKey(
 	case "tab":
 		m.toggleFocus()
 
-	case "enter":
-		if m.Focus == panelFiles {
-			node := m.FileTree.SelectedNode()
-			if node != nil && node.IsDir {
-				m.FileTree.Expand()
-			} else {
-				m.toggleFocus()
-			}
-		}
-
-	case "l", "right":
-		if m.Focus == panelFiles {
-			node := m.FileTree.SelectedNode()
-			if node != nil && node.IsDir {
-				m.FileTree.Expand()
-			} else {
-				m.toggleFocus()
-			}
-		}
+	case "enter", "l", "right":
+		m.handleExpandOrFocus()
 
 	case "h", "left":
 		if m.Focus == panelFiles {
@@ -564,50 +545,125 @@ func (m Model) handleKey(
 	case "a", " ":
 		return m.handleToggleAction()
 
-	case "j", "down":
-		if m.Focus == panelFiles {
-			m.FileTree.MoveDown()
-			m.syncDiffToFile()
-		} else {
-			m.DiffView.NextHunk()
-		}
-
-	case "k", "up":
-		if m.Focus == panelFiles {
-			m.FileTree.MoveUp()
-			m.syncDiffToFile()
-		} else {
-			m.DiffView.PrevHunk()
-		}
-
-	case "g", "home":
-		if m.Focus == panelFiles {
-			m.FileTree.MoveToTop()
-			m.syncDiffToFile()
-		} else {
-			m.DiffView.ScrollToTop()
-		}
-
-	case "G", "end":
-		if m.Focus == panelFiles {
-			m.FileTree.MoveToBottom()
-			m.syncDiffToFile()
-		} else {
-			m.DiffView.ScrollToBottom()
-		}
-
-	case "J":
-		if m.Focus == panelDiff {
-			m.DiffView.ScrollDown()
-		}
-
-	case "K":
-		if m.Focus == panelDiff {
-			m.DiffView.ScrollUp()
-		}
+	default:
+		m.handleNavigationKey(key)
 	}
 
 	return m, nil
+}
+
+func (m Model) handleModeKey(key string) (Model, tea.Cmd, bool) {
+	switch key {
+	case "1":
+		if m.Mode != ModeReview {
+			m.Mode = ModeReview
+			m.Help.Mode = ModeReview
+			m.StatusMsg = ""
+
+			return m, refreshCmd(m.Base), true
+		}
+
+	case "2":
+		if m.Mode != ModeGit {
+			m.Mode = ModeGit
+			m.Help.Mode = ModeGit
+			m.StatusMsg = ""
+
+			return m, gitRefreshCmd(), true
+		}
+
+	case "r":
+		if m.Mode == ModeGit {
+			return m, gitRefreshCmd(), true
+		}
+
+		return m, refreshCmd(m.Base), true
+
+	default:
+		return m.handleGitModeKey(key)
+	}
+
+	return m, nil, false
+}
+
+func (m Model) handleGitModeKey(key string) (Model, tea.Cmd, bool) {
+	if m.Mode != ModeGit {
+		return m, nil, false
+	}
+
+	switch key {
+	case "c":
+		m.Commit.Open()
+
+		return m, nil, true
+
+	case "p":
+		m.StatusMsg = "Pushing..."
+
+		return m, pushCmd(), true
+
+	case "P":
+		m.StatusMsg = "Force pushing..."
+
+		return m, pushForceCmd(), true
+	}
+
+	return m, nil, false
+}
+
+func (m *Model) handleExpandOrFocus() {
+	if m.Focus != panelFiles {
+		return
+	}
+
+	node := m.FileTree.SelectedNode()
+	if node != nil && node.IsDir {
+		m.FileTree.Expand()
+	} else {
+		m.toggleFocus()
+	}
+}
+
+func (m *Model) handleNavigationKey(key string) {
+	if m.Focus == panelFiles {
+		m.handleFileNavigation(key)
+	} else {
+		m.handleDiffNavigation(key)
+	}
+}
+
+func (m *Model) handleFileNavigation(key string) {
+	switch key {
+	case "j", "down":
+		m.FileTree.MoveDown()
+	case "k", "up":
+		m.FileTree.MoveUp()
+	case "g", keyHome:
+		m.FileTree.MoveToTop()
+	case "G", keyEnd:
+		m.FileTree.MoveToBottom()
+	default:
+		return
+	}
+
+	m.syncDiffToFile()
+}
+
+func (m *Model) handleDiffNavigation(key string) {
+	switch key {
+	case "j", "down":
+		m.DiffView.NextHunk()
+	case "k", "up":
+		m.DiffView.PrevHunk()
+	case "g", keyHome:
+		m.DiffView.ScrollToTop()
+	case "G", keyEnd:
+		m.DiffView.ScrollToBottom()
+	case "J":
+		m.DiffView.ScrollDown()
+	case "K":
+		m.DiffView.ScrollUp()
+	}
 }
 
 func (m Model) handleToggleAction() (Model, tea.Cmd) {
@@ -765,7 +821,7 @@ func (m *Model) syncDiffToFile() {
 	}
 }
 
-func (m *Model) toggleCurrentNode() { //nolint:cyclop
+func (m *Model) toggleCurrentNode() {
 	if len(m.Files) == 0 {
 		return
 	}
@@ -783,7 +839,10 @@ func (m *Model) toggleCurrentNode() { //nolint:cyclop
 		return
 	}
 
-	// directory: collect all file indices under this dir
+	m.toggleDirNode(node)
+}
+
+func (m *Model) toggleDirNode(node *TreeNode) {
 	indices := m.FileTree.FileIndicesUnder(node)
 	if len(indices) == 0 {
 		return
@@ -797,31 +856,29 @@ func (m *Model) toggleCurrentNode() { //nolint:cyclop
 		}
 	}
 
-	// determine target state: if any file is unreviewed, mark all reviewed; otherwise unmark all
-	reviewed := true
-
-	for _, h := range hashes {
-		fs, ok := m.State.Files[h]
-		if !ok || !fs.Reviewed {
-			reviewed = false
-
-			break
-		}
-	}
-
-	if reviewed {
-		// all are reviewed, so unmark all
+	// if any file is unreviewed, mark all reviewed; otherwise unmark all
+	if m.allFilesReviewed(hashes) {
 		m.State.SetFilesReviewed(hashes, false)
 	} else {
-		// some unreviewed, mark all as reviewed
 		m.State.SetFilesReviewed(hashes, true)
 	}
 }
 
+func (m *Model) allFilesReviewed(hashes []string) bool {
+	for _, h := range hashes {
+		fs, ok := m.State.Files[h]
+		if !ok || !fs.Reviewed {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (m *Model) layoutPanels() {
-	leftWidth := m.Width * 3 / 10 //nolint:mnd
+	leftWidth := m.Width * fileTreeWidthPct / fileTreeWidthDiv
 	rightWidth := m.Width - leftWidth - 1
-	height := m.Height - 2 //nolint:mnd // reserve 1 for status bar
+	height := m.Height - statusBarLines
 
 	m.FileTree.Width = leftWidth
 	m.FileTree.Height = height

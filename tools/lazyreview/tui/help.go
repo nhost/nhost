@@ -32,11 +32,22 @@ type helpEntry struct {
 	desc string
 }
 
-func (m *HelpModel) View() string { //nolint:funlen
+func (m *HelpModel) View() string {
 	if !m.Visible {
 		return ""
 	}
 
+	entries := m.buildEntries()
+	table := m.renderTable(entries)
+	overlay := helpStyle().Render(table)
+
+	return lipgloss.Place(m.Width, m.Height,
+		lipgloss.Center, lipgloss.Center,
+		overlay,
+	)
+}
+
+func (m *HelpModel) buildEntries() []helpEntry {
 	entries := []helpEntry{
 		{"1", "Review mode"},
 		{"2", "Git mode"},
@@ -48,7 +59,7 @@ func (m *HelpModel) View() string { //nolint:funlen
 		{"Tab", "Switch panel focus"},
 	}
 
-	switch m.Mode { //nolint:exhaustive
+	switch m.Mode {
 	case ModeGit:
 		entries = append(entries,
 			helpEntry{"Space, a", "Stage / unstage (file/dir/hunk)"},
@@ -56,7 +67,7 @@ func (m *HelpModel) View() string { //nolint:funlen
 			helpEntry{"p", "Push"},
 			helpEntry{"P", "Force push (--force-with-lease)"},
 		)
-	default:
+	case ModeReview:
 		entries = append(entries,
 			helpEntry{"Space, a", "Toggle reviewed (file/dir/hunk)"},
 		)
@@ -68,6 +79,10 @@ func (m *HelpModel) View() string { //nolint:funlen
 		helpEntry{"q", "Quit"},
 	)
 
+	return entries
+}
+
+func (m *HelpModel) renderTable(entries []helpEntry) string {
 	keyWidth := 0
 
 	for _, e := range entries {
@@ -83,14 +98,14 @@ func (m *HelpModel) View() string { //nolint:funlen
 		Bold(true)
 	sepStyle := contextStyle()
 
-	var lines []string
+	lines := make([]string, 0, len(entries))
 
 	for _, e := range entries {
 		line := fmt.Sprintf("%s %s %s", keyStyle.Render(e.key), sepStyle.Render("│"), e.desc)
 		lines = append(lines, line)
 	}
 
-	table := strings.Join(lines, "\n")
+	tableStr := strings.Join(lines, "\n")
 	tableWidth := lipgloss.Width(lines[0])
 
 	for _, l := range lines[1:] {
@@ -103,11 +118,6 @@ func (m *HelpModel) View() string { //nolint:funlen
 		Width(tableWidth).
 		Align(lipgloss.Center).
 		Render(titleStyle().Render("Key Bindings"))
-	content := title + "\n\n" + table
-	overlay := helpStyle().Render(content)
 
-	return lipgloss.Place(m.Width, m.Height,
-		lipgloss.Center, lipgloss.Center,
-		overlay,
-	)
+	return title + "\n\n" + tableStr
 }

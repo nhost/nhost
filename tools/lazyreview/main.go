@@ -37,32 +37,32 @@ func main() {
 	}
 }
 
-func run(_ context.Context, cmd *cli.Command) error {
+func run(ctx context.Context, cmd *cli.Command) error {
 	base := cmd.String("base")
 
-	repoRoot, err := git.RepoRoot()
+	repoRoot, err := git.RepoRoot(ctx)
 	if err != nil {
 		return fmt.Errorf("not in a git repository: %w", err)
 	}
 
-	branch, err := git.CurrentBranch()
+	branch, err := git.CurrentBranch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get current branch: %w", err)
 	}
 
-	mergeBase, err := git.MergeBase(base)
+	mergeBase, err := git.MergeBase(ctx, base)
 	if err != nil {
 		return fmt.Errorf("failed to get merge-base: %w", err)
 	}
 
-	rawDiff, err := git.Diff(mergeBase)
+	rawDiff, err := git.Diff(ctx, mergeBase)
 	if err != nil {
 		return fmt.Errorf("failed to get diff: %w", err)
 	}
 
 	files := diff.Parse(rawDiff)
 	if len(files) == 0 {
-		fmt.Println("No changes found between", base, "and HEAD")
+		fmt.Fprintln(os.Stdout, "No changes found between", base, "and HEAD")
 
 		return nil
 	}

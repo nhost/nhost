@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,20 +12,29 @@ import (
 // repoRoot is cached after the first call to RepoRoot().
 var repoRoot string //nolint:gochecknoglobals
 
-func runGit(args ...string) error {
-	cmd := exec.Command("git", args...) //nolint:gosec
+func newGitCmd(ctx context.Context, args ...string) *exec.Cmd {
+	return exec.CommandContext(ctx, "git", args...)
+}
+
+func runGit(ctx context.Context, args ...string) error {
+	cmd := newGitCmd(ctx, args...)
 	cmd.Dir = repoRoot
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("git %s: %s: %w", strings.Join(args, " "), strings.TrimSpace(string(out)), err)
+		return fmt.Errorf(
+			"git %s: %s: %w",
+			strings.Join(args, " "),
+			strings.TrimSpace(string(out)),
+			err,
+		)
 	}
 
 	return nil
 }
 
-func RepoRoot() (string, error) {
-	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+func RepoRoot(ctx context.Context) (string, error) {
+	out, err := newGitCmd(ctx, "rev-parse", "--show-toplevel").Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get repo root: %w", err)
 	}
@@ -34,8 +44,8 @@ func RepoRoot() (string, error) {
 	return repoRoot, nil
 }
 
-func CurrentBranch() (string, error) {
-	out, err := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD").Output()
+func CurrentBranch(ctx context.Context) (string, error) {
+	out, err := newGitCmd(ctx, "rev-parse", "--abbrev-ref", "HEAD").Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get current branch: %w", err)
 	}
@@ -43,8 +53,8 @@ func CurrentBranch() (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-func MergeBase(base string) (string, error) {
-	out, err := exec.Command("git", "merge-base", base, "HEAD").Output()
+func MergeBase(ctx context.Context, base string) (string, error) {
+	out, err := newGitCmd(ctx, "merge-base", base, "HEAD").Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get merge-base for %s: %w", base, err)
 	}
@@ -52,8 +62,8 @@ func MergeBase(base string) (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-func Diff(mergeBase string) (string, error) {
-	out, err := exec.Command("git", "diff", "-U1", mergeBase).Output()
+func Diff(ctx context.Context, mergeBase string) (string, error) {
+	out, err := newGitCmd(ctx, "diff", "-U1", mergeBase).Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get diff against %s: %w", mergeBase, err)
 	}
@@ -61,8 +71,8 @@ func Diff(mergeBase string) (string, error) {
 	return string(out), nil
 }
 
-func DiffHead() (string, error) {
-	out, err := exec.Command("git", "diff", "-U1", "HEAD").Output()
+func DiffHead(ctx context.Context) (string, error) {
+	out, err := newGitCmd(ctx, "diff", "-U1", "HEAD").Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get HEAD diff: %w", err)
 	}
@@ -70,8 +80,8 @@ func DiffHead() (string, error) {
 	return string(out), nil
 }
 
-func DiffUnstaged() (string, error) {
-	out, err := exec.Command("git", "diff", "-U1").Output()
+func DiffUnstaged(ctx context.Context) (string, error) {
+	out, err := newGitCmd(ctx, "diff", "-U1").Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get unstaged diff: %w", err)
 	}
@@ -79,8 +89,8 @@ func DiffUnstaged() (string, error) {
 	return string(out), nil
 }
 
-func DiffStaged() (string, error) {
-	out, err := exec.Command("git", "diff", "-U1", "--cached").Output()
+func DiffStaged(ctx context.Context) (string, error) {
+	out, err := newGitCmd(ctx, "diff", "-U1", "--cached").Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get staged diff: %w", err)
 	}
@@ -89,8 +99,8 @@ func DiffStaged() (string, error) {
 }
 
 // UntrackedFiles returns paths of untracked files (relative to repo root).
-func UntrackedFiles() ([]string, error) {
-	cmd := exec.Command("git", "ls-files", "--others", "--exclude-standard")
+func UntrackedFiles(ctx context.Context) ([]string, error) {
+	cmd := newGitCmd(ctx, "ls-files", "--others", "--exclude-standard")
 	cmd.Dir = repoRoot
 
 	out, err := cmd.Output()
@@ -111,7 +121,7 @@ func UntrackedFiles() ([]string, error) {
 func NewFileDiff(path string) (string, error) {
 	abs := filepath.Join(repoRoot, path)
 
-	data, err := os.ReadFile(abs) //nolint:gosec
+	data, err := os.ReadFile(abs)
 	if err != nil {
 		return "", fmt.Errorf("failed to read %s: %w", path, err)
 	}
@@ -137,34 +147,34 @@ func NewFileDiff(path string) (string, error) {
 	return b.String(), nil
 }
 
-func StageFile(path string) error {
-	return StageFiles([]string{path})
+func StageFile(ctx context.Context, path string) error {
+	return StageFiles(ctx, []string{path})
 }
 
-func StageFiles(paths []string) error {
+func StageFiles(ctx context.Context, paths []string) error {
 	args := append([]string{"add", "--"}, paths...)
-	if err := runGit(args...); err != nil {
+	if err := runGit(ctx, args...); err != nil {
 		return fmt.Errorf("failed to stage files: %w", err)
 	}
 
 	return nil
 }
 
-func UnstageFile(path string) error {
-	return UnstageFiles([]string{path})
+func UnstageFile(ctx context.Context, path string) error {
+	return UnstageFiles(ctx, []string{path})
 }
 
-func UnstageFiles(paths []string) error {
+func UnstageFiles(ctx context.Context, paths []string) error {
 	args := append([]string{"reset", "HEAD", "--"}, paths...)
-	if err := runGit(args...); err != nil {
+	if err := runGit(ctx, args...); err != nil {
 		return fmt.Errorf("failed to unstage files: %w", err)
 	}
 
 	return nil
 }
 
-func StageHunk(patch string) error {
-	cmd := exec.Command("git", "apply", "--cached")
+func StageHunk(ctx context.Context, patch string) error {
+	cmd := newGitCmd(ctx, "apply", "--cached")
 	cmd.Dir = repoRoot
 	cmd.Stdin = strings.NewReader(patch)
 
@@ -176,8 +186,8 @@ func StageHunk(patch string) error {
 	return nil
 }
 
-func UnstageHunk(patch string) error {
-	cmd := exec.Command("git", "apply", "--cached", "-R")
+func UnstageHunk(ctx context.Context, patch string) error {
+	cmd := newGitCmd(ctx, "apply", "--cached", "-R")
 	cmd.Dir = repoRoot
 	cmd.Stdin = strings.NewReader(patch)
 
@@ -189,24 +199,24 @@ func UnstageHunk(patch string) error {
 	return nil
 }
 
-func Commit(message string) error {
-	if err := runGit("commit", "-m", message); err != nil {
+func Commit(ctx context.Context, message string) error {
+	if err := runGit(ctx, "commit", "-m", message); err != nil {
 		return fmt.Errorf("failed to commit: %w", err)
 	}
 
 	return nil
 }
 
-func Push() error {
-	if err := runGit("push"); err != nil {
+func Push(ctx context.Context) error {
+	if err := runGit(ctx, "push"); err != nil {
 		return fmt.Errorf("failed to push: %w", err)
 	}
 
 	return nil
 }
 
-func PushForce() error {
-	if err := runGit("push", "--force-with-lease"); err != nil {
+func PushForce(ctx context.Context) error {
+	if err := runGit(ctx, "push", "--force-with-lease"); err != nil {
 		return fmt.Errorf("failed to force push: %w", err)
 	}
 

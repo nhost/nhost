@@ -5,12 +5,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/nhost/nhost/tools/lazyreview/diff"
+)
+
+const (
+	dirPerm  fs.FileMode = 0o755
+	filePerm fs.FileMode = 0o644
 )
 
 type HunkState struct {
@@ -90,7 +96,7 @@ func Load(repoRoot, branch, base string) (*State, error) {
 
 func (s *State) Save() error {
 	dir := filepath.Dir(s.path)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
 		return fmt.Errorf("failed to create state directory: %w", err)
 	}
 
@@ -99,7 +105,7 @@ func (s *State) Save() error {
 		return fmt.Errorf("failed to marshal state: %w", err)
 	}
 
-	if err := os.WriteFile(s.path, data, 0o644); err != nil { //nolint:gosec
+	if err := os.WriteFile(s.path, data, filePerm); err != nil {
 		return fmt.Errorf("failed to write state file: %w", err)
 	}
 

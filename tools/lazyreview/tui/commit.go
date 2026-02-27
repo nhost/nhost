@@ -39,7 +39,7 @@ type commitSubmitMsg struct {
 	Message string
 }
 
-func (m *CommitModel) Update(msg tea.KeyMsg) tea.Cmd { //nolint:cyclop
+func (m *CommitModel) Update(msg tea.KeyMsg) tea.Cmd {
 	switch msg.String() {
 	case "esc":
 		m.Close()
@@ -47,56 +47,78 @@ func (m *CommitModel) Update(msg tea.KeyMsg) tea.Cmd { //nolint:cyclop
 		return func() tea.Msg { return commitCancelMsg{} }
 
 	case "enter":
-		message := strings.TrimSpace(m.Message)
-		if message == "" {
-			return nil
-		}
-
-		m.Close()
-
-		return func() tea.Msg { return commitSubmitMsg{Message: message} }
-
-	case "backspace":
-		if m.Cursor > 0 {
-			m.Message = m.Message[:m.Cursor-1] + m.Message[m.Cursor:]
-			m.Cursor--
-		}
-
-	case "delete":
-		if m.Cursor < len(m.Message) {
-			m.Message = m.Message[:m.Cursor] + m.Message[m.Cursor+1:]
-		}
-
-	case "left":
-		if m.Cursor > 0 {
-			m.Cursor--
-		}
-
-	case "right":
-		if m.Cursor < len(m.Message) {
-			m.Cursor++
-		}
-
-	case "home", "ctrl+a":
-		m.Cursor = 0
-
-	case "end", "ctrl+e":
-		m.Cursor = len(m.Message)
-
-	case "ctrl+u":
-		m.Message = m.Message[m.Cursor:]
-		m.Cursor = 0
+		return m.submit()
 
 	default:
-		// ignore control sequences, only accept printable runes
-		r := msg.String()
-		if len(r) == 1 && r[0] >= ' ' {
-			m.Message = m.Message[:m.Cursor] + r + m.Message[m.Cursor:]
-			m.Cursor++
-		}
+		m.handleEditKey(msg.String())
 	}
 
 	return nil
+}
+
+func (m *CommitModel) submit() tea.Cmd {
+	message := strings.TrimSpace(m.Message)
+	if message == "" {
+		return nil
+	}
+
+	m.Close()
+
+	return func() tea.Msg { return commitSubmitMsg{Message: message} }
+}
+
+func (m *CommitModel) handleEditKey(key string) {
+	switch key {
+	case "backspace":
+		m.deleteBack()
+	case "delete":
+		m.deleteForward()
+	case "left":
+		m.moveCursorLeft()
+	case "right":
+		m.moveCursorRight()
+	case keyHome, "ctrl+a":
+		m.Cursor = 0
+	case keyEnd, "ctrl+e":
+		m.Cursor = len(m.Message)
+	case "ctrl+u":
+		m.Message = m.Message[m.Cursor:]
+		m.Cursor = 0
+	default:
+		m.insertChar(key)
+	}
+}
+
+func (m *CommitModel) deleteBack() {
+	if m.Cursor > 0 {
+		m.Message = m.Message[:m.Cursor-1] + m.Message[m.Cursor:]
+		m.Cursor--
+	}
+}
+
+func (m *CommitModel) deleteForward() {
+	if m.Cursor < len(m.Message) {
+		m.Message = m.Message[:m.Cursor] + m.Message[m.Cursor+1:]
+	}
+}
+
+func (m *CommitModel) moveCursorLeft() {
+	if m.Cursor > 0 {
+		m.Cursor--
+	}
+}
+
+func (m *CommitModel) moveCursorRight() {
+	if m.Cursor < len(m.Message) {
+		m.Cursor++
+	}
+}
+
+func (m *CommitModel) insertChar(key string) {
+	if len(key) == 1 && key[0] >= ' ' {
+		m.Message = m.Message[:m.Cursor] + key + m.Message[m.Cursor:]
+		m.Cursor++
+	}
 }
 
 func (m *CommitModel) View(width, height int) string {

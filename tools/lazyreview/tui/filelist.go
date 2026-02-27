@@ -9,6 +9,13 @@ import (
 	"github.com/nhost/nhost/tools/lazyreview/review"
 )
 
+const (
+	defaultTreeWidth  = 30
+	defaultTreeHeight = 20
+	panelChrome       = 3 // border top + title + border bottom
+	panelBorderWidth  = 2 // left + right border
+)
+
 type TreeNode struct {
 	Name      string
 	FullPath  string
@@ -48,8 +55,8 @@ func NewFileTreeModel(
 		Visible:  nil,
 		Selected: 0,
 		Offset:   0,
-		Width:    30, //nolint:mnd
-		Height:   20, //nolint:mnd
+		Width:    defaultTreeWidth,
+		Height:   defaultTreeHeight,
 		Focused:  true,
 		Mode:     mode,
 	}
@@ -189,7 +196,7 @@ func (m *FileTreeModel) MoveToBottom() {
 }
 
 func (m *FileTreeModel) ensureVisible() {
-	visibleHeight := max(m.Height-3, 1) //nolint:mnd // border + title + padding
+	visibleHeight := max(m.Height-panelChrome, 1) // border + title + padding
 
 	if m.Selected < m.Offset {
 		m.Offset = m.Selected
@@ -361,16 +368,16 @@ func (m *FileTreeModel) collapseNotIn(nodes []*TreeNode, expandedPaths map[strin
 func (m *FileTreeModel) View() string {
 	var title string
 
-	switch m.Mode { //nolint:exhaustive
+	switch m.Mode {
 	case ModeGit:
 		staged := m.State.ReviewedFileCount()
 		title = titleStyle().Render(fmt.Sprintf("Files (%d/%d staged)", staged, len(m.Files)))
-	default:
+	case ModeReview:
 		reviewed := m.State.ReviewedFileCount()
 		title = titleStyle().Render(fmt.Sprintf("Files (%d/%d reviewed)", reviewed, len(m.Files)))
 	}
 
-	visibleHeight := max(m.Height-3, 1) //nolint:mnd
+	visibleHeight := max(m.Height-panelChrome, 1)
 
 	lines := []string{title, ""}
 
@@ -381,7 +388,7 @@ func (m *FileTreeModel) View() string {
 		line := m.renderNode(node)
 
 		if i == m.Selected {
-			line = selectedStyle().Width(m.Width - 2).Render(line) //nolint:mnd
+			line = selectedStyle().Width(m.Width - panelBorderWidth).Render(line)
 		}
 
 		lines = append(lines, line)

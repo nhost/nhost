@@ -8,6 +8,12 @@ import (
 	"github.com/nhost/nhost/tools/lazyreview/review"
 )
 
+const (
+	diffViewHeaderLines = 2 // title + blank line
+	defaultDiffWidth    = 60
+	defaultDiffHeight   = 20
+)
+
 type DiffViewModel struct {
 	File        *diff.File
 	Hash        string
@@ -28,8 +34,8 @@ func NewDiffViewModel(state *review.State) DiffViewModel {
 		State:       state,
 		ActiveHunk:  0,
 		ScrollY:     0,
-		Width:       60, //nolint:mnd
-		Height:      20, //nolint:mnd
+		Width:       defaultDiffWidth,
+		Height:      defaultDiffHeight,
 		Focused:     false,
 		Mode:        ModeReview,
 		renderedLen: 0,
@@ -82,11 +88,7 @@ func (m *DiffViewModel) ScrollToBottom() {
 }
 
 func (m *DiffViewModel) viewHeight() int {
-	h := max(
-		//nolint:mnd
-		m.Height-3, 1)
-
-	return h
+	return max(m.Height-panelChrome, 1)
 }
 
 func (m *DiffViewModel) NextHunk() {
@@ -142,7 +144,7 @@ func (m *DiffViewModel) CurrentHunkPatch() string {
 	return diff.HunkPatch(m.File.RawDiff, m.ActiveHunk)
 }
 
-func (m *DiffViewModel) View() string { //nolint:cyclop,funlen
+func (m *DiffViewModel) View() string {
 	if m.File == nil {
 		content := contextStyle().Render("No file selected")
 
@@ -154,53 +156,12 @@ func (m *DiffViewModel) View() string { //nolint:cyclop,funlen
 			Render(content)
 	}
 
-	title := titleStyle().Render(m.File.Path)
-
-	var allLines []string
-
-	for hunkIdx, hunk := range m.File.Hunks {
-		isActive := hunkIdx == m.ActiveHunk && m.Focused
-		isReviewed := m.State.IsHunkReviewed(m.Hash, hunkIdx)
-
-		headerPrefix := "  "
-		if isReviewed {
-			headerPrefix = reviewedIndicator() + " "
-		}
-
-		headerLine := headerPrefix + hunkHeaderStyle().Render(hunk.Header)
-		allLines = append(allLines, headerLine)
-
-		for _, line := range hunk.Lines {
-			var border string
-
-			switch {
-			case isActive:
-				border = hunkBorderActive().String()
-			case isReviewed:
-				border = hunkBorderReviewed().String()
-			default:
-				border = hunkBorderNormal().String()
-			}
-
-			styled := m.styleLine(line)
-			allLines = append(allLines, border+styled)
-		}
-	}
-
+	allLines := m.renderHunks()
 	m.renderedLen = len(allLines)
+	m.clampScroll(len(allLines))
 
 	viewH := m.viewHeight()
-
-	if m.ScrollY > len(allLines)-viewH {
-		m.ScrollY = len(allLines) - viewH
-	}
-
-	if m.ScrollY < 0 {
-		m.ScrollY = 0
-	}
-
 	end := min(m.ScrollY+viewH, len(allLines))
-
 	visible := allLines[m.ScrollY:end]
 
 	scrollInfo := ""
@@ -208,8 +169,8 @@ func (m *DiffViewModel) View() string { //nolint:cyclop,funlen
 		scrollInfo = fmt.Sprintf(" [%d/%d]", m.ScrollY+1, len(allLines))
 	}
 
-	var lines []string
-
+	title := titleStyle().Render(m.File.Path)
+	lines := make([]string, 0, diffViewHeaderLines+len(visible))
 	lines = append(lines, title+contextStyle().Render(scrollInfo))
 	lines = append(lines, "")
 	lines = append(lines, visible...)
@@ -222,6 +183,53 @@ func (m *DiffViewModel) View() string { //nolint:cyclop,funlen
 		Height(m.Height).
 		MaxHeight(m.Height).
 		Render(content)
+}
+
+func (m *DiffViewModel) renderHunks() []string {
+	var allLines []string
+
+	for hunkIdx, hunk := range m.File.Hunks {
+		isActive := hunkIdx == m.ActiveHunk && m.Focused
+		isReviewed := m.State.IsHunkReviewed(m.Hash, hunkIdx)
+
+		headerPrefix := "  "
+		if isReviewed {
+			headerPrefix = reviewedIndicator() + " "
+		}
+
+		allLines = append(allLines, headerPrefix+hunkHeaderStyle().Render(hunk.Header))
+
+		border := m.hunkBorder(isActive, isReviewed)
+
+		for _, line := range hunk.Lines {
+			allLines = append(allLines, border+m.styleLine(line))
+		}
+	}
+
+	return allLines
+}
+
+func (m *DiffViewModel) hunkBorder(isActive, isReviewed bool) string {
+	switch {
+	case isActive:
+		return hunkBorderActive().String()
+	case isReviewed:
+		return hunkBorderReviewed().String()
+	default:
+		return hunkBorderNormal().String()
+	}
+}
+
+func (m *DiffViewModel) clampScroll(totalLines int) {
+	viewH := m.viewHeight()
+
+	if m.ScrollY > totalLines-viewH {
+		m.ScrollY = totalLines - viewH
+	}
+
+	if m.ScrollY < 0 {
+		m.ScrollY = 0
+	}
 }
 
 func (m *DiffViewModel) styleLine(line diff.Line) string {
