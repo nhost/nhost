@@ -69,7 +69,6 @@ function DataBrowserSidebarContent({
 
   const { schemas, tableLikeObjects, metadata } = data || {
     schemas: [],
-    tableLikeObjects: [],
   };
 
   const [selectedSchema, setSelectedSchema] = useState<string>('');
