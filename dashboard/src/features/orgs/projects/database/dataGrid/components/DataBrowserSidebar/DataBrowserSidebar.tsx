@@ -24,13 +24,11 @@ import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGri
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
-import type {
-  DatabaseObjectType,
-  DatabaseObjectViewModel,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
 import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
+import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import TableActions from './TableActions';
@@ -98,32 +96,17 @@ function DataBrowserSidebarContent({
     }
   }, [schemaSlug, schemas, selectedSchema]);
 
-  const allObjectsInSelectedSchema: DatabaseObjectViewModel[] = (
-    tableLikeObjects || []
-  )
-    .filter((obj) => obj.table_schema === selectedSchema)
-    .map((obj) => ({
-      schema: obj.table_schema,
-      name: obj.table_name,
-      objectType: obj.table_type || 'ORDINARY TABLE',
-    }))
-    .sort((a, b) => {
-      const typeOrder: Record<DatabaseObjectType, number> = {
-        'ORDINARY TABLE': 0,
-        'FOREIGN TABLE': 1,
-        'MATERIALIZED VIEW': 2,
-        VIEW: 3,
-      };
-
-      const orderA = typeOrder[a.objectType] ?? 99;
-      const orderB = typeOrder[b.objectType] ?? 99;
-
-      if (orderA !== orderB) {
-        return orderA - orderB;
-      }
-
-      return a.name.localeCompare(b.name);
-    });
+  const allObjectsInSelectedSchema: DatabaseObjectViewModel[] =
+    sortDatabaseObjects(
+      (tableLikeObjects || [])
+        .filter((obj) => obj.table_schema === selectedSchema)
+        .map((obj) => ({
+          schema: obj.table_schema,
+          name: obj.table_name,
+          objectType: obj.table_type || 'ORDINARY TABLE',
+        })),
+      enumTablePaths,
+    );
 
   const {
     removableObject,
@@ -238,7 +221,7 @@ function DataBrowserSidebarContent({
                 const tablePath = `${databaseObject.schema}.${databaseObject.name}`;
                 const isEnum = Boolean(enumTablePaths?.has(tablePath));
                 const isUntracked = !trackedTablesSet?.has(tablePath);
-                const ObjectIcon = getDatabaseObjectIcon(
+                const DatabaseObjectIcon = getDatabaseObjectIcon(
                   databaseObject.objectType,
                   isEnum,
                 );
@@ -273,7 +256,7 @@ function DataBrowserSidebarContent({
                               }}
                               href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.schema}/${getObjectTypeUrlSegment(databaseObject.objectType)}/${databaseObject.name}`}
                             >
-                              <ObjectIcon className="h-4 w-4 shrink-0" />
+                              <DatabaseObjectIcon className="h-4 w-4 shrink-0" />
                               <span
                                 className={cn('!truncate text-ellipsis', {
                                   italic: isUntracked,

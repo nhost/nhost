@@ -48,10 +48,6 @@ export interface DataGridProps<
    */
   onSortingChange?: OnChangeFn<SortingState>;
   /**
-   * Function to be called when the user wants to insert a new row.
-   */
-  onInsertRow?: VoidFunction;
-  /**
    * Determines whether or not data is loading.
    */
   loading?: boolean;

@@ -11,7 +11,7 @@ import { useTablePath } from '@/features/orgs/projects/database/common/hooks/use
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
-import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useIsReadOnlyDatabaseObject } from '@/features/orgs/projects/database/dataGrid/hooks/useIsReadOnlyDatabaseObject';
 import {
   createTableQueryKey,
   useTableQuery,
@@ -197,8 +197,10 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
 
   const { mutateAsync: updateRow } = useUpdateRecordWithToastMutation();
 
-  const { data: databaseData } = useDatabaseQuery([dataSourceSlug as string], {
+  const isReadOnlyObject = useIsReadOnlyDatabaseObject({
     dataSource: dataSourceSlug as string,
+    schema: schemaSlug as string,
+    name: tableSlug as string,
     queryOptions: {
       enabled:
         typeof schemaSlug === 'string' &&
@@ -206,15 +208,6 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
         typeof dataSourceSlug === 'string',
     },
   });
-
-  const matchedObject = (databaseData?.tableLikeObjects ?? []).find(
-    (obj) => obj.table_schema === schemaSlug && obj.table_name === tableSlug,
-  );
-
-  const isReadOnlyObject =
-    matchedObject?.table_type === 'VIEW' ||
-    matchedObject?.table_type === 'MATERIALIZED VIEW' ||
-    matchedObject?.table_type === 'FOREIGN TABLE';
 
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
@@ -232,7 +225,6 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
           mode: desc ? 'DESC' : 'ASC',
         })) || [],
       filters: appliedFilters,
-      objectType: matchedObject?.table_type,
       queryOptions: {
         enabled: isFiltersLoadedFromStorage.current,
       },
@@ -428,7 +420,6 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       }
       loading={status === 'loading'}
       className="pb-17 sm:pb-0"
-      onInsertRow={isReadOnlyObject ? undefined : handleInsertRowClick}
       options={{
         manualSorting: true,
         enableMultiSort: false,

@@ -1,4 +1,10 @@
-import { List, ScanEye, Table2, View } from 'lucide-react';
+import {
+  BetweenHorizontalEnd,
+  List,
+  ScanEye,
+  Table2,
+  View,
+} from 'lucide-react';
 import type { DatabaseObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export default function getDatabaseObjectIcon(
@@ -10,6 +16,9 @@ export default function getDatabaseObjectIcon(
   }
   if (objectType === 'MATERIALIZED VIEW') {
     return View;
+  }
+  if (objectType === 'FOREIGN TABLE') {
+    return BetweenHorizontalEnd;
   }
   if (isEnum) {
     return List;

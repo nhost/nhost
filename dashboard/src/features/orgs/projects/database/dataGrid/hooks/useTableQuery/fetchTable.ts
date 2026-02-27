@@ -8,7 +8,6 @@ import {
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import type {
-  DatabaseObjectType,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
@@ -46,10 +45,10 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
    */
   filters?: DataGridFilter[];
   /**
-   * The type of database object being queried. When set to 'MATERIALIZED VIEW',
-   * a PG_ATTRIBUTE-based query is used instead of INFORMATION_SCHEMA.COLUMNS.
+   * When true, a pg_attribute-based query is used instead of
+   * information_schema.columns to fetch column metadata.
    */
-  objectType?: DatabaseObjectType;
+  isMaterializedView?: boolean;
 }
 
 export interface FetchTableReturnType {
@@ -97,7 +96,7 @@ export default async function fetchTable({
   offset,
   orderBy,
   filters,
-  objectType,
+  isMaterializedView,
 }: FetchTableOptions): Promise<FetchTableReturnType> {
   let limitAndOffsetClause = '';
 
@@ -132,6 +131,10 @@ export default async function fetchTable({
 
   const whereClause = filtersToWhere(filters);
 
+  const columnDefinitionQuery = isMaterializedView
+    ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
+    : COLUMN_DEFINITION_QUERY;
+
   const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
@@ -141,9 +144,7 @@ export default async function fetchTable({
       args: [
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          objectType === 'MATERIALIZED VIEW'
-            ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
-            : COLUMN_DEFINITION_QUERY,
+          columnDefinitionQuery,
           schema,
           table,
         ),
