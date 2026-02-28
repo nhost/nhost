@@ -1,8 +1,8 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import React, { type JSX, useEffect, useId, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../lib/nhost/AuthProvider";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import React, { type JSX, useEffect, useId, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../lib/nhost/AuthProvider';
 
 interface VerificationResponse {
   success?: boolean;
@@ -14,27 +14,28 @@ export default function MfaVerification(): JSX.Element {
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
-  const ticket = searchParams.get("ticket");
-  const initialError = searchParams.get("error");
+  const ticket = searchParams.get('ticket');
+  const redirect = searchParams.get('redirect');
+  const initialError = searchParams.get('error');
 
   const { isAuthenticated, nhost } = useAuth();
-  const [otp, setOtp] = useState<string>("");
+  const [otp, setOtp] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(initialError);
   const otpId = useId();
 
   // Use effect to handle redirects
   useEffect(() => {
-    // If user is already authenticated, redirect to profile
+    // If user is already authenticated, redirect to destination
     if (isAuthenticated) {
-      navigate("/profile", { replace: true });
+      navigate(redirect || '/profile', { replace: true });
     }
 
     // If no ticket is provided, redirect to sign in
     if (!ticket && !isLoading) {
-      navigate("/signin", { replace: true });
+      navigate('/signin', { replace: true });
     }
-  }, [isAuthenticated, ticket, navigate, isLoading]);
+  }, [isAuthenticated, ticket, navigate, isLoading, redirect]);
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>,
@@ -49,7 +50,7 @@ export default function MfaVerification(): JSX.Element {
       if (result.error) {
         setError(result.error);
       } else if (result.success) {
-        navigate("/profile", { replace: true });
+        navigate(redirect || '/profile', { replace: true });
       }
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
@@ -78,7 +79,7 @@ export default function MfaVerification(): JSX.Element {
         return { success: true };
       }
 
-      return { error: "Failed to verify MFA code. Please try again." };
+      return { error: 'Failed to verify MFA code. Please try again.' };
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
       return { error: `Failed to verify code: ${error.message}` };
@@ -121,7 +122,7 @@ export default function MfaVerification(): JSX.Element {
                 className="btn btn-primary"
                 disabled={isLoading}
               >
-                {isLoading ? "Verifying..." : "Verify"}
+                {isLoading ? 'Verifying...' : 'Verify'}
               </button>
 
               <Link to="/signin" className="btn btn-secondary">

@@ -1,6 +1,6 @@
+import { test, vi } from 'vitest';
 import { render, screen } from '@/tests/testUtils';
 import type { Deployment } from '@/types/application';
-import { test, vi } from 'vitest';
 import DeploymentStatusMessage from './DeploymentStatusMessage';
 
 const defaultDeployment: Deployment = {

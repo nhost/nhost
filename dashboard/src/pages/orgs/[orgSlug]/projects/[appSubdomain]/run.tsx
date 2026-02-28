@@ -1,3 +1,6 @@
+import { BoxIcon } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { type ReactElement, useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
@@ -5,24 +8,17 @@ import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import {
-  useRunServices,
-  type RunServiceConfig,
-} from '@/features/orgs/projects/common/hooks/useRunServices';
+import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
-import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import type { ServiceFormInitialData } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, type ReactElement } from 'react';
+import { parseConfigFromInstallLink } from '@/features/orgs/projects/services/utils/parseConfigFromInstallLink';
 
 export default function RunPage() {
   const router = useRouter();
@@ -48,34 +44,12 @@ export default function RunPage() {
     (base64Config: string) => {
       if (router.query?.config) {
         try {
-          const decodedConfig = atob(base64Config);
-          const parsedConfig: RunServiceConfig = JSON.parse(decodedConfig);
-          const initialData = {
-            ...parsedConfig,
-            autoscaler: parsedConfig?.resources?.autoscaler ?? {
-              maxReplicas: 0,
-            },
-            compute: parsedConfig?.resources?.compute ?? {
-              cpu: 62,
-              memory: 128,
-            },
-            image: parsedConfig?.image?.image,
-            command: parsedConfig?.command?.map((arg) => ({
-              argument: arg,
-            })),
-            ports: parsedConfig?.ports?.map((item) => ({
-              port: item.port,
-              type: item.type as PortTypes,
-              publish: item.publish,
-            })),
-            replicas: parsedConfig?.resources?.replicas,
-            storage: parsedConfig?.resources?.storage,
-          } as ServiceFormInitialData;
+          const initialData = parseConfigFromInstallLink(base64Config);
 
           openDrawer({
             title: (
               <Box className="flex flex-row items-center space-x-2">
-                <CubeIcon className="h-5 w-5" />
+                <BoxIcon className="h-5 w-5" />
                 <Text>Create a new run service</Text>
               </Box>
             ),
@@ -83,7 +57,7 @@ export default function RunPage() {
               <ServiceForm initialData={initialData} onSubmit={refetch} />
             ),
           });
-        } catch (error) {
+        } catch {
           openAlertDialog({
             title: 'Configuration not set properly',
             payload: 'The service configuration was not properly encoded',
@@ -113,7 +87,7 @@ export default function RunPage() {
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
-          <CubeIcon className="h-5 w-5" />
+          <BoxIcon className="h-5 w-5" />
           <Text>Create a new service</Text>
         </Box>
       ),

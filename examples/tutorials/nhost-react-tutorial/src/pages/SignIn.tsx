@@ -1,13 +1,13 @@
-import { useEffect, useId, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import { useEffect, useId, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function SignIn() {
   const { nhost, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export default function SignIn() {
   // Use useEffect for navigation after authentication is confirmed
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/profile");
+      navigate('/profile');
     }
   }, [isAuthenticated, navigate]);
 
@@ -35,12 +35,12 @@ export default function SignIn() {
 
       // If we have a session, sign in was successful
       if (response.body?.session) {
-        navigate("/profile");
+        navigate('/profile');
       } else {
-        setError("Failed to sign in. Please check your credentials.");
+        setError('Failed to sign in. Please check your credentials.');
       }
     } catch (err) {
-      const message = (err as Error).message || "Unknown error";
+      const message = (err as Error).message || 'Unknown error';
       setError(`An error occurred during sign in: ${message}`);
     } finally {
       setIsLoading(false);
@@ -83,7 +83,7 @@ export default function SignIn() {
           disabled={isLoading}
           className={`auth-button secondary`}
         >
-          {isLoading ? "Signing In..." : "Sign In"}
+          {isLoading ? 'Signing In...' : 'Sign In'}
         </button>
       </form>
 

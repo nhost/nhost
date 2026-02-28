@@ -1,14 +1,16 @@
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   FetchDatabaseOptions,
   FetchDatabaseReturnType,
 } from './fetchDatabase';
 import fetchDatabase from './fetchDatabase';
+
+const DATABASE_QUERY_STALE_TIME = 60_000;
 
 export interface UseDatabaseQueryOptions extends Partial<FetchDatabaseOptions> {
   /**
@@ -41,9 +43,10 @@ export default function useDatabaseQuery(
 
   const { project } = useProject();
 
-  const query = useQuery<FetchDatabaseReturnType>(
+  const query = useQuery<FetchDatabaseReturnType>({
     queryKey,
-    () => {
+    staleTime: DATABASE_QUERY_STALE_TIME,
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -54,18 +57,16 @@ export default function useDatabaseQuery(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || project?.config?.hasura.adminSecret!,
+            : customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       });
     },
-    {
-      ...queryOptions,
-      enabled:
-        project?.config?.hasura.adminSecret && isReady
-          ? queryOptions?.enabled
-          : false,
-    },
-  );
+    ...queryOptions,
+    enabled:
+      project?.config?.hasura.adminSecret && isReady
+        ? queryOptions?.enabled
+        : false,
+  });
 
   return query;
 }

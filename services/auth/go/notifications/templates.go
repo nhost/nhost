@@ -50,11 +50,13 @@ func NewTemplatesFromFilesystem(
 				return fmt.Errorf("error getting relative path: %w", err)
 			}
 
-			if info.Name() == "body.html" || info.Name() == "body.txt" || info.Name() == "subject.txt" {
+			if info.Name() == "body.html" || info.Name() == "body.txt" ||
+				info.Name() == "subject.txt" {
 				f, err := os.ReadFile(path)
 				if err != nil {
 					return fmt.Errorf("error reading file: %w", err)
 				}
+
 				templates[relativePath] = fasttemplate.New(string(f), "${", "}")
 			}
 		}

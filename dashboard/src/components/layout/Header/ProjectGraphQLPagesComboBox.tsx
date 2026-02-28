@@ -1,3 +1,6 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -7,16 +10,12 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/v3/command';
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
 
 type Option = {
   value: string;
@@ -34,6 +33,11 @@ const projectGraphQLPages = [
     name: 'Remote Schemas',
     slug: 'remote-schemas',
     route: 'remote-schemas',
+  },
+  {
+    name: 'Metadata',
+    slug: 'metadata',
+    route: 'metadata',
   },
 ].map((item) => ({
   label: item.name,

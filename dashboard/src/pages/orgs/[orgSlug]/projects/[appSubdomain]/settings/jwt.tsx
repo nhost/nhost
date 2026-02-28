@@ -1,14 +1,13 @@
+import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { useGetJwtSecretsQuery } from '@/utils/__generated__/graphql';
-import type { ReactElement } from 'react';
-
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { JWTSettings } from '@/features/orgs/projects/jwt/settings/components/JWTSettings';
+import { useGetJwtSecretsQuery } from '@/utils/__generated__/graphql';
 
 export default function SettingsJWTPage() {
   const { project } = useProject();

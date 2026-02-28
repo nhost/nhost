@@ -1,3 +1,4 @@
+import { ApolloProvider } from '@apollo/client';
 import {
   memo,
   type PropsWithChildren,
@@ -5,8 +6,6 @@ import {
   useRef,
   useState,
 } from 'react';
-
-import { ApolloProvider } from '@apollo/client';
 import {
   createApolloClient,
   type NhostApolloClientOptions,
@@ -20,7 +19,7 @@ function NhostApolloProvider({
   fetchPolicy,
   connectToDevTools,
 }: PropsWithChildren<NhostApolloClientOptions>) {
-  const authUnSubscribeRef = useRef<() => void>();
+  const authUnSubscribeRef = useRef<(() => void) | null>(null);
   const [client] = useState<ReturnType<typeof createApolloClient>['client']>(
     () => {
       const { client: apolloClient, authUnSubscribe } = createApolloClient({

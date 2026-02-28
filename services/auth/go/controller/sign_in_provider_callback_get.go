@@ -9,8 +9,8 @@ import (
 
 	"golang.org/x/oauth2"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
@@ -135,7 +135,7 @@ func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
 		AccessToken:  token.AccessToken,
 		ExpiresIn:    expiresIn,
 		ExpiresAt:    expiresAt,
-		RefreshToken: ptr(token.RefreshToken),
+		RefreshToken: new(token.RefreshToken),
 	}
 }
 
@@ -220,7 +220,7 @@ func (ctrl *Controller) signinProviderProviderCallback(
 	ctx context.Context,
 	req providerCallbackData,
 ) (*url.URL, *APIError) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	options, connnect, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate(
 		ctx,

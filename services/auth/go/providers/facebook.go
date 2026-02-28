@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -66,4 +67,12 @@ func (t *Facebook) GetProfile(
 		EmailVerified:  userProfile.Email != "",
 		Picture:        userProfile.Picture.Data.URL,
 	}, nil
+}
+
+func (t *Facebook) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return t.Config.AuthCodeURL(state, opts...)
 }

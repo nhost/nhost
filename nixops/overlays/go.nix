@@ -1,26 +1,28 @@
 final: prev: rec {
-  go = prev.go_1_25.overrideAttrs
+  go = prev.go_1_26.overrideAttrs
     (finalAttrs: previousAttrs: rec {
-      version = "1.25.3";
+      version = "1.26.0";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-qBpLpZPQAV4QxR4mfeP/B8eskU38oDfZUX0ClRcJd5U=";
+        sha256 = "sha256-yRMqih9r0qpKrR10uCMdlSdJUEg6SVBlfubFbm6Bd5A=";
       };
 
     });
 
   buildGoModule = prev.buildGoModule.override { go = go; };
 
-  golangci-lint = prev.golangci-lint.overrideAttrs (oldAttrs: rec {
-    version = "2.3.0";
-    src = prev.fetchFromGitHub {
+  golangci-lint = final.buildGoModule rec {
+    pname = "golangci-lint";
+    version = "2.9.0";
+    src = final.fetchFromGitHub {
       owner = "golangci";
       repo = "golangci-lint";
       rev = "v${version}";
-      sha256 = "sha256-Kr4nkoqlCGyuaa4X1BLqe/WZA+ofYkWPizPMzcZQDQg=";
+      sha256 = "sha256-8LEtm1v0slKwdLBtS41OilKJLXytSxcI9fUlZbj5Gfw=";
     };
-    vendorHash = "sha256-SsKypfsr1woHah9rIyFnUNdp0mTde7k++E2CfE22LK4=";
+    vendorHash = "sha256-w8JfF6n1ylrU652HEv/cYdsOdDZz9J2uRQDqxObyhkY=";
+    subPackages = [ "cmd/golangci-lint" ];
     ldflags = [
       "-s"
       "-w"
@@ -28,21 +30,22 @@ final: prev: rec {
       "-X main.commit=v${version}"
       "-X main.date=19700101-00:00:00"
     ];
-  });
+    doCheck = false;
+  };
 
-  golines = final.buildGoModule {
+  golines = final.buildGoModule rec {
     pname = "golines";
-    version = "0.14.0-beta";
+    version = "0.14.0";
     src = final.fetchFromGitHub {
-      owner = "segmentio";
+      owner = "golangci";
       repo = "golines";
-      rev = "8f32f0f7e89c30f572c7f2cd3b2a48016b9d8bbf";
-      sha256 = "sha256-Y4q3xpGw8bAi87zJ48+LVbdgOc7HB1lRdYhlsF1YcVA=";
+      rev = "v${version}";
+      sha256 = "sha256-2eMndvzi1762iPc0tazQQqBb66VVAz1pBr+ow6JnSYY=";
     };
-    vendorHash = "sha256-94IXh9iBAE0jJXovaElY8oFdXE6hxYg0Ww0ZEHLnEwc=";
+    vendorHash = "sha256-4MNSr1a6V88BYVwU+ZZ4kFOx3KKYbCC2v4Ypziln1LQ=";
     meta = with final.lib; {
       description = "A golang formatter that fixes long lines";
-      homepage = "https://github.com/segmentio/golines";
+      homepage = "https://github.com/golangci/golines";
       maintainers = [ "nhost" ];
       platforms = platforms.linux ++ platforms.darwin;
     };
@@ -61,14 +64,14 @@ final: prev: rec {
   });
 
   gqlgen = prev.gqlgen.overrideAttrs (oldAttrs: rec {
-    version = "0.17.76";
+    version = "0.17.86";
     src = final.fetchFromGitHub {
       owner = "99designs";
       repo = "gqlgen";
       rev = "v${version}";
-      sha256 = "sha256-b226pRpO693e48OlzVwSaDlPM5RAivIoX/KHXESVEJI=";
+      sha256 = "sha256-3lN/hW2LpLUmm+w31XWOJb7rP3Wyk054WcKVwwQ8afs=";
     };
-    vendorHash = "sha256-cqNRfKPneq4BxVA+kGAxSalwfeNI/hFxsrOgVhkUbLs=";
+    vendorHash = "sha256-mOLFcbodgEn86ZV3mDeoBjoDVlYLo+7Gz930pi/KqAI=";
     doCheck = false;
   });
 

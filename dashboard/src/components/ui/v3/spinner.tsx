@@ -1,7 +1,7 @@
-import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
+import { cn } from '@/lib/utils';
 
 const spinnerVariants = cva('flex-col items-center justify-center', {
   variants: {
@@ -33,6 +33,7 @@ interface SpinnerContentProps
     VariantProps<typeof loaderVariants> {
   className?: string;
   children?: React.ReactNode;
+  wrapperClassName?: string;
 }
 
 export function Spinner({
@@ -40,10 +41,12 @@ export function Spinner({
   show,
   children,
   className,
+  wrapperClassName,
 }: SpinnerContentProps) {
   return (
-    <span className={spinnerVariants({ show })}>
+    <span className={cn(spinnerVariants({ show }), wrapperClassName)}>
       <Loader2
+        role="progressbar"
         className={cn(
           loaderVariants({ size }),
           className,

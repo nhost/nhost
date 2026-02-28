@@ -89,6 +89,13 @@ func (cmd *Command) parseFlags(args Args) (Args, error) {
 			return &stringSliceArgs{posArgs}, nil
 		}
 
+		// Check if we've reached the Nth argument and should stop flag parsing
+		if cmd.StopOnNthArg != nil && len(posArgs) == *cmd.StopOnNthArg {
+			// Append current arg and all remaining args without parsing
+			posArgs = append(posArgs, rargs[0:]...)
+			return &stringSliceArgs{posArgs}, nil
+		}
+
 		// handle positional args
 		if firstArg[0] != '-' {
 			// positional argument probably
@@ -129,15 +136,17 @@ func (cmd *Command) parseFlags(args Args) (Args, error) {
 
 		flagName := firstArg[numMinuses:]
 		flagVal := ""
+		valFromEqual := false
 		tracef("flagName:1 (fName=%[1]q)", flagName)
 		if index := strings.Index(flagName, "="); index != -1 {
 			flagVal = flagName[index+1:]
 			flagName = flagName[:index]
+			valFromEqual = true
 		}
 
 		tracef("flagName:2 (fName=%[1]q) (fVal=%[2]q)", flagName, flagVal)
 
-		f := cmd.lookupFlag(flagName)
+		f := cmd.lookupAppliedFlag(flagName)
 		// found a flag matching given flagName
 		if f != nil {
 			tracef("Trying flag type (fName=%[1]q) (type=%[2]T)", flagName, f)
@@ -155,7 +164,7 @@ func (cmd *Command) parseFlags(args Args) (Args, error) {
 			tracef("processing non bool flag (fName=%[1]q)", flagName)
 			// not a bool flag so need to get the next arg
 			if flagVal == "" {
-				if len(rargs) == 1 {
+				if len(rargs) == 1 || valFromEqual {
 					return &stringSliceArgs{posArgs}, fmt.Errorf("%s%s", argumentNotProvidedErrMsg, firstArg)
 				}
 				flagVal = rargs[1]

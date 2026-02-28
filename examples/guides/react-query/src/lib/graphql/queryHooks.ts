@@ -1,5 +1,5 @@
-import { useCallback } from "react";
-import { useAuth } from "../nhost/AuthProvider";
+import { useCallback } from 'react';
+import { useAuth } from '../nhost/AuthProvider';
 
 // This wrapper returns a fetcher function that uses the authenticated nhost client
 export const useAuthenticatedFetcher = <TData, TVariables>(
@@ -10,9 +10,9 @@ export const useAuthenticatedFetcher = <TData, TVariables>(
   return useCallback(
     async (variables?: TVariables): Promise<TData> => {
       // Handle both string format or document object format
-      const query = typeof document === "string" ? document : document.query;
+      const query = typeof document === 'string' ? document : document.query;
       const documentVariables =
-        typeof document === "object" ? document.variables : undefined;
+        typeof document === 'object' ? document.variables : undefined;
       const mergedVariables = variables || documentVariables;
 
       const resp = await nhost.graphql.request<TData>({

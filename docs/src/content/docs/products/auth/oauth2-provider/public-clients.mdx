@@ -1,0 +1,84 @@
+---
+title: Public Clients
+description: Integrate browser and mobile applications using public OAuth2 clients with PKCE
+keywords: ["oauth2", "public", "pkce", "spa", "mobile", "browser", "code challenge", "code verifier"]
+sidebar:
+  label: Public Clients
+---
+
+
+Public clients are for applications that **cannot securely store a client secret** — single-page apps (SPAs), mobile apps, desktop apps, and browser extensions. Instead of a secret, they use [PKCE (Proof Key for Code Exchange)](https://datatracker.ietf.org/doc/html/rfc7636) to secure the authorization flow.
+
+## When to Use
+
+Use a public client when the third-party app:
+
+- Runs in the user's browser (SPA, browser extension)
+- Runs on a user's device (mobile app, desktop app, CLI tool)
+- Cannot securely store a secret because the code is accessible to the user
+
+## Creating the Client
+
+Create a public client by omitting the `clientSecretHash`. See [Managing Clients](/products/auth/oauth2-provider/managing-clients) for full details.
+
+```graphql
+mutation {
+  insertAuthOauth2Client(object: {
+    redirectUris: ["http://localhost:3000/callback"]
+    scopes: ["openid", "profile", "email"]
+    metadata: { description: "My SPA" }
+  }) {
+    clientId
+  }
+}
+```
+
+The response will have `clientSecretHash: null`, confirming it is a public client.
+
+## PKCE Requirement
+
+Public clients **must** use PKCE. The authorization request will be rejected without a `code_challenge`.
+
+Only the **S256** method is supported — the `plain` method is explicitly rejected.
+
+### How PKCE Works
+
+1. The third-party app generates a random `code_verifier` and computes a `code_challenge` from it
+2. The `code_challenge` is sent with the authorization request
+3. When exchanging the code for tokens, the app sends the original `code_verifier`
+4. Nhost Auth verifies that `SHA256(code_verifier)` matches the stored challenge
+
+This proves that the app exchanging the code is the same one that initiated the request, preventing authorization code interception.
+
+### Generating the PKCE Pair
+
+```js
+import { createHash, randomBytes } from 'crypto';
+
+function generatePKCE() {
+  const verifier = randomBytes(32).toString('base64url');
+  const challenge = createHash('sha256')
+    .update(verifier)
+    .digest('base64url');
+  return { verifier, challenge };
+}
+
+const { verifier, challenge } = generatePKCE();
+
+// Use `challenge` in the authorize request (code_challenge parameter)
+// Use `verifier` in the token exchange (code_verifier parameter)
+```
+
+## Token Exchange
+
+Public clients send the `code_verifier` instead of a `client_secret` at the token endpoint:
+
+```js
+const { body: tokens } = await nhost.auth.oauth2Token({
+  grant_type: 'authorization_code',
+  code: authorizationCode,
+  redirect_uri: 'http://localhost:3000/callback',
+  client_id: clientId,
+  code_verifier: codeVerifier,
+});
+```

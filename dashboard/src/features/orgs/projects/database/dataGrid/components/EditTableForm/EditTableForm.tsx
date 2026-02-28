@@ -1,6 +1,12 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import type * as Yup from 'yup';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type {
   BaseTableFormProps,
   BaseTableFormValues,
@@ -9,21 +15,16 @@ import {
   BaseTableForm,
   baseTableValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
 import type {
   DatabaseTable,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getUntrackedForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/getUntrackedForeignKeyRelations';
 import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import type * as Yup from 'yup';
 
 export interface EditTableFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -54,7 +55,7 @@ export default function EditTableForm({
     data,
     status: columnsStatus,
     error: columnsError,
-  } = useTableQuery([`default.${schema}.${originalTable.table_name}`], {
+  } = useTableSchemaQuery([`default.${schema}.${originalTable.table_name}`], {
     schema,
     table: originalTable.table_name,
   });
@@ -174,11 +175,17 @@ export default function EditTableForm({
         updatedTable,
       });
 
-      if (isNotEmptyValue(updatedTable.foreignKeyRelations)) {
+      const unTrackedForeignKeyRelations = getUntrackedForeignKeyRelations(
+        foreignKeyRelations,
+        updatedTable.foreignKeyRelations,
+      );
+
+      if (isNotEmptyValue(unTrackedForeignKeyRelations)) {
         await trackForeignKeyRelations({
-          foreignKeyRelations: updatedTable.foreignKeyRelations,
+          unTrackedForeignKeyRelations,
           schema,
           table: updatedTable.name,
+          trackedForeignKeyRelations: foreignKeyRelations,
         });
       }
 
@@ -188,7 +195,7 @@ export default function EditTableForm({
 
       if (originalTable.table_name !== updatedTable.name) {
         await router.push(
-          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/${updatedTable.name}`,
+          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/tables/${updatedTable.name}`,
         );
       }
 

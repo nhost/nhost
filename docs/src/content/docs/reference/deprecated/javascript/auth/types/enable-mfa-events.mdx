@@ -1,0 +1,18 @@
+---
+title: EnableMfaEvents
+description: No description provided.
+sidebar:
+  label: EnableMfaEvents
+---
+
+# `EnableMfaEvents`
+
+```ts
+type EnableMfaEvents =
+  | { type: 'GENERATE' }
+  | { type: 'ACTIVATE'; code: string; activeMfaType: 'totp' }
+  | { type: 'GENERATED' }
+  | { type: 'GENERATED_ERROR'; error: AuthErrorPayload | null }
+  | { type: 'SUCCESS' }
+  | { type: 'ERROR'; error: AuthErrorPayload | null }
+```

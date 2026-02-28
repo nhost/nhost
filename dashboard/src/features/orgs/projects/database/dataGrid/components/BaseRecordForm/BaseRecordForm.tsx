@@ -1,21 +1,21 @@
+import { useEffect } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
+import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DatabaseRecordInputGroup } from '@/features/orgs/projects/database/dataGrid/components/DatabaseRecordInputGroup';
 import type {
   ColumnInsertOptions,
-  DataBrowserGridColumn,
+  DataBrowserColumnMetadata,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
-import { useEffect } from 'react';
-import { useFormContext } from 'react-hook-form';
 
 export interface BaseRecordFormProps extends DialogFormProps {
   /**
    * The columns of the table.
    */
-  columns: DataBrowserGridColumn[];
+  columns: DataBrowserColumnMetadata[];
   /**
    * Function to be called when the form is submitted.
    */
@@ -41,8 +41,8 @@ export default function BaseRecordForm({
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
   const { requiredColumns, optionalColumns } = columns.reduce<{
-    requiredColumns: DataBrowserGridColumn<{}>[];
-    optionalColumns: DataBrowserGridColumn<{}>[];
+    requiredColumns: DataBrowserColumnMetadata[];
+    optionalColumns: DataBrowserColumnMetadata[];
   }>(
     (accumulator, column) => {
       if (
@@ -82,7 +82,7 @@ export default function BaseRecordForm({
   // for tables with many columns.
   const gridColumnMap = columns.reduce(
     (map, column) => map.set(column.id, column),
-    new Map<string, DataBrowserGridColumn>(),
+    new Map<string, DataBrowserColumnMetadata>(),
   );
 
   if (!columns?.length) {
@@ -91,7 +91,7 @@ export default function BaseRecordForm({
     );
   }
 
-  async function handleSubmit(columnValues: Record<string, any>) {
+  async function handleSubmit(columnValues: Record<string, unknown>) {
     const columnIds = Object.keys(columnValues);
 
     const insertableValues: Record<string, ColumnInsertOptions> =
@@ -153,16 +153,20 @@ export default function BaseRecordForm({
             description="These columns are nullable and don't require a value."
             columns={optionalColumns}
             autoFocusFirstInput={requiredColumns.length === 0}
-            sx={{ borderTopWidth: requiredColumns.length > 0 ? 1 : 0 }}
-            className="px-6 pt-3"
+            className={cn(
+              'px-6 pt-3',
+              requiredColumns.length > 0 ? 'border-t-1' : 'border-t-0',
+            )}
           />
         )}
       </div>
 
-      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
+      <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button
-          variant="borderless"
-          color="secondary"
+          variant="outline"
+          className="border-none"
+          type="button"
+          size="sm"
           onClick={onCancel}
           tabIndex={isDirty ? -1 : 0}
         >
@@ -172,12 +176,13 @@ export default function BaseRecordForm({
         <Button
           loading={isSubmitting}
           disabled={isSubmitting}
+          size="sm"
           type="submit"
           className="justify-self-end"
         >
           {submitButtonText}
         </Button>
-      </Box>
+      </div>
     </Form>
   );
 }

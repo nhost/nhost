@@ -1,3 +1,5 @@
+import Image from 'next/image';
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -13,8 +15,6 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { copy } from '@/utils/copy';
-import Image from 'next/image';
-import type { ReactElement } from 'react';
 
 export default function MetricsPage() {
   const { org, loading: loadingOrg } = useCurrentOrg();
@@ -119,7 +119,7 @@ export default function MetricsPage() {
               )}
               // Both `target` and `rel` are available when `href` is set. This is
               // a limitation of MUI.
-              // @ts-ignore
+              // @ts-expect-error
               target="_blank"
               rel="noreferrer noopener"
               endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}

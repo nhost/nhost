@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"slices"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) postSigninAnonymousValidateRequest(
@@ -27,7 +27,7 @@ func (ctrl *Controller) postSigninAnonymousValidateRequest(
 	}
 
 	if req.Body.Locale == nil {
-		req.Body.Locale = ptr(ctrl.config.DefaultLocale)
+		req.Body.Locale = new(ctrl.config.DefaultLocale)
 	}
 
 	if !slices.Contains(ctrl.config.AllowedLocales, deptr(req.Body.Locale)) {
@@ -36,11 +36,11 @@ func (ctrl *Controller) postSigninAnonymousValidateRequest(
 			"locale not allowed, using default",
 			slog.String("locale", deptr(req.Body.Locale)),
 		)
-		req.Body.Locale = ptr(ctrl.config.DefaultLocale)
+		req.Body.Locale = new(ctrl.config.DefaultLocale)
 	}
 
 	if req.Body.DisplayName == nil {
-		req.Body.DisplayName = ptr("Anonymous User")
+		req.Body.DisplayName = new("Anonymous User")
 	}
 
 	return req, nil
@@ -49,7 +49,7 @@ func (ctrl *Controller) postSigninAnonymousValidateRequest(
 func (ctrl *Controller) SignInAnonymous( //nolint:ireturn
 	ctx context.Context, req api.SignInAnonymousRequestObject,
 ) (api.SignInAnonymousResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	req, apiErr := ctrl.postSigninAnonymousValidateRequest(ctx, req, logger)
 	if apiErr != nil {

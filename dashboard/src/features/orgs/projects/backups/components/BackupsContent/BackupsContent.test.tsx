@@ -1,3 +1,5 @@
+import { setupServer } from 'msw/node';
+import { vi } from 'vitest';
 import { TabsContent } from '@/components/ui/v3/tabs';
 import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
 import {
@@ -7,8 +9,6 @@ import {
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
 import BackupsContent from './BackupsContent';
 
 function TestComponent() {

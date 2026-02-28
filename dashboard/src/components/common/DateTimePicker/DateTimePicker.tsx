@@ -1,7 +1,10 @@
 'use client';
 
+import { TZDate } from '@date-fns/tz';
+import { add, format, parseISO } from 'date-fns-v4';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { useState } from 'react';
 import { TimePicker } from '@/components/common/TimePicker';
-
 import { Button } from '@/components/ui/v3/button';
 import { Calendar } from '@/components/ui/v3/calendar';
 import {
@@ -11,10 +14,6 @@ import {
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
 import { guessTimezone } from '@/utils/timezoneUtils';
-import { TZDate } from '@date-fns/tz';
-import { add, format, parseISO } from 'date-fns-v4';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { useState } from 'react';
 import TimezoneSettings from './TimezoneSettings';
 
 export interface DateTimePickerProps {
@@ -134,11 +133,11 @@ function DateTimePicker({
             />
             <div className="flex flex-col justify-between">
               <div>
-                <div className="border-t border-border p-3">
+                <div className="border-border border-t p-3">
                   <TimePicker setDate={setDate} date={date} />
                 </div>
                 {withTimezone && (
-                  <div className="border-t border-border p-3">
+                  <div className="border-border border-t p-3">
                     <TimezoneSettings
                       dateTime={selectedDateInUTC}
                       onTimezoneChange={handleTimezoneChange}

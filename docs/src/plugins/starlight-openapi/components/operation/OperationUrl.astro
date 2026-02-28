@@ -1,0 +1,51 @@
+---
+import type { HTMLAttributes } from 'astro/types'
+
+interface Props {
+  description: string | undefined
+  url: string
+}
+
+const { description, url } = Astro.props
+
+const inputAttributes: HTMLAttributes<'input'> = {
+  readonly: true,
+  type: 'text',
+  value: url,
+}
+---
+
+<li>
+  {
+    description && description.length > 0 ? (
+      <label>
+        {description}
+        <input {...inputAttributes} />
+      </label>
+    ) : (
+      <input {...inputAttributes} />
+    )
+  }
+</li>
+
+<style>
+  label {
+    color: var(--sl-color-gray-2);
+  }
+
+  input {
+    background-color: var(--sl-color-gray-5);
+    border: 1px solid var(--sl-color-gray-4);
+    padding: 0.3rem 0.5rem;
+    width: 100%;
+  }
+
+  input::selection {
+    background-color: var(--sl-color-text-accent);
+    color: var(--sl-color-text-invert);
+  }
+
+  label > input {
+    margin-top: 0.3rem;
+  }
+</style>

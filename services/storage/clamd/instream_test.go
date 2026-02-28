@@ -24,7 +24,7 @@ func TestClamdInstream(t *testing.T) {
 			name:     "eicarcom2.zip",
 			filepath: "testdata/eicarcom2.zip",
 			expectedError: &clamd.VirusFoundError{
-				Name: "Win.Test.EICAR_HDB-1",
+				Name: "Eicar-Test-Signature",
 			},
 		},
 	}

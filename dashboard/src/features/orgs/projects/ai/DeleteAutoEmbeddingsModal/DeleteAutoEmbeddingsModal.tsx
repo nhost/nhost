@@ -1,4 +1,6 @@
-/* eslint-disable import/extensions */
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
+import { useMemo, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
@@ -7,16 +9,13 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
-import { type AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
+import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
 import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/utils/__generated__/graphite.graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
-import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
-import { useMemo, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface DeleteAutoEmbeddingsModalProps {
   autoEmbeddingsConfiguration: AutoEmbeddingsConfiguration;
-  onDelete?: () => Promise<any>;
+  onDelete?: () => Promise<unknown>;
   close: () => void;
 }
 
@@ -34,7 +33,7 @@ export default function DeleteAutoEmbeddingsModal({
     if (
       isNotEmptyValue(project?.subdomain) &&
       isNotEmptyValue(project?.region) &&
-      isNotEmptyValue(project?.config)
+      isNotEmptyValue(project?.config?.hasura.adminSecret)
     ) {
       const serviceUrl = generateAppServiceUrl(
         project.subdomain,
@@ -56,7 +55,6 @@ export default function DeleteAutoEmbeddingsModal({
     }
 
     return new ApolloClient({ cache: new InMemoryCache() });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     project?.config?.hasura.adminSecret,
     project?.subdomain,

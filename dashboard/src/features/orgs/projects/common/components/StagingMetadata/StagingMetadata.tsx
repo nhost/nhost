@@ -1,7 +1,7 @@
+import type { PropsWithChildren } from 'react';
 import { Box } from '@/components/ui/v2/Box';
 import { Chip } from '@/components/ui/v2/Chip';
 import { isDevOrStaging } from '@/utils/helpers';
-import type { PropsWithChildren } from 'react';
 
 interface StatusProps {
   status: StatusEnum;

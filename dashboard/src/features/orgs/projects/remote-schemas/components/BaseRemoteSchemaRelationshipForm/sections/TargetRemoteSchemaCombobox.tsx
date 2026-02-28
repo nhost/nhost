@@ -1,3 +1,6 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -21,9 +24,6 @@ import {
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
 import type { RemoteSchemaRelationshipFormValues } from './RemoteSchemaRelationshipForm';
 
 export interface TargetRemoteSchemaComboboxProps {

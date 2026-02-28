@@ -22,6 +22,7 @@ function ColorPreferenceProvider({
   >('system');
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to run hook when prefersDarkmode changes
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;

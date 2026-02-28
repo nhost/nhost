@@ -1,9 +1,9 @@
-import { Button, type ButtonProps } from '@/components/ui/v3/button';
-import { isNotEmptyValue } from '@/lib/utils';
-import { copy } from '@/utils/copy';
 import { clsx } from 'clsx';
 import { Copy } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
+import { isNotEmptyValue } from '@/lib/utils';
+import { copy } from '@/utils/copy';
 
 function CopyToClipboardButton({
   textToCopy,
@@ -40,7 +40,7 @@ function CopyToClipboardButton({
       size="icon"
       variant="outline"
       className={clsx(
-        'group h-fit w-fit border-0 bg-transparent p-[2px] hover:bg-[#d6eefb] dark:hover:bg-[#1e2942]',
+        'group h-fit w-fit border-0 bg-transparent p-[2px] hover:brightness-75 dark:hover:bg-[#1e2942] dark:hover:brightness-100',
         className,
         { 'gap-3': hasChildren },
       )}

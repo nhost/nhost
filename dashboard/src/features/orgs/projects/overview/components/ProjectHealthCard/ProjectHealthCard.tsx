@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react';
+import { twMerge } from 'tailwind-merge';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Tooltip, tooltipClasses } from '@/components/ui/v2/Tooltip';
@@ -5,8 +7,6 @@ import { ProjectHealthBadge } from '@/features/orgs/projects/overview/components
 import { serviceStateToBadgeColor } from '@/features/orgs/projects/overview/health';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ServiceState } from '@/utils/__generated__/graphql';
-import type { ReactElement } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface ProjectHealthCardProps extends BoxProps {
   /**

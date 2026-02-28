@@ -2,20 +2,20 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import type { ChainFunction, FetchResponse } from "../fetch";
-import { createEnhancedFetch, FetchError } from "../fetch";
+import type { ChainFunction, FetchResponse } from '../fetch';
+import { createEnhancedFetch, FetchError } from '../fetch';
 
 /**
  * The attestation statement format
  */
 export type AttestationFormat =
-  | "packed"
-  | "tpm"
-  | "android-key"
-  | "android-safetynet"
-  | "fido-u2f"
-  | "apple"
-  | "none";
+  | 'packed'
+  | 'tpm'
+  | 'android-key'
+  | 'android-safetynet'
+  | 'fido-u2f'
+  | 'apple'
+  | 'none';
 
 /**
  * Map of extension outputs from the client
@@ -65,7 +65,7 @@ export interface AuthenticatorAssertionResponse {
 /**
  * The authenticator attachment modality
  */
-export type AuthenticatorAttachment = "platform" | "cross-platform";
+export type AuthenticatorAttachment = 'platform' | 'cross-platform';
 
 /**
  * 
@@ -141,21 +141,21 @@ export interface AuthenticatorSelection {
  * The authenticator transports that can be used
  */
 export type AuthenticatorTransport =
-  | "usb"
-  | "nfc"
-  | "ble"
-  | "smart-card"
-  | "hybrid"
-  | "internal";
+  | 'usb'
+  | 'nfc'
+  | 'ble'
+  | 'smart-card'
+  | 'hybrid'
+  | 'internal';
 
 /**
  * The attestation conveyance preference
  */
 export type ConveyancePreference =
-  | "none"
-  | "indirect"
-  | "direct"
-  | "enterprise";
+  | 'none'
+  | 'indirect'
+  | 'direct'
+  | 'enterprise';
 
 /**
  * 
@@ -301,43 +301,44 @@ export interface CredentialPropertiesOutput {
 /**
  * The valid credential types
  */
-export type CredentialType = "public-key";
+export type CredentialType = 'public-key';
 
 /**
  * Error code identifying the specific application error
  */
 export type ErrorResponseError =
-  | "default-role-must-be-in-allowed-roles"
-  | "disabled-endpoint"
-  | "disabled-user"
-  | "email-already-in-use"
-  | "email-already-verified"
-  | "forbidden-anonymous"
-  | "internal-server-error"
-  | "invalid-email-password"
-  | "invalid-request"
-  | "locale-not-allowed"
-  | "password-too-short"
-  | "password-in-hibp-database"
-  | "redirectTo-not-allowed"
-  | "role-not-allowed"
-  | "signup-disabled"
-  | "unverified-user"
-  | "user-not-anonymous"
-  | "invalid-pat"
-  | "invalid-refresh-token"
-  | "invalid-ticket"
-  | "disabled-mfa-totp"
-  | "no-totp-secret"
-  | "invalid-totp"
-  | "mfa-type-not-found"
-  | "totp-already-active"
-  | "invalid-state"
-  | "oauth-token-echange-failed"
-  | "oauth-profile-fetch-failed"
-  | "oauth-provider-error"
-  | "invalid-otp"
-  | "cannot-send-sms";
+  | 'default-role-must-be-in-allowed-roles'
+  | 'disabled-endpoint'
+  | 'disabled-user'
+  | 'email-already-in-use'
+  | 'email-already-verified'
+  | 'forbidden-anonymous'
+  | 'internal-server-error'
+  | 'invalid-email-password'
+  | 'invalid-request'
+  | 'locale-not-allowed'
+  | 'password-too-short'
+  | 'password-in-hibp-database'
+  | 'redirectTo-not-allowed'
+  | 'role-not-allowed'
+  | 'signup-disabled'
+  | 'unverified-user'
+  | 'user-not-anonymous'
+  | 'invalid-pat'
+  | 'invalid-refresh-token'
+  | 'invalid-ticket'
+  | 'disabled-mfa-totp'
+  | 'no-totp-secret'
+  | 'invalid-totp'
+  | 'mfa-type-not-found'
+  | 'totp-already-active'
+  | 'invalid-state'
+  | 'oauth-token-echange-failed'
+  | 'oauth-profile-fetch-failed'
+  | 'oauth-provider-error'
+  | 'invalid-otp'
+  | 'cannot-send-sms'
+  | 'provider-account-already-linked';
 
 /**
  * Standardized error response
@@ -366,7 +367,7 @@ export interface ErrorResponse {
 /**
  *
  */
-export type IdTokenProvider = "apple" | "google";
+export type IdTokenProvider = 'apple' | 'google';
 
 /**
  * JSON Web Key for JWT verification
@@ -460,7 +461,7 @@ export interface MFAChallengePayload {
 /**
  *
  */
-export type OKResponse = "OK";
+export type OKResponse = 'OK';
 
 /**
  * 
@@ -564,9 +565,9 @@ export interface PublicKeyCredentialDescriptor {
  * Hints to help guide the user through the experience
  */
 export type PublicKeyCredentialHints =
-  | "security-key"
-  | "client-device"
-  | "hybrid";
+  | 'security-key'
+  | 'client-device'
+  | 'hybrid';
 
 /**
  * 
@@ -646,6 +647,21 @@ export interface ProviderSession {
 }
 
 /**
+ * 
+ @property connection? (`string`) - (workos) Specifies the connection to use for authentication
+ @property organization? (`string`) - (workos) Specifies the organization to use for authentication*/
+export interface ProviderSpecificParams {
+  /**
+   * (workos) Specifies the connection to use for authentication
+   */
+  connection?: string;
+  /**
+   * (workos) Specifies the organization to use for authentication
+   */
+  organization?: string;
+}
+
+/**
  * Request to refresh OAuth2 provider tokens
  @property refreshToken (`string`) - OAuth2 provider refresh token obtained from previous authentication
     *    Example - `"1//0gK8..."`*/
@@ -689,7 +705,7 @@ export interface RelyingPartyEntity {
 /**
  * The resident key requirement
  */
-export type ResidentKeyRequirement = "discouraged" | "preferred" | "required";
+export type ResidentKeyRequirement = 'discouraged' | 'preferred' | 'required';
 
 /**
  * User authentication session containing tokens and user information
@@ -749,10 +765,10 @@ export interface SessionPayload {
  * 
  @property displayName? (`string`) - 
     *    Example - `"John Smith"`
- @property locale? (`string`) - A two-characters locale
+ @property locale? (`string`) - A two or three characters locale
     *    Example - `"en"`
     *    MinLength - 2
-    *    MaxLength - 2
+    *    MaxLength - 3
  @property metadata? (`Record<string, unknown>`) - 
     *    Example - `{"firstName":"John","lastName":"Smith"}`*/
 export interface SignInAnonymousRequest {
@@ -762,10 +778,10 @@ export interface SignInAnonymousRequest {
    */
   displayName?: string;
   /**
-   * A two-characters locale
+   * A two or three characters locale
    *    Example - `"en"`
    *    MinLength - 2
-   *    MaxLength - 2
+   *    MaxLength - 3
    */
   locale?: string;
   /**
@@ -1075,10 +1091,10 @@ export interface SignUpEmailPasswordRequest {
     *    Example - `"John Smith"`
     *    Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
     *    MaxLength - 32
- @property locale? (`string`) - A two-characters locale
+ @property locale? (`string`) - A two or three characters locale
     *    Example - `"en"`
     *    MinLength - 2
-    *    MaxLength - 2
+    *    MaxLength - 3
  @property metadata? (`Record<string, unknown>`) - 
     *    Example - `{"firstName":"John","lastName":"Smith"}`
  @property redirectTo? (`string`) - 
@@ -1103,10 +1119,10 @@ export interface SignUpOptions {
    */
   displayName?: string;
   /**
-   * A two-characters locale
+   * A two or three characters locale
    *    Example - `"en"`
    *    MinLength - 2
-   *    MaxLength - 2
+   *    MaxLength - 3
    */
   locale?: string;
   /**
@@ -1209,7 +1225,7 @@ export type URLEncodedBase64 = string;
  @property locale (`string`) - User's preferred locale (language code)
     *    Example - `"en"`
     *    MinLength - 2
-    *    MaxLength - 2
+    *    MaxLength - 3
  @property metadata (`Record<string, unknown>`) - Custom metadata associated with the user
     *    Example - `{"firstName":"John","lastName":"Smith"}`
  @property phoneNumber? (`string`) - User's phone number
@@ -1267,7 +1283,7 @@ export interface User {
    * User's preferred locale (language code)
    *    Example - `"en"`
    *    MinLength - 2
-   *    MaxLength - 2
+   *    MaxLength - 3
    */
   locale: string;
   /**
@@ -1300,8 +1316,8 @@ export interface User {
  * Which sign-in method to use
  */
 export type UserDeanonymizeRequestSignInMethod =
-  | "email-password"
-  | "passwordless";
+  | 'email-password'
+  | 'passwordless';
 
 /**
  * 
@@ -1404,7 +1420,7 @@ export interface UserEntity {
 /**
  * Type of MFA to activate. Use empty string to disable MFA.
  */
-export type UserMfaRequestActiveMfaType = "totp" | "";
+export type UserMfaRequestActiveMfaType = 'totp' | '';
 
 /**
  * Request to activate or deactivate multi-factor authentication
@@ -1471,9 +1487,9 @@ export interface UserPasswordResetRequest {
  * A requirement for user verification for the operation
  */
 export type UserVerificationRequirement =
-  | "required"
-  | "preferred"
-  | "discouraged";
+  | 'required'
+  | 'preferred'
+  | 'discouraged';
 
 /**
  * 
@@ -1518,6 +1534,418 @@ export interface VerifyTokenRequest {
 }
 
 /**
+ * 
+ @property error (`string`) - OAuth2 error code
+ @property error_description? (`string`) - Human-readable error description*/
+export interface OAuth2ErrorResponse {
+  /**
+   * OAuth2 error code
+   */
+  error: string;
+  /**
+   * Human-readable error description
+   */
+  error_description?: string;
+}
+
+/**
+ * 
+ @property issuer (`string`) - 
+ @property authorization_endpoint (`string`) - 
+ @property token_endpoint (`string`) - 
+ @property userinfo_endpoint? (`string`) - 
+ @property jwks_uri (`string`) - 
+ @property revocation_endpoint? (`string`) - 
+ @property introspection_endpoint? (`string`) - 
+ @property scopes_supported? (`string[]`) - 
+ @property response_types_supported (`string[]`) - 
+ @property grant_types_supported? (`string[]`) - 
+ @property subject_types_supported? (`string[]`) - 
+ @property id_token_signing_alg_values_supported? (`string[]`) - 
+ @property token_endpoint_auth_methods_supported? (`string[]`) - 
+ @property code_challenge_methods_supported? (`string[]`) - 
+ @property claims_supported? (`string[]`) - 
+ @property request_parameter_supported? (`boolean`) - 
+ @property authorization_response_iss_parameter_supported? (`boolean`) - 
+ @property client_id_metadata_document_supported? (`boolean`) - */
+export interface OAuth2DiscoveryResponse {
+  /**
+   *
+   */
+  issuer: string;
+  /**
+   *
+   */
+  authorization_endpoint: string;
+  /**
+   *
+   */
+  token_endpoint: string;
+  /**
+   *
+   */
+  userinfo_endpoint?: string;
+  /**
+   *
+   */
+  jwks_uri: string;
+  /**
+   *
+   */
+  revocation_endpoint?: string;
+  /**
+   *
+   */
+  introspection_endpoint?: string;
+  /**
+   *
+   */
+  scopes_supported?: string[];
+  /**
+   *
+   */
+  response_types_supported: string[];
+  /**
+   *
+   */
+  grant_types_supported?: string[];
+  /**
+   *
+   */
+  subject_types_supported?: string[];
+  /**
+   *
+   */
+  id_token_signing_alg_values_supported?: string[];
+  /**
+   *
+   */
+  token_endpoint_auth_methods_supported?: string[];
+  /**
+   *
+   */
+  code_challenge_methods_supported?: string[];
+  /**
+   *
+   */
+  claims_supported?: string[];
+  /**
+   *
+   */
+  request_parameter_supported?: boolean;
+  /**
+   *
+   */
+  authorization_response_iss_parameter_supported?: boolean;
+  /**
+   *
+   */
+  client_id_metadata_document_supported?: boolean;
+}
+
+/**
+ *
+ */
+export type OAuth2TokenRequestGrant_type =
+  | 'authorization_code'
+  | 'refresh_token';
+
+/**
+ * 
+ @property grant_type (`OAuth2TokenRequestGrant_type`) - 
+ @property code? (`string`) - 
+ @property redirect_uri? (`string`) - 
+ @property client_id? (`string`) - 
+ @property client_secret? (`string`) - 
+ @property code_verifier? (`string`) - 
+ @property refresh_token? (`string`) - 
+ @property resource? (`string`) - */
+export interface OAuth2TokenRequest {
+  /**
+   *
+   */
+  grant_type: OAuth2TokenRequestGrant_type;
+  /**
+   *
+   */
+  code?: string;
+  /**
+   *
+   */
+  redirect_uri?: string;
+  /**
+   *
+   */
+  client_id?: string;
+  /**
+   *
+   */
+  client_secret?: string;
+  /**
+   *
+   */
+  code_verifier?: string;
+  /**
+   *
+   */
+  refresh_token?: string;
+  /**
+   *
+   */
+  resource?: string;
+}
+
+/**
+ * 
+ @property access_token (`string`) - 
+ @property token_type (`string`) - 
+ @property expires_in (`number`) - 
+ @property refresh_token? (`string`) - 
+ @property id_token? (`string`) - 
+ @property scope? (`string`) - */
+export interface OAuth2TokenResponse {
+  /**
+   *
+   */
+  access_token: string;
+  /**
+   *
+   */
+  token_type: string;
+  /**
+   *
+   */
+  expires_in: number;
+  /**
+   *
+   */
+  refresh_token?: string;
+  /**
+   *
+   */
+  id_token?: string;
+  /**
+   *
+   */
+  scope?: string;
+}
+
+/**
+ * 
+ @property sub (`string`) - 
+ @property name? (`string`) - 
+ @property email? (`string`) - 
+ @property email_verified? (`boolean`) - 
+ @property picture? (`string`) - 
+ @property locale? (`string`) - 
+ @property phone_number? (`string`) - 
+ @property phone_number_verified? (`boolean`) - */
+export interface OAuth2UserinfoResponse {
+  /**
+   *
+   */
+  sub: string;
+  /**
+   *
+   */
+  name?: string;
+  /**
+   *
+   */
+  email?: string;
+  /**
+   *
+   */
+  email_verified?: boolean;
+  /**
+   *
+   */
+  picture?: string;
+  /**
+   *
+   */
+  locale?: string;
+  /**
+   *
+   */
+  phone_number?: string;
+  /**
+   *
+   */
+  phone_number_verified?: boolean;
+}
+
+/**
+ * 
+ @property keys (`JWK[]`) - */
+export interface OAuth2JWKSResponse {
+  /**
+   *
+   */
+  keys: JWK[];
+}
+
+/**
+ *
+ */
+export type OAuth2RevokeRequestToken_type_hint =
+  | 'access_token'
+  | 'refresh_token';
+
+/**
+ * 
+ @property token (`string`) - 
+ @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint`) - 
+ @property client_id? (`string`) - 
+ @property client_secret? (`string`) - */
+export interface OAuth2RevokeRequest {
+  /**
+   *
+   */
+  token: string;
+  /**
+   *
+   */
+  token_type_hint?: OAuth2RevokeRequestToken_type_hint;
+  /**
+   *
+   */
+  client_id?: string;
+  /**
+   *
+   */
+  client_secret?: string;
+}
+
+/**
+ *
+ */
+export type OAuth2IntrospectRequestToken_type_hint =
+  | 'access_token'
+  | 'refresh_token';
+
+/**
+ * 
+ @property token (`string`) - 
+ @property token_type_hint? (`OAuth2IntrospectRequestToken_type_hint`) - 
+ @property client_id? (`string`) - 
+ @property client_secret? (`string`) - */
+export interface OAuth2IntrospectRequest {
+  /**
+   *
+   */
+  token: string;
+  /**
+   *
+   */
+  token_type_hint?: OAuth2IntrospectRequestToken_type_hint;
+  /**
+   *
+   */
+  client_id?: string;
+  /**
+   *
+   */
+  client_secret?: string;
+}
+
+/**
+ * 
+ @property active (`boolean`) - 
+ @property scope? (`string`) - 
+ @property client_id? (`string`) - 
+ @property sub? (`string`) - 
+ @property exp? (`number`) - 
+ @property iat? (`number`) - 
+ @property iss? (`string`) - 
+ @property token_type? (`string`) - */
+export interface OAuth2IntrospectResponse {
+  /**
+   *
+   */
+  active: boolean;
+  /**
+   *
+   */
+  scope?: string;
+  /**
+   *
+   */
+  client_id?: string;
+  /**
+   *
+   */
+  sub?: string;
+  /**
+   *
+   */
+  exp?: number;
+  /**
+   *
+   */
+  iat?: number;
+  /**
+   *
+   */
+  iss?: string;
+  /**
+   *
+   */
+  token_type?: string;
+}
+
+/**
+ * 
+ @property requestId (`string`) - 
+    *    Format - uuid
+ @property clientId (`string`) - 
+ @property scopes (`string[]`) - 
+ @property redirectUri (`string`) - */
+export interface OAuth2LoginResponse {
+  /**
+   *
+   *    Format - uuid
+   */
+  requestId: string;
+  /**
+   *
+   */
+  clientId: string;
+  /**
+   *
+   */
+  scopes: string[];
+  /**
+   *
+   */
+  redirectUri: string;
+}
+
+/**
+ * 
+ @property requestId (`string`) - 
+    *    Format - uuid*/
+export interface OAuth2LoginRequest {
+  /**
+   *
+   *    Format - uuid
+   */
+  requestId: string;
+}
+
+/**
+ * 
+ @property redirectUri (`string`) - 
+    *    Format - uri*/
+export interface OAuth2LoginCompleteResponse {
+  /**
+   *
+   *    Format - uri
+   */
+  redirectUri: string;
+}
+
+/**
  * Target URL for the redirect
  */
 export type RedirectToQuery = string;
@@ -1526,22 +1954,22 @@ export type RedirectToQuery = string;
  *
  */
 export type SignInProvider =
-  | "apple"
-  | "github"
-  | "google"
-  | "linkedin"
-  | "discord"
-  | "spotify"
-  | "twitch"
-  | "gitlab"
-  | "bitbucket"
-  | "workos"
-  | "azuread"
-  | "entraid"
-  | "strava"
-  | "facebook"
-  | "windowslive"
-  | "twitter";
+  | 'apple'
+  | 'github'
+  | 'google'
+  | 'linkedin'
+  | 'discord'
+  | 'spotify'
+  | 'twitch'
+  | 'gitlab'
+  | 'bitbucket'
+  | 'workos'
+  | 'azuread'
+  | 'entraid'
+  | 'strava'
+  | 'facebook'
+  | 'windowslive'
+  | 'twitter';
 
 /**
  * Ticket
@@ -1552,10 +1980,10 @@ export type TicketQuery = string;
  * Type of the ticket
  */
 export type TicketTypeQuery =
-  | "emailVerify"
-  | "emailConfirmChange"
-  | "signinPasswordless"
-  | "passwordReset";
+  | 'emailVerify'
+  | 'emailConfirmChange'
+  | 'signinPasswordless'
+  | 'passwordReset';
 
 /**
  * 
@@ -1570,6 +1998,66 @@ export interface GetVersionResponse200 {
 }
 
 /**
+ *
+ */
+export type GetCode_challenge_method = 'S256';
+
+/**
+ * 
+ @property client_id (`string`) - 
+ @property redirect_uri (`string`) - 
+ @property response_type (`string`) - 
+ @property scope? (`string`) - 
+ @property state? (`string`) - 
+ @property nonce? (`string`) - 
+ @property code_challenge? (`string`) - 
+ @property code_challenge_method? (`string`) - Only S256 is supported. The plain method is not allowed.
+ @property resource? (`string`) - 
+ @property prompt? (`string`) - */
+export interface Oauth2AuthorizePostBody {
+  /**
+   *
+   */
+  client_id: string;
+  /**
+   *
+   */
+  redirect_uri: string;
+  /**
+   *
+   */
+  response_type: string;
+  /**
+   *
+   */
+  scope?: string;
+  /**
+   *
+   */
+  state?: string;
+  /**
+   *
+   */
+  nonce?: string;
+  /**
+   *
+   */
+  code_challenge?: string;
+  /**
+   * Only S256 is supported. The plain method is not allowed.
+   */
+  code_challenge_method?: string;
+  /**
+   *
+   */
+  resource?: string;
+  /**
+   *
+   */
+  prompt?: string;
+}
+
+/**
  * Parameters for the signInProvider method.
     @property allowedRoles? (string[]) - Array of allowed roles for the user
   
@@ -1577,7 +2065,7 @@ export interface GetVersionResponse200 {
   
     @property displayName? (string) - Display name for the user
   
-    @property locale? (string) - A two-characters locale
+    @property locale? (string) - A two or three characters locale
   
     @property metadata? (Record<string, unknown>) - Additional metadata for the user (JSON encoded string)
   
@@ -1586,6 +2074,8 @@ export interface GetVersionResponse200 {
     @property connect? (string) - If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
   
     @property state? (string) - Opaque state value to be returned by the provider
+  
+    @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
   */
 export interface SignInProviderParams {
   /**
@@ -1604,7 +2094,7 @@ export interface SignInProviderParams {
    */
   displayName?: string;
   /**
-   * A two-characters locale
+   * A two or three characters locale
   
    */
   locale?: string;
@@ -1628,6 +2118,11 @@ export interface SignInProviderParams {
   
    */
   state?: string;
+  /**
+   * Additional provider-specific parameters
+  
+   */
+  providerSpecificParams?: ProviderSpecificParams;
 }
 /**
  * Parameters for the verifyTicket method.
@@ -1659,6 +2154,91 @@ export interface VerifyTicketParams {
     *    Target URL for the redirect
    */
   redirectTo: RedirectToQuery;
+}
+/**
+ * Parameters for the oauth2Authorize method.
+    @property client_id (string) - The OAuth2 client identifier (RFC 6749 Section 2.2).
+  
+    @property redirect_uri (string) - The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
+  
+    @property response_type (string) - The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+  
+    @property scope? (string) - Space-delimited list of requested scopes (RFC 6749 Section 3.3).
+  
+    @property state? (string) - Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
+  
+    @property nonce? (string) - String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
+  
+    @property code_challenge? (string) - PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
+  
+    @property code_challenge_method? (GetCode_challenge_method) - Only S256 is supported. The plain method is not allowed.
+  
+    @property resource? (string) - Resource indicator for the target service (RFC 8707).
+  
+    @property prompt? (string) - Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
+  */
+export interface Oauth2AuthorizeParams {
+  /**
+   * The OAuth2 client identifier (RFC 6749 Section 2.2).
+  
+   */
+  client_id: string;
+  /**
+   * The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
+  
+   */
+  redirect_uri: string;
+  /**
+   * The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+  
+   */
+  response_type: string;
+  /**
+   * Space-delimited list of requested scopes (RFC 6749 Section 3.3).
+  
+   */
+  scope?: string;
+  /**
+   * Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
+  
+   */
+  state?: string;
+  /**
+   * String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
+  
+   */
+  nonce?: string;
+  /**
+   * PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
+  
+   */
+  code_challenge?: string;
+  /**
+   * Only S256 is supported. The plain method is not allowed.
+  
+   */
+  code_challenge_method?: GetCode_challenge_method;
+  /**
+   * Resource indicator for the target service (RFC 8707).
+  
+   */
+  resource?: string;
+  /**
+   * Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
+  
+   */
+  prompt?: string;
+}
+/**
+ * Parameters for the oauth2LoginGet method.
+    @property request_id (string) - The pending authorization request identifier.
+  */
+export interface Oauth2LoginGetParams {
+  /**
+   * The pending authorization request identifier.
+  
+   */
+  request_id: string;
 }
 
 export interface Client {
@@ -2128,6 +2708,141 @@ export interface Client {
   getVersion(
     options?: RequestInit,
   ): Promise<FetchResponse<GetVersionResponse200>>;
+
+  /**
+     Summary: OpenID Connect Discovery
+     Returns the OpenID Provider Metadata (RFC 8414)
+
+     This method may return different T based on the response code:
+     - 200: OAuth2DiscoveryResponse
+     */
+  getOpenIDConfiguration(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DiscoveryResponse>>;
+
+  /**
+     Summary: OAuth2 Authorization Server Metadata
+     Returns the Authorization Server Metadata (RFC 8414). Same content as OpenID Discovery.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2DiscoveryResponse
+     */
+  getOAuthAuthorizationServer(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DiscoveryResponse>>;
+
+  /**
+     Summary: OAuth2 Authorization Endpoint
+     Initiates an OAuth2 authorization code flow. Validates the request and redirects to the login UI for user authentication and consent.
+
+     As this method is a redirect, it returns a URL string instead of a Promise
+     */
+  oauth2AuthorizeURL(
+    params?: Oauth2AuthorizeParams,
+    options?: RequestInit,
+  ): string;
+
+  /**
+     Summary: OAuth2 Authorization Endpoint (POST)
+     Initiates an OAuth2 authorization code flow via POST. Validates the request and redirects to the login UI for user authentication and consent.
+
+     As this method is a redirect, it returns a URL string instead of a Promise
+     */
+  oauth2AuthorizePostURL(
+    body: Oauth2AuthorizePostBody,
+    options?: RequestInit,
+  ): string;
+
+  /**
+     Summary: OAuth2 Token Endpoint
+     Exchange an authorization code for tokens, or refresh an existing token. Supports grant_type authorization_code and refresh_token.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2TokenResponse
+     */
+  oauth2Token(
+    body: OAuth2TokenRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2TokenResponse>>;
+
+  /**
+     Summary: OpenID Connect UserInfo Endpoint (GET)
+     Returns claims about the authenticated user based on the access token scopes.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2UserinfoResponse
+     */
+  oauth2UserinfoGet(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2UserinfoResponse>>;
+
+  /**
+     Summary: OpenID Connect UserInfo Endpoint (POST)
+     Returns claims about the authenticated user based on the access token scopes.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2UserinfoResponse
+     */
+  oauth2UserinfoPost(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2UserinfoResponse>>;
+
+  /**
+     Summary: OAuth2 Provider JWKS Endpoint
+     Returns the JSON Web Key Set containing public keys used for OAuth2/OIDC token signing.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2JWKSResponse
+     */
+  oauth2Jwks(options?: RequestInit): Promise<FetchResponse<OAuth2JWKSResponse>>;
+
+  /**
+     Summary: OAuth2 Token Revocation (RFC 7009)
+     Revoke an access token or refresh token.
+
+     This method may return different T based on the response code:
+     - 200: void
+     */
+  oauth2Revoke(
+    body: OAuth2RevokeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>>;
+
+  /**
+     Summary: OAuth2 Token Introspection (RFC 7662)
+     Introspect a token to determine its current state and metadata.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2IntrospectResponse
+     */
+  oauth2Introspect(
+    body: OAuth2IntrospectRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2IntrospectResponse>>;
+
+  /**
+     Summary: Get authorization request details for consent screen
+     Called by the consent UI to get details about the pending authorization request.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2LoginResponse
+     */
+  oauth2LoginGet(
+    params?: Oauth2LoginGetParams,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2LoginResponse>>;
+
+  /**
+     Summary: Complete login/consent for an authorization request
+     Called by the consent UI after user authenticates and consents. Sets the user on the auth request and redirects back to the client with an authorization code.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2LoginCompleteResponse
+     */
+  oauth2LoginPost(
+    body: OAuth2LoginRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2LoginCompleteResponse>>;
 }
 
 export const createAPIClient = (
@@ -2146,7 +2861,7 @@ export const createAPIClient = (
     const url = `${baseURL}/.well-known/jwks.json`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -2176,7 +2891,7 @@ export const createAPIClient = (
     const url = `${baseURL}/elevate/webauthn`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
         ...options?.headers,
       },
@@ -2209,9 +2924,9 @@ export const createAPIClient = (
     const url = `${baseURL}/elevate/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2243,7 +2958,7 @@ export const createAPIClient = (
     const url = `${baseURL}/healthz`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -2273,7 +2988,7 @@ export const createAPIClient = (
     const url = `${baseURL}/healthz`;
     const res = await fetch(url, {
       ...options,
-      method: "HEAD",
+      method: 'HEAD',
       headers: {
         ...options?.headers,
       },
@@ -2301,9 +3016,9 @@ export const createAPIClient = (
     const url = `${baseURL}/link/idtoken`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2333,7 +3048,7 @@ export const createAPIClient = (
     const url = `${baseURL}/mfa/totp/generate`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -2366,9 +3081,9 @@ export const createAPIClient = (
     const url = `${baseURL}/pat`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2401,9 +3116,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/anonymous`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2436,9 +3151,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/email-password`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2471,9 +3186,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/idtoken`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2506,9 +3221,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/mfa/totp`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2541,9 +3256,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/otp/email`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2574,9 +3289,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/otp/email/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2609,9 +3324,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/passwordless/email`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2642,9 +3357,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/passwordless/sms`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2675,9 +3390,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/passwordless/sms/otp`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2710,9 +3425,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/pat`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2745,15 +3460,29 @@ export const createAPIClient = (
     const encodedParameters =
       params &&
       Object.entries(params)
-        .map(([key, value]) => {
+        .flatMap(([key, value]) => {
+          if (key === 'providerSpecificParams') {
+            // Object with explode: true - each property as separate parameter
+            if (
+              typeof value === 'object' &&
+              value !== null &&
+              !Array.isArray(value)
+            ) {
+              return Object.entries(value).map(
+                ([k, v]) => `${k}=${encodeURIComponent(String(v))}`,
+              );
+            }
+            return [`${key}=${encodeURIComponent(String(value))}`];
+          }
+          // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
-            ? value.join(",")
-            : typeof value === "object"
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
               ? JSON.stringify(value)
-              : (value as string);
-          return `${key}=${encodeURIComponent(stringValue)}`;
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
         })
-        .join("&");
+        .join('&');
 
     const url = encodedParameters
       ? `${baseURL}/signin/provider/${provider}?${encodedParameters}`
@@ -2768,7 +3497,7 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/provider/${provider}/callback/tokens`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -2801,9 +3530,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/webauthn`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2836,9 +3565,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2871,9 +3600,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signout`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2904,9 +3633,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signup/email-password`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2939,9 +3668,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signup/webauthn`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2974,9 +3703,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signup/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3009,9 +3738,9 @@ export const createAPIClient = (
     const url = `${baseURL}/token`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3043,9 +3772,9 @@ export const createAPIClient = (
     const url = `${baseURL}/token/provider/${provider}`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3078,9 +3807,9 @@ export const createAPIClient = (
     const url = `${baseURL}/token/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3110,7 +3839,7 @@ export const createAPIClient = (
     const url = `${baseURL}/user`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -3141,9 +3870,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/deanonymize`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3174,9 +3903,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/email/change`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3207,9 +3936,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/email/send-verification-email`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3240,9 +3969,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/mfa`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3273,9 +4002,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/password`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3306,9 +4035,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/password/reset`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3338,7 +4067,7 @@ export const createAPIClient = (
     const url = `${baseURL}/user/webauthn/add`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
         ...options?.headers,
       },
@@ -3371,9 +4100,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3403,15 +4132,16 @@ export const createAPIClient = (
     const encodedParameters =
       params &&
       Object.entries(params)
-        .map(([key, value]) => {
+        .flatMap(([key, value]) => {
+          // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
-            ? value.join(",")
-            : typeof value === "object"
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
               ? JSON.stringify(value)
-              : (value as string);
-          return `${key}=${encodeURIComponent(stringValue)}`;
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
         })
-        .join("&");
+        .join('&');
 
     const url = encodedParameters
       ? `${baseURL}/verify?${encodedParameters}`
@@ -3425,7 +4155,7 @@ export const createAPIClient = (
     const url = `${baseURL}/version`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -3449,6 +4179,430 @@ export const createAPIClient = (
       status: res.status,
       headers: res.headers,
     } as FetchResponse<GetVersionResponse200>;
+  };
+
+  const getOpenIDConfiguration = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DiscoveryResponse>> => {
+    const url = `${baseURL}/.well-known/openid-configuration`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2DiscoveryResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2DiscoveryResponse>;
+  };
+
+  const getOAuthAuthorizationServer = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DiscoveryResponse>> => {
+    const url = `${baseURL}/.well-known/oauth-authorization-server`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2DiscoveryResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2DiscoveryResponse>;
+  };
+
+  const oauth2AuthorizeURL = (params?: Oauth2AuthorizeParams): string => {
+    const encodedParameters =
+      params &&
+      Object.entries(params)
+        .flatMap(([key, value]) => {
+          // Default handling (scalars or explode: false)
+          const stringValue = Array.isArray(value)
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
+              ? JSON.stringify(value)
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
+        })
+        .join('&');
+
+    const url = encodedParameters
+      ? `${baseURL}/oauth2/authorize?${encodedParameters}`
+      : `${baseURL}/oauth2/authorize`;
+    return url;
+  };
+
+  const oauth2AuthorizePostURL = (): string => {
+    const url = `${baseURL}/oauth2/authorize`;
+    return url;
+  };
+
+  const oauth2Token = async (
+    body: OAuth2TokenRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2TokenResponse>> => {
+    const url = `${baseURL}/oauth2/token`;
+    const params = new URLSearchParams();
+    if (body['grant_type'] !== undefined) {
+      params.append('grant_type', String(body['grant_type']));
+    }
+    if (body['code'] !== undefined) {
+      params.append('code', String(body['code']));
+    }
+    if (body['redirect_uri'] !== undefined) {
+      params.append('redirect_uri', String(body['redirect_uri']));
+    }
+    if (body['client_id'] !== undefined) {
+      params.append('client_id', String(body['client_id']));
+    }
+    if (body['client_secret'] !== undefined) {
+      params.append('client_secret', String(body['client_secret']));
+    }
+    if (body['code_verifier'] !== undefined) {
+      params.append('code_verifier', String(body['code_verifier']));
+    }
+    if (body['refresh_token'] !== undefined) {
+      params.append('refresh_token', String(body['refresh_token']));
+    }
+    if (body['resource'] !== undefined) {
+      params.append('resource', String(body['resource']));
+    }
+
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...options?.headers,
+      },
+      body: params.toString(),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2TokenResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2TokenResponse>;
+  };
+
+  const oauth2UserinfoGet = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2UserinfoResponse>> => {
+    const url = `${baseURL}/oauth2/userinfo`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2UserinfoResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2UserinfoResponse>;
+  };
+
+  const oauth2UserinfoPost = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2UserinfoResponse>> => {
+    const url = `${baseURL}/oauth2/userinfo`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2UserinfoResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2UserinfoResponse>;
+  };
+
+  const oauth2Jwks = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2JWKSResponse>> => {
+    const url = `${baseURL}/oauth2/jwks`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2JWKSResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2JWKSResponse>;
+  };
+
+  const oauth2Revoke = async (
+    body: OAuth2RevokeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>> => {
+    const url = `${baseURL}/oauth2/revoke`;
+    const params = new URLSearchParams();
+    if (body['token'] !== undefined) {
+      params.append('token', String(body['token']));
+    }
+    if (body['token_type_hint'] !== undefined) {
+      params.append('token_type_hint', String(body['token_type_hint']));
+    }
+    if (body['client_id'] !== undefined) {
+      params.append('client_id', String(body['client_id']));
+    }
+    if (body['client_secret'] !== undefined) {
+      params.append('client_secret', String(body['client_secret']));
+    }
+
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...options?.headers,
+      },
+      body: params.toString(),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const payload: undefined = undefined;
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<void>;
+  };
+
+  const oauth2Introspect = async (
+    body: OAuth2IntrospectRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2IntrospectResponse>> => {
+    const url = `${baseURL}/oauth2/introspect`;
+    const params = new URLSearchParams();
+    if (body['token'] !== undefined) {
+      params.append('token', String(body['token']));
+    }
+    if (body['token_type_hint'] !== undefined) {
+      params.append('token_type_hint', String(body['token_type_hint']));
+    }
+    if (body['client_id'] !== undefined) {
+      params.append('client_id', String(body['client_id']));
+    }
+    if (body['client_secret'] !== undefined) {
+      params.append('client_secret', String(body['client_secret']));
+    }
+
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...options?.headers,
+      },
+      body: params.toString(),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2IntrospectResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2IntrospectResponse>;
+  };
+
+  const oauth2LoginGet = async (
+    params?: Oauth2LoginGetParams,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2LoginResponse>> => {
+    const encodedParameters =
+      params &&
+      Object.entries(params)
+        .flatMap(([key, value]) => {
+          // Default handling (scalars or explode: false)
+          const stringValue = Array.isArray(value)
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
+              ? JSON.stringify(value)
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
+        })
+        .join('&');
+
+    const url = encodedParameters
+      ? `${baseURL}/oauth2/login?${encodedParameters}`
+      : `${baseURL}/oauth2/login`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2LoginResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2LoginResponse>;
+  };
+
+  const oauth2LoginPost = async (
+    body: OAuth2LoginRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2LoginCompleteResponse>> => {
+    const url = `${baseURL}/oauth2/login`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2LoginCompleteResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2LoginCompleteResponse>;
   };
 
   return {
@@ -3494,5 +4648,17 @@ export const createAPIClient = (
     verifyAddSecurityKey,
     verifyTicketURL,
     getVersion,
+    getOpenIDConfiguration,
+    getOAuthAuthorizationServer,
+    oauth2AuthorizeURL,
+    oauth2AuthorizePostURL,
+    oauth2Token,
+    oauth2UserinfoGet,
+    oauth2UserinfoPost,
+    oauth2Jwks,
+    oauth2Revoke,
+    oauth2Introspect,
+    oauth2LoginGet,
+    oauth2LoginPost,
   };
 };

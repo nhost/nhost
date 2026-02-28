@@ -1,6 +1,6 @@
+import type { ReactElement } from 'react';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
-import type { ReactElement } from 'react';
 
 export default function TOMLEditorPage() {
   return <TOMLEditor />;

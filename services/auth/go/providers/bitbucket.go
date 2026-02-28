@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -64,7 +65,9 @@ func (b *Bitbucket) GetProfile(
 ) (oidc.Profile, error) {
 	// Step 1: Get user profile from Bitbucket
 	var user bitbucketAPIUser
-	if err := fetchOAuthProfile(ctx, "https://api.bitbucket.org/2.0/user", accessToken, &user); err != nil {
+	if err := fetchOAuthProfile(
+		ctx, "https://api.bitbucket.org/2.0/user", accessToken, &user,
+	); err != nil {
 		return oidc.Profile{}, fmt.Errorf("Bitbucket user profile error: %w", err)
 	}
 
@@ -127,4 +130,12 @@ func (b *Bitbucket) GetProfile(
 		Name:           user.DisplayName,
 		Picture:        user.Links.Avatar.Href,
 	}, nil
+}
+
+func (b *Bitbucket) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return b.Config.AuthCodeURL(state, opts...)
 }

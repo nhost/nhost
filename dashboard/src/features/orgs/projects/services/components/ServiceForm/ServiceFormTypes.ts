@@ -1,14 +1,13 @@
-import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import type { DialogFormProps } from '@/types/common';
 import * as Yup from 'yup';
-
 import {
+  MAX_SERVICE_REPLICAS,
   MAX_SERVICES_CPU,
   MAX_SERVICES_MEM,
-  MAX_SERVICE_REPLICAS,
   MIN_SERVICES_CPU,
   MIN_SERVICES_MEM,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import type { DialogFormProps } from '@/types/common';
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
@@ -87,6 +86,15 @@ export type ServiceFormInitialData = Omit<ServiceFormValues, 'ports'> & {
   }[];
 };
 
+export const defaultServiceFormValues = {
+  compute: {
+    cpu: 62,
+    memory: 128,
+  },
+  replicas: 1,
+  autoscaler: null,
+};
+
 export interface ServiceFormProps extends DialogFormProps {
   /**
    * To use in conjunction with initialData to allow for updating the service
@@ -101,7 +109,7 @@ export interface ServiceFormProps extends DialogFormProps {
   /**
    * Function to be called when the submit is successful.
    */
-  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
+  onSubmit?: () => Promise<unknown>;
 }
 
 export type Port = {

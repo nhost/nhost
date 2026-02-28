@@ -1,0 +1,122 @@
+---
+title: sendMessage
+---
+
+```graphql
+sendMessage {
+   sessionID: String!  message: String!  prevMessageID: String! 
+}: MessageResponse!
+```
+
+Send a message to a session.
+If prevMessageID is "", return all messages in the session.
+If prevMessageID is not "", return all messages after prevMessageID.
+
+## Permissions needed
+
+select (sessions):
+- id
+- session_id
+update (sessions):
+- update_at
+
+
+## Arguments
+
+
+
+    - **`sessionID`** (`String!`): Session to send the message to
+
+
+    - **`message`** (`String!`): Message to send
+
+
+    - **`prevMessageID`** (`String!`): Only return messages after this message ID
+
+
+
+## Response
+
+Type: `MessageResponse!`
+
+
+
+
+
+    
+    - **`sessionID`** (`String!`): ID of the session
+    
+    - **`messages`** (`[Message!]!`): Messages in this session
+    <details>
+<summary>properties</summary>
+
+    
+    
+    - **`id`** (`String!`): ID of the message
+    
+    - **`role`** (`String!`): Role of the message. Either "user" or "assistant"
+    
+    - **`message`** (`String!`): Message content
+    
+    - **`createdAt`** (`timestampz!`): Timestamp of when the message was sent
+    
+    
+</details>
+    
+    
+
+
+
+**Request Example:**
+
+```graphql query
+query sendMessage (
+  $sessionID: String!$message: String!$prevMessageID: String!
+) {
+  graphite {
+    sendMessage (
+      sessionID: $sessionIDmessage: $messageprevMessageID: $prevMessageID
+    ) {
+      sessionID
+      messages {
+        id
+        role
+        message
+        createdAt
+        }
+    }
+  }
+}
+```
+
+```json variables
+{
+  "message": "string",
+  "prevMessageID": "string",
+  "sessionID": "string"
+}
+```
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "graphite": {
+      "sendMessage": {
+        "messages": [
+          {
+            "createdAt": "2023-12-14T07:45:15.20353+00:00",
+            "id": "string",
+            "message": "string",
+            "role": "string"
+          }
+        ],
+        "sessionID": "string"
+      }
+    }
+  }
+}
+```
+

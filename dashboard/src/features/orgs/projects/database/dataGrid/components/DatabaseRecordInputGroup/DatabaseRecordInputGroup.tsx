@@ -1,23 +1,22 @@
-import { InlineCode } from '@/components/presentational/InlineCode';
+import { KeyRound } from 'lucide-react';
+import { type ChangeEvent, useEffect, useRef } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { FormInput } from '@/components/form/FormInput';
+import { FormSelect } from '@/components/form/FormSelect';
+import { FormTextarea } from '@/components/form/FormTextarea';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { KeyIcon } from '@/components/ui/v2/icons/KeyIcon';
-import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
-import { Text } from '@/components/ui/v2/Text';
-import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { InlineCode } from '@/components/ui/v3/inline-code';
+import { SelectItem } from '@/components/ui/v3/select';
+import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
-import { Controller, useFormContext } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 
-export interface DatabaseRecordInputGroupProps extends BoxProps {
+export interface DatabaseRecordInputGroupProps {
   /**
    * List of columns for which input fields should be generated.
    */
-  columns: DataBrowserGridColumn[];
+  columns: DataBrowserColumnMetadata[];
   /**
    * Title of the input group.
    */
@@ -30,6 +29,31 @@ export interface DatabaseRecordInputGroupProps extends BoxProps {
    * Determines whether the first input field should be focused.
    */
   autoFocusFirstInput?: boolean;
+  className?: string;
+}
+
+function getBooleanValueTransformer(isNullable: boolean) {
+  return function transformBooleanValue(value: string | null) {
+    let convertedValue = value;
+
+    if (convertedValue === null) {
+      convertedValue = isNullable ? 'null' : '';
+    } else if (convertedValue === 'null' || convertedValue === '') {
+      convertedValue = null;
+    }
+
+    return convertedValue;
+  };
+}
+
+function convertNullToEmptyString(value: string | null) {
+  return value === null ? '' : value;
+}
+
+function convertEmptyStringToNull(
+  event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+) {
+  return event.target.value === '' ? null : event.target.value;
 }
 
 function getPlaceholder(
@@ -71,150 +95,130 @@ export default function DatabaseRecordInputGroup({
   columns,
   autoFocusFirstInput,
   className,
-  ...props
 }: DatabaseRecordInputGroupProps) {
-  const {
-    control,
-    register,
-    formState: { errors },
-  } = useFormContext();
+  const { control } = useFormContext();
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
+  function getRef(index: number) {
+    return (element: HTMLTextAreaElement | HTMLInputElement | null) => {
+      if (element && index === 0 && autoFocusFirstInput) {
+        inputRef.current = element;
+      }
+    };
+  }
 
   return (
-    <Box component="section" className={twMerge('py-3', className)} {...props}>
-      {title && (
-        <Text variant="h2" className="mb-1.5 mt-3 text-sm+ font-bold">
-          {title}
-        </Text>
-      )}
-
+    <section className={cn('box py-3 font-display', className)}>
+      {title && <h2 className="mt-3 mb-1.5 font-bold text-sm+">{title}</h2>}
       {description && (
-        <Text className="mb-3 text-xs" color="secondary">
-          {description}
-        </Text>
+        <p className="mb-3 text-secondary text-xs">{description}</p>
       )}
-
       <div>
-        {columns.map(
-          (
-            {
-              id: columnId,
-              type,
-              specificType,
-              maxLength,
-              defaultValue,
-              isPrimary,
-              isNullable,
-              isIdentity,
-              comment,
-            },
-            index,
-          ) => {
-            const isMultiline =
-              specificType === 'text' ||
-              specificType === 'bpchar' ||
-              specificType === 'varchar' ||
-              specificType === 'json' ||
-              specificType === 'jsonb';
+        {columns.map((column, index) => {
+          const {
+            id: columnId,
+            type,
+            specificType,
+            defaultValue,
+            isPrimary,
+            isNullable,
+            isIdentity,
+            comment,
+          } = column;
 
-            const placeholder = getPlaceholder(
-              defaultValue,
-              isIdentity,
-              isNullable,
-            );
+          const isMultiline =
+            specificType === 'text' ||
+            specificType === 'bpchar' ||
+            specificType?.includes('character varying') ||
+            specificType === 'json' ||
+            specificType === 'jsonb';
 
-            const InputLabel = (
-              <span className="inline-grid grid-flow-col gap-1">
-                <span className="inline-grid grid-flow-col items-center gap-1">
-                  {isPrimary && <KeyIcon className="text-base text-inherit" />}
+          const placeholder = getPlaceholder(
+            defaultValue,
+            isIdentity,
+            isNullable,
+          );
 
-                  <span>{columnId}</span>
-                </span>
-
-                <InlineCode className="h-[18px]">
-                  {specificType}
-                  {maxLength ? `(${maxLength})` : null}
-                </InlineCode>
+          const inputLabel = (
+            <span className="inline-grid grid-flow-col gap-1">
+              <span className="inline-grid grid-flow-col items-center gap-1 break-all">
+                {isPrimary && (
+                  <KeyRound className="text-base text-inherit" size={13} />
+                )}
+                <span>{columnId}</span>
               </span>
-            );
 
-            const commonFormControlProps = {
-              label: InputLabel,
-              error: Boolean(errors[columnId]),
-              helperText:
-                comment ||
-                (typeof errors[columnId]?.message === 'string'
-                  ? (errors[columnId]?.message as string)
-                  : null),
-              hideEmptyHelperText: true,
-              fullWidth: true,
-              className: 'py-3',
-            };
+              <InlineCode
+                className="h-[1.125rem] overflow-hidden whitespace-nowrap leading-[1.125rem]"
+                title={specificType}
+              >
+                {specificType}
+              </InlineCode>
+            </span>
+          );
 
-            const commonLabelProps = {
-              className: 'grid grid-flow-row justify-items-start gap-1',
-            };
-
-            if (type === 'boolean') {
-              return (
-                <Controller
-                  name={columnId}
-                  control={control}
-                  key={columnId}
-                  render={({ field }) => (
-                    <Select
-                      {...commonFormControlProps}
-                      {...field}
-                      onChange={(_event, value) => field.onChange(value)}
-                      variant="inline"
-                      id={columnId}
-                      value={field.value || 'null'}
-                      placeholder="Select an option"
-                      className={twMerge(
-                        !field.value && 'text-sm font-normal',
-                        'py-3',
-                      )}
-                      autoFocus={index === 0 && autoFocusFirstInput}
-                      slotProps={{ label: commonLabelProps }}
-                    >
-                      <Option value="true">
-                        <ReadOnlyToggle checked />
-                      </Option>
-
-                      <Option value="false">
-                        <ReadOnlyToggle checked={false} />
-                      </Option>
-
-                      {isNullable && (
-                        <Option value="null">
-                          <ReadOnlyToggle checked={null} />
-                        </Option>
-                      )}
-                    </Select>
-                  )}
-                />
-              );
-            }
-
+          if (type === 'boolean') {
             return (
-              <Input
-                {...commonFormControlProps}
-                {...register(columnId)}
-                variant="inline"
-                id={columnId}
+              <FormSelect
                 key={columnId}
-                type={getInputType({ type, specificType })}
-                placeholder={placeholder}
-                multiline={isMultiline}
-                rows={5}
-                autoFocus={index === 0 && autoFocusFirstInput}
-                slotProps={{
-                  label: commonLabelProps,
+                inline
+                name={columnId!}
+                control={control}
+                label={inputLabel}
+                placeholder="Select an option"
+                helperText={comment}
+                transform={{
+                  in: getBooleanValueTransformer(!!isNullable),
+                  out: getBooleanValueTransformer(!!isNullable),
                 }}
-              />
+              >
+                <SelectItem value="true">
+                  <ReadOnlyToggle checked />
+                </SelectItem>
+
+                <SelectItem value="false">
+                  <ReadOnlyToggle checked={false} />
+                </SelectItem>
+
+                {isNullable && (
+                  <SelectItem value="null">
+                    <ReadOnlyToggle checked={null} />
+                  </SelectItem>
+                )}
+              </FormSelect>
             );
-          },
-        )}
+          }
+
+          const InputComponent = isMultiline ? FormTextarea : FormInput;
+          return (
+            <InputComponent
+              ref={getRef(index)}
+              key={columnId}
+              inline
+              name={columnId!}
+              control={control}
+              label={inputLabel}
+              placeholder={placeholder}
+              helperText={comment}
+              transform={{
+                in: convertNullToEmptyString,
+                out: convertEmptyStringToNull,
+              }}
+              className={cn(
+                { 'resize-none': isMultiline },
+                'focus-visible:ring-0',
+              )}
+              type={getInputType({ type, specificType })}
+            />
+          );
+        })}
       </div>
-    </Box>
+    </section>
   );
 }

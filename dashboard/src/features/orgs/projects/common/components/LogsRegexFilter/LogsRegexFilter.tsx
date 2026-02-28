@@ -1,10 +1,10 @@
-import { Box } from '@/components/ui/v2/Box';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { Input } from '@/components/ui/v2/Input';
-import { Link } from '@/components/ui/v2/Link';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { forwardRef } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
+import { Box } from '@/components/ui/v2/Box';
+import { Input } from '@/components/ui/v2/Input';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
+import { Link } from '@/components/ui/v2/Link';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 
 type LogsRegexFilterProps = UseFormRegisterReturn<
   keyof {

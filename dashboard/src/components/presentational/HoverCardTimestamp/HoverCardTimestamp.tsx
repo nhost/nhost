@@ -1,0 +1,81 @@
+import { HoverCardPortal } from '@radix-ui/react-hover-card';
+import { format } from 'date-fns';
+import { Copy } from 'lucide-react';
+import type { ComponentPropsWithoutRef } from 'react';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/v3/hover-card';
+import { cn } from '@/lib/utils';
+import { copy } from '@/utils/copy';
+
+type HoverCardContentProps = ComponentPropsWithoutRef<typeof HoverCardContent>;
+
+interface HoverCardTimestampProps {
+  date: Date;
+  side?: HoverCardContentProps['side'];
+  sideOffset?: HoverCardContentProps['sideOffset'];
+  align?: HoverCardContentProps['align'];
+  alignOffset?: HoverCardContentProps['alignOffset'];
+  openDelay?: number;
+  className?: string;
+}
+
+function Row({ value, label }: { value: string; label: string }) {
+  return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: TODO
+    // biome-ignore lint/a11y/useSemanticElements: TODO
+    <div
+      className="group flex items-center justify-between gap-4 text-sm"
+      role="button"
+      tabIndex={0}
+      onClick={(e) => {
+        e.stopPropagation();
+        copy(value, 'Timestamp');
+      }}
+    >
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="flex items-center gap-1 truncate font-mono">
+        <span className="invisible group-hover:visible">
+          <Copy className="h-3 w-3" />
+        </span>
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+export default function HoverCardTimestamp({
+  date,
+  side = 'right',
+  align = 'start',
+  alignOffset = -4,
+  sideOffset,
+  openDelay = 0,
+  className,
+}: HoverCardTimestampProps) {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  return (
+    <HoverCard openDelay={openDelay} closeDelay={150}>
+      <HoverCardTrigger asChild>
+        <div className={cn('whitespace-nowrap font-mono', className)}>
+          {date.toISOString()}
+        </div>
+      </HoverCardTrigger>
+      <HoverCardPortal>
+        <HoverCardContent
+          className="z-10 w-auto p-2"
+          {...{ side, align, alignOffset, sideOffset }}
+        >
+          <dl className="flex flex-col gap-1">
+            <Row value={String(date.getTime())} label="Timestamp" />
+            <Row value={date.toISOString()} label="UTC" />
+            <Row value={format(date, 'LLL dd, y HH:mm:ss')} label={timezone} />
+          </dl>
+        </HoverCardContent>
+      </HoverCardPortal>
+    </HoverCard>
+  );
+}

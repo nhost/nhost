@@ -6,15 +6,15 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) AddSecurityKey( //nolint:ireturn
 	ctx context.Context,
 	_ api.AddSecurityKeyRequestObject,
 ) (api.AddSecurityKeyResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.WebauthnEnabled {
 		logger.ErrorContext(ctx, "webauthn is disabled")

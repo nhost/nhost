@@ -1,4 +1,3 @@
-import { nhost } from '@/utils/nhost';
 import {
   ApolloClient,
   createHttpLink,
@@ -9,12 +8,13 @@ import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
+import { nhost } from '@/utils/nhost';
 
 const getAuthHeaders = async () => {
   // add headers
   const session = await nhost.refreshSession(60);
   const token = session?.accessToken;
-  const resHeaders: any = {
+  const resHeaders: Record<string, string> = {
     'Sec-WebSocket-Protocol': 'graphql-ws',
   };
 
@@ -62,7 +62,6 @@ const splitQraphqlClient = new ApolloClient({
       },
     },
   }),
-  connectToDevTools: true,
   link: split(
     ({ query }) => {
       const definition = getMainDefinition(query);

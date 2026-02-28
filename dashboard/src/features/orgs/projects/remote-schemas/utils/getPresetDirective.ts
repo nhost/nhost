@@ -1,4 +1,3 @@
-import { isJSONString } from '@/lib/utils';
 import type {
   ArgumentNode,
   BooleanValueNode,
@@ -10,6 +9,7 @@ import type {
   StringValueNode,
   ValueNode,
 } from 'graphql';
+import { isJSONString } from '@/lib/utils';
 
 function parseConstValue(node?: ValueNode) {
   if (!node) {

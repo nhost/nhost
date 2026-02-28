@@ -1,3 +1,8 @@
+import {
+  createClient,
+  type NhostClient,
+  type NhostClientOptions,
+} from '@nhost/nhost-js';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -8,11 +13,6 @@ import {
   getStorageServiceUrl,
 } from '@/utils/env';
 import { DummySessionStorage } from '@/utils/nhost';
-import {
-  createClient,
-  type NhostClient,
-  type NhostClientOptions,
-} from '@nhost/nhost-js';
 
 export type UseAppClientOptions = NhostClientOptions;
 export type UseAppClientReturn = NhostClient;

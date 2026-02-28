@@ -112,7 +112,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -217,13 +217,13 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken: token,
-					Nonce:   ptr(nonce),
+					Nonce:   new(nonce),
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"me"},
-						DefaultRole:  ptr("me"),
-						DisplayName:  ptr("Some other name"),
-						Locale:       ptr("se"),
-						Metadata: &map[string]interface{}{
+						DefaultRole:  new("me"),
+						DisplayName:  new("Some other name"),
+						Locale:       new("se"),
+						Metadata: &map[string]any{
 							"key": "value",
 						},
 						RedirectTo: nil,
@@ -247,7 +247,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "se",
-						Metadata:            map[string]interface{}{"key": "value"},
+						Metadata:            map[string]any{"key": "value"},
 						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"me"},
@@ -288,6 +288,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableSignup = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -311,7 +312,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -333,6 +334,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableNewUsers = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -381,7 +383,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -403,6 +405,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.AllowedEmails = []string{"not@anemail.blah"}
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -413,7 +416,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -506,7 +509,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -661,7 +664,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -769,7 +772,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},

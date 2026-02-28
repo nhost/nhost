@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )
@@ -80,7 +81,7 @@ func getAmazonSignature(request api.GetFileWithPresignedURLRequestObject) string
 	)
 }
 
-func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn,dupl
+func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn,dupl,funlen
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,
@@ -98,7 +99,7 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 				),
 				ContentType:      file.mimeType,
 				Etag:             file.fileMetadata.Etag,
-				LastModified:     file.fileMetadata.UpdatedAt,
+				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
 				SurrogateControl: file.cacheControl,
 				SurrogateKey:     file.fileMetadata.Id,
 			},
@@ -116,13 +117,15 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 				ContentRange:     file.extraHeaders.Get("Content-Range"),
 				ContentType:      file.mimeType,
 				Etag:             file.fileMetadata.Etag,
-				LastModified:     file.fileMetadata.UpdatedAt,
+				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
 				SurrogateControl: file.cacheControl,
 				SurrogateKey:     file.fileMetadata.Id,
 			},
 			ContentLength: file.contentLength,
 		}
 	case http.StatusNotModified:
+		file.body.Close()
+
 		return api.GetFileWithPresignedURL304Response{
 			Headers: api.GetFileWithPresignedURL304ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -131,6 +134,8 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 			},
 		}
 	case http.StatusPreconditionFailed:
+		file.body.Close()
+
 		return api.GetFileWithPresignedURL412Response{
 			Headers: api.GetFileWithPresignedURL412ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -139,6 +144,8 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 			},
 		}
 	default:
+		file.body.Close()
+
 		logger.ErrorContext(
 			ctx, "unexpected status code from download", slog.Int("statusCode", file.statusCode),
 		)
@@ -151,7 +158,7 @@ func (ctrl *Controller) GetFileWithPresignedURL( //nolint: ireturn
 	ctx context.Context,
 	request api.GetFileWithPresignedURLRequestObject,
 ) (api.GetFileWithPresignedURLResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
 
 	fileMetadata, _, apiErr := ctrl.getFileMetadata(

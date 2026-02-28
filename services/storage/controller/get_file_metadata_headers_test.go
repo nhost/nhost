@@ -35,7 +35,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -46,7 +46,7 @@ func TestGetFileInfo(t *testing.T) {
 			request: api.GetFileMetadataHeadersRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileMetadataHeadersParams{
-					IfMatch: ptr("\"55af1e60-0f28-454e-885e-ea6aab2bb288\""),
+					IfMatch: new("\"55af1e60-0f28-454e-885e-ea6aab2bb288\""),
 				},
 			},
 			expected: api.GetFileMetadataHeaders200Response{
@@ -57,7 +57,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -68,7 +68,7 @@ func TestGetFileInfo(t *testing.T) {
 			request: api.GetFileMetadataHeadersRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileMetadataHeadersParams{
-					IfMatch: ptr("blah"),
+					IfMatch: new("blah"),
 				},
 			},
 			expected: api.GetFileMetadataHeaders412Response{
@@ -84,7 +84,7 @@ func TestGetFileInfo(t *testing.T) {
 			request: api.GetFileMetadataHeadersRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileMetadataHeadersParams{
-					IfNoneMatch: ptr("\"55af1e60-0f28-454e-885e-ea6aab2bb288\""),
+					IfNoneMatch: new("\"55af1e60-0f28-454e-885e-ea6aab2bb288\""),
 				},
 			},
 			expected: api.GetFileMetadataHeaders304Response{
@@ -100,7 +100,7 @@ func TestGetFileInfo(t *testing.T) {
 			request: api.GetFileMetadataHeadersRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileMetadataHeadersParams{
-					IfNoneMatch: ptr("blah"),
+					IfNoneMatch: new("blah"),
 				},
 			},
 			expected: api.GetFileMetadataHeaders200Response{
@@ -111,7 +111,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -122,7 +122,7 @@ func TestGetFileInfo(t *testing.T) {
 			request: api.GetFileMetadataHeadersRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileMetadataHeadersParams{
-					IfModifiedSince: ptr(api.Date(2020, 1, 15, 10, 0, 0, 0, time.UTC)),
+					IfModifiedSince: new(api.Date(2020, 1, 15, 10, 0, 0, 0, time.UTC)),
 				},
 			},
 			expected: api.GetFileMetadataHeaders200Response{
@@ -133,7 +133,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -144,7 +144,7 @@ func TestGetFileInfo(t *testing.T) {
 			request: api.GetFileMetadataHeadersRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileMetadataHeadersParams{
-					IfModifiedSince: ptr(api.Date(2024, 1, 25, 10, 0, 0, 0, time.UTC)),
+					IfModifiedSince: new(api.Date(2024, 1, 25, 10, 0, 0, 0, time.UTC)),
 				},
 			},
 			expected: api.GetFileMetadataHeaders304Response{
@@ -160,7 +160,7 @@ func TestGetFileInfo(t *testing.T) {
 			request: api.GetFileMetadataHeadersRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileMetadataHeadersParams{
-					IfUnmodifiedSince: ptr(api.Date(2024, 1, 25, 10, 0, 0, 0, time.UTC)),
+					IfUnmodifiedSince: new(api.Date(2024, 1, 25, 10, 0, 0, 0, time.UTC)),
 				},
 			},
 			expected: api.GetFileMetadataHeaders200Response{
@@ -171,7 +171,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -182,7 +182,7 @@ func TestGetFileInfo(t *testing.T) {
 			request: api.GetFileMetadataHeadersRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileMetadataHeadersParams{
-					IfUnmodifiedSince: ptr(api.Date(2020, 1, 15, 10, 0, 0, 0, time.UTC)),
+					IfUnmodifiedSince: new(api.Date(2020, 1, 15, 10, 0, 0, 0, time.UTC)),
 				},
 			},
 			expected: api.GetFileMetadataHeaders412Response{
@@ -219,7 +219,7 @@ func TestGetFileInfo(t *testing.T) {
 				UpdatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 				IsUploaded:       true,
 				MimeType:         "text/plain; charset=utf-8",
-				UploadedByUserId: ptr("0f7f0ff0-f945-4597-89e1-3636b16775cd"),
+				UploadedByUserId: new("0f7f0ff0-f945-4597-89e1-3636b16775cd"),
 			}, nil)
 
 			metadataStorage.EXPECT().GetBucketByID(

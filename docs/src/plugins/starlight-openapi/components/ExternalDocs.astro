@@ -1,0 +1,21 @@
+---
+import type { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
+
+interface Props {
+  docs:
+    | OpenAPIV2.ExternalDocumentationObject
+    | OpenAPIV3.ExternalDocumentationObject
+    | OpenAPIV3_1.ExternalDocumentationObject
+    | undefined
+}
+
+const { docs } = Astro.props
+---
+
+{
+  docs && (
+    <p>
+      <a href={docs.url}>{docs.description ?? 'More information'}</a>
+    </p>
+  )
+}

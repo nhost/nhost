@@ -1,7 +1,7 @@
+import Link from 'next/link';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import Link from 'next/link';
 
 interface ApplicationLockedReasonProps {
   reason?: string;

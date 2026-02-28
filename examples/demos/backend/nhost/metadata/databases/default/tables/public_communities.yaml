@@ -1,0 +1,27 @@
+table:
+  name: communities
+  schema: public
+array_relationships:
+  - name: community_files
+    using:
+      foreign_key_constraint_on:
+        column: community_id
+        table:
+          name: community_files
+          schema: public
+  - name: members
+    using:
+      foreign_key_constraint_on:
+        column: community_id
+        table:
+          name: community_members
+          schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - description
+        - created_at
+      filter: {}

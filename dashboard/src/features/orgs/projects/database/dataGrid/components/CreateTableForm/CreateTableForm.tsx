@@ -1,5 +1,10 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useRouter } from 'next/router';
+import { FormProvider, useForm } from 'react-hook-form';
+import type * as Yup from 'yup';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import type {
   BaseTableFormProps,
   BaseTableFormValues,
@@ -9,15 +14,11 @@ import {
   baseTableValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { useCreateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateTableMutation';
+import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
-import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
 import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/router';
-import { FormProvider, useForm } from 'react-hook-form';
-import type * as Yup from 'yup';
 
 export interface CreateTableFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -28,6 +29,7 @@ export interface CreateTableFormProps
   /**
    * Function to be called when the form is submitted.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   onSubmit?: (args?: any) => Promise<any>;
 }
 
@@ -45,13 +47,15 @@ export default function CreateTableForm({
   } = useCreateTableMutation({ schema });
 
   const {
-    mutateAsync: trackTable,
+    mutateAsync: setTableTracking,
     error: trackTableError,
     reset: resetTrackError,
-  } = useTrackTableMutation({ schema });
+  } = useSetTableTrackingMutation();
 
   const { mutateAsync: trackForeignKeyRelation, error: foreignKeyError } =
     useTrackForeignKeyRelationsMutation();
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const error = createTableError || trackTableError || foreignKeyError;
 
@@ -61,8 +65,22 @@ export default function CreateTableForm({
     defaultValues: {
       columns: [
         {
+          type: { label: 'uuid', value: 'uuid' },
+          name: 'id',
+          defaultValue: {
+            label: 'gen_random_uuid()',
+            value: 'gen_random_uuid()',
+          },
+          isNullable: false,
+          isUnique: false,
+          isIdentity: false,
+          comment: '',
+        },
+        {
           name: '',
+          // biome-ignore lint/suspicious/noExplicitAny: TODO
           type: null as any,
+          // biome-ignore lint/suspicious/noExplicitAny: TODO
           defaultValue: null as any,
           isNullable: false,
           isUnique: false,
@@ -71,7 +89,7 @@ export default function CreateTableForm({
         },
       ],
       foreignKeyRelations: [],
-      primaryKeyIndices: [],
+      primaryKeyIndices: ['0'],
       identityColumnIndex: null,
     },
     shouldUnregister: false,
@@ -100,11 +118,18 @@ export default function CreateTableForm({
       };
 
       await createTable({ table });
-      await trackTable({ table });
+      await setTableTracking({
+        tracked: true,
+        resourceVersion,
+        args: {
+          source: router.query.dataSourceSlug as string,
+          table: { name: table.name, schema },
+        },
+      });
 
       if (isNotEmptyValue(table.foreignKeyRelations)) {
         await trackForeignKeyRelation({
-          foreignKeyRelations: table.foreignKeyRelations,
+          unTrackedForeignKeyRelations: table.foreignKeyRelations,
           schema,
           table: table.name,
         });
@@ -117,7 +142,7 @@ export default function CreateTableForm({
       triggerToast('The table has been created successfully.');
 
       await router.push(
-        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/${table.name}`,
+        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/tables/${table.name}`,
       );
     } catch {
       // This error is handled by the useCreateTableMutation hook.

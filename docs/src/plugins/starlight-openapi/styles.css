@@ -1,0 +1,88 @@
+:root {
+  --sl-openapi-method-hue-get: 204;
+  --sl-openapi-method-hue-put: var(--sl-hue-orange);
+  --sl-openapi-method-hue-post: var(--sl-hue-green);
+  --sl-openapi-method-hue-delete: var(--sl-hue-red);
+  --sl-openapi-method-hue-options: var(--sl-hue-blue);
+  --sl-openapi-method-hue-head: var(--sl-hue-purple);
+  --sl-openapi-method-hue-patch: 181;
+  --sl-openapi-method-hue-trace: 224;
+
+  --sl-openapi-method-bg-get: hsl(var(--sl-openapi-method-hue-get), 100%, 10%);
+  --sl-openapi-method-bg-put: hsl(var(--sl-openapi-method-hue-put), 82%, 13%);
+  --sl-openapi-method-bg-post: hsl(var(--sl-openapi-method-hue-post), 82%, 13%);
+  --sl-openapi-method-bg-delete: hsl(var(--sl-openapi-method-hue-delete), 82%, 13%);
+  --sl-openapi-method-bg-options: hsl(var(--sl-openapi-method-hue-options), 100%, 10%);
+  --sl-openapi-method-bg-head: hsl(var(--sl-openapi-method-hue-head), 82%, 13%);
+  --sl-openapi-method-bg-patch: hsl(var(--sl-openapi-method-hue-patch), 82%, 13%);
+  --sl-openapi-method-bg-trace: hsl(var(--sl-openapi-method-hue-trace), 10%, 12%);
+
+  --sl-openapi-method-border-get: hsl(var(--sl-openapi-method-hue-get), 100%, 60%);
+  --sl-openapi-method-border-put: hsl(var(--sl-openapi-method-hue-put), 82%, 63%);
+  --sl-openapi-method-border-post: hsl(var(--sl-openapi-method-hue-post), 82%, 63%);
+  --sl-openapi-method-border-delete: hsl(var(--sl-openapi-method-hue-delete), 82%, 63%);
+  --sl-openapi-method-border-options: hsl(var(--sl-openapi-method-hue-options), 100%, 60%);
+  --sl-openapi-method-border-head: hsl(var(--sl-openapi-method-hue-head), 82%, 63%);
+  --sl-openapi-method-border-patch: hsl(var(--sl-openapi-method-hue-patch), 82%, 63%);
+  --sl-openapi-method-border-trace: hsl(var(--sl-openapi-method-hue-trace), 10%, 70%);
+}
+
+:root[data-theme='light'] {
+  --sl-openapi-method-bg-get: hsl(var(--sl-openapi-method-hue-get), 90%, 40%);
+  --sl-openapi-method-bg-put: hsl(var(--sl-openapi-method-hue-put), 90%, 32%);
+  --sl-openapi-method-bg-post: hsl(var(--sl-openapi-method-hue-post), 90%, 21%);
+  --sl-openapi-method-bg-delete: hsl(var(--sl-openapi-method-hue-delete), 90%, 35%);
+  --sl-openapi-method-bg-options: hsl(var(--sl-openapi-method-hue-options), 90%, 35%);
+  --sl-openapi-method-bg-head: hsl(var(--sl-openapi-method-hue-head), 90%, 35%);
+  --sl-openapi-method-bg-patch: hsl(var(--sl-openapi-method-hue-patch), 90%, 25%);
+  --sl-openapi-method-bg-trace: hsl(var(--sl-openapi-method-hue-trace), 10%, 12%);
+
+  --sl-openapi-method-border-get: hsl(var(--sl-openapi-method-hue-get), 90%, 60%);
+  --sl-openapi-method-border-put: hsl(var(--sl-openapi-method-hue-put), 90%, 60%);
+  --sl-openapi-method-border-post: hsl(var(--sl-openapi-method-hue-post), 90%, 46%);
+  --sl-openapi-method-border-delete: hsl(var(--sl-openapi-method-hue-delete), 90%, 60%);
+  --sl-openapi-method-border-options: hsl(var(--sl-openapi-method-hue-options), 90%, 65%);
+  --sl-openapi-method-border-head: hsl(var(--sl-openapi-method-hue-head), 90%, 60%);
+  --sl-openapi-method-border-patch: hsl(var(--sl-openapi-method-hue-patch), 90%, 40%);
+  --sl-openapi-method-border-trace: hsl(var(--sl-openapi-method-hue-trace), 10%, 70%);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-openapi-method-get {
+  --sl-color-bg-badge: var(--sl-openapi-method-bg-get);
+  --sl-color-border-badge: var(--sl-openapi-method-border-get);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-openapi-method-put {
+  --sl-color-bg-badge: var(--sl-openapi-method-bg-put);
+  --sl-color-border-badge: var(--sl-openapi-method-border-put);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-openapi-method-post {
+  --sl-color-bg-badge: var(--sl-openapi-method-bg-post);
+  --sl-color-border-badge: var(--sl-openapi-method-border-post);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-openapi-method-delete {
+  --sl-color-bg-badge: var(--sl-openapi-method-bg-delete);
+  --sl-color-border-badge: var(--sl-openapi-method-border-delete);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-openapi-method-options {
+  --sl-color-bg-badge: var(--sl-openapi-method-bg-options);
+  --sl-color-border-badge: var(--sl-openapi-method-border-options);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-openapi-method-head {
+  --sl-color-bg-badge: var(--sl-openapi-method-bg-head);
+  --sl-color-border-badge: var(--sl-openapi-method-border-head);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-openapi-method-patch {
+  --sl-color-bg-badge: var(--sl-openapi-method-bg-patch);
+  --sl-color-border-badge: var(--sl-openapi-method-border-patch);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-openapi-method-trace {
+  --sl-color-bg-badge: var(--sl-openapi-method-bg-trace);
+  --sl-color-border-badge: var(--sl-openapi-method-border-trace);
+}

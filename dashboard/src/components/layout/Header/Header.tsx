@@ -1,3 +1,6 @@
+import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
+import { toast } from 'react-hot-toast';
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
@@ -13,9 +16,6 @@ import { DevAssistant } from '@/features/orgs/projects/ai/DevAssistant';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
-import { toast } from 'react-hot-toast';
-import { twMerge } from 'tailwind-merge';
 import BreadcrumbNav from './BreadcrumbNav';
 
 export interface HeaderProps
@@ -78,11 +78,7 @@ export default function Header({ className, ...props }: HeaderProps) {
           <NavLink
             underline="none"
             href="/support"
-            className="mr-1 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
-            sx={{
-              color: 'text.primary',
-              '&:hover': { backgroundColor: 'grey.200' },
-            }}
+            className="mr-1 rounded-md px-2.5 py-1.5 text-foreground text-sm hover:bg-accent motion-safe:transition-colors"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -93,11 +89,7 @@ export default function Header({ className, ...props }: HeaderProps) {
         <NavLink
           underline="none"
           href="https://docs.nhost.io"
-          className="mr-2 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
-          sx={{
-            color: 'text.primary',
-            '&:hover': { backgroundColor: 'grey.200' },
-          }}
+          className="mr-2 rounded-md px-2.5 py-1.5 text-foreground text-sm hover:bg-accent motion-safe:transition-colors"
           target="_blank"
           rel="noopener noreferrer"
         >

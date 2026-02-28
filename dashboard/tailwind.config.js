@@ -1,5 +1,6 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 const plugin = require('tailwindcss/plugin');
+const screens = require('./src/constants/screens.cjs');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -10,22 +11,34 @@ module.exports = {
     './src/components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    screens: {
-      xs: '415px',
-      'xs+': '515px',
-      ...defaultTheme.screens,
-    },
+    screens,
     extend: {
       colors: {
         github: '#24292E;',
         brown: '#382D22',
         copper: '#DD792D',
-        paper: '#171d26',
-        divider: '#2f363d',
-        'primary-main': '#0052cd',
+        paper: 'hsl(var(--paper))',
+        divider: 'hsl(var(--divider))',
+        disabled: 'hsl(var(--disabled))',
+        'data-cell-bg': 'hsl(var(--data-cell-bg))',
+        'data-cell-bg-odd': 'hsl(var(--data-cell-bg-odd))',
+        'data-cell-bg-hover': 'hsl(var(--data-cell-bg-hover))',
+        'data-cell-bg-disabled': 'hsl(var(--data-cell-bg-disabled))',
+        'data-table-border-color': 'hsl(var(--data-table-border-color))',
+        'primary-text': 'hsl(var(--primary-text))',
+        'primary-main': 'hsl(var(--primary-main))',
+        'primary-highlight': 'hsl(var(--primary-highlight))',
         'primary-light': '#ebf3ff',
         'primary-dark': '#063799',
         'theme-grey-200': '#21262d',
+        'light-action-hover': '#f3f4f6',
+        'background-default': 'hsl(var(--background-default))',
+        'table-selected': 'hsl(var(--table-selected))',
+        'error-main': '#f13154',
+        'error-bg': '#f131541a',
+        'error-toast-bg': 'hsl(var(--error-toast-bg))',
+        'secondary-hover': '#475569',
+        default: 'hsl(var(--default))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -51,6 +64,7 @@ module.exports = {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
+          background: 'hsl(var(--accent-background))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
@@ -239,7 +253,6 @@ module.exports = {
   variants: {
     extend: {},
   },
-  // eslint-disable-next-line global-require
   plugins: [
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),

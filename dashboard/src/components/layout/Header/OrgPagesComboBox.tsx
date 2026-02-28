@@ -1,6 +1,7 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
-import { cn } from '@/lib/utils';
-
 import {
   Command,
   CommandEmpty,
@@ -9,18 +10,13 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/v3/command';
-
-import { useRouter } from 'next/router';
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 type Option = {
   value: string;

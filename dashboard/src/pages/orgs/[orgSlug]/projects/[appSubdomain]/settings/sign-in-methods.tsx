@@ -1,5 +1,8 @@
+import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AnonymousSignInSettings } from '@/features/orgs/projects/authentication/settings/components/AnonymousSignInSettings';
 import { AppleProviderSettings } from '@/features/orgs/projects/authentication/settings/components/AppleProviderSettings';
 import { AzureADProviderSettings } from '@/features/orgs/projects/authentication/settings/components/AzureADProviderSettings';
@@ -18,15 +21,11 @@ import { TwitterProviderSettings } from '@/features/orgs/projects/authentication
 import { WebAuthnSettings } from '@/features/orgs/projects/authentication/settings/components/WebAuthnSettings';
 import { WindowsLiveProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WindowsLiveProviderSettings';
 import { WorkOsProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WorkOsProviderSettings';
-import { useGetSignInMethodsQuery } from '@/generated/graphql';
-import type { ReactElement } from 'react';
-
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { OTPEmailSettings } from '@/features/orgs/projects/authentication/settings/OTPEmailSettings';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useGetSignInMethodsQuery } from '@/generated/graphql';
 
 export default function SettingsSignInMethodsPage() {
   const { project } = useProject();

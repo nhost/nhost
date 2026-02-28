@@ -1,9 +1,9 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { handleNhostMiddleware } from "./lib/nhost/server";
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { handleNhostMiddleware } from './lib/nhost/server';
 
 // Define public routes that don't require authentication
-const publicRoutes = ["/", "/signin", "/signup", "/verify", "/verify/error"];
+const publicRoutes = ['/', '/signin', '/signup', '/verify', '/verify/error'];
 
 export async function middleware(request: NextRequest) {
   // Create a response that we'll modify as needed
@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
 
   // If no session and not a public route, redirect to signin
   if (!session) {
-    const homeUrl = new URL("/", request.url);
+    const homeUrl = new URL('/', request.url);
     return NextResponse.redirect(homeUrl);
   }
 
@@ -47,6 +47,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (public directory)
      */
-    "/((?!_next/static|_next/image|favicon.ico|public).*)",
+    '/((?!_next/static|_next/image|favicon.ico|public).*)',
   ],
 };

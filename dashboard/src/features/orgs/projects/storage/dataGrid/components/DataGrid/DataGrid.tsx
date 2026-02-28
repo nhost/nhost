@@ -1,50 +1,52 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
+import type { OnChangeFn, Row, SortingState } from '@tanstack/react-table';
+import type { ForwardedRef, ReactNode } from 'react';
+import { forwardRef, useRef } from 'react';
+import { mergeRefs } from 'react-merge-refs';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
+import type { DataBrowserGridColumnDef } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { UseDataGridOptions } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { DataGridBody } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBody';
 import { DataGridConfigProvider } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { DataGridFrame } from '@/features/orgs/projects/storage/dataGrid/components/DataGridFrame';
 import type { DataGridHeaderProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
 import { DataGridHeader } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
-import type { ForwardedRef } from 'react';
-import { forwardRef, useEffect, useRef } from 'react';
-import { mergeRefs } from 'react-merge-refs';
-import type { Column, Row, SortingRule, TableOptions } from 'react-table';
-import { twMerge } from 'tailwind-merge';
+import { DataTableDesignProvider } from '@/features/orgs/projects/storage/dataGrid/providers/DataTableDesignProvider';
+import { cn } from '@/lib/utils';
+import AllColumnsHiddenMessage from './AllColumnsHiddenMessage';
+import type { UnknownDataGridRow } from './types';
 import useDataGrid from './useDataGrid';
 
-export interface DataGridProps<TColumnData extends object>
-  extends Omit<UseDataGridOptions<TColumnData>, 'tableRef'> {
+export interface DataGridProps<
+  TColumnData extends UnknownDataGridRow = UnknownDataGridRow,
+> extends Omit<UseDataGridOptions<TColumnData>, 'tableRef'> {
   /**
    * Available columns.
    */
-  columns: Column<TColumnData>[];
+  columns: DataBrowserGridColumnDef<TColumnData>[];
   /**
    * Data to be displayed in the table.
    */
-  data: any[];
+  data: TColumnData[];
   /**
    * Text to be displayed when no data is available in the data grid.
    *
    * @default null
    */
-  emptyStateMessage?: string;
+  emptyStateMessage?: ReactNode;
   /**
    * Additional configuration options for the `react-table` hook.
    */
-  options?: Omit<TableOptions<TColumnData>, 'columns' | 'data'>;
+  options?: Partial<UseDataGridOptions<TColumnData>>;
   /**
    * Additional data grid controls. This component will be part of the Data Grid
    * context, so it can use Data Grid configuration.
    */
-  controls?:
-    | React.ReactNode
-    | ((selectedFlatRows: Row<TColumnData>[]) => React.ReactNode);
+  controls?: ReactNode;
   /**
    * Function to be called when columns are sorted in the table.
    */
-  onSort?: (args: SortingRule<TColumnData>[]) => void;
+  onSortingChange?: OnChangeFn<SortingState>;
   /**
    * Function to be called when the user wants to insert a new row.
    */
@@ -60,66 +62,59 @@ export interface DataGridProps<TColumnData extends object>
   /**
    * Sort configuration.
    */
-  sortBy?: SortingRule<TColumnData>[];
+  sorting?: SortingState;
   /**
    * Props to be passed to the `DataGridHeader` component.
    */
   headerProps?: DataGridHeaderProps;
+  /**
+   * Determines whether the Grid is used for displaying files.
+   */
+  isRowDisabled?: (row: Row<TColumnData>) => boolean;
 }
 
-function DataGrid<TColumnData extends object>(
+function DataGrid<TColumnData extends UnknownDataGridRow>(
   {
     columns,
     data,
     allowSelection,
     allowSort,
     allowResize,
+    enableRowSelection,
     emptyStateMessage,
     options = {},
     headerProps,
     controls,
-    sortBy,
-    onSort,
+    sorting,
+    onSortingChange,
     loading,
     className,
+    isRowDisabled,
   }: DataGridProps<TColumnData>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
+  // biome-ignore lint/correctness/useHookAtTopLevel: forwardRef render function with generic type cast
   const tableRef = useRef<HTMLDivElement | null>(null);
-  const { toggleAllRowsSelected, setSortBy, ...dataGridProps } =
-    useDataGrid<TColumnData>({
-      columns: columns || [],
-      data: data || [],
-      allowSelection,
-      allowSort,
-      allowResize,
-      ...options,
-    });
+  // biome-ignore lint/correctness/useHookAtTopLevel: forwardRef render function with generic type cast
+  const dataGridProps = useDataGrid<TColumnData>({
+    columns: columns || [],
+    data: data || [],
+    allowSelection,
+    allowSort,
+    allowResize,
+    sorting,
+    enableRowSelection,
+    ...options,
+    onSortingChange,
+  });
 
-  useEffect(() => {
-    if (!sortBy && setSortBy) {
-      setSortBy([]);
-    }
-  }, [setSortBy, sortBy]);
-
-  useEffect(() => {
-    if (onSort && allowSort) {
-      onSort(dataGridProps.state.sortBy);
-
-      if (toggleAllRowsSelected) {
-        toggleAllRowsSelected(false);
-      }
-    }
-  }, [allowSort, dataGridProps.state.sortBy, onSort, toggleAllRowsSelected]);
+  const allColumnsHidden =
+    dataGridProps.getAllColumns().filter((column) => column.getIsVisible())
+      .length === 1;
 
   return (
-    <DataGridConfigProvider
-      toggleAllRowsSelected={toggleAllRowsSelected}
-      setSortBy={setSortBy}
-      tableRef={tableRef}
-      {...dataGridProps}
-    >
-      <>
+    <DataGridConfigProvider tableRef={tableRef} {...dataGridProps}>
+      <DataTableDesignProvider>
         {controls}
         {columns.length === 0 && !loading && (
           <DataBrowserEmptyState
@@ -127,34 +122,39 @@ function DataGrid<TColumnData extends object>(
             description="Please create a column before adding data to the table."
           />
         )}
+        {columns.length > 0 && allColumnsHidden && <AllColumnsHiddenMessage />}
+        {columns.length > 0 &&
+          !allColumnsHidden &&
+          dataGridProps.tableInitialized && (
+            <div
+              ref={mergeRefs([ref, tableRef])}
+              className={cn(
+                'box overflow-x-auto bg-background',
+                { 'h-[calc(100%-1px)]': !loading }, // need to set height like this to remove vertical scrollbar
+                className,
+              )}
+            >
+              <DataGridFrame>
+                <div className="relative h-full">
+                  <DataGridHeader {...headerProps} />
+                  <DataGridBody
+                    isRowDisabled={isRowDisabled}
+                    emptyStateMessage={emptyStateMessage}
+                    loading={loading}
+                  />
+                </div>
+              </DataGridFrame>
+            </div>
+          )}
 
-        {columns.length > 0 && (
-          <Box
-            ref={mergeRefs([ref, tableRef])}
-            sx={{ backgroundColor: 'background.default' }}
-            className={twMerge(
-              'overflow-x-auto',
-              !loading && 'h-full',
-              className,
-            )}
-          >
-            <DataGridFrame>
-              <DataGridHeader {...headerProps} />
-
-              <DataGridBody
-                emptyStateMessage={emptyStateMessage}
-                loading={loading}
-              />
-            </DataGridFrame>
-          </Box>
+        {(loading || !dataGridProps.tableInitialized) && (
+          <Spinner className="my-4" />
         )}
-
-        {loading && <ActivityIndicator delay={1000} className="my-4" />}
-      </>
+      </DataTableDesignProvider>
     </DataGridConfigProvider>
   );
 }
 
-export default forwardRef(DataGrid) as <TColumnData extends object>(
+export default forwardRef(DataGrid) as <TColumnData extends UnknownDataGridRow>(
   props: DataGridProps<TColumnData> & { ref?: ForwardedRef<HTMLDivElement> },
 ) => ReturnType<typeof DataGrid>;

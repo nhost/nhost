@@ -33,10 +33,11 @@ func CommandConfigure() *cli.Command {
 		Usage:   "Install credentials helper and configure docker so it can authenticate with Nhost's registry",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagDockerConfig,
-				Usage:   "Path to docker config file",
-				Sources: cli.EnvVars("DOCKER_CONFIG"),
-				Value:   home + "/.docker/config.json",
+				Name:        flagDockerConfig,
+				Usage:       "Path to docker config file",
+				Sources:     cli.EnvVars("DOCKER_CONFIG"),
+				Value:       home + "/.docker/config.json",
+				DefaultText: "$HOME/.docker/config.json",
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagNoInteractive,
@@ -105,14 +106,14 @@ func configureDocker(dockerConfig string) error {
 	}
 	defer f.Close()
 
-	var config map[string]interface{}
+	var config map[string]any
 	if err := json.NewDecoder(f).Decode(&config); err != nil {
-		config = make(map[string]interface{})
+		config = make(map[string]any)
 	}
 
-	credHelpers, ok := config["credHelpers"].(map[string]interface{})
+	credHelpers, ok := config["credHelpers"].(map[string]any)
 	if !ok {
-		credHelpers = make(map[string]interface{})
+		credHelpers = make(map[string]any)
 	}
 
 	credHelpers["registry.ap-south-1.nhost.run"] = credentialsHelper

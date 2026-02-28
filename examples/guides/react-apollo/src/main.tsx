@@ -1,10 +1,10 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import { ApolloProvider } from "@apollo/client";
-import App from "./App";
-import { useApolloClient } from "./lib/graphql/apolloClient";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import { ApolloProvider } from '@apollo/client';
+import App from './App';
+import { useApolloClient } from './lib/graphql/apolloClient';
+import { AuthProvider } from './lib/nhost/AuthProvider';
 
 // Wrapper component that provides Apollo client using the Nhost client from AuthProvider
 const ApolloProviderWithAuth = ({
@@ -27,7 +27,7 @@ const Root = () => (
   </React.StrictMode>
 );
 
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Root element not found");
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Root element not found');
 
 createRoot(rootElement).render(<Root />);

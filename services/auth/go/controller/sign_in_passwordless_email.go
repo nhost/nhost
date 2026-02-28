@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -19,7 +19,7 @@ func (ctrl *Controller) SignInPasswordlessEmail( //nolint:ireturn
 	ctx context.Context,
 	request api.SignInPasswordlessEmailRequestObject,
 ) (api.SignInPasswordlessEmailResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).
+	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
 	if !ctrl.config.EmailPasswordlessEnabled {
@@ -94,14 +94,26 @@ func (ctrl *Controller) signinWithTicket(
 			return apiErr
 		}
 	case errors.Is(apiErr, ErrUnverifiedUser):
-		if apiErr = ctrl.wf.SetTicket(ctx, user.ID, ticket, ticketExpiresAt, logger); apiErr != nil {
+		if apiErr = ctrl.wf.SetTicket(
+			ctx,
+			user.ID,
+			ticket,
+			ticketExpiresAt,
+			logger,
+		); apiErr != nil {
 			return apiErr
 		}
 	case apiErr != nil:
 		logger.ErrorContext(ctx, "error getting user by email", logError(apiErr))
 		return apiErr
 	default:
-		if apiErr = ctrl.wf.SetTicket(ctx, user.ID, ticket, ticketExpiresAt, logger); apiErr != nil {
+		if apiErr = ctrl.wf.SetTicket(
+			ctx,
+			user.ID,
+			ticket,
+			ticketExpiresAt,
+			logger,
+		); apiErr != nil {
 			return apiErr
 		}
 	}

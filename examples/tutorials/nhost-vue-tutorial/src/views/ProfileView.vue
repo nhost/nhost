@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAuth } from "../lib/nhost/auth";
+import { useAuth } from '../lib/nhost/auth';
 
 const { user, session, isLoading } = useAuth();
 </script>

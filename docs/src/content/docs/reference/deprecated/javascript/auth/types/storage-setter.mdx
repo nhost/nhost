@@ -1,0 +1,15 @@
+---
+title: StorageSetter
+description: No description provided.
+sidebar:
+  label: StorageSetter
+---
+
+# `StorageSetter`
+
+```ts
+type StorageSetter = () => (
+  key: string,
+  value: string | null
+) => void | Promise<void>
+```

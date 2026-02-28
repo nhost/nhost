@@ -1,9 +1,8 @@
-import { Label } from '@/components/ui/v3/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
+import { Label } from '@/components/ui/v3/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 
 import { ExternalSigningField } from '@/features/orgs/projects/jwt/settings/components/ExternalSigningField';
 import type { ExternalSigningType } from '@/features/orgs/projects/jwt/settings/types';

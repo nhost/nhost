@@ -1,3 +1,5 @@
+import { setupServer } from 'msw/node';
+import { afterEach, describe, vi } from 'vitest';
 import { mockOrganization } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
@@ -6,8 +8,6 @@ import {
   screen,
   waitFor,
 } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { afterEach, describe, vi } from 'vitest';
 import OrganizationGuard from './OrganizationGuard';
 
 const mocks = vi.hoisted(() => ({

@@ -112,6 +112,7 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 			config: func() *controller.Config {
 				config := getConfig()
 				config.MfaEnabled = false
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

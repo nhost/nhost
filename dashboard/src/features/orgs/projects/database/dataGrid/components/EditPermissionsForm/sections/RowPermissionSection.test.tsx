@@ -1,3 +1,8 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { setupServer } from 'msw/node';
+import type { ReactNode } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { describe, vi } from 'vitest';
 import { Form } from '@/components/form/Form';
 import { editPermissionFormValidationSchemas } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
@@ -13,11 +18,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { setupServer } from 'msw/node';
-import type { ReactNode } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { describe, vi } from 'vitest';
 import RowPermissionsSection from './RowPermissionsSection';
 
 mockPointerEvent();
@@ -125,6 +125,8 @@ function getRouter() {
 describe('RowPermissionsSection', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_ENV = 'dev';
+    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
+      'https://local.graphql.local.nhost.run/v1';
     server.listen();
   });
   beforeEach(() => {

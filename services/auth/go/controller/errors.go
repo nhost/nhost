@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/nhost/nhost/services/auth/go/api"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 )
 
 type APIError struct {
@@ -21,7 +22,9 @@ func (e *APIError) Error() string {
 	return fmt.Sprintf("API error: %s", e.t)
 }
 
-var ErrElevatedClaimRequired = errors.New("elevated-claim-required")
+var errDuplicateClientCredentials = errors.New(
+	"client credentials MUST NOT be provided in both the Authorization header and the request body",
+)
 
 var (
 	ErrJWTConfiguration = errors.New("jwt-configuration")
@@ -32,7 +35,7 @@ var (
 	ErrInvalidOTP                      = &APIError{api.InvalidRequest}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrSecurityKeyNotFound             = &APIError{api.InvalidRequest}
-	ErrUserProviderAlreadyLinked       = &APIError{api.InvalidRequest}
+	ErrProviderAccountAlreadyLinked    = &APIError{api.ProviderAccountAlreadyLinked}
 	ErrEmailAlreadyInUse               = &APIError{api.EmailAlreadyInUse}
 	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
 	ErrInternalServerError             = &APIError{api.InternalServerError}
@@ -238,6 +241,112 @@ func (response ErrorResponse) VisitVerifySignInPasswordlessSmsResponse(
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitOauth2LoginGetResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitOauth2LoginPostResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+type OAuth2ErrorResponse struct {
+	StatusCode int
+	Body       api.OAuth2ErrorResponse
+}
+
+func (response OAuth2ErrorResponse) visit(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body) //nolint:wrapcheck
+}
+
+func (response OAuth2ErrorResponse) VisitOauth2AuthorizeResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitOauth2AuthorizePostResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitOauth2TokenResponse(w http.ResponseWriter) error {
+	if response.StatusCode == http.StatusUnauthorized {
+		w.Header().Set(
+			"WWW-Authenticate",
+			oauth2WWWAuthenticate(response.Body.Error, response.Body.ErrorDescription),
+		)
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Pragma", "no-cache")
+	}
+
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitOauth2RevokeResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitOauth2IntrospectResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitOauth2UserinfoGetResponse(w http.ResponseWriter) error {
+	if response.StatusCode == http.StatusUnauthorized {
+		w.Header().Set(
+			"WWW-Authenticate",
+			oauth2WWWAuthenticate(response.Body.Error, response.Body.ErrorDescription),
+		)
+	}
+
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitOauth2UserinfoPostResponse(w http.ResponseWriter) error {
+	if response.StatusCode == http.StatusUnauthorized {
+		w.Header().Set(
+			"WWW-Authenticate",
+			oauth2WWWAuthenticate(response.Body.Error, response.Body.ErrorDescription),
+		)
+	}
+
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitOauth2JwksResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitGetOpenIDConfigurationResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
+func (response OAuth2ErrorResponse) VisitGetOAuthAuthorizationServerResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
+func oauth2WWWAuthenticate(errCode string, description *string) string {
+	wwwAuth := `Bearer error="` + errCode + `"`
+	if description != nil {
+		wwwAuth += `, error_description="` + *description + `"`
+	}
+
+	return wwwAuth
+}
+
+func oauth2Error(errCode string, description string) OAuth2ErrorResponse {
+	return OAuth2ErrorResponse{
+		StatusCode: oauth2provider.ErrorStatusCode(errCode),
+		Body: api.OAuth2ErrorResponse{
+			Error:            errCode,
+			ErrorDescription: &description,
+		},
+	}
+}
+
 func isSensitive(err api.ErrorResponseError) bool {
 	switch err {
 	case
@@ -273,14 +382,17 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.OauthTokenEchangeFailed,
 		api.OauthProfileFetchFailed,
 		api.CannotSendSms,
-		api.OauthProviderError:
+		api.OauthProviderError,
+		api.ProviderAccountAlreadyLinked:
 		return false
 	}
 
 	return false
 }
 
-func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:gocyclo,cyclop,funlen
+func (ctrl *Controller) getError( //nolint:gocyclo,cyclop,funlen,maintidx
+	err *APIError,
+) ErrorResponse {
 	invalidRequest := ErrorResponse{
 		Status:  http.StatusBadRequest,
 		Error:   api.InvalidRequest,
@@ -472,6 +584,12 @@ func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:gocyclo
 			Status:  http.StatusBadRequest,
 			Error:   err.t,
 			Message: "Invalid or expired OTP",
+		}
+	case api.ProviderAccountAlreadyLinked:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "This provider account is already linked to a user",
 		}
 	}
 

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -7,7 +8,6 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
-import { useState } from 'react';
 
 export interface ServiceConfirmationDialogProps {
   /**

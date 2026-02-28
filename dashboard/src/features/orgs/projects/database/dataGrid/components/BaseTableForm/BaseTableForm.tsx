@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { useFormContext, useFormState } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
@@ -9,9 +12,6 @@ import type {
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DialogFormProps } from '@/types/common';
-import { useEffect } from 'react';
-import { useFormContext, useFormState } from 'react-hook-form';
-import * as Yup from 'yup';
 import ColumnEditorTable from './ColumnEditorTable';
 import ForeignKeyEditorSection from './ForeignKeyEditorSection';
 import IdentityColumnSelect from './IdentityColumnSelect';
@@ -181,7 +181,7 @@ export default function BaseTableForm({
         >
           <Text
             variant="h2"
-            className="col-span-8 mb-1.5 mt-3 text-sm+ font-bold"
+            className="col-span-8 mt-3 mb-1.5 font-bold text-sm+"
           >
             Columns
           </Text>

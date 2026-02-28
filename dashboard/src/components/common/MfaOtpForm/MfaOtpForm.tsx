@@ -1,19 +1,19 @@
-import { Button } from '@/components/ui/v3/button';
-import { Input } from '@/components/ui/v3/input';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import {
+  type ChangeEvent,
+  type KeyboardEvent,
   useEffect,
   useRef,
   useState,
-  type ChangeEvent,
-  type KeyboardEvent,
 } from 'react';
 import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import { getToastStyleProps } from '@/utils/constants/settings';
 
 interface Props {
-  sendMfaOtp: (code: string) => Promise<any>;
+  sendMfaOtp: (code: string) => Promise<unknown>;
   loading: boolean;
-  requestNewMfaTicket?: () => Promise<void>;
+  requestNewMfaTicket?: () => Promise<unknown>;
 }
 
 function MfaOtpForm({ sendMfaOtp, loading, requestNewMfaTicket }: Props) {

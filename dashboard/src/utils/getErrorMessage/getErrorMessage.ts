@@ -1,9 +1,9 @@
+import type { ApolloError } from '@apollo/client';
 import {
   INSUFFICIENT_PERMISSIONS,
   INSUFFICIENT_PERMISSIONS_MESSAGE,
   UNIQUENESS_ERROR,
 } from '@/utils/constants/common';
-import type { ApolloError } from '@apollo/client';
 
 function constructErrorMessage(type: string | undefined) {
   switch (type) {

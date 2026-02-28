@@ -2,8 +2,8 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import type { ChainFunction, FetchResponse } from "../fetch";
-import { createEnhancedFetch, FetchError } from "../fetch";
+import type { ChainFunction, FetchResponse } from '../fetch';
+import { createEnhancedFetch, FetchError } from '../fetch';
 
 /**
  * Date in RFC 2822 format
@@ -270,12 +270,13 @@ export interface VersionInformation {
  * Output format for image files. Use 'auto' for content negotiation based on Accept header
  */
 export type OutputImageFormat =
-  | "auto"
-  | "same"
-  | "jpeg"
-  | "webp"
-  | "png"
-  | "avif";
+  | 'auto'
+  | 'same'
+  | 'jpeg'
+  | 'webp'
+  | 'png'
+  | 'avif'
+  | 'heic';
 
 /**
  * 
@@ -288,15 +289,15 @@ export interface UploadFilesBody {
    * Target bucket identifier where files will be stored.
    *    Example - `"user-uploads"`
    */
-  "bucket-id"?: string;
+  'bucket-id'?: string;
   /**
    * Optional custom metadata for each uploaded file. Must match the order of the file[] array.
    */
-  "metadata[]"?: UploadFileMetadata[];
+  'metadata[]'?: UploadFileMetadata[];
   /**
    * Array of files to upload.
    */
-  "file[]": Blob[];
+  'file[]': Blob[];
 }
 
 /**
@@ -378,7 +379,7 @@ export interface ListOrphanedFilesResponse200 {
 
 /**
  * Parameters for the getFile method.
-    @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP and PNG files
+    @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
   
     @property h? (number) - Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
   
@@ -391,7 +392,7 @@ export interface ListOrphanedFilesResponse200 {
     *    Output format for image files. Use 'auto' for content negotiation based on Accept header*/
 export interface GetFileParams {
   /**
-   * Image quality (1-100). Only applies to JPEG, WebP and PNG files
+   * Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
   
    */
   q?: number;
@@ -419,7 +420,7 @@ export interface GetFileParams {
 }
 /**
  * Parameters for the getFileMetadataHeaders method.
-    @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP and PNG files
+    @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
   
     @property h? (number) - Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
   
@@ -432,7 +433,7 @@ export interface GetFileParams {
     *    Output format for image files. Use 'auto' for content negotiation based on Accept header*/
 export interface GetFileMetadataHeadersParams {
   /**
-   * Image quality (1-100). Only applies to JPEG, WebP and PNG files
+   * Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
   
    */
   q?: number;
@@ -632,27 +633,38 @@ export const createAPIClient = (
   ): Promise<FetchResponse<UploadFilesResponse201>> => {
     const url = `${baseURL}/files`;
     const formData = new FormData();
-    if (body["bucket-id"] !== undefined) {
-      formData.append("bucket-id", body["bucket-id"]);
+    const isReactNative =
+      typeof navigator !== 'undefined' &&
+      (navigator as { product?: string }).product === 'ReactNative';
+    if (body['bucket-id'] !== undefined) {
+      formData.append('bucket-id', body['bucket-id']);
     }
-    if (body["metadata[]"] !== undefined) {
-      body["metadata[]"].forEach((value) => {
-        formData.append(
-          "metadata[]",
-          new Blob([JSON.stringify(value)], { type: "application/json" }),
-          "",
-        );
+    if (body['metadata[]'] !== undefined) {
+      body['metadata[]'].forEach((value) => {
+        if (isReactNative) {
+          formData.append('metadata[]', {
+            string: JSON.stringify(value),
+            type: 'application/json',
+            name: '',
+          } as unknown as Blob);
+        } else {
+          formData.append(
+            'metadata[]',
+            new Blob([JSON.stringify(value)], { type: 'application/json' }),
+            '',
+          );
+        }
       });
     }
-    if (body["file[]"] !== undefined) {
-      body["file[]"].forEach((value) => {
-        formData.append("file[]", value);
+    if (body['file[]'] !== undefined) {
+      body['file[]'].forEach((value) => {
+        formData.append('file[]', value);
       });
     }
 
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       body: formData,
     });
 
@@ -683,7 +695,7 @@ export const createAPIClient = (
     const url = `${baseURL}/files/${id}`;
     const res = await fetch(url, {
       ...options,
-      method: "DELETE",
+      method: 'DELETE',
       headers: {
         ...options?.headers,
       },
@@ -712,22 +724,23 @@ export const createAPIClient = (
     const encodedParameters =
       params &&
       Object.entries(params)
-        .map(([key, value]) => {
+        .flatMap(([key, value]) => {
+          // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
-            ? value.join(",")
-            : typeof value === "object"
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
               ? JSON.stringify(value)
-              : (value as string);
-          return `${key}=${encodeURIComponent(stringValue)}`;
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
         })
-        .join("&");
+        .join('&');
 
     const url = encodedParameters
       ? `${baseURL}/files/${id}?${encodedParameters}`
       : `${baseURL}/files/${id}`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -756,22 +769,23 @@ export const createAPIClient = (
     const encodedParameters =
       params &&
       Object.entries(params)
-        .map(([key, value]) => {
+        .flatMap(([key, value]) => {
+          // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
-            ? value.join(",")
-            : typeof value === "object"
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
               ? JSON.stringify(value)
-              : (value as string);
-          return `${key}=${encodeURIComponent(stringValue)}`;
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
         })
-        .join("&");
+        .join('&');
 
     const url = encodedParameters
       ? `${baseURL}/files/${id}?${encodedParameters}`
       : `${baseURL}/files/${id}`;
     const res = await fetch(url, {
       ...options,
-      method: "HEAD",
+      method: 'HEAD',
       headers: {
         ...options?.headers,
       },
@@ -799,22 +813,33 @@ export const createAPIClient = (
   ): Promise<FetchResponse<FileMetadata>> => {
     const url = `${baseURL}/files/${id}`;
     const formData = new FormData();
-    if (body["metadata"] !== undefined) {
-      formData.append(
-        "metadata",
-        new Blob([JSON.stringify(body["metadata"])], {
-          type: "application/json",
-        }),
-        "",
-      );
+    const isReactNative =
+      typeof navigator !== 'undefined' &&
+      (navigator as { product?: string }).product === 'ReactNative';
+    if (body['metadata'] !== undefined) {
+      if (isReactNative) {
+        formData.append('metadata', {
+          string: JSON.stringify(body['metadata']),
+          type: 'application/json',
+          name: '',
+        } as unknown as Blob);
+      } else {
+        formData.append(
+          'metadata',
+          new Blob([JSON.stringify(body['metadata'])], {
+            type: 'application/json',
+          }),
+          '',
+        );
+      }
     }
-    if (body["file"] !== undefined) {
-      formData.append("file", body["file"]);
+    if (body['file'] !== undefined) {
+      formData.append('file', body['file']);
     }
 
     const res = await fetch(url, {
       ...options,
-      method: "PUT",
+      method: 'PUT',
       body: formData,
     });
 
@@ -843,7 +868,7 @@ export const createAPIClient = (
     const url = `${baseURL}/files/${id}/presignedurl`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -875,7 +900,7 @@ export const createAPIClient = (
     const url = `${baseURL}/ops/delete-broken-metadata`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
         ...options?.headers,
       },
@@ -907,7 +932,7 @@ export const createAPIClient = (
     const url = `${baseURL}/ops/delete-orphans`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
         ...options?.headers,
       },
@@ -939,7 +964,7 @@ export const createAPIClient = (
     const url = `${baseURL}/ops/list-broken-metadata`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
         ...options?.headers,
       },
@@ -971,7 +996,7 @@ export const createAPIClient = (
     const url = `${baseURL}/ops/list-not-uploaded`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
         ...options?.headers,
       },
@@ -1003,7 +1028,7 @@ export const createAPIClient = (
     const url = `${baseURL}/ops/list-orphans`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
         ...options?.headers,
       },
@@ -1035,7 +1060,7 @@ export const createAPIClient = (
     const url = `${baseURL}/version`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },

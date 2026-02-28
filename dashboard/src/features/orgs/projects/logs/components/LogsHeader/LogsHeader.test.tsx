@@ -36,6 +36,7 @@ vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
 }));
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -66,9 +67,9 @@ describe('LogsHeader', () => {
     waitFor(() => {
       expect(screen.getByTestId('ServicePicker')).toBeInTheDocument();
     });
-    waitFor(async () => {
-      await user.click(await screen.findByTestId('ServicePicker'));
-    });
+    await TestUserEvent.fireClickEvent(
+      await screen.findByTestId('ServicePicker')
+    );
 
     waitFor(async () => {
       expect(screen.getByText('run-service')).toBeInTheDocument();

@@ -142,7 +142,7 @@ func TestReplaceFile(t *testing.T) { //nolint:cyclop,maintidx,gocognit
 				"Content-Length": {"116"},
 				"Content-Type":   {"application/json"},
 				"Date":           {"Mon, 21 Jul 2025 14:45:00 GMT"},
-				"X-Error":        {"virus found: Win.Test.EICAR_HDB-1"},
+				"X-Error":        {"virus found: Eicar-Test-Signature"},
 			},
 			expectedCmpOpts: []cmp.Option{
 				cmpopts.IgnoreFields(client.FileMetadata{}, "Id"),
@@ -152,8 +152,8 @@ func TestReplaceFile(t *testing.T) { //nolint:cyclop,maintidx,gocognit
 					Data    *map[string]any `json:"data,omitempty"`
 					Message string          `json:"message"`
 				}{
-					Data:    &map[string]any{"file": "blah.txt", "virus": "Win.Test.EICAR_HDB-1"},
-					Message: "virus found: Win.Test.EICAR_HDB-1",
+					Data:    &map[string]any{"file": "blah.txt", "virus": "Eicar-Test-Signature"},
+					Message: "virus found: Eicar-Test-Signature",
 				},
 			},
 		},

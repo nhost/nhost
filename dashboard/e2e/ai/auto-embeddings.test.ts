@@ -1,7 +1,6 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { navigateToProject } from '@/e2e/utils';
-
 import { expect, test } from '@/e2e/fixtures/auth-hook';
+import { navigateToProject } from '@/e2e/utils';
 
 test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   await navigateToProject({

@@ -1,5 +1,5 @@
-import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { expect, test } from 'vitest';
+import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import prepareCreateColumnQuery from './prepareCreateColumnQuery';
 
 test('should prepare one query for a simple column', () => {

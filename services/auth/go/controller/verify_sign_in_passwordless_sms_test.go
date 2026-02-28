@@ -83,7 +83,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						IsAnonymous:         false,
 						Locale:              "en",
 						Metadata:            map[string]any{},
-						PhoneNumber:         ptr("+1234567890"),
+						PhoneNumber:         new("+1234567890"),
 						PhoneNumberVerified: true,
 						Roles:               []string{"user", "me"},
 						ActiveMfaType:       nil,
@@ -138,6 +138,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.SMSPasswordlessEnabled = false
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -240,6 +241,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.RequireEmailVerification = true
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -376,7 +378,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						IsAnonymous:         false,
 						Locale:              "en",
 						Metadata:            map[string]any{},
-						PhoneNumber:         ptr("+1234567890"),
+						PhoneNumber:         new("+1234567890"),
 						PhoneNumberVerified: true,
 						Roles:               []string{"user", "me"},
 						ActiveMfaType:       nil,

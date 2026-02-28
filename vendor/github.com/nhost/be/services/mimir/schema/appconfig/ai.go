@@ -13,7 +13,7 @@ func AIEnv( //nolint:funlen
 	storageURL string,
 	license string,
 ) []EnvVar {
-	env := []EnvVar{
+	env := []EnvVar{ //nolint:prealloc
 		{
 			Name:       "OPENAI_API_KEY",
 			Value:      config.GetAi().GetOpenai().GetApiKey(),

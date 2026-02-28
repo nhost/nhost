@@ -1,15 +1,15 @@
-import { Box } from '@/components/ui/v2/Box';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { Input } from '@/components/ui/v2/Input';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
-import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { inputBaseClasses } from '@mui/material';
 import { useTheme } from '@mui/system';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { Box } from '@/components/ui/v2/Box';
+import { Input } from '@/components/ui/v2/Input';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
+import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 
 interface ImageFieldProps {
   privateRegistryImage: string;
@@ -52,7 +52,7 @@ export default function ImageField({
           <Box className="flex flex-col gap-1 md:flex-row md:gap-0">
             <Text
               as="span"
-              className="mt-0 py-2 pl-[10px] pr-1 md:whitespace-nowrap"
+              className="mt-0 py-2 pr-1 pl-[10px] md:whitespace-nowrap"
               sx={{
                 color: theme.palette.grey[600],
                 borderColor: theme.palette.grey[400],

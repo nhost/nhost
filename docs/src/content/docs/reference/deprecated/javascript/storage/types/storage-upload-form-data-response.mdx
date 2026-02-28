@@ -1,0 +1,14 @@
+---
+title: StorageUploadFormDataResponse
+description: No description provided.
+sidebar:
+  label: StorageUploadFormDataResponse
+---
+
+# `StorageUploadFormDataResponse`
+
+```ts
+type StorageUploadFormDataResponse =
+  | { fileMetadata: { processedFiles: Array<FileResponse> }; error: null }
+  | { fileMetadata: null; error: StorageErrorPayload }
+```

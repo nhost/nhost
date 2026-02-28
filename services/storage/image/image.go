@@ -1,21 +1,20 @@
-package image
+package image //nolint:revive
 
 import (
 	"bytes"
 	"fmt"
 	"io"
-	"math"
 	"sync"
 	"sync/atomic"
 
-	"github.com/davidbyttow/govips/v2/vips"
+	"github.com/cshum/vipsgen/vips"
 )
 
 const (
 	maxWorkers = 3
 )
 
-type ImageType int //nolint: revive
+type ImageType int //nolint:revive
 
 var initialized int32 //nolint: gochecknoglobals
 
@@ -24,6 +23,7 @@ const (
 	ImageTypePNG
 	ImageTypeWEBP
 	ImageTypeAVIF
+	ImageTypeHEIC
 )
 
 type Options struct {
@@ -54,6 +54,8 @@ func (o Options) FormatMimeType() string {
 		return "image/webp"
 	case ImageTypeAVIF:
 		return "image/avif"
+	case ImageTypeHEIC:
+		return "image/heic"
 	}
 
 	return ""
@@ -69,6 +71,8 @@ func (o Options) FileExtension() string {
 		return "webp"
 	case ImageTypeAVIF:
 		return "avif"
+	case ImageTypeHEIC:
+		return "heic"
 	}
 
 	return ""
@@ -81,8 +85,13 @@ type Transformer struct {
 
 func NewTransformer() *Transformer {
 	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
-		vips.LoggingSettings(nil, vips.LogLevelWarning)
-		vips.Startup(nil)
+		vips.Startup(&vips.Config{ //nolint:exhaustruct
+			ConcurrencyLevel: 1,
+			MaxCacheFiles:    0,
+			MaxCacheMem:      0,
+			MaxCacheSize:     0,
+			VectorEnabled:    true,
+		})
 	}
 
 	workers := make(chan struct{}, maxWorkers)
@@ -104,35 +113,43 @@ func (t *Transformer) Shutdown() {
 	vips.Shutdown()
 }
 
-func export(image *vips.ImageRef, opts Options) ([]byte, error) {
-	var (
-		b   []byte
-		err error
-	)
-
+func export(image *vips.Image, opts Options) ([]byte, error) {
 	switch opts.Format {
 	case ImageTypeJPEG:
-		ep := vips.NewJpegExportParams()
-		ep.Quality = opts.Quality
-		b, _, err = image.ExportJpeg(ep)
-	case ImageTypePNG:
-		ep := vips.NewPngExportParams()
-		b, _, err = image.ExportPng(ep)
-	case ImageTypeWEBP:
-		ep := vips.NewWebpExportParams()
-		ep.Quality = opts.Quality
-		b, _, err = image.ExportWebp(ep)
-	case ImageTypeAVIF:
-		ep := vips.NewAvifExportParams()
-		ep.Quality = opts.Quality
-		ep.Effort = 0
-		b, _, err = image.ExportAvif(ep)
-	}
+		jpegOpts := vips.DefaultJpegsaveBufferOptions()
+		jpegOpts.Q = opts.Quality
 
-	return b, err //nolint: wrapcheck
+		return image.JpegsaveBuffer(jpegOpts) //nolint: wrapcheck
+	case ImageTypePNG:
+		pngOpts := vips.DefaultPngsaveBufferOptions()
+
+		return image.PngsaveBuffer(pngOpts) //nolint: wrapcheck
+	case ImageTypeWEBP:
+		webpOpts := vips.DefaultWebpsaveBufferOptions()
+		webpOpts.Q = opts.Quality
+
+		return image.WebpsaveBuffer(webpOpts) //nolint: wrapcheck
+	case ImageTypeAVIF:
+		heifOpts := vips.DefaultHeifsaveBufferOptions()
+		heifOpts.Q = opts.Quality
+		heifOpts.Bitdepth = 8
+		heifOpts.Effort = 0
+		heifOpts.Compression = vips.HeifCompressionAv1
+
+		return image.HeifsaveBuffer(heifOpts) //nolint: wrapcheck
+	case ImageTypeHEIC:
+		heifOpts := vips.DefaultHeifsaveBufferOptions()
+		heifOpts.Q = opts.Quality
+		heifOpts.Bitdepth = 8
+		heifOpts.Compression = vips.HeifCompressionHevc
+
+		return image.HeifsaveBuffer(heifOpts) //nolint: wrapcheck
+	default:
+		return nil, fmt.Errorf("unsupported format: %d", opts.Format) //nolint: err113
+	}
 }
 
-func processImage(image *vips.ImageRef, opts Options) error {
+func imageResize(image *vips.Image, opts Options) error {
 	if opts.Width > 0 || opts.Height > 0 {
 		width := opts.Width
 		height := opts.Height
@@ -145,13 +162,31 @@ func processImage(image *vips.ImageRef, opts Options) error {
 			height = int((float64(width) / float64(image.Width())) * float64(image.Height()))
 		}
 
-		if err := image.Thumbnail(width, height, vips.InterestingCentre); err != nil {
+		thumbnailOpts := vips.DefaultThumbnailImageOptions()
+		thumbnailOpts.Crop = vips.InterestingCentre
+		thumbnailOpts.Height = height
+
+		if err := image.ThumbnailImage(width, thumbnailOpts); err != nil {
 			return fmt.Errorf("failed to thumbnail: %w", err)
 		}
 	}
 
+	return nil
+}
+
+func imagePipeline(image *vips.Image, opts Options) error {
+	if err := imageResize(image, opts); err != nil {
+		return err
+	}
+
+	if opts.FormatChanged() {
+		if err := image.Autorot(nil); err != nil {
+			return fmt.Errorf("failed to auto-rotate: %w", err)
+		}
+	}
+
 	if opts.Blur > 0 {
-		if err := image.GaussianBlur(float64(opts.Blur)); err != nil {
+		if err := image.Gaussblur(float64(opts.Blur), nil); err != nil {
 			return fmt.Errorf("failed to blur: %w", err)
 		}
 	}
@@ -165,35 +200,29 @@ func (t *Transformer) Run(
 	modified io.Writer,
 	opts Options,
 ) error {
-	// this is to avoid processing too many images at the same time in order to save memory
 	<-t.workers
-
 	defer func() { t.workers <- struct{}{} }()
 
 	buf, _ := t.pool.Get().(*bytes.Buffer)
 	defer t.pool.Put(buf)
 	defer buf.Reset()
 
-	if length > math.MaxUint32 {
-		panic("length is too big")
-	}
-
-	if l := int(length); buf.Len() < l {
+	if l := int(length); buf.Cap() < l { //nolint:gosec
 		buf.Grow(l)
 	}
 
-	_, err := io.Copy(buf, orig)
-	if err != nil {
-		panic(err)
+	if _, err := io.Copy(buf, orig); err != nil {
+		return fmt.Errorf("failed to read image: %w", err)
 	}
 
-	image, err := vips.NewImageFromBuffer(buf.Bytes())
+	image, err := vips.NewImageFromBuffer(buf.Bytes(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to load image: %w", err)
 	}
+
 	defer image.Close()
 
-	if err := processImage(image, opts); err != nil {
+	if err := imagePipeline(image, opts); err != nil {
 		return err
 	}
 
@@ -202,7 +231,7 @@ func (t *Transformer) Run(
 		return fmt.Errorf("failed to export: %w", err)
 	}
 
-	if _, err = modified.Write(b); err != nil {
+	if _, err := modified.Write(b); err != nil {
 		return fmt.Errorf("failed to write: %w", err)
 	}
 

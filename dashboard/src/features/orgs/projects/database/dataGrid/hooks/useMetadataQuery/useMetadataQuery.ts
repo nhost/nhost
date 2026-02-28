@@ -1,9 +1,9 @@
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   FetchMetadataOptions,
   FetchMetadataReturnType,
@@ -41,9 +41,9 @@ export default function useMetadataQuery(
   } = useRouter();
   const { project } = useProject();
 
-  const query = useQuery<FetchMetadataReturnType>(
+  const query = useQuery<FetchMetadataReturnType>({
     queryKey,
-    () => {
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -55,18 +55,16 @@ export default function useMetadataQuery(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || project?.config?.hasura.adminSecret!,
+            : customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       });
     },
-    {
-      ...queryOptions,
-      enabled:
-        project?.config?.hasura.adminSecret && isReady
-          ? queryOptions?.enabled
-          : false,
-    },
-  );
+    ...queryOptions,
+    enabled:
+      project?.config?.hasura.adminSecret && isReady
+        ? queryOptions?.enabled
+        : false,
+  });
 
   return query;
 }

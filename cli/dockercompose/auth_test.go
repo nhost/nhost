@@ -53,6 +53,7 @@ func expectedAuth() *Service {
 			"AUTH_PROVIDER_APPLE_ENABLED":               "true",
 			"AUTH_PROVIDER_APPLE_KEY_ID":                "appleKeyId",
 			"AUTH_PROVIDER_APPLE_PRIVATE_KEY":           "applePrivateKey",
+			"AUTH_PROVIDER_APPLE_SCOPE":                 "",
 			"AUTH_PROVIDER_APPLE_TEAM_ID":               "appleTeamId",
 			"AUTH_PROVIDER_AZUREAD_CLIENT_ID":           "azureadClientId",
 			"AUTH_PROVIDER_AZUREAD_CLIENT_SECRET":       "azureadClientSecret",
@@ -75,9 +76,12 @@ func expectedAuth() *Service {
 			"AUTH_PROVIDER_FACEBOOK_CLIENT_SECRET":      "facebookClientSecret",
 			"AUTH_PROVIDER_FACEBOOK_ENABLED":            "true",
 			"AUTH_PROVIDER_FACEBOOK_SCOPE":              "email",
+			"AUTH_PROVIDER_GITHUB_AUDIENCE":             "audience",
 			"AUTH_PROVIDER_GITHUB_CLIENT_ID":            "githubClientId",
 			"AUTH_PROVIDER_GITHUB_CLIENT_SECRET":        "githubClientSecret",
 			"AUTH_PROVIDER_GITHUB_ENABLED":              "true",
+			"AUTH_PROVIDER_GITHUB_SCOPE":                "user:email",
+			"AUTH_PROVIDER_GITLAB_AUDIENCE":             "audience",
 			"AUTH_PROVIDER_GITLAB_CLIENT_ID":            "gitlabClientId",
 			"AUTH_PROVIDER_GITLAB_CLIENT_SECRET":        "gitlabClientSecret",
 			"AUTH_PROVIDER_GITLAB_ENABLED":              "true",
@@ -97,6 +101,7 @@ func expectedAuth() *Service {
 			"AUTH_PROVIDER_SPOTIFY_CLIENT_SECRET":       "spotifyClientSecret",
 			"AUTH_PROVIDER_SPOTIFY_ENABLED":             "true",
 			"AUTH_PROVIDER_SPOTIFY_SCOPE":               "user-read-email",
+			"AUTH_PROVIDER_STRAVA_AUDIENCE":             "audience",
 			"AUTH_PROVIDER_STRAVA_CLIENT_ID":            "stravaClientId",
 			"AUTH_PROVIDER_STRAVA_CLIENT_SECRET":        "stravaClientSecret",
 			"AUTH_PROVIDER_STRAVA_ENABLED":              "true",
@@ -127,6 +132,13 @@ func expectedAuth() *Service {
 			"AUTH_RATE_LIMIT_ENABLE":                    "true",
 			"AUTH_RATE_LIMIT_GLOBAL_BURST":              "33",
 			"AUTH_RATE_LIMIT_GLOBAL_INTERVAL":           "15m",
+			"AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL":     "900",
+			"AUTH_OAUTH2_PROVIDER_CIMD_ENABLED":         "true",
+			"AUTH_OAUTH2_PROVIDER_ENABLED":              "true",
+			"AUTH_OAUTH2_PROVIDER_LOGIN_URL":            "https://example.com/oauth2/login",
+			"AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL":    "2592000",
+			"AUTH_RATE_LIMIT_OAUTH2_SERVER_BURST":       "33",
+			"AUTH_RATE_LIMIT_OAUTH2_SERVER_INTERVAL":    "5m",
 			"AUTH_RATE_LIMIT_SIGNUPS_BURST":             "3",
 			"AUTH_RATE_LIMIT_SIGNUPS_INTERVAL":          "5m",
 			"AUTH_RATE_LIMIT_SMS_BURST":                 "3",
@@ -197,7 +209,7 @@ func expectedAuth() *Service {
 				Type:     "bind",
 				Source:   "/tmp/nhost/emails",
 				Target:   "/app/email-templates",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,
@@ -225,7 +237,8 @@ func TestAuth(t *testing.T) {
 			name: "pre-0.22.0",
 			cfg: func() *model.ConfigConfig {
 				cfg := getConfig()
-				cfg.Auth.Version = ptr("0.21.3")
+				cfg.Auth.Version = new("0.21.3")
+
 				return cfg
 			},
 			useTlS:     true,
@@ -238,6 +251,7 @@ func TestAuth(t *testing.T) {
 				svc.Labels["traefik.http.routers.auth.middlewares"] = "replace-auth"
 				svc.Labels["traefik.http.routers.auth.rule"] = "(HostRegexp(`^.+\\.auth\\.local\\.nhost\\.run$`) || Host(`local.auth.nhost.run`)) && PathPrefix(`/v1`)" //nolint:lll
 				svc.Environment["HASURA_GRAPHQL_DATABASE_URL"] = "postgres://nhost_auth_admin@postgres:5432/local"
+
 				return svc
 			},
 		},

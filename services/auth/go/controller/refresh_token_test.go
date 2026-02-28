@@ -231,6 +231,7 @@ func TestRefreshToken(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedEmails = []string{"asd@asd.com"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

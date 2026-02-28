@@ -23,6 +23,7 @@ const (
 )
 
 const (
+	// ServerInstructions
 	// this seems to be largely ignored by clients, or at least by cursor.
 	// we also need to look into roots and resources as those might be helpful.
 	ServerInstructions = `
@@ -76,7 +77,7 @@ func Command() *cli.Command {
 	}
 }
 
-func action(ctx context.Context, cmd *cli.Command) error {
+func action(_ context.Context, cmd *cli.Command) error {
 	cfg, err := getConfig(cmd)
 	if err != nil {
 		return err
@@ -119,12 +120,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	resources := schemas.NewTool(cfg)
 	resources.Register(mcpServer)
 
-	d, err := docs.NewTool(ctx)
-	if err != nil {
-		return cli.Exit(fmt.Sprintf("failed to initialize docs tools: %s", err), 1)
-	}
-
-	d.Register(mcpServer)
+	docs.NewTool().Register(mcpServer)
 
 	return start(mcpServer, cmd.String(flagBind))
 }

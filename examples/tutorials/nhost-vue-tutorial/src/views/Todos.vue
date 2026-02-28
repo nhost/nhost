@@ -216,8 +216,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useId } from "vue";
-import { useAuth } from "../lib/nhost/auth";
+import { computed, onMounted, ref, useId } from 'vue';
+import { useAuth } from '../lib/nhost/auth';
 
 // The interfaces below define the structure of our data
 // They are not strictly necessary but help with type safety
@@ -256,8 +256,8 @@ const { nhost, session } = useAuth();
 const todos = ref<Todo[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
-const newTodoTitle = ref("");
-const newTodoDetails = ref("");
+const newTodoTitle = ref('');
+const newTodoDetails = ref('');
 const editingTodo = ref<Todo | null>(null);
 const showAddForm = ref(false);
 const expandedTodos = ref<Set<string>>(new Set());
@@ -289,7 +289,7 @@ const fetchTodos = async () => {
     // Check for GraphQL errors in the response body
     if (response.body.errors) {
       throw new Error(
-        response.body.errors[0]?.message || "Failed to fetch todos",
+        response.body.errors[0]?.message || 'Failed to fetch todos',
       );
     }
 
@@ -297,7 +297,7 @@ const fetchTodos = async () => {
     todos.value = response.body?.data?.todos || [];
     error.value = null;
   } catch (err) {
-    error.value = err instanceof Error ? err.message : "Failed to fetch todos";
+    error.value = err instanceof Error ? err.message : 'Failed to fetch todos';
   } finally {
     loading.value = false;
   }
@@ -330,25 +330,25 @@ const addTodo = async () => {
     });
 
     if (response.body.errors) {
-      throw new Error(response.body.errors[0]?.message || "Failed to add todo");
+      throw new Error(response.body.errors[0]?.message || 'Failed to add todo');
     }
 
     if (!response.body?.data?.insert_todos_one) {
-      throw new Error("Failed to add todo");
+      throw new Error('Failed to add todo');
     }
     todos.value = [response.body?.data?.insert_todos_one, ...todos.value];
-    newTodoTitle.value = "";
-    newTodoDetails.value = "";
+    newTodoTitle.value = '';
+    newTodoDetails.value = '';
     showAddForm.value = false;
     error.value = null;
   } catch (err) {
-    error.value = err instanceof Error ? err.message : "Failed to add todo";
+    error.value = err instanceof Error ? err.message : 'Failed to add todo';
   }
 };
 
 const updateTodo = async (
   id: string,
-  updates: Partial<Pick<Todo, "title" | "details" | "completed">>,
+  updates: Partial<Pick<Todo, 'title' | 'details' | 'completed'>>,
 ) => {
   try {
     // Execute GraphQL mutation to update an existing todo by primary key
@@ -375,12 +375,12 @@ const updateTodo = async (
 
     if (response.body.errors) {
       throw new Error(
-        response.body.errors[0]?.message || "Failed to update todo",
+        response.body.errors[0]?.message || 'Failed to update todo',
       );
     }
 
     if (!response.body?.data?.update_todos_by_pk) {
-      throw new Error("Failed to update todo");
+      throw new Error('Failed to update todo');
     }
 
     const updatedTodo = response.body?.data?.update_todos_by_pk;
@@ -392,12 +392,12 @@ const updateTodo = async (
     editingTodo.value = null;
     error.value = null;
   } catch (err) {
-    error.value = err instanceof Error ? err.message : "Failed to update todo";
+    error.value = err instanceof Error ? err.message : 'Failed to update todo';
   }
 };
 
 const deleteTodo = async (id: string) => {
-  if (!confirm("Are you sure you want to delete this todo?")) return;
+  if (!confirm('Are you sure you want to delete this todo?')) return;
 
   try {
     // Execute GraphQL mutation to delete a todo by primary key
@@ -417,14 +417,14 @@ const deleteTodo = async (id: string) => {
 
     if (response.body.errors) {
       throw new Error(
-        response.body.errors[0]?.message || "Failed to delete todo",
+        response.body.errors[0]?.message || 'Failed to delete todo',
       );
     }
 
     todos.value = todos.value.filter((todo) => todo.id !== id);
     error.value = null;
   } catch (err) {
-    error.value = err instanceof Error ? err.message : "Failed to delete todo";
+    error.value = err instanceof Error ? err.message : 'Failed to delete todo';
   }
 };
 
@@ -452,8 +452,8 @@ const toggleTodoExpansion = (todoId: string) => {
 
 const cancelAddForm = () => {
   showAddForm.value = false;
-  newTodoTitle.value = "";
-  newTodoDetails.value = "";
+  newTodoTitle.value = '';
+  newTodoDetails.value = '';
 };
 
 // Fetch todos when user session is available

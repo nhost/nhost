@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
@@ -16,10 +20,6 @@ import { convertToRuleGroup } from '@/features/orgs/projects/database/dataGrid/u
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
 import AggregationQuerySection from './sections/AggregationQuerySection';
 import BackendOnlySection from './sections/BackendOnlySection';
 import ColumnPermissionsSection from './sections/ColumnPermissionsSection';
@@ -34,6 +34,7 @@ export interface RolePermissionEditorFormValues {
   /**
    * The permission filter to be applied for the role.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   filter: Record<string, any> | null;
   /**
    * The allowed columns to CRUD for the role.
@@ -129,6 +130,7 @@ function getDefaultRuleGroup(
     : null;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
   if (!data || Object.keys(data).length === 0) {
     return [{ column: '', value: '' }];
@@ -142,6 +144,7 @@ function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
 
 function convertToColumnPresetObject(
   columnPresets?: ColumnPreset[],
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
 ): Record<string, any> | null {
   if (isEmptyValue(columnPresets)) {
     return null;
@@ -179,7 +182,7 @@ export default function RolePermissionEditorForm({
     mutateAsync: managePermission,
     error,
     reset: resetError,
-    isLoading,
+    isPending,
   } = useManagePermissionMutation({
     schema,
     table,
@@ -427,7 +430,7 @@ export default function RolePermissionEditorForm({
                   variant="outlined"
                   color="error"
                   onClick={handleDeleteClick}
-                  disabled={isLoading}
+                  disabled={isPending}
                 >
                   Delete Permissions
                 </Button>

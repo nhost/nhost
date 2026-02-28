@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - name: "Check out repository"
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -40,7 +40,7 @@ jobs:
         cd ${{ matrix.project }}
         TAG_NAME=$(make release-tag-name)
         VERSION=$(nix develop .\#cliff -c make changelog-next-version)
-        if git tag | grep -q "$TAG_NAME@$VERSION"; then
+        if git tag | grep -qx "$TAG_NAME@$VERSION"; then
           echo "Tag $TAG_NAME@$VERSION already exists, skipping release preparation"
         else
           echo "Tag $TAG_NAME@$VERSION does not exist, proceeding with release preparation"
@@ -55,7 +55,7 @@ jobs:
 
     - name: "Create Pull Request"
       if: steps.version.outputs.version != ''
-      uses: peter-evans/create-pull-request@v7
+      uses: peter-evans/create-pull-request@v8
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: "release(${{ matrix.project }}): ${{ steps.version.outputs.version }}"

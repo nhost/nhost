@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"time"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 )
 
@@ -15,7 +15,7 @@ func (ctrl *Controller) SendVerificationEmail( //nolint:ireturn
 	ctx context.Context,
 	request api.SendVerificationEmailRequestObject,
 ) (api.SendVerificationEmailResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).
+	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
 	options, apiErr := ctrl.wf.ValidateOptionsRedirectTo(ctx, request.Body.Options, logger)

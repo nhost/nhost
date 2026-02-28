@@ -21,10 +21,6 @@ import (
 	"github.com/nhost/nhost/cli/mcp/tools/schemas"
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 	loginCmd := user.CommandLogin()
 	mcpCmd := nhostmcp.Command()
@@ -172,10 +168,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Perform GraphQL Query on Nhost Cloud Platform",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(false),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(false),
+						DestructiveHint: new(true),
+						IdempotentHint:  new(false),
+						OpenWorldHint:   new(true),
 					},
 				},
 				{
@@ -185,21 +181,31 @@ config validate after making changes to your nhost.toml file to ensure it is val
 						Type: "object",
 						Properties: map[string]any{
 							"role": map[string]any{
-								"description": string("role to use when executing queries. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ"),
-								"type":        string("string"),
+								"description": string(
+									"role to use when executing queries. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ",
+								),
+								"type": string("string"),
 							},
 							"subdomain": map[string]any{
-								"description": string("Project to get the GraphQL schema for. Required when service is `project`"),
-								"enum":        []any{string("local"), string("asdasdasdasdasd"), string("qweqweqweqweqwe")},
-								"type":        string("string"),
+								"description": string(
+									"Project to get the GraphQL schema for. Required when service is `project`",
+								),
+								"enum": []any{
+									string("local"),
+									string("asdasdasdasdasd"),
+									string("qweqweqweqweqwe"),
+								},
+								"type": string("string"),
 							},
 							"mutations": map[string]any{
 								"description": string("list of mutations to fetch"),
 								"type":        string("array"),
+								"items":       map[string]any{"type": string("string")},
 							},
 							"queries": map[string]any{
 								"description": string("list of queries to fetch"),
 								"type":        string("array"),
+								"items":       map[string]any{"type": string("string")},
 							},
 							"summary": map[string]any{
 								"default":     bool(true),
@@ -211,10 +217,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Get GraphQL/API schema for various services",
-						ReadOnlyHint:    ptr(true),
-						DestructiveHint: ptr(false),
-						IdempotentHint:  ptr(true),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(true),
+						DestructiveHint: new(false),
+						IdempotentHint:  new(true),
+						OpenWorldHint:   new(true),
 					},
 				},
 				{
@@ -241,8 +247,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								"type":        "string",
 							},
 							"userId": map[string]any{
-								"description": string("Overrides X-Hasura-User-Id in the GraphQL query/mutation. Credentials must allow it (i.e. admin secret must be in use)"),
-								"type":        string("string"),
+								"description": string(
+									"Overrides X-Hasura-User-Id in the GraphQL query/mutation. Credentials must allow it (i.e. admin secret must be in use)",
+								),
+								"type": string("string"),
 							},
 							"variables": map[string]any{
 								"description": "variables to use in the query",
@@ -253,10 +261,38 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Perform GraphQL Query on Nhost Project running on Nhost Cloud",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(false),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(false),
+						DestructiveHint: new(true),
+						IdempotentHint:  new(false),
+						OpenWorldHint:   new(true),
+					},
+				},
+				{
+					Name:        "list",
+					Description: docs.ToolListInstructions,
+					InputSchema: mcp.ToolInputSchema{
+						Type: "object",
+						Properties: map[string]any{
+							"grouped": map[string]any{
+								"description": string(
+									"Show pages organized by top-level section",
+								),
+								"type": string("boolean"),
+							},
+							"summary": map[string]any{
+								"description": string(
+									"Show page descriptions",
+								),
+								"type": string("boolean"),
+							},
+						},
+					},
+					Annotations: mcp.ToolAnnotation{
+						Title:           "List Nhost Docs",
+						ReadOnlyHint:    new(true),
+						IdempotentHint:  new(true),
+						DestructiveHint: new(false),
+						OpenWorldHint:   new(false),
 					},
 				},
 				{
@@ -287,10 +323,33 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Manage GraphQL's Metadata on an Nhost Development Project",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(true),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(false),
+						DestructiveHint: new(true),
+						IdempotentHint:  new(true),
+						OpenWorldHint:   new(true),
+					},
+				},
+				{
+					Name:        "read_page",
+					Description: docs.ToolReadPageInstructions,
+					InputSchema: mcp.ToolInputSchema{
+						Type: "object",
+						Properties: map[string]any{
+							"path": map[string]any{
+								"description": string(
+									"The documentation page path (e.g., /products/auth/overview or products/auth/overview)",
+								),
+								"type": string("string"),
+							},
+						},
+						Required: []string{"path"},
+					},
+					Annotations: mcp.ToolAnnotation{
+						Title:           "Read Nhost Documentation Page",
+						ReadOnlyHint:    new(true),
+						IdempotentHint:  new(true),
+						DestructiveHint: new(false),
+						OpenWorldHint:   new(false),
 					},
 				},
 				{
@@ -303,15 +362,21 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								"description": string("The search query"),
 								"type":        string("string"),
 							},
+							"limit": map[string]any{
+								"description": string(
+									"Maximum number of results to return (default: 10)",
+								),
+								"type": string("number"),
+							},
 						},
 						Required: []string{"query"},
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Search Nhost Docs",
-						ReadOnlyHint:    ptr(true),
-						IdempotentHint:  ptr(true),
-						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(true),
+						IdempotentHint:  new(true),
+						DestructiveHint: new(false),
+						OpenWorldHint:   new(false),
 					},
 				},
 			},

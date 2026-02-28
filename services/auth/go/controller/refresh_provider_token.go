@@ -3,15 +3,15 @@ package controller
 import (
 	"context"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"golang.org/x/oauth2"
 )
 
 func (ctrl *Controller) RefreshProviderToken( //nolint:ireturn
 	ctx context.Context, req api.RefreshProviderTokenRequestObject,
 ) (api.RefreshProviderTokenResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	logger = logger.With("provider", req.Provider)
 
 	provider := ctrl.Providers.Get(string(req.Provider))

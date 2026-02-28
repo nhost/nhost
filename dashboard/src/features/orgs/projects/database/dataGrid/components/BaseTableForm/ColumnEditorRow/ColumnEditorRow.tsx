@@ -1,3 +1,8 @@
+import clsx from 'clsx';
+import type { PropsWithoutRef } from 'react';
+import { memo, useEffect, useState } from 'react';
+import type { FieldError } from 'react-hook-form';
+import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import {
   ControlledAutocomplete,
   defaultFilterGroupedOptions,
@@ -7,7 +12,6 @@ import { InlineCode } from '@/components/presentational/InlineCode';
 import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
 import { Input } from '@/components/ui/v2/Input';
 import { OptionBase } from '@/components/ui/v2/Option';
-
 import type {
   ColumnType,
   ForeignKeyRelation,
@@ -17,12 +21,6 @@ import {
   postgresFunctions,
   postgresTypeGroups,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import clsx from 'clsx';
-
-import type { PropsWithoutRef } from 'react';
-import { memo, useEffect, useState } from 'react';
-import type { FieldError } from 'react-hook-form';
-import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import ColumnComment from './ColumnComment';
 import { RemoveButton } from './RemoveButton';
 
@@ -256,27 +254,24 @@ export interface ColumnEditorRowProps extends FieldArrayInputProps {
 }
 
 const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
-  <div role="row" className="flex w-full gap-2">
-    <div role="cell" className="w-52 flex-none">
+  <div className="flex w-full gap-2">
+    <div className="w-52 flex-none">
       <NameInput index={index} />
     </div>
 
-    <div role="cell" className="w-52 flex-none">
+    <div className="w-52 flex-none">
       <TypeAutocomplete index={index} />
     </div>
 
-    <div role="cell" className="w-52 flex-none">
+    <div className="w-52 flex-none">
       <DefaultValueAutocomplete index={index} />
     </div>
 
-    <div role="cell" className="flex w-8 flex-none items-center justify-center">
+    <div className="flex w-8 flex-none items-center justify-center">
       <ColumnComment index={index} />
     </div>
 
-    <div
-      role="cell"
-      className="flex w-13 flex-none items-center justify-center"
-    >
+    <div className="flex w-13 flex-none items-center justify-center">
       <Checkbox
         name={`columns.${index}.isNullable`}
         aria-label="Nullable"
@@ -285,10 +280,7 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
       />
     </div>
 
-    <div
-      role="cell"
-      className="flex w-13 flex-none items-center justify-center"
-    >
+    <div className="flex w-13 flex-none items-center justify-center">
       <Checkbox
         name={`columns.${index}.isUnique`}
         aria-label="Unique"
@@ -296,7 +288,7 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
       />
     </div>
 
-    <div role="cell" className="flex w-9 flex-none items-center justify-center">
+    <div className="flex w-9 flex-none items-center justify-center">
       <RemoveButton
         index={index}
         onClick={() => {

@@ -1,12 +1,12 @@
+import { FormProvider, useForm } from 'react-hook-form';
 import type { ConnectGitHubModalState } from '@/features/orgs/projects/git/common/components/ConnectGitHubModal';
 import { EditRepositorySettingsModal } from '@/features/orgs/projects/git/common/components/EditRepositorySettingsModal';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { FormProvider, useForm } from 'react-hook-form';
 
 export interface EditRepositorySettingsProps {
   close?: () => void;
   openConnectGithubModal?: () => void;
-  selectedRepoId?: string;
+  selectedRepoId: string;
   connectGithubModalState?: ConnectGitHubModalState;
   handleSelectAnotherRepository?: () => void;
 }

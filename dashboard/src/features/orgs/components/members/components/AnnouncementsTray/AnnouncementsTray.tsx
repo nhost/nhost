@@ -1,3 +1,6 @@
+import { formatDistance } from 'date-fns';
+import { EllipsisVertical, Megaphone } from 'lucide-react';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -20,9 +23,6 @@ import {
   useGetAnnouncementsQuery,
   useInsertAnnouncementReadMutation,
 } from '@/utils/__generated__/graphql';
-import { formatDistance } from 'date-fns';
-import { EllipsisVertical, Megaphone } from 'lucide-react';
-import Link from 'next/link';
 
 export default function AnnouncementsTray() {
   const { isAuthenticated } = useAuth();
@@ -120,7 +120,7 @@ export default function AnnouncementsTray() {
                   )}
                   <div className="flex w-full flex-row justify-between">
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         {formatDistance(
                           new Date(announcement.createdAt),
                           new Date(),

@@ -1,20 +1,20 @@
+import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import { type RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
+import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,
 } from '@/utils/__generated__/graphql';
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface DeleteServiceModalProps {
   service: RunService;
-  onDelete?: () => Promise<any>;
+  onDelete?: () => Promise<unknown>;
   close: () => void;
 }
 

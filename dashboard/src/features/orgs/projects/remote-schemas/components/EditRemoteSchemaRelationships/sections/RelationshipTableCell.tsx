@@ -2,7 +2,8 @@ import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import {
   isToRemoteSchemaRelationshipDefinition,
   isToSourceRelationshipDefinition,
-} from '@/features/orgs/projects/remote-schemas/utils/guards';
+} from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
+import getRemoteFieldPath from '@/features/orgs/projects/remote-schemas/utils/getRemoteFieldPath';
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas';
 
 interface RelationshipTableCellProps {
@@ -24,30 +25,13 @@ export default function RelationshipTableCell({
     return [];
   };
 
-  const getRemoteFieldPath = (
-    remoteField: Record<string, unknown> | undefined,
-  ): string[] => {
-    if (!remoteField) {
-      return [];
-    }
-    const keys = Object.keys(remoteField);
-    if (keys.length === 0) {
-      return [];
-    }
-    const head = keys[0];
-    const value = remoteField[head] as
-      | { field?: Record<string, unknown> }
-      | undefined;
-    return [head, ...(value?.field ? getRemoteFieldPath(value.field) : [])];
-  };
-
   const renderRightSide = () => {
     if (isToRemoteSchemaRelationshipDefinition(definition)) {
       const rsName = definition.to_remote_schema.remote_schema;
       const path = getRemoteFieldPath(definition.to_remote_schema.remote_field);
 
       return (
-        <span className="flex items-center gap-1 text-sm text-foreground">
+        <span className="flex items-center gap-1 text-foreground text-sm">
           <span className="truncate">{rsName}</span>
           <span className="px-1">/</span>
           {path.map((segment, index) => {
@@ -73,7 +57,7 @@ export default function RelationshipTableCell({
       ) as [string, string][];
 
       return (
-        <span className="flex items-center gap-1 text-sm text-foreground">
+        <span className="flex items-center gap-1 text-foreground text-sm">
           <span className="truncate">{tableName}</span>
           {fieldMappings.length > 0 ? <span className="px-1">/</span> : null}
           {fieldMappings.map(([sourceField, col], index) => (
@@ -98,7 +82,7 @@ export default function RelationshipTableCell({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="flex items-center gap-1 text-sm text-muted-foreground">
+      <span className="flex items-center gap-1 text-muted-foreground text-sm">
         {lhsLeafs.map((leaf, index) => (
           <span key={`lhs-${relationship.name}-${leaf}`} className="truncate">
             {leaf}

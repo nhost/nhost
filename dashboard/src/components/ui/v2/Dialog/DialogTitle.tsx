@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/v2/Button';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { styled } from '@mui/material';
 import type { DialogTitleProps as MaterialDialogTitleProps } from '@mui/material/DialogTitle';
 import MaterialDialogTitle from '@mui/material/DialogTitle';
 import type { MouseEventHandler } from 'react';
+import { Button } from '@/components/ui/v2/Button';
+import { XIcon } from '@/components/ui/v2/icons/XIcon';
 
 export interface DialogTitleProps extends MaterialDialogTitleProps {
   /**

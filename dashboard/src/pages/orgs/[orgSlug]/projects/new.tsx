@@ -1,3 +1,9 @@
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import type { FormEvent, ReactElement } from 'react';
+import { useState } from 'react';
+import slugify from 'slugify';
+import { twMerge } from 'tailwind-merge';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -14,18 +20,12 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { analytics } from '@/lib/segment';
 import {
-  useInsertOrgApplicationMutation,
-  usePrefetchNewAppQuery,
   type GetOrganizationsQuery,
   type PrefetchNewAppRegionsFragment,
+  useInsertOrgApplicationMutation,
+  usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import type { FormEvent, ReactElement } from 'react';
-import { useState } from 'react';
-import slugify from 'slugify';
-import { twMerge } from 'tailwind-merge';
 
 type NewAppPageProps = {
   regions: PrefetchNewAppRegionsFragment[];
@@ -122,6 +122,8 @@ export function NewProjectPageContent({
             regionName: selectedRegion.name,
           });
 
+          // store the subdomain in session storage to indicate that the user has created a project
+          sessionStorage.setItem('newProjectSubdomain', subdomain);
           await router.push(`/orgs/${selectedOrg.slug}/projects/${subdomain}`);
         }
       },
@@ -151,7 +153,7 @@ export function NewProjectPageContent({
         <Box className="mx-auto my-64 max-w-full subpixel-antialiased">
           <div className="relative transform">
             <div className="mx-auto max-w-3xl text-center">
-              <Text variant="h1" className="text-center text-6xl font-semibold">
+              <Text variant="h1" className="text-center font-semibold text-6xl">
                 Organization Error
               </Text>
               <Text className="mt-2">
@@ -303,7 +305,7 @@ export function NewProjectPageContent({
                   {option.disabled && (
                     <Text
                       variant="subtitle2"
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
+                      className="absolute top-1/2 right-4 -translate-y-1/2"
                     >
                       Disabled
                     </Text>

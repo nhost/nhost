@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -6,7 +7,6 @@ import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ResourcesForm } from '@/features/orgs/projects/resources/settings/components/ResourcesForm';
-import type { ReactElement } from 'react';
 
 export default function ResourceSettingsPage() {
   const { org, loading: loadingOrg } = useCurrentOrg();

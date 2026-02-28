@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import type * as Yup from 'yup';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
 import type {
@@ -8,10 +12,6 @@ import {
   BaseForeignKeyForm,
   baseForeignKeyValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import type * as Yup from 'yup';
 
 export interface CreateForeignKeyFormProps
   extends Pick<

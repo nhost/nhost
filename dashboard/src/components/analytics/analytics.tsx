@@ -1,8 +1,8 @@
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { analytics } from '@/lib/segment';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 
 export default function Analytics() {
   const router = useRouter();

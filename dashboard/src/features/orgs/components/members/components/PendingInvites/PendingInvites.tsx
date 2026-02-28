@@ -1,3 +1,8 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Inbox, TriangleAlert } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -38,11 +43,6 @@ import {
   useInsertOrganizationMemberInviteMutation,
 } from '@/utils/__generated__/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Inbox, TriangleAlert } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 const sendInviteFormSchema = z.object({
   email: z.string().email(),

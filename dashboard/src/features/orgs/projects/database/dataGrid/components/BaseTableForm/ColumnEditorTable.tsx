@@ -1,9 +1,9 @@
+import { useFieldArray, useFormState } from 'react-hook-form';
 import { Button } from '@/components/ui/v2/Button';
 import { HelperText } from '@/components/ui/v2/HelperText';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { useFieldArray, useFormState } from 'react-hook-form';
 import { ColumnEditorRow } from './ColumnEditorRow';
 
 function ColumnErrorMessage() {
@@ -25,9 +25,9 @@ export default function ColumnEditorTable() {
 
   return (
     <>
-      <div role="table" className="col-span-8 overflow-x-auto">
-        <div className="sticky top-0 z-10 flex w-full gap-2 pb-2 pt-1">
-          <div role="columnheader" className="w-52 flex-none">
+      <div className="col-span-8 overflow-x-auto min-[900px]:overflow-x-visible">
+        <div className="sticky top-0 z-10 flex w-full gap-2 bg-paper pt-1 pb-2">
+          <div className="w-52 flex-none">
             <InputLabel as="span">
               Name
               <Text component="span" color="error">
@@ -36,7 +36,7 @@ export default function ColumnEditorTable() {
             </InputLabel>
           </div>
 
-          <div role="columnheader" className="w-52 flex-none">
+          <div className="w-52 flex-none">
             <InputLabel as="span">
               Type
               <Text component="span" color="error">
@@ -45,22 +45,22 @@ export default function ColumnEditorTable() {
             </InputLabel>
           </div>
 
-          <div role="columnheader" className="w-52 flex-none">
+          <div className="w-52 flex-none">
             <InputLabel as="span">Default Value</InputLabel>
           </div>
-          <div role="columnheader" className="w-8 flex-none">
+          <div className="w-8 flex-none">
             <InputLabel as="span" className="hidden">
               Comment
             </InputLabel>
           </div>
 
-          <div role="columnheader" className="w-13 flex-none text-center">
+          <div className="w-13 flex-none text-center">
             <InputLabel as="span" className="truncate">
               Nullable
             </InputLabel>
           </div>
 
-          <div role="columnheader" className="w-13 flex-none text-center">
+          <div className="w-13 flex-none text-center">
             <InputLabel as="span" className="truncate">
               Unique
             </InputLabel>
@@ -68,7 +68,7 @@ export default function ColumnEditorTable() {
           <div className="flex w-9 flex-auto" />
         </div>
 
-        <div role="rowgroup" className="grid w-full grid-flow-row gap-1">
+        <div className="grid w-full grid-flow-row gap-1">
           {fields.map((field, index) => (
             <ColumnEditorRow key={field.id} index={index} remove={remove} />
           ))}

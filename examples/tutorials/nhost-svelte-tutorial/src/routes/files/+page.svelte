@@ -1,7 +1,7 @@
 <script lang="ts">
-import type { FileMetadata } from "@nhost/nhost-js/storage";
-import { goto } from "$app/navigation";
-import { auth } from "$lib/nhost/auth";
+import type { FileMetadata } from '@nhost/nhost-js/storage';
+import { goto } from '$app/navigation';
+import { auth } from '$lib/nhost/auth';
 
 interface DeleteStatus {
   message: string;
@@ -26,15 +26,15 @@ let deleteStatus = $state<DeleteStatus | null>(null);
 // Redirect if not authenticated
 $effect(() => {
   if (!$auth.isLoading && !$auth.isAuthenticated) {
-    void goto("/signin");
+    void goto('/signin');
   }
 });
 
 // Format file size in a readable way
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) return '0 Bytes';
 
-  const sizes: string[] = ["Bytes", "KB", "MB", "GB", "TB"];
+  const sizes: string[] = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i: number = Math.floor(Math.log(bytes) / Math.log(1024));
 
   return `${parseFloat((bytes / 1024 ** i).toFixed(2))} ${sizes[i]}`;
@@ -64,14 +64,14 @@ async function fetchFiles() {
 
     if (response.body.errors) {
       throw new Error(
-        response.body.errors[0]?.message || "Failed to fetch files",
+        response.body.errors[0]?.message || 'Failed to fetch files',
       );
     }
 
     files = response.body.data?.files || [];
   } catch (err) {
-    console.error("Error fetching files:", err);
-    error = "Failed to load files. Please try refreshing the page.";
+    console.error('Error fetching files:', err);
+    error = 'Failed to load files. Please try refreshing the page.';
   } finally {
     isFetching = false;
   }
@@ -98,7 +98,7 @@ function handleFileChange(e: Event) {
 
 async function handleUpload() {
   if (!selectedFile) {
-    error = "Please select a file to upload";
+    error = 'Please select a file to upload';
     return;
   }
 
@@ -109,20 +109,20 @@ async function handleUpload() {
     // Upload file to the personal bucket
     // The uploadedByUserId is automatically set by the storage permissions
     const response = await $auth.nhost.storage.uploadFiles({
-      "bucket-id": "personal",
-      "file[]": [selectedFile],
+      'bucket-id': 'personal',
+      'file[]': [selectedFile],
     });
 
     const uploadedFile = response.body.processedFiles?.[0];
     if (uploadedFile === undefined) {
-      throw new Error("Failed to upload file");
+      throw new Error('Failed to upload file');
     }
     uploadResult = uploadedFile;
 
     // Clear the form
     selectedFile = null;
     if (fileInputRef) {
-      fileInputRef.value = "";
+      fileInputRef.value = '';
     }
 
     // Update the files list
@@ -135,7 +135,7 @@ async function handleUpload() {
       uploadResult = null;
     }, 3000);
   } catch (err: unknown) {
-    const message = (err as Error).message || "An unknown error occurred";
+    const message = (err as Error).message || 'An unknown error occurred';
     error = `Failed to upload file: ${message}`;
   } finally {
     uploading = false;
@@ -157,17 +157,17 @@ async function handleViewFile(
 
     // Handle different file types appropriately
     if (
-      mimeType.startsWith("image/") ||
-      mimeType === "application/pdf" ||
-      mimeType.startsWith("text/") ||
-      mimeType.startsWith("video/") ||
-      mimeType.startsWith("audio/")
+      mimeType.startsWith('image/') ||
+      mimeType === 'application/pdf' ||
+      mimeType.startsWith('text/') ||
+      mimeType.startsWith('video/') ||
+      mimeType.startsWith('audio/')
     ) {
       // Open viewable files in new tab
-      window.open(url, "_blank");
+      window.open(url, '_blank');
     } else {
       // Download other file types
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
       document.body.appendChild(link);
@@ -175,7 +175,7 @@ async function handleViewFile(
       document.body.removeChild(link);
 
       // Show download confirmation
-      const newWindow = window.open("", "_blank", "width=400,height=200");
+      const newWindow = window.open('', '_blank', 'width=400,height=200');
       if (newWindow) {
         newWindow.document.documentElement.innerHTML = `
           <head>
@@ -192,9 +192,9 @@ async function handleViewFile(
       }
     }
   } catch (err) {
-    const message = (err as Error).message || "An unknown error occurred";
+    const message = (err as Error).message || 'An unknown error occurred';
     error = `Failed to view file: ${message}`;
-    console.error("Error viewing file:", err);
+    console.error('Error viewing file:', err);
   } finally {
     viewingFile = null;
   }
@@ -208,7 +208,7 @@ async function handleDeleteFile(fileId: string) {
   deleteStatus = null;
 
   const fileToDelete = files.find((file) => file.id === fileId);
-  const fileName = fileToDelete?.name || "File";
+  const fileName = fileToDelete?.name || 'File';
 
   try {
     // Delete file from storage
@@ -230,12 +230,12 @@ async function handleDeleteFile(fileId: string) {
       deleteStatus = null;
     }, 3000);
   } catch (err) {
-    const message = (err as Error).message || "An unknown error occurred";
+    const message = (err as Error).message || 'An unknown error occurred';
     deleteStatus = {
       message: `Failed to delete ${fileName}: ${message}`,
       isError: true,
     };
-    console.error("Error deleting file:", err);
+    console.error('Error deleting file:', err);
   } finally {
     deleting = null;
   }

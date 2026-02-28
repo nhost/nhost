@@ -6,7 +6,7 @@
  * make requests as a specific role without using the admin secret.
  */
 
-import type { ChainFunction, FetchFunction } from "./fetch";
+import type { ChainFunction, FetchFunction } from './fetch';
 
 /**
  * Creates a fetch middleware that sets the Hasura role header.
@@ -49,8 +49,8 @@ export const withRoleMiddleware =
     const headers = new Headers(requestOptions.headers || {});
 
     // Set x-hasura-role if not already present
-    if (!headers.has("x-hasura-role")) {
-      headers.set("x-hasura-role", role);
+    if (!headers.has('x-hasura-role')) {
+      headers.set('x-hasura-role', role);
     }
 
     return next(url, { ...requestOptions, headers });

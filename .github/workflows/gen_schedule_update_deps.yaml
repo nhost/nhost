@@ -2,7 +2,7 @@
 name: "gen: update depenendencies"
 on:
   schedule:
-    - cron: '0 2 1 2,5,8,11 *'
+    - cron: '0 2 1 2,6,10 *'
 
 jobs:
   run:
@@ -15,10 +15,10 @@ jobs:
 
     steps:
     - name: Check out repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v5
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
         aws-region: eu-central-1
@@ -33,12 +33,6 @@ jobs:
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
 
-    - name: Cache nix store
-      uses: actions/cache@v4
-      with:
-        path: /nix
-        key: nix-update-deps-${{ hashFiles('flakes.nix', 'flake.lock') }}
-
     - name: Update nix flakes
       run: nix flake update
 
@@ -51,7 +45,7 @@ jobs:
         "
 
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v7
+      uses: peter-evans/create-pull-request@v8
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: Update dependencies
@@ -69,12 +63,11 @@ jobs:
           dependencies
         draft: false
 
-    - name: "Cache nix store on s3"
-      run: |
-        echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
-        nix build .\#devShells.x86_64-linux.default
-        nix store sign --key-file cache-priv-key.pem --all
-        nix copy --to s3://nhost-nix-cache\?region=eu-central-1 .\#devShells.x86_64-linux.default
+    - name: "Build dev shell"
+      run: nix build .\#devShells.x86_64-linux.default
 
-    - run: rm cache-priv-key.pem
+    - name: "Cache nix store on s3"
+      uses: ./.github/actions/cache-nix
+      with:
+        NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       if: always()

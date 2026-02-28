@@ -92,12 +92,17 @@ outer:
 // definitions and the matching Action functions are run.
 func (cmd *Command) Run(ctx context.Context, osArgs []string) (deferErr error) {
 	_, deferErr = cmd.run(ctx, osArgs)
-	return
+	return deferErr
 }
 
 func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context, deferErr error) {
 	tracef("running with arguments %[1]q (cmd=%[2]q)", osArgs, cmd.Name)
 	cmd.setupDefaults(osArgs)
+
+	// Validate StopOnNthArg
+	if cmd.StopOnNthArg != nil && *cmd.StopOnNthArg < 0 {
+		return ctx, fmt.Errorf("StopOnNthArg must be non-negative, got %d", *cmd.StopOnNthArg)
+	}
 
 	if v, ok := ctx.Value(commandContextKey).(*Command); ok {
 		tracef("setting parent (cmd=%[1]q) command from context.Context value (cmd=%[2]q)", v.Name, cmd.Name)
@@ -175,9 +180,9 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 		}
 		if !cmd.hideHelp() {
 			if cmd.parent == nil {
-				tracef("running ShowAppHelp")
-				if err := ShowAppHelp(cmd); err != nil {
-					tracef("SILENTLY IGNORING ERROR running ShowAppHelp %[1]v (cmd=%[2]q)", err, cmd.Name)
+				tracef("running ShowRootCommandHelp")
+				if err := ShowRootCommandHelp(cmd); err != nil {
+					tracef("SILENTLY IGNORING ERROR running ShowRootCommandHelp %[1]v (cmd=%[2]q)", err, cmd.Name)
 				}
 			} else {
 				tracef("running ShowCommandHelp with %[1]q", cmd.Name)
@@ -202,8 +207,13 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 	}
 
 	for _, flag := range cmd.allFlags() {
+		isSet := flag.IsSet()
 		if err := flag.PostParse(); err != nil {
 			return ctx, err
+		}
+		// add env set flags here
+		if !isSet && flag.IsSet() {
+			cmd.setFlags[flag] = struct{}{}
 		}
 	}
 
@@ -223,7 +233,11 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 
 	for _, grp := range cmd.MutuallyExclusiveFlags {
 		if err := grp.check(cmd); err != nil {
-			_ = ShowSubcommandHelp(cmd)
+			if cmd.OnUsageError != nil {
+				err = cmd.OnUsageError(ctx, cmd, err, cmd.parent != nil)
+			} else {
+				_ = ShowSubcommandHelp(cmd)
+			}
 			return ctx, err
 		}
 	}
@@ -310,7 +324,11 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 
 	if err := cmd.checkAllRequiredFlags(); err != nil {
 		cmd.isInError = true
-		_ = ShowSubcommandHelp(cmd)
+		if cmd.OnUsageError != nil {
+			err = cmd.OnUsageError(ctx, cmd, err, cmd.parent != nil)
+		} else {
+			_ = ShowSubcommandHelp(cmd)
+		}
 		return ctx, err
 	}
 

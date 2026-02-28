@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) getSigninProviderValidateRequest(
@@ -42,7 +42,7 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 	ctx context.Context,
 	req api.SignInProviderRequestObject,
 ) (api.SignInProviderResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).
+	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("provider", string(req.Provider)))
 
 	redirectTo, apiErr := ctrl.getSigninProviderValidateRequest(ctx, req, logger)
@@ -93,6 +93,7 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 	default:
 		url = provider.Oauth2().AuthCodeURL(
 			state,
+			req.Params.ProviderSpecificParams,
 		)
 	}
 

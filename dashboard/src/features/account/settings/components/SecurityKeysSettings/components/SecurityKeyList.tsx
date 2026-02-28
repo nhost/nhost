@@ -1,8 +1,8 @@
+import { Fingerprint } from 'lucide-react';
+import { memo } from 'react';
 import { Spinner } from '@/components/ui/v3/spinner';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
 import { InfoAlert } from '@/features/orgs/components/InfoAlert';
-import { Fingerprint } from 'lucide-react';
-import { memo } from 'react';
 import RemoveSecurityKeyButton from './RemoveSecurityKeyButton';
 
 type SecurityKeyProps = {

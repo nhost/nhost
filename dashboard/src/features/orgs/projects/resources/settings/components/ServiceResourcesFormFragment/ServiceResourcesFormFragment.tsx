@@ -1,10 +1,12 @@
+import debounce from 'lodash.debounce';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
+import { Input } from '@/components/ui/v2/Input';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
 import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Link } from '@/components/ui/v2/Link';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
@@ -23,8 +25,6 @@ import {
   RESOURCE_MEMORY_STEP,
   RESOURCE_VCPU_STEP,
 } from '@/utils/constants/common';
-import debounce from 'lodash.debounce';
-import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface ServiceResourcesFormFragmentProps {
   /**

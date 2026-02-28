@@ -73,16 +73,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, useId } from "vue";
-import { useRouter } from "vue-router";
-import { useAuth } from "../lib/nhost/auth";
+import { onMounted, ref, useId } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '../lib/nhost/auth';
 
 const { nhost, isAuthenticated } = useAuth();
 const router = useRouter();
 
-const email = ref("");
-const password = ref("");
-const displayName = ref("");
+const email = ref('');
+const password = ref('');
+const displayName = ref('');
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
@@ -94,7 +94,7 @@ const passwordId = useId();
 // Redirect authenticated users to profile
 onMounted(() => {
   if (isAuthenticated.value) {
-    router.push("/profile");
+    router.push('/profile');
   }
 });
 
@@ -116,13 +116,13 @@ const handleSubmit = async () => {
 
     if (response.body?.session) {
       // Successfully signed up and automatically signed in
-      router.push("/profile");
+      router.push('/profile');
     } else {
       // Verification email sent
       success.value = true;
     }
   } catch (err) {
-    const message = (err as Error).message || "Unknown error";
+    const message = (err as Error).message || 'Unknown error';
     error.value = `An error occurred during sign up: ${message}`;
   } finally {
     isLoading.value = false;

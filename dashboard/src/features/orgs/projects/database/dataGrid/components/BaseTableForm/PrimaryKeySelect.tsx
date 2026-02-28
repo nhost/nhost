@@ -1,3 +1,12 @@
+import { useMemo } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
 import {
   MultiSelect,
   MultiSelectContent,
@@ -7,16 +16,6 @@ import {
   MultiSelectValue,
 } from '@/components/ui/v3/multi-select';
 import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useMemo } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
-
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
 
 export default function PrimaryKeySelect() {
   const columns: DatabaseColumn[] = useWatch({ name: 'columns' });
@@ -36,13 +35,13 @@ export default function PrimaryKeySelect() {
   );
 
   return (
-    <div role="row" className="pb- col-span-8 py-3 font-[Inter]">
+    <div className="pb- col-span-8 py-3 font-[Inter]">
       <FormField
         control={control}
         name="primaryKeyIndices"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="pb-2 text-[0.9375rem] font-bold leading-5">
+            <FormLabel className="pb-2 font-bold text-[0.9375rem] leading-5">
               Primary Key
             </FormLabel>
             <MultiSelect onValuesChange={field.onChange} values={field.value}>

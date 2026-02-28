@@ -1,3 +1,10 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Turnstile } from '@marsidev/react-turnstile';
+import { styled } from '@mui/material';
+import { type ReactElement, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
@@ -7,15 +14,12 @@ import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { styled } from '@mui/material';
-import { type ReactElement, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   email: Yup.string().label('Email').email().required(),
+  turnstileToken: Yup.string()
+    .label('Verification')
+    .required('Please complete the CAPTCHA'),
 });
 
 export type NewPasswordFormValues = Yup.InferType<typeof validationSchema>;
@@ -35,20 +39,31 @@ export default function NewPasswordPage() {
     reValidateMode: 'onSubmit',
     defaultValues: {
       email: '',
+      turnstileToken: '',
     },
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, getValues } = form;
+  const { register, formState, getValues, setValue } = form;
 
-  async function handleSubmit({ email }: NewPasswordFormValues) {
+  async function handleSubmit({
+    email,
+    turnstileToken,
+  }: NewPasswordFormValues) {
     try {
-      await nhost.auth.sendPasswordResetEmail({
-        email,
-        options: {
-          redirectTo: `${window.location.origin}/password/reset`,
+      await nhost.auth.sendPasswordResetEmail(
+        {
+          email,
+          options: {
+            redirectTo: `${window.location.origin}/password/reset`,
+          },
         },
-      });
+        {
+          headers: {
+            'x-cf-turnstile-response': turnstileToken,
+          },
+        },
+      );
       setIsSent(true);
     } catch {
       toast.error(
@@ -72,7 +87,7 @@ export default function NewPasswordPage() {
       <Text
         variant="h2"
         component="h1"
-        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
+        className="text-center font-semibold text-3.5xl lg:text-4.5xl"
       >
         Reset Password
       </Text>
@@ -96,6 +111,36 @@ export default function NewPasswordPage() {
               helperText={formState.errors.email?.message}
             />
 
+            <Box className="grid grid-flow-row gap-2">
+              <Text variant="body2" className="text-sm">
+                Verification
+              </Text>
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                options={{ theme: 'dark', size: 'flexible' }}
+                onSuccess={(token) => {
+                  setValue('turnstileToken', token, {
+                    shouldValidate: true,
+                  });
+                }}
+                onError={() => {
+                  setValue('turnstileToken', '', {
+                    shouldValidate: true,
+                  });
+                }}
+                onExpire={() => {
+                  setValue('turnstileToken', '', {
+                    shouldValidate: true,
+                  });
+                }}
+              />
+              {formState.errors.turnstileToken && (
+                <Text variant="body2" className="text-red-500 text-sm">
+                  {formState.errors.turnstileToken.message}
+                </Text>
+              )}
+            </Box>
+
             <Button
               className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
               size="large"
@@ -111,7 +156,10 @@ export default function NewPasswordPage() {
 
       <Text color="secondary" className="text-center text-base lg:text-lg">
         Is your password okay?{' '}
-        <NavLink href="/signin/email" color="white" className="font-medium">
+        <NavLink
+          href="/signin/email"
+          className="px-0 font-medium text-[1.125rem] text-white"
+        >
           Sign In
         </NavLink>
       </Text>

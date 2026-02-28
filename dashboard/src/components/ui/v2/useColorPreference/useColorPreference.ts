@@ -1,5 +1,5 @@
-import { ColorPreferenceContext } from '@/components/ui/v2/ColorPreferenceProvider';
 import { useContext } from 'react';
+import { ColorPreferenceContext } from '@/components/ui/v2/ColorPreferenceProvider';
 
 /**
  * Returns the current color Preference and a function to change it.

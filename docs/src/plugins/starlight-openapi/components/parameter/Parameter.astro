@@ -1,0 +1,40 @@
+---
+import { isOpenAPIV2Items } from '../../libs/items'
+import type { Parameter } from '../../libs/parameter'
+import { isParameterWithSchemaObject } from '../../libs/schemaObject'
+import Content from '../Content.astro'
+import Items from '../Items.astro'
+import Key from '../Key.astro'
+import Md from '../Md.astro'
+import Schema from '../schema/Schema.astro'
+
+interface Props {
+  parameter: Parameter
+}
+
+const { parameter } = Astro.props
+---
+
+<Key deprecated={parameter.deprecated} name={parameter.name} required={parameter.required}>
+  {
+    isOpenAPIV2Items(parameter) ? (
+      <>
+        <Items items={parameter} />
+        <Md text={parameter.description} />
+      </>
+    ) : parameter.content ? (
+      <>
+        <Content content={parameter.content} />
+        <Md text={parameter.description} />
+      </>
+    ) : isParameterWithSchemaObject(parameter) ? (
+      <Schema
+        description={parameter.description}
+        example={parameter.example}
+        examples={parameter.examples}
+        {parameter}
+        schema={parameter.schema}
+      />
+    ) : null
+  }
+</Key>

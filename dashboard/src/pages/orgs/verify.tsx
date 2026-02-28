@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/router';
+import { useCallback, useEffect } from 'react';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Header } from '@/components/layout/Header';
 import { FinishOrganizationProcess } from '@/features/orgs/components/common/FinishOrganizationProcess';
@@ -9,8 +11,6 @@ import { analytics } from '@/lib/segment';
 import { useAuth } from '@/providers/Auth';
 import type { PostOrganizationRequestMutation } from '@/utils/__generated__/graphql';
 import { useGetOrganizationLazyQuery } from '@/utils/__generated__/graphql';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect } from 'react';
 
 export default function PostCheckout() {
   const router = useRouter();

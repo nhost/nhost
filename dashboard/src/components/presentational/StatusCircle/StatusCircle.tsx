@@ -1,5 +1,5 @@
-import { Box } from '@/components/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
+import { Box } from '@/components/ui/v2/Box';
 
 export type DeploymentStatus =
   | 'DEPLOYING'

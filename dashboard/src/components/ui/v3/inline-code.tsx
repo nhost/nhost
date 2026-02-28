@@ -1,15 +1,15 @@
-import { cn } from '@/lib/utils';
 import type { PropsWithChildren } from 'react';
+import { cn } from '@/lib/utils';
 
 export function InlineCode({
   children,
   className,
   ...props
-}: PropsWithChildren<{ className?: string }>) {
+}: PropsWithChildren<React.HTMLAttributes<HTMLElement>>) {
   return (
     <code
       className={cn(
-        'relative rounded bg-[#eaedf0] px-1 font-mono text-[11px] dark:bg-[#2f363d]',
+        'relative max-w-xs truncate rounded bg-[#eaedf0] px-1 font-mono text-[11px] dark:bg-[#2f363d]',
         className,
       )}
       {...props}

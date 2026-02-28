@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
@@ -12,20 +14,17 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { CreateEnvironmentVariableForm } from '@/features/orgs/projects/environmentVariables/settings/components/CreateEnvironmentVariableForm';
 import { EditEnvironmentVariableForm } from '@/features/orgs/projects/environmentVariables/settings/components/EditEnvironmentVariableForm';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { EnvironmentVariable } from '@/types/application';
 import {
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import { Fragment } from 'react';
-import { twMerge } from 'tailwind-merge';
-
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export interface EnvironmentVariableSettingsFormValues {
   /**
@@ -186,7 +185,7 @@ export default function EnvironmentVariableSettings() {
                       <Dropdown.Trigger
                         asChild
                         hideChevron
-                        className="absolute right-4 top-1/2 -translate-y-1/2"
+                        className="absolute top-1/2 right-4 -translate-y-1/2"
                       >
                         <IconButton
                           variant="borderless"

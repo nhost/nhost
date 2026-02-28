@@ -426,7 +426,7 @@ func renderType(sdl *strings.Builder, t typeInfo, neededTypes map[string]Type) {
 	sdl.WriteString("type " + t.name)
 
 	if len(t.typ.Interfaces) > 0 {
-		var ifaces []string
+		ifaces := make([]string, 0, len(t.typ.Interfaces))
 		for _, iface := range t.typ.Interfaces {
 			ifaces = append(ifaces, *iface.Name)
 		}

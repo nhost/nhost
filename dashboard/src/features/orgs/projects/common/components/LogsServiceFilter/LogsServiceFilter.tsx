@@ -1,3 +1,5 @@
+import { forwardRef, memo, useMemo } from 'react';
+import type { UseFormRegisterReturn } from 'react-hook-form';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -7,8 +9,6 @@ import {
 } from '@/features/orgs/projects/logs/utils/constants/services';
 import { isEmptyValue } from '@/lib/utils';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
-import { forwardRef, memo, useMemo } from 'react';
-import type { UseFormRegisterReturn } from 'react-hook-form';
 
 type LogsServiceFilterProps = UseFormRegisterReturn<
   keyof {
@@ -40,7 +40,7 @@ const LogsServiceFilter = forwardRef<HTMLButtonElement, LogsServiceFilterProps>(
       ];
 
       return options.map(({ value, label }) => (
-        <Option key={value} value={value} className="text-sm+ font-medium">
+        <Option key={value} value={value} className="font-medium text-sm+">
           {label}
         </Option>
       ));
@@ -50,7 +50,7 @@ const LogsServiceFilter = forwardRef<HTMLButtonElement, LogsServiceFilterProps>(
       <ControlledSelect
         {...selectProps}
         ref={ref}
-        className="w-full min-w-fit text-sm font-normal"
+        className="w-full min-w-fit font-normal text-sm"
         placeholder="All Services"
         aria-label="Select service"
         hideEmptyHelperText

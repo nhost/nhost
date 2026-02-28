@@ -1,8 +1,8 @@
+import { useEffect } from 'react';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useProjectWithState } from '@/features/orgs/projects/hooks/useProjectWithState';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import { useEffect } from 'react';
 
 /**
  * This hook returns the current application state. If the application state

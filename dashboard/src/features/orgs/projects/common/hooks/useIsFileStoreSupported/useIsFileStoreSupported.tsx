@@ -1,8 +1,8 @@
+import { useEffect, useState } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetConfiguredVersionsQuery } from '@/utils/__generated__/graphql';
-import { useEffect, useState } from 'react';
 
 function compareSemver(v1: string, v2: string): number {
   const parse = (v: string) => v.split('.').map(Number);

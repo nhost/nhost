@@ -115,7 +115,7 @@ func (ctrl *Controller) getFileMetadataHeadersResponseObject( //nolint:ireturn
 				CacheControl:     bucketMetadata.CacheControl,
 				ContentType:      fileMetadata.MimeType,
 				Etag:             fileMetadata.Etag,
-				LastModified:     fileMetadata.UpdatedAt,
+				LastModified:     api.RFC2822Date(fileMetadata.UpdatedAt),
 				SurrogateControl: bucketMetadata.CacheControl,
 				SurrogateKey:     fileMetadata.Id,
 				ContentDisposition: fmt.Sprintf(

@@ -2,8 +2,18 @@
 .graphiql-container button,
 .graphiql-container input {
   color: #141823;
-  font-family: system, -apple-system, San Francisco, \.SFNSDisplay-Regular,
-    Segoe UI, Segoe, Segoe WP, Helvetica Neue, helvetica, Lucida Grande, arial,
+  font-family:
+    system,
+    -apple-system,
+    San Francisco,
+    \.SFNSDisplay-Regular,
+    Segoe UI,
+    Segoe,
+    Segoe WP,
+    Helvetica Neue,
+    helvetica,
+    Lucida Grande,
+    arial,
     sans-serif;
   font-size: 14px;
 }
@@ -58,7 +68,7 @@
 .graphiql-container .docExplorerShow:before {
   border-left: 2px solid #3b5998;
   border-top: 2px solid #3b5998;
-  content: '';
+  content: "";
   display: inline-block;
   height: 9px;
   margin: 0 3px -1px 0;
@@ -151,7 +161,7 @@
 .graphiql-container .footer:before {
   background: #eee;
   bottom: 0;
-  content: ' ';
+  content: " ";
   left: -13px;
   position: absolute;
   top: -1px;
@@ -207,7 +217,9 @@
 }
 .graphiql-container .execute-button:active {
   background: linear-gradient(#e6e6e6, #c3c3c3);
-  box-shadow: 0 1px 0 #fff, inset 0 0 2px rgba(0, 0, 0, 0.2),
+  box-shadow:
+    0 1px 0 #fff,
+    inset 0 0 2px rgba(0, 0, 0, 0.2),
     inset 0 0 6px rgba(0, 0, 0, 0.1);
 }
 .graphiql-container .toolbar-menu,
@@ -218,7 +230,9 @@
 .graphiql-container .toolbar-menu-items,
 .graphiql-container .toolbar-select-options {
   background: #fff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.25);
   margin: 0;
   padding: 6px 0;
   position: absolute;
@@ -288,7 +302,12 @@
 }
 .graphiql-container .CodeMirror {
   color: #141823;
-  font-family: Consolas, Inconsolata, Droid Sans Mono, Monaco, monospace;
+  font-family:
+    Consolas,
+    Inconsolata,
+    Droid Sans Mono,
+    Monaco,
+    monospace;
   font-size: 13px;
   height: 100%;
   left: 0;
@@ -297,13 +316,22 @@
   width: 100%;
 }
 
-
 .CodeMirror-hint-information .content {
   box-orient: vertical;
   color: #141823;
   display: flex;
-  font-family: system, -apple-system, San Francisco, \.SFNSDisplay-Regular,
-    Segoe UI, Segoe, Segoe WP, Helvetica Neue, helvetica, Lucida Grande, arial,
+  font-family:
+    system,
+    -apple-system,
+    San Francisco,
+    \.SFNSDisplay-Regular,
+    Segoe UI,
+    Segoe,
+    Segoe WP,
+    Helvetica Neue,
+    helvetica,
+    Lucida Grande,
+    arial,
     sans-serif;
   font-size: 13px;
   line-clamp: 3;
@@ -419,7 +447,7 @@ div.CodeMirror-lint-tooltip > * + * {
   opacity: 1;
 }
 .graphiql-container .tab .close:before {
-  content: '✕';
+  content: "✕";
   display: inline-block;
   font-weight: 700;
   font-size: 12px;
@@ -457,7 +485,9 @@ div.CodeMirror-lint-tooltip > * + * {
   border-radius: 4px;
   background: #08f;
   background: linear-gradient(#43a8ff, #0f83e8);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.1);
   color: #fff;
   font-family: arial;
   font-size: 12px;
@@ -856,7 +886,7 @@ div.CodeMirror-dragcursors {
   }
 }
 .cm-tab-wrap-hack:after {
-  content: '';
+  content: "";
 }
 span.CodeMirror-selectedtext {
   background: none;
@@ -895,7 +925,10 @@ span.CodeMirror-selectedtext {
   cursor: pointer;
   font-family: arial;
   line-height: 0.3;
-  text-shadow: #b9f 1px 1px 2px, #b9f -1px -1px 2px, #b9f 1px -1px 2px,
+  text-shadow:
+    #b9f 1px 1px 2px,
+    #b9f -1px -1px 2px,
+    #b9f 1px -1px 2px,
     #b9f -1px 1px 2px;
 }
 .CodeMirror-foldgutter {
@@ -906,10 +939,10 @@ span.CodeMirror-selectedtext {
   cursor: pointer;
 }
 .CodeMirror-foldgutter-open:after {
-  content: '\25BE';
+  content: "\25BE";
 }
 .CodeMirror-foldgutter-folded:after {
-  content: '\25B8';
+  content: "\25B8";
 }
 .CodeMirror-info {
   background: #fff;
@@ -917,8 +950,18 @@ span.CodeMirror-selectedtext {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   box-sizing: border-box;
   color: #555;
-  font-family: system, -apple-system, San Francisco, \.SFNSDisplay-Regular,
-    Segoe UI, Segoe, Segoe WP, Helvetica Neue, helvetica, Lucida Grande, arial,
+  font-family:
+    system,
+    -apple-system,
+    San Francisco,
+    \.SFNSDisplay-Regular,
+    Segoe UI,
+    Segoe,
+    Segoe WP,
+    Helvetica Neue,
+    helvetica,
+    Lucida Grande,
+    arial,
     sans-serif;
   font-size: 13px;
   line-height: 16px;
@@ -1022,10 +1065,10 @@ span.CodeMirror-selectedtext {
   background-repeat: repeat-x;
 }
 .CodeMirror-lint-mark-error {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJDw4cOCW1/KIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAHElEQVQI12NggIL/DAz/GdA5/xkY/qPKMDAwAADLZwf5rvm+LQAAAABJRU5ErkJggg==');
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJDw4cOCW1/KIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAHElEQVQI12NggIL/DAz/GdA5/xkY/qPKMDAwAADLZwf5rvm+LQAAAABJRU5ErkJggg==");
 }
 .CodeMirror-lint-mark-warning {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJFhQXEbhTg7YAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAMklEQVQI12NkgIIvJ3QXMjAwdDN+OaEbysDA4MPAwNDNwMCwiOHLCd1zX07o6kBVGQEAKBANtobskNMAAAAASUVORK5CYII=');
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJFhQXEbhTg7YAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAMklEQVQI12NkgIIvJ3QXMjAwdDN+OaEbysDA4MPAwNDNwMCwiOHLCd1zX07o6kBVGQEAKBANtobskNMAAAAASUVORK5CYII=");
 }
 .CodeMirror-lint-marker-error,
 .CodeMirror-lint-marker-warning {
@@ -1046,14 +1089,14 @@ span.CodeMirror-selectedtext {
 }
 .CodeMirror-lint-marker-error,
 .CodeMirror-lint-message-error {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAHlBMVEW7AAC7AACxAAC7AAC7AAAAAAC4AAC5AAD///+7AAAUdclpAAAABnRSTlMXnORSiwCK0ZKSAAAATUlEQVR42mWPOQ7AQAgDuQLx/z8csYRmPRIFIwRGnosRrpamvkKi0FTIiMASR3hhKW+hAN6/tIWhu9PDWiTGNEkTtIOucA5Oyr9ckPgAWm0GPBog6v4AAAAASUVORK5CYII=');
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAHlBMVEW7AAC7AACxAAC7AAC7AAAAAAC4AAC5AAD///+7AAAUdclpAAAABnRSTlMXnORSiwCK0ZKSAAAATUlEQVR42mWPOQ7AQAgDuQLx/z8csYRmPRIFIwRGnosRrpamvkKi0FTIiMASR3hhKW+hAN6/tIWhu9PDWiTGNEkTtIOucA5Oyr9ckPgAWm0GPBog6v4AAAAASUVORK5CYII=");
 }
 .CodeMirror-lint-marker-warning,
 .CodeMirror-lint-message-warning {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAANlBMVEX/uwDvrwD/uwD/uwD/uwD/uwD/uwD/uwD/uwD6twD/uwAAAADurwD2tQD7uAD+ugAAAAD/uwDhmeTRAAAADHRSTlMJ8mN1EYcbmiixgACm7WbuAAAAVklEQVR42n3PUQqAIBBFUU1LLc3u/jdbOJoW1P08DA9Gba8+YWJ6gNJoNYIBzAA2chBth5kLmG9YUoG0NHAUwFXwO9LuBQL1giCQb8gC9Oro2vp5rncCIY8L8uEx5ZkAAAAASUVORK5CYII=');
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAANlBMVEX/uwDvrwD/uwD/uwD/uwD/uwD/uwD/uwD/uwD6twD/uwAAAADurwD2tQD7uAD+ugAAAAD/uwDhmeTRAAAADHRSTlMJ8mN1EYcbmiixgACm7WbuAAAAVklEQVR42n3PUQqAIBBFUU1LLc3u/jdbOJoW1P08DA9Gba8+YWJ6gNJoNYIBzAA2chBth5kLmG9YUoG0NHAUwFXwO9LuBQL1giCQb8gC9Oro2vp5rncCIY8L8uEx5ZkAAAAASUVORK5CYII=");
 }
 .CodeMirror-lint-marker-multiple {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAMAAADzjKfhAAAACVBMVEUAAAAAAAC/v7914kyHAAAAAXRSTlMAQObYZgAAACNJREFUeNo1ioEJAAAIwmz/H90iFFSGJgFMe3gaLZ0od+9/AQZ0ADosbYraAAAAAElFTkSuQmCC');
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAMAAADzjKfhAAAACVBMVEUAAAAAAAC/v7914kyHAAAAAXRSTlMAQObYZgAAACNJREFUeNo1ioEJAAAIwmz/H90iFFSGJgFMe3gaLZ0od+9/AQZ0ADosbYraAAAAAElFTkSuQmCC");
   background-position: 100% 100%;
   background-repeat: no-repeat;
   width: 100%;
@@ -1090,7 +1133,12 @@ span.CodeMirror-selectedtext {
 .CodeMirror-hints {
   background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
-  font-family: Consolas, Inconsolata, Droid Sans Mono, Monaco, monospace;
+  font-family:
+    Consolas,
+    Inconsolata,
+    Droid Sans Mono,
+    Monaco,
+    monospace;
   font-size: 13px;
   list-style: none;
   margin: 0;
@@ -1132,8 +1180,18 @@ li.CodeMirror-hint-active {
   background: #fffae8;
   box-shadow: inset 0 1px 1px -1px #bfb063;
   color: #867f70;
-  font-family: system, -apple-system, San Francisco, \.SFNSDisplay-Regular,
-    Segoe UI, Segoe, Segoe WP, Helvetica Neue, helvetica, Lucida Grande, arial,
+  font-family:
+    system,
+    -apple-system,
+    San Francisco,
+    \.SFNSDisplay-Regular,
+    Segoe UI,
+    Segoe,
+    Segoe WP,
+    Helvetica Neue,
+    helvetica,
+    Lucida Grande,
+    arial,
     sans-serif;
   font-size: 13px;
   line-height: 16px;
@@ -1192,7 +1250,7 @@ li.CodeMirror-hint-active {
 .graphiql-container .doc-explorer-back:before {
   border-left: 2px solid #3b5998;
   border-top: 2px solid #3b5998;
-  content: '';
+  content: "";
   display: inline-block;
   height: 9px;
   margin: 0 3px -1px 0;
@@ -1311,7 +1369,7 @@ li.CodeMirror-hint-active {
   margin: inherit;
 }
 .graphiql-container .arg:first-child:nth-last-child(2):after {
-  content: ', ';
+  content: ", ";
 }
 .graphiql-container .arg-default-value {
   color: #43a047;
@@ -1328,7 +1386,7 @@ li.CodeMirror-hint-active {
   border-radius: 3px;
 }
 .graphiql-container .doc-deprecation:before {
-  content: 'Deprecated:';
+  content: "Deprecated:";
   color: #c79b2e;
   cursor: default;
   display: block;
@@ -1410,7 +1468,12 @@ li.CodeMirror-hint-active {
   transform: translateY(-50%);
 }
 .graphiql-container .history-contents {
-  font-family: Consolas, Inconsolata, Droid Sans Mono, Monaco, monospace;
+  font-family:
+    Consolas,
+    Inconsolata,
+    Droid Sans Mono,
+    Monaco,
+    monospace;
   margin: 0;
   padding: 0;
 }

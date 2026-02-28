@@ -7,6 +7,7 @@ import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGr
  * @param responseData The response data from a Hasura query.
  * @returns The normalized error message.
  */
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export default function normalizeQueryError(responseData: any): string {
   const unknownErrorMessage = 'Unknown error occurred.';
 

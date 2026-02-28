@@ -1,4 +1,4 @@
-import { createNhostClient } from "../lib/nhost/server";
+import { createNhostClient } from '../lib/nhost/server';
 
 export default async function Home() {
   const nhost = await createNhostClient();

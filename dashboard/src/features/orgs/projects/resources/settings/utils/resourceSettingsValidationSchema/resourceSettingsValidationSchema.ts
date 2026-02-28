@@ -1,9 +1,9 @@
+import * as Yup from 'yup';
 import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MEMORY_RATIO,
   RESOURCE_VCPU_MULTIPLIER,
 } from '@/utils/constants/common';
-import * as Yup from 'yup';
 
 /**
  * The minimum total CPU that has to be allocated.
@@ -124,7 +124,7 @@ const postgresServiceValidationSchema = Yup.object({
   memory: Yup.number()
     .required()
     .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY)
+    .max(MAX_SERVICE_MEMORY),
 });
 
 export const resourceSettingsValidationSchema = Yup.object({

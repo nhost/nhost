@@ -1,8 +1,8 @@
+import { setupServer } from 'msw/node';
+import { vi } from 'vitest';
 import { mockApplication } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
 import DeploymentServiceLogsHeader from './DeploymentServiceLogsHeader';
 
 const server = setupServer(tokenQuery);
@@ -36,6 +36,7 @@ vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
 }));
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -66,9 +67,8 @@ describe('LogsHeader', () => {
     waitFor(() => {
       expect(screen.getByTestId('ServicePicker')).toBeInTheDocument();
     });
-    waitFor(async () => {
-      await user.click(await screen.findByTestId('ServicePicker'));
-    });
+
+    await TestUserEvent.fireClickEvent(screen.getByTestId('ServicePicker'));
 
     waitFor(async () => {
       expect(screen.getByText('run-service')).toBeInTheDocument();

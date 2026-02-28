@@ -1,10 +1,11 @@
+import { formatDistanceToNow } from 'date-fns';
+import { BoxIcon } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
@@ -12,12 +13,14 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DeleteServiceModal } from '@/features/orgs/projects/common/components/DeleteServiceModal';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { type RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
+import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
-import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import type { ServiceFormInitialData } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import type { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import {
+  defaultServiceFormValues,
+  type ServiceFormInitialData,
+} from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { copy } from '@/utils/copy';
-import { formatDistanceToNow } from 'date-fns';
 
 interface ServicesListProps {
   /**
@@ -27,16 +30,13 @@ interface ServicesListProps {
 
   /**
    * Function to be called after a submitting the form for either creating or updating a service.
-   *
-   * @example onDelete={() => refetch()}
    */
-  onCreateOrUpdate: () => Promise<any>;
+  onCreateOrUpdate: () => Promise<unknown>;
 
   /**
    * Function to be called after a successful delete action.
-   *
    */
-  onDelete?: () => Promise<any>;
+  onDelete?: () => Promise<unknown>;
 }
 
 export default function ServicesList({
@@ -51,7 +51,7 @@ export default function ServicesList({
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
-          <CubeIcon className="h-5 w-5" />
+          <BoxIcon className="h-5 w-5" />
           <Text>Edit {service.config?.name ?? 'unset'}</Text>
         </Box>
       ),
@@ -74,12 +74,15 @@ export default function ServicesList({
                 ingresses: item.ingresses,
                 rateLimit: item.rateLimit,
               })),
-              compute: service.config?.resources?.compute ?? {
-                cpu: 62,
-                memory: 128,
-              },
-              replicas: service.config?.resources?.replicas,
-              autoscaler: service?.config?.resources?.autoscaler,
+              compute:
+                service.config?.resources?.compute ??
+                defaultServiceFormValues.compute,
+              replicas:
+                service.config?.resources?.replicas ??
+                defaultServiceFormValues.replicas,
+              autoscaler:
+                service?.config?.resources?.autoscaler ??
+                defaultServiceFormValues.autoscaler,
               storage: service.config?.resources?.storage,
             } as ServiceFormInitialData
           }
@@ -121,14 +124,14 @@ export default function ServicesList({
             }}
           >
             <div className="flex flex-1 flex-row items-center space-x-4">
-              <CubeIcon className="h-5 w-5" />
+              <BoxIcon className="h-5 w-5" />
               <div className="flex flex-col">
                 <Text variant="h4" className="font-semibold">
                   {service.config?.name ?? 'unset'}
                 </Text>
                 {isPlatform ? (
                   <Tooltip title={service.updatedAt}>
-                    <span className="hidden cursor-pointer text-sm text-slate-500 xs+:flex">
+                    <span className="xs+:flex hidden cursor-pointer text-slate-500 text-sm">
                       Deployed{' '}
                       {formatDistanceToNow(new Date(service.updatedAt!))} ago
                     </span>
@@ -178,14 +181,14 @@ export default function ServicesList({
             >
               <Dropdown.Item
                 onClick={() => viewService(service)}
-                className="z-50 grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
               >
                 <UserIcon className="h-4 w-4" />
                 <Text className="font-medium">View Service</Text>
               </Dropdown.Item>
               <Divider component="li" />
               <Dropdown.Item
-                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                 sx={{ color: 'error.main' }}
                 onClick={(e) => {
                   e.stopPropagation();

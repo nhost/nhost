@@ -165,7 +165,8 @@ func parseClaims(parts []string) map[string]any {
 }
 
 func claimsMapToGraphql(claims map[string]any) string {
-	result := "{"
+	var result strings.Builder
+	result.WriteString("{")
 
 	// Sort the keys to ensure consistent order
 	keys := make([]string, 0, len(claims))
@@ -179,15 +180,15 @@ func claimsMapToGraphql(claims map[string]any) string {
 		v := claims[k]
 		switch t := v.(type) {
 		case nil:
-			result += k + " "
+			result.WriteString(k + " ")
 		case map[string]any:
-			result += k + "" + claimsMapToGraphql(t)
+			result.WriteString(k + "" + claimsMapToGraphql(t))
 		default:
 			panic(fmt.Sprintf("unexpected type %T", t))
 		}
 	}
 
-	return result + "}"
+	return result.String() + "}"
 }
 
 type RequestInterceptor func(*http.Request)

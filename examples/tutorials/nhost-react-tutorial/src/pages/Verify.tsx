@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function Verify() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [status, setStatus] = useState<"verifying" | "success" | "error">(
-    "verifying",
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(
+    'verifying',
   );
   const [error, setError] = useState<string | null>(null);
   const [urlParams, setUrlParams] = useState<Record<string, string>>({});
@@ -17,7 +17,7 @@ export default function Verify() {
   useEffect(() => {
     // Extract the refresh token from the URL
     const params = new URLSearchParams(location.search);
-    const refreshToken = params.get("refreshToken");
+    const refreshToken = params.get('refreshToken');
 
     if (!refreshToken) {
       // Collect all URL parameters to display for debugging
@@ -27,8 +27,8 @@ export default function Verify() {
       });
       setUrlParams(allParams);
 
-      setStatus("error");
-      setError("No refresh token found in URL");
+      setStatus('error');
+      setError('No refresh token found in URL');
       return;
     }
 
@@ -50,8 +50,8 @@ export default function Verify() {
           });
           setUrlParams(allParams);
 
-          setStatus("error");
-          setError("No refresh token found in URL");
+          setStatus('error');
+          setError('No refresh token found in URL');
           return;
         }
 
@@ -60,17 +60,17 @@ export default function Verify() {
 
         if (!isMounted) return;
 
-        setStatus("success");
+        setStatus('success');
 
         // Wait to show success message briefly, then redirect
         setTimeout(() => {
-          if (isMounted) navigate("/profile");
+          if (isMounted) navigate('/profile');
         }, 1500);
       } catch (err) {
-        const message = (err as Error).message || "Unknown error";
+        const message = (err as Error).message || 'Unknown error';
         if (!isMounted) return;
 
-        setStatus("error");
+        setStatus('error');
         setError(`An error occurred during verification: ${message}`);
       }
     }
@@ -88,7 +88,7 @@ export default function Verify() {
       <h1>Email Verification</h1>
 
       <div className="page-center">
-        {status === "verifying" && (
+        {status === 'verifying' && (
           <div>
             <p className="margin-bottom">Verifying your email...</p>
             <div className="spinner-verify" />
@@ -101,14 +101,14 @@ export default function Verify() {
           </div>
         )}
 
-        {status === "success" && (
+        {status === 'success' && (
           <div>
             <p className="verification-status">✓ Successfully verified!</p>
             <p>You'll be redirected to your profile page shortly...</p>
           </div>
         )}
 
-        {status === "error" && (
+        {status === 'error' && (
           <div>
             <p className="verification-status error">Verification failed</p>
             <p className="margin-bottom">{error}</p>
@@ -118,7 +118,7 @@ export default function Verify() {
                 <p className="debug-title">URL Parameters:</p>
                 {Object.entries(urlParams).map(([key, value]) => (
                   <div key={key} className="debug-item">
-                    <span className="debug-key">{key}:</span>{" "}
+                    <span className="debug-key">{key}:</span>{' '}
                     <span className="debug-value">{value}</span>
                   </div>
                 ))}
@@ -127,7 +127,7 @@ export default function Verify() {
 
             <button
               type="button"
-              onClick={() => navigate("/signin")}
+              onClick={() => navigate('/signin')}
               className="auth-button secondary"
             >
               Back to Sign In

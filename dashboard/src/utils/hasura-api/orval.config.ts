@@ -1,6 +1,6 @@
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { defineConfig } from 'orval';
-import * as path from 'path';
 
 export default defineConfig({
   hasuraApi: {
@@ -12,7 +12,8 @@ export default defineConfig({
       target: 'generated',
       schemas: 'generated/schemas',
       client: 'fetch',
-      prettier: true,
+      biome: true,
+      clean: true,
       override: {
         mutator: {
           path: './customFetch.ts',
@@ -57,8 +58,7 @@ export default defineConfig({
           );
 
           fs.writeFileSync(defaultTsPath, content, 'utf8');
-          // eslint-disable-next-line no-console
-          console.log('✅ Updated default.ts to use CustomFetchOptions');
+          console.info('✅ Updated default.ts to use CustomFetchOptions');
         }
       },
     },

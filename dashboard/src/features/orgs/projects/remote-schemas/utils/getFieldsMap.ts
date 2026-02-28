@@ -1,5 +1,5 @@
-import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import type { FieldDefinitionNode } from 'graphql';
+import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import getPresetDirective from './getPresetDirective';
 
 function getPresets(field: FieldDefinitionNode) {
@@ -23,6 +23,7 @@ export default function getFieldsMap(
   const typeFields = (fields ?? []).reduce((acc, field) => {
     const fieldName = field?.name?.value;
     if (fieldName) {
+      // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
       acc[fieldName] = getPresets(field);
     }
     return acc;

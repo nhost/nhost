@@ -6,11 +6,6 @@ import type {
   GraphQLType,
 } from 'graphql';
 
-export interface MetadataOperationOptions {
-  appUrl: string;
-  adminSecret: string;
-}
-
 export type RemoteSchemaRelationshipType = 'remote-schema' | 'database';
 
 export type RemoteSchemaAccessLevel = 'full' | 'partial' | 'none';
@@ -28,12 +23,14 @@ export type CustomFieldType = {
   return?: string;
   typeName?: string;
   children?: FieldType[];
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   defaultValue?: any;
   isInputObjectType?: boolean;
   parentName?: string;
   expanded?: boolean;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export type FieldType = CustomFieldType & GraphQLField<any, any>;
 
 export type RemoteSchemaFields =

@@ -17,6 +17,8 @@ let
         "pnpm-lock.yaml"
         "${submodule}/package.json"
         "${submodule}/pnpm-lock.yaml"
+        "${submodule}/codegen-nhost/package.json"
+        "${submodule}/codegen-nhost/pnpm-lock.yaml"
         "${submodule}/react-apollo/package.json"
         "${submodule}/react-apollo/pnpm-lock.yaml"
         "${submodule}/react-query/package.json"

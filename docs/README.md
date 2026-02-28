@@ -1,32 +1,66 @@
-# Mintlify Starter Kit
+# Nhost Documentation
 
-Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
+This is the source for [docs.nhost.io](https://docs.nhost.io), built with [Astro](https://astro.build) and [Starlight](https://starlight.astro.build).
 
-- Guide pages
-- Navigation
-- Customizations
-- API Reference pages
-- Use of popular components
-
-### Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the documentation changes locally. To install, use the following command
+## Project Structure
 
 ```
-npm i -g mintlify
+docs/
+├── public/              # Static assets (favicons, etc.)
+├── src/
+│   ├── assets/          # Images and other assets
+│   ├── components/      # Custom Astro components
+│   ├── content/
+│   │   └── docs/        # Documentation pages (.md/.mdx)
+│   ├── plugins/         # Custom Starlight plugins
+│   ├── schemas/         # OpenAPI schemas for API reference
+│   └── styles/          # Custom CSS
+├── astro.config.mjs     # Astro/Starlight configuration
+└── package.json
 ```
 
-Run the following command at the root of your documentation (where mint.json is)
+## Development
 
+```bash
+# Install dependencies
+pnpm install
+
+# Start dev server at localhost:4321
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Preview production build
+pnpm preview
 ```
-mintlify dev
+
+## Writing Documentation
+
+Documentation pages live in `src/content/docs/`. Each `.md` or `.mdx` file becomes a page based on its path:
+
+- `src/content/docs/products/auth.md` → `/products/auth/`
+- `src/content/docs/getting-started/index.md` → `/getting-started/`
+
+### Frontmatter
+
+Every page needs frontmatter at the top:
+
+```yaml
+---
+title: Page Title
+description: A brief description for SEO and previews.
+keywords: [keyword1, keyword2]
+---
 ```
 
-### Publishing Changes
+### Adding to Sidebar
 
-Install our Github App to autopropagate changes from youre repo to your deployment. Changes will be deployed to production automatically after pushing to the default branch. Find the link to install on your dashboard. 
+The sidebar is configured in `astro.config.mjs` using `starlightSidebarTopics`. Add new pages to the appropriate section.
 
-#### Troubleshooting
+## API Reference
 
-- Mintlify dev isn't running - Run `mintlify install` it'll re-install dependencies.
-- Page loads as a 404 - Make sure you are running in a folder with `mint.json`
+API documentation is auto-generated from OpenAPI schemas in `src/schemas/`. To update:
+
+1. Edit the relevant schema file (`auth.yaml` or `storage.yaml`)
+2. The pages will regenerate on build

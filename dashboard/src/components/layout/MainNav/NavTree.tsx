@@ -1,3 +1,12 @@
+import { Box, ChevronDown, ChevronRight, Plus, Zap } from 'lucide-react';
+import Link from 'next/link';
+import type { ReactElement } from 'react';
+import {
+  ControlledTreeEnvironment,
+  Tree,
+  type TreeItem,
+  type TreeItemIndex,
+} from 'react-complex-tree';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
@@ -12,19 +21,9 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
+import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
-import { Box, ChevronDown, ChevronRight, Plus } from 'lucide-react';
-import Link from 'next/link';
-import { type ReactElement } from 'react';
-
-import {
-  ControlledTreeEnvironment,
-  Tree,
-  type TreeItem,
-  type TreeItemIndex,
-} from 'react-complex-tree';
 import { useTreeNavState } from './TreeNavStateContext';
 
 const projectPages = [
@@ -47,6 +46,12 @@ const projectPages = [
     slug: 'graphql',
   },
   {
+    name: 'Events',
+    icon: <Zap className="h-4 w-4" />,
+    route: 'events/event-triggers',
+    slug: 'events',
+  },
+  {
     name: 'Hasura',
     icon: <HasuraIcon className="h-4 w-4" />,
     route: 'hasura',
@@ -55,8 +60,8 @@ const projectPages = [
   {
     name: 'Auth',
     icon: <UserIcon className="h-4 w-4" />,
-    route: 'users',
-    slug: 'users',
+    route: 'auth/users',
+    slug: 'auth',
   },
   {
     name: 'Storage',
@@ -131,12 +136,17 @@ const projectSettingsPages = [
     slug: 'sign-in-methods',
     route: 'sign-in-methods',
   },
-  { name: 'Storage', slug: 'storage', route: 'storage' },
+  {
+    name: 'OAuth2 Provider',
+    slug: 'oauth2-provider',
+    route: 'oauth2-provider',
+  },
   {
     name: 'Roles and Permissions',
     slug: 'roles-and-permissions',
     route: 'roles-and-permissions',
   },
+  { name: 'Storage', slug: 'storage', route: 'storage' },
   { name: 'SMTP', slug: 'smtp', route: 'smtp' },
   { name: 'Git', slug: 'git', route: 'git' },
   {
@@ -170,6 +180,42 @@ const projectGraphQLPages = [
     name: 'Remote Schemas',
     slug: 'remote-schemas',
     route: 'graphql/remote-schemas',
+  },
+  {
+    name: 'Metadata',
+    slug: 'metadata',
+    route: 'graphql/metadata',
+  },
+];
+
+const projectEventsPages = [
+  {
+    name: 'Event Triggers',
+    slug: 'event-triggers',
+    route: 'events/event-triggers',
+  },
+  {
+    name: 'Cron Triggers',
+    slug: 'cron-triggers',
+    route: 'events/cron-triggers',
+  },
+  {
+    name: 'One-Off Scheduled Events',
+    slug: 'one-offs',
+    route: 'events/one-offs',
+  },
+];
+
+const projectAuthPages = [
+  {
+    name: 'Users',
+    slug: 'users',
+    route: 'auth/users',
+  },
+  {
+    name: 'OAuth2 Clients',
+    slug: 'oauth2-clients',
+    route: 'auth/oauth2-clients',
   },
 ];
 
@@ -257,7 +303,9 @@ const createOrganization = (org: Org) => {
         canMove: false,
         isFolder:
           (_page.name === 'Settings' && !shouldDisableSettings) ||
-          _page.name === 'GraphQL',
+          _page.name === 'GraphQL' ||
+          _page.name === 'Events' ||
+          _page.name === 'Auth',
         children: (() => {
           if (_page.name === 'Settings' && !shouldDisableSettings) {
             return projectSettingsPages.map(
@@ -267,6 +315,16 @@ const createOrganization = (org: Org) => {
           if (_page.name === 'GraphQL') {
             return projectGraphQLPages.map(
               (p) => `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
+            );
+          }
+          if (_page.name === 'Events') {
+            return projectEventsPages.map(
+              (p) => `${org.slug}-${_app.subdomain}-events-${p.slug}`,
+            );
+          }
+          if (_page.name === 'Auth') {
+            return projectAuthPages.map(
+              (p) => `${org.slug}-${_app.subdomain}-auth-${p.slug}`,
             );
           }
           return undefined;
@@ -310,6 +368,34 @@ const createOrganization = (org: Org) => {
     projectGraphQLPages.forEach((p) => {
       result[`${org.slug}-${_app.subdomain}-graphql-${p.slug}`] = {
         index: `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
+        canMove: false,
+        isFolder: false,
+        children: undefined,
+        data: {
+          name: p.name,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
+        },
+        canRename: false,
+      };
+    });
+
+    projectEventsPages.forEach((p) => {
+      result[`${org.slug}-${_app.subdomain}-events-${p.slug}`] = {
+        index: `${org.slug}-${_app.subdomain}-events-${p.slug}`,
+        canMove: false,
+        isFolder: false,
+        children: undefined,
+        data: {
+          name: p.name,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
+        },
+        canRename: false,
+      };
+    });
+
+    projectAuthPages.forEach((p) => {
+      result[`${org.slug}-${_app.subdomain}-auth-${p.slug}`] = {
+        index: `${org.slug}-${_app.subdomain}-auth-${p.slug}`,
         canMove: false,
         isFolder: false,
         children: undefined,
@@ -471,7 +557,10 @@ export default function NavTree() {
                   return;
                 }
 
-                if (item.data.name === 'GraphQL' && item.isFolder) {
+                if (
+                  ['GraphQL', 'Events', 'Auth'].includes(item.data.name) &&
+                  item.isFolder
+                ) {
                   if (!context.isExpanded) {
                     context.toggleExpandedState();
                   }
@@ -482,9 +571,9 @@ export default function NavTree() {
                 }
               }}
               className={cn(
-                'flex h-8 w-full flex-row justify-start gap-1 bg-background px-1 text-foreground hover:bg-accent dark:hover:bg-muted',
+                'flex h-8 w-full flex-row justify-start gap-1 bg-background px-1 text-foreground hover:bg-accent',
                 {
-                  'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted':
+                  'bg-[#ebf3ff] hover:bg-accent dark:bg-muted':
                     context.isFocused,
                 },
                 item.data.disabled && 'pointer-events-none opacity-50',

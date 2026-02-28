@@ -1,10 +1,10 @@
+import NextLink from 'next/link';
 import { FormInput } from '@/components/form/FormInput';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import useSignInWithEmailAndPasswordForm, {
   type SignInWithEmailAndPasswordFormValues,
 } from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useSignInWithEmailAndPasswordForm';
-import NextLink from 'next/link';
 
 interface Props {
   onSubmit: (values: SignInWithEmailAndPasswordFormValues) => void;
@@ -24,12 +24,14 @@ function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
           label="Email"
           name="email"
           type="email"
+          placeholder="Email"
         />
         <FormInput
           control={form.control}
           label="Password"
           name="password"
           type="password"
+          placeholder="Password"
         />
         <NextLink
           href="/password/new"
@@ -40,7 +42,7 @@ function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
         <Button
           type="submit"
           variant="outline"
-          className="w-full !bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+          className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 w-full"
           disabled={isLoading}
           loading={isLoading}
         >

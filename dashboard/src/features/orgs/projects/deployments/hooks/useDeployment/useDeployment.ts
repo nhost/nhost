@@ -1,9 +1,9 @@
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   DeploymentSubDocument,
   useGetDeploymentQuery,
 } from '@/generated/graphql';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, useRef } from 'react';
 
 function useDeployment() {
   const {

@@ -1,26 +1,24 @@
-import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
-import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
-import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Input } from '@/components/ui/v2/Input';
-import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
-import {
-  useGetServerlessFunctionsSettingsQuery,
-  useUpdateConfigMutation,
-  type ConfigIngressUpdateInput,
-} from '@/generated/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
+import { Form } from '@/components/form/Form';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Input } from '@/components/ui/v2/Input';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isNotEmptyValue } from '@/lib/utils';
+import {
+  type ConfigIngressUpdateInput,
+  useGetServerlessFunctionsSettingsQuery,
+  useUpdateConfigMutation,
+} from '@/generated/graphql';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
   functions_fqdn: Yup.string(),
@@ -33,7 +31,6 @@ export type ServerlessFunctionsDomainFormValues = Yup.InferType<
 export default function ServerlessFunctionsDomain() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const [isVerified, setIsVerified] = useState(false);
   const {
@@ -68,6 +65,23 @@ export default function ServerlessFunctionsDomain() {
     }
   }, [data, loading, form, initialValue]);
 
+  const { formState, watch, setValue } = form;
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
+
+  const functions_fqdn = watch('functions_fqdn');
+
+  const submitButtonDisabled = (() => {
+    if (!isPlatform) {
+      return !isDirty;
+    }
+
+    if (isEmptyValue(functions_fqdn) && isDirty) {
+      return false;
+    }
+
+    return !isDirty || !isVerified;
+  })();
+
   if (loadingProject || loading) {
     return (
       <ActivityIndicator
@@ -82,17 +96,19 @@ export default function ServerlessFunctionsDomain() {
     throw error;
   }
 
-  const { formState, register, watch } = form;
-  const isDirty = Object.keys(formState.dirtyFields).length > 0;
-
-  const functions_fqdn = watch('functions_fqdn');
-
   async function handleSubmit(formValues: ServerlessFunctionsDomainFormValues) {
-    const ingresses: ConfigIngressUpdateInput[] = isNotEmptyValue(
-      formValues.functions_fqdn,
-    )
-      ? [{ fqdn: [formValues.functions_fqdn] }]
-      : [];
+    let ingresses: ConfigIngressUpdateInput[] | null;
+    let successMessage = '';
+
+    if (isNotEmptyValue(formValues.functions_fqdn)) {
+      ingresses = [{ fqdn: [formValues.functions_fqdn] }];
+      successMessage =
+        'Serverless Functions domain has been updated successfully.';
+    } else {
+      ingresses = null;
+      successMessage =
+        'Custom Serverless Functions domain has been removed successfully.';
+    }
 
     const updateConfigPromise = updateConfig({
       variables: {
@@ -129,21 +145,12 @@ export default function ServerlessFunctionsDomain() {
       },
       {
         loadingMessage: 'Serverless Functions domain is being updated...',
-        successMessage:
-          'Serverless Functions domain has been updated successfully.',
+        successMessage,
         errorMessage:
           'An error occurred while trying to update the Serverless Functions domain.',
       },
     );
   }
-
-  const isDisabled = () => {
-    if (!isPlatform) {
-      return !isDirty || maintenanceActive;
-    }
-
-    return !isDirty || maintenanceActive || (!isVerified && !initialValue);
-  };
 
   return (
     <FormProvider {...form}>
@@ -153,14 +160,20 @@ export default function ServerlessFunctionsDomain() {
           description="Enter below your custom domain for Serverless Functions."
           slotProps={{
             submitButton: {
-              disabled: isDisabled(),
+              disabled: submitButtonDisabled,
               loading: formState.isSubmitting,
             },
           }}
           className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
         >
           <Input
-            {...register('functions_fqdn')}
+            value={functions_fqdn}
+            onChange={(e) => {
+              setValue('functions_fqdn', e.target.value, { shouldDirty: true });
+              if (isVerified) {
+                setIsVerified(false);
+              }
+            }}
             id="functions_fqdn"
             name="functions_fqdn"
             type="string"
@@ -177,6 +190,7 @@ export default function ServerlessFunctionsDomain() {
               hostname={functions_fqdn}
               value={`lb.${project!.region.name}.${project!.region.domain}.`}
               onHostNameVerified={() => setIsVerified(true)}
+              saveEnabled={!submitButtonDisabled}
             />
           </div>
         </SettingsContainer>

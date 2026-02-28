@@ -1,9 +1,9 @@
-"use server";
+'use server';
 
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { createNhostClient } from "../../lib/nhost/server";
-import type { Todo } from "./page";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { createNhostClient } from '../../lib/nhost/server';
+import type { Todo } from './page';
 
 // Response types for server actions
 type ActionResult<T = void> = {
@@ -34,7 +34,7 @@ export async function addTodo(data: {
   if (!title.trim()) {
     return {
       success: false,
-      error: "Title is required",
+      error: 'Title is required',
     };
   }
 
@@ -45,7 +45,7 @@ export async function addTodo(data: {
     if (!session) {
       return {
         success: false,
-        error: "Not authenticated",
+        error: 'Not authenticated',
       };
     }
 
@@ -74,14 +74,14 @@ export async function addTodo(data: {
     if (response.body.errors) {
       return {
         success: false,
-        error: response.body.errors[0]?.message || "Failed to add todo",
+        error: response.body.errors[0]?.message || 'Failed to add todo',
       };
     }
 
     if (!response.body?.data?.insert_todos_one) {
       return {
         success: false,
-        error: "Failed to add todo",
+        error: 'Failed to add todo',
       };
     }
 
@@ -100,12 +100,12 @@ export async function addTodo(data: {
 
 export async function updateTodo(
   id: string,
-  updates: Partial<Pick<Todo, "title" | "details" | "completed">>,
+  updates: Partial<Pick<Todo, 'title' | 'details' | 'completed'>>,
 ): Promise<ActionResult<Todo>> {
   if (!id) {
     return {
       success: false,
-      error: "Todo ID is required",
+      error: 'Todo ID is required',
     };
   }
 
@@ -116,7 +116,7 @@ export async function updateTodo(
     if (!session) {
       return {
         success: false,
-        error: "Not authenticated",
+        error: 'Not authenticated',
       };
     }
 
@@ -145,14 +145,14 @@ export async function updateTodo(
     if (response.body.errors) {
       return {
         success: false,
-        error: response.body.errors[0]?.message || "Failed to update todo",
+        error: response.body.errors[0]?.message || 'Failed to update todo',
       };
     }
 
     if (!response.body?.data?.update_todos_by_pk) {
       return {
         success: false,
-        error: "Failed to update todo",
+        error: 'Failed to update todo',
       };
     }
 
@@ -173,7 +173,7 @@ export async function deleteTodo(id: string): Promise<ActionResult> {
   if (!id) {
     return {
       success: false,
-      error: "Todo ID is required",
+      error: 'Todo ID is required',
     };
   }
 
@@ -184,7 +184,7 @@ export async function deleteTodo(id: string): Promise<ActionResult> {
     if (!session) {
       return {
         success: false,
-        error: "Not authenticated",
+        error: 'Not authenticated',
       };
     }
 
@@ -206,7 +206,7 @@ export async function deleteTodo(id: string): Promise<ActionResult> {
     if (response.body.errors) {
       return {
         success: false,
-        error: response.body.errors[0]?.message || "Failed to delete todo",
+        error: response.body.errors[0]?.message || 'Failed to delete todo',
       };
     }
 

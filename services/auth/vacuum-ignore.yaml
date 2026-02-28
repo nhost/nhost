@@ -1,4 +1,90 @@
 camel-case-properties:
-- $.paths['/signin/provider/{provider}/callback'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['id_token']
-- $.paths['/signin/provider/{provider}/callback'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['error_description']
-- $.paths['/signin/provider/{provider}/callback'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['error_uri']
+  # signin provider callback - OAuth2 spec field names
+  - $.paths['/signin/provider/{provider}/callback'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['id_token']
+  - $.paths['/signin/provider/{provider}/callback'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['error_description']
+  - $.paths['/signin/provider/{provider}/callback'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['error_uri']
+  # POST /oauth2/authorize inline schema - OAuth2 spec field names (RFC 6749)
+  - $.paths['/oauth2/authorize'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['client_id']
+  - $.paths['/oauth2/authorize'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['redirect_uri']
+  - $.paths['/oauth2/authorize'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['response_type']
+  - $.paths['/oauth2/authorize'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['code_challenge']
+  - $.paths['/oauth2/authorize'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['code_challenge_method']
+  # OAuth2/OIDC component schemas - spec-mandated snake_case field names
+  # OAuth2ErrorResponse (RFC 6749)
+  - $.components.schemas['OAuth2ErrorResponse'].properties['error_description']
+  # OAuth2DiscoveryResponse (RFC 8414)
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['authorization_endpoint']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['token_endpoint']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['userinfo_endpoint']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['jwks_uri']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['registration_endpoint']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['revocation_endpoint']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['introspection_endpoint']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['scopes_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['response_types_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['grant_types_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['subject_types_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['id_token_signing_alg_values_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['token_endpoint_auth_methods_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['code_challenge_methods_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['claims_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['request_parameter_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['authorization_response_iss_parameter_supported']
+  - $.components.schemas['OAuth2DiscoveryResponse'].properties['client_id_metadata_document_supported']
+  # OAuth2TokenRequest (RFC 6749)
+  - $.components.schemas['OAuth2TokenRequest'].properties['grant_type']
+  - $.components.schemas['OAuth2TokenRequest'].properties['redirect_uri']
+  - $.components.schemas['OAuth2TokenRequest'].properties['client_id']
+  - $.components.schemas['OAuth2TokenRequest'].properties['client_secret']
+  - $.components.schemas['OAuth2TokenRequest'].properties['code_verifier']
+  - $.components.schemas['OAuth2TokenRequest'].properties['refresh_token']
+  # OAuth2TokenResponse (RFC 6749)
+  - $.components.schemas['OAuth2TokenResponse'].properties['access_token']
+  - $.components.schemas['OAuth2TokenResponse'].properties['token_type']
+  - $.components.schemas['OAuth2TokenResponse'].properties['expires_in']
+  - $.components.schemas['OAuth2TokenResponse'].properties['refresh_token']
+  - $.components.schemas['OAuth2TokenResponse'].properties['id_token']
+  # OAuth2UserinfoResponse (OpenID Connect Core)
+  - $.components.schemas['OAuth2UserinfoResponse'].properties['email_verified']
+  - $.components.schemas['OAuth2UserinfoResponse'].properties['phone_number']
+  - $.components.schemas['OAuth2UserinfoResponse'].properties['phone_number_verified']
+  # OAuth2RevokeRequest (RFC 7009)
+  - $.components.schemas['OAuth2RevokeRequest'].properties['token_type_hint']
+  - $.components.schemas['OAuth2RevokeRequest'].properties['client_id']
+  - $.components.schemas['OAuth2RevokeRequest'].properties['client_secret']
+  # OAuth2IntrospectRequest (RFC 7662)
+  - $.components.schemas['OAuth2IntrospectRequest'].properties['token_type_hint']
+  - $.components.schemas['OAuth2IntrospectRequest'].properties['client_id']
+  - $.components.schemas['OAuth2IntrospectRequest'].properties['client_secret']
+  # OAuth2IntrospectResponse (RFC 7662)
+  - $.components.schemas['OAuth2IntrospectResponse'].properties['client_id']
+  - $.components.schemas['OAuth2IntrospectResponse'].properties['token_type']
+  # OAuth2RegisterRequest (RFC 7591)
+  - $.components.schemas['OAuth2RegisterRequest'].properties['client_name']
+  - $.components.schemas['OAuth2RegisterRequest'].properties['redirect_uris']
+  - $.components.schemas['OAuth2RegisterRequest'].properties['grant_types']
+  - $.components.schemas['OAuth2RegisterRequest'].properties['response_types']
+  - $.components.schemas['OAuth2RegisterRequest'].properties['token_endpoint_auth_method']
+  - $.components.schemas['OAuth2RegisterRequest'].properties['client_uri']
+  - $.components.schemas['OAuth2RegisterRequest'].properties['logo_uri']
+  # OAuth2RegisterResponse (RFC 7591)
+  - $.components.schemas['OAuth2RegisterResponse'].properties['client_id']
+  - $.components.schemas['OAuth2RegisterResponse'].properties['client_secret']
+  - $.components.schemas['OAuth2RegisterResponse'].properties['client_name']
+  - $.components.schemas['OAuth2RegisterResponse'].properties['redirect_uris']
+  - $.components.schemas['OAuth2RegisterResponse'].properties['grant_types']
+  - $.components.schemas['OAuth2RegisterResponse'].properties['response_types']
+  - $.components.schemas['OAuth2RegisterResponse'].properties['token_endpoint_auth_method']
+  - $.components.schemas['OAuth2RegisterResponse'].properties['client_uri']
+  - $.components.schemas['OAuth2RegisterResponse'].properties['logo_uri']
+  - $.components.schemas['OAuth2RegisterResponse'].properties['client_secret_expires_at']
+
+nullable-enum-contains-null:
+  # This is actually hacky as they shouldn't be nullable at all, but the conformance tests
+  # makes an attempt by sending this as null and oapi-codegen returns a validation error
+  # instead of a redirect, so by allowing null we can handle this ourselves and redirect properly
+  - $.components.schemas['OAuth2RevokeRequest'].properties['token_type_hint'].enum
+  - $.components.schemas['OAuth2IntrospectRequest'].properties['token_type_hint'].enum
+
+contact-properties:
+  - $.info.contact

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
@@ -12,18 +14,8 @@ import {
   GetPostgresSettingsDocument,
   useUpdateDatabaseVersionMutation,
 } from '@/utils/__generated__/graphql';
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface DatabaseMigrateVersionConfirmationDialogProps {
-  /**
-   * Function to be called when the user clicks the cancel button.
-   */
-  onCancel: () => void;
-  /**
-   * Function to be called when the user clicks the proceed button.
-   */
-  onProceed: () => void;
   /**
    * New version to migrate to.
    */
@@ -31,8 +23,6 @@ export interface DatabaseMigrateVersionConfirmationDialogProps {
 }
 
 export default function DatabaseMigrateVersionConfirmationDialog({
-  onCancel,
-  onProceed,
   postgresVersion,
 }: DatabaseMigrateVersionConfirmationDialogProps) {
   const isPlatform = useIsPlatform();
@@ -61,7 +51,6 @@ export default function DatabaseMigrateVersionConfirmationDialog({
           },
         });
 
-        onProceed();
         closeDialog();
 
         if (!isPlatform) {
@@ -101,7 +90,6 @@ export default function DatabaseMigrateVersionConfirmationDialog({
             variant="outlined"
             color="secondary"
             onClick={() => {
-              onCancel();
               closeDialog();
             }}
           >

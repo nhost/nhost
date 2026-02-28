@@ -33,6 +33,9 @@ let
       (inDirectory "${submodule}/client/testdata")
       (inDirectory "${submodule}/image/testdata")
       (inDirectory "${submodule}/storage/testdata")
+
+      (inDirectory ../../internal/lib/oapi)
+      (inDirectory ../../internal/lib/hasura/metadata)
     ];
 
     exclude = with nix-filter.lib; [
@@ -52,6 +55,16 @@ let
     vacuum-go
   ];
 
+  x265-no-numa = pkgs.x265.overrideAttrs (oldAttrs: {
+    cmakeFlags = (oldAttrs.cmakeFlags or [ ]) ++ [
+      "-DENABLE_LIBNUMA=OFF"
+    ];
+  });
+
+  libheif-no-numa = pkgs.libheif.override {
+    x265 = x265-no-numa;
+  };
+
   vips = pkgs.vips.overrideAttrs (oldAttrs: {
     outputs = [ "bin" "out" "man" "dev" ];
     buildInputs = with pkgs; [
@@ -65,7 +78,7 @@ let
       pango
       libarchive
       libhwy
-      libheif
+      libheif-no-numa
     ];
     mesonFlags = [
       "-Dcgif=disabled"
@@ -89,6 +102,8 @@ let
       "-Drsvg=disabled"
       "-Dpangocairo=disabled"
       "-Dheif=enabled"
+      "-Duhdr=disabled"
+      "-Draw=disabled"
     ];
   });
 
@@ -187,3 +202,4 @@ rec {
     };
   };
 }
+

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -8,7 +9,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
-import { useState } from 'react';
 import MfaQRCodeAndTOTPSecret from './MfaQRCodeAndTOTPSecret';
 
 function EnableMfaButton() {
@@ -27,7 +27,7 @@ function EnableMfaButton() {
         <Button
           variant="outline"
           disabled={buttonDisabled}
-          className="p-y[0.375rem] h-9 gap-2 border-green-600 px-2 text-green-600 hover:bg-destructive hover:bg-green-600"
+          className="h-9 gap-2 border-green-600 p-y[0.375rem] px-2 text-green-600 hover:bg-destructive hover:bg-green-600"
         >
           Enable multi-factor authentication
         </Button>

@@ -65,11 +65,21 @@ func makeTurnstileRequest(
 	return &turnstileResponse, nil
 }
 
-func Tunrstile(secret string, prefix string) gin.HandlerFunc {
+func Turnstile(secret string, prefix string) gin.HandlerFunc {
 	cl := http.Client{} //nolint:exhaustruct
 
 	return func(ctx *gin.Context) {
-		if !strings.HasPrefix(ctx.Request.URL.Path, prefix+"/signup/") ||
+		// Apply to:
+		// - Signup
+		// - Passwordless Signin
+		// - Password Reset
+		//
+		// Do not apply to:
+		// - verification endpoints
+		// - callback endpoints
+		if (!strings.HasPrefix(ctx.Request.URL.Path, prefix+"/signup/") &&
+			!strings.HasPrefix(ctx.Request.URL.Path, prefix+"/signin/passwordless") &&
+			ctx.Request.URL.Path != prefix+"/user/password/reset") ||
 			strings.HasSuffix(ctx.Request.URL.Path, "/verify") ||
 			strings.HasSuffix(ctx.Request.URL.Path, "/callback") {
 			ctx.Next()

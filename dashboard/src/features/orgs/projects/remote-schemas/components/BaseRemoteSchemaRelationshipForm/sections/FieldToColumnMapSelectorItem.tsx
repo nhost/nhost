@@ -1,3 +1,6 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -20,9 +23,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
 
 export interface FieldToColumnMapSelectorItemProps {

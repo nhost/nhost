@@ -1,6 +1,8 @@
-import { Input } from '@/components/ui/v2/Input';
+/** biome-ignore-all lint/suspicious/noThenProperty: yup thing */
+
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
+import { Input } from '@/components/ui/v2/Input';
 
 export const baseProviderValidationSchema = Yup.object({
   clientId: Yup.string()

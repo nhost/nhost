@@ -93,7 +93,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -147,15 +147,15 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					Email:      "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"user"},
-						DefaultRole:  ptr("user"),
-						DisplayName:  ptr("Jane"),
-						Locale:       ptr("fr"),
-						Metadata: &map[string]interface{}{
+						DefaultRole:  new("user"),
+						DisplayName:  new("Jane"),
+						Locale:       new("fr"),
+						Metadata: &map[string]any{
 							"key": "value",
 						},
-						RedirectTo: ptr("http://localhost:3000/redirect"),
+						RedirectTo: new("http://localhost:3000/redirect"),
 					},
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -169,6 +169,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.RequireEmailVerification = true
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -216,7 +217,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -301,7 +302,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "passwordless",
 				},
 			},
@@ -379,7 +380,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("a"),
+					Password:     new("a"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -412,7 +413,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("asdasdqweqwe"),
+					Password:     new("asdasdqweqwe"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -435,6 +436,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
 				).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
+
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
@@ -443,7 +445,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -461,6 +463,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.AllowedEmails = []string{"jane@acme.corp"}
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -473,7 +476,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},

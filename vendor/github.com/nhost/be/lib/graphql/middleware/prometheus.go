@@ -40,7 +40,7 @@ func PrometheusGraphqlAroundFieldsInstrumentation() graphql.FieldMiddleware {
 		[]string{"operation", "root", "exist_status"},
 	)
 
-	return func(ctx context.Context, next graphql.Resolver) (interface{}, error) {
+	return func(ctx context.Context, next graphql.Resolver) (any, error) {
 		oc := graphql.GetOperationContext(ctx)
 		rc := graphql.GetFieldContext(ctx)
 

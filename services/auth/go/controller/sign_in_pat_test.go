@@ -227,6 +227,7 @@ func TestSignInPAT(t *testing.T) { //nolint:maintidx
 						"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
 						"claimNil":    nil,
 					}, nil)
+
 					return mock
 				},
 				),
@@ -238,6 +239,7 @@ func TestSignInPAT(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedEmails = []string{"asd@asd.com"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -273,6 +275,7 @@ func TestSignInPAT(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedEmails = []string{"asd@asd.com"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -342,6 +345,7 @@ func TestSignInPAT(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.RequireEmailVerification = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

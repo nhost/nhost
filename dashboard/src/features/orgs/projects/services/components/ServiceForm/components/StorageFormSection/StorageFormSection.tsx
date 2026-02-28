@@ -1,9 +1,10 @@
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import {
@@ -11,7 +12,6 @@ import {
   MIN_STORAGE_CAPACITY,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function StorageFormSection() {
   const {
@@ -58,7 +58,7 @@ export default function StorageFormSection() {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://docs.nhost.io/guides/run/resources#storage"
+                  href="https://docs.nhost.io/products/run/resources#storage"
                   className="underline"
                 >
                   Storage
@@ -83,7 +83,7 @@ export default function StorageFormSection() {
         {fields.map((field, index) => (
           <Box
             key={field.id}
-            className="flex w-full flex-col space-y-2 xs+:flex-row xs+:space-x-2 xs+:space-y-0"
+            className="flex w-full xs+:flex-row flex-col xs+:space-x-2 space-y-2 xs+:space-y-0"
           >
             <Input
               {...register(`storage.${index}.name`)}

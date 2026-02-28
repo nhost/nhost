@@ -1,3 +1,5 @@
+import type { QueryHookOptions } from '@apollo/client';
+import { validate as uuidValidate } from 'uuid';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
@@ -6,8 +8,6 @@ import type {
 } from '@/utils/__generated__/graphql';
 import { useGetFilesQuery } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
-import type { QueryHookOptions } from '@apollo/client';
-import { validate as uuidValidate } from 'uuid';
 
 export type UseFilesOptions = {
   /**

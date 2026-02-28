@@ -1,3 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import type { ReactElement } from 'react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import slugify from 'slugify';
+import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -29,14 +37,6 @@ import {
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import type { ReactElement } from 'react';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import slugify from 'slugify';
-import { z } from 'zod';
 
 const projectSchema = z.object({
   organizationId: z.string().min(1, 'Please select an organization'),
@@ -52,6 +52,7 @@ type ProjectFormData = z.infer<typeof projectSchema>;
 export default function OnboardingProjectPage() {
   const router = useRouter();
   const user = useUserData();
+  const [isRegionIdNotSet, setIsRegionIdNotSet] = useState(true);
   const { orgs, loading: loadingOrgs } = useOrgs();
   const { data: regionsData, loading: loadingRegions } = usePrefetchNewAppQuery(
     {
@@ -76,7 +77,6 @@ export default function OnboardingProjectPage() {
       form.setValue('organizationId', orgs[0].id);
     }
   }, [orgs, form]);
-
   useEffect(() => {
     if (
       isNotEmptyValue(regionsData?.regions?.length) &&
@@ -85,6 +85,8 @@ export default function OnboardingProjectPage() {
       const activeRegion = regionsData.regions.find((region) => region.active);
       if (activeRegion) {
         form.setValue('regionId', activeRegion.id);
+        //NOTE: This is a workaround, sometimes the page would not rerender after setting the regionId.
+        setIsRegionIdNotSet(false);
       }
     }
   }, [regionsData, form]);
@@ -137,9 +139,10 @@ export default function OnboardingProjectPage() {
             regionId: data.regionId,
             isOnboarding: true,
           });
-
           // clear onboarding flow and redirect to project dashboard
           sessionStorage.removeItem('onboarding');
+          // store the subdomain in session storage to indicate that the user has created a project
+          sessionStorage.setItem('newProjectSubdomain', subdomain);
           router.push(`/orgs/${selectedOrg?.slug}/projects/${subdomain}`);
         }
       },
@@ -151,7 +154,7 @@ export default function OnboardingProjectPage() {
     );
   };
 
-  if (loadingOrgs || loadingRegions) {
+  if (loadingOrgs || loadingRegions || isRegionIdNotSet) {
     return (
       <Container>
         <div className="flex h-screen items-center justify-center">
@@ -166,23 +169,23 @@ export default function OnboardingProjectPage() {
       <div className="mx-auto max-w-2xl py-12">
         <div className="mb-8 flex items-center justify-center">
           <div className="flex items-center space-x-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-sm font-medium text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 font-medium text-sm text-white">
               ✓
             </div>
             <div className="h-1 w-16 bg-green-600" />
 
             {selectedOrg?.plan?.name !== 'Starter' ? (
               <>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-sm font-medium text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 font-medium text-sm text-white">
                   ✓
                 </div>
                 <div className="h-1 w-16 bg-green-600" />
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-sm">
                   3
                 </div>
               </>
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-sm">
                 2
               </div>
             )}
@@ -191,7 +194,7 @@ export default function OnboardingProjectPage() {
 
         <Box className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <div className="mb-6 text-center">
-            <Text variant="h2" className="mb-2 text-2xl font-bold">
+            <Text variant="h2" className="mb-2 font-bold text-2xl">
               Create Your First Project
             </Text>
             <Text className="text-muted-foreground">
@@ -230,7 +233,7 @@ export default function OnboardingProjectPage() {
                                   height={16}
                                 />
                                 <span className="font-medium">{org.name}</span>
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-muted-foreground text-xs">
                                   ({org.plan?.name} plan)
                                 </span>
                               </div>
@@ -256,7 +259,6 @@ export default function OnboardingProjectPage() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="regionId"

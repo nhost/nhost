@@ -29,6 +29,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.RequireEmailVerification = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -103,6 +104,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.RequireEmailVerification = false
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -177,6 +179,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedRedirectURLs = []string{"https://myapp.com"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -208,7 +211,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://myapp.com/verify"),
+						RedirectTo: new("https://myapp.com/verify"),
 					},
 				},
 			},
@@ -253,6 +256,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedRedirectURLs = []string{"http://myapp"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -263,7 +267,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://evil.com/verify"),
+						RedirectTo: new("https://evil.com/verify"),
 					},
 				},
 			},

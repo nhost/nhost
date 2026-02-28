@@ -1,0 +1,155 @@
+---
+title: Email Templates
+description: Learn how to customize transactional emails
+keywords: ["email templates", "transactional emails", "email customization", "SMTP", "email design", "verification email", "password reset email"]
+---
+
+Nhost Auth sends out transactional emails as part of certain authentication workflows. These emails can be modified using email templates.
+
+:::note
+Changing email templates is only available starting on the [Pro](https://nhost.io/pricing) plan
+:::
+
+## Customize your emails
+
+Email Templates are deployed as part of a [Deployment](/platform/cloud/git) so your project must be connected to a Git repository.
+
+### File Structure
+
+Email Templates can be found under your project's `./nhost/emails` folder and have the following structure:
+
+```bash Terminal
+> tree ./nhost
+
+nhost
+├── config.yaml
+├── emails
+│   ├── en
+│   │   ├── email-confirm-change
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   ├── email-verify
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   ├── password-reset
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   ├── signin-otp
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   ├── signin-passwordless
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   └── signin-passwordless-sms
+│   │       └── body.txt
+│   └── fr
+│       ├── email-confirm-change
+│       │   ├── body.html
+│       │   └── subject.txt
+│       ├── email-verify
+│       │   ├── body.html
+│       │   └── subject.txt
+│       ├── password-reset
+│       │   ├── body.html
+│       │   └── subject.txt
+│       ├── signin-otp
+│       │   ├── body.html
+│       │   └── subject.txt
+│       ├── signin-passwordless
+│       │   ├── body.html
+│       │   └── subject.txt
+│       └── signin-passwordless-sms
+│           └── body.txt
+├── metadata
+├── migrations
+├── nhost.toml
+└── seeds
+```
+
+As you can see templates can be defined for various languages and, with the exception of `signin-passwordless-sms`, they require 2 files for the subject and body.
+
+```
+/{language-code}/{email-template}/[subject.txt, body.html]
+```
+
+### Languages
+
+A user's language is stored in the `auth.users` table in the `locale` column. This `locale` column contains a two or three letter language code ([ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) or [ISO 639-2](https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes)) which is used to infer what language and template to use in the email.
+
+:::note
+The default value of the `locale` column is `en`
+:::
+
+:::caution
+You can use two or three character locales, or even mix them across users, but the service will not attempt to map between formats. For example, if a user has `locale` set to `eng`, the service will look for templates in the `eng` folder and will not fall back to `en`. Ensure that a template folder exists for each locale format you use.
+:::
+
+### Template Variables
+
+The following variables are available to all email templates:
+
+| Variable      | Description                                                                                                                        |
+| -----------   | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `link`        | The full URL to the target of the transaction. This should be used in the main call to action. 				     |
+| `serverUrl`   | URL of the authentication server                                                                                                   |
+| `clientUrl`   | URL of your client app                                                                                                             |
+| `redirectTo`  | URL where the user will be redirected to after clicking the link and finishing the action of the email                             |
+| `ticket`      | Ticket or OTP that is used to authorize the request.                                                                                  |
+| `displayName` | The display name of the user                                                                                                      |
+| `email`       | The email of the user                                                                                                             |
+| `locale`      | Locale of the user as a two or three letter language code (e.g. "en")                                                                       |
+
+Variables can be referenced by enclosing them with `${}` as in the following example:
+
+```html
+<h2>Verify You Email</h2>
+
+<p>Hi, ${displayName}! Please click the link to verify your email:</p>
+
+<p>
+  <a href="${link}">Verify Email</a>
+</p>
+```
+
+# Postmark Integration
+
+Alternatively, you can use postmark's native integration and leverage postmark's templates. To do so, you need to:
+
+1. Configure SMTP settings like below:
+
+```toml
+[provider.smtp]
+host = 'postmark'
+password = '{{ secrets.POSTMARK_API_KEY }}'
+sender = 'myapp@mydomain.com'
+```
+
+:::caution
+It is very important that the `host` is set exactly to `postmark`.
+:::
+
+2. In postmark you need to create three templates for each locale with the following alias:
+
+- $locale.email-confirm-change
+- $locale.email-verify
+- $locale.password-reset
+
+For instance:
+
+- en.email-confirm-change
+- en.email-verify
+- en.password-reset
+- se.email-confirm-change
+- se.email-verify
+- se.password-reset
+
+Additionally, if you want to use the passwordless sign-in or OTP sign-in emails, you need to create the following templates as well:
+
+- $locale.signin-passwordless
+- $locale.signin-otp
+
+After these two steps have been completed, the Auth service will leverage these templates instead of the ones described in the previous section.
+
+:::note
+Postmark templates should have access to the same variables as described [previously](#template-variables)
+:::

@@ -1,8 +1,3 @@
-import type { FormControlLabelProps } from '@/components/ui/v2/FormControlLabel';
-import { FormControlLabel } from '@/components/ui/v2/FormControlLabel';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { MinusIcon } from '@/components/ui/v2/icons/MinusIcon';
-import { svgIconClasses as materialSvgIconClasses } from '@/components/ui/v2/icons/SvgIcon';
 import { alpha, styled } from '@mui/material';
 import type { CheckboxProps as MaterialCheckboxProps } from '@mui/material/Checkbox';
 import MaterialCheckbox, {
@@ -10,6 +5,11 @@ import MaterialCheckbox, {
 } from '@mui/material/Checkbox';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
+import type { FormControlLabelProps } from '@/components/ui/v2/FormControlLabel';
+import { FormControlLabel } from '@/components/ui/v2/FormControlLabel';
+import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
+import { MinusIcon } from '@/components/ui/v2/icons/MinusIcon';
+import { svgIconClasses as materialSvgIconClasses } from '@/components/ui/v2/icons/SvgIcon';
 
 export interface CheckboxProps extends MaterialCheckboxProps {
   /**

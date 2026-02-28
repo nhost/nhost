@@ -1,27 +1,25 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { alpha } from '@mui/system';
+import { FormProvider, useForm } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Button } from '@/components/ui/v2/Button';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { generateRandomDatabasePassword } from '@/features/orgs/projects/database/common/utils/generateRandomDatabasePassword';
 import type { ResetDatabasePasswordFormValues } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { resetDatabasePasswordValidationSchema } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-
 import { useResetDatabasePasswordMutation } from '@/generated/graphql';
 import { useLeaveConfirm } from '@/hooks/useLeaveConfirm';
 import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { alpha } from '@mui/system';
-import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 
 export default function ResetDatabasePasswordSettings() {
   const [resetPassword, { loading: resetPasswordLoading }] =

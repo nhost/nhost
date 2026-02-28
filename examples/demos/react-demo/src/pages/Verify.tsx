@@ -1,16 +1,16 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { type JSX, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { type JSX, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function Verify(): JSX.Element {
   const location = useLocation();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<"verifying" | "success" | "error">(
-    "verifying",
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(
+    'verifying',
   );
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
   const [urlParams, setUrlParams] = useState<Record<string, string>>({});
 
   const { nhost } = useAuth();
@@ -18,7 +18,7 @@ export default function Verify(): JSX.Element {
   useEffect(() => {
     // Extract the refresh token from the URL
     const params = new URLSearchParams(location.search);
-    const refreshToken = params.get("refreshToken");
+    const refreshToken = params.get('refreshToken');
 
     if (!refreshToken) {
       // Collect all URL parameters to display
@@ -28,8 +28,8 @@ export default function Verify(): JSX.Element {
       });
       setUrlParams(allParams);
 
-      setStatus("error");
-      setError("No refresh token found in URL");
+      setStatus('error');
+      setError('No refresh token found in URL');
       return;
     }
 
@@ -51,8 +51,8 @@ export default function Verify(): JSX.Element {
           });
           setUrlParams(allParams);
 
-          setStatus("error");
-          setError("No refresh token found in URL");
+          setStatus('error');
+          setError('No refresh token found in URL');
           return;
         }
 
@@ -61,17 +61,17 @@ export default function Verify(): JSX.Element {
 
         if (!isMounted) return;
 
-        setStatus("success");
+        setStatus('success');
 
         // Wait to show success message briefly, then redirect
         setTimeout(() => {
-          if (isMounted) navigate("/profile");
+          if (isMounted) navigate('/profile');
         }, 1500);
       } catch (err) {
         const error = err as FetchError<ErrorResponse>;
         if (!isMounted) return;
 
-        setStatus("error");
+        setStatus('error');
         setError(`An error occurred during verification: ${error.message}`);
       }
     }
@@ -92,14 +92,14 @@ export default function Verify(): JSX.Element {
         <h2 className="text-2xl mb-6">Email Verification</h2>
 
         <div className="text-center py-4">
-          {status === "verifying" && (
+          {status === 'verifying' && (
             <div>
               <p className="mb-4">Verifying your email...</p>
               <div className="w-8 h-8 border-t-2 border-blue-500 rounded-full animate-spin mx-auto" />
             </div>
           )}
 
-          {status === "success" && (
+          {status === 'success' && (
             <div>
               <p className="mb-4 text-green-500 font-bold">
                 ✓ Successfully verified!
@@ -108,7 +108,7 @@ export default function Verify(): JSX.Element {
             </div>
           )}
 
-          {status === "error" && (
+          {status === 'error' && (
             <div>
               <p className="mb-4 text-red-500 font-semibold">
                 Verification failed
@@ -120,7 +120,7 @@ export default function Verify(): JSX.Element {
                   <p className="font-semibold mb-2">URL Parameters:</p>
                   {Object.entries(urlParams).map(([key, value]) => (
                     <div key={key} className="mb-1">
-                      <span className="font-mono text-blue-600">{key}:</span>{" "}
+                      <span className="font-mono text-blue-600">{key}:</span>{' '}
                       <span className="font-mono">{value}</span>
                     </div>
                   ))}
@@ -129,7 +129,7 @@ export default function Verify(): JSX.Element {
 
               <button
                 type="button"
-                onClick={() => navigate("/signin")}
+                onClick={() => navigate('/signin')}
                 className="btn btn-primary"
               >
                 Back to Sign In

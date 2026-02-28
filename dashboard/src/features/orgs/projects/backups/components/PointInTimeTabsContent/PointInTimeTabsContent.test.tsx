@@ -1,3 +1,5 @@
+import { setupServer } from 'msw/node';
+import { vi } from 'vitest';
 import { Tabs } from '@/components/ui/v3/tabs';
 import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import {
@@ -7,8 +9,6 @@ import {
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
 import PointInTimeTabsContent from './PointInTimeTabsContent';
 
 function TestComponent() {

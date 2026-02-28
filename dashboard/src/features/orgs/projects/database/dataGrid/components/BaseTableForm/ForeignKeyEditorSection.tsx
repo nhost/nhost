@@ -1,7 +1,9 @@
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v2/Button';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import type { BaseForeignKeyFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import { CreateForeignKeyForm } from '@/features/orgs/projects/database/dataGrid/components/CreateForeignKeyForm';
@@ -10,8 +12,6 @@ import type {
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import ForeignKeyEditorRow from './ForeignKeyEditorRow';
 
 export default function ForeignKeyEditorSection() {
@@ -64,7 +64,7 @@ export default function ForeignKeyEditorSection() {
 
   return (
     <section className="grid grid-flow-row gap-2 px-6">
-      <InputLabel as="h3" className="mb-2 text-[0.9375rem] font-bold leading-5">
+      <InputLabel as="h3" className="mb-2 font-bold text-[0.9375rem] leading-5">
         Foreign Keys
       </InputLabel>
 

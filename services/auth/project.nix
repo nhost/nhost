@@ -24,6 +24,9 @@ let
       ./vacuum.yaml
       ./vacuum-ignore.yaml
 
+      (inDirectory ../../internal/lib/oapi)
+      (inDirectory ../../internal/lib/hasura/metadata)
+
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
       ./go/sql/schema.sh
@@ -58,7 +61,7 @@ let
     mockgen
     oapi-codegen
     sqlc
-    postgresql_17_5-client
+    postgresql_18_1-client
     vacuum-go
     bun
   ];
@@ -78,7 +81,7 @@ let
     ];
 
     src = nix-filter.lib.filter {
-      root = ./.;
+      root = ../..;
       include = [
         ./package.json
         ./bun.lock
@@ -87,8 +90,14 @@ let
     };
 
     buildPhase = ''
+      export HOME=$TMPDIR
+      mkdir -p packages
+      cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
+      cd ${submodule}
       bun install --frozen-lockfile
-      rm -r node_modules/.cache
+      rm -rf node_modules/.cache
+      rm -rf node_modules/@nhost/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js} node_modules/@nhost/nhost-js
     '';
 
     installPhase = ''

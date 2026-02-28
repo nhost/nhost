@@ -1,10 +1,10 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { createTheme } from '@/components/ui/v2/createTheme';
 import { ThemeProvider } from '@mui/material';
 import clsx from 'clsx';
 import type { ToastOptions } from 'react-hot-toast';
 import { toast } from 'react-hot-toast';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Box } from '@/components/ui/v2/Box';
+import { createTheme } from '@/components/ui/v2/createTheme';
 import getColor from './getColor';
 
 export default function showLoadingToast(message: string, opts?: ToastOptions) {

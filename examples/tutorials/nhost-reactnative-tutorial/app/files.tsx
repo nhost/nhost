@@ -154,6 +154,11 @@ export default function Files() {
       const response = await nhost.storage.uploadFiles({
         "bucket-id": "personal",
         "file[]": [file as File],
+        "metadata[]": [
+          {
+            metadata: { key1: "value1" },
+          },
+        ],
       });
 
       // Get the processed file data

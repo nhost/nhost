@@ -1,3 +1,5 @@
+import { setupServer } from 'msw/node';
+import { vi } from 'vitest';
 import {
   getProjectQuery,
   getProjectStateQuery,
@@ -5,8 +7,6 @@ import {
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { queryClient, render, screen } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
-import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
 import ProjectViewWithState from './ProjectViewWithState';
 
 const mocks = vi.hoisted(() => ({
@@ -241,5 +241,21 @@ describe('ProjectViewWithState', () => {
       await screen.findByText('Application Restoring'),
     ).toBeInTheDocument();
     expect(screen.queryByText('Application content')).not.toBeInTheDocument();
+  });
+
+  it('should clear the query cache on unmount', async () => {
+    const clearSpy = vi.spyOn(queryClient, 'clear');
+    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+    server.use(getProjectQuery);
+    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
+
+    const { unmount } = render(<TestComponent />);
+    await screen.findByText('Application content');
+
+    expect(clearSpy).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(clearSpy).toHaveBeenCalledOnce();
   });
 });

@@ -1,6 +1,6 @@
+import { faker } from '@faker-js/faker';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import { createUser, generateTestEmail, gotoAuthURL } from '@/e2e/utils';
-import { faker } from '@faker-js/faker';
 
 test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   await gotoAuthURL(page);

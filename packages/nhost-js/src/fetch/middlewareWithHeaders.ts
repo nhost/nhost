@@ -6,7 +6,7 @@
  * headers to take precedence.
  */
 
-import type { ChainFunction, FetchFunction } from "./fetch";
+import type { ChainFunction, FetchFunction } from './fetch';
 
 /**
  * Creates a fetch middleware that attaches default headers to requests.

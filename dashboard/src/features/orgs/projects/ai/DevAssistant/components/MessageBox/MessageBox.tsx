@@ -1,20 +1,19 @@
+import { useTheme } from '@mui/material';
+import type { ClassAttributes, HTMLAttributes } from 'react';
+import { onlyText } from 'react-children-utilities';
+import Markdown, { type ExtraProps } from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import remarkGFM from 'remark-gfm';
+import { twMerge } from 'tailwind-merge';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { type Message } from '@/features/orgs/projects/ai/DevAssistant';
+import type { Message } from '@/features/orgs/projects/ai/DevAssistant';
 import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';
-import { useTheme } from '@mui/material';
-import { onlyText } from 'react-children-utilities';
-import Markdown, { type ExtraProps } from 'react-markdown';
-import rehypeHighlight from 'rehype-highlight';
-import remarkGFM from 'remark-gfm';
-import { twMerge } from 'tailwind-merge';
-
-import { type ClassAttributes, type HTMLAttributes } from 'react';
 
 function PreComponent(
   props: ClassAttributes<HTMLElement> &
@@ -34,7 +33,7 @@ function PreComponent(
         }}
         color="warning"
         variant="contained"
-        className="absolute right-2 top-2 hidden group-hover:flex"
+        className="absolute top-2 right-2 hidden group-hover:flex"
         onClick={(e) => {
           e.stopPropagation();
           copy(onlyText(children), 'Snippet');

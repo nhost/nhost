@@ -1,18 +1,17 @@
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   GetOrganizationsDocument,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { isNotEmptyValue } from '@/lib/utils';
 

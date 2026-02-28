@@ -99,6 +99,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedRedirectURLs = []string{"https://myapp.com"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -132,7 +133,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://myapp.com"),
+						RedirectTo: new("https://myapp.com"),
 					},
 				},
 			},
@@ -183,7 +184,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://myapp.com"),
+						RedirectTo: new("https://myapp.com"),
 					},
 				},
 			},
@@ -202,6 +203,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedEmails = []string{"john@acme.com"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -283,6 +285,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.RequireEmailVerification = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

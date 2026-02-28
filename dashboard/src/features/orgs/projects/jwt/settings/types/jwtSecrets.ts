@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noThenProperty: Yup specific */
 import * as Yup from 'yup';
 
 export type JWTSecretType = 'symmetric' | 'asymmetric' | 'external';

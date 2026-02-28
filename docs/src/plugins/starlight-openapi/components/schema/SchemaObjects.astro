@@ -1,0 +1,61 @@
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+import { getType } from '../../libs/items'
+import type { Discriminator, SchemaObjects, SchemaObject as SchemaObjectType } from '../../libs/schemaObject'
+import Tag from '../Tag.astro'
+
+import SchemaObject from './SchemaObject.astro'
+
+interface Props {
+  discriminator: Discriminator
+  nested: boolean
+  parents?: SchemaObjectType[]
+  schemaObjects: SchemaObjects
+}
+
+const {
+  discriminator,
+  nested,
+  parents = [],
+  schemaObjects: { schemaObjects, type },
+} = Astro.props
+
+const discriminatorPropertyName =
+  typeof discriminator === 'string'
+    ? discriminator
+    : typeof discriminator === 'object'
+      ? discriminator.propertyName
+      : undefined
+
+const humanReadableType: Record<SchemaObjects['type'], string> = {
+  anyOf: 'Any of',
+  oneOf: 'One of',
+}
+---
+
+<div>
+  <span class="type">{humanReadableType[type]}:</span>
+  {discriminatorPropertyName && <Tag>discriminator: {discriminatorPropertyName}</Tag>}
+</div>
+<Tabs>
+  {
+    schemaObjects.map((schemaObject) => (
+      <TabItem label={schemaObject.title ?? getType(schemaObject) ?? 'unknown'}>
+        <SchemaObject {parents} {nested} schemaObject={schemaObject} />
+      </TabItem>
+    ))
+  }
+</Tabs>
+
+<style>
+  div {
+    margin-bottom: 0.5rem;
+  }
+
+  .type {
+    margin-inline-end: 0.3rem;
+    text-decoration: underline;
+    text-underline-offset: 0.3rem;
+  }
+</style>

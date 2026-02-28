@@ -1,6 +1,7 @@
 package dockercompose
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
@@ -35,10 +36,6 @@ func rootNodeModules(branch string) string {
 
 func functionsNodeModules(branch string) string {
 	return sanitizeBranch(branch) + "-functions_node_modules"
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }
 
 func ports(host, container uint) []Port {
@@ -177,7 +174,10 @@ func dumpCert(
 }
 
 func trafikFiles(dotnhostfolder string) error {
-	if err := os.MkdirAll(filepath.Join(dotnhostfolder, "traefik", "certs"), 0o755); err != nil { //nolint:mnd
+	if err := os.MkdirAll(
+		filepath.Join(dotnhostfolder, "traefik", "certs"),
+		0o755, //nolint:mnd
+	); err != nil {
 		return fmt.Errorf("failed to create traefik folder: %w", err)
 	}
 
@@ -235,7 +235,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		Type:     "bind",
 		Source:   filepath.Join(dotnhostfolder, "traefik"),
 		Target:   "/opt/traefik",
-		ReadOnly: ptr(true),
+		ReadOnly: new(true),
 	}}
 
 	dockerEndpoint := dockerURL.String()
@@ -244,13 +244,13 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			Type:     "bind",
 			Source:   dockerURL.Path,
 			Target:   "/var/run/docker.sock",
-			ReadOnly: ptr(true),
+			ReadOnly: new(true),
 		})
 		dockerEndpoint = "unix:///var/run/docker.sock"
 	}
 
 	return &Service{
-		Image:      "traefik:v3.1",
+		Image:      "traefik:v3.6",
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Command: []string{
@@ -366,6 +366,29 @@ func dashboard(
 	}
 }
 
+func stripJWTSecretToPublic(value string) (string, error) {
+	var full map[string]any
+	if err := json.Unmarshal([]byte(value), &full); err != nil {
+		return value, nil //nolint:nilerr
+	}
+
+	public := make(map[string]any)
+	if v, ok := full["key"]; ok {
+		public["key"] = v
+	}
+
+	if v, ok := full["type"]; ok {
+		public["type"] = v
+	}
+
+	b, err := json.Marshal(public)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal JWT secret: %w", err)
+	}
+
+	return string(b), nil
+}
+
 func functions( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
@@ -375,7 +398,12 @@ func functions( //nolint:funlen
 	jwtSecret string,
 	port uint,
 	branch string,
-) *Service {
+) (*Service, error) {
+	jwtSecret, err := stripJWTSecretToPublic(jwtSecret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to strip JWT secret for %s: %w", "functions", err)
+	}
+
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 		"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_auth_admin@local.db.nhost.run:5432/local",
@@ -429,23 +457,23 @@ func functions( //nolint:funlen
 				Type:     "bind",
 				Source:   rootFolder,
 				Target:   "/opt/project",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 			{
 				Type:     "volume",
 				Source:   rootNodeModules(branch),
 				Target:   "/opt/project/node_modules",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 			{
 				Type:     "volume",
 				Source:   functionsNodeModules(branch),
 				Target:   "/opt/project/functions/node_modules",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,
-	}
+	}, nil
 }
 
 func mailhog(subdomain, volumeName string, useTLS bool) *Service {
@@ -480,7 +508,7 @@ func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 				Type:     "volume",
 				Source:   volumeName,
 				Target:   "/maildir",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,
@@ -584,7 +612,7 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	if startFunctions {
-		services["functions"] = functions(
+		services["functions"], err = functions(
 			cfg,
 			subdomain,
 			httpPort,
@@ -594,6 +622,9 @@ func getServices( //nolint: funlen,cyclop
 			ports.Functions,
 			branch,
 		)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
@@ -632,7 +663,7 @@ func mountCACertificates(
 			Type:     "bind",
 			Source:   path,
 			Target:   "/etc/ssl/certs/ca-certificates.crt",
-			ReadOnly: ptr(true),
+			ReadOnly: new(true),
 		})
 	}
 }

@@ -1,3 +1,8 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
@@ -10,35 +15,28 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { DisableAIServiceConfirmationDialog } from '@/features/orgs/projects/ai/settings/components/DisableAIServiceConfirmationDialog';
+import { isPostgresVersionValidForAI } from '@/features/orgs/projects/ai/settings/utils/isPostgresVersionValidForAI';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { ComputeFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ComputeFormSection';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   Software_Type_Enum,
   useGetAiSettingsQuery,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import * as Yup from 'yup';
-
-import { DisableAIServiceConfirmationDialog } from '@/features/orgs/projects/ai/settings/components/DisableAIServiceConfirmationDialog';
-import { isPostgresVersionValidForAI } from '@/features/orgs/projects/ai/settings/utils/isPostgresVersionValidForAI';
-import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { ComputeFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ComputeFormSection';
-
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
   version: Yup.object({
@@ -137,13 +135,13 @@ export default function AISettings() {
     if (ai) {
       reset({
         version: {
-          label: ai?.version!,
-          value: ai?.version!,
+          label: ai!.version!,
+          value: ai!.version!,
         },
         webhookSecret: ai?.webhookSecret,
         synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes,
         apiKey: ai?.openai?.apiKey,
-        organization: ai?.openai?.organization!,
+        organization: ai!.openai!.organization!,
         compute: {
           cpu: ai?.resources?.compute?.cpu ?? 62,
           memory: ai?.resources?.compute?.memory ?? 128,
@@ -279,7 +277,7 @@ export default function AISettings() {
   return (
     <Box className="space-y-4" sx={{ backgroundColor: 'background.default' }}>
       <Box className="flex flex-row items-center justify-between rounded-lg border-1 p-4">
-        <Text className="text-lg font-semibold">Enable AI service</Text>
+        <Text className="font-semibold text-lg">Enable AI service</Text>
         <Switch
           checked={aiServiceEnabled}
           onChange={(e) => toggleAIService(e.target.checked)}
@@ -303,7 +301,7 @@ export default function AISettings() {
               <Box className="space-y-4">
                 <Box className="space-y-2">
                   <Box className="flex flex-row items-center space-x-2">
-                    <Text className="text-lg font-semibold">Version</Text>
+                    <Text className="font-semibold text-lg">Version</Text>
                     <Tooltip title="Version of the service to use.">
                       <InfoIcon
                         aria-label="Info"
@@ -338,7 +336,7 @@ export default function AISettings() {
 
                 <Box className="space-y-2">
                   <Box className="flex flex-row items-center space-x-2">
-                    <Text className="text-lg font-semibold">
+                    <Text className="font-semibold text-lg">
                       Webhook Secret
                     </Text>
                     <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
@@ -364,7 +362,7 @@ export default function AISettings() {
 
                 <Box className="space-y-2">
                   <Box className="flex flex-row items-center space-x-2">
-                    <Text className="text-lg font-semibold">Resources</Text>
+                    <Text className="font-semibold text-lg">Resources</Text>
                     <Tooltip title="Dedicated resources allocated for the service.">
                       <InfoIcon
                         aria-label="Info"
@@ -395,7 +393,7 @@ export default function AISettings() {
                 </Box>
 
                 <Box className="space-y-2">
-                  <Text className="text-lg font-semibold">OpenAI</Text>
+                  <Text className="font-semibold text-lg">OpenAI</Text>
 
                   <Input
                     {...register('apiKey')}
@@ -447,7 +445,7 @@ export default function AISettings() {
                 </Box>
 
                 <Box className="space-y-2">
-                  <Text className="text-lg font-semibold">Auto-Embeddings</Text>
+                  <Text className="font-semibold text-lg">Auto-Embeddings</Text>
                   <Input
                     {...register('synchPeriodMinutes')}
                     id="synchPeriodMinutes"

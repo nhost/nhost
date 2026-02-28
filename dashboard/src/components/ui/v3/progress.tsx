@@ -1,6 +1,6 @@
-import { cn } from '@/lib/utils';
 import * as ProgressPrimitive from '@radix-ui/react-progress';
 import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 interface ProgressProps
   extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
@@ -8,7 +8,7 @@ interface ProgressProps
 }
 
 const Progress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
+  React.ComponentRef<typeof ProgressPrimitive.Root>,
   ProgressProps
 >(({ className, value, indeterminate = false, ...props }, ref) => (
   <ProgressPrimitive.Root

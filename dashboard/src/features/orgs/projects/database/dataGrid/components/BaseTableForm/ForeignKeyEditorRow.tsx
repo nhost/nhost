@@ -1,10 +1,10 @@
+import { useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
 import { Text } from '@/components/ui/v2/Text';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useWatch } from 'react-hook-form';
 
 export interface ForeignKeyEditorRowProps {
   /**

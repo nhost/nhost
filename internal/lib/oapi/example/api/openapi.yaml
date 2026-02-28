@@ -1,0 +1,200 @@
+openapi: "3.0.0"
+
+paths:
+  /signin/email-password:
+    post:
+      summary: Sign in with email and password
+      description: Authenticate a user with their email and password. Returns a session object or MFA challenge if two-factor authentication is enabled.
+      operationId: signInEmailPassword
+      requestBody:
+        description: User credentials for email and password authentication
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInEmailPasswordRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignInEmailPasswordResponse"
+          description: "Authentication successful. If MFA is enabled, a challenge will be returned instead of a session."
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/email/change:
+    post:
+      summary: Change user email
+      description: Request to change the authenticated user's email address. A verification email will be sent to the new address to confirm the change. Requires elevated permissions.
+      operationId: changeUserEmail
+      tags:
+        - user
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        description: New email address and optional redirect URL for email change
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserEmailChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            Email change requested. An email with a verification link has been sent to the new address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: "Bearer authentication with JWT access token. Used to authenticate requests to protected endpoints."
+    BearerAuthElevated:
+      type: http
+      scheme: bearer
+      description: "Bearer authentication that requires elevated permissions. Used for sensitive operations that may require additional security measures such as recent authentication. For details see https://docs.nhost.io/products/auth/elevated-permissions"
+
+  schemas:
+    SignInEmailPasswordRequest:
+      type: object
+      description: "Request to authenticate using email and password"
+      additionalProperties: false
+      properties:
+        email:
+          description: "User's email address"
+          example: "john.smith@nhost.io"
+          format: email
+          type: string
+        password:
+          description: "User's password"
+          example: "Str0ngPassw#ord-94|%"
+          minLength: 3
+          maxLength: 50
+          type: string
+      required:
+        - email
+        - password
+
+    SignInEmailPasswordResponse:
+      type: object
+      description: "Response for email-password authentication that may include a session or MFA challenge"
+      additionalProperties: false
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
+
+    Session:
+      type: object
+      description: "User authentication session containing tokens and user information"
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+          description: "JWT token for authenticating API requests"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        accessTokenExpiresIn:
+          type: integer
+          format: int64
+          description: "Expiration time of the access token in seconds"
+          example: 900
+        refreshTokenId:
+          description: "Identifier for the refresh token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        refreshToken:
+          description: "Token used to refresh the access token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - accessToken
+        - accessTokenExpiresIn
+        - refreshToken
+        - refreshTokenId
+
+    UserEmailChangeRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        newEmail:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+      required:
+        - newEmail
+
+    OKResponse:
+      type: string
+      additionalProperties: false
+      enum:
+        - OK
+
+    ErrorResponse:
+      type: object
+      description: "Standardized error response"
+      additionalProperties: false
+      properties:
+        status:
+          description: "HTTP status error code"
+          type: integer
+          example: 400
+        message:
+          description: "Human-friendly error message"
+          type: string
+          example: "Invalid email format"
+        error:
+          description: "Error code identifying the specific application error"
+          type: string
+          enum:
+            - default-role-must-be-in-allowed-roles
+            - disabled-endpoint
+            - disabled-user
+            - email-already-in-use
+            - email-already-verified
+            - forbidden-anonymous
+            - internal-server-error
+            - invalid-email-password
+            - invalid-request
+            - locale-not-allowed
+            - password-too-short
+            - password-in-hibp-database
+            - redirectTo-not-allowed
+            - role-not-allowed
+            - signup-disabled
+            - unverified-user
+            - user-not-anonymous
+            - invalid-pat
+            - invalid-refresh-token
+            - invalid-ticket
+            - disabled-mfa-totp
+            - no-totp-secret
+            - invalid-totp
+            - mfa-type-not-found
+            - totp-already-active
+            - invalid-state
+            - oauth-token-echange-failed
+            - oauth-profile-fetch-failed
+            - oauth-provider-error
+            - invalid-otp
+            - cannot-send-sms
+      required:
+        - status
+        - message
+        - error

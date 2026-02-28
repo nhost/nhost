@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"path"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
-	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 func (ctrl *Controller) listOrphans(ctx context.Context) ([]string, *APIError) {
@@ -47,7 +47,7 @@ func (ctrl *Controller) listOrphans(ctx context.Context) ([]string, *APIError) {
 func (ctrl *Controller) ListOrphanedFiles( //nolint:ireturn
 	ctx context.Context, _ api.ListOrphanedFilesRequestObject,
 ) (api.ListOrphanedFilesResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	files, apiErr := ctrl.listOrphans(ctx)
 	if apiErr != nil {

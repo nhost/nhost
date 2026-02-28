@@ -1,4 +1,3 @@
-import useDropdown from '@/components/ui/v2/Dropdown/useDropdown';
 import { styled } from '@mui/material';
 import { buttonBaseClasses } from '@mui/material/ButtonBase';
 import { dividerClasses } from '@mui/material/Divider';
@@ -6,6 +5,7 @@ import type { MenuItemProps as MaterialMenuItemProps } from '@mui/material/MenuI
 import MaterialMenuItem from '@mui/material/MenuItem';
 import type { ForwardedRef, MouseEvent } from 'react';
 import { forwardRef } from 'react';
+import useDropdown from '@/components/ui/v2/Dropdown/useDropdown';
 
 export interface DropdownItemProps extends MaterialMenuItemProps {
   /**
@@ -36,50 +36,52 @@ const StyledDropdownItem = styled(MaterialMenuItem)(({ theme }) => ({
   },
 }));
 
-function DropdownItem(
-  { closeOnClick = true, children, active, sx, ...props }: DropdownItemProps,
-  ref: ForwardedRef<HTMLLIElement>,
-) {
-  const { handleClose } = useDropdown();
+const DropdownItem = forwardRef(
+  (
+    { closeOnClick = true, children, active, sx, ...props }: DropdownItemProps,
+    ref: ForwardedRef<HTMLLIElement>,
+  ) => {
+    const { handleClose } = useDropdown();
 
-  function handleClick(event: MouseEvent<HTMLLIElement>) {
-    if (props.onClick) {
-      props.onClick(event);
+    function handleClick(event: MouseEvent<HTMLLIElement>) {
+      if (props.onClick) {
+        props.onClick(event);
+      }
+
+      if (closeOnClick) {
+        handleClose();
+      }
     }
 
-    if (closeOnClick) {
-      handleClose();
-    }
-  }
+    return (
+      <StyledDropdownItem
+        disableRipple
+        sx={[
+          {
+            backgroundColor: (theme) => {
+              if (active) {
+                return theme.palette.grey[300];
+              }
 
-  return (
-    <StyledDropdownItem
-      disableRipple
-      sx={[
-        {
-          backgroundColor: (theme) => {
-            if (active) {
-              return theme.palette.grey[300];
-            }
+              if (props.selected) {
+                return theme.palette.grey[200];
+              }
 
-            if (props.selected) {
-              return theme.palette.grey[200];
-            }
-
-            return theme.palette.background.paper;
+              return theme.palette.background.paper;
+            },
           },
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-      {...props}
-      ref={ref}
-      onClick={handleClick}
-    >
-      {children}
-    </StyledDropdownItem>
-  );
-}
+          ...(Array.isArray(sx) ? sx : [sx]),
+        ]}
+        {...props}
+        ref={ref}
+        onClick={handleClick}
+      >
+        {children}
+      </StyledDropdownItem>
+    );
+  },
+);
 
 DropdownItem.displayName = 'NhostDropdownItem';
 
-export default forwardRef(DropdownItem);
+export default DropdownItem;

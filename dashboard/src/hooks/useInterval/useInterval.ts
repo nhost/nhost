@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 export default function useInterval(
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   callback: (args?: any) => any,
   delay: number | null,
 ) {

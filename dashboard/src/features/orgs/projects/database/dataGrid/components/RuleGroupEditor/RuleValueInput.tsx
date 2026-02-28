@@ -1,5 +1,7 @@
+import { CommandLoading } from 'cmdk';
 import { Check, ChevronsUpDown } from 'lucide-react';
-
+import { useState } from 'react';
+import { useController, useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -38,18 +40,15 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
-import { CommandLoading } from 'cmdk';
-import { useState } from 'react';
-import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
 const xHasuraString = 'x-hasura-';
 
-function getValueForMultiSelect(value: any) {
+function getValueForMultiSelect(value: string | string[]) {
   if (Array.isArray(value)) {
     return value.map((v) => ({ value: v, label: v }));
-    // eslint-disable-next-line no-else-return
-  } else if (
+  }
+  if (
     typeof value === 'string' &&
     value.toLocaleLowerCase().includes(xHasuraString)
   ) {
@@ -147,7 +146,7 @@ function RuleValueInput({
   if (operator === '_is_null') {
     const defaultValue = comboboxValue ?? undefined;
     const triggerClasses =
-      'border hover:bg-accent hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+      'border hover:bg-accent-background hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
     return (
       <Select
         disabled={disabled}
@@ -183,7 +182,6 @@ function RuleValueInput({
   if (operator === '_in' || operator === '_nin') {
     const defaultValue = getValueForMultiSelect(field.value);
 
-    // eslint-disable-next-line no-inner-declarations
     function handleOnChange(value: Option[]) {
       const typedValue = value as Array<Option & { isSystemVariable: boolean }>;
       const [firstValue] = typedValue;

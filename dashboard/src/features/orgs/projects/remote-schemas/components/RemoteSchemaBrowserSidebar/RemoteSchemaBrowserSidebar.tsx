@@ -1,5 +1,11 @@
+import { useQueryClient } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
-import { NavLink } from '@/components/common/NavLink';
+import { ListNavLink } from '@/components/common/NavLink';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -27,12 +33,6 @@ import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/u
 import { useRemoveRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
-import { useQueryClient } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 const CreateRemoteSchemaForm = dynamic(
   () =>
@@ -216,7 +216,7 @@ function RemoteSchemaBrowserSidebarContent({
         }}
         disabled={isGitHubConnected}
       >
-        Add Remote Schema
+        New Remote Schema
       </Button>
       {remoteSchemas && remoteSchemas.length === 0 && (
         <Text className="px-2 py-1.5 text-xs" color="disabled">
@@ -259,7 +259,7 @@ function RemoteSchemaBrowserSidebarContent({
                           ? [
                               <Dropdown.Item
                                 key="view-permissions"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   handleEditPermissionClick(
                                     remoteSchema.name,
@@ -279,7 +279,7 @@ function RemoteSchemaBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="view-relationships"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   handleEditRelationshipsClick(
                                     remoteSchema.name,
@@ -297,7 +297,7 @@ function RemoteSchemaBrowserSidebarContent({
                           : [
                               <Dropdown.Item
                                 key="edit-table"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   openDrawer({
                                     title: 'Edit Remote Schema',
@@ -305,10 +305,12 @@ function RemoteSchemaBrowserSidebarContent({
                                       <EditRemoteSchemaForm
                                         originalSchema={remoteSchema}
                                         onSubmit={async () => {
-                                          await queryClient.refetchQueries([
-                                            `remote_schemas`,
-                                            project?.subdomain,
-                                          ]);
+                                          await queryClient.refetchQueries({
+                                            queryKey: [
+                                              `remote_schemas`,
+                                              project?.subdomain,
+                                            ],
+                                          });
                                           await refetch();
                                         }}
                                       />
@@ -328,7 +330,7 @@ function RemoteSchemaBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="edit-permissions"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   handleEditPermissionClick(remoteSchema.name)
                                 }
@@ -345,7 +347,7 @@ function RemoteSchemaBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="edit-relationships"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   handleEditRelationshipsClick(
                                     remoteSchema.name,
@@ -364,7 +366,7 @@ function RemoteSchemaBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="delete-remote-schema"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 sx={{ color: 'error.main' }}
                                 onClick={() =>
                                   handleDeleteRemoteSchemaClick(remoteSchema)
@@ -390,7 +392,7 @@ function RemoteSchemaBrowserSidebarContent({
                         (isSelected || isSidebarMenuOpen) &&
                         '2.25rem !important',
                     }}
-                    component={NavLink}
+                    component={ListNavLink}
                     href={`/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${remoteSchema.name}`}
                     onClick={() => {
                       if (onSidebarItemClick) {
@@ -432,13 +434,12 @@ export default function RemoteSchemaBrowserSidebar({
     setExpanded(false);
   }
 
-  function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      setExpanded(false);
-    }
-  }
-
   useEffect(() => {
+    function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setExpanded(false);
+      }
+    }
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', closeSidebarWhenEscapeIsPressed);
     }
@@ -455,7 +456,7 @@ export default function RemoteSchemaBrowserSidebar({
     <>
       <Backdrop
         open={expanded}
-        className="absolute bottom-0 left-0 right-0 top-0 z-[34] sm:hidden"
+        className="absolute top-0 right-0 bottom-0 left-0 z-[34] sm:hidden"
         role="button"
         tabIndex={-1}
         onClick={() => setExpanded(false)}
@@ -472,7 +473,7 @@ export default function RemoteSchemaBrowserSidebar({
       <Box
         component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pb-0 sm:pt-2.5 sm:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}

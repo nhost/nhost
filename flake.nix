@@ -52,10 +52,6 @@
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
-        mintlify-openapif = import ./tools/mintlify-openapi/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
-        };
-
         nhost-jsf = import ./packages/nhost-js/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
@@ -82,7 +78,6 @@
           demos = demosf.check;
           guides = guidesf.check;
           docs = docsf.check;
-          mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
           nixops = nixopsf.check;
           storage = storagef.check;
@@ -107,10 +102,11 @@
               # dashboard
               nodePackages.vercel
               playwright-driver
+              lychee
 
               # javascript
               nodejs
-              pnpm_10
+              pnpm
               biome
 
               # go
@@ -119,10 +115,13 @@
               gofumpt
               golangci-lint
               gqlgenc
+              oapi-codegen
+
+              # docs
+              vale
 
               # internal packages
               self.packages.${system}.codegen
-              self.packages.${system}.mintlify-openapi
             ];
 
             shellHook = ''
@@ -139,7 +138,8 @@
 
           pnpm = pkgs.mkShell {
             buildInputs = with pkgs; [
-              pnpm_10
+              nodejs
+              pnpm
             ];
           };
 
@@ -164,7 +164,6 @@
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
-          mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
           nixops = nixopsf.devShell;
           storage = storagef.devShell;
@@ -182,7 +181,6 @@
           dashboard-docker-image = dashboardf.dockerImage;
           demos = demosf.package;
           guides = guidesf.package;
-          mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;

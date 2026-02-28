@@ -1,10 +1,10 @@
+import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 
 export interface FetchDatabaseOptions
   extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}
@@ -21,6 +21,7 @@ export interface FetchDatabaseReturnType {
   /**
    * Response metadata.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   metadata?: Record<string, any>;
 }
 

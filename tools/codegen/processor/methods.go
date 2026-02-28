@@ -15,6 +15,7 @@ const (
 	minStatusForError           = 300
 	mediaApplicationJSON        = "application/json"
 	mediaApplicationOctetStream = "application/octet-stream"
+	mediaFormURLEncoded         = "application/x-www-form-urlencoded"
 )
 
 type Method struct {
@@ -57,7 +58,7 @@ func (m *Method) PathParameters() []*Parameter {
 
 func (m *Method) HasQueryParameters() bool {
 	for _, param := range m.Parameters {
-		if param.Parameter.In == "query" {
+		if param.Parameter.In == "query" { //nolint:goconst
 			return true
 		}
 	}
@@ -131,6 +132,16 @@ func (m *Method) RequestJSON() Type { //nolint:ireturn
 func (m *Method) RequestFormData() Type { //nolint:ireturn
 	for m, t := range m.Bodies {
 		if m == "multipart/form-data" {
+			return t
+		}
+	}
+
+	return nil
+}
+
+func (m *Method) RequestFormURLEncoded() Type { //nolint:ireturn
+	for m, t := range m.Bodies {
+		if m == mediaFormURLEncoded {
 			return t
 		}
 	}
@@ -228,6 +239,29 @@ func (p *Parameter) Required() bool {
 	return false
 }
 
+func (p *Parameter) Style() string {
+	if p.Parameter.Style != "" {
+		return p.Parameter.Style
+	}
+
+	// Default based on location per OpenAPI 3.0 spec
+	if p.Parameter.In == "query" || p.Parameter.In == "cookie" {
+		return "form"
+	}
+
+	return "simple"
+}
+
+func (p *Parameter) Explode() bool {
+	if p.Parameter.Explode != nil {
+		return *p.Parameter.Explode
+	}
+
+	// Default based on style per OpenAPI 3.0 spec
+	// form style defaults to true, others default to false
+	return p.Style() == "form"
+}
+
 func GetMethod(
 	path string,
 	method string,
@@ -305,7 +339,9 @@ func getMethodParameters(
 			case param.Schema != nil:
 				t2, tt, err := GetType(param.Schema, method+format.Title(param.Name), p, false)
 				if err != nil {
-					return nil, nil, fmt.Errorf("failed to get type for parameter %s: %w", param.Name, err)
+					return nil, nil, fmt.Errorf(
+						"failed to get type for parameter %s: %w", param.Name, err,
+					)
 				}
 
 				types = append(types, tt...)
@@ -320,15 +356,23 @@ func getMethodParameters(
 					)
 				}
 
-				t2, tt, err := GetType(jsonMediaType.Schema, method+format.Title(param.Name), p, false)
+				t2, tt, err := GetType(
+					jsonMediaType.Schema, method+format.Title(param.Name), p, false,
+				)
 				if err != nil {
-					return nil, nil, fmt.Errorf("failed to get type for parameter %s: %w", param.Name, err)
+					return nil, nil, fmt.Errorf(
+						"failed to get type for parameter %s: %w", param.Name, err,
+					)
 				}
 
 				types = append(types, tt...)
 				t = t2
 			default:
-				return nil, nil, fmt.Errorf("parameter %s in operation %s has no schema or content defined", param.Name, operation.OperationId) //nolint:err113,lll
+				return nil, nil, fmt.Errorf( //nolint:err113
+					"parameter %s in operation %s has no schema or content defined",
+					param.Name,
+					operation.OperationId,
+				)
 			}
 		}
 

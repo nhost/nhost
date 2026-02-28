@@ -3,15 +3,15 @@ package controller
 import (
 	"context"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) ChangeUserMfa( //nolint:ireturn
 	ctx context.Context, _ api.ChangeUserMfaRequestObject,
 ) (api.ChangeUserMfaResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.MfaEnabled {
 		logger.WarnContext(ctx, "mfa disabled")

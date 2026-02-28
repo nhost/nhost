@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -7,7 +8,6 @@ import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { BackupsContent } from '@/features/orgs/projects/backups/components/BackupsContent';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import type { ReactElement } from 'react';
 
 export default function BackupsPage() {
   const { currentOrg: org, loading } = useOrgs();
@@ -36,7 +36,7 @@ export default function BackupsPage() {
   return (
     <Container className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent">
       <div className="grid grid-flow-col justify-between gap-2">
-        <Text className="text-2xl font-medium" variant="h1">
+        <Text className="font-medium text-2xl" variant="h1">
           Backups
         </Text>
       </div>

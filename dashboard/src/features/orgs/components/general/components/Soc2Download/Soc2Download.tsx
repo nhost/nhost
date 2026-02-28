@@ -1,10 +1,10 @@
+import { Download } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useNhostClient } from '@/providers/nhost';
 import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
-import { Download } from 'lucide-react';
-import { useState } from 'react';
 
 export default function Soc2Download() {
   const { org } = useCurrentOrg();
@@ -65,7 +65,7 @@ export default function Soc2Download() {
 
       <div className="flex w-full flex-col gap-4 p-4">
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Download Nhost&apos;s SOC2 Type II compliance report. This report
             demonstrates our commitment to security controls.
           </p>

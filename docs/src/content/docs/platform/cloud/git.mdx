@@ -1,0 +1,52 @@
+---
+title: Connecting to GitHub
+description: Set up automatic deployments by connecting your Nhost project to GitHub
+keywords: ["GitHub", "CI/CD", "automatic deployment", "Git integration", "deployment branch", "migrations"]
+---
+
+By connecting your Nhost project to GitHub, you can set up a seamless CI/CD workflow that takes care of deploying your database migrations, GraphQL metadata, and serverless functions.
+
+## Getting Started
+
+Connecting to GitHub only takes a few minutes. Here's how to do it:
+
+1. Head over to your project dashboard
+2. Navigate to **Settings** → **Git**
+3. Click the **Connect to GitHub** button
+
+## Authorizing Nhost
+
+When you click the connect button, you'll be redirected to GitHub where you'll need to:
+
+- Install the Nhost GitHub App on your account
+- Choose which repositories Nhost can access (you can select specific repos or grant access to all of them)
+
+Don't worry - Nhost only requests the permissions it needs to deploy your project.
+
+## Configuring Your Repository
+
+After authorizing the GitHub integration, you'll need to tell Nhost a couple of important details:
+
+### Base Directory
+
+This is the folder in your repository where your Nhost folder lives. If your Nhost folder is in the root of your repository, you can leave this as `/`. If it is in a subfolder (like `/backend`), specify that path here.
+
+### Deployment Branch
+
+Choose which branch should trigger deployments when pushed to. This is typically:
+- `main` or `master` for production environments
+- `develop` or `staging` for development environments
+
+## How Deployments Work
+
+Once everything is set up, here's what happens:
+
+1. You push code to your deployment branch
+2. We do the rest. We:
+   1. Checkout your commit
+   2. Deploy your `nhost.toml`
+   3. Deploy any new database migrations
+   4. Apply GraphQL metadata
+   5. Deploy new or modified serverless functions
+
+You can head to your project's deployment tab to see your deployments and their logs.

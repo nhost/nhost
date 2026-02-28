@@ -1,17 +1,17 @@
+import type { ApolloError, QueryHookOptions } from '@apollo/client';
+import { useVisibilityChange } from '@uidotdev/usehooks';
+import { useEffect } from 'react';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  useGetApplicationStateQuery,
-  useGetSystemLogsQuery,
   type GetApplicationStateQuery,
   type GetApplicationStateQueryVariables,
   type GetSystemLogsQuery,
   type GetSystemLogsQueryVariables,
+  useGetApplicationStateQuery,
+  useGetSystemLogsQuery,
 } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import type { ApolloError, QueryHookOptions } from '@apollo/client';
-import { useVisibilityChange } from '@uidotdev/usehooks';
-import { useEffect } from 'react';
 
 export interface UseIsDatabaseMigratingOptions
   extends QueryHookOptions<
@@ -95,7 +95,7 @@ export default function useMigrationLogs(
       try {
         logObj = JSON.parse(log);
         return logObj;
-      } catch (e) {
+      } catch {
         console.error('Failed to parse log', log);
         return undefined;
       }

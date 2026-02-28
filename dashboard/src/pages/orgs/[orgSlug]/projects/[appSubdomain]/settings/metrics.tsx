@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -7,7 +8,6 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { MetricsSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSettings';
 import { useGetObservabilitySettingsQuery } from '@/generated/graphql';
-import type { ReactElement } from 'react';
 
 export default function MetricsSettingsPage() {
   const isPlatform = useIsPlatform();

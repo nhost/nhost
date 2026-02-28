@@ -1,5 +1,5 @@
-import { createNhostClient } from "../../lib/nhost/server";
-import TodosClient from "./TodosClient";
+import { createNhostClient } from '../../lib/nhost/server';
+import TodosClient from './TodosClient';
 
 // The interfaces below define the structure of our data
 // They are not strictly necessary but help with type safety
@@ -51,13 +51,13 @@ export default async function TodosPage() {
 
       // Check for GraphQL errors in the response body
       if (response.body.errors) {
-        error = response.body.errors[0]?.message || "Failed to fetch todos";
+        error = response.body.errors[0]?.message || 'Failed to fetch todos';
       } else {
         // Extract todos from the GraphQL response data
         initialTodos = response.body?.data?.todos || [];
       }
     } catch (err) {
-      error = err instanceof Error ? err.message : "Failed to fetch todos";
+      error = err instanceof Error ? err.message : 'Failed to fetch todos';
     }
   }
 

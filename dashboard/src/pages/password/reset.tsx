@@ -1,3 +1,9 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { styled } from '@mui/material';
+import { useRouter } from 'next/router';
+import type { ReactElement } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
@@ -7,12 +13,6 @@ import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { styled } from '@mui/material';
-import { useRouter } from 'next/router';
-import type { ReactElement } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   newPassword: Yup.string()
@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
       <Text
         variant="h2"
         component="h1"
-        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
+        className="text-center font-semibold text-3.5xl lg:text-4.5xl"
       >
         Change password
       </Text>
@@ -113,7 +113,10 @@ export default function ResetPasswordPage() {
 
       <Text color="secondary" className="text-center text-base lg:text-lg">
         Go back to{' '}
-        <NavLink href="/signin/email" color="white" className="font-medium">
+        <NavLink
+          href="/signin/email"
+          className="px-0 font-medium text-[1.125rem] text-white"
+        >
           Sign In
         </NavLink>
       </Text>

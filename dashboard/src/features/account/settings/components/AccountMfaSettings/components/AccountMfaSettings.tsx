@@ -28,13 +28,13 @@ function AccountMfaSettings() {
     <div className="rounded-lg border border-[#EAEDF0] bg-white font-['Inter_var'] dark:border-[#2F363D] dark:bg-paper">
       <div className="flex w-full flex-col items-start gap-6 p-4">
         <div className="flex w-full items-center justify-between">
-          <h3 className="flex items-center text-[1.125rem] font-semibold leading-[1.75]">
+          <h3 className="flex items-center font-semibold text-[1.125rem] leading-[1.75]">
             <span className="mr-4">Multi-Factor Authentication </span>
             {isMfaEnabled ? <MFaEnabledBadge /> : <MFaDisabledBadge />}
           </h3>
         </div>
       </div>
-      <div className="flex w-full items-center border-t border-[#EAEDF0] px-4 py-2 dark:border-[#2F363D]">
+      <div className="flex w-full items-center border-[#EAEDF0] border-t px-4 py-2 dark:border-[#2F363D]">
         {isMfaEnabled ? <DisableMfaButton /> : <EnableMfaButton />}
       </div>
     </div>

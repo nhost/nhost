@@ -1,9 +1,9 @@
+import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { BillingEstimate } from '@/features/orgs/components/billing/BillingEstimate';
 import { SubscriptionPlan } from '@/features/orgs/components/billing/SubscriptionPlan';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import type { ReactElement } from 'react';
 
 export default function OrgBilling() {
   const { org, loading } = useCurrentOrg();
@@ -14,7 +14,7 @@ export default function OrgBilling() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto bg-accent p-4">
+    <div className="flex h-full flex-col gap-4 overflow-auto bg-accent-background p-4">
       <SubscriptionPlan />
       {showBillingEstimate && <BillingEstimate />}
     </div>

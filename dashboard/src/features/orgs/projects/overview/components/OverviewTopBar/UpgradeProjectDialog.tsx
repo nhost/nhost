@@ -1,6 +1,6 @@
+import { useRouter } from 'next/router';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useRouter } from 'next/router';
 
 function UpgradeProjectDialog() {
   const router = useRouter();

@@ -1,4 +1,3 @@
-import { cn } from '@/lib/utils';
 import { useTheme } from '@mui/material';
 import type { GraphQLSchema } from 'graphql';
 import React, {
@@ -14,6 +13,7 @@ import {
   Tree,
   type TreeRef,
 } from 'react-complex-tree';
+import { cn } from '@/lib/utils';
 import 'react-complex-tree/lib/style-modern.css';
 import getText from './getText';
 import type { ComplexTreeData } from './types';
@@ -75,7 +75,6 @@ export const RemoteSchemaTree = forwardRef<
           acc.push([...currentPath, itemId]);
         }
 
-        // eslint-disable-next-line no-restricted-syntax
         for (const childId of item.children ?? []) {
           collectInItem(childId, [...currentPath, itemId], acc);
         }
@@ -88,20 +87,20 @@ export const RemoteSchemaTree = forwardRef<
     [treeData],
   );
 
-  const expandToItem = async (path: string[]): Promise<void> => {
-    if (treeRef.current && path.length > 0) {
-      const parentsToExpand = path.slice(0, -1);
-      setExpandedItems((prev) => [...new Set([...prev, ...parentsToExpand])]);
-
-      await treeRef.current.expandSubsequently(path);
-    }
-  };
-
   useImperativeHandle(
     ref,
     () => ({
       findAllItemPaths,
-      expandToItem,
+      expandToItem: async (path: string[]): Promise<void> => {
+        if (treeRef.current && path.length > 0) {
+          const parentsToExpand = path.slice(0, -1);
+          setExpandedItems((prev) => [
+            ...new Set([...prev, ...parentsToExpand]),
+          ]);
+
+          await treeRef.current.expandSubsequently(path);
+        }
+      },
       focusItem: (itemId: string) => {
         setFocusedItem(itemId);
         treeRef.current?.focusItem(itemId);
@@ -117,9 +116,10 @@ export const RemoteSchemaTree = forwardRef<
     [findAllItemPaths],
   );
 
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   const getItemTitle = (item: any) => {
     if (React.isValidElement(item.data)) {
-      return item.data;
+      return item.data as string;
     }
 
     if (typeof item.data === 'string') {

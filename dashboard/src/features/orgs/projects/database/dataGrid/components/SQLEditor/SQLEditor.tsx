@@ -1,10 +1,18 @@
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: used with value*/
+
+import { PostgreSQL, sql } from '@codemirror/lang-sql';
+import { useTheme } from '@mui/material';
+import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
+import CodeMirror from '@uiw/react-codemirror';
+import { useCallback, useState } from 'react';
+import { useResizable } from 'react-resizable-layout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Table } from '@/components/ui/v2/Table';
 import { TableBody } from '@/components/ui/v2/TableBody';
@@ -15,12 +23,6 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
-import { PostgreSQL, sql } from '@codemirror/lang-sql';
-import { useTheme } from '@mui/material';
-import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
-import CodeMirror from '@uiw/react-codemirror';
-import { useCallback, useState } from 'react';
-import { useResizable } from 'react-resizable-layout';
 
 export default function SQLEditor() {
   const theme = useTheme();
@@ -238,14 +240,9 @@ export default function SQLEditor() {
 
             <TableBody>
               {rows.map((row, rowIndex) => (
-                <TableRow
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={String(rowIndex)}
-                  // className="px-6 py-4 border whitespace-nowrap"
-                >
+                <TableRow key={String(rowIndex)}>
                   {row.map((value, valueIndex) => (
                     <TableCell
-                      // eslint-disable-next-line react/no-array-index-key
                       key={`${value}-${valueIndex}`}
                       className="whitespace-nowrap border px-6 py-4"
                     >

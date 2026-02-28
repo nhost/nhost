@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/fastly"
@@ -36,6 +37,7 @@ func replaceFileParseRequest(request api.ReplaceFileRequestObject) (fileData, *A
 			fmt.Errorf("problem reading multipart form: %w", err),
 		)
 	}
+	defer form.RemoveAll() //nolint:errcheck
 
 	file := form.File["file"]
 	if len(file) != 1 {
@@ -67,7 +69,7 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	ctx context.Context,
 	request api.ReplaceFileRequestObject,
 ) (api.ReplaceFileResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
 	file, apiErr := replaceFileParseRequest(request)

@@ -13,6 +13,7 @@ import type { ElementType, ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 
 export type ListItemButtonProps<
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   D extends ElementType = ElementType<any>,
   P = {},
 > = MaterialListItemButtonProps<D, P> & {
@@ -54,6 +55,7 @@ const StyledListItemButton = styled(MaterialListItemButton)(({ theme }) => ({
   },
 }));
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 function ListItemButton<D extends ElementType<any>, P>(
   { children, dense, className, ...props }: ListItemButtonProps<D, P>,
   ref: ForwardedRef<HTMLDivElement>,

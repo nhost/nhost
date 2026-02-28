@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -11,8 +13,6 @@ import {
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
 
 function DisableMfaButton() {
   const nhost = useNhostClient();
@@ -34,8 +34,6 @@ function DisableMfaButton() {
       );
       await refetch();
       setOpen(false);
-
-      return true;
     } finally {
       setIsDisabling(false);
     }
@@ -47,7 +45,7 @@ function DisableMfaButton() {
         <Button
           variant="outline"
           disabled={buttonDisabled}
-          className="p-y[0.375rem] h-9 gap-2 border-destructive px-2 text-destructive hover:bg-destructive"
+          className="h-9 gap-2 border-destructive p-y[0.375rem] px-2 text-destructive hover:bg-destructive hover:text-white"
         >
           Disable multi-factor authentication
         </Button>

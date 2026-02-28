@@ -1,3 +1,6 @@
+import { useMemo } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import * as useProject from '@/features/orgs/projects/hooks/useProject';
 import {
   mockPointerEvent,
@@ -6,9 +9,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import { useMemo } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import RuleValueInput from './RuleValueInput';
 import * as useRuleGroupEditor from './useRuleGroupEditor';
 
@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -37,6 +38,7 @@ function TestWrapper({
   defaultValues = {},
 }: {
   children: React.ReactNode;
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   defaultValues?: Record<string, any>;
 }) {
   const form = useForm({
@@ -49,12 +51,12 @@ function TestWrapper({
     },
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to run on mount only
   const formSpy = useMemo(
     () => ({
       ...form,
       setValue: mocks.setValueMock,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 

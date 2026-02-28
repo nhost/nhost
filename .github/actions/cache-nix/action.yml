@@ -11,5 +11,116 @@ runs:
     - name: "Cache build"
       shell: bash
       run: |
-        nix store sign --key-file <(echo "${{ inputs.NIX_CACHE_PRIV_KEY }}") --all
-        nix copy --to 's3://nhost-nix-cache?region=eu-central-1' --substitute-on-destination --all
+        S3_BUCKET="nhost-nix-cache"
+        S3_REGION="eu-central-1"
+
+        elapsed() {
+          local start=$1
+          echo "$(( $(date +%s) - start ))s"
+        }
+
+        upload_to_s3() {
+          set -euo pipefail
+          local store_path="$1"
+          local t0=$(date +%s)
+          local store_hash
+          store_hash=$(basename "$store_path" | cut -d- -f1)
+
+          # Get path metadata
+          local info
+          info=$(nix path-info --json "$store_path")
+          local nar_hash_sri
+          nar_hash_sri=$(echo "$info" | jq -r ".[\"$store_path\"].narHash")
+          local nar_hash
+          nar_hash=$(nix hash convert --to nix32 "$nar_hash_sri")
+          local nar_size
+          nar_size=$(echo "$info" | jq -r ".[\"$store_path\"].narSize")
+          local refs
+          refs=$(echo "$info" | jq -r "[.[\"$store_path\"].references[] | split(\"/\")[-1]] | join(\" \")")
+          local sigs
+          sigs=$(echo "$info" | jq -r ".[\"$store_path\"].signatures[]")
+
+          # Create compressed NAR
+          local tmp_nar
+          tmp_nar=$(mktemp)
+          local t1=$(date +%s)
+          nix nar pack "$store_path" | zstd -q > "$tmp_nar"
+          local file_size
+          file_size=$(stat -c%s "$tmp_nar")
+          local file_hash
+          file_hash=$(nix-hash --type sha256 --base32 --flat "$tmp_nar")
+          local t2=$(date +%s)
+
+          # Upload NAR
+          aws s3 cp "$tmp_nar" "s3://${S3_BUCKET}/nar/${file_hash}.nar.zst" \
+            --region "$S3_REGION" --quiet
+          rm "$tmp_nar"
+          local t3=$(date +%s)
+
+          # Build narinfo
+          local narinfo
+          narinfo="StorePath: ${store_path}
+        URL: nar/${file_hash}.nar.zst
+        Compression: zstd
+        FileHash: sha256:${file_hash}
+        FileSize: ${file_size}
+        NarHash: sha256:${nar_hash}
+        NarSize: ${nar_size}
+        References: ${refs}"
+
+          while IFS= read -r sig; do
+            [ -n "$sig" ] && narinfo="${narinfo}
+        Sig: ${sig}"
+          done <<< "$sigs"
+
+          # Upload narinfo
+          echo "$narinfo" | aws s3 cp - "s3://${S3_BUCKET}/${store_hash}.narinfo" \
+            --region "$S3_REGION" --quiet
+
+          echo "Uploaded $(basename "$store_path") (nar_size=${nar_size} file_size=${file_size} compress=$(( t2 - t1 ))s upload=$(( t3 - t2 ))s total=$(( t3 - t0 ))s)"
+        }
+        export -f upload_to_s3 elapsed
+        export S3_BUCKET S3_REGION
+
+        STEP_START=$(date +%s)
+
+        # Find locally-built paths (unsigned, non-drv)
+        T=$(date +%s)
+        mapfile -t LOCAL_PATHS < <(
+          nix path-info --all --json \
+            | jq -r 'to_entries[] | select(.key | endswith(".drv") | not) | select(.value.signatures | length == 0) | .key'
+        )
+        echo "[discover] Found ${#LOCAL_PATHS[@]} locally-built paths in $(elapsed $T)"
+
+        if [ ${#LOCAL_PATHS[@]} -eq 0 ]; then
+          echo "No locally-built paths to cache"
+          exit 0
+        fi
+
+        # Sign them
+        T=$(date +%s)
+        printf '%s\n' "${LOCAL_PATHS[@]}" \
+          | xargs nix store sign --key-file <(echo "${{ inputs.NIX_CACHE_PRIV_KEY }}")
+        echo "[sign] Signed ${#LOCAL_PATHS[@]} paths in $(elapsed $T)"
+
+        # Check which paths are missing from S3 (in parallel)
+        T=$(date +%s)
+        mapfile -t MISSING_PATHS < <(
+          printf '%s\n' "${LOCAL_PATHS[@]}" \
+            | xargs -P 16 -I{} bash -c \
+              'aws s3api head-object --bucket "$S3_BUCKET" --region "$S3_REGION" --key "$(basename "$1" | cut -d- -f1).narinfo" >/dev/null 2>&1 || echo "$1"' _ {}
+        )
+        echo "[check] Found ${#MISSING_PATHS[@]}/${#LOCAL_PATHS[@]} paths missing from cache in $(elapsed $T)"
+
+        if [ ${#MISSING_PATHS[@]} -eq 0 ]; then
+          echo "All paths already cached"
+          exit 0
+        fi
+
+        # Upload missing paths
+        T=$(date +%s)
+        printf '%s\n' "${MISSING_PATHS[@]}" \
+          | xargs -P 4 -I{} bash -c 'upload_to_s3 "$@"' _ {}
+        echo "[upload] Uploaded ${#MISSING_PATHS[@]} paths in $(elapsed $T)"
+
+        echo "[total] Cache step completed in $(elapsed $STEP_START)"

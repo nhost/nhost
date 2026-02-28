@@ -1,14 +1,14 @@
+import type { QueryHookOptions } from '@apollo/client';
+import { useVisibilityChange } from '@uidotdev/usehooks';
+import { useEffect } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ServiceHealthInfo } from '@/features/orgs/projects/overview/health';
 import {
-  useGetProjectServicesHealthQuery,
   type GetProjectServicesHealthQuery,
   type GetProjectServicesHealthQueryVariables,
+  useGetProjectServicesHealthQuery,
 } from '@/utils/__generated__/graphql';
-import type { QueryHookOptions } from '@apollo/client';
-import { useVisibilityChange } from '@uidotdev/usehooks';
-import { useEffect } from 'react';
 
 export interface UseServiceStatusOptions
   extends QueryHookOptions<

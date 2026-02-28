@@ -39,15 +39,31 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 	} else {
 		var rawClaims map[string]string
 		if err := json.Unmarshal([]byte(ctrl.config.CustomClaims), &rawClaims); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "failed to unmarshal custom claims", "error": err.Error()})
+			c.JSON(
+				http.StatusBadRequest,
+				gin.H{"message": "failed to unmarshal custom claims", "error": err.Error()},
+			)
+
+			return
 		}
 
 		var defaults map[string]any
 		if ctrl.config.CustomClaimsDefaults == "" {
 			defaults = nil
 		} else {
-			if err := json.Unmarshal([]byte(ctrl.config.CustomClaimsDefaults), &defaults); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"message": "failed to unmarshal custom claims defaults", "error": err.Error()})
+			if err := json.Unmarshal(
+				[]byte(ctrl.config.CustomClaimsDefaults),
+				&defaults,
+			); err != nil {
+				c.JSON(
+					http.StatusBadRequest,
+					gin.H{
+						"message": "failed to unmarshal custom claims defaults",
+						"error":   err.Error(),
+					},
+				)
+
+				return
 			}
 		}
 
@@ -94,6 +110,10 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 		}
 
 		ctrl.Webauthn = wa
+	}
+
+	if ctrl.config.OAuth2ProviderEnabled {
+		ctrl.oauth2 = ctrl.newOAuth2Provider()
 	}
 
 	c.JSON(

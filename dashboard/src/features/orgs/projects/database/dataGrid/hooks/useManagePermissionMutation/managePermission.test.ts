@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { ManagePermissionOptions } from './managePermission';
 import managePermission from './managePermission';
@@ -28,7 +28,7 @@ test('should throw an error if permission object is incorrectly provided', async
       mode: 'update',
       resourceVersion: 1,
     }),
-  ).rejects.toThrowError(
+  ).rejects.toThrow(
     new Error(
       'A permission must be provided when creating or updating a permission.',
     ),

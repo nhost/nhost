@@ -1,10 +1,10 @@
+import type { ReactNode } from 'react';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { copy } from '@/utils/copy';
-import type { ReactNode } from 'react';
 
 export interface InfoCardProps extends BoxProps {
   /**
@@ -39,11 +39,11 @@ export default function InfoCard({
       sx={{ backgroundColor: 'grey.200' }}
       {...props}
     >
-      <Text className="text-sm+ font-medium">{title}</Text>
+      <Text className="font-medium text-sm+">{title}</Text>
 
       <div className="grid grid-flow-col items-center gap-1 self-center">
         {customValue || (
-          <Text className="truncate text-sm font-medium">{value}</Text>
+          <Text className="truncate font-medium text-sm">{value}</Text>
         )}
 
         {!disableCopy && (

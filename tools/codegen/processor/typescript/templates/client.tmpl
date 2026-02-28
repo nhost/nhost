@@ -94,13 +94,35 @@ export const createAPIClient = (
   const encodedParameters =
     params &&
     Object.entries(params)
-      .map(([key, value]) => {
+      .flatMap(([key, value]) => {
+        {{- range .QueryParameters }}
+        {{- if .Explode }}
+        {{- if eq .Type.Kind "array" }}
+        if (key === "{{ .Name }}") {
+          // Array with explode: true - repeat key for each value
+          return Array.isArray(value)
+            ? value.map(v => `${key}=${encodeURIComponent(String(v))}`)
+            : [`${key}=${encodeURIComponent(String(value))}`]
+        }
+        {{- else if eq .Type.Kind "object" }}
+        if (key === "{{ .Name }}") {
+          // Object with explode: true - each property as separate parameter
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            return Object.entries(value)
+              .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+          }
+          return [`${key}=${encodeURIComponent(String(value))}`]
+        }
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        // Default handling (scalars or explode: false)
         const stringValue = Array.isArray(value)
           ? value.join(',')
-          : typeof value === 'object'
+          : typeof value === 'object' && value !== null
           ? JSON.stringify(value)
-          : (value as string)
-        return `${key}=${encodeURIComponent(stringValue)}`
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
       })
       .join('&')
 
@@ -126,6 +148,9 @@ export const createAPIClient = (
     });
   {{- else if .RequestFormData }}
     const formData = new FormData();
+    const isReactNative =
+      typeof navigator !== "undefined" &&
+      (navigator as { product?: string }).product === "ReactNative";
 
     {{- range .RequestFormData.Properties }}
     {{- if eq .Type.Kind "scalar" }}
@@ -138,11 +163,22 @@ export const createAPIClient = (
         {{- if eq .Type.Item.Kind "scalar" }}
           formData.append("{{ .Name }}", value)
         {{- else if eq .Type.Item.Kind "object" }}
-          formData.append(
+          if (isReactNative) {
+            formData.append(
+              "{{ .Name }}",
+              {
+                string: JSON.stringify(value),
+                type: "application/json",
+                name: "",
+              } as unknown as Blob,
+            );
+          } else {
+            formData.append(
             "{{ .Name }}",
-            new Blob([JSON.stringify(value)], { type: "application/json" }),
-            "",
-          )
+              new Blob([JSON.stringify(value)], { type: "application/json" }),
+              "",
+            );
+          }
         {{- else }}
           TODO {{ .Type.Kind }} {{ .Type.Schema.Schema.Type }}
         {{- end }}
@@ -151,11 +187,22 @@ export const createAPIClient = (
     }
     {{- else if eq .Type.Kind "object" }}
     if (body["{{ .Name }}"] !== undefined) {
-      formData.append(
+      if (isReactNative) {
+        formData.append(
+          "{{ .Name }}",
+          {
+            string: JSON.stringify(body["{{ .Name }}"]),
+            type: "application/json",
+            name: "",
+          } as unknown as Blob,
+        );
+      } else {
+        formData.append(
         "{{ .Name }}",
-        new Blob([JSON.stringify(body["{{ .Name }}"])], { type: "application/json" }),
-        "",
-      );
+          new Blob([JSON.stringify(body["{{ .Name }}"])], { type: "application/json" }),
+          "",
+        );
+      }
     }
     {{- else }}
     TODO {{ .Type.Kind }} {{ .Type.Schema.Schema.Type }}
@@ -166,6 +213,31 @@ export const createAPIClient = (
       ...options,
       method: "{{ .Method }}",
       body: formData,
+    });
+  {{- else if .RequestFormURLEncoded }}
+    const params = new URLSearchParams();
+    {{- range .RequestFormURLEncoded.Properties }}
+    {{- if eq .Type.Kind "array" }}
+    if (body["{{ .Name }}"] !== undefined) {
+      body["{{ .Name }}"].forEach((value) => {
+        params.append("{{ .Name }}", String(value));
+      });
+    }
+    {{- else }}
+    if (body["{{ .Name }}"] !== undefined) {
+      params.append("{{ .Name }}", String(body["{{ .Name }}"]));
+    }
+    {{- end }}
+    {{- end }}
+
+    const res = await fetch(url, {
+      ...options,
+      method: "{{ .Method }}",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        ...options?.headers,
+      },
+      body: params.toString(),
     });
   {{- else if not .RequestHasBody }}
     const res = await fetch(url, {

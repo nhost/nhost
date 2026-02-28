@@ -17,18 +17,10 @@ let
         "pnpm-lock.yaml"
         "${submodule}/package.json"
         "${submodule}/pnpm-lock.yaml"
-        "${submodule}/ReactNativeDemo/package.json"
-        "${submodule}/ReactNativeDemo/pnpm-lock.yaml"
         "${submodule}/express/package.json"
         "${submodule}/express/pnpm-lock.yaml"
-        "${submodule}/nextjs-ssr-demo/package.json"
-        "${submodule}/nextjs-ssr-demo/pnpm-lock.yaml"
         "${submodule}/react-demo/package.json"
         "${submodule}/react-demo/pnpm-lock.yaml"
-        "${submodule}/sveltekit-demo/package.json"
-        "${submodule}/sveltekit-demo/pnpm-lock.yaml"
-        "${submodule}/vue-demo/package.json"
-        "${submodule}/vue-demo/pnpm-lock.yaml"
       ];
     };
 

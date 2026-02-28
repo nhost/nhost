@@ -1,3 +1,5 @@
+import { alpha, styled } from '@mui/material';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Slider, sliderClasses } from '@/components/ui/v2/Slider';
@@ -20,8 +22,6 @@ import {
   RESOURCE_VCPU_PRICE,
   RESOURCE_VCPU_STEP,
 } from '@/utils/constants/common';
-import { alpha, styled } from '@mui/material';
-import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface TotalResourcesFormFragmentProps {
   /**
@@ -160,7 +160,7 @@ export default function TotalResourcesFormFragment({
           severity={
             hasUnusedResources || hasOverallocatedResources ? 'warning' : 'info'
           }
-          className="grid grid-flow-row gap-2 rounded-b-[5px] rounded-t-none text-left"
+          className="grid grid-flow-row gap-2 rounded-t-none rounded-b-[5px] text-left"
         >
           {hasUnusedResources && !hasOverallocatedResources && (
             <>

@@ -1,5 +1,5 @@
-import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
 import { useEffect, useState } from 'react';
+import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
 
 function useDatabasePiTRSettings() {
   const [isPiTREnabled, setIsPiTREnabled] = useState(false);

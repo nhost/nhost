@@ -33,13 +33,13 @@ jobs:
 
     steps:
       - name: "Check out repository"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
 
       - name: Configure aws
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
           aws-region: eu-central-1
@@ -55,14 +55,14 @@ jobs:
           echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
 
       - name: "Get artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           path: ~/artifacts
 
       - name: "Inspect artifacts"
         run: find ~/artifacts
 
-      - name: "Push docker image to docker hub"
+      - name: "Push docker image to ECR"
         run: |
           export NAME=${{ inputs.NAME }}
           export VERSION=${{ steps.vars.outputs.VERSION }}
@@ -72,8 +72,7 @@ jobs:
           for ARCH in "x86_64" "aarch64"; do
             skopeo copy --insecure-policy \
               dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image-$ARCH-$VERSION \
-              docker-daemon:$CONTAINER_NAME:$VERSION-$ARCH
-            docker push $CONTAINER_NAME:$VERSION-$ARCH
+              docker://$CONTAINER_NAME:$VERSION-$ARCH
           done
 
           docker manifest create \

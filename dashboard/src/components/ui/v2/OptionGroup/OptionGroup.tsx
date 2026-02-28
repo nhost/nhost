@@ -19,6 +19,7 @@ const StyledGroupRoot = styled('li')(({ theme }) => ({
 
 function OptionGroup(
   { slots: externalSlots, ...props }: OptionGroupProps,
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   ref: ForwardedRef<any>,
 ) {
   const slots: typeof externalSlots = {

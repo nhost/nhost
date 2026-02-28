@@ -1,5 +1,5 @@
-import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 import { ShieldAlertIcon } from 'lucide-react';
+import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 
 function RestoreRecommendationNote() {
   return (

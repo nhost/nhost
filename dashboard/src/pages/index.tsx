@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import { type ReactElement, useEffect } from 'react';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
@@ -6,8 +8,6 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { useAuth } from '@/providers/Auth';
-import { useRouter } from 'next/router';
-import { useEffect, type ReactElement } from 'react';
 
 export default function IndexPage() {
   const { push } = useRouter();

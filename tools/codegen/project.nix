@@ -11,7 +11,7 @@ let
       "go.mod"
       "go.sum"
       (inDirectory "vendor")
-      "${submodule}/.golangci.yaml"
+      ".golangci.yaml"
       isDirectory
       (and
         (inDirectory submodule)

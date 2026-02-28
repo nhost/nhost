@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+import { NavLink } from '@/components/common/NavLink';
 import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -8,20 +10,15 @@ import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
-
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
-
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useGetDeploymentsSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/utils/__generated__/graphql';
 import { getLastLiveDeployment } from '@/utils/helpers';
-import NavLink from 'next/link';
-import { Fragment } from 'react';
-
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 function OverviewDeploymentsTopBar() {
   const { org } = useCurrentOrg();
@@ -37,13 +34,13 @@ function OverviewDeploymentsTopBar() {
 
       <NavLink
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
-        passHref
-        legacyBehavior
+        disabled={!isGitHubConnected}
+        variant="ghost"
+        className="text-primary"
+        underline="none"
       >
-        <Button variant="borderless" disabled={!isGitHubConnected}>
-          View all
-          <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
-        </Button>
+        View all
+        <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
       </NavLink>
     </div>
   );
@@ -114,12 +111,11 @@ function OverviewDeploymentList() {
 
           <NavLink
             href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
-            passHref
-            legacyBehavior
+            variant="ghost"
+            className="text-primary"
+            underline="none"
           >
-            <Button variant="borderless" size="small">
-              Edit
-            </Button>
+            Edit
           </NavLink>
         </Box>
       </Box>
@@ -135,7 +131,7 @@ function OverviewDeploymentList() {
 
   return (
     <List
-      className="rounded-x-lg flex flex-col overflow-hidden rounded-lg"
+      className="flex flex-col overflow-hidden rounded-lg rounded-x-lg"
       sx={{ borderColor: 'grey.300', borderWidth: 1 }}
     >
       {deployments?.map((deployment, index) => (

@@ -1,15 +1,15 @@
+import { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import useOnSignInWithEmailAndPasswordHandler from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useOnSignInWithEmailAndPasswordHandler';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useRef, useState } from 'react';
-import toast from 'react-hot-toast';
 import MfaSignInOtpForm from './MfaSignInOtpForm';
 import SignInWithEmailAndPasswordForm from './SignInWithEmailAndPasswordForm';
 
 function SignInWithEmailAndPassword() {
   const [needsMfaOtp, setNeedsMfaOtp] = useState(false);
-  const mfaTicket = useRef<string | undefined>();
+  const mfaTicket = useRef<string | undefined>(undefined);
   const [isMfaLoading, setIsMfaLoading] = useState(false);
   const nhost = useNhostClient();
 
@@ -29,7 +29,9 @@ function SignInWithEmailAndPassword() {
           email,
           password,
         });
-        mfaTicket.current = response.body?.mfa!.ticket;
+        if (isNotEmptyValue(response.body?.mfa?.ticket)) {
+          mfaTicket.current = response.body.mfa.ticket;
+        }
       } catch (error) {
         toast.error(
           error?.message ||

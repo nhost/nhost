@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { signOut } from "../lib/nhost/actions";
+import { useRouter } from 'next/navigation';
+import { signOut } from '../lib/nhost/actions';
 
 export default function SignOutButton() {
   const router = useRouter();
@@ -9,10 +9,10 @@ export default function SignOutButton() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      router.push("/");
+      router.push('/');
       router.refresh(); // Refresh to update server components
     } catch (err) {
-      console.error("Error signing out:", err);
+      console.error('Error signing out:', err);
     }
   };
 

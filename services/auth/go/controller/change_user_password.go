@@ -5,8 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/golang-jwt/jwt/v5"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) postUserPasswordAuthenticated( //nolint:ireturn
@@ -27,7 +27,12 @@ func (ctrl *Controller) postUserPasswordAuthenticated( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	if apiErr := ctrl.wf.ChangePassword(ctx, userID, request.Body.NewPassword, logger); apiErr != nil {
+	if apiErr := ctrl.wf.ChangePassword(
+		ctx,
+		userID,
+		request.Body.NewPassword,
+		logger,
+	); apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
@@ -50,7 +55,12 @@ func (ctrl *Controller) postUserPasswordUnauthenticated( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	if apiErr := ctrl.wf.ChangePassword(ctx, user.ID, request.Body.NewPassword, logger); apiErr != nil {
+	if apiErr := ctrl.wf.ChangePassword(
+		ctx,
+		user.ID,
+		request.Body.NewPassword,
+		logger,
+	); apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
@@ -61,7 +71,7 @@ func (ctrl *Controller) ChangeUserPassword( //nolint:ireturn
 	ctx context.Context,
 	request api.ChangeUserPasswordRequestObject,
 ) (api.ChangeUserPasswordResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	jwtToken, ok := ctrl.wf.jwtGetter.FromContext(ctx)
 	if ok {

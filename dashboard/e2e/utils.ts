@@ -1,4 +1,6 @@
-/* eslint-disable no-await-in-loop */
+import { faker } from '@faker-js/faker';
+import type { Page } from '@playwright/test';
+import { add, format } from 'date-fns-v4';
 import {
   TEST_ONBOARDING_USER,
   TEST_ORGANIZATION_SLUG,
@@ -11,9 +13,6 @@ import {
 import { expect } from '@/e2e/fixtures/auth-hook';
 import { isEmptyValue } from '@/lib/utils';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
-import { faker } from '@faker-js/faker';
-import { type Page } from '@playwright/test';
-import { add, format } from 'date-fns-v4';
 
 /**
  * Open a project by navigating to the project's overview page.
@@ -67,10 +66,6 @@ export async function prepareTable({
     defaultValue?: string;
   }>;
 }) {
-  if (!columns.some(({ name }) => primaryKeys.includes(name))) {
-    throw new Error('Primary key must be one of the columns.');
-  }
-
   await page.getByRole('textbox', { name: /name/i }).first().fill(tableName);
 
   await Promise.all(
@@ -79,30 +74,27 @@ export async function prepareTable({
         { name: columnName, type, nullable, unique, defaultValue },
         index,
       ) => {
+        const calculatedIndex = index + 1;
         // set name
-        await page.getByPlaceholder(/name/i).nth(index).fill(columnName);
+        await page
+          .getByPlaceholder(/name/i)
+          .nth(calculatedIndex)
+          .fill(columnName);
 
         // set type
         await page
-          .getByRole('table')
           .getByRole('combobox', { name: /type/i })
-          .nth(index)
+          .nth(calculatedIndex)
           .type(type);
-        await page
-          .getByRole('table')
-          .getByRole('option', { name: type })
-          .first()
-          .click();
+        await page.getByRole('option', { name: type }).first().click();
 
         // optionally set default value
         if (defaultValue) {
           await page
-            .getByRole('table')
             .getByRole('combobox', { name: /default value/i })
-            .nth(index)
+            .nth(calculatedIndex)
             .type(defaultValue);
           await page
-            .getByRole('table')
             .getByRole('option', { name: defaultValue })
             .first()
             .click();
@@ -112,7 +104,7 @@ export async function prepareTable({
         if (unique) {
           await page
             .getByRole('checkbox', { name: /unique/i })
-            .nth(index)
+            .nth(calculatedIndex)
             .check();
         }
 
@@ -120,7 +112,7 @@ export async function prepareTable({
         if (nullable) {
           await page
             .getByRole('checkbox', { name: /nullable/i })
-            .nth(index)
+            .nth(calculatedIndex)
             .check();
         }
 
@@ -139,7 +131,6 @@ export async function prepareTable({
   await expect(
     page.getByRole('option', { name: columns[0].name, exact: true }),
   ).toBeVisible();
-  // eslint-disable-next-line no-restricted-syntax
   for (const primaryKey of primaryKeys) {
     await page.waitForTimeout(1000);
     await page.getByRole('option', { name: primaryKey, exact: true }).click();
@@ -243,7 +234,7 @@ export async function clickPermissionButton({
 }
 
 export async function gotoAuthURL(page: Page) {
-  const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
+  const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/auth/users`;
   await page.goto(authUrl);
   await page.waitForURL(authUrl, { waitUntil: 'load' });
 }
@@ -289,69 +280,61 @@ export async function cleanupOnboardingTestIfNeeded() {
   const signinUrl = `https://${TEST_STAGING_SUBDOMAIN}.auth.${TEST_STAGING_REGION}.nhost.run/v1/signin/email-password`;
   const graphqlUrl = `https://${TEST_STAGING_SUBDOMAIN}.graphql.${TEST_STAGING_REGION}.nhost.run/v1`;
 
-  try {
-    const response = await fetch(signinUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: TEST_ONBOARDING_USER,
-        password: TEST_USER_PASSWORD,
-      }),
-    });
-    const data = await response.json();
+  const response = await fetch(signinUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: TEST_ONBOARDING_USER,
+      password: TEST_USER_PASSWORD,
+    }),
+  });
+  const data = await response.json();
 
-    const userId = data.session?.user?.id;
-    const accessToken = data.session?.accessToken;
-    const organizationPayload = {
-      query: `
+  const userId = data.session?.user?.id;
+  const accessToken = data.session?.accessToken;
+  const organizationPayload = {
+    query: `
       query {
         organizations(where: { members: {userID: {_eq: "${userId}"}} }) {
           id
         }
       }`,
-    };
+  };
 
-    const authHeader = `Bearer ${accessToken}`;
+  const authHeader = `Bearer ${accessToken}`;
 
-    const orgResponse = await fetch(graphqlUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: authHeader,
-      },
-      body: JSON.stringify(organizationPayload),
-    });
+  const orgResponse = await fetch(graphqlUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: authHeader,
+    },
+    body: JSON.stringify(organizationPayload),
+  });
 
-    const orgData = await orgResponse.json();
+  const orgData = await orgResponse.json();
 
-    const organizations = orgData.data?.organizations;
+  const organizations = orgData.data?.organizations;
 
-    if (organizations && organizations.length > 0) {
-      // eslint-disable-next-line no-console
-      console.log('Cleaning up organization');
-      await Promise.all(
-        organizations.map(({ id }) =>
-          fetch(graphqlUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: authHeader,
-            },
-            body: JSON.stringify({
-              query: `
+  if (organizations && organizations.length > 0) {
+    await Promise.all(
+      organizations.map(({ id }) =>
+        fetch(graphqlUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: authHeader,
+          },
+          body: JSON.stringify({
+            query: `
             mutation {
               billingDeleteOrganization(organizationID: "${id}")
             }
           `,
-            }),
           }),
-        ),
-      );
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.log(error);
-    throw error;
+        }),
+      ),
+    );
   }
 }
 
@@ -412,4 +395,138 @@ export async function cleanupRemoteSchemaTestIfNeeded() {
     console.error(error);
     throw error;
   }
+}
+
+/**
+ * Opens the relationship dialog for a table.
+ *
+ * @param page - The Playwright page object.
+ * @param tableName - The name of the table to open relationships for.
+ * @returns A promise that resolves when the relationship dialog is open.
+ */
+export async function openRelationshipDialog({
+  page,
+  tableName,
+}: {
+  page: Page;
+  tableName: string;
+}) {
+  await page
+    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .click();
+
+  await page.getByRole('menuitem', { name: /edit relationships/i }).click();
+
+  await page.getByRole('button', { name: /relationship/i }).click();
+
+  await expect(
+    page.getByRole('heading', { name: /create relationship/i }),
+  ).toBeVisible();
+}
+
+/**
+ * Creates a relationship between two tables.
+ *
+ * @param page - The Playwright page object.
+ * @param relationshipName - The name of the relationship to create.
+ * @param type - The type of relationship ('object' or 'array').
+ * @param referenceTable - The reference table name.
+ * @param sourceColumn - The source column name.
+ * @param referenceColumn - The reference column name.
+ * @param referenceSource - The reference source (defaults to 'default').
+ * @param referenceSchema - The reference schema (defaults to 'public').
+ * @returns A promise that resolves when the relationship is created.
+ */
+export async function createRelationship({
+  page,
+  relationshipName,
+  type,
+  referenceTable,
+  sourceColumn,
+  referenceColumn,
+  referenceSource = 'default',
+  referenceSchema = 'public',
+}: {
+  page: Page;
+  relationshipName: string;
+  type: 'object' | 'array';
+  referenceTable: string;
+  sourceColumn: string;
+  referenceColumn: string;
+  referenceSource?: string;
+  referenceSchema?: string;
+}) {
+  await page.getByLabel(/relationship name/i).fill(relationshipName);
+
+  await page.getByLabel(/relationship type/i).click();
+  const relationshipTypeOption =
+    type === 'object' ? /object relationship/i : /array relationship/i;
+  await page.getByRole('option', { name: relationshipTypeOption }).click();
+
+  await page.getByTestId('toReferenceSourceSelect').click();
+  const sourceOption = page.getByRole('option', {
+    name: referenceSource,
+  });
+  await sourceOption.first().click();
+
+  await page.getByTestId('toReferenceSchemaSelect').click();
+  await page.getByRole('option', { name: referenceSchema }).click();
+
+  await page.getByTestId('toReferenceTableCombobox').click();
+  await page.getByRole('option', { name: referenceTable, exact: true }).click();
+
+  await page.waitForTimeout(1000);
+
+  await page.getByRole('button', { name: /add new mapping/i }).click();
+
+  await page.getByTestId('fieldMapping.0.sourceColumn').click();
+  await page.getByRole('option', { name: sourceColumn }).click();
+
+  await page.getByTestId('fieldMapping.0.referenceColumn').click();
+  await page.getByRole('option', { name: referenceColumn }).click();
+
+  await page.getByRole('button', { name: /create relationship/i }).click();
+
+  await page.waitForSelector(
+    'div:has-text("Relationship created successfully.")',
+  );
+
+  await expect(
+    page.getByRole('heading', { name: /create relationship/i }),
+  ).not.toBeVisible();
+
+  await expect(page.getByText(relationshipName, { exact: true })).toBeVisible();
+}
+
+/**
+ * Deletes a relationship by name.
+ *
+ * @param page - The Playwright page object.
+ * @param relationshipName - The name of the relationship to delete.
+ * @returns A promise that resolves when the relationship is deleted.
+ */
+export async function deleteRelationship({
+  page,
+  relationshipName,
+}: {
+  page: Page;
+  relationshipName: string;
+}) {
+  await page.getByTestId(`delete-rel-${relationshipName}`).click();
+
+  await expect(
+    page.getByRole('heading', { name: /delete relationship/i }),
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: /^delete$/i }).click();
+
+  await page.waitForSelector(
+    'div:has-text("Relationship deleted successfully.")',
+  );
+
+  await page.waitForTimeout(1000);
+
+  await expect(
+    page.getByText(relationshipName, { exact: true }),
+  ).not.toBeVisible();
 }

@@ -1,0 +1,76 @@
+---
+title: Logging
+description: Learn how to use logging in Nhost Functions
+keywords: ["logging", "console.log", "serverless functions", "invocation ID", "request tracing", "debugging"]
+---
+
+Nhost Functions support logging through standard `console` methods in Node.js. Use `console.log()`, `console.warn()`, and `console.error()` to log messages during function execution. All logs are captured and displayed in the [logs page](https://app.nhost.io/orgs/_/projects/_/logs) page with metadata about each invocation.
+
+## Log Format
+
+Each log entry includes:
+
+| Field | Description |
+|-------|-------------|
+| `log` | The actual log message |
+| `path` | The function path that generated the log |
+| `invocationId` | Unique identifier for this function invocation |
+| `level` | Log level: `INFO`, `WARN`, or `ERROR` |
+
+Example log entry:
+
+```json
+{
+  "log": "This was logged with console.log",
+  "path": "/function",
+  "invocationId": "cb1835df-a5e6-440b-ab59-e2e2f563c176",
+  "level": "INFO"
+}
+```
+
+## Execution Metrics
+
+Each function execution also generates a metrics log entry with performance data:
+
+```json
+{
+  "path": "/function",
+  "invocationId": "cb1835df-a5e6-440b-ab59-e2e2f563c176",
+  "status": "success",
+  "metrics": {
+    "durationMs": 11.067,
+    "producedBytes": 718
+  },
+  "spans": [
+    { "name": "responseLatency", "durationMs": 9.913, "start": "2026-01-10T11:38:03.850Z" },
+    { "name": "responseDuration", "durationMs": 0.057, "start": "2026-01-10T11:38:03.860Z" },
+    { "name": "runtimeOverhead", "durationMs": 1.023, "start": "2026-01-10T11:38:03.860Z" }
+  ]
+}
+```
+
+## Correlating Logs
+
+### Invocation ID
+
+The `invocationId` is unique to each function invocation and helps correlate all logs from the same execution. Access it in your code via:
+
+```js
+req.invocationId
+```
+
+### Request ID
+
+You can pass a custom `x-request-id` header from the client for tracing requests across services:
+
+```js
+req.headers['x-request-id']
+```
+
+If not provided, a unique request ID is generated automatically.
+
+:::note
+The `invocationId` and request ID serve different purposes:
+- **invocationId**: Internal identifier for the function execution
+- **x-request-id**: External identifier for tracing requests across services (can be set by the client)
+:::

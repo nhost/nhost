@@ -1,5 +1,3 @@
-import type { ErrorMessageProps } from '@/components/presentational/ErrorMessage';
-import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import type { PropsWithChildren } from 'react';
 import type {
   ErrorBoundaryPropsWithRender,
@@ -7,6 +5,8 @@ import type {
 } from 'react-error-boundary';
 import { ErrorBoundary } from 'react-error-boundary';
 import { twMerge } from 'tailwind-merge';
+import type { ErrorMessageProps } from '@/components/presentational/ErrorMessage';
+import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 
 export interface RetryableErrorBoundaryProps
   extends PropsWithChildren<

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { auth } from "$lib/nhost/auth";
+import { auth } from '$lib/nhost/auth';
 </script>
 
 <div class="container">

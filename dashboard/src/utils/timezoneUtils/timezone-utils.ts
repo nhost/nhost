@@ -2,28 +2,6 @@ import { TZDate } from '@date-fns/tz';
 import { format } from 'date-fns-v4';
 import timezones from 'timezones-list';
 
-// TODO: Remove this once typescript has been updated to v5
-declare namespace Intl {
-  type Key =
-    | 'calendar'
-    | 'collation'
-    | 'currency'
-    | 'numberingSystem'
-    | 'timeZone'
-    | 'unit';
-  function supportedValuesOf(input: Key): string[];
-
-  interface ResolvedDateTimeFormatOptions {
-    timeZone: string;
-  }
-  interface DateTimeFormat {
-    (): DateTimeFormat;
-    resolvedOptions(): ResolvedDateTimeFormatOptions;
-  }
-  // eslint-disable-next-line vars-on-top, no-var
-  var DateTimeFormat: DateTimeFormat;
-}
-
 export const UTC_GMT_TIMEZONE = {
   label: 'UTC, GMT (UTC+00:00)',
   value: 'UTC',

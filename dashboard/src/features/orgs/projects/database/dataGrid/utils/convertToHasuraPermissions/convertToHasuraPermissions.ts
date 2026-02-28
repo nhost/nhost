@@ -9,6 +9,7 @@ function createNestedObjectFromRule({
   column,
   operator,
   value,
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
 }: Rule): Record<string, any> {
   const columnNameParts = column.split('.');
 
@@ -47,6 +48,7 @@ function createNestedObjectFromRule({
  */
 export default function convertToHasuraPermissions(
   ruleGroup?: Partial<RuleGroup> | null,
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
 ): Record<HasuraOperator, any> | null {
   if (!ruleGroup) {
     return null;
@@ -60,6 +62,7 @@ export default function convertToHasuraPermissions(
       !ruleGroup.groups?.length &&
       !ruleGroup.unsupported?.length)
   ) {
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     return {} as Record<HasuraOperator, any>;
   }
 
@@ -93,6 +96,7 @@ export default function convertToHasuraPermissions(
 
   const hasuraPermission = {
     [key]: allRules,
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
   } as Record<HasuraOperator, any>;
   return hasuraPermission;
 }

@@ -1,9 +1,9 @@
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 import { TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 
 function StatusBanner({
   title,
@@ -25,8 +25,9 @@ function StatusBanner({
 
 export default function OrgStatus() {
   const { org } = useCurrentOrg();
-  const { asPath, push } = useRouter();
+  const { push } = useRouter();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: push does not change
   useEffect(() => {
     if (
       org &&
@@ -35,8 +36,7 @@ export default function OrgStatus() {
     ) {
       push(`/orgs/${org.slug}/billing`);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [asPath, org]);
+  }, [org]);
 
   if (!org) {
     return null;

@@ -1,0 +1,46 @@
+# Lychee link checker configuration
+# https://lychee.cli.rs/
+
+# Exclude patterns (regex)
+exclude = [
+  # Local development URLs
+  '^http://localhost',
+  '^https?://local\.nhost\.run',
+  '^https?://localdev.*\.nhost\.run',
+  '^https?://local\..*\.local\.nhost\.run',
+
+  # Test/staging infrastructure URLs
+  '^https?://test\..*\.nhost\.run',
+  '^https?://staging\.nhost\.run',
+
+  # Template literals in source code (lychee parses ${...} as literal text)
+  '\$\{',
+  '\$%7B',
+
+  # Placeholder/example URLs used in forms
+  '^https://discord\.com/api/avatar/',
+  '^https://discord\.com/api/webhooks/',
+  '^https://my-config-server\.com',
+  '^https://acme\.com',
+
+  # httpbin.org POST endpoints (return 405 for GET requests, but are valid)
+  '^https://httpbin\.org/post',
+
+  # GitHub API (requires auth)
+  '^https://api\.github\.com',
+
+  # Google services (SSL issues in some environments)
+  '^https://www\.googletagmanager\.com',
+
+  # Generated file with stale docs link (needs fix upstream)
+  'hasura-auth/blob/main/docs/environment-variables\.md',
+]
+
+# Accept redirects as valid
+accept = [200, 204, 301, 302]
+
+# Timeout per request
+timeout = 15
+
+# Max retries
+max_retries = 2

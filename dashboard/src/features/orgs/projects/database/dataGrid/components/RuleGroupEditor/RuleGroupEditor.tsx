@@ -1,3 +1,6 @@
+import { useMemo } from 'react';
+import { useFieldArray, useFormContext } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import { Alert } from '@/components/ui/v2/Alert';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
@@ -12,9 +15,6 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import { useMemo } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import RuleEditorRow from './RuleEditorRow';
 import RuleGroupControls from './RuleGroupControls';
 import { RuleGroupEditorContext } from './useRuleGroupEditor';
@@ -82,6 +82,7 @@ export default function RuleGroupEditor({
     name: `${name}.rules`,
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   const unsupportedValues: Record<string, any>[] =
     getValues(`${name}.unsupported`) || [];
 
@@ -112,7 +113,7 @@ export default function RuleGroupEditor({
       <Box
         {...props}
         className={twMerge(
-          'flex min-h-44 flex-col justify-between rounded-lg border border-r-8 border-transparent pl-2',
+          'flex min-h-44 flex-col justify-between rounded-lg border border-transparent border-r-8 pl-2',
           className,
         )}
         sx={[
@@ -132,7 +133,7 @@ export default function RuleGroupEditor({
             <div className="grid grid-cols-[70px_1fr] gap-2" key={rule.id}>
               <div>
                 {ruleIndex === 0 && (
-                  <Text className="p-2 !font-medium">Where</Text>
+                  <Text className="!font-medium p-2">Where</Text>
                 )}
 
                 {ruleIndex > 0 && (
@@ -156,7 +157,7 @@ export default function RuleGroupEditor({
               >
                 <div>
                   {rules.length === 0 && ruleGroupIndex === 0 && (
-                    <Text className="p-2 !font-medium">Where</Text>
+                    <Text className="!font-medium p-2">Where</Text>
                   )}
 
                   <RuleGroupControls
@@ -183,28 +184,39 @@ export default function RuleGroupEditor({
 
           {unsupportedValues?.length > 0 && (
             <Alert severity="warning" className="text-left">
-              <Text>
-                This rule group contains one or more objects (e.g: _exists) that
-                are not supported by our dashboard yet.{' '}
-                {project && (
-                  <span>
-                    Please{' '}
-                    <Link
-                      href={`${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
-                        'hasura',
-                      )}/console/data/default/schema/${schema}/tables/${table}/permissions`}
-                      underline="hover"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      visit Hasura
-                    </Link>{' '}
-                    to edit them.
-                  </span>
-                )}
-              </Text>
+              <div className="flex flex-col gap-2">
+                <Text>
+                  This rule group contains one or more objects (e.g: _exists)
+                  that are not supported by our dashboard yet.{' '}
+                  {project && (
+                    <span>
+                      Please{' '}
+                      <Link
+                        href={`${generateAppServiceUrl(
+                          project.subdomain,
+                          project.region,
+                          'hasura',
+                        )}/console/data/default/schema/${schema}/tables/${table}/permissions`}
+                        underline="hover"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        visit Hasura
+                      </Link>{' '}
+                      to edit them.
+                    </span>
+                  )}
+                </Text>
+                <h2>Unsupported objects:</h2>
+                <ul className="list-inside list-disc">
+                  {unsupportedValues.map((value, index) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: list will not change between renders
+                    <li key={index} className="font-mono text-xs">
+                      {JSON.stringify(value)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </Alert>
           )}
         </div>

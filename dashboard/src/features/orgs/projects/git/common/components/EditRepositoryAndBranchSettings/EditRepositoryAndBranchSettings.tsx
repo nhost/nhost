@@ -1,10 +1,10 @@
+import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { QuestionMarkCircleIcon } from '@/components/ui/v2/icons/QuestionMarkCircleIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
+import { QuestionMarkCircleIcon } from '@/components/ui/v2/icons/QuestionMarkCircleIcon';
 import { Link } from '@/components/ui/v2/Link';
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
-import { useFormContext } from 'react-hook-form';
 
 export default function EditRepositoryAndBranchSettings() {
   const { register, formState } =

@@ -1,33 +1,31 @@
-/* eslint-disable import/extensions */
+import { yupResolver } from '@hookform/resolvers/yup';
+import { RefreshCwIcon } from 'lucide-react';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
+import { Input } from '@/components/ui/v2/Input';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { Input } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
+import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import type { DialogFormProps } from '@/types/common';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/utils/__generated__/graphite.graphql';
-import { removeTypename, type DeepRequired } from '@/utils/helpers';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { Option } from '@/components/ui/v2/Option';
-import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
-import { type GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
+import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
@@ -87,11 +85,11 @@ export interface AssistantFormProps extends DialogFormProps {
   /**
    * Function to be called when the operation is cancelled.
    */
-  onCancel?: VoidFunction;
+  onCancel?: () => Promise<unknown>;
   /**
    * Function to be called when the submit is successful.
    */
-  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
+  onSubmit?: () => Promise<unknown>;
 }
 
 export default function AssistantForm({
@@ -369,7 +367,13 @@ export default function AssistantForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            startIcon={assistantId ? <ArrowsClockwise /> : <PlusIcon />}
+            startIcon={
+              assistantId ? (
+                <RefreshCwIcon width={16} height={16} />
+              ) : (
+                <PlusIcon />
+              )
+            }
           >
             {assistantId ? 'Update' : 'Create'}
           </Button>

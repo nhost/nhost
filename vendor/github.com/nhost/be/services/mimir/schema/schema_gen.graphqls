@@ -294,6 +294,10 @@ type ConfigAuth {
     """
 
     """
+    oauth2Provider: ConfigAuthOauth2Provider
+    """
+
+    """
     misc: ConfigAuthMisc
     """
 
@@ -311,6 +315,7 @@ input ConfigAuthUpdateInput {
     session: ConfigAuthSessionUpdateInput
     method: ConfigAuthMethodUpdateInput
     totp: ConfigAuthTotpUpdateInput
+    oauth2Provider: ConfigAuthOauth2ProviderUpdateInput
     misc: ConfigAuthMiscUpdateInput
     rateLimit: ConfigAuthRateLimitUpdateInput
 }
@@ -325,6 +330,7 @@ input ConfigAuthInsertInput {
     session: ConfigAuthSessionInsertInput
     method: ConfigAuthMethodInsertInput
     totp: ConfigAuthTotpInsertInput
+    oauth2Provider: ConfigAuthOauth2ProviderInsertInput
     misc: ConfigAuthMiscInsertInput
     rateLimit: ConfigAuthRateLimitInsertInput
 }
@@ -342,6 +348,7 @@ input ConfigAuthComparisonExp {
     session: ConfigAuthSessionComparisonExp
     method: ConfigAuthMethodComparisonExp
     totp: ConfigAuthTotpComparisonExp
+    oauth2Provider: ConfigAuthOauth2ProviderComparisonExp
     misc: ConfigAuthMiscComparisonExp
     rateLimit: ConfigAuthRateLimitComparisonExp
 }
@@ -1115,6 +1122,134 @@ input ConfigAuthMiscComparisonExp {
 """
 
 """
+type ConfigAuthOauth2Provider {
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    accessToken: ConfigAuthOauth2ProviderAccessToken
+    """
+
+    """
+    refreshToken: ConfigAuthOauth2ProviderRefreshToken
+    """
+
+    """
+    loginURL: String
+    """
+
+    """
+    clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocument
+}
+
+input ConfigAuthOauth2ProviderUpdateInput {
+    enabled: Boolean
+    accessToken: ConfigAuthOauth2ProviderAccessTokenUpdateInput
+    refreshToken: ConfigAuthOauth2ProviderRefreshTokenUpdateInput
+    loginURL: String
+    clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput
+}
+
+input ConfigAuthOauth2ProviderInsertInput {
+    enabled: Boolean
+    accessToken: ConfigAuthOauth2ProviderAccessTokenInsertInput
+    refreshToken: ConfigAuthOauth2ProviderRefreshTokenInsertInput
+    loginURL: String
+    clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput
+}
+
+input ConfigAuthOauth2ProviderComparisonExp {
+    _and: [ConfigAuthOauth2ProviderComparisonExp!]
+    _not: ConfigAuthOauth2ProviderComparisonExp
+    _or: [ConfigAuthOauth2ProviderComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    accessToken: ConfigAuthOauth2ProviderAccessTokenComparisonExp
+    refreshToken: ConfigAuthOauth2ProviderRefreshTokenComparisonExp
+    loginURL: ConfigStringComparisonExp
+    clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthOauth2ProviderAccessToken {
+    """
+
+    """
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderAccessTokenUpdateInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderAccessTokenInsertInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderAccessTokenComparisonExp {
+    _and: [ConfigAuthOauth2ProviderAccessTokenComparisonExp!]
+    _not: ConfigAuthOauth2ProviderAccessTokenComparisonExp
+    _or: [ConfigAuthOauth2ProviderAccessTokenComparisonExp!]
+    expiresIn: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthOauth2ProviderClientIdMetadataDocument {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp {
+    _and: [ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp!]
+    _not: ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp
+    _or: [ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthOauth2ProviderRefreshToken {
+    """
+
+    """
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderRefreshTokenUpdateInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderRefreshTokenInsertInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderRefreshTokenComparisonExp {
+    _and: [ConfigAuthOauth2ProviderRefreshTokenComparisonExp!]
+    _not: ConfigAuthOauth2ProviderRefreshTokenComparisonExp
+    _or: [ConfigAuthOauth2ProviderRefreshTokenComparisonExp!]
+    expiresIn: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
 type ConfigAuthRateLimit {
     """
 
@@ -1136,6 +1271,10 @@ type ConfigAuthRateLimit {
 
     """
     global: ConfigRateLimit
+    """
+
+    """
+    oauth2Server: ConfigRateLimit
 }
 
 input ConfigAuthRateLimitUpdateInput {
@@ -1144,6 +1283,7 @@ input ConfigAuthRateLimitUpdateInput {
     bruteForce: ConfigRateLimitUpdateInput
     signups: ConfigRateLimitUpdateInput
     global: ConfigRateLimitUpdateInput
+    oauth2Server: ConfigRateLimitUpdateInput
 }
 
 input ConfigAuthRateLimitInsertInput {
@@ -1152,6 +1292,7 @@ input ConfigAuthRateLimitInsertInput {
     bruteForce: ConfigRateLimitInsertInput
     signups: ConfigRateLimitInsertInput
     global: ConfigRateLimitInsertInput
+    oauth2Server: ConfigRateLimitInsertInput
 }
 
 input ConfigAuthRateLimitComparisonExp {
@@ -1163,6 +1304,7 @@ input ConfigAuthRateLimitComparisonExp {
     bruteForce: ConfigRateLimitComparisonExp
     signups: ConfigRateLimitComparisonExp
     global: ConfigRateLimitComparisonExp
+    oauth2Server: ConfigRateLimitComparisonExp
 }
 
 """

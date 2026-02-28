@@ -1,11 +1,14 @@
+import { useState } from 'react';
+import { type Toast, toast } from 'react-hot-toast';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { ErrorToast } from '@/components/ui/v2/ErrorToast';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { MessagesList } from '@/features/orgs/projects/ai/DevAssistant/components/MessagesList';
@@ -21,13 +24,10 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import {
+  type SendDevMessageMutation,
   useSendDevMessageMutation,
   useStartDevSessionMutation,
-  type SendDevMessageMutation,
 } from '@/utils/__generated__/graphite.graphql';
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 const MAX_THREAD_LENGTH = 50;
 
@@ -68,14 +68,14 @@ export default function DevAssistant() {
       let hasBeenAnHourSinceLastMessage = false;
       if (lastMessage) {
         hasBeenAnHourSinceLastMessage =
-          new Date().getTime() - new Date(lastMessage.createdAt).getTime() >
+          Date.now() - new Date(lastMessage.createdAt).getTime() >
           60 * 60 * 1000;
       }
 
       const $messages = [
         ...messages,
         {
-          id: String(new Date().getTime()),
+          id: String(Date.now()),
           message: userInput,
           createdAt: null,
           role: 'user',
@@ -124,16 +124,16 @@ export default function DevAssistant() {
         setMessages(thread);
       }
     } catch (error) {
-      toast.custom(
-        (t) => (
+      toast(
+        (t: Toast) => (
           <ErrorToast
-            isVisible={t.visible}
+            toastId={t.id}
             errorMessage="Failed to send the message. Please try again later."
             error={error}
-            close={() => toast.dismiss()}
           />
         ),
         {
+          className: 'error-toast',
           duration: Number.POSITIVE_INFINITY,
         },
       );
@@ -142,7 +142,7 @@ export default function DevAssistant() {
     }
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       const form = event.currentTarget.closest('form');
@@ -205,7 +205,7 @@ export default function DevAssistant() {
               const { value } = event.target;
               setUserInput(value);
             }}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Ask graphite anything!"
             className="w-full"
             required

@@ -1,5 +1,7 @@
-import { mockApplication } from '@/tests/mocks';
+/** biome-ignore-all lint/suspicious/noExplicitAny: mock file */
+
 import { HttpResponse } from 'msw';
+import { mockApplication } from '@/tests/mocks';
 import nhostGraphQLLink from './nhostGraphQLLink';
 
 export const getProjectQuery = nhostGraphQLLink.query('getProject', () =>

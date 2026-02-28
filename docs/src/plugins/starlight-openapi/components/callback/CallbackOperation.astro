@@ -1,0 +1,38 @@
+---
+import type { Callback } from '../../libs/callback'
+import type { CallbackOperation } from '../../libs/operation'
+import { getParametersByLocation } from '../../libs/parameter'
+import type { Schema } from '../../libs/schema'
+import Deprecated from '../Deprecated.astro'
+import ExternalDocs from '../ExternalDocs.astro'
+import Md from '../Md.astro'
+import OperationDescription from '../operation/OperationDescription.astro'
+import Parameters from '../parameter/Parameters.astro'
+import RequestBody from '../RequestBody.astro'
+import Responses from '../response/Responses.astro'
+import type { SectionHeadingProps } from '../Section.astro'
+import Security from '../security/Security.astro'
+
+interface Props {
+  callback: Callback
+  id: string
+  operation: CallbackOperation
+  schema: Schema
+  url: string
+}
+
+const { callback, id, operation: callbackOperation, schema, url } = Astro.props
+const { operation } = callbackOperation
+
+const sectionHeadingProps: SectionHeadingProps = { level: 4, prefix: id }
+const parameters = getParametersByLocation(operation.parameters, callback.parameters)
+---
+
+<Deprecated deprecated={operation.deprecated} />
+<OperationDescription method={callbackOperation.method} path={url} />
+<Md text={operation.description} />
+<ExternalDocs docs={operation.externalDocs} />
+<Security {operation} />
+<Parameters {...sectionHeadingProps} {parameters} />
+<RequestBody {...sectionHeadingProps} {operation} {schema} />
+<Responses {...sectionHeadingProps} {operation} responses={operation.responses} {schema} />

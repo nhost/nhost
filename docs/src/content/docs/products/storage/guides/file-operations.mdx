@@ -1,0 +1,173 @@
+---
+title: File Operations
+description: Upload, download, replace, and delete files
+keywords: ["storage", "upload", "download", "delete", "replace", "files", "guide"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+This guide covers the core file operations available through the Storage API.
+
+## Upload Files
+
+Upload one or more files. Each uploaded file returns its metadata including the generated `id`.
+
+<Tabs>
+<TabItem label="TypeScript">
+
+```typescript
+const response = await nhost.storage.uploadFiles({
+  'bucket-id': 'default',
+  'file[]': [selectedFile],
+})
+
+const uploadedFile = response.body.processedFiles?.[0]
+```
+
+
+</TabItem>
+<TabItem label="curl">
+
+```bash
+# Basic upload
+curl -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file[]=@document.pdf" \
+  https://local.storage.local.nhost.run/v1/files
+
+# Upload to a specific bucket
+curl -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "bucket-id=documents" \
+  -F "file[]=@report.pdf" \
+  https://local.storage.local.nhost.run/v1/files
+
+# Upload multiple files
+curl -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "bucket-id=photos" \
+  -F "file[]=@photo1.jpg" \
+  -F "file[]=@photo2.jpg" \
+  https://local.storage.local.nhost.run/v1/files
+```
+
+</TabItem>
+</Tabs>
+
+## Download Files
+
+Download a file by its ID. The response body contains the raw file content.
+
+<Tabs>
+<TabItem label="TypeScript">
+
+```typescript
+const response = await nhost.storage.getFile(fileId)
+const url = URL.createObjectURL(response.body)
+window.open(url, '_blank')
+```
+
+```typescript
+// Download with image transformation (e.g. thumbnails)
+const { body } = await nhost.storage.getFile(fileId, {
+  w: 100,
+  h: 100,
+  f: 'webp',
+})
+const url = URL.createObjectURL(body)
+```
+
+</TabItem>
+<TabItem label="curl">
+
+```bash
+# Download a file
+curl -H "Authorization: Bearer $TOKEN" \
+  -o output.pdf \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID"
+
+# Get metadata headers only
+curl -I -H "Authorization: Bearer $TOKEN" \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID"
+```
+
+</TabItem>
+</Tabs>
+
+## Replace Files
+
+Replace file content while keeping the same file ID. References to the file remain valid.
+
+<Tabs>
+<TabItem label="TypeScript">
+
+```typescript
+await nhost.storage.replaceFile(fileId, { file: newFile })
+```
+
+</TabItem>
+<TabItem label="curl">
+
+```bash
+curl -X PUT \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@report-v2.pdf" \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID"
+```
+
+</TabItem>
+</Tabs>
+
+The replace operation temporarily sets `is_uploaded` to `false` during the update, then restores it to `true` when complete.
+
+## Delete Files
+
+Permanently delete a file and its metadata.
+
+<Tabs>
+<TabItem label="TypeScript">
+
+```typescript
+await nhost.storage.deleteFile(fileId)
+```
+
+</TabItem>
+<TabItem label="curl">
+
+```bash
+curl -X DELETE \
+  -H "Authorization: Bearer $TOKEN" \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID"
+```
+
+</TabItem>
+</Tabs>
+
+:::caution
+Deletion is permanent. Always use the Storage API to delete files -- deleting metadata directly through GraphQL leaves orphaned files in S3.
+:::
+
+## Listing Files via GraphQL
+
+The Storage REST API handles file content operations. To list, search, or filter files, use the GraphQL API:
+
+```typescript
+const response = await nhost.graphql.request<{
+  files: Array<{ id: string; name: string; size: number; mimeType: string; bucketId: string; uploadedByUserId: string }>
+}>({
+  query: `query GetFiles {
+    files {
+      id
+      name
+      size
+      mimeType
+      bucketId
+      uploadedByUserId
+    }
+  }`,
+})
+
+const files = response.body.data?.files ?? []
+```
+
+This is the same GraphQL API used for the rest of your application data. Permissions are evaluated automatically based on the user's session.

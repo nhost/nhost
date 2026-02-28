@@ -1,0 +1,1313 @@
+---
+title: Protecting Routes and Content in SvelteKit
+description: >-
+  Learn how to protect routes and content in a SvelteKit application using Nhost
+  authentication.
+keywords: ["SvelteKit", "protected routes", "authentication", "route guards", "session management", "Svelte stores"]
+sidebar:
+  label: Protecting Routes
+---
+import { Card, CardGroup } from '@components';
+
+
+This tutorial part demonstrates how to implement robust route protection in a SvelteKit application using Nhost authentication. You'll build a complete authentication system with a protected `/profile` page that includes cross-tab session synchronization and automatic redirects. In addition, we will see how to show conditional navigation and content based on authentication status.
+
+:::note
+This is **Part 2** in the Full-Stack SvelteKit Development with Nhost series. This part builds a foundation for authentication-protected routes that you can extend to secure any part of your application.
+:::
+
+## Full-Stack SvelteKit Development with Nhost
+
+<CardGroup cols={3}>
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/svelte/1-introduction">
+Set up your Nhost project
+</Card>
+
+<Card title="2. Protected Routes" icon="lock" href="/getting-started/tutorials/svelte/2-protected-routes">
+**Current** - Route protection basics
+</Card>
+
+<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/svelte/3-user-authentication">
+Complete auth flow
+</Card>
+
+<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/svelte/4-graphql-operations">
+CRUD operations with GraphQL
+</Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/svelte/5-file-uploads">
+File upload and management
+</Card>
+</CardGroup>
+
+## Prerequisites
+
+- An [Nhost project](/getting-started/tutorials/svelte/1-introduction) set up
+- Node.js 20+ installed
+- Basic knowledge of Svelte and SvelteKit
+
+## Step-by-Step Guide
+
+
+### Create a New SvelteKit App
+
+We'll start by creating a fresh SvelteKit application with TypeScript support. SvelteKit provides a modern framework with built-in routing and excellent developer experience.
+
+```bash
+npx sv create --template minimal --types ts --no-add-ons --no-install nhost-svelte-tutorial
+cd nhost-svelte-tutorial
+npm install
+```
+
+
+
+### Install Required Dependencies
+
+Install the Nhost JavaScript SDK for authentication and backend integration. SvelteKit provides built-in routing, so no additional router is needed.
+
+```bash
+npm install @nhost/nhost-js
+```
+
+
+
+### Environment Configuration
+
+Configure your Nhost project connection by creating environment variables. This allows the app to connect to your specific Nhost backend.
+
+Create a `.env` file in your project root:
+
+```bash
+VITE_NHOST_REGION=<region>
+VITE_NHOST_SUBDOMAIN=<subdomain>
+```
+
+:::caution
+Replace `<region>` and `<subdomain>` with the actual values from your Nhost project dashboard.
+:::
+
+
+
+### Create the Nhost Auth Store
+
+Build the core authentication store that manages user sessions across your SvelteKit application. This store provides authentication state through Svelte stores and handles cross-tab synchronization.
+
+```ts src/lib/nhost/auth.ts lines
+import { createClient, type NhostClient } from "@nhost/nhost-js";
+import type { Session } from "@nhost/nhost-js/auth";
+import { derived, type Readable, writable } from "svelte/store";
+import { browser } from "$app/environment";
+
+/**
+ * Authentication store interface providing access to user session state and Nhost client.
+ * Used throughout the SvelteKit application to access authentication-related data and operations.
+ */
+interface AuthStore {
+  /** Current authenticated user object, null if not authenticated */
+  user: Session["user"] | null;
+  /** Current session object containing tokens and user data, null if no active session */
+  session: Session | null;
+  /** Boolean indicating if user is currently authenticated */
+  isAuthenticated: boolean;
+  /** Boolean indicating if authentication state is still loading */
+  isLoading: boolean;
+  /** Nhost client instance for making authenticated requests */
+  nhost: NhostClient;
+}
+
+// Initialize Nhost client with default SessionStorage (local storage)
+export const nhost = createClient({
+  region: import.meta.env.VITE_NHOST_REGION || "local",
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || "local",
+});
+
+// Create writable stores for authentication state
+const userStore = writable<Session["user"] | null>(null);
+const sessionStore = writable<Session | null>(null);
+const isLoadingStore = writable<boolean>(true);
+
+// Derived store for authentication status
+export const isAuthenticated = derived(sessionStore, ($session) => !!$session);
+
+// Combined auth store
+export const auth: Readable<AuthStore> = derived(
+  [userStore, sessionStore, isLoadingStore, isAuthenticated],
+  ([$user, $session, $isLoading, $isAuthenticated]) => ({
+    user: $user,
+    session: $session,
+    isAuthenticated: $isAuthenticated,
+    isLoading: $isLoading,
+    nhost,
+  }),
+);
+
+// Individual store exports for convenience
+export const user = userStore;
+export const session = sessionStore;
+export const isLoading = isLoadingStore;
+
+let lastRefreshTokenId: string | null = null;
+
+/**
+ * Handles session reload when refresh token changes.
+ * This detects when the session has been updated from other tabs.
+ *
+ * @param currentRefreshTokenId - The current refresh token ID to compare against stored value
+ */
+function reloadSession(currentRefreshTokenId: string | null) {
+  if (currentRefreshTokenId !== lastRefreshTokenId) {
+    lastRefreshTokenId = currentRefreshTokenId;
+
+    // Update local authentication state to match current session
+    const currentSession = nhost.getUserSession();
+    userStore.set(currentSession?.user || null);
+    sessionStore.set(currentSession);
+  }
+}
+
+/**
+ * Initialize authentication state and set up cross-tab session synchronization.
+ * This function should be called once when the application starts (browser only).
+ */
+export function initializeAuth() {
+  if (!browser) return;
+
+  isLoadingStore.set(true);
+
+  // Load initial session state from Nhost client
+  const currentSession = nhost.getUserSession();
+  userStore.set(currentSession?.user || null);
+  sessionStore.set(currentSession);
+  lastRefreshTokenId = currentSession?.refreshTokenId ?? null;
+  isLoadingStore.set(false);
+
+  // Subscribe to session changes from other browser tabs
+  // This enables real-time synchronization when user signs in/out in another tab
+  const unsubscribe = nhost.sessionStorage.onChange((session) => {
+    reloadSession(session?.refreshTokenId ?? null);
+  });
+
+  /**
+   * Checks for session changes when page becomes visible or focused.
+   * Provides additional consistency checks for session state.
+   */
+  const checkSessionOnFocus = () => {
+    reloadSession(nhost.getUserSession()?.refreshTokenId ?? null);
+  };
+
+  // Monitor page visibility changes (tab switching, window minimizing)
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      checkSessionOnFocus();
+    }
+  });
+
+  // Monitor window focus events (clicking back into the browser window)
+  window.addEventListener("focus", checkSessionOnFocus);
+
+  // Return cleanup function
+  return () => {
+    unsubscribe();
+    document.removeEventListener("visibilitychange", checkSessionOnFocus);
+    window.removeEventListener("focus", checkSessionOnFocus);
+  };
+}
+```
+
+
+
+### Create Route Protection with SvelteKit
+
+In SvelteKit, route protection is handled using hooks and load functions rather than wrapper components. We'll create a `+layout.svelte` file that handles authentication state and automatic redirects. SvelteKit's built-in routing will handle the protected routes pattern.
+
+For this tutorial, we'll use client-side protection with automatic redirects. Create the main layout file that will initialize authentication and handle navigation:
+
+```svelte src/routes/+layout.svelte lines
+<script lang="ts">
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { auth, initializeAuth, nhost } from "$lib/nhost/auth";
+import "../app.css";
+
+let { children }: { children?: import("svelte").Snippet } = $props();
+
+// Initialize auth when component mounts
+onMount(() => {
+  return initializeAuth();
+});
+
+// Helper function to determine if a link is active
+function isActive(path: string): string {
+  return $page.url.pathname === path ? "nav-link active" : "nav-link";
+}
+</script>
+
+<div class="root">
+  <nav class="navigation">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">Nhost SvelteKit Demo</a>
+
+      <div class="nav-links">
+        <a href="/" class="nav-link">Home</a>
+
+        {#if $auth.isAuthenticated}
+          <a href="/profile" class={isActive('/profile')}>Profile</a>
+        {:else}
+          <!-- Placeholder for signin/signup links -->
+          Placeholder for signin/signup links
+        {/if}
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-content">
+    {#if children}
+      {@render children()}
+    {/if}
+  </div>
+</div>
+```
+
+
+
+### Create the Profile Page
+
+Create a protected profile page that displays user information. In SvelteKit, we implement route protection using reactive statements that automatically redirect unauthorized users.
+
+```svelte src/routes/profile/+page.svelte lines
+<script lang="ts">
+import { goto } from "$app/navigation";
+import { auth } from "$lib/nhost/auth";
+
+// Redirect if not authenticated
+$effect(() => {
+  if (!$auth.isLoading && !$auth.isAuthenticated) {
+    void goto("/");
+  }
+});
+</script>
+
+{#if $auth.isLoading}
+  <div class="loading-container">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <span class="loading-text">Loading...</span>
+    </div>
+  </div>
+{:else if $auth.isAuthenticated}
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">Your Profile</h1>
+    </header>
+
+    <div class="form-card">
+      <h3 class="form-title">User Information</h3>
+      <div class="form-fields">
+        <div class="field-group">
+          <strong>Display Name:</strong> {$auth.user?.displayName || "Not set"}
+        </div>
+        <div class="field-group">
+          <strong>Email:</strong> {$auth.user?.email || "Not available"}
+        </div>
+        <div class="field-group">
+          <strong>User ID:</strong> {$auth.user?.id || "Not available"}
+        </div>
+        <div class="field-group">
+          <strong>Roles:</strong> {$auth.user?.roles?.join(", ") || "None"}
+        </div>
+        <div class="field-group">
+          <strong>Email Verified:</strong>
+          <span class={$auth.user?.emailVerified ? 'email-verified' : 'email-unverified'}>
+            {$auth.user?.emailVerified ? "✓ Yes" : "✗ No"}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3 class="form-title">Session Information</h3>
+      <div class="description">
+        <pre class="session-display">{JSON.stringify($auth.session, null, 2)}</pre>
+      </div>
+    </div>
+  </div>
+{:else}
+  <div class="container">
+    <div class="page-center">
+      <h2>Access Denied</h2>
+      <p>You must be signed in to view this page.</p>
+    </div>
+  </div>
+{/if}
+```
+
+
+
+### Create a Simple Home Page
+
+Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
+
+```svelte src/routes/+page.svelte lines
+<script lang="ts">
+import { auth } from "$lib/nhost/auth";
+</script>
+
+<div class="container">
+  <header class="page-header">
+    <h1 class="page-title">Welcome to Nhost SvelteKit Demo</h1>
+  </header>
+
+  {#if $auth.isAuthenticated}
+    <div>
+      <p>Hello, {$auth.user?.displayName || $auth.user?.email}!</p>
+    </div>
+  {:else}
+    <div>
+      <p>You are not signed in.</p>
+    </div>
+  {/if}
+</div>
+```
+
+
+
+### Add Application Styles
+
+Create or replace the contents of the file `src/app.css` with the following styles to provide a clean and modern look for the application. This file will be used across the rest of series.
+
+Note: We've integrated the navigation directly into our `+layout.svelte` file, as SvelteKit handles routing automatically without requiring separate routing configuration.
+
+```css src/app.css lines
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: #535bf2;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button:hover {
+  border-color: #646cff;
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 4rem;
+}
+
+label {
+  display: block;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Global Layout */
+.app-content {
+  padding: 0 2rem 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-center {
+  text-align: center;
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.margin-bottom {
+  margin-bottom: 1rem;
+}
+
+.margin-top {
+  margin-top: 1rem;
+}
+
+.container {
+  width: 800px;
+  max-width: calc(100vw - 4rem);
+  min-width: 320px;
+  margin: 0 auto;
+  padding: 2rem;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Status Messages */
+.success-message {
+  padding: 1rem;
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.help-text {
+  color: #666;
+}
+
+.verification-status {
+  color: #28a745;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.verification-status.error {
+  color: #dc3545;
+  font-size: 1.1rem;
+}
+
+/* Email Verification Status */
+.email-verified {
+  color: #10b981;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+.email-unverified {
+  color: #ef4444;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+/* Debug Info */
+.debug-panel {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  text-align: left;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.debug-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.debug-item {
+  margin-bottom: 0.25rem;
+}
+
+.debug-key {
+  font-family: monospace;
+  color: #007bff;
+}
+
+.debug-value {
+  font-family: monospace;
+}
+
+/* Session Display */
+.session-display {
+  font-size: 0.75rem;
+  overflow: auto;
+  margin: 0;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Loading Spinner */
+.spinner-verify {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+/* Navigation */
+.navigation {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-bottom: 2rem;
+}
+
+.nav-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  text-decoration: none;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-logo:hover {
+  opacity: 0.8;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nav-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-button {
+  color: #ef4444;
+}
+
+.nav-button:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* Buttons */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-cancel {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-cancel:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 2rem;
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(59, 130, 246, 0.3);
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+}
+
+.empty-icon {
+  width: 4rem;
+  height: 4rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 auto 1rem;
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-description {
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+/* Forms */
+.form-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 1.5rem 0;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Auth Pages */
+.auth-form {
+  max-width: 400px;
+}
+
+.auth-form-field {
+  margin-bottom: 1rem;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.auth-error {
+  color: red;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #fee;
+  border-radius: 4px;
+}
+
+.auth-button {
+  width: 100%;
+  padding: 0.75rem;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.auth-button:disabled {
+  cursor: not-allowed;
+}
+
+.auth-button.primary {
+  background-color: #28a745;
+}
+
+.auth-button.secondary {
+  background-color: #007bff;
+}
+
+.auth-links {
+  margin-top: 1rem;
+}
+
+/* Todos */
+
+.todo-form {
+  width: 100%;
+}
+
+/* Todo List */
+.todos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.todo-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.todo-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.todo-card.completed {
+  opacity: 0.7;
+}
+
+/* Todo Content */
+.todo-content {
+  padding: 1rem 1.5rem;
+}
+
+.todo-edit {
+  padding: 1.5rem;
+  min-height: 200px;
+}
+
+.edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.todo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.todo-title-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  flex: 1;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: calc(100% - 140px);
+}
+
+.todo-title-btn:hover {
+  color: #3b82f6;
+}
+
+.todo-title-btn.completed {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.todo-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  min-width: 132px;
+  justify-content: flex-end;
+}
+
+/* Action Buttons */
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  -webkit-text-fill-color: currentColor;
+}
+
+.action-btn-complete {
+  color: #10b981;
+  font-size: 20px;
+}
+
+.action-btn-complete:hover {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.action-btn-edit {
+  color: #3b82f6;
+}
+
+.action-btn-edit:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.action-btn-delete {
+  color: #ef4444;
+}
+
+.action-btn-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* Add Todo Button */
+.add-todo-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: normal;
+  -webkit-text-fill-color: white;
+  transition: all 0.2s ease;
+}
+
+.add-todo-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* Todo Details */
+.todo-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.description {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.description p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+.description.completed p {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.todo-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.meta-dates {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.completion-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: 500;
+}
+
+.completion-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .nav-links {
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .edit-actions {
+    flex-direction: column;
+  }
+
+  .todo-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .todo-actions {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .meta-dates {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .todo-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* File Upload */
+.file-upload-btn {
+  min-height: 120px;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-btn:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.file-upload-info {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* File Table */
+.file-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.file-table th {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.file-table th:last-child {
+  text-align: center;
+}
+
+.file-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.file-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.file-name {
+  color: white;
+  font-weight: 500;
+}
+
+.file-meta {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+/* Responsive File Table */
+@media (max-width: 768px) {
+  .file-table {
+    font-size: 0.875rem;
+  }
+
+  .file-table th,
+  .file-table td {
+    padding: 0.5rem;
+  }
+
+  .file-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+```
+
+
+
+### Run and Test the Application
+
+Start the development server to test your route protection implementation:
+
+```bash
+npm run dev
+```
+
+Things to try out:
+
+1. Try navigating to `/profile` - you should be redirected to the homepage `/` since you're not authenticated.
+2. Because you are not signed in, the navigation bar should only show the "Home" link and the placeholder for signin/signup links.
+3. On the homepage, you should see a message indicating that you are not signed in.
+
+After we complete the next tutorial on user authentication, you will be able to sign in and access the protected `/profile` page and see how the navigation bar and homepage updates accordingly.
+
+
+
+
+## How It Works
+
+1. **Auth Store**: Manages authentication state using Svelte stores and provides reactive access throughout the application
+2. **Route Protection**: Uses SvelteKit's reactive statements (`$effect`) to automatically redirect unauthorized users
+3. **Profile Page**: A protected page that displays user information, accessible only when authenticated
+4. **Automatic Redirects**: Unauthenticated users are redirected to the homepage, authenticated users can access `/profile`
+
+## Key Features Demonstrated
+
+
+<details>
+<summary>Route Protection</summary>
+
+Routes are protected using SvelteKit's reactive statements and automatic redirects, preventing unauthorized access to sensitive areas.
+
+</details>
+
+<details>
+<summary>Loading States</summary>
+
+Smooth loading indicators are shown during authentication checks to improve user experience.
+
+</details>
+
+<details>
+<summary>Automatic Redirects</summary>
+
+Users are automatically redirected based on their authentication status using SvelteKit's navigation utilities, ensuring proper flow.
+
+</details>
+
+<details>
+<summary>Cross-tab Synchronization</summary>
+
+Authentication state is synchronized across multiple browser tabs using Nhost's session storage events and Svelte stores.
+
+</details>
+
+<details>
+<summary>Session Management</summary>
+
+Complete user session and profile information is displayed and managed throughout the application using reactive Svelte stores.
+
+</details>
+

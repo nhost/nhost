@@ -1,12 +1,16 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { RefreshCwIcon } from 'lucide-react';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
+import { Input } from '@/components/ui/v2/Input';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -18,11 +22,7 @@ import {
   useUpdateFileStoreMutation,
 } from '@/utils/__generated__/graphite.graphql';
 import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
-import { removeTypename, type DeepRequired } from '@/utils/helpers';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
+import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required'),
@@ -42,7 +42,7 @@ export type FileStoreFormValues = Yup.InferType<typeof validationSchema>;
 export interface FileStoreFormProps extends DialogFormProps {
   id?: string;
   initialData?: Omit<FileStoreFormValues, 'buckets'> & { buckets: string[] };
-  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
+  onSubmit?: () => Promise<unknown>;
   onCancel?: VoidFunction;
 }
 
@@ -209,7 +209,9 @@ export default function FileStoreForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            startIcon={id ? <ArrowsClockwise /> : <PlusIcon />}
+            startIcon={
+              id ? <RefreshCwIcon width={16} height={16} /> : <PlusIcon />
+            }
           >
             {id ? 'Update' : 'Create'}
           </Button>

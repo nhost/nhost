@@ -1,13 +1,13 @@
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  useGetApplicationStateQuery,
-  type GetApplicationStateQuery,
-  type GetApplicationStateQueryVariables,
-} from '@/generated/graphql';
-import { ApplicationStatus } from '@/types/application';
 import type { QueryHookOptions } from '@apollo/client';
 import { useVisibilityChange } from '@uidotdev/usehooks';
 import { useEffect } from 'react';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import {
+  type GetApplicationStateQuery,
+  type GetApplicationStateQueryVariables,
+  useGetApplicationStateQuery,
+} from '@/generated/graphql';
+import { ApplicationStatus } from '@/types/application';
 
 export interface UseIsDatabaseMigratingOptions
   extends QueryHookOptions<

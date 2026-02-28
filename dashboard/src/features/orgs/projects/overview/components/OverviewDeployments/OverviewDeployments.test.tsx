@@ -1,9 +1,9 @@
+import { HttpResponse, http } from 'msw';
+import { setupServer } from 'msw/node';
+import { afterAll, beforeAll, vi } from 'vitest';
 import { mockApplication, mockOrganization } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { queryClient, render, screen } from '@/tests/testUtils';
-import { http, HttpResponse } from 'msw';
-import { setupServer } from 'msw/node';
-import { afterAll, beforeAll, vi } from 'vitest';
 import OverviewDeployments from './OverviewDeployments';
 
 vi.mock('next/router', () => ({
@@ -68,6 +68,7 @@ test('should render an empty state when GitHub is not connected', async () => {
     http.post(
       'https://local.graphql.local.nhost.run/v1',
       async ({ request }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
         if (operationName === 'getProject') {
           return HttpResponse.json({
@@ -106,6 +107,7 @@ test('should render an empty state when GitHub is connected, but there are no de
     http.post(
       'https://local.graphql.local.nhost.run/v1',
       async ({ request }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
         if (operationName === 'getProject') {
@@ -150,6 +152,7 @@ test('should render a list of deployments', async () => {
     http.post(
       'https://local.graphql.local.nhost.run/v1',
       async ({ request }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
         if (operationName === 'ScheduledOrPendingDeploymentsSub') {
@@ -216,6 +219,7 @@ test('should disable redeployments if a deployment is already in progress', asyn
     http.post(
       'https://local.graphql.local.nhost.run/v1',
       async ({ request }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
         if (operationName === 'ScheduledOrPendingDeploymentsSub') {

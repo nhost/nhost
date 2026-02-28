@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Hasura Remote Schema API
-  description: API for managing remote schemas in Hasura
+  title: Hasura API
+  description: API for managing remote schemas and events in Hasura
   version: 1.0.0
 
 security:
@@ -18,42 +18,36 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: '#/components/schemas/ExportMetadata'
-                - $ref: '#/components/schemas/AddRemoteSchemaOperation'
-                - $ref: '#/components/schemas/UpdateRemoteSchemaBulkOperation'
-                - $ref: '#/components/schemas/RemoveRemoteSchemaOperation'
-                - $ref: '#/components/schemas/ReloadRemoteSchemaOperation'
-                - $ref: '#/components/schemas/IntrospectRemoteSchemaOperation'
-                - $ref: '#/components/schemas/RemoteSchemaRemoteRelationshipOperation'
-                - $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation'
-                - $ref: '#/components/schemas/RemoteSchemaPermissionsBulkOperation'
+              $ref: "#/components/schemas/MetadataOperation"
       responses:
-        '200':
+        "200":
           description: Operation executed successfully
           content:
             application/json:
               schema:
-                oneOf:
-                  - type: object
-                    properties:
-                      message:
-                        type: string
-                        example: success
-                  - $ref: '#/components/schemas/ExportMetadataResponse'
-                  - $ref: '#/components/schemas/IntrospectRemoteSchemaResponse'
-        '400':
+                $ref: "#/components/schemas/MetadataOperation200"
+
+        "400":
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
   /apis/migrate:
     post:
       summary: Execute a migration
@@ -64,20 +58,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MigrationRequest'
+              $ref: "#/components/schemas/MigrationRequest"
       responses:
-        '200':
+        "200":
           description: Migration executed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '500':
+                $ref: "#/components/schemas/SuccessResponse"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
               example:
                 code: internal_error
                 message: "{\n  \"error\": \"query execution failed\",\n  \"path\": \"$[0]\",\n  \"code\": \"postgres-error\",\n  \"internal\": {\n    \"arguments\": [],\n    \"error\": {\n      \"description\": null,\n      \"exec_status\": \"FatalError\",\n      \"hint\": null,\n      \"message\": \"syntax error at or near \\\":\\\"\",\n      \"status_code\": \"42601\"\n    },\n    \"prepared\": false,\n    \"statement\": \"CREATE TABLE asd ( id TEXT ):;\"\n  }\n}"
@@ -90,6 +84,833 @@ components:
       name: x-hasura-admin-secret
 
   schemas:
+    MetadataOperation:
+      oneOf:
+        - $ref: "#/components/schemas/ExportMetadata"
+        - $ref: "#/components/schemas/GetInconsistentMetadataOperation"
+        - $ref: "#/components/schemas/ReloadMetadataOperation"
+        - $ref: "#/components/schemas/DropInconsistentMetadataOperation"
+        - $ref: "#/components/schemas/ClearMetadataOperation"
+        - $ref: "#/components/schemas/ReplaceMetadataOperation"
+        - $ref: "#/components/schemas/TrackTableBulkOperation"
+        - $ref: "#/components/schemas/UntrackTableBulkOperation"
+        - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
+        - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
+        - $ref: "#/components/schemas/SuggestRelationshipsOperation"
+        - $ref: "#/components/schemas/DropRelationshipBulkOperation"
+        - $ref: "#/components/schemas/DeleteRemoteRelationshipBulkOperation"
+        - $ref: "#/components/schemas/CreateObjectRelationshipBulkOperation"
+        - $ref: "#/components/schemas/CreateArrayRelationshipBulkOperation"
+        - $ref: "#/components/schemas/CreateRemoteRelationshipBulkOperation"
+        - $ref: "#/components/schemas/RenameRelationshipBulkOperation"
+        - $ref: "#/components/schemas/AddRemoteSchemaOperation"
+        - $ref: "#/components/schemas/UpdateRemoteSchemaBulkOperation"
+        - $ref: "#/components/schemas/RemoveRemoteSchemaOperation"
+        - $ref: "#/components/schemas/ReloadRemoteSchemaOperation"
+        - $ref: "#/components/schemas/IntrospectRemoteSchemaOperation"
+        - $ref: "#/components/schemas/RemoteSchemaRemoteRelationshipOperation"
+        - $ref: "#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation"
+        - $ref: "#/components/schemas/RemoteSchemaPermissionsBulkOperation"
+        - $ref: "#/components/schemas/GetEventLogsOperation"
+        - $ref: "#/components/schemas/GetEventAndInvocationLogsByIdOperation"
+        - $ref: "#/components/schemas/RedeliverEventOperation"
+        - $ref: "#/components/schemas/CreateEventTriggerBulkOperation"
+        - $ref: "#/components/schemas/DeleteEventTriggerBulkOperation"
+        - $ref: "#/components/schemas/TestWebhookTransformOperation"
+        - $ref: "#/components/schemas/InvokeEventTriggerOperation"
+        - $ref: "#/components/schemas/GetCronTriggersOperation"
+        - $ref: "#/components/schemas/CreateCronTriggerBulkOperation"
+        - $ref: "#/components/schemas/DeleteCronTriggerOperation"
+        - $ref: "#/components/schemas/GetScheduledEventsOperation"
+        - $ref: "#/components/schemas/GetScheduledEventInvocationsOperation"
+        - $ref: "#/components/schemas/CreateScheduledEventOperation"
+        - $ref: "#/components/schemas/DeleteScheduledEventOperation"
+
+    MetadataOperation200:
+      oneOf:
+        - type: object
+          properties:
+            message:
+              type: string
+              example: success
+        - $ref: "#/components/schemas/ExportMetadataResponse"
+        - $ref: "#/components/schemas/InconsistentMetadataResponse"
+        - $ref: "#/components/schemas/ReloadMetadataOperationResponse"
+        - $ref: "#/components/schemas/SuggestRelationshipsResponse"
+        - $ref: "#/components/schemas/IntrospectRemoteSchemaResponse"
+        - $ref: "#/components/schemas/GetEventLogsResponse"
+        - $ref: "#/components/schemas/GetEventAndInvocationLogsByIdResponse"
+        - $ref: "#/components/schemas/TestWebhookTransformResponse"
+        - $ref: "#/components/schemas/InvokeEventTriggerResponse"
+        - $ref: "#/components/schemas/GetCronTriggersResponse"
+        - $ref: "#/components/schemas/GetScheduledEventsResponse"
+        - $ref: "#/components/schemas/GetScheduledEventInvocationsResponse"
+        - type: array
+          description: List of success messages for bulk operations
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                example: success
+
+    TrackTableBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          default: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackTableStep"
+
+    TrackTableStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_track_table]
+        args:
+          $ref: "#/components/schemas/TrackTableArgs"
+
+    TrackTableArgs:
+      type: object
+      required:
+        - table
+      properties:
+        source:
+          type: string
+          default: default
+        table:
+          $ref: "#/components/schemas/QualifiedTable"
+
+    UntrackTableBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          default: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/UntrackTableStep"
+
+    UntrackTableStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_untrack_table]
+        args:
+          $ref: "#/components/schemas/UntrackTableArgs"
+
+    UntrackTableArgs:
+      allOf:
+        - $ref: "#/components/schemas/TrackTableArgs"
+
+    SetTableCustomizationBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to update remote schemas
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/SetTableCustomizationStep"
+
+    SetTableCustomizationStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_set_table_customization]
+        args:
+          $ref: "#/components/schemas/SetTableCustomizationArgs"
+
+    SetTableCustomizationArgs:
+      type: object
+      required:
+        - table
+      properties:
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+        table:
+          $ref: "#/components/schemas/QualifiedTable"
+        configuration:
+          description: Configuration for the table/view
+          $ref: "#/components/schemas/TableConfig"
+
+    TableConfig:
+      type: object
+      properties:
+        custom_name:
+          type: string
+          description: Customize the <table-name> with the provided custom name value. The GraphQL nodes for the table will be generated according to the custom name.
+          nullable: true
+        custom_root_fields:
+          $ref: "#/components/schemas/CustomRootFields"
+        column_config:
+          description: "A { [column_name]: ColumnConfigValue } object."
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ColumnConfigValue"
+        custom_column_names:
+          type: object
+          description: Customize the column fields (deprecated in favour of custom_name on column_config)
+          additionalProperties:
+            type: string
+          deprecated: true
+        comment:
+          type: string
+          description: Customize the description shown in GraphQL introspection. If null or omitted then if a comment exists on the database table, it is used as the description (Postgres-only), and if not, an autogenerated description is used instead.
+          nullable: true
+
+    ColumnConfigValue:
+      type: object
+      properties:
+        custom_name:
+          type: string
+          description: Customize the name of the field in the GraphQL schema
+        comment:
+          type: string
+          description: Customize the description shown for the field in GraphQL introspection. If null or omitted then an autogenerated description is used instead.
+          nullable: true
+
+    CustomRootFields:
+      type: object
+      properties:
+        select:
+          description: Customize the <table-name> root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        select_by_pk:
+          description: Customize the <table-name>_by_pk root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        select_aggregate:
+          description: Customize the <table-name>_aggregate root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        select_stream:
+          description: Customize the <table-name>_stream root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        insert:
+          description: Customize the insert_<table-name> root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        insert_one:
+          description: Customize the insert_<table-name>_one root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        update:
+          description: Customize the update_<table-name> root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        update_many:
+          description: Customize the update_many_<table-name> root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        update_by_pk:
+          description: Customize the update_<table-name>_by_pk root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        delete:
+          description: Customize the delete_<table-name> root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+        delete_by_pk:
+          description: Customize the delete_<table-name>_by_pk root field. Using a String customizes the field name.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/CustomRootField"
+
+    CustomRootField:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The custom root field name
+          nullable: true
+        comment:
+          type: string
+          description: Customize the description shown for the root field in GraphQL introspection. If null or omitted then an autogenerated description is used instead.
+
+    SetTableIsEnumBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to update remote schemas
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/SetTableIsEnumStep"
+
+    SetTableIsEnumStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_set_table_is_enum]
+        args:
+          $ref: "#/components/schemas/SetTableIsEnumArgs"
+
+    SetTableIsEnumArgs:
+      type: object
+      required:
+        - table
+        - is_enum
+      properties:
+        table:
+          $ref: "#/components/schemas/QualifiedTable"
+        is_enum:
+          type: boolean
+          description: Whether or not the table should be used as an enum table <enum table>.
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
+    SuggestRelationshipsOperation:
+      type: object
+      description: Use to suggest relationships that can be tracked by the pg_create_*_relationship API.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_suggest_relationships]
+        args:
+          $ref: "#/components/schemas/SuggestRelationshipsArgs"
+
+    SuggestRelationshipsArgs:
+      type: object
+      properties:
+        source:
+          type: string
+          description: The source to suggest relationships for
+          default: default
+        tables:
+          type: array
+          description: List of tables to consider for suggestions
+          items:
+            oneOf:
+              - type: string
+              - $ref: "#/components/schemas/QualifiedTable"
+            default: All Tables
+        omit_tracked:
+          type: boolean
+          description: Don't re-suggest tracked relationships
+          default: false
+
+    SuggestRelationshipsResponse:
+      type: object
+      properties:
+        relationships:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/SuggestedObjectRelationship"
+              - $ref: "#/components/schemas/SuggestedArrayRelationship"
+
+    SuggestedRelationshipElement:
+      type: object
+      properties:
+        table:
+          $ref: "#/components/schemas/QualifiedTable"
+        columns:
+          type: array
+          items:
+            type: string
+        constraint_name:
+          type: string
+
+    SuggestedObjectRelationship:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [object]
+        from:
+          allOf:
+            - $ref: "#/components/schemas/SuggestedRelationshipElement"
+            - type: object
+              properties:
+                constraint_name:
+                  type: string
+        to:
+          $ref: "#/components/schemas/SuggestedRelationshipElement"
+
+    SuggestedArrayRelationship:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [array]
+        from:
+          $ref: "#/components/schemas/SuggestedRelationshipElement"
+        to:
+          allOf:
+            - $ref: "#/components/schemas/SuggestedRelationshipElement"
+            - type: object
+              properties:
+                constraint_name:
+                  type: string
+
+    DropRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to drop relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropRelationshipStep"
+
+    DropRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_drop_relationship]
+        args:
+          type: object
+          required:
+            - table
+            - relationship
+          properties:
+            table:
+              $ref: "#/components/schemas/QualifiedTable"
+            relationship:
+              type: string
+              description: Name of the relationship that needs to be dropped
+            cascade:
+              type: boolean
+              description: When set to true, all the dependent items on this relationship are also dropped
+            source:
+              type: string
+              description: Name of the source database of the table
+              default: default
+
+    DeleteRemoteRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to delete remote relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeleteRemoteRelationshipStep"
+
+    DeleteRemoteRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_delete_remote_relationship]
+        args:
+          type: object
+          required:
+            - table
+            - name
+          properties:
+            source:
+              type: string
+              description: Name of the source database of the table
+              default: default
+            table:
+              $ref: "#/components/schemas/QualifiedTable"
+              description: Object with table name and schema
+            name:
+              type: string
+              description: Name of the remote relationship
+
+    CreateLocalRelationshipArgs:
+      type: object
+      required:
+        - table
+        - name
+        - using
+      properties:
+        table:
+          description: Name of the table
+          $ref: "#/components/schemas/QualifiedTable"
+        name:
+          type: string
+          description: Name of the new relationship
+        using:
+          description: Use one of the available ways to define a relationship. There has to be at least one and only one of foreign_key_constraint_on and manual_configuration.
+          $ref: "#/components/schemas/RelationshipUsing"
+        comment:
+          type: string
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
+    CreateObjectRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to create object relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateObjectRelationshipStep"
+
+    CreateObjectRelationshipStep:
+      type: object
+      description: Define a new object relationship between Postgres tables/views
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_object_relationship]
+        args:
+          $ref: "#/components/schemas/CreateLocalRelationshipArgs"
+
+    RelationshipUsing:
+      type: object
+      oneOf:
+        - $ref: "#/components/schemas/RelationshipUsingForeignKeyConstraintOn"
+        - $ref: "#/components/schemas/RelationshipUsingManualConfiguration"
+
+    RelationshipUsingForeignKeyConstraintOn:
+      type: object
+      description: The column with foreign key constraint or the remote table and column
+      required:
+        - foreign_key_constraint_on
+      properties:
+        foreign_key_constraint_on:
+          $ref: "#/components/schemas/ForeignKeyConstraintOn"
+
+    ForeignKeyConstraintOn:
+      type: object
+      oneOf:
+        - $ref: "#/components/schemas/ForeignKeyConstraintObjectRelationship"
+        - $ref: "#/components/schemas/ForeignKeyConstraintArrayRelationship"
+
+    ForeignKeyConstraintObjectRelationship:
+      description: Column(s) from same table. Used for object relationships.
+      oneOf:
+        - type: string
+        - type: array
+          items:
+            type: string
+
+    ForeignKeyConstraintArrayRelationship:
+      description: Column(s) from remote table. Used for array relationships.
+      oneOf:
+        - type: object
+          properties:
+            table:
+              $ref: "#/components/schemas/QualifiedTable"
+            column:
+              type: string
+        - type: object
+          properties:
+            table:
+              $ref: "#/components/schemas/QualifiedTable"
+            columns:
+              type: array
+              items:
+                type: string
+
+    RelationshipUsingManualConfiguration:
+      type: object
+      description: Manual mapping of table and columns
+      required:
+        - manual_configuration
+      properties:
+        manual_configuration:
+          type: object
+          required:
+            - remote_table
+            - column_mapping
+          properties:
+            remote_table:
+              $ref: "#/components/schemas/QualifiedTable"
+              description: The table to which the relationship has to be established
+            column_mapping:
+              type: object
+              description: Mapping of columns from current table to remote table
+              additionalProperties:
+                type: string
+            insertion_order:
+              type: string
+              description: Insertion order before or after parent. Describes when should the referenced table row be inserted in relation to the current table row in case of a nested insert.
+              enum: [before_parent, after_parent]
+              default: before_parent
+
+    CreateArrayRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to create array relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateArrayRelationshipStep"
+
+    CreateArrayRelationshipStep:
+      type: object
+      description: Define a new array relationship between Postgres tables/views
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_array_relationship]
+        args:
+          $ref: "#/components/schemas/CreateLocalRelationshipArgs"
+
+    CreateRemoteRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk, bulk_keep_going]
+          description: Type of operation to create remote relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateRemoteRelationshipStep"
+
+    CreateRemoteRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_remote_relationship]
+        args:
+          $ref: "#/components/schemas/CreateRemoteRelationshipArgs"
+
+    CreateRemoteRelationshipArgs:
+      type: object
+      required:
+        - name
+        - table
+        - definition
+      properties:
+        name:
+          type: string
+          description: User defined name of the new remote relationship
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+        table:
+          description: Table on which the relationship is being defined
+          $ref: "#/components/schemas/QualifiedTable"
+        definition:
+          description: Definition of the remote relationship
+          $ref: "#/components/schemas/RemoteRelationshipDefinition"
+
+    RenameRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk, bulk_keep_going]
+          description: Type of operation to rename relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/RenameRelationshipStep"
+
+    RenameRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_rename_relationship]
+        args:
+          $ref: "#/components/schemas/RenameRelationshipArgs"
+
+    RenameRelationshipArgs:
+      type: object
+      required:
+        - table
+        - name
+        - new_name
+      properties:
+        table:
+          description: Name of the table
+          $ref: "#/components/schemas/QualifiedTable"
+        name:
+          type: string
+          description: Name of the relationship
+        new_name:
+          type: string
+          description: New relationship name
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
+    QualifiedTable:
+      type: object
+      description: Object with table name and schema
+      required:
+        - name
+        - schema
+      properties:
+        name:
+          type: string
+          description: Name of the table
+        schema:
+          type: string
+          description: Schema of the table
+
     RemoteSchemaPermissionsStepArgs:
       type: object
       required:
@@ -105,7 +926,7 @@ components:
           description: Name of the role
           example: user
         definition:
-          $ref: '#/components/schemas/RemoteSchemaPermissionsDefinition'
+          $ref: "#/components/schemas/RemoteSchemaPermissionsDefinition"
 
     AddRemoteSchemaPermissionsStep:
       type: object
@@ -118,7 +939,7 @@ components:
           enum: [add_remote_schema_permissions]
           description: Use to add permissions to a remote schema
         args:
-          $ref: '#/components/schemas/RemoteSchemaPermissionsStepArgs'
+          $ref: "#/components/schemas/RemoteSchemaPermissionsStepArgs"
 
     DropRemoteSchemaPermissionsStep:
       type: object
@@ -130,7 +951,7 @@ components:
           type: string
           enum: [drop_remote_schema_permissions]
         args:
-          $ref: '#/components/schemas/RemoteSchemaPermissionsStepArgs'
+          $ref: "#/components/schemas/RemoteSchemaPermissionsStepArgs"
 
     AddRemoteSchemaStep:
       type: object
@@ -142,7 +963,7 @@ components:
           type: string
           enum: [add_remote_schema]
         args:
-          $ref: '#/components/schemas/AddRemoteSchemaArgs'
+          $ref: "#/components/schemas/AddRemoteSchemaArgs"
 
     UpdateRemoteSchemaStep:
       type: object
@@ -154,7 +975,7 @@ components:
           type: string
           enum: [update_remote_schema]
         args:
-          $ref: '#/components/schemas/RemoteSchemaInfo'
+          $ref: "#/components/schemas/RemoteSchemaInfo"
 
     RemoveRemoteSchemaStep:
       type: object
@@ -166,15 +987,45 @@ components:
           type: string
           enum: [remove_remote_schema]
         args:
-          $ref: '#/components/schemas/RemoveRemoteSchemaArgs'
+          $ref: "#/components/schemas/RemoveRemoteSchemaArgs"
+
+    DeleteEventTriggerStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_delete_event_trigger]
+        args:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of the Event Trigger
+              example: my_event_trigger
+            source:
+              type: string
+              description: Name of the source database of the trigger
+              default: default
 
     MigrationStep:
       oneOf:
-        - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
-        - $ref: '#/components/schemas/DropRemoteSchemaPermissionsStep'
-        - $ref: '#/components/schemas/UpdateRemoteSchemaStep'
-        - $ref: '#/components/schemas/RemoveRemoteSchemaStep'
-        - $ref: '#/components/schemas/AddRemoteSchemaStep'
+        - $ref: "#/components/schemas/ReplaceMetadataOperation"
+        - $ref: "#/components/schemas/SetTableIsEnumStep"
+        - $ref: "#/components/schemas/SetTableCustomizationStep"
+        - $ref: "#/components/schemas/AddRemoteSchemaPermissionsStep"
+        - $ref: "#/components/schemas/DropRemoteSchemaPermissionsStep"
+        - $ref: "#/components/schemas/UpdateRemoteSchemaStep"
+        - $ref: "#/components/schemas/RemoveRemoteSchemaStep"
+        - $ref: "#/components/schemas/AddRemoteSchemaStep"
+        - $ref: "#/components/schemas/CreateEventTriggerStep"
+        - $ref: "#/components/schemas/DeleteEventTriggerStep"
+        - $ref: "#/components/schemas/TrackTableStep"
+        - $ref: "#/components/schemas/UntrackTableStep"
 
     MigrationRequest:
       type: object
@@ -191,12 +1042,12 @@ components:
           type: array
           description: Steps to execute for the migration. Always provide a down migration as well when creating a migration that modifies the schema
           items:
-            $ref: '#/components/schemas/MigrationStep'
+            $ref: "#/components/schemas/MigrationStep"
         down:
           type: array
           description: Steps to execute to revert the migration. Always provide this when creating a migration that modifies the schema
           items:
-            $ref: '#/components/schemas/MigrationStep'
+            $ref: "#/components/schemas/MigrationStep"
         datasource:
           type: string
           description: The data source to use
@@ -237,7 +1088,7 @@ components:
         path:
           type: string
           description: JSON path where the error occurred
-          example: '$.args'
+          example: "$.args"
 
     ExportMetadata:
       type: object
@@ -283,13 +1134,240 @@ components:
               description: List of data sources
               items:
                 type: object
+                properties:
+                  name:
+                    type: string
+                    description: Name of the data source
+                    example: default
+                  kind:
+                    type: string
+                    description: Kind of the data source
+                    example: postgres
+                  tables:
+                    type: array
+                    description: List of tables in the data source
+                    items:
+                      type: object
+                      required:
+                        - table
+                      properties:
+                        is_enum:
+                          type: boolean
+                        table:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the table
+                              example: users
+                            schema:
+                              type: string
+                              description: Schema of the table
+                              example: public
+                          additionalProperties: true
+                        configuration:
+                          allOf:
+                            - $ref: "#/components/schemas/TableConfig"
+                          additionalProperties: true
+                        event_triggers:
+                          type: array
+                          description: List of event triggers for the table
+                          items:
+                            type: object
+                            $ref: "#/components/schemas/EventTrigger"
+                        array_relationships:
+                          type: array
+                          description: List of array relationships for the table
+                          items:
+                            $ref: "#/components/schemas/ArrayRelationshipItem"
+                        object_relationships:
+                          type: array
+                          description: List of object relationships for the table
+                          items:
+                            $ref: "#/components/schemas/ObjectRelationshipItem"
+                        remote_relationships:
+                          type: array
+                          description: List of remote relationships for the table
+                          items:
+                            $ref: "#/components/schemas/RemoteRelationshipItem"
                 additionalProperties: true
             remote_schemas:
               type: array
               description: List of remote GraphQL schemas
               items:
-                $ref: '#/components/schemas/RemoteSchemaInfo'
+                $ref: "#/components/schemas/RemoteSchemaInfo"
+            cron_triggers:
+              type: array
+              description: List of cron triggers
+              items:
+                $ref: "#/components/schemas/CronTrigger"
           additionalProperties: true
+
+    GetInconsistentMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_inconsistent_metadata]
+        args:
+          type: object
+          example: {}
+
+    InconsistentMetadataResponse:
+      type: object
+      required:
+        - is_consistent
+      properties:
+        is_consistent:
+          type: boolean
+        inconsistent_objects:
+          type: array
+          items:
+            $ref: "#/components/schemas/InconsistentObject"
+
+    InconsistentObject:
+      type: object
+      required:
+        - type
+        - name
+        - reason
+        - definition
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+        reason:
+          type: string
+        definition:
+          type: object
+          additionalProperties: true
+
+    ReloadMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [reload_metadata]
+        args:
+          type: object
+          properties:
+            reload_remote_schema:
+              oneOf:
+                - type: boolean
+                - type: array
+            reload_sources:
+              oneOf:
+                - type: boolean
+                - type: array
+
+    ReloadMetadataOperationResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/SuccessResponse"
+        - $ref: "#/components/schemas/InconsistentMetadataResponse"
+
+    DropInconsistentMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [drop_inconsistent_metadata]
+        args:
+          type: object
+          example: {}
+
+    ClearMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [clear_metadata]
+        args:
+          type: object
+          example: {}
+
+    ReplaceMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [replace_metadata]
+        args:
+          $ref: "#/components/schemas/ReplaceMetadataArgs"
+
+    ReplaceMetadataArgs:
+      type: object
+      required:
+        - metadata
+      properties:
+        allow_inconsistent_metadata:
+          type: boolean
+        metadata:
+          type: object
+
+    ArrayRelationshipItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the relationship
+        using:
+          $ref: "#/components/schemas/RelationshipUsing"
+
+    ObjectRelationshipItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the relationship
+        using:
+          $ref: "#/components/schemas/RelationshipUsing"
+
+    RemoteRelationshipItem:
+      required:
+        - name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the remote relationship
+        definition:
+          $ref: "#/components/schemas/RemoteRelationshipDefinition"
+
+    RemoteRelationshipDefinition:
+      type: object
+      description: Relationship definition
+      oneOf:
+        - type: object
+          required:
+            - to_remote_schema
+          properties:
+            to_remote_schema:
+              description: Remote Relationship definition to a Remote Schema
+              $ref: "#/components/schemas/ToRemoteSchemaRelationshipDefinition"
+        - type: object
+          required:
+            - to_source
+          properties:
+            to_source:
+              description: Remote Relationship definition to a table on a different database
+              $ref: "#/components/schemas/ToSourceRelationshipDefinition"
 
     RemoteSchemaInfo:
       type: object
@@ -303,7 +1381,7 @@ components:
           description: Name of the remote schema
           example: asdf2
         definition:
-          $ref: '#/components/schemas/RemoteSchemaDefinition'
+          $ref: "#/components/schemas/RemoteSchemaDefinition"
         comment:
           type: string
           description: Comment for the remote schema
@@ -335,21 +1413,7 @@ components:
                       description: Name of the relationship
                       example: user
                     definition:
-                      type: object
-                      description: Relationship definition
-                      oneOf:
-                        - type: object
-                          required:
-                            - to_remote_schema
-                          properties:
-                            to_remote_schema:
-                              $ref: '#/components/schemas/ToRemoteSchemaRelationshipDefinition'
-                        - type: object
-                          required:
-                            - to_source
-                          properties:
-                            to_source:
-                              $ref: '#/components/schemas/ToSourceRelationshipDefinition'
+                      $ref: "#/components/schemas/RemoteRelationshipDefinition"
         permissions:
           type: array
           description: Permissions for the remote schema
@@ -372,7 +1436,7 @@ components:
                   schema:
                     type: string
                     description: GraphQL schema definition for this role
-                    example: 'schema { query: Query } type Query { hello: String }'
+                    example: "schema { query: Query } type Query { hello: String }"
 
     RemoteSchemaDefinitionFromUrl:
       type: object
@@ -393,9 +1457,9 @@ components:
           description: Forward client headers to the remote schema
           default: false
         headers:
-          $ref: '#/components/schemas/Headers'
+          $ref: "#/components/schemas/Headers"
         customization:
-          $ref: '#/components/schemas/RemoteSchemaCustomization'
+          $ref: "#/components/schemas/RemoteSchemaCustomization"
 
     RemoteSchemaDefinitionFromEnv:
       type: object
@@ -416,9 +1480,9 @@ components:
           description: Forward client headers to the remote schema
           default: false
         headers:
-          $ref: '#/components/schemas/Headers'
+          $ref: "#/components/schemas/Headers"
         customization:
-          $ref: '#/components/schemas/RemoteSchemaCustomization'
+          $ref: "#/components/schemas/RemoteSchemaCustomization"
 
     RemoteSchemaCustomization:
       type: object
@@ -476,16 +1540,16 @@ components:
     RemoteSchemaDefinition:
       description: Remote schema definition - can use direct URL or environment variable
       oneOf:
-        - $ref: '#/components/schemas/RemoteSchemaDefinitionFromUrl'
-        - $ref: '#/components/schemas/RemoteSchemaDefinitionFromEnv'
+        - $ref: "#/components/schemas/RemoteSchemaDefinitionFromUrl"
+        - $ref: "#/components/schemas/RemoteSchemaDefinitionFromEnv"
 
     Headers:
       type: array
       description: Headers to be sent with the request
       items:
         oneOf:
-          - $ref: '#/components/schemas/HeaderWithValue'
-          - $ref: '#/components/schemas/HeaderWithEnv'
+          - $ref: "#/components/schemas/HeaderWithValue"
+          - $ref: "#/components/schemas/HeaderWithEnv"
 
     HeaderWithValue:
       type: object
@@ -514,7 +1578,7 @@ components:
           example: X-Hasura-User-Id
         value_from_env:
           type: string
-          description: Environment variable name to get the value from
+          description: Name of the environment variable which holds the value of the header
           example: HASURA_USER_ID
 
     AddRemoteSchemaArgs:
@@ -528,7 +1592,7 @@ components:
           description: Name of the remote schema
           example: my_remote_schema
         definition:
-          $ref: '#/components/schemas/RemoteSchemaDefinition'
+          $ref: "#/components/schemas/RemoteSchemaDefinition"
         comment:
           type: string
           description: Comment for the remote schema
@@ -545,7 +1609,7 @@ components:
           enum: [add_remote_schema]
           description: Type of operation to add a remote schema
         args:
-          $ref: '#/components/schemas/AddRemoteSchemaArgs'
+          $ref: "#/components/schemas/AddRemoteSchemaArgs"
 
     UpdateRemoteSchemaBulkOperation:
       type: object
@@ -570,7 +1634,7 @@ components:
         args:
           type: array
           items:
-            $ref: '#/components/schemas/UpdateRemoteSchemaStep'
+            $ref: "#/components/schemas/UpdateRemoteSchemaStep"
 
     RemoveRemoteSchemaArgs:
       type: object
@@ -593,7 +1657,7 @@ components:
           enum: [remove_remote_schema]
           description: Type of operation to remove a remote schema
         args:
-          $ref: '#/components/schemas/RemoveRemoteSchemaArgs'
+          $ref: "#/components/schemas/RemoveRemoteSchemaArgs"
 
     ReloadRemoteSchemaArgs:
       type: object
@@ -616,7 +1680,7 @@ components:
           enum: [reload_remote_schema]
           description: Type of operation to reload a remote schema
         args:
-          $ref: '#/components/schemas/ReloadRemoteSchemaArgs'
+          $ref: "#/components/schemas/ReloadRemoteSchemaArgs"
 
     RemoteSchemaPermissionsDefinition:
       type: object
@@ -627,7 +1691,7 @@ components:
         schema:
           type: string
           description: GraphQL schema definition for this role
-          example: 'schema { query: Query } type Query { hello: String }'
+          example: "schema { query: Query } type Query { hello: String }"
 
     RemoteSchemaPermissionsBulkOperation:
       type: object
@@ -645,8 +1709,8 @@ components:
           type: array
           items:
             oneOf:
-              - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
-              - $ref: '#/components/schemas/DropRemoteSchemaPermissionsStep'
+              - $ref: "#/components/schemas/AddRemoteSchemaPermissionsStep"
+              - $ref: "#/components/schemas/DropRemoteSchemaPermissionsStep"
 
         source:
           type: string
@@ -686,17 +1750,17 @@ components:
                 - to_remote_schema
               properties:
                 to_remote_schema:
-                  $ref: '#/components/schemas/ToRemoteSchemaRelationshipDefinition'
+                  $ref: "#/components/schemas/ToRemoteSchemaRelationshipDefinition"
             - type: object
               required:
                 - to_source
               properties:
                 to_source:
-                  $ref: '#/components/schemas/ToSourceRelationshipDefinition'
+                  $ref: "#/components/schemas/ToSourceRelationshipDefinition"
 
     ToRemoteSchemaRelationshipDefinition:
       type: object
-      description: Definition for relationship to another remote schema
+      description: Definition for relationship to other remote schema
       required:
         - remote_schema
         - lhs_fields
@@ -708,27 +1772,49 @@ components:
           example: user-remote-schema
         lhs_fields:
           type: array
-          description: Fields from the source type to use in the relationship
+          description: Column/Computed field(s) in the table that is used for joining with Remote Schema field. All join keys in remote_field must appear here.
           items:
             type: string
-          example: ['user_id']
+          example: ["user_id"]
         remote_field:
-          type: object
-          description: Remote field configuration
-          additionalProperties:
+          $ref: "#/components/schemas/RemoteField"
+
+    RemoteField:
+      type: object
+      description: >
+        The schema tree ending at the field in the remote schema which needs
+        to be joined with. Each key represents a field name in the remote
+        schema and maps to the configuration for that node in the tree.
+      additionalProperties:
+        type: object
+        description: Configuration for a specific remote field node
+        properties:
+          arguments:
             type: object
-            properties:
+            description: >
+              GraphQL arguments to pass to this remote field. Argument values
+              can be literals or references to table columns by prefixing the
+              column name with `$`, for example `$id`.
+            additionalProperties:
+              oneOf:
+                - type: string
+                - type: integer
+                - type: number
+                - type: boolean
+                - type: object
+                  additionalProperties: {}
+                - type: array
+                  items: {}
+          field:
+            $ref: "#/components/schemas/RemoteField"
+      example:
+        messages:
+          arguments:
+            limit: 100
+          field:
+            private:
               arguments:
-                type: object
-                description: Arguments to pass to the remote field
-                additionalProperties:
-                  type: string
-                example:
-                  id: '$user_id'
-          example:
-            user:
-              arguments:
-                id: '$user_id'
+                id: "$id"
 
     ToSourceRelationshipDefinition:
       type: object
@@ -741,28 +1827,15 @@ components:
       properties:
         source:
           type: string
-          description: Name of the database source
+          description: Name of the source of the target table
           example: default
         table:
-          type: object
           description: Target table information
-          required:
-            - name
-            - schema
-          properties:
-            name:
-              type: string
-              description: Name of the table
-              example: plans
-            schema:
-              type: string
-              description: Schema name of the table
-              example: public
+          $ref: "#/components/schemas/QualifiedTable"
         relationship_type:
           type: string
           enum: [object, array]
           description: Type of relationship - object for one-to-one, array for one-to-many
-          example: array
         field_mapping:
           type: object
           description: Mapping from remote schema fields to database table columns
@@ -773,7 +1846,7 @@ components:
             Amount: updated_at
 
     UpdateRemoteSchemaRemoteRelationshipArgs:
-      $ref: '#/components/schemas/CreateRemoteSchemaRemoteRelationshipArgs'
+      $ref: "#/components/schemas/CreateRemoteSchemaRemoteRelationshipArgs"
 
     RemoteSchemaRemoteRelationshipOperation:
       type: object
@@ -791,8 +1864,8 @@ components:
           description: Type of operation to create a remote schema relationship
         args:
           oneOf:
-            - $ref: '#/components/schemas/CreateRemoteSchemaRemoteRelationshipArgs'
-            - $ref: '#/components/schemas/UpdateRemoteSchemaRemoteRelationshipArgs'
+            - $ref: "#/components/schemas/CreateRemoteSchemaRemoteRelationshipArgs"
+            - $ref: "#/components/schemas/UpdateRemoteSchemaRemoteRelationshipArgs"
 
     DeleteRemoteSchemaRemoteRelationshipArgs:
       type: object
@@ -825,10 +1898,10 @@ components:
           enum: [delete_remote_schema_remote_relationship]
           description: Type of operation to delete a remote schema relationship
         args:
-          $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipArgs'
+          $ref: "#/components/schemas/DeleteRemoteSchemaRemoteRelationshipArgs"
 
     IntrospectRemoteSchemaArgs:
-      $ref: '#/components/schemas/ReloadRemoteSchemaArgs'
+      $ref: "#/components/schemas/ReloadRemoteSchemaArgs"
 
     IntrospectRemoteSchemaOperation:
       type: object
@@ -841,7 +1914,7 @@ components:
           enum: [introspect_remote_schema]
           description: Type of operation to introspect a remote schema
         args:
-          $ref: '#/components/schemas/IntrospectRemoteSchemaArgs'
+          $ref: "#/components/schemas/IntrospectRemoteSchemaArgs"
 
     IntrospectRemoteSchemaResponse:
       type: object
@@ -859,64 +1932,36 @@ components:
               description: GraphQL schema introspection data
               required:
                 - types
-                - queryType
-                - mutationType
-                - subscriptionType
-                - directives
               properties:
                 queryType:
                   type: object
-                  required:
-                    - name
-                    - kind
+                  nullable: true
                   properties:
                     name:
                       type: string
                       example: Query
-                    kind:
-                      type: string
-                      enum: [OBJECT]
                   additionalProperties: true
                 mutationType:
                   type: object
-                  required:
-                    - name
-                    - kind
                   nullable: true
                   properties:
                     name:
                       type: string
                       example: Mutation
-                    kind:
-                      type: string
-                      enum: [OBJECT]
                   additionalProperties: true
                 subscriptionType:
                   type: object
-                  required:
-                    - name
-                    - kind
                   nullable: true
                   properties:
                     name:
                       type: string
                       example: Subscription
-                    kind:
-                      type: string
-                      enum: [OBJECT]
                   additionalProperties: true
                 types:
                   type: array
                   description: All types in the GraphQL schema
                   items:
-                    $ref: '#/components/schemas/GraphQLTypeForVisualization'
-                directives:
-                  type: array
-                  description: All directives in the GraphQL schema
-                  items:
-                    type: object
-                    description: Directive definition
-                    additionalProperties: true
+                    $ref: "#/components/schemas/GraphQLTypeForVisualization"
               additionalProperties: true
           additionalProperties: true
       additionalProperties: true
@@ -968,7 +2013,7 @@ components:
                 nullable: true
                 description: Description of the field
               type:
-                $ref: '#/components/schemas/GraphQLTypeForVisualization'
+                $ref: "#/components/schemas/GraphQLTypeForVisualization"
                 description: Return type of the field
             additionalProperties: true
         interfaces:
@@ -976,7 +2021,7 @@ components:
           nullable: true
           description: Interfaces implemented by OBJECT types
           items:
-            $ref: '#/components/schemas/GraphQLTypeForVisualization'
+            $ref: "#/components/schemas/GraphQLTypeForVisualization"
         enumValues:
           type: array
           nullable: true
@@ -999,9 +2044,1233 @@ components:
           nullable: true
           description: Possible types for UNION and INTERFACE types
           items:
-            $ref: '#/components/schemas/GraphQLTypeForVisualization'
+            $ref: "#/components/schemas/GraphQLTypeForVisualization"
         ofType:
-          $ref: '#/components/schemas/GraphQLTypeForVisualization'
+          $ref: "#/components/schemas/GraphQLTypeForVisualization"
           nullable: true
           description: Wrapped type for LIST and NON_NULL types
       additionalProperties: true
+
+    EventTrigger:
+      type: object
+      description: Event trigger configuration for a table
+      required:
+        - name
+        - definition
+        - retry_conf
+      properties:
+        name:
+          type: string
+          description: Name of the event trigger
+        definition:
+          $ref: "#/components/schemas/EventTriggerDefinition"
+        retry_conf:
+          description: Retry configuration if event delivery fails
+          $ref: "#/components/schemas/RetryConf"
+        webhook:
+          type: string
+          description: Event Trigger Webhook URL. A String value which supports templating environment variables enclosed in {{ and }}.
+          example: "{{SERVICE_URL}}/hooks"
+        webhook_from_env:
+          type: string
+          description: Environment variable name of webhook (Deprecated in favour of WebhookURL)
+          example: SERVICE_ENDPOINT
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: "#/components/schemas/Headers"
+        request_transform:
+          description: Attaches a Request Transformation to the Event Trigger.
+          $ref: "#/components/schemas/RequestTransformation"
+        trigger_on_replication:
+          type: boolean
+          description: Specification for enabling/disabling the Event Trigger during logical replication
+      additionalProperties: true
+
+    EventTriggerDefinition:
+      type: object
+      description: Definition of database operations that trigger the webhook
+      required:
+        - enable_manual
+      properties:
+        enable_manual:
+          type: boolean
+          description: Allow manual invocation of the trigger from console/API
+          default: false
+        insert:
+          $ref: "#/components/schemas/OperationSpec"
+        delete:
+          $ref: "#/components/schemas/OperationSpec"
+        update:
+          $ref: "#/components/schemas/OperationSpec"
+
+    OperationSpec:
+      type: object
+      nullable: true
+      description: Operation specification
+      required:
+        - columns
+      properties:
+        columns:
+          description: List of columns or "*" to listen to changes
+          $ref: "#/components/schemas/EventTriggerColumns"
+        payload:
+          description: List of columns or "*" to send as part of webhook payload
+          $ref: "#/components/schemas/EventTriggerColumns"
+
+    EventTriggerColumns:
+      oneOf:
+        - type: string
+          enum: ["*"]
+          description: All columns
+        - type: array
+          description: List of column names
+          items:
+            type: string
+            description: Column name
+
+    RetryConf:
+      type: object
+      description: Retry configuration when delivery to the webhook fails
+      properties:
+        num_retries:
+          type: integer
+          description: Number of times to retry delivery
+          default: 0
+        interval_sec:
+          type: integer
+          description: Number of seconds to wait between retries
+          default: 10
+        timeout_sec:
+          type: integer
+          description: Number of seconds to wait for the webhook response before timing out
+          default: 60
+
+    RequestTransformation:
+      type: object
+      description: Request transformation
+      properties:
+        version:
+          description: Sets the RequestTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform.
+          type: integer
+          enum: [1, 2]
+          default: 1
+        method:
+          description: Change the request method to this value.
+          type: string
+          enum: [POST, GET, PUT, DELETE, PATCH]
+        url:
+          description: Change the request URL to this value.
+          type: string
+          example: "{{$base_url}}/something"
+        content_type:
+          description: Replace the Content-Type with this value.
+          type: string
+          enum: ["application/json", "application/x-www-form-urlencoded"]
+          default: application/json
+        request_headers:
+          description: Request Header Transformation.
+          $ref: "#/components/schemas/TransformHeaders"
+        query_params:
+          description: Replace the query params on the URL with this value. You can specify a dictionary of key/value pairs which is converted into a query string or directly give a query string.
+          oneOf:
+            - type: object
+              description: Query params as key-value pairs
+              additionalProperties:
+                type: string
+              example: '{ "search": "value" }'
+            - type: string
+              description: Query string that comes from Kriti template
+              example: 'urlstringquery=hello&urlstringquery2=hello2 OR myuserid={{concat(["userId=","asd"])}}'
+        template_engine:
+          description: Template language to be used for this transformation.
+          type: string
+          enum: [Kriti]
+          default: Kriti
+        body:
+          description: A template script for transforming the request body.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/BodyTransform"
+
+    ResponseTransformation:
+      type: object
+      properties:
+        version:
+          description: Sets the ResponseTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform.
+          type: string
+          enum: ["1", "2"]
+          default: "1"
+        body:
+          description: A template script for transforming the response body.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/BodyTransform"
+        template_engine:
+          description: Template language to be used for this transformation.
+          type: string
+          enum: [Kriti]
+          default: Kriti
+
+    TransformHeaders:
+      type: object
+      properties:
+        add_headers:
+          description: A map of Header Key Value pairs to be added to the request.
+          type: object
+          additionalProperties:
+            type: string
+          example: '{content-type: "application/x-www-form-urlencoded"}'
+        remove_headers:
+          description: Headers to be removed from the request.
+          type: array
+          example: ["content-type"]
+          items:
+            description: Header key
+            type: string
+
+    BodyTransform:
+      type: object
+      description: Body transformation for version 2 transforms
+      required:
+        - action
+      properties:
+        action:
+          description: The action to perform on the request body.
+          type: string
+          enum: [remove, transform, x_www_form_urlencoded]
+        template:
+          type: string
+          description: The transformation template to be applied to the body. This is required if the action is transform.
+        form_template:
+          description: The key/value pairs to be used in a x-www-url-formencoded body. The values can be transfomation templates.
+          type: object
+          additionalProperties:
+            type: string
+
+    EventInvocationLogEntry:
+      type: object
+      description: Event invocation log entry containing request and response details
+      required:
+        - id
+        - trigger_name
+        - event_id
+        - http_status
+        - request
+        - created_at
+      properties:
+        id:
+          type: string
+          description: Represents a UUID for invocation.
+          example: d1de2b04-dbb9-4d21-bdaf-25c3dfef3d7b
+        trigger_name:
+          type: string
+          description: Name of the event trigger
+          example: mytrigger
+        event_id:
+          type: string
+          description: Unique identifier for the event
+          example: a7b67072-980d-4cfd-bbfa-a8ee749f453e
+        http_status:
+          type: integer
+          description: HTTP status code of the webhook response
+          example: 200
+        request:
+          type: object
+          description: Details of the HTTP request sent to the webhook
+          required:
+            - headers
+            - payload
+            - version
+          properties:
+            headers:
+              $ref: "#/components/schemas/EventInvocationLogEntryHeaders"
+            payload:
+              type: object
+              description: The event payload sent to the webhook
+              properties:
+                created_at:
+                  type: string
+                  format: date-time
+                  description: When the event was created
+                delivery_info:
+                  type: object
+                  description: Contains information about message delivery retries.
+                  properties:
+                    current_retry:
+                      type: integer
+                      description: Represents the current retry number.
+                    max_retries:
+                      type: integer
+                      description: Represents the maximum number of retries.
+                event:
+                  type: object
+                  description: Represents an event and related data.
+                  properties:
+                    data:
+                      type: object
+                      description: Contains data related to the event.
+                      properties:
+                        new:
+                          type: object
+                          description: Object representing the new data associated with the event, with each key-value pair representing a column name and its value.
+                        old:
+                          type: object
+                          nullable: true
+                          description: Represents old data associated with the event or `null` if not applicable.
+                    op:
+                      type: string
+                      enum: [INSERT, UPDATE, DELETE, MANUAL]
+                      description: Represents the name of the operation.
+                    session_variables:
+                      type: object
+                      description: Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found) (**Only available for Postgres**)
+                      nullable: true
+                      additionalProperties:
+                        type: string
+                    trace_context:
+                      type: object
+                      description: Contains trace context information.
+                      properties:
+                        sampling_state:
+                          type: string
+                        span_id:
+                          type: string
+                          description: Represents the span ID for tracing.
+                        trace_id:
+                          type: string
+                          description: Represents the trace ID for tracing.
+                id:
+                  type: string
+                  description: Event ID
+                table:
+                  $ref: "#/components/schemas/QualifiedTable"
+                trigger:
+                  type: object
+                  description: Represents information about the trigger.
+                  properties:
+                    name:
+                      type: string
+                      description: Represents the name of the trigger.
+              additionalProperties: true
+            version:
+              type: string
+              description: Version of the event payload format
+              example: "2"
+        response:
+          type: object
+          description: Details of the HTTP response from the webhook
+          properties:
+            data:
+              type: object
+              description: Response data from the webhook
+              properties:
+                body:
+                  type: string
+                  description: Response body as string
+                headers:
+                  $ref: "#/components/schemas/EventInvocationLogEntryHeaders"
+                status:
+                  type: integer
+                  description: HTTP status code
+                message:
+                  type: string
+                  description: Error message
+                  example: '{"message":"Connection failure: ...}'
+
+            type:
+              type: string
+              description: Type of response
+              example: webhook_response
+            version:
+              type: string
+              description: Version of the response format
+              example: "2"
+        created_at:
+          type: string
+          format: date-time
+          description: Represents a timestamp value for the invocation of the trigger.
+          example: 2025-09-19T16:01:31.086239Z
+
+    EventInvocationLogEntryHeaders:
+      type: array
+      description: HTTP headers sent with the webhook request
+      items:
+        type: object
+        required:
+          - name
+          - value
+        properties:
+          name:
+            type: string
+            description: Header name
+            example: Date
+          value:
+            type: string
+            description: Header value
+            example: "Sun, 21 Sep 2025 16:13:25 GMT"
+
+    GetEventLogsOperation:
+      description: Operation used to fetch the event logs for a given event trigger. (Both pending and delivered)
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_get_event_logs]
+        args:
+          $ref: "#/components/schemas/GetEventLogsArgs"
+
+    GetEventLogsArgs:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the event trigger
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+        limit:
+          type: integer
+          description: Maximum number of invocation logs to be returned in one API call
+          default: 100
+        offset:
+          type: integer
+          default: 0
+        status:
+          description: Type of event logs to be fetched. If `status` is not provided then all types of status are included
+          type: string
+          enum: [pending, delivered]
+
+    GetEventLogsResponse:
+      type: array
+      description: List of event logs for the given event trigger
+      items:
+        $ref: "#/components/schemas/EventLogEntry"
+
+    EventLogEntry:
+      type: object
+      description: Event log entry containing payload and delivery details
+      required:
+        - id
+        - schema_name
+        - table_name
+        - trigger_name
+        - payload
+        - delivered
+        - error
+        - tries
+        - created_at
+        - locked
+        - next_retry_at
+        - archived
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the log entry
+          example: 6301c9e1-b649-4861-9419-68b4cbf9382a
+        schema_name:
+          type: string
+          description: Represents the schema name of the table.
+          example: public
+        table_name:
+          type: string
+          description: Represents the name of the table.
+          example: mytable
+        trigger_name:
+          type: string
+          description: Represents the name of the trigger.
+          example: mytrigger
+        payload:
+          type: object
+          properties:
+            data:
+              type: object
+              properties:
+                new:
+                  type: object
+                  description: Object representing the new data associated with the event, with each key-value pair representing a column name and its value.
+                  additionalProperties: true
+                old:
+                  type: object
+                  description: Represents old data associated with the event or null if not applicable.
+                  additionalProperties: true
+                  nullable: true
+            op:
+              description: Represents the name of the operation.
+              type: string
+              enum: [INSERT, UPDATE, DELETE, MANUAL]
+            session_variables:
+              type: object
+              description: Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found)
+              nullable: true
+              additionalProperties:
+                type: string
+            trace_context:
+              type: object
+              description: Contains trace context information.
+              additionalProperties:
+                type: string
+
+        delivered:
+          type: boolean
+        error:
+          type: boolean
+        tries:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          description: Represents a timestamp value for the creation of the log entry.
+          example: 2025-09-19T16:01:31.086239Z
+        next_retry_at:
+          type: string
+          format: date-time
+          nullable: true
+
+      additionalProperties: true
+
+    GetEventAndInvocationLogsByIdOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_get_event_by_id]
+        args:
+          $ref: "#/components/schemas/GetEventAndInvocationLogsByIdArgs"
+
+    GetEventAndInvocationLogsByIdArgs:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
+          type: string
+          description: ID of the event
+          example: 6301c9e1-b649-4861-9419-68b4cbf9382a
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+        invocation_log_limit:
+          type: integer
+          description: Maximum number of invocation logs to be returned in one API call
+          default: 100
+        invocation_log_offset:
+          type: integer
+          description: Starting point from where the invocation logs need to be returned
+          default: 0
+
+    GetEventAndInvocationLogsByIdResponse:
+      type: object
+      properties:
+        event:
+          $ref: "#/components/schemas/EventLogEntry"
+        invocations:
+          type: array
+          description: List of invocation logs for the given event id
+          items:
+            $ref: "#/components/schemas/EventInvocationLogEntry"
+
+    RedeliverEventOperation:
+      description: is used to redeliver an existing event. For example, if an event is marked as error ( say it did not succeed after retries), you can redeliver it using this API. Note that this will reset the count of retries so far. If the event fails to deliver, it will be retried automatically according to its `retry_conf`.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_redeliver_event]
+        args:
+          $ref: "#/components/schemas/RedeliverEventArgs"
+
+    RedeliverEventArgs:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
+          type: string
+          description: UUID of the event
+          example: 6301c9e1-b649-4861-9419-68b4cbf9382a
+
+    CreateEventTriggerArgs:
+      type: object
+      required:
+        - name
+        - table
+        - webhook
+        - webhook_from_env
+        - insert
+        - update
+        - delete
+        - retry_conf
+        - enable_manual
+        - headers
+        - replace
+      properties:
+        name:
+          type: string
+          description: Name of the Event Trigger
+        table:
+          description: Object with table name and schema
+          $ref: "#/components/schemas/QualifiedTable"
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+        webhook:
+          type: string
+          nullable: true
+          description: Webhook URL. Supports template variables like {{ENV_VAR}}/some/path
+          example: "{{SERVICE_URL}}/hooks"
+        webhook_from_env:
+          type: string
+          nullable: true
+          description: Environment variable containing the webhook URL
+          example: SERVICE_ENDPOINT
+        insert:
+          description: Specification for the insert operation
+          $ref: "#/components/schemas/OperationSpec"
+        update:
+          description: Specification for the update operation
+          $ref: "#/components/schemas/OperationSpec"
+        delete:
+          description: Specification for the delete operation
+          $ref: "#/components/schemas/OperationSpec"
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: "#/components/schemas/Headers"
+        retry_conf:
+          description: Retry configuration if event delivery fails
+          $ref: "#/components/schemas/RetryConf"
+        replace:
+          type: boolean
+          description: If set to true, the Event Trigger is replaced with the new definition
+        enable_manual:
+          type: boolean
+          description: If set to true, the Event Trigger can be invoked manually
+        request_transform:
+          description: Attaches a Request Transformation to the Event Trigger.
+          $ref: "#/components/schemas/RequestTransformation"
+        response_transform:
+          description: Attaches a Response Transformation to the Event Trigger.
+          $ref: "#/components/schemas/ResponseTransformation"
+        trigger_on_replication:
+          type: boolean
+          description: Specification for enabling/disabling the Event Trigger during logical replication
+          default: false
+
+    CreateEventTriggerBulkOperation:
+      type: object
+      description: Create a new Event Trigger or replace an existing Event Trigger.
+      required:
+        - type
+        - source
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to create event triggers
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateEventTriggerStep"
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Version of the resource that you are targeting for replacement
+          example: 1
+
+    CreateEventTriggerStep:
+      description: Create a new Event Trigger or replace an existing Event Trigger.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          description: Type of operation to create event triggers
+          enum: [pg_create_event_trigger]
+        args:
+          $ref: "#/components/schemas/CreateEventTriggerArgs"
+
+    DeleteEventTriggerBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - source
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Execute multiple operations in a single query
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeleteEventTriggerStep"
+
+    TestWebhookTransformOperation:
+      type: object
+      description: Operation used to test out request transformations using mock data.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [test_webhook_transform]
+        args:
+          $ref: "#/components/schemas/TestWebhookTransformArgs"
+
+    TestWebhookTransformArgs:
+      type: object
+      required:
+        - webhook_url
+        - body
+        - env
+        - request_transform
+        - session_variables
+      properties:
+        webhook_url:
+          description: Webhook URL to be tested
+          type: string
+        body:
+          type: object
+          additionalProperties: true
+        env:
+          type: object
+          description: Sample Context environment variables for testing the connector
+          additionalProperties:
+            type: string
+        request_transform:
+          $ref: "#/components/schemas/RequestTransformation"
+        session_variables:
+          type: object
+          additionalProperties:
+            type: string
+
+    TestWebhookTransformResponse:
+      type: object
+      required:
+        - body
+        - headers
+        - method
+        - webhook_url
+      properties:
+        body:
+          type: object
+          description: Transformed request body for preview
+          additionalProperties: true
+        headers:
+          $ref: "#/components/schemas/Headers"
+        method:
+          type: string
+        webhook_url:
+          type: string
+          description: Webhook URL for transform preview
+
+    InvokeEventTriggerOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_invoke_event_trigger]
+        args:
+          $ref: "#/components/schemas/InvokeEventTriggerArgs"
+
+    InvokeEventTriggerArgs:
+      type: object
+      required:
+        - name
+        - payload
+      properties:
+        name:
+          type: string
+          description: Name of the Event Trigger
+        payload:
+          type: object
+          additionalProperties: true
+          description: Some JSON payload to send to trigger
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+
+    InvokeEventTriggerResponse:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
+          type: string
+          example: 19cc95ae-1101-4de7-908b-46dc5e9e3bef
+
+    RetryConfCT:
+      type: object
+      description: Retry configuration when delivery to the webhook of a cron trigger fails
+      properties:
+        num_retries:
+          type: integer
+          description: Number of times to retry delivery.
+          default: 0
+        retry_interval_seconds:
+          type: integer
+          description: Number of seconds to wait between each retry.
+          default: 10
+        timeout_seconds:
+          type: integer
+          description: Number of seconds to wait for the webhook response before timing out.
+          default: 60
+        tolerance_seconds:
+          type: integer
+          description: Number of seconds between scheduled time and actual delivery time that is acceptable. If the time difference is more than this, then the event is dropped.
+          default: 21600
+
+    CronTrigger:
+      type: object
+      required:
+        - name
+        - webhook
+        - schedule
+        - include_in_metadata
+      properties:
+        name:
+          type: string
+          description: Name of the cron trigger
+        webhook:
+          type: string
+          description: URL of the webhook. A String value which supports templating environment variables enclosed in {{ and }}.
+          example: "{{SERVICE_URL}}/hooks"
+        schedule:
+          type: string
+          description: Cron expression at which the trigger should be invoked.
+        payload:
+          type: object
+          description: Any JSON payload which will be sent when the webhook is invoked.
+          additionalProperties: true
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: "#/components/schemas/Headers"
+        retry_conf:
+          description: Retry configuration if scheduled invocation delivery fails
+          $ref: "#/components/schemas/RetryConfCT"
+        include_in_metadata:
+          type: boolean
+          description: Flag to indicate whether a trigger should be included in the metadata. When a cron trigger is included in the metadata, the user will be able to export it when the Metadata of the graphql-engine is exported.
+          default: false
+        comment:
+          type: string
+          description: Custom comment.
+        request_transform:
+          $ref: "#/components/schemas/RequestTransformation"
+        response_transform:
+          $ref: "#/components/schemas/ResponseTransformation"
+
+    CreateCronTriggerArgs:
+      allOf:
+        - $ref: "#/components/schemas/CronTrigger"
+        - type: object
+          properties:
+            replace:
+              type: boolean
+              description: When replace is set to true, the cron trigger will be updated (if exists) and when it's false or the field is omitted, then a new cron trigger will be created.
+
+    GetCronTriggersOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_cron_triggers]
+        args:
+          type: object
+          additionalProperties: false
+          default: {}
+
+    GetCronTriggersResponse:
+      type: object
+      required:
+        - cron_triggers
+      properties:
+        cron_triggers:
+          type: array
+          description: List of cron triggers
+          items:
+            $ref: "#/components/schemas/CronTrigger"
+
+    CreateCronTriggerBulkOperation:
+      type: object
+      description: Create a new Cron Trigger or replace an existing Cron Trigger.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to create cron triggers
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateCronTriggerStep"
+
+    CreateCronTriggerStep:
+      description: Create a new Cron Trigger or replace an existing Cron Trigger.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          description: Type of operation to create cron triggers
+          enum: [create_cron_trigger]
+        args:
+          $ref: "#/components/schemas/CreateCronTriggerArgs"
+
+    DeleteCronTriggerArgs:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the cron trigger
+
+    DeleteCronTriggerOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [delete_cron_trigger]
+        args:
+          $ref: "#/components/schemas/DeleteCronTriggerArgs"
+
+    ScheduledEventStatus:
+      type: string
+      enum: [scheduled, locked, delivered, error, dead]
+
+    GetScheduledEventsOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_scheduled_events]
+        args:
+          $ref: "#/components/schemas/GetScheduledEventsArgs"
+
+    GetScheduledEventsArgs:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Type of the Scheduled Trigger.
+          enum: [one_off, cron]
+        trigger_name:
+          type: string
+          description: Name of the cron trigger. Required only when type is cron.
+        limit:
+          type: integer
+          description: Maximum number of events to be returned in one API call.
+        offset:
+          type: integer
+          description: Starting point from where the rows need to be returned.
+        get_rows_count:
+          type: boolean
+          description: Flag to indicate whether number of rows returned should be included in the response.
+        status:
+          type: array
+          description: Filter scheduled events by the status
+          items:
+            $ref: "#/components/schemas/ScheduledEventStatus"
+
+    GetScheduledEventsResponse:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScheduledEventLogEntry"
+
+    ScheduledEventLogEntry:
+      type: object
+      required:
+        - created_at
+        - id
+        - next_retry_at
+        - scheduled_time
+        - webhook_conf
+        - status
+        - tries
+        - trigger_name
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        next_retry_at:
+          type: string
+          format: date-time
+          nullable: true
+        scheduled_time:
+          type: string
+          format: date-time
+        status:
+          $ref: "#/components/schemas/ScheduledEventStatus"
+        tries:
+          type: integer
+        trigger_name:
+          type: string
+        comment:
+          type: string
+          nullable: true
+        header_conf:
+          $ref: "#/components/schemas/Headers"
+        payload:
+          type: object
+        retry_conf:
+          $ref: "#/components/schemas/RetryConfCT"
+        webhook_conf:
+          type: string
+        request_transform:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/RequestTransformation"
+        response_transform:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ResponseTransformation"
+
+    GetScheduledEventInvocationsOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_scheduled_event_invocations]
+        args:
+          $ref: "#/components/schemas/GetScheduledEventInvocationsArgs"
+
+    GetScheduledEventInvocationsArgs:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Type of the Scheduled Trigger.
+          enum: [one_off, cron]
+        trigger_name:
+          type: string
+          description: Name of the cron trigger. Required only when type is cron.
+        event_id:
+          type: string
+          description: Getting invocations of the specified event.
+        limit:
+          type: integer
+          description: Maximum number of events to be returned in one API call.
+        offset:
+          type: integer
+          description: Starting point from where the rows need to be returned.
+        get_rows_count:
+          type: boolean
+          description: Flag to indicate whether number of rows returned should be included in the response.
+
+    GetScheduledEventInvocationsResponse:
+      type: object
+      required:
+        - invocations
+      properties:
+        invocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvocationLogEntry"
+
+    InvocationLogEntry:
+      type: object
+      required:
+        - id
+        - event_id
+        - status
+        - request
+        - created_at
+      properties:
+        id:
+          type: string
+          description: Represents a UUID for invocation.
+          example: d1de2b04-dbb9-4d21-bdaf-25c3dfef3d7b
+        event_id:
+          type: string
+          description: Unique identifier for the event
+          example: a7b67072-980d-4cfd-bbfa-a8ee749f453e
+        created_at:
+          type: string
+          format: date-time
+          description: Represents a timestamp value for the invocation of the trigger.
+          example: 2025-09-19T16:01:31.086239Z
+        status:
+          type: integer
+          description: HTTP status code of the webhook response
+          nullable: true
+          example: 200
+        request:
+          type: object
+          description: Details of the HTTP request sent to the webhook
+          required:
+            - headers
+            - payload
+            - version
+          properties:
+            headers:
+              $ref: "#/components/schemas/EventInvocationLogEntryHeaders"
+            payload:
+              type: object
+              description: The event payload sent to the webhook
+              additionalProperties: true
+            version:
+              type: string
+              description: Version of the event payload format
+              example: "1"
+        response:
+          type: object
+          description: Details of the HTTP response from the webhook
+          required:
+            - data
+            - type
+            - version
+          properties:
+            data:
+              type: object
+              description: Response data from the webhook
+              properties:
+                body:
+                  type: string
+                  description: Response body as string
+                headers:
+                  $ref: "#/components/schemas/EventInvocationLogEntryHeaders"
+                status:
+                  type: integer
+                  description: HTTP status code
+                message:
+                  type: string
+                  description: Error message
+                  example: '{"message":"Connection failure: ...}'
+
+            type:
+              type: string
+              description: Type of response
+              example: webhook_response, client_error
+            version:
+              type: string
+              description: Version of the response format
+              example: "1"
+
+    CreateScheduledEventOperation:
+      type: object
+      description: Used to create a scheduled event.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [create_scheduled_event]
+        args:
+          $ref: "#/components/schemas/CreateScheduledEventArgs"
+
+    CreateScheduledEventArgs:
+      type: object
+      required:
+        - webhook
+        - schedule_at
+      properties:
+        webhook:
+          type: string
+          description: URL of the webhook. A String value which supports templating environment variables enclosed in {{ and }}.
+          example: "{{SERVICE_URL}}/hooks"
+        schedule_at:
+          type: string
+          format: date-time
+          description: The time at which the invocation should be invoked (ISO8601 format).
+          example: "2025-09-19T16:01:31.086239Z"
+        payload:
+          type: object
+          description: Any JSON payload which will be sent when the webhook is invoked.
+          additionalProperties: true
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: "#/components/schemas/Headers"
+        retry_conf:
+          description: Retry configuration if scheduled event delivery fails
+          $ref: "#/components/schemas/RetryConfCT"
+        comment:
+          type: string
+          description: Custom comment.
+
+    DeleteScheduledEventOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [delete_scheduled_event]
+        args:
+          $ref: "#/components/schemas/DeleteScheduledEventArgs"
+
+    DeleteScheduledEventArgs:
+      type: object
+      required:
+        - type
+        - event_id
+      properties:
+        type:
+          type: string
+          description: Type of the scheduled event.
+          enum: [one_off, cron]
+        event_id:
+          type: string
+          description: The ID of the scheduled event.

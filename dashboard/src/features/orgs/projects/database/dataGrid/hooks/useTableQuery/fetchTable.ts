@@ -1,3 +1,11 @@
+import { formatWithArray } from 'node-pg-format';
+import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
+import {
+  COLUMN_DEFINITION_QUERY,
+  CONSTRAINT_DEFINITION_QUERY,
+} from '@/features/orgs/projects/database/common/utils/sqlTemplates';
+import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
@@ -7,9 +15,12 @@ import type {
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
-import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import { formatWithArray } from 'node-pg-format';
+import { filtersToWhere } from './filtersToWhere';
+
+function isQueryError(payload: unknown): payload is QueryError {
+  return 'error' in (payload as QueryError);
+}
 
 export interface FetchTableOptions extends MutationOrQueryBaseOptions {
   /**
@@ -27,9 +38,11 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
    */
   orderBy?: OrderBy[];
   /**
-   * Determines whether the query should fetch the rows or not.
+   * Filtering configuration.
+   *
+   * @default []
    */
-  preventRowFetching?: boolean;
+  filters?: DataGridFilter[];
 }
 
 export interface FetchTableReturnType {
@@ -42,6 +55,10 @@ export interface FetchTableReturnType {
    */
   rows: NormalizedQueryDataRow[];
   /**
+   * Error for querying the rows
+   */
+  error: string | null;
+  /**
    * Foreign key relations in the table.
    */
   foreignKeyRelations: ForeignKeyRelation[];
@@ -53,6 +70,7 @@ export interface FetchTableReturnType {
    * Response metadata that usually contains information about the schema and
    * the table for which the query was run.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   metadata?: Record<string, any>;
 }
 
@@ -71,20 +89,19 @@ export default async function fetchTable({
   limit,
   offset,
   orderBy,
-  preventRowFetching,
+  filters,
 }: FetchTableOptions): Promise<FetchTableReturnType> {
   let limitAndOffsetClause = '';
 
-  if (preventRowFetching) {
-    limitAndOffsetClause = `LIMIT 0`;
-  } else if (limit && offset) {
+  if (limit && offset) {
     limitAndOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
   } else if (limit) {
     limitAndOffsetClause = `LIMIT ${limit}`;
+  } else {
+    limitAndOffsetClause = `LIMIT ${DEFAULT_ROWS_LIMIT}`;
   }
 
   let orderByClause = 'ORDER BY 1';
-
   if (orderBy && orderBy.length > 0) {
     // Note: This part will be added to the SQL template
     const pgFormatTemplate = orderBy.map(() => '%I %s').join(' ');
@@ -105,7 +122,9 @@ export default async function fetchTable({
     );
   }
 
-  const response = await fetch(`${appUrl}/v2/query`, {
+  const whereClause = filtersToWhere(filters);
+
+  const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,
@@ -114,73 +133,13 @@ export default async function fetchTable({
       args: [
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `
-            SELECT ROW_TO_JSON(TABLE_DATA) FROM (
-                SELECT *,
-                    PG_CATALOG.FORMAT_TYPE(
-                        (SELECT ATTTYPID FROM PG_ATTRIBUTE
-                         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
-                         AND ATTNAME = COLS.COLUMN_NAME),
-                        (SELECT ATTTYPMOD FROM PG_ATTRIBUTE
-                         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
-                         AND ATTNAME = COLS.COLUMN_NAME)
-                    ) AS FULL_DATA_TYPE,
-                    EXISTS (
-                        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
-                        FROM PG_INDEX IND
-                        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
-                        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
-                        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
-                        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISPRIMARY
-                    ) AS IS_PRIMARY,
-                    EXISTS (
-                        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
-                        FROM PG_INDEX IND
-                        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
-                        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
-                        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
-                        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISUNIQUE
-                    ) AS IS_UNIQUE,
-                    (
-                        SELECT PG_CATALOG.COL_DESCRIPTION(CLS.OID, COLS.ORDINAL_POSITION::INT)
-                        FROM PG_CATALOG.PG_CLASS CLS
-                        WHERE CLS.OID = (SELECT '%1$I.%2$I'::REGCLASS::OID) AND CLS.RELNAME = COLS.TABLE_NAME
-                    ) AS COLUMN_COMMENT
-                FROM INFORMATION_SCHEMA.COLUMNS COLS
-                WHERE TABLE_SCHEMA = %1$L AND TABLE_NAME = %2$L
-            ) TABLE_DATA;
-          `,
+          COLUMN_DEFINITION_QUERY,
           schema,
           table,
         ),
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT * FROM %I.%I %s %s) TABLE_DATA`,
-          schema,
-          table,
-          orderByClause,
-          limitAndOffsetClause,
-        ),
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (\
-            SELECT CON.CONNAME AS CONSTRAINT_NAME, CON.CONTYPE AS CONSTRAINT_TYPE, PG_GET_CONSTRAINTDEF(CON.OID) AS CONSTRAINT_DEFINITION, ATTR.ATTNAME AS COLUMN_NAME\
-            FROM PG_CONSTRAINT CON
-            INNER JOIN PG_NAMESPACE NSP
-              ON NSP.OID = CON.CONNAMESPACE
-            CROSS JOIN LATERAL UNNEST(CON.CONKEY) AK(K)
-            INNER JOIN PG_ATTRIBUTE ATTR
-              ON ATTR.ATTRELID = CON.CONRELID
-              AND ATTR.ATTNUM = AK.K
-            WHERE CON.CONRELID = '%1$I.%2$I'::REGCLASS
-            ORDER BY CON.CONTYPE
-          ) TABLE_DATA`,
-          schema,
-          table,
-        ),
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          `SELECT COUNT(*) FROM %I.%I`,
+          CONSTRAINT_DEFINITION_QUERY,
           schema,
           table,
         ),
@@ -189,11 +148,39 @@ export default async function fetchTable({
       version: 1,
     }),
   });
+  const rowDataResponse = await fetch(`${appUrl}/v2/query`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
+    },
+    body: JSON.stringify({
+      args: [
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT * FROM %I.%I %s %s %s) TABLE_DATA`,
+          schema,
+          table,
+          whereClause,
+          orderByClause,
+          limitAndOffsetClause,
+        ),
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT COUNT(*) FROM %I.%I %s`,
+          schema,
+          table,
+          whereClause,
+        ),
+      ],
+      type: 'bulk',
+      version: 1,
+    }),
+  });
 
   const responseData: QueryResult<string[]>[] | QueryError =
-    await response.json();
+    await tableDataResponse.json();
 
-  if (!response.ok || 'error' in responseData) {
+  if (!tableDataResponse.ok || 'error' in responseData) {
     if ('internal' in responseData) {
       const queryError = responseData as QueryError;
       const schemaNotFound =
@@ -208,6 +195,7 @@ export default async function fetchTable({
         return {
           columns: [],
           rows: [],
+          error: null,
           numberOfRows: 0,
           foreignKeyRelations: [],
           metadata: { schema, table, schemaNotFound, tableNotFound },
@@ -221,6 +209,7 @@ export default async function fetchTable({
         return {
           columns: [],
           rows: [],
+          error: null,
           numberOfRows: 0,
           foreignKeyRelations: [],
           metadata: { schema, table, columnsNotFound: true },
@@ -237,9 +226,7 @@ export default async function fetchTable({
   }
 
   const [, ...rawColumns] = responseData[0].result;
-  const [, ...rawData] = responseData[1].result;
-  const [, ...rawConstraints] = responseData[2].result;
-  const [, ...[rawAggregate]] = responseData[3].result;
+  const [, ...rawConstraints] = responseData[1].result;
 
   const foreignKeyRelationMap = new Map<string, string>();
   const uniqueKeyConstraintMap = new Map<string, string[]>();
@@ -294,18 +281,6 @@ export default async function fetchTable({
     }
   });
 
-  const flatForeignKeyRelations = Array.from(
-    foreignKeyRelationMap.keys(),
-  ).reduce((accumulator, key) => {
-    const value = foreignKeyRelationMap.get(key);
-
-    if (!value) {
-      return accumulator;
-    }
-
-    return [...accumulator, JSON.parse(value) as ForeignKeyRelation];
-  }, [] as ForeignKeyRelation[]);
-
   const columns = rawColumns
     .map((rawColumn) => {
       const column = JSON.parse(rawColumn);
@@ -324,12 +299,49 @@ export default async function fetchTable({
     })
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
 
+  const flatForeignKeyRelations = Array.from(
+    foreignKeyRelationMap.keys(),
+  ).reduce((accumulator, key) => {
+    const value = foreignKeyRelationMap.get(key);
+
+    if (!value) {
+      return accumulator;
+    }
+
+    const parsedValue = JSON.parse(value) as ForeignKeyRelation;
+    const column = columns.find(
+      ({ column_name }) => column_name === parsedValue.columnName,
+    )!;
+    const foreignKeyWithOneToOne: ForeignKeyRelation = {
+      ...parsedValue,
+      oneToOne: column.is_unique || column.is_primary,
+    };
+    return [...accumulator, foreignKeyWithOneToOne];
+  }, [] as ForeignKeyRelation[]);
+
+  const rawData: QueryResult<string[]> | QueryError =
+    await rowDataResponse.json();
+
+  if (!rowDataResponse.ok && isQueryError(rawData)) {
+    return {
+      columns,
+      rows: [],
+      error:
+        rawData.internal?.error.message ||
+        'Something went wrong while fetching the table rows.',
+      foreignKeyRelations: flatForeignKeyRelations,
+      numberOfRows: 0,
+    };
+  }
+
+  const [, ...rowData] = rawData[0].result as string[];
+  const [, [rowAggregate]] = rawData[1].result as string[];
+
   return {
     columns,
-    rows: rawData.map((rawRow) =>
-      JSON.parse(rawRow),
-    ) as NormalizedQueryDataRow[],
+    rows: rowData.map((row) => JSON.parse(row)) as NormalizedQueryDataRow[],
+    error: null,
     foreignKeyRelations: flatForeignKeyRelations,
-    numberOfRows: rawAggregate ? parseInt(rawAggregate, 10) : 0,
+    numberOfRows: parseInt(rowAggregate, 10) || 0,
   };
 }

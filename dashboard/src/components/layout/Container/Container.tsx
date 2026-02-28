@@ -1,6 +1,6 @@
+import { twMerge } from 'tailwind-merge';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { twMerge } from 'tailwind-merge';
 
 export interface ContainerProps extends BoxProps {
   /**

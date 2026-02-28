@@ -1,12 +1,12 @@
+import type { QueryHookOptions } from '@apollo/client';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import {
-  useGetApplicationBackupsQuery,
   type GetApplicationBackupsQuery,
   type GetApplicationBackupsQueryVariables,
+  useGetApplicationBackupsQuery,
 } from '@/utils/__generated__/graphql';
-import type { QueryHookOptions } from '@apollo/client';
 
 interface TimePeriod {
   value: number;

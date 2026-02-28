@@ -1,12 +1,12 @@
-import { mockMatchMediaValue } from '@/tests/mocks';
-import { render, screen, TestUserEvent } from '@/tests/testUtils';
+import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
-import DatabasePiTRSettings from './DatabasePiTRSettings';
-
+import { mockMatchMediaValue } from '@/tests/mocks';
 import { getOrganizations } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import { prefetchNewAppQuery } from '@/tests/msw/mocks/graphql/prefetchNewAppQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { setupServer } from 'msw/node';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
+import DatabasePiTRSettings from './DatabasePiTRSettings';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -48,6 +48,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/features/orgs/projects/hooks/useCurrentOrg', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actualCurrentOrg = await vi.importActual<any>(
     '@/features/orgs/projects/hooks/useCurrentOrg',
   );
@@ -58,6 +59,7 @@ vi.mock('@/features/orgs/projects/hooks/useCurrentOrg', async () => {
 });
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -67,6 +69,7 @@ vi.mock('@/utils/__generated__/graphql', async () => {
 });
 
 vi.mock('@/features/orgs/components/common/TransferProjectDialog', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>(
     '@/features/orgs/components/common/TransferProjectDialog',
   );
@@ -94,6 +97,7 @@ describe('DatabasePiTRSettings', () => {
 
   test('If the org is free the switch should not be available and the save button is disabled', async () => {
     server.use(getProjectQuery);
+    server.use(prefetchNewAppQuery);
     mocks.useCurrentOrg.mockImplementation(() =>
       getCurrentOrg({ isFree: true }),
     );

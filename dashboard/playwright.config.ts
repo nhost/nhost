@@ -1,6 +1,6 @@
+import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
-import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
@@ -28,11 +28,6 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: ['**/setup/*.setup.ts'],
-      teardown: 'teardown',
-    },
-    {
-      name: 'teardown',
-      testMatch: ['**/teardown/*.teardown.ts'],
     },
     {
       name: 'main',

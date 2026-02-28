@@ -1,18 +1,12 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { FormProvider, useForm } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-
-import {
-  GetObservabilitySettingsDocument,
-  useGetObservabilitySettingsQuery,
-  useUpdateConfigMutation,
-  type ConfigConfigUpdateInput,
-} from '@/utils/__generated__/graphql';
-import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 
 import { Divider } from '@/components/ui/v2/Divider';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -27,8 +21,13 @@ import { WebhookFormSection } from '@/features/orgs/projects/metrics/settings/co
 import type { HttpMethod } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection/WebhookFormSectionTypes';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
+import {
+  type ConfigConfigUpdateInput,
+  GetObservabilitySettingsDocument,
+  useGetObservabilitySettingsQuery,
+  useUpdateConfigMutation,
+} from '@/utils/__generated__/graphql';
 import { removeTypename } from '@/utils/helpers';
-import { yupResolver } from '@hookform/resolvers/yup';
 import type { ContactPointsFormValues } from './ContactPointsSettingsTypes';
 import { validationSchema } from './ContactPointsSettingsTypes';
 

@@ -1,3 +1,4 @@
+import { getEmptyDownMigrationMessage } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   AffectedRowsResult,
   DatabaseColumn,
@@ -8,7 +9,6 @@ import type {
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getEmptyDownMigrationMessage } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';

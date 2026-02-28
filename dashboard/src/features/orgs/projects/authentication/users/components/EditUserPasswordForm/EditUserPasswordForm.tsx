@@ -1,3 +1,8 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import bcrypt from 'bcryptjs';
+import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -12,11 +17,6 @@ import {
   useGetSignInMethodsQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import bcrypt from 'bcryptjs';
-import { useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 export interface EditUserPasswordFormProps extends DialogFormProps {
   /**

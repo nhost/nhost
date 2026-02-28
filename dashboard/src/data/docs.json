@@ -2,22 +2,22 @@
   {
     "title": "Create Your Project",
     "desc": "Create a simple todo app using Nhost.",
-    "href": "https://docs.nhost.io/getting-started/overview"
+    "href": "https://docs.nhost.io/getting-started"
   },
   {
     "title": "Authenticate Users",
     "desc": "Nhost provides a ready-to-use authentication service.",
-    "href": "https://docs.nhost.io/products/auth/overview"
+    "href": "https://docs.nhost.io/products/auth"
   },
   {
     "title": "Creating Functions",
     "desc": "Nhost gives you the option to run serverless functions.",
-    "href": "https://docs.nhost.io/products/functions/overview"
+    "href": "https://docs.nhost.io/products/functions"
   },
   {
     "title": "File Storage",
     "desc": "Nhost stores and serves files of any type in your backend.",
-    "href": "https://docs.nhost.io/products/storage/overview"
+    "href": "https://docs.nhost.io/products/storage"
   },
   {
     "title": "Environment Variables",

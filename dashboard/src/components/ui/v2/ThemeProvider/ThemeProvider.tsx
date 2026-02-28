@@ -1,11 +1,11 @@
-import { ColorPreferenceProvider } from '@/components/ui/v2/ColorPreferenceProvider';
-import { createTheme } from '@/components/ui/v2/createTheme';
-import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import CssBaseline from '@mui/material/CssBaseline';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';
 import Head from 'next/head';
-import { useEffect, type PropsWithChildren } from 'react';
+import { type PropsWithChildren, useEffect } from 'react';
+import { ColorPreferenceProvider } from '@/components/ui/v2/ColorPreferenceProvider';
+import { createTheme } from '@/components/ui/v2/createTheme';
+import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 
 function ThemeProviderContent({
   children,

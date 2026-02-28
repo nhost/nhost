@@ -1,13 +1,13 @@
-import { expect, test } from "@jest/globals";
-import { createClient } from "@nhost/nhost-js";
-import { FetchError } from "@nhost/nhost-js/fetch";
-import type { GraphQLResponse } from "@nhost/nhost-js/graphql";
-import gql from "graphql-tag";
+import { expect, test } from '@jest/globals';
+import { createClient } from '@nhost/nhost-js';
+import { FetchError } from '@nhost/nhost-js/fetch';
+import type { GraphQLResponse } from '@nhost/nhost-js/graphql';
+import gql from 'graphql-tag';
 
-const subdomain = "local";
-const region = "local";
+const subdomain = 'local';
+const region = 'local';
 
-test("request", async () => {
+test('request', async () => {
   const nhost = createClient({
     subdomain,
     region,
@@ -61,39 +61,39 @@ test("request", async () => {
   expect(resp.body.data).toBeDefined();
   expect(resp.body.data?.movies).toStrictEqual([
     {
-      director: "Lana Wachowski, Lilly Wachowski",
-      genre: "Sci-Fi",
-      id: "3d67a6d0-bfb5-444a-9152-aea543ebd171",
-      title: "The Matrix",
+      director: 'Lana Wachowski, Lilly Wachowski',
+      genre: 'Sci-Fi',
+      id: '3d67a6d0-bfb5-444a-9152-aea543ebd171',
+      title: 'The Matrix',
     },
     {
-      director: "Christopher Nolan",
-      genre: "Sci-Fi",
-      id: "90f374db-16c1-4db5-ba55-643bf38953d3",
-      title: "Inception",
+      director: 'Christopher Nolan',
+      genre: 'Sci-Fi',
+      id: '90f374db-16c1-4db5-ba55-643bf38953d3',
+      title: 'Inception',
     },
     {
-      director: "Francis Ford Coppola",
-      genre: "Crime",
-      id: "900fa76c-fc79-470d-817b-4dc4412a79e8",
-      title: "The Godfather",
+      director: 'Francis Ford Coppola',
+      genre: 'Crime',
+      id: '900fa76c-fc79-470d-817b-4dc4412a79e8',
+      title: 'The Godfather',
     },
     {
-      director: "Quentin Tarantino",
-      genre: "Crime",
-      id: "2867cadd-2904-482f-b43c-f77ce8412a93",
-      title: "Pulp Fiction",
+      director: 'Quentin Tarantino',
+      genre: 'Crime',
+      id: '2867cadd-2904-482f-b43c-f77ce8412a93',
+      title: 'Pulp Fiction',
     },
     {
-      director: "Christopher Nolan",
-      genre: "Action",
-      id: "8c06c70a-872e-49a7-8770-29355dcd05c6",
-      title: "The Dark Knight",
+      director: 'Christopher Nolan',
+      genre: 'Action',
+      id: '8c06c70a-872e-49a7-8770-29355dcd05c6',
+      title: 'The Dark Knight',
     },
   ]);
 });
 
-test("request typed", async () => {
+test('request typed', async () => {
   const nhost = createClient({
     subdomain,
     region,
@@ -159,39 +159,39 @@ test("request typed", async () => {
   expect(resp.body.data).toBeDefined();
   expect(resp.body.data?.movies).toStrictEqual([
     {
-      director: "Lana Wachowski, Lilly Wachowski",
-      genre: "Sci-Fi",
-      id: "3d67a6d0-bfb5-444a-9152-aea543ebd171",
-      title: "The Matrix",
+      director: 'Lana Wachowski, Lilly Wachowski',
+      genre: 'Sci-Fi',
+      id: '3d67a6d0-bfb5-444a-9152-aea543ebd171',
+      title: 'The Matrix',
     },
     {
-      director: "Christopher Nolan",
-      genre: "Sci-Fi",
-      id: "90f374db-16c1-4db5-ba55-643bf38953d3",
-      title: "Inception",
+      director: 'Christopher Nolan',
+      genre: 'Sci-Fi',
+      id: '90f374db-16c1-4db5-ba55-643bf38953d3',
+      title: 'Inception',
     },
     {
-      director: "Francis Ford Coppola",
-      genre: "Crime",
-      id: "900fa76c-fc79-470d-817b-4dc4412a79e8",
-      title: "The Godfather",
+      director: 'Francis Ford Coppola',
+      genre: 'Crime',
+      id: '900fa76c-fc79-470d-817b-4dc4412a79e8',
+      title: 'The Godfather',
     },
     {
-      director: "Quentin Tarantino",
-      genre: "Crime",
-      id: "2867cadd-2904-482f-b43c-f77ce8412a93",
-      title: "Pulp Fiction",
+      director: 'Quentin Tarantino',
+      genre: 'Crime',
+      id: '2867cadd-2904-482f-b43c-f77ce8412a93',
+      title: 'Pulp Fiction',
     },
     {
-      director: "Christopher Nolan",
-      genre: "Action",
-      id: "8c06c70a-872e-49a7-8770-29355dcd05c6",
-      title: "The Dark Knight",
+      director: 'Christopher Nolan',
+      genre: 'Action',
+      id: '8c06c70a-872e-49a7-8770-29355dcd05c6',
+      title: 'The Dark Knight',
     },
   ]);
 });
 
-test("request with variables", async () => {
+test('request with variables', async () => {
   const nhost = createClient({
     subdomain,
     region,
@@ -207,7 +207,7 @@ test("request with variables", async () => {
           }
         }`,
     variables: {
-      genre: "Sci-Fi",
+      genre: 'Sci-Fi',
     },
   });
 
@@ -230,21 +230,21 @@ test("request with variables", async () => {
   expect(resp.body.data).toBeDefined();
   expect(resp.body.data?.movies).toStrictEqual([
     {
-      director: "Lana Wachowski, Lilly Wachowski",
-      genre: "Sci-Fi",
-      id: "3d67a6d0-bfb5-444a-9152-aea543ebd171",
-      title: "The Matrix",
+      director: 'Lana Wachowski, Lilly Wachowski',
+      genre: 'Sci-Fi',
+      id: '3d67a6d0-bfb5-444a-9152-aea543ebd171',
+      title: 'The Matrix',
     },
     {
-      director: "Christopher Nolan",
-      genre: "Sci-Fi",
-      id: "90f374db-16c1-4db5-ba55-643bf38953d3",
-      title: "Inception",
+      director: 'Christopher Nolan',
+      genre: 'Sci-Fi',
+      id: '90f374db-16c1-4db5-ba55-643bf38953d3',
+      title: 'Inception',
     },
   ]);
 });
 
-test("request with qql", async () => {
+test('request with qql', async () => {
   const nhost = createClient({
     subdomain,
     region,
@@ -274,7 +274,7 @@ test("request with qql", async () => {
   `;
 
   const resp = await nhost.graphql.request<Movies>(getMoviesQuery, {
-    genre: "Sci-Fi",
+    genre: 'Sci-Fi',
   });
   console.log(resp.body.data?.movies);
   // [
@@ -295,21 +295,21 @@ test("request with qql", async () => {
   expect(resp.body.data).toBeDefined();
   expect(resp.body.data?.movies).toStrictEqual([
     {
-      director: "Lana Wachowski, Lilly Wachowski",
-      genre: "Sci-Fi",
-      id: "3d67a6d0-bfb5-444a-9152-aea543ebd171",
-      title: "The Matrix",
+      director: 'Lana Wachowski, Lilly Wachowski',
+      genre: 'Sci-Fi',
+      id: '3d67a6d0-bfb5-444a-9152-aea543ebd171',
+      title: 'The Matrix',
     },
     {
-      director: "Christopher Nolan",
-      genre: "Sci-Fi",
-      id: "90f374db-16c1-4db5-ba55-643bf38953d3",
-      title: "Inception",
+      director: 'Christopher Nolan',
+      genre: 'Sci-Fi',
+      id: '90f374db-16c1-4db5-ba55-643bf38953d3',
+      title: 'Inception',
     },
   ]);
 });
 
-test("error handling for graphql", async () => {
+test('error handling for graphql', async () => {
   const nhost = createClient({
     subdomain,
     region,
@@ -333,7 +333,7 @@ test("error handling for graphql", async () => {
     }
 
     const resp = error as FetchError<GraphQLResponse>;
-    console.log("Error:", JSON.stringify(resp.body, null, 2));
+    console.log('Error:', JSON.stringify(resp.body, null, 2));
     // Error: {
     //   "body": {
     //     "errors": [
@@ -362,12 +362,12 @@ test("error handling for graphql", async () => {
     expect(error.message).toBe(
       "field 'restrictedObject' not found in type: 'query_root'",
     );
-    expect(errors[0].extensions?.path).toBe("$.selectionSet.restrictedObject");
-    expect(errors[0].extensions?.code).toBe("validation-failed");
+    expect(errors[0].extensions?.path).toBe('$.selectionSet.restrictedObject');
+    expect(errors[0].extensions?.code).toBe('validation-failed');
   }
 });
 
-test("error handling for graphql as a generic error", async () => {
+test('error handling for graphql as a generic error', async () => {
   const nhost = createClient({
     subdomain,
     region,
@@ -390,7 +390,7 @@ test("error handling for graphql as a generic error", async () => {
       throw error; // Re-throw if it's not an Error
     }
 
-    console.log("Error:", error.message);
+    console.log('Error:', error.message);
     // Error: field 'restrictedObject' not found in type: 'query_root'
 
     expect(error.message).toBe(

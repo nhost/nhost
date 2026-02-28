@@ -1,7 +1,7 @@
+import { selectorFamily } from 'recoil';
 import messagesState, {
   type ProjectMessage,
 } from '@/features/orgs/projects/ai/DevAssistant/state/messages';
-import { selectorFamily } from 'recoil';
 
 const projectMessagesState = selectorFamily<ProjectMessage[], string>({
   key: 'projectMessages',

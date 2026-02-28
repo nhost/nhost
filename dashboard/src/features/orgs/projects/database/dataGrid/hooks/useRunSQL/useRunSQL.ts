@@ -1,3 +1,6 @@
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
@@ -5,9 +8,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraAdminSecret, getHasuraMigrationsApiUrl } from '@/utils/env';
 import { parseIdentifiersFromSQL } from '@/utils/sql';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import toast from 'react-hot-toast';
 
 export default function useRunSQL(
   sqlCode: string,
@@ -43,7 +43,7 @@ export default function useRunSQL(
   const adminSecret =
     process.env.NEXT_PUBLIC_ENV === 'dev'
       ? getHasuraAdminSecret()
-      : project?.config?.hasura.adminSecret!;
+      : project!.config!.hasura.adminSecret;
 
   const toastStyle = getToastStyleProps();
 
@@ -184,6 +184,7 @@ export default function useRunSQL(
     }
   };
 
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   const trackAll = async (objects: any[]): Promise<Response[]> => {
     const apiPath = isPlatform ? '/v1/metadata' : '/apis/migrate';
     const responses: Response[] = await Promise.all(
@@ -220,7 +221,9 @@ export default function useRunSQL(
       (entity) => entity.type === 'function',
     );
 
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     let trackTablesOrViews: any[] = [];
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     let trackFunctions: any[] = [];
     if (isPlatform) {
       // use v2/query
@@ -289,7 +292,7 @@ export default function useRunSQL(
           });
         },
       );
-    } catch (error) {
+    } catch {
       toast.error('An error happened when calling the metadata API', {
         style: toastStyle.style,
         ...toastStyle.error,

@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { Box } from '@/components/ui/v2/Box';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
@@ -5,14 +6,11 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-
 import { AuthLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/AuthLimitingForm';
 import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitingForm';
 import { RunServiceLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RunServiceLimitingForm';
 import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useGetRunServiceRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
-
-import { type ReactElement } from 'react';
 
 export default function RateLimiting() {
   const { services, loading } = useGetRunServiceRateLimits();
@@ -31,7 +29,7 @@ export default function RateLimiting() {
     >
       <Box className="flex flex-row items-center gap-4 overflow-hidden rounded-lg border-1 p-4">
         <div className="flex flex-col space-y-2">
-          <Text className="text-lg font-semibold">Rate Limiting</Text>
+          <Text className="font-semibold text-lg">Rate Limiting</Text>
 
           <Text color="secondary">
             Learn more about

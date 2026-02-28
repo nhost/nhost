@@ -1,16 +1,15 @@
+import { setupServer } from 'msw/node';
+import { test, vi } from 'vitest';
 import {
   fetchEmptyPiTRBaseBackups,
   fetchPiTRBaseBackups,
   mockApplication,
   mockMatchMediaValue,
 } from '@/tests/mocks';
-import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { test, vi } from 'vitest';
-
 import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 
 import PointInTimeBackupInfo from './PointInTimeBackupInfo';
 
@@ -28,6 +27,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -36,6 +36,7 @@ vi.mock('@/utils/__generated__/graphql', async () => {
 });
 
 vi.mock('@/utils/timezoneUtils', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actualTimezoneUtils = await vi.importActual<any>(
     '@/utils/timezoneUtils',
   );

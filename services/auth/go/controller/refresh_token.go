@@ -3,16 +3,17 @@ package controller
 import (
 	"context"
 	"errors"
+	"math/rand/v2"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) RefreshToken( //nolint:ireturn
 	ctx context.Context, request api.RefreshTokenRequestObject,
 ) (api.RefreshTokenResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	user, apiErr := ctrl.wf.GetUserByRefreshTokenHash(
 		ctx,
@@ -38,6 +39,13 @@ func (ctrl *Controller) RefreshToken( //nolint:ireturn
 	case err != nil:
 		logger.ErrorContext(ctx, "error updating session", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
+	// no need to be cryptographically secure, performance of pseudo-random number is preferred
+	if rand.IntN(1000) < 1 { //nolint:gosec,mnd
+		if err := ctrl.wf.db.DeleteExpiredRefreshTokens(ctx); err != nil {
+			logger.ErrorContext(ctx, "error deleting expired refresh tokens", logError(err))
+		}
 	}
 
 	return api.RefreshToken200JSONResponse(*session), nil

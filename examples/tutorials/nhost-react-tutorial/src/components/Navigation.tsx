@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function Navigation() {
   const { isAuthenticated, session, nhost } = useAuth();
@@ -12,10 +12,10 @@ export default function Navigation() {
           refreshToken: session.refreshToken,
         });
       }
-      navigate("/");
+      navigate('/');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error("Error signing out:", message);
+      console.error('Error signing out:', message);
     }
   };
 

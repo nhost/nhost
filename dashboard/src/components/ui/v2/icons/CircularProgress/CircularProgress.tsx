@@ -1,7 +1,7 @@
-import type { IconProps } from '@/components/ui/v2/icons';
-import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
 import { keyframes } from '@emotion/react';
 import { styled } from '@mui/material';
+import type { IconProps } from '@/components/ui/v2/icons';
+import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
 
 const spinAnimation = keyframes`
   to {

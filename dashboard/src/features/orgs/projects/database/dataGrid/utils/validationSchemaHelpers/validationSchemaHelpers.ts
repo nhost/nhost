@@ -1,5 +1,5 @@
-import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import * as yup from 'yup';
+import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 
 export interface ColumnDetails {
   isNullable: boolean;
@@ -87,10 +87,11 @@ function createBooleanValidationSchema(details: ColumnDetails) {
  * @returns Validation schema for the data browser.
  */
 export function createDynamicValidationSchema(
-  columns: DataBrowserGridColumn[],
+  columns: DataBrowserColumnMetadata[],
 ) {
   const schema = columns.reduce((currentSchema, column) => {
-    const { isNullable, isIdentity } = column;
+    const isNullable = column.isNullable;
+    const isIdentity = column.isIdentity;
 
     const hasDefaultValue =
       typeof column.defaultValue !== 'undefined' &&
@@ -108,10 +109,9 @@ export function createDynamicValidationSchema(
         [column.id]: createUUIDValidationSchema(details),
       };
     }
-
     if (
       column.type === 'date' &&
-      ['time', 'timetz', 'interval'].includes(column.specificType as string)
+      ['time', 'timetz', 'interval'].includes(column.specificType)
     ) {
       return {
         ...currentSchema,

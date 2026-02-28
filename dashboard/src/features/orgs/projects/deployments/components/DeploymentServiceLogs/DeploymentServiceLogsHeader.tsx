@@ -1,3 +1,8 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { SearchIcon } from 'lucide-react';
+import { memo, useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { Form } from '@/components/form/Form';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -5,11 +10,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { SearchIcon } from 'lucide-react';
-import { memo, useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 import DeploymentInfo from './DeploymentInfo';
 
 export const validationSchema = Yup.object({
@@ -40,12 +40,13 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
 
   const service = watch('service');
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to call onSubmit when service changes
   useEffect(() => {
     onSubmit(getValues());
   }, [service, getValues, onSubmit]);
 
   return (
-    <Box className="h-[180px] w-full pb-5 pt-8">
+    <Box className="h-[180px] w-full pt-8 pb-5">
       <FormProvider {...form}>
         <div className="pb-4">
           <h3 className="text-2xl">Service Logs</h3>

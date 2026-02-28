@@ -1,6 +1,6 @@
-import type { JSX } from "react";
-import { useCallback, useEffect, useId, useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { JSX } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 // The interfaces below define the structure of our data
 // They are not strictly necessary but help with type safety
@@ -39,8 +39,8 @@ export default function Todos(): JSX.Element {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newTodoTitle, setNewTodoTitle] = useState("");
-  const [newTodoDetails, setNewTodoDetails] = useState("");
+  const [newTodoTitle, setNewTodoTitle] = useState('');
+  const [newTodoDetails, setNewTodoDetails] = useState('');
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedTodos, setExpandedTodos] = useState<Set<string>>(new Set());
@@ -72,7 +72,7 @@ export default function Todos(): JSX.Element {
       // Check for GraphQL errors in the response body
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to fetch todos",
+          response.body.errors[0]?.message || 'Failed to fetch todos',
         );
       }
 
@@ -80,7 +80,7 @@ export default function Todos(): JSX.Element {
       setTodos(response.body?.data?.todos || []);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch todos");
+      setError(err instanceof Error ? err.message : 'Failed to fetch todos');
     } finally {
       setLoading(false);
     }
@@ -115,26 +115,26 @@ export default function Todos(): JSX.Element {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to add todo",
+          response.body.errors[0]?.message || 'Failed to add todo',
         );
       }
 
       if (!response.body?.data?.insert_todos_one) {
-        throw new Error("Failed to add todo");
+        throw new Error('Failed to add todo');
       }
       setTodos([response.body?.data?.insert_todos_one, ...todos]);
-      setNewTodoTitle("");
-      setNewTodoDetails("");
+      setNewTodoTitle('');
+      setNewTodoDetails('');
       setShowAddForm(false);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add todo");
+      setError(err instanceof Error ? err.message : 'Failed to add todo');
     }
   };
 
   const updateTodo = async (
     id: string,
-    updates: Partial<Pick<Todo, "title" | "details" | "completed">>,
+    updates: Partial<Pick<Todo, 'title' | 'details' | 'completed'>>,
   ) => {
     try {
       // Execute GraphQL mutation to update an existing todo by primary key
@@ -161,12 +161,12 @@ export default function Todos(): JSX.Element {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to update todo",
+          response.body.errors[0]?.message || 'Failed to update todo',
         );
       }
 
       if (!response.body?.data?.update_todos_by_pk) {
-        throw new Error("Failed to update todo");
+        throw new Error('Failed to update todo');
       }
 
       const updatedTodo = response.body?.data?.update_todos_by_pk;
@@ -176,12 +176,12 @@ export default function Todos(): JSX.Element {
       setEditingTodo(null);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update todo");
+      setError(err instanceof Error ? err.message : 'Failed to update todo');
     }
   };
 
   const deleteTodo = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this todo?")) return;
+    if (!confirm('Are you sure you want to delete this todo?')) return;
 
     try {
       // Execute GraphQL mutation to delete a todo by primary key
@@ -201,14 +201,14 @@ export default function Todos(): JSX.Element {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to delete todo",
+          response.body.errors[0]?.message || 'Failed to delete todo',
         );
       }
 
       setTodos(todos.filter((todo) => todo.id !== id));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete todo");
+      setError(err instanceof Error ? err.message : 'Failed to delete todo');
     }
   };
 
@@ -308,8 +308,8 @@ export default function Todos(): JSX.Element {
                   type="button"
                   onClick={() => {
                     setShowAddForm(false);
-                    setNewTodoTitle("");
-                    setNewTodoDetails("");
+                    setNewTodoTitle('');
+                    setNewTodoDetails('');
                   }}
                   className="btn btn-secondary"
                 >
@@ -356,7 +356,7 @@ export default function Todos(): JSX.Element {
               todos.map((todo) => (
                 <div
                   key={todo.id}
-                  className={`todo-card ${todo.completed ? "completed" : ""}`}
+                  className={`todo-card ${todo.completed ? 'completed' : ''}`}
                 >
                   {editingTodo?.id === todo.id ? (
                     <div className="todo-edit">
@@ -379,7 +379,7 @@ export default function Todos(): JSX.Element {
                           <label htmlFor={`${detailsId}-edit`}>Details</label>
                           <textarea
                             id={`${detailsId}-edit`}
-                            value={editingTodo.details || ""}
+                            value={editingTodo.details || ''}
                             onChange={(e) =>
                               setEditingTodo({
                                 ...editingTodo,
@@ -412,7 +412,7 @@ export default function Todos(): JSX.Element {
                       <div className="todo-header">
                         <button
                           type="button"
-                          className={`todo-title-btn ${todo.completed ? "completed" : ""}`}
+                          className={`todo-title-btn ${todo.completed ? 'completed' : ''}`}
                           onClick={() => toggleTodoExpansion(todo.id)}
                         >
                           {todo.title}
@@ -424,11 +424,11 @@ export default function Todos(): JSX.Element {
                             className="action-btn action-btn-complete"
                             title={
                               todo.completed
-                                ? "Mark as incomplete"
-                                : "Mark as complete"
+                                ? 'Mark as incomplete'
+                                : 'Mark as complete'
                             }
                           >
-                            {todo.completed ? "↶" : "✓"}
+                            {todo.completed ? '↶' : '✓'}
                           </button>
                           <button
                             type="button"
@@ -453,7 +453,7 @@ export default function Todos(): JSX.Element {
                         <div className="todo-details">
                           {todo.details && (
                             <div
-                              className={`todo-description ${todo.completed ? "completed" : ""}`}
+                              className={`todo-description ${todo.completed ? 'completed' : ''}`}
                             >
                               <p>{todo.details}</p>
                             </div>
@@ -462,11 +462,11 @@ export default function Todos(): JSX.Element {
                           <div className="todo-meta">
                             <div className="meta-dates">
                               <span className="meta-item">
-                                Created:{" "}
+                                Created:{' '}
                                 {new Date(todo.created_at).toLocaleString()}
                               </span>
                               <span className="meta-item">
-                                Updated:{" "}
+                                Updated:{' '}
                                 {new Date(todo.updated_at).toLocaleString()}
                               </span>
                             </div>

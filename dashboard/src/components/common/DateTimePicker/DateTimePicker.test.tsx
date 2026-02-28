@@ -1,12 +1,13 @@
-import { isTZDate } from '@/components/common/TimePicker/time-picker-utils';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import { isBefore, startOfDay } from 'date-fns-v4';
 import { useState } from 'react';
 import { TZDate } from 'react-day-picker';
 import { vi } from 'vitest';
+import { isTZDate } from '@/components/common/TimePicker/time-picker-utils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import DateTimePicker, { type DateTimePickerProps } from './DateTimePicker';
 
 vi.mock('@/utils/timezoneUtils', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actualTimezoneUtils = await vi.importActual<any>(
     '@/utils/timezoneUtils',
   );

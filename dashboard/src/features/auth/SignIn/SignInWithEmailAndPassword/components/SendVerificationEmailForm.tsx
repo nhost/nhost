@@ -1,9 +1,7 @@
-import { Button } from '@/components/ui/v2/Button';
-import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
+import { Button } from '@/components/ui/v2/Button';
 import {
   Form,
   FormControl,
@@ -13,6 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
+import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
 
 const emailFormSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -51,7 +50,7 @@ function SendVerificationEmailForm() {
           )}
         />
         <Button
-          className="w-full !bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+          className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 w-full"
           size="large"
           loading={form.formState.isSubmitting}
           disabled={form.formState.isSubmitting}

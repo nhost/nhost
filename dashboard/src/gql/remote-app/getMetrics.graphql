@@ -7,7 +7,7 @@ query getRemoteAppMetrics {
       }
     }
   }
-  usersAggregate{
+  usersAggregate {
     aggregate {
       count
     }

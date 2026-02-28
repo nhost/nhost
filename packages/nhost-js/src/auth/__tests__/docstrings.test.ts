@@ -1,13 +1,13 @@
-import { expect, test } from "@jest/globals";
-import { createClient } from "@nhost/nhost-js";
-import { FetchError } from "@nhost/nhost-js/fetch";
+import { expect, test } from '@jest/globals';
+import { createClient } from '@nhost/nhost-js';
+import { FetchError } from '@nhost/nhost-js/fetch';
 
-const subdomain = "local";
-const region = "local";
+const subdomain = 'local';
+const region = 'local';
 
-test("usage", async () => {
+test('usage', async () => {
   const email = `test-${Date.now()}@example.com`;
-  const password = "password123";
+  const password = 'password123';
 
   const nhost = createClient({
     subdomain,
@@ -20,9 +20,9 @@ test("usage", async () => {
   });
 });
 
-test("error handling for auth", async () => {
+test('error handling for auth', async () => {
   const email = `test-${Date.now()}@example.com`;
-  const password = "password123";
+  const password = 'password123';
 
   const nhost = createClient({
     subdomain,
@@ -41,7 +41,7 @@ test("error handling for auth", async () => {
       throw err; // Re-throw if it's not a FetchError
     }
 
-    console.log("Error:", err);
+    console.log('Error:', err);
     // Error: {
     //   body: {
     //     error: 'invalid-email-password',
@@ -60,16 +60,16 @@ test("error handling for auth", async () => {
 
     expect(err.status).toBe(401);
     expect(err.body).toStrictEqual({
-      error: "invalid-email-password",
-      message: "Incorrect email or password",
+      error: 'invalid-email-password',
+      message: 'Incorrect email or password',
       status: 401,
     });
   }
 });
 
-test("error handling for auth error type", async () => {
+test('error handling for auth error type', async () => {
   const email = `test-${Date.now()}@example.com`;
-  const password = "password123";
+  const password = 'password123';
 
   const nhost = createClient({
     subdomain,
@@ -88,9 +88,9 @@ test("error handling for auth error type", async () => {
       throw err; // Re-throw if it's not an Error
     }
 
-    console.log("Error:", err.message);
+    console.log('Error:', err.message);
     // Error: Incorrect email or password
 
-    expect(err.message).toBe("Incorrect email or password");
+    expect(err.message).toBe('Incorrect email or password');
   }
 });

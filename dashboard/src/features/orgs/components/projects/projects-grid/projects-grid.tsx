@@ -1,13 +1,13 @@
+import debounce from 'lodash.debounce';
+import { ArrowRight, Box, Plus, SearchIcon } from 'lucide-react';
+import Link from 'next/link';
+import { type ChangeEvent, useState } from 'react';
 import { Input } from '@/components/ui/v2/Input';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { type GetProjectsQuery } from '@/utils/__generated__/graphql';
-import debounce from 'lodash.debounce';
-import { ArrowRight, Box, Plus, SearchIcon } from 'lucide-react';
-import Link from 'next/link';
-import { useState, type ChangeEvent } from 'react';
+import type { GetProjectsQuery } from '@/utils/__generated__/graphql';
 
 type Project = GetProjectsQuery['apps'][0];
 
@@ -27,7 +27,7 @@ function ProjectCard({ project }: { project: Project }) {
           <p title={project.name} className="truncate font-bold">
             {project.name}
           </p>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-muted-foreground text-xs">
             {project.region.name}
           </span>
         </div>
@@ -62,7 +62,7 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
   );
 
   return (
-    <div className="mx-auto h-full overflow-auto bg-accent">
+    <div className="mx-auto h-full overflow-auto bg-accent-background">
       <div className="flex w-full flex-shrink-0 flex-row items-center justify-between gap-2 border-b bg-background p-2">
         <Input
           placeholder="Find Project"
@@ -85,7 +85,6 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
           </Link>
         </Button>
       </div>
-
       <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {filteredProjects.map((project) => (
           <ProjectCard key={project.id} project={project} />

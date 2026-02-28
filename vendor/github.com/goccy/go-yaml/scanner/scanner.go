@@ -777,6 +777,15 @@ func (s *Scanner) scanComment(ctx *Context) bool {
 func (s *Scanner) scanMultiLine(ctx *Context, c rune) error {
 	state := ctx.getMultiLineState()
 	ctx.addOriginBuf(c)
+	// normalize CR and CRLF to LF
+	if c == '\r' {
+		if ctx.nextChar() == '\n' {
+			ctx.addOriginBuf('\n')
+			s.progress(ctx, 1)
+			s.offset++
+		}
+		c = '\n'
+	}
 	if ctx.isEOS() {
 		if s.isFirstCharAtLine && c == ' ' {
 			state.addIndent(ctx, s.column)
@@ -1148,14 +1157,25 @@ func (s *Scanner) scanMultiLineHeaderOption(ctx *Context) error {
 	s.progress(ctx, 1) // skip '|' or '>' character
 
 	var progress int
+	var crlf bool
 	for idx, c := range ctx.src[ctx.idx:] {
 		progress = idx
 		ctx.addOriginBuf(c)
 		if s.isNewLineChar(c) {
+			nextIdx := ctx.idx + idx + 1
+			if c == '\r' && nextIdx < len(ctx.src) && ctx.src[nextIdx] == '\n' {
+				crlf = true
+				continue // process \n in the next iteration
+			}
 			break
 		}
 	}
-	value := strings.TrimRight(ctx.source(ctx.idx, ctx.idx+progress), " ")
+	endPos := ctx.idx + progress
+	if crlf {
+		// Exclude \r
+		endPos = endPos - 1
+	}
+	value := strings.TrimRight(ctx.source(ctx.idx, endPos), " ")
 	commentValueIndex := strings.Index(value, "#")
 	opt := value
 	if commentValueIndex > 0 {
@@ -1189,7 +1209,7 @@ func (s *Scanner) scanMultiLineHeaderOption(ctx *Context) error {
 		ctx.setFolded(s.lastDelimColumn, opt)
 	}
 	if commentIndex > 0 {
-		comment := string(value[commentValueIndex+1:])
+		comment := value[commentValueIndex+1:]
 		s.offset += len(headerBuf)
 		s.column += len(headerBuf)
 		ctx.addToken(token.Comment(comment, string(ctx.obuf[len(headerBuf):]), s.pos()))

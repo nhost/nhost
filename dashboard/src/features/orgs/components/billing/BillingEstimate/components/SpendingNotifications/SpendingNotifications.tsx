@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { type ChangeEvent, useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Button } from '@/components/ui/v3/button';
@@ -25,10 +29,6 @@ import {
   useGetOrganizationSpendingNotificationQuery,
   useUpdateOrganizationSpendingNotificationMutation,
 } from '@/utils/__generated__/graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, type ChangeEvent } from 'react';
-import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean().required(),

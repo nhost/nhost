@@ -23,7 +23,10 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 	}
 
 	if cmd.String(flagCustomClaimsDefaults) != "" {
-		if err := json.Unmarshal([]byte(cmd.String(flagCustomClaimsDefaults)), &defaults); err != nil {
+		if err := json.Unmarshal(
+			[]byte(cmd.String(flagCustomClaimsDefaults)),
+			&defaults,
+		); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal custom claims defaults: %w", err)
 		}
 	}
@@ -52,6 +55,7 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 		customClaimer,
 		cmd.String(flagRequireElevatedClaim),
 		db,
+		cmd.String(flagServerURL),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating jwt getter: %w", err)

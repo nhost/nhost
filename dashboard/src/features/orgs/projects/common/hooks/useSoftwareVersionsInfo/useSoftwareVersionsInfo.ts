@@ -1,15 +1,15 @@
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  Software_Type_Enum,
-  useGetConfiguredVersionsQuery,
-  useGetRecommendedSoftwareVersionsQuery,
-  type GetConfiguredVersionsQuery,
-  type GetConfiguredVersionsQueryVariables,
-} from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
 import { useVisibilityChange } from '@uidotdev/usehooks';
 import { useEffect } from 'react';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import {
+  type GetConfiguredVersionsQuery,
+  type GetConfiguredVersionsQueryVariables,
+  Software_Type_Enum,
+  useGetConfiguredVersionsQuery,
+  useGetRecommendedSoftwareVersionsQuery,
+} from '@/utils/__generated__/graphql';
 
 export interface UseSoftwareVersionsInfoOptions
   extends QueryHookOptions<

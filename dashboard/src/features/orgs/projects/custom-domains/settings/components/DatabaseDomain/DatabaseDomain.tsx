@@ -1,10 +1,9 @@
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
-import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
 import { useState } from 'react';
 import * as Yup from 'yup';
-
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { Input } from '@/components/ui/v2/Input';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 const validationSchema = Yup.object({

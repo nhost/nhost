@@ -23,7 +23,7 @@ func (e *InvalidLineError) Error() string {
 	return fmt.Sprintf("invalid secret on line %d", e.line)
 }
 
-// Only supports parsing secrets into a *model.Secrets.
+// Unmarshal only supports parsing secrets into a *model.Secrets.
 func Unmarshal(data []byte, v any) error {
 	switch secrets := v.(type) {
 	case *model.Secrets:
@@ -47,7 +47,7 @@ func Unmarshal(data []byte, v any) error {
 	}
 }
 
-// Only supports parsing secrets from a *model.Secrets.
+// Marshal only supports parsing secrets from a *model.Secrets.
 func Marshal(v any) ([]byte, error) {
 	m := make(map[string]string)
 

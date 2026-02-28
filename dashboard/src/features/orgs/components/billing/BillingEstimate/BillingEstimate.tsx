@@ -9,7 +9,7 @@ export default function BillingEstimate() {
     <div className="">
       <div className="flex w-full flex-col rounded-md border bg-background">
         <div className="flex w-full flex-col gap-1 p-4">
-          <span className="text-xl font-medium">Billing Estimate</span>
+          <span className="font-medium text-xl">Billing Estimate</span>
         </div>
         <div className="flex flex-col">
           <Divider />

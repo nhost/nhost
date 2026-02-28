@@ -1,12 +1,11 @@
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
-import * as React from 'react';
-
-import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -16,8 +15,8 @@ const buttonVariants = cva(
         outline:
           'border bg-background hover:bg-accent hover:text-accent-foreground',
         secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
+          'bg-secondary text-secondary-foreground hover:bg-secondary-hover',
+        ghost: 'text-accent-foreground hover:bg-accent',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
@@ -56,11 +55,13 @@ Button.displayName = 'Button';
 
 const ButtonWithLoading = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps & { loading?: boolean }
->(({ loading, disabled, children, ...props }, ref) => {
+  ButtonProps & { loading?: boolean; loaderClassName?: string }
+>(({ loading, disabled, children, loaderClassName, ...props }, ref) => {
   return (
     <Button disabled={loading || disabled} ref={ref} {...props}>
-      {loading && <Loader2 className="mr-2 animate-spin" />}
+      {loading && (
+        <Loader2 className={cn('mr-2 animate-spin', loaderClassName)} />
+      )}
       {children}
     </Button>
   );

@@ -3,6 +3,7 @@ import type {
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 function createNestedObject(pathParts: string[], value: any) {
   const [currentPath, ...restPath] = pathParts;
 
@@ -26,35 +27,54 @@ const negatedArrayOperatorPairs: Record<'_and' | '_or', '_and' | '_or'> = {
   _or: '_and',
 };
 
-const negatedValueOperatorPairs: Record<HasuraOperator, HasuraOperator> = {
-  _eq: '_neq',
-  _neq: '_eq',
-  _in: '_nin',
-  _nin: '_in',
-  _gt: '_lte',
-  _lt: '_gte',
-  _gte: '_lt',
-  _lte: '_gt',
-  _like: '_nlike',
-  _nlike: '_like',
-  _ilike: '_nilike',
-  _nilike: '_ilike',
-  _similar: '_nsimilar',
-  _nsimilar: '_similar',
-  _regex: '_nregex',
-  _nregex: '_regex',
-  _iregex: '_niregex',
-  _niregex: '_iregex',
-  _ceq: '_cne',
-  _cne: '_ceq',
-  _cgt: '_clte',
-  _clt: '_cgte',
-  _cgte: '_clt',
-  _clte: '_cgt',
-  _is_null: '_is_null',
-};
+type NegatableOperator = Exclude<
+  HasuraOperator,
+  | '_is_null'
+  | '_contains'
+  | '_contained_in'
+  | '_has_key'
+  | '_has_keys_any'
+  | '_has_keys_all'
+>;
+
+const negatedValueOperatorPairs: Record<NegatableOperator, NegatableOperator> =
+  {
+    _eq: '_neq',
+    _neq: '_eq',
+    _in: '_nin',
+    _nin: '_in',
+    _gt: '_lte',
+    _lt: '_gte',
+    _gte: '_lt',
+    _lte: '_gt',
+    _like: '_nlike',
+    _nlike: '_like',
+    _ilike: '_nilike',
+    _nilike: '_ilike',
+    _similar: '_nsimilar',
+    _nsimilar: '_similar',
+    _regex: '_nregex',
+    _nregex: '_regex',
+    _iregex: '_niregex',
+    _niregex: '_iregex',
+    _ceq: '_cne',
+    _cne: '_ceq',
+    _cgt: '_clte',
+    _clt: '_cgte',
+    _cgte: '_clt',
+    _clte: '_cgt',
+  };
+
+const nonInvertibleOperators = [
+  '_contains',
+  '_contained_in',
+  '_has_key',
+  '_has_keys_any',
+  '_has_keys_all',
+];
 
 export default function convertToRuleGroup(
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   hasuraPermissions: Record<string, any>,
   options?: {
     previousKey?: string;
@@ -155,8 +175,8 @@ export default function convertToRuleGroup(
         {
           column: previousKey as string,
           operator: shouldNegate
-            ? negatedValueOperatorPairs[currentKey]
-            : currentKey,
+            ? negatedValueOperatorPairs[currentKey as NegatableOperator]
+            : (currentKey as HasuraOperator),
           value,
         },
       ],
@@ -190,16 +210,40 @@ export default function convertToRuleGroup(
       '_clt',
       '_cgte',
       '_clte',
+      '_contains',
+      '_contained_in',
+      '_has_key',
+      '_has_keys_any',
+      '_has_keys_all',
     ].includes(currentKey)
   ) {
+    if (shouldNegate && nonInvertibleOperators.includes(currentKey)) {
+      const pathParts = previousKey?.split('.') || [];
+      const unsupportedObject = createNestedObject(pathParts, {
+        _not: { [currentKey]: value },
+      });
+
+      if (!isNested) {
+        return {
+          operator: '_and',
+          rules: [],
+          groups: [],
+          unsupported: [unsupportedObject],
+        };
+      }
+
+      return unsupportedObject;
+    }
+
     return {
       operator: '_and',
       rules: [
         {
           column: previousKey as string,
-          operator: shouldNegate
-            ? negatedValueOperatorPairs[currentKey]
-            : currentKey,
+          operator:
+            shouldNegate && !nonInvertibleOperators.includes(currentKey)
+              ? negatedValueOperatorPairs[currentKey]
+              : currentKey,
           value,
         },
       ],
@@ -208,46 +252,49 @@ export default function convertToRuleGroup(
   }
 
   if (currentKey === '_or' || currentKey === '_and') {
-    return value
-      .map((permissionObject: ArrayLike<string> | Record<string, any>) =>
-        convertToRuleGroup(permissionObject, {
-          ...options,
-          isNested: true,
-        }),
-      )
-      .reduce(
-        (accumulator: RuleGroup, rule: RuleGroup) => {
-          if (!('rules' in rule) && !('groups' in rule)) {
+    return (
+      value
+        // biome-ignore lint/suspicious/noExplicitAny: TODO
+        .map((permissionObject: ArrayLike<string> | Record<string, any>) =>
+          convertToRuleGroup(permissionObject, {
+            ...options,
+            isNested: true,
+          }),
+        )
+        .reduce(
+          (accumulator: RuleGroup, rule: RuleGroup) => {
+            if (!('rules' in rule) && !('groups' in rule)) {
+              return {
+                ...accumulator,
+                unsupported: [...(accumulator.unsupported || []), rule],
+              };
+            }
+
+            if (rule.rules.length > 1) {
+              return {
+                ...accumulator,
+                groups: [...(accumulator.groups || []), rule],
+              };
+            }
+
             return {
               ...accumulator,
-              unsupported: [...(accumulator.unsupported || []), rule],
+              rules: [...(accumulator.rules || []), ...rule.rules],
+              unsupported: [
+                ...(accumulator.unsupported || []),
+                ...(rule.unsupported || []),
+              ],
             };
-          }
-
-          if (rule.rules.length > 1) {
-            return {
-              ...accumulator,
-              groups: [...(accumulator.groups || []), rule],
-            };
-          }
-
-          return {
-            ...accumulator,
-            rules: [...(accumulator.rules || []), ...rule.rules],
-            unsupported: [
-              ...(accumulator.unsupported || []),
-              ...(rule.unsupported || []),
-            ],
-          };
-        },
-        {
-          operator: shouldNegate
-            ? negatedArrayOperatorPairs[currentKey]
-            : currentKey,
-          rules: [...(value?.rules || [])],
-          groups: [...(value?.groups || [])],
-        },
-      );
+          },
+          {
+            operator: shouldNegate
+              ? negatedArrayOperatorPairs[currentKey]
+              : currentKey,
+            rules: [...(value?.rules || [])],
+            groups: [...(value?.groups || [])],
+          },
+        )
+    );
   }
 
   if (typeof value !== 'object') {

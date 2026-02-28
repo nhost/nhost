@@ -10,13 +10,14 @@ import (
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/google/uuid"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 const maxFormMemory = 1 << 20 // 1 MB
 
-// this type is used to ensure we respond consistently no matter the case.
+// UploadFileResponse is used to ensure we respond consistently no matter the case.
 type UploadFileResponse struct {
 	ProcessedFiles []api.FileMetadata `json:"processedFiles,omitempty"`
 	Error          *ErrorResponse     `json:"error,omitempty"`
@@ -249,7 +250,7 @@ func parseUploadRequest(form *multipart.Form) (uploadFileRequest, *APIError) {
 func (ctrl *Controller) UploadFiles( //nolint:ireturn
 	ctx context.Context, request api.UploadFilesRequestObject,
 ) (api.UploadFilesResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
 	form, err := request.Body.ReadForm(maxFormMemory)
@@ -260,6 +261,7 @@ func (ctrl *Controller) UploadFiles( //nolint:ireturn
 
 		return InternalServerError(err), nil
 	}
+	defer form.RemoveAll() //nolint:errcheck
 
 	uploadFilesRequest, apiErr := parseUploadRequest(form)
 	if apiErr != nil {

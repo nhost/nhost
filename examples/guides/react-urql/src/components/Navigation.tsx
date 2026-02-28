@@ -1,6 +1,6 @@
-import type { JSX } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { JSX } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function Navigation(): JSX.Element {
   const { isAuthenticated, nhost, session } = useAuth();
@@ -8,7 +8,7 @@ export default function Navigation(): JSX.Element {
 
   // Helper function to determine if a link is active
   const isActive = (path: string): string => {
-    return location.pathname === path ? "active" : "";
+    return location.pathname === path ? 'active' : '';
   };
 
   return (
@@ -19,12 +19,12 @@ export default function Navigation(): JSX.Element {
           <div className="navbar-links">
             {isAuthenticated ? (
               <>
-                <Link to="/home" className={`nav-link ${isActive("/home")}`}>
+                <Link to="/home" className={`nav-link ${isActive('/home')}`}>
                   Home
                 </Link>
                 <Link
                   to="/profile"
-                  className={`nav-link ${isActive("/profile")}`}
+                  className={`nav-link ${isActive('/profile')}`}
                 >
                   Profile
                 </Link>
@@ -33,13 +33,13 @@ export default function Navigation(): JSX.Element {
               <>
                 <Link
                   to="/signin"
-                  className={`nav-link ${isActive("/signin")}`}
+                  className={`nav-link ${isActive('/signin')}`}
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/signup"
-                  className={`nav-link ${isActive("/signup")}`}
+                  className={`nav-link ${isActive('/signup')}`}
                 >
                   Sign Up
                 </Link>

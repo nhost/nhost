@@ -1,6 +1,4 @@
-import { ASYMMETRIC_ALGORITHMS } from '@/features/orgs/projects/jwt/settings/utils/constants';
 import { useFormContext } from 'react-hook-form';
-
 import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
@@ -8,6 +6,7 @@ import type {
   ExternalSigningType,
   JWTSettingsFormValues,
 } from '@/features/orgs/projects/jwt/settings/types';
+import { ASYMMETRIC_ALGORITHMS } from '@/features/orgs/projects/jwt/settings/utils/constants';
 
 interface ExternalSigningFieldProps {
   externalSigningType: ExternalSigningType;

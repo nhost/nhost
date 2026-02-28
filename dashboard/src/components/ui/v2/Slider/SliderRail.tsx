@@ -1,10 +1,10 @@
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
 import { alpha, styled } from '@mui/material';
 import type { SliderProps as MaterialSliderProps } from '@mui/material/Slider';
 import MaterialSlider, {
   sliderClasses as materialSliderClasses,
 } from '@mui/material/Slider';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
 
 const StyledRail = styled(Box)(({ theme }) => ({
   position: 'absolute',

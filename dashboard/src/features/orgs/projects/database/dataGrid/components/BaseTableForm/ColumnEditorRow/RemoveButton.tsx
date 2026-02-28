@@ -1,8 +1,8 @@
+import { useFormContext, useWatch } from 'react-hook-form';
 import type { ButtonProps } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useFormContext, useWatch } from 'react-hook-form';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
 
 export function RemoveButton({

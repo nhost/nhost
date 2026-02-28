@@ -2,6 +2,7 @@ package appconfig
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -31,7 +32,7 @@ func HasuraEnv( //nolint:funlen,maintidx
 	useTLS bool,
 	httpPort uint,
 ) ([]EnvVar, error) {
-	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0])
+	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0], false)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
 	}
@@ -131,8 +132,13 @@ func HasuraEnv( //nolint:funlen,maintidx
 			SecretName: "",
 		},
 		{
-			Name:       "HASURA_GRAPHQL_CORS_DOMAIN",
-			Value:      Stringify(config.GetHasura().GetSettings().CorsDomain),
+			Name: "HASURA_GRAPHQL_CORS_DOMAIN",
+			Value: Stringify(
+				ensureCorsDomain(
+					config.GetHasura().GetSettings().CorsDomain,
+					"https://app.nhost.io",
+				),
+			),
 			IsSecret:   false,
 			SecretName: "",
 		},
@@ -318,4 +324,12 @@ func HasuraEnv( //nolint:funlen,maintidx
 	}
 
 	return env, nil
+}
+
+func ensureCorsDomain(domains []string, required string) []string {
+	if slices.Contains(domains, "*") || slices.Contains(domains, required) {
+		return domains
+	}
+
+	return append(domains, required)
 }

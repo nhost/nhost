@@ -1,7 +1,15 @@
 'use client';
 
+import { Command as CommandPrimitive } from 'cmdk';
 import { X } from 'lucide-react';
-
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Badge } from '@/components/ui/v3/badge';
 import {
   Command,
@@ -10,15 +18,6 @@ import {
   CommandList,
 } from '@/components/ui/v3/command';
 import { cn } from '@/lib/utils';
-import { Command as CommandPrimitive } from 'cmdk';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from 'react';
 
 export type Option = Record<'value' | 'label', string>;
 
@@ -111,7 +110,7 @@ export function FancyMultiSelect({
           {selected.map((option) => {
             return (
               <Badge
-                className="h-7 overflow-x-hidden text-[12px] font-normal"
+                className="h-7 overflow-x-hidden font-normal text-[12px]"
                 key={option.value}
                 variant="outline"
               >
@@ -149,14 +148,14 @@ export function FancyMultiSelect({
             onBlur={() => setOpen(false)}
             onFocus={() => setOpen(true)}
             placeholder="Select options..."
-            className="flex flex-1 border-none bg-transparent px-0 py-1 text-sm font-medium outline-none !ring-0 !ring-offset-0 placeholder:text-sm placeholder:text-muted-foreground group-hover:text-accent-foreground"
+            className="!ring-0 !ring-offset-0 flex flex-1 border-none bg-transparent px-0 py-1 font-medium text-sm outline-none placeholder:text-muted-foreground placeholder:text-sm group-hover:text-accent-foreground"
           />
         </div>
       </div>
       <div className="relative">
         <CommandList>
           {open && selectables.length > 0 ? (
-            <div className="absolute top-2 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+            <div className="absolute top-2 z-10 w-full animate-in rounded-md border bg-popover text-popover-foreground shadow-md outline-none">
               <CommandGroup className="h-full overflow-auto">
                 {selectables.map((option) => {
                   return (

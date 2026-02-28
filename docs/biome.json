@@ -1,0 +1,14 @@
+{
+  "root": false,
+  "extends": "//",
+  "files": {
+    "includes": ["**", "!src/plugins/starlight-openapi"]
+  },
+  "linter": {
+    "rules": {
+      "complexity": {
+        "noImportantStyles": "off"
+      }
+    }
+  }
+}

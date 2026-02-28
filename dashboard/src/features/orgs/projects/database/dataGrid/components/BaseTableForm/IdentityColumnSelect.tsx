@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
 import type {
@@ -5,8 +7,6 @@ import type {
   DatabaseColumn,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { identityTypes } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import { useMemo } from 'react';
-import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import type { BaseTableFormValues } from './BaseTableForm';
 
 const identityTypesMap = identityTypes.reduce(

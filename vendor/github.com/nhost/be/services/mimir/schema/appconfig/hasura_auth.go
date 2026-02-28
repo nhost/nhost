@@ -42,7 +42,11 @@ func IsJWTSecretCompatibleWithHasuraAuth(
 }
 
 func getOauthSettings(c oauthsettings, provider string) []EnvVar {
-	return []EnvVar{
+	if !unptr(c.GetEnabled()) {
+		return []EnvVar{}
+	}
+
+	env := []EnvVar{
 		{
 			Name:       fmt.Sprintf("AUTH_PROVIDER_%s_ENABLED", provider),
 			Value:      Stringify(unptr(c.GetEnabled())),
@@ -61,22 +65,30 @@ func getOauthSettings(c oauthsettings, provider string) []EnvVar {
 			Value:      unptr(c.GetClientSecret()),
 			IsSecret:   false,
 		},
-		{
+	}
+
+	if c.GetAudience() != nil {
+		env = append(env, EnvVar{
 			Name:       fmt.Sprintf("AUTH_PROVIDER_%s_AUDIENCE", provider),
 			Value:      unptr(c.GetAudience()),
 			IsSecret:   false,
 			SecretName: "",
-		},
-		{
+		})
+	}
+
+	if c.GetScope() != nil {
+		env = append(env, EnvVar{
 			Name:       fmt.Sprintf("AUTH_PROVIDER_%s_SCOPE", provider),
 			Value:      Stringify(c.GetScope()),
 			IsSecret:   false,
 			SecretName: "",
-		},
+		})
 	}
+
+	return env
 }
 
-func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
+func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 	config *model.ConfigConfig,
 	hasuraGraphqlURL,
 	authServerURL,
@@ -116,7 +128,7 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 		return nil, fmt.Errorf("problem marshalling auth jwt custom claims defaults: %w", err)
 	}
 
-	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0])
+	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0], true)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
 	}
@@ -584,116 +596,45 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 		}...)
 	}
 
-	if unptr(
-		config.GetAuth().GetMethod().GetOauth().GetGithub().GetEnabled(),
-	) {
-		env = append(env, []EnvVar{
-			{
-				Name: "AUTH_PROVIDER_GITHUB_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetGithub().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_GITHUB_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetGithub().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_GITHUB_CLIENT_SECRET",
-				SecretName: "",
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetGithub().GetClientSecret(),
-				),
-				IsSecret: false,
-			},
-		}...)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetGithub(),
+		"GITHUB")...,
+	)
 
-	if unptr(
-		config.GetAuth().GetMethod().GetOauth().GetGoogle().GetEnabled(),
-	) {
-		env = append(env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetGoogle(),
-			"GOOGLE")...,
-		)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetGoogle(),
+		"GOOGLE")...,
+	)
 
-	if unptr(
-		config.GetAuth().GetMethod().GetOauth().GetFacebook().GetEnabled(),
-	) {
-		env = append(env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetFacebook(),
-			"FACEBOOK")...,
-		)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetFacebook(),
+		"FACEBOOK")...,
+	)
 
-	if unptr(
-		config.GetAuth().GetMethod().GetOauth().GetSpotify().GetEnabled(),
-	) {
-		env = append(env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetSpotify(),
-			"SPOTIFY")...,
-		)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetSpotify(),
+		"SPOTIFY")...,
+	)
 
-	if unptr(
-		config.GetAuth().GetMethod().GetOauth().GetLinkedin().GetEnabled(),
-	) {
-		env = append(env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetLinkedin(),
-			"LINKEDIN")...,
-		)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetLinkedin(),
+		"LINKEDIN")...,
+	)
 
-	if unptr(
-		config.GetAuth().GetMethod().GetOauth().GetDiscord().GetEnabled(),
-	) {
-		env = append(env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetDiscord(),
-			"DISCORD")...,
-		)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetDiscord(),
+		"DISCORD")...,
+	)
 
-	if unptr(
-		config.GetAuth().GetMethod().GetOauth().GetTwitch().GetEnabled(),
-	) {
-		env = append(env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetTwitch(),
-			"TWITCH")...,
-		)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetTwitch(),
+		"TWITCH")...,
+	)
 
-	if unptr(
-		config.
-			GetAuth().
-			GetMethod().
-			GetOauth().
-			GetWindowslive().
-			GetEnabled(),
-	) {
-		env = append(env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetWindowslive(),
-			"WINDOWS_LIVE")...,
-		)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetWindowslive(),
+		"WINDOWS_LIVE")...,
+	)
 
 	if unptr(
 		config.GetAuth().GetMethod().GetOauth().GetWorkos().GetEnabled(),
@@ -876,6 +817,17 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 				SecretName: "",
 			},
 		}...)
+
+		if config.GetAuth().GetMethod().GetOauth().GetApple().GetScope() != nil {
+			env = append(env, EnvVar{
+				Name: "AUTH_PROVIDER_APPLE_SCOPE",
+				Value: Stringify(
+					config.GetAuth().GetMethod().GetOauth().GetApple().GetScope(),
+				),
+				IsSecret:   false,
+				SecretName: "",
+			})
+		}
 	}
 
 	if unptr( //nolint:dupl
@@ -990,117 +942,15 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 		}...)
 	}
 
-	if unptr( //nolint:dupl
-		config.GetAuth().GetMethod().GetOauth().GetGitlab().GetEnabled(),
-	) {
-		env = append(env, []EnvVar{
-			{
-				Name: "AUTH_PROVIDER_GITLAB_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetGitlab().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_GITLAB_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetGitlab().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_GITLAB_CLIENT_SECRET",
-				SecretName: "",
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetGitlab().GetClientSecret(),
-				),
-				IsSecret: false,
-			},
-			{
-				Name: "AUTH_PROVIDER_GITLAB_SCOPE",
-				Value: Stringify(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetGitlab().
-						GetScope(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-		}...)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetGitlab(),
+		"GITLAB")...,
+	)
 
-	if unptr( //nolint:dupl
-		config.GetAuth().GetMethod().GetOauth().GetStrava().GetEnabled(),
-	) {
-		env = append(env, []EnvVar{
-			{
-				Name: "AUTH_PROVIDER_STRAVA_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetStrava().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_STRAVA_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetStrava().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_STRAVA_CLIENT_SECRET",
-				SecretName: "",
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetStrava().GetClientSecret(),
-				),
-				IsSecret: false,
-			},
-			{
-				Name: "AUTH_PROVIDER_STRAVA_SCOPE",
-				Value: Stringify(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetStrava().
-						GetScope(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-		}...)
-	}
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetStrava(),
+		"STRAVA")...,
+	)
 
 	if unptr(
 		config.GetAuth().GetMethod().GetOauth().GetBitbucket().GetEnabled(),
@@ -1141,6 +991,52 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 					config.GetAuth().GetMethod().GetOauth().GetBitbucket().GetClientSecret(),
 				),
 				IsSecret: false,
+			},
+		}...)
+	}
+
+	if unptr(config.GetAuth().GetOauth2Provider().GetEnabled()) {
+		env = append(env, []EnvVar{
+			{
+				Name:       "AUTH_OAUTH2_PROVIDER_ENABLED",
+				Value:      Stringify(unptr(config.GetAuth().GetOauth2Provider().GetEnabled())),
+				IsSecret:   false,
+				SecretName: "",
+			},
+			{
+				Name:       "AUTH_OAUTH2_PROVIDER_LOGIN_URL",
+				Value:      unptr(config.GetAuth().GetOauth2Provider().GetLoginURL()),
+				IsSecret:   false,
+				SecretName: "",
+			},
+			{
+				Name: "AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL",
+				Value: Stringify(
+					unptr(config.GetAuth().GetOauth2Provider().GetAccessToken().GetExpiresIn()),
+				),
+				IsSecret:   false,
+				SecretName: "",
+			},
+			{
+				Name: "AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL",
+				Value: Stringify(
+					unptr(config.GetAuth().GetOauth2Provider().GetRefreshToken().GetExpiresIn()),
+				),
+				IsSecret:   false,
+				SecretName: "",
+			},
+			{
+				Name: "AUTH_OAUTH2_PROVIDER_CIMD_ENABLED",
+				Value: Stringify(
+					unptr(
+						config.GetAuth().
+							GetOauth2Provider().
+							GetClientIdMetadataDocument().
+							GetEnabled(),
+					),
+				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
@@ -1276,6 +1172,21 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 		{
 			Name:       "AUTH_RATE_LIMIT_SIGNUPS_INTERVAL",
 			Value:      config.GetAuth().GetRateLimit().GetSignups().GetInterval(),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name: "AUTH_RATE_LIMIT_OAUTH2_SERVER_BURST",
+			Value: Stringify(
+				config.GetAuth().GetRateLimit().GetOauth2Server().GetLimit() /
+					uint32(replicas), //nolint:gosec
+			),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       "AUTH_RATE_LIMIT_OAUTH2_SERVER_INTERVAL",
+			Value:      config.GetAuth().GetRateLimit().GetOauth2Server().GetInterval(),
 			IsSecret:   false,
 			SecretName: "",
 		},

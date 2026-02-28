@@ -1,3 +1,9 @@
+import { Divider } from '@mui/material';
+import debounce from 'lodash.debounce';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import type { ChangeEvent } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -7,12 +13,6 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { Divider } from '@mui/material';
-import debounce from 'lodash.debounce';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import type { ChangeEvent } from 'react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
 
 export default function SelectOrganizationAndProject() {
   const { orgs, loading } = useOrgs();

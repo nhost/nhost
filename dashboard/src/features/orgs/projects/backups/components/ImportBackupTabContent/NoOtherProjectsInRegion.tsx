@@ -1,6 +1,6 @@
+import { CircleAlert } from 'lucide-react';
 import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { CircleAlert } from 'lucide-react';
 
 function NoOtherProjectsInRegion() {
   const { project } = useProject();

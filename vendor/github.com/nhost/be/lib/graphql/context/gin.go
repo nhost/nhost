@@ -17,8 +17,8 @@ const (
 	initPayloadHeadersKey = contextKey("init_payload_http_headers")
 )
 
-// gin middleware to store the gin.Context in the context
-// the purpose is to be able to retrieve the gin.Context from other parts
+// GinContextToContextMiddleware is a gin middleware to store the gin.Context in the context.
+// The purpose is to be able to retrieve the gin.Context from other parts
 // in the graphql code as the gin context may have useful information (i.e. http headers).
 func GinContextToContextMiddleware(c *gin.Context) {
 	ctx := context.WithValue(c.Request.Context(), ginContextKey, c)
@@ -31,7 +31,7 @@ func GinContextToContext(ctx context.Context, ginCtx *gin.Context) context.Conte
 	return context.WithValue(ctx, ginContextKey, ginCtx)
 }
 
-// ginContextFromContext returns the gin.Context from the context.
+// GinContextFromContext returns the gin.Context from the context.
 func GinContextFromContext(ctx context.Context) (*gin.Context, error) {
 	ginContext := ctx.Value(ginContextKey)
 	if ginContext == nil {
@@ -48,7 +48,7 @@ func GinContextFromContext(ctx context.Context) (*gin.Context, error) {
 	return gc, nil
 }
 
-// Gets the HTTP headers from a gin context embedded in the context.
+// HTTPHeaderFromGinContext gets the HTTP headers from a gin context embedded in the context.
 func HTTPHeaderFromGinContext(ctx context.Context) (http.Header, error) {
 	raw := ctx.Value(initPayloadHeadersKey)
 	if raw != nil {
@@ -68,7 +68,7 @@ func HTTPHeaderFromGinContext(ctx context.Context) (http.Header, error) {
 	return ginContext.Request.Header, nil
 }
 
-// This is meant to be used as a transport.WebsocketInitFunc. It will store the "headers"
+// WebSocketInit is meant to be used as a transport.WebsocketInitFunc. It will store the "headers"
 // in the init payload in the context so that they can be retrieved later using HTTPHeaderFromGinContext.
 func WebSocketInit(
 	ctx context.Context,

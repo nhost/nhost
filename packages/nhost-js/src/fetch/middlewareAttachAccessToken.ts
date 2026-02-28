@@ -6,9 +6,9 @@
  * is properly authenticated.
  */
 
-import type { Session } from "../auth";
-import type { SessionStorage } from "../session/storage";
-import type { ChainFunction, FetchFunction } from "./fetch";
+import type { Session } from '../auth';
+import type { SessionStorage } from '../session/storage';
+import type { ChainFunction, FetchFunction } from './fetch';
 
 /**
  * Creates a fetch middleware that adds the Authorization header with the current access token.
@@ -30,7 +30,7 @@ export const attachAccessTokenMiddleware =
     const headers = new Headers(options.headers || {});
 
     // Skip if Authorization header is already set
-    if (headers.has("Authorization")) {
+    if (headers.has('Authorization')) {
       return next(url, options);
     }
 
@@ -61,7 +61,7 @@ export const attachAccessTokenMiddleware =
  */
 function addAuthorizationHeader(headers: Headers, session: Session): Headers {
   if (session.accessToken) {
-    headers.set("Authorization", `Bearer ${session.accessToken}`);
+    headers.set('Authorization', `Bearer ${session.accessToken}`);
   }
   return headers;
 }

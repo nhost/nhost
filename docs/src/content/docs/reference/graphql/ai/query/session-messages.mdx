@@ -1,0 +1,112 @@
+---
+title: sessionMessages
+---
+
+```graphql
+sessionMessages {
+   sessionID: String! 
+}: MessageResponse
+```
+
+Retrieve all messages for a session
+
+## Permissions needed
+
+select (sessions):
+- id
+- assistant_id
+- session_id
+- user_id
+
+
+## Arguments
+
+
+
+    - **`sessionID`** (`String!`): ID of the session to retrieve messages for
+
+
+
+## Response
+
+Type: `MessageResponse`
+
+
+
+
+
+    
+    - **`sessionID`** (`String!`): ID of the session
+    
+    - **`messages`** (`[Message!]!`): Messages in this session
+    <details>
+<summary>properties</summary>
+
+    
+    
+    - **`id`** (`String!`): ID of the message
+    
+    - **`role`** (`String!`): Role of the message. Either "user" or "assistant"
+    
+    - **`message`** (`String!`): Message content
+    
+    - **`createdAt`** (`timestampz!`): Timestamp of when the message was sent
+    
+    
+</details>
+    
+    
+
+
+
+**Request Example:**
+
+```graphql query
+query sessionMessages (
+  $sessionID: String!
+) {
+  graphite {
+    sessionMessages (
+      sessionID: $sessionID
+    ) {
+      sessionID
+      messages {
+        id
+        role
+        message
+        createdAt
+        }
+    }
+  }
+}
+```
+
+```json variables
+{
+  "sessionID": "string"
+}
+```
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "graphite": {
+      "sessionMessages": {
+        "messages": [
+          {
+            "createdAt": "2023-12-14T07:45:15.20353+00:00",
+            "id": "string",
+            "message": "string",
+            "role": "string"
+          }
+        ],
+        "sessionID": "string"
+      }
+    }
+  }
+}
+```
+

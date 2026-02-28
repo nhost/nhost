@@ -1,10 +1,10 @@
+import { useState } from 'react';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
-import { useState } from 'react';
 import { SignUpWithEmailAndPasswordForm } from './SignUpWithEmailAndPassword';
 import { SignUpWithSecurityKeyForm } from './SignUpWithSecurityKey';
 

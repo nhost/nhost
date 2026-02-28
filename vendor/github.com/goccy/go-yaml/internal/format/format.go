@@ -351,8 +351,9 @@ func (f *Formatter) formatMapping(n *ast.MappingNode) string {
 	var ret string
 	if n.IsFlowStyle {
 		ret = f.origin(n.Start)
+	} else {
+		ret += f.formatCommentGroup(n.Comment)
 	}
-	ret += f.formatCommentGroup(n.Comment)
 	for _, value := range n.Values {
 		if value.CollectEntry != nil {
 			ret += f.origin(value.CollectEntry)
@@ -361,6 +362,7 @@ func (f *Formatter) formatMapping(n *ast.MappingNode) string {
 	}
 	if n.IsFlowStyle {
 		ret += f.origin(n.End)
+		ret += f.formatCommentGroup(n.Comment)
 	}
 	return ret
 }
@@ -377,8 +379,7 @@ func (f *Formatter) formatSequence(n *ast.SequenceNode) string {
 	var ret string
 	if n.IsFlowStyle {
 		ret = f.origin(n.Start)
-	}
-	if n.Comment != nil {
+	} else {
 		// add head comment.
 		ret += f.formatCommentGroup(n.Comment)
 	}
@@ -387,6 +388,7 @@ func (f *Formatter) formatSequence(n *ast.SequenceNode) string {
 	}
 	if n.IsFlowStyle {
 		ret += f.origin(n.End)
+		ret += f.formatCommentGroup(n.Comment)
 	}
 	ret += f.formatCommentGroup(n.FootComment)
 	return ret

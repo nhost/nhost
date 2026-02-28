@@ -112,6 +112,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.SMSPasswordlessEnabled = false
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -223,7 +224,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						AllowedRoles: nil,
 						DefaultRole:  nil,
 						DisplayName:  nil,
-						Locale:       ptr("xx"),
+						Locale:       new("xx"),
 						Metadata:     nil,
 						RedirectTo:   nil,
 					},
@@ -263,7 +264,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						DisplayName:  nil,
 						Locale:       nil,
 						Metadata:     nil,
-						RedirectTo:   ptr("https://evil.com"),
+						RedirectTo:   new("https://evil.com"),
 					},
 				},
 			},
@@ -283,6 +284,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				config := getConfig()
 				config.AllowedLocales = []string{"en", "fr"}
 				config.AllowedRedirectURLs = []string{"http://myapp"}
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -339,11 +341,11 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					PhoneNumber: "+1234567890",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"user"},
-						DefaultRole:  ptr("user"),
-						DisplayName:  ptr("Jane Doe"),
-						Locale:       ptr("fr"),
+						DefaultRole:  new("user"),
+						DisplayName:  new("Jane Doe"),
+						Locale:       new("fr"),
 						Metadata:     &map[string]any{"asd": "asd"},
-						RedirectTo:   ptr("http://myapp"),
+						RedirectTo:   new("http://myapp"),
 					},
 				},
 			},
@@ -370,6 +372,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.DisableSignup = true
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

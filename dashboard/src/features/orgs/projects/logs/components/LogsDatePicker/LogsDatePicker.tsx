@@ -26,6 +26,7 @@ export interface LogsDatePickerProps extends DatePickerProps {
    * Label for the date picker and dropdown trigger.
    */
   label: string;
+  value: Date;
 }
 
 function LogsDatePicker({
@@ -37,7 +38,7 @@ function LogsDatePicker({
   maxDate,
   value,
 }: LogsDatePickerProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(value);
+  const [selectedDate, setSelectedDate] = useState<Date>(value);
   const { setValue } = useFormContext<LogsFilterFormValues>();
   const { button: buttonSlotProps } = {
     button: componentsProps?.button || {},

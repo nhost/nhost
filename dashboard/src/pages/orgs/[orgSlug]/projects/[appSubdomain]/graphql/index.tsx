@@ -1,3 +1,12 @@
+import {
+  DOC_EXPLORER_PLUGIN,
+  GraphiQLProvider,
+  useCopyQuery,
+  useExecutionContext,
+  usePluginContext,
+  usePrettifyEditors,
+  useTheme,
+} from '@graphiql/react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
@@ -9,15 +18,6 @@ import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/compo
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
-import {
-  DOC_EXPLORER_PLUGIN,
-  GraphiQLProvider,
-  useCopyQuery,
-  useExecutionContext,
-  usePluginContext,
-  usePrettifyEditors,
-  useTheme,
-} from '@graphiql/react';
 import '@graphiql/react/dist/style.css';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { GraphiQLInterface } from 'graphiql';
@@ -189,6 +189,7 @@ interface GraphiQLEditorProps {
   /**
    * Function to be called when the user changes the headers.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   onHeaderChange: (headers: Record<string, any>) => void;
 }
 
@@ -203,6 +204,7 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
         }
 
         try {
+          // biome-ignore lint/suspicious/noExplicitAny: TODO
           const parsedHeaders: Record<string, any> = JSON.parse(headers);
 
           onHeaderChange(parsedHeaders);
@@ -229,6 +231,7 @@ const GraphQLPageContent = dynamic(
   () =>
     Promise.resolve(() => {
       const { project } = useProject();
+      // biome-ignore lint/suspicious/noExplicitAny: TODO
       const [userHeaders, setUserHeaders] = useState<Record<string, any>>({});
 
       if (!project?.subdomain || !project?.config?.hasura.adminSecret) {

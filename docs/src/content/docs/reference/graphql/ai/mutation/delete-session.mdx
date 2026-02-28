@@ -1,0 +1,67 @@
+---
+title: deleteSession
+---
+
+```graphql
+deleteSession {
+   sessionID: String! 
+}: Boolean!
+```
+
+Delete a session
+
+## Permissions needed
+
+select (sessions):
+- assistant_id
+delete (sessions):
+
+
+## Arguments
+
+
+
+    - **`sessionID`** (`String!`): Session to delete
+
+
+
+## Response
+
+Type: `Boolean!`
+
+
+
+
+
+
+**Request Example:**
+
+```graphql query
+query deleteSession (
+  $sessionID: String!
+) {
+  graphite {
+    deleteSession (
+      sessionID: $sessionID
+    )
+  }
+}
+```
+
+```json variables
+{
+  "sessionID": "string"
+}
+```
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "graphite": {}
+  }
+}
+```
+

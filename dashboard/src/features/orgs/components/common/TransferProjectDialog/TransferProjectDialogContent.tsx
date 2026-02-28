@@ -1,13 +1,16 @@
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
+import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import { ApplicationStatus } from '@/types/application';
 import FinishOrgCreation from './FinishOrgCreation';
 import TransferProjectForm, {
   type TransferProjectFormProps,
@@ -26,16 +29,14 @@ function TransferProjectDialogContent({
   selectedOrganizationId,
   onOrganizationChange,
 }: Props) {
-  const { query, replace, pathname } = useRouter();
-  const { session_id, ...remainingQuery } = query;
+  const { query } = useRouter();
+  const { session_id } = query;
+  const { state } = useAppState();
   const { refetch: refetchOrgs } = useOrgs();
+  const isProjectNotPaused = state !== ApplicationStatus.Paused;
   const [showContent, setShowContent] = useState(true);
 
-  const removeSessionIdFromQuery = useCallback(() => {
-    replace({ pathname, query: remainingQuery }, undefined, {
-      shallow: true,
-    });
-  }, [replace, remainingQuery, pathname]);
+  const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   useEffect(() => {
     if (isNotEmptyValue(session_id)) {
@@ -45,7 +46,7 @@ function TransferProjectDialogContent({
 
   const handleOnCompleted: FinishOrgCreationOnCompletedCb = useCallback(
     async ({ Slug }) => {
-      removeSessionIdFromQuery();
+      removeQueryParamsFromUrl('session_id');
       const {
         data: { organizations },
       } = await refetchOrgs();
@@ -57,9 +58,9 @@ function TransferProjectDialogContent({
       onFinishOrgCreationCompleted();
     },
     [
+      removeQueryParamsFromUrl,
       onFinishOrgCreationCompleted,
       refetchOrgs,
-      removeSessionIdFromQuery,
       onOrganizationChange,
     ],
   );
@@ -78,8 +79,14 @@ function TransferProjectDialogContent({
             <span className="font-bold">ADMIN</span> in both.
             <br />
             When transferred to a new organization, the project will adopt that
-            organization’s plan.
+            organization's plan.
           </DialogDescription>
+          {isProjectNotPaused && (
+            <p className="text-muted-foreground text-sm">
+              To transfer to a Starter organization, the project must be paused
+              first.
+            </p>
+          )}
           <TransferProjectForm
             onCreateNewOrg={onCreateNewOrg}
             selectedOrganizationId={selectedOrganizationId}

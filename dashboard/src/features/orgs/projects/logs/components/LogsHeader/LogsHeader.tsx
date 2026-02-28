@@ -67,6 +67,7 @@ export default function LogsHeader({
 
   const service = watch('service');
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to run this hook when service changes
   useEffect(() => {
     onSubmitFilterValues(getValues());
   }, [service, getValues, onSubmitFilterValues]);

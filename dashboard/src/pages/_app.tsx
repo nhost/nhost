@@ -7,20 +7,15 @@ import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
 import { NhostProvider } from '@/providers/nhost';
-// eslint-disable-next-line import/extensions
 import '@/styles/fonts.css';
-// eslint-disable-next-line import/extensions
 import '@/styles/github-dark.css';
-// eslint-disable-next-line import/extensions
 import '@/styles/globals.css';
-// eslint-disable-next-line import/extensions
 import '@/styles/graphiql.min.css';
-// eslint-disable-next-line import/extensions
 import '@/styles/style.css';
+import { CacheProvider, type EmotionCache } from '@emotion/react';
 import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 import { createEmotionCache } from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
-import { CacheProvider, type EmotionCache } from '@emotion/react';
 import '@fontsource/inter';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
@@ -29,10 +24,10 @@ import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { NextPage } from 'next';
-import { PagesProgressBar as ProgressBar } from 'next-nprogress-bar';
-import { DefaultSeo } from 'next-seo';
 import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
+import { PagesProgressBar as ProgressBar } from 'next-nprogress-bar';
+import { DefaultSeo } from 'next-seo';
 import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -77,12 +72,12 @@ function MyApp({
 
       <CacheProvider value={emotionCache}>
         <NhostProvider nhost={nhost}>
-          <AuthProvider>
-            <NhostApolloProvider
-              fetchPolicy="cache-and-network"
-              nhost={nhost}
-              connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
-            >
+          <NhostApolloProvider
+            fetchPolicy="cache-and-network"
+            nhost={nhost}
+            connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
+          >
+            <AuthProvider>
               <UIProvider>
                 <Toaster position="bottom-center" />
                 <ThemeProvider
@@ -106,8 +101,8 @@ function MyApp({
                   </RetryableErrorBoundary>
                 </ThemeProvider>
               </UIProvider>
-            </NhostApolloProvider>
-          </AuthProvider>
+            </AuthProvider>
+          </NhostApolloProvider>
         </NhostProvider>
       </CacheProvider>
     </QueryClientProvider>

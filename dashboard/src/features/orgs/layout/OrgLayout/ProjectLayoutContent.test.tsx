@@ -1,3 +1,5 @@
+import { setupServer } from 'msw/node';
+import { afterEach, describe, vi } from 'vitest';
 import { mockApplication } from '@/tests/mocks';
 import {
   getProjectQuery,
@@ -11,8 +13,6 @@ import {
   screen,
   waitFor,
 } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { afterEach, describe, vi } from 'vitest';
 import ProjectLayoutContent from './ProjectLayoutContent';
 
 const mocks = vi.hoisted(() => ({

@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useMemo } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
@@ -19,10 +23,6 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   version: Yup.object({

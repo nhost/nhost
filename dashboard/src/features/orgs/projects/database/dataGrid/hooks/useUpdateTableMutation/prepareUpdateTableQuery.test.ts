@@ -166,6 +166,7 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'author_id',
           name: 'age',
+          // biome-ignore lint/suspicious/noExplicitAny: test file
           type: { value: 'numeric(10,2)' as any, label: 'numeric(10,2)' },
         },
       ],

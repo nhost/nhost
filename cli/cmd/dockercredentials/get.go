@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/urfave/cli/v3"
@@ -72,10 +73,16 @@ type response struct {
 func actionGet(ctx context.Context, cmd *cli.Command) error {
 	scanner := bufio.NewScanner(cmd.Root().Reader)
 
-	var input string
+	var (
+		input     string
+		inputSb76 strings.Builder
+	)
+
 	for scanner.Scan() {
-		input += scanner.Text()
+		inputSb76.WriteString(scanner.Text())
 	}
+
+	input += inputSb76.String()
 
 	token, err := getToken(ctx, cmd.String(flagAuthURL), cmd.String(flagGraphqlURL))
 	if err != nil {

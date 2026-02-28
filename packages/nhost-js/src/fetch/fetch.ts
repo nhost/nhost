@@ -76,50 +76,50 @@ export interface FetchResponse<T> {
 }
 
 function extractMessage(body: unknown): string {
-  if (body && typeof body === "string") {
+  if (body && typeof body === 'string') {
     return body;
   }
 
-  if (body && typeof body === "object") {
+  if (body && typeof body === 'object') {
     const typedBody = body as Record<string, unknown>;
 
-    if ("message" in typedBody && typeof typedBody["message"] === "string") {
-      return typedBody["message"];
+    if ('message' in typedBody && typeof typedBody['message'] === 'string') {
+      return typedBody['message'];
     }
 
-    if ("error" in typedBody && typeof typedBody["error"] === "string") {
-      return typedBody["error"];
+    if ('error' in typedBody && typeof typedBody['error'] === 'string') {
+      return typedBody['error'];
     }
 
     if (
-      "error" in typedBody &&
-      typedBody["error"] &&
-      typeof typedBody["error"] === "object"
+      'error' in typedBody &&
+      typedBody['error'] &&
+      typeof typedBody['error'] === 'object'
     ) {
-      const error = typedBody["error"] as Record<string, unknown>;
-      if ("message" in error && typeof error["message"] === "string") {
-        return error["message"];
+      const error = typedBody['error'] as Record<string, unknown>;
+      if ('message' in error && typeof error['message'] === 'string') {
+        return error['message'];
       }
     }
 
-    if ("errors" in typedBody && Array.isArray(typedBody["errors"])) {
-      const messages = (typedBody["errors"] as unknown[])
+    if ('errors' in typedBody && Array.isArray(typedBody['errors'])) {
+      const messages = (typedBody['errors'] as unknown[])
         .filter(
           (error): error is { message: string } =>
-            typeof error === "object" &&
+            typeof error === 'object' &&
             error !== null &&
-            "message" in error &&
-            typeof (error as { message: unknown })["message"] === "string",
+            'message' in error &&
+            typeof (error as { message: unknown })['message'] === 'string',
         )
-        .map((error) => error["message"]);
+        .map((error) => error['message']);
 
       if (messages.length > 0) {
-        return messages.join(", ");
+        return messages.join(', ');
       }
     }
   }
 
-  return "An unexpected error occurred";
+  return 'An unexpected error occurred';
 }
 
 /**

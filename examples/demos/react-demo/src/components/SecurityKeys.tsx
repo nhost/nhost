@@ -1,9 +1,9 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
-import { startRegistration } from "@simplewebauthn/browser";
-import { useCallback, useEffect, useId, useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
-import { isWebAuthnSupported } from "../lib/utils";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError, FetchResponse } from '@nhost/nhost-js/fetch';
+import { startRegistration } from '@simplewebauthn/browser';
+import { useCallback, useEffect, useId, useState } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
+import { isWebAuthnSupported } from '../lib/utils';
 
 /**
  * Represents a WebAuthn security key stored for a user
@@ -33,7 +33,7 @@ export default function SecurityKeys() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletingKeyId, setDeletingKeyId] = useState<string | null>(null);
-  const [keyName, setKeyName] = useState("");
+  const [keyName, setKeyName] = useState('');
   const [success, setSuccess] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -101,13 +101,13 @@ export default function SecurityKeys() {
       });
 
       if (response.body?.errors) {
-        throw new Error(response.body.errors[0]?.message || "Unknown error");
+        throw new Error(response.body.errors[0]?.message || 'Unknown error');
       }
 
       // Update the UI by removing the key from local state
       setSecurityKeys(securityKeys.filter((key) => key.id !== keyId));
       setSuccess(
-        "Security key deleted successfully! Remember to also remove it from your authenticator app, password manager, or device credential manager to avoid future authentication issues.",
+        'Security key deleted successfully! Remember to also remove it from your authenticator app, password manager, or device credential manager to avoid future authentication issues.',
       );
 
       // Hide success message after 5 seconds (increased to give users time to read the reminder)
@@ -149,14 +149,14 @@ export default function SecurityKeys() {
     // Check if browser supports WebAuthn
     if (!isWebAuthnAvailable) {
       setErrorMessage(
-        "WebAuthn is not supported by your browser. Please use a modern browser that supports WebAuthn.",
+        'WebAuthn is not supported by your browser. Please use a modern browser that supports WebAuthn.',
       );
       return;
     }
 
     // Validate key name exists
     if (!keyName.trim()) {
-      setErrorMessage("Please provide a name for your security key");
+      setErrorMessage('Please provide a name for your security key');
       return;
     }
 
@@ -178,7 +178,7 @@ export default function SecurityKeys() {
       });
 
       if (!credential) {
-        setErrorMessage("No credential was selected. Please try again.");
+        setErrorMessage('No credential was selected. Please try again.');
         return;
       }
 
@@ -191,8 +191,8 @@ export default function SecurityKeys() {
       });
 
       // Step 4: Registration successful - update UI
-      setSuccess("Security key registered successfully!");
-      setKeyName("");
+      setSuccess('Security key registered successfully!');
+      setKeyName('');
       setShowAddForm(false);
 
       // Refresh the security keys list
@@ -209,7 +209,7 @@ export default function SecurityKeys() {
     setShowAddForm(!showAddForm);
     setErrorMessage(null);
     setSuccess(null);
-    setKeyName("");
+    setKeyName('');
   };
 
   return (
@@ -304,7 +304,7 @@ export default function SecurityKeys() {
                     Complete Registration on Your Device...
                   </>
                 ) : (
-                  "Register Security Key"
+                  'Register Security Key'
                 )}
               </button>
               <button
@@ -339,7 +339,7 @@ export default function SecurityKeys() {
                   >
                     <div>
                       <span className="font-medium">
-                        {key.nickname || "Unnamed key"}
+                        {key.nickname || 'Unnamed key'}
                       </span>
                       <span className="text-sm text-gray-500 ml-2">
                         ID: {key.credentialId.slice(0, 8)}...

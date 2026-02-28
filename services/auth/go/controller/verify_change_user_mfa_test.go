@@ -293,6 +293,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.MfaEnabled = false
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

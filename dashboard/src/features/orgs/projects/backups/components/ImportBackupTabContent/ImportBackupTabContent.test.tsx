@@ -1,8 +1,22 @@
+import { setupServer } from 'msw/node';
+import { vi } from 'vitest';
+import { Tabs } from '@/components/ui/v3/tabs';
 import {
   fetchPiTRBaseBackups,
   mockApplication,
   mockMatchMediaValue,
 } from '@/tests/mocks';
+import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
+import {
+  getPiTRNotEnabledPostgresSettings,
+  getPostgresSettings,
+} from '@/tests/msw/mocks/graphql/getPostgresSettings';
+import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import {
+  getEmptyProjectsQuery,
+  getProjectsQuery,
+} from '@/tests/msw/mocks/graphql/getProjectsQuery';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   mockPointerEvent,
   render,
@@ -10,19 +24,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
-
-import { Tabs } from '@/components/ui/v3/tabs';
-import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
-import {
-  getPiTRNotEnabledPostgresSettings,
-  getPostgresSettings,
-} from '@/tests/msw/mocks/graphql/getPostgresSettings';
-import {
-  getEmptyProjectsQuery,
-  getProjectsQuery,
-} from '@/tests/msw/mocks/graphql/getProjectsQuery';
 import ImportBackupContent from './ImportBackupTabContent';
 
 function TestComponent() {
@@ -40,7 +41,7 @@ Object.defineProperty(window, 'matchMedia', {
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
-const server = setupServer();
+const server = setupServer(tokenQuery, getProjectQuery);
 
 const mocks = vi.hoisted(() => ({
   useGetPiTrBaseBackupsLazyQuery: vi.fn(),
@@ -49,6 +50,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -57,6 +59,7 @@ vi.mock('@/utils/__generated__/graphql', async () => {
 });
 
 vi.mock('@/utils/timezoneUtils', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actualTimezoneUtils = await vi.importActual<any>(
     '@/utils/timezoneUtils',
   );
@@ -71,10 +74,6 @@ vi.mock('@/features/orgs/hooks/useRestoreApplicationDatabasePiTR', () => ({
     restoreApplicationDatabase: mocks.restoreApplicationDatabase,
     loading: false,
   }),
-}));
-
-vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
-  useProject: () => ({ project: mockApplication }),
 }));
 
 describe('ImportBackupContent', () => {
@@ -99,11 +98,13 @@ describe('ImportBackupContent', () => {
     server.use(getProjectsQuery);
 
     render(<TestComponent />);
-    expect(
-      screen.getByText(
-        `${mockApplication.name} (${mockApplication.region.name})`,
-      ),
-    ).toBeInTheDocument();
+    await waitFor(async () =>
+      expect(
+        screen.getByText(
+          `${mockApplication.name} (${mockApplication.region.name})`,
+        ),
+      ).toBeInTheDocument(),
+    );
 
     const projectComboBox = await screen.findByRole('combobox');
 
@@ -121,17 +122,17 @@ describe('ImportBackupContent', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('that warning is displayed if there is no other project in the same organization', async () => {
+  test('warning is displayed if there is no other project in the same organization', async () => {
     server.use(getOrganization);
     server.use(getEmptyProjectsQuery);
 
     render(<TestComponent />);
 
-    expect(
-      await screen.findByText(
-        /There are no other projects within the region:/i,
-      ),
-    ).toBeInTheDocument();
+    await waitFor(async () =>
+      expect(
+        screen.getByText(/There are no other projects within the region:/i),
+      ).toBeInTheDocument(),
+    );
   });
 
   test('will schedule an import from the selected project', async () => {

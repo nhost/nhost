@@ -1,0 +1,588 @@
+---
+title: User Authentication in SvelteKit
+description: >-
+  Learn how to implement user authentication in a SvelteKit application using
+  Nhost
+keywords: ["SvelteKit", "user authentication", "sign up", "sign in", "email verification", "password authentication"]
+sidebar:
+  label: User Authentication
+---
+import { Card, CardGroup } from '@components';
+
+
+This tutorial part builds upon the [Protected Routes part](/getting-started/tutorials/svelte/2-protected-routes) by adding complete email/password authentication with email verification functionality. You'll implement sign up, sign in, email verification, and sign out features to create a full authentication flow.
+
+:::note
+This is **Part 3** in the Full-Stack SvelteKit Development with Nhost series. This part creates a production-ready authentication system with secure email verification and proper error handling.
+:::
+
+## Full-Stack SvelteKit Development with Nhost
+
+<CardGroup cols={3}>
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/svelte/1-introduction">
+Set up your Nhost project
+</Card>
+
+<Card title="2. Protected Routes" icon="lock" href="/getting-started/tutorials/svelte/2-protected-routes">
+Route protection basics
+</Card>
+
+<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/svelte/3-user-authentication">
+**Current** - Complete auth flow
+</Card>
+
+<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/svelte/4-graphql-operations">
+CRUD operations with GraphQL
+</Card>
+</CardGroup>
+
+## Prerequisites
+
+- Complete the [Protected Routes part](/getting-started/tutorials/svelte/2-protected-routes) first
+- The project from the previous part set up and running
+
+## Step-by-Step Guide
+
+
+### Create the Sign In Page
+
+Build a comprehensive sign-in form with proper error handling and loading states. This page handles user authentication and includes special logic for post-verification sign-in.
+
+```svelte src/routes/signin/+page.svelte lines
+<script lang="ts">
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { goto } from "$app/navigation";
+import { auth, nhost } from "$lib/nhost/auth";
+
+let email = $state("");
+let password = $state("");
+let isLoading = $state(false);
+let error = $state<string | null>(null);
+
+// Navigate to profile when authenticated
+$effect(() => {
+  if ($auth.isAuthenticated) {
+    void goto("/profile");
+  }
+});
+
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  isLoading = true;
+  error = null;
+
+  try {
+    // Use the signIn function from auth context
+    const response = await nhost.auth.signInEmailPassword({
+      email,
+      password,
+    });
+
+    // If we have a session, sign in was successful
+    if (response.body?.session) {
+      void goto("/profile");
+    } else {
+      error = "Failed to sign in. Please check your credentials.";
+    }
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred during sign in: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
+  }
+}
+</script>
+
+<div>
+  <h1>Sign In</h1>
+
+  <form onsubmit={handleSubmit} class="auth-form">
+    <div class="auth-form-field">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        bind:value={email}
+        required
+        class="auth-input"
+      />
+    </div>
+
+    <div class="auth-form-field">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        bind:value={password}
+        required
+        class="auth-input"
+      />
+    </div>
+
+    {#if error}
+      <div class="auth-error">
+        {error}
+      </div>
+    {/if}
+
+    <button
+      type="submit"
+      disabled={isLoading}
+      class="auth-button secondary"
+    >
+      {isLoading ? "Signing In..." : "Sign In"}
+    </button>
+  </form>
+
+  <div class="auth-links">
+    <p>
+      Don't have an account? <a href="/signup">Sign Up</a>
+    </p>
+  </div>
+</div>
+```
+
+
+
+### Create the Sign Up Page
+
+Implement user registration with email verification flow. This page collects user information, creates accounts, and guides users through the email verification process.
+
+```svelte src/routes/signup/+page.svelte lines
+<script lang="ts">
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { goto } from "$app/navigation";
+import { auth, nhost } from "$lib/nhost/auth";
+
+let email = $state("");
+let password = $state("");
+let displayName = $state("");
+let isLoading = $state(false);
+let error = $state<string | null>(null);
+let success = $state(false);
+
+// If already authenticated, redirect to profile
+$effect(() => {
+  if ($auth.isAuthenticated) {
+    void goto("/profile");
+  }
+});
+
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  isLoading = true;
+  error = null;
+  success = false;
+
+  try {
+    const response = await nhost.auth.signUpEmailPassword({
+      email,
+      password,
+      options: {
+        displayName,
+        // Set the redirect URL for email verification
+        redirectTo: `${window.location.origin}/verify`,
+      },
+    });
+
+    if (response.body?.session) {
+      // Successfully signed up and automatically signed in
+      void goto("/profile");
+    } else {
+      // Verification email sent
+      success = true;
+    }
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred during sign up: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
+  }
+}
+</script>
+
+{#if success}
+  <div>
+    <h1>Check Your Email</h1>
+    <div class="success-message">
+      <p>
+        We've sent a verification link to <strong>{email}</strong>
+      </p>
+      <p>
+        Please check your email and click the verification link to activate your account.
+      </p>
+    </div>
+    <p>
+      <a href="/signin">Back to Sign In</a>
+    </p>
+  </div>
+{:else}
+  <div>
+    <h1>Sign Up</h1>
+
+    <form onsubmit={handleSubmit} class="auth-form">
+      <div class="auth-form-field">
+        <label for="displayName">Display Name</label>
+        <input
+          id="displayName"
+          type="text"
+          bind:value={displayName}
+          required
+          class="auth-input"
+        />
+      </div>
+
+      <div class="auth-form-field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          bind:value={email}
+          required
+          class="auth-input"
+        />
+      </div>
+
+      <div class="auth-form-field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          bind:value={password}
+          required
+          minlength="8"
+          class="auth-input"
+        />
+        <small class="help-text">Minimum 8 characters</small>
+      </div>
+
+      {#if error}
+        <div class="auth-error">
+          {error}
+        </div>
+      {/if}
+
+      <button
+        type="submit"
+        disabled={isLoading}
+        class="auth-button primary"
+      >
+        {isLoading ? "Creating Account..." : "Sign Up"}
+      </button>
+    </form>
+
+    <div class="auth-links">
+      <p>
+        Already have an account? <a href="/signin">Sign In</a>
+      </p>
+    </div>
+  </div>
+{/if}
+```
+
+
+
+### Create the Email Verification Page
+
+Build a dedicated verification page that processes email verification tokens. This page handles the verification flow when users click the email verification link.
+
+```svelte src/routes/verify/+page.svelte lines
+<script lang="ts">
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { nhost } from "$lib/nhost/auth";
+
+let status: "verifying" | "success" | "error" = "verifying";
+let error = "";
+let urlParams: Record<string, string> = {};
+
+onMount(() => {
+  // Extract the refresh token from the URL
+  const params = new URLSearchParams($page.url.search);
+  const refreshToken = params.get("refreshToken");
+
+  if (!refreshToken) {
+    // Collect all URL parameters to display for debugging
+    const allParams: Record<string, string> = {};
+    params.forEach((value, key) => {
+      allParams[key] = value;
+    });
+    urlParams = allParams;
+
+    status = "error";
+    error = "No refresh token found in URL";
+    return;
+  }
+
+  // Flag to handle component unmounting during async operations
+  let isMounted = true;
+
+  async function processToken() {
+    try {
+      // First display the verifying message for at least a moment
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      if (!isMounted) return;
+
+      if (!refreshToken) {
+        // Collect all URL parameters to display
+        const allParams: Record<string, string> = {};
+        params.forEach((value, key) => {
+          allParams[key] = value;
+        });
+        urlParams = allParams;
+
+        status = "error";
+        error = "No refresh token found in URL";
+        return;
+      }
+
+      // Process the token
+      await nhost.auth.refreshToken({ refreshToken });
+
+      if (!isMounted) return;
+
+      status = "success";
+
+      // Wait to show success message briefly, then redirect
+      setTimeout(() => {
+        if (isMounted) void goto("/profile");
+      }, 1500);
+    } catch (err) {
+      const fetchError = err as FetchError<ErrorResponse>;
+      if (!isMounted) return;
+
+      status = "error";
+      error = `An error occurred during verification: ${fetchError.message}`;
+    }
+  }
+
+  void processToken();
+
+  // Cleanup function
+  return () => {
+    isMounted = false;
+  };
+});
+</script>
+
+<div>
+  <h1>Email Verification</h1>
+
+  <div class="page-center">
+    {#if status === "verifying"}
+      <div>
+        <p class="margin-bottom">Verifying your email...</p>
+        <div class="spinner-verify" />
+      </div>
+    {/if}
+
+    {#if status === "success"}
+      <div>
+        <p class="verification-status">
+          ✓ Successfully verified!
+        </p>
+        <p>You'll be redirected to your profile page shortly...</p>
+      </div>
+    {/if}
+
+    {#if status === "error"}
+      <div>
+        <p class="verification-status error">
+          Verification failed
+        </p>
+        <p class="margin-bottom">{error}</p>
+
+        {#if Object.keys(urlParams).length > 0}
+          <div class="debug-panel">
+            <p class="debug-title">
+              URL Parameters:
+            </p>
+            {#each Object.entries(urlParams) as [key, value] (key)}
+              <div class="debug-item">
+                <span class="debug-key">
+                  {key}:
+                </span>
+                <span class="debug-value">{value}</span>
+              </div>
+            {/each}
+          </div>
+        {/if}
+
+        <button
+          type="button"
+          onclick={() => goto("/signin")}
+          class="auth-button secondary"
+        >
+          Back to Sign In
+        </button>
+      </div>
+    {/if}
+  </div>
+</div>
+
+<style>
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .spinner-verify {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+</style>
+```
+
+:::caution
+**Important Configuration Required:** Before testing email verification, you must configure your Nhost project's authentication settings:
+
+1. Go to your Nhost project dashboard
+2. Navigate to **Settings → Authentication**
+3. Add your local development URL (e.g., `http://localhost:5173`) to the **Allowed Redirect URLs** field
+4. Ensure your production domain is also added when deploying
+
+Without this configuration, you'll receive a `redirectTo not allowed` error when users attempt to sign up or verify their email addresses.
+:::
+
+
+
+### Update the Layout Component to Include New Routes
+
+Configure your application's routing structure to include the new authentication pages. In SvelteKit, routes are automatically created based on the file structure, so you'll update the layout component to handle authentication state properly.
+
+```svelte src/routes/+layout.svelte lines highlight={20-27,40-45,47-52}
+<script lang="ts">
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { auth, initializeAuth, nhost } from "$lib/nhost/auth";
+import "../app.css";
+
+let { children }: { children?: import("svelte").Snippet } = $props();
+
+// Initialize auth when component mounts
+onMount(() => {
+  return initializeAuth();
+});
+
+// Helper function to determine if a link is active
+function isActive(path: string): string {
+  return $page.url.pathname === path ? "nav-link active" : "nav-link";
+}
+
+async function handleSignOut() {
+  if ($auth.session) {
+    await nhost.auth.signOut({
+      refreshToken: $auth.session.refreshToken,
+    });
+    void goto("/");
+  }
+}
+</script>
+
+<div id="root">
+  <nav class="navigation">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">Nhost SvelteKit Demo</a>
+
+      <div class="nav-links">
+        <a href="/" class="nav-link">Home</a>
+
+        {#if $auth.isAuthenticated}
+          <a href="/profile" class={isActive('/profile')}>Profile</a>
+          <button
+            onclick={handleSignOut}
+            class="nav-link nav-button"
+          >
+            Sign Out
+          </button>
+        {:else}
+          <a href="/signin" class="nav-link {isActive('/signin')}">
+            Sign In
+          </a>
+          <a href="/signup" class="nav-link {isActive('/signup')}">
+            Sign Up
+          </a>
+        {/if}
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-content">
+    {#if children}
+      {@render children()}
+    {/if}
+  </div>
+</div>
+```
+
+
+
+### Run and Test the Application
+
+Start your development server and test the complete authentication flow to ensure everything works properly.
+
+```bash
+npm run dev
+```
+
+Things to try out:
+
+1. Try signing up with a new email address. Check your email for the verification link and click it. See how you are sent to the verification page and then redirected to your profile.
+2. Try signing out and then signing back in with the same credentials.
+3. Notice how navigation links change based on authentication state showing "Sign In" and "Sign Up" when logged out, and "Profile" and "Sign Out" when logged in.
+4. Check how the homepage also reflects the authentication state with appropriate messages.
+5. Open multiple tabs and test signing out from one tab to see how other tabs respond. Now sign back in and see the changes propagate across tabs.
+
+
+
+
+## Key Features Demonstrated
+
+
+<details>
+<summary>Complete Registration Flow</summary>
+
+Full email/password registration with proper form validation and user feedback using SvelteKit's reactive state management.
+
+</details>
+
+<details>
+<summary>Email Verification</summary>
+
+Custom `/verify` route that securely processes email verification tokens using SvelteKit's page stores and navigation utilities.
+
+</details>
+
+<details>
+<summary>Error Handling</summary>
+
+Comprehensive error handling for unverified emails, failed authentication, and network issues with proper TypeScript error typing.
+
+</details>
+
+<details>
+<summary>Visual Feedback</summary>
+
+Loading states, success messages, and clear error displays throughout the authentication flow using Svelte's reactive declarations.
+
+</details>
+
+<details>
+<summary>Session Management</summary>
+
+Complete sign out functionality and proper session state management across the application using Svelte stores and cross-tab synchronization.
+
+</details>
+

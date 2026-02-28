@@ -1,10 +1,10 @@
+import { memo, useEffect, useRef } from 'react';
+import { useRecoilValue } from 'recoil';
 import { Box } from '@/components/ui/v2/Box';
 import { LoadingAssistantMessage } from '@/features/orgs/projects/ai/DevAssistant/components/LoadingAssistantMessage';
 import { MessageBox } from '@/features/orgs/projects/ai/DevAssistant/components/MessageBox';
 import { projectMessagesState } from '@/features/orgs/projects/ai/DevAssistant/state';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { memo, useEffect, useRef } from 'react';
-import { useRecoilValue } from 'recoil';
 
 interface MessagesListProps {
   loading: boolean;
@@ -18,6 +18,7 @@ function MessagesList({ loading }: MessagesListProps) {
   const scrollToBottom = () =>
     bottomElement?.current?.scrollIntoView({ behavior: 'instant' });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to run the hook when dep changes
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);

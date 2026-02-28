@@ -1,46 +1,43 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { RefreshCwIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
+import { Input } from '@/components/ui/v2/Input';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { ComputeFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ComputeFormSection';
 import { EnvironmentFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/EnvironmentFormSection';
 import { PortsFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection';
 import { ReplicasFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/StorageFormSection';
-
 import {
-  validationSchema,
-  type Port,
+  defaultServiceFormValues,
   type ServiceFormProps,
   type ServiceFormValues,
+  validationSchema,
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
-
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getFormattedServiceConfig } from '@/features/orgs/projects/services/utils/getFormattedServiceConfig';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
-  type ConfigRunServiceConfigInsertInput,
 } from '@/utils/__generated__/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
-import { removeTypename } from '@/utils/helpers';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
 import { CommandFormSection } from './components/CommandFormSection';
 import { HealthCheckFormSection } from './components/HealthCheckFormSection';
 import { ImageFormSection } from './components/ImageFormSection';
@@ -69,14 +66,7 @@ export default function ServiceForm({
     useState<Error | null>(null);
 
   const form = useForm<ServiceFormValues>({
-    defaultValues: initialData ?? {
-      compute: {
-        cpu: 62,
-        memory: 128,
-      },
-      replicas: 1,
-      autoscaler: null,
-    },
+    defaultValues: initialData ?? defaultServiceFormValues,
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
@@ -142,66 +132,8 @@ export default function ServiceForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const getFormattedConfig = (values: ServiceFormValues) => {
-    // Remove any __typename property from the values
-    const sanitizedValues = removeTypename(values) as ServiceFormValues;
-    const sanitizedInitialDataPorts: Port[] = initialData?.ports
-      ? removeTypename(initialData.ports)
-      : [];
-
-    const config: ConfigRunServiceConfigInsertInput = {
-      name: sanitizedValues.name,
-      image: {
-        image: sanitizedValues.image,
-        pullCredentials: sanitizedValues.pullCredentials,
-      },
-      command: sanitizedValues.command?.map((arg) => arg.argument),
-      resources: {
-        compute: {
-          cpu: sanitizedValues.compute?.cpu,
-          memory: sanitizedValues.compute?.memory,
-        },
-        storage: sanitizedValues.storage?.map((item) => ({
-          name: item.name,
-          path: item.path,
-          capacity: item.capacity,
-        })),
-        replicas: sanitizedValues.replicas,
-        autoscaler: sanitizedValues.autoscaler
-          ? {
-              maxReplicas: sanitizedValues.autoscaler?.maxReplicas,
-            }
-          : null,
-      },
-      environment: sanitizedValues.environment?.map((item) => ({
-        name: item.name,
-        value: item.value,
-      })),
-      ports: sanitizedValues.ports?.map((item) => ({
-        port: item.port,
-        type: item.type,
-        publish: item.publish,
-        ingresses: item.ingresses as any, // cannot be changed on the UI always null type checking can be skipped.
-        rateLimit:
-          sanitizedInitialDataPorts.find(
-            (port) => port.port === item.port && port.type === item.type,
-          )?.rateLimit ?? (null as any), // cannot be changed on the UI always null type checking can be skipped.
-      })),
-      healthCheck: sanitizedValues.healthCheck
-        ? {
-            port: sanitizedValues.healthCheck?.port,
-            initialDelaySeconds:
-              sanitizedValues.healthCheck?.initialDelaySeconds,
-            probePeriodSeconds: sanitizedValues.healthCheck?.probePeriodSeconds,
-          }
-        : null,
-    };
-
-    return config;
-  };
-
   const createOrUpdateService = async (values: ServiceFormValues) => {
-    const config = getFormattedConfig(values);
+    const config = getFormattedServiceConfig({ values, initialData });
 
     if (serviceID) {
       // Update service config
@@ -292,7 +224,10 @@ export default function ServiceForm({
   };
 
   const copyConfig = () => {
-    const config = getFormattedConfig(formValues);
+    const config = getFormattedServiceConfig({
+      values: formValues,
+      initialData,
+    });
 
     const base64Config = btoa(JSON.stringify(config));
 
@@ -397,7 +332,13 @@ export default function ServiceForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              startIcon={serviceID ? <ArrowsClockwise /> : <PlusIcon />}
+              startIcon={
+                serviceID ? (
+                  <RefreshCwIcon width={16} height={16} />
+                ) : (
+                  <PlusIcon />
+                )
+              }
             >
               {serviceID ? 'Update' : 'Create'}
             </Button>

@@ -1,8 +1,8 @@
 import { useFormContext, useFormState } from 'react-hook-form';
 
 import { Box } from '@/components/ui/v2/Box';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';

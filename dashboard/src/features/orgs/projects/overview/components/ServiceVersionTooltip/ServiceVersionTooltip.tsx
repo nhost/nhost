@@ -1,10 +1,10 @@
+import { useTheme } from '@mui/material';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import type { baseServices } from '@/features/orgs/projects/overview/health';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ServiceState } from '@/utils/__generated__/graphql';
-import { useTheme } from '@mui/material';
 
 interface ServiceVersionTooltipProps {
   serviceName?: string;
@@ -63,7 +63,7 @@ function ServiceVersionTooltip({
           }}
           variant="h4"
           component="p"
-          className="text-sm+ font-semibold"
+          className="font-semibold text-sm+"
         >
           {serviceName}
         </Text>
@@ -89,7 +89,7 @@ function ServiceVersionTooltip({
           }}
           variant="h4"
           component="p"
-          className="text-sm+ font-bold"
+          className="font-bold text-sm+"
         >
           {usedVersion}
         </Text>
@@ -147,7 +147,7 @@ function ServiceVersionTooltip({
           <Text
             variant="body1"
             component="p"
-            className="text-sm+ font-semibold text-white"
+            className="font-semibold text-sm+ text-white"
           >
             {serviceName} {errorMessage}
           </Text>

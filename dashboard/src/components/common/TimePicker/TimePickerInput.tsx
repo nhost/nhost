@@ -1,13 +1,12 @@
-import { Input } from '@/components/ui/v3/input';
-
-import { cn } from '@/lib/utils';
 import React from 'react';
+import { Input } from '@/components/ui/v3/input';
+import { cn } from '@/lib/utils';
 import {
   copyDate,
   getArrowByType,
   getDateByType,
-  setDateByType,
   type Period,
+  setDateByType,
   type TimePickerType,
 } from './time-picker-utils';
 
@@ -51,7 +50,6 @@ const TimePickerInput = React.forwardRef<
      * allow the user to enter the second digit within 2 seconds
      * otherwise start again with entering first digit
      */
-    // eslint-disable-next-line consistent-return
     React.useEffect(() => {
       if (flag) {
         const timer = setTimeout(() => {
@@ -123,7 +121,7 @@ const TimePickerInput = React.forwardRef<
         id={id || picker}
         name={name || picker}
         className={cn(
-          'w-[48px] text-center font-mono text-base tabular-nums focus:bg-accent focus:text-accent-foreground [&::-webkit-inner-spin-button]:appearance-none',
+          'w-[48px] text-center font-mono text-base tabular-nums focus:bg-accent-background focus:text-accent-foreground [&::-webkit-inner-spin-button]:appearance-none',
           className,
         )}
         value={value || calculatedValue}

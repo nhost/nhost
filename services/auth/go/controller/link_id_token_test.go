@@ -163,7 +163,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},
@@ -221,7 +221,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},
@@ -253,7 +253,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},
@@ -327,13 +327,13 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
+				Error:   "provider-account-already-linked",
+				Message: "This provider account is already linked to a user",
 				Status:  400,
 			},
 
@@ -355,7 +355,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  "asdasdasd",
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},

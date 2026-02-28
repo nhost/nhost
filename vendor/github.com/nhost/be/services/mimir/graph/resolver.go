@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Plugins are executed during mutations after the data has been manipulated but before it's
+// Plugin is executed during mutations after the data has been manipulated but before it's
 // made permanent (i.e. a new object has been created and manipulated but hasn't replaced the old one).
 // If a plugin returns an error the mutation is aborted and the error is returned to the client so no
 // permanent changes are made.

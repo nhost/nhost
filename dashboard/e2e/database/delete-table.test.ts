@@ -1,9 +1,9 @@
-import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { deleteTable, prepareTable } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
+import { snakeCase } from 'snake-case';
+import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 
 import { expect, test } from '@/e2e/fixtures/auth-hook';
-import { snakeCase } from 'snake-case';
+import { deleteTable, prepareTable } from '@/e2e/utils';
 
 test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
@@ -19,17 +19,14 @@ test('should delete a table', async ({ authenticatedNhostPage: page }) => {
   await prepareTable({
     page,
     name: tableName,
-    primaryKeys: ['id'],
-    columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
-      { name: 'title', type: 'text' },
-    ],
+    primaryKeys: [],
+    columns: [{ name: 'title', type: 'text' }],
   });
 
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${tableName}`,
   );
 
   await deleteTable({
@@ -39,7 +36,7 @@ test('should delete a table', async ({ authenticatedNhostPage: page }) => {
 
   // navigate to next URL
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/**`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/**`,
   );
 
   await expect(
@@ -59,18 +56,15 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await prepareTable({
     page,
     name: firstTableName,
-    primaryKeys: ['id'],
-    columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
-      { name: 'name', type: 'text' },
-    ],
+    primaryKeys: [],
+    columns: [{ name: 'name', type: 'text' }],
   });
 
   // create table
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${firstTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${firstTableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -81,9 +75,8 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await prepareTable({
     page,
     name: secondTableName,
-    primaryKeys: ['id'],
+    primaryKeys: [],
     columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
       { name: 'author_id', type: 'uuid' },
     ],
@@ -117,7 +110,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${secondTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${secondTableName}`,
   );
 
   await expect(

@@ -1,10 +1,10 @@
+import { test as setup } from '@playwright/test';
 import {
   TEST_DASHBOARD_URL,
   TEST_PERSONAL_ORG_SLUG,
   TEST_USER_EMAIL,
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
-import { test as setup } from '@playwright/test';
 
 setup('authenticate user', async ({ page }) => {
   await page.goto('/');

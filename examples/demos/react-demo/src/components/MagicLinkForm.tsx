@@ -1,16 +1,16 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import React, { type JSX, useId, useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import React, { type JSX, useId, useState } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 interface MagicLinkFormProps {
   buttonLabel?: string;
 }
 
 export default function MagicLinkForm({
-  buttonLabel = "Send Magic Link",
+  buttonLabel = 'Send Magic Link',
 }: MagicLinkFormProps): JSX.Element {
-  const [email, setEmail] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +76,7 @@ export default function MagicLinkForm({
         className="btn btn-primary w-full"
         disabled={isLoading}
       >
-        {isLoading ? "Sending..." : buttonLabel}
+        {isLoading ? 'Sending...' : buttonLabel}
       </button>
     </form>
   );

@@ -1,9 +1,9 @@
+import type { ReactNode } from 'react';
+import { twMerge } from 'tailwind-merge';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import type { TextProps } from '@/components/ui/v2/Text';
 import { Text } from '@/components/ui/v2/Text';
-import type { ReactNode } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface PermissionSettingsSectionProps
   extends Omit<BoxProps, 'title'> {

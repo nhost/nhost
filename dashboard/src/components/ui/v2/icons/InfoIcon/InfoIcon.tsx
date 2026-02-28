@@ -1,7 +1,7 @@
-import type { IconProps } from '@/components/ui/v2/icons';
-import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
+import type { IconProps } from '@/components/ui/v2/icons';
+import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
 
 function InfoIcon(props: IconProps, ref: ForwardedRef<SVGSVGElement>) {
   return (

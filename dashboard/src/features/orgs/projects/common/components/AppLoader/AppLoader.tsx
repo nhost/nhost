@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Link } from '@/components/ui/v2/Link';
@@ -5,7 +6,6 @@ import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useInterval } from '@/hooks/useInterval';
 import { getRelativeDateByApplicationState } from '@/utils/helpers';
-import { useEffect, useState } from 'react';
 
 export interface AppLoaderProps {
   /**

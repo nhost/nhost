@@ -10,7 +10,8 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-// MultipartForm the Multipart request spec https://github.com/jaydenseric/graphql-multipart-request-spec
+// MultipartForm the Multipart request spec
+// https://github.com/jaydenseric/graphql-multipart-request-spec
 type MultipartForm struct {
 	// MaxUploadSize sets the maximum number of bytes used to parse a request body
 	// as multipart/form-data.
@@ -38,7 +39,7 @@ func (f MultipartForm) Supports(r *http.Request) bool {
 		return false
 	}
 
-	return r.Method == "POST" && mediaType == "multipart/form-data"
+	return r.Method == http.MethodPost && mediaType == "multipart/form-data"
 }
 
 func (f MultipartForm) maxUploadSize() int64 {
@@ -162,7 +163,11 @@ func (f MultipartForm) Do(w http.ResponseWriter, r *http.Request, exec graphql.G
 			if err != nil {
 				w.WriteHeader(http.StatusUnprocessableEntity)
 				if err := tmpFile.Close(); err != nil {
-					writeJsonErrorf(w, "failed to copy to temp file and close temp file for key %s", key)
+					writeJsonErrorf(
+						w,
+						"failed to copy to temp file and close temp file for key %s",
+						key,
+					)
 					return
 				}
 				writeJsonErrorf(w, "failed to copy to temp file for key %s", key)

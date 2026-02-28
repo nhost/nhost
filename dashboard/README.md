@@ -103,28 +103,30 @@ The dashboard supports build-time CSP configuration to enable self-hosted deploy
 | `NEXT_PUBLIC_MAINTENANCE_END_DATE`      | Date when maintenance mode will end.                                                        |
 | `NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET` | Secret that can be used to bypass maintenance mode.                                         |
 
-## ESLint Rules
+## Biome Linting Rules
 
-| Name                                         | Description                                                                                                                                                  |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `react/react-in-jsx-scope`                   | Disabled because we don't need to import `React` anymore.                                                                                                    |
-| `react/jsx-props-no-spreading`               | Disabled because we heavily rely on props spreading in our `@/components/ui/v2` components.                                                                  |
-| `react/require-default-props`                | Disabled because we use TypeScript instead of PropTypes.                                                                                                     |
-| `react-hooks/exhaustive-deps`                | Because we already had several rule violations when proper ESLint rules were introduced, we changed this rule to a warning.                                  |
-| `import/extensions`                          | JS / TS files should be imported without file extensions.                                                                                                    |
-| `react/jsx-filename-extension`               | JSX should only appear in `.jsx` and `.tsx` files.                                                                                                           |
-| `react/jsx-no-bind`                          | Further investigation must be made on the performance impact of functions directly passed as props to components.                                            |
-| `import/order`                               | Until we have a better auto-formatter, we disable this rule.                                                                                                 |
-| `import/no-extraneous-dependencies`          | `devDependencies` should be excluded from the list of disallowed imports.                                                                                    |
-| `curly`                                      | By default it only enforces curly braces for multi-line blocks, but it should be enforced for single-line blocks as well.                                    |
-| `@typescript-eslint/no-use-before-define`    | Order of type references should be ignored.                                                                                                                  |
-| `no-undef`                                   | [Official TypeScript ESLint packages](https://github.com/typescript-eslint/typescript-eslint/issues/4671#issuecomment-1065948494) are turning off this rule. |
-| `@typescript-eslint/no-shadow`               | TypeScript specific implementation of `no-shadow`.                                                                                                           |
-| `@typescript-eslint/no-unused-vars`          | TypeScript specific implementation of `no-unused-vars`.                                                                                                      |
-| `@typescript-eslint/prefer-optional-chain`   | Enforces optional chain wherever possible. For example: instead of `user && user.name` a much simpler `user?.name` will be enforced.                         |
-| `@typescript-eslint/consistent-type-imports` | Enforces `import type { Type } from 'module'` syntax. It prevents false positive circular dependency errors.                                                 |
-| `@typescript-eslint/naming-convention`       | Enforces a consistent naming convention.                                                                                                                     |
-| `no-restricted-imports`                      | Enforces absolute imports and consistent import paths for components from `src/components/ui` folder.                                                        |
+This project uses [Biome](https://biomejs.dev/) for linting. The rules are configured in `biome.jsonc`.
+
+| Name                          | Level | Description                                                                                           |
+| ----------------------------- | ----- | ----------------------------------------------------------------------------------------------------- |
+| `useLiteralKeys`              | off   | Disabled to allow computed property access where appropriate.                                         |
+| `noBannedTypes`               | off   | Disabled to allow usage of types like `{}` and `object` where needed.                                 |
+| `useOptionalChain`            | error | Enforces optional chain wherever possible. For example: `user?.name` instead of `user && user.name`.  |
+| `noNonNullAssertion`          | off   | Disabled to allow non-null assertions (`!`) where appropriate.                                        |
+| `useThrowOnlyError`           | error | Enforces throwing only `Error` objects.                                                               |
+| `noUselessElse`               | error | Disallows unnecessary `else` blocks after `return` statements.                                        |
+| `noParameterAssign`           | error | Disallows reassigning function parameters.                                                            |
+| `useBlockStatements`          | error | Enforces curly braces for all control flow statements.                                                |
+| `noExtraNonNullAssertion`     | off   | Disabled to allow extra non-null assertions where needed.                                             |
+| `noConsole`                   | error | Disallows `console` usage except for `console.error`, `warn`, and `info`.                             |
+| `noExplicitAny`               | error | Disallows explicit `any` type usage.                                                                  |
+| `noInnerDeclarations`         | error | Disallows function or variable declarations in blocks.                                                |
+| `noUnusedImports`             | error | Reports unused imports with auto-fix enabled.                                                         |
+| `noUnusedVariables`           | off   | Disabled (handled by TypeScript compiler).                                                            |
+| `noUnusedFunctionParameters`  | off   | Disabled (handled by TypeScript compiler).                                                            |
+| `noImportCycles`              | error | Prevents circular dependency errors.                                                                  |
+| `noShadow`                    | error | Disallows variable declarations that shadow variables declared in outer scopes.                       |
+| `noAccumulatingSpread`        | off   | Remove this rule once we have time to refactor the code that causes the warning.                      |
 
 ### Unit Tests
 

@@ -18,6 +18,7 @@ import (
 	crypto "github.com/nhost/nhost/services/auth/go/cryto"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
+	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/nhost/nhost/services/auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
@@ -252,11 +253,12 @@ func getController( //nolint:cyclop
 	}
 
 	jwtGetter, err := controller.NewJWTGetter(
-		jwtSecret,
+		[]byte(config.JWTSecret),
 		time.Second*time.Duration(config.AccessTokenExpiresIn),
 		cc,
 		"",
 		nil,
+		config.ServerURL.String(),
 	)
 	if err != nil {
 		t.Fatalf("failed to create jwt getter: %v", err)
@@ -396,5 +398,22 @@ func assertSession(
 		cmpopts.EquateApprox(0, 10),
 	); diff != "" {
 		t.Fatalf("unexpected jwt: %s", diff)
+	}
+}
+
+func testOAuth2Client() sql.AuthOauth2Client {
+	now := time.Now()
+
+	return sql.AuthOauth2Client{
+		ClientID:                  "nhost_abc123def456",
+		ClientSecretHash:          pgtype.Text{String: "", Valid: false},
+		RedirectUris:              []string{"https://example.com/callback"},
+		Scopes:                    []string{"openid", "profile", "email"},
+		CreatedBy:                 pgtype.UUID{},                              //nolint:exhaustruct
+		CreatedAt:                 pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
+		UpdatedAt:                 pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
+		Type:                      sql.OAuth2ClientTypeRegistered,
+		MetadataDocumentFetchedAt: pgtype.Timestamptz{}, //nolint:exhaustruct
+		Metadata:                  nil,
 	}
 }

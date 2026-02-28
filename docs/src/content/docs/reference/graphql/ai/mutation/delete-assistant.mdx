@@ -1,0 +1,67 @@
+---
+title: deleteAssistant
+---
+
+```graphql
+deleteAssistant {
+   assistantID: String! 
+}: Boolean!
+```
+
+Delete an assistant
+
+## Permissions needed
+
+select (assistants):
+- assistant_id
+delete (assistants):
+
+
+## Arguments
+
+
+
+    - **`assistantID`** (`String!`): Assistant to delete
+
+
+
+## Response
+
+Type: `Boolean!`
+
+
+
+
+
+
+**Request Example:**
+
+```graphql query
+query deleteAssistant (
+  $assistantID: String!
+) {
+  graphite {
+    deleteAssistant (
+      assistantID: $assistantID
+    )
+  }
+}
+```
+
+```json variables
+{
+  "assistantID": "string"
+}
+```
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "graphite": {}
+  }
+}
+```
+

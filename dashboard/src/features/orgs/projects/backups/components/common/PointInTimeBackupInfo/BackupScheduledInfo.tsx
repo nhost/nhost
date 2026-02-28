@@ -1,7 +1,7 @@
+import { memo } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { DialogFooter } from '@/components/ui/v3/dialog';
 import TextLink from '@/features/orgs/projects/common/components/TextLink/TextLink';
-import { memo } from 'react';
 
 interface Props {
   onClose: () => void;

@@ -1,0 +1,115 @@
+{
+  "root": false,
+  "extends": "//",
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "complexity": {
+        "useLiteralKeys": "off",
+        "noBannedTypes": "off",
+        "useOptionalChain": "error"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "useThrowOnlyError": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": ["../**/*"],
+                "message": "Please use absolute imports instead. (e.g: @/components/, @/hooks/, etc.)"
+              },
+              {
+                "group": ["@testing-library/react*"],
+                "message": "Please use @/tests/testUtils instead."
+              }
+            ]
+          }
+        },
+        "noUselessElse": "error",
+        "noParameterAssign": {
+          "level": "error",
+          "options": {
+            "propertyAssignment": "deny"
+          }
+        },
+        "useBlockStatements": "error"
+      },
+      "suspicious": {
+        "noExtraNonNullAssertion": "off",
+        "noImportCycles": "error",
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["error", "warn", "info"]
+          }
+        },
+        "noExplicitAny": "error"
+      },
+      "correctness": {
+        "noInnerDeclarations": "error",
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "safe"
+        },
+        "noUnusedVariables": "off",
+        "noUnusedFunctionParameters": "off"
+      },
+      "nursery": {
+        "noShadow": "error",
+        "useSortedClasses": {
+          "level": "error",
+          "fix": "safe",
+          "options": {
+            "functions": ["clsx", "cva", "tw", "tw.*", "cn"]
+          }
+        }
+      },
+      "performance": {
+        "noAccumulatingSpread": "off"
+      }
+    },
+    "includes": [
+      "!src/styles/graphiql.min.css",
+      "!src/utils/hasura-api/generated/**",
+      "!src/utils/__generated__/**",
+      "!public/**",
+      "!e2e/e2e-tests-project/**"
+    ]
+  },
+  "javascript": { "formatter": { "quoteStyle": "single" } },
+  "css": { "parser": { "tailwindDirectives": true } },
+  "overrides": [
+    {
+      "includes": ["src/tests/testUtils.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["../**/*"],
+                    "message": "Please use absolute imports instead. (e.g: @/components/, @/hooks/, etc.)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.css"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAtRules": "off"
+          }
+        }
+      }
+    }
+  ]
+}

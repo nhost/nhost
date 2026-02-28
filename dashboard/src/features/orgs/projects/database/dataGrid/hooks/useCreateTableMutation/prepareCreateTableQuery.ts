@@ -1,13 +1,13 @@
+import { format } from 'node-pg-format';
+import {
+  getPreparedHasuraQuery,
+  type HasuraOperation,
+} from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  getPreparedHasuraQuery,
-  type HasuraOperation,
-} from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { isNotEmptyValue } from '@/lib/utils';
-import { format } from 'node-pg-format';
 
 export interface PrepareCreateTableQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret' | 'table'> {

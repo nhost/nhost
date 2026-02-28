@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/json"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/oapi-codegen/runtime/types"
 )
 
 func (ctrl *Controller) GetUser( //nolint:ireturn
 	ctx context.Context, _ api.GetUserRequestObject,
 ) (api.GetUserResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	// Get authenticated user from JWT
 	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
@@ -53,6 +53,7 @@ func (ctrl *Controller) GetUser( //nolint:ireturn
 				e := types.Email(user.Email.String)
 				return &e
 			}
+
 			return nil
 		}(),
 		IsAnonymous:   user.IsAnonymous,
@@ -63,6 +64,7 @@ func (ctrl *Controller) GetUser( //nolint:ireturn
 			if user.PhoneNumber.Valid {
 				return &user.PhoneNumber.String
 			}
+
 			return nil
 		}(),
 		PhoneNumberVerified: user.PhoneNumberVerified,
@@ -70,6 +72,7 @@ func (ctrl *Controller) GetUser( //nolint:ireturn
 			if user.ActiveMfaType.Valid {
 				return &user.ActiveMfaType.String
 			}
+
 			return nil
 		}(),
 		Roles: roles,

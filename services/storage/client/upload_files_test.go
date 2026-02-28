@@ -175,16 +175,16 @@ func TestUploadFiles(t *testing.T) { //nolint:cyclop,maintidx,gocognit
 						"testfile.txt",
 						strings.NewReader("Hello, World!"),
 						&client.UploadFileMetadata{
-							Id:       ptr(id1),
-							Metadata: ptr(map[string]any{"key": "value"}),
-							Name:     ptr("Custom Name.txt"),
+							Id:       new(id1),
+							Metadata: new(map[string]any{"key": "value"}),
+							Name:     new("Custom Name.txt"),
 						},
 					),
 					client.NewFile(
 						"morefiles.txt",
 						strings.NewReader("More content"),
 						&client.UploadFileMetadata{
-							Id:       ptr(id2),
+							Id:       new(id2),
 							Metadata: nil,
 							Name:     nil,
 						},
@@ -208,7 +208,7 @@ func TestUploadFiles(t *testing.T) { //nolint:cyclop,maintidx,gocognit
 						Etag:       `"65a8e27d8879283831b664bd8b7f0ad4"`,
 						Id:         id1,
 						IsUploaded: true,
-						Metadata:   ptr(map[string]any{"key": "value"}),
+						Metadata:   new(map[string]any{"key": "value"}),
 						Name:       "Custom Name.txt",
 						MimeType:   "text/plain; charset=utf-8",
 						Size:       13,
@@ -302,8 +302,8 @@ func TestUploadFiles(t *testing.T) { //nolint:cyclop,maintidx,gocognit
 					Data    *map[string]any `json:"data,omitempty"`
 					Message string          `json:"message"`
 				}{
-					Data:    &map[string]any{"file": "blah.txt", "virus": "Win.Test.EICAR_HDB-1"},
-					Message: "virus found: Win.Test.EICAR_HDB-1",
+					Data:    &map[string]any{"file": "blah.txt", "virus": "Eicar-Test-Signature"},
+					Message: "virus found: Eicar-Test-Signature",
 				},
 				ProcessedFiles: &[]client.FileMetadata{
 					{

@@ -1,0 +1,39 @@
+---
+import Tag from './Tag.astro'
+
+interface Props {
+  label?: string
+  tags: unknown[]
+}
+
+const { label, tags: allTags } = Astro.props
+
+const tags = Array.isArray(allTags)
+  ? allTags.filter((tag): tag is string | number => typeof tag === 'string' || typeof tag === 'number')
+  : []
+---
+
+{
+  tags.length > 0 && (
+    <div class="tags">
+      {label && <>{label}</>}
+      {tags.map((tag) => {
+        if (typeof tag === 'string' && tag.length === 0) {
+          return <Tag>&quot;&quot;</Tag>
+        }
+
+        return <Tag>{tag}</Tag>
+      })}
+    </div>
+  )
+}
+
+<style>
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--sl-text-xs);
+    gap: 0.4rem;
+    margin-block: 0.5rem;
+  }
+</style>

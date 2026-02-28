@@ -1,4 +1,5 @@
-// The contents of this files are modified libraris from the Go standard library.
+// Package notifications
+// The contents of this file are modified contents from the Go standard library.
 // The original code can be found at https://cs.opensource.google/go/go/+/refs/tags/go1.22.2:src/net/smtp/smtp.go;l=321
 //
 // Copyright belongs to the Go authors.
@@ -7,9 +8,9 @@ package notifications
 import (
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"net"
 	"net/smtp"
+	"strconv"
 	"strings"
 )
 
@@ -42,7 +43,7 @@ func sendMail( //nolint:funlen,cyclop
 		}
 	}
 
-	addr := fmt.Sprintf("%s:%d", host, port)
+	addr := net.JoinHostPort(host, strconv.FormatUint(uint64(port), 10))
 
 	var (
 		conn net.Conn

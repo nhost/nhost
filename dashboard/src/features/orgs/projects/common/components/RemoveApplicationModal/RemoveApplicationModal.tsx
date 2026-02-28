@@ -1,3 +1,6 @@
+import router from 'next/router';
+import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
@@ -13,19 +16,16 @@ import {
 } from '@/utils/__generated__/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
-import router from 'next/router';
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface RemoveApplicationModalProps {
   /**
    * Call this function to imperatively close the modal.
    */
-  close: any;
+  close: () => unknown;
   /**
    * A custom function to be run instead of the own handle function defined by the component.
    */
-  handler?: any;
+  handler?: () => unknown;
   /**
    * The title of the modal.
    */
@@ -84,7 +84,7 @@ export default function RemoveApplicationModal({
           appID: project?.id,
         },
       });
-    } catch (error) {
+    } catch {
       await discordAnnounce(`Error trying to delete project: ${appName}`);
     }
     close();

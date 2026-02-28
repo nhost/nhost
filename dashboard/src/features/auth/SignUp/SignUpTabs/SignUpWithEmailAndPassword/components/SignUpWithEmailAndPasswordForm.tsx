@@ -1,3 +1,4 @@
+import { Turnstile } from '@marsidev/react-turnstile';
 import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -10,7 +11,6 @@ import {
 } from '@/components/ui/v3/form';
 import useOnSignUpWithPasswordHandler from '@/features/auth/SignUp/SignUpTabs/SignUpWithEmailAndPassword/hooks/useOnSignUpWithPasswordHandler';
 import useSignUpWithEmailAndPasswordForm from '@/features/auth/SignUp/SignUpTabs/SignUpWithEmailAndPassword/hooks/useSignUpWithEmailAndPasswordForm';
-import { Turnstile } from '@marsidev/react-turnstile';
 
 function SignUpWithEmailAndPasswordForm() {
   const form = useSignUpWithEmailAndPasswordForm();
@@ -22,18 +22,25 @@ function SignUpWithEmailAndPasswordForm() {
         onSubmit={form.handleSubmit(onSignUpWithPassword)}
         className="grid grid-flow-row gap-4 bg-transparent"
       >
-        <FormInput control={form.control} label="Name" name="displayName" />
+        <FormInput
+          control={form.control}
+          label="Name"
+          name="displayName"
+          placeholder="Name"
+        />
         <FormInput
           control={form.control}
           label="Email"
           name="email"
           type="email"
+          placeholder="Email"
         />
         <FormInput
           control={form.control}
           label="Password"
           name="password"
           type="password"
+          placeholder="Password"
         />
         <FormField
           control={form.control}
@@ -69,7 +76,7 @@ function SignUpWithEmailAndPasswordForm() {
         <Button
           type="submit"
           variant="outline"
-          className="w-full !bg-transparent"
+          className="!bg-transparent w-full"
         >
           Sign Up
         </Button>

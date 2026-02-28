@@ -1,5 +1,5 @@
-import { render, screen } from '@/tests/testUtils';
 import { test } from 'vitest';
+import { render, screen } from '@/tests/testUtils';
 import ErrorToast from './ErrorToast';
 
 const runUpdateError = {
@@ -27,10 +27,9 @@ test('should render the available Apollo error message but not the fallback mess
     'An error occurred while updating the service. Please try again.';
   render(
     <ErrorToast
-      isVisible
+      toastId="update-service-error"
       errorMessage={fallbackErrorMessage}
       error={runUpdateError}
-      close={() => {}}
     />,
   );
 

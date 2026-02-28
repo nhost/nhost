@@ -52,7 +52,7 @@ export default function BillingDetails() {
         <AccordionContent className="border-t-1 pb-0">
           <div className="rounded-md">
             <Table>
-              <TableHeader className="w-full bg-accent">
+              <TableHeader className="w-full bg-accent-background">
                 <TableRow>
                   <TableHead colSpan={3} className="w-full rounded-tl-md">
                     Item
@@ -72,7 +72,7 @@ export default function BillingDetails() {
                   </TableRow>
                 ))}
               </TableBody>
-              <TableFooter className="bg-accent">
+              <TableFooter className="bg-accent-background">
                 <TableRow>
                   <TableCell colSpan={3} className="rounded-bl-md">
                     Total

@@ -1,6 +1,6 @@
-import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import { RemoveButton } from './RemoveButton';
 
 // Mock the form data structure

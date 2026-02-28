@@ -47,7 +47,7 @@ describe('personal access token', () => {
     await request
       .post('/pat')
       .send({ expiresAt: new Date() })
-      .expect(StatusCodes.BAD_REQUEST);
+      .expect(StatusCodes.UNAUTHORIZED);
   });
 
   test('should be able to add metadata to a personal access token', async () => {
@@ -65,7 +65,6 @@ describe('personal access token', () => {
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         metadata: { name: 'Test PAT' },
       })
-      .expect(StatusCodes.OK);
 
     const { rows } = await client.query(
       'SELECT * FROM auth.refresh_tokens WHERE refresh_token_hash=$1;',

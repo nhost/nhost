@@ -1,6 +1,9 @@
+import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { HasuraAllowListSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraAllowListSettings';
 import { HasuraConsoleSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraConsoleSettings';
 import { HasuraCorsDomainSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraCorsDomainSettings';
@@ -11,14 +14,9 @@ import { HasuraLogLevelSettings } from '@/features/orgs/projects/hasura/settings
 import { HasuraPoolSizeSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraPoolSizeSettings';
 import { HasuraRemoteSchemaPermissionsSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
 import { HasuraServiceVersionSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraServiceVersionSettings';
-
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
-import type { ReactElement } from 'react';
 
 export default function HasuraSettingsPage() {
   const { project } = useProject();

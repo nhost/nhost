@@ -16,6 +16,7 @@ function NhostIcon(
       aria-label="Logo of Nhost"
       {...props}
     >
+      <title>Nhost</title>
       <g clipPath="url(#clip0_9802_20458)">
         <rect width="24" height="24" fill="#0052CD" />
         <path

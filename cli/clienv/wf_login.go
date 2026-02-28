@@ -51,7 +51,7 @@ func signinHandler(ch chan<- string) http.HandlerFunc {
 func openBrowser(ctx context.Context, url string) error {
 	var (
 		cmd  string
-		args []string
+		args []string //nolint:prealloc
 	)
 
 	switch runtime.GOOS {

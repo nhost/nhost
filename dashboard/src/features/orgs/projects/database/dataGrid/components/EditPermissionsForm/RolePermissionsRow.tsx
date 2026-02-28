@@ -1,3 +1,4 @@
+import { twMerge } from 'tailwind-merge';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
@@ -10,7 +11,6 @@ import type {
   DatabaseAccessLevel,
   DatabaseAction,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { twMerge } from 'tailwind-merge';
 
 export interface RolePermissionsProps extends TableRowProps {
   /**

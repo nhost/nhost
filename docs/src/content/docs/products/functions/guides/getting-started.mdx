@@ -1,0 +1,75 @@
+---
+title: Getting Started
+description: Create and deploy your first Nhost Function
+keywords: ["serverless functions", "getting started", "TypeScript", "JavaScript", "HTTP endpoints", "deployment"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+## Prerequisites
+
+- An Nhost project connected to a GitHub repository
+- The [Nhost CLI](/platform/cli/local-development) installed for local development
+
+## Create a Function
+
+Place a `.js` or `.ts` file inside the `./functions` directory of your project:
+
+<Tabs>
+  <TabItem label="JavaScript">
+
+```js ./functions/hello.js
+export default (req, res) => {
+  res.status(200).send(`Hello ${req.query.name}!`)
+}
+```
+
+  </TabItem>
+  <TabItem label="TypeScript">
+
+```ts ./functions/hello.ts
+import type { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+  res.status(200).send(`Hello ${req.query.name}!`)
+}
+```
+
+:::note
+Install `@types/express` for TypeScript type definitions.
+:::
+
+  </TabItem>
+</Tabs>
+
+## Test Locally
+
+Start the Nhost CLI and call your function:
+
+```shell
+curl https://local.functions.local.nhost.run/v1/hello?name=World
+```
+
+## Deploy
+
+Push your code to the connected GitHub repository. Nhost automatically deploys your functions as part of a [Deployment](/platform/cloud/git).
+
+## Echo Example
+
+A more complete example that returns request metadata:
+
+```ts ./functions/echo.ts
+import process from 'node:process'
+import type { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+  res.status(200).json({
+    headers: req.headers,
+    query: req.query,
+    node: process.version,
+    arch: process.arch,
+    invocationId: req.invocationId,
+  })
+}
+```
+

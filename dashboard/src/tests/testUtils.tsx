@@ -1,14 +1,4 @@
-/* eslint-disable no-restricted-imports */
-/* eslint-disable max-classes-per-file */
-import { DialogProvider } from '@/components/common/DialogProvider';
-import { UIProvider } from '@/components/common/UIProvider';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { createTheme } from '@/components/ui/v2/createTheme';
-import { AuthProvider } from '@/providers/Auth';
-import { NhostProvider } from '@/providers/nhost';
-import { mockRouter, mockSession } from '@/tests/mocks';
-import { createEmotionCache } from '@/utils/createEmotionCache';
-import { DummySessionStorage } from '@/utils/nhost';
+/** biome-ignore-all lint/suspicious/noExplicitAny: test utils */
 import {
   ApolloClient,
   ApolloProvider,
@@ -38,8 +28,18 @@ import userEvent, {
 import { HttpResponse } from 'msw';
 import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtime';
 import type { PropsWithChildren, ReactElement } from 'react';
+import { useMemo } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { vi } from 'vitest';
+import { DialogProvider } from '@/components/common/DialogProvider';
+import { UIProvider } from '@/components/common/UIProvider';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { createTheme } from '@/components/ui/v2/createTheme';
+import { AuthProvider } from '@/providers/Auth';
+import { NhostProvider } from '@/providers/nhost';
+import { mockRouter, mockSession } from '@/tests/mocks';
+import { createEmotionCache } from '@/utils/createEmotionCache';
+import { DummySessionStorage } from '@/utils/nhost';
 import nhostGraphQLLink from './msw/mocks/graphql/nhostGraphQLLink';
 
 // Client-side cache, shared for the whole session of the user in the browser.
@@ -78,29 +78,38 @@ export const queryClient = new QueryClient({
   },
 });
 
-const mockClient = new ApolloClient({
-  cache: new InMemoryCache(),
-  link: createHttpLink({
-    uri: 'https://local.graphql.local.nhost.run/v1',
-  }),
-  defaultOptions: {
-    query: {
-      fetchPolicy: 'no-cache',
-    },
-    watchQuery: {
-      fetchPolicy: 'no-cache',
-    },
-  },
-});
-const nhost = createServerClient({
-  subdomain: 'local',
-  region: 'local',
-  storage: new DummySessionStorage(),
-});
-nhost.sessionStorage.set(mockSession);
-
-function Providers({ children }: PropsWithChildren<{}>) {
+function Providers({ children }: PropsWithChildren) {
   const theme = createTheme('light');
+
+  const mockClient = useMemo(
+    () =>
+      new ApolloClient({
+        cache: new InMemoryCache(),
+        link: createHttpLink({
+          uri: 'https://local.graphql.local.nhost.run/v1',
+        }),
+        defaultOptions: {
+          query: {
+            fetchPolicy: 'no-cache',
+          },
+          watchQuery: {
+            fetchPolicy: 'no-cache',
+          },
+        },
+      }),
+    [],
+  );
+
+  const nhost = useMemo(() => {
+    const client = createServerClient({
+      subdomain: 'local',
+      region: 'local',
+      storage: new DummySessionStorage(),
+    });
+    client.sessionStorage.set(mockSession);
+
+    return client;
+  }, []);
 
   return (
     <RouterContext.Provider value={mockRouter}>
@@ -108,16 +117,16 @@ function Providers({ children }: PropsWithChildren<{}>) {
         <QueryClientProvider client={queryClient}>
           <CacheProvider value={emotionCache}>
             <NhostProvider nhost={nhost}>
-              <AuthProvider>
-                <ApolloProvider client={mockClient}>
+              <ApolloProvider client={mockClient}>
+                <AuthProvider>
                   <UIProvider>
                     <Toaster position="bottom-center" />
                     <ThemeProvider theme={theme}>
                       <DialogProvider>{children}</DialogProvider>
                     </ThemeProvider>
                   </UIProvider>
-                </ApolloProvider>
-              </AuthProvider>
+                </AuthProvider>
+              </ApolloProvider>
             </NhostProvider>
           </CacheProvider>
         </QueryClientProvider>
@@ -258,6 +267,33 @@ export class TestUserEvent {
       });
     });
   }
+}
+let store: any;
+
+export function setInitialStore(initialState: any) {
+  store = initialState;
+}
+
+export function localStorageMock(initialStore: any = {}) {
+  store = initialStore;
+  return {
+    getItem: vi.fn((key) => store[key] || null),
+    setItem: vi.fn((key, value) => {
+      store[key] = value.toString();
+    }),
+    removeItem: vi.fn((key) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key(index: number) {
+      return Object.keys(store)[index] ?? null;
+    },
+  };
 }
 
 export * from '@testing-library/react';

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
-import { signUp } from "./actions";
+import { useRouter } from 'next/navigation';
+import { useId, useState } from 'react';
+import { signUp } from './actions';
 
 interface SignUpFormProps {
   initialError?: string;
@@ -31,7 +31,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
       }
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "An error occurred during sign up",
+        err instanceof Error ? err.message : 'An error occurred during sign up',
       );
     } finally {
       setIsLoading(false);
@@ -82,7 +82,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
         disabled={isLoading}
         className="auth-button primary"
       >
-        {isLoading ? "Creating Account..." : "Sign Up"}
+        {isLoading ? 'Creating Account...' : 'Sign Up'}
       </button>
     </form>
   );

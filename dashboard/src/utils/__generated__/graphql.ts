@@ -205,6 +205,7 @@ export type ConfigAuth = {
   elevatedPrivileges?: Maybe<ConfigAuthElevatedPrivileges>;
   method?: Maybe<ConfigAuthMethod>;
   misc?: Maybe<ConfigAuthMisc>;
+  oauth2Provider?: Maybe<ConfigAuthOauth2Provider>;
   rateLimit?: Maybe<ConfigAuthRateLimit>;
   redirections?: Maybe<ConfigAuthRedirections>;
   /** Resources for the service */
@@ -231,6 +232,7 @@ export type ConfigAuthComparisonExp = {
   elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesComparisonExp>;
   method?: InputMaybe<ConfigAuthMethodComparisonExp>;
   misc?: InputMaybe<ConfigAuthMiscComparisonExp>;
+  oauth2Provider?: InputMaybe<ConfigAuthOauth2ProviderComparisonExp>;
   rateLimit?: InputMaybe<ConfigAuthRateLimitComparisonExp>;
   redirections?: InputMaybe<ConfigAuthRedirectionsComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
@@ -265,6 +267,7 @@ export type ConfigAuthInsertInput = {
   elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesInsertInput>;
   method?: InputMaybe<ConfigAuthMethodInsertInput>;
   misc?: InputMaybe<ConfigAuthMiscInsertInput>;
+  oauth2Provider?: InputMaybe<ConfigAuthOauth2ProviderInsertInput>;
   rateLimit?: InputMaybe<ConfigAuthRateLimitInsertInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
@@ -799,11 +802,108 @@ export type ConfigAuthMiscUpdateInput = {
   concealErrors?: InputMaybe<Scalars['Boolean']>;
 };
 
+export type ConfigAuthOauth2Provider = {
+  __typename?: 'ConfigAuthOauth2Provider';
+  accessToken?: Maybe<ConfigAuthOauth2ProviderAccessToken>;
+  clientIdMetadataDocument?: Maybe<ConfigAuthOauth2ProviderClientIdMetadataDocument>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  loginURL?: Maybe<Scalars['String']>;
+  refreshToken?: Maybe<ConfigAuthOauth2ProviderRefreshToken>;
+};
+
+export type ConfigAuthOauth2ProviderAccessToken = {
+  __typename?: 'ConfigAuthOauth2ProviderAccessToken';
+  expiresIn?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthOauth2ProviderAccessTokenComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthOauth2ProviderAccessTokenComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthOauth2ProviderAccessTokenComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthOauth2ProviderAccessTokenComparisonExp>>;
+  expiresIn?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAuthOauth2ProviderAccessTokenInsertInput = {
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthOauth2ProviderAccessTokenUpdateInput = {
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthOauth2ProviderClientIdMetadataDocument = {
+  __typename?: 'ConfigAuthOauth2ProviderClientIdMetadataDocument';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthOauth2ProviderComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthOauth2ProviderComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthOauth2ProviderComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthOauth2ProviderComparisonExp>>;
+  accessToken?: InputMaybe<ConfigAuthOauth2ProviderAccessTokenComparisonExp>;
+  clientIdMetadataDocument?: InputMaybe<ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  loginURL?: InputMaybe<ConfigStringComparisonExp>;
+  refreshToken?: InputMaybe<ConfigAuthOauth2ProviderRefreshTokenComparisonExp>;
+};
+
+export type ConfigAuthOauth2ProviderInsertInput = {
+  accessToken?: InputMaybe<ConfigAuthOauth2ProviderAccessTokenInsertInput>;
+  clientIdMetadataDocument?: InputMaybe<ConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  loginURL?: InputMaybe<Scalars['String']>;
+  refreshToken?: InputMaybe<ConfigAuthOauth2ProviderRefreshTokenInsertInput>;
+};
+
+export type ConfigAuthOauth2ProviderRefreshToken = {
+  __typename?: 'ConfigAuthOauth2ProviderRefreshToken';
+  expiresIn?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthOauth2ProviderRefreshTokenComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthOauth2ProviderRefreshTokenComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthOauth2ProviderRefreshTokenComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthOauth2ProviderRefreshTokenComparisonExp>>;
+  expiresIn?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAuthOauth2ProviderRefreshTokenInsertInput = {
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthOauth2ProviderRefreshTokenUpdateInput = {
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthOauth2ProviderUpdateInput = {
+  accessToken?: InputMaybe<ConfigAuthOauth2ProviderAccessTokenUpdateInput>;
+  clientIdMetadataDocument?: InputMaybe<ConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  loginURL?: InputMaybe<Scalars['String']>;
+  refreshToken?: InputMaybe<ConfigAuthOauth2ProviderRefreshTokenUpdateInput>;
+};
+
 export type ConfigAuthRateLimit = {
   __typename?: 'ConfigAuthRateLimit';
   bruteForce?: Maybe<ConfigRateLimit>;
   emails?: Maybe<ConfigRateLimit>;
   global?: Maybe<ConfigRateLimit>;
+  oauth2Server?: Maybe<ConfigRateLimit>;
   signups?: Maybe<ConfigRateLimit>;
   sms?: Maybe<ConfigRateLimit>;
 };
@@ -815,6 +915,7 @@ export type ConfigAuthRateLimitComparisonExp = {
   bruteForce?: InputMaybe<ConfigRateLimitComparisonExp>;
   emails?: InputMaybe<ConfigRateLimitComparisonExp>;
   global?: InputMaybe<ConfigRateLimitComparisonExp>;
+  oauth2Server?: InputMaybe<ConfigRateLimitComparisonExp>;
   signups?: InputMaybe<ConfigRateLimitComparisonExp>;
   sms?: InputMaybe<ConfigRateLimitComparisonExp>;
 };
@@ -823,6 +924,7 @@ export type ConfigAuthRateLimitInsertInput = {
   bruteForce?: InputMaybe<ConfigRateLimitInsertInput>;
   emails?: InputMaybe<ConfigRateLimitInsertInput>;
   global?: InputMaybe<ConfigRateLimitInsertInput>;
+  oauth2Server?: InputMaybe<ConfigRateLimitInsertInput>;
   signups?: InputMaybe<ConfigRateLimitInsertInput>;
   sms?: InputMaybe<ConfigRateLimitInsertInput>;
 };
@@ -831,6 +933,7 @@ export type ConfigAuthRateLimitUpdateInput = {
   bruteForce?: InputMaybe<ConfigRateLimitUpdateInput>;
   emails?: InputMaybe<ConfigRateLimitUpdateInput>;
   global?: InputMaybe<ConfigRateLimitUpdateInput>;
+  oauth2Server?: InputMaybe<ConfigRateLimitUpdateInput>;
   signups?: InputMaybe<ConfigRateLimitUpdateInput>;
   sms?: InputMaybe<ConfigRateLimitUpdateInput>;
 };
@@ -1010,6 +1113,7 @@ export type ConfigAuthUpdateInput = {
   elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesUpdateInput>;
   method?: InputMaybe<ConfigAuthMethodUpdateInput>;
   misc?: InputMaybe<ConfigAuthMiscUpdateInput>;
+  oauth2Provider?: InputMaybe<ConfigAuthOauth2ProviderUpdateInput>;
   rateLimit?: InputMaybe<ConfigAuthRateLimitUpdateInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
@@ -3118,7 +3222,9 @@ export type ConfigSystemConfigPostgres = {
   database: Scalars['String'];
   disk?: Maybe<ConfigSystemConfigPostgresDisk>;
   enabled?: Maybe<Scalars['Boolean']>;
+  encryptColumnKey?: Maybe<Scalars['String']>;
   majorVersion?: Maybe<Scalars['String']>;
+  oldEncryptColumnKey?: Maybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresComparisonExp = {
@@ -3129,7 +3235,9 @@ export type ConfigSystemConfigPostgresComparisonExp = {
   database?: InputMaybe<ConfigStringComparisonExp>;
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  encryptColumnKey?: InputMaybe<ConfigStringComparisonExp>;
   majorVersion?: InputMaybe<ConfigStringComparisonExp>;
+  oldEncryptColumnKey?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigSystemConfigPostgresConnectionString = {
@@ -3193,7 +3301,9 @@ export type ConfigSystemConfigPostgresInsertInput = {
   database: Scalars['String'];
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskInsertInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
+  encryptColumnKey?: InputMaybe<Scalars['String']>;
   majorVersion?: InputMaybe<Scalars['String']>;
+  oldEncryptColumnKey?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresUpdateInput = {
@@ -3201,7 +3311,9 @@ export type ConfigSystemConfigPostgresUpdateInput = {
   database?: InputMaybe<Scalars['String']>;
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskUpdateInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
+  encryptColumnKey?: InputMaybe<Scalars['String']>;
   majorVersion?: InputMaybe<Scalars['String']>;
+  oldEncryptColumnKey?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigUpdateInput = {
@@ -3350,6 +3462,23 @@ export type StatsLiveApps = {
   __typename?: 'StatsLiveApps';
   appID: Array<Scalars['uuid']>;
   count: Scalars['Int'];
+};
+
+/** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
+export type String_Array_Comparison_Exp = {
+  /** is the array contained in the given array value */
+  _contained_in?: InputMaybe<Array<Scalars['String']>>;
+  /** does the array contain the given value */
+  _contains?: InputMaybe<Array<Scalars['String']>>;
+  _eq?: InputMaybe<Array<Scalars['String']>>;
+  _gt?: InputMaybe<Array<Scalars['String']>>;
+  _gte?: InputMaybe<Array<Scalars['String']>>;
+  _in?: InputMaybe<Array<Array<Scalars['String']>>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _lt?: InputMaybe<Array<Scalars['String']>>;
+  _lte?: InputMaybe<Array<Scalars['String']>>;
+  _neq?: InputMaybe<Array<Scalars['String']>>;
+  _nin?: InputMaybe<Array<Array<Scalars['String']>>>;
 };
 
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
@@ -4426,6 +4555,7 @@ export type Apps = {
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
   /** An object relationship */
   billingSubscriptions?: Maybe<Billing_Subscriptions>;
+  /** main entrypoint to the configuration */
   config?: Maybe<ConfigConfig>;
   createdAt: Scalars['timestamptz'];
   /** An object relationship */
@@ -5290,6 +5420,1287 @@ export type Apps_Variance_Fields = {
 export type Apps_Variance_Order_By = {
   currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
+};
+
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequests = {
+  __typename?: 'authOauth2AuthRequests';
+  authTime?: Maybe<Scalars['timestamptz']>;
+  /** An array relationship */
+  authorizationCodes: Array<AuthOauth2AuthorizationCodes>;
+  /** An aggregate relationship */
+  authorizationCodes_aggregate: AuthOauth2AuthorizationCodes_Aggregate;
+  /** An object relationship */
+  client: AuthOauth2Clients;
+  clientId: Scalars['String'];
+  codeChallenge?: Maybe<Scalars['String']>;
+  codeChallengeMethod?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
+  done: Scalars['Boolean'];
+  expiresAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  nonce?: Maybe<Scalars['String']>;
+  redirectUri: Scalars['String'];
+  /** An array relationship */
+  refreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** An aggregate relationship */
+  refreshTokens_aggregate: AuthOauth2RefreshTokens_Aggregate;
+  resource?: Maybe<Scalars['String']>;
+  responseType: Scalars['String'];
+  scopes: Array<Scalars['String']>;
+  state?: Maybe<Scalars['String']>;
+  /** An object relationship */
+  user?: Maybe<Users>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequestsAuthorizationCodesArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequestsAuthorizationCodes_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequestsRefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequestsRefreshTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+/** aggregated selection of "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Aggregate = {
+  __typename?: 'authOauth2AuthRequests_aggregate';
+  aggregate?: Maybe<AuthOauth2AuthRequests_Aggregate_Fields>;
+  nodes: Array<AuthOauth2AuthRequests>;
+};
+
+export type AuthOauth2AuthRequests_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_And = {
+  arguments: AuthOauth2AuthRequests_Select_Column_AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: AuthOauth2AuthRequests_Select_Column_AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type AuthOauth2AuthRequests_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Aggregate_Fields = {
+  __typename?: 'authOauth2AuthRequests_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AuthOauth2AuthRequests_Max_Fields>;
+  min?: Maybe<AuthOauth2AuthRequests_Min_Fields>;
+};
+
+
+/** aggregate fields of "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<AuthOauth2AuthRequests_Max_Order_By>;
+  min?: InputMaybe<AuthOauth2AuthRequests_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Arr_Rel_Insert_Input = {
+  data: Array<AuthOauth2AuthRequests_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2AuthRequests_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "auth.oauth2_auth_requests". All fields are combined with a logical 'AND'. */
+export type AuthOauth2AuthRequests_Bool_Exp = {
+  _and?: InputMaybe<Array<AuthOauth2AuthRequests_Bool_Exp>>;
+  _not?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  _or?: InputMaybe<Array<AuthOauth2AuthRequests_Bool_Exp>>;
+  authTime?: InputMaybe<Timestamptz_Comparison_Exp>;
+  authorizationCodes?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+  authorizationCodes_aggregate?: InputMaybe<AuthOauth2AuthorizationCodes_Aggregate_Bool_Exp>;
+  client?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+  clientId?: InputMaybe<String_Comparison_Exp>;
+  codeChallenge?: InputMaybe<String_Comparison_Exp>;
+  codeChallengeMethod?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  done?: InputMaybe<Boolean_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  nonce?: InputMaybe<String_Comparison_Exp>;
+  redirectUri?: InputMaybe<String_Comparison_Exp>;
+  refreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  refreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Bool_Exp>;
+  resource?: InputMaybe<String_Comparison_Exp>;
+  responseType?: InputMaybe<String_Comparison_Exp>;
+  scopes?: InputMaybe<String_Array_Comparison_Exp>;
+  state?: InputMaybe<String_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  userId?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  Oauth2AuthRequestsPkey = 'oauth2_auth_requests_pkey'
+}
+
+/** input type for inserting data into table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Insert_Input = {
+  authTime?: InputMaybe<Scalars['timestamptz']>;
+  authorizationCodes?: InputMaybe<AuthOauth2AuthorizationCodes_Arr_Rel_Insert_Input>;
+  client?: InputMaybe<AuthOauth2Clients_Obj_Rel_Insert_Input>;
+  clientId?: InputMaybe<Scalars['String']>;
+  codeChallenge?: InputMaybe<Scalars['String']>;
+  codeChallengeMethod?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  nonce?: InputMaybe<Scalars['String']>;
+  redirectUri?: InputMaybe<Scalars['String']>;
+  refreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Arr_Rel_Insert_Input>;
+  resource?: InputMaybe<Scalars['String']>;
+  responseType?: InputMaybe<Scalars['String']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  state?: InputMaybe<Scalars['String']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type AuthOauth2AuthRequests_Max_Fields = {
+  __typename?: 'authOauth2AuthRequests_max_fields';
+  authTime?: Maybe<Scalars['timestamptz']>;
+  clientId?: Maybe<Scalars['String']>;
+  codeChallenge?: Maybe<Scalars['String']>;
+  codeChallengeMethod?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  nonce?: Maybe<Scalars['String']>;
+  redirectUri?: Maybe<Scalars['String']>;
+  resource?: Maybe<Scalars['String']>;
+  responseType?: Maybe<Scalars['String']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  state?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Max_Order_By = {
+  authTime?: InputMaybe<Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  codeChallenge?: InputMaybe<Order_By>;
+  codeChallengeMethod?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
+  redirectUri?: InputMaybe<Order_By>;
+  resource?: InputMaybe<Order_By>;
+  responseType?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  state?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type AuthOauth2AuthRequests_Min_Fields = {
+  __typename?: 'authOauth2AuthRequests_min_fields';
+  authTime?: Maybe<Scalars['timestamptz']>;
+  clientId?: Maybe<Scalars['String']>;
+  codeChallenge?: Maybe<Scalars['String']>;
+  codeChallengeMethod?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  nonce?: Maybe<Scalars['String']>;
+  redirectUri?: Maybe<Scalars['String']>;
+  resource?: Maybe<Scalars['String']>;
+  responseType?: Maybe<Scalars['String']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  state?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Min_Order_By = {
+  authTime?: InputMaybe<Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  codeChallenge?: InputMaybe<Order_By>;
+  codeChallengeMethod?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
+  redirectUri?: InputMaybe<Order_By>;
+  resource?: InputMaybe<Order_By>;
+  responseType?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  state?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Mutation_Response = {
+  __typename?: 'authOauth2AuthRequests_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthOauth2AuthRequests>;
+};
+
+/** input type for inserting object relation for remote table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Obj_Rel_Insert_Input = {
+  data: AuthOauth2AuthRequests_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2AuthRequests_On_Conflict>;
+};
+
+/** on_conflict condition type for table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_On_Conflict = {
+  constraint: AuthOauth2AuthRequests_Constraint;
+  update_columns?: Array<AuthOauth2AuthRequests_Update_Column>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "auth.oauth2_auth_requests". */
+export type AuthOauth2AuthRequests_Order_By = {
+  authTime?: InputMaybe<Order_By>;
+  authorizationCodes_aggregate?: InputMaybe<AuthOauth2AuthorizationCodes_Aggregate_Order_By>;
+  client?: InputMaybe<AuthOauth2Clients_Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  codeChallenge?: InputMaybe<Order_By>;
+  codeChallengeMethod?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  done?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
+  redirectUri?: InputMaybe<Order_By>;
+  refreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Order_By>;
+  resource?: InputMaybe<Order_By>;
+  responseType?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  state?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: auth.oauth2_auth_requests */
+export type AuthOauth2AuthRequests_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Select_Column {
+  /** column name */
+  AuthTime = 'authTime',
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  CodeChallenge = 'codeChallenge',
+  /** column name */
+  CodeChallengeMethod = 'codeChallengeMethod',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Done = 'done',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Nonce = 'nonce',
+  /** column name */
+  RedirectUri = 'redirectUri',
+  /** column name */
+  Resource = 'resource',
+  /** column name */
+  ResponseType = 'responseType',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  State = 'state',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** select "authOauth2AuthRequests_aggregate_bool_exp_bool_and_arguments_columns" columns of table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Select_Column_AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Done = 'done'
+}
+
+/** select "authOauth2AuthRequests_aggregate_bool_exp_bool_or_arguments_columns" columns of table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Select_Column_AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Done = 'done'
+}
+
+/** input type for updating data in table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Set_Input = {
+  authTime?: InputMaybe<Scalars['timestamptz']>;
+  clientId?: InputMaybe<Scalars['String']>;
+  codeChallenge?: InputMaybe<Scalars['String']>;
+  codeChallengeMethod?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  nonce?: InputMaybe<Scalars['String']>;
+  redirectUri?: InputMaybe<Scalars['String']>;
+  resource?: InputMaybe<Scalars['String']>;
+  responseType?: InputMaybe<Scalars['String']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  state?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "authOauth2AuthRequests" */
+export type AuthOauth2AuthRequests_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthOauth2AuthRequests_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthOauth2AuthRequests_Stream_Cursor_Value_Input = {
+  authTime?: InputMaybe<Scalars['timestamptz']>;
+  clientId?: InputMaybe<Scalars['String']>;
+  codeChallenge?: InputMaybe<Scalars['String']>;
+  codeChallengeMethod?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  nonce?: InputMaybe<Scalars['String']>;
+  redirectUri?: InputMaybe<Scalars['String']>;
+  resource?: InputMaybe<Scalars['String']>;
+  responseType?: InputMaybe<Scalars['String']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  state?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Update_Column {
+  /** column name */
+  AuthTime = 'authTime',
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  CodeChallenge = 'codeChallenge',
+  /** column name */
+  CodeChallengeMethod = 'codeChallengeMethod',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Done = 'done',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Nonce = 'nonce',
+  /** column name */
+  RedirectUri = 'redirectUri',
+  /** column name */
+  Resource = 'resource',
+  /** column name */
+  ResponseType = 'responseType',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  State = 'state',
+  /** column name */
+  UserId = 'userId'
+}
+
+export type AuthOauth2AuthRequests_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AuthOauth2AuthRequests_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: AuthOauth2AuthRequests_Bool_Exp;
+};
+
+/** OAuth2 authorization codes pending exchange for tokens. */
+export type AuthOauth2AuthorizationCodes = {
+  __typename?: 'authOauth2AuthorizationCodes';
+  /** An object relationship */
+  authRequest: AuthOauth2AuthRequests;
+  authRequestId: Scalars['uuid'];
+  codeHash: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  expiresAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+};
+
+/** aggregated selection of "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Aggregate = {
+  __typename?: 'authOauth2AuthorizationCodes_aggregate';
+  aggregate?: Maybe<AuthOauth2AuthorizationCodes_Aggregate_Fields>;
+  nodes: Array<AuthOauth2AuthorizationCodes>;
+};
+
+export type AuthOauth2AuthorizationCodes_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthOauth2AuthorizationCodes_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthOauth2AuthorizationCodes_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Aggregate_Fields = {
+  __typename?: 'authOauth2AuthorizationCodes_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AuthOauth2AuthorizationCodes_Max_Fields>;
+  min?: Maybe<AuthOauth2AuthorizationCodes_Min_Fields>;
+};
+
+
+/** aggregate fields of "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<AuthOauth2AuthorizationCodes_Max_Order_By>;
+  min?: InputMaybe<AuthOauth2AuthorizationCodes_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Arr_Rel_Insert_Input = {
+  data: Array<AuthOauth2AuthorizationCodes_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2AuthorizationCodes_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "auth.oauth2_authorization_codes". All fields are combined with a logical 'AND'. */
+export type AuthOauth2AuthorizationCodes_Bool_Exp = {
+  _and?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Bool_Exp>>;
+  _not?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+  _or?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Bool_Exp>>;
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  authRequestId?: InputMaybe<Uuid_Comparison_Exp>;
+  codeHash?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "auth.oauth2_authorization_codes" */
+export enum AuthOauth2AuthorizationCodes_Constraint {
+  /** unique or primary key constraint on columns "code_hash" */
+  Oauth2AuthorizationCodesCodeHashKey = 'oauth2_authorization_codes_code_hash_key',
+  /** unique or primary key constraint on columns "id" */
+  Oauth2AuthorizationCodesPkey = 'oauth2_authorization_codes_pkey'
+}
+
+/** input type for inserting data into table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Insert_Input = {
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Obj_Rel_Insert_Input>;
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  codeHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type AuthOauth2AuthorizationCodes_Max_Fields = {
+  __typename?: 'authOauth2AuthorizationCodes_max_fields';
+  authRequestId?: Maybe<Scalars['uuid']>;
+  codeHash?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Max_Order_By = {
+  authRequestId?: InputMaybe<Order_By>;
+  codeHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type AuthOauth2AuthorizationCodes_Min_Fields = {
+  __typename?: 'authOauth2AuthorizationCodes_min_fields';
+  authRequestId?: Maybe<Scalars['uuid']>;
+  codeHash?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Min_Order_By = {
+  authRequestId?: InputMaybe<Order_By>;
+  codeHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Mutation_Response = {
+  __typename?: 'authOauth2AuthorizationCodes_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthOauth2AuthorizationCodes>;
+};
+
+/** on_conflict condition type for table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_On_Conflict = {
+  constraint: AuthOauth2AuthorizationCodes_Constraint;
+  update_columns?: Array<AuthOauth2AuthorizationCodes_Update_Column>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "auth.oauth2_authorization_codes". */
+export type AuthOauth2AuthorizationCodes_Order_By = {
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Order_By>;
+  authRequestId?: InputMaybe<Order_By>;
+  codeHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: auth.oauth2_authorization_codes */
+export type AuthOauth2AuthorizationCodes_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "auth.oauth2_authorization_codes" */
+export enum AuthOauth2AuthorizationCodes_Select_Column {
+  /** column name */
+  AuthRequestId = 'authRequestId',
+  /** column name */
+  CodeHash = 'codeHash',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id'
+}
+
+/** input type for updating data in table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Set_Input = {
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  codeHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "authOauth2AuthorizationCodes" */
+export type AuthOauth2AuthorizationCodes_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthOauth2AuthorizationCodes_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthOauth2AuthorizationCodes_Stream_Cursor_Value_Input = {
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  codeHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "auth.oauth2_authorization_codes" */
+export enum AuthOauth2AuthorizationCodes_Update_Column {
+  /** column name */
+  AuthRequestId = 'authRequestId',
+  /** column name */
+  CodeHash = 'codeHash',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id'
+}
+
+export type AuthOauth2AuthorizationCodes_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AuthOauth2AuthorizationCodes_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: AuthOauth2AuthorizationCodes_Bool_Exp;
+};
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2Clients = {
+  __typename?: 'authOauth2Clients';
+  /** An array relationship */
+  authRequests: Array<AuthOauth2AuthRequests>;
+  /** An aggregate relationship */
+  authRequests_aggregate: AuthOauth2AuthRequests_Aggregate;
+  clientId: Scalars['String'];
+  clientSecretHash?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
+  createdBy?: Maybe<Scalars['uuid']>;
+  /** An object relationship */
+  createdByUser?: Maybe<Users>;
+  metadata?: Maybe<Scalars['jsonb']>;
+  metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
+  /** An array relationship */
+  oauth2RefreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** An aggregate relationship */
+  oauth2RefreshTokens_aggregate: AuthOauth2RefreshTokens_Aggregate;
+  redirectUris: Array<Scalars['String']>;
+  scopes: Array<Scalars['String']>;
+  type: Scalars['String'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsAuthRequestsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsAuthRequests_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsMetadataArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsOauth2RefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsOauth2RefreshTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+/** aggregated selection of "auth.oauth2_clients" */
+export type AuthOauth2Clients_Aggregate = {
+  __typename?: 'authOauth2Clients_aggregate';
+  aggregate?: Maybe<AuthOauth2Clients_Aggregate_Fields>;
+  nodes: Array<AuthOauth2Clients>;
+};
+
+/** aggregate fields of "auth.oauth2_clients" */
+export type AuthOauth2Clients_Aggregate_Fields = {
+  __typename?: 'authOauth2Clients_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AuthOauth2Clients_Max_Fields>;
+  min?: Maybe<AuthOauth2Clients_Min_Fields>;
+};
+
+
+/** aggregate fields of "auth.oauth2_clients" */
+export type AuthOauth2Clients_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type AuthOauth2Clients_Append_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** Boolean expression to filter rows from the table "auth.oauth2_clients". All fields are combined with a logical 'AND'. */
+export type AuthOauth2Clients_Bool_Exp = {
+  _and?: InputMaybe<Array<AuthOauth2Clients_Bool_Exp>>;
+  _not?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+  _or?: InputMaybe<Array<AuthOauth2Clients_Bool_Exp>>;
+  authRequests?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  authRequests_aggregate?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp>;
+  clientId?: InputMaybe<String_Comparison_Exp>;
+  clientSecretHash?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  createdBy?: InputMaybe<Uuid_Comparison_Exp>;
+  createdByUser?: InputMaybe<Users_Bool_Exp>;
+  metadata?: InputMaybe<Jsonb_Comparison_Exp>;
+  metadataDocumentFetchedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  oauth2RefreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Bool_Exp>;
+  redirectUris?: InputMaybe<String_Array_Comparison_Exp>;
+  scopes?: InputMaybe<String_Array_Comparison_Exp>;
+  type?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "auth.oauth2_clients" */
+export enum AuthOauth2Clients_Constraint {
+  /** unique or primary key constraint on columns "client_id" */
+  Oauth2ClientsClientIdKey = 'oauth2_clients_client_id_key',
+  /** unique or primary key constraint on columns "client_id" */
+  Oauth2ClientsPkey = 'oauth2_clients_pkey'
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type AuthOauth2Clients_Delete_At_Path_Input = {
+  metadata?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type AuthOauth2Clients_Delete_Elem_Input = {
+  metadata?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type AuthOauth2Clients_Delete_Key_Input = {
+  metadata?: InputMaybe<Scalars['String']>;
+};
+
+/** input type for inserting data into table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Insert_Input = {
+  authRequests?: InputMaybe<AuthOauth2AuthRequests_Arr_Rel_Insert_Input>;
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecretHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  createdBy?: InputMaybe<Scalars['uuid']>;
+  createdByUser?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  metadataDocumentFetchedAt?: InputMaybe<Scalars['timestamptz']>;
+  oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Arr_Rel_Insert_Input>;
+  redirectUris?: InputMaybe<Array<Scalars['String']>>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  type?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type AuthOauth2Clients_Max_Fields = {
+  __typename?: 'authOauth2Clients_max_fields';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecretHash?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  createdBy?: Maybe<Scalars['uuid']>;
+  metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
+  redirectUris?: Maybe<Array<Scalars['String']>>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  type?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type AuthOauth2Clients_Min_Fields = {
+  __typename?: 'authOauth2Clients_min_fields';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecretHash?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  createdBy?: Maybe<Scalars['uuid']>;
+  metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
+  redirectUris?: Maybe<Array<Scalars['String']>>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  type?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Mutation_Response = {
+  __typename?: 'authOauth2Clients_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthOauth2Clients>;
+};
+
+/** input type for inserting object relation for remote table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Obj_Rel_Insert_Input = {
+  data: AuthOauth2Clients_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2Clients_On_Conflict>;
+};
+
+/** on_conflict condition type for table "auth.oauth2_clients" */
+export type AuthOauth2Clients_On_Conflict = {
+  constraint: AuthOauth2Clients_Constraint;
+  update_columns?: Array<AuthOauth2Clients_Update_Column>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "auth.oauth2_clients". */
+export type AuthOauth2Clients_Order_By = {
+  authRequests_aggregate?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  clientSecretHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  createdBy?: InputMaybe<Order_By>;
+  createdByUser?: InputMaybe<Users_Order_By>;
+  metadata?: InputMaybe<Order_By>;
+  metadataDocumentFetchedAt?: InputMaybe<Order_By>;
+  oauth2RefreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Order_By>;
+  redirectUris?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  type?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: auth.oauth2_clients */
+export type AuthOauth2Clients_Pk_Columns_Input = {
+  clientId: Scalars['String'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type AuthOauth2Clients_Prepend_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** select columns of table "auth.oauth2_clients" */
+export enum AuthOauth2Clients_Select_Column {
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  ClientSecretHash = 'clientSecretHash',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CreatedBy = 'createdBy',
+  /** column name */
+  Metadata = 'metadata',
+  /** column name */
+  MetadataDocumentFetchedAt = 'metadataDocumentFetchedAt',
+  /** column name */
+  RedirectUris = 'redirectUris',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  Type = 'type',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Set_Input = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecretHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  createdBy?: InputMaybe<Scalars['uuid']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  metadataDocumentFetchedAt?: InputMaybe<Scalars['timestamptz']>;
+  redirectUris?: InputMaybe<Array<Scalars['String']>>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  type?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "authOauth2Clients" */
+export type AuthOauth2Clients_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthOauth2Clients_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthOauth2Clients_Stream_Cursor_Value_Input = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecretHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  createdBy?: InputMaybe<Scalars['uuid']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  metadataDocumentFetchedAt?: InputMaybe<Scalars['timestamptz']>;
+  redirectUris?: InputMaybe<Array<Scalars['String']>>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  type?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "auth.oauth2_clients" */
+export enum AuthOauth2Clients_Update_Column {
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  ClientSecretHash = 'clientSecretHash',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CreatedBy = 'createdBy',
+  /** column name */
+  Metadata = 'metadata',
+  /** column name */
+  MetadataDocumentFetchedAt = 'metadataDocumentFetchedAt',
+  /** column name */
+  RedirectUris = 'redirectUris',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  Type = 'type',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type AuthOauth2Clients_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<AuthOauth2Clients_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<AuthOauth2Clients_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<AuthOauth2Clients_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<AuthOauth2Clients_Delete_Key_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<AuthOauth2Clients_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AuthOauth2Clients_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: AuthOauth2Clients_Bool_Exp;
+};
+
+/** OAuth2 refresh tokens with client and scope binding. */
+export type AuthOauth2RefreshTokens = {
+  __typename?: 'authOauth2RefreshTokens';
+  /** An object relationship */
+  authRequest?: Maybe<AuthOauth2AuthRequests>;
+  authRequestId?: Maybe<Scalars['uuid']>;
+  /** An object relationship */
+  client: AuthOauth2Clients;
+  clientId: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  expiresAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  scopes: Array<Scalars['String']>;
+  tokenHash: Scalars['String'];
+  /** An object relationship */
+  user: Users;
+  userId: Scalars['uuid'];
+};
+
+/** aggregated selection of "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Aggregate = {
+  __typename?: 'authOauth2RefreshTokens_aggregate';
+  aggregate?: Maybe<AuthOauth2RefreshTokens_Aggregate_Fields>;
+  nodes: Array<AuthOauth2RefreshTokens>;
+};
+
+export type AuthOauth2RefreshTokens_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthOauth2RefreshTokens_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Aggregate_Fields = {
+  __typename?: 'authOauth2RefreshTokens_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AuthOauth2RefreshTokens_Max_Fields>;
+  min?: Maybe<AuthOauth2RefreshTokens_Min_Fields>;
+};
+
+
+/** aggregate fields of "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<AuthOauth2RefreshTokens_Max_Order_By>;
+  min?: InputMaybe<AuthOauth2RefreshTokens_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Arr_Rel_Insert_Input = {
+  data: Array<AuthOauth2RefreshTokens_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2RefreshTokens_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "auth.oauth2_refresh_tokens". All fields are combined with a logical 'AND'. */
+export type AuthOauth2RefreshTokens_Bool_Exp = {
+  _and?: InputMaybe<Array<AuthOauth2RefreshTokens_Bool_Exp>>;
+  _not?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  _or?: InputMaybe<Array<AuthOauth2RefreshTokens_Bool_Exp>>;
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  authRequestId?: InputMaybe<Uuid_Comparison_Exp>;
+  client?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+  clientId?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  scopes?: InputMaybe<String_Array_Comparison_Exp>;
+  tokenHash?: InputMaybe<String_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  userId?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "auth.oauth2_refresh_tokens" */
+export enum AuthOauth2RefreshTokens_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  Oauth2RefreshTokensPkey = 'oauth2_refresh_tokens_pkey',
+  /** unique or primary key constraint on columns "token_hash" */
+  Oauth2RefreshTokensTokenHashKey = 'oauth2_refresh_tokens_token_hash_key'
+}
+
+/** input type for inserting data into table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Insert_Input = {
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Obj_Rel_Insert_Input>;
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  client?: InputMaybe<AuthOauth2Clients_Obj_Rel_Insert_Input>;
+  clientId?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  tokenHash?: InputMaybe<Scalars['String']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type AuthOauth2RefreshTokens_Max_Fields = {
+  __typename?: 'authOauth2RefreshTokens_max_fields';
+  authRequestId?: Maybe<Scalars['uuid']>;
+  clientId?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  tokenHash?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Max_Order_By = {
+  authRequestId?: InputMaybe<Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  tokenHash?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type AuthOauth2RefreshTokens_Min_Fields = {
+  __typename?: 'authOauth2RefreshTokens_min_fields';
+  authRequestId?: Maybe<Scalars['uuid']>;
+  clientId?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  tokenHash?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Min_Order_By = {
+  authRequestId?: InputMaybe<Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  tokenHash?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Mutation_Response = {
+  __typename?: 'authOauth2RefreshTokens_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthOauth2RefreshTokens>;
+};
+
+/** on_conflict condition type for table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_On_Conflict = {
+  constraint: AuthOauth2RefreshTokens_Constraint;
+  update_columns?: Array<AuthOauth2RefreshTokens_Update_Column>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "auth.oauth2_refresh_tokens". */
+export type AuthOauth2RefreshTokens_Order_By = {
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Order_By>;
+  authRequestId?: InputMaybe<Order_By>;
+  client?: InputMaybe<AuthOauth2Clients_Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  tokenHash?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: auth.oauth2_refresh_tokens */
+export type AuthOauth2RefreshTokens_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "auth.oauth2_refresh_tokens" */
+export enum AuthOauth2RefreshTokens_Select_Column {
+  /** column name */
+  AuthRequestId = 'authRequestId',
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  TokenHash = 'tokenHash',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** input type for updating data in table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Set_Input = {
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  clientId?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  tokenHash?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "authOauth2RefreshTokens" */
+export type AuthOauth2RefreshTokens_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthOauth2RefreshTokens_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthOauth2RefreshTokens_Stream_Cursor_Value_Input = {
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  clientId?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  tokenHash?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "auth.oauth2_refresh_tokens" */
+export enum AuthOauth2RefreshTokens_Update_Column {
+  /** column name */
+  AuthRequestId = 'authRequestId',
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  TokenHash = 'tokenHash',
+  /** column name */
+  UserId = 'userId'
+}
+
+export type AuthOauth2RefreshTokens_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AuthOauth2RefreshTokens_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: AuthOauth2RefreshTokens_Bool_Exp;
 };
 
 /** Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly. */
@@ -11094,6 +12505,7 @@ export type Deployments = {
   commitSHA: Scalars['String'];
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   /** An array relationship */
   deploymentLogs: Array<DeploymentLogs>;
@@ -11191,6 +12603,7 @@ export type Deployments_Bool_Exp = {
   commitSHA?: InputMaybe<String_Comparison_Exp>;
   commitUserAvatarUrl?: InputMaybe<String_Comparison_Exp>;
   commitUserName?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentEndedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentLogs?: InputMaybe<DeploymentLogs_Bool_Exp>;
   deploymentLogs_aggregate?: InputMaybe<DeploymentLogs_Aggregate_Bool_Exp>;
@@ -11222,6 +12635,7 @@ export type Deployments_Insert_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentLogs?: InputMaybe<DeploymentLogs_Arr_Rel_Insert_Input>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -11246,6 +12660,7 @@ export type Deployments_Max_Fields = {
   commitSHA?: Maybe<Scalars['String']>;
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStartedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStatus?: Maybe<Scalars['String']>;
@@ -11268,6 +12683,7 @@ export type Deployments_Max_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
   deploymentStatus?: InputMaybe<Order_By>;
@@ -11291,6 +12707,7 @@ export type Deployments_Min_Fields = {
   commitSHA?: Maybe<Scalars['String']>;
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStartedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStatus?: Maybe<Scalars['String']>;
@@ -11313,6 +12730,7 @@ export type Deployments_Min_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
   deploymentStatus?: InputMaybe<Order_By>;
@@ -11359,6 +12777,7 @@ export type Deployments_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentLogs_aggregate?: InputMaybe<DeploymentLogs_Aggregate_Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
@@ -11392,6 +12811,8 @@ export enum Deployments_Select_Column {
   CommitUserAvatarUrl = 'commitUserAvatarUrl',
   /** column name */
   CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
   /** column name */
   DeploymentEndedAt = 'deploymentEndedAt',
   /** column name */
@@ -11427,6 +12848,7 @@ export type Deployments_Set_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStatus?: InputMaybe<Scalars['String']>;
@@ -11457,6 +12879,7 @@ export type Deployments_Stream_Cursor_Value_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStatus?: InputMaybe<Scalars['String']>;
@@ -11484,6 +12907,8 @@ export enum Deployments_Update_Column {
   CommitUserAvatarUrl = 'commitUserAvatarUrl',
   /** column name */
   CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
   /** column name */
   DeploymentEndedAt = 'deploymentEndedAt',
   /** column name */
@@ -13067,6 +14492,7 @@ export type Mutation_Root = {
   billingUpgradeFreeOrganization: Scalars['String'];
   billingUploadReports: Scalars['Boolean'];
   changeDatabaseVersion: Scalars['Boolean'];
+  connectGithubRepo: Scalars['Boolean'];
   /** delete single row from the table: "announcements_read" */
   deleteAnnouncementRead?: Maybe<Announcements_Read>;
   /** delete data from the table: "announcements_read" */
@@ -13083,6 +14509,22 @@ export type Mutation_Root = {
   deleteAppStates?: Maybe<AppStates_Mutation_Response>;
   /** delete data from the table: "apps" */
   deleteApps?: Maybe<Apps_Mutation_Response>;
+  /** delete single row from the table: "auth.oauth2_auth_requests" */
+  deleteAuthOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** delete data from the table: "auth.oauth2_auth_requests" */
+  deleteAuthOauth2AuthRequests?: Maybe<AuthOauth2AuthRequests_Mutation_Response>;
+  /** delete single row from the table: "auth.oauth2_authorization_codes" */
+  deleteAuthOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** delete data from the table: "auth.oauth2_authorization_codes" */
+  deleteAuthOauth2AuthorizationCodes?: Maybe<AuthOauth2AuthorizationCodes_Mutation_Response>;
+  /** delete single row from the table: "auth.oauth2_clients" */
+  deleteAuthOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** delete data from the table: "auth.oauth2_clients" */
+  deleteAuthOauth2Clients?: Maybe<AuthOauth2Clients_Mutation_Response>;
+  /** delete single row from the table: "auth.oauth2_refresh_tokens" */
+  deleteAuthOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** delete data from the table: "auth.oauth2_refresh_tokens" */
+  deleteAuthOauth2RefreshTokens?: Maybe<AuthOauth2RefreshTokens_Mutation_Response>;
   /** delete single row from the table: "auth.providers" */
   deleteAuthProvider?: Maybe<AuthProviders>;
   /** delete single row from the table: "auth.provider_requests" */
@@ -13282,6 +14724,10 @@ export type Mutation_Root = {
   delete_regions?: Maybe<Regions_Mutation_Response>;
   /** delete single row from the table: "regions" */
   delete_regions_by_pk?: Maybe<Regions>;
+  /** delete data from the table: "sla_level" */
+  delete_sla_level?: Maybe<Sla_Level_Mutation_Response>;
+  /** delete single row from the table: "sla_level" */
+  delete_sla_level_by_pk?: Maybe<Sla_Level>;
   /** insert a single row into the table: "announcements_read" */
   insertAnnouncementRead?: Maybe<Announcements_Read>;
   /** insert data into the table: "announcements_read" */
@@ -13298,6 +14744,22 @@ export type Mutation_Root = {
   insertAppStates?: Maybe<AppStates_Mutation_Response>;
   /** insert data into the table: "apps" */
   insertApps?: Maybe<Apps_Mutation_Response>;
+  /** insert a single row into the table: "auth.oauth2_auth_requests" */
+  insertAuthOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** insert data into the table: "auth.oauth2_auth_requests" */
+  insertAuthOauth2AuthRequests?: Maybe<AuthOauth2AuthRequests_Mutation_Response>;
+  /** insert a single row into the table: "auth.oauth2_authorization_codes" */
+  insertAuthOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** insert data into the table: "auth.oauth2_authorization_codes" */
+  insertAuthOauth2AuthorizationCodes?: Maybe<AuthOauth2AuthorizationCodes_Mutation_Response>;
+  /** insert a single row into the table: "auth.oauth2_clients" */
+  insertAuthOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** insert data into the table: "auth.oauth2_clients" */
+  insertAuthOauth2Clients?: Maybe<AuthOauth2Clients_Mutation_Response>;
+  /** insert a single row into the table: "auth.oauth2_refresh_tokens" */
+  insertAuthOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** insert data into the table: "auth.oauth2_refresh_tokens" */
+  insertAuthOauth2RefreshTokens?: Maybe<AuthOauth2RefreshTokens_Mutation_Response>;
   /** insert a single row into the table: "auth.providers" */
   insertAuthProvider?: Maybe<AuthProviders>;
   /** insert a single row into the table: "auth.provider_requests" */
@@ -13497,6 +14959,10 @@ export type Mutation_Root = {
   insert_regions?: Maybe<Regions_Mutation_Response>;
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
+  /** insert data into the table: "sla_level" */
+  insert_sla_level?: Maybe<Sla_Level_Mutation_Response>;
+  /** insert a single row into the table: "sla_level" */
+  insert_sla_level_one?: Maybe<Sla_Level>;
   /** execute VOLATILE function "organization_member_invite_accept" which returns "organization_members" */
   organizationMemberInviteAccept: Array<Organization_Members>;
   pauseInactiveApps: Array<Scalars['String']>;
@@ -13534,6 +15000,22 @@ export type Mutation_Root = {
   updateAppStates?: Maybe<AppStates_Mutation_Response>;
   /** update data of the table: "apps" */
   updateApps?: Maybe<Apps_Mutation_Response>;
+  /** update single row of the table: "auth.oauth2_auth_requests" */
+  updateAuthOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** update data of the table: "auth.oauth2_auth_requests" */
+  updateAuthOauth2AuthRequests?: Maybe<AuthOauth2AuthRequests_Mutation_Response>;
+  /** update single row of the table: "auth.oauth2_authorization_codes" */
+  updateAuthOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** update data of the table: "auth.oauth2_authorization_codes" */
+  updateAuthOauth2AuthorizationCodes?: Maybe<AuthOauth2AuthorizationCodes_Mutation_Response>;
+  /** update single row of the table: "auth.oauth2_clients" */
+  updateAuthOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** update data of the table: "auth.oauth2_clients" */
+  updateAuthOauth2Clients?: Maybe<AuthOauth2Clients_Mutation_Response>;
+  /** update single row of the table: "auth.oauth2_refresh_tokens" */
+  updateAuthOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** update data of the table: "auth.oauth2_refresh_tokens" */
+  updateAuthOauth2RefreshTokens?: Maybe<AuthOauth2RefreshTokens_Mutation_Response>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -13716,6 +15198,14 @@ export type Mutation_Root = {
   update_appStates_many?: Maybe<Array<Maybe<AppStates_Mutation_Response>>>;
   /** update multiples rows of table: "apps" */
   update_apps_many?: Maybe<Array<Maybe<Apps_Mutation_Response>>>;
+  /** update multiples rows of table: "auth.oauth2_auth_requests" */
+  update_authOauth2AuthRequests_many?: Maybe<Array<Maybe<AuthOauth2AuthRequests_Mutation_Response>>>;
+  /** update multiples rows of table: "auth.oauth2_authorization_codes" */
+  update_authOauth2AuthorizationCodes_many?: Maybe<Array<Maybe<AuthOauth2AuthorizationCodes_Mutation_Response>>>;
+  /** update multiples rows of table: "auth.oauth2_clients" */
+  update_authOauth2Clients_many?: Maybe<Array<Maybe<AuthOauth2Clients_Mutation_Response>>>;
+  /** update multiples rows of table: "auth.oauth2_refresh_tokens" */
+  update_authOauth2RefreshTokens_many?: Maybe<Array<Maybe<AuthOauth2RefreshTokens_Mutation_Response>>>;
   /** update multiples rows of table: "auth.provider_requests" */
   update_authProviderRequests_many?: Maybe<Array<Maybe<AuthProviderRequests_Mutation_Response>>>;
   /** update multiples rows of table: "auth.providers" */
@@ -13828,6 +15318,12 @@ export type Mutation_Root = {
   update_regions_many?: Maybe<Array<Maybe<Regions_Mutation_Response>>>;
   /** update multiples rows of table: "run_service" */
   update_run_service_many?: Maybe<Array<Maybe<Run_Service_Mutation_Response>>>;
+  /** update data of the table: "sla_level" */
+  update_sla_level?: Maybe<Sla_Level_Mutation_Response>;
+  /** update single row of the table: "sla_level" */
+  update_sla_level_by_pk?: Maybe<Sla_Level>;
+  /** update multiples rows of table: "sla_level" */
+  update_sla_level_many?: Maybe<Array<Maybe<Sla_Level_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
   /** update multiples rows of table: "storage.virus" */
@@ -13969,6 +15465,15 @@ export type Mutation_RootChangeDatabaseVersionArgs = {
 
 
 /** mutation root */
+export type Mutation_RootConnectGithubRepoArgs = {
+  appID: Scalars['uuid'];
+  baseFolder: Scalars['String'];
+  githubNodeID: Scalars['String'];
+  productionBranch: Scalars['String'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDeleteAnnouncementReadArgs = {
   id: Scalars['uuid'];
 };
@@ -14013,6 +15518,54 @@ export type Mutation_RootDeleteAppStatesArgs = {
 /** mutation root */
 export type Mutation_RootDeleteAppsArgs = {
   where: Apps_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2AuthRequestArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2AuthRequestsArgs = {
+  where: AuthOauth2AuthRequests_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2AuthorizationCodeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2AuthorizationCodesArgs = {
+  where: AuthOauth2AuthorizationCodes_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2ClientArgs = {
+  clientId: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2ClientsArgs = {
+  where: AuthOauth2Clients_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2RefreshTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2RefreshTokensArgs = {
+  where: AuthOauth2RefreshTokens_Bool_Exp;
 };
 
 
@@ -14625,6 +16178,18 @@ export type Mutation_RootDelete_Regions_By_PkArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_Sla_LevelArgs = {
+  where: Sla_Level_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Sla_Level_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertAnnouncementReadArgs = {
   object: Announcements_Read_Insert_Input;
   on_conflict?: InputMaybe<Announcements_Read_On_Conflict>;
@@ -14677,6 +16242,62 @@ export type Mutation_RootInsertAppStatesArgs = {
 export type Mutation_RootInsertAppsArgs = {
   objects: Array<Apps_Insert_Input>;
   on_conflict?: InputMaybe<Apps_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2AuthRequestArgs = {
+  object: AuthOauth2AuthRequests_Insert_Input;
+  on_conflict?: InputMaybe<AuthOauth2AuthRequests_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2AuthRequestsArgs = {
+  objects: Array<AuthOauth2AuthRequests_Insert_Input>;
+  on_conflict?: InputMaybe<AuthOauth2AuthRequests_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2AuthorizationCodeArgs = {
+  object: AuthOauth2AuthorizationCodes_Insert_Input;
+  on_conflict?: InputMaybe<AuthOauth2AuthorizationCodes_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2AuthorizationCodesArgs = {
+  objects: Array<AuthOauth2AuthorizationCodes_Insert_Input>;
+  on_conflict?: InputMaybe<AuthOauth2AuthorizationCodes_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2ClientArgs = {
+  object: AuthOauth2Clients_Insert_Input;
+  on_conflict?: InputMaybe<AuthOauth2Clients_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2ClientsArgs = {
+  objects: Array<AuthOauth2Clients_Insert_Input>;
+  on_conflict?: InputMaybe<AuthOauth2Clients_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2RefreshTokenArgs = {
+  object: AuthOauth2RefreshTokens_Insert_Input;
+  on_conflict?: InputMaybe<AuthOauth2RefreshTokens_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2RefreshTokensArgs = {
+  objects: Array<AuthOauth2RefreshTokens_Insert_Input>;
+  on_conflict?: InputMaybe<AuthOauth2RefreshTokens_On_Conflict>;
 };
 
 
@@ -15390,6 +17011,20 @@ export type Mutation_RootInsert_Regions_OneArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsert_Sla_LevelArgs = {
+  objects: Array<Sla_Level_Insert_Input>;
+  on_conflict?: InputMaybe<Sla_Level_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Sla_Level_OneArgs = {
+  object: Sla_Level_Insert_Input;
+  on_conflict?: InputMaybe<Sla_Level_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootOrganizationMemberInviteAcceptArgs = {
   args: OrganizationMemberInviteAccept_Args;
   distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
@@ -15550,6 +17185,72 @@ export type Mutation_RootUpdateAppsArgs = {
   _prepend?: InputMaybe<Apps_Prepend_Input>;
   _set?: InputMaybe<Apps_Set_Input>;
   where: Apps_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2AuthRequestArgs = {
+  _set?: InputMaybe<AuthOauth2AuthRequests_Set_Input>;
+  pk_columns: AuthOauth2AuthRequests_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2AuthRequestsArgs = {
+  _set?: InputMaybe<AuthOauth2AuthRequests_Set_Input>;
+  where: AuthOauth2AuthRequests_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2AuthorizationCodeArgs = {
+  _set?: InputMaybe<AuthOauth2AuthorizationCodes_Set_Input>;
+  pk_columns: AuthOauth2AuthorizationCodes_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2AuthorizationCodesArgs = {
+  _set?: InputMaybe<AuthOauth2AuthorizationCodes_Set_Input>;
+  where: AuthOauth2AuthorizationCodes_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2ClientArgs = {
+  _append?: InputMaybe<AuthOauth2Clients_Append_Input>;
+  _delete_at_path?: InputMaybe<AuthOauth2Clients_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<AuthOauth2Clients_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<AuthOauth2Clients_Delete_Key_Input>;
+  _prepend?: InputMaybe<AuthOauth2Clients_Prepend_Input>;
+  _set?: InputMaybe<AuthOauth2Clients_Set_Input>;
+  pk_columns: AuthOauth2Clients_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2ClientsArgs = {
+  _append?: InputMaybe<AuthOauth2Clients_Append_Input>;
+  _delete_at_path?: InputMaybe<AuthOauth2Clients_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<AuthOauth2Clients_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<AuthOauth2Clients_Delete_Key_Input>;
+  _prepend?: InputMaybe<AuthOauth2Clients_Prepend_Input>;
+  _set?: InputMaybe<AuthOauth2Clients_Set_Input>;
+  where: AuthOauth2Clients_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2RefreshTokenArgs = {
+  _set?: InputMaybe<AuthOauth2RefreshTokens_Set_Input>;
+  pk_columns: AuthOauth2RefreshTokens_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2RefreshTokensArgs = {
+  _set?: InputMaybe<AuthOauth2RefreshTokens_Set_Input>;
+  where: AuthOauth2RefreshTokens_Bool_Exp;
 };
 
 
@@ -16275,6 +17976,30 @@ export type Mutation_RootUpdate_Apps_ManyArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_AuthOauth2AuthRequests_ManyArgs = {
+  updates: Array<AuthOauth2AuthRequests_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AuthOauth2AuthorizationCodes_ManyArgs = {
+  updates: Array<AuthOauth2AuthorizationCodes_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AuthOauth2Clients_ManyArgs = {
+  updates: Array<AuthOauth2Clients_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AuthOauth2RefreshTokens_ManyArgs = {
+  updates: Array<AuthOauth2RefreshTokens_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_AuthProviderRequests_ManyArgs = {
   updates: Array<AuthProviderRequests_Updates>;
 };
@@ -16633,6 +18358,26 @@ export type Mutation_RootUpdate_Regions_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Run_Service_ManyArgs = {
   updates: Array<Run_Service_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Sla_LevelArgs = {
+  _set?: InputMaybe<Sla_Level_Set_Input>;
+  where: Sla_Level_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Sla_Level_By_PkArgs = {
+  _set?: InputMaybe<Sla_Level_Set_Input>;
+  pk_columns: Sla_Level_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Sla_Level_ManyArgs = {
+  updates: Array<Sla_Level_Updates>;
 };
 
 
@@ -18847,6 +20592,7 @@ export type Plans = {
   /** An aggregate relationship */
   organizations_aggregate: Organizations_Aggregate;
   price: Scalars['Int'];
+  slaLevel: Sla_Level_Enum;
   sort: Scalars['Int'];
   stripePriceIDCustomDomains: Scalars['String'];
   stripePriceIDDedicatedCompute: Scalars['String'];
@@ -18972,6 +20718,7 @@ export type Plans_Bool_Exp = {
   organizations?: InputMaybe<Organizations_Bool_Exp>;
   organizations_aggregate?: InputMaybe<Organizations_Aggregate_Bool_Exp>;
   price?: InputMaybe<Int_Comparison_Exp>;
+  slaLevel?: InputMaybe<Sla_Level_Enum_Comparison_Exp>;
   sort?: InputMaybe<Int_Comparison_Exp>;
   stripePriceIDCustomDomains?: InputMaybe<String_Comparison_Exp>;
   stripePriceIDDedicatedCompute?: InputMaybe<String_Comparison_Exp>;
@@ -19030,6 +20777,7 @@ export type Plans_Insert_Input = {
   name?: InputMaybe<Scalars['String']>;
   organizations?: InputMaybe<Organizations_Arr_Rel_Insert_Input>;
   price?: InputMaybe<Scalars['Int']>;
+  slaLevel?: InputMaybe<Sla_Level_Enum>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
@@ -19141,6 +20889,7 @@ export type Plans_Order_By = {
   name?: InputMaybe<Order_By>;
   organizations_aggregate?: InputMaybe<Organizations_Aggregate_Order_By>;
   price?: InputMaybe<Order_By>;
+  slaLevel?: InputMaybe<Order_By>;
   sort?: InputMaybe<Order_By>;
   stripePriceIDCustomDomains?: InputMaybe<Order_By>;
   stripePriceIDDedicatedCompute?: InputMaybe<Order_By>;
@@ -19201,6 +20950,8 @@ export enum Plans_Select_Column {
   /** column name */
   Price = 'price',
   /** column name */
+  SlaLevel = 'slaLevel',
+  /** column name */
   Sort = 'sort',
   /** column name */
   StripePriceIdCustomDomains = 'stripePriceIDCustomDomains',
@@ -19247,6 +20998,7 @@ export type Plans_Set_Input = {
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   price?: InputMaybe<Scalars['Int']>;
+  slaLevel?: InputMaybe<Sla_Level_Enum>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
@@ -19334,6 +21086,7 @@ export type Plans_Stream_Cursor_Value_Input = {
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   price?: InputMaybe<Scalars['Int']>;
+  slaLevel?: InputMaybe<Sla_Level_Enum>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
@@ -19402,6 +21155,8 @@ export enum Plans_Update_Column {
   Name = 'name',
   /** column name */
   Price = 'price',
+  /** column name */
+  SlaLevel = 'slaLevel',
   /** column name */
   Sort = 'sort',
   /** column name */
@@ -19509,6 +21264,30 @@ export type Query_Root = {
   /** fetch aggregated fields from the table: "apps" */
   appsAggregate: Apps_Aggregate;
   appsSecrets?: Maybe<Array<ConfigAppSecrets>>;
+  /** fetch data from the table: "auth.oauth2_auth_requests" using primary key columns */
+  authOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** fetch data from the table: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequests: Array<AuthOauth2AuthRequests>;
+  /** fetch aggregated fields from the table: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequestsAggregate: AuthOauth2AuthRequests_Aggregate;
+  /** fetch data from the table: "auth.oauth2_authorization_codes" using primary key columns */
+  authOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** fetch data from the table: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodes: Array<AuthOauth2AuthorizationCodes>;
+  /** fetch aggregated fields from the table: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodesAggregate: AuthOauth2AuthorizationCodes_Aggregate;
+  /** fetch data from the table: "auth.oauth2_clients" using primary key columns */
+  authOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** fetch data from the table: "auth.oauth2_clients" */
+  authOauth2Clients: Array<AuthOauth2Clients>;
+  /** fetch aggregated fields from the table: "auth.oauth2_clients" */
+  authOauth2ClientsAggregate: AuthOauth2Clients_Aggregate;
+  /** fetch data from the table: "auth.oauth2_refresh_tokens" using primary key columns */
+  authOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** fetch data from the table: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** fetch aggregated fields from the table: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokensAggregate: AuthOauth2RefreshTokens_Aggregate;
   /** fetch data from the table: "auth.providers" using primary key columns */
   authProvider?: Maybe<AuthProviders>;
   /** fetch data from the table: "auth.provider_requests" using primary key columns */
@@ -19794,6 +21573,12 @@ export type Query_Root = {
   selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
   /** fetch aggregated fields from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
+  /** fetch data from the table: "sla_level" */
+  sla_level: Array<Sla_Level>;
+  /** fetch aggregated fields from the table: "sla_level" */
+  sla_level_aggregate: Sla_Level_Aggregate;
+  /** fetch data from the table: "sla_level" using primary key columns */
+  sla_level_by_pk?: Maybe<Sla_Level>;
   /** fetch data from the table: "software_type" using primary key columns */
   softwareType?: Maybe<Software_Type>;
   /** fetch data from the table: "software_type" */
@@ -19967,6 +21752,98 @@ export type Query_RootAppsAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2AuthRequestArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootAuthOauth2AuthRequestsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2AuthRequestsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2AuthorizationCodeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootAuthOauth2AuthorizationCodesArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2AuthorizationCodesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2ClientArgs = {
+  clientId: Scalars['String'];
+};
+
+
+export type Query_RootAuthOauth2ClientsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2ClientsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2RefreshTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootAuthOauth2RefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2RefreshTokensAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
 };
 
 
@@ -21069,6 +22946,29 @@ export type Query_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
+export type Query_RootSla_LevelArgs = {
+  distinct_on?: InputMaybe<Array<Sla_Level_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Sla_Level_Order_By>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
+};
+
+
+export type Query_RootSla_Level_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sla_Level_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Sla_Level_Order_By>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
+};
+
+
+export type Query_RootSla_Level_By_PkArgs = {
+  value: Scalars['String'];
 };
 
 
@@ -22604,6 +24504,158 @@ export type Run_Service_Updates = {
   where: Run_Service_Bool_Exp;
 };
 
+/** columns and relationships of "sla_level" */
+export type Sla_Level = {
+  __typename?: 'sla_level';
+  comment?: Maybe<Scalars['String']>;
+  value: Scalars['String'];
+};
+
+/** aggregated selection of "sla_level" */
+export type Sla_Level_Aggregate = {
+  __typename?: 'sla_level_aggregate';
+  aggregate?: Maybe<Sla_Level_Aggregate_Fields>;
+  nodes: Array<Sla_Level>;
+};
+
+/** aggregate fields of "sla_level" */
+export type Sla_Level_Aggregate_Fields = {
+  __typename?: 'sla_level_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Sla_Level_Max_Fields>;
+  min?: Maybe<Sla_Level_Min_Fields>;
+};
+
+
+/** aggregate fields of "sla_level" */
+export type Sla_Level_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Sla_Level_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "sla_level". All fields are combined with a logical 'AND'. */
+export type Sla_Level_Bool_Exp = {
+  _and?: InputMaybe<Array<Sla_Level_Bool_Exp>>;
+  _not?: InputMaybe<Sla_Level_Bool_Exp>;
+  _or?: InputMaybe<Array<Sla_Level_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "sla_level" */
+export enum Sla_Level_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  SlaLevelPkey = 'sla_level_pkey'
+}
+
+export enum Sla_Level_Enum {
+  /** No SLA */
+  None = 'none',
+  /** Premium SLA */
+  Premium = 'premium',
+  /** Standard SLA */
+  Standard = 'standard'
+}
+
+/** Boolean expression to compare columns of type "sla_level_enum". All fields are combined with logical 'AND'. */
+export type Sla_Level_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Sla_Level_Enum>;
+  _in?: InputMaybe<Array<Sla_Level_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Sla_Level_Enum>;
+  _nin?: InputMaybe<Array<Sla_Level_Enum>>;
+};
+
+/** input type for inserting data into table "sla_level" */
+export type Sla_Level_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Sla_Level_Max_Fields = {
+  __typename?: 'sla_level_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Sla_Level_Min_Fields = {
+  __typename?: 'sla_level_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "sla_level" */
+export type Sla_Level_Mutation_Response = {
+  __typename?: 'sla_level_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Sla_Level>;
+};
+
+/** on_conflict condition type for table "sla_level" */
+export type Sla_Level_On_Conflict = {
+  constraint: Sla_Level_Constraint;
+  update_columns?: Array<Sla_Level_Update_Column>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "sla_level". */
+export type Sla_Level_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: sla_level */
+export type Sla_Level_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "sla_level" */
+export enum Sla_Level_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "sla_level" */
+export type Sla_Level_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "sla_level" */
+export type Sla_Level_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Sla_Level_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Sla_Level_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "sla_level" */
+export enum Sla_Level_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type Sla_Level_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Sla_Level_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Sla_Level_Bool_Exp;
+};
+
 /** Boolean expression to compare columns of type "smallint". All fields are combined with logical 'AND'. */
 export type Smallint_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['smallint']>;
@@ -23036,6 +25088,38 @@ export type Subscription_Root = {
   appsAggregate: Apps_Aggregate;
   /** fetch data from the table in a streaming manner: "apps" */
   apps_stream: Array<Apps>;
+  /** fetch data from the table: "auth.oauth2_auth_requests" using primary key columns */
+  authOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** fetch data from the table: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequests: Array<AuthOauth2AuthRequests>;
+  /** fetch aggregated fields from the table: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequestsAggregate: AuthOauth2AuthRequests_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequests_stream: Array<AuthOauth2AuthRequests>;
+  /** fetch data from the table: "auth.oauth2_authorization_codes" using primary key columns */
+  authOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** fetch data from the table: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodes: Array<AuthOauth2AuthorizationCodes>;
+  /** fetch aggregated fields from the table: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodesAggregate: AuthOauth2AuthorizationCodes_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodes_stream: Array<AuthOauth2AuthorizationCodes>;
+  /** fetch data from the table: "auth.oauth2_clients" using primary key columns */
+  authOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** fetch data from the table: "auth.oauth2_clients" */
+  authOauth2Clients: Array<AuthOauth2Clients>;
+  /** fetch aggregated fields from the table: "auth.oauth2_clients" */
+  authOauth2ClientsAggregate: AuthOauth2Clients_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.oauth2_clients" */
+  authOauth2Clients_stream: Array<AuthOauth2Clients>;
+  /** fetch data from the table: "auth.oauth2_refresh_tokens" using primary key columns */
+  authOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** fetch data from the table: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** fetch aggregated fields from the table: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokensAggregate: AuthOauth2RefreshTokens_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokens_stream: Array<AuthOauth2RefreshTokens>;
   /** fetch data from the table: "auth.providers" using primary key columns */
   authProvider?: Maybe<AuthProviders>;
   /** fetch data from the table: "auth.provider_requests" using primary key columns */
@@ -23369,6 +25453,14 @@ export type Subscription_Root = {
   selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
   /** fetch aggregated fields from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
+  /** fetch data from the table: "sla_level" */
+  sla_level: Array<Sla_Level>;
+  /** fetch aggregated fields from the table: "sla_level" */
+  sla_level_aggregate: Sla_Level_Aggregate;
+  /** fetch data from the table: "sla_level" using primary key columns */
+  sla_level_by_pk?: Maybe<Sla_Level>;
+  /** fetch data from the table in a streaming manner: "sla_level" */
+  sla_level_stream: Array<Sla_Level>;
   /** fetch data from the table: "software_type" using primary key columns */
   softwareType?: Maybe<Software_Type>;
   /** fetch data from the table: "software_type" */
@@ -23575,6 +25667,126 @@ export type Subscription_RootApps_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Apps_Stream_Cursor_Input>>;
   where?: InputMaybe<Apps_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthRequestArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAuthOauth2AuthRequestsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthRequestsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthRequests_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthOauth2AuthRequests_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthorizationCodeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAuthOauth2AuthorizationCodesArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthorizationCodesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthorizationCodes_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthOauth2AuthorizationCodes_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2ClientArgs = {
+  clientId: Scalars['String'];
+};
+
+
+export type Subscription_RootAuthOauth2ClientsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2ClientsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2Clients_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthOauth2Clients_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2RefreshTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAuthOauth2RefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2RefreshTokensAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2RefreshTokens_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthOauth2RefreshTokens_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
 };
 
 
@@ -24816,6 +27028,36 @@ export type Subscription_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
 };
 
 
+export type Subscription_RootSla_LevelArgs = {
+  distinct_on?: InputMaybe<Array<Sla_Level_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Sla_Level_Order_By>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
+};
+
+
+export type Subscription_RootSla_Level_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sla_Level_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Sla_Level_Order_By>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
+};
+
+
+export type Subscription_RootSla_Level_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootSla_Level_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Sla_Level_Stream_Cursor_Input>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
+};
+
+
 export type Subscription_RootSoftwareTypeArgs = {
   type: Scalars['String'];
 };
@@ -25075,6 +27317,14 @@ export type Users = {
   metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
   /** An array relationship */
+  oauth2AuthRequests: Array<AuthOauth2AuthRequests>;
+  /** An aggregate relationship */
+  oauth2AuthRequests_aggregate: AuthOauth2AuthRequests_Aggregate;
+  /** An array relationship */
+  oauth2RefreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** An aggregate relationship */
+  oauth2RefreshTokens_aggregate: AuthOauth2RefreshTokens_Aggregate;
+  /** An array relationship */
   organizationMembership: Array<Organization_Members>;
   /** An aggregate relationship */
   organizationMembership_aggregate: Organization_Members_Aggregate;
@@ -25208,6 +27458,46 @@ export type UsersGithub_App_Installations_AggregateArgs = {
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2AuthRequestsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2AuthRequests_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2RefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2RefreshTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
 };
 
 
@@ -25487,6 +27777,10 @@ export type Users_Bool_Exp = {
   locale?: InputMaybe<String_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   newEmail?: InputMaybe<Citext_Comparison_Exp>;
+  oauth2AuthRequests?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  oauth2AuthRequests_aggregate?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp>;
+  oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  oauth2RefreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Bool_Exp>;
   organizationMembership?: InputMaybe<Organization_Members_Bool_Exp>;
   organizationMembership_aggregate?: InputMaybe<Organization_Members_Aggregate_Bool_Exp>;
   otpHash?: InputMaybe<String_Comparison_Exp>;
@@ -25565,6 +27859,8 @@ export type Users_Insert_Input = {
   locale?: InputMaybe<Scalars['String']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   newEmail?: InputMaybe<Scalars['citext']>;
+  oauth2AuthRequests?: InputMaybe<AuthOauth2AuthRequests_Arr_Rel_Insert_Input>;
+  oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Arr_Rel_Insert_Input>;
   organizationMembership?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
   otpHash?: InputMaybe<Scalars['String']>;
   otpHashExpiresAt?: InputMaybe<Scalars['timestamptz']>;
@@ -25730,6 +28026,8 @@ export type Users_Order_By = {
   locale?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
+  oauth2AuthRequests_aggregate?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Order_By>;
+  oauth2RefreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Order_By>;
   organizationMembership_aggregate?: InputMaybe<Organization_Members_Aggregate_Order_By>;
   otpHash?: InputMaybe<Order_By>;
   otpHashExpiresAt?: InputMaybe<Order_By>;
@@ -27394,6 +29692,13 @@ export type Workspaces_Updates = {
   where: Workspaces_Bool_Exp;
 };
 
+export type DeleteAuthUserProviderMutationVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type DeleteAuthUserProviderMutation = { __typename?: 'mutation_root', deleteAuthUserProvider?: { __typename: 'authUserProviders' } | null };
+
 export type DeleteUserAccountMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -27516,6 +29821,16 @@ export type ResetDatabasePasswordMutationVariables = Exact<{
 
 
 export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
+
+export type ConnectGithubRepoMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  githubNodeID: Scalars['String'];
+  productionBranch: Scalars['String'];
+  baseFolder: Scalars['String'];
+}>;
+
+
+export type ConnectGithubRepoMutation = { __typename?: 'mutation_root', connectGithubRepo: boolean };
 
 export type GetHasuraSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -27674,6 +29989,13 @@ export type GetConfigRawJsonQueryVariables = Exact<{
 
 
 export type GetConfigRawJsonQuery = { __typename?: 'query_root', configRawJSON: string };
+
+export type GetOAuth2ProviderSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetOAuth2ProviderSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', oauth2Provider?: { __typename?: 'ConfigAuthOauth2Provider', enabled?: boolean | null, loginURL?: string | null, accessToken?: { __typename?: 'ConfigAuthOauth2ProviderAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthOauth2ProviderRefreshToken', expiresIn?: any | null } | null, clientIdMetadataDocument?: { __typename?: 'ConfigAuthOauth2ProviderClientIdMetadataDocument', enabled?: boolean | null } | null } | null } | null } | null };
 
 export type GetRateLimitConfigQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -28027,7 +30349,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -28183,6 +30505,13 @@ export type RestoreApplicationDatabaseMutationVariables = Exact<{
 
 export type RestoreApplicationDatabaseMutation = { __typename?: 'mutation_root', restoreApplicationDatabase: boolean };
 
+export type DeleteOAuth2ClientMutationVariables = Exact<{
+  clientId: Scalars['String'];
+}>;
+
+
+export type DeleteOAuth2ClientMutation = { __typename?: 'mutation_root', deleteAuthOauth2Clients?: { __typename?: 'authOauth2Clients_mutation_response', affected_rows: number } | null };
+
 export type RemoteAppDeleteUserMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -28201,6 +30530,15 @@ export type GetRemoteAppMetricsQueryVariables = Exact<{ [key: string]: never; }>
 
 
 export type GetRemoteAppMetricsQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number, sum?: { __typename?: 'files_sum_fields', size?: number | null } | null } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+
+export type GetOAuth2ClientsQueryVariables = Exact<{
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+  where: AuthOauth2Clients_Bool_Exp;
+}>;
+
+
+export type GetOAuth2ClientsQuery = { __typename?: 'query_root', authOauth2Clients: Array<{ __typename?: 'authOauth2Clients', clientId: string, clientSecretHash?: string | null, redirectUris: Array<string>, scopes: Array<string>, metadata?: any | null, createdAt: any, updatedAt: any }>, authOauth2ClientsAggregate: { __typename?: 'authOauth2Clients_aggregate', aggregate?: { __typename?: 'authOauth2Clients_aggregate_fields', count: number } | null } };
 
 export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
 
@@ -28241,6 +30579,21 @@ export type TotalUsersByDateQueryVariables = Exact<{
 
 
 export type TotalUsersByDateQuery = { __typename?: 'query_root', usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+
+export type InsertOAuth2ClientMutationVariables = Exact<{
+  object: AuthOauth2Clients_Insert_Input;
+}>;
+
+
+export type InsertOAuth2ClientMutation = { __typename?: 'mutation_root', insertAuthOauth2Client?: { __typename?: 'authOauth2Clients', clientId: string, clientSecretHash?: string | null, redirectUris: Array<string>, scopes: Array<string>, metadata?: any | null, createdAt: any, updatedAt: any } | null };
+
+export type UpdateOAuth2ClientMutationVariables = Exact<{
+  clientId: Scalars['String'];
+  changes: AuthOauth2Clients_Set_Input;
+}>;
+
+
+export type UpdateOAuth2ClientMutation = { __typename?: 'mutation_root', updateAuthOauth2Clients?: { __typename?: 'authOauth2Clients_mutation_response', returning: Array<{ __typename?: 'authOauth2Clients', clientId: string, clientSecretHash?: string | null, redirectUris: Array<string>, scopes: Array<string>, metadata?: any | null, createdAt: any, updatedAt: any }> } | null };
 
 export type UpdateRemoteAppUserMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -28650,7 +31003,6 @@ export const RemoteAppGetUsersFragmentDoc = gql`
     id
     providerId
   }
-  disabled
 }
     `;
 export const RunServiceConfigFragmentDoc = gql`
@@ -28716,6 +31068,39 @@ export const RunServiceRateLimitFragmentDoc = gql`
   }
 }
     `;
+export const DeleteAuthUserProviderDocument = gql`
+    mutation deleteAuthUserProvider($id: uuid!) {
+  deleteAuthUserProvider(id: $id) {
+    __typename
+  }
+}
+    `;
+export type DeleteAuthUserProviderMutationFn = Apollo.MutationFunction<DeleteAuthUserProviderMutation, DeleteAuthUserProviderMutationVariables>;
+
+/**
+ * __useDeleteAuthUserProviderMutation__
+ *
+ * To run a mutation, you first call `useDeleteAuthUserProviderMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAuthUserProviderMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAuthUserProviderMutation, { data, loading, error }] = useDeleteAuthUserProviderMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteAuthUserProviderMutation(baseOptions?: Apollo.MutationHookOptions<DeleteAuthUserProviderMutation, DeleteAuthUserProviderMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteAuthUserProviderMutation, DeleteAuthUserProviderMutationVariables>(DeleteAuthUserProviderDocument, options);
+      }
+export type DeleteAuthUserProviderMutationHookResult = ReturnType<typeof useDeleteAuthUserProviderMutation>;
+export type DeleteAuthUserProviderMutationResult = Apollo.MutationResult<DeleteAuthUserProviderMutation>;
+export type DeleteAuthUserProviderMutationOptions = Apollo.BaseMutationOptions<DeleteAuthUserProviderMutation, DeleteAuthUserProviderMutationVariables>;
 export const DeleteUserAccountDocument = gql`
     mutation deleteUserAccount($id: uuid!) {
   deleteUser(id: $id) {
@@ -29446,6 +31831,45 @@ export function useResetDatabasePasswordMutation(baseOptions?: Apollo.MutationHo
 export type ResetDatabasePasswordMutationHookResult = ReturnType<typeof useResetDatabasePasswordMutation>;
 export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDatabasePasswordMutation>;
 export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
+export const ConnectGithubRepoDocument = gql`
+    mutation ConnectGithubRepo($appID: uuid!, $githubNodeID: String!, $productionBranch: String!, $baseFolder: String!) {
+  connectGithubRepo(
+    appID: $appID
+    githubNodeID: $githubNodeID
+    productionBranch: $productionBranch
+    baseFolder: $baseFolder
+  )
+}
+    `;
+export type ConnectGithubRepoMutationFn = Apollo.MutationFunction<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>;
+
+/**
+ * __useConnectGithubRepoMutation__
+ *
+ * To run a mutation, you first call `useConnectGithubRepoMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConnectGithubRepoMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [connectGithubRepoMutation, { data, loading, error }] = useConnectGithubRepoMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      githubNodeID: // value for 'githubNodeID'
+ *      productionBranch: // value for 'productionBranch'
+ *      baseFolder: // value for 'baseFolder'
+ *   },
+ * });
+ */
+export function useConnectGithubRepoMutation(baseOptions?: Apollo.MutationHookOptions<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>(ConnectGithubRepoDocument, options);
+      }
+export type ConnectGithubRepoMutationHookResult = ReturnType<typeof useConnectGithubRepoMutation>;
+export type ConnectGithubRepoMutationResult = Apollo.MutationResult<ConnectGithubRepoMutation>;
+export type ConnectGithubRepoMutationOptions = Apollo.BaseMutationOptions<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>;
 export const GetHasuraSettingsDocument = gql`
     query GetHasuraSettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
@@ -30444,6 +32868,59 @@ export type GetConfigRawJsonLazyQueryHookResult = ReturnType<typeof useGetConfig
 export type GetConfigRawJsonQueryResult = Apollo.QueryResult<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>;
 export function refetchGetConfigRawJsonQuery(variables: GetConfigRawJsonQueryVariables) {
       return { query: GetConfigRawJsonDocument, variables: variables }
+    }
+export const GetOAuth2ProviderSettingsDocument = gql`
+    query GetOAuth2ProviderSettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    auth {
+      oauth2Provider {
+        enabled
+        loginURL
+        accessToken {
+          expiresIn
+        }
+        refreshToken {
+          expiresIn
+        }
+        clientIdMetadataDocument {
+          enabled
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetOAuth2ProviderSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetOAuth2ProviderSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOAuth2ProviderSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOAuth2ProviderSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetOAuth2ProviderSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetOAuth2ProviderSettingsQuery, GetOAuth2ProviderSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOAuth2ProviderSettingsQuery, GetOAuth2ProviderSettingsQueryVariables>(GetOAuth2ProviderSettingsDocument, options);
+      }
+export function useGetOAuth2ProviderSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOAuth2ProviderSettingsQuery, GetOAuth2ProviderSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOAuth2ProviderSettingsQuery, GetOAuth2ProviderSettingsQueryVariables>(GetOAuth2ProviderSettingsDocument, options);
+        }
+export type GetOAuth2ProviderSettingsQueryHookResult = ReturnType<typeof useGetOAuth2ProviderSettingsQuery>;
+export type GetOAuth2ProviderSettingsLazyQueryHookResult = ReturnType<typeof useGetOAuth2ProviderSettingsLazyQuery>;
+export type GetOAuth2ProviderSettingsQueryResult = Apollo.QueryResult<GetOAuth2ProviderSettingsQuery, GetOAuth2ProviderSettingsQueryVariables>;
+export function refetchGetOAuth2ProviderSettingsQuery(variables: GetOAuth2ProviderSettingsQueryVariables) {
+      return { query: GetOAuth2ProviderSettingsDocument, variables: variables }
     }
 export const GetRateLimitConfigDocument = gql`
     query getRateLimitConfig($appId: uuid!, $resolve: Boolean!) {
@@ -32376,6 +34853,7 @@ export const GetOrganizationsDocument = gql`
       individual
       isFree
       featureMaxDbSize
+      slaLevel
     }
     apps(order_by: {name: asc}) {
       ...Project
@@ -33386,6 +35864,39 @@ export function useRestoreApplicationDatabaseMutation(baseOptions?: Apollo.Mutat
 export type RestoreApplicationDatabaseMutationHookResult = ReturnType<typeof useRestoreApplicationDatabaseMutation>;
 export type RestoreApplicationDatabaseMutationResult = Apollo.MutationResult<RestoreApplicationDatabaseMutation>;
 export type RestoreApplicationDatabaseMutationOptions = Apollo.BaseMutationOptions<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>;
+export const DeleteOAuth2ClientDocument = gql`
+    mutation DeleteOAuth2Client($clientId: String!) {
+  deleteAuthOauth2Clients(where: {clientId: {_eq: $clientId}}) {
+    affected_rows
+  }
+}
+    `;
+export type DeleteOAuth2ClientMutationFn = Apollo.MutationFunction<DeleteOAuth2ClientMutation, DeleteOAuth2ClientMutationVariables>;
+
+/**
+ * __useDeleteOAuth2ClientMutation__
+ *
+ * To run a mutation, you first call `useDeleteOAuth2ClientMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteOAuth2ClientMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteOAuth2ClientMutation, { data, loading, error }] = useDeleteOAuth2ClientMutation({
+ *   variables: {
+ *      clientId: // value for 'clientId'
+ *   },
+ * });
+ */
+export function useDeleteOAuth2ClientMutation(baseOptions?: Apollo.MutationHookOptions<DeleteOAuth2ClientMutation, DeleteOAuth2ClientMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteOAuth2ClientMutation, DeleteOAuth2ClientMutationVariables>(DeleteOAuth2ClientDocument, options);
+      }
+export type DeleteOAuth2ClientMutationHookResult = ReturnType<typeof useDeleteOAuth2ClientMutation>;
+export type DeleteOAuth2ClientMutationResult = Apollo.MutationResult<DeleteOAuth2ClientMutation>;
+export type DeleteOAuth2ClientMutationOptions = Apollo.BaseMutationOptions<DeleteOAuth2ClientMutation, DeleteOAuth2ClientMutationVariables>;
 export const RemoteAppDeleteUserDocument = gql`
     mutation remoteAppDeleteUser($id: uuid!) {
   deleteUser(id: $id) {
@@ -33504,6 +36015,62 @@ export type GetRemoteAppMetricsLazyQueryHookResult = ReturnType<typeof useGetRem
 export type GetRemoteAppMetricsQueryResult = Apollo.QueryResult<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>;
 export function refetchGetRemoteAppMetricsQuery(variables?: GetRemoteAppMetricsQueryVariables) {
       return { query: GetRemoteAppMetricsDocument, variables: variables }
+    }
+export const GetOAuth2ClientsDocument = gql`
+    query GetOAuth2Clients($limit: Int!, $offset: Int!, $where: authOauth2Clients_bool_exp!) {
+  authOauth2Clients(
+    order_by: {createdAt: desc}
+    limit: $limit
+    offset: $offset
+    where: $where
+  ) {
+    clientId
+    clientSecretHash
+    redirectUris
+    scopes
+    metadata
+    createdAt
+    updatedAt
+  }
+  authOauth2ClientsAggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetOAuth2ClientsQuery__
+ *
+ * To run a query within a React component, call `useGetOAuth2ClientsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOAuth2ClientsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOAuth2ClientsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *      where: // value for 'where'
+ *   },
+ * });
+ */
+export function useGetOAuth2ClientsQuery(baseOptions: Apollo.QueryHookOptions<GetOAuth2ClientsQuery, GetOAuth2ClientsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOAuth2ClientsQuery, GetOAuth2ClientsQueryVariables>(GetOAuth2ClientsDocument, options);
+      }
+export function useGetOAuth2ClientsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOAuth2ClientsQuery, GetOAuth2ClientsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOAuth2ClientsQuery, GetOAuth2ClientsQueryVariables>(GetOAuth2ClientsDocument, options);
+        }
+export type GetOAuth2ClientsQueryHookResult = ReturnType<typeof useGetOAuth2ClientsQuery>;
+export type GetOAuth2ClientsLazyQueryHookResult = ReturnType<typeof useGetOAuth2ClientsLazyQuery>;
+export type GetOAuth2ClientsQueryResult = Apollo.QueryResult<GetOAuth2ClientsQuery, GetOAuth2ClientsQueryVariables>;
+export function refetchGetOAuth2ClientsQuery(variables: GetOAuth2ClientsQueryVariables) {
+      return { query: GetOAuth2ClientsDocument, variables: variables }
     }
 export const RemoteAppGetUsersAndAuthRolesDocument = gql`
     query remoteAppGetUsersAndAuthRoles($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
@@ -33742,6 +36309,87 @@ export type TotalUsersByDateQueryResult = Apollo.QueryResult<TotalUsersByDateQue
 export function refetchTotalUsersByDateQuery(variables: TotalUsersByDateQueryVariables) {
       return { query: TotalUsersByDateDocument, variables: variables }
     }
+export const InsertOAuth2ClientDocument = gql`
+    mutation InsertOAuth2Client($object: authOauth2Clients_insert_input!) {
+  insertAuthOauth2Client(object: $object) {
+    clientId
+    clientSecretHash
+    redirectUris
+    scopes
+    metadata
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type InsertOAuth2ClientMutationFn = Apollo.MutationFunction<InsertOAuth2ClientMutation, InsertOAuth2ClientMutationVariables>;
+
+/**
+ * __useInsertOAuth2ClientMutation__
+ *
+ * To run a mutation, you first call `useInsertOAuth2ClientMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertOAuth2ClientMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertOAuth2ClientMutation, { data, loading, error }] = useInsertOAuth2ClientMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertOAuth2ClientMutation(baseOptions?: Apollo.MutationHookOptions<InsertOAuth2ClientMutation, InsertOAuth2ClientMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertOAuth2ClientMutation, InsertOAuth2ClientMutationVariables>(InsertOAuth2ClientDocument, options);
+      }
+export type InsertOAuth2ClientMutationHookResult = ReturnType<typeof useInsertOAuth2ClientMutation>;
+export type InsertOAuth2ClientMutationResult = Apollo.MutationResult<InsertOAuth2ClientMutation>;
+export type InsertOAuth2ClientMutationOptions = Apollo.BaseMutationOptions<InsertOAuth2ClientMutation, InsertOAuth2ClientMutationVariables>;
+export const UpdateOAuth2ClientDocument = gql`
+    mutation UpdateOAuth2Client($clientId: String!, $changes: authOauth2Clients_set_input!) {
+  updateAuthOauth2Clients(where: {clientId: {_eq: $clientId}}, _set: $changes) {
+    returning {
+      clientId
+      clientSecretHash
+      redirectUris
+      scopes
+      metadata
+      createdAt
+      updatedAt
+    }
+  }
+}
+    `;
+export type UpdateOAuth2ClientMutationFn = Apollo.MutationFunction<UpdateOAuth2ClientMutation, UpdateOAuth2ClientMutationVariables>;
+
+/**
+ * __useUpdateOAuth2ClientMutation__
+ *
+ * To run a mutation, you first call `useUpdateOAuth2ClientMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateOAuth2ClientMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateOAuth2ClientMutation, { data, loading, error }] = useUpdateOAuth2ClientMutation({
+ *   variables: {
+ *      clientId: // value for 'clientId'
+ *      changes: // value for 'changes'
+ *   },
+ * });
+ */
+export function useUpdateOAuth2ClientMutation(baseOptions?: Apollo.MutationHookOptions<UpdateOAuth2ClientMutation, UpdateOAuth2ClientMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateOAuth2ClientMutation, UpdateOAuth2ClientMutationVariables>(UpdateOAuth2ClientDocument, options);
+      }
+export type UpdateOAuth2ClientMutationHookResult = ReturnType<typeof useUpdateOAuth2ClientMutation>;
+export type UpdateOAuth2ClientMutationResult = Apollo.MutationResult<UpdateOAuth2ClientMutation>;
+export type UpdateOAuth2ClientMutationOptions = Apollo.BaseMutationOptions<UpdateOAuth2ClientMutation, UpdateOAuth2ClientMutationVariables>;
 export const UpdateRemoteAppUserDocument = gql`
     mutation updateRemoteAppUser($id: uuid!, $user: users_set_input!) {
   updateUser(pk_columns: {id: $id}, _set: $user) {

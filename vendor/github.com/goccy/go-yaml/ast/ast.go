@@ -1450,16 +1450,25 @@ func (n *MappingValueNode) toString() string {
 		}
 		return fmt.Sprintf("%s%s: %s", space, n.Key.String(), value)
 	} else if keyIndentLevel < valueIndentLevel && !n.IsFlowStyle {
+		valueStr := n.Value.String()
+		// For flow-style values indented on the next line, we need to add the proper indentation
+		if m, ok := n.Value.(*MappingNode); ok && m.IsFlowStyle {
+			valueIndent := strings.Repeat(" ", n.Value.GetToken().Position.Column-1)
+			valueStr = valueIndent + valueStr
+		} else if s, ok := n.Value.(*SequenceNode); ok && s.IsFlowStyle {
+			valueIndent := strings.Repeat(" ", n.Value.GetToken().Position.Column-1)
+			valueStr = valueIndent + valueStr
+		}
 		if keyComment != nil {
 			return fmt.Sprintf(
 				"%s%s: %s\n%s",
 				space,
 				n.Key.stringWithoutComment(),
 				keyComment.String(),
-				n.Value.String(),
+				valueStr,
 			)
 		}
-		return fmt.Sprintf("%s%s:\n%s", space, n.Key.String(), n.Value.String())
+		return fmt.Sprintf("%s%s:\n%s", space, n.Key.String(), valueStr)
 	} else if m, ok := n.Value.(*MappingNode); ok && (m.IsFlowStyle || len(m.Values) == 0) {
 		return fmt.Sprintf("%s%s: %s", space, n.Key.String(), n.Value.String())
 	} else if s, ok := n.Value.(*SequenceNode); ok && (s.IsFlowStyle || len(s.Values) == 0) {
@@ -1614,7 +1623,11 @@ func (n *SequenceNode) flowStyleString() string {
 	for _, value := range n.Values {
 		values = append(values, value.String())
 	}
-	return fmt.Sprintf("[%s]", strings.Join(values, ", "))
+	seqText := fmt.Sprintf("[%s]", strings.Join(values, ", "))
+	if n.Comment != nil {
+		return addCommentString(seqText, n.Comment)
+	}
+	return seqText
 }
 
 func (n *SequenceNode) blockStyleString() string {

@@ -1,12 +1,12 @@
+import { useEffect } from 'react';
+import { useFormContext } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import type { DialogFormProps } from '@/types/common';
-import { useEffect } from 'react';
-import { useFormContext } from 'react-hook-form';
-import * as Yup from 'yup';
 
 export interface BasePermissionVariableFormProps extends DialogFormProps {
   /**
@@ -69,8 +69,7 @@ export default function BasePermissionVariableForm({
                 event.target.value &&
                 !/^[a-zA-Z-]+$/gi.test(event.target.value)
               ) {
-                // we need to prevent invalid characters from being entered
-                // eslint-disable-next-line no-param-reassign
+                // biome-ignore lint/style/noParameterAssign: we need to prevent invalid characters from being entered
                 event.target.value = event.target.value.replace(
                   /[^a-zA-Z-]/gi,
                   '',
@@ -101,8 +100,7 @@ export default function BasePermissionVariableForm({
                 event.target.value &&
                 !/^[a-zA-Z-_.[\]]+$/gi.test(event.target.value)
               ) {
-                // we need to prevent invalid characters from being entered
-                // eslint-disable-next-line no-param-reassign
+                // biome-ignore lint/style/noParameterAssign: we need to prevent invalid characters from being entered
                 event.target.value = event.target.value.replace(
                   /[^a-zA-Z-.[\]]/gi,
                   '',

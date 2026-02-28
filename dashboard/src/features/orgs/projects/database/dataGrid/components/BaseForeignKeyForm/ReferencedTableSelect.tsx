@@ -1,7 +1,7 @@
+import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
 export interface ReferencedTableSelectProps {

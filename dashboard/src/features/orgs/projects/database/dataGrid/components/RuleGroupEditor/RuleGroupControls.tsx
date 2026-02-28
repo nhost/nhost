@@ -1,4 +1,6 @@
-import { Text } from '@/components/ui/v2/Text';
+import type { DetailedHTMLProps, HTMLProps } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import {
   Select,
   SelectContent,
@@ -7,9 +9,6 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import type { RuleGroup } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
 export interface RuleGroupControlsProps
@@ -70,9 +69,9 @@ export default function RuleGroupControls({
           </SelectContent>
         </Select>
       ) : (
-        <Text className="p-2 !font-medium">
+        <p className="!font-medium p-2">
           {operatorDictionary[currentOperator]}
-        </Text>
+        </p>
       )}
     </div>
   );

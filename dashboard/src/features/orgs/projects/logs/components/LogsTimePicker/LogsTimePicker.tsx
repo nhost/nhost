@@ -1,16 +1,19 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { useDropdown } from '@/components/ui/v2/Dropdown';
-import type { InputProps } from '@/components/ui/v2/Input';
 import { Input } from '@/components/ui/v2/Input';
+import { isNotEmptyValue } from '@/lib/utils';
 import { format, set } from 'date-fns';
 import type { ChangeEvent } from 'react';
 
-export interface LogTimePickerProps extends InputProps {
+export interface LogTimePickerProps {
   /**
    * The upper bound (a day) in the allowed range that can be selected for the date picker.
    */
+  selectedDate: Date;
+  setSelectedDate: (newDate: Date) => void;
   maxDate?: Date;
+  onChange: (date: Date) => void;
 }
 
 const TIMEPICKER_STEP = 1;
@@ -20,7 +23,7 @@ function LogsTimePicker({
   setSelectedDate,
   onChange,
   maxDate,
-}: any) {
+}: LogTimePickerProps) {
   const { handleClose } = useDropdown();
 
   function handleCancel() {
@@ -47,7 +50,7 @@ function LogsTimePicker({
 
     // if the new date is a date surpassing the the max allowed date (that is, the `toDate`)
     // we don't allow the user to select set it.
-    if (newDate > maxDate) {
+    if (isNotEmptyValue(maxDate) && newDate > maxDate) {
       return;
     }
 

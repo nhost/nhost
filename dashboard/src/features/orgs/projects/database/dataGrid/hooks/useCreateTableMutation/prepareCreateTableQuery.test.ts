@@ -1,5 +1,5 @@
-import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { expect, test } from 'vitest';
+import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import prepareCreateTableQuery from './prepareCreateTableQuery';
 
 describe('prepareCreateTableQuery', () => {
@@ -224,8 +224,9 @@ describe('prepareCreateTableQuery', () => {
         {
           name: 'name',
           type: {
-            value: 'varchar(10)' as any,
-            label: 'varchar(10)',
+            // biome-ignore lint/suspicious/noExplicitAny: test file
+            value: 'character varying(10)' as any,
+            label: 'character varying(10)',
           },
         },
       ],
@@ -240,7 +241,7 @@ describe('prepareCreateTableQuery', () => {
 
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
-      'CREATE TABLE public.test_table (id uuid NOT NULL, name varchar(10) NOT NULL);',
+      'CREATE TABLE public.test_table (id uuid NOT NULL, name character varying(10) NOT NULL);',
     );
   });
 

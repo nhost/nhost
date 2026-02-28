@@ -1,0 +1,123 @@
+---
+import { Code } from '@astrojs/starlight/components'
+import { parseTemplate, type PrimitiveValue } from 'url-template'
+
+import type { ExampleV3 } from '../../libs/example'
+import type { Parameter } from '../../libs/parameter'
+import Md from '../Md.astro'
+import Text from '../Text.astro'
+
+interface Props {
+  example?: ExampleV3
+  parameter?: Parameter | undefined
+  raw?: ExampleV3['value']
+  type?: string | undefined
+}
+
+const { example, parameter, raw, type } = Astro.props
+
+const exampleToRender = raw === undefined ? example : { value: raw }
+
+function getExampleValue(value: unknown): string {
+  return parameter?.in === 'query' ? getQueryParameterValue(parameter, value) : getFallbackValue(value)
+}
+
+function getFallbackValue(value: unknown): string {
+  switch (typeof value) {
+    case 'string': {
+      return value
+    }
+    case 'boolean':
+    case 'number': {
+      return value.toString()
+    }
+    default: {
+      return JSON.stringify(value, null, 2)
+    }
+  }
+}
+
+function getQueryParameterValue(parameter: Parameter, value: unknown): string {
+  switch (parameter.style) {
+    case 'deepObject': {
+      if (!value || typeof value !== 'object' || !parameter.explode) {
+        return getFallbackValue(value)
+      }
+
+      return `?${Object.keys(value)
+        .map((key) => `${parameter.name}[${key}]=${value[key as keyof typeof value]}`)
+        .join('&')}`
+    }
+    case 'form': {
+      return getFormValue(parameter, value)
+    }
+    case 'pipeDelimited':
+    case 'spaceDelimited': {
+      if (!Array.isArray(value)) {
+        return getFallbackValue(value)
+      }
+
+      return parameter.explode
+        ? getFormValue(parameter, value)
+        : `?${parameter.name}=${value.join(parameter.style === 'pipeDelimited' ? '|' : '%20')}`
+    }
+    default: {
+      return getFallbackValue(value)
+    }
+  }
+}
+
+function getFormValue(parameter: Parameter, value: unknown) {
+  // https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8
+  return parseTemplate(`{?${parameter.name}${parameter.explode ? '*' : ''}}`).expand({
+    [parameter.name]: value as PrimitiveValue,
+  })
+}
+
+function getExampleLang(code: string, type: string | undefined) {
+  switch (type) {
+    case 'application/json': {
+      return 'json'
+    }
+    default: {
+      try {
+        JSON.parse(code)
+        return 'json'
+      } catch {
+        // Fallback to plain text when failing to parse the code as JSON.
+      }
+      return 'plaintext'
+    }
+  }
+}
+
+const code = exampleToRender ? getExampleValue(exampleToRender.value).trim() : ''
+---
+
+{
+  exampleToRender && (
+    <>
+      <Text>{exampleToRender.summary}</Text>
+      <Md text={exampleToRender.description} />
+      {exampleToRender.externalValue && (
+        <Text>
+          <a href={exampleToRender.externalValue}>{exampleToRender.externalValue}</a>
+        </Text>
+      )}
+      {code.length > 0 && <Code {code} lang={getExampleLang(code, type)} />}
+    </>
+  )
+}
+
+<style>
+  :global(div.expressive-code .frame pre) {
+    background-color: var(--sl-color-gray-5);
+    border: 1px solid var(--sl-color-gray-4);
+    margin-block: 0.5rem;
+  }
+
+  :global(div.expressive-code pre > code) {
+    text-wrap: wrap;
+    word-break: break-all;
+  }
+</style>

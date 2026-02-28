@@ -1,0 +1,187 @@
+---
+title: Metrics
+description: Grafana Instance configured and tailored to your project
+keywords: ["metrics", "Grafana", "monitoring", "observability", "alerting", "performance dashboards"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+:::note
+This is a Pro/Team/Enterprise feature. This is not available on Starter projects.
+:::
+
+Insights such as response times, resource usage, and error rates, to help you assess the **performance** and **health** of your services.
+
+Metrics helps you analyze the performance of your infrastructure, while identifying bottlenecks and optimizing your applications.
+
+:::tip
+Read more about [compute resources](/platform/cloud/compute-resources) and [service replicas](/platform/cloud/service-replicas)
+:::
+
+## Managed Grafana
+
+Your Grafana instance comes pre-defined with dashboards that cover backend services, functions, and networking:
+
+- vCPU/memory usage by Service replica for all services
+- Throttling time / percentage
+- Postgres volume usage
+- Networking errors
+- Functions metrics like calls, response times, errors
+- and others, we keep adding new metrics and dashboards
+
+![Grafana](/images/platform/metrics/grafana.png)
+
+## Accessing Grafana
+
+You can find the link to Grafana in your project's dashboard, under **Metrics**.
+
+![Project Metrics](/images/platform/metrics/nhost-dashboard-metrics.png)
+
+## Configuring Grafana
+
+Grafana comes pre-configured with a datasource with your project's metrics plus a few useful dashboards to observe your projects. In addition, you can enable alerting by configuring one or more contact points and enabling alerts in your configuration file.
+
+:::note
+The configuration below is open source and can be found [here](https://github.com/nhost/nhost/tree/main/observability/grafana). If you want to see improvements, more rules, better dashboards, more options, etc., don't hesitate to contribute them or open an issue.
+:::
+
+### Alerting
+
+<Tabs>
+<TabItem label="Dashboard">
+**Project Dashboard -> Settings -> Observability**
+
+![alert rules](/images/platform/metrics/alerting_dashboard.png)
+</TabItem>
+<TabItem label="Config">
+To enable alerting simply add to your configuration:
+
+```toml
+[observability.grafana.alerting]
+enabled = true
+```
+</TabItem>
+</Tabs>
+
+This will enable the following rules, which you can find in your grafana dashboard under "Alert rules":
+
+![alert rules](/images/platform/metrics/alert_rules.png)
+
+1. **High CPU usage**
+   - Trigger: CPU usage > 75%
+   - Duration: Sustained for 5-10 minutes
+
+2. **Low disk space**
+   - Trigger: Disk utilization > 75%
+   - Duration: Persistent for 5-10 minutes
+
+3. **Low free memory**
+   - Trigger: Memory usage > 75%
+   - Duration: Continuous for 5-10 minutes
+
+4. **Service restarted due to lack of memory**
+   - Trigger: Any service restart due to memory exhaustion
+   - Duration: Immediate upon occurrence
+
+5. **High request error rate**
+   - Trigger: Request error rate > 25%
+   - Duration: Maintained for 5-10 minutes
+
+After they have been enabling they will start notifying your contact points when the conditions are met. For instance, here is an email sent due to a high error rate:
+
+![email_notification](/images/platform/metrics/email_notification.png)
+
+### Configure contact points
+
+Contact points in Grafana are lists of integrations that send notifications to specific channels or services when alerts are triggered. Supported contact points are:
+
+- email
+- pagerduty
+- discord
+- slack
+- webhooks
+<Tabs>
+<TabItem label="Dashboard">
+First, make sure you have enabled alerting as described above. Then, go to your project dashboard and click on **Settings** -> **Observability** -> **Contact points**:
+
+![contact points](/images/platform/metrics/contact_points_dashboard.png)
+</TabItem>
+<TabItem label="Config">
+To configure them include one ore more sections in your configuration file:
+
+```toml
+[observability.grafana.contacts]
+emails = ['engineering@acme.com']
+
+[[observability.grafana.contacts.pagerduty]]
+integrationKey = 'integration-key'
+severity = 'critical'
+class = 'infra'
+component = 'backend'
+group = 'group'
+
+[[observability.grafana.contacts.discord]]
+url = 'https://discord.com/api/webhooks/...'
+avatarUrl = 'https://discord.com/api/avatar/...'
+
+[[observability.grafana.contacts.slack]]
+recipient = 'recipient'
+token = 'token'
+username = 'username'
+iconEmoji = 'danger'
+iconURL = 'https://...'
+mentionUsers = ['user1', 'user2']
+mentionGroups = ['group1', 'group2']
+mentionChannel = 'channel'
+url = 'https://slack.com/api/webhooks/...'
+endpointURL = 'https://slack.com/api/endpoint/...'
+
+[[observability.grafana.contacts.webhook]]
+url = 'https://webhook.example.com'
+httpMethod = 'POST'
+username = 'user'
+password = 'password'
+authorizationScheme = 'Bearer'
+authorizationCredentials = 'token'
+maxAlerts = 10
+```
+</TabItem>
+</Tabs>
+
+Once you have added them to your configuration and deployed them you should be able to see them in your grafana dashboard under "Settings" -> "Contact points" -> "Nhost Managed Contacts":
+
+![contact points](/images/platform/metrics/contact_points.png)
+
+If you click on "View" you should be able to see a test button you can use to ensure your contacts are properly configured.
+
+### SMTP
+
+If you are planning to send emails as part of your alerting, you need to configure some SMTP settings as well. 
+
+<Tabs>
+<TabItem label="Dashboard">
+First, make sure you have enabled alerting as described above. Then, go to your project dashboard and click on **Settings** -> **Observability** -> **SMTP Settings**:
+
+![smtp](/images/platform/metrics/smtp_settings_dashboard.png)
+</TabItem>
+<TabItem label="Config">
+Add to your configuration:
+
+```toml
+[observability.grafana.smtp]
+host = 'localhost'
+port = 25
+sender = 'admin@localhost'
+user = 'smtpUser'
+password = 'smtpPassword'
+```
+</TabItem>
+</Tabs>
+
+## Advanced configuration
+
+In addition, Team and Enterprise projects can perform any changes they want. For instance you can add users, configure an OAuth provider for user authentication, add datasources, you can configure your own alerts, etc.
+
+## Beta
+
+Metrics is in beta, its functionality and pricing might change.

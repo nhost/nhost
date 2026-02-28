@@ -1,9 +1,9 @@
-import { isEmptyValue } from '@/lib/utils';
-import { useNhostClient } from '@/providers/nhost';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { startRegistration } from '@simplewebauthn/browser';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
+import { isEmptyValue } from '@/lib/utils';
+import { useNhostClient } from '@/providers/nhost';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import type { SignUpWithSecurityKeyFormValues } from './useSignupWithSecurityKeyForm';
 
 function useOnSignUpWithSecurityKeyHandler() {

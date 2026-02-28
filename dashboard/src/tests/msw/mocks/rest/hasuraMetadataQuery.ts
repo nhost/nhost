@@ -1,4 +1,4 @@
-import { delay, http, HttpResponse } from 'msw';
+import { delay, HttpResponse, http } from 'msw';
 
 const hasuraMetadataQuery = http.post(
   'https://local.hasura.local.nhost.run/v1/metadata',

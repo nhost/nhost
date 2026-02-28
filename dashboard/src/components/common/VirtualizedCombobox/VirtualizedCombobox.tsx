@@ -1,3 +1,6 @@
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import * as React from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -13,9 +16,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import * as React from 'react';
 
 type Option = {
   value: string;
@@ -138,7 +138,7 @@ function VirtualizedCommand<O extends Option>({
                   filteredOptions[virtualOption.index].value
                 }
                 className={cn(
-                  'absolute left-0 top-0 w-full bg-transparent',
+                  'absolute top-0 left-0 w-full bg-transparent',
                   focusedIndex === virtualOption.index &&
                     'bg-accent text-accent-foreground',
                   isKeyboardNavActive &&

@@ -3,11 +3,11 @@ import {
   ApolloLink,
   createHttpLink,
   InMemoryCache,
-} from "@apollo/client";
-import { setContext } from "@apollo/client/link/context";
-import type { NhostClient } from "@nhost/nhost-js";
-import { useMemo } from "react";
-import { useAuth } from "../nhost/AuthProvider";
+} from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
+import type { NhostClient } from '@nhost/nhost-js';
+import { useMemo } from 'react';
+import { useAuth } from '../nhost/AuthProvider';
 
 // Create a function that creates an Apollo client using the provided Nhost client
 export const createApolloClient = (nhost: NhostClient) => {
@@ -24,8 +24,8 @@ export const createApolloClient = (nhost: NhostClient) => {
     // Return the headers to the context so httpLink can read them
     return {
       headers: {
-        ...(prevContext["headers"] as Record<string, string>),
-        Authorization: token ? `Bearer ${token}` : "",
+        ...(prevContext['headers'] as Record<string, string>),
+        Authorization: token ? `Bearer ${token}` : '',
       },
     };
   });
@@ -39,7 +39,7 @@ export const createApolloClient = (nhost: NhostClient) => {
     cache: new InMemoryCache(),
     defaultOptions: {
       watchQuery: {
-        fetchPolicy: "cache-and-network",
+        fetchPolicy: 'cache-and-network',
       },
     },
   });

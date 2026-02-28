@@ -1,4 +1,4 @@
-import { useAuth } from "../lib/nhost/AuthProvider";
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function Profile() {
   const { user, session } = useAuth();
@@ -13,25 +13,25 @@ export default function Profile() {
         <h3 className="form-title">User Information</h3>
         <div className="form-fields">
           <div className="field-group">
-            <strong>Display Name:</strong> {user?.displayName || "Not set"}
+            <strong>Display Name:</strong> {user?.displayName || 'Not set'}
           </div>
           <div className="field-group">
-            <strong>Email:</strong> {user?.email || "Not available"}
+            <strong>Email:</strong> {user?.email || 'Not available'}
           </div>
           <div className="field-group">
-            <strong>User ID:</strong> {user?.id || "Not available"}
+            <strong>User ID:</strong> {user?.id || 'Not available'}
           </div>
           <div className="field-group">
-            <strong>Roles:</strong> {user?.roles?.join(", ") || "None"}
+            <strong>Roles:</strong> {user?.roles?.join(', ') || 'None'}
           </div>
           <div className="field-group">
             <strong>Email Verified:</strong>
             <span
               className={
-                user?.emailVerified ? "email-verified" : "email-unverified"
+                user?.emailVerified ? 'email-verified' : 'email-unverified'
               }
             >
-              {user?.emailVerified ? "✓ Yes" : "✗ No"}
+              {user?.emailVerified ? '✓ Yes' : '✗ No'}
             </span>
           </div>
         </div>

@@ -1,19 +1,20 @@
 import { Slash } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { useMemo } from 'react';
-
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from '@/components/ui/v3/breadcrumb';
-import { useRouter } from 'next/router';
 import OrgPagesComboBox from './OrgPagesComboBox';
 import OrgsComboBox from './OrgsComboBox';
+import ProjectAuthPagesComboBox from './ProjectAuthPagesComboBox';
+import ProjectEventsPagesComboBox from './ProjectEventsPagesComboBox';
 import ProjectGraphQLPagesComboBox from './ProjectGraphQLPagesComboBox';
 import ProjectPagesComboBox from './ProjectPagesComboBox';
-import ProjectsComboBox from './ProjectsComboBox';
 import ProjectSettingsPagesComboBox from './ProjectSettingsPagesComboBox';
+import ProjectsComboBox from './ProjectsComboBox';
 
 export default function BreadcrumbNav() {
   const { query, asPath, route } = useRouter();
@@ -27,6 +28,8 @@ export default function BreadcrumbNav() {
   const projectPage = pathSegments[3] || null;
   const isSettingsPage = pathSegments[5] === 'settings';
   const isGraphQLPage = pathSegments[5] === 'graphql';
+  const isEventsPage = pathSegments[5] === 'events';
+  const isAuthPage = pathSegments[5] === 'auth';
 
   const showBreadcrumbs = !['/', '/orgs/verify'].includes(route);
 
@@ -95,6 +98,36 @@ export default function BreadcrumbNav() {
 
                 <BreadcrumbItem>
                   <ProjectGraphQLPagesComboBox />
+                </BreadcrumbItem>
+              </>
+            )}
+
+            {isEventsPage && (
+              <>
+                <BreadcrumbSeparator>
+                  <Slash
+                    strokeWidth={3.5}
+                    className="text-muted-foreground/50"
+                  />
+                </BreadcrumbSeparator>
+
+                <BreadcrumbItem>
+                  <ProjectEventsPagesComboBox />
+                </BreadcrumbItem>
+              </>
+            )}
+
+            {isAuthPage && (
+              <>
+                <BreadcrumbSeparator>
+                  <Slash
+                    strokeWidth={3.5}
+                    className="text-muted-foreground/50"
+                  />
+                </BreadcrumbSeparator>
+
+                <BreadcrumbItem>
+                  <ProjectAuthPagesComboBox />
                 </BreadcrumbItem>
               </>
             )}

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/image"
 	"github.com/nhost/nhost/services/storage/middleware"
@@ -36,6 +37,8 @@ func mimeTypeToImageType(mimeType string) (image.ImageType, *APIError) {
 		return image.ImageTypeJPEG, nil
 	case "image/avif":
 		return image.ImageTypeAVIF, nil
+	case "image/heic", "image/heif":
+		return image.ImageTypeHEIC, nil
 	default:
 		return 0, BadDataError(
 			fmt.Errorf( //nolint: err113
@@ -72,6 +75,8 @@ func chooseImageFormat( //nolint: cyclop
 		return originalFormat, image.ImageTypeJPEG, nil
 	case api.Avif:
 		return originalFormat, image.ImageTypeAVIF, nil
+	case api.Heic:
+		return originalFormat, image.ImageTypeHEIC, nil
 	case api.Auto:
 		for _, acceptHeader := range acceptHeader {
 			acceptedTypes := strings.Split(acceptHeader, ",")
@@ -84,6 +89,8 @@ func chooseImageFormat( //nolint: cyclop
 				return originalFormat, image.ImageTypeJPEG, nil
 			case slices.Contains(acceptedTypes, "image/png"):
 				return originalFormat, image.ImageTypePNG, nil
+			case slices.Contains(acceptedTypes, "image/heic"):
+				return originalFormat, image.ImageTypeHEIC, nil
 			}
 		}
 
@@ -91,8 +98,11 @@ func chooseImageFormat( //nolint: cyclop
 	default:
 		return 0, 0, BadDataError(
 			//nolint: err113
-			fmt.Errorf("format must be one of: same, webp, png, jpeg, avif, auto. Got: %s", format),
-			"format must be one of: same, webp, png, jpeg, avif, auto. Got: "+string(format),
+			fmt.Errorf(
+				"format must be one of: same, webp, png, jpeg, avif, heic, auto. Got: %s",
+				format,
+			),
+			"format must be one of: same, webp, png, jpeg, avif, heic, auto. Got: "+string(format),
 		)
 	}
 }
@@ -151,7 +161,23 @@ func (ctrl *Controller) manipulateImage(
 	defer object.Close()
 
 	buf := &bytes.Buffer{}
-	if err := ctrl.imageTransformer.Run(object, size, buf, opts); err != nil {
+
+	done := make(chan error, 1)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("panic in image manipulation", slog.Any("panic", r))
+
+				done <- fmt.Errorf("panic in image manipulation: %v", r) //nolint: err113
+			}
+		}()
+
+		done <- ctrl.imageTransformer.Run(object, size, buf, opts)
+	}()
+
+	if err := <-done; err != nil {
+		slog.Error("image manipulation failed", slog.String("error", err.Error()))
+
 		return nil, 0, InternalServerError(err)
 	}
 
@@ -217,8 +243,6 @@ func (ctrl *Controller) processFileToDownload(
 	contentLength := download.ContentLength
 
 	if !opts.IsEmpty() {
-		defer body.Close()
-
 		body, contentLength, apiErr = ctrl.manipulateImage(
 			body, uint64(contentLength), opts, //nolint:gosec
 		)
@@ -236,6 +260,8 @@ func (ctrl *Controller) processFileToDownload(
 		download.StatusCode,
 	)
 	if apiErr != nil {
+		body.Close()
+
 		return nil, apiErr
 	}
 
@@ -253,7 +279,7 @@ func (ctrl *Controller) processFileToDownload(
 	}, nil
 }
 
-func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
+func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,
@@ -271,7 +297,7 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 				),
 				ContentType:      file.mimeType,
 				Etag:             file.fileMetadata.Etag,
-				LastModified:     file.fileMetadata.UpdatedAt,
+				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
 				SurrogateControl: file.cacheControl,
 				SurrogateKey:     file.fileMetadata.Id,
 			},
@@ -289,13 +315,15 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 				ContentRange:     file.extraHeaders.Get("Content-Range"),
 				ContentType:      file.mimeType,
 				Etag:             file.fileMetadata.Etag,
-				LastModified:     file.fileMetadata.UpdatedAt,
+				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
 				SurrogateControl: file.cacheControl,
 				SurrogateKey:     file.fileMetadata.Id,
 			},
 			ContentLength: file.contentLength,
 		}
 	case http.StatusNotModified:
+		file.body.Close()
+
 		return api.GetFile304Response{
 			Headers: api.GetFile304ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -304,6 +332,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 			},
 		}
 	case http.StatusPreconditionFailed:
+		file.body.Close()
+
 		return api.GetFile412Response{
 			Headers: api.GetFile412ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -312,6 +342,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 			},
 		}
 	default:
+		file.body.Close()
+
 		logger.ErrorContext(
 			ctx, "unexpected status code from download", slog.Int("statusCode", file.statusCode),
 		)
@@ -324,7 +356,7 @@ func (ctrl *Controller) GetFile( //nolint:ireturn
 	ctx context.Context,
 	request api.GetFileRequestObject,
 ) (api.GetFileResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
 

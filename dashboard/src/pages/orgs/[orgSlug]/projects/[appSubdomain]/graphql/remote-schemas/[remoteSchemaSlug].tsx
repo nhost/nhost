@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Box } from '@/components/ui/v2/Box';
@@ -6,7 +7,6 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
 import { RemoteSchemaDetails } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaDetails';
-import type { ReactElement } from 'react';
 
 export default function RemoteSchemaDetailsPage() {
   const { project } = useProject();

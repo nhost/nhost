@@ -1,3 +1,5 @@
+import { format, parseISO } from 'date-fns';
+import { useState } from 'react';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
@@ -6,8 +8,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { Backup } from '@/types/application';
 import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
-import { format, parseISO } from 'date-fns';
-import { useState } from 'react';
 
 export interface RestoreBackupModalProps {
   /**
@@ -42,7 +42,7 @@ export default function RestoreBackupModal({
           appId: project?.id,
         },
       });
-    } catch (error) {
+    } catch {
       setRestoreCompleted(false);
       triggerToast('Database backup restoration failed');
       return;
@@ -71,7 +71,7 @@ export default function RestoreBackupModal({
         will be restored.
       </Text>
 
-      <Box className="pb-2.5 pt-1">
+      <Box className="pt-1 pb-2.5">
         <Checkbox
           checked={isSure}
           onChange={(_event, checked) => setIsSure(checked)}

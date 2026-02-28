@@ -1,33 +1,38 @@
+import {
+  type MouseEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useState,
+} from 'react';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
-import type { MouseEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { twMerge } from 'tailwind-merge';
 
-export type DataGridBooleanCellProps<TData extends object> =
-  CommonDataGridCellProps<TData, boolean | null | undefined>;
+export interface DataGridBooleanCellProps<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+> extends CommonDataGridCellProps<TData, boolean | null | undefined> {}
 
-export default function DataGridBooleanCell<TData extends object>({
+export default function DataGridBooleanCell<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+>({
   onSave,
   optimisticValue,
-  temporaryValue,
   onTemporaryValueChange,
-  cell: {
-    column: { isNullable },
-  },
+  cell: { column, id: cellId },
 }: DataGridBooleanCellProps<TData>) {
-  const {
-    inputRef,
-    isEditing,
-    focusCell,
-    editCell,
-    cancelEditCell,
-    isSelected,
-  } = useDataGridCell<HTMLButtonElement>();
+  const { inputRef, focusCell, cancelEditCell, focusNextCell, editCell } =
+    useDataGridCell<HTMLButtonElement>();
+  const [open, setOpen] = useState(false);
+  const isNullable = column.columnDef.meta?.isNullable;
 
   async function handleMenuClick(
-    event: MouseEvent<HTMLLIElement> | ReactKeyboardEvent<HTMLLIElement>,
+    event: MouseEvent<HTMLDivElement> | ReactKeyboardEvent<HTMLDivElement>,
     value: boolean | null,
   ) {
     event.stopPropagation();
@@ -48,74 +53,83 @@ export default function DataGridBooleanCell<TData extends object>({
     // We need to restore the temporary value, because editing was cancelled
     if (event.key === 'Escape' && onTemporaryValueChange) {
       event.stopPropagation();
-
       onTemporaryValueChange(optimisticValue);
       cancelEditCell();
+      focusCell();
     }
 
     if (event.key === 'Tab' && onSave) {
-      await onSave(temporaryValue);
-      cancelEditCell();
+      setOpen(false);
+      focusNextCell();
     }
   }
 
-  function handleTemporaryValueChange(value: boolean | null) {
-    if (onTemporaryValueChange) {
+  function handleTemporaryValueChange(
+    event: ReactKeyboardEvent<HTMLDivElement>,
+    value: boolean | null,
+  ) {
+    if (onTemporaryValueChange && event.key === 'Enter') {
       onTemporaryValueChange(value);
     }
   }
+  // needed to open with enter
+  function handleTriggerClick(event: MouseEvent) {
+    if (!open && !event.nativeEvent.isTrusted) {
+      setOpen(true);
+    }
+  }
 
-  return isSelected ? (
-    <Dropdown.Root id="boolean-data-editor" className="h-full w-full">
-      <Dropdown.Trigger
-        id="boolean-trigger"
-        className={twMerge(
-          'h-full w-full border-none p-0 outline-none',
-          isEditing && 'p-1.5',
-        )}
+  function handleOpenChange(newOpenState: boolean) {
+    if (newOpenState) {
+      editCell();
+    } else {
+      cancelEditCell();
+    }
+    setOpen(newOpenState);
+  }
+
+  return (
+    <DropdownMenu open={open} onOpenChange={handleOpenChange} modal={false}>
+      <DropdownMenuTrigger
         ref={inputRef}
-        onClick={editCell}
-        autoFocus={false}
-        sx={{ '&:hover': { backgroundColor: 'transparent !important' } }}
+        className="h-full w-full focus-visible:border-transparent focus-visible:outline-none"
+        onClick={handleTriggerClick}
       >
         <ReadOnlyToggle checked={optimisticValue} />
-      </Dropdown.Trigger>
-
-      <Dropdown.Content
-        menu
-        disablePortal
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        id={cellId}
+        style={{ width: column.getSize() }}
         onKeyDown={handleMenuKeyDown}
-        PaperProps={{ className: 'w-[200px]' }}
-        TransitionProps={{ onExited: focusCell }}
+        className="!border-t-0 rounded-none border-2 border-[#0052cd] bg-data-cell-bg"
       >
-        <Dropdown.Item
-          selected={optimisticValue === true}
-          onKeyUp={() => handleTemporaryValueChange(true)}
+        <DropdownMenuCheckboxItem
+          className="hover:!bg-data-cell-bg-hover"
+          checked={optimisticValue === true}
+          onKeyUp={(event) => handleTemporaryValueChange(event, true)}
           onClick={(event) => handleMenuClick(event, true)}
         >
           <ReadOnlyToggle checked />
-        </Dropdown.Item>
-
-        <Dropdown.Item
-          selected={optimisticValue === false}
-          onKeyUp={() => handleTemporaryValueChange(false)}
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          className="hover:!bg-data-cell-bg-hover"
+          checked={optimisticValue === false}
+          onKeyUp={(event) => handleTemporaryValueChange(event, false)}
           onClick={(event) => handleMenuClick(event, false)}
         >
           <ReadOnlyToggle checked={false} />
-        </Dropdown.Item>
-
+        </DropdownMenuCheckboxItem>
         {isNullable && (
-          <Dropdown.Item
-            selected={optimisticValue === null}
-            onKeyUp={() => handleTemporaryValueChange(null)}
+          <DropdownMenuCheckboxItem
+            className="hover:!bg-data-cell-bg-hover"
+            checked={optimisticValue === null}
+            onKeyUp={(event) => handleTemporaryValueChange(event, null)}
             onClick={(event) => handleMenuClick(event, null)}
           >
             <ReadOnlyToggle checked={null} />
-          </Dropdown.Item>
+          </DropdownMenuCheckboxItem>
         )}
-      </Dropdown.Content>
-    </Dropdown.Root>
-  ) : (
-    <ReadOnlyToggle checked={optimisticValue} />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -1,1 +1,6 @@
-[]
+- name: rs
+  definition:
+    url: '{{NHOST_FUNCTIONS_URL}}/remote-schema'
+    timeout_seconds: 60
+    customization: {}
+  comment: ""

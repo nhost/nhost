@@ -1,12 +1,12 @@
 import type {
   ErrorResponse,
   PublicKeyCredentialCreationOptions,
-} from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { startRegistration } from "@simplewebauthn/browser";
-import { type JSX, useId, useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
-import { isWebAuthnSupported } from "../lib/utils";
+} from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { startRegistration } from '@simplewebauthn/browser';
+import { type JSX, useId, useState } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
+import { isWebAuthnSupported } from '../lib/utils';
 
 /**
  * WebAuthn Registration (Sign Up) Flow
@@ -42,7 +42,7 @@ export default function WebAuthnSignUpForm({
   const { nhost } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [keyNickname, setKeyNickname] = useState<string>("");
+  const [keyNickname, setKeyNickname] = useState<string>('');
   const [challengeData, setChallengeData] =
     useState<PublicKeyCredentialCreationOptions | null>(null);
   const displayNameId = useId();
@@ -68,14 +68,14 @@ export default function WebAuthnSignUpForm({
 
     // Validate required fields
     if (!email) {
-      setError("Email is required");
+      setError('Email is required');
       setIsLoading(false);
       return;
     }
 
     // Check browser compatibility before proceeding
     if (!isWebAuthnSupported()) {
-      setError("WebAuthn is not supported by your browser.");
+      setError('WebAuthn is not supported by your browser.');
       setIsLoading(false);
       return;
     }
@@ -109,7 +109,7 @@ export default function WebAuthnSignUpForm({
         });
 
         if (!credential) {
-          setError("No credential was created.");
+          setError('No credential was created.');
           setIsLoading(false);
           return;
         }
@@ -138,7 +138,7 @@ export default function WebAuthnSignUpForm({
         }
       } catch (credError) {
         setError(
-          `WebAuthn registration failed: ${(credError as Error).message || "Unknown error"}`,
+          `WebAuthn registration failed: ${(credError as Error).message || 'Unknown error'}`,
         );
       }
     } catch (err) {
@@ -195,9 +195,9 @@ export default function WebAuthnSignUpForm({
       >
         {isLoading
           ? challengeData
-            ? "Complete Registration on Your Device..."
-            : "Initializing..."
-          : "Register with Security Key"}
+            ? 'Complete Registration on Your Device...'
+            : 'Initializing...'
+          : 'Register with Security Key'}
       </button>
 
       <div className="text-xs mt-2 text-gray-400">

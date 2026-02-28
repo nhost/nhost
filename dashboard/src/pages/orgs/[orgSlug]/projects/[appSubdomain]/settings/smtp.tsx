@@ -1,21 +1,19 @@
+import { type ReactElement, useEffect, useState } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
-import { useGetSmtpSettingsQuery } from '@/utils/__generated__/graphql';
-import { useEffect, useState, type ReactElement } from 'react';
-
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import DeleteSMTPSettings from '@/features/orgs/projects/authentication/settings/components/DeleteSMTPSettings/DeleteSMTPSettings';
 import { PostmarkSettings } from '@/features/orgs/projects/authentication/settings/components/PostmarkSettings';
 import { SMTPSettings } from '@/features/orgs/projects/authentication/settings/components/SMTPSettings';
-
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useGetSmtpSettingsQuery } from '@/utils/__generated__/graphql';
 
 export default function SMTPSettingsPage() {
   const { org } = useCurrentOrg();

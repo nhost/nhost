@@ -1,7 +1,7 @@
-import type { CommonDialogProps } from '@/components/ui/v2/Dialog';
-import type { DialogFormProps } from '@/types/common';
 import type { ReactElement, ReactNode } from 'react';
 import { createContext } from 'react';
+import type { CommonDialogProps } from '@/components/ui/v2/Dialog';
+import type { DialogFormProps } from '@/types/common';
 
 export interface DialogConfig<TPayload = unknown> {
   /**
@@ -29,7 +29,8 @@ export interface OpenDialogOptions {
   component: ReactElement<{
     location?: 'drawer' | 'dialog';
     onCancel?: () => void;
-    onSubmit?: (args?: any) => Promise<any> | void;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
+    onSubmit?: (args?: any) => Promise<any>;
   }>;
   /**
    * Props to pass to the root dialog component.

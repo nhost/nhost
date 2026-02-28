@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
@@ -8,13 +9,13 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { isNotEmptyValue } from '@/lib/utils';
 import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
-import { useState } from 'react';
 
 interface VerifyDomainProps {
   recordType: string;
   hostname?: string;
   value: string;
   onHostNameVerified?: () => void;
+  saveEnabled?: boolean;
 }
 
 export default function VerifyDomain({
@@ -22,6 +23,7 @@ export default function VerifyDomain({
   hostname,
   value,
   onHostNameVerified,
+  saveEnabled = true,
 }: VerifyDomainProps) {
   const isPlatform = useIsPlatform();
   const [verificationFailed, setVerificationFailed] = useState(false);
@@ -29,6 +31,13 @@ export default function VerifyDomain({
 
   const [loading, setLoading] = useState(false);
   const [fireLookupCNAME] = useDnsLookupCnameLazyQuery();
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: state needs to be reset when hostname or value changes
+  useEffect(() => {
+    setVerificationFailed(false);
+    setVerificationSucceeded(false);
+    setLoading(false);
+  }, [hostname, value]);
 
   const handleVerifyDomain = async () => {
     setLoading(true);
@@ -93,7 +102,7 @@ export default function VerifyDomain({
         {verificationSucceeded && (
           <Text>
             <span className="font-semibold">{hostname}</span> was verified
-            successfully. Hit save to apply.
+            successfully. {saveEnabled ? 'Hit save to apply.' : ''}
           </Text>
         )}
 
@@ -136,7 +145,7 @@ export default function VerifyDomain({
           <Button
             disabled={loading || !hostname}
             onClick={handleVerifyDomain}
-            className="mt-4 sm:absolute sm:bottom-0 sm:right-0 sm:mt-0"
+            className="mt-4 sm:absolute sm:right-0 sm:bottom-0 sm:mt-0"
           >
             Verify
           </Button>

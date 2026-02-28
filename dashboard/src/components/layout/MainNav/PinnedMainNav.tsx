@@ -1,9 +1,9 @@
-import NavTree from '@/components/layout/MainNav/NavTree';
-import { Button } from '@/components/ui/v3/button';
-import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { Pin, PinOff } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
+import NavTree from '@/components/layout/MainNav/NavTree';
+import { Button } from '@/components/ui/v3/button';
+import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useTreeNavState } from './TreeNavStateContext';
 
 export default function PinnedMainNav() {
@@ -67,7 +67,7 @@ export default function PinnedMainNav() {
 
       <div
         ref={scrollContainerRef}
-        className="h-[calc(100vh-7rem)] overflow-auto pb-12 pt-2 lg:h-[calc(100vh-6rem)]"
+        className="h-[calc(100vh-7rem)] overflow-auto pt-2 pb-12 lg:h-[calc(100vh-6rem)]"
       >
         <div className="flex flex-col gap-1 px-2">
           <NavTree />

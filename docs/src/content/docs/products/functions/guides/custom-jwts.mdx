@@ -1,0 +1,124 @@
+---
+title: Custom JWTs
+description: Generate custom JWTs to act on behalf of users
+keywords: ["JWT", "custom tokens", "user impersonation", "serverless functions", "access tokens", "Hasura claims"]
+---
+
+In some cases you need to act on behalf of a user — for example, to impersonate a user from an admin panel or to generate tokens with custom claims. The Auth service doesn't support this directly, but you can implement it with a function.
+
+## Dependencies
+
+```shell
+npm install jsonwebtoken
+npm install -D @types/jsonwebtoken
+```
+
+## Function
+
+Create a file at `./functions/custom-jwt.ts`:
+
+```ts ./functions/custom-jwt.ts
+import type { Request, Response } from 'express'
+import process from 'node:process'
+import jwt from 'jsonwebtoken'
+
+const getJwt = (req: Request): string | null => {
+  const authHeader = req.headers.authorization
+  if (!authHeader) return null
+
+  const parts = authHeader.split(' ')
+  if (parts.length !== 2 || !/^Bearer$/i.test(parts[0])) return null
+
+  return parts[1]
+}
+
+const jwtIsAuthorized = (req: Request, key: string): string => {
+  const token = getJwt(req)
+  if (!token) return ''
+
+  try {
+    const decoded = jwt.verify(token, key)
+    const claims = decoded['https://hasura.io/jwt/claims']
+    if (!claims?.['x-hasura-allowed-roles']) return ''
+
+    if (
+      claims['x-hasura-allowed-roles'].includes('admin') ||
+      claims['x-hasura-allowed-roles'].includes('operator')
+    ) {
+      return decoded.sub
+    }
+
+    return ''
+  } catch {
+    return ''
+  }
+}
+
+export default (req: Request, res: Response) => {
+  let authorizedCaller = ''
+
+  if (req.headers['x-hasura-admin-secret'] === process.env.HASURA_GRAPHQL_ADMIN_SECRET) {
+    authorizedCaller = 'admin'
+  }
+
+  const jwtSecret = JSON.parse(process.env.NHOST_JWT_SECRET)
+  if (!authorizedCaller) {
+    authorizedCaller = jwtIsAuthorized(req, jwtSecret.key)
+  }
+
+  if (!authorizedCaller) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
+
+  const { userId, defaultRole, allowedRoles } = req.body
+  if (!userId || !defaultRole || !allowedRoles) {
+    return res.status(400).json({ message: 'Bad request' })
+  }
+
+  const token = jwt.sign(
+    {
+      exp: Math.floor(Date.now() / 1000) + 60 * 60,
+      'https://hasura.io/jwt/claims': {
+        'x-hasura-allowed-roles': allowedRoles,
+        'x-hasura-default-role': defaultRole,
+        'x-hasura-user-id': userId,
+        'x-hasura-user-is-anonymous': 'false',
+        'x-hasura-on-behalf-of': authorizedCaller,
+      },
+      iat: Math.floor(Date.now() / 1000),
+      iss: 'custom-lambda',
+      sub: userId,
+    },
+    jwtSecret.key,
+  )
+
+  res.status(200).json({ accessToken: token })
+}
+```
+
+## Authorization
+
+The function accepts two authorization methods:
+
+- **Admin secret**: Send the `x-hasura-admin-secret` header
+- **JWT**: Send a valid JWT with the `admin` or `operator` role
+
+## Request Body
+
+| Field          | Type       | Description                          |
+| -------------- | ---------- | ------------------------------------ |
+| `userId`       | `string`   | User ID to generate the token for    |
+| `defaultRole`  | `string`   | Default role for the user            |
+| `allowedRoles` | `string[]` | Roles the user can assume            |
+
+## Example
+
+```shell
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "x-hasura-admin-secret: nhost-admin-secret" \
+  -d '{"userId": "FFAB5354-C5EB-42C1-8BC3-AD21D2297883", "defaultRole": "user", "allowedRoles": ["user", "me"]}' \
+  https://local.functions.local.nhost.run/v1/custom-jwt
+```
+
+The response contains a signed JWT with the custom claims, including `x-hasura-on-behalf-of` indicating who initiated the request.

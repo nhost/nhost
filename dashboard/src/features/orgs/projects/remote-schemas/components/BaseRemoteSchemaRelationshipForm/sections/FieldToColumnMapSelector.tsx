@@ -1,13 +1,13 @@
+import { isObjectType } from 'graphql';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
-import { isObjectType } from 'graphql';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
 import FieldToColumnMapSelectorItem from './FieldToColumnMapSelectorItem';
 
@@ -48,11 +48,11 @@ export default function FieldToColumnMapSelector({
           const type = graphqlSchema.getType(selectedSourceType);
 
           if (isObjectType(type)) {
-            const fields = type.getFields();
-            return Object.keys(fields).map((fieldName) => ({
+            const typeFields = type.getFields();
+            return Object.keys(typeFields).map((fieldName) => ({
               label: fieldName,
               value: fieldName,
-              type: fields[fieldName].type.toString(),
+              type: typeFields[fieldName].type.toString(),
             }));
           }
 
@@ -60,7 +60,7 @@ export default function FieldToColumnMapSelector({
         })()
       : [];
 
-  const { data } = useTableQuery([`default.${schema}.${table}`], {
+  const { data } = useTableSchemaQuery([`default.${schema}.${table}`], {
     schema,
     table,
     queryOptions: {

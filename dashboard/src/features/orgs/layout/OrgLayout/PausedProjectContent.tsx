@@ -1,7 +1,7 @@
+import { useRouter } from 'next/router';
+import type { PropsWithChildren } from 'react';
 import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
 import { ApplicationPausedBanner } from '@/features/orgs/projects/common/components/ApplicationPausedBanner';
-import { useRouter } from 'next/router';
-import { type PropsWithChildren } from 'react';
 
 const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
 const blockedPausedProjectPages = [
@@ -10,11 +10,19 @@ const blockedPausedProjectPages = [
   'graphql',
   'graphql/remote-schemas',
   'graphql/remote-schemas/[remoteSchemaSlug]',
+  'graphql/metadata',
+  'events/event-triggers',
+  'events/event-triggers/[eventTriggerSlug]',
+  'events/cron-triggers',
+  'events/cron-triggers/[cronTriggerSlug]',
+  'events/one-offs',
   'hasura',
-  'users',
+  'auth/users',
+  'auth/oauth2-clients',
   'storage',
   'ai/auto-embeddings',
   'ai/assistants',
+  'ai/file-stores',
   'metrics',
 ].map((page) => baseProjectPageRoute.concat(page));
 

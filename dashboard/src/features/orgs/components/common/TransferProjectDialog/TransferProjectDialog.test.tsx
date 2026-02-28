@@ -1,3 +1,6 @@
+import { setupServer } from 'msw/node';
+import { useState } from 'react';
+import { afterAll, beforeAll, vi } from 'vitest';
 import {
   mockMatchMediaValue,
   mockOrganization,
@@ -18,9 +21,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { useState } from 'react';
-import { afterAll, beforeAll, vi } from 'vitest';
 import TransferProjectDialog from './TransferProjectDialog';
 
 Object.defineProperty(window, 'matchMedia', {
@@ -63,6 +63,7 @@ const getUseRouterObject = (session_id?: string) => ({
 });
 
 vi.mock('@/features/orgs/projects/hooks/useOrgs', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actualUseOrgs = await vi.importActual<any>(
     '@/features/orgs/projects/hooks/useOrgs',
   );
@@ -79,13 +80,14 @@ const postOrganizationRequestResolver = createGraphqlMockResolver(
 
 vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
+  default: {
+    query: {},
+    pathname: '/orgs/xyz/projects/test-project',
+    push: mocks.push,
+  },
 }));
 
-export function DialogWrapper({
-  defaultOpen = true,
-}: {
-  defaultOpen?: boolean;
-}) {
+function DialogWrapper({ defaultOpen = true }: { defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return <TransferProjectDialog open={open} setOpen={setOpen} />;
 }

@@ -1,5 +1,5 @@
 //go:generate ./schema.sh
-package sql
+package sql //nolint:revive
 
 import (
 	"time"
@@ -13,6 +13,13 @@ type RefreshTokenType string
 const (
 	RefreshTokenTypeRegular RefreshTokenType = "regular"
 	RefreshTokenTypePAT     RefreshTokenType = "pat"
+)
+
+type OAuth2ClientType string
+
+const (
+	OAuth2ClientTypeRegistered OAuth2ClientType = "registered"
+	OAuth2ClientTypeCIMD       OAuth2ClientType = "client_id_metadata_document"
 )
 
 func UUID(value uuid.UUID) pgtype.UUID {

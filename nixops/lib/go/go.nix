@@ -62,10 +62,10 @@ in
       ] ++ goCheckDeps ++ buildInputs;
 
       shellHook = shellHook + pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
-        export SDKROOT=${pkgs.apple-sdk_12}
-        export SDKROOT_FOR_TARGET=${pkgs.apple-sdk_12}
-        export DEVELOPER_DIR=${pkgs.apple-sdk_12}
-        export DEVELOPER_DIR_FOR_TARGET=${pkgs.apple-sdk_12}
+        export SDKROOT=${pkgs.apple-sdk_14}
+        export SDKROOT_FOR_TARGET=${pkgs.apple-sdk_14}
+        export DEVELOPER_DIR=${pkgs.apple-sdk_14}
+        export DEVELOPER_DIR_FOR_TARGET=${pkgs.apple-sdk_14}
       '';
     };
 
@@ -85,14 +85,15 @@ in
         nativeBuildInputs = goCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
       }
       ''
-        export GOLANGCI_LINT_CACHE=$TMPDIR/.cache/golangci-lint
-        export GOCACHE=$TMPDIR/.cache/go-build
-        export GOMODCACHE="$TMPDIR/.cache/mod"
-        export GOPATH="$TMPDIR/.cache/gopath"
+        export HOME=$(mktemp -d)
 
         ${preCheck}
 
         echo "➜ Source: ${src}"
+
+        echo "➜ Running code formatters, if there are changes, fail"
+        cd ${src}
+        golines -l --base-formatter=gofumpt ${submodule} | diff - /dev/null
 
         echo "➜ Running go generate ./${submodule}/... and checking sha1sum of all files"
         mkdir -p $TMPDIR/generate
@@ -101,15 +102,14 @@ in
         chmod +w -R .
 
         go generate ./${submodule}/...
+        golines -w --base-formatter=gofumpt ${submodule}
+
         find . -type f ! -path "./vendor/*" -print0 | xargs -0 sha1sum > $TMPDIR/sum
         cd ${src}
         sha1sum -c $TMPDIR/sum || (echo "❌ ERROR: go generate changed files" && exit 1)
 
-        echo "➜ Running code formatters, if there are changes, fail"
-        golines -l --base-formatter=gofumpt . | diff - /dev/null
-
         echo "➜ Checking for vulnerabilities"
-        govulncheck -scan=package ./...
+        govulncheck -scan=package ./${submodule}/...
 
         echo "➜ Running golangci-lint"
         golangci-lint run \
@@ -120,7 +120,8 @@ in
         richgo test \
           -tags="${pkgs.lib.strings.concatStringsSep " " tags}" \
           -ldflags="${pkgs.lib.strings.concatStringsSep " " ldflags}" \
-          -v ${goTestFlags} ./${submodule}/...
+          -v ${goTestFlags} \
+          ./${submodule}/...
 
         ${extraCheck}
 
@@ -138,7 +139,7 @@ in
     , nativeBuildInputs
     , postInstall ? ""
     }: (pkgs.buildGoModule.override { go = pkgs.go; } {
-      inherit src version ldflags buildInputs nativeBuildInputs;
+      inherit src version ldflags buildInputs;
 
       pname = name;
 
@@ -147,6 +148,12 @@ in
       doCheck = false;
 
       subPackages = [ submodule ];
+
+      nativeBuildInputs = nativeBuildInputs ++ [
+        pkgs.removeReferencesTo
+        pkgs.rcodesign
+        pkgs.file
+      ];
 
       postInstall = postInstall;
 
@@ -164,6 +171,17 @@ in
           mv $dir/* $dir/..
           rm -rf $dir
         fi
+      '';
+
+      postFixup = (old.postFixup or "") + ''
+        find $out/bin -type f -exec remove-references-to -t ${pkgs.go} {} +
+
+        # Re-sign darwin (Mach-O) binaries after modification to fix invalid signatures
+        for f in $out/bin/*; do
+          if file "$f" | grep -q "Mach-O"; then
+            rcodesign sign "$f"
+          fi
+        done
       '';
     });
 

@@ -1,3 +1,224 @@
+## [@nhost/dashboard@2.51.0] - 2026-02-21
+
+### 🚀 Features
+
+- *(dashboard)* Added oauth2/authorize page (#3939)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove react-table package (#3898)
+- *(deps)* Upgrade svelte due to vuln (#3935)
+- *(dashboard)* Reduce over-fetching of metadata export (#3937)
+- *(dashboard)* Avoid over-fetching table rows in event triggers page (#3940)
+- *(dashboard)* Use functions instead of static only classes (#3906)
+- *(dashboard)* Introduce new type to represent columns in BaseRecordForm (#3910)
+
+## [@nhost/dashboard@2.50.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(dashboard)* Add metadata page (#3899)
+- *(dashboard)* Added oauth2 provider configuration form and oauth2 client management (customers) (#3930)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump Orval version and remove outdated pnpm overrides (#3920)
+- *(deps)* Bump ajv and tar due to cves (#3925)
+- *(docs)* Bump minimatch version (#3929)
+- *(dashboard)* Remove eslint (#3927)
+
+## [@nhost/dashboard@2.49.0] - 2026-02-17
+
+### 🚀 Features
+
+- *(dashboard)* Add jsonb specific operators to OperationComboBox (#3904)
+- *(dashboard)* Add one-off scheduled events (#3889)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up markdown-it to address vulnerability (#3914)
+- *(dashboard)* Allow transferring free and paused project to Starter orgs (#3918)
+
+## [@nhost/dashboard@2.48.0] - 2026-02-12
+
+### 🚀 Features
+
+- *(dashboard)* Edit table relationships (#3720)
+- *(ci)* Remove mintlify (#3887)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update brace-expansion due to cve (#3886)
+- *(dashboard)* Run type check before tests (#3894)
+
+## [@nhost/dashboard@2.47.0] - 2026-02-04
+
+### 🚀 Features
+
+- *(dashboard)* Disconnect GitHub's auth provider from Nhost account (#3847)
+- *(docs)* Release starlight (#3877)
+
+
+### 🐛 Bug Fixes
+
+- *(nixops)* Update nodejs to v24 (#3862)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add CLAUDE.md (#3880)
+- *(dashboard)* Test links (#3881)
+
+## [@nhost/dashboard@2.46.3] - 2026-02-02
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update orval to 8.0.3 (#3839)
+- *(dashboard)* Show paused banner in events and file stores pages (#3844)
+- *(dashboard)* Update nextjs to 16 (#3841)
+- *(deps)* Update nextjs due to vulnerability (#3854)
+- *(dashboard)* Update orval due to cve (#3869)
+- *(dashboard)* Disable delete personal account button if confirm checkbox isn't pressed (#3864)
+- *(dashboard)* Do not submit new record form after clicking on cancel (#3853)
+
+
+### Chore
+
+- *(deps)* Update tar due to cve (#3867)
+
+## [@nhost/dashboard@2.46.2] - 2026-01-22
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Show untracked tables in database view (#3833)
+
+## [@nhost/dashboard@2.46.1] - 2026-01-22
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update orval to version 8 (#3827)
+- *(ci)* Check that orval codegen files are up to date (#3829)
+- *(deps)* Added pnpm overrides due to cves (#3831)
+- *(dashboard)* Use optional chaining for concealErrors setting (#3830)
+
+## [@nhost/dashboard@2.46.0] - 2026-01-19
+
+### 🚀 Features
+
+- *(nixops)* Update nixpkgs (#3808)
+- *(nixops)* Package mintlify (#3822)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Disable event/cron triggers edit when project is connected to a GitHub repository (#3804)
+- *(dashboard)* Prevent undefined property access when deleting row with event trigger (#3807)
+- *(deps)* Update orval to address security audit (#3810)
+- *(dashboard)* Filter out tables from remote data sources (#3798)
+- *(dashboard)* Migrate to biome from prettier in the dashboard (#3788)
+- *(dashboard)* Event triggers sidebar layout, move create button position (#3815)
+- *(examples)* Update svelte and devalue (#3817)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Setup biome and eslint for linting (#3781)
+- *(nhost-js)* Biome migration follow up (#3812)
+- *(dashboard)* Turn on import sorting in biome (#3787)
+- *(dashboard)* Replace Prettier by Biome in Orval config (#3814)
+
+## [@nhost/dashboard@2.45.0] - 2026-01-13
+
+### 🚀 Features
+
+- Cron triggers (#3705)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Fix tracking multiple foreign keys (#3748)
+- *(dashboard)* Make e2e tests more robust (#3768)
+- *(dashboard)* Remove custom domains from settings (#3782)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update npm/pnpm and remove deployment token (#3767)
+
+
+### Chore
+
+- *(deps)* Update tar and qs packages (#3786)
+- *(deps)* Update react-router (#3790)
+
+## [@nhost/dashboard@2.44.1] - 2025-12-12
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Small database bug fixes (#3715)
+
+
+### Chore
+
+- *(deps)* Update next to address security audit (#3754)
+
+## [@nhost/dashboard@2.44.0] - 2025-12-04
+
+### 🚀 Features
+
+- *(dashboard)* Modify field settings for GraphQL metadata (#3714)
+- *(dashboard)* Add data table filters (#3707)
+- *(auth)* Expand turnstile to passwordess and email reset (#3736)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Run pnpm audit --fix (#3732)
+- Fix(dashboard) remove playwright override (#3734)
+
+## [@nhost/dashboard@2.43.0] - 2025-11-21
+
+### 🚀 Features
+
+- *(dashboard)* Event triggers (#3417)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Parse and create one-click installs for run services correctly (#3679)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add SLA level to support tickets (#3658)
+
+## [@nhost/dashboard@2.42.0] - 2025-11-12
+
+### 🚀 Features
+
+- *(dashboard)* Datatable design improvements (#3657)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Remove v2 ui components from datatable (#3568)
+
+## [@nhost/dashboard@2.41.0] - 2025-11-04
+
+### 🚀 Features
+
+- *(auth)* Added endpoints to retrieve and refresh oauth2 providers' tokens (#3614)
+- *(dashboard)* Get github repositories from github itself (#3640)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update SQL editor to use correct hasura migrations API URL (#3645)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

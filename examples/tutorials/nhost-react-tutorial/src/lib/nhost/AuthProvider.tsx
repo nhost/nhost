@@ -1,5 +1,5 @@
-import { createClient, type NhostClient } from "@nhost/nhost-js";
-import type { Session } from "@nhost/nhost-js/auth";
+import { createClient, type NhostClient } from '@nhost/nhost-js';
+import type { Session } from '@nhost/nhost-js/auth';
 import {
   createContext,
   type ReactNode,
@@ -9,7 +9,7 @@ import {
   useMemo,
   useRef,
   useState,
-} from "react";
+} from 'react';
 
 /**
  * Authentication context interface providing access to user session state and Nhost client.
@@ -17,7 +17,7 @@ import {
  */
 interface AuthContextType {
   /** Current authenticated user object, null if not authenticated */
-  user: Session["user"] | null;
+  user: Session['user'] | null;
   /** Current session object containing tokens and user data, null if no active session */
   session: Session | null;
   /** Boolean indicating if user is currently authenticated */
@@ -46,7 +46,7 @@ interface AuthProviderProps {
  * - Client-side only session management (no server-side rendering)
  */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<Session["user"] | null>(null);
+  const [user, setUser] = useState<Session['user'] | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -56,8 +56,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const nhost = useMemo(
     () =>
       createClient({
-        region: import.meta.env.VITE_NHOST_REGION || "local",
-        subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || "local",
+        region: import.meta.env.VITE_NHOST_REGION || 'local',
+        subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || 'local',
       }),
     [],
   );
@@ -116,19 +116,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     // Monitor page visibility changes (tab switching, window minimizing)
-    document.addEventListener("visibilitychange", () => {
+    document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         checkSessionOnFocus();
       }
     });
 
     // Monitor window focus events (clicking back into the browser window)
-    window.addEventListener("focus", checkSessionOnFocus);
+    window.addEventListener('focus', checkSessionOnFocus);
 
     // Cleanup event listeners on component unmount
     return () => {
-      document.removeEventListener("visibilitychange", checkSessionOnFocus);
-      window.removeEventListener("focus", checkSessionOnFocus);
+      document.removeEventListener('visibilitychange', checkSessionOnFocus);
+      window.removeEventListener('focus', checkSessionOnFocus);
     };
   }, [nhost, reloadSession]);
 
@@ -168,7 +168,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

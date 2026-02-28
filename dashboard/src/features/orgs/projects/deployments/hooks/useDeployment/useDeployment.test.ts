@@ -1,6 +1,6 @@
+import { vi } from 'vitest';
 import { renderHook } from '@/tests/testUtils';
 import { useGetDeploymentQuery } from '@/utils/__generated__/graphql';
-import { vi } from 'vitest';
 
 import useDeployment from './useDeployment';
 
@@ -9,6 +9,7 @@ const mockSubscribeToMore = vi.fn();
 const mockUnsubscribe = vi.fn();
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -46,6 +47,7 @@ describe('useDeployment', () => {
       subscribeToMore: mockSubscribeToMore,
       loading: false,
       error: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test file
     }) as any;
 
   it('should start subscription when deployment status is PENDING', () => {
@@ -161,6 +163,7 @@ describe('useDeployment', () => {
       subscribeToMore: mockSubscribeToMore,
       loading: false,
       error: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test file
     } as any);
 
     expect(() => renderHook(() => useDeployment())).not.toThrow();

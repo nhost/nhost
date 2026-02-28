@@ -2,9 +2,9 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import {
-  serviceStateToThemeColor,
   type baseServices,
   type ServiceHealthInfo,
+  serviceStateToThemeColor,
 } from '@/features/orgs/projects/overview/health';
 import { ServiceState } from '@/generated/graphql';
 

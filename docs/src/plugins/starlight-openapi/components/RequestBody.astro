@@ -1,0 +1,62 @@
+---
+import type { Operation } from '../libs/operation'
+import {
+  getOpenAPIV2OperationConsumes,
+  getOpenAPIV2RequestBodyParameter,
+  getOpenAPIV3RequestBody,
+} from '../libs/requestBody'
+import type { Schema } from '../libs/schema'
+
+import Content from './Content.astro'
+import Md from './Md.astro'
+import SchemaObject from './schema/SchemaObject.astro'
+import Section, { type SectionHeadingProps } from './Section.astro'
+import Select from './Select.astro'
+
+interface Props extends SectionHeadingProps {
+  operation: Operation
+  schema: Schema
+}
+
+const { level = 2, operation, prefix, schema } = Astro.props
+
+const openAPIV2RequestBodyParameter = getOpenAPIV2RequestBodyParameter(operation)
+const openAPIV3RequestBody = getOpenAPIV3RequestBody(operation)
+
+const hasRequestBody = openAPIV2RequestBodyParameter !== undefined || openAPIV3RequestBody !== undefined
+const description = openAPIV2RequestBodyParameter
+  ? openAPIV2RequestBodyParameter.description
+  : openAPIV3RequestBody?.description
+
+const consumes = getOpenAPIV2OperationConsumes(schema, operation)
+---
+
+{
+  hasRequestBody && (
+    <Section {level} {prefix} title="Request Body">
+      {openAPIV3RequestBody?.required && (
+        <sup class="required" slot="post-title">
+          required
+        </sup>
+      )}
+      <Md text={description} slot="pre-panel" />
+      {openAPIV2RequestBodyParameter ? (
+        <>
+          <Select label="The list of MIME types the operation can consume" options={consumes} />
+          <SchemaObject schemaObject={openAPIV2RequestBodyParameter.schema} />
+        </>
+      ) : openAPIV3RequestBody ? (
+        <Content content={openAPIV3RequestBody.content} />
+      ) : null}
+    </Section>
+  )
+}
+
+<style>
+  .required {
+    color: var(--sl-color-red);
+    font-size: var(--sl-text-sm);
+    font-weight: 400;
+    margin-inline-start: 0.3rem;
+  }
+</style>

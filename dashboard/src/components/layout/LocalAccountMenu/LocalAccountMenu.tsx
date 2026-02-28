@@ -6,11 +6,9 @@ import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
-import getConfig from 'next/config';
+import { getDashboardVersion } from '@/utils/env';
 
 export default function LocalAccountMenu() {
-  const { publicRuntimeConfig } = getConfig();
-
   return (
     <Dropdown.Root className="justify-self-center">
       <Dropdown.Trigger hideChevron asChild>
@@ -57,7 +55,7 @@ export default function LocalAccountMenu() {
 
         <Box className="py-4">
           <Text className="text-center text-xs" color="disabled">
-            Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+            Dashboard Version: {getDashboardVersion()}
           </Text>
         </Box>
       </Dropdown.Content>

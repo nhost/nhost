@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
@@ -8,8 +10,6 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUpdateConfigMutation } from '@/utils/__generated__/graphql';
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface DisableAIServiceConfirmationDialogProps {
   /**

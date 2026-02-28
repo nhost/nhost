@@ -50,15 +50,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useAuth } from "../lib/nhost/auth";
+import { onMounted, onUnmounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useAuth } from '../lib/nhost/auth';
 
 const route = useRoute();
 const router = useRouter();
 const { nhost } = useAuth();
 
-const status = ref<"verifying" | "success" | "error">("verifying");
+const status = ref<'verifying' | 'success' | 'error'>('verifying');
 const error = ref<string | null>(null);
 const urlParams = ref<Record<string, string>>({});
 
@@ -67,8 +67,8 @@ let isMounted = true;
 
 onMounted(() => {
   // Extract the refresh token from the URL
-  const params = new URLSearchParams(route.fullPath.split("?")[1] || "");
-  const refreshToken = params.get("refreshToken");
+  const params = new URLSearchParams(route.fullPath.split('?')[1] || '');
+  const refreshToken = params.get('refreshToken');
 
   if (!refreshToken) {
     // Collect all URL parameters to display for debugging
@@ -78,8 +78,8 @@ onMounted(() => {
     });
     urlParams.value = allParams;
 
-    status.value = "error";
-    error.value = "No refresh token found in URL";
+    status.value = 'error';
+    error.value = 'No refresh token found in URL';
     return;
   }
 
@@ -108,8 +108,8 @@ async function processToken(
       });
       urlParams.value = allParams;
 
-      status.value = "error";
-      error.value = "No refresh token found in URL";
+      status.value = 'error';
+      error.value = 'No refresh token found in URL';
       return;
     }
 
@@ -118,17 +118,17 @@ async function processToken(
 
     if (!isMounted) return;
 
-    status.value = "success";
+    status.value = 'success';
 
     // Wait to show success message briefly, then redirect
     setTimeout(() => {
-      if (isMounted) router.push("/profile");
+      if (isMounted) router.push('/profile');
     }, 1500);
   } catch (err) {
-    const message = (err as Error).message || "Unknown error";
+    const message = (err as Error).message || 'Unknown error';
     if (!isMounted) return;
 
-    status.value = "error";
+    status.value = 'error';
     error.value = `An error occurred during verification: ${message}`;
   }
 }

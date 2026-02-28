@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
@@ -5,19 +9,14 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
-import {
-  useGetAuthenticationSettingsQuery,
-  useUpdateConfigMutation,
-} from '@/generated/graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import {
+  useGetAuthenticationSettingsQuery,
+  useUpdateConfigMutation,
+} from '@/generated/graphql';
 
 const validationSchema = Yup.object({
   clientUrl: Yup.string().label('Client URL'),
@@ -126,7 +125,7 @@ export default function ClientURLSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/products/auth/overview#client-url"
+          docsLink="https://docs.nhost.io/products/auth/client_and_redirect_urls#client-url"
           className="grid grid-flow-row lg:grid-cols-5"
         >
           <Input

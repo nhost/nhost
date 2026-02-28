@@ -1,10 +1,10 @@
-import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
-import { isEmptyValue } from '@/lib/utils';
 import {
   GraphQLEnumType,
   type GraphQLInputField,
   type GraphQLInputFieldMap,
 } from 'graphql';
+import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
+import { isEmptyValue } from '@/lib/utils';
 import getInputFieldChildren from './getInputFieldChildren';
 import isList from './isList';
 

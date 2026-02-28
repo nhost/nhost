@@ -3,6 +3,7 @@ import type { SelectProps } from '@/components/ui/v2/Select';
 import { Select } from '@/components/ui/v2/Select';
 import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface ThemeSwitcherProps extends SelectProps<any> {}
 
 export default function ThemeSwitcher({

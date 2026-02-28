@@ -1,11 +1,10 @@
 { pkgs, nix2containerPkgs }:
 let
   jsCheckDeps = with pkgs; [
-    pnpm_10
+    pnpm
     cacert
     nodejs
     biome
-    playwright-driver
   ];
 
   mkNodeModules =
@@ -21,14 +20,13 @@ let
       dontFixup = true;
 
       nativeBuildInputs = with pkgs; [
-        pnpm_10
+        pnpm
         cacert
         nodejs
       ];
 
       buildPhase = ''
-        export HOME=$TMPDIR/home
-        mkdir -p $HOME
+        export HOME=$(mktemp -d)
 
         ${preBuild}
 
@@ -71,9 +69,6 @@ let
 
         cd "$CUR_DIR"
 
-        export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
-        export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
-
         ${shellHook}
       '';
     };
@@ -92,6 +87,8 @@ let
         nativeBuildInputs = jsCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
       }
       ''
+        export HOME=$(mktemp -d)
+
         cp -r ${src} src
         chmod +w -R .
 

@@ -1,3 +1,13 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { DialogDescription } from '@radix-ui/react-dialog';
+import { Plus } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { useUI } from '@/components/common/UIProvider';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -7,20 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
-import { Input } from '@/components/ui/v3/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useUserData } from '@/hooks/useUserData';
-import { analytics } from '@/lib/segment';
-
-import { useRouter } from 'next/router';
-
 import {
   Form,
   FormControl,
@@ -30,11 +26,15 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-
-import { useUI } from '@/components/common/UIProvider';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
+import { Input } from '@/components/ui/v3/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import {
   Tooltip,
   TooltipContent,
@@ -43,20 +43,17 @@ import {
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useUserData } from '@/hooks/useUserData';
+import { analytics } from '@/lib/segment';
 import { cn } from '@/lib/utils';
 import {
+  type PrefetchNewAppPlansFragment,
   useCreateOrganizationRequestMutation,
   usePrefetchNewAppQuery,
-  type PrefetchNewAppPlansFragment,
 } from '@/utils/__generated__/graphql';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { DialogDescription } from '@radix-ui/react-dialog';
-import { Plus } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 const createOrgFormSchema = z.object({
   name: z.string().min(2),
@@ -182,7 +179,7 @@ function CreateOrgForm({
                             />
                           </FormControl>
                           <div className="flex flex-col space-y-2">
-                            <div className="text-md font-semibold">
+                            <div className="font-semibold text-md">
                               {plan.name}
                             </div>
                             <FormDescription className="w-2/3 text-xs">
@@ -191,7 +188,7 @@ function CreateOrgForm({
                           </div>
                         </div>
 
-                        <div className="mt-0 flex h-full items-center text-xl font-semibold">
+                        <div className="mt-0 flex h-full items-center font-semibold text-xl">
                           {plan.isFree ? 'Free' : `$${plan.price}/mo`}
                         </div>
                       </FormLabel>
@@ -218,7 +215,7 @@ function CreateOrgForm({
                     <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
                       <div className="flex flex-row items-center space-x-3">
                         <div className="flex flex-col space-y-2">
-                          <div className="text-md font-semibold">
+                          <div className="font-semibold text-md">
                             Enterprise
                           </div>
                           <div className="w-2/3 text-xs">

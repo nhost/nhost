@@ -1,0 +1,73 @@
+---
+title: startDevSession
+---
+
+```graphql
+startDevSession: Session!
+```
+
+Create a developer session
+
+## Permissions needed
+
+Only admins can create developer sessions
+
+
+
+## Response
+
+Type: `Session!`
+
+
+
+
+
+    
+    - **`sessionID`** (`String!`): ID of the session
+    
+    - **`assistantID`** (`String!`): ID of the assistant used in this session
+    
+    - **`userID`** (`uuid!`): ID of the user who started this session
+    
+    - **`createdAt`** (`timestampz!`): Messages in this session
+    
+
+
+
+**Request Example:**
+
+```graphql query
+query startDevSession {
+  graphite {
+    startDevSession {
+      sessionID
+      assistantID
+      userID
+      createdAt
+    }
+  }
+}
+```
+
+```json variables
+{}
+```
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "graphite": {
+      "startDevSession": {
+        "assistantID": "string",
+        "createdAt": "2023-12-14T07:45:15.20353+00:00",
+        "sessionID": "string",
+        "userID": "61809D37-DA3F-4EFC-A324-EB181F38DD85"
+      }
+    }
+  }
+}
+```
+

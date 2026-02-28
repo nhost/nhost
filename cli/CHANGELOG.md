@@ -1,3 +1,123 @@
+## [cli@1.38.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(auth)* Added oauth2/oidc provider functionality (#3922)
+
+
+### 🐛 Bug Fixes
+
+- *(docs)* Fix CLI reference documentation (#3895)
+- *(nixops)* Bump go to 1.26.0 (#3907)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.50.0 (#3919)
+
+## [cli@1.37.0] - 2026-02-05
+
+### 🚀 Features
+
+- *(docs)* Release starlight (#3877)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.47.0 (#3884)
+
+## [cli@1.36.0] - 2026-02-02
+
+### 🚀 Features
+
+- *(cli)* Added mcp tool to list documentation (#3863)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Use astro docs as source (#3859)
+- *(cli)* Bump schema (#3872)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.46.3 (#3800)
+
+## [cli@1.35.0] - 2026-01-28
+
+### 🚀 Features
+
+- *(docs)* Document functions logging (#3793)
+- *(nixops)* Update nixpkgs (#3808)
+- *(cli)* Embed documentation in the binary and add subcommands and MCP tools to search/retrieve (#3836)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update certs (#3791)
+- *(cli)* Update dev/local certs (#3843)
+
+## [cli@1.34.12] - 2025-12-23
+
+### Chore
+
+- *(deps)* Udpate nhost schema (#3779)
+
+## [cli@1.34.11] - 2025-12-18
+
+### 🐛 Bug Fixes
+
+- *(cli)* Bump schema (#3763)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.44.1 (#3739)
+
+## [cli@1.34.10] - 2025-12-16
+
+### 🐛 Bug Fixes
+
+- *(cli)* Cmd-shell in a single parameter (#3760)
+
+## [cli@1.34.9] - 2025-12-01
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.43.0 (#3719)
+- *(cli)* Update certs (#3726)
+
+## [cli@1.34.8] - 2025-11-19
+
+### 🐛 Bug Fixes
+
+- *(cli)* Update traefik (#3710)
+
+## [cli@1.34.7] - 2025-11-13
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.42.0 (#3693)
+
+## [cli@1.34.6] - 2025-11-13
+
+### 🐛 Bug Fixes
+
+- *(cli)* Mcp: specify items type for arrays in tools (#3687)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update bindings (#3689)
+
+## [cli@1.34.5] - 2025-11-06
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump go to 1.25.3 and nixpkgs due to CVEs (#3652)
+- *(cli)* Udpate certs and schema (#3675)
+- *(cli)* Bump nhost/dashboard to 2.41.0 (#3669)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

@@ -1,4 +1,8 @@
-import { NavLink } from '@/components/common/NavLink';
+import { useApolloClient } from '@apollo/client';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
+import { ListNavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import type { ButtonProps } from '@/components/ui/v2/Button';
 import { Button } from '@/components/ui/v2/Button';
@@ -11,11 +15,7 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAuth } from '@/providers/Auth';
-import { useApolloClient } from '@apollo/client';
-import getConfig from 'next/config';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
+import { getDashboardVersion } from '@/utils/env';
 
 export interface MobileNavProps extends ButtonProps {}
 
@@ -25,7 +25,6 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
   const { signout } = useAuth();
   const apolloClient = useApolloClient();
   const router = useRouter();
-  const { publicRuntimeConfig } = getConfig();
 
   async function handleSignOut() {
     setMenuOpen(false);
@@ -59,7 +58,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         }}
       >
         <section className="mt-2 grid grid-flow-row gap-3">
-          <Text variant="h2" className="text-xl font-semibold">
+          <Text variant="h2" className="font-semibold text-xl">
             Resources
           </Text>
 
@@ -67,7 +66,8 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
             {isPlatform && (
               <ListItem.Root>
                 <ListItem.Button
-                  component={NavLink}
+                  component={ListNavLink}
+                  className="h-11"
                   href="/support"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -81,7 +81,8 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
 
             <ListItem.Root>
               <ListItem.Button
-                component={NavLink}
+                component={ListNavLink}
+                className="h-11"
                 href="https://docs.nhost.io"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -93,7 +94,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         </section>
 
         <section className={twMerge('grid grid-flow-row gap-3')}>
-          <Text variant="h2" className="text-xl font-semibold">
+          <Text variant="h2" className="font-semibold text-xl">
             Theme
           </Text>
 
@@ -102,17 +103,15 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
 
         {isPlatform && (
           <section className={twMerge('grid grid-flow-row gap-3')}>
-            <Text variant="h2" className="text-xl font-semibold">
+            <Text variant="h2" className="font-semibold text-xl">
               Account
             </Text>
 
             <List className="grid grid-flow-row gap-2">
               <ListItem.Root>
                 <ListItem.Button
-                  component={NavLink}
-                  variant="borderless"
-                  color="secondary"
-                  className="w-full justify-start border-none px-2 py-2.5 text-[16px]"
+                  component={ListNavLink}
+                  className="h-11 w-full justify-start border-none px-2 py-2.5 text-[16px]"
                   href="/account"
                   onClick={() => setMenuOpen(false)}
                 >
@@ -135,7 +134,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
             </List>
 
             <Text className="text-center text-xs" color="secondary">
-              Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+              Dashboard Version: {getDashboardVersion()}
             </Text>
           </section>
         )}

@@ -1,4 +1,6 @@
-import { useDialog } from '@/components/common/DialogProvider';
+import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
+import { NavLink } from '@/components/common/NavLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -6,7 +8,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v2/icons/PartialPermissionIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Table } from '@/components/ui/v2/Table';
 import { TableBody } from '@/components/ui/v2/TableBody';
 import { TableCell } from '@/components/ui/v2/TableCell';
@@ -15,8 +16,8 @@ import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
@@ -26,9 +27,6 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
-import NavLink from 'next/link';
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 import RolePermissionEditorForm from './RolePermissionEditorForm';
 import RolePermissionsRow from './RolePermissionsRow';
 
@@ -61,7 +59,6 @@ export default function EditPermissionsForm({
   const [role, setRole] = useState<string>();
   const [action, setAction] = useState<DatabaseAction>();
 
-  const { closeDrawerWithDirtyGuard } = useDialog();
   const { project } = useProject();
   const { org } = useCurrentOrg();
 
@@ -76,7 +73,7 @@ export default function EditPermissionsForm({
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`default.${schema}.${table}`], { schema, table });
+  } = useTableSchemaQuery([`default.${schema}.${table}`], { schema, table });
 
   const {
     data: metadata,
@@ -93,7 +90,6 @@ export default function EditPermissionsForm({
   }
 
   if (tableError) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw tableError;
   }
 
@@ -106,7 +102,6 @@ export default function EditPermissionsForm({
   }
 
   if (metadataError) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw metadataError;
   }
 
@@ -334,16 +329,10 @@ export default function EditPermissionsForm({
             Please go to the{' '}
             <NavLink
               href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
-              passHref
-              legacyBehavior
+              underline="hover"
+              className="px-0"
             >
-              <Link
-                href="settings/roles-and-permissions"
-                underline="hover"
-                onClick={closeDrawerWithDirtyGuard}
-              >
-                Settings page
-              </Link>
+              Settings page
             </NavLink>{' '}
             to add and delete roles.
           </Alert>

@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+import { snakeCase } from 'snake-case';
 import {
   TEST_ORGANIZATION_SLUG,
   TEST_PROJECT_REMOTE_SCHEMA_NAME,
@@ -5,8 +7,6 @@ import {
 } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import { cleanupRemoteSchemaTestIfNeeded } from '@/e2e/utils';
-import { faker } from '@faker-js/faker';
-import { snakeCase } from 'snake-case';
 
 const REMOTE_SCHEMA_TEST_URL = `https://${TEST_PROJECT_SUBDOMAIN}.functions.eu-central-1.staging.nhost.run/v1/${TEST_PROJECT_REMOTE_SCHEMA_NAME}`;
 
@@ -23,7 +23,7 @@ test.beforeEach(async ({ authenticatedNhostPage: page }) => {
 test('should create and delete a remote schema from URL', async ({
   authenticatedNhostPage: page,
 }) => {
-  await page.getByRole('button', { name: /add remote schema/i }).click();
+  await page.getByRole('button', { name: /new remote schema/i }).click();
   await expect(page.getByText(/create a new remote schema/i)).toBeVisible();
 
   const schemaName = snakeCase(`e2e ${faker.lorem.words(2)}`);

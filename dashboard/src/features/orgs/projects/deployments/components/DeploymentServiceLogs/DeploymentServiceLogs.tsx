@@ -1,8 +1,8 @@
+import { memo, useCallback, useState } from 'react';
 import { useProjectLogs } from '@/features/orgs/projects/hooks/useProjectLogs';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { memo, useCallback, useState } from 'react';
 import DeploymentLogsHeader, {
   type DeploymentLogsFormValues,
 } from './DeploymentServiceLogsHeader';
@@ -29,7 +29,7 @@ function DeploymentServiceLogs({ from, to }: Props) {
     (values: DeploymentLogsFormValues) => {
       setFilters({ ...values });
     },
-    [setFilters],
+    [],
   );
 
   const hasLogs = isNotEmptyValue(data?.logs);

@@ -1,8 +1,8 @@
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import type { IntrospectionQuery } from 'graphql';
+import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import introspectRemoteSchema from './introspectRemoteSchema';
 
 export interface UseIntrospectRemoteSchemaQueryOptions {
@@ -38,16 +38,16 @@ export default function useIntrospectRemoteSchemaQuery(
     unknown,
     IntrospectionQuery,
     readonly ['introspect-remote-schema', string]
-  >(
-    ['introspect-remote-schema', remoteSchemaName],
-    () => {
+  >({
+    queryKey: ['introspect-remote-schema', remoteSchemaName],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return introspectRemoteSchema({
         appUrl,
@@ -57,21 +57,19 @@ export default function useIntrospectRemoteSchemaQuery(
         },
       });
     },
-    {
-      // Avoid endless retries/refetches on deterministic errors like "remote schema not found"
-      retry: false,
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        remoteSchemaName &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-      select: (data) => data.data,
-    },
-  );
+    // Avoid endless retries/refetches on deterministic errors like "remote schema not found"
+    retry: false,
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      remoteSchemaName &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+    select: (data) => data.data,
+  });
 
   return query;
 }

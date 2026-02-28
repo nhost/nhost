@@ -1,3 +1,4 @@
+import { useFormState, useWatch } from 'react-hook-form';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -14,7 +15,6 @@ import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
 } from '@/utils/constants/common';
-import { useFormState, useWatch } from 'react-hook-form';
 
 export default function ResourcesFormFooter() {
   const isPlatform = useIsPlatform();

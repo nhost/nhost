@@ -1,9 +1,8 @@
+import { toast } from 'react-hot-toast';
 import { useElevateEmail } from '@/hooks/useElevateEmail';
 import { useHasuraClaims } from '@/hooks/useHasuraClaims';
-
 import { useUserData } from '@/hooks/useUserData';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { toast } from 'react-hot-toast';
 
 function useElevatedPermissions() {
   const user = useUserData();
@@ -23,11 +22,10 @@ function useElevatedPermissions() {
     } catch (e) {
       if (shouldThrowError) {
         throw e;
-      } else {
-        const message = e?.message || 'Could not elevate permissions';
-        toast.error(message, getToastStyleProps());
-        return false;
       }
+      const message = e?.message || 'Could not elevate permissions';
+      toast.error(message, getToastStyleProps());
+      return false;
     }
   }
 

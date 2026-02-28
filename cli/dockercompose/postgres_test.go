@@ -41,7 +41,10 @@ func expectedPostgres(tmpdir string) *Service {
 			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
-			Test:        []string{"CMD-SHELL", "pg_isready -U postgres", "-d", "postgres", "-q"},
+			Test: []string{
+				"CMD-SHELL",
+				"pg_isready -U postgres -d postgres -q",
+			},
 			Timeout:     "60s",
 			Interval:    "5s",
 			StartPeriod: "60s",
@@ -54,13 +57,13 @@ func expectedPostgres(tmpdir string) *Service {
 				Type:     "volume",
 				Source:   "pgdate_test",
 				Target:   "/var/lib/postgresql/data/pgdata",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 			{
 				Type:     "bind",
 				Source:   filepath.Join(tmpdir, "db/pg_hba_local.conf"),
 				Target:   "/etc/pg_hba_local.conf",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,

@@ -1,10 +1,10 @@
-import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { Header } from '@tanstack/react-table';
+import type { DetailedHTMLProps, HTMLProps } from 'react';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { DataGridHeaderButton } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeaderButton';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@mui/material';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface HeaderActionProps
   extends DetailedHTMLProps<HTMLProps<HTMLElement>, HTMLElement> {}
@@ -15,59 +15,42 @@ export interface DataGridHeaderProps
     'children'
   > {}
 
-// TODO: Get rid of Data Browser related code from here. This component should
-// be generic and not depend on Data Browser related data types and logic.
 export default function DataGridHeader({
   className,
   ...props
 }: DataGridHeaderProps) {
-  const { flatHeaders } = useDataGridConfig();
-  const theme = useTheme();
+  const { getFlatHeaders } = useDataGridConfig();
+
   return (
     <div
-      className={twMerge(
+      className={cn(
         'sticky top-0 z-30 inline-flex w-full items-center',
         className,
       )}
       {...props}
     >
-      {flatHeaders.map((column: DataBrowserGridColumn) => {
-        const sortByProps = column.getSortByToggleProps();
-        const headerProps = column.getHeaderProps({
-          style: { display: 'inline-flex' },
-          ...sortByProps,
-        });
+      {getFlatHeaders().map((header: Header<UnknownDataGridRow, unknown>) => {
+        const column = header.column;
+        const width = header.getSize();
+        const maxSize = column.columnDef.maxSize;
 
         return (
           <div
             className={cn(
-              'group relative inline-flex self-stretch overflow-hidden font-display text-xs font-bold focus:outline-none focus-visible:outline-none',
-              'border-b-1 border-r-1',
-              { 'sticky left-0 max-w-2': column.id === 'selection-column' },
-              'dark:text-[#dfecf5]',
+              'group relative inline-flex self-stretch overflow-hidden font-bold font-display text-xs focus:outline-none focus-visible:outline-none',
+              'border-r-1 border-b-1',
+              'bg-paper',
+              { 'sticky left-0 max-w-2': column.id === SELECTION_COLUMN_ID },
             )}
             style={{
-              ...headerProps.style,
-              backgroundColor: column.isDisabled
-                ? theme.palette.background.default
-                : theme.palette.background.paper,
-              maxWidth:
-                column.id === 'selection-column'
-                  ? 32
-                  : headerProps.style?.maxWidth,
-              width:
-                column.id === 'selection-column'
-                  ? '100%'
-                  : headerProps.style?.width,
-              zIndex:
-                column.id === 'selection-column'
-                  ? 10
-                  : headerProps.style?.zIndex,
-              position: undefined,
+              width,
+              minWidth: width,
+              maxWidth: column.id === SELECTION_COLUMN_ID ? 32 : maxSize,
+              zIndex: column.id === SELECTION_COLUMN_ID ? 10 : undefined,
             }}
-            key={column.id}
+            key={header.id}
           >
-            <DataGridHeaderButton column={column} headerProps={headerProps} />
+            <DataGridHeaderButton header={header} />
           </div>
         );
       })}

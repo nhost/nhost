@@ -588,6 +588,7 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: {
+          // biome-ignore lint/suspicious/noExplicitAny: test file
           value: 'varchar(10)' as any,
           label: 'varchar(10)',
         },

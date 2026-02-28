@@ -33,7 +33,7 @@ export default function RunServiceDomains() {
             key={service.id ?? service.serviceID}
             title={
               <div className="flex flex-row items-center">
-                <Text className="text-lg font-semibold">
+                <Text className="font-semibold text-lg">
                   {service.config?.name ?? 'unset'}
                 </Text>
                 <Link

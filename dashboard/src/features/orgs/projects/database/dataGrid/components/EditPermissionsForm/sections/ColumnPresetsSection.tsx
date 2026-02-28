@@ -1,22 +1,22 @@
+import { useTheme } from '@mui/material';
+import clsx from 'clsx';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
+import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
-import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
-import { useTheme } from '@mui/material';
-import clsx from 'clsx';
-import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
 export interface ColumnPreset {
@@ -49,7 +49,7 @@ export default function ColumnPresetsSection({
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`default.${schema}.${table}`], { schema, table });
+  } = useTableSchemaQuery([`default.${schema}.${table}`], { schema, table });
 
   const { project } = useProject();
 
@@ -73,7 +73,6 @@ export default function ColumnPresetsSection({
   );
 
   if (tableError) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw tableError;
   }
 
