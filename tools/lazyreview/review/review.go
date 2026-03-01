@@ -37,6 +37,7 @@ type Review struct {
 	branch    string
 	mergeBase string
 	fileInfos []fileInfo
+	diffCache map[string]*diff.File
 }
 
 func NewReview(
@@ -51,6 +52,7 @@ func NewReview(
 		branch:    branch,
 		mergeBase: "",
 		fileInfos: nil,
+		diffCache: nil,
 	}
 }
 
@@ -65,6 +67,8 @@ func (v *Review) refreshFiles(ctx context.Context) error {
 
 		v.mergeBase = mb
 	}
+
+	v.diffCache = nil
 
 	raw, err := v.git.NameStatus(ctx, v.mergeBase)
 	if err != nil {
@@ -149,26 +153,20 @@ func (v *Review) GetChangeDetails(
 	ctx context.Context,
 	fs versioncontrol.FileStatus,
 ) (*versioncontrol.ChangeDetail, error) {
-	if err := v.refreshFiles(ctx); err != nil {
-		return nil, err
-	}
-
 	fi := v.findFileInfo(fs.Path)
 	if fi == nil {
 		return nil, nil //nolint:nilnil
 	}
 
-	raw, err := v.fetchFileDiff(ctx, fi)
+	f, err := v.fileDiff(ctx, fi)
 	if err != nil {
 		return nil, err
 	}
 
-	files := diff.Parse(raw)
-	if len(files) == 0 {
+	if f == nil {
 		return nil, nil //nolint:nilnil
 	}
 
-	f := files[0]
 	hash := Hash(f.RawDiff)
 
 	v.state.ReconcileFile(fi.path, hash, len(f.Hunks))
@@ -190,32 +188,49 @@ func (v *Review) GetChangeDetails(
 	}, nil
 }
 
-func (v *Review) fetchFileDiff(
+func (v *Review) ensureDiffCache(ctx context.Context) error {
+	if v.diffCache != nil {
+		return nil
+	}
+
+	raw, err := v.git.DiffFile(ctx, "-M", v.mergeBase)
+	if err != nil {
+		return fmt.Errorf("bulk diff: %w", err)
+	}
+
+	files := diff.Parse(raw)
+	v.diffCache = make(map[string]*diff.File, len(files))
+
+	for _, f := range files {
+		v.diffCache[f.Path] = f
+	}
+
+	return nil
+}
+
+func (v *Review) fileDiff(
 	ctx context.Context,
 	fi *fileInfo,
-) (string, error) {
+) (*diff.File, error) {
 	if fi.untracked {
 		raw, err := v.git.NewFileDiff(fi.path)
 		if err != nil {
-			return "", fmt.Errorf("new file diff %s: %w", fi.path, err)
+			return nil, fmt.Errorf("new file diff %s: %w", fi.path, err)
 		}
 
-		return raw, nil
+		files := diff.Parse(raw)
+		if len(files) == 0 {
+			return nil, nil //nolint:nilnil
+		}
+
+		return files[0], nil
 	}
 
-	var args []string
-	if fi.kind == versioncontrol.ChangeRenamed {
-		args = []string{"-M", v.mergeBase, "--", fi.path, fi.origPath}
-	} else {
-		args = []string{v.mergeBase, "--", fi.path}
+	if err := v.ensureDiffCache(ctx); err != nil {
+		return nil, err
 	}
 
-	raw, err := v.git.DiffFile(ctx, args...)
-	if err != nil {
-		return "", fmt.Errorf("diff file %s: %w", fi.path, err)
-	}
-
-	return raw, nil
+	return v.diffCache[fi.path], nil
 }
 
 func (v *Review) findFileInfo(path string) *fileInfo {

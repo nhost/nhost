@@ -37,19 +37,16 @@ func makeNameStatus(entries ...string) string {
 func setupQuerier(
 	ctrl *gomock.Controller,
 	nameStatus string,
-	diffFiles map[string]string,
+	bulkDiff string,
 ) *mock.MockGitQuerier {
 	querier := mock.NewMockGitQuerier(ctrl)
 	querier.EXPECT().MergeBase(gomock.Any(), "main").Return("abc123", nil).AnyTimes()
 	querier.EXPECT().NameStatus(gomock.Any(), "abc123").Return(nameStatus, nil).AnyTimes()
 	querier.EXPECT().UntrackedFiles(gomock.Any()).Return("", nil).AnyTimes()
-
-	for _, raw := range diffFiles {
-		querier.EXPECT().
-			DiffFile(gomock.Any(), gomock.Any()).
-			Return(raw, nil).
-			AnyTimes()
-	}
+	querier.EXPECT().
+		DiffFile(gomock.Any(), "-M", "abc123").
+		Return(bulkDiff, nil).
+		AnyTimes()
 
 	return querier
 }
@@ -65,10 +62,10 @@ func TestReview_GetStatus(t *testing.T) {
 	t.Parallel()
 
 	ns := makeNameStatus("M\tmain.go")
-	diffFiles := map[string]string{"main.go": makeDiffOutput("main.go", "package main")}
+	bulkDiff := makeDiffOutput("main.go", "package main")
 
 	ctrl := gomock.NewController(t)
-	querier := setupQuerier(ctrl, ns, diffFiles)
+	querier := setupQuerier(ctrl, ns, bulkDiff)
 
 	repoRoot := t.TempDir()
 	v := review.NewReview(querier, "main", repoRoot, "feature")
@@ -103,10 +100,10 @@ func TestReview_GetStatus_Added(t *testing.T) {
 	t.Parallel()
 
 	ns := makeNameStatus("A\tnew.go")
-	diffFiles := map[string]string{"new.go": makeDiffOutput("new.go", "package new")}
+	bulkDiff := makeDiffOutput("new.go", "package new")
 
 	ctrl := gomock.NewController(t)
-	querier := setupQuerier(ctrl, ns, diffFiles)
+	querier := setupQuerier(ctrl, ns, bulkDiff)
 
 	repoRoot := t.TempDir()
 	v := review.NewReview(querier, "main", repoRoot, "feature")
@@ -127,10 +124,10 @@ func TestReview_GetStatus_Deleted(t *testing.T) {
 	t.Parallel()
 
 	ns := makeNameStatus("D\told.go")
-	diffFiles := map[string]string{"old.go": makeDiffOutput("old.go", "package old")}
+	bulkDiff := makeDiffOutput("old.go", "package old")
 
 	ctrl := gomock.NewController(t)
-	querier := setupQuerier(ctrl, ns, diffFiles)
+	querier := setupQuerier(ctrl, ns, bulkDiff)
 
 	repoRoot := t.TempDir()
 	v := review.NewReview(querier, "main", repoRoot, "feature")
@@ -151,15 +148,10 @@ func TestReview_GetStatus_Renamed(t *testing.T) {
 	t.Parallel()
 
 	ns := makeNameStatus("R100\told.go\tnew.go")
+	bulkDiff := makeDiffOutput("new.go", "package new")
 
 	ctrl := gomock.NewController(t)
-	querier := setupQuerierFull(ctrl)
-	querier.EXPECT().NameStatus(gomock.Any(), "abc123").Return(ns, nil).AnyTimes()
-	querier.EXPECT().UntrackedFiles(gomock.Any()).Return("", nil).AnyTimes()
-	querier.EXPECT().
-		DiffFile(gomock.Any(), gomock.Any()).
-		Return(makeDiffOutput("new.go", "package new"), nil).
-		AnyTimes()
+	querier := setupQuerier(ctrl, ns, bulkDiff)
 
 	repoRoot := t.TempDir()
 	v := review.NewReview(querier, "main", repoRoot, "feature")
@@ -192,16 +184,10 @@ func TestReview_StageUnstageHunk(t *testing.T) {
 	t.Parallel()
 
 	ns := makeNameStatus("M\tmain.go")
-	rawDiff := makeDiffOutput("main.go", "package main")
+	bulkDiff := makeDiffOutput("main.go", "package main")
 
 	ctrl := gomock.NewController(t)
-	querier := setupQuerierFull(ctrl)
-	querier.EXPECT().NameStatus(gomock.Any(), "abc123").Return(ns, nil).AnyTimes()
-	querier.EXPECT().UntrackedFiles(gomock.Any()).Return("", nil).AnyTimes()
-	querier.EXPECT().
-		DiffFile(gomock.Any(), gomock.Any()).
-		Return(rawDiff, nil).
-		AnyTimes()
+	querier := setupQuerier(ctrl, ns, bulkDiff)
 
 	repoRoot := t.TempDir()
 	v := review.NewReview(querier, "main", repoRoot, "feature")
@@ -266,16 +252,10 @@ func TestReview_StageUnstageFile(t *testing.T) {
 	t.Parallel()
 
 	ns := makeNameStatus("M\tmain.go")
-	rawDiff := makeDiffOutput("main.go", "package main")
+	bulkDiff := makeDiffOutput("main.go", "package main")
 
 	ctrl := gomock.NewController(t)
-	querier := setupQuerierFull(ctrl)
-	querier.EXPECT().NameStatus(gomock.Any(), "abc123").Return(ns, nil).AnyTimes()
-	querier.EXPECT().UntrackedFiles(gomock.Any()).Return("", nil).AnyTimes()
-	querier.EXPECT().
-		DiffFile(gomock.Any(), gomock.Any()).
-		Return(rawDiff, nil).
-		AnyTimes()
+	querier := setupQuerier(ctrl, ns, bulkDiff)
 
 	repoRoot := t.TempDir()
 	v := review.NewReview(querier, "main", repoRoot, "feature")
@@ -317,15 +297,12 @@ func TestReview_StageFolder(t *testing.T) {
 	t.Parallel()
 
 	ns := makeNameStatus("M\tpkg/a.go", "M\tpkg/b.go", "M\tother/c.go")
+	bulkDiff := makeDiffOutput("pkg/a.go", "package a") +
+		makeDiffOutput("pkg/b.go", "package b") +
+		makeDiffOutput("other/c.go", "package c")
 
 	ctrl := gomock.NewController(t)
-	querier := setupQuerierFull(ctrl)
-	querier.EXPECT().NameStatus(gomock.Any(), "abc123").Return(ns, nil).AnyTimes()
-	querier.EXPECT().UntrackedFiles(gomock.Any()).Return("", nil).AnyTimes()
-	querier.EXPECT().
-		DiffFile(gomock.Any(), gomock.Any()).
-		Return(makeDiffOutput("pkg/a.go", "package a"), nil).
-		AnyTimes()
+	querier := setupQuerier(ctrl, ns, bulkDiff)
 
 	repoRoot := t.TempDir()
 	v := review.NewReview(querier, "main", repoRoot, "feature")
@@ -378,14 +355,15 @@ func TestReview_GetStatus_UntrackedFiles(t *testing.T) {
 	t.Parallel()
 
 	ns := makeNameStatus("M\tmain.go")
+	bulkDiff := makeDiffOutput("main.go", "package main")
 
 	ctrl := gomock.NewController(t)
 	querier := setupQuerierFull(ctrl)
 	querier.EXPECT().NameStatus(gomock.Any(), "abc123").Return(ns, nil).AnyTimes()
 	querier.EXPECT().UntrackedFiles(gomock.Any()).Return("newfile.go\n", nil).AnyTimes()
 	querier.EXPECT().
-		DiffFile(gomock.Any(), gomock.Any()).
-		Return(makeDiffOutput("main.go", "package main"), nil).
+		DiffFile(gomock.Any(), "-M", "abc123").
+		Return(bulkDiff, nil).
 		AnyTimes()
 	querier.EXPECT().
 		NewFileDiff("newfile.go").

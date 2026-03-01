@@ -30,20 +30,27 @@ type Executor interface { //nolint:interfacebloat
 }
 
 // Git implements tui.GitView for git mode.
-// It is stateless — each method calls the executor directly.
+// Caches bulk diffs per GetStatus cycle; invalidated on each GetStatus call.
 type Git struct {
-	exec Executor
+	exec          Executor
+	stagedCache   map[string]*diff.File
+	unstagedCache map[string]*diff.File
 }
 
 func NewGit(exec Executor) *Git {
 	return &Git{
-		exec: exec,
+		exec:          exec,
+		stagedCache:   nil,
+		unstagedCache: nil,
 	}
 }
 
 func (v *Git) GetStatus(
 	ctx context.Context,
 ) ([]versioncontrol.FileStatus, error) {
+	v.stagedCache = nil
+	v.unstagedCache = nil
+
 	raw, err := v.exec.Status(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("status: %w", err)
@@ -130,16 +137,55 @@ func (v *Git) GetChangeDetails(
 	}
 }
 
+func (v *Git) ensureStagedCache(ctx context.Context) error {
+	if v.stagedCache != nil {
+		return nil
+	}
+
+	raw, err := v.exec.DiffFile(ctx, "--cached", "-M")
+	if err != nil {
+		return fmt.Errorf("bulk staged diff: %w", err)
+	}
+
+	files := diff.Parse(raw)
+	v.stagedCache = make(map[string]*diff.File, len(files))
+
+	for _, f := range files {
+		v.stagedCache[f.Path] = f
+	}
+
+	return nil
+}
+
+func (v *Git) ensureUnstagedCache(ctx context.Context) error {
+	if v.unstagedCache != nil {
+		return nil
+	}
+
+	raw, err := v.exec.DiffFile(ctx)
+	if err != nil {
+		return fmt.Errorf("bulk unstaged diff: %w", err)
+	}
+
+	files := diff.Parse(raw)
+	v.unstagedCache = make(map[string]*diff.File, len(files))
+
+	for _, f := range files {
+		v.unstagedCache[f.Path] = f
+	}
+
+	return nil
+}
+
 func (v *Git) fullyStaged(
 	ctx context.Context,
 	fs versioncontrol.FileStatus,
 ) (*versioncontrol.ChangeDetail, error) {
-	raw, err := v.diffStaged(ctx, fs)
-	if err != nil {
+	if err := v.ensureStagedCache(ctx); err != nil {
 		return nil, err
 	}
 
-	f := findFileByPath(diff.Parse(raw), fs.Path)
+	f := v.stagedCache[fs.Path]
 	if f == nil {
 		return nil, nil //nolint:nilnil
 	}
@@ -162,12 +208,36 @@ func (v *Git) fullyUnstaged(
 	ctx context.Context,
 	fs versioncontrol.FileStatus,
 ) (*versioncontrol.ChangeDetail, error) {
-	raw, err := v.diffUnstaged(ctx, fs)
-	if err != nil {
+	if fs.Kind == versioncontrol.ChangeAdded && !fs.Staged && !fs.Partial {
+		raw, err := v.exec.NewFileDiff(fs.Path)
+		if err != nil {
+			return nil, fmt.Errorf("new file diff %s: %w", fs.Path, err)
+		}
+
+		f := findFileByPath(diff.Parse(raw), fs.Path)
+		if f == nil {
+			return nil, nil //nolint:nilnil
+		}
+
+		hunks := make([]versioncontrol.HunkDetail, len(f.Hunks))
+		for i := range hunks {
+			hunks[i] = versioncontrol.HunkDetail{Staged: false, SourceIndex: i}
+		}
+
+		return &versioncontrol.ChangeDetail{
+			Path:     fs.Path,
+			OrigPath: fs.OrigPath,
+			Kind:     fs.Kind,
+			File:     f,
+			Hunks:    hunks,
+		}, nil
+	}
+
+	if err := v.ensureUnstagedCache(ctx); err != nil {
 		return nil, err
 	}
 
-	f := findFileByPath(diff.Parse(raw), fs.Path)
+	f := v.unstagedCache[fs.Path]
 	if f == nil {
 		return nil, nil //nolint:nilnil
 	}
@@ -190,19 +260,16 @@ func (v *Git) partiallyStaged(
 	ctx context.Context,
 	fs versioncontrol.FileStatus,
 ) (*versioncontrol.ChangeDetail, error) {
-	stagedRaw, err := v.diffStaged(ctx, fs)
-	if err != nil {
+	if err := v.ensureStagedCache(ctx); err != nil {
 		return nil, err
 	}
 
-	stagedFile := findFileByPath(diff.Parse(stagedRaw), fs.Path)
-
-	unstagedRaw, err := v.diffUnstaged(ctx, fs)
-	if err != nil {
+	if err := v.ensureUnstagedCache(ctx); err != nil {
 		return nil, err
 	}
 
-	unstagedFile := findFileByPath(diff.Parse(unstagedRaw), fs.Path)
+	stagedFile := v.stagedCache[fs.Path]
+	unstagedFile := v.unstagedCache[fs.Path]
 
 	if stagedFile == nil && unstagedFile == nil {
 		return nil, nil //nolint:nilnil
@@ -275,49 +342,6 @@ func mergePartialHunks(
 	}
 
 	return merged, hunks
-}
-
-func (v *Git) diffStaged(
-	ctx context.Context,
-	fs versioncontrol.FileStatus,
-) (string, error) {
-	args := []string{"--cached"}
-	if fs.Kind == versioncontrol.ChangeRenamed {
-		args = append(args, "-M")
-	}
-
-	args = append(args, "--", fs.Path)
-	if fs.OrigPath != "" {
-		args = append(args, fs.OrigPath)
-	}
-
-	raw, err := v.exec.DiffFile(ctx, args...)
-	if err != nil {
-		return "", fmt.Errorf("diff staged %s: %w", fs.Path, err)
-	}
-
-	return raw, nil
-}
-
-func (v *Git) diffUnstaged(
-	ctx context.Context,
-	fs versioncontrol.FileStatus,
-) (string, error) {
-	if fs.Kind == versioncontrol.ChangeAdded && !fs.Staged && !fs.Partial {
-		raw, err := v.exec.NewFileDiff(fs.Path)
-		if err != nil {
-			return "", fmt.Errorf("new file diff %s: %w", fs.Path, err)
-		}
-
-		return raw, nil
-	}
-
-	raw, err := v.exec.DiffFile(ctx, "--", fs.Path)
-	if err != nil {
-		return "", fmt.Errorf("diff unstaged %s: %w", fs.Path, err)
-	}
-
-	return raw, nil
 }
 
 func (v *Git) StageHunk(
@@ -413,7 +437,7 @@ func (v *Git) DiscardHunk(
 	return nil
 }
 
-// extractPartialPatch fetches the appropriate source diff (staged or unstaged)
+// extractPartialPatch uses the cached source diff (staged or unstaged)
 // for a partially staged file and extracts the hunk at sourceIndex.
 func (v *Git) extractPartialPatch(
 	ctx context.Context,
@@ -421,21 +445,22 @@ func (v *Git) extractPartialPatch(
 	sourceIndex int,
 	fromStaged bool,
 ) (string, error) {
-	var raw string
-
-	var err error
+	var f *diff.File
 
 	if fromStaged {
-		raw, err = v.diffStaged(ctx, fs)
+		if err := v.ensureStagedCache(ctx); err != nil {
+			return "", err
+		}
+
+		f = v.stagedCache[fs.Path]
 	} else {
-		raw, err = v.diffUnstaged(ctx, fs)
+		if err := v.ensureUnstagedCache(ctx); err != nil {
+			return "", err
+		}
+
+		f = v.unstagedCache[fs.Path]
 	}
 
-	if err != nil {
-		return "", err
-	}
-
-	f := findFileByPath(diff.Parse(raw), fs.Path)
 	if f == nil {
 		return "", nil
 	}
@@ -448,32 +473,48 @@ func (v *Git) extractPartialPatch(
 	return sanitizeRenamePatch(patch, fs.Path), nil
 }
 
-// extractHunkPatch diffs only the target file, extracts the specified hunk
-// as a patch, and sanitizes rename metadata so that git apply only operates
-// on the content change.
+// lookupFile resolves the *diff.File for a given FileStatus, using
+// the cache for tracked files and NewFileDiff for untracked ones.
+func (v *Git) lookupFile(
+	ctx context.Context,
+	fs versioncontrol.FileStatus,
+) (*diff.File, error) {
+	switch {
+	case fs.Kind == versioncontrol.ChangeAdded && !fs.Staged && !fs.Partial:
+		raw, err := v.exec.NewFileDiff(fs.Path)
+		if err != nil {
+			return nil, fmt.Errorf("new file diff %s: %w", fs.Path, err)
+		}
+
+		return findFileByPath(diff.Parse(raw), fs.Path), nil
+	case fs.Staged:
+		if err := v.ensureStagedCache(ctx); err != nil {
+			return nil, err
+		}
+
+		return v.stagedCache[fs.Path], nil
+	default:
+		if err := v.ensureUnstagedCache(ctx); err != nil {
+			return nil, err
+		}
+
+		return v.unstagedCache[fs.Path], nil
+	}
+}
+
+// extractHunkPatch uses the cached diff for the target file, extracts the
+// specified hunk as a patch, and sanitizes rename metadata so that git apply
+// only operates on the content change.
 func (v *Git) extractHunkPatch(
 	ctx context.Context,
 	fs versioncontrol.FileStatus,
 	hunkIndex int,
 ) (string, error) {
-	var raw string
-
-	var err error
-
-	switch {
-	case fs.Kind == versioncontrol.ChangeAdded && !fs.Staged && !fs.Partial:
-		raw, err = v.exec.NewFileDiff(fs.Path)
-	case fs.Staged:
-		raw, err = v.diffStaged(ctx, fs)
-	default:
-		raw, err = v.diffUnstaged(ctx, fs)
-	}
-
+	f, err := v.lookupFile(ctx, fs)
 	if err != nil {
 		return "", err
 	}
 
-	f := findFileByPath(diff.Parse(raw), fs.Path)
 	if f == nil {
 		return "", nil
 	}

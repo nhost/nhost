@@ -221,7 +221,7 @@ func TestGit_GetChangeDetails(t *testing.T) {
 			},
 			expectNil: false,
 			setupMock: func(e *mock.MockExecutor) {
-				e.EXPECT().DiffFile(gomock.Any(), "--", "main.go").Return(makeDiff("main.go"), nil)
+				e.EXPECT().DiffFile(gomock.Any()).Return(makeDiff("main.go"), nil)
 			},
 			expectedPath:  "main.go",
 			expectedHunks: []versioncontrol.HunkDetail{{Staged: false, SourceIndex: 0}},
@@ -237,7 +237,7 @@ func TestGit_GetChangeDetails(t *testing.T) {
 			},
 			expectNil: true,
 			setupMock: func(e *mock.MockExecutor) {
-				e.EXPECT().DiffFile(gomock.Any(), "--", "nonexistent.go").Return("", nil)
+				e.EXPECT().DiffFile(gomock.Any()).Return("", nil)
 			},
 			expectedPath:  "",
 			expectedHunks: nil,
@@ -254,7 +254,7 @@ func TestGit_GetChangeDetails(t *testing.T) {
 			expectNil: false,
 			setupMock: func(e *mock.MockExecutor) {
 				e.EXPECT().
-					DiffFile(gomock.Any(), "--cached", "--", "main.go").
+					DiffFile(gomock.Any(), "--cached", "-M").
 					Return(makeDiff("main.go"), nil)
 			},
 			expectedPath:  "main.go",
@@ -272,7 +272,7 @@ func TestGit_GetChangeDetails(t *testing.T) {
 			expectNil: false,
 			setupMock: func(e *mock.MockExecutor) {
 				e.EXPECT().
-					DiffFile(gomock.Any(), "--cached", "--", "new.go").
+					DiffFile(gomock.Any(), "--cached", "-M").
 					Return(makeDiff("new.go"), nil)
 			},
 			expectedPath:  "new.go",
@@ -306,14 +306,14 @@ func TestGit_GetChangeDetails(t *testing.T) {
 			expectNil: false,
 			setupMock: func(e *mock.MockExecutor) {
 				e.EXPECT().
-					DiffFile(gomock.Any(), "--", "deleted.go").
+					DiffFile(gomock.Any()).
 					Return(makeDiff("deleted.go"), nil)
 			},
 			expectedPath:  "deleted.go",
 			expectedHunks: []versioncontrol.HunkDetail{{Staged: false, SourceIndex: 0}},
 		},
 		{
-			name: "staged renamed file uses -M",
+			name: "staged renamed file uses bulk cached diff",
 			fs: versioncontrol.FileStatus{
 				Path:     "new_name.go",
 				OrigPath: "old_name.go",
@@ -323,9 +323,9 @@ func TestGit_GetChangeDetails(t *testing.T) {
 			},
 			expectNil: false,
 			setupMock: func(e *mock.MockExecutor) {
-				e.EXPECT().DiffFile(
-					gomock.Any(), "--cached", "-M", "--", "new_name.go", "old_name.go",
-				).Return(makeDiff("new_name.go"), nil)
+				e.EXPECT().
+					DiffFile(gomock.Any(), "--cached", "-M").
+					Return(makeDiff("new_name.go"), nil)
 			},
 			expectedPath:  "new_name.go",
 			expectedHunks: []versioncontrol.HunkDetail{{Staged: true, SourceIndex: 0}},
@@ -559,7 +559,7 @@ func TestGit_HunkOperations(t *testing.T) {
 				ctrl := gomock.NewController(t)
 				executor := mock.NewMockExecutor(ctrl)
 				executor.EXPECT().
-					DiffFile(gomock.Any(), "--", "main.go").
+					DiffFile(gomock.Any()).
 					Return(twoHunkDiff, nil)
 				m.setupMock(executor, nil)
 
@@ -576,7 +576,7 @@ func TestGit_HunkOperations(t *testing.T) {
 				ctrl := gomock.NewController(t)
 				executor := mock.NewMockExecutor(ctrl)
 				executor.EXPECT().
-					DiffFile(gomock.Any(), "--", "nonexistent.go").
+					DiffFile(gomock.Any()).
 					Return("", nil)
 
 				v := git.NewGit(executor)
@@ -599,7 +599,7 @@ func TestGit_HunkOperations(t *testing.T) {
 				ctrl := gomock.NewController(t)
 				executor := mock.NewMockExecutor(ctrl)
 				executor.EXPECT().
-					DiffFile(gomock.Any(), "--", "main.go").
+					DiffFile(gomock.Any()).
 					Return(twoHunkDiff, nil)
 				m.setupMock(executor, errTest)
 
@@ -758,7 +758,7 @@ rename to new.go
 			ctrl := gomock.NewController(t)
 			executor := mock.NewMockExecutor(ctrl)
 			executor.EXPECT().
-				DiffFile(gomock.Any(), "--cached", "-M", "--", "new.go", "old.go").
+				DiffFile(gomock.Any(), "--cached", "-M").
 				Return(renameDiff, nil)
 			m.setupMock(executor, wantPatch)
 
@@ -771,11 +771,18 @@ rename to new.go
 	}
 }
 
-func TestGit_GetChangeDetails_PartialStaging_Renamed(t *testing.T) {
+func TestGit_GetChangeDetails_PartialStaging(t *testing.T) {
 	t.Parallel()
 
-	// Simulates git diff --cached -M -- new.go old.go for a partially staged rename
-	const stagedDiff = `diff --git a/old.go b/new.go
+	cases := []struct {
+		name         string
+		stagedDiff   string
+		unstagedDiff string
+		fs           versioncontrol.FileStatus
+	}{
+		{
+			name: "renamed file",
+			stagedDiff: `diff --git a/old.go b/new.go
 similarity index 90%
 rename from old.go
 rename to new.go
@@ -792,9 +799,8 @@ rename to new.go
 
  func main() {
  	fmt.Println("hello")
-`
-
-	const unstagedDiff = `diff --git a/new.go b/new.go
+`,
+			unstagedDiff: `diff --git a/new.go b/new.go
 index 4757c60..f87c985 100644
 --- a/new.go
 +++ b/new.go
@@ -804,51 +810,18 @@ index 4757c60..f87c985 100644
  	fmt.Println("other")
 +	os.Exit(0)
  }
-`
-
-	ctrl := gomock.NewController(t)
-	executor := mock.NewMockExecutor(ctrl)
-
-	executor.EXPECT().
-		DiffFile(gomock.Any(), "--cached", "-M", "--", "new.go", "old.go").
-		Return(stagedDiff, nil)
-	executor.EXPECT().
-		DiffFile(gomock.Any(), "--", "new.go").
-		Return(unstagedDiff, nil)
-
-	v := git.NewGit(executor)
-
-	fs := versioncontrol.FileStatus{
-		Path:     "new.go",
-		OrigPath: "old.go",
-		Kind:     versioncontrol.ChangeRenamed,
-		Staged:   false,
-		Partial:  true,
-	}
-
-	detail, err := v.GetChangeDetails(context.Background(), fs)
-	if err != nil {
-		t.Fatalf("GetChangeDetails failed: %v", err)
-	}
-
-	if detail == nil {
-		t.Fatal("expected change details for new.go")
-	}
-
-	want := []versioncontrol.HunkDetail{
-		{Staged: true, SourceIndex: 0},
-		{Staged: false, SourceIndex: 0},
-	}
-
-	if d := cmp.Diff(want, detail.Hunks); d != "" {
-		t.Errorf("Hunks mismatch (-want +got):\n%s", d)
-	}
-}
-
-func TestGit_GetChangeDetails_PartialStaging(t *testing.T) {
-	t.Parallel()
-
-	const stagedDiff = `diff --git a/main.go b/main.go
+`,
+			fs: versioncontrol.FileStatus{
+				Path:     "new.go",
+				OrigPath: "old.go",
+				Kind:     versioncontrol.ChangeRenamed,
+				Staged:   false,
+				Partial:  true,
+			},
+		},
+		{
+			name: "modified file",
+			stagedDiff: `diff --git a/main.go b/main.go
 index 1159d81..4757c60 100644
 --- a/main.go
 +++ b/main.go
@@ -863,9 +836,8 @@ index 1159d81..4757c60 100644
 
  func main() {
  	fmt.Println("hello")
-`
-
-	const unstagedDiff = `diff --git a/main.go b/main.go
+`,
+			unstagedDiff: `diff --git a/main.go b/main.go
 index 4757c60..f87c985 100644
 --- a/main.go
 +++ b/main.go
@@ -875,41 +847,46 @@ index 4757c60..f87c985 100644
  	fmt.Println("other")
 +	os.Exit(0)
  }
-`
-
-	ctrl := gomock.NewController(t)
-	executor := mock.NewMockExecutor(ctrl)
-
-	// partiallyStaged calls diffStaged then diffUnstaged
-	executor.EXPECT().DiffFile(gomock.Any(), "--cached", "--", "main.go").Return(stagedDiff, nil)
-	executor.EXPECT().DiffFile(gomock.Any(), "--", "main.go").Return(unstagedDiff, nil)
-
-	v := git.NewGit(executor)
-
-	fs := versioncontrol.FileStatus{
-		Path:     "main.go",
-		OrigPath: "",
-		Kind:     versioncontrol.ChangeModified,
-		Staged:   false,
-		Partial:  true,
+`,
+			fs: versioncontrol.FileStatus{
+				Path:     "main.go",
+				OrigPath: "",
+				Kind:     versioncontrol.ChangeModified,
+				Staged:   false,
+				Partial:  true,
+			},
+		},
 	}
 
-	detail, err := v.GetChangeDetails(context.Background(), fs)
-	if err != nil {
-		t.Fatalf("GetChangeDetails failed: %v", err)
-	}
-
-	if detail == nil {
-		t.Fatal("expected change details for main.go")
-	}
-
-	want := []versioncontrol.HunkDetail{
+	wantHunks := []versioncontrol.HunkDetail{
 		{Staged: true, SourceIndex: 0},
 		{Staged: false, SourceIndex: 0},
 	}
 
-	if diff := cmp.Diff(want, detail.Hunks); diff != "" {
-		t.Errorf("Hunks mismatch (-want +got):\n%s", diff)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			executor := mock.NewMockExecutor(ctrl)
+			executor.EXPECT().DiffFile(gomock.Any(), "--cached", "-M").Return(tc.stagedDiff, nil)
+			executor.EXPECT().DiffFile(gomock.Any()).Return(tc.unstagedDiff, nil)
+
+			v := git.NewGit(executor)
+
+			detail, err := v.GetChangeDetails(context.Background(), tc.fs)
+			if err != nil {
+				t.Fatalf("GetChangeDetails failed: %v", err)
+			}
+
+			if detail == nil {
+				t.Fatalf("expected change details for %s", tc.fs.Path)
+			}
+
+			if d := cmp.Diff(wantHunks, detail.Hunks); d != "" {
+				t.Errorf("Hunks mismatch (-want +got):\n%s", d)
+			}
+		})
 	}
 }
 
@@ -944,8 +921,8 @@ index abcdefg..9876543 100644
 	ctrl := gomock.NewController(t)
 	executor := mock.NewMockExecutor(ctrl)
 
-	executor.EXPECT().DiffFile(gomock.Any(), "--cached", "--", "1").Return(stagedDiff, nil)
-	executor.EXPECT().DiffFile(gomock.Any(), "--", "1").Return(unstagedDiff, nil)
+	executor.EXPECT().DiffFile(gomock.Any(), "--cached", "-M").Return(stagedDiff, nil)
+	executor.EXPECT().DiffFile(gomock.Any()).Return(unstagedDiff, nil)
 
 	v := git.NewGit(executor)
 
@@ -1018,7 +995,7 @@ index abcdefg..9876543 100644
 		ctrl := gomock.NewController(t)
 		executor := mock.NewMockExecutor(ctrl)
 		executor.EXPECT().
-			DiffFile(gomock.Any(), "--", "main.go").
+			DiffFile(gomock.Any()).
 			Return(unstagedDiff, nil)
 		executor.EXPECT().StageHunk(gomock.Any(), gomock.Any()).Return(nil)
 
@@ -1035,7 +1012,7 @@ index abcdefg..9876543 100644
 		ctrl := gomock.NewController(t)
 		executor := mock.NewMockExecutor(ctrl)
 		executor.EXPECT().
-			DiffFile(gomock.Any(), "--cached", "--", "main.go").
+			DiffFile(gomock.Any(), "--cached", "-M").
 			Return(stagedDiff, nil)
 		executor.EXPECT().UnstageHunk(gomock.Any(), gomock.Any()).Return(nil)
 
@@ -1052,7 +1029,7 @@ index abcdefg..9876543 100644
 		ctrl := gomock.NewController(t)
 		executor := mock.NewMockExecutor(ctrl)
 		executor.EXPECT().
-			DiffFile(gomock.Any(), "--", "main.go").
+			DiffFile(gomock.Any()).
 			Return(unstagedDiff, nil)
 		executor.EXPECT().DiscardHunk(gomock.Any(), gomock.Any()).Return(nil)
 
