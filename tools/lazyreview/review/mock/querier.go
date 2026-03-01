@@ -40,19 +40,24 @@ func (m *MockGitQuerier) EXPECT() *MockGitQuerierMockRecorder {
 	return m.recorder
 }
 
-// Diff mocks base method.
-func (m *MockGitQuerier) Diff(ctx context.Context, ref string) (string, error) {
+// DiffFile mocks base method.
+func (m *MockGitQuerier) DiffFile(ctx context.Context, args ...string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Diff", ctx, ref)
+	varargs := []any{ctx}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DiffFile", varargs...)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Diff indicates an expected call of Diff.
-func (mr *MockGitQuerierMockRecorder) Diff(ctx, ref any) *gomock.Call {
+// DiffFile indicates an expected call of DiffFile.
+func (mr *MockGitQuerierMockRecorder) DiffFile(ctx any, args ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Diff", reflect.TypeOf((*MockGitQuerier)(nil).Diff), ctx, ref)
+	varargs := append([]any{ctx}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DiffFile", reflect.TypeOf((*MockGitQuerier)(nil).DiffFile), varargs...)
 }
 
 // MergeBase mocks base method.
@@ -68,4 +73,49 @@ func (m *MockGitQuerier) MergeBase(ctx context.Context, base string) (string, er
 func (mr *MockGitQuerierMockRecorder) MergeBase(ctx, base any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MergeBase", reflect.TypeOf((*MockGitQuerier)(nil).MergeBase), ctx, base)
+}
+
+// NameStatus mocks base method.
+func (m *MockGitQuerier) NameStatus(ctx context.Context, ref string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NameStatus", ctx, ref)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NameStatus indicates an expected call of NameStatus.
+func (mr *MockGitQuerierMockRecorder) NameStatus(ctx, ref any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NameStatus", reflect.TypeOf((*MockGitQuerier)(nil).NameStatus), ctx, ref)
+}
+
+// NewFileDiff mocks base method.
+func (m *MockGitQuerier) NewFileDiff(path string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewFileDiff", path)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewFileDiff indicates an expected call of NewFileDiff.
+func (mr *MockGitQuerierMockRecorder) NewFileDiff(path any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewFileDiff", reflect.TypeOf((*MockGitQuerier)(nil).NewFileDiff), path)
+}
+
+// UntrackedFiles mocks base method.
+func (m *MockGitQuerier) UntrackedFiles(ctx context.Context) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UntrackedFiles", ctx)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UntrackedFiles indicates an expected call of UntrackedFiles.
+func (mr *MockGitQuerierMockRecorder) UntrackedFiles(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UntrackedFiles", reflect.TypeOf((*MockGitQuerier)(nil).UntrackedFiles), ctx)
 }

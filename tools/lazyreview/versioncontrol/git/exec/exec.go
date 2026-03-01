@@ -78,10 +78,25 @@ func (c *Exec) MergeBase(ctx context.Context, base string) (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-func (c *Exec) Diff(ctx context.Context, ref string) (string, error) {
-	out, err := c.newGitCmd(ctx, "diff", "-U1", ref).Output()
+func (c *Exec) NameStatus(ctx context.Context, ref string) (string, error) {
+	cmd := c.newGitCmd(ctx, "diff", "--name-status", "-M", ref)
+	cmd.Dir = c.root
+
+	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("failed to get diff against %s: %w", ref, err)
+		return "", fmt.Errorf("git diff --name-status -M %s: %w", ref, err)
+	}
+
+	return string(out), nil
+}
+
+func (c *Exec) UntrackedFiles(ctx context.Context) (string, error) {
+	cmd := c.newGitCmd(ctx, "ls-files", "--others", "--exclude-standard")
+	cmd.Dir = c.root
+
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("git ls-files --others --exclude-standard: %w", err)
 	}
 
 	return string(out), nil

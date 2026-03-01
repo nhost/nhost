@@ -130,7 +130,7 @@ func TestMergeBase(t *testing.T) {
 }
 
 //nolint:paralleltest // tests share process CWD
-func TestDiff(t *testing.T) {
+func TestNameStatus(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	client := newClient(t)
 
@@ -142,17 +142,17 @@ func TestDiff(t *testing.T) {
 	runGitCmd(t, "add", "README.md")
 	runGitCmd(t, "commit", "-m", "change readme")
 
-	d, err := client.Diff(ctx, mergeBase)
+	d, err := client.NameStatus(ctx, mergeBase)
 	if err != nil {
-		t.Fatalf("Diff failed: %v", err)
+		t.Fatalf("NameStatus failed: %v", err)
 	}
 
 	if !strings.Contains(d, "README.md") {
-		t.Error("diff should contain changed file")
+		t.Error("name-status should contain changed file")
 	}
 
-	if !strings.Contains(d, "+# changed") {
-		t.Error("diff should show the change")
+	if !strings.Contains(d, "M\t") {
+		t.Error("name-status should show M for modified file")
 	}
 }
 

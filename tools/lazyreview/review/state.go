@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/nhost/nhost/tools/lazyreview/diff"
 )
 
 const (
@@ -25,6 +23,7 @@ type HunkState struct {
 
 type FileState struct {
 	Path     string               `json:"path"`
+	Hash     string               `json:"hash"`
 	Reviewed bool                 `json:"reviewed"`
 	Hunks    map[string]HunkState `json:"hunks"`
 }
@@ -112,36 +111,79 @@ func (s *State) Save() error {
 	return nil
 }
 
-func (s *State) Reconcile(files []*diff.File) {
-	newFiles := make(map[string]FileState, len(files))
+// Reconcile updates the state to match the current set of file paths.
+// It keeps existing entries for paths that still exist, removes entries for
+// paths no longer present, and creates placeholder entries for new paths.
+func (s *State) Reconcile(paths []string) {
+	newFiles := make(map[string]FileState, len(paths))
 
-	for _, f := range files {
-		hash := Hash(f.RawDiff)
-
-		if existing, ok := s.Files[hash]; ok {
-			newFiles[hash] = existing
+	for _, p := range paths {
+		if existing, ok := s.Files[p]; ok {
+			newFiles[p] = existing
 
 			continue
 		}
 
-		hunks := make(map[string]HunkState, len(f.Hunks))
-		for i := range f.Hunks {
-			hunks[hunkKey(i)] = HunkState{Reviewed: false}
-		}
-
-		newFiles[hash] = FileState{
-			Path:     f.Path,
+		newFiles[p] = FileState{
+			Path:     p,
+			Hash:     "",
 			Reviewed: false,
-			Hunks:    hunks,
+			Hunks:    nil,
 		}
 	}
 
 	s.Files = newFiles
 }
 
-func (s *State) SetFilesReviewed(hashes []string, reviewed bool) {
-	for _, hash := range hashes {
-		fs, ok := s.Files[hash]
+// ReconcileFile updates a single file's state after its diff has been fetched.
+// It compares the content hash to detect changes and manages hunk state accordingly.
+func (s *State) ReconcileFile(path, hash string, hunkCount int) {
+	existing, ok := s.Files[path]
+
+	switch {
+	case ok && existing.Hash == hash && existing.Hunks != nil:
+		// Hash matches and hunks populated — keep existing review state
+		return
+
+	case ok && existing.Hash == "":
+		// Never viewed via GetChangeDetails — populate hash and hunks.
+		// If Reviewed was set via StageFile, mark all hunks reviewed.
+		existing.Hash = hash
+		existing.Hunks = makeHunks(hunkCount, existing.Reviewed)
+		s.Files[path] = existing
+
+	case ok && existing.Hash != hash:
+		// Diff changed — reset to unreviewed with new hunks
+		s.Files[path] = FileState{
+			Path:     path,
+			Hash:     hash,
+			Reviewed: false,
+			Hunks:    makeHunks(hunkCount, false),
+		}
+
+	default:
+		// New entry
+		s.Files[path] = FileState{
+			Path:     path,
+			Hash:     hash,
+			Reviewed: false,
+			Hunks:    makeHunks(hunkCount, false),
+		}
+	}
+}
+
+func makeHunks(count int, reviewed bool) map[string]HunkState {
+	hunks := make(map[string]HunkState, count)
+	for i := range count {
+		hunks[hunkKey(i)] = HunkState{Reviewed: reviewed}
+	}
+
+	return hunks
+}
+
+func (s *State) SetFilesReviewed(paths []string, reviewed bool) {
+	for _, path := range paths {
+		fs, ok := s.Files[path]
 		if !ok {
 			continue
 		}
@@ -153,12 +195,12 @@ func (s *State) SetFilesReviewed(hashes []string, reviewed bool) {
 			fs.Hunks[k] = h
 		}
 
-		s.Files[hash] = fs
+		s.Files[path] = fs
 	}
 }
 
-func (s *State) ToggleFileReviewed(hash string) {
-	fs, ok := s.Files[hash]
+func (s *State) ToggleFileReviewed(path string) {
+	fs, ok := s.Files[path]
 	if !ok {
 		return
 	}
@@ -171,11 +213,11 @@ func (s *State) ToggleFileReviewed(hash string) {
 		fs.Hunks[k] = h
 	}
 
-	s.Files[hash] = fs
+	s.Files[path] = fs
 }
 
-func (s *State) SetHunkReviewed(hash string, index int, reviewed bool) {
-	fs, ok := s.Files[hash]
+func (s *State) SetHunkReviewed(path string, index int, reviewed bool) {
+	fs, ok := s.Files[path]
 	if !ok {
 		return
 	}
@@ -190,12 +232,12 @@ func (s *State) SetHunkReviewed(hash string, index int, reviewed bool) {
 	h.Reviewed = reviewed
 	fs.Hunks[key] = h
 
-	fs.Reviewed = s.allHunksReviewed(hash)
-	s.Files[hash] = fs
+	fs.Reviewed = s.allHunksReviewed(path)
+	s.Files[path] = fs
 }
 
-func (s *State) ToggleHunkReviewed(hash string, index int) {
-	fs, ok := s.Files[hash]
+func (s *State) ToggleHunkReviewed(path string, index int) {
+	fs, ok := s.Files[path]
 	if !ok {
 		return
 	}
@@ -210,12 +252,12 @@ func (s *State) ToggleHunkReviewed(hash string, index int) {
 	h.Reviewed = !h.Reviewed
 	fs.Hunks[key] = h
 
-	fs.Reviewed = s.allHunksReviewed(hash)
-	s.Files[hash] = fs
+	fs.Reviewed = s.allHunksReviewed(path)
+	s.Files[path] = fs
 }
 
-func (s *State) allHunksReviewed(hash string) bool {
-	fs, ok := s.Files[hash]
+func (s *State) allHunksReviewed(path string) bool {
+	fs, ok := s.Files[path]
 	if !ok {
 		return false
 	}
@@ -229,8 +271,8 @@ func (s *State) allHunksReviewed(hash string) bool {
 	return true
 }
 
-func (s *State) IsHunkReviewed(hash string, index int) bool {
-	fs, ok := s.Files[hash]
+func (s *State) IsHunkReviewed(path string, index int) bool {
+	fs, ok := s.Files[path]
 	if !ok {
 		return false
 	}

@@ -14,19 +14,29 @@ import (
 //go:generate mockgen -package mock -destination mock/querier.go . GitQuerier
 type GitQuerier interface {
 	MergeBase(ctx context.Context, base string) (string, error)
-	Diff(ctx context.Context, ref string) (string, error)
+	NameStatus(ctx context.Context, ref string) (string, error)
+	UntrackedFiles(ctx context.Context) (string, error)
+	DiffFile(ctx context.Context, args ...string) (string, error)
+	NewFileDiff(path string) (string, error)
+}
+
+type fileInfo struct {
+	path      string
+	origPath  string
+	kind      versioncontrol.ChangeKind
+	untracked bool // true for files from ls-files --others (not in git diff)
 }
 
 // Review implements tui.View for review mode.
 // It diffs from merge-base to HEAD and uses persistent review state.
 type Review struct {
-	git        GitQuerier
-	state      *State
-	base       string
-	repoRoot   string
-	branch     string
-	hashByPath map[string]string
-	fileByHash map[string]*diff.File
+	git       GitQuerier
+	state     *State
+	base      string
+	repoRoot  string
+	branch    string
+	mergeBase string
+	fileInfos []fileInfo
 }
 
 func NewReview(
@@ -34,77 +44,77 @@ func NewReview(
 	base, repoRoot, branch string,
 ) *Review {
 	return &Review{
-		git:        git,
-		state:      nil,
-		base:       base,
-		repoRoot:   repoRoot,
-		branch:     branch,
-		hashByPath: make(map[string]string),
-		fileByHash: make(map[string]*diff.File),
+		git:       git,
+		state:     nil,
+		base:      base,
+		repoRoot:  repoRoot,
+		branch:    branch,
+		mergeBase: "",
+		fileInfos: nil,
 	}
 }
 
-// refresh re-fetches the diff from git, loads state from disk on first call,
-// and reconciles state with the current diff.
-func (v *Review) refresh(ctx context.Context) ([]*diff.File, []string, error) {
-	mergeBase, err := v.git.MergeBase(ctx, v.base)
+// refreshFiles fetches merge-base + name-status, loads state on first call,
+// and reconciles state with the current file list.
+func (v *Review) refreshFiles(ctx context.Context) error {
+	if v.mergeBase == "" {
+		mb, err := v.git.MergeBase(ctx, v.base)
+		if err != nil {
+			return fmt.Errorf("merge-base: %w", err)
+		}
+
+		v.mergeBase = mb
+	}
+
+	raw, err := v.git.NameStatus(ctx, v.mergeBase)
 	if err != nil {
-		return nil, nil, fmt.Errorf("merge-base: %w", err)
+		return fmt.Errorf("name-status: %w", err)
 	}
 
-	rawDiff, err := v.git.Diff(ctx, mergeBase)
+	v.fileInfos = parseNameStatus(raw)
+
+	untrackedRaw, err := v.git.UntrackedFiles(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("diff: %w", err)
+		return fmt.Errorf("untracked files: %w", err)
 	}
 
-	files := diff.Parse(rawDiff)
-	hashes := make([]string, len(files))
-
-	for i, f := range files {
-		hashes[i] = Hash(f.RawDiff)
-	}
+	v.fileInfos = append(v.fileInfos, parseUntrackedFiles(untrackedRaw)...)
 
 	if v.state == nil {
 		state, err := Load(v.repoRoot, v.branch, v.base)
 		if err != nil {
-			return nil, nil, fmt.Errorf("load state: %w", err)
+			return fmt.Errorf("load state: %w", err)
 		}
 
 		v.state = state
 	}
 
-	v.state.Reconcile(files)
-
-	v.hashByPath = make(map[string]string, len(files))
-	v.fileByHash = make(map[string]*diff.File, len(files))
-
-	for i, f := range files {
-		v.hashByPath[f.Path] = hashes[i]
-		v.fileByHash[hashes[i]] = f
+	paths := make([]string, len(v.fileInfos))
+	for i, fi := range v.fileInfos {
+		paths[i] = fi.path
 	}
 
-	return files, hashes, nil
+	v.state.Reconcile(paths)
+
+	return nil
 }
 
 func (v *Review) GetStatus(
 	ctx context.Context,
 ) ([]versioncontrol.FileStatus, error) {
-	files, hashes, err := v.refresh(ctx)
-	if err != nil {
+	if err := v.refreshFiles(ctx); err != nil {
 		return nil, err
 	}
 
-	statuses := make([]versioncontrol.FileStatus, len(files))
+	statuses := make([]versioncontrol.FileStatus, len(v.fileInfos))
 
-	for i, f := range files {
-		hash := hashes[i]
-
-		fs, ok := v.state.Files[hash]
+	for i, fi := range v.fileInfos {
+		fs, ok := v.state.Files[fi.path]
 		if !ok {
 			statuses[i] = versioncontrol.FileStatus{
-				Path:     f.Path,
-				OrigPath: "",
-				Kind:     versioncontrol.ChangeModified,
+				Path:     fi.path,
+				OrigPath: fi.origPath,
+				Kind:     fi.kind,
 				Staged:   false,
 				Partial:  false,
 			}
@@ -124,9 +134,9 @@ func (v *Review) GetStatus(
 		}
 
 		statuses[i] = versioncontrol.FileStatus{
-			Path:     f.Path,
-			OrigPath: "",
-			Kind:     versioncontrol.ChangeModified,
+			Path:     fi.path,
+			OrigPath: fi.origPath,
+			Kind:     fi.kind,
 			Staged:   fs.Reviewed,
 			Partial:  partial,
 		}
@@ -139,35 +149,83 @@ func (v *Review) GetChangeDetails(
 	ctx context.Context,
 	fs versioncontrol.FileStatus,
 ) (*versioncontrol.ChangeDetail, error) {
-	if _, _, err := v.refresh(ctx); err != nil {
+	if err := v.refreshFiles(ctx); err != nil {
 		return nil, err
 	}
 
-	hash, ok := v.hashByPath[fs.Path]
-	if !ok {
+	fi := v.findFileInfo(fs.Path)
+	if fi == nil {
 		return nil, nil //nolint:nilnil
 	}
 
-	f, ok := v.fileByHash[hash]
-	if !ok {
+	raw, err := v.fetchFileDiff(ctx, fi)
+	if err != nil {
+		return nil, err
+	}
+
+	files := diff.Parse(raw)
+	if len(files) == 0 {
 		return nil, nil //nolint:nilnil
 	}
+
+	f := files[0]
+	hash := Hash(f.RawDiff)
+
+	v.state.ReconcileFile(fi.path, hash, len(f.Hunks))
 
 	hunks := make([]versioncontrol.HunkDetail, len(f.Hunks))
 	for i := range f.Hunks {
 		hunks[i] = versioncontrol.HunkDetail{
-			Staged:      v.state.IsHunkReviewed(hash, i),
+			Staged:      v.state.IsHunkReviewed(fi.path, i),
 			SourceIndex: i,
 		}
 	}
 
 	return &versioncontrol.ChangeDetail{
-		Path:     fs.Path,
-		OrigPath: fs.OrigPath,
-		Kind:     fs.Kind,
+		Path:     fi.path,
+		OrigPath: fi.origPath,
+		Kind:     fi.kind,
 		File:     f,
 		Hunks:    hunks,
 	}, nil
+}
+
+func (v *Review) fetchFileDiff(
+	ctx context.Context,
+	fi *fileInfo,
+) (string, error) {
+	if fi.untracked {
+		raw, err := v.git.NewFileDiff(fi.path)
+		if err != nil {
+			return "", fmt.Errorf("new file diff %s: %w", fi.path, err)
+		}
+
+		return raw, nil
+	}
+
+	var args []string
+	if fi.kind == versioncontrol.ChangeRenamed {
+		args = []string{"-M", v.mergeBase, "--", fi.path, fi.origPath}
+	} else {
+		args = []string{v.mergeBase, "--", fi.path}
+	}
+
+	raw, err := v.git.DiffFile(ctx, args...)
+	if err != nil {
+		return "", fmt.Errorf("diff file %s: %w", fi.path, err)
+	}
+
+	return raw, nil
+}
+
+func (v *Review) findFileInfo(path string) *fileInfo {
+	for i := range v.fileInfos {
+		if v.fileInfos[i].path == path {
+			return &v.fileInfos[i]
+		}
+	}
+
+	return nil
 }
 
 func (v *Review) StageHunk(
@@ -175,12 +233,7 @@ func (v *Review) StageHunk(
 	fs versioncontrol.FileStatus,
 	hunkIndex int,
 ) error {
-	hash, ok := v.hashByPath[fs.Path]
-	if !ok {
-		return nil
-	}
-
-	v.state.SetHunkReviewed(hash, hunkIndex, true)
+	v.state.SetHunkReviewed(fs.Path, hunkIndex, true)
 
 	return v.save()
 }
@@ -190,64 +243,49 @@ func (v *Review) UnstageHunk(
 	fs versioncontrol.FileStatus,
 	hunkIndex int,
 ) error {
-	hash, ok := v.hashByPath[fs.Path]
-	if !ok {
-		return nil
-	}
-
-	v.state.SetHunkReviewed(hash, hunkIndex, false)
+	v.state.SetHunkReviewed(fs.Path, hunkIndex, false)
 
 	return v.save()
 }
 
 func (v *Review) StageFile(_ context.Context, path string) error {
-	hash, ok := v.hashByPath[path]
-	if !ok {
-		return nil
-	}
-
-	v.state.SetFilesReviewed([]string{hash}, true)
+	v.state.SetFilesReviewed([]string{path}, true)
 
 	return v.save()
 }
 
 func (v *Review) UnstageFile(_ context.Context, path string) error {
-	hash, ok := v.hashByPath[path]
-	if !ok {
-		return nil
-	}
-
-	v.state.SetFilesReviewed([]string{hash}, false)
+	v.state.SetFilesReviewed([]string{path}, false)
 
 	return v.save()
 }
 
 func (v *Review) StageFolder(_ context.Context, folder string) error {
-	hashes := v.hashesUnderFolder(folder)
-	v.state.SetFilesReviewed(hashes, true)
+	paths := v.pathsUnderFolder(folder)
+	v.state.SetFilesReviewed(paths, true)
 
 	return v.save()
 }
 
 func (v *Review) UnstageFolder(_ context.Context, folder string) error {
-	hashes := v.hashesUnderFolder(folder)
-	v.state.SetFilesReviewed(hashes, false)
+	paths := v.pathsUnderFolder(folder)
+	v.state.SetFilesReviewed(paths, false)
 
 	return v.save()
 }
 
-func (v *Review) hashesUnderFolder(folder string) []string {
+func (v *Review) pathsUnderFolder(folder string) []string {
 	prefix := folder + "/"
 
-	var hashes []string
+	var paths []string
 
-	for path, hash := range v.hashByPath {
-		if strings.HasPrefix(path, prefix) || path == folder {
-			hashes = append(hashes, hash)
+	for _, fi := range v.fileInfos {
+		if strings.HasPrefix(fi.path, prefix) || fi.path == folder {
+			paths = append(paths, fi.path)
 		}
 	}
 
-	return hashes
+	return paths
 }
 
 func (v *Review) save() error {
@@ -260,4 +298,93 @@ func (v *Review) save() error {
 	}
 
 	return nil
+}
+
+// parseUntrackedFiles parses the output of `git ls-files --others --exclude-standard`.
+// Each line is a file path.
+func parseUntrackedFiles(raw string) []fileInfo {
+	trimmed := strings.TrimRight(raw, "\n")
+	if trimmed == "" {
+		return nil
+	}
+
+	lines := strings.Split(trimmed, "\n")
+	infos := make([]fileInfo, 0, len(lines))
+
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+
+		infos = append(infos, fileInfo{
+			path:      line,
+			origPath:  "",
+			kind:      versioncontrol.ChangeAdded,
+			untracked: true,
+		})
+	}
+
+	return infos
+}
+
+// parseNameStatus parses the output of `git diff --name-status -M`.
+// Format: "M\tfile", "A\tfile", "D\tfile", "R100\told\tnew".
+func parseNameStatus(raw string) []fileInfo {
+	trimmed := strings.TrimRight(raw, "\n")
+	if trimmed == "" {
+		return nil
+	}
+
+	lines := strings.Split(trimmed, "\n")
+	infos := make([]fileInfo, 0, len(lines))
+
+	for _, line := range lines {
+		parts := strings.Split(line, "\t")
+		if len(parts) < 2 { //nolint:mnd
+			continue
+		}
+
+		status := parts[0]
+
+		var fi fileInfo
+
+		switch {
+		case strings.HasPrefix(status, "R"):
+			if len(parts) < 3 { //nolint:mnd
+				continue
+			}
+
+			fi = fileInfo{
+				path:      parts[2],
+				origPath:  parts[1],
+				kind:      versioncontrol.ChangeRenamed,
+				untracked: false,
+			}
+		case status == "A":
+			fi = fileInfo{
+				path:      parts[1],
+				origPath:  "",
+				kind:      versioncontrol.ChangeAdded,
+				untracked: false,
+			}
+		case status == "D":
+			fi = fileInfo{
+				path:      parts[1],
+				origPath:  "",
+				kind:      versioncontrol.ChangeDeleted,
+				untracked: false,
+			}
+		default:
+			fi = fileInfo{
+				path:      parts[1],
+				origPath:  "",
+				kind:      versioncontrol.ChangeModified,
+				untracked: false,
+			}
+		}
+
+		infos = append(infos, fi)
+	}
+
+	return infos
 }
