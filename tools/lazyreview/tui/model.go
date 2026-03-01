@@ -152,25 +152,25 @@ const (
 	pendingNone        pendingAction = iota
 	pendingHunkAdvance               // advance to next hunk/file after refresh
 	pendingFileAdvance               // advance to next file after refresh
-	pendingFileDiscard               // select PendingSelectPath after refresh (discard)
+	pendingFileDiscard               // select pendingSelectPath after refresh (discard)
 	pendingHunkDiscard               // stay on same hunk index after refresh (discard)
 )
 
 type Model struct { //nolint:recvcheck
-	FileTree          FileTreeModel
-	DiffView          DiffViewModel
-	Help              HelpModel
-	Commit            CommitModel
-	Review            View
-	Git               GitView
+	fileTree          fileTreeModel
+	diffView          diffViewModel
+	help              helpModel
+	commit            commitModel
+	review            View
+	git               GitView
 	active            int
-	FileStatuses      []versioncontrol.FileStatus
-	Focus             int
-	Width             int
-	Height            int
-	StatusMsg         string
-	PendingAction     pendingAction
-	PendingSelectPath string
+	fileStatuses      []versioncontrol.FileStatus
+	focus             int
+	width             int
+	height            int
+	statusMsg         string
+	pending           pendingAction
+	pendingSelectPath string
 	refreshing        bool
 }
 
@@ -194,26 +194,26 @@ func NewModel(
 		cfg = gitViewConfig()
 	}
 
-	fileTree := NewFileTreeModel(initialStatuses, cfg)
-	diffView := NewDiffViewModel()
-	help := NewHelpModel(activeIdx == 1)
-	commit := NewCommitModel()
+	ft := newFileTreeModel(initialStatuses, cfg)
+	dv := newDiffViewModel()
+	h := newHelpModel(activeIdx == 1)
+	c := newCommitModel()
 
 	m := Model{
-		FileTree:          fileTree,
-		DiffView:          diffView,
-		Help:              help,
-		Commit:            commit,
-		Review:            rv,
-		Git:               gv,
+		fileTree:          ft,
+		diffView:          dv,
+		help:              h,
+		commit:            c,
+		review:            rv,
+		git:               gv,
 		active:            activeIdx,
-		FileStatuses:      initialStatuses,
-		Focus:             panelFiles,
-		Width:             0,
-		Height:            0,
-		StatusMsg:         "",
-		PendingAction:     pendingNone,
-		PendingSelectPath: "",
+		fileStatuses:      initialStatuses,
+		focus:             panelFiles,
+		width:             0,
+		height:            0,
+		statusMsg:         "",
+		pending:           pendingNone,
+		pendingSelectPath: "",
 		refreshing:        false,
 	}
 
@@ -226,10 +226,10 @@ func NewModel(
 
 func (m *Model) activeView() View { //nolint:ireturn
 	if m.active == 0 {
-		return m.Review
+		return m.review
 	}
 
-	return m.Git
+	return m.git
 }
 
 func (m Model) Init() tea.Cmd {
@@ -239,8 +239,8 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.Width = msg.Width
-		m.Height = msg.Height
+		m.width = msg.Width
+		m.height = msg.Height
 		m.layoutPanels()
 
 		return m, nil
@@ -261,9 +261,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 		return m, nil
 
 	case commitSubmitMsg:
-		m.StatusMsg = "Committing..."
+		m.statusMsg = "Committing..."
 
-		return m, commitCmd(m.Git, msg.Message)
+		return m, commitCmd(m.git, msg.Message)
 
 	case tea.FocusMsg:
 		return m.handleFocus()
@@ -286,12 +286,12 @@ func (m Model) handleFocus() (tea.Model, tea.Cmd) { //nolint:ireturn
 }
 
 func (m Model) handleKeyMsg(msg tea.KeyPressMsg) (Model, tea.Cmd) {
-	if m.Commit.Visible {
-		return m, m.Commit.Update(msg)
+	if m.commit.visible {
+		return m, m.commit.update(msg)
 	}
 
-	if m.Help.Visible {
-		m.Help.Toggle()
+	if m.help.visible {
+		m.help.toggle()
 
 		return m, nil
 	}
@@ -303,52 +303,52 @@ func (m Model) handleRefreshDone(msg refreshDoneMsg) Model {
 	m.refreshing = false
 
 	if msg.Err != nil {
-		m.StatusMsg = errorMsgStyle().Render(msg.Err.Error())
+		m.statusMsg = errorMsgStyle().Render(msg.Err.Error())
 
 		return m
 	}
 
-	savedHunk := m.DiffView.ActiveHunk
-	expandedPaths := m.FileTree.ExpandedPaths()
-	selectedPath := m.FileTree.SelectedPath()
+	savedHunk := m.diffView.activeHunk
+	expandedPaths := m.fileTree.expandedPaths()
+	selectedPath := m.fileTree.selectedPath()
 
-	m.FileStatuses = msg.Statuses
+	m.fileStatuses = msg.Statuses
 
-	if m.PendingAction == pendingFileDiscard && m.PendingSelectPath != "" {
-		selectedPath = m.PendingSelectPath
+	if m.pending == pendingFileDiscard && m.pendingSelectPath != "" {
+		selectedPath = m.pendingSelectPath
 	}
 
-	m.FileTree = NewFileTreeModel(m.FileStatuses, m.activeConfig())
-	m.FileTree.RestoreViewState(expandedPaths, selectedPath)
-	m.FileTree.Focused = m.Focus == panelFiles
+	m.fileTree = newFileTreeModel(m.fileStatuses, m.activeConfig())
+	m.fileTree.restoreViewState(expandedPaths, selectedPath)
+	m.fileTree.focused = m.focus == panelFiles
 	m.syncDiffToFile()
 	m.layoutPanels()
 
 	m.executePendingAction(savedHunk)
-	m.PendingAction = pendingNone
-	m.PendingSelectPath = ""
+	m.pending = pendingNone
+	m.pendingSelectPath = ""
 
 	return m
 }
 
 func (m *Model) restoreHunkIfValid(savedHunk int) {
-	if m.DiffView.Detail != nil &&
-		m.DiffView.Detail.File != nil &&
-		savedHunk < len(m.DiffView.Detail.File.Hunks) {
-		m.DiffView.ActiveHunk = savedHunk
+	if m.diffView.detail != nil &&
+		m.diffView.detail.File != nil &&
+		savedHunk < len(m.diffView.detail.File.Hunks) {
+		m.diffView.activeHunk = savedHunk
 	}
 }
 
 func (m *Model) executePendingAction(savedHunk int) {
-	switch m.PendingAction {
+	switch m.pending {
 	case pendingHunkAdvance:
 		m.restoreHunkIfValid(savedHunk)
 		m.advanceAfterHunkToggle()
 	case pendingHunkDiscard:
 		m.restoreHunkIfValid(savedHunk)
-		m.DiffView.scrollToActiveHunk()
+		m.diffView.scrollToActiveHunk()
 	case pendingFileAdvance:
-		m.FileTree.MoveDown()
+		m.fileTree.moveDown()
 		m.syncDiffToFile()
 	case pendingFileDiscard:
 		m.syncDiffToFile()
@@ -358,12 +358,12 @@ func (m *Model) executePendingAction(savedHunk int) {
 
 func (m Model) handleActionDone(msg actionDoneMsg) (Model, tea.Cmd) {
 	if msg.Err != nil {
-		m.StatusMsg = errorMsgStyle().Render(msg.Err.Error())
+		m.statusMsg = errorMsgStyle().Render(msg.Err.Error())
 
 		return m, nil
 	}
 
-	m.StatusMsg = ""
+	m.statusMsg = ""
 	m.refreshing = true
 
 	return m, refreshCmd(m.activeView())
@@ -371,12 +371,12 @@ func (m Model) handleActionDone(msg actionDoneMsg) (Model, tea.Cmd) {
 
 func (m Model) handleCommitDone(msg commitDoneMsg) (Model, tea.Cmd) {
 	if msg.Err != nil {
-		m.StatusMsg = errorMsgStyle().Render(fmt.Sprintf("Commit failed: %s", msg.Err))
+		m.statusMsg = errorMsgStyle().Render(fmt.Sprintf("Commit failed: %s", msg.Err))
 
 		return m, nil
 	}
 
-	m.StatusMsg = successMsgStyle().Render("Committed!")
+	m.statusMsg = successMsgStyle().Render("Committed!")
 	m.refreshing = true
 
 	return m, refreshCmd(m.activeView())
@@ -384,12 +384,12 @@ func (m Model) handleCommitDone(msg commitDoneMsg) (Model, tea.Cmd) {
 
 func (m Model) handlePushDone(msg pushDoneMsg) Model {
 	if msg.Err != nil {
-		m.StatusMsg = errorMsgStyle().Render(fmt.Sprintf("Push failed: %s", msg.Err))
+		m.statusMsg = errorMsgStyle().Render(fmt.Sprintf("Push failed: %s", msg.Err))
 
 		return m
 	}
 
-	m.StatusMsg = successMsgStyle().Render("Pushed!")
+	m.statusMsg = successMsgStyle().Render("Pushed!")
 
 	return m
 }
@@ -408,7 +408,7 @@ func (m Model) handleKey(
 		return m, tea.Quit
 
 	case "?":
-		m.Help.Toggle()
+		m.help.toggle()
 
 	case "tab":
 		m.toggleFocus()
@@ -417,8 +417,8 @@ func (m Model) handleKey(
 		m.handleExpandOrFocus()
 
 	case "h", "left":
-		if m.Focus == panelFiles {
-			m.FileTree.Collapse()
+		if m.focus == panelFiles {
+			m.fileTree.collapse()
 			m.syncDiffToFile()
 		}
 
@@ -453,8 +453,8 @@ func (m Model) handleSwitchView(idx int) (Model, tea.Cmd, bool) {
 	}
 
 	m.active = idx
-	m.Help.IsGitMode = idx == 1
-	m.StatusMsg = ""
+	m.help.isGitMode = idx == 1
+	m.statusMsg = ""
 	m.refreshing = true
 
 	return m, refreshCmd(m.activeView()), true
@@ -467,17 +467,17 @@ func (m Model) handleGitKey(key string) (Model, tea.Cmd, bool) {
 
 	switch key {
 	case "c":
-		m.Commit.Open()
+		m.commit.open()
 
 		return m, nil, true
 	case "p":
-		m.StatusMsg = "Pushing..."
+		m.statusMsg = "Pushing..."
 
-		return m, pushCmd(m.Git), true
+		return m, pushCmd(m.git), true
 	case "P":
-		m.StatusMsg = "Force pushing..."
+		m.statusMsg = "Force pushing..."
 
-		return m, pushForceCmd(m.Git), true
+		return m, pushForceCmd(m.git), true
 	case "d":
 		return m.handleDiscardAction()
 	}
@@ -486,20 +486,20 @@ func (m Model) handleGitKey(key string) (Model, tea.Cmd, bool) {
 }
 
 func (m *Model) handleExpandOrFocus() {
-	if m.Focus != panelFiles {
+	if m.focus != panelFiles {
 		return
 	}
 
-	node := m.FileTree.SelectedNode()
+	node := m.fileTree.selectedNode()
 	if node != nil && node.IsDir {
-		m.FileTree.Expand()
+		m.fileTree.expand()
 	} else {
 		m.toggleFocus()
 	}
 }
 
 func (m *Model) handleNavigationKey(key string) {
-	if m.Focus == panelFiles {
+	if m.focus == panelFiles {
 		m.handleFileNavigation(key)
 	} else {
 		m.handleDiffNavigation(key)
@@ -509,13 +509,13 @@ func (m *Model) handleNavigationKey(key string) {
 func (m *Model) handleFileNavigation(key string) {
 	switch key {
 	case "j", "down":
-		m.FileTree.MoveDown()
+		m.fileTree.moveDown()
 	case "k", "up":
-		m.FileTree.MoveUp()
+		m.fileTree.moveUp()
 	case "g", keyHome:
-		m.FileTree.MoveToTop()
+		m.fileTree.moveToTop()
 	case "G", keyEnd:
-		m.FileTree.MoveToBottom()
+		m.fileTree.moveToBottom()
 	default:
 		return
 	}
@@ -526,24 +526,24 @@ func (m *Model) handleFileNavigation(key string) {
 func (m *Model) handleDiffNavigation(key string) {
 	switch key {
 	case "j", "down":
-		m.DiffView.NextHunk()
+		m.diffView.nextHunk()
 	case "k", "up":
-		m.DiffView.PrevHunk()
+		m.diffView.prevHunk()
 	case "g", keyHome:
-		m.DiffView.ScrollToTop()
+		m.diffView.scrollToTop()
 	case "G", keyEnd:
-		m.DiffView.ScrollToBottom()
+		m.diffView.scrollToBottom()
 	case "J":
-		m.DiffView.ScrollDown()
+		m.diffView.scrollDown()
 	case "K":
-		m.DiffView.ScrollUp()
+		m.diffView.scrollUp()
 	}
 }
 
 func (m *Model) selectedFileStatus() (versioncontrol.FileStatus, bool) {
-	node := m.FileTree.SelectedNode()
+	node := m.fileTree.selectedNode()
 	if node == nil || node.IsDir ||
-		node.FileIndex < 0 || node.FileIndex >= len(m.FileStatuses) {
+		node.FileIndex < 0 || node.FileIndex >= len(m.fileStatuses) {
 		return versioncontrol.FileStatus{
 			Path:     "",
 			OrigPath: "",
@@ -553,14 +553,14 @@ func (m *Model) selectedFileStatus() (versioncontrol.FileStatus, bool) {
 		}, false
 	}
 
-	return m.FileStatuses[node.FileIndex], true
+	return m.fileStatuses[node.FileIndex], true
 }
 
 func (m Model) handleToggleAction() (Model, tea.Cmd) {
 	view := m.activeView()
 
-	if m.Focus == panelDiff {
-		detail := m.DiffView.Detail
+	if m.focus == panelDiff {
+		detail := m.diffView.detail
 		if detail == nil {
 			return m, nil
 		}
@@ -570,8 +570,8 @@ func (m Model) handleToggleAction() (Model, tea.Cmd) {
 			return m, nil
 		}
 
-		m.PendingAction = pendingHunkAdvance
-		activeHunk := m.DiffView.ActiveHunk
+		m.pending = pendingHunkAdvance
+		activeHunk := m.diffView.activeHunk
 		sourceIndex := detail.Hunks[activeHunk].SourceIndex
 
 		if detail.Hunks[activeHunk].Staged {
@@ -582,21 +582,21 @@ func (m Model) handleToggleAction() (Model, tea.Cmd) {
 	}
 
 	// File list: stage/unstage file or directory
-	node := m.FileTree.SelectedNode()
+	node := m.fileTree.selectedNode()
 	if node == nil {
 		return m, nil
 	}
 
-	m.PendingAction = pendingFileAdvance
+	m.pending = pendingFileAdvance
 
 	if !node.IsDir {
-		if node.FileIndex < 0 || node.FileIndex >= len(m.FileStatuses) {
+		if node.FileIndex < 0 || node.FileIndex >= len(m.fileStatuses) {
 			return m, nil
 		}
 
-		path := m.FileStatuses[node.FileIndex].Path
+		path := m.fileStatuses[node.FileIndex].Path
 
-		if m.FileStatuses[node.FileIndex].Staged {
+		if m.fileStatuses[node.FileIndex].Staged {
 			return m, unstageFileCmd(view, path)
 		}
 
@@ -606,10 +606,10 @@ func (m Model) handleToggleAction() (Model, tea.Cmd) {
 	return m.handleStageDirAction(node)
 }
 
-func (m Model) handleStageDirAction(node *TreeNode) (Model, tea.Cmd) {
+func (m Model) handleStageDirAction(node *treeNode) (Model, tea.Cmd) {
 	view := m.activeView()
 
-	indices := m.FileTree.FileIndicesUnder(node)
+	indices := m.fileTree.fileIndicesUnder(node)
 	if len(indices) == 0 {
 		return m, nil
 	}
@@ -617,11 +617,11 @@ func (m Model) handleStageDirAction(node *TreeNode) (Model, tea.Cmd) {
 	allStaged := true
 
 	for _, idx := range indices {
-		if idx < 0 || idx >= len(m.FileStatuses) {
+		if idx < 0 || idx >= len(m.fileStatuses) {
 			continue
 		}
 
-		if !m.FileStatuses[idx].Staged {
+		if !m.fileStatuses[idx].Staged {
 			allStaged = false
 
 			break
@@ -638,8 +638,8 @@ func (m Model) handleStageDirAction(node *TreeNode) (Model, tea.Cmd) {
 }
 
 func (m Model) handleDiscardAction() (Model, tea.Cmd, bool) {
-	if m.Focus == panelDiff {
-		detail := m.DiffView.Detail
+	if m.focus == panelDiff {
+		detail := m.diffView.detail
 		if detail == nil {
 			return m, nil, true
 		}
@@ -649,54 +649,54 @@ func (m Model) handleDiscardAction() (Model, tea.Cmd, bool) {
 			return m, nil, true
 		}
 
-		activeHunk := m.DiffView.ActiveHunk
+		activeHunk := m.diffView.activeHunk
 
 		if fs.Partial && detail.Hunks[activeHunk].Staged {
-			m.StatusMsg = errorMsgStyle().Render("Cannot discard a staged hunk; unstage it first")
+			m.statusMsg = errorMsgStyle().Render("Cannot discard a staged hunk; unstage it first")
 
 			return m, nil, true
 		}
 
-		m.PendingAction = pendingHunkDiscard
+		m.pending = pendingHunkDiscard
 
-		return m, discardHunkCmd(m.Git, fs, detail.Hunks[activeHunk].SourceIndex), true
+		return m, discardHunkCmd(m.git, fs, detail.Hunks[activeHunk].SourceIndex), true
 	}
 
-	node := m.FileTree.SelectedNode()
+	node := m.fileTree.selectedNode()
 	if node == nil {
 		return m, nil, true
 	}
 
-	m.PendingAction = pendingFileDiscard
-	m.PendingSelectPath = m.nextFilePath()
+	m.pending = pendingFileDiscard
+	m.pendingSelectPath = m.nextFilePath()
 
 	if !node.IsDir {
-		if node.FileIndex < 0 || node.FileIndex >= len(m.FileStatuses) {
+		if node.FileIndex < 0 || node.FileIndex >= len(m.fileStatuses) {
 			return m, nil, true
 		}
 
-		path := m.FileStatuses[node.FileIndex].Path
+		path := m.fileStatuses[node.FileIndex].Path
 
-		return m, discardFileCmd(m.Git, path), true
+		return m, discardFileCmd(m.git, path), true
 	}
 
 	folder := node.FullPath
 
-	return m, discardFolderCmd(m.Git, folder), true
+	return m, discardFolderCmd(m.git, folder), true
 }
 
 // nextFilePath returns the path of the next file node after the current
 // selection. If no next file exists, it returns the previous file's path.
 func (m *Model) nextFilePath() string {
-	for i := m.FileTree.Selected + 1; i < len(m.FileTree.Visible); i++ {
-		if !m.FileTree.Visible[i].IsDir {
-			return m.FileTree.Visible[i].FullPath
+	for i := m.fileTree.selected + 1; i < len(m.fileTree.visible); i++ {
+		if !m.fileTree.visible[i].IsDir {
+			return m.fileTree.visible[i].FullPath
 		}
 	}
 
-	for i := m.FileTree.Selected - 1; i >= 0; i-- {
-		if !m.FileTree.Visible[i].IsDir {
-			return m.FileTree.Visible[i].FullPath
+	for i := m.fileTree.selected - 1; i >= 0; i-- {
+		if !m.fileTree.visible[i].IsDir {
+			return m.fileTree.visible[i].FullPath
 		}
 	}
 
@@ -704,30 +704,30 @@ func (m *Model) nextFilePath() string {
 }
 
 func (m *Model) toggleFocus() {
-	if m.Focus == panelFiles {
-		m.Focus = panelDiff
+	if m.focus == panelFiles {
+		m.focus = panelDiff
 	} else {
-		m.Focus = panelFiles
+		m.focus = panelFiles
 	}
 
-	m.FileTree.Focused = m.Focus == panelFiles
-	m.DiffView.Focused = m.Focus == panelDiff
+	m.fileTree.focused = m.focus == panelFiles
+	m.diffView.focused = m.focus == panelDiff
 }
 
 func (m *Model) advanceAfterHunkToggle() {
-	if m.DiffView.Detail == nil || m.DiffView.Detail.File == nil {
+	if m.diffView.detail == nil || m.diffView.detail.File == nil {
 		return
 	}
 
 	// if there's a next hunk, move to it
-	if m.DiffView.ActiveHunk < len(m.DiffView.Detail.File.Hunks)-1 {
-		m.DiffView.NextHunk()
+	if m.diffView.activeHunk < len(m.diffView.detail.File.Hunks)-1 {
+		m.diffView.nextHunk()
 
 		return
 	}
 
 	// last hunk: advance to next file
-	m.FileTree.MoveDown()
+	m.fileTree.moveDown()
 	m.syncDiffToFile()
 }
 
@@ -736,52 +736,52 @@ func (m *Model) syncDiffToFile() {
 }
 
 func (m *Model) syncDiffToFileWithCtx(ctx context.Context) {
-	if len(m.FileStatuses) == 0 {
+	if len(m.fileStatuses) == 0 {
 		return
 	}
 
-	node := m.FileTree.SelectedNode()
+	node := m.fileTree.selectedNode()
 	if node == nil || node.IsDir {
 		return
 	}
 
 	idx := node.FileIndex
-	if idx >= 0 && idx < len(m.FileStatuses) {
-		detail, err := m.activeView().GetChangeDetails(ctx, m.FileStatuses[idx])
+	if idx >= 0 && idx < len(m.fileStatuses) {
+		detail, err := m.activeView().GetChangeDetails(ctx, m.fileStatuses[idx])
 		if err != nil {
-			m.StatusMsg = errorMsgStyle().Render(err.Error())
+			m.statusMsg = errorMsgStyle().Render(err.Error())
 
 			return
 		}
 
-		m.DiffView.SetDetail(detail)
+		m.diffView.setDetail(detail)
 	}
 }
 
 func (m *Model) layoutPanels() {
-	leftWidth := m.Width * fileTreeWidthPct / fileTreeWidthDiv
-	rightWidth := m.Width - leftWidth - 1
-	height := m.Height - statusBarLines
+	leftWidth := m.width * fileTreeWidthPct / fileTreeWidthDiv
+	rightWidth := m.width - leftWidth - 1
+	height := m.height - statusBarLines
 
-	m.FileTree.Width = leftWidth
-	m.FileTree.Height = height
-	m.DiffView.Width = rightWidth
-	m.DiffView.Height = height
-	m.Help.Width = m.Width
-	m.Help.Height = m.Height
+	m.fileTree.width = leftWidth
+	m.fileTree.height = height
+	m.diffView.width = rightWidth
+	m.diffView.height = height
+	m.help.width = m.width
+	m.help.height = m.height
 }
 
 func (m Model) View() tea.View {
 	var content string
 
 	switch {
-	case m.Commit.Visible:
-		content = m.Commit.View(m.Width, m.Height)
-	case m.Help.Visible:
-		content = m.Help.Render()
+	case m.commit.visible:
+		content = m.commit.view(m.width, m.height)
+	case m.help.visible:
+		content = m.help.render()
 	default:
-		left := m.FileTree.View()
-		right := m.DiffView.Render()
+		left := m.fileTree.view()
+		right := m.diffView.render()
 		panels := lipgloss.JoinHorizontal(lipgloss.Top, left, right)
 
 		statusBar := m.renderStatusBar()
@@ -806,13 +806,13 @@ func (m Model) renderStatusBar() string {
 	leftWidth := lipgloss.Width(left)
 
 	right := ""
-	if m.StatusMsg != "" {
-		right = m.StatusMsg
+	if m.statusMsg != "" {
+		right = m.statusMsg
 	}
 
 	rightWidth := lipgloss.Width(right)
 
-	gap := max(m.Width-leftWidth-rightWidth, 1)
+	gap := max(m.width-leftWidth-rightWidth, 1)
 
 	padding := statusBarMsgStyle().Render(strings.Repeat(" ", gap))
 

@@ -11,7 +11,7 @@ import (
 const (
 	defaultTreeWidth  = 30
 	defaultTreeHeight = 20
-	panelChrome       = 3 // border top + title + border bottom
+	panelChrome       = 4 // border top + title + blank line + border bottom
 	panelBorderWidth  = 2 // left + right border
 	panelPadding      = 2 // left + right padding in panelStyle
 	nodePrefix        = 5 // " " + indent_base(0) + icon/spaces(2) + indicator(1) + " "(1)
@@ -19,56 +19,56 @@ const (
 	ellipsis          = "..."
 )
 
-type TreeNode struct {
+type treeNode struct {
 	Name      string
 	FullPath  string
 	IsDir     bool
 	Expanded  bool
-	Children  []*TreeNode
-	FileIndex int // index into FileStatuses slice; -1 for dirs
+	Children  []*treeNode
+	FileIndex int // index into fileStatuses slice; -1 for dirs
 	Depth     int
 }
 
-type FileTreeModel struct {
-	FileStatuses []versioncontrol.FileStatus
-	Config       versioncontrol.ViewConfig
-	Root         []*TreeNode
-	Visible      []*TreeNode
+type fileTreeModel struct {
+	fileStatuses []versioncontrol.FileStatus
+	config       versioncontrol.ViewConfig
+	root         []*treeNode
+	visible      []*treeNode
 
-	Selected int
-	Offset   int
-	Width    int
-	Height   int
-	Focused  bool
+	selected int
+	offset   int
+	width    int
+	height   int
+	focused  bool
 }
 
-func NewFileTreeModel(
+func newFileTreeModel(
 	statuses []versioncontrol.FileStatus,
 	config versioncontrol.ViewConfig,
-) FileTreeModel {
-	m := FileTreeModel{
-		FileStatuses: statuses,
-		Config:       config,
-		Root:         nil,
-		Visible:      nil,
-		Selected:     0,
-		Offset:       0,
-		Width:        defaultTreeWidth,
-		Height:       defaultTreeHeight,
-		Focused:      true,
+) fileTreeModel {
+	m := fileTreeModel{
+		fileStatuses: statuses,
+		config:       config,
+		root:         nil,
+		visible:      nil,
+		selected:     0,
+		offset:       0,
+		width:        defaultTreeWidth,
+		height:       defaultTreeHeight,
+		focused:      true,
 	}
-	m.Root = m.buildTree()
+	m.root = m.buildTree()
 	m.flatten()
 
 	return m
 }
 
-func (m *FileTreeModel) buildTree() []*TreeNode {
-	rootMap := make(map[string]*TreeNode)
+func (m *fileTreeModel) buildTree() []*treeNode {
+	rootMap := make(map[string]*treeNode)
 
-	var roots []*TreeNode
+	var roots []*treeNode
 
-	for i, fs := range m.FileStatuses {
+	for i, fs := range m.fileStatuses {
 		parts := strings.Split(fs.Path, "/")
 		m.insertPath(parts, i, 0, rootMap, &roots)
 	}
@@ -78,18 +78,18 @@ func (m *FileTreeModel) buildTree() []*TreeNode {
 	return roots
 }
 
-func (m *FileTreeModel) insertPath(
+func (m *fileTreeModel) insertPath(
 	parts []string,
 	fileIndex int,
 	depth int,
-	siblingMap map[string]*TreeNode,
-	siblings *[]*TreeNode,
+	siblingMap map[string]*treeNode,
+	siblings *[]*treeNode,
 ) {
 	if len(parts) == 1 {
 		// leaf file node
-		node := &TreeNode{
+		node := &treeNode{
 			Name:      parts[0],
-			FullPath:  m.FileStatuses[fileIndex].Path,
+			FullPath:  m.fileStatuses[fileIndex].Path,
 			IsDir:     false,
 			Expanded:  false,
 			Children:  nil,
@@ -109,11 +109,11 @@ func (m *FileTreeModel) insertPath(
 		fullPath := parts[0]
 		if depth > 0 {
 			// reconstruct full path from file path
-			fileParts := strings.Split(m.FileStatuses[fileIndex].Path, "/")
+			fileParts := strings.Split(m.fileStatuses[fileIndex].Path, "/")
 			fullPath = strings.Join(fileParts[:depth+1], "/")
 		}
 
-		dir = &TreeNode{
+		dir = &treeNode{
 			Name:      dirName,
 			FullPath:  fullPath,
 			IsDir:     true,
@@ -126,7 +126,7 @@ func (m *FileTreeModel) insertPath(
 		*siblings = append(*siblings, dir)
 	}
 
-	childMap := make(map[string]*TreeNode)
+	childMap := make(map[string]*treeNode)
 	for _, c := range dir.Children {
 		if c.IsDir {
 			childMap[c.Name] = c
@@ -136,7 +136,7 @@ func (m *FileTreeModel) insertPath(
 	m.insertPath(parts[1:], fileIndex, depth+1, childMap, &dir.Children)
 }
 
-func sortChildren(nodes []*TreeNode) {
+func sortChildren(nodes []*treeNode) {
 	sort.Slice(nodes, func(i, j int) bool {
 		if nodes[i].IsDir != nodes[j].IsDir {
 			return nodes[i].IsDir
@@ -152,79 +152,66 @@ func sortChildren(nodes []*TreeNode) {
 	}
 }
 
-func (m *FileTreeModel) flatten() {
-	m.Visible = nil
-	m.flattenNodes(m.Root)
+func (m *fileTreeModel) flatten() {
+	m.visible = nil
+	m.flattenNodes(m.root)
 }
 
-func (m *FileTreeModel) flattenNodes(nodes []*TreeNode) {
+func (m *fileTreeModel) flattenNodes(nodes []*treeNode) {
 	for _, n := range nodes {
-		m.Visible = append(m.Visible, n)
+		m.visible = append(m.visible, n)
 		if n.IsDir && n.Expanded {
 			m.flattenNodes(n.Children)
 		}
 	}
 }
 
-func (m *FileTreeModel) MoveDown() {
-	if m.Selected < len(m.Visible)-1 {
-		m.Selected++
+func (m *fileTreeModel) moveDown() {
+	if m.selected < len(m.visible)-1 {
+		m.selected++
 		m.ensureVisible()
 	}
 }
 
-func (m *FileTreeModel) MoveUp() {
-	if m.Selected > 0 {
-		m.Selected--
+func (m *fileTreeModel) moveUp() {
+	if m.selected > 0 {
+		m.selected--
 		m.ensureVisible()
 	}
 }
 
-func (m *FileTreeModel) MoveToTop() {
-	m.Selected = 0
+func (m *fileTreeModel) moveToTop() {
+	m.selected = 0
 	m.ensureVisible()
 }
 
-func (m *FileTreeModel) MoveToBottom() {
-	if len(m.Visible) > 0 {
-		m.Selected = len(m.Visible) - 1
+func (m *fileTreeModel) moveToBottom() {
+	if len(m.visible) > 0 {
+		m.selected = len(m.visible) - 1
 		m.ensureVisible()
 	}
 }
 
-func (m *FileTreeModel) ensureVisible() {
-	visibleHeight := max(m.Height-panelChrome, 1) // border + title + padding
+func (m *fileTreeModel) ensureVisible() {
+	visibleHeight := max(m.height-panelChrome, 1) // border + title + padding
 
-	if m.Selected < m.Offset {
-		m.Offset = m.Selected
+	if m.selected < m.offset {
+		m.offset = m.selected
 	}
 
-	if m.Selected >= m.Offset+visibleHeight {
-		m.Offset = m.Selected - visibleHeight + 1
-	}
-}
-
-func (m *FileTreeModel) clampSelected() {
-	if m.Selected >= len(m.Visible) {
-		m.Selected = len(m.Visible) - 1
+	if m.selected >= m.offset+visibleHeight {
+		m.offset = m.selected - visibleHeight + 1
 	}
 }
 
-func (m *FileTreeModel) ToggleExpand() {
-	node := m.SelectedNode()
-	if node == nil || !node.IsDir {
-		return
+func (m *fileTreeModel) clampSelected() {
+	if m.selected >= len(m.visible) {
+		m.selected = len(m.visible) - 1
 	}
-
-	node.Expanded = !node.Expanded
-
-	m.flatten()
-	m.clampSelected()
-	m.ensureVisible()
 }
 
-func (m *FileTreeModel) Collapse() {
-	node := m.SelectedNode()
+func (m *fileTreeModel) collapse() {
+	node := m.selectedNode()
 	if node == nil {
 		return
 	}
@@ -243,8 +230,8 @@ func (m *FileTreeModel) Collapse() {
 	m.moveToParent(node)
 }
 
-func (m *FileTreeModel) Expand() {
-	node := m.SelectedNode()
+func (m *fileTreeModel) expand() {
+	node := m.selectedNode()
 	if node == nil {
 		return
 	}
@@ -257,15 +244,15 @@ func (m *FileTreeModel) Expand() {
 	}
 }
 
-func (m *FileTreeModel) moveToParent(node *TreeNode) {
+func (m *fileTreeModel) moveToParent(node *treeNode) {
 	if node.Depth == 0 {
 		return
 	}
 
 	// find parent in visible list: walk backwards to find a dir node with depth = node.Depth - 1
-	for i := m.Selected - 1; i >= 0; i-- {
-		if m.Visible[i].IsDir && m.Visible[i].Depth == node.Depth-1 {
-			m.Selected = i
+	for i := m.selected - 1; i >= 0; i-- {
+		if m.visible[i].IsDir && m.visible[i].Depth == node.Depth-1 {
+			m.selected = i
 			m.ensureVisible()
 
 			return
@@ -273,15 +260,15 @@ func (m *FileTreeModel) moveToParent(node *TreeNode) {
 	}
 }
 
-func (m *FileTreeModel) SelectedNode() *TreeNode {
-	if m.Selected < 0 || m.Selected >= len(m.Visible) {
+func (m *fileTreeModel) selectedNode() *treeNode {
+	if m.selected < 0 || m.selected >= len(m.visible) {
 		return nil
 	}
 
-	return m.Visible[m.Selected]
+	return m.visible[m.selected]
 }
 
-func (m *FileTreeModel) FileIndicesUnder(node *TreeNode) []int {
+func (m *fileTreeModel) fileIndicesUnder(node *treeNode) []int {
 	if !node.IsDir {
 		if node.FileIndex >= 0 {
 			return []int{node.FileIndex}
@@ -293,20 +280,20 @@ func (m *FileTreeModel) FileIndicesUnder(node *TreeNode) []int {
 	var indices []int
 
 	for _, child := range node.Children {
-		indices = append(indices, m.FileIndicesUnder(child)...)
+		indices = append(indices, m.fileIndicesUnder(child)...)
 	}
 
 	return indices
 }
 
-func (m *FileTreeModel) ExpandedPaths() map[string]bool {
+func (m *fileTreeModel) expandedPaths() map[string]bool {
 	result := make(map[string]bool)
-	m.collectExpandedPaths(m.Root, result)
+	m.collectExpandedPaths(m.root, result)
 
 	return result
 }
 
-func (m *FileTreeModel) collectExpandedPaths(nodes []*TreeNode, result map[string]bool) {
+func (m *fileTreeModel) collectExpandedPaths(nodes []*treeNode, result map[string]bool) {
 	for _, n := range nodes {
 		if n.IsDir && n.Expanded {
 			result[n.FullPath] = true
@@ -315,8 +302,8 @@ func (m *FileTreeModel) collectExpandedPaths(nodes []*TreeNode, result map[strin
 	}
 }
 
-func (m *FileTreeModel) SelectedPath() string {
-	node := m.SelectedNode()
+func (m *fileTreeModel) selectedPath() string {
+	node := m.selectedNode()
 	if node == nil {
 		return ""
 	}
@@ -324,14 +311,14 @@ func (m *FileTreeModel) SelectedPath() string {
 	return node.FullPath
 }
 
-func (m *FileTreeModel) RestoreViewState(expandedPaths map[string]bool, selectedPath string) {
-	m.collapseNotIn(m.Root, expandedPaths)
+func (m *fileTreeModel) restoreViewState(expandedPaths map[string]bool, selectedPath string) {
+	m.collapseNotIn(m.root, expandedPaths)
 	m.flatten()
 
 	// find and select the node matching selectedPath
-	for i, n := range m.Visible {
+	for i, n := range m.visible {
 		if n.FullPath == selectedPath {
-			m.Selected = i
+			m.selected = i
 			m.ensureVisible()
 
 			return
@@ -339,9 +326,9 @@ func (m *FileTreeModel) RestoreViewState(expandedPaths map[string]bool, selected
 	}
 
 	// fall back to first file node (skip directories)
-	for i, n := range m.Visible {
+	for i, n := range m.visible {
 		if !n.IsDir {
-			m.Selected = i
+			m.selected = i
 			m.ensureVisible()
 
 			return
@@ -349,11 +336,11 @@ func (m *FileTreeModel) RestoreViewState(expandedPaths map[string]bool, selected
 	}
 
 	// last resort: first node
-	m.Selected = 0
+	m.selected = 0
 	m.ensureVisible()
 }
 
-func (m *FileTreeModel) collapseNotIn(nodes []*TreeNode, expandedPaths map[string]bool) {
+func (m *fileTreeModel) collapseNotIn(nodes []*treeNode, expandedPaths map[string]bool) {
 	for _, n := range nodes {
 		if n.IsDir {
 			n.Expanded = expandedPaths[n.FullPath]
@@ -362,31 +349,31 @@ func (m *FileTreeModel) collapseNotIn(nodes []*TreeNode, expandedPaths map[strin
 	}
 }
 
-func (m *FileTreeModel) View() string {
+func (m *fileTreeModel) view() string {
 	stagedCount := 0
 
-	for _, fs := range m.FileStatuses {
+	for _, fs := range m.fileStatuses {
 		if fs.Staged {
 			stagedCount++
 		}
 	}
 
 	title := titleStyle().Render(
-		fmt.Sprintf("Files (%d/%d %s)", stagedCount, len(m.FileStatuses), m.Config.ActionLabel),
+		fmt.Sprintf("Files (%d/%d %s)", stagedCount, len(m.fileStatuses), m.config.ActionLabel),
 	)
 
-	visibleHeight := max(m.Height-panelChrome, 1)
+	visibleHeight := max(m.height-panelChrome, 1)
 
 	lines := []string{title, ""}
 
-	end := min(m.Offset+visibleHeight, len(m.Visible))
+	end := min(m.offset+visibleHeight, len(m.visible))
 
-	for i := m.Offset; i < end; i++ {
-		node := m.Visible[i]
+	for i := m.offset; i < end; i++ {
+		node := m.visible[i]
 		line := m.renderNode(node)
 
-		if i == m.Selected {
-			line = selectedStyle().Width(m.Width - panelBorderWidth).Render(line)
+		if i == m.selected {
+			line = selectedStyle().Width(m.width - panelBorderWidth).Render(line)
 		}
 
 		lines = append(lines, line)
@@ -394,15 +381,15 @@ func (m *FileTreeModel) View() string {
 
 	content := strings.Join(lines, "\n")
 
-	return panelStyle(m.Focused).
-		Width(m.Width).
-		MaxWidth(m.Width).
-		Height(m.Height).
-		MaxHeight(m.Height).
+	return panelStyle(m.focused).
+		Width(m.width).
+		MaxWidth(m.width).
+		Height(m.height).
+		MaxHeight(m.height).
 		Render(content)
 }
 
-func (m *FileTreeModel) renderNode(node *TreeNode) string {
+func (m *fileTreeModel) renderNode(node *treeNode) string {
 	indent := strings.Repeat("  ", node.Depth)
 	maxName := m.maxNameWidth(node.Depth)
 
@@ -425,8 +412,8 @@ func (m *FileTreeModel) renderNode(node *TreeNode) string {
 	return fmt.Sprintf(" %s  %s %s", indent, indicator, label)
 }
 
-func (m *FileTreeModel) maxNameWidth(depth int) int {
-	contentWidth := m.Width - panelBorderWidth - panelPadding
+func (m *fileTreeModel) maxNameWidth(depth int) int {
+	contentWidth := m.width - panelBorderWidth - panelPadding
 	overhead := nodePrefix + depth*indentMultiplier
 
 	return max(contentWidth-overhead, 1)
@@ -445,12 +432,12 @@ func truncateName(name string, maxWidth int) string {
 	return string(runes[:maxWidth-len(ellipsis)]) + ellipsis
 }
 
-func (m *FileTreeModel) fileLabel(node *TreeNode, maxWidth int) string {
-	if node.FileIndex < 0 || node.FileIndex >= len(m.FileStatuses) {
+func (m *fileTreeModel) fileLabel(node *treeNode, maxWidth int) string {
+	if node.FileIndex < 0 || node.FileIndex >= len(m.fileStatuses) {
 		return truncateName(node.Name, maxWidth)
 	}
 
-	fs := m.FileStatuses[node.FileIndex]
+	fs := m.fileStatuses[node.FileIndex]
 
 	var text string
 	if fs.Kind == versioncontrol.ChangeRenamed && fs.OrigPath != "" {
@@ -473,12 +460,12 @@ func (m *FileTreeModel) fileLabel(node *TreeNode, maxWidth int) string {
 	}
 }
 
-func (m *FileTreeModel) fileIndicator(fileIndex int) string {
-	if fileIndex < 0 || fileIndex >= len(m.FileStatuses) {
+func (m *fileTreeModel) fileIndicator(fileIndex int) string {
+	if fileIndex < 0 || fileIndex >= len(m.fileStatuses) {
 		return unreviewedIndicator()
 	}
 
-	fs := m.FileStatuses[fileIndex]
+	fs := m.fileStatuses[fileIndex]
 
 	if fs.Staged {
 		return reviewedIndicator()
@@ -491,8 +478,8 @@ func (m *FileTreeModel) fileIndicator(fileIndex int) string {
 	return unreviewedIndicator()
 }
 
-func (m *FileTreeModel) dirIndicator(node *TreeNode) string {
-	indices := m.FileIndicesUnder(node)
+func (m *fileTreeModel) dirIndicator(node *treeNode) string {
+	indices := m.fileIndicesUnder(node)
 	if len(indices) == 0 {
 		return unreviewedIndicator()
 	}
@@ -501,13 +488,13 @@ func (m *FileTreeModel) dirIndicator(node *TreeNode) string {
 	anyStaged := false
 
 	for _, idx := range indices {
-		if idx < 0 || idx >= len(m.FileStatuses) {
+		if idx < 0 || idx >= len(m.fileStatuses) {
 			allStaged = false
 
 			continue
 		}
 
-		fs := m.FileStatuses[idx]
+		fs := m.fileStatuses[idx]
 
 		if fs.Staged {
 			anyStaged = true

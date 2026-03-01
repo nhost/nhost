@@ -31,7 +31,7 @@ type fileInfo struct {
 // It diffs from merge-base to HEAD and uses persistent review state.
 type Review struct {
 	git       GitQuerier
-	state     *State
+	state     *state
 	base      string
 	repoRoot  string
 	branch    string
@@ -85,7 +85,7 @@ func (v *Review) refreshFiles(ctx context.Context) error {
 	v.fileInfos = append(v.fileInfos, parseUntrackedFiles(untrackedRaw)...)
 
 	if v.state == nil {
-		state, err := Load(v.repoRoot, v.branch, v.base)
+		state, err := load(v.repoRoot, v.branch, v.base)
 		if err != nil {
 			return fmt.Errorf("load state: %w", err)
 		}
@@ -98,7 +98,7 @@ func (v *Review) refreshFiles(ctx context.Context) error {
 		paths[i] = fi.path
 	}
 
-	v.state.Reconcile(paths)
+	v.state.reconcile(paths)
 
 	return nil
 }
@@ -167,14 +167,14 @@ func (v *Review) GetChangeDetails(
 		return nil, nil //nolint:nilnil
 	}
 
-	hash := Hash(f.RawDiff)
+	h := hash(f.RawDiff)
 
-	v.state.ReconcileFile(fi.path, hash, len(f.Hunks))
+	v.state.reconcileFile(fi.path, h, len(f.Hunks))
 
 	hunks := make([]versioncontrol.HunkDetail, len(f.Hunks))
 	for i := range f.Hunks {
 		hunks[i] = versioncontrol.HunkDetail{
-			Staged:      v.state.IsHunkReviewed(fi.path, i),
+			Staged:      v.state.isHunkReviewed(fi.path, i),
 			SourceIndex: i,
 		}
 	}
@@ -248,7 +248,7 @@ func (v *Review) StageHunk(
 	fs versioncontrol.FileStatus,
 	hunkIndex int,
 ) error {
-	v.state.SetHunkReviewed(fs.Path, hunkIndex, true)
+	v.state.setHunkReviewed(fs.Path, hunkIndex, true)
 
 	return v.save()
 }
@@ -258,33 +258,33 @@ func (v *Review) UnstageHunk(
 	fs versioncontrol.FileStatus,
 	hunkIndex int,
 ) error {
-	v.state.SetHunkReviewed(fs.Path, hunkIndex, false)
+	v.state.setHunkReviewed(fs.Path, hunkIndex, false)
 
 	return v.save()
 }
 
 func (v *Review) StageFile(_ context.Context, path string) error {
-	v.state.SetFilesReviewed([]string{path}, true)
+	v.state.setFilesReviewed([]string{path}, true)
 
 	return v.save()
 }
 
 func (v *Review) UnstageFile(_ context.Context, path string) error {
-	v.state.SetFilesReviewed([]string{path}, false)
+	v.state.setFilesReviewed([]string{path}, false)
 
 	return v.save()
 }
 
 func (v *Review) StageFolder(_ context.Context, folder string) error {
 	paths := v.pathsUnderFolder(folder)
-	v.state.SetFilesReviewed(paths, true)
+	v.state.setFilesReviewed(paths, true)
 
 	return v.save()
 }
 
 func (v *Review) UnstageFolder(_ context.Context, folder string) error {
 	paths := v.pathsUnderFolder(folder)
-	v.state.SetFilesReviewed(paths, false)
+	v.state.setFilesReviewed(paths, false)
 
 	return v.save()
 }
@@ -308,7 +308,7 @@ func (v *Review) save() error {
 		return nil
 	}
 
-	if err := v.state.Save(); err != nil {
+	if err := v.state.save(); err != nil {
 		return fmt.Errorf("save state: %w", err)
 	}
 

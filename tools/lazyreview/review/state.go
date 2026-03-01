@@ -17,33 +17,33 @@ const (
 	filePerm fs.FileMode = 0o644
 )
 
-type HunkState struct {
+type hunkState struct {
 	Reviewed bool `json:"reviewed"`
 }
 
-type FileState struct {
+type fileState struct {
 	Path     string               `json:"path"`
 	Hash     string               `json:"hash"`
 	Reviewed bool                 `json:"reviewed"`
-	Hunks    map[string]HunkState `json:"hunks"`
+	Hunks    map[string]hunkState `json:"hunks"`
 }
 
-type State struct {
+type state struct {
 	Base  string               `json:"base"`
-	Files map[string]FileState `json:"files"`
+	Files map[string]fileState `json:"files"`
 
 	path string
 }
 
-func NewTransientState() *State {
-	return &State{
+func newTransientState() *state {
+	return &state{
 		Base:  "",
-		Files: make(map[string]FileState),
+		Files: make(map[string]fileState),
 		path:  "",
 	}
 }
 
-func Hash(content string) string {
+func hash(content string) string {
 	h := sha256.Sum256([]byte(content))
 
 	return hex.EncodeToString(h[:])
@@ -63,15 +63,15 @@ func statePath(repoRoot, branch string) string {
 	return filepath.Join(repoRoot, ".lazyreview", sanitizeBranch(branch)+".json")
 }
 
-func Load(repoRoot, branch, base string) (*State, error) {
+func load(repoRoot, branch, base string) (*state, error) {
 	p := statePath(repoRoot, branch)
 
 	data, err := os.ReadFile(p)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return &State{
+			return &state{
 				Base:  base,
-				Files: make(map[string]FileState),
+				Files: make(map[string]fileState),
 				path:  p,
 			}, nil
 		}
@@ -79,7 +79,7 @@ func Load(repoRoot, branch, base string) (*State, error) {
 		return nil, fmt.Errorf("failed to read state file: %w", err)
 	}
 
-	var s State
+	var s state
 	if err := json.Unmarshal(data, &s); err != nil {
 		return nil, fmt.Errorf("failed to parse state file: %w", err)
 	}
@@ -87,13 +87,13 @@ func Load(repoRoot, branch, base string) (*State, error) {
 	s.path = p
 
 	if s.Files == nil {
-		s.Files = make(map[string]FileState)
+		s.Files = make(map[string]fileState)
 	}
 
 	return &s, nil
 }
 
-func (s *State) Save() error {
+func (s *state) save() error {
 	dir := filepath.Dir(s.path)
 	if err := os.MkdirAll(dir, dirPerm); err != nil {
 		return fmt.Errorf("failed to create state directory: %w", err)
@@ -111,11 +111,11 @@ func (s *State) Save() error {
 	return nil
 }
 
-// Reconcile updates the state to match the current set of file paths.
+// reconcile updates the state to match the current set of file paths.
 // It keeps existing entries for paths that still exist, removes entries for
 // paths no longer present, and creates placeholder entries for new paths.
-func (s *State) Reconcile(paths []string) {
-	newFiles := make(map[string]FileState, len(paths))
+func (s *state) reconcile(paths []string) {
+	newFiles := make(map[string]fileState, len(paths))
 
 	for _, p := range paths {
 		if existing, ok := s.Files[p]; ok {
@@ -124,7 +124,7 @@ func (s *State) Reconcile(paths []string) {
 			continue
 		}
 
-		newFiles[p] = FileState{
+		newFiles[p] = fileState{
 			Path:     p,
 			Hash:     "",
 			Reviewed: false,
@@ -135,53 +135,53 @@ func (s *State) Reconcile(paths []string) {
 	s.Files = newFiles
 }
 
-// ReconcileFile updates a single file's state after its diff has been fetched.
+// reconcileFile updates a single file's state after its diff has been fetched.
 // It compares the content hash to detect changes and manages hunk state accordingly.
-func (s *State) ReconcileFile(path, hash string, hunkCount int) {
+func (s *state) reconcileFile(path, h string, hunkCount int) {
 	existing, ok := s.Files[path]
 
 	switch {
-	case ok && existing.Hash == hash && existing.Hunks != nil:
+	case ok && existing.Hash == h && existing.Hunks != nil:
 		// Hash matches and hunks populated — keep existing review state
 		return
 
 	case ok && existing.Hash == "":
 		// Never viewed via GetChangeDetails — populate hash and hunks.
 		// If Reviewed was set via StageFile, mark all hunks reviewed.
-		existing.Hash = hash
+		existing.Hash = h
 		existing.Hunks = makeHunks(hunkCount, existing.Reviewed)
 		s.Files[path] = existing
 
-	case ok && existing.Hash != hash:
+	case ok && existing.Hash != h:
 		// Diff changed — reset to unreviewed with new hunks
-		s.Files[path] = FileState{
+		s.Files[path] = fileState{
 			Path:     path,
-			Hash:     hash,
+			Hash:     h,
 			Reviewed: false,
 			Hunks:    makeHunks(hunkCount, false),
 		}
 
 	default:
 		// New entry
-		s.Files[path] = FileState{
+		s.Files[path] = fileState{
 			Path:     path,
-			Hash:     hash,
+			Hash:     h,
 			Reviewed: false,
 			Hunks:    makeHunks(hunkCount, false),
 		}
 	}
 }
 
-func makeHunks(count int, reviewed bool) map[string]HunkState {
-	hunks := make(map[string]HunkState, count)
+func makeHunks(count int, reviewed bool) map[string]hunkState {
+	hunks := make(map[string]hunkState, count)
 	for i := range count {
-		hunks[hunkKey(i)] = HunkState{Reviewed: reviewed}
+		hunks[hunkKey(i)] = hunkState{Reviewed: reviewed}
 	}
 
 	return hunks
 }
 
-func (s *State) SetFilesReviewed(paths []string, reviewed bool) {
+func (s *state) setFilesReviewed(paths []string, reviewed bool) {
 	for _, path := range paths {
 		fs, ok := s.Files[path]
 		if !ok {
@@ -199,7 +199,7 @@ func (s *State) SetFilesReviewed(paths []string, reviewed bool) {
 	}
 }
 
-func (s *State) ToggleFileReviewed(path string) {
+func (s *state) toggleFileReviewed(path string) {
 	fs, ok := s.Files[path]
 	if !ok {
 		return
@@ -216,7 +216,7 @@ func (s *State) ToggleFileReviewed(path string) {
 	s.Files[path] = fs
 }
 
-func (s *State) SetHunkReviewed(path string, index int, reviewed bool) {
+func (s *state) setHunkReviewed(path string, index int, reviewed bool) {
 	fs, ok := s.Files[path]
 	if !ok {
 		return
@@ -236,7 +236,7 @@ func (s *State) SetHunkReviewed(path string, index int, reviewed bool) {
 	s.Files[path] = fs
 }
 
-func (s *State) ToggleHunkReviewed(path string, index int) {
+func (s *state) toggleHunkReviewed(path string, index int) {
 	fs, ok := s.Files[path]
 	if !ok {
 		return
@@ -256,7 +256,7 @@ func (s *State) ToggleHunkReviewed(path string, index int) {
 	s.Files[path] = fs
 }
 
-func (s *State) allHunksReviewed(path string) bool {
+func (s *state) allHunksReviewed(path string) bool {
 	fs, ok := s.Files[path]
 	if !ok {
 		return false
@@ -271,7 +271,7 @@ func (s *State) allHunksReviewed(path string) bool {
 	return true
 }
 
-func (s *State) IsHunkReviewed(path string, index int) bool {
+func (s *state) isHunkReviewed(path string, index int) bool {
 	fs, ok := s.Files[path]
 	if !ok {
 		return false
@@ -285,7 +285,7 @@ func (s *State) IsHunkReviewed(path string, index int) bool {
 	return h.Reviewed
 }
 
-func (s *State) ReviewedFileCount() int {
+func (s *state) reviewedFileCount() int {
 	count := 0
 	for _, fs := range s.Files {
 		if fs.Reviewed {

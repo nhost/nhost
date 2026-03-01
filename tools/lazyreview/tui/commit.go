@@ -7,30 +7,30 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-type CommitModel struct {
-	Visible bool
-	Message string
-	Cursor  int
+type commitModel struct {
+	visible bool
+	message string
+	cursor  int
 }
 
-func NewCommitModel() CommitModel {
-	return CommitModel{
-		Visible: false,
-		Message: "",
-		Cursor:  0,
+func newCommitModel() commitModel {
+	return commitModel{
+		visible: false,
+		message: "",
+		cursor:  0,
 	}
 }
 
-func (m *CommitModel) Open() {
-	m.Visible = true
-	m.Message = ""
-	m.Cursor = 0
+func (m *commitModel) open() {
+	m.visible = true
+	m.message = ""
+	m.cursor = 0
 }
 
-func (m *CommitModel) Close() {
-	m.Visible = false
-	m.Message = ""
-	m.Cursor = 0
+func (m *commitModel) close() {
+	m.visible = false
+	m.message = ""
+	m.cursor = 0
 }
 
 type commitCancelMsg struct{}
@@ -39,10 +39,10 @@ type commitSubmitMsg struct {
 	Message string
 }
 
-func (m *CommitModel) Update(msg tea.KeyPressMsg) tea.Cmd {
+func (m *commitModel) update(msg tea.KeyPressMsg) tea.Cmd {
 	switch msg.String() {
 	case "esc":
-		m.Close()
+		m.close()
 
 		return func() tea.Msg { return commitCancelMsg{} }
 
@@ -56,18 +56,18 @@ func (m *CommitModel) Update(msg tea.KeyPressMsg) tea.Cmd {
 	return nil
 }
 
-func (m *CommitModel) submit() tea.Cmd {
-	message := strings.TrimSpace(m.Message)
+func (m *commitModel) submit() tea.Cmd {
+	message := strings.TrimSpace(m.message)
 	if message == "" {
 		return nil
 	}
 
-	m.Close()
+	m.close()
 
 	return func() tea.Msg { return commitSubmitMsg{Message: message} }
 }
 
-func (m *CommitModel) handleEditKey(key string) {
+func (m *commitModel) handleEditKey(key string) {
 	switch key {
 	case "backspace":
 		m.deleteBack()
@@ -78,56 +78,56 @@ func (m *CommitModel) handleEditKey(key string) {
 	case "right":
 		m.moveCursorRight()
 	case keyHome, "ctrl+a":
-		m.Cursor = 0
+		m.cursor = 0
 	case keyEnd, "ctrl+e":
-		m.Cursor = len([]rune(m.Message))
+		m.cursor = len([]rune(m.message))
 	case "ctrl+u":
-		runes := []rune(m.Message)
-		m.Message = string(runes[m.Cursor:])
-		m.Cursor = 0
+		runes := []rune(m.message)
+		m.message = string(runes[m.cursor:])
+		m.cursor = 0
 	default:
 		m.insertChar(key)
 	}
 }
 
-func (m *CommitModel) deleteBack() {
-	if m.Cursor > 0 {
-		runes := []rune(m.Message)
-		m.Message = string(runes[:m.Cursor-1]) + string(runes[m.Cursor:])
-		m.Cursor--
+func (m *commitModel) deleteBack() {
+	if m.cursor > 0 {
+		runes := []rune(m.message)
+		m.message = string(runes[:m.cursor-1]) + string(runes[m.cursor:])
+		m.cursor--
 	}
 }
 
-func (m *CommitModel) deleteForward() {
-	runes := []rune(m.Message)
-	if m.Cursor < len(runes) {
-		m.Message = string(runes[:m.Cursor]) + string(runes[m.Cursor+1:])
+func (m *commitModel) deleteForward() {
+	runes := []rune(m.message)
+	if m.cursor < len(runes) {
+		m.message = string(runes[:m.cursor]) + string(runes[m.cursor+1:])
 	}
 }
 
-func (m *CommitModel) moveCursorLeft() {
-	if m.Cursor > 0 {
-		m.Cursor--
+func (m *commitModel) moveCursorLeft() {
+	if m.cursor > 0 {
+		m.cursor--
 	}
 }
 
-func (m *CommitModel) moveCursorRight() {
-	if m.Cursor < len([]rune(m.Message)) {
-		m.Cursor++
+func (m *commitModel) moveCursorRight() {
+	if m.cursor < len([]rune(m.message)) {
+		m.cursor++
 	}
 }
 
-func (m *CommitModel) insertChar(key string) {
+func (m *commitModel) insertChar(key string) {
 	runes := []rune(key)
 	if len(runes) == 1 && runes[0] >= ' ' {
-		msgRunes := []rune(m.Message)
-		m.Message = string(msgRunes[:m.Cursor]) + key + string(msgRunes[m.Cursor:])
-		m.Cursor++
+		msgRunes := []rune(m.message)
+		m.message = string(msgRunes[:m.cursor]) + key + string(msgRunes[m.cursor:])
+		m.cursor++
 	}
 }
 
-func (m *CommitModel) View(width, height int) string {
-	if !m.Visible {
+func (m *commitModel) view(width, height int) string {
+	if !m.visible {
 		return ""
 	}
 
@@ -137,9 +137,9 @@ func (m *CommitModel) View(width, height int) string {
 	prompt := promptStyle.Render("Commit message:")
 
 	// render the input with cursor
-	runes := []rune(m.Message)
-	before := string(runes[:m.Cursor])
-	afterRunes := runes[m.Cursor:]
+	runes := []rune(m.message)
+	before := string(runes[:m.cursor])
+	afterRunes := runes[m.cursor:]
 
 	cursorChar := " "
 	after := ""

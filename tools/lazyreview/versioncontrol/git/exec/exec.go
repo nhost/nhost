@@ -49,17 +49,6 @@ func (c *Exec) runGit(ctx context.Context, args ...string) error {
 	return nil
 }
 
-func (c *Exec) RepoRoot(ctx context.Context) (string, error) {
-	out, err := c.newGitCmd(ctx, "rev-parse", "--show-toplevel").Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get repo root: %w", err)
-	}
-
-	c.root = strings.TrimSpace(string(out))
-
-	return c.root, nil
-}
-
 func (c *Exec) CurrentBranch(ctx context.Context) (string, error) {
 	out, err := c.newGitCmd(ctx, "rev-parse", "--abbrev-ref", "HEAD").Output()
 	if err != nil {
@@ -113,24 +102,6 @@ func (c *Exec) DiffFile(ctx context.Context, args ...string) (string, error) {
 	out, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("git diff %s: %w", strings.Join(args, " "), err)
-	}
-
-	return string(out), nil
-}
-
-func (c *Exec) DiffUnstaged(ctx context.Context) (string, error) {
-	out, err := c.newGitCmd(ctx, "diff", "-U1").Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get unstaged diff: %w", err)
-	}
-
-	return string(out), nil
-}
-
-func (c *Exec) DiffStaged(ctx context.Context) (string, error) {
-	out, err := c.newGitCmd(ctx, "diff", "-U1", "--cached").Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get staged diff: %w", err)
 	}
 
 	return string(out), nil

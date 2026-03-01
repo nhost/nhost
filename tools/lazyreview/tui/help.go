@@ -7,24 +7,24 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-type HelpModel struct {
-	Visible   bool
-	IsGitMode bool
-	Width     int
-	Height    int
+type helpModel struct {
+	visible   bool
+	isGitMode bool
+	width     int
+	height    int
 }
 
-func NewHelpModel(isGitMode bool) HelpModel {
-	return HelpModel{
-		Visible:   false,
-		IsGitMode: isGitMode,
-		Width:     0,
-		Height:    0,
+func newHelpModel(isGitMode bool) helpModel {
+	return helpModel{
+		visible:   false,
+		isGitMode: isGitMode,
+		width:     0,
+		height:    0,
 	}
 }
 
-func (m *HelpModel) Toggle() {
-	m.Visible = !m.Visible
+func (m *helpModel) toggle() {
+	m.visible = !m.visible
 }
 
 type helpEntry struct {
@@ -32,8 +32,8 @@ type helpEntry struct {
 	desc string
 }
 
-func (m *HelpModel) Render() string {
-	if !m.Visible {
+func (m *helpModel) render() string {
+	if !m.visible {
 		return ""
 	}
 
@@ -41,15 +41,15 @@ func (m *HelpModel) Render() string {
 	table := m.renderTable(entries)
 	overlay := helpStyle().Render(table)
 
-	return lipgloss.Place(m.Width, m.Height,
+	return lipgloss.Place(m.width, m.height,
 		lipgloss.Center, lipgloss.Center,
 		overlay,
 	)
 }
 
-func (m *HelpModel) buildEntries() []helpEntry {
+func (m *helpModel) buildEntries() []helpEntry {
 	stageVerb := "Toggle reviewed"
-	if m.IsGitMode {
+	if m.isGitMode {
 		stageVerb = "Stage / unstage"
 	}
 
@@ -65,7 +65,7 @@ func (m *HelpModel) buildEntries() []helpEntry {
 		{"Space, a", stageVerb + " (file/dir/hunk)"},
 	}
 
-	if m.IsGitMode {
+	if m.isGitMode {
 		entries = append(entries, helpEntry{"d", "Discard changes (file/dir/hunk)"})
 		entries = append(entries, helpEntry{"c", "Commit"})
 		entries = append(entries, helpEntry{"p", "Push"})
@@ -81,7 +81,7 @@ func (m *HelpModel) buildEntries() []helpEntry {
 	return entries
 }
 
-func (m *HelpModel) renderTable(entries []helpEntry) string {
+func (m *helpModel) renderTable(entries []helpEntry) string {
 	keyWidth := 0
 
 	for _, e := range entries {

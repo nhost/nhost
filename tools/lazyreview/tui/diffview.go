@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/x/ansi"
+
 	"github.com/nhost/nhost/tools/lazyreview/diff"
 	"github.com/nhost/nhost/tools/lazyreview/versioncontrol"
 )
@@ -14,118 +16,118 @@ const (
 	defaultDiffHeight   = 20
 )
 
-type DiffViewModel struct {
-	Detail      *versioncontrol.ChangeDetail
-	ActiveHunk  int
-	ScrollY     int
-	Width       int
-	Height      int
-	Focused     bool
+type diffViewModel struct {
+	detail      *versioncontrol.ChangeDetail
+	activeHunk  int
+	scrollY     int
+	width       int
+	height      int
+	focused     bool
 	renderedLen int
 }
 
-func NewDiffViewModel() DiffViewModel {
-	return DiffViewModel{
-		Detail:      nil,
-		ActiveHunk:  0,
-		ScrollY:     0,
-		Width:       defaultDiffWidth,
-		Height:      defaultDiffHeight,
-		Focused:     false,
+func newDiffViewModel() diffViewModel {
+	return diffViewModel{
+		detail:      nil,
+		activeHunk:  0,
+		scrollY:     0,
+		width:       defaultDiffWidth,
+		height:      defaultDiffHeight,
+		focused:     false,
 		renderedLen: 0,
 	}
 }
 
-func (m *DiffViewModel) SetDetail(d *versioncontrol.ChangeDetail) {
-	m.Detail = d
-	m.ActiveHunk = 0
-	m.ScrollY = 0
+func (m *diffViewModel) setDetail(d *versioncontrol.ChangeDetail) {
+	m.detail = d
+	m.activeHunk = 0
+	m.scrollY = 0
 	m.renderedLen = m.computeRenderedLen()
 }
 
-func (m *DiffViewModel) computeRenderedLen() int {
-	if m.Detail == nil || m.Detail.File == nil {
+func (m *diffViewModel) computeRenderedLen() int {
+	if m.detail == nil || m.detail.File == nil {
 		return 0
 	}
 
 	total := 0
 
-	for _, hunk := range m.Detail.File.Hunks {
+	for _, hunk := range m.detail.File.Hunks {
 		total += 1 + len(hunk.Lines) // header + lines
 	}
 
 	return total
 }
 
-func (m *DiffViewModel) ScrollDown() {
-	if m.ScrollY < m.renderedLen-m.viewHeight() {
-		m.ScrollY++
+func (m *diffViewModel) scrollDown() {
+	if m.scrollY < m.renderedLen-m.viewHeight() {
+		m.scrollY++
 	}
 }
 
-func (m *DiffViewModel) ScrollUp() {
-	if m.ScrollY > 0 {
-		m.ScrollY--
+func (m *diffViewModel) scrollUp() {
+	if m.scrollY > 0 {
+		m.scrollY--
 	}
 }
 
-func (m *DiffViewModel) ScrollToTop() {
-	m.ScrollY = 0
+func (m *diffViewModel) scrollToTop() {
+	m.scrollY = 0
 }
 
-func (m *DiffViewModel) ScrollToBottom() {
+func (m *diffViewModel) scrollToBottom() {
 	bottom := m.renderedLen - m.viewHeight()
 	if bottom > 0 {
-		m.ScrollY = bottom
+		m.scrollY = bottom
 	}
 }
 
-func (m *DiffViewModel) viewHeight() int {
-	return max(m.Height-panelChrome, 1)
+func (m *diffViewModel) viewHeight() int {
+	return max(m.height-panelChrome, 1)
 }
 
-func (m *DiffViewModel) NextHunk() {
-	if m.Detail == nil || m.Detail.File == nil {
+func (m *diffViewModel) nextHunk() {
+	if m.detail == nil || m.detail.File == nil {
 		return
 	}
 
-	if m.ActiveHunk < len(m.Detail.File.Hunks)-1 {
-		m.ActiveHunk++
+	if m.activeHunk < len(m.detail.File.Hunks)-1 {
+		m.activeHunk++
 		m.scrollToActiveHunk()
 	}
 }
 
-func (m *DiffViewModel) PrevHunk() {
-	if m.ActiveHunk > 0 {
-		m.ActiveHunk--
+func (m *diffViewModel) prevHunk() {
+	if m.activeHunk > 0 {
+		m.activeHunk--
 		m.scrollToActiveHunk()
 	}
 }
 
-func (m *DiffViewModel) scrollToActiveHunk() {
-	if m.Detail == nil || m.Detail.File == nil {
+func (m *diffViewModel) scrollToActiveHunk() {
+	if m.detail == nil || m.detail.File == nil {
 		return
 	}
 
 	lineNum := 0
-	for i := range m.ActiveHunk {
-		lineNum += 1 + len(m.Detail.File.Hunks[i].Lines) // header + lines
+	for i := range m.activeHunk {
+		lineNum += 1 + len(m.detail.File.Hunks[i].Lines) // header + lines
 	}
 
-	if lineNum < m.ScrollY || lineNum >= m.ScrollY+m.viewHeight() {
-		m.ScrollY = lineNum
+	if lineNum < m.scrollY || lineNum >= m.scrollY+m.viewHeight() {
+		m.scrollY = lineNum
 	}
 }
 
-func (m *DiffViewModel) Render() string {
-	if m.Detail == nil || m.Detail.File == nil {
+func (m *diffViewModel) render() string {
+	if m.detail == nil || m.detail.File == nil {
 		content := contextStyle().Render("No file selected")
 
-		return panelStyle(m.Focused).
-			Width(m.Width).
-			MaxWidth(m.Width).
-			Height(m.Height).
-			MaxHeight(m.Height).
+		return panelStyle(m.focused).
+			Width(m.width).
+			MaxWidth(m.width).
+			Height(m.height).
+			MaxHeight(m.height).
 			Render(content)
 	}
 
@@ -134,17 +136,17 @@ func (m *DiffViewModel) Render() string {
 	m.clampScroll(len(allLines))
 
 	viewH := m.viewHeight()
-	end := min(m.ScrollY+viewH, len(allLines))
-	visible := allLines[m.ScrollY:end]
+	end := min(m.scrollY+viewH, len(allLines))
+	visible := allLines[m.scrollY:end]
 
 	scrollInfo := ""
 	if len(allLines) > viewH {
-		scrollInfo = fmt.Sprintf(" [%d/%d]", m.ScrollY+1, len(allLines))
+		scrollInfo = fmt.Sprintf(" [%d/%d]", m.scrollY+1, len(allLines))
 	}
 
-	titleText := m.Detail.Path
-	if m.Detail.Kind == versioncontrol.ChangeRenamed && m.Detail.OrigPath != "" {
-		titleText = m.Detail.Path + " <- " + m.Detail.OrigPath
+	titleText := m.detail.Path
+	if m.detail.Kind == versioncontrol.ChangeRenamed && m.detail.OrigPath != "" {
+		titleText = m.detail.Path + " <- " + m.detail.OrigPath
 	}
 
 	title := titleStyle().Render(titleText)
@@ -153,22 +155,27 @@ func (m *DiffViewModel) Render() string {
 	lines = append(lines, "")
 	lines = append(lines, visible...)
 
+	maxW := m.width - panelBorderWidth - panelPadding
+	for i, line := range lines {
+		lines[i] = ansi.Truncate(line, maxW, "")
+	}
+
 	content := strings.Join(lines, "\n")
 
-	return panelStyle(m.Focused).
-		Width(m.Width).
-		MaxWidth(m.Width).
-		Height(m.Height).
-		MaxHeight(m.Height).
+	return panelStyle(m.focused).
+		Width(m.width).
+		MaxWidth(m.width).
+		Height(m.height).
+		MaxHeight(m.height).
 		Render(content)
 }
 
-func (m *DiffViewModel) renderHunks() []string {
+func (m *diffViewModel) renderHunks() []string {
 	var allLines []string
 
-	for hunkIdx, hunk := range m.Detail.File.Hunks {
-		isActive := hunkIdx == m.ActiveHunk && m.Focused
-		isStaged := m.Detail.Hunks[hunkIdx].Staged
+	for hunkIdx, hunk := range m.detail.File.Hunks {
+		isActive := hunkIdx == m.activeHunk && m.focused
+		isStaged := m.detail.Hunks[hunkIdx].Staged
 
 		headerPrefix := "  "
 		if isStaged {
@@ -187,7 +194,7 @@ func (m *DiffViewModel) renderHunks() []string {
 	return allLines
 }
 
-func (m *DiffViewModel) hunkBorder(isActive, isStaged bool) string {
+func (m *diffViewModel) hunkBorder(isActive, isStaged bool) string {
 	switch {
 	case isActive:
 		return hunkBorderActive().String()
@@ -198,19 +205,19 @@ func (m *DiffViewModel) hunkBorder(isActive, isStaged bool) string {
 	}
 }
 
-func (m *DiffViewModel) clampScroll(totalLines int) {
+func (m *diffViewModel) clampScroll(totalLines int) {
 	viewH := m.viewHeight()
 
-	if m.ScrollY > totalLines-viewH {
-		m.ScrollY = totalLines - viewH
+	if m.scrollY > totalLines-viewH {
+		m.scrollY = totalLines - viewH
 	}
 
-	if m.ScrollY < 0 {
-		m.ScrollY = 0
+	if m.scrollY < 0 {
+		m.scrollY = 0
 	}
 }
 
-func (m *DiffViewModel) styleLine(line diff.Line) string {
+func (m *diffViewModel) styleLine(line diff.Line) string {
 	switch line.Type {
 	case diff.Added:
 		return addedStyle().Render(line.Content)

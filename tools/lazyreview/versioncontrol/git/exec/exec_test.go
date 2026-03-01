@@ -78,7 +78,7 @@ func newClient(t *testing.T) *exec.Exec {
 }
 
 //nolint:paralleltest // tests share process CWD
-func TestRepoRoot(t *testing.T) {
+func TestRoot(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	client := newClient(t)
 
@@ -153,70 +153,6 @@ func TestNameStatus(t *testing.T) {
 
 	if !strings.Contains(d, "M\t") {
 		t.Error("name-status should show M for modified file")
-	}
-}
-
-//nolint:paralleltest // tests share process CWD
-func TestDiffUnstaged(t *testing.T) {
-	tmpDir := setupTestRepo(t)
-	client := newClient(t)
-
-	ctx := context.Background()
-
-	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# unstaged change\n")
-
-	d, err := client.DiffUnstaged(ctx)
-	if err != nil {
-		t.Fatalf("DiffUnstaged failed: %v", err)
-	}
-
-	if !strings.Contains(d, "README.md") {
-		t.Error("unstaged diff should contain modified file")
-	}
-
-	if !strings.Contains(d, "+# unstaged change") {
-		t.Error("unstaged diff should show the change")
-	}
-}
-
-//nolint:paralleltest // tests share process CWD
-func TestDiffStaged(t *testing.T) {
-	tmpDir := setupTestRepo(t)
-	client := newClient(t)
-
-	ctx := context.Background()
-
-	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# staged change\n")
-	runGitCmd(t, "add", "README.md")
-
-	d, err := client.DiffStaged(ctx)
-	if err != nil {
-		t.Fatalf("DiffStaged failed: %v", err)
-	}
-
-	if !strings.Contains(d, "README.md") {
-		t.Error("staged diff should contain modified file")
-	}
-
-	if !strings.Contains(d, "+# staged change") {
-		t.Error("staged diff should show the change")
-	}
-}
-
-//nolint:paralleltest // tests share process CWD
-func TestDiffStaged_Empty(t *testing.T) {
-	setupTestRepo(t)
-	client := newClient(t)
-
-	ctx := context.Background()
-
-	d, err := client.DiffStaged(ctx)
-	if err != nil {
-		t.Fatalf("DiffStaged failed: %v", err)
-	}
-
-	if d != "" {
-		t.Errorf("expected empty staged diff, got %q", d)
 	}
 }
 
@@ -407,18 +343,18 @@ func TestStageHunk(t *testing.T) {
 
 	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# patched\n")
 
-	patch, err := client.DiffUnstaged(ctx)
+	patch, err := client.DiffFile(ctx)
 	if err != nil {
-		t.Fatalf("DiffUnstaged failed: %v", err)
+		t.Fatalf("DiffFile failed: %v", err)
 	}
 
 	if err := client.StageHunk(ctx, patch); err != nil {
 		t.Fatalf("StageHunk failed: %v", err)
 	}
 
-	staged, err := client.DiffStaged(ctx)
+	staged, err := client.DiffFile(ctx, "--cached")
 	if err != nil {
-		t.Fatalf("DiffStaged failed: %v", err)
+		t.Fatalf("DiffFile --cached failed: %v", err)
 	}
 
 	if !strings.Contains(staged, "+# patched") {
@@ -436,18 +372,18 @@ func TestUnstageHunk(t *testing.T) {
 	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# to-unstage\n")
 	runGitCmd(t, "add", "README.md")
 
-	patch, err := client.DiffStaged(ctx)
+	patch, err := client.DiffFile(ctx, "--cached")
 	if err != nil {
-		t.Fatalf("DiffStaged failed: %v", err)
+		t.Fatalf("DiffFile --cached failed: %v", err)
 	}
 
 	if err := client.UnstageHunk(ctx, patch); err != nil {
 		t.Fatalf("UnstageHunk failed: %v", err)
 	}
 
-	staged, err := client.DiffStaged(ctx)
+	staged, err := client.DiffFile(ctx, "--cached")
 	if err != nil {
-		t.Fatalf("DiffStaged after unstage failed: %v", err)
+		t.Fatalf("DiffFile --cached after unstage failed: %v", err)
 	}
 
 	if strings.Contains(staged, "README.md") {

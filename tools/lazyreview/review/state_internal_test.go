@@ -1,4 +1,4 @@
-package review_test
+package review
 
 import (
 	"os"
@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/nhost/tools/lazyreview/review"
 )
 
 func TestLoadSaveRoundTrip(t *testing.T) {
@@ -14,30 +13,30 @@ func TestLoadSaveRoundTrip(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "feature/test", "main")
+	st, err := load(tmpDir, "feature/test", "main")
 	if err != nil {
-		t.Fatalf("Load failed: %v", err)
+		t.Fatalf("load failed: %v", err)
 	}
 
-	if state.Base != "main" {
-		t.Errorf("expected base main, got %s", state.Base)
+	if st.Base != "main" {
+		t.Errorf("expected base main, got %s", st.Base)
 	}
 
-	if len(state.Files) != 0 {
-		t.Errorf("expected 0 files, got %d", len(state.Files))
+	if len(st.Files) != 0 {
+		t.Errorf("expected 0 files, got %d", len(st.Files))
 	}
 
-	state.Files["main.go"] = review.FileState{
+	st.Files["main.go"] = fileState{
 		Path:     "main.go",
 		Hash:     "abc123",
 		Reviewed: true,
-		Hunks: map[string]review.HunkState{
+		Hunks: map[string]hunkState{
 			"0": {Reviewed: true},
 		},
 	}
 
-	if err := state.Save(); err != nil {
-		t.Fatalf("Save failed: %v", err)
+	if err := st.save(); err != nil {
+		t.Fatalf("save failed: %v", err)
 	}
 
 	// Verify file was created with sanitized branch name
@@ -46,20 +45,20 @@ func TestLoadSaveRoundTrip(t *testing.T) {
 		t.Fatalf("state file not created at expected path %s: %v", expectedPath, err)
 	}
 
-	loaded, err := review.Load(tmpDir, "feature/test", "main")
+	loaded, err := load(tmpDir, "feature/test", "main")
 	if err != nil {
-		t.Fatalf("Load round-trip failed: %v", err)
+		t.Fatalf("load round-trip failed: %v", err)
 	}
 
 	if loaded.Base != "main" {
 		t.Errorf("round-trip base: expected main, got %s", loaded.Base)
 	}
 
-	wantFile := review.FileState{
+	wantFile := fileState{
 		Path:     "main.go",
 		Hash:     "abc123",
 		Reviewed: true,
-		Hunks: map[string]review.HunkState{
+		Hunks: map[string]hunkState{
 			"0": {Reviewed: true},
 		},
 	}
@@ -79,13 +78,13 @@ func TestLoadNonExistentReturnsEmpty(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "nonexistent", "main")
+	st, err := load(tmpDir, "nonexistent", "main")
 	if err != nil {
-		t.Fatalf("Load failed: %v", err)
+		t.Fatalf("load failed: %v", err)
 	}
 
-	if len(state.Files) != 0 {
-		t.Errorf("expected empty files map, got %d entries", len(state.Files))
+	if len(st.Files) != 0 {
+		t.Errorf("expected empty files map, got %d entries", len(st.Files))
 	}
 }
 
@@ -94,18 +93,18 @@ func TestReconcile_FreshState(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "branch", "main")
+	st, err := load(tmpDir, "branch", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	state.Reconcile([]string{"a.go", "b.go"})
+	st.reconcile([]string{"a.go", "b.go"})
 
-	if len(state.Files) != 2 {
-		t.Fatalf("expected 2 files, got %d", len(state.Files))
+	if len(st.Files) != 2 {
+		t.Fatalf("expected 2 files, got %d", len(st.Files))
 	}
 
-	for _, fs := range state.Files {
+	for _, fs := range st.Files {
 		if fs.Reviewed {
 			t.Error("fresh files should not be reviewed")
 		}
@@ -125,23 +124,23 @@ func TestReconcile_PreservesExistingEntries(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "branch", "main")
+	st, err := load(tmpDir, "branch", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	state.Reconcile([]string{"a.go"})
+	st.reconcile([]string{"a.go"})
 
 	// Simulate having viewed the file (sets hash and hunks)
-	state.ReconcileFile("a.go", "hash1", 1)
+	st.reconcileFile("a.go", "hash1", 1)
 
 	// Mark the file as reviewed
-	state.ToggleFileReviewed("a.go")
+	st.toggleFileReviewed("a.go")
 
 	// Reconcile again with the same path
-	state.Reconcile([]string{"a.go"})
+	st.reconcile([]string{"a.go"})
 
-	fs := state.Files["a.go"]
+	fs := st.Files["a.go"]
 	if !fs.Reviewed {
 		t.Error("existing file should remain reviewed after reconcile")
 	}
@@ -154,16 +153,16 @@ func TestReconcile_PreservesExistingEntries(t *testing.T) {
 func TestReconcile_RemovesStaleFiles(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
+	s := newTransientState()
 
-	s.Reconcile([]string{"a.go", "b.go"})
+	s.reconcile([]string{"a.go", "b.go"})
 
 	if len(s.Files) != 2 {
 		t.Fatalf("expected 2 files, got %d", len(s.Files))
 	}
 
 	// Reconcile with only one file; the other should be removed
-	s.Reconcile([]string{"a.go"})
+	s.reconcile([]string{"a.go"})
 
 	if len(s.Files) != 1 {
 		t.Fatalf("expected 1 file after reconcile, got %d", len(s.Files))
@@ -177,16 +176,16 @@ func TestReconcile_RemovesStaleFiles(t *testing.T) {
 func TestReconcile_EmptyFiles(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
+	s := newTransientState()
 
-	s.Reconcile([]string{"a.go"})
+	s.reconcile([]string{"a.go"})
 
 	if len(s.Files) != 1 {
 		t.Fatalf("expected 1 file, got %d", len(s.Files))
 	}
 
 	// Reconcile with empty list removes all files
-	s.Reconcile(nil)
+	s.reconcile(nil)
 
 	if len(s.Files) != 0 {
 		t.Fatalf("expected 0 files after empty reconcile, got %d", len(s.Files))
@@ -196,10 +195,10 @@ func TestReconcile_EmptyFiles(t *testing.T) {
 func TestReconcileFile_NewFile(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
-	s.Reconcile([]string{"a.go"})
+	s := newTransientState()
+	s.reconcile([]string{"a.go"})
 
-	s.ReconcileFile("a.go", "hash1", 2)
+	s.reconcileFile("a.go", "hash1", 2)
 
 	fs := s.Files["a.go"]
 	if fs.Hash != "hash1" {
@@ -224,21 +223,21 @@ func TestReconcileFile_NewFile(t *testing.T) {
 func TestReconcileFile_HashMatch(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
-	s.Reconcile([]string{"a.go"})
-	s.ReconcileFile("a.go", "hash1", 2)
+	s := newTransientState()
+	s.reconcile([]string{"a.go"})
+	s.reconcileFile("a.go", "hash1", 2)
 
 	// Mark hunk 0 as reviewed
-	s.SetHunkReviewed("a.go", 0, true)
+	s.setHunkReviewed("a.go", 0, true)
 
 	// Reconcile again with same hash — should preserve review state
-	s.ReconcileFile("a.go", "hash1", 2)
+	s.reconcileFile("a.go", "hash1", 2)
 
-	if !s.IsHunkReviewed("a.go", 0) {
+	if !s.isHunkReviewed("a.go", 0) {
 		t.Error("hunk 0 should remain reviewed when hash matches")
 	}
 
-	if s.IsHunkReviewed("a.go", 1) {
+	if s.isHunkReviewed("a.go", 1) {
 		t.Error("hunk 1 should remain unreviewed when hash matches")
 	}
 }
@@ -246,19 +245,19 @@ func TestReconcileFile_HashMatch(t *testing.T) {
 func TestReconcileFile_HashMismatch(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
-	s.Reconcile([]string{"a.go"})
-	s.ReconcileFile("a.go", "hash1", 1)
+	s := newTransientState()
+	s.reconcile([]string{"a.go"})
+	s.reconcileFile("a.go", "hash1", 1)
 
 	// Mark as reviewed
-	s.ToggleFileReviewed("a.go")
+	s.toggleFileReviewed("a.go")
 
 	if !s.Files["a.go"].Reviewed {
 		t.Fatal("file should be reviewed")
 	}
 
 	// Reconcile with different hash — should reset
-	s.ReconcileFile("a.go", "hash2", 2)
+	s.reconcileFile("a.go", "hash2", 2)
 
 	fs := s.Files["a.go"]
 	if fs.Reviewed {
@@ -277,14 +276,14 @@ func TestReconcileFile_HashMismatch(t *testing.T) {
 func TestReconcileFile_EmptyHashWithReviewed(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
-	s.Reconcile([]string{"a.go"})
+	s := newTransientState()
+	s.reconcile([]string{"a.go"})
 
 	// Stage the file before viewing details (sets Reviewed but hash is empty)
-	s.SetFilesReviewed([]string{"a.go"}, true)
+	s.setFilesReviewed([]string{"a.go"}, true)
 
 	// Now view details — should populate hash and mark all hunks reviewed
-	s.ReconcileFile("a.go", "hash1", 2)
+	s.reconcileFile("a.go", "hash1", 2)
 
 	fs := s.Files["a.go"]
 	if !fs.Reviewed {
@@ -305,10 +304,10 @@ func TestReconcileFile_EmptyHashWithReviewed(t *testing.T) {
 func TestReconcileFile_EntryDoesNotExist(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
+	s := newTransientState()
 
-	// ReconcileFile for a path not in state — should create entry
-	s.ReconcileFile("new.go", "hash1", 1)
+	// reconcileFile for a path not in state — should create entry
+	s.reconcileFile("new.go", "hash1", 1)
 
 	fs, ok := s.Files["new.go"]
 	if !ok {
@@ -333,18 +332,18 @@ func TestToggleFileReviewed(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "branch", "main")
+	st, err := load(tmpDir, "branch", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	state.Reconcile([]string{"a.go"})
-	state.ReconcileFile("a.go", "hash1", 1)
+	st.reconcile([]string{"a.go"})
+	st.reconcileFile("a.go", "hash1", 1)
 
 	// Toggle on
-	state.ToggleFileReviewed("a.go")
+	st.toggleFileReviewed("a.go")
 
-	fs := state.Files["a.go"]
+	fs := st.Files["a.go"]
 	if !fs.Reviewed {
 		t.Error("file should be reviewed after toggle on")
 	}
@@ -356,9 +355,9 @@ func TestToggleFileReviewed(t *testing.T) {
 	}
 
 	// Toggle off
-	state.ToggleFileReviewed("a.go")
+	st.toggleFileReviewed("a.go")
 
-	fs = state.Files["a.go"]
+	fs = st.Files["a.go"]
 	if fs.Reviewed {
 		t.Error("file should not be reviewed after toggle off")
 	}
@@ -375,28 +374,28 @@ func TestToggleFileReviewed_NonExistentPath(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "branch", "main")
+	st, err := load(tmpDir, "branch", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Should not panic
-	state.ToggleFileReviewed("nonexistent")
+	st.toggleFileReviewed("nonexistent")
 }
 
 func TestSetHunkReviewed(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
+	s := newTransientState()
 
-	s.Reconcile([]string{"multi.go"})
-	s.ReconcileFile("multi.go", "hash1", 2)
+	s.reconcile([]string{"multi.go"})
+	s.reconcileFile("multi.go", "hash1", 2)
 
 	// Set hunk 0 reviewed
-	s.SetHunkReviewed("multi.go", 0, true)
+	s.setHunkReviewed("multi.go", 0, true)
 
-	if !s.IsHunkReviewed("multi.go", 0) {
-		t.Error("hunk 0 should be reviewed after SetHunkReviewed(true)")
+	if !s.isHunkReviewed("multi.go", 0) {
+		t.Error("hunk 0 should be reviewed after setHunkReviewed(true)")
 	}
 
 	if s.Files["multi.go"].Reviewed {
@@ -404,17 +403,17 @@ func TestSetHunkReviewed(t *testing.T) {
 	}
 
 	// Set hunk 1 reviewed
-	s.SetHunkReviewed("multi.go", 1, true)
+	s.setHunkReviewed("multi.go", 1, true)
 
 	if !s.Files["multi.go"].Reviewed {
 		t.Error("file should be reviewed when all hunks are reviewed")
 	}
 
 	// Unset hunk 0
-	s.SetHunkReviewed("multi.go", 0, false)
+	s.setHunkReviewed("multi.go", 0, false)
 
-	if s.IsHunkReviewed("multi.go", 0) {
-		t.Error("hunk 0 should not be reviewed after SetHunkReviewed(false)")
+	if s.isHunkReviewed("multi.go", 0) {
+		t.Error("hunk 0 should not be reviewed after setHunkReviewed(false)")
 	}
 
 	if s.Files["multi.go"].Reviewed {
@@ -422,10 +421,10 @@ func TestSetHunkReviewed(t *testing.T) {
 	}
 
 	// Non-existent path — should not panic
-	s.SetHunkReviewed("nonexistent", 0, true)
+	s.setHunkReviewed("nonexistent", 0, true)
 
 	// Non-existent hunk index — should not panic
-	s.SetHunkReviewed("multi.go", 99, true)
+	s.setHunkReviewed("multi.go", 99, true)
 }
 
 func TestToggleHunkReviewed(t *testing.T) {
@@ -433,34 +432,34 @@ func TestToggleHunkReviewed(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "branch", "main")
+	st, err := load(tmpDir, "branch", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	state.Reconcile([]string{"a.go"})
-	state.ReconcileFile("a.go", "hash1", 1)
+	st.reconcile([]string{"a.go"})
+	st.reconcileFile("a.go", "hash1", 1)
 
 	// Toggle hunk 0 on
-	state.ToggleHunkReviewed("a.go", 0)
+	st.toggleHunkReviewed("a.go", 0)
 
-	if !state.IsHunkReviewed("a.go", 0) {
+	if !st.isHunkReviewed("a.go", 0) {
 		t.Error("hunk should be reviewed after toggle")
 	}
 
 	// With only one hunk, toggling it on should mark the file reviewed
-	if !state.Files["a.go"].Reviewed {
+	if !st.Files["a.go"].Reviewed {
 		t.Error("file should be reviewed when all hunks are reviewed")
 	}
 
 	// Toggle hunk 0 off
-	state.ToggleHunkReviewed("a.go", 0)
+	st.toggleHunkReviewed("a.go", 0)
 
-	if state.IsHunkReviewed("a.go", 0) {
+	if st.isHunkReviewed("a.go", 0) {
 		t.Error("hunk should not be reviewed after second toggle")
 	}
 
-	if state.Files["a.go"].Reviewed {
+	if st.Files["a.go"].Reviewed {
 		t.Error("file should not be reviewed when a hunk is unreviewed")
 	}
 }
@@ -470,19 +469,19 @@ func TestToggleHunkReviewed_NonExistent(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "branch", "main")
+	st, err := load(tmpDir, "branch", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Should not panic
-	state.ToggleHunkReviewed("nonexistent", 0)
+	st.toggleHunkReviewed("nonexistent", 0)
 
-	state.Reconcile([]string{"a.go"})
-	state.ReconcileFile("a.go", "hash1", 1)
+	st.reconcile([]string{"a.go"})
+	st.reconcileFile("a.go", "hash1", 1)
 
 	// Non-existent hunk index
-	state.ToggleHunkReviewed("a.go", 99)
+	st.toggleHunkReviewed("a.go", 99)
 }
 
 func TestReviewedFileCount(t *testing.T) {
@@ -490,27 +489,27 @@ func TestReviewedFileCount(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "branch", "main")
+	st, err := load(tmpDir, "branch", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if state.ReviewedFileCount() != 0 {
-		t.Errorf("expected 0 reviewed files, got %d", state.ReviewedFileCount())
+	if st.reviewedFileCount() != 0 {
+		t.Errorf("expected 0 reviewed files, got %d", st.reviewedFileCount())
 	}
 
-	state.Reconcile([]string{"a.go", "b.go", "c.go"})
+	st.reconcile([]string{"a.go", "b.go", "c.go"})
 
-	if state.ReviewedFileCount() != 0 {
-		t.Errorf("expected 0 reviewed files after reconcile, got %d", state.ReviewedFileCount())
+	if st.reviewedFileCount() != 0 {
+		t.Errorf("expected 0 reviewed files after reconcile, got %d", st.reviewedFileCount())
 	}
 
 	// Mark one file reviewed
-	state.ReconcileFile("a.go", "hash1", 1)
-	state.ToggleFileReviewed("a.go")
+	st.reconcileFile("a.go", "hash1", 1)
+	st.toggleFileReviewed("a.go")
 
-	if state.ReviewedFileCount() != 1 {
-		t.Errorf("expected 1 reviewed file, got %d", state.ReviewedFileCount())
+	if st.reviewedFileCount() != 1 {
+		t.Errorf("expected 1 reviewed file, got %d", st.reviewedFileCount())
 	}
 }
 
@@ -519,39 +518,39 @@ func TestSetFilesReviewed(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "branch", "main")
+	st, err := load(tmpDir, "branch", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	state.Reconcile([]string{"a.go", "b.go"})
-	state.ReconcileFile("a.go", "hash1", 1)
-	state.ReconcileFile("b.go", "hash2", 1)
+	st.reconcile([]string{"a.go", "b.go"})
+	st.reconcileFile("a.go", "hash1", 1)
+	st.reconcileFile("b.go", "hash2", 1)
 
-	state.SetFilesReviewed([]string{"a.go", "b.go"}, true)
+	st.setFilesReviewed([]string{"a.go", "b.go"}, true)
 
-	for _, fs := range state.Files {
+	for _, fs := range st.Files {
 		if !fs.Reviewed {
-			t.Error("file should be reviewed after SetFilesReviewed(true)")
+			t.Error("file should be reviewed after setFilesReviewed(true)")
 		}
 
 		for _, h := range fs.Hunks {
 			if !h.Reviewed {
-				t.Error("hunk should be reviewed after SetFilesReviewed(true)")
+				t.Error("hunk should be reviewed after setFilesReviewed(true)")
 			}
 		}
 	}
 
-	state.SetFilesReviewed([]string{"a.go", "b.go"}, false)
+	st.setFilesReviewed([]string{"a.go", "b.go"}, false)
 
-	for _, fs := range state.Files {
+	for _, fs := range st.Files {
 		if fs.Reviewed {
-			t.Error("file should not be reviewed after SetFilesReviewed(false)")
+			t.Error("file should not be reviewed after setFilesReviewed(false)")
 		}
 
 		for _, h := range fs.Hunks {
 			if h.Reviewed {
-				t.Error("hunk should not be reviewed after SetFilesReviewed(false)")
+				t.Error("hunk should not be reviewed after setFilesReviewed(false)")
 			}
 		}
 	}
@@ -560,9 +559,9 @@ func TestSetFilesReviewed(t *testing.T) {
 func TestHash(t *testing.T) {
 	t.Parallel()
 
-	h1 := review.Hash("hello")
-	h2 := review.Hash("hello")
-	h3 := review.Hash("world")
+	h1 := hash("hello")
+	h2 := hash("hello")
+	h3 := hash("world")
 
 	if h1 != h2 {
 		t.Error("same input should produce same hash")
@@ -580,7 +579,7 @@ func TestHash(t *testing.T) {
 func TestNewTransientState(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
+	s := newTransientState()
 
 	if s.Base != "" {
 		t.Errorf("expected empty base, got %s", s.Base)
@@ -598,9 +597,9 @@ func TestNewTransientState(t *testing.T) {
 func TestNewTransientState_SaveFails(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
+	s := newTransientState()
 
-	err := s.Save()
+	err := s.save()
 	if err == nil {
 		t.Error("expected error when saving transient state with empty path")
 	}
@@ -621,7 +620,7 @@ func TestLoadCorruptedStateFile(t *testing.T) {
 		t.Fatalf("failed to write corrupted file: %v", err)
 	}
 
-	_, err := review.Load(tmpDir, "branch", "main")
+	_, err := load(tmpDir, "branch", "main")
 	if err == nil {
 		t.Error("expected error for corrupted state file")
 	}
@@ -630,10 +629,10 @@ func TestLoadCorruptedStateFile(t *testing.T) {
 func TestReconcile_MultipleHunksPerFile(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
+	s := newTransientState()
 
-	s.Reconcile([]string{"multi.go"})
-	s.ReconcileFile("multi.go", "hash1", 3)
+	s.reconcile([]string{"multi.go"})
+	s.reconcileFile("multi.go", "hash1", 3)
 
 	fs, ok := s.Files["multi.go"]
 	if !ok {
@@ -645,15 +644,15 @@ func TestReconcile_MultipleHunksPerFile(t *testing.T) {
 	}
 
 	// Toggle first two hunks
-	s.ToggleHunkReviewed("multi.go", 0)
-	s.ToggleHunkReviewed("multi.go", 1)
+	s.toggleHunkReviewed("multi.go", 0)
+	s.toggleHunkReviewed("multi.go", 1)
 
 	if s.Files["multi.go"].Reviewed {
 		t.Error("file should not be reviewed when only 2/3 hunks are reviewed")
 	}
 
 	// Toggle the last hunk
-	s.ToggleHunkReviewed("multi.go", 2)
+	s.toggleHunkReviewed("multi.go", 2)
 
 	if !s.Files["multi.go"].Reviewed {
 		t.Error("file should be reviewed when all hunks are reviewed")
@@ -663,10 +662,10 @@ func TestReconcile_MultipleHunksPerFile(t *testing.T) {
 func TestSetFilesReviewed_NonExistentPath(t *testing.T) {
 	t.Parallel()
 
-	s := review.NewTransientState()
+	s := newTransientState()
 
 	// Should not panic
-	s.SetFilesReviewed([]string{"nonexistent1", "nonexistent2"}, true)
+	s.setFilesReviewed([]string{"nonexistent1", "nonexistent2"}, true)
 
 	if len(s.Files) != 0 {
 		t.Errorf("expected 0 files, got %d", len(s.Files))
@@ -678,21 +677,21 @@ func TestIsHunkReviewed_Defaults(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	state, err := review.Load(tmpDir, "branch", "main")
+	st, err := load(tmpDir, "branch", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Non-existent file
-	if state.IsHunkReviewed("nonexistent", 0) {
+	if st.isHunkReviewed("nonexistent", 0) {
 		t.Error("should return false for non-existent file")
 	}
 
-	state.Reconcile([]string{"a.go"})
-	state.ReconcileFile("a.go", "hash1", 1)
+	st.reconcile([]string{"a.go"})
+	st.reconcileFile("a.go", "hash1", 1)
 
 	// Non-existent hunk index
-	if state.IsHunkReviewed("a.go", 99) {
+	if st.isHunkReviewed("a.go", 99) {
 		t.Error("should return false for non-existent hunk")
 	}
 }
