@@ -171,6 +171,7 @@ type Model struct { //nolint:recvcheck
 	StatusMsg         string
 	PendingAction     pendingAction
 	PendingSelectPath string
+	refreshing        bool
 }
 
 func (m *Model) activeConfig() versioncontrol.ViewConfig {
@@ -213,6 +214,7 @@ func NewModel(
 		StatusMsg:         "",
 		PendingAction:     pendingNone,
 		PendingSelectPath: "",
+		refreshing:        false,
 	}
 
 	if len(initialStatuses) > 0 {
@@ -263,11 +265,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 
 		return m, commitCmd(m.Git, msg.Message)
 
+	case tea.FocusMsg:
+		return m.handleFocus()
+
 	case tea.KeyPressMsg:
 		return m.handleKeyMsg(msg)
 	}
 
 	return m, nil
+}
+
+func (m Model) handleFocus() (tea.Model, tea.Cmd) { //nolint:ireturn
+	if m.refreshing {
+		return m, nil
+	}
+
+	m.refreshing = true
+
+	return m, refreshCmd(m.activeView())
 }
 
 func (m Model) handleKeyMsg(msg tea.KeyPressMsg) (Model, tea.Cmd) {
@@ -285,6 +300,8 @@ func (m Model) handleKeyMsg(msg tea.KeyPressMsg) (Model, tea.Cmd) {
 }
 
 func (m Model) handleRefreshDone(msg refreshDoneMsg) Model {
+	m.refreshing = false
+
 	if msg.Err != nil {
 		m.StatusMsg = errorMsgStyle().Render(msg.Err.Error())
 
@@ -347,6 +364,7 @@ func (m Model) handleActionDone(msg actionDoneMsg) (Model, tea.Cmd) {
 	}
 
 	m.StatusMsg = ""
+	m.refreshing = true
 
 	return m, refreshCmd(m.activeView())
 }
@@ -359,6 +377,7 @@ func (m Model) handleCommitDone(msg commitDoneMsg) (Model, tea.Cmd) {
 	}
 
 	m.StatusMsg = successMsgStyle().Render("Committed!")
+	m.refreshing = true
 
 	return m, refreshCmd(m.activeView())
 }
@@ -420,6 +439,8 @@ func (m Model) handleModeKey(key string) (Model, tea.Cmd, bool) {
 	case "2":
 		return m.handleSwitchView(1)
 	case "r":
+		m.refreshing = true
+
 		return m, refreshCmd(m.activeView()), true
 	default:
 		return m.handleGitKey(key)
@@ -434,6 +455,7 @@ func (m Model) handleSwitchView(idx int) (Model, tea.Cmd, bool) {
 	m.active = idx
 	m.Help.IsGitMode = idx == 1
 	m.StatusMsg = ""
+	m.refreshing = true
 
 	return m, refreshCmd(m.activeView()), true
 }
@@ -768,6 +790,7 @@ func (m Model) View() tea.View {
 
 	v := tea.NewView(content)
 	v.AltScreen = true
+	v.ReportFocus = true
 
 	return v
 }
