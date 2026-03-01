@@ -174,6 +174,26 @@ func (s *State) ToggleFileReviewed(hash string) {
 	s.Files[hash] = fs
 }
 
+func (s *State) SetHunkReviewed(hash string, index int, reviewed bool) {
+	fs, ok := s.Files[hash]
+	if !ok {
+		return
+	}
+
+	key := hunkKey(index)
+
+	h, ok := fs.Hunks[key]
+	if !ok {
+		return
+	}
+
+	h.Reviewed = reviewed
+	fs.Hunks[key] = h
+
+	fs.Reviewed = s.allHunksReviewed(hash)
+	s.Files[hash] = fs
+}
+
 func (s *State) ToggleHunkReviewed(hash string, index int) {
 	fs, ok := s.Files[hash]
 	if !ok {

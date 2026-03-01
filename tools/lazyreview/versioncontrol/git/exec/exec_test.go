@@ -1,20 +1,20 @@
-package git_test
+package exec_test
 
 import (
 	"context"
 	"os"
-	"os/exec"
+	osexec "os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/nhost/nhost/tools/lazyreview/git"
+	"github.com/nhost/nhost/tools/lazyreview/versioncontrol/git/exec"
 )
 
 // setupTestRepo creates a temporary git repository and changes the working
 // directory into it via t.Chdir (restored automatically when the test ends).
 // Tests using this helper must NOT call t.Parallel() because they share
-// the process working directory and the package-level repoRoot cache.
+// the process working directory.
 func setupTestRepo(t *testing.T) string {
 	t.Helper()
 
@@ -36,7 +36,7 @@ func runGitCmd(t *testing.T, args ...string) string {
 	t.Helper()
 
 	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, "git", args...)
+	cmd := osexec.CommandContext(ctx, "git", args...)
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -64,41 +64,40 @@ func writeTestFile(t *testing.T, path, content string) {
 	}
 }
 
-func initRepoRoot(t *testing.T) {
+func newClient(t *testing.T) *exec.Exec {
 	t.Helper()
 
 	ctx := context.Background()
-	if _, err := git.RepoRoot(ctx); err != nil {
-		t.Fatalf("RepoRoot failed: %v", err)
+
+	client, err := exec.NewExec(ctx)
+	if err != nil {
+		t.Fatalf("NewExec failed: %v", err)
 	}
+
+	return client
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestRepoRoot(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	ctx := context.Background()
-
-	root, err := git.RepoRoot(ctx)
-	if err != nil {
-		t.Fatalf("RepoRoot failed: %v", err)
-	}
+	client := newClient(t)
 
 	expected, _ := filepath.EvalSymlinks(tmpDir)
-	got, _ := filepath.EvalSymlinks(root)
+	got, _ := filepath.EvalSymlinks(client.Root())
 
 	if got != expected {
 		t.Errorf("expected root %s, got %s", expected, got)
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestCurrentBranch(t *testing.T) {
 	setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
-	branch, err := git.CurrentBranch(ctx)
+	branch, err := client.CurrentBranch(ctx)
 	if err != nil {
 		t.Fatalf("CurrentBranch failed: %v", err)
 	}
@@ -108,10 +107,10 @@ func TestCurrentBranch(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestMergeBase(t *testing.T) {
 	setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
@@ -120,7 +119,7 @@ func TestMergeBase(t *testing.T) {
 	runGitCmd(t, "checkout", "-b", "feature")
 	runGitCmd(t, "commit", "--allow-empty", "-m", "feature commit")
 
-	base, err := git.MergeBase(ctx, "main")
+	base, err := client.MergeBase(ctx, "main")
 	if err != nil {
 		t.Fatalf("MergeBase failed: %v", err)
 	}
@@ -130,10 +129,10 @@ func TestMergeBase(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestDiff(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
@@ -143,7 +142,7 @@ func TestDiff(t *testing.T) {
 	runGitCmd(t, "add", "README.md")
 	runGitCmd(t, "commit", "-m", "change readme")
 
-	d, err := git.Diff(ctx, mergeBase)
+	d, err := client.Diff(ctx, mergeBase)
 	if err != nil {
 		t.Fatalf("Diff failed: %v", err)
 	}
@@ -157,36 +156,16 @@ func TestDiff(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
-func TestDiffHead(t *testing.T) {
-	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
-
-	ctx := context.Background()
-
-	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# head diff\n")
-	runGitCmd(t, "add", "README.md")
-
-	d, err := git.DiffHead(ctx)
-	if err != nil {
-		t.Fatalf("DiffHead failed: %v", err)
-	}
-
-	if !strings.Contains(d, "+# head diff") {
-		t.Error("HEAD diff should show staged changes")
-	}
-}
-
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestDiffUnstaged(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
 	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# unstaged change\n")
 
-	d, err := git.DiffUnstaged(ctx)
+	d, err := client.DiffUnstaged(ctx)
 	if err != nil {
 		t.Fatalf("DiffUnstaged failed: %v", err)
 	}
@@ -200,17 +179,17 @@ func TestDiffUnstaged(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestDiffStaged(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
 	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# staged change\n")
 	runGitCmd(t, "add", "README.md")
 
-	d, err := git.DiffStaged(ctx)
+	d, err := client.DiffStaged(ctx)
 	if err != nil {
 		t.Fatalf("DiffStaged failed: %v", err)
 	}
@@ -224,14 +203,14 @@ func TestDiffStaged(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestDiffStaged_Empty(t *testing.T) {
 	setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
-	d, err := git.DiffStaged(ctx)
+	d, err := client.DiffStaged(ctx)
 	if err != nil {
 		t.Fatalf("DiffStaged failed: %v", err)
 	}
@@ -241,60 +220,53 @@ func TestDiffStaged_Empty(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
-func TestUntrackedFiles_None(t *testing.T) {
-	setupTestRepo(t)
-	initRepoRoot(t)
-
-	ctx := context.Background()
-
-	files, err := git.UntrackedFiles(ctx)
-	if err != nil {
-		t.Fatalf("UntrackedFiles failed: %v", err)
-	}
-
-	if files != nil {
-		t.Errorf("expected nil for no untracked files, got %v", files)
-	}
-}
-
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
-func TestUntrackedFiles_WithFiles(t *testing.T) {
+//nolint:paralleltest // tests share process CWD
+func TestDiffFile(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
-	writeTestFile(t, filepath.Join(tmpDir, "untracked1.go"), "package main\n")
-	writeTestFile(t, filepath.Join(tmpDir, "untracked2.go"), "package main\n")
+	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# diff-file test\n")
 
-	files, err := git.UntrackedFiles(ctx)
+	d, err := client.DiffFile(ctx, "--", "README.md")
 	if err != nil {
-		t.Fatalf("UntrackedFiles failed: %v", err)
+		t.Fatalf("DiffFile failed: %v", err)
 	}
 
-	if len(files) != 2 {
-		t.Fatalf("expected 2 untracked files, got %d: %v", len(files), files)
+	if !strings.Contains(d, "README.md") {
+		t.Error("DiffFile should contain the file name")
 	}
 
-	found := make(map[string]bool, len(files))
-	for _, f := range files {
-		found[f] = true
-	}
-
-	if !found["untracked1.go"] {
-		t.Error("expected untracked1.go in untracked files")
-	}
-
-	if !found["untracked2.go"] {
-		t.Error("expected untracked2.go in untracked files")
+	if !strings.Contains(d, "+# diff-file test") {
+		t.Error("DiffFile should show the change")
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
+func TestDiffFile_Staged(t *testing.T) {
+	tmpDir := setupTestRepo(t)
+	client := newClient(t)
+
+	ctx := context.Background()
+
+	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# staged via DiffFile\n")
+	runGitCmd(t, "add", "README.md")
+
+	d, err := client.DiffFile(ctx, "--cached", "--", "README.md")
+	if err != nil {
+		t.Fatalf("DiffFile --cached failed: %v", err)
+	}
+
+	if !strings.Contains(d, "+# staged via DiffFile") {
+		t.Error("DiffFile --cached should show staged change")
+	}
+}
+
+//nolint:paralleltest // tests share process CWD
 func TestNewFileDiff(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	writeTestFile(
 		t,
@@ -302,7 +274,7 @@ func TestNewFileDiff(t *testing.T) {
 		"package main\n\nfunc hello() {}\n",
 	)
 
-	d, err := git.NewFileDiff("newfile.go")
+	d, err := client.NewFileDiff("newfile.go")
 	if err != nil {
 		t.Fatalf("NewFileDiff failed: %v", err)
 	}
@@ -332,14 +304,14 @@ func TestNewFileDiff(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestNewFileDiff_SingleLine(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	writeTestFile(t, filepath.Join(tmpDir, "single.txt"), "one line\n")
 
-	d, err := git.NewFileDiff("single.txt")
+	d, err := client.NewFileDiff("single.txt")
 	if err != nil {
 		t.Fatalf("NewFileDiff failed: %v", err)
 	}
@@ -353,14 +325,14 @@ func TestNewFileDiff_SingleLine(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestNewFileDiff_NoTrailingNewline(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	writeTestFile(t, filepath.Join(tmpDir, "noeol.txt"), "no newline at end")
 
-	d, err := git.NewFileDiff("noeol.txt")
+	d, err := client.NewFileDiff("noeol.txt")
 	if err != nil {
 		t.Fatalf("NewFileDiff failed: %v", err)
 	}
@@ -374,47 +346,28 @@ func TestNewFileDiff_NoTrailingNewline(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestNewFileDiff_NonExistent(t *testing.T) {
 	setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
-	_, err := git.NewFileDiff("does-not-exist.go")
+	_, err := client.NewFileDiff("does-not-exist.go")
 	if err == nil {
 		t.Error("expected error for non-existent file")
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
-func TestStageFile(t *testing.T) {
-	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
-
-	ctx := context.Background()
-
-	writeTestFile(t, filepath.Join(tmpDir, "new.go"), "package main\n")
-
-	if err := git.StageFile(ctx, "new.go"); err != nil {
-		t.Fatalf("StageFile failed: %v", err)
-	}
-
-	out := runGitCmd(t, "status", "--porcelain")
-	if !strings.Contains(out, "new.go") {
-		t.Errorf("file should be staged, status: %s", out)
-	}
-}
-
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestStageFiles(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
 	writeTestFile(t, filepath.Join(tmpDir, "a.go"), "package a\n")
 	writeTestFile(t, filepath.Join(tmpDir, "b.go"), "package b\n")
 
-	if err := git.StageFiles(ctx, []string{"a.go", "b.go"}); err != nil {
+	if err := client.StageFiles(ctx, []string{"a.go", "b.go"}); err != nil {
 		t.Fatalf("StageFiles failed: %v", err)
 	}
 
@@ -424,30 +377,10 @@ func TestStageFiles(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
-func TestUnstageFile(t *testing.T) {
-	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
-
-	ctx := context.Background()
-
-	writeTestFile(t, filepath.Join(tmpDir, "staged.go"), "package main\n")
-	runGitCmd(t, "add", "staged.go")
-
-	if err := git.UnstageFile(ctx, "staged.go"); err != nil {
-		t.Fatalf("UnstageFile failed: %v", err)
-	}
-
-	out := runGitCmd(t, "status", "--porcelain")
-	if !strings.Contains(out, "?? staged.go") {
-		t.Errorf("file should be untracked after unstage, status: %s", out)
-	}
-}
-
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestUnstageFiles(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
@@ -455,7 +388,7 @@ func TestUnstageFiles(t *testing.T) {
 	writeTestFile(t, filepath.Join(tmpDir, "y.go"), "package y\n")
 	runGitCmd(t, "add", "x.go", "y.go")
 
-	if err := git.UnstageFiles(ctx, []string{"x.go", "y.go"}); err != nil {
+	if err := client.UnstageFiles(ctx, []string{"x.go", "y.go"}); err != nil {
 		t.Fatalf("UnstageFiles failed: %v", err)
 	}
 
@@ -465,25 +398,25 @@ func TestUnstageFiles(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestStageHunk(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
 	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# patched\n")
 
-	patch, err := git.DiffUnstaged(ctx)
+	patch, err := client.DiffUnstaged(ctx)
 	if err != nil {
 		t.Fatalf("DiffUnstaged failed: %v", err)
 	}
 
-	if err := git.StageHunk(ctx, patch); err != nil {
+	if err := client.StageHunk(ctx, patch); err != nil {
 		t.Fatalf("StageHunk failed: %v", err)
 	}
 
-	staged, err := git.DiffStaged(ctx)
+	staged, err := client.DiffStaged(ctx)
 	if err != nil {
 		t.Fatalf("DiffStaged failed: %v", err)
 	}
@@ -493,26 +426,26 @@ func TestStageHunk(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestUnstageHunk(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
 	writeTestFile(t, filepath.Join(tmpDir, "README.md"), "# to-unstage\n")
 	runGitCmd(t, "add", "README.md")
 
-	patch, err := git.DiffStaged(ctx)
+	patch, err := client.DiffStaged(ctx)
 	if err != nil {
 		t.Fatalf("DiffStaged failed: %v", err)
 	}
 
-	if err := git.UnstageHunk(ctx, patch); err != nil {
+	if err := client.UnstageHunk(ctx, patch); err != nil {
 		t.Fatalf("UnstageHunk failed: %v", err)
 	}
 
-	staged, err := git.DiffStaged(ctx)
+	staged, err := client.DiffStaged(ctx)
 	if err != nil {
 		t.Fatalf("DiffStaged after unstage failed: %v", err)
 	}
@@ -522,17 +455,17 @@ func TestUnstageHunk(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // tests share process CWD and package-level repoRoot
+//nolint:paralleltest // tests share process CWD
 func TestCommit(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	initRepoRoot(t)
+	client := newClient(t)
 
 	ctx := context.Background()
 
 	writeTestFile(t, filepath.Join(tmpDir, "committed.go"), "package main\n")
 	runGitCmd(t, "add", "committed.go")
 
-	if err := git.Commit(ctx, "test commit message"); err != nil {
+	if err := client.Commit(ctx, "test commit message"); err != nil {
 		t.Fatalf("Commit failed: %v", err)
 	}
 

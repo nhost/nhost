@@ -25,7 +25,9 @@ let
     "-X main.Version=${version}"
   ];
 
-  checkDeps = [ ];
+  checkDeps = with pkgs; [
+    mockgen
+  ];
 
   buildInputs = [ ];
 

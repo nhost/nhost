@@ -95,9 +95,21 @@ func dirNameStyle() lipgloss.Style {
 	return lipgloss.NewStyle().Bold(true)
 }
 
-func modeIndicatorStyle(mode AppMode) lipgloss.Style {
+func fileAddedStyle() lipgloss.Style {
+	return lipgloss.NewStyle().Foreground(lipgloss.Color("2")) // green
+}
+
+func fileDeletedStyle() lipgloss.Style {
+	return lipgloss.NewStyle().Foreground(lipgloss.Color("1")) // red
+}
+
+func fileChangedStyle() lipgloss.Style {
+	return lipgloss.NewStyle().Foreground(lipgloss.Color("3")) // yellow
+}
+
+func modeIndicatorStyle(modeName string) lipgloss.Style {
 	bg := lipgloss.Color("6") // cyan for review
-	if mode == ModeGit {
+	if modeName == "GIT" {
 		bg = lipgloss.Color("208") // orange for git
 	}
 

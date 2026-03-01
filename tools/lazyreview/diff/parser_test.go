@@ -4,10 +4,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/tools/lazyreview/diff"
 )
 
-func TestParse_StandardDiff(t *testing.T) { //nolint:cyclop
+func TestParse_StandardDiff(t *testing.T) {
 	t.Parallel()
 
 	raw := strings.Join([]string{
@@ -37,39 +38,23 @@ func TestParse_StandardDiff(t *testing.T) { //nolint:cyclop
 		t.Fatalf("expected 1 hunk, got %d", len(f.Hunks))
 	}
 
-	h := f.Hunks[0]
-	if h.OldStart != 1 || h.OldCount != 3 || h.NewStart != 1 || h.NewCount != 4 {
-		t.Errorf(
-			"unexpected hunk ranges: old=%d,%d new=%d,%d",
-			h.OldStart,
-			h.OldCount,
-			h.NewStart,
-			h.NewCount,
-		)
+	wantHunk := diff.Hunk{
+		Header:   "@@ -1,3 +1,4 @@",
+		OldStart: 1,
+		OldCount: 3,
+		NewStart: 1,
+		NewCount: 4,
+		Lines: []diff.Line{
+			{Type: diff.Context, Content: " package main"},
+			{Type: diff.Context, Content: " "},
+			{Type: diff.Removed, Content: "-func old() {}"},
+			{Type: diff.Added, Content: "+func new1() {}"},
+			{Type: diff.Added, Content: "+func new2() {}"},
+		},
 	}
 
-	if len(h.Lines) != 5 {
-		t.Fatalf("expected 5 lines, got %d", len(h.Lines))
-	}
-
-	expectations := []struct {
-		lineType diff.LineType
-		content  string
-	}{
-		{diff.Context, " package main"},
-		{diff.Context, " "},
-		{diff.Removed, "-func old() {}"},
-		{diff.Added, "+func new1() {}"},
-		{diff.Added, "+func new2() {}"},
-	}
-	for i, exp := range expectations {
-		if h.Lines[i].Type != exp.lineType {
-			t.Errorf("line %d: expected type %d, got %d", i, exp.lineType, h.Lines[i].Type)
-		}
-
-		if h.Lines[i].Content != exp.content {
-			t.Errorf("line %d: expected content %q, got %q", i, exp.content, h.Lines[i].Content)
-		}
+	if d := cmp.Diff(wantHunk, *f.Hunks[0]); d != "" {
+		t.Errorf("hunk mismatch (-want +got):\n%s", d)
 	}
 }
 
@@ -101,19 +86,14 @@ func TestParse_NewFile(t *testing.T) {
 		t.Fatalf("expected 1 hunk, got %d", len(files[0].Hunks))
 	}
 
-	h := files[0].Hunks[0]
-	if h.OldStart != 0 || h.OldCount != 0 {
-		t.Errorf("new file should have old range 0,0; got %d,%d", h.OldStart, h.OldCount)
+	wantLines := []diff.Line{
+		{Type: diff.Added, Content: "+package main"},
+		{Type: diff.Added, Content: "+"},
+		{Type: diff.Added, Content: "+func hello() {}"},
 	}
 
-	if len(h.Lines) != 3 {
-		t.Errorf("expected 3 lines, got %d", len(h.Lines))
-	}
-
-	for _, l := range h.Lines {
-		if l.Type != diff.Added {
-			t.Errorf("all lines in new file should be Added, got %d", l.Type)
-		}
+	if d := cmp.Diff(wantLines, files[0].Hunks[0].Lines); d != "" {
+		t.Errorf("lines mismatch (-want +got):\n%s", d)
 	}
 }
 
@@ -136,15 +116,17 @@ func TestParse_DeletedFile(t *testing.T) {
 		t.Fatalf("expected 1 file, got %d", len(files))
 	}
 
-	// +++ /dev/null doesn't match "+++ b/", so path comes from "--- a/"
 	if files[0].Path != "old.go" {
 		t.Errorf("expected path old.go, got %s", files[0].Path)
 	}
 
-	for _, l := range files[0].Hunks[0].Lines {
-		if l.Type != diff.Removed {
-			t.Errorf("all lines in deleted file should be Removed, got %d", l.Type)
-		}
+	wantLines := []diff.Line{
+		{Type: diff.Removed, Content: "-package main"},
+		{Type: diff.Removed, Content: "-func bye() {}"},
+	}
+
+	if d := cmp.Diff(wantLines, files[0].Hunks[0].Lines); d != "" {
+		t.Errorf("lines mismatch (-want +got):\n%s", d)
 	}
 }
 
@@ -351,12 +333,11 @@ func TestParse_MultipleHunks(t *testing.T) {
 		t.Fatalf("expected 2 hunks, got %d", len(files[0].Hunks))
 	}
 
-	if files[0].Hunks[0].OldStart != 1 {
-		t.Errorf("first hunk OldStart: expected 1, got %d", files[0].Hunks[0].OldStart)
-	}
+	wantStarts := []int{1, 10}
+	gotStarts := []int{files[0].Hunks[0].OldStart, files[0].Hunks[1].OldStart}
 
-	if files[0].Hunks[1].OldStart != 10 {
-		t.Errorf("second hunk OldStart: expected 10, got %d", files[0].Hunks[1].OldStart)
+	if d := cmp.Diff(wantStarts, gotStarts); d != "" {
+		t.Errorf("OldStart mismatch (-want +got):\n%s", d)
 	}
 }
 
@@ -379,9 +360,21 @@ func TestParse_HunkHeaderWithContext(t *testing.T) {
 		t.Fatalf("expected 1 file, got %d", len(files))
 	}
 
-	h := files[0].Hunks[0]
-	if h.OldStart != 10 || h.OldCount != 3 {
-		t.Errorf("expected old range 10,3; got %d,%d", h.OldStart, h.OldCount)
+	wantHunk := diff.Hunk{
+		Header:   "@@ -10,3 +10,3 @@ func main() {",
+		OldStart: 10,
+		OldCount: 3,
+		NewStart: 10,
+		NewCount: 3,
+		Lines: []diff.Line{
+			{Type: diff.Context, Content: " "},
+			{Type: diff.Removed, Content: "-old"},
+			{Type: diff.Added, Content: "+new"},
+		},
+	}
+
+	if d := cmp.Diff(wantHunk, *files[0].Hunks[0]); d != "" {
+		t.Errorf("hunk mismatch (-want +got):\n%s", d)
 	}
 }
 
@@ -542,16 +535,14 @@ func TestParse_NoNewlineMarker(t *testing.T) {
 		t.Fatalf("expected 1 file, got %d", len(files))
 	}
 
-	h := files[0].Hunks[0]
-
-	// The "\ No newline at end of file" marker is classified as a Context line
-	if len(h.Lines) != 3 {
-		t.Errorf("expected 3 lines (including no-newline marker), got %d", len(h.Lines))
+	wantLines := []diff.Line{
+		{Type: diff.Removed, Content: "-old line"},
+		{Type: diff.Added, Content: "+new line"},
+		{Type: diff.Context, Content: `\ No newline at end of file`},
 	}
 
-	lastLine := h.Lines[len(h.Lines)-1]
-	if lastLine.Type != diff.Context {
-		t.Errorf("no-newline marker should be classified as Context, got %d", lastLine.Type)
+	if d := cmp.Diff(wantLines, files[0].Hunks[0].Lines); d != "" {
+		t.Errorf("lines mismatch (-want +got):\n%s", d)
 	}
 }
 
@@ -629,13 +620,19 @@ func TestParse_SingleLineRange(t *testing.T) {
 		t.Fatalf("expected 1 file, got %d", len(files))
 	}
 
-	h := files[0].Hunks[0]
-	// When count is omitted, it defaults to 1
-	if h.OldCount != 1 || h.NewCount != 1 {
-		t.Errorf(
-			"expected counts of 1 for single-line range; got old=%d new=%d",
-			h.OldCount,
-			h.NewCount,
-		)
+	wantHunk := diff.Hunk{
+		Header:   "@@ -5 +5 @@",
+		OldStart: 5,
+		OldCount: 1,
+		NewStart: 5,
+		NewCount: 1,
+		Lines: []diff.Line{
+			{Type: diff.Removed, Content: "-old"},
+			{Type: diff.Added, Content: "+new"},
+		},
+	}
+
+	if d := cmp.Diff(wantHunk, *files[0].Hunks[0]); d != "" {
+		t.Errorf("hunk mismatch (-want +got):\n%s", d)
 	}
 }

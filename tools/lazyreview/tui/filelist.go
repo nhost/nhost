@@ -5,8 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/nhost/nhost/tools/lazyreview/diff"
-	"github.com/nhost/nhost/tools/lazyreview/review"
+	"github.com/nhost/nhost/tools/lazyreview/versioncontrol"
 )
 
 const (
@@ -16,6 +15,7 @@ const (
 	panelBorderWidth  = 2 // left + right border
 	panelPadding      = 2 // left + right padding in panelStyle
 	nodePrefix        = 5 // " " + indent_base(0) + icon/spaces(2) + indicator(1) + " "(1)
+	indentMultiplier  = 2 // spaces per depth level
 	ellipsis          = "..."
 )
 
@@ -25,43 +25,37 @@ type TreeNode struct {
 	IsDir     bool
 	Expanded  bool
 	Children  []*TreeNode
-	FileIndex int // index into Files/Hashes slices; -1 for dirs
+	FileIndex int // index into FileStatuses slice; -1 for dirs
 	Depth     int
 }
 
 type FileTreeModel struct {
-	Files   []*diff.File
-	Hashes  []string
-	State   *review.State
-	Root    []*TreeNode
-	Visible []*TreeNode
+	FileStatuses []versioncontrol.FileStatus
+	Config       versioncontrol.ViewConfig
+	Root         []*TreeNode
+	Visible      []*TreeNode
 
 	Selected int
 	Offset   int
 	Width    int
 	Height   int
 	Focused  bool
-	Mode     AppMode
 }
 
 func NewFileTreeModel(
-	files []*diff.File,
-	hashes []string,
-	state *review.State,
-	mode AppMode,
+	statuses []versioncontrol.FileStatus,
+	config versioncontrol.ViewConfig,
 ) FileTreeModel {
 	m := FileTreeModel{
-		Files:    files,
-		Hashes:   hashes,
-		State:    state,
-		Root:     nil,
-		Visible:  nil,
-		Selected: 0,
-		Offset:   0,
-		Width:    defaultTreeWidth,
-		Height:   defaultTreeHeight,
-		Focused:  true,
-		Mode:     mode,
+		FileStatuses: statuses,
+		Config:       config,
+		Root:         nil,
+		Visible:      nil,
+		Selected:     0,
+		Offset:       0,
+		Width:        defaultTreeWidth,
+		Height:       defaultTreeHeight,
+		Focused:      true,
 	}
 	m.Root = m.buildTree()
 	m.flatten()
@@ -74,8 +68,8 @@ func (m *FileTreeModel) buildTree() []*TreeNode {
 
 	var roots []*TreeNode
 
-	for i, f := range m.Files {
-		parts := strings.Split(f.Path, "/")
+	for i, fs := range m.FileStatuses {
+		parts := strings.Split(fs.Path, "/")
 		m.insertPath(parts, i, 0, rootMap, &roots)
 	}
 
@@ -95,7 +89,7 @@ func (m *FileTreeModel) insertPath(
 		// leaf file node
 		node := &TreeNode{
 			Name:      parts[0],
-			FullPath:  m.Files[fileIndex].Path,
+			FullPath:  m.FileStatuses[fileIndex].Path,
 			IsDir:     false,
 			Expanded:  false,
 			Children:  nil,
@@ -112,10 +106,10 @@ func (m *FileTreeModel) insertPath(
 
 	dir, exists := siblingMap[dirName]
 	if !exists {
-		fullPath := strings.Join(parts[:1], "/")
+		fullPath := parts[0]
 		if depth > 0 {
 			// reconstruct full path from file path
-			fileParts := strings.Split(m.Files[fileIndex].Path, "/")
+			fileParts := strings.Split(m.FileStatuses[fileIndex].Path, "/")
 			fullPath = strings.Join(fileParts[:depth+1], "/")
 		}
 
@@ -369,16 +363,17 @@ func (m *FileTreeModel) collapseNotIn(nodes []*TreeNode, expandedPaths map[strin
 }
 
 func (m *FileTreeModel) View() string {
-	var title string
+	stagedCount := 0
 
-	switch m.Mode {
-	case ModeGit:
-		staged := m.State.ReviewedFileCount()
-		title = titleStyle().Render(fmt.Sprintf("Files (%d/%d staged)", staged, len(m.Files)))
-	case ModeReview:
-		reviewed := m.State.ReviewedFileCount()
-		title = titleStyle().Render(fmt.Sprintf("Files (%d/%d reviewed)", reviewed, len(m.Files)))
+	for _, fs := range m.FileStatuses {
+		if fs.Staged {
+			stagedCount++
+		}
 	}
+
+	title := titleStyle().Render(
+		fmt.Sprintf("Files (%d/%d %s)", stagedCount, len(m.FileStatuses), m.Config.ActionLabel),
+	)
 
 	visibleHeight := max(m.Height-panelChrome, 1)
 
@@ -425,13 +420,14 @@ func (m *FileTreeModel) renderNode(node *TreeNode) string {
 	}
 
 	indicator := m.fileIndicator(node.FileIndex)
+	label := m.fileLabel(node, maxName)
 
-	return fmt.Sprintf(" %s  %s %s", indent, indicator, truncateName(node.Name, maxName))
+	return fmt.Sprintf(" %s  %s %s", indent, indicator, label)
 }
 
 func (m *FileTreeModel) maxNameWidth(depth int) int {
 	contentWidth := m.Width - panelBorderWidth - panelPadding
-	overhead := nodePrefix + depth*2
+	overhead := nodePrefix + depth*indentMultiplier
 
 	return max(contentWidth-overhead, 1)
 }
@@ -449,26 +445,47 @@ func truncateName(name string, maxWidth int) string {
 	return string(runes[:maxWidth-len(ellipsis)]) + ellipsis
 }
 
+func (m *FileTreeModel) fileLabel(node *TreeNode, maxWidth int) string {
+	if node.FileIndex < 0 || node.FileIndex >= len(m.FileStatuses) {
+		return truncateName(node.Name, maxWidth)
+	}
+
+	fs := m.FileStatuses[node.FileIndex]
+
+	var text string
+	if fs.Kind == versioncontrol.ChangeRenamed && fs.OrigPath != "" {
+		text = node.Name + " <- " + fs.OrigPath
+	} else {
+		text = node.Name
+	}
+
+	truncated := truncateName(text, maxWidth)
+
+	switch fs.Kind {
+	case versioncontrol.ChangeAdded:
+		return fileAddedStyle().Render(truncated)
+	case versioncontrol.ChangeDeleted:
+		return fileDeletedStyle().Render(truncated)
+	case versioncontrol.ChangeRenamed, versioncontrol.ChangeModified:
+		return fileChangedStyle().Render(truncated)
+	default:
+		return truncated
+	}
+}
+
 func (m *FileTreeModel) fileIndicator(fileIndex int) string {
-	if fileIndex < 0 || fileIndex >= len(m.Hashes) {
+	if fileIndex < 0 || fileIndex >= len(m.FileStatuses) {
 		return unreviewedIndicator()
 	}
 
-	hash := m.Hashes[fileIndex]
+	fs := m.FileStatuses[fileIndex]
 
-	fs, ok := m.State.Files[hash]
-	if !ok {
-		return unreviewedIndicator()
-	}
-
-	if fs.Reviewed {
+	if fs.Staged {
 		return reviewedIndicator()
 	}
 
-	for _, h := range fs.Hunks {
-		if h.Reviewed {
-			return partialIndicator()
-		}
+	if fs.Partial {
+		return partialIndicator()
 	}
 
 	return unreviewedIndicator()
@@ -480,40 +497,34 @@ func (m *FileTreeModel) dirIndicator(node *TreeNode) string {
 		return unreviewedIndicator()
 	}
 
-	allReviewed := true
-	anyReviewed := false
+	allStaged := true
+	anyStaged := false
 
 	for _, idx := range indices {
-		hash := m.Hashes[idx]
-
-		fs, ok := m.State.Files[hash]
-		if !ok {
-			allReviewed = false
+		if idx < 0 || idx >= len(m.FileStatuses) {
+			allStaged = false
 
 			continue
 		}
 
-		if fs.Reviewed {
-			anyReviewed = true
+		fs := m.FileStatuses[idx]
+
+		if fs.Staged {
+			anyStaged = true
 		} else {
-			allReviewed = false
+			allStaged = false
 
-			// check if any hunks are reviewed
-			for _, h := range fs.Hunks {
-				if h.Reviewed {
-					anyReviewed = true
-
-					break
-				}
+			if fs.Partial {
+				anyStaged = true
 			}
 		}
 	}
 
-	if allReviewed {
+	if allStaged {
 		return reviewedIndicator()
 	}
 
-	if anyReviewed {
+	if anyStaged {
 		return partialIndicator()
 	}
 

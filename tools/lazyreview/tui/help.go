@@ -8,18 +8,18 @@ import (
 )
 
 type HelpModel struct {
-	Visible bool
-	Mode    AppMode
-	Width   int
-	Height  int
+	Visible   bool
+	IsGitMode bool
+	Width     int
+	Height    int
 }
 
-func NewHelpModel(mode AppMode) HelpModel {
+func NewHelpModel(isGitMode bool) HelpModel {
 	return HelpModel{
-		Visible: false,
-		Mode:    mode,
-		Width:   0,
-		Height:  0,
+		Visible:   false,
+		IsGitMode: isGitMode,
+		Width:     0,
+		Height:    0,
 	}
 }
 
@@ -32,7 +32,7 @@ type helpEntry struct {
 	desc string
 }
 
-func (m *HelpModel) View() string {
+func (m *HelpModel) Render() string {
 	if !m.Visible {
 		return ""
 	}
@@ -48,6 +48,11 @@ func (m *HelpModel) View() string {
 }
 
 func (m *HelpModel) buildEntries() []helpEntry {
+	stageVerb := "Toggle reviewed"
+	if m.IsGitMode {
+		stageVerb = "Stage / unstage"
+	}
+
 	entries := []helpEntry{
 		{"1", "Review mode"},
 		{"2", "Git mode"},
@@ -57,21 +62,14 @@ func (m *HelpModel) buildEntries() []helpEntry {
 		{"h/←", "Collapse dir / go to parent"},
 		{"l/→, Enter", "Expand dir / focus diff"},
 		{"Tab", "Switch panel focus"},
+		{"Space, a", stageVerb + " (file/dir/hunk)"},
 	}
 
-	switch m.Mode {
-	case ModeGit:
-		entries = append(entries,
-			helpEntry{"Space, a", "Stage / unstage (file/dir/hunk)"},
-			helpEntry{"d", "Discard changes (file/dir/hunk)"},
-			helpEntry{"c", "Commit"},
-			helpEntry{"p", "Push"},
-			helpEntry{"P", "Force push (--force-with-lease)"},
-		)
-	case ModeReview:
-		entries = append(entries,
-			helpEntry{"Space, a", "Toggle reviewed (file/dir/hunk)"},
-		)
+	if m.IsGitMode {
+		entries = append(entries, helpEntry{"d", "Discard changes (file/dir/hunk)"})
+		entries = append(entries, helpEntry{"c", "Commit"})
+		entries = append(entries, helpEntry{"p", "Push"})
+		entries = append(entries, helpEntry{"P", "Force push (--force-with-lease)"})
 	}
 
 	entries = append(entries,

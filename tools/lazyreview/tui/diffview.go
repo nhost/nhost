@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/nhost/nhost/tools/lazyreview/diff"
-	"github.com/nhost/nhost/tools/lazyreview/review"
+	"github.com/nhost/nhost/tools/lazyreview/versioncontrol"
 )
 
 const (
@@ -15,49 +15,42 @@ const (
 )
 
 type DiffViewModel struct {
-	File        *diff.File
-	Hash        string
-	State       *review.State
+	Detail      *versioncontrol.ChangeDetail
 	ActiveHunk  int
 	ScrollY     int
 	Width       int
 	Height      int
 	Focused     bool
-	Mode        AppMode
 	renderedLen int
 }
 
-func NewDiffViewModel(state *review.State) DiffViewModel {
+func NewDiffViewModel() DiffViewModel {
 	return DiffViewModel{
-		File:        nil,
-		Hash:        "",
-		State:       state,
+		Detail:      nil,
 		ActiveHunk:  0,
 		ScrollY:     0,
 		Width:       defaultDiffWidth,
 		Height:      defaultDiffHeight,
 		Focused:     false,
-		Mode:        ModeReview,
 		renderedLen: 0,
 	}
 }
 
-func (m *DiffViewModel) SetFile(f *diff.File, hash string) {
-	m.File = f
-	m.Hash = hash
+func (m *DiffViewModel) SetDetail(d *versioncontrol.ChangeDetail) {
+	m.Detail = d
 	m.ActiveHunk = 0
 	m.ScrollY = 0
 	m.renderedLen = m.computeRenderedLen()
 }
 
 func (m *DiffViewModel) computeRenderedLen() int {
-	if m.File == nil {
+	if m.Detail == nil || m.Detail.File == nil {
 		return 0
 	}
 
 	total := 0
 
-	for _, hunk := range m.File.Hunks {
+	for _, hunk := range m.Detail.File.Hunks {
 		total += 1 + len(hunk.Lines) // header + lines
 	}
 
@@ -92,11 +85,11 @@ func (m *DiffViewModel) viewHeight() int {
 }
 
 func (m *DiffViewModel) NextHunk() {
-	if m.File == nil {
+	if m.Detail == nil || m.Detail.File == nil {
 		return
 	}
 
-	if m.ActiveHunk < len(m.File.Hunks)-1 {
+	if m.ActiveHunk < len(m.Detail.File.Hunks)-1 {
 		m.ActiveHunk++
 		m.scrollToActiveHunk()
 	}
@@ -110,9 +103,13 @@ func (m *DiffViewModel) PrevHunk() {
 }
 
 func (m *DiffViewModel) scrollToActiveHunk() {
+	if m.Detail == nil || m.Detail.File == nil {
+		return
+	}
+
 	lineNum := 0
 	for i := range m.ActiveHunk {
-		lineNum += 1 + len(m.File.Hunks[i].Lines) // header + lines
+		lineNum += 1 + len(m.Detail.File.Hunks[i].Lines) // header + lines
 	}
 
 	if lineNum < m.ScrollY || lineNum >= m.ScrollY+m.viewHeight() {
@@ -120,32 +117,8 @@ func (m *DiffViewModel) scrollToActiveHunk() {
 	}
 }
 
-func (m *DiffViewModel) ToggleCurrentHunk() {
-	if m.File == nil || m.Hash == "" {
-		return
-	}
-
-	m.State.ToggleHunkReviewed(m.Hash, m.ActiveHunk)
-}
-
-func (m *DiffViewModel) IsCurrentHunkReviewed() bool {
-	if m.File == nil || m.Hash == "" {
-		return false
-	}
-
-	return m.State.IsHunkReviewed(m.Hash, m.ActiveHunk)
-}
-
-func (m *DiffViewModel) CurrentHunkPatch() string {
-	if m.File == nil {
-		return ""
-	}
-
-	return diff.HunkPatch(m.File.RawDiff, m.ActiveHunk)
-}
-
-func (m *DiffViewModel) View() string {
-	if m.File == nil {
+func (m *DiffViewModel) Render() string {
+	if m.Detail == nil || m.Detail.File == nil {
 		content := contextStyle().Render("No file selected")
 
 		return panelStyle(m.Focused).
@@ -169,7 +142,12 @@ func (m *DiffViewModel) View() string {
 		scrollInfo = fmt.Sprintf(" [%d/%d]", m.ScrollY+1, len(allLines))
 	}
 
-	title := titleStyle().Render(m.File.Path)
+	titleText := m.Detail.Path
+	if m.Detail.Kind == versioncontrol.ChangeRenamed && m.Detail.OrigPath != "" {
+		titleText = m.Detail.Path + " <- " + m.Detail.OrigPath
+	}
+
+	title := titleStyle().Render(titleText)
 	lines := make([]string, 0, diffViewHeaderLines+len(visible))
 	lines = append(lines, title+contextStyle().Render(scrollInfo))
 	lines = append(lines, "")
@@ -188,18 +166,18 @@ func (m *DiffViewModel) View() string {
 func (m *DiffViewModel) renderHunks() []string {
 	var allLines []string
 
-	for hunkIdx, hunk := range m.File.Hunks {
+	for hunkIdx, hunk := range m.Detail.File.Hunks {
 		isActive := hunkIdx == m.ActiveHunk && m.Focused
-		isReviewed := m.State.IsHunkReviewed(m.Hash, hunkIdx)
+		isStaged := m.Detail.Hunks[hunkIdx].Staged
 
 		headerPrefix := "  "
-		if isReviewed {
+		if isStaged {
 			headerPrefix = reviewedIndicator() + " "
 		}
 
 		allLines = append(allLines, headerPrefix+hunkHeaderStyle().Render(hunk.Header))
 
-		border := m.hunkBorder(isActive, isReviewed)
+		border := m.hunkBorder(isActive, isStaged)
 
 		for _, line := range hunk.Lines {
 			allLines = append(allLines, border+m.styleLine(line))
@@ -209,11 +187,11 @@ func (m *DiffViewModel) renderHunks() []string {
 	return allLines
 }
 
-func (m *DiffViewModel) hunkBorder(isActive, isReviewed bool) string {
+func (m *DiffViewModel) hunkBorder(isActive, isStaged bool) string {
 	switch {
 	case isActive:
 		return hunkBorderActive().String()
-	case isReviewed:
+	case isStaged:
 		return hunkBorderReviewed().String()
 	default:
 		return hunkBorderNormal().String()

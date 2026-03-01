@@ -9,10 +9,10 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/urfave/cli/v3"
 
-	"github.com/nhost/nhost/tools/lazyreview/diff"
-	"github.com/nhost/nhost/tools/lazyreview/git"
 	"github.com/nhost/nhost/tools/lazyreview/review"
 	"github.com/nhost/nhost/tools/lazyreview/tui"
+	"github.com/nhost/nhost/tools/lazyreview/versioncontrol/git"
+	"github.com/nhost/nhost/tools/lazyreview/versioncontrol/git/exec"
 )
 
 var Version string
@@ -40,54 +40,38 @@ func main() {
 func run(ctx context.Context, cmd *cli.Command) error {
 	base := cmd.String("base")
 
-	repoRoot, err := git.RepoRoot(ctx)
+	gitExec, err := exec.NewExec(ctx)
 	if err != nil {
 		return fmt.Errorf("not in a git repository: %w", err)
 	}
 
-	branch, err := git.CurrentBranch(ctx)
+	repoRoot := gitExec.Root()
+
+	branch, err := gitExec.CurrentBranch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get current branch: %w", err)
 	}
 
-	mergeBase, err := git.MergeBase(ctx, base)
+	reviewView := review.NewReview(gitExec, base, repoRoot, branch)
+
+	statuses, err := reviewView.GetStatus(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get merge-base: %w", err)
+		return fmt.Errorf("failed to load review data: %w", err)
 	}
 
-	rawDiff, err := git.Diff(ctx, mergeBase)
-	if err != nil {
-		return fmt.Errorf("failed to get diff: %w", err)
-	}
-
-	files := diff.Parse(rawDiff)
-	if len(files) == 0 {
+	if len(statuses) == 0 {
 		fmt.Fprintln(os.Stdout, "No changes found between", base, "and HEAD")
 
 		return nil
 	}
 
-	hashes := make([]string, len(files))
-	for i, f := range files {
-		hashes[i] = review.Hash(f.RawDiff)
-	}
+	gitView := git.NewGit(gitExec)
 
-	state, err := review.Load(repoRoot, branch, base)
-	if err != nil {
-		return fmt.Errorf("failed to load review state: %w", err)
-	}
-
-	state.Reconcile(files)
-
-	model := tui.NewModel(files, hashes, state, base)
+	model := tui.NewModel(ctx, reviewView, gitView, 0, statuses)
 	p := tea.NewProgram(model)
 
 	if _, err := p.Run(); err != nil {
 		return fmt.Errorf("TUI error: %w", err)
-	}
-
-	if err := state.Save(); err != nil {
-		return fmt.Errorf("failed to save review state: %w", err)
 	}
 
 	return nil

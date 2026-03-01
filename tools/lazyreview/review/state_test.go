@@ -5,11 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/tools/lazyreview/diff"
 	"github.com/nhost/nhost/tools/lazyreview/review"
 )
 
-func TestLoadSaveRoundTrip(t *testing.T) { //nolint:cyclop
+func TestLoadSaveRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
@@ -54,26 +55,21 @@ func TestLoadSaveRoundTrip(t *testing.T) { //nolint:cyclop
 		t.Errorf("round-trip base: expected main, got %s", loaded.Base)
 	}
 
-	fs, ok := loaded.Files["abc123"]
+	wantFile := review.FileState{
+		Path:     "main.go",
+		Reviewed: true,
+		Hunks: map[string]review.HunkState{
+			"0": {Reviewed: true},
+		},
+	}
+
+	gotFile, ok := loaded.Files["abc123"]
 	if !ok {
 		t.Fatal("round-trip: file abc123 not found")
 	}
 
-	if !fs.Reviewed {
-		t.Error("round-trip: file should be reviewed")
-	}
-
-	if fs.Path != "main.go" {
-		t.Errorf("round-trip: expected path main.go, got %s", fs.Path)
-	}
-
-	h, ok := fs.Hunks["0"]
-	if !ok {
-		t.Fatal("round-trip: hunk 0 not found")
-	}
-
-	if !h.Reviewed {
-		t.Error("round-trip: hunk should be reviewed")
+	if d := cmp.Diff(wantFile, gotFile); d != "" {
+		t.Errorf("round-trip file mismatch (-want +got):\n%s", d)
 	}
 }
 
@@ -272,6 +268,70 @@ func TestToggleFileReviewed_NonExistentHash(t *testing.T) {
 
 	// Should not panic
 	state.ToggleFileReviewed("nonexistent")
+}
+
+func TestSetHunkReviewed(t *testing.T) {
+	t.Parallel()
+
+	s := review.NewTransientState()
+
+	files := []*diff.File{
+		{
+			Path: "multi.go",
+			Hunks: []*diff.Hunk{
+				{
+					Header:   "@@ -1,3 +1,3 @@",
+					OldStart: 1, OldCount: 3,
+					NewStart: 1, NewCount: 3,
+				},
+				{
+					Header:   "@@ -10,3 +10,3 @@",
+					OldStart: 10, OldCount: 3,
+					NewStart: 10, NewCount: 3,
+				},
+			},
+			RawDiff: "diff content for set hunk reviewed",
+		},
+	}
+
+	s.Reconcile(files)
+
+	hash := review.Hash("diff content for set hunk reviewed")
+
+	// Set hunk 0 reviewed
+	s.SetHunkReviewed(hash, 0, true)
+
+	if !s.IsHunkReviewed(hash, 0) {
+		t.Error("hunk 0 should be reviewed after SetHunkReviewed(true)")
+	}
+
+	if s.Files[hash].Reviewed {
+		t.Error("file should not be fully reviewed when only 1/2 hunks are reviewed")
+	}
+
+	// Set hunk 1 reviewed
+	s.SetHunkReviewed(hash, 1, true)
+
+	if !s.Files[hash].Reviewed {
+		t.Error("file should be reviewed when all hunks are reviewed")
+	}
+
+	// Unset hunk 0
+	s.SetHunkReviewed(hash, 0, false)
+
+	if s.IsHunkReviewed(hash, 0) {
+		t.Error("hunk 0 should not be reviewed after SetHunkReviewed(false)")
+	}
+
+	if s.Files[hash].Reviewed {
+		t.Error("file should not be reviewed when a hunk is unreviewed")
+	}
+
+	// Non-existent hash — should not panic
+	s.SetHunkReviewed("nonexistent", 0, true)
+
+	// Non-existent hunk index — should not panic
+	s.SetHunkReviewed(hash, 99, true)
 }
 
 func TestToggleHunkReviewed(t *testing.T) {
