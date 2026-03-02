@@ -114,7 +114,7 @@ function DataBrowserSidebarContent({
     schemaSlug: schemaSlug as string | undefined,
     tableSlug: tableSlug as string | undefined,
     selectedSchema,
-    refetch,
+    refetchDatabaseQuery: refetch,
     allObjects: allObjectsInSelectedSchema,
   });
 
