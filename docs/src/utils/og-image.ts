@@ -5,8 +5,12 @@ import satori from 'satori';
 
 const assetsDir = join(process.cwd(), 'src', 'assets');
 
-const interRegular = readFileSync(join(assetsDir, 'fonts', 'Inter-Regular.ttf'));
-const interSemiBold = readFileSync(join(assetsDir, 'fonts', 'Inter-SemiBold.ttf'));
+const interRegular = readFileSync(
+  join(assetsDir, 'fonts', 'Inter-Regular.ttf'),
+);
+const interSemiBold = readFileSync(
+  join(assetsDir, 'fonts', 'Inter-SemiBold.ttf'),
+);
 const interBold = readFileSync(join(assetsDir, 'fonts', 'Inter-Bold.ttf'));
 
 const logoSvg = readFileSync(join(assetsDir, 'logo', 'dark.svg'), 'utf-8');

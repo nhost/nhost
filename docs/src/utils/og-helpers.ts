@@ -15,7 +15,10 @@ const SPECIAL_CASINGS: Record<string, string> = {
 };
 
 function capitalizeWord(word: string): string {
-  return SPECIAL_CASINGS[word.toLowerCase()] ?? word.charAt(0).toUpperCase() + word.slice(1);
+  return (
+    SPECIAL_CASINGS[word.toLowerCase()] ??
+    word.charAt(0).toUpperCase() + word.slice(1)
+  );
 }
 
 function capitalizeSegment(segment: string): string {
