@@ -29,6 +29,7 @@ type Option = {
 export default function ProjectsComboBox() {
   const {
     query: { appSubdomain },
+    asPath,
     push,
   } = useRouter();
 
@@ -59,7 +60,11 @@ export default function ProjectsComboBox() {
   const handleProjectSelect = (option: Option) => {
     setSelectedProject(option);
     setOpen(false);
-    push(`/orgs/${orgSlug}/projects/${option.value}`);
+    const newPath = asPath.replace(
+      `/orgs/${orgSlug}/projects/${appSubdomain}`,
+      `/orgs/${orgSlug}/projects/${option.value}`,
+    );
+    push(newPath);
   };
 
   return (
