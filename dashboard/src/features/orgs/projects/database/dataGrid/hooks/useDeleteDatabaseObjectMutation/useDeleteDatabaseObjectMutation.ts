@@ -1,7 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -39,7 +38,6 @@ export default function useDeleteDatabaseObjectMutation({
   mutationOptions,
 }: UseDeleteDatabaseObjectMutationOptions = {}) {
   const isPlatform = useIsPlatform();
-  const queryClient = useQueryClient();
   const {
     query: { dataSourceSlug },
   } = useRouter();
@@ -48,32 +46,22 @@ export default function useDeleteDatabaseObjectMutation({
     ? deleteDatabaseObject
     : deleteDatabaseObjectMigration;
 
-  const mutation = useMutation(
-    (variables) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
-      return mutationFn({
-        ...variables,
-        appUrl: customAppUrl || appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : customAdminSecret || project!.config!.hasura.adminSecret,
-        dataSource: customDataSource || (dataSourceSlug as string),
-      });
-    },
-    {
-      ...mutationOptions,
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-        });
-      },
-    },
-  );
+  const mutation = useMutation((variables) => {
+    const appUrl = generateAppServiceUrl(
+      project!.subdomain,
+      project!.region,
+      'hasura',
+    );
+    return mutationFn({
+      ...variables,
+      appUrl: customAppUrl || appUrl,
+      adminSecret:
+        process.env.NEXT_PUBLIC_ENV === 'dev'
+          ? getHasuraAdminSecret()
+          : customAdminSecret || project!.config!.hasura.adminSecret,
+      dataSource: customDataSource || (dataSourceSlug as string),
+    });
+  }, mutationOptions);
 
   return mutation;
 }

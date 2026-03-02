@@ -147,7 +147,7 @@ export function useDataBrowserActions({
       // away, without waiting for the refetch to succeed.
       setOptimisticlyRemovedTable(tablePath);
       await refetchDatabaseQuery();
-      queryClient.refetchQueries({
+      await queryClient.refetchQueries({
         queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
       });
 
