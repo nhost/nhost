@@ -84,6 +84,12 @@ module.exports = withBundleAnalyzer({
         permanent: true,
       },
       {
+        source: '/orgs/:orgSlug/projects/:appSubdomain/database/browser',
+        destination:
+          '/orgs/:orgSlug/projects/:appSubdomain/database/browser/default',
+        permanent: true,
+      },
+      {
         source: '/:workspaceSlug/:appSlug/users/logins',
         destination: '/:workspaceSlug/:appSlug/settings/sign-in-methods',
         permanent: true,

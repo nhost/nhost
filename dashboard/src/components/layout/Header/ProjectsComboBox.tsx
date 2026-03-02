@@ -20,6 +20,7 @@ import { ProjectStatusIndicator } from '@/features/orgs/components/common/Projec
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn } from '@/lib/utils';
+import { getProjectFeaturePagePath } from '@/utils/getProjectFeaturePagePath';
 
 type Option = {
   value: string;
@@ -29,7 +30,7 @@ type Option = {
 export default function ProjectsComboBox() {
   const {
     query: { appSubdomain },
-    asPath,
+    pathname,
     push,
   } = useRouter();
 
@@ -60,11 +61,8 @@ export default function ProjectsComboBox() {
   const handleProjectSelect = (option: Option) => {
     setSelectedProject(option);
     setOpen(false);
-    const newPath = asPath.replace(
-      `/orgs/${orgSlug}/projects/${appSubdomain}`,
-      `/orgs/${orgSlug}/projects/${option.value}`,
-    );
-    push(newPath);
+    const featurePath = getProjectFeaturePagePath(pathname);
+    push(`/orgs/${orgSlug}/projects/${option.value}${featurePath}`);
   };
 
   return (
