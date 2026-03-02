@@ -1,9 +1,9 @@
+import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 
 export interface FetchViewDefinitionOptions
   extends MutationOrQueryBaseOptions {}
@@ -30,19 +30,14 @@ export default async function fetchViewDefinition({
       args: [
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT row_to_json(view_data) as data FROM (
-            SELECT
-              CASE WHEN pg_has_role(c.relowner, 'USAGE') THEN pg_get_viewdef(c.oid) ELSE null END AS view_definition,
-              CASE WHEN c.relkind = 'v' THEN 'VIEW' ELSE 'MATERIALIZED VIEW' END AS view_type
-            FROM pg_class c
-            JOIN pg_namespace n ON c.relnamespace = n.oid
-            WHERE n.nspname = %1$L AND c.relname = %2$L
-              AND c.relkind IN ('v', 'm')
-              AND (pg_has_role(c.relowner, 'USAGE')
-                OR has_table_privilege(c.oid, 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
-                OR has_any_column_privilege(c.oid, 'SELECT, INSERT, UPDATE, REFERENCES'))
-            LIMIT 1
-          ) view_data`,
+          `SELECT
+            pg_get_viewdef(c.oid) AS view_definition,
+            CASE WHEN c.relkind = 'v' THEN 'VIEW' ELSE 'MATERIALIZED VIEW' END AS view_type
+          FROM pg_class c
+          JOIN pg_namespace n ON c.relnamespace = n.oid
+          WHERE n.nspname = %1$L AND c.relname = %2$L
+            AND c.relkind IN ('v', 'm')
+          LIMIT 1`,
           schema,
           viewName,
         ),
@@ -87,13 +82,11 @@ export default async function fetchViewDefinition({
     };
   }
 
-  const result = JSON.parse(rawResults[0]);
-  const viewDefinition = result.view_definition || '';
-  const viewType = (result.view_type || 'VIEW') as 'VIEW' | 'MATERIALIZED VIEW';
+  const [viewDefinition, viewType] = rawResults[0];
 
   return {
     viewDefinition,
-    viewType,
+    viewType: viewType as 'VIEW' | 'MATERIALIZED VIEW',
     error: null,
   };
 }

@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 import ViewDefinitionView from '@/features/orgs/projects/database/dataGrid/components/ViewDefinitionView';
-import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface EditViewFormProps {
   /**
@@ -8,9 +7,9 @@ export interface EditViewFormProps {
    */
   schema: string;
   /**
-   * View to be edited.
+   * Name of the view to be edited.
    */
-  table: NormalizedQueryDataRow;
+  tableName: string;
   /**
    * Function to be called when the form is submitted.
    * Optional since views don't have a traditional form submission.
@@ -18,7 +17,7 @@ export interface EditViewFormProps {
   onSubmit?: (tableName: string) => Promise<void>;
 }
 
-export default function EditViewForm({ schema, table }: EditViewFormProps) {
+export default function EditViewForm({ schema, tableName }: EditViewFormProps) {
   const router = useRouter();
   const {
     query: { dataSourceSlug },
@@ -27,7 +26,7 @@ export default function EditViewForm({ schema, table }: EditViewFormProps) {
   return (
     <ViewDefinitionView
       schema={schema}
-      table={table.table_name}
+      table={tableName}
       dataSource={(dataSourceSlug as string) || 'default'}
     />
   );

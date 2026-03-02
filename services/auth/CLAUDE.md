@@ -1,5 +1,7 @@
 # Nhost Hasura Auth - Go Development Guide
 
+**Important**: Always load the root `CLAUDE.md` at the repository root for general monorepo conventions before working on this project.
+
 This document contains patterns, conventions, and workflows for implementing new endpoints and features in the Nhost Hasura Auth Go codebase.
 
 ## Core Principles

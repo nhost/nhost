@@ -42,6 +42,10 @@ overrides:
   svelte@<=5.51.4: '>=5.51.5'
   '@sveltejs/kit@>=2.49.0 <=2.52.1': '>=2.52.2'
   devalue@<=5.6.2: '>=5.6.3'
+  rollup@>=4.0.0 <4.59.0: '>=4.59.0'
+  minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
+  svelte@>=5.53.0 <5.53.5: '>=5.53.5'
+  svelte@<=5.53.4: '>=5.53.5'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -258,8 +262,9 @@ packages:
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
-  baseline-browser-mapping@2.9.18:
-    resolution: {integrity: sha512-e23vBV1ZLfjb9apvfPk4rHVu2ry6RIr2Wfs+O324okSidrX7pTAnEJPCh/O5BtRlr7QtZI7ktOP3vsqr7Z5XoA==}
+  baseline-browser-mapping@2.10.0:
+    resolution: {integrity: sha512-lIyg0szRfYbiy67j9KN8IyeD7q7hcmqnJ1ddWmNt19ItGpNN64mnllmxUNFIOdOm6by97jlL6wfpTTJrmnjWAA==}
+    engines: {node: '>=6.0.0'}
     hasBin: true
 
   caniuse-lite@1.0.30001741:
@@ -480,7 +485,7 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  baseline-browser-mapping@2.9.18: {}
+  baseline-browser-mapping@2.10.0: {}
 
   caniuse-lite@1.0.30001741: {}
 
@@ -495,7 +500,7 @@ snapshots:
     dependencies:
       '@next/env': 16.1.6
       '@swc/helpers': 0.5.15
-      baseline-browser-mapping: 2.9.18
+      baseline-browser-mapping: 2.10.0
       caniuse-lite: 1.0.30001741
       postcss: 8.4.31
       react: 19.1.0

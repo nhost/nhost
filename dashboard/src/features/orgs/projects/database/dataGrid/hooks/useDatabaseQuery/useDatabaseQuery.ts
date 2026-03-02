@@ -10,6 +10,8 @@ import type {
 } from './fetchDatabase';
 import fetchDatabase from './fetchDatabase';
 
+const DATABASE_QUERY_STALE_TIME = 60_000;
+
 export interface UseDatabaseQueryOptions extends Partial<FetchDatabaseOptions> {
   /**
    * Props passed to the underlying query hook.
@@ -43,6 +45,7 @@ export default function useDatabaseQuery(
 
   const query = useQuery<FetchDatabaseReturnType>({
     queryKey,
+    staleTime: DATABASE_QUERY_STALE_TIME,
     queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,

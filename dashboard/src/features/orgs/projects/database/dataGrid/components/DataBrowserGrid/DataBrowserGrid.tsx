@@ -11,7 +11,7 @@ import { useTablePath } from '@/features/orgs/projects/database/common/hooks/use
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
-import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useIsReadOnlyDatabaseObject } from '@/features/orgs/projects/database/dataGrid/hooks/useIsReadOnlyDatabaseObject';
 import {
   createTableQueryKey,
   useTableQuery,
@@ -197,8 +197,10 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
 
   const { mutateAsync: updateRow } = useUpdateRecordWithToastMutation();
 
-  const { data: databaseData } = useDatabaseQuery([dataSourceSlug as string], {
+  const isReadOnlyObject = useIsReadOnlyDatabaseObject({
     dataSource: dataSourceSlug as string,
+    schema: schemaSlug as string,
+    name: tableSlug as string,
     queryOptions: {
       enabled:
         typeof schemaSlug === 'string' &&
@@ -206,16 +208,6 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
         typeof dataSourceSlug === 'string',
     },
   });
-
-  const views = databaseData?.views ?? [];
-  const materializedViews = databaseData?.materializedViews ?? [];
-  const isViewOrMaterializedView =
-    views.some(
-      (v) => v.table_schema === schemaSlug && v.table_name === tableSlug,
-    ) ||
-    materializedViews.some(
-      (mv) => mv.table_schema === schemaSlug && mv.table_name === tableSlug,
-    );
 
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
@@ -428,16 +420,13 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       }
       loading={status === 'loading'}
       className="pb-17 sm:pb-0"
-      onInsertRow={isViewOrMaterializedView ? undefined : handleInsertRowClick}
       options={{
         manualSorting: true,
         enableMultiSort: false,
       }}
       controls={
         <DataBrowserGridControls
-          onInsertRowClick={
-            isViewOrMaterializedView ? undefined : handleInsertRowClick
-          }
+          onInsertRowClick={isReadOnlyObject ? undefined : handleInsertRowClick}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
             totalPages: Math.max(numberOfPages, 1),

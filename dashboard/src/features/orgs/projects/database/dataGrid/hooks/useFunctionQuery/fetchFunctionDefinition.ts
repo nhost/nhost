@@ -1,9 +1,9 @@
+import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 
 export interface FetchFunctionDefinitionOptions
   extends Omit<MutationOrQueryBaseOptions, 'table'> {

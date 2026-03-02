@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
@@ -60,7 +60,7 @@ export default function FieldToColumnMapSelector({
         })()
       : [];
 
-  const { data } = useTableQuery([`default.${schema}.${table}`], {
+  const { data } = useTableSchemaQuery([`default.${schema}.${table}`], {
     schema,
     table,
     queryOptions: {

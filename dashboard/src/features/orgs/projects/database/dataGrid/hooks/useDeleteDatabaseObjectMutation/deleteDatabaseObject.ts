@@ -1,19 +1,25 @@
+import {
+  getPreparedHasuraQuery,
+  type HasuraOperation,
+} from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type { FunctionParameter } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery/fetchFunctionDefinition';
 import type {
   AffectedRowsResult,
+  DatabaseObjectType,
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { buildFunctionSignature } from '@/features/orgs/projects/database/dataGrid/utils/buildFunctionSignature';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 
-export const typeToQuery = {
-  'BASE TABLE': 'TABLE',
+export const typeToQuery: Record<DatabaseObjectType, string> = {
+  'ORDINARY TABLE': 'TABLE',
   VIEW: 'VIEW',
   'MATERIALIZED VIEW': 'MATERIALIZED VIEW',
+  'FOREIGN TABLE': 'FOREIGN TABLE',
   FUNCTION: 'FUNCTION',
-} as const;
+};
 
 export interface DeleteDatabaseObjectVariables {
   /**
@@ -27,7 +33,7 @@ export interface DeleteDatabaseObjectVariables {
   /**
    * Type of the database object to delete.
    */
-  type: 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW' | 'FUNCTION';
+  type: DatabaseObjectType;
   /**
    * Function parameter types. Required when type is FUNCTION to uniquely
    * identify overloaded functions.
@@ -38,23 +44,6 @@ export interface DeleteDatabaseObjectVariables {
 export interface DeleteDatabaseObjectOptions
   extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}
 
-function buildFunctionSignature(
-  schema: string,
-  name: string,
-  inputArgTypes: FunctionParameter[],
-): string {
-  const formatParameterType = (param: FunctionParameter): string => {
-    return param.schema
-      ? `"${param.schema}"."${param.type}"`
-      : `"${param.type}"`;
-  };
-
-  const parameterTypes = inputArgTypes.map(formatParameterType).join(', ');
-  return parameterTypes
-    ? `"${schema}"."${name}"(${parameterTypes})`
-    : `"${schema}"."${name}"`;
-}
-
 export default async function deleteDatabaseObject({
   dataSource,
   appUrl,
@@ -64,31 +53,35 @@ export default async function deleteDatabaseObject({
   type,
   inputArgTypes,
 }: DeleteDatabaseObjectOptions & DeleteDatabaseObjectVariables) {
-  const isFunction = type === 'FUNCTION';
+  const queryType = typeToQuery[type];
+  if (!queryType) {
+    throw new Error(`Unsupported database object type: ${type}`);
+  }
 
-  const queryArgs = isFunction
-    ? (() => {
-        const signature = buildFunctionSignature(
-          schema,
-          table,
-          inputArgTypes || [],
-        );
-        const preparedQuery = getPreparedHasuraQuery(
-          dataSource,
-          'DROP FUNCTION %s',
-          signature,
-        );
-        return {
-          ...preparedQuery,
-          args: { ...preparedQuery.args, cascade: false },
-        };
-      })()
-    : getPreparedHasuraQuery(
-        dataSource,
-        `DROP ${typeToQuery[type]} %I.%I`,
-        schema,
-        table,
-      );
+  let queryArgs: HasuraOperation;
+  if (type === 'FUNCTION') {
+    const signature = buildFunctionSignature(
+      schema,
+      table,
+      inputArgTypes || [],
+    );
+    const preparedQuery = getPreparedHasuraQuery(
+      dataSource,
+      'DROP FUNCTION %s',
+      signature,
+    );
+    queryArgs = {
+      ...preparedQuery,
+      args: { ...preparedQuery.args, cascade: false },
+    };
+  } else {
+    queryArgs = getPreparedHasuraQuery(
+      dataSource,
+      `DROP ${queryType} %I.%I`,
+      schema,
+      table,
+    );
+  }
 
   const response = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',

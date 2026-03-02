@@ -18,7 +18,7 @@ export interface UseEventPaginationOptions<
    */
   useQueryHook: (
     args: TArgs,
-    queryOptions?: TQueryOptions,
+    options?: { queryOptions?: TQueryOptions },
   ) => QueryResult<TData>;
   /**
    * Builder that maps the current pagination state to the arguments expected by the query hook.
@@ -86,7 +86,7 @@ export default function useEventPagination<
 
   const { data, isLoading, isInitialLoading, refetch } = useQueryHook(
     queryArgs,
-    resolvedQueryOptions,
+    { queryOptions: resolvedQueryOptions },
   );
 
   const pageLength = useMemo(() => {

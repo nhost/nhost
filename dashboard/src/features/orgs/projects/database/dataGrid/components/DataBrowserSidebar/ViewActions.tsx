@@ -1,4 +1,5 @@
-import { Ellipsis, Settings, SquarePen, Trash2, Users } from 'lucide-react';
+import { Anchor, Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
+import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -6,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +16,8 @@ const menuItemClassName =
 
 type Props = {
   tableName: string;
+  schema: string;
+  dataSource: string;
   open: boolean;
   className?: string;
   onOpen: () => void;
@@ -23,13 +27,17 @@ type Props = {
   onEditPermissions: () => void;
   onViewPermissions: () => void;
   onEditView: () => void;
-  onEditSettings: () => void;
-  onViewSettings: () => void;
+  onEditGraphQLSettings: () => void;
+  onViewGraphQLSettings: () => void;
+  onEditRelationships: () => void;
+  onViewRelationships: () => void;
   onDelete: () => void;
 };
 
 function ViewActions({
   tableName,
+  schema,
+  dataSource,
   open,
   className,
   onClose,
@@ -39,12 +47,19 @@ function ViewActions({
   onEditPermissions,
   onViewPermissions,
   onEditView,
-  onEditSettings,
-  onViewSettings,
+  onEditGraphQLSettings,
+  onViewGraphQLSettings,
+  onEditRelationships,
+  onViewRelationships,
   onDelete,
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
+  const { data: isTracked } = useIsTrackedTable({
+    dataSource,
+    schema,
+    tableName,
+  });
 
   function handleOnOpenChange(newOpenState: boolean) {
     if (newOpenState) {
@@ -73,16 +88,30 @@ function ViewActions({
         {isGitHubConnected ? (
           <>
             <DropdownMenuItem
-              className={menuItemClassName}
-              onClick={onViewPermissions}
+              className={cn(menuItemClassName, {
+                'italic opacity-50 hover:cursor-default hover:bg-transparent':
+                  !isTracked,
+              })}
+              disabled={!isTracked}
+              onClick={isTracked ? onViewPermissions : undefined}
             >
               <Users className="h-4 w-4" /> <span>View Permissions</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className={menuItemClassName}
-              onClick={onViewSettings}
+              className={cn(menuItemClassName, {
+                'italic opacity-50 hover:cursor-default hover:bg-transparent':
+                  !isTracked,
+              })}
+              disabled={!isTracked}
+              onClick={isTracked ? onViewRelationships : undefined}
             >
-              <Settings className="h-4 w-4" /> <span>View Settings</span>
+              <Anchor className="h-4 w-4" /> <span>View Relationships</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onViewGraphQLSettings}
+            >
+              <GraphQLIcon className="h-4 w-4" /> <span>View GraphQL</span>
             </DropdownMenuItem>
           </>
         ) : (
@@ -96,16 +125,30 @@ function ViewActions({
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
-              className={menuItemClassName}
-              onClick={onEditPermissions}
+              className={cn(menuItemClassName, {
+                'italic opacity-50 hover:cursor-default hover:bg-transparent':
+                  !isTracked,
+              })}
+              disabled={!isTracked}
+              onClick={isTracked ? onEditPermissions : undefined}
             >
               <Users className="h-4 w-4" /> <span>Edit Permissions</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className={menuItemClassName}
-              onClick={onEditSettings}
+              className={cn(menuItemClassName, {
+                'italic opacity-50 hover:cursor-default hover:bg-transparent':
+                  !isTracked,
+              })}
+              disabled={!isTracked}
+              onClick={isTracked ? onEditRelationships : undefined}
             >
-              <Settings className="h-4 w-4" /> <span>Edit Settings</span>
+              <Anchor className="h-4 w-4" /> <span>Edit Relationships</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onEditGraphQLSettings}
+            >
+              <GraphQLIcon className="h-4 w-4" /> <span>Edit GraphQL</span>
             </DropdownMenuItem>
             {isSelectedNotSchemaLocked && (
               <DropdownMenuItem

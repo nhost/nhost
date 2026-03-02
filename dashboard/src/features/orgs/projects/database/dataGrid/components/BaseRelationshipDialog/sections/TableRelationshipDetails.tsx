@@ -5,8 +5,8 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { Button } from '@/components/ui/v3/button';
 import { FormField, FormItem, FormMessage } from '@/components/ui/v3/form';
 import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { BaseRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 
 export default function TableRelationshipDetails() {
   const form = useFormContext<BaseRelationshipFormValues>();
@@ -25,7 +25,7 @@ export default function TableRelationshipDetails() {
     name: 'fieldMapping',
   });
 
-  const { data: fromTableData } = useTableQuery(
+  const { data: fromTableData } = useTableSchemaQuery(
     [
       `${selectedFromSource?.source}.${selectedFromSource?.schema}.${selectedFromSource?.table}`,
     ],
@@ -33,7 +33,6 @@ export default function TableRelationshipDetails() {
       dataSource: selectedFromSource?.source,
       schema: selectedFromSource?.schema,
       table: selectedFromSource?.table,
-      preventRowFetching: true,
       queryOptions: {
         enabled: Boolean(
           selectedFromSource?.source &&
@@ -44,7 +43,7 @@ export default function TableRelationshipDetails() {
     },
   );
 
-  const { data: toTableData } = useTableQuery(
+  const { data: toTableData } = useTableSchemaQuery(
     [
       `${selectedToReference?.source}.${selectedToReference?.schema}.${selectedToReference?.table}`,
     ],
@@ -52,7 +51,6 @@ export default function TableRelationshipDetails() {
       dataSource: selectedToReference?.source,
       schema: selectedToReference?.schema,
       table: selectedToReference?.table,
-      preventRowFetching: true,
       queryOptions: {
         enabled: Boolean(
           selectedToReference?.source &&

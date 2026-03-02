@@ -42,6 +42,10 @@ overrides:
   svelte@<=5.51.4: '>=5.51.5'
   '@sveltejs/kit@>=2.49.0 <=2.52.1': '>=2.52.2'
   devalue@<=5.6.2: '>=5.6.3'
+  rollup@>=4.0.0 <4.59.0: '>=4.59.0'
+  minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
+  svelte@>=5.53.0 <5.53.5: '>=5.53.5'
+  svelte@<=5.53.4: '>=5.53.5'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 

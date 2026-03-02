@@ -54,20 +54,16 @@ export default function ViewDefinitionView({
   };
 
   function handleModify() {
-    // Generate SQL with DROP and CREATE statements
     const isMaterialized = viewType === 'MATERIALIZED VIEW';
     const materializedKeyword = isMaterialized ? 'MATERIALIZED ' : '';
     const dropStatement = `DROP ${materializedKeyword}VIEW "${schema}"."${table}";`;
     const createStatement = `CREATE ${materializedKeyword}VIEW "${schema}"."${table}" AS\n${viewDefinition};`;
     const sqlCode = `${dropStatement}\n${createStatement}`;
 
-    // Store SQL in sessionStorage (not in URL to avoid logs/history)
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('pending-sql', sqlCode);
     }
 
-    // Navigate to editor (no query params needed)
-    // Use router.query if available, otherwise fall back to project/org data
     const orgSlug = (router.query.orgSlug as string) || org?.slug || '';
     const appSubdomain =
       (router.query.appSubdomain as string) || project?.subdomain || '';

@@ -17,7 +17,6 @@ import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGr
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
-import { cn } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 
 export interface DataBrowserGridControlsProps {
@@ -121,14 +120,9 @@ export default function DataBrowserGridControls({
 
   return (
     <div className="box sticky top-0 z-40 border-b-1 p-2">
-      <div
-        className={cn(
-          'mx-auto grid min-h-10 grid-flow-col items-center gap-3',
-          numberOfSelectedRows > 0 ? 'justify-between' : 'justify-end',
-        )}
-      >
+      <div className="mx-auto flex min-h-10 items-center gap-3">
         {numberOfSelectedRows > 0 && (
-          <div className="grid grid-flow-col place-content-start items-center gap-2">
+          <div className="flex items-center gap-2">
             <Badge
               variant="secondary"
               className="!bg-[#ebf3ff] dark:!bg-[#1b2534] text-primary"
@@ -177,7 +171,7 @@ export default function DataBrowserGridControls({
         {numberOfSelectedRows === 0 && (
           <>
             <TrackTableButton />
-            <div className="col-span-6 grid grid-flow-col items-center gap-2">
+            <div className="ml-auto flex items-center gap-2">
               {columns.length > 0 && (
                 <DataGridPagination
                   className={twMerge(
@@ -191,7 +185,9 @@ export default function DataBrowserGridControls({
               <DataGridTableViewConfigurationPopover />
               {onInsertRowClick && (
                 <Button onClick={onInsertRowClick} size="sm">
-                  <Plus className="h-4 w-4" /> Insert row
+                  <Plus className="h-4 w-4" />
+                  <span className="sm:hidden">Insert</span>
+                  <span className="hidden sm:inline">Insert row</span>
                 </Button>
               )}
             </div>

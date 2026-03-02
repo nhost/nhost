@@ -242,4 +242,20 @@ describe('ProjectViewWithState', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText('Application content')).not.toBeInTheDocument();
   });
+
+  it('should clear the query cache on unmount', async () => {
+    const clearSpy = vi.spyOn(queryClient, 'clear');
+    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+    server.use(getProjectQuery);
+    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
+
+    const { unmount } = render(<TestComponent />);
+    await screen.findByText('Application content');
+
+    expect(clearSpy).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(clearSpy).toHaveBeenCalledOnce();
+  });
 });

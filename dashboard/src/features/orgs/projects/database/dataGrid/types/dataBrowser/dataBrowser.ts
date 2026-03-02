@@ -196,6 +196,30 @@ export type NormalizedQueryFunctionRow = {
 };
 
 /**
+ * Represents an object that can be a table, view or materialized view in the database.
+ */
+
+export interface TableLikeObject extends Record<string, unknown> {
+  table_schema: string;
+  table_name: string;
+  table_type: TableLikeObjectType;
+}
+
+export type TableLikeObjectType =
+  | 'ORDINARY TABLE'
+  | 'VIEW'
+  | 'MATERIALIZED VIEW'
+  | 'FOREIGN TABLE';
+
+export type DatabaseObjectType = TableLikeObjectType | 'FUNCTION';
+
+export interface DatabaseObjectViewModel {
+  schema: string;
+  name: string;
+  objectType: DatabaseObjectType;
+}
+
+/**
  * Represents an object that can be used to set up ordering in an SQL query.
  */
 export interface OrderBy {
