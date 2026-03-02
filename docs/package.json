@@ -19,6 +19,7 @@
   "dependencies": {
     "@astrojs/markdown-remark": "^6.3.10",
     "@astrojs/starlight": "^0.37.4",
+    "@astrojs/vercel": "^9.0.4",
     "@babel/parser": "^7.28.6",
     "@readme/openapi-parser": "^5.5.0",
     "@resvg/resvg-js": "^2.6.2",
