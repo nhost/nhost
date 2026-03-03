@@ -125,6 +125,17 @@ const EditGraphQLSettingsForm = dynamic(
   },
 );
 
+const TableInfoDrawer = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/TableInfoDrawer/TableInfoDrawer'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
 const EditRelationshipsForm = dynamic(
   () =>
     import(
@@ -486,6 +497,13 @@ export function useDataBrowserActions({
     });
   }
 
+  function openTableInfoDrawer(schema: string, tableName: string) {
+    openDrawer({
+      title: 'Table Info',
+      component: <TableInfoDrawer schema={schema} tableName={tableName} />,
+    });
+  }
+
   function openEditViewDrawer(
     schema: string,
     tableName: string,
@@ -571,6 +589,7 @@ export function useDataBrowserActions({
     handleEditFunctionSettingsClick,
     handleRelationshipsClick,
     openEditTableDrawer,
+    openTableInfoDrawer,
     openEditViewDrawer,
     openEditFunctionDrawer,
     openCreateTableDrawer,

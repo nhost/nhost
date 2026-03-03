@@ -28,6 +28,7 @@ interface DatabaseObjectActionsProps {
     | 'openEditTableDrawer'
     | 'openEditViewDrawer'
     | 'openEditFunctionDrawer'
+    | 'openTableInfoDrawer'
   >;
 }
 
@@ -130,6 +131,7 @@ export default function DatabaseObjectActions({
       onViewRelationships={() =>
         actions.handleRelationshipsClick(schema, name, true)
       }
+      onTableInfo={() => actions.openTableInfoDrawer(schema, name)}
       onDelete={() =>
         actions.handleDeleteDatabaseObjectClick(
           schema,

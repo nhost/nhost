@@ -3,9 +3,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v2/Button';
-import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import {
   Accordion,
@@ -114,14 +111,14 @@ function ConstraintsList({
           <ConstraintIcon type={constraint.type} />
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
-              <Text className="font-medium text-sm">{constraint.name}</Text>
+              <Text className="font-medium text-sm+">{constraint.name}</Text>
               <ConstraintTypeBadge type={constraint.type} />
             </div>
-            <Text className="font-mono text-muted-foreground text-xs">
+            <Text className="font-mono text-muted-foreground text-sm">
               {constraint.definition}
             </Text>
             {constraint.columns.length > 0 && (
-              <Text className="text-muted-foreground text-xs">
+              <Text className="text-muted-foreground text-sm">
                 Columns: {constraint.columns.join(', ')}
               </Text>
             )}
@@ -131,13 +128,13 @@ function ConstraintsList({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Text className="font-medium text-muted-foreground text-xs uppercase">
+          <Text className="font-medium text-muted-foreground text-sm uppercase">
             Check Constraints
           </Text>
         </div>
 
         {checkConstraints.length === 0 ? (
-          <Text className="text-muted-foreground text-sm">
+          <Text className="text-muted-foreground text-sm+">
             No check constraints defined.
           </Text>
         ) : (
@@ -149,10 +146,12 @@ function ConstraintsList({
               <ShieldCheck className="h-4 w-4 text-green-600" />
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  <Text className="font-medium text-sm">{constraint.name}</Text>
+                  <Text className="font-medium text-sm+">
+                    {constraint.name}
+                  </Text>
                   <ConstraintTypeBadge type="CHECK" />
                 </div>
-                <Text className="font-mono text-muted-foreground text-xs">
+                <Text className="font-mono text-muted-foreground text-sm">
                   {constraint.definition}
                 </Text>
               </div>
@@ -160,6 +159,7 @@ function ConstraintsList({
           ))
         )}
 
+        {/* TODO: re-enable when check constraint creation is ready
         <Button
           variant="borderless"
           startIcon={<PlusIcon />}
@@ -169,6 +169,7 @@ function ConstraintsList({
         >
           Add Check Constraint
         </Button>
+        */}
       </div>
     </div>
   );
@@ -180,7 +181,7 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
 
   if (triggers.length === 0) {
     return (
-      <Text className="text-muted-foreground text-sm">
+      <Text className="text-muted-foreground text-sm+">
         No triggers defined on this table.
       </Text>
     );
@@ -198,19 +199,19 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
           >
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <Text className="font-medium text-sm">{trigger.name}</Text>
+                <Text className="font-medium text-sm+">{trigger.name}</Text>
                 <Badge variant={trigger.isEnabled ? 'default' : 'secondary'}>
                   {trigger.isEnabled ? 'Enabled' : 'Disabled'}
                 </Badge>
               </div>
-              <Text className="text-muted-foreground text-xs">
+              <Text className="text-muted-foreground text-sm">
                 {trigger.timing} {trigger.events.join(' OR ')}
               </Text>
               <div className="flex items-center gap-1">
-                <Text className="text-muted-foreground text-xs">Function:</Text>
+                <Text className="text-muted-foreground text-sm">Function:</Text>
                 <Link
                   href={functionUrl}
-                  className="inline-flex items-center gap-1 text-primary text-xs hover:underline"
+                  className="inline-flex items-center gap-1 text-primary text-sm hover:underline"
                 >
                   {trigger.functionSchema}.{trigger.functionName}
                   <ExternalLink className="h-3 w-3" />
@@ -227,7 +228,7 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
 function IndexesList({ indexes }: { indexes: TableIndex[] }) {
   if (indexes.length === 0) {
     return (
-      <Text className="text-muted-foreground text-sm">
+      <Text className="text-muted-foreground text-sm+">
         No additional indexes on this table.
       </Text>
     );
@@ -242,14 +243,14 @@ function IndexesList({ indexes }: { indexes: TableIndex[] }) {
         >
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
-              <Text className="font-medium text-sm">{index.name}</Text>
+              <Text className="font-medium text-sm+">{index.name}</Text>
               {index.isUnique && <Badge variant="secondary">Unique</Badge>}
             </div>
-            <Text className="font-mono text-muted-foreground text-xs">
+            <Text className="font-mono text-muted-foreground text-sm">
               {index.definition}
             </Text>
             {index.columns.length > 0 && (
-              <Text className="text-muted-foreground text-xs">
+              <Text className="text-muted-foreground text-sm">
                 Columns: {index.columns.join(', ')}
               </Text>
             )}
@@ -283,7 +284,7 @@ export default function TableObjectsSection({
   if (status === 'error' || data?.error) {
     return (
       <section className="px-6 py-3">
-        <Text className="text-destructive text-sm">
+        <Text className="text-destructive text-sm+">
           Failed to load table objects: {data?.error || 'Unknown error'}
         </Text>
       </section>
@@ -298,21 +299,23 @@ export default function TableObjectsSection({
 
   return (
     <section className="border-t-1 px-6 py-3">
-      <InputLabel as="h3" className="mb-3 font-bold text-[0.9375rem] leading-5">
-        Table Objects
-      </InputLabel>
-
-      <Accordion type="multiple" className="w-full">
+      <Accordion
+        type="multiple"
+        defaultValue={['constraints', 'indexes', 'triggers']}
+        className="w-full"
+      >
         <AccordionItem value="constraints">
-          <AccordionTrigger className="py-2 text-sm">
+          <AccordionTrigger className="py-2 text-lg">
             <div className="flex items-center gap-2">
               <span>Constraints</span>
-              <Badge variant="secondary">{constraints.length}</Badge>
+              <Badge variant="secondary" className="text-sm">
+                {constraints.length}
+              </Badge>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-4">
             {isGitHubConnected ? (
-              <Text className="text-muted-foreground text-sm">
+              <Text className="text-muted-foreground text-sm+">
                 Constraints are managed via Git. View them in your repository.
               </Text>
             ) : (
@@ -327,10 +330,12 @@ export default function TableObjectsSection({
         </AccordionItem>
 
         <AccordionItem value="indexes">
-          <AccordionTrigger className="py-2 text-sm">
+          <AccordionTrigger className="py-2 text-lg">
             <div className="flex items-center gap-2">
               <span>Indexes</span>
-              <Badge variant="secondary">{indexes.length}</Badge>
+              <Badge variant="secondary" className="text-sm">
+                {indexes.length}
+              </Badge>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-4">
@@ -339,10 +344,12 @@ export default function TableObjectsSection({
         </AccordionItem>
 
         <AccordionItem value="triggers">
-          <AccordionTrigger className="py-2 text-sm">
+          <AccordionTrigger className="py-2 text-lg">
             <div className="flex items-center gap-2">
               <span>Triggers</span>
-              <Badge variant="secondary">{triggers.length}</Badge>
+              <Badge variant="secondary" className="text-sm">
+                {triggers.length}
+              </Badge>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-4">
