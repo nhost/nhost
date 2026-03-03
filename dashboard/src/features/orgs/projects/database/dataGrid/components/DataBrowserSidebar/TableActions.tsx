@@ -1,4 +1,4 @@
-import { Anchor, Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
+import { Anchor, Ellipsis, Info, SquarePen, Trash2, Users } from 'lucide-react';
 import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -32,6 +32,7 @@ type Props = {
   onViewGraphQLSettings: () => void;
   onEditRelationships: () => void;
   onViewRelationships: () => void;
+  onTableInfo: () => void;
 };
 
 function TableActions({
@@ -52,6 +53,7 @@ function TableActions({
   onViewGraphQLSettings,
   onEditRelationships,
   onViewRelationships,
+  onTableInfo,
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
@@ -113,6 +115,12 @@ function TableActions({
             >
               <GraphQLIcon className="h-4 w-4" /> <span>View GraphQL</span>
             </DropdownMenuItem>
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onTableInfo}
+            >
+              <Info className="h-4 w-4" /> <span>Table Info</span>
+            </DropdownMenuItem>
           </>
         ) : (
           <>
@@ -124,6 +132,12 @@ function TableActions({
                 <SquarePen className="h-4 w-4" /> <span>Edit Table</span>
               </DropdownMenuItem>
             )}
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onTableInfo}
+            >
+              <Info className="h-4 w-4" /> <span>Table Info</span>
+            </DropdownMenuItem>
             <DropdownMenuItem
               className={cn(menuItemClassName, {
                 'italic opacity-50 hover:cursor-default hover:bg-transparent':
