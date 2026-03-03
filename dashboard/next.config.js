@@ -63,6 +63,12 @@ module.exports = withBundleAnalyzer({
         destination: '/signin',
         permanent: true,
       },
+      {
+        source: '/orgs/:orgSlug/projects/:appSubdomain/database/browser',
+        destination:
+          '/orgs/:orgSlug/projects/:appSubdomain/database/browser/default',
+        permanent: true,
+      },
     ];
   },
 });
