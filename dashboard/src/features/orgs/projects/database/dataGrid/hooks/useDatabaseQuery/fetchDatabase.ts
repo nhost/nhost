@@ -1,8 +1,8 @@
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
+  FunctionObject,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
-  FunctionObject,
   QueryError,
   QueryResult,
   TableLikeObject,

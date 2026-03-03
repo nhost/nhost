@@ -283,6 +283,7 @@ export function useDataBrowserActions({
 
       if (isNotEmptyValue(functions) && functions.length > 1) {
         const currentFunctionIndex = functions.findIndex(
+          // biome-ignore lint/nursery/noShadow: destructuring matches API field names
           ({ function_schema: functionSchema, function_name: functionName }) =>
             `${functionSchema}.${functionName}` === functionPath,
         );

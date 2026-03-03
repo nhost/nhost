@@ -1,7 +1,6 @@
 import { ExternalLink, KeyRound, Link2, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Text } from '@/components/ui/v2/Text';
 import {
@@ -11,7 +10,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Badge } from '@/components/ui/v3/badge';
-import { CreateCheckConstraintForm } from '@/features/orgs/projects/database/dataGrid/components/CreateCheckConstraintForm';
 import { useTableRelatedObjectsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableRelatedObjectsQuery';
 import type {
   TableConstraint,
@@ -64,42 +62,9 @@ function ConstraintTypeBadge({ type }: { type: TableConstraint['type'] }) {
   );
 }
 
-function ConstraintsList({
-  constraints,
-  schema,
-  table,
-  onRefetch,
-}: {
-  constraints: TableConstraint[];
-  schema: string;
-  table: string;
-  onRefetch: () => Promise<void>;
-}) {
-  const { openDialog } = useDialog();
-
+function ConstraintsList({ constraints }: { constraints: TableConstraint[] }) {
   const checkConstraints = constraints.filter((c) => c.type === 'CHECK');
   const otherConstraints = constraints.filter((c) => c.type !== 'CHECK');
-
-  const handleAddCheckConstraint = () => {
-    openDialog({
-      title: (
-        <span className="grid grid-flow-row">
-          <span>Add Check Constraint</span>
-          <Text variant="subtitle1" component="span">
-            Check constraints enforce that values in a column satisfy a Boolean
-            expression.
-          </Text>
-        </span>
-      ),
-      component: (
-        <CreateCheckConstraintForm
-          schema={schema}
-          table={table}
-          onSubmit={onRefetch}
-        />
-      ),
-    });
-  };
 
   return (
     <div className="space-y-3">
@@ -268,7 +233,7 @@ export default function TableObjectsSection({
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
 
-  const { data, status, refetch } = useTableRelatedObjectsQuery(
+  const { data, status } = useTableRelatedObjectsQuery(
     ['tableRelatedObjects', schema, table],
     { schema, table },
   );
@@ -293,10 +258,6 @@ export default function TableObjectsSection({
 
   const { constraints = [], triggers = [], indexes = [] } = data || {};
 
-  const handleRefetch = async () => {
-    await refetch();
-  };
-
   return (
     <section className="border-t-1 px-6 py-3">
       <Accordion
@@ -319,12 +280,7 @@ export default function TableObjectsSection({
                 Constraints are managed via Git. View them in your repository.
               </Text>
             ) : (
-              <ConstraintsList
-                constraints={constraints}
-                schema={schema}
-                table={table}
-                onRefetch={handleRefetch}
-              />
+              <ConstraintsList constraints={constraints} />
             )}
           </AccordionContent>
         </AccordionItem>
