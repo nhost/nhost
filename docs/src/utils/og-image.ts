@@ -28,11 +28,11 @@ export async function generateOgImage(
 ): Promise<Buffer> {
   // Adapt font size for long titles
   const titleLength = title.length;
-  let titleFontSize = 52;
+  let titleFontSize = 58;
   if (titleLength > 60) {
-    titleFontSize = 36;
+    titleFontSize = 40;
   } else if (titleLength > 40) {
-    titleFontSize = 44;
+    titleFontSize = 48;
   }
 
   const displayDescription = description ? truncate(description, 140) : '';
@@ -57,8 +57,8 @@ export async function generateOgImage(
             type: 'img',
             props: {
               src: logoDataUri,
-              width: 140,
-              height: 48,
+              width: 180,
+              height: 62,
               style: { objectFit: 'contain' },
             },
           },
@@ -78,7 +78,7 @@ export async function generateOgImage(
                       props: {
                         style: {
                           color: '#0066ff',
-                          fontSize: '20px',
+                          fontSize: '28px',
                           fontWeight: 600,
                           letterSpacing: '0.05em',
                         },
@@ -105,7 +105,7 @@ export async function generateOgImage(
                       props: {
                         style: {
                           color: '#9ca3af',
-                          fontSize: '22px',
+                          fontSize: '28px',
                           fontWeight: 400,
                           lineHeight: 1.4,
                           maxWidth: '900px',
