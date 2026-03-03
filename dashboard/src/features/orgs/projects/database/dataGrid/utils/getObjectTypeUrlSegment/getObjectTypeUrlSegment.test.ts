@@ -17,4 +17,8 @@ describe('getObjectTypeUrlSegment', () => {
   test('should return "views" for MATERIALIZED VIEW', () => {
     expect(getObjectTypeUrlSegment('MATERIALIZED VIEW')).toBe('views');
   });
+
+  test('should return "functions" for FUNCTION', () => {
+    expect(getObjectTypeUrlSegment('FUNCTION')).toBe('functions');
+  });
 });

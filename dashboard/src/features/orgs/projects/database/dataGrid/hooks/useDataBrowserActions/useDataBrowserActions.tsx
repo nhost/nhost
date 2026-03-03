@@ -144,7 +144,7 @@ export interface UseDataBrowserActionsParams {
   selectedSchema: string;
   refetch: () => Promise<unknown>;
   allObjects: DatabaseObjectViewModel[];
-  functions: Array<{ table_schema: string; table_name: string }>;
+  functions: Array<{ function_schema: string; function_name: string }>;
 }
 
 export function useDataBrowserActions({
@@ -272,8 +272,8 @@ export function useDataBrowserActions({
 
       if (isNotEmptyValue(functions) && functions.length > 1) {
         const currentFunctionIndex = functions.findIndex(
-          ({ table_schema: functionSchema, table_name: fnName }) =>
-            `${functionSchema}.${fnName}` === functionPath,
+          ({ function_schema: functionSchema, function_name: functionName }) =>
+            `${functionSchema}.${functionName}` === functionPath,
         );
 
         nextFunctionIndex = currentFunctionIndex + 1;
@@ -314,7 +314,7 @@ export function useDataBrowserActions({
 
       if (schema === schemaSlug && functionName === functionSlug) {
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextFunction.table_schema}/functions/${nextFunction.table_name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextFunction.function_schema}/functions/${nextFunction.function_name}`,
         );
       }
     } catch {

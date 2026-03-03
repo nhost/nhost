@@ -5,9 +5,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
-import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
-import { PartialPermissionIcon } from '@/components/ui/v2/icons/PartialPermissionIcon';
+import { PermissionsLegend } from '@/features/orgs/projects/database/dataGrid/components/PermissionsLegend';
 import { Table } from '@/components/ui/v2/Table';
 import { TableBody } from '@/components/ui/v2/TableBody';
 import { TableCell } from '@/components/ui/v2/TableCell';
@@ -253,28 +251,7 @@ export default function EditPermissionsForm({
             </Text>
           </div>
 
-          <div className="grid grid-flow-col items-center justify-start gap-4">
-            <Text
-              variant="subtitle2"
-              className="grid grid-flow-col items-center gap-1"
-            >
-              full access <FullPermissionIcon />
-            </Text>
-
-            <Text
-              variant="subtitle2"
-              className="grid grid-flow-col items-center gap-1"
-            >
-              partial access <PartialPermissionIcon />
-            </Text>
-
-            <Text
-              variant="subtitle2"
-              className="grid grid-flow-col items-center gap-1"
-            >
-              no access <NoPermissionIcon />
-            </Text>
-          </div>
+          <PermissionsLegend />
 
           <TableContainer sx={{ backgroundColor: 'background.paper' }}>
             <Table>

@@ -6,6 +6,7 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
+import { TrackFunctionButton } from '@/features/orgs/projects/database/dataGrid/components/TrackFunctionButton';
 import { useFunctionPreviewHook } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPreview';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 
@@ -160,6 +161,7 @@ export default function FunctionDefinitionView({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="border-b p-4">
+        <TrackFunctionButton />
         <div className="mb-4">
           <h2 className="font-semibold text-lg">Function Definition</h2>
           <p className="text-muted-foreground text-sm">

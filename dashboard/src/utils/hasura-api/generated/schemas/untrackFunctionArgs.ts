@@ -5,10 +5,6 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { TrackFunctionArgs } from './trackFunctionArgs';
 
-export interface Function {
-  /** Name of the function */
-  name: string;
-  /** Schema of the function */
-  schema: string;
-}
+export type UntrackFunctionArgs = TrackFunctionArgs;

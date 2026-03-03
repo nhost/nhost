@@ -6,11 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { Function } from './function';
+import type { FunctionConfiguration } from './functionConfiguration';
 
-export interface CreateFunctionPermissionArgs {
-  function: Function;
-  /** Name of the role */
-  role: string;
-  /** Name of the source database of the function */
+export interface TrackFunctionArgs {
   source?: string;
+  function: Function;
+  configuration?: FunctionConfiguration;
 }

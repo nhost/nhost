@@ -23,6 +23,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
+import { useGetTrackedFunctionsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedFunctionsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type {
   DatabaseObjectType,
@@ -65,6 +66,10 @@ function DataBrowserSidebarContent({
   } = router;
 
   const { data: trackedTablesSet } = useGetTrackedTablesSet({
+    dataSource: dataSourceSlug as string,
+  });
+
+  const { data: trackedFunctionsSet } = useGetTrackedFunctionsSet({
     dataSource: dataSourceSlug as string,
   });
 
@@ -113,8 +118,8 @@ function DataBrowserSidebarContent({
           objectType: obj.table_type || 'ORDINARY TABLE',
         })),
         ...(functions || []).map((fn) => ({
-          schema: fn.table_schema,
-          name: fn.table_name,
+          schema: fn.function_schema,
+          name: fn.function_name,
           objectType: 'FUNCTION' as DatabaseObjectType,
         })),
       ].filter((obj) => obj.schema === selectedSchema),
@@ -231,7 +236,7 @@ function DataBrowserSidebarContent({
                 const tablePath = `${databaseObject.schema}.${databaseObject.name}`;
                 const isEnum = Boolean(enumTablePaths?.has(tablePath));
                 const isUntracked = isFunction
-                  ? false
+                  ? !trackedFunctionsSet?.has(tablePath)
                   : !trackedTablesSet?.has(tablePath);
                 const DatabaseObjectIcon = getDatabaseObjectIcon(
                   databaseObject.objectType,

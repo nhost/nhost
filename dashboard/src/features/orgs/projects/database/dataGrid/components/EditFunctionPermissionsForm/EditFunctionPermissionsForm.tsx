@@ -1,7 +1,9 @@
-import { Check, TriangleAlert, X } from 'lucide-react';
 import NavLink from 'next/link';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
+import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
+import { PartialPermissionIcon } from '@/components/ui/v2/icons/PartialPermissionIcon';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -20,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { PermissionsLegend } from '@/features/orgs/projects/database/dataGrid/components/PermissionsLegend';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionPermissionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPermissionQuery';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
@@ -258,11 +261,11 @@ export default function EditFunctionPermissionsForm({
   const renderPermissionIcon = (state: PermissionState) => {
     switch (state) {
       case 'allowed':
-        return <Check className="h-4 w-4 text-green-600" />;
+        return <FullPermissionIcon />;
       case 'partial':
-        return <TriangleAlert className="h-4 w-4 text-yellow-600" />;
+        return <PartialPermissionIcon />;
       case 'not-allowed':
-        return <X className="h-4 w-4 text-red-600" />;
+        return <NoPermissionIcon />;
     }
   };
 
@@ -352,20 +355,7 @@ export default function EditFunctionPermissionsForm({
             <p className="text-sm">{description}</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            <span className="flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-green-600" />
-              <span>Allowed</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <TriangleAlert className="h-4 w-4 text-yellow-600" />
-              <span>Partial (no SELECT)</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <X className="h-4 w-4 text-red-600" />
-              <span>Not allowed</span>
-            </span>
-          </div>
+          <PermissionsLegend />
 
           <div className="rounded-md border">
             <Table>
@@ -381,7 +371,7 @@ export default function EditFunctionPermissionsForm({
                   <TableCell className="font-medium">admin</TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center">
-                      <Check className="h-4 w-4 text-green-600" />
+                      <FullPermissionIcon />
                     </div>
                   </TableCell>
                 </TableRow>

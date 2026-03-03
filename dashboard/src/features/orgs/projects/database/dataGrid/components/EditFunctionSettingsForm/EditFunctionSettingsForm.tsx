@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -7,8 +8,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { TrackUntrackSection } from '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/TrackUntrackSection';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
+import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
 import { useSetFunctionCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionCustomizationMutation';
+import { useSetFunctionTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionTrackingMutation';
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
@@ -54,6 +59,45 @@ export default function EditFunctionSettingsForm({
   functionName,
   disabled,
 }: EditFunctionSettingsFormProps) {
+  const { query } = useRouter();
+  const { dataSourceSlug } = query;
+
+  const { data: isTracked } = useIsTrackedFunction({
+    dataSource: (dataSourceSlug as string) || 'default',
+    schema,
+    functionName,
+  });
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
+
+  const { mutateAsync: setFunctionTracking, isPending: isTrackingPending } =
+    useSetFunctionTrackingMutation();
+
+  async function handleTrackToggle() {
+    const tracked = !isTracked;
+    const action = tracked ? 'track' : 'untrack';
+
+    await execPromiseWithErrorToast(
+      async () => {
+        await setFunctionTracking({
+          tracked,
+          resourceVersion,
+          args: {
+            source: (dataSourceSlug as string) || 'default',
+            function: { name: functionName, schema },
+          },
+        });
+      },
+      {
+        loadingMessage: `${tracked ? 'Tracking' : 'Untracking'} function...`,
+        successMessage: `Function ${action}ed successfully.`,
+        errorMessage: `Failed to ${action} function.`,
+      },
+    );
+  }
+
+  const isUntracked = !isTracked;
+
   const { mutateAsync: setFunctionCustomization } =
     useSetFunctionCustomizationMutation();
 
@@ -190,99 +234,111 @@ export default function EditFunctionSettingsForm({
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <Form {...form}>
-        <form
-          onSubmit={handleSubmit}
-          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 pb-4"
-        >
-          <div className="box grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 py-4">
-            <div className="grid grid-flow-col place-content-between gap-3 px-4">
-              <div className="grid grid-flow-row gap-1">
-                <h2 className="font-semibold text-lg">Function Settings</h2>
-                <p className="text-muted-foreground text-sm+">
-                  Configure the GraphQL settings for this function.
-                </p>
-              </div>
-            </div>
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4">
+        <TrackUntrackSection
+          isTracked={isTracked}
+          isPending={isTrackingPending}
+          onTrackToggle={handleTrackToggle}
+          disabled={disabled}
+        />
 
-            {isFunctionCustomizationError ? (
-              <div className="px-4">
-                <Alert variant="destructive">
-                  <AlertTitle>Unable to load function customization</AlertTitle>
-                  <AlertDescription>
-                    {functionCustomizationErrorMessage && (
-                      <p>{functionCustomizationErrorMessage}</p>
-                    )}
-                  </AlertDescription>
-                </Alert>
-              </div>
-            ) : (
-              <div className="grid grid-flow-row gap-4 px-4">
-                <div className="grid grid-flow-row gap-3">
-                  <div className="grid grid-flow-row gap-1">
-                    <h3 className="font-semibold text-lg">
-                      Custom Function Name
-                    </h3>
-                    <p className="text-muted-foreground text-sm+">
-                      Customize the function name in the GraphQL schema.
-                    </p>
-                  </div>
-                  <FormInput
-                    disabled={disabled}
-                    control={form.control}
-                    name="customName"
-                    label=""
-                    placeholder={`${functionName} (default)`}
-                    className="max-w-sm"
-                  />
+        <Form {...form}>
+          <form
+            onSubmit={handleSubmit}
+            className="flex min-h-0 flex-1 flex-col gap-4 px-6"
+          >
+            <div className="box grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 py-4">
+              <div className="grid grid-flow-col place-content-between gap-3 px-4">
+                <div className="grid grid-flow-row gap-1">
+                  <h2 className="font-semibold text-lg">Function Settings</h2>
+                  <p className="text-muted-foreground text-sm+">
+                    Configure the GraphQL settings for this function.
+                  </p>
                 </div>
+              </div>
 
-                <div className="grid grid-flow-row gap-3">
-                  <div className="grid grid-flow-row gap-1">
-                    <h3 className="font-semibold text-lg">
-                      Custom Root Fields
-                    </h3>
-                    <p className="text-muted-foreground text-sm+">
-                      Customize the function root field names.
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+              {isFunctionCustomizationError ? (
+                <div className="px-4">
+                  <Alert variant="destructive">
+                    <AlertTitle>
+                      Unable to load function customization
+                    </AlertTitle>
+                    <AlertDescription>
+                      {functionCustomizationErrorMessage && (
+                        <p>{functionCustomizationErrorMessage}</p>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              ) : (
+                <div className="grid grid-flow-row gap-4 px-4">
+                  <div className="grid grid-flow-row gap-3">
+                    <div className="grid grid-flow-row gap-1">
+                      <h3 className="font-semibold text-lg">
+                        Custom Function Name
+                      </h3>
+                      <p className="text-muted-foreground text-sm+">
+                        Customize the function name in the GraphQL schema.
+                      </p>
+                    </div>
                     <FormInput
-                      disabled={disabled}
+                      disabled={disabled || isUntracked || isTrackingPending}
                       control={form.control}
-                      name="customRootFieldFunction"
-                      label="Function"
+                      name="customName"
+                      label=""
                       placeholder={`${functionName} (default)`}
+                      className="max-w-sm"
                     />
+                  </div>
+
+                  <div className="grid grid-flow-row gap-3">
+                    <div className="grid grid-flow-row gap-1">
+                      <h3 className="font-semibold text-lg">
+                        Custom Root Fields
+                      </h3>
+                      <p className="text-muted-foreground text-sm+">
+                        Customize the function root field names.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormInput
+                        disabled={disabled || isUntracked || isTrackingPending}
+                        control={form.control}
+                        name="customRootFieldFunction"
+                        label="Function"
+                        placeholder={`${functionName} (default)`}
+                      />
+                      <FormInput
+                        disabled={disabled || isUntracked || isTrackingPending}
+                        control={form.control}
+                        name="customRootFieldFunctionAggregate"
+                        label="Function Aggregate"
+                        placeholder={`${functionName}_aggregate (default)`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-flow-row gap-3">
+                    <div className="grid grid-flow-row gap-1">
+                      <h3 className="font-semibold text-lg">
+                        Session Argument
+                      </h3>
+                      <p className="text-muted-foreground text-sm+">
+                        Name of the function argument that accepts session info
+                        JSON (e.g., hasura_session).
+                      </p>
+                    </div>
                     <FormInput
-                      disabled={disabled}
+                      disabled={disabled || isUntracked || isTrackingPending}
                       control={form.control}
-                      name="customRootFieldFunctionAggregate"
-                      label="Function Aggregate"
-                      placeholder={`${functionName}_aggregate (default)`}
+                      name="sessionArgument"
+                      label=""
+                      placeholder="Enter session argument name..."
+                      className="max-w-sm"
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-flow-row gap-3">
-                  <div className="grid grid-flow-row gap-1">
-                    <h3 className="font-semibold text-lg">Session Argument</h3>
-                    <p className="text-muted-foreground text-sm+">
-                      Name of the function argument that accepts session info
-                      JSON (e.g., hasura_session).
-                    </p>
-                  </div>
-                  <FormInput
-                    disabled={disabled}
-                    control={form.control}
-                    name="sessionArgument"
-                    label=""
-                    placeholder="Enter session argument name..."
-                    className="max-w-sm"
-                  />
-                </div>
-
-                {/* <div className="grid grid-flow-row gap-3">
+                  {/* <div className="grid grid-flow-row gap-3">
                   <div className="grid grid-flow-row gap-1">
                     <h3 className="font-semibold text-lg">Expose As</h3>
                     <p className="text-muted-foreground text-sm+">
@@ -290,7 +346,7 @@ export default function EditFunctionSettingsForm({
                     </p>
                   </div>
                   <FormSelect
-                    disabled={disabled}
+                    disabled={disabled || isUntracked || isTrackingPending}
                     control={form.control}
                     name="exposedAs"
                     label=""
@@ -301,44 +357,45 @@ export default function EditFunctionSettingsForm({
                     <SelectItem value="mutation">Mutation</SelectItem>
                   </FormSelect>
                 </div> */}
-              </div>
-            )}
-
-            {!disabled && (
-              <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    color="secondary"
-                    type="button"
-                    onClick={handleResetToDefaultClick}
-                    disabled={isFunctionCustomizationError || isSubmitting}
-                  >
-                    Reset to default
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={handleMakeCamelCaseClick}
-                    disabled={isFunctionCustomizationError || isSubmitting}
-                  >
-                    Make camelCase
-                  </Button>
                 </div>
-                <ButtonWithLoading
-                  variant={isDirty ? 'default' : 'outline'}
-                  type="submit"
-                  disabled={!isDirty || isFunctionCustomizationError}
-                  loading={isSubmitting}
-                  className={cn('text-sm+', { 'text-white': isDirty })}
-                >
-                  Save
-                </ButtonWithLoading>
-              </div>
-            )}
-          </div>
-        </form>
-      </Form>
+              )}
+
+              {!disabled && !isUntracked && (
+                <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      color="secondary"
+                      type="button"
+                      onClick={handleResetToDefaultClick}
+                      disabled={isFunctionCustomizationError || isSubmitting}
+                    >
+                      Reset to default
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      onClick={handleMakeCamelCaseClick}
+                      disabled={isFunctionCustomizationError || isSubmitting}
+                    >
+                      Make camelCase
+                    </Button>
+                  </div>
+                  <ButtonWithLoading
+                    variant={isDirty ? 'default' : 'outline'}
+                    type="submit"
+                    disabled={!isDirty || isFunctionCustomizationError}
+                    loading={isSubmitting}
+                    className={cn('text-sm+', { 'text-white': isDirty })}
+                  >
+                    Save
+                  </ButtonWithLoading>
+                </div>
+              )}
+            </div>
+          </form>
+        </Form>
+      </div>
 
       <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 px-6 py-3">
         <Button variant="outline" color="secondary" onClick={handleCancel}>

@@ -2,7 +2,7 @@ import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/databas
 import type {
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
-  NormalizedQueryFunctionRow,
+  FunctionObject,
   QueryError,
   QueryResult,
   TableLikeObject,
@@ -23,7 +23,7 @@ export interface FetchDatabaseReturnType {
   /**
    * List of available table-returning functions in the database.
    */
-  functions?: NormalizedQueryFunctionRow[];
+  functions?: FunctionObject[];
   /**
    * Response metadata.
    */
@@ -69,9 +69,8 @@ export default async function fetchDatabase({
           dataSource,
           `SELECT row_to_json(func_data) as data FROM (
             SELECT
-              n.nspname as table_schema,
-              p.proname as table_name,
-              'FUNCTION' as table_type
+              n.nspname as function_schema,
+              p.proname as function_name
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
             JOIN pg_type ON p.prorettype = pg_type.oid
@@ -129,6 +128,6 @@ export default async function fetchDatabase({
     ) as TableLikeObject[],
     functions: rawFunctions.map((rawData) =>
       JSON.parse(rawData),
-    ) satisfies NormalizedQueryFunctionRow[],
+    ) satisfies FunctionObject[],
   };
 }

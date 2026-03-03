@@ -43,6 +43,8 @@ export default function DatabaseObjectActions({
     return (
       <FunctionActions
         tableName={name}
+        schema={schema}
+        dataSource={dataSourceSlug}
         {...sharedProps}
         onViewPermissions={() =>
           actions.handleEditFunctionPermissionClick(schema, name, true)

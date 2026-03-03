@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +16,8 @@ const menuItemClassName =
 
 type Props = {
   tableName: string;
+  schema: string;
+  dataSource: string;
   open: boolean;
   className?: string;
   onOpen: () => void;
@@ -31,6 +34,8 @@ type Props = {
 
 function FunctionActions({
   tableName,
+  schema,
+  dataSource,
   open,
   className,
   onClose,
@@ -46,6 +51,11 @@ function FunctionActions({
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
+  const { data: isTracked } = useIsTrackedFunction({
+    dataSource,
+    schema,
+    functionName: tableName,
+  });
 
   function handleOnOpenChange(newOpenState: boolean) {
     if (newOpenState) {
@@ -74,8 +84,9 @@ function FunctionActions({
         {isGitHubConnected ? (
           <>
             <DropdownMenuItem
-              className={menuItemClassName}
+              className={cn(menuItemClassName, !isTracked && 'opacity-50')}
               onClick={onViewPermissions}
+              disabled={!isTracked}
             >
               <Users className="h-4 w-4" /> <span>View Permissions</span>
             </DropdownMenuItem>
@@ -98,8 +109,9 @@ function FunctionActions({
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
-              className={menuItemClassName}
-              onClick={onEditPermissions}
+              className={cn(menuItemClassName, !isTracked && 'opacity-50')}
+              onClick={isTracked ? onEditPermissions : undefined}
+              disabled={!isTracked}
             >
               <Users className="h-4 w-4" /> <span>Edit Permissions</span>
             </DropdownMenuItem>
