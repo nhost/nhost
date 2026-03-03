@@ -205,7 +205,9 @@ export default function BaseTableForm({
         <ForeignKeyEditorSection />
 
         {schema && table && (
-          <TableObjectsSection schema={schema} table={table} />
+          <div className="pt-6">
+            <TableObjectsSection schema={schema} table={table} />
+          </div>
         )}
       </div>
 
