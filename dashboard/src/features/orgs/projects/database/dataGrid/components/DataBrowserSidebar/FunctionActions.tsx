@@ -1,4 +1,5 @@
-import { Ellipsis, Settings, SquarePen, Trash2, Users } from 'lucide-react';
+import { Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
+import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -23,8 +24,8 @@ type Props = {
   onEditFunction: () => void;
   onEditPermissions?: () => void;
   onViewPermissions?: () => void;
-  onEditSettings: () => void;
-  onViewSettings: () => void;
+  onEditGraphQLSettings: () => void;
+  onViewGraphQLSettings: () => void;
   onDelete: () => void;
 };
 
@@ -39,8 +40,8 @@ function FunctionActions({
   onEditFunction,
   onEditPermissions,
   onViewPermissions,
-  onEditSettings,
-  onViewSettings,
+  onEditGraphQLSettings,
+  onViewGraphQLSettings,
   onDelete,
 }: Props) {
   const { project } = useProject();
@@ -80,9 +81,9 @@ function FunctionActions({
             </DropdownMenuItem>
             <DropdownMenuItem
               className={menuItemClassName}
-              onClick={onViewSettings}
+              onClick={onViewGraphQLSettings}
             >
-              <Settings className="h-4 w-4" /> <span>View Settings</span>
+              <GraphQLIcon className="h-4 w-4" /> <span>View GraphQL</span>
             </DropdownMenuItem>
           </>
         ) : (
@@ -104,9 +105,9 @@ function FunctionActions({
             </DropdownMenuItem>
             <DropdownMenuItem
               className={menuItemClassName}
-              onClick={onEditSettings}
+              onClick={onEditGraphQLSettings}
             >
-              <Settings className="h-4 w-4" /> <span>Edit Settings</span>
+              <GraphQLIcon className="h-4 w-4" /> <span>Edit GraphQL</span>
             </DropdownMenuItem>
             {isSelectedNotSchemaLocked && (
               <DropdownMenuItem

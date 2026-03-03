@@ -92,9 +92,11 @@ components:
         - $ref: "#/components/schemas/DropInconsistentMetadataOperation"
         - $ref: "#/components/schemas/ClearMetadataOperation"
         - $ref: "#/components/schemas/ReplaceMetadataOperation"
-        - $ref: "#/components/schemas/SetFunctionCustomizationOperation"
+        - $ref: "#/components/schemas/TrackTableBulkOperation"
+        - $ref: "#/components/schemas/UntrackTableBulkOperation"
         - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
         - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
+        - $ref: "#/components/schemas/SetFunctionCustomizationOperation"
         - $ref: "#/components/schemas/CreateFunctionPermissionBulkOperation"
         - $ref: "#/components/schemas/DropFunctionPermissionBulkOperation"
         - $ref: "#/components/schemas/SuggestRelationshipsOperation"
@@ -154,6 +156,89 @@ components:
               message:
                 type: string
                 example: success
+
+    TrackTableBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          default: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackTableStep"
+
+    TrackTableStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_track_table]
+        args:
+          $ref: "#/components/schemas/TrackTableArgs"
+
+    TrackTableArgs:
+      type: object
+      required:
+        - table
+      properties:
+        source:
+          type: string
+          default: default
+        table:
+          $ref: "#/components/schemas/QualifiedTable"
+
+    UntrackTableBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          default: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/UntrackTableStep"
+
+    UntrackTableStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_untrack_table]
+        args:
+          $ref: "#/components/schemas/UntrackTableArgs"
+
+    UntrackTableArgs:
+      allOf:
+        - $ref: "#/components/schemas/TrackTableArgs"
 
     SetTableCustomizationBulkOperation:
       type: object
@@ -520,6 +605,54 @@ components:
                 constraint_name:
                   type: string
 
+    DropRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to drop relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropRelationshipStep"
+
+    DropRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_drop_relationship]
+        args:
+          type: object
+          required:
+            - table
+            - relationship
+          properties:
+            table:
+              $ref: "#/components/schemas/QualifiedTable"
+            relationship:
+              type: string
+              description: Name of the relationship that needs to be dropped
+            cascade:
+              type: boolean
+              description: When set to true, all the dependent items on this relationship are also dropped
+            source:
+              type: string
+              description: Name of the source database of the table
+              default: default
+
     CreateFunctionPermissionBulkOperation:
       type: object
       required:
@@ -623,54 +756,6 @@ components:
           type: string
           description: Name of the source database of the function
           default: default
-
-    DropRelationshipBulkOperation:
-      type: object
-      required:
-        - type
-        - resource_version
-        - args
-      properties:
-        type:
-          type: string
-          enum: [bulk_atomic]
-          description: Type of operation to drop relationship
-        resource_version:
-          type: integer
-          description: Resource version of the operation
-          example: 1
-        args:
-          type: array
-          items:
-            $ref: "#/components/schemas/DropRelationshipStep"
-
-    DropRelationshipStep:
-      type: object
-      required:
-        - type
-        - args
-      properties:
-        type:
-          type: string
-          enum: [pg_drop_relationship]
-        args:
-          type: object
-          required:
-            - table
-            - relationship
-          properties:
-            table:
-              $ref: "#/components/schemas/QualifiedTable"
-            relationship:
-              type: string
-              description: Name of the relationship that needs to be dropped
-            cascade:
-              type: boolean
-              description: When set to true, all the dependent items on this relationship are also dropped
-            source:
-              type: string
-              description: Name of the source database of the table
-              default: default
 
     DeleteRemoteRelationshipBulkOperation:
       type: object
@@ -1113,6 +1198,8 @@ components:
         - $ref: "#/components/schemas/AddRemoteSchemaStep"
         - $ref: "#/components/schemas/CreateEventTriggerStep"
         - $ref: "#/components/schemas/DeleteEventTriggerStep"
+        - $ref: "#/components/schemas/TrackTableStep"
+        - $ref: "#/components/schemas/UntrackTableStep"
         - $ref: "#/components/schemas/CreateFunctionPermissionStep"
         - $ref: "#/components/schemas/DropFunctionPermissionStep"
 

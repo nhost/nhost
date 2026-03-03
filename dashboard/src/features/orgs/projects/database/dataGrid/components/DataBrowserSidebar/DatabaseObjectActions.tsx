@@ -51,10 +51,10 @@ export default function DatabaseObjectActions({
           actions.handleEditFunctionPermissionClick(schema, name)
         }
         onEditFunction={() => actions.openEditFunctionDrawer(schema, name)}
-        onViewSettings={() =>
+        onViewGraphQLSettings={() =>
           actions.handleEditFunctionSettingsClick(schema, name, true)
         }
-        onEditSettings={() =>
+        onEditGraphQLSettings={() =>
           actions.handleEditFunctionSettingsClick(schema, name, false)
         }
         onDelete={() => actions.handleDeleteFunctionClick(schema, name)}
