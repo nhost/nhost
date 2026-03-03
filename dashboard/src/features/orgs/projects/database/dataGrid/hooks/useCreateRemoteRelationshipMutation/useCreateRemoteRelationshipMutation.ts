@@ -47,7 +47,9 @@ export default function useCreateRemoteRelationshipMutation({
     },
     {
       ...mutationOptions,
-      onSuccess: (_, variables) => {
+      onSuccess: (...args) => {
+        const [, variables] = args;
+
         queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
@@ -57,6 +59,7 @@ export default function useCreateRemoteRelationshipMutation({
             variables.args.source ?? 'default',
           ],
         });
+        mutationOptions?.onSuccess?.(...args);
       },
     },
   );

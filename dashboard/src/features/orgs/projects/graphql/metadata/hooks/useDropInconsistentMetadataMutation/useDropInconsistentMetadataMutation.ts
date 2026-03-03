@@ -38,13 +38,14 @@ export default function useDropInconsistentMetadataMutation(
     },
     {
       ...mutationOptions,
-      onSuccess: () => {
+      onSuccess: (...args) => {
         queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
         queryClient.invalidateQueries({
           queryKey: ['inconsistent-metadata', project?.subdomain],
         });
+        mutationOptions?.onSuccess?.(...args);
       },
     },
   );

@@ -43,7 +43,9 @@ export default function useReloadMetadataMutation(
     },
     {
       ...mutationOptions,
-      onSuccess: (data) => {
+      onSuccess: (...args) => {
+        const [data] = args;
+
         queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
@@ -58,6 +60,8 @@ export default function useReloadMetadataMutation(
             queryKey: ['inconsistent-metadata', project?.subdomain],
           });
         }
+
+        mutationOptions?.onSuccess?.(...args);
       },
     },
   );
