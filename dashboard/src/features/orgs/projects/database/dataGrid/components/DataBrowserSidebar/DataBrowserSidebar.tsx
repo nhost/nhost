@@ -103,6 +103,7 @@ function DataBrowserSidebarContent({
           schema: obj.table_schema,
           name: obj.table_name,
           objectType: obj.table_type || 'ORDINARY TABLE',
+          updatability: obj.updatability,
         })),
       enumTablePaths,
     );
@@ -290,6 +291,7 @@ function DataBrowserSidebarContent({
                                     databaseObject.name,
                                     true,
                                     databaseObject.objectType,
+                                    databaseObject.updatability,
                                   )
                                 }
                                 onEditPermissions={() =>
@@ -298,6 +300,7 @@ function DataBrowserSidebarContent({
                                     databaseObject.name,
                                     undefined,
                                     databaseObject.objectType,
+                                    databaseObject.updatability,
                                   )
                                 }
                                 onEditView={() =>
@@ -367,6 +370,7 @@ function DataBrowserSidebarContent({
                                     databaseObject.name,
                                     true,
                                     databaseObject.objectType,
+                                    databaseObject.updatability,
                                   )
                                 }
                                 onViewGraphQLSettings={() =>
@@ -395,6 +399,7 @@ function DataBrowserSidebarContent({
                                     databaseObject.name,
                                     undefined,
                                     databaseObject.objectType,
+                                    databaseObject.updatability,
                                   )
                                 }
                                 onEditGraphQLSettings={() => {

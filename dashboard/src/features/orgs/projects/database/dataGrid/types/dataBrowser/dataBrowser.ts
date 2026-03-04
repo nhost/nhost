@@ -197,6 +197,7 @@ export interface TableLikeObject extends Record<string, unknown> {
   table_schema: string;
   table_name: string;
   table_type: TableLikeObjectType;
+  updatability: number;
 }
 
 export type TableLikeObjectType =
@@ -211,6 +212,7 @@ export interface DatabaseObjectViewModel {
   schema: string;
   name: string;
   objectType: DatabaseObjectType;
+  updatability: number;
 }
 
 /**

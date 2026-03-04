@@ -44,20 +44,39 @@ const actionLabels: Record<DatabaseAction, string> = {
 const gridColsMap: Record<number, string> = {
   2: 'grid-cols-2',
   3: 'grid-cols-3',
+  4: 'grid-cols-4',
   5: 'grid-cols-5',
 };
 
-// TODO: Ideally we should query pg_relation_is_updatable(oid, true) to determine
-// which actions (insert, update, delete) each view actually supports, rather than
-// showing all actions for every view. Non-updatable views would then only show
-// select, while updatable views (and views with INSTEAD OF triggers) would show
-// the appropriate subset. For now we show all actions — unsupported permissions
-// are accepted as metadata but have no effect.
-function getAllowedActions(objectType?: DatabaseObjectType): DatabaseAction[] {
-  if (objectType === 'MATERIALIZED VIEW') {
-    return SELECT_ONLY;
+/**
+ * Determines which permission actions to show based on the object type and
+ * the pg_relation_is_updatable bitmask (with include_triggers=true).
+ * Bitmask values: 8 = insertable, 4 = updatable, 16 = deletable.
+ */
+function getAllowedActions(
+  objectType?: DatabaseObjectType,
+  updatability?: number,
+): DatabaseAction[] {
+  if (objectType === 'ORDINARY TABLE' || objectType === 'FOREIGN TABLE') {
+    return ALL_ACTIONS;
   }
-  return ALL_ACTIONS;
+
+  if (updatability == null) {
+    return objectType === 'MATERIALIZED VIEW' ? SELECT_ONLY : ALL_ACTIONS;
+  }
+
+  const actions: DatabaseAction[] = [];
+  if (updatability & 8) {
+    actions.push('insert');
+  }
+  actions.push('select');
+  if (updatability & 4) {
+    actions.push('update');
+  }
+  if (updatability & 16) {
+    actions.push('delete');
+  }
+  return actions;
 }
 
 export interface EditPermissionsFormProps extends DialogFormProps {
@@ -78,6 +97,11 @@ export interface EditPermissionsFormProps extends DialogFormProps {
    */
   objectType?: DatabaseObjectType;
   /**
+   * Bitmask from pg_relation_is_updatable(oid, true) indicating which
+   * DML operations the relation supports (8=insert, 4=update, 16=delete).
+   */
+  updatability?: number;
+  /**
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
@@ -88,12 +112,13 @@ export default function EditPermissionsForm({
   schema,
   table,
   objectType,
+  updatability,
   onCancel,
   location,
 }: EditPermissionsFormProps) {
   const [role, setRole] = useState<string>();
   const [action, setAction] = useState<DatabaseAction>();
-  const allowedActions = getAllowedActions(objectType);
+  const allowedActions = getAllowedActions(objectType, updatability);
 
   const { project } = useProject();
   const { org } = useCurrentOrg();
