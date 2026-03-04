@@ -33,9 +33,7 @@ test('should create a view and display its definition', async ({
   await page.getByRole('link', { name: viewName, exact: true }).click();
 
   await page
-    .locator(
-      `li:has-text("${viewName}") #view-management-menu-${viewName}`,
-    )
+    .locator(`li:has-text("${viewName}") #view-management-menu-${viewName}`)
     .click();
 
   await page.getByRole('menuitem', { name: /view definition/i }).click();
@@ -68,9 +66,7 @@ test('should open the SQL editor with modify SQL when clicking Modify', async ({
   await page.getByRole('link', { name: viewName, exact: true }).click();
 
   await page
-    .locator(
-      `li:has-text("${viewName}") #view-management-menu-${viewName}`,
-    )
+    .locator(`li:has-text("${viewName}") #view-management-menu-${viewName}`)
     .click();
 
   await page.getByRole('menuitem', { name: /view definition/i }).click();

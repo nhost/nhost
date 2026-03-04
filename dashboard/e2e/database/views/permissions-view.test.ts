@@ -32,9 +32,7 @@ test('should set select permissions on a view', async ({
 
   await page.getByRole('link', { name: viewName, exact: true }).hover();
   await page
-    .locator(
-      `li:has-text("${viewName}") #view-management-menu-${viewName}`,
-    )
+    .locator(`li:has-text("${viewName}") #view-management-menu-${viewName}`)
     .click();
 
   await page.getByRole('menuitem', { name: /edit permissions/i }).click();
