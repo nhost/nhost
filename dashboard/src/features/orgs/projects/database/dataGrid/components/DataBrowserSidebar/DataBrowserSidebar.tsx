@@ -62,9 +62,12 @@ function DataBrowserSidebarContent({
     dataSource: dataSourceSlug as string,
   });
 
-  const { data, status, error, refetch } = useDatabaseQuery([
-    dataSourceSlug as string,
-  ]);
+  const {
+    data,
+    status,
+    error,
+    refetch: refetchDatabaseQuery,
+  } = useDatabaseQuery([dataSourceSlug as string]);
 
   const { schemas, tableLikeObjects, metadata } = data || {
     schemas: [],
@@ -123,7 +126,7 @@ function DataBrowserSidebarContent({
     schemaSlug: schemaSlug as string | undefined,
     tableSlug: tableSlug as string | undefined,
     selectedSchema,
-    refetch,
+    refetchDatabaseQuery,
     allObjects: allObjectsInSelectedSchema,
   });
 
