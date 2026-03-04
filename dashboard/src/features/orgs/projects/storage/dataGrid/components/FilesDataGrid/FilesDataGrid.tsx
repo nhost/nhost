@@ -20,11 +20,10 @@ import { DataGridPreviewCell } from '@/features/orgs/projects/storage/dataGrid/c
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { FilesDataGridControls } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGridControls';
 import { PreviewHeader } from '@/features/orgs/projects/storage/dataGrid/components/PreviewHeader';
-import { useBuckets } from '@/features/orgs/projects/storage/dataGrid/hooks/useBuckets';
 import { useFiles } from '@/features/orgs/projects/storage/dataGrid/hooks/useFiles';
 import { useFilesAggregate } from '@/features/orgs/projects/storage/dataGrid/hooks/useFilesAggregate';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { Files } from '@/utils/__generated__/graphql';
+import type { Files, GetBucketQuery } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
@@ -33,7 +32,11 @@ export type StoredFile = Omit<Files, 'bucket'> & {
   preview: PreviewProps;
 };
 
-export type FilesDataGridProps = Partial<DataGridProps<StoredFile>>;
+type Bucket = NonNullable<GetBucketQuery['bucket']>;
+
+export type FilesDataGridProps = {
+  bucket: Bucket;
+} & Partial<DataGridProps<StoredFile>>;
 
 const columns: ColumnDef<StoredFile>[] = [
   {
@@ -114,7 +117,10 @@ const columns: ColumnDef<StoredFile>[] = [
   },
 ];
 
-export default function FilesDataGrid(props: FilesDataGridProps) {
+export default function FilesDataGrid({
+  bucket,
+  ...props
+}: FilesDataGridProps) {
   const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();
@@ -128,8 +134,6 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     ? 'No search results found.'
     : 'No files are uploaded yet.';
 
-  const { defaultBucket } = useBuckets();
-
   const {
     files,
     loading,
@@ -137,6 +141,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     refetch: refetchFiles,
   } = useFiles({
     searchString,
+    bucketId: bucket.id,
     limit,
     offset: currentOffset * limit,
     orderBy:
@@ -155,6 +160,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
 
   const { numberOfFiles, refetch: refetchFilesAggregate } = useFilesAggregate({
     searchString,
+    bucketId: bucket.id,
   });
 
   const numberOfPages = numberOfFiles ? Math.ceil(numberOfFiles / limit) : 0;
@@ -232,24 +238,22 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
       return;
     }
 
-    if (!defaultBucket?.id) {
+    if (!bucket?.id) {
       // biome-ignore lint/style/noParameterAssign: reset file input's value
       event.target.value = '';
 
-      triggerToast(
-        'File cannot be uploaded, because no default bucket is available.',
-      );
+      triggerToast('File cannot be uploaded, because no bucket is available.');
 
       return;
     }
 
-    if (file.size > defaultBucket.maxUploadFileSize) {
+    if (file.size > bucket.maxUploadFileSize) {
       // biome-ignore lint/style/noParameterAssign: reset file input's value
       event.target.value = '';
 
       triggerToast(
         `File size cannot be larger than the maximum allowed size of ${
-          defaultBucket.maxUploadFileSize / 1000000
+          bucket.maxUploadFileSize / 1000000
         } MB.`,
       );
 
@@ -260,7 +264,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     try {
       const uploadResponse = await appClient.storage.uploadFiles(
         {
-          'bucket-id': defaultBucket.id,
+          'bucket-id': bucket.id,
           'file[]': [file],
           'metadata[]': [
             {
