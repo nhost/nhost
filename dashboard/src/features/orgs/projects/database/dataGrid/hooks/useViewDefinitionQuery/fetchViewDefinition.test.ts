@@ -1,13 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  test,
-} from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 import fetchViewDefinition from './fetchViewDefinition';
 
 const defaultOptions = {
@@ -125,10 +118,7 @@ describe('fetchViewDefinition', () => {
   test('should return error field message when no internal field', async () => {
     server.use(
       http.post('http://localhost:1337/v2/query', () =>
-        HttpResponse.json(
-          { error: 'permission denied' },
-          { status: 400 },
-        ),
+        HttpResponse.json({ error: 'permission denied' }, { status: 400 }),
       ),
     );
 
