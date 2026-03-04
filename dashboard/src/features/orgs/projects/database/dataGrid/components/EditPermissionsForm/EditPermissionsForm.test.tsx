@@ -64,6 +64,16 @@ vi.mock(
   }),
 );
 
+// pg_relation_is_updatable(oid, true) returns a bitmask:
+//   8  = insertable
+//   4  = updatable
+//   16 = deletable
+// Combined values used in tests:
+//   0  = none (select only)
+//   8  = insert only
+//   16 = delete only
+//   20 = update + delete (4 + 16)
+//   28 = insert + update + delete (8 + 4 + 16)
 describe('EditPermissionsForm', () => {
   it('should display all 4 action column headers for a table', () => {
     render(

@@ -98,7 +98,7 @@ export interface EditPermissionsFormProps extends DialogFormProps {
   objectType?: DatabaseObjectType;
   /**
    * Bitmask from pg_relation_is_updatable(oid, true) indicating which
-   * DML operations the relation supports (8=insert, 4=update, 16=delete).
+   * operations the relation supports (8=insert, 4=update, 16=delete).
    */
   updatability?: number;
   /**
