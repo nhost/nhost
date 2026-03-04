@@ -31,8 +31,7 @@ import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
-import TableActions from './TableActions';
-import ViewActions from './ViewActions';
+import DatabaseObjectActions from './DatabaseObjectActions';
 
 export interface DataBrowserSidebarProps {
   className?: string;
@@ -63,9 +62,12 @@ function DataBrowserSidebarContent({
     dataSource: dataSourceSlug as string,
   });
 
-  const { data, status, error, refetch } = useDatabaseQuery([
-    dataSourceSlug as string,
-  ]);
+  const {
+    data,
+    status,
+    error,
+    refetch: refetchDatabaseQuery,
+  } = useDatabaseQuery([dataSourceSlug as string]);
 
   const { schemas, tableLikeObjects, metadata } = data || {
     schemas: [],
@@ -113,10 +115,10 @@ function DataBrowserSidebarContent({
     optimisticlyRemovedObject,
     sidebarMenuObject,
     setSidebarMenuObject,
-    handleDeleteDatabaseObjectClick,
-    handleEditPermissionClick,
-    handleEditGraphQLSettingsClick,
-    handleRelationshipsClick,
+    handleDeleteDatabaseObject,
+    handleEditPermission,
+    handleEditGraphQLSettings,
+    handleEditRelationships,
     openEditTableDrawer,
     openEditViewDrawer,
     openCreateTableDrawer,
@@ -125,7 +127,7 @@ function DataBrowserSidebarContent({
     schemaSlug: schemaSlug as string | undefined,
     tableSlug: tableSlug as string | undefined,
     selectedSchema,
-    refetch,
+    refetchDatabaseQuery,
     allObjects: allObjectsInSelectedSchema,
   });
 
@@ -215,9 +217,6 @@ function DataBrowserSidebarContent({
                   databaseObject.schema === schemaSlug &&
                   databaseObject.name === tableSlug;
                 const isSidebarMenuOpen = sidebarMenuObject === objectPath;
-                const isView = ['MATERIALIZED VIEW', 'VIEW'].includes(
-                  databaseObject.objectType,
-                );
                 const tablePath = `${databaseObject.schema}.${databaseObject.name}`;
                 const isEnum = Boolean(enumTablePaths?.has(tablePath));
                 const isUntracked = !trackedTablesSet?.has(tablePath);
@@ -266,164 +265,92 @@ function DataBrowserSidebarContent({
                                 {databaseObject.name}
                               </span>
                             </NextLink>
-                            {isView ? (
-                              <ViewActions
-                                tableName={databaseObject.name}
-                                schema={databaseObject.schema}
-                                dataSource={dataSourceSlug as string}
-                                open={isSidebarMenuOpen}
-                                onOpen={() => setSidebarMenuObject(objectPath)}
-                                onClose={() => setSidebarMenuObject(undefined)}
-                                disabled={objectPath === removableObject}
-                                className={cn(
-                                  'relative z-10 opacity-0 group-hover:opacity-100',
-                                  {
-                                    'opacity-100':
-                                      isSelected || isSidebarMenuOpen,
-                                  },
-                                )}
-                                isSelectedNotSchemaLocked={
-                                  !isSelectedSchemaLocked
-                                }
-                                onViewPermissions={() =>
-                                  handleEditPermissionClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    true,
-                                    databaseObject.objectType,
-                                    databaseObject.updatability,
-                                  )
-                                }
-                                onEditPermissions={() =>
-                                  handleEditPermissionClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    undefined,
-                                    databaseObject.objectType,
-                                    databaseObject.updatability,
-                                  )
-                                }
-                                onEditView={() =>
-                                  openEditViewDrawer(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    databaseObject.objectType,
-                                  )
-                                }
-                                onEditGraphQLSettings={() =>
-                                  handleEditGraphQLSettingsClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    false,
-                                  )
-                                }
-                                onViewGraphQLSettings={() =>
-                                  handleEditGraphQLSettingsClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    true,
-                                  )
-                                }
-                                onEditRelationships={() => {
-                                  handleRelationshipsClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                  );
-                                }}
-                                onViewRelationships={() =>
-                                  handleRelationshipsClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    true,
-                                  )
-                                }
-                                onDelete={() =>
-                                  handleDeleteDatabaseObjectClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    databaseObject.objectType,
-                                  )
-                                }
-                              />
-                            ) : (
-                              <TableActions
-                                tableName={databaseObject.name}
-                                schema={databaseObject.schema}
-                                dataSource={dataSourceSlug as string}
-                                disabled={objectPath === removableObject}
-                                open={isSidebarMenuOpen}
-                                onOpen={() => setSidebarMenuObject(objectPath)}
-                                onClose={() => setSidebarMenuObject(undefined)}
-                                className={cn(
-                                  'relative z-10 opacity-0 group-hover:opacity-100',
-                                  {
-                                    'opacity-100':
-                                      isSelected || isSidebarMenuOpen,
-                                  },
-                                )}
-                                isSelectedNotSchemaLocked={
-                                  !isSelectedSchemaLocked
-                                }
-                                onViewPermissions={() =>
-                                  handleEditPermissionClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    true,
-                                    databaseObject.objectType,
-                                    databaseObject.updatability,
-                                  )
-                                }
-                                onViewGraphQLSettings={() =>
-                                  handleEditGraphQLSettingsClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    true,
-                                  )
-                                }
-                                onViewRelationships={() =>
-                                  handleRelationshipsClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    true,
-                                  )
-                                }
-                                onEditTable={() =>
-                                  openEditTableDrawer(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                  )
-                                }
-                                onEditPermissions={() =>
-                                  handleEditPermissionClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    undefined,
-                                    databaseObject.objectType,
-                                    databaseObject.updatability,
-                                  )
-                                }
-                                onEditGraphQLSettings={() => {
-                                  handleEditGraphQLSettingsClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    false,
-                                  );
-                                }}
-                                onEditRelationships={() => {
-                                  handleRelationshipsClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                  );
-                                }}
-                                onDelete={() =>
-                                  handleDeleteDatabaseObjectClick(
-                                    databaseObject.schema,
-                                    databaseObject.name,
-                                    databaseObject.objectType,
-                                  )
-                                }
-                              />
-                            )}
+                            <DatabaseObjectActions
+                              tableName={databaseObject.name}
+                              schema={databaseObject.schema}
+                              dataSource={dataSourceSlug as string}
+                              objectType={databaseObject.objectType}
+                              open={isSidebarMenuOpen}
+                              onOpen={() => setSidebarMenuObject(objectPath)}
+                              onClose={() => setSidebarMenuObject(undefined)}
+                              disabled={objectPath === removableObject}
+                              className={cn(
+                                'relative z-10 opacity-0 group-hover:opacity-100',
+                                {
+                                  'opacity-100':
+                                    isSelected || isSidebarMenuOpen,
+                                },
+                              )}
+                              isSelectedNotSchemaLocked={
+                                !isSelectedSchemaLocked
+                              }
+                              onViewPermissions={() =>
+                                handleEditPermission(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                  true,
+                                  databaseObject.objectType,
+                                  databaseObject.updatability,
+                                )
+                              }
+                              onEditPermissions={() =>
+                                handleEditPermission(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                  undefined,
+                                  databaseObject.objectType,
+                                  databaseObject.updatability,
+                                )
+                              }
+                              onEdit={() =>
+                                ['MATERIALIZED VIEW', 'VIEW'].includes(
+                                  databaseObject.objectType,
+                                )
+                                  ? openEditViewDrawer(
+                                      databaseObject.schema,
+                                      databaseObject.name,
+                                      databaseObject.objectType,
+                                    )
+                                  : openEditTableDrawer(
+                                      databaseObject.schema,
+                                      databaseObject.name,
+                                    )
+                              }
+                              onEditGraphQLSettings={() =>
+                                handleEditGraphQLSettings(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                  false,
+                                )
+                              }
+                              onViewGraphQLSettings={() =>
+                                handleEditGraphQLSettings(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                  true,
+                                )
+                              }
+                              onEditRelationships={() =>
+                                handleEditRelationships(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                )
+                              }
+                              onViewRelationships={() =>
+                                handleEditRelationships(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                  true,
+                                )
+                              }
+                              onDelete={() =>
+                                handleDeleteDatabaseObject(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                  databaseObject.objectType,
+                                )
+                              }
+                            />
                           </div>
                         </Button>
                       </TooltipTrigger>

@@ -1,6 +1,7 @@
 ---
 import Default from '@astrojs/starlight/components/Head.astro';
 import type { Props } from '@astrojs/starlight/props';
+import { getBreadcrumb, getDisplayTitle } from '../utils/og-helpers';
 
 // Keywords for SEO: Renders <meta name="keywords"> in <head> for external search engines (Google, etc.)
 // Note: This is NOT searchable by Pagefind since <head> is outside <main data-pagefind-body>.
@@ -9,9 +10,29 @@ const propsEntry = Astro.props.entry;
 const localsEntry = Astro.locals.starlightRoute?.entry;
 const entry = propsEntry || localsEntry;
 const keywords = entry?.data?.keywords as string[] | undefined;
+
+// Build per-page OG image URL with query params
+const pathname = Astro.url.pathname.replace(/\/$/, '').replace(/^\//, '');
+const slug = pathname || 'index';
+const rawTitle = (entry?.data?.title as string) || 'Nhost Docs';
+const title = getDisplayTitle(rawTitle, slug);
+const breadcrumb = getBreadcrumb(slug);
+const description = (entry?.data?.description as string) || '';
+
+const ogUrl = new URL('/og.png', Astro.site);
+ogUrl.searchParams.set('title', title);
+if (breadcrumb) ogUrl.searchParams.set('breadcrumb', breadcrumb);
+if (description) ogUrl.searchParams.set('description', description);
 ---
 
 <Default {...Astro.props}><slot /></Default>
+
+<!-- Open Graph / Social media preview -->
+<meta property="og:image" content={ogUrl.href} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content={ogUrl.href} />
 
 <!-- Force dark mode -->
 <script is:inline>

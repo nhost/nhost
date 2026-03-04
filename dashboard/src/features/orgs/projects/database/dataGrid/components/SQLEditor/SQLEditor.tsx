@@ -22,11 +22,13 @@ import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useSqlEditorPrefill } from '@/features/orgs/projects/database/dataGrid/hooks/useSqlEditorPrefill';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 
 export default function SQLEditor() {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
+  const { prefillSql, consumePrefill } = useSqlEditorPrefill();
 
   const [sqlCode, setSQLCode] = useState('');
   const [track, setTrack] = useState(false);
@@ -35,17 +37,12 @@ export default function SQLEditor() {
   const [isMigration, setIsMigration] = useState(false);
   const [migrationName, setMigrationName] = useState('');
 
-  // Load SQL from sessionStorage on mount (if available)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedSQL = sessionStorage.getItem('pending-sql');
-      if (storedSQL) {
-        setSQLCode(storedSQL);
-        // Clean up sessionStorage after reading
-        sessionStorage.removeItem('pending-sql');
-      }
+    if (prefillSql) {
+      setSQLCode(prefillSql);
+      consumePrefill();
     }
-  }, []);
+  }, [prefillSql, consumePrefill]);
 
   const onChange = useCallback((value: string) => setSQLCode(value), []);
 

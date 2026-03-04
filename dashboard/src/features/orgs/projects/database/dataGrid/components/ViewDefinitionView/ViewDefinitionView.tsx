@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
+import { useSqlEditorPrefill } from '@/features/orgs/projects/database/dataGrid/hooks/useSqlEditorPrefill';
 import { useViewDefinitionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useViewDefinitionQuery';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -14,34 +15,34 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export interface ViewDefinitionViewProps {
   schema: string;
   table: string;
-  dataSource?: string;
 }
 
 export default function ViewDefinitionView({
   schema,
   table,
-  dataSource,
 }: ViewDefinitionViewProps) {
   const theme = useTheme();
-  const router = useRouter();
+  const {
+    push,
+    query: { orgSlug, appSubdomain, dataSourceSlug },
+  } = useRouter();
+  const dataSource = dataSourceSlug as string;
   const { project } = useProject();
   const { org } = useCurrentOrg();
+  const { prefill } = useSqlEditorPrefill();
 
   const {
     data,
     status,
     error: queryError,
-  } = useViewDefinitionQuery(
-    ['view-definition', dataSource || 'default', schema, table],
-    {
-      schema,
-      table,
-      dataSource: dataSource || 'default',
-      queryOptions: {
-        enabled: !!schema && !!table,
-      },
+  } = useViewDefinitionQuery(['view-definition', dataSource, schema, table], {
+    schema,
+    table,
+    dataSource,
+    queryOptions: {
+      enabled: !!schema && !!table,
     },
-  );
+  });
 
   const {
     viewDefinition,
@@ -55,20 +56,23 @@ export default function ViewDefinitionView({
 
   function handleModify() {
     const isMaterialized = viewType === 'MATERIALIZED VIEW';
-    const materializedKeyword = isMaterialized ? 'MATERIALIZED ' : '';
-    const dropStatement = `DROP ${materializedKeyword}VIEW "${schema}"."${table}";`;
-    const createStatement = `CREATE ${materializedKeyword}VIEW "${schema}"."${table}" AS\n${viewDefinition};`;
-    const sqlCode = `${dropStatement}\n${createStatement}`;
 
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('pending-sql', sqlCode);
+    let sqlCode: string;
+    if (isMaterialized) {
+      const dropStatement = `DROP MATERIALIZED VIEW "${schema}"."${table}";`;
+      const createStatement = `CREATE MATERIALIZED VIEW "${schema}"."${table}" AS\n${viewDefinition}`;
+      sqlCode = `${dropStatement}\n${createStatement}`;
+    } else {
+      sqlCode = `CREATE OR REPLACE VIEW "${schema}"."${table}" AS\n${viewDefinition}`;
     }
 
-    const orgSlug = (router.query.orgSlug as string) || org?.slug || '';
-    const appSubdomain =
-      (router.query.appSubdomain as string) || project?.subdomain || '';
-    const editorPath = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSource || 'default'}/editor`;
-    router.push(editorPath);
+    prefill(sqlCode);
+
+    const resolvedOrgSlug = (orgSlug as string) || org?.slug || '';
+    const resolvedAppSubdomain =
+      (appSubdomain as string) || project?.subdomain || '';
+    const editorPath = `/orgs/${resolvedOrgSlug}/projects/${resolvedAppSubdomain}/database/browser/${dataSource}/editor`;
+    push(editorPath);
   }
 
   if (status === 'loading') {
@@ -120,17 +124,14 @@ export default function ViewDefinitionView({
     <div className="flex h-full flex-col overflow-hidden">
       <div className="border-b p-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-semibold text-lg">View Definition</h2>
-            <p className="text-muted-foreground text-sm">
-              <InlineCode className="bg-opacity-80 px-1.5 text-sm">
-                {schema}.{table}
-              </InlineCode>
-              <span className="ml-2 text-muted-foreground text-xs">
-                ({viewType})
-              </span>
-            </p>
-          </div>
+          <p className="text-muted-foreground text-sm">
+            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
+              {schema}.{table}
+            </InlineCode>
+            <span className="ml-2 text-muted-foreground text-xs">
+              ({viewType})
+            </span>
+          </p>
           <Button variant="default" onClick={handleModify}>
             Modify
           </Button>

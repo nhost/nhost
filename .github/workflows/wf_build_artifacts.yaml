@@ -94,7 +94,7 @@ jobs:
         zip -r result.zip result
 
     - name: "Push artifact to artifact repository"
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.NAME }}-artifact-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
         path: ${{ inputs.PATH }}/result.zip
@@ -109,7 +109,7 @@ jobs:
       if: ${{ ( inputs.DOCKER ) }}
 
     - name: "Push docker image to artifact repository"
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.NAME }}-docker-image-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
         path: ${{ inputs.PATH }}/result

@@ -148,7 +148,7 @@ jobs:
         rm playwright-report.tar.gz
 
     - name: Upload encrypted Playwright report
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       if: failure()
       with:
         name: encrypted-playwright-report-${{ github.run_id }}

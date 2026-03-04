@@ -22,7 +22,8 @@ describe('RolePermissionsRow', () => {
       </table>,
     );
 
-    expect(screen.getByText('editor')).toBeInTheDocument();
+    const firstCell = screen.getAllByRole('cell')[0];
+    expect(firstCell).toHaveTextContent('editor');
   });
 
   it('should render all 4 action columns by default', () => {
@@ -45,6 +46,30 @@ describe('RolePermissionsRow', () => {
 
     const allCells = screen.getAllByRole('cell');
     expect(allCells).toHaveLength(5);
+  });
+
+  it('should render full permission icon for full access and no permission icon for no access', () => {
+    render(
+      <table>
+        <tbody>
+          <RolePermissionsRow
+            name="user"
+            disabled
+            accessLevels={{
+              insert: 'full',
+              select: 'full',
+              update: 'none',
+              delete: 'none',
+            }}
+          />
+        </tbody>
+      </table>,
+    );
+
+    const fullIcons = screen.getAllByLabelText('Three filled horizontal lines');
+    const noIcons = screen.getAllByLabelText('Three horizontal lines');
+    expect(fullIcons).toHaveLength(2);
+    expect(noIcons).toHaveLength(2);
   });
 
   it('should render only the select column when actions is ["select"]', () => {
