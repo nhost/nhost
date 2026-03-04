@@ -56,7 +56,7 @@ EventTriggersPage.getLayout = function getLayout(page: ReactElement) {
         className: 'flex h-full',
       }}
     >
-      <EventTriggersBrowserSidebar className="w-full max-w-sidebar" />
+      <EventTriggersBrowserSidebar />
 
       <div className="box flex w-full flex-auto flex-col overflow-x-hidden bg-default">
         {page}
