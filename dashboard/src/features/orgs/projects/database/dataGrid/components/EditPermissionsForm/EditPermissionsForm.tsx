@@ -24,15 +24,13 @@ import type {
   DatabaseObjectType,
   HasuraMetadataPermission,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getAllowedActions } from '@/features/orgs/projects/database/dataGrid/utils/getAllowedActions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import RolePermissionEditorForm from './RolePermissionEditorForm';
 import RolePermissionsRow from './RolePermissionsRow';
-
-const ALL_ACTIONS: DatabaseAction[] = ['insert', 'select', 'update', 'delete'];
-const SELECT_ONLY: DatabaseAction[] = ['select'];
 
 const actionLabels: Record<DatabaseAction, string> = {
   insert: 'Insert',
@@ -47,37 +45,6 @@ const gridColsMap: Record<number, string> = {
   4: 'grid-cols-4',
   5: 'grid-cols-5',
 };
-
-/**
- * Determines which permission actions to show based on the object type and
- * the pg_relation_is_updatable bitmask (with include_triggers=true).
- * Bitmask values: 8 = insertable, 4 = updatable, 16 = deletable.
- */
-function getAllowedActions(
-  objectType?: DatabaseObjectType,
-  updatability?: number,
-): DatabaseAction[] {
-  if (objectType === 'ORDINARY TABLE' || objectType === 'FOREIGN TABLE') {
-    return ALL_ACTIONS;
-  }
-
-  if (updatability == null) {
-    return objectType === 'MATERIALIZED VIEW' ? SELECT_ONLY : ALL_ACTIONS;
-  }
-
-  const actions: DatabaseAction[] = [];
-  if (updatability & 8) {
-    actions.push('insert');
-  }
-  actions.push('select');
-  if (updatability & 4) {
-    actions.push('update');
-  }
-  if (updatability & 16) {
-    actions.push('delete');
-  }
-  return actions;
-}
 
 export interface EditPermissionsFormProps extends DialogFormProps {
   /**
