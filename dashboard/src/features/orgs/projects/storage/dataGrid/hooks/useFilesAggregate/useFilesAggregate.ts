@@ -1,6 +1,5 @@
 import type { QueryHookOptions } from '@apollo/client';
-import { validate as uuidValidate } from 'uuid';
-import { isNotEmptyValue } from '@/lib/utils';
+import { buildFilesWhereClause } from '@/features/orgs/projects/storage/dataGrid/utils/buildFilesWhereClause';
 import type { GetFilesAggregateQuery } from '@/utils/__generated__/graphql';
 import { useGetFilesAggregateQuery } from '@/utils/__generated__/graphql';
 
@@ -10,6 +9,10 @@ export type UseFilesAggregateOptions = {
    */
   searchString?: string;
   /**
+   * Bucket ID to filter files by.
+   */
+  bucketId?: string;
+  /**
    * Custom options for the query.
    */
   options?: QueryHookOptions<GetFilesAggregateQuery>;
@@ -17,21 +20,14 @@ export type UseFilesAggregateOptions = {
 
 export default function useFilesAggregate({
   searchString,
+  bucketId,
   options = {},
 }: UseFilesAggregateOptions) {
-  const isUUID = isNotEmptyValue(searchString)
-    ? uuidValidate(searchString)
-    : false;
+  const where = buildFilesWhereClause({ searchString, bucketId });
+
   const { data, previousData, ...rest } = useGetFilesAggregateQuery({
     variables: {
-      where: searchString
-        ? {
-            _or: [
-              ...((isUUID && [{ id: { _eq: searchString } }]) || []),
-              { name: { _ilike: `%${searchString}%` } },
-            ],
-          }
-        : null,
+      where,
     },
     ...options,
   });
