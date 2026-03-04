@@ -6,7 +6,9 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { Badge } from '@/components/ui/v3/badge';
 import { InlineCode } from '@/components/ui/v3/inline-code';
+import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useDeleteDatabaseObjectWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteDatabaseObjectMutation';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 
 const CreateTableForm = dynamic(
@@ -75,7 +77,7 @@ export interface UseDataBrowserActionsParams {
   schemaSlug: string | undefined;
   tableSlug: string | undefined;
   selectedSchema: string;
-  refetch: () => Promise<unknown>;
+  refetchDatabaseQuery: () => Promise<unknown>;
   allObjects: DatabaseObject[];
 }
 
@@ -88,7 +90,7 @@ export function useDataBrowserActions({
   schemaSlug,
   tableSlug,
   selectedSchema,
-  refetch,
+  refetchDatabaseQuery,
   allObjects,
 }: UseDataBrowserActionsParams) {
   const queryClient = useQueryClient();
@@ -97,7 +99,7 @@ export function useDataBrowserActions({
   const {
     query: { orgSlug, appSubdomain },
   } = router;
-
+  const { project } = useProject();
   const { mutateAsync: deleteDatabaseObject } =
     useDeleteDatabaseObjectWithToastMutation();
 
@@ -144,7 +146,10 @@ export function useDataBrowserActions({
       // removed, so we can improve the UX by removing it from the list right
       // away, without waiting for the refetch to succeed.
       setOptimisticlyRemovedTable(tablePath);
-      await refetch();
+      await refetchDatabaseQuery();
+      await queryClient.refetchQueries({
+        queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+      });
 
       // If this was the last table in the schema, we go back to the data
       // browser's main screen
@@ -250,6 +255,27 @@ export function useDataBrowserActions({
     });
   }
 
+  async function handleCreateTableSubmit() {
+    await Promise.all([
+      queryClient.refetchQueries({
+        queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+      }),
+      refetchDatabaseQuery(),
+    ]);
+  }
+
+  async function handleEditTableSubmit(schema: string, tableName: string) {
+    await Promise.all([
+      queryClient.refetchQueries({
+        queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+      }),
+      refetchDatabaseQuery(),
+      queryClient.refetchQueries({
+        queryKey: [`${dataSourceSlug}.${schema}.${tableName}`],
+      }),
+    ]);
+  }
+
   function openEditTableDrawer(schema: string, tableName: string) {
     const tableObject = allObjects.find(
       (obj) => obj.table_schema === schema && obj.table_name === tableName,
@@ -259,12 +285,7 @@ export function useDataBrowserActions({
       title: 'Edit Table',
       component: (
         <EditTableForm
-          onSubmit={async (name) => {
-            await queryClient.refetchQueries({
-              queryKey: [`${dataSourceSlug}.${schema}.${name}`],
-            });
-            await refetch();
-          }}
+          onSubmit={(name) => handleEditTableSubmit(schema, name)}
           schema={schema}
           table={tableObject || { table_schema: schema, table_name: tableName }}
         />
@@ -297,7 +318,12 @@ export function useDataBrowserActions({
   function openCreateTableDrawer() {
     openDrawer({
       title: 'Create a New Table',
-      component: <CreateTableForm onSubmit={refetch} schema={selectedSchema} />,
+      component: (
+        <CreateTableForm
+          onSubmit={handleCreateTableSubmit}
+          schema={selectedSchema}
+        />
+      ),
     });
   }
 
