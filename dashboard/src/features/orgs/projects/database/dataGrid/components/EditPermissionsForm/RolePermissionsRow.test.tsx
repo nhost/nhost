@@ -26,7 +26,29 @@ describe('RolePermissionsRow', () => {
     expect(firstCell).toHaveTextContent('editor');
   });
 
-  it('should render the correct access level icons for each action', () => {
+  it('should render all 4 action columns by default', () => {
+    render(
+      <table>
+        <tbody>
+          <RolePermissionsRow
+            name="user"
+            disabled
+            accessLevels={{
+              insert: 'full',
+              select: 'full',
+              update: 'none',
+              delete: 'none',
+            }}
+          />
+        </tbody>
+      </table>,
+    );
+
+    const allCells = screen.getAllByRole('cell');
+    expect(allCells).toHaveLength(5);
+  });
+
+  it('should render full permission icon for full access and no permission icon for no access', () => {
     render(
       <table>
         <tbody>
