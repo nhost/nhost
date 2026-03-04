@@ -1,17 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
+import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ListNavLink } from '@/components/common/NavLink';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
+import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Backdrop } from '@/components/ui/v2/Backdrop';
-import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -31,6 +27,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas/useGetRemoteSchemas';
 import { useRemoveRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { cn } from '@/lib/utils';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 
 const CreateRemoteSchemaForm = dynamic(
@@ -76,11 +73,8 @@ const EditRemoteSchemaRelationships = dynamic(
   },
 );
 
-export interface RemoteSchemaBrowserSidebarProps
-  extends Omit<BoxProps, 'children'> {
-  /**
-   * Function to be called when a sidebar item is clicked.
-   */
+export interface RemoteSchemaBrowserSidebarProps {
+  className?: string;
   onSidebarItemClick?: (remoteSchemaName?: string) => void;
 }
 
@@ -231,7 +225,7 @@ function RemoteSchemaBrowserSidebarContent({
                         <IconButton
                           variant="borderless"
                           color={isSelected ? 'primary' : 'secondary'}
-                          className={twMerge(
+                          className={cn(
                             !isSelected &&
                               'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
                           )}
@@ -348,89 +342,26 @@ function RemoteSchemaBrowserSidebarContent({
 export default function RemoteSchemaBrowserSidebar({
   className,
   onSidebarItemClick,
-  ...props
 }: RemoteSchemaBrowserSidebarProps) {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
-
-  const [expanded, setExpanded] = useState(false);
-
-  function toggleExpanded() {
-    setExpanded(!expanded);
-  }
-
-  function handleSidebarItemClick(remoteSchemaName?: string) {
-    if (onSidebarItemClick && remoteSchemaName) {
-      onSidebarItemClick(remoteSchemaName);
-    }
-
-    setExpanded(false);
-  }
-
-  useEffect(() => {
-    function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setExpanded(false);
-      }
-    }
-    if (typeof document !== 'undefined') {
-      document.addEventListener('keydown', closeSidebarWhenEscapeIsPressed);
-    }
-
-    return () =>
-      document.removeEventListener('keydown', closeSidebarWhenEscapeIsPressed);
-  }, []);
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return null;
   }
 
   return (
-    <>
-      <Backdrop
-        open={expanded}
-        className="absolute top-0 right-0 bottom-0 left-0 z-[34] sm:hidden"
-        role="button"
-        tabIndex={-1}
-        onClick={() => setExpanded(false)}
-        aria-label="Close sidebar overlay"
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter' && event.key !== ' ') {
-            return;
-          }
-
-          setExpanded(false);
-        }}
-      />
-
-      <Box
-        component="aside"
-        className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
-          expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
-          className,
-        )}
-        {...props}
-      >
-        <RetryableErrorBoundary>
-          <RemoteSchemaBrowserSidebarContent
-            onSidebarItemClick={handleSidebarItemClick}
-          />
-        </RetryableErrorBoundary>
-      </Box>
-
-      <IconButton
-        className="absolute bottom-4 left-8 z-[38] h-11 w-11 rounded-full md:hidden"
-        onClick={toggleExpanded}
-        aria-label="Toggle sidebar"
-      >
-        <Image
-          width={16}
-          height={16}
-          src="/assets/table.svg"
-          alt="A monochrome table"
+    <FeatureSidebar toggleOffset="left-8" className={className}>
+      {(collapse) => (
+        <RemoteSchemaBrowserSidebarContent
+          onSidebarItemClick={(remoteSchemaName) => {
+            if (onSidebarItemClick && remoteSchemaName) {
+              onSidebarItemClick(remoteSchemaName);
+            }
+            collapse();
+          }}
         />
-      </IconButton>
-    </>
+      )}
+    </FeatureSidebar>
   );
 }
