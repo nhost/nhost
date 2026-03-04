@@ -1,7 +1,7 @@
 import type { QueryHookOptions } from '@apollo/client';
-import { validate as uuidValidate } from 'uuid';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { buildFilesWhereClause } from '@/features/orgs/projects/storage/dataGrid/utils/buildFilesWhereClause';
 import type {
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,
@@ -14,6 +14,10 @@ export type UseFilesOptions = {
    * Search query to filter files.
    */
   searchString: string;
+  /**
+   * Bucket ID to filter files by.
+   */
+  bucketId?: string;
   /**
    * Number of files to fetch.
    */
@@ -34,6 +38,7 @@ export type UseFilesOptions = {
 
 export default function useFiles({
   searchString,
+  bucketId,
   limit,
   offset,
   orderBy,
@@ -41,17 +46,11 @@ export default function useFiles({
 }: UseFilesOptions) {
   const { project } = useProject();
 
-  const isUUID = uuidValidate(searchString);
+  const where = buildFilesWhereClause({ searchString, bucketId });
+
   const { data, previousData, ...rest } = useGetFilesQuery({
     variables: {
-      where: searchString
-        ? {
-            _or: [
-              ...((isUUID && [{ id: { _eq: searchString } }]) || []),
-              { name: { _ilike: `%${searchString}%` } },
-            ],
-          }
-        : null,
+      where,
       limit,
       offset,
       order_by: orderBy,
