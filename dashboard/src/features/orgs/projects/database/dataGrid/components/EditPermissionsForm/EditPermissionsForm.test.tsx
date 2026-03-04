@@ -80,12 +80,44 @@ describe('EditPermissionsForm', () => {
     expect(screen.getByText('Delete')).toBeInTheDocument();
   });
 
-  it('should display only Select column header for a materialized view', () => {
+  it('should display all 4 actions for a table regardless of updatability', () => {
     render(
       <EditPermissionsForm
         schema="public"
-        table="my_view"
+        table="users"
+        objectType="ORDINARY TABLE"
+        updatability={0}
+      />,
+    );
+
+    expect(screen.getByText('Insert')).toBeInTheDocument();
+    expect(screen.getByText('Select')).toBeInTheDocument();
+    expect(screen.getByText('Update')).toBeInTheDocument();
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  });
+
+  it('should display all 4 actions for a foreign table', () => {
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="remote_users"
+        objectType="FOREIGN TABLE"
+      />,
+    );
+
+    expect(screen.getByText('Insert')).toBeInTheDocument();
+    expect(screen.getByText('Select')).toBeInTheDocument();
+    expect(screen.getByText('Update')).toBeInTheDocument();
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  });
+
+  it('should display only Select for a materialized view', () => {
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="my_mat_view"
         objectType="MATERIALIZED VIEW"
+        updatability={0}
       />,
     );
 
@@ -93,5 +125,100 @@ describe('EditPermissionsForm', () => {
     expect(screen.queryByText('Insert')).not.toBeInTheDocument();
     expect(screen.queryByText('Update')).not.toBeInTheDocument();
     expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+  });
+
+  it('should display only Select for a non-updatable view (updatability=0)', () => {
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="complex_view"
+        objectType="VIEW"
+        updatability={0}
+      />,
+    );
+
+    expect(screen.getByText('Select')).toBeInTheDocument();
+    expect(screen.queryByText('Insert')).not.toBeInTheDocument();
+    expect(screen.queryByText('Update')).not.toBeInTheDocument();
+    expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+  });
+
+  it('should display all 4 actions for a fully updatable view (updatability=28)', () => {
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="simple_view"
+        objectType="VIEW"
+        updatability={28}
+      />,
+    );
+
+    expect(screen.getByText('Insert')).toBeInTheDocument();
+    expect(screen.getByText('Select')).toBeInTheDocument();
+    expect(screen.getByText('Update')).toBeInTheDocument();
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  });
+
+  it('should display Select and Update+Delete for a view that is updatable but not insertable (updatability=20)', () => {
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="partial_view"
+        objectType="VIEW"
+        updatability={20}
+      />,
+    );
+
+    expect(screen.getByText('Select')).toBeInTheDocument();
+    expect(screen.getByText('Update')).toBeInTheDocument();
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+    expect(screen.queryByText('Insert')).not.toBeInTheDocument();
+  });
+
+  it('should display Insert and Select for a view that is only insertable (updatability=8)', () => {
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="insert_only_view"
+        objectType="VIEW"
+        updatability={8}
+      />,
+    );
+
+    expect(screen.getByText('Insert')).toBeInTheDocument();
+    expect(screen.getByText('Select')).toBeInTheDocument();
+    expect(screen.queryByText('Update')).not.toBeInTheDocument();
+    expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+  });
+
+  it('should display Select and Delete for a view with only delete trigger (updatability=16)', () => {
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="delete_trigger_view"
+        objectType="VIEW"
+        updatability={16}
+      />,
+    );
+
+    expect(screen.getByText('Select')).toBeInTheDocument();
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+    expect(screen.queryByText('Insert')).not.toBeInTheDocument();
+    expect(screen.queryByText('Update')).not.toBeInTheDocument();
+  });
+
+  it('should fall back to all actions for a view when updatability is not provided', () => {
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="unknown_view"
+        objectType="VIEW"
+      />,
+    );
+
+    expect(screen.getByText('Insert')).toBeInTheDocument();
+    expect(screen.getByText('Select')).toBeInTheDocument();
+    expect(screen.getByText('Update')).toBeInTheDocument();
+    expect(screen.getByText('Delete')).toBeInTheDocument();
   });
 });
