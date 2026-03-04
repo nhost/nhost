@@ -47,12 +47,6 @@ const gridColsMap: Record<number, string> = {
   5: 'grid-cols-5',
 };
 
-// TODO: Ideally we should query pg_relation_is_updatable(oid, true) to determine
-// which actions (insert, update, delete) each view actually supports, rather than
-// showing all actions for every view. Non-updatable views would then only show
-// select, while updatable views (and views with INSTEAD OF triggers) would show
-// the appropriate subset. For now we show all actions — unsupported permissions
-// are accepted as metadata but have no effect.
 function getAllowedActions(objectType?: DatabaseObjectType): DatabaseAction[] {
   if (objectType === 'MATERIALIZED VIEW') {
     return SELECT_ONLY;
