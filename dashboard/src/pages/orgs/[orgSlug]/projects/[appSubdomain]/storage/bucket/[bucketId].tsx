@@ -4,7 +4,8 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { FilesDataGrid } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGrid';
+import { Bucket } from '@/features/orgs/projects/storage/components/Bucket';
+import { StorageSidebar } from '@/features/orgs/projects/storage/components/StorageSidebar';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import { getHasuraAdminSecret } from '@/utils/env';
 
@@ -30,15 +31,26 @@ export default function StoragePage() {
             : project.config!.hasura.adminSecret,
       }}
     >
-      <div className="h-full max-w-full pb-25 xs+:pb-[56.5px]">
-        <RetryableErrorBoundary>
-          <FilesDataGrid />
-        </RetryableErrorBoundary>
+      <StorageSidebar />
+      <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
+        <div className="h-full max-w-full pb-25 xs+:pb-[56.5px]">
+          <RetryableErrorBoundary>
+            <Bucket />
+          </RetryableErrorBoundary>
+        </div>
       </div>
     </NhostApolloProvider>
   );
 }
 
 StoragePage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return (
+    <OrgLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      {page}
+    </OrgLayout>
+  );
 };

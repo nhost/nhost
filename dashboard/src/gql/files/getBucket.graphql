@@ -1,5 +1,5 @@
-query getBuckets {
-  buckets(order_by: [{ id: asc }]) {
+query getBucket($id: String!) {
+  bucket(id: $id) {
     id
     minUploadFileSize
     maxUploadFileSize
