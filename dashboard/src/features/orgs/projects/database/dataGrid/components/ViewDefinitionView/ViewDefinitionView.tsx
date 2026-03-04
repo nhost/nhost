@@ -14,16 +14,18 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export interface ViewDefinitionViewProps {
   schema: string;
   table: string;
-  dataSource?: string;
 }
 
 export default function ViewDefinitionView({
   schema,
   table,
-  dataSource,
 }: ViewDefinitionViewProps) {
   const theme = useTheme();
-  const router = useRouter();
+  const {
+    push,
+    query: { orgSlug, appSubdomain, dataSourceSlug },
+  } = useRouter();
+  const dataSource = dataSourceSlug as string;
   const { project } = useProject();
   const { org } = useCurrentOrg();
 
@@ -31,17 +33,14 @@ export default function ViewDefinitionView({
     data,
     status,
     error: queryError,
-  } = useViewDefinitionQuery(
-    ['view-definition', dataSource || 'default', schema, table],
-    {
-      schema,
-      table,
-      dataSource: dataSource || 'default',
-      queryOptions: {
-        enabled: !!schema && !!table,
-      },
+  } = useViewDefinitionQuery(['view-definition', dataSource, schema, table], {
+    schema,
+    table,
+    dataSource,
+    queryOptions: {
+      enabled: !!schema && !!table,
     },
-  );
+  });
 
   const {
     viewDefinition,
@@ -57,18 +56,18 @@ export default function ViewDefinitionView({
     const isMaterialized = viewType === 'MATERIALIZED VIEW';
     const materializedKeyword = isMaterialized ? 'MATERIALIZED ' : '';
     const dropStatement = `DROP ${materializedKeyword}VIEW "${schema}"."${table}";`;
-    const createStatement = `CREATE ${materializedKeyword}VIEW "${schema}"."${table}" AS\n${viewDefinition};`;
+    const createStatement = `CREATE ${materializedKeyword}VIEW "${schema}"."${table}" AS\n${viewDefinition}`;
     const sqlCode = `${dropStatement}\n${createStatement}`;
 
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('pending-sql', sqlCode);
     }
 
-    const orgSlug = (router.query.orgSlug as string) || org?.slug || '';
-    const appSubdomain =
-      (router.query.appSubdomain as string) || project?.subdomain || '';
-    const editorPath = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSource || 'default'}/editor`;
-    router.push(editorPath);
+    const resolvedOrgSlug = (orgSlug as string) || org?.slug || '';
+    const resolvedAppSubdomain =
+      (appSubdomain as string) || project?.subdomain || '';
+    const editorPath = `/orgs/${resolvedOrgSlug}/projects/${resolvedAppSubdomain}/database/browser/${dataSource}/editor`;
+    push(editorPath);
   }
 
   if (status === 'loading') {

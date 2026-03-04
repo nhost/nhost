@@ -57,10 +57,10 @@ const EditTableForm = dynamic(
   },
 );
 
-const EditViewForm = dynamic(
+const ViewDefinitionView = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/EditViewForm/EditViewForm'
+      '@/features/orgs/projects/database/dataGrid/components/ViewDefinitionView/ViewDefinitionView'
     ),
   {
     ssr: false,
@@ -202,7 +202,7 @@ export function useDataBrowserActions({
     }
   }
 
-  function handleDeleteDatabaseObjectClick(
+  function handleDeleteDatabaseObject(
     schema: string,
     name: string,
     objectType: TableLikeObjectType,
@@ -228,7 +228,7 @@ export function useDataBrowserActions({
     });
   }
 
-  function handleEditPermissionClick(
+  function handleEditPermission(
     schema: string,
     table: string,
     disabled?: boolean,
@@ -266,7 +266,7 @@ export function useDataBrowserActions({
     });
   }
 
-  function handleEditGraphQLSettingsClick(
+  function handleEditGraphQLSettings(
     schema: string,
     table: string,
     disabled?: boolean,
@@ -322,22 +322,11 @@ export function useDataBrowserActions({
       title: isMaterializedView
         ? 'Materialized View Definition'
         : 'View Definition',
-      component: (
-        <EditViewForm
-          onSubmit={async (name) => {
-            await queryClient.refetchQueries({
-              queryKey: [`${dataSourceSlug}.${schema}.${name}`],
-            });
-            await refetch();
-          }}
-          schema={schema}
-          tableName={tableName}
-        />
-      ),
+      component: <ViewDefinitionView schema={schema} table={tableName} />,
     });
   }
 
-  function handleRelationshipsClick(
+  function handleEditRelationships(
     schema: string,
     table: string,
     disabled?: boolean,
@@ -371,10 +360,10 @@ export function useDataBrowserActions({
     optimisticlyRemovedObject,
     sidebarMenuObject,
     setSidebarMenuObject,
-    handleDeleteDatabaseObjectClick,
-    handleEditPermissionClick,
-    handleEditGraphQLSettingsClick,
-    handleRelationshipsClick,
+    handleDeleteDatabaseObject,
+    handleEditPermission,
+    handleEditGraphQLSettings,
+    handleEditRelationships,
     openEditTableDrawer,
     openEditViewDrawer,
     openCreateTableDrawer,
