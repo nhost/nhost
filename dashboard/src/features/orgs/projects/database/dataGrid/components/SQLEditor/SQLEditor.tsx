@@ -24,7 +24,7 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 
-export interface SQLEditorProps {
+interface SQLEditorProps {
   initialSQL?: string;
 }
 
