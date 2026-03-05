@@ -234,6 +234,7 @@ export function useDataBrowserActions({
     table: string,
     disabled?: boolean,
     objectType?: DatabaseObjectType,
+    updatability?: number,
   ) {
     const typeLabel = objectType ? permissionTypeLabels[objectType] : 'Table';
 
@@ -257,6 +258,7 @@ export function useDataBrowserActions({
           schema={schema}
           table={table}
           objectType={objectType}
+          updatability={updatability}
         />
       ),
       props: {

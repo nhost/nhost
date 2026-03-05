@@ -55,7 +55,7 @@ export default async function fetchDatabase({
         ),
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT row_to_json(obj_data) as data FROM (SELECT n.nspname AS table_schema, c.relname AS table_name, CASE c.relkind WHEN 'r' THEN 'ORDINARY TABLE' WHEN 'v' THEN 'VIEW' WHEN 'm' THEN 'MATERIALIZED VIEW' WHEN 'f' THEN 'FOREIGN TABLE' END AS table_type FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind IN ('r', 'v', 'm', 'f') AND %s) obj_data ORDER BY table_name ASC`,
+          `SELECT row_to_json(obj_data) as data FROM (SELECT n.nspname AS table_schema, c.relname AS table_name, CASE c.relkind WHEN 'r' THEN 'ORDINARY TABLE' WHEN 'v' THEN 'VIEW' WHEN 'm' THEN 'MATERIALIZED VIEW' WHEN 'f' THEN 'FOREIGN TABLE' END AS table_type, pg_relation_is_updatable(c.oid, true) AS updatability FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind IN ('r', 'v', 'm', 'f') AND %s) obj_data ORDER BY table_name ASC`,
           SYSTEM_TABLES.map((value) => `n.nspname NOT LIKE '${value}'`).join(
             ' AND ',
           ),

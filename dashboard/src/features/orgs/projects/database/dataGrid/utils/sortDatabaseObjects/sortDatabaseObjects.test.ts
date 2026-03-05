@@ -10,7 +10,7 @@ function obj(
   objectType: DatabaseObjectType,
   schema = 'public',
 ): DatabaseObjectViewModel {
-  return { name, objectType, schema };
+  return { name, objectType, schema, updatability: 28 };
 }
 
 describe('sortDatabaseObjects', () => {

@@ -24,15 +24,13 @@ import type {
   DatabaseObjectType,
   HasuraMetadataPermission,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getAllowedActions } from '@/features/orgs/projects/database/dataGrid/utils/getAllowedActions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import RolePermissionEditorForm from './RolePermissionEditorForm';
 import RolePermissionsRow from './RolePermissionsRow';
-
-const ALL_ACTIONS: DatabaseAction[] = ['insert', 'select', 'update', 'delete'];
-const SELECT_ONLY: DatabaseAction[] = ['select'];
 
 const actionLabels: Record<DatabaseAction, string> = {
   insert: 'Insert',
@@ -44,15 +42,9 @@ const actionLabels: Record<DatabaseAction, string> = {
 const gridColsMap: Record<number, string> = {
   2: 'grid-cols-2',
   3: 'grid-cols-3',
+  4: 'grid-cols-4',
   5: 'grid-cols-5',
 };
-
-function getAllowedActions(objectType?: DatabaseObjectType): DatabaseAction[] {
-  if (objectType === 'MATERIALIZED VIEW') {
-    return SELECT_ONLY;
-  }
-  return ALL_ACTIONS;
-}
 
 export interface EditPermissionsFormProps extends DialogFormProps {
   /**
@@ -72,6 +64,11 @@ export interface EditPermissionsFormProps extends DialogFormProps {
    */
   objectType?: DatabaseObjectType;
   /**
+   * Bitmask from pg_relation_is_updatable(oid, true) indicating which
+   * operations the relation supports (8=insert, 4=update, 16=delete).
+   */
+  updatability?: number;
+  /**
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
@@ -82,12 +79,13 @@ export default function EditPermissionsForm({
   schema,
   table,
   objectType,
+  updatability,
   onCancel,
   location,
 }: EditPermissionsFormProps) {
   const [role, setRole] = useState<string>();
   const [action, setAction] = useState<DatabaseAction>();
-  const allowedActions = getAllowedActions(objectType);
+  const allowedActions = getAllowedActions(objectType, updatability);
 
   const { project } = useProject();
   const { org } = useCurrentOrg();
