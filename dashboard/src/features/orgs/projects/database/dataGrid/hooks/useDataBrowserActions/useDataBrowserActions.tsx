@@ -13,7 +13,6 @@ import type {
   DatabaseObjectViewModel,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 
@@ -192,11 +191,8 @@ export function useDataBrowserActions({
       }
 
       if (schema === schemaSlug && table === tableSlug) {
-        const objectTypeSegment = getObjectTypeUrlSegment(
-          nextObject.objectType,
-        );
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextObject.schema}/${objectTypeSegment}/${nextObject.name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextObject.schema}/tables/${nextObject.name}`,
         );
       }
     } catch {
@@ -345,7 +341,13 @@ export function useDataBrowserActions({
       title: isMaterializedView
         ? 'Materialized View Definition'
         : 'View Definition',
-      component: <ViewDefinitionView schema={schema} table={tableName} />,
+      component: (
+        <ViewDefinitionView
+          schema={schema}
+          table={tableName}
+          dataSource={dataSourceSlug}
+        />
+      ),
     });
   }
 

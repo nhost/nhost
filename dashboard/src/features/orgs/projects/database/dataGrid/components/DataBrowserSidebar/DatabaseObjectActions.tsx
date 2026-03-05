@@ -17,8 +17,8 @@ const menuItemClassName =
 
 const editLabels: Record<DatabaseObjectType, string> = {
   'ORDINARY TABLE': 'Edit Table',
-  VIEW: 'View Definition',
-  'MATERIALIZED VIEW': 'View Definition',
+  VIEW: 'Edit View',
+  'MATERIALIZED VIEW': 'Edit Materialized View',
   'FOREIGN TABLE': 'Edit Table',
 };
 
