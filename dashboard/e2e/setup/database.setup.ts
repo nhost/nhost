@@ -1,5 +1,6 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { expect, test as setup } from '@/e2e/fixtures/auth-hook';
+import { test as setup } from '@/e2e/fixtures/auth-hook';
+import { runSQLInEditor } from '@/e2e/utils';
 
 setup.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
@@ -7,27 +8,33 @@ setup.beforeEach(async ({ authenticatedNhostPage: page }) => {
   await page.waitForURL(databaseRoute);
 });
 
-setup('clean up database tables', async ({ authenticatedNhostPage: page }) => {
-  await page.getByRole('link', { name: /sql editor/i }).click();
-
-  await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`,
-  );
-
-  const inputField = page.locator('[contenteditable]');
-  await inputField.fill(`
+setup('clean up database objects', async ({ authenticatedNhostPage: page }) => {
+  await runSQLInEditor(
+    page,
+    `
       DO $$ DECLARE
-        tablename text;
+        objname text;
       BEGIN
-        FOR tablename IN
-          SELECT table_name FROM information_schema.tables
+        FOR objname IN
+          SELECT matviewname FROM pg_matviews WHERE schemaname = 'public'
+        LOOP
+          EXECUTE 'DROP MATERIALIZED VIEW IF EXISTS public.' || quote_ident(objname) || ' CASCADE';
+        END LOOP;
+
+        FOR objname IN
+          SELECT table_name FROM information_schema.views
           WHERE table_schema = 'public'
         LOOP
-          EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(tablename) || ' CASCADE';
+          EXECUTE 'DROP VIEW IF EXISTS public.' || quote_ident(objname) || ' CASCADE';
+        END LOOP;
+
+        FOR objname IN
+          SELECT table_name FROM information_schema.tables
+          WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+        LOOP
+          EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(objname) || ' CASCADE';
         END LOOP;
       END $$;
-    `);
-
-  await page.locator('button[type="button"]', { hasText: /run/i }).click();
-  await expect(page.getByText(/success/i)).toBeVisible();
+    `,
+  );
 });

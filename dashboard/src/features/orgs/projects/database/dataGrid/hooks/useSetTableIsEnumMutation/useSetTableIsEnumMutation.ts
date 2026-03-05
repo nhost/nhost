@@ -39,15 +39,15 @@ export default function useSetTableIsEnumMutation({
     SuccessResponse | MetadataOperation200,
     unknown,
     SetTableIsEnumVariables | SetTableIsEnumMigrationVariables
-  >(
-    (variables) => {
+  >({
+    mutationFn: (variables) => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
         'hasura',
       );
 
-      const base = {
+      const commonParams = {
         appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
@@ -55,25 +55,23 @@ export default function useSetTableIsEnumMutation({
       if (isPlatform) {
         return setTableIsEnum({
           ...(variables as SetTableIsEnumVariables),
-          ...base,
+          ...commonParams,
         });
       }
 
       return setTableIsEnumMigration({
         ...(variables as SetTableIsEnumMigrationVariables),
-        ...base,
+        ...commonParams,
       });
     },
-    {
-      ...mutationOptions,
-      onSuccess: (...args) => {
-        queryClient.invalidateQueries({
-          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-        });
-        mutationOptions?.onSuccess?.(...args);
-      },
+    ...mutationOptions,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({
+        queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+      });
+      mutationOptions?.onSuccess?.(...args);
     },
-  );
+  });
 
   return mutation;
 }

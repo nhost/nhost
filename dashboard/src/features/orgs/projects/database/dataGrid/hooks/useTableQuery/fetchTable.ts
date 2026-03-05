@@ -3,6 +3,7 @@ import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/databas
 import {
   COLUMN_DEFINITION_QUERY,
   CONSTRAINT_DEFINITION_QUERY,
+  MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY,
 } from '@/features/orgs/projects/database/common/utils/sqlTemplates';
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
@@ -43,6 +44,11 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
    * @default []
    */
   filters?: DataGridFilter[];
+  /**
+   * When true, a pg_attribute-based query is used instead of
+   * information_schema.columns to fetch column metadata.
+   */
+  isMaterializedView?: boolean;
 }
 
 export interface FetchTableReturnType {
@@ -90,6 +96,7 @@ export default async function fetchTable({
   offset,
   orderBy,
   filters,
+  isMaterializedView,
 }: FetchTableOptions): Promise<FetchTableReturnType> {
   let limitAndOffsetClause = '';
 
@@ -124,6 +131,10 @@ export default async function fetchTable({
 
   const whereClause = filtersToWhere(filters);
 
+  const columnDefinitionQuery = isMaterializedView
+    ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
+    : COLUMN_DEFINITION_QUERY;
+
   const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
@@ -133,7 +144,7 @@ export default async function fetchTable({
       args: [
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          COLUMN_DEFINITION_QUERY,
+          columnDefinitionQuery,
           schema,
           table,
         ),

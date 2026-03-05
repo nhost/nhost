@@ -14,6 +14,37 @@ import { expect } from '@/e2e/fixtures/auth-hook';
 import { isEmptyValue } from '@/lib/utils';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
+const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`;
+
+/**
+ * Runs a SQL statement using the SQL Editor UI.
+ *
+ * @param page - The Playwright page object.
+ * @param sql - The SQL statement to execute.
+ * @param options - Optional settings.
+ * @param options.track - Whether to enable the "Track this" toggle before running.
+ * @returns A promise that resolves when the SQL has been executed successfully.
+ */
+export async function runSQLInEditor(
+  page: Page,
+  sql: string,
+  options?: { track?: boolean },
+) {
+  await page.goto(editorRoute);
+  await page.waitForURL(editorRoute);
+
+  if (options?.track) {
+    const trackLabel = page.getByText('Track this', { exact: true });
+    await trackLabel.click();
+  }
+
+  const inputField = page.locator('[contenteditable]');
+  await inputField.fill(sql);
+
+  await page.locator('button[type="button"]', { hasText: /run/i }).click();
+  await expect(page.getByText(/success/i)).toBeVisible();
+}
+
 /**
  * Open a project by navigating to the project's overview page.
  *

@@ -4,12 +4,16 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 
-export const typeToQuery = {
-  'BASE TABLE': 'TABLE',
-} as const;
+export const typeToQuery: Record<TableLikeObjectType, string> = {
+  'ORDINARY TABLE': 'TABLE',
+  VIEW: 'VIEW',
+  'MATERIALIZED VIEW': 'MATERIALIZED VIEW',
+  'FOREIGN TABLE': 'FOREIGN TABLE',
+};
 
 export interface DeleteDatabaseObjectVariables {
   /**
@@ -23,7 +27,7 @@ export interface DeleteDatabaseObjectVariables {
   /**
    * Type of the database object to delete.
    */
-  type: 'BASE TABLE';
+  type: TableLikeObjectType;
 }
 
 export interface DeleteDatabaseObjectOptions
@@ -37,6 +41,11 @@ export default async function deleteDatabaseObject({
   table,
   type,
 }: DeleteDatabaseObjectOptions & DeleteDatabaseObjectVariables) {
+  const queryType = typeToQuery[type];
+  if (!queryType) {
+    throw new Error(`Unsupported database object type: ${type}`);
+  }
+
   const response = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {

@@ -5,7 +5,6 @@ import type {
   DatabaseTable,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
-  NormalizedQueryDataRow,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -15,9 +14,9 @@ import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 export interface UpdateTableMigrationVariables {
   /**
-   * Original table.
+   * Original table name.
    */
-  originalTable: NormalizedQueryDataRow;
+  originalTableName: string;
   /**
    * Original columns of the table.
    */
@@ -39,7 +38,7 @@ export default async function updateTableMigration({
   dataSource,
   schema,
   adminSecret,
-  originalTable,
+  originalTableName,
   originalColumns,
   originalForeignKeyRelations,
   updatedTable,
@@ -47,7 +46,7 @@ export default async function updateTableMigration({
   const args = prepareUpdateTableQuery({
     dataSource,
     schema,
-    originalTable,
+    originalTableName,
     updatedTable,
     originalForeignKeyRelations,
     originalColumns,
@@ -65,7 +64,7 @@ export default async function updateTableMigration({
     body: JSON.stringify({
       dataSource,
       skip_execution: false,
-      name: `alter_table_${schema}_${originalTable.table_name}`,
+      name: `alter_table_${schema}_${originalTableName}`,
       down: [
         {
           type: 'run_sql',
