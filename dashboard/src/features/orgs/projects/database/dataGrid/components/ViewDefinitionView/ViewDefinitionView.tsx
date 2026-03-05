@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
 import { useViewDefinitionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useViewDefinitionQuery';
+import { getDatabaseObjectDefinitionSQL } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectDefinitionSQL';
 
 export interface ViewDefinitionViewProps {
   schema: string;
@@ -39,21 +39,12 @@ export default function ViewDefinitionView({
     error: null,
   };
 
-  const initialSql = useMemo(() => {
-    if (!viewDefinition) {
-      return '';
-    }
-
-    const isMaterialized = viewType === 'MATERIALIZED VIEW';
-
-    if (isMaterialized) {
-      const dropStatement = `DROP MATERIALIZED VIEW "${schema}"."${table}";`;
-      const createStatement = `CREATE MATERIALIZED VIEW "${schema}"."${table}" AS\n${viewDefinition}`;
-      return `${dropStatement}\n${createStatement}`;
-    }
-
-    return `CREATE OR REPLACE VIEW "${schema}"."${table}" AS\n${viewDefinition}`;
-  }, [viewDefinition, viewType, schema, table]);
+  const initialSQL = getDatabaseObjectDefinitionSQL(
+    schema,
+    table,
+    viewDefinition,
+    viewType,
+  );
 
   if (status === 'loading') {
     return (
@@ -108,7 +99,7 @@ export default function ViewDefinitionView({
         </InlineCode>
         <span className="ml-1 text-xs">({viewType})</span>
       </p>
-      <SQLEditor initialSql={initialSql} />
+      <SQLEditor initialSQL={initialSQL} />
     </div>
   );
 }

@@ -25,14 +25,14 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 
 export interface SQLEditorProps {
-  initialSql?: string;
+  initialSQL?: string;
 }
 
-export default function SQLEditor({ initialSql }: SQLEditorProps) {
+export default function SQLEditor({ initialSQL }: SQLEditorProps) {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
 
-  const [sqlCode, setSQLCode] = useState(initialSql ?? '');
+  const [sqlCode, setSQLCode] = useState(initialSQL ?? '');
   const [track, setTrack] = useState(false);
   const [cascade, setCascade] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
