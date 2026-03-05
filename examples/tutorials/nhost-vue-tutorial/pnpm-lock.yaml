@@ -46,6 +46,7 @@ overrides:
   minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
   svelte@>=5.53.0 <5.53.5: '>=5.53.5'
   svelte@<=5.53.4: '>=5.53.5'
+  immutable@<4.3.8: '>=4.3.8'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 

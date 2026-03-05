@@ -46,6 +46,7 @@ overrides:
   minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
   svelte@>=5.53.0 <5.53.5: '>=5.53.5'
   svelte@<=5.53.4: '>=5.53.5'
+  immutable@<4.3.8: '>=4.3.8'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -2010,6 +2011,7 @@ packages:
 
   glob@10.5.0:
     resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@13.0.6:

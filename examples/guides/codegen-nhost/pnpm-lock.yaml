@@ -46,6 +46,7 @@ overrides:
   minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
   svelte@>=5.53.0 <5.53.5: '>=5.53.5'
   svelte@<=5.53.4: '>=5.53.5'
+  immutable@<4.3.8: '>=4.3.8'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -1284,9 +1285,8 @@ packages:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
 
-  immutable@3.7.6:
-    resolution: {integrity: sha512-AizQPcaofEtO11RZhPPHBOJRdo/20MKQF9mBLnVkBoyHi1/zXK8fzVdnEpSV9gxqtnh6Qomfp3F0xT5qP/vThw==}
-    engines: {node: '>=0.8.0'}
+  immutable@5.1.5:
+    resolution: {integrity: sha512-t7xcm2siw+hlUM68I+UEOK+z84RzmN59as9DZ7P1l0994DKUWV7UXBMQZVxaoMSRQ+PBZbHCOoBt7a2wxOMt+A==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -1933,7 +1933,7 @@ snapshots:
       chalk: 4.1.2
       fb-watchman: 2.0.2
       graphql: 16.11.0
-      immutable: 3.7.6
+      immutable: 5.1.5
       invariant: 2.2.4
       nullthrows: 1.1.1
       relay-runtime: 12.0.0
@@ -3312,7 +3312,7 @@ snapshots:
 
   ignore@5.3.2: {}
 
-  immutable@3.7.6: {}
+  immutable@5.1.5: {}
 
   import-fresh@3.3.1:
     dependencies:
