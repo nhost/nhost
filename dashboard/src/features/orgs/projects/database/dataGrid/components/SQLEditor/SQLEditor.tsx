@@ -4,7 +4,7 @@ import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -23,26 +23,21 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
-import { useSqlEditorPrefill } from '@/features/orgs/projects/database/dataGrid/hooks/useSqlEditorPrefill';
 
-export default function SQLEditor() {
+export interface SQLEditorProps {
+  initialSql?: string;
+}
+
+export default function SQLEditor({ initialSql }: SQLEditorProps) {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
-  const { prefillSql, consumePrefill } = useSqlEditorPrefill();
 
-  const [sqlCode, setSQLCode] = useState('');
+  const [sqlCode, setSQLCode] = useState(initialSql ?? '');
   const [track, setTrack] = useState(false);
   const [cascade, setCascade] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
   const [isMigration, setIsMigration] = useState(false);
   const [migrationName, setMigrationName] = useState('');
-
-  useEffect(() => {
-    if (prefillSql) {
-      setSQLCode(prefillSql);
-      consumePrefill();
-    }
-  }, [prefillSql, consumePrefill]);
 
   const onChange = useCallback((value: string) => setSQLCode(value), []);
 
