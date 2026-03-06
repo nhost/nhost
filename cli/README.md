@@ -24,7 +24,7 @@ It's recommended to use the Nhost CLI and the [Nhost GitHub Integration](https:/
 ### Homebrew
 
 ```sh
-brew install nhost/tap/cli
+brew install nhost/tap/nhost
 ```
 
 ### Nix
