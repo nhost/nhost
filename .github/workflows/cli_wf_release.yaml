@@ -115,6 +115,15 @@ jobs:
           --clobber "${{ github.ref_name }}" \
           ./upload/* checksums.txt
 
+    - name: "Update Homebrew formula"
+      uses: ./.github/actions/update-homebrew-formula
+      with:
+        formula-name: cli
+        homebrew-tap: nhost/homebrew-tap
+        version: ${{ steps.vars.outputs.VERSION }}
+        assets-dir: upload
+        github-token: ${{ secrets.GH_PAT }}
+
     - name: "Store Nix cache"
       uses: ./.github/actions/cache-nix
       with:
