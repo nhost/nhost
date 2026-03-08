@@ -121,7 +121,7 @@ jobs:
           formula-name: nhost
           homebrew-tap: nhost/homebrew-tap
           version: ${{ steps.vars.outputs.VERSION }}
-          assets-dir: upload
+          assets-dir: cli/upload
           github-token: ${{ secrets.GH_PAT }}
 
       - name: "Store Nix cache"
