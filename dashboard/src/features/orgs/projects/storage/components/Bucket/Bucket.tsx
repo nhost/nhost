@@ -7,8 +7,14 @@ import { useGetBucketQuery } from '@/utils/__generated__/graphql';
 
 export default function Bucket() {
   const {
-    query: { bucketId },
+    query: { bucketId: bucketIdParam },
   } = useRouter();
+
+  // catch-all route returns an array of path segments; join them to reconstruct
+  // bucket IDs that contain slashes (e.g. "foo/bar")
+  const bucketId = Array.isArray(bucketIdParam)
+    ? bucketIdParam.join('/')
+    : bucketIdParam;
 
   const { data, loading, error } = useGetBucketQuery({
     variables: { id: bucketId as string },

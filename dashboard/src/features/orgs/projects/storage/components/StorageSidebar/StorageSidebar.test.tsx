@@ -159,6 +159,24 @@ describe('StorageSidebar', () => {
     });
   });
 
+  it('should always display the default bucket first', async () => {
+    mocks.useRouter.mockReturnValue(getUseRouterObject());
+    const resolver = createGraphqlMockResolver('getBuckets', 'query');
+    server.use(resolver.handler);
+
+    render(<StorageSidebar />);
+
+    resolver.resolve({
+      buckets: [mockBuckets[1], mockBuckets[0]],
+    });
+
+    await waitFor(() => {
+      const links = screen.getAllByRole('link');
+      expect(links[0]).toHaveTextContent('default');
+      expect(links[1]).toHaveTextContent('avatars');
+    });
+  });
+
   it('should generate correct bucket links', async () => {
     mocks.useRouter.mockReturnValue(getUseRouterObject());
     const resolver = createGraphqlMockResolver('getBuckets', 'query');
