@@ -1,0 +1,1 @@
+export { useAppServiceUrl } from './useAppServiceUrl';
