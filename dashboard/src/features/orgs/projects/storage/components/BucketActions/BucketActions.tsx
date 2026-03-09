@@ -1,17 +1,22 @@
-import { Ellipsis, SquarePen } from 'lucide-react';
+import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 
 interface BucketActionsProps {
   onEdit: () => void;
+  onDelete: () => void;
 }
 
-export default function BucketActions({ onEdit }: BucketActionsProps) {
+export default function BucketActions({
+  onEdit,
+  onDelete,
+}: BucketActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -31,6 +36,14 @@ export default function BucketActions({ onEdit }: BucketActionsProps) {
         >
           <SquarePen className="h-4 w-4" />
           <span>Edit Bucket</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator className="my-0" />
+        <DropdownMenuItem
+          className="flex h-9 cursor-pointer items-center gap-2 rounded-none text-destructive text-sm+ focus:text-destructive"
+          onClick={onDelete}
+        >
+          <Trash2 className="h-4 w-4" />
+          <span>Delete Bucket</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

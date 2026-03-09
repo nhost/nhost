@@ -19,6 +19,7 @@ const blockedPausedProjectPages = [
   'hasura',
   'auth/users',
   'auth/oauth2-clients',
+  'storage',
   'storage/bucket/[bucketId]',
   'ai/auto-embeddings',
   'ai/assistants',
