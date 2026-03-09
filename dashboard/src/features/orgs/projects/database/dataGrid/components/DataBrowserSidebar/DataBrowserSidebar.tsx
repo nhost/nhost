@@ -147,6 +147,7 @@ function DataBrowserSidebarContent({
     openCreateTableDrawer,
     handleDeleteDatabaseObject,
     handleEditPermission,
+    handleEditFunctionPermission,
     handleEditGraphQLSettings,
     handleEditRelationships,
     openEditTableDrawer,
@@ -330,22 +331,33 @@ function DataBrowserSidebarContent({
                                 !isSelectedSchemaLocked
                               }
                               onViewPermissions={() =>
-                                handleEditPermission(
-                                  databaseObject.schema,
-                                  databaseObject.name,
-                                  true,
-                                  databaseObject.objectType,
-                                  updatability,
-                                )
+                                isFunction
+                                  ? handleEditFunctionPermission(
+                                      databaseObject.schema,
+                                      databaseObject.name,
+                                      true,
+                                    )
+                                  : handleEditPermission(
+                                      databaseObject.schema,
+                                      databaseObject.name,
+                                      true,
+                                      databaseObject.objectType,
+                                      updatability,
+                                    )
                               }
                               onEditPermissions={() =>
-                                handleEditPermission(
-                                  databaseObject.schema,
-                                  databaseObject.name,
-                                  undefined,
-                                  databaseObject.objectType,
-                                  updatability,
-                                )
+                                isFunction
+                                  ? handleEditFunctionPermission(
+                                      databaseObject.schema,
+                                      databaseObject.name,
+                                    )
+                                  : handleEditPermission(
+                                      databaseObject.schema,
+                                      databaseObject.name,
+                                      undefined,
+                                      databaseObject.objectType,
+                                      updatability,
+                                    )
                               }
                               onEdit={() => {
                                 if (isFunction) {
