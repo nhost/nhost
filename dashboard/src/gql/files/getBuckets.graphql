@@ -6,7 +6,5 @@ query getBuckets {
     presignedUrlsEnabled
     downloadExpiration
     cacheControl
-    createdAt
-    updatedAt
   }
 }
