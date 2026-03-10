@@ -21,7 +21,7 @@ const editLabels: Record<DatabaseObjectType, string> = {
   VIEW: 'Edit View',
   'MATERIALIZED VIEW': 'Edit Materialized View',
   'FOREIGN TABLE': 'Edit Table',
-  FUNCTION: 'Function Definition',
+  FUNCTION: 'Edit Function',
 };
 
 const deleteLabels: Record<DatabaseObjectType, string> = {

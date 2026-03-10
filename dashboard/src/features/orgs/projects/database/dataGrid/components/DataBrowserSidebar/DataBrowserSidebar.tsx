@@ -170,7 +170,7 @@ function DataBrowserSidebarContent({
         wrapperClassName="flex-row text-[12px] leading-[1.66] font-normal gap-1"
         className="h-4 w-4 justify-center"
       >
-        Loading schemas and tables...
+        Loading schemas and objects...
       </Spinner>
     );
   }
@@ -234,7 +234,7 @@ function DataBrowserSidebarContent({
           </Button>
         )}
         {isNotEmptyValue(schemas) && isEmptyValue(displayedObjects) && (
-          <p className="px-2 py-1.5 text-disabled text-xs">No tables found.</p>
+          <p className="px-2 py-1.5 text-disabled text-xs">No objects found.</p>
         )}
         <nav aria-label="Database navigation">
           {isNotEmptyValue(displayedObjects) && (
