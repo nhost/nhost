@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router';
+import { Badge } from '@/components/ui/v3/badge';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
-import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 
 export interface FunctionDefinitionViewProps {
@@ -25,24 +25,25 @@ export default function FunctionDefinitionView({
   const functionName = functionNameProp || (functionSlug as string);
   const dataSource = dataSourceProp || (dataSourceSlug as string) || 'default';
 
-  const {
-    data,
-    status,
-    error: queryError,
-  } = useFunctionQuery(
-    ['function-definition', dataSource, schema, functionName],
+  const currentFunctionPath =
+    dataSource && schema && functionName
+      ? `${dataSource}.${schema}.${functionName}`
+      : '';
+
+  const { data, status, error } = useFunctionQuery(
+    ['function-definition', currentFunctionPath],
     {
       functionName,
       schema,
       dataSource,
       queryOptions: {
-        enabled: !!schema && !!functionName,
+        enabled: !!currentFunctionPath && !!functionName,
       },
     },
   );
 
-  const { functionDefinition, error: functionError } = data || {
-    functionDefinition: '',
+  const { functionMetadata, error: functionError } = data || {
+    functionMetadata: null,
     error: null,
   };
 
@@ -65,8 +66,8 @@ export default function FunctionDefinitionView({
         title="Error loading function"
         description={
           <span>
-            {queryError instanceof Error
-              ? queryError.message
+            {error instanceof Error
+              ? error.message
               : functionError ||
                 'Unknown error occurred. Please try again later.'}
           </span>
@@ -75,7 +76,7 @@ export default function FunctionDefinitionView({
     );
   }
 
-  if (!functionDefinition) {
+  if (!functionMetadata) {
     return (
       <DataBrowserEmptyState
         title="Function not found"
@@ -92,15 +93,99 @@ export default function FunctionDefinitionView({
     );
   }
 
+  const requiredParamsCount =
+    functionMetadata.parameters.length - functionMetadata.defaultArgsCount;
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <p className="border-b px-4 py-3 text-muted-foreground text-sm">
-        <InlineCode className="bg-opacity-80 px-1.5 text-sm">
-          {schema}.{functionName}
-        </InlineCode>
-        <span className="ml-1 text-xs">(FUNCTION)</span>
-      </p>
-      <SQLEditor initialSQL={functionDefinition} />
+      <div className="border-b p-4">
+        <div className="mb-4">
+          <h2 className="font-semibold text-lg">Function Definition</h2>
+          <p className="text-muted-foreground text-sm">
+            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
+              {schema}.{functionName}
+            </InlineCode>
+          </p>
+        </div>
+        <div className="rounded-md border bg-muted/30 p-4">
+          <div className="mb-3">
+            <h3 className="font-semibold text-base">
+              {functionMetadata.functionName}
+            </h3>
+            {functionMetadata.comment && (
+              <p className="mt-1 text-muted-foreground text-sm">
+                {functionMetadata.comment}
+              </p>
+            )}
+            <p className="mt-1 text-muted-foreground text-sm">
+              {functionMetadata.language === 'sql'
+                ? 'SQL function'
+                : `${functionMetadata.language.toUpperCase()} function`}{' '}
+              {functionMetadata.functionType && (
+                <>
+                  ·{' '}
+                  <span className="font-medium">
+                    {functionMetadata.functionType}
+                  </span>
+                </>
+              )}{' '}
+              · Returns SETOF{' '}
+              <InlineCode className="bg-opacity-80 px-1 text-xs">
+                {functionMetadata.returnTableName
+                  ? `${functionMetadata.returnTableSchema}.${functionMetadata.returnTableName}`
+                  : functionMetadata.returnTypeName}
+              </InlineCode>
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {functionMetadata.functionType && (
+              <Badge variant="outline" className="font-medium">
+                {functionMetadata.functionType}
+              </Badge>
+            )}
+            <Badge variant="outline" className="font-medium">
+              SETOF {functionMetadata.returnTypeName}
+            </Badge>
+            {functionMetadata.returnTableName && (
+              <Badge variant="outline" className="font-medium">
+                Returns table: {functionMetadata.returnTableSchema}.
+                {functionMetadata.returnTableName}
+              </Badge>
+            )}
+            {functionMetadata.functionType === 'STABLE' ||
+            functionMetadata.functionType === 'IMMUTABLE' ? (
+              <Badge variant="outline" className="font-medium">
+                Query-only
+              </Badge>
+            ) : null}
+          </div>
+        </div>
+        {functionMetadata.parameters.length > 0 && (
+          <div className="mt-4 rounded-md border bg-muted/20 p-4">
+            <h4 className="mb-3 font-medium text-sm">Parameters</h4>
+            <div className="space-y-2">
+              {functionMetadata.parameters.map((param, index) => (
+                <div
+                  key={`param-${param.name || index}-${index}`}
+                  className="flex items-center gap-3 text-sm"
+                >
+                  <span className="w-32 font-medium">
+                    {param.name || `arg${index + 1}`}
+                  </span>
+                  <InlineCode className="bg-opacity-80 px-1.5 text-xs">
+                    {param.displayType}
+                  </InlineCode>
+                  {index >= requiredParamsCount && (
+                    <span className="italic text-muted-foreground text-xs">
+                      optional
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
