@@ -71,10 +71,10 @@ const ViewDefinitionView = dynamic(
   },
 );
 
-const FunctionDefinitionView = dynamic(
+const EditFunctionForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/FunctionDefinitionView/FunctionDefinitionView'
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionForm/EditFunctionForm'
     ),
   {
     ssr: false,
@@ -497,7 +497,7 @@ export function useDataBrowserActions({
     openDrawer({
       title: 'Function Definition',
       component: (
-        <FunctionDefinitionView
+        <EditFunctionForm
           schema={schema}
           functionName={functionName}
           dataSource={dataSourceSlug}
