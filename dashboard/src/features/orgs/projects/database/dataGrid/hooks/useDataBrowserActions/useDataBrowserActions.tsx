@@ -169,12 +169,15 @@ export function useDataBrowserActions({
   ) {
     const objectPath = `${schema}.${table}`;
 
+    // We are greying out and disabling it in the sidebar
     setRemovableObject(objectPath);
 
     try {
       let nextObjectIndex: number | null = null;
 
       if (isNotEmptyValue(allObjects) && allObjects.length > 1) {
+        // We go to the next object if available or to the previous one if the
+        // current one is the last one in the list
         const currentObjectIndex = allObjects.findIndex(
           (obj) => `${obj.schema}.${obj.name}` === objectPath,
         );
@@ -196,12 +199,17 @@ export function useDataBrowserActions({
         queryKey: [`${dataSourceSlug}.${schema}.${table}`],
       });
 
+      // Note: At this point we can optimisticly assume that the object was
+      // removed, so we can improve the UX by removing it from the list right
+      // away, without waiting for the refetch to succeed.
       setOptimisticlyRemovedObject(objectPath);
       await refetchDatabaseQuery();
       await queryClient.refetchQueries({
         queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
       });
 
+      // If this was the last table in the schema, we go back to the data
+      // browser's main screen
       if (!nextObject) {
         await router.push(
           `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,

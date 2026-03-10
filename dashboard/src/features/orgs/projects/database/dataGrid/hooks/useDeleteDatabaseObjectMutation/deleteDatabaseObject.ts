@@ -83,6 +83,7 @@ export default async function deleteDatabaseObject({
     );
   }
 
+
   const response = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {

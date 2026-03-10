@@ -1,3 +1,28 @@
+## [@nhost/dashboard@2.52.0] - 2026-03-08
+
+### 🚀 Features
+
+- *(dashboard)* Track/untrack tables in database page (#3923)
+- *(dashboard)* Display views, materialized views, and enums in database page (#3949)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Clear query cache on project switch (#3954)
+- *(dashboard)* Refactor data browser sidebar and routing to support non-table objects (#3943)
+- *(deps)* Update rollup and minimatch due to vulnerability (#3959)
+- *(dashboard)* Optimize query cache in database and event features (#3938)
+- *(dashboard)* Invalid permissions SDL composition in remote schemas if using local dashboard (#3928)
+- *(dashboard)* Maintain same feature page after changing project on top bar (#3964)
+- *(dashboard)* Invalidate stale metadata cache after table rename, enum, and graphql customization mutations (#3966)
+- *(deps)* Override tar, svgo and immutable versions to address security audit (#3974)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update CLAUDE.md (#3948)
+- *(dashboard)* Remove unused workspace redirects from next.config.js (#3965)
+
 ## [@nhost/dashboard@2.51.0] - 2026-02-21
 
 ### 🚀 Features

@@ -222,6 +222,7 @@ export interface DatabaseObjectViewModel {
   updatability: number;
 }
 
+
 /**
  * Represents an object that can be used to set up ordering in an SQL query.
  */
