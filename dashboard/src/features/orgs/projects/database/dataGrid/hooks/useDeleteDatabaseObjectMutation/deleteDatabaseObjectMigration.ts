@@ -1,13 +1,17 @@
 import {
   getEmptyDownMigrationMessage,
   getPreparedHasuraQuery,
+  type HasuraOperation,
 } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
+import type { FunctionParameter } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery/fetchFunctionDefinition';
 import type {
   AffectedRowsResult,
+  DatabaseObjectType,
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { buildFunctionSignature } from '@/features/orgs/projects/database/dataGrid/utils/buildFunctionSignature';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import { typeToQuery } from './deleteDatabaseObject';
@@ -24,7 +28,11 @@ export interface DeleteDatabaseObjectMigrationVariables {
   /**
    * Type of the database object to delete.
    */
-  type: 'BASE TABLE';
+  type: DatabaseObjectType;
+  /**
+   * Function parameter types. Required when type is FUNCTION.
+   */
+  inputArgTypes?: FunctionParameter[];
 }
 
 export interface DeleteDatabaseObjectMigrationOptions
@@ -36,16 +44,34 @@ export default async function deleteDatabaseObject({
   schema,
   table,
   type,
+  inputArgTypes,
 }: DeleteDatabaseObjectMigrationOptions &
   DeleteDatabaseObjectMigrationVariables) {
-  const deleteTableArgs = [
-    getPreparedHasuraQuery(
-      dataSource,
-      `DROP ${typeToQuery[type]} IF EXISTS %I.%I`,
+  let deleteArgs: HasuraOperation[];
+  if (type === 'FUNCTION') {
+    const signature = buildFunctionSignature(
       schema,
       table,
-    ),
-  ];
+      inputArgTypes || [],
+    );
+    const preparedQuery = getPreparedHasuraQuery(
+      dataSource,
+      'DROP FUNCTION IF EXISTS %s',
+      signature,
+    );
+    deleteArgs = [
+      { ...preparedQuery, args: { ...preparedQuery.args, cascade: false } },
+    ];
+  } else {
+    deleteArgs = [
+      getPreparedHasuraQuery(
+        dataSource,
+        `DROP ${typeToQuery[type]} IF EXISTS %I.%I`,
+        schema,
+        table,
+      ),
+    ];
+  }
 
   const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {
     method: 'POST',
@@ -55,7 +81,7 @@ export default async function deleteDatabaseObject({
     body: JSON.stringify({
       dataSource,
       skip_execution: false,
-      name: `drop_table_${schema}_${table}`,
+      name: `drop_${type === 'FUNCTION' ? 'function' : 'table'}_${schema}_${table}`,
       down: [
         {
           type: 'run_sql',
@@ -63,11 +89,11 @@ export default async function deleteDatabaseObject({
             cascade: false,
             read_only: false,
             source: '',
-            sql: getEmptyDownMigrationMessage(deleteTableArgs),
+            sql: getEmptyDownMigrationMessage(deleteArgs),
           },
         },
       ],
-      up: deleteTableArgs,
+      up: deleteArgs,
     }),
   });
 

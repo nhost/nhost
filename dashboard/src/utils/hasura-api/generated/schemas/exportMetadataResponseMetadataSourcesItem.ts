@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from './exportMetadataResponseMetadataSourcesItemFunctionsItem';
 import type { ExportMetadataResponseMetadataSourcesItemTablesItem } from './exportMetadataResponseMetadataSourcesItemTablesItem';
 
 export type ExportMetadataResponseMetadataSourcesItem = {
@@ -14,5 +15,7 @@ export type ExportMetadataResponseMetadataSourcesItem = {
   kind?: string;
   /** List of tables in the data source */
   tables?: ExportMetadataResponseMetadataSourcesItemTablesItem[];
+  /** List of functions in the data source */
+  functions?: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
   [key: string]: unknown;
 };

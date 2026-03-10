@@ -7,6 +7,7 @@ import type {
 } from '@tanstack/react-table';
 import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from '@/utils/hasura-api/generated/schemas';
 
 /**
  * Base options for functions that is used by data browser mutations or queries.
@@ -86,6 +87,7 @@ export interface HasuraMetadataTable {
     name: string;
     schema: string;
   };
+  is_enum?: boolean;
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   configuration: Record<string, Record<string, any>>;
   array_relationships?: HasuraMetadataRelationship[];
@@ -103,6 +105,7 @@ export interface HasuraMetadataSource {
   name: string;
   kind: string;
   tables: HasuraMetadataTable[];
+  functions?: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
 }
 
 /**
@@ -187,6 +190,37 @@ export type RawQueryDataRow = string[];
  */
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export type NormalizedQueryDataRow = Record<string, any>;
+
+export type FunctionObject = {
+  function_schema: string;
+  function_name: string;
+};
+
+/**
+ * Represents an object that can be a table, view or materialized view in the database.
+ */
+
+export interface TableLikeObject extends Record<string, unknown> {
+  table_schema: string;
+  table_name: string;
+  table_type: TableLikeObjectType;
+  updatability: number;
+}
+
+export type TableLikeObjectType =
+  | 'ORDINARY TABLE'
+  | 'VIEW'
+  | 'MATERIALIZED VIEW'
+  | 'FOREIGN TABLE';
+
+export type DatabaseObjectType = TableLikeObjectType | 'FUNCTION';
+
+export interface DatabaseObjectViewModel {
+  schema: string;
+  name: string;
+  objectType: DatabaseObjectType;
+  updatability: number;
+}
 
 /**
  * Represents an object that can be used to set up ordering in an SQL query.

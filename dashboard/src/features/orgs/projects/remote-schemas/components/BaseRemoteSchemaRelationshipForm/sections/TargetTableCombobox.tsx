@@ -65,7 +65,7 @@ export default function TargetTableCombobox({
     setOpen(false);
   };
 
-  const tables = (data?.tables ?? [])
+  const tables = (data?.tableLikeObjects ?? [])
     .flatMap((table) =>
       table.table_name && table.table_schema
         ? [

@@ -12,6 +12,14 @@ import type {
   DatabaseAction,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
+const ALL_ACTIONS: DatabaseAction[] = ['insert', 'select', 'update', 'delete'];
+
+const gridColsMap: Record<number, string> = {
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  5: 'grid-cols-5',
+};
+
 export interface RolePermissionsProps extends TableRowProps {
   /**
    * Role name.
@@ -30,6 +38,10 @@ export interface RolePermissionsProps extends TableRowProps {
    * operation.
    */
   onActionSelect?: (action: DatabaseAction) => void;
+  /**
+   * The actions to display. Defaults to all 4 actions.
+   */
+  actions?: DatabaseAction[];
   /**
    * Props passed to individual component slots.
    */
@@ -63,16 +75,18 @@ export default function RolePermissions({
     delete: 'none',
   },
   onActionSelect,
+  actions = ALL_ACTIONS,
   slotProps,
   className,
   ...props
 }: RolePermissionsProps) {
   const cellProps = slotProps?.cell || {};
+  const gridCols = gridColsMap[actions.length + 1] || 'grid-cols-5';
 
   return (
     <TableRow
       className={twMerge(
-        'grid grid-cols-5 items-center justify-items-stretch border-b-1',
+        `grid ${gridCols} items-center justify-items-stretch border-b-1`,
         className,
       )}
       {...props}
@@ -87,93 +101,31 @@ export default function RolePermissions({
         {name}
       </TableCell>
 
-      <TableCell
-        {...cellProps}
-        className={twMerge(
-          'inline-grid h-full w-full items-center border-0 border-r-1 p-0 text-center',
-          disabled && 'justify-center',
-          cellProps.className,
-        )}
-      >
-        {disabled ? (
-          <AccessLevelIcon level={accessLevels.insert} />
-        ) : (
-          <IconButton
-            variant="borderless"
-            color="secondary"
-            className="h-full w-full rounded-none"
-            onClick={() => onActionSelect?.('insert')}
-          >
-            <AccessLevelIcon level={accessLevels.insert} />
-          </IconButton>
-        )}
-      </TableCell>
-
-      <TableCell
-        {...cellProps}
-        className={twMerge(
-          'inline-grid h-full w-full items-center border-0 border-r-1 p-0 text-center',
-          disabled && 'justify-center',
-          cellProps.className,
-        )}
-      >
-        {disabled ? (
-          <AccessLevelIcon level={accessLevels.select} />
-        ) : (
-          <IconButton
-            variant="borderless"
-            color="secondary"
-            className="h-full w-full rounded-none"
-            onClick={() => onActionSelect?.('select')}
-          >
-            <AccessLevelIcon level={accessLevels.select} />
-          </IconButton>
-        )}
-      </TableCell>
-
-      <TableCell
-        {...cellProps}
-        className={twMerge(
-          'inline-grid h-full w-full items-center border-0 border-r-1 p-0 text-center',
-          disabled && 'justify-center',
-          cellProps.className,
-        )}
-      >
-        {disabled ? (
-          <AccessLevelIcon level={accessLevels.update} />
-        ) : (
-          <IconButton
-            variant="borderless"
-            color="secondary"
-            className="h-full w-full rounded-none"
-            onClick={() => onActionSelect?.('update')}
-          >
-            <AccessLevelIcon level={accessLevels.update} />
-          </IconButton>
-        )}
-      </TableCell>
-
-      <TableCell
-        {...cellProps}
-        className={twMerge(
-          'inline-grid h-full w-full items-center border-0 p-0 text-center',
-          disabled && 'justify-center',
-          cellProps.className,
-        )}
-      >
-        {disabled ? (
-          <AccessLevelIcon level={accessLevels.delete} />
-        ) : (
-          <IconButton
-            variant="borderless"
-            color="secondary"
-            className="h-full w-full rounded-none"
-            onClick={() => onActionSelect?.('delete')}
-          >
-            <AccessLevelIcon level={accessLevels.delete} />
-          </IconButton>
-        )}
-      </TableCell>
+      {actions.map((actionKey, index) => (
+        <TableCell
+          key={actionKey}
+          {...cellProps}
+          className={twMerge(
+            'inline-grid h-full w-full items-center border-0 p-0 text-center',
+            index < actions.length - 1 && 'border-r-1',
+            disabled && 'justify-center',
+            cellProps.className,
+          )}
+        >
+          {disabled ? (
+            <AccessLevelIcon level={accessLevels[actionKey]} />
+          ) : (
+            <IconButton
+              variant="borderless"
+              color="secondary"
+              className="h-full w-full rounded-none"
+              onClick={() => onActionSelect?.(actionKey)}
+            >
+              <AccessLevelIcon level={accessLevels[actionKey]} />
+            </IconButton>
+          )}
+        </TableCell>
+      ))}
     </TableRow>
   );
 }

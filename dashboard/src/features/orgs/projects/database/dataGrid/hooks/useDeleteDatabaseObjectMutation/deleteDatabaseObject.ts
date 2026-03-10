@@ -1,15 +1,25 @@
-import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
+import {
+  getPreparedHasuraQuery,
+  type HasuraOperation,
+} from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
+import type { FunctionParameter } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery/fetchFunctionDefinition';
 import type {
   AffectedRowsResult,
+  DatabaseObjectType,
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { buildFunctionSignature } from '@/features/orgs/projects/database/dataGrid/utils/buildFunctionSignature';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 
-export const typeToQuery = {
-  'BASE TABLE': 'TABLE',
-} as const;
+export const typeToQuery: Record<DatabaseObjectType, string> = {
+  'ORDINARY TABLE': 'TABLE',
+  VIEW: 'VIEW',
+  'MATERIALIZED VIEW': 'MATERIALIZED VIEW',
+  'FOREIGN TABLE': 'FOREIGN TABLE',
+  FUNCTION: 'FUNCTION',
+};
 
 export interface DeleteDatabaseObjectVariables {
   /**
@@ -23,7 +33,12 @@ export interface DeleteDatabaseObjectVariables {
   /**
    * Type of the database object to delete.
    */
-  type: 'BASE TABLE';
+  type: DatabaseObjectType;
+  /**
+   * Function parameter types. Required when type is FUNCTION to uniquely
+   * identify overloaded functions.
+   */
+  inputArgTypes?: FunctionParameter[];
 }
 
 export interface DeleteDatabaseObjectOptions
@@ -36,21 +51,45 @@ export default async function deleteDatabaseObject({
   schema,
   table,
   type,
+  inputArgTypes,
 }: DeleteDatabaseObjectOptions & DeleteDatabaseObjectVariables) {
+  const queryType = typeToQuery[type];
+  if (!queryType) {
+    throw new Error(`Unsupported database object type: ${type}`);
+  }
+
+  let queryArgs: HasuraOperation;
+  if (type === 'FUNCTION') {
+    const signature = buildFunctionSignature(
+      schema,
+      table,
+      inputArgTypes || [],
+    );
+    const preparedQuery = getPreparedHasuraQuery(
+      dataSource,
+      `DROP ${queryType} %s`,
+      signature,
+    );
+    queryArgs = {
+      ...preparedQuery,
+      args: { ...preparedQuery.args, cascade: false },
+    };
+  } else {
+    queryArgs = getPreparedHasuraQuery(
+      dataSource,
+      `DROP ${queryType} %I.%I`,
+      schema,
+      table,
+    );
+  }
+
   const response = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,
     },
     body: JSON.stringify({
-      args: [
-        getPreparedHasuraQuery(
-          dataSource,
-          `DROP ${typeToQuery[type]} %I.%I`,
-          schema,
-          table,
-        ),
-      ],
+      args: [queryArgs],
       type: 'bulk',
       version: 1,
     }),

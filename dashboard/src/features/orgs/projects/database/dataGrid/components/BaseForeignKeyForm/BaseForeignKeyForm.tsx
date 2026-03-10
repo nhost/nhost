@@ -89,7 +89,7 @@ export default function BaseForeignKeyForm({
   const { data } = useDatabaseQuery([dataSourceSlug]);
 
   const schemas = data?.schemas ?? [];
-  const tables = data?.tables ?? [];
+  const tables = data?.tableLikeObjects ?? [];
 
   // react-hook-form's isDirty gets true even if an input field is focused, then
   // immediately unfocused - we can't rely on that information
