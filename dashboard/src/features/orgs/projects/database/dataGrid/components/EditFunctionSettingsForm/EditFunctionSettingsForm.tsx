@@ -13,7 +13,7 @@ import { TrackUntrackSection } from '@/features/orgs/projects/database/dataGrid/
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
 import { useSetFunctionCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionCustomizationMutation';
-import { useSetFunctionTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionTrackingMutation';
+import { useDatabaseObjectTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseObjectTrackingMutation';
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
@@ -70,8 +70,8 @@ export default function EditFunctionSettingsForm({
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
-  const { mutateAsync: setFunctionTracking, isPending: isTrackingPending } =
-    useSetFunctionTrackingMutation();
+  const { mutateAsync: setTracking, isPending: isTrackingPending } =
+    useDatabaseObjectTrackingMutation();
 
   async function handleTrackToggle() {
     const tracked = !isTracked;
@@ -79,13 +79,13 @@ export default function EditFunctionSettingsForm({
 
     await execPromiseWithErrorToast(
       async () => {
-        await setFunctionTracking({
+        await setTracking({
           tracked,
-          resourceVersion,
-          args: {
-            source: (dataSourceSlug as string) || 'default',
-            function: { name: functionName, schema },
-          },
+          resourceVersion: resourceVersion!,
+          source: (dataSourceSlug as string) || 'default',
+          schema,
+          name: functionName,
+          isFunction: true,
         });
       },
       {

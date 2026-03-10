@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
-import { useSetFunctionTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionTrackingMutation';
+import { useDatabaseObjectTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseObjectTrackingMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function TrackFunctionButton() {
@@ -22,22 +22,19 @@ export default function TrackFunctionButton() {
   );
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
-  const { mutateAsync: setFunctionTracking, isPending: isMutatingTracking } =
-    useSetFunctionTrackingMutation();
+  const { mutateAsync: setTracking, isPending: isMutatingTracking } =
+    useDatabaseObjectTrackingMutation();
 
   const handleTrack = async () => {
     await execPromiseWithErrorToast(
       async () => {
-        await setFunctionTracking({
+        await setTracking({
           tracked: true,
-          resourceVersion,
-          args: {
-            source: dataSourceSlug as string,
-            function: {
-              name: functionSlug as string,
-              schema: schemaSlug as string,
-            },
-          },
+          resourceVersion: resourceVersion!,
+          source: dataSourceSlug as string,
+          schema: schemaSlug as string,
+          name: functionSlug as string,
+          isFunction: true,
         });
       },
       {
