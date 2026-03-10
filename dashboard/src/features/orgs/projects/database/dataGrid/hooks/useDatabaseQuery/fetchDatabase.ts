@@ -68,7 +68,7 @@ export default async function fetchDatabase({
         getPreparedReadOnlyHasuraQuery(
           dataSource,
           `SELECT row_to_json(func_data) as data FROM (
-            SELECT
+            SELECT DISTINCT
               n.nspname as function_schema,
               p.proname as function_name
             FROM pg_proc p
