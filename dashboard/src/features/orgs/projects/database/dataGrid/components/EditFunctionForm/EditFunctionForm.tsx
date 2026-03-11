@@ -7,26 +7,27 @@ import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hoo
 export interface EditFunctionFormProps {
   schema: string;
   functionName: string;
+  functionOID: string;
   dataSource: string;
 }
 
 export default function EditFunctionForm({
   schema,
   functionName,
+  functionOID,
   dataSource,
 }: EditFunctionFormProps) {
-  const currentFunctionPath = `${dataSource}.${schema}.${functionName}`;
+  const cacheKey = `${dataSource}.${functionOID}`;
 
   const {
     data,
     status,
     error: queryError,
-  } = useFunctionQuery(['function-definition', currentFunctionPath], {
-    functionName,
-    schema,
+  } = useFunctionQuery(['function-definition', cacheKey], {
+    functionOID,
     dataSource,
     queryOptions: {
-      enabled: !!schema && !!functionName,
+      enabled: !!functionOID,
     },
   });
 

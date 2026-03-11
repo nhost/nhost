@@ -5,45 +5,34 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import { getHasuraAdminSecret } from '@/utils/env';
-import type {
-  FetchFunctionDefinitionOptions,
-  FetchFunctionDefinitionReturnType,
-} from './fetchFunctionDefinition';
+import type { FetchFunctionDefinitionReturnType } from './fetchFunctionDefinition';
 import fetchFunctionDefinition from './fetchFunctionDefinition';
 
-export interface UseFunctionQueryOptions
-  extends Partial<FetchFunctionDefinitionOptions> {
-  /**
-   * Props passed to the underlying query hook.
-   */
+export interface UseFunctionQueryOptions {
+  dataSource?: string;
+  functionOID?: string;
+  appUrl?: string;
+  adminSecret?: string;
   queryOptions?: UseQueryOptions<FetchFunctionDefinitionReturnType>;
 }
 
-/**
- * This hook is a wrapper around a fetch call that gets the CREATE FUNCTION SQL
- * definition for a table-returning function.
- *
- * @param queryKey - Query key to use for caching.
- * @param options - Options to use for the query.
- * @returns The function definition SQL.
- */
 export default function useFunctionQuery(
   queryKey: QueryKey,
   {
     dataSource: customDataSource,
-    schema: customSchema,
-    functionName: customFunctionName,
+    functionOID: customFunctionOID,
     appUrl: customAppUrl,
     adminSecret: customAdminSecret,
     queryOptions,
-    ...options
   }: UseFunctionQueryOptions = {},
 ) {
   const {
-    query: { dataSourceSlug, schemaSlug, functionSlug },
+    query: { dataSourceSlug, functionOID: routerFunctionOID },
     isReady,
   } = useRouter();
   const { project } = useProject();
+
+  const functionOID = customFunctionOID ?? (routerFunctionOID as string);
 
   return useQuery<FetchFunctionDefinitionReturnType>({
     queryKey,
@@ -55,22 +44,23 @@ export default function useFunctionQuery(
       );
 
       return fetchFunctionDefinition({
-        ...options,
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
             : customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
-        schema: customSchema || (schemaSlug as string),
-        functionName: customFunctionName || (functionSlug as string),
+        functionOID,
       });
     },
     retry: false,
     keepPreviousData: true,
     ...queryOptions,
     enabled:
-      isNotEmptyValue(project) && project?.config?.hasura.adminSecret && isReady
+      isNotEmptyValue(project) &&
+      project?.config?.hasura.adminSecret &&
+      isReady &&
+      !!functionOID
         ? queryOptions?.enabled
         : false,
   });

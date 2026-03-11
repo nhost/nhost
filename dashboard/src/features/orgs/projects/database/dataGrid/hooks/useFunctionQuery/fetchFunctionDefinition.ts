@@ -6,11 +6,11 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface FetchFunctionDefinitionOptions
-  extends Omit<MutationOrQueryBaseOptions, 'table'> {
+  extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {
   /**
-   * Function name to fetch.
+   * Function OID to fetch.
    */
-  functionName: string;
+  functionOID: string;
 }
 
 export interface FunctionParameter {
@@ -60,8 +60,7 @@ export interface FetchFunctionDefinitionReturnType {
  */
 export default async function fetchFunctionDefinition({
   dataSource,
-  schema,
-  functionName,
+  functionOID,
   appUrl,
   adminSecret,
 }: FetchFunctionDefinitionOptions): Promise<FetchFunctionDefinitionReturnType> {
@@ -115,11 +114,10 @@ export default async function fetchFunctionDefinition({
             JOIN pg_type rt ON rt.oid = p.prorettype
             JOIN pg_namespace rtn ON rtn.oid = rt.typnamespace
             JOIN pg_language l ON l.oid = p.prolang
-            WHERE n.nspname = %1$L AND p.proname = %2$L
+            WHERE p.oid = %1$L::oid
             LIMIT 1
           ) func_data`,
-          schema,
-          functionName,
+          String(functionOID),
         ),
       ],
       type: 'bulk',

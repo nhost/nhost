@@ -131,7 +131,7 @@ export interface UseDataBrowserActionsParams {
   dataSourceSlug: string;
   schemaSlug: string | undefined;
   tableSlug: string | undefined;
-  functionSlug: string | undefined;
+  functionOID: string | undefined;
   selectedSchema: string;
   refetchDatabaseQuery: () => Promise<unknown>;
   allObjects: DatabaseObjectViewModel[];
@@ -141,7 +141,7 @@ export function useDataBrowserActions({
   dataSourceSlug,
   schemaSlug,
   tableSlug,
-  functionSlug,
+  functionOID,
   selectedSchema,
   refetchDatabaseQuery,
   allObjects,
@@ -165,19 +165,29 @@ export function useDataBrowserActions({
     schema: string,
     name: string,
     objectType: DatabaseObjectType,
+    oid?: string,
   ) {
-    const objectPath = `${schema}.${name}`;
+    const tableLikeObjectKey = `${schema}.${name}`;
     const isFunction = objectType === 'FUNCTION';
+    const functionKey = `FUNCTION.${schema}.${oid}`;
 
-    setRemovableObject(objectPath);
+    if (isFunction) {
+      setRemovableObject(functionKey);
+    } else {
+      setRemovableObject(tableLikeObjectKey);
+    }
 
     try {
       let nextObjectIndex: number | null = null;
 
       if (isNotEmptyValue(allObjects) && allObjects.length > 1) {
-        const currentObjectIndex = allObjects.findIndex(
-          (obj) => `${obj.schema}.${obj.name}` === objectPath,
-        );
+        const currentObjectIndex = isFunction
+          ? allObjects.findIndex(
+              (obj) => obj.objectType === 'FUNCTION' && obj.oid === oid,
+            )
+          : allObjects.findIndex(
+              (obj) => `${obj.schema}.${obj.name}` === tableLikeObjectKey,
+            );
 
         nextObjectIndex = currentObjectIndex + 1;
 
@@ -191,14 +201,16 @@ export function useDataBrowserActions({
           ? allObjects[nextObjectIndex]
           : null;
 
-      await deleteDatabaseObject({ schema, table: name, type: objectType });
+      await deleteDatabaseObject({
+        schema,
+        objectName: name,
+        type: objectType,
+        functionOID: oid,
+      });
 
       if (isFunction) {
         queryClient.removeQueries({
-          queryKey: [
-            'function-definition',
-            `${dataSourceSlug}.${schema}.${name}`,
-          ],
+          queryKey: ['function-definition', `${dataSourceSlug}.${oid}`],
         });
       } else {
         queryClient.removeQueries({
@@ -206,7 +218,12 @@ export function useDataBrowserActions({
         });
       }
 
-      setOptimisticlyRemovedObject(objectPath);
+      if (isFunction) {
+        setOptimisticlyRemovedObject(functionKey);
+      } else {
+        setOptimisticlyRemovedObject(tableLikeObjectKey);
+      }
+
       await refetchDatabaseQuery();
 
       if (!isFunction) {
@@ -223,12 +240,18 @@ export function useDataBrowserActions({
         return;
       }
 
-      const activeSlug = isFunction ? functionSlug : tableSlug;
+      const isCurrentlyActive = isFunction
+        ? oid === functionOID
+        : schema === schemaSlug && name === tableSlug;
 
-      if (schema === schemaSlug && name === activeSlug) {
+      if (isCurrentlyActive) {
         const urlSegment = getObjectTypeUrlSegment(nextObject.objectType);
+        const nextSlug =
+          nextObject.objectType === 'FUNCTION'
+            ? nextObject.oid
+            : nextObject.name;
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextObject.schema}/${urlSegment}/${nextObject.name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextObject.schema}/${urlSegment}/${nextSlug}`,
         );
       }
     } catch {
@@ -243,6 +266,7 @@ export function useDataBrowserActions({
     schema: string,
     name: string,
     objectType: DatabaseObjectType,
+    oid?: string,
   ) {
     const { label: objectLabel, title } =
       deleteObjectTypeLabels[objectType] ??
@@ -260,7 +284,7 @@ export function useDataBrowserActions({
         primaryButtonText: 'Delete',
         primaryButtonColor: 'error',
         onPrimaryAction: () =>
-          handleDeleteDatabaseObjectConfirmation(schema, name, objectType),
+          handleDeleteDatabaseObjectConfirmation(schema, name, objectType, oid),
       },
     });
   }
@@ -400,13 +424,18 @@ export function useDataBrowserActions({
     });
   }
 
-  function openEditFunctionDrawer(schema: string, functionName: string) {
+  function openEditFunctionDrawer(
+    schema: string,
+    functionName: string,
+    oid: string,
+  ) {
     openDrawer({
       title: 'Function Definition',
       component: (
         <EditFunctionForm
           schema={schema}
           functionName={functionName}
+          functionOID={oid}
           dataSource={dataSourceSlug}
         />
       ),

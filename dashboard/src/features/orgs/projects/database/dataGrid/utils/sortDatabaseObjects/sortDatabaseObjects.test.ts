@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import type {
-  DatabaseObjectType,
   DatabaseObjectViewModel,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import sortDatabaseObjects from './sortDatabaseObjects';
 
 function obj(
   name: string,
-  objectType: DatabaseObjectType,
+  objectType: TableLikeObjectType,
   schema = 'public',
 ): DatabaseObjectViewModel {
   return { name, objectType, schema, updatability: 28 };

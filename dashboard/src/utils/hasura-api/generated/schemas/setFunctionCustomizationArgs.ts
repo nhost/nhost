@@ -5,11 +5,11 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { Function } from './function';
 import type { FunctionConfiguration } from './functionConfiguration';
+import type { QualifiedFunction } from './qualifiedFunction';
 
 export interface SetFunctionCustomizationArgs {
-  function: Function;
+  function: QualifiedFunction;
   /** Configuration for the function */
   configuration?: FunctionConfiguration;
   /** Name of the source database of the function */

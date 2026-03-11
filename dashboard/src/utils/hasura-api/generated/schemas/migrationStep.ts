@@ -8,9 +8,7 @@
 import type { AddRemoteSchemaPermissionsStep } from './addRemoteSchemaPermissionsStep';
 import type { AddRemoteSchemaStep } from './addRemoteSchemaStep';
 import type { CreateEventTriggerStep } from './createEventTriggerStep';
-import type { CreateFunctionPermissionStep } from './createFunctionPermissionStep';
 import type { DeleteEventTriggerStep } from './deleteEventTriggerStep';
-import type { DropFunctionPermissionStep } from './dropFunctionPermissionStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
 import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
 import type { ReplaceMetadataOperation } from './replaceMetadataOperation';
@@ -36,6 +34,4 @@ export type MigrationStep =
   | TrackTableStep
   | UntrackTableStep
   | TrackFunctionStep
-  | UntrackFunctionStep
-  | CreateFunctionPermissionStep
-  | DropFunctionPermissionStep;
+  | UntrackFunctionStep;

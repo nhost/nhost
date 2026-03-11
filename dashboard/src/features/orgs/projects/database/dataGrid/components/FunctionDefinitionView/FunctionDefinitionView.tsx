@@ -6,39 +6,26 @@ import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGri
 import { TrackFunctionButton } from '@/features/orgs/projects/database/dataGrid/components/TrackFunctionButton';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 
-export interface FunctionDefinitionViewProps {
-  schema?: string;
-  functionName?: string;
-  dataSource?: string;
-}
-
-export default function FunctionDefinitionView({
-  schema: schemaProp,
-  functionName: functionNameProp,
-  dataSource: dataSourceProp,
-}: FunctionDefinitionViewProps = {}) {
+export default function FunctionDefinitionView() {
   const router = useRouter();
   const {
-    query: { schemaSlug, functionSlug, dataSourceSlug },
+    query: { schemaSlug, functionOID: routerFunctionOID, dataSourceSlug },
   } = router;
 
-  const schema = schemaProp || (schemaSlug as string);
-  const functionName = functionNameProp || (functionSlug as string);
-  const dataSource = dataSourceProp || (dataSourceSlug as string) || 'default';
+  const schema = schemaSlug as string;
+  const dataSource = (dataSourceSlug as string) || 'default';
+  const functionOID = (routerFunctionOID as string) || '';
 
-  const currentFunctionPath =
-    dataSource && schema && functionName
-      ? `${dataSource}.${schema}.${functionName}`
-      : '';
+  const cacheKey =
+    dataSource && functionOID ? `${dataSource}.${functionOID}` : '';
 
   const { data, status, error } = useFunctionQuery(
-    ['function-definition', currentFunctionPath],
+    ['function-definition', cacheKey],
     {
-      functionName,
-      schema,
+      functionOID,
       dataSource,
       queryOptions: {
-        enabled: !!currentFunctionPath && !!functionName,
+        enabled: !!cacheKey && !!functionOID,
       },
     },
   );
@@ -47,6 +34,8 @@ export default function FunctionDefinitionView({
     functionMetadata: null,
     error: null,
   };
+
+  const functionName = functionMetadata?.functionName;
 
   if (status === 'loading') {
     return (
@@ -83,11 +72,7 @@ export default function FunctionDefinitionView({
         title="Function not found"
         description={
           <span>
-            Function{' '}
-            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
-              {schema}.{functionName}
-            </InlineCode>{' '}
-            does not exist or is not a table-returning function.
+            The function does not exist or is not a table-returning function.
           </span>
         }
       />
@@ -101,7 +86,10 @@ export default function FunctionDefinitionView({
     <div className="flex h-full flex-col overflow-hidden">
       <div className="border-b p-4">
         <div className="mb-4">
-          <TrackFunctionButton />
+          <TrackFunctionButton
+            schema={schema}
+            functionName={functionMetadata.functionName}
+          />
           <h2 className="font-semibold text-lg">Function Definition</h2>
           <p className="text-muted-foreground text-sm">
             <InlineCode className="bg-opacity-80 px-1.5 text-sm">

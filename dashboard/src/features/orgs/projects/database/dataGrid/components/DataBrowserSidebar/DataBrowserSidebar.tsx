@@ -25,10 +25,7 @@ import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hoo
 import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
 import { useGetTrackedFunctionsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedFunctionsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
-import type {
-  DatabaseObjectViewModel,
-  TableLikeObjectType,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
 import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
 
@@ -62,7 +59,7 @@ function DataBrowserSidebarContent({
       dataSourceSlug,
       schemaSlug,
       tableSlug,
-      functionSlug,
+      functionOID,
     },
   } = router;
 
@@ -136,7 +133,7 @@ function DataBrowserSidebarContent({
             schema: databaseFunction.function_schema,
             name: databaseFunction.function_name,
             objectType: 'FUNCTION' as const,
-            updatability: 0,
+            oid: databaseFunction.function_oid,
           })),
       ],
       enumTablePaths,
@@ -159,16 +156,19 @@ function DataBrowserSidebarContent({
     dataSourceSlug: dataSourceSlug as string,
     schemaSlug: schemaSlug as string | undefined,
     tableSlug: tableSlug as string | undefined,
-    functionSlug: functionSlug as string | undefined,
+    functionOID: functionOID as string | undefined,
     selectedSchema,
     refetchDatabaseQuery,
     allObjects: allObjectsInSelectedSchema,
   });
 
-  const displayedObjects = allObjectsInSelectedSchema.filter(
-    ({ schema: tableSchema, name: tableName }) =>
-      `${tableSchema}.${tableName}` !== optimisticlyRemovedObject,
-  );
+  const displayedObjects = allObjectsInSelectedSchema.filter((obj) => {
+    const isFunc = obj.objectType === 'FUNCTION';
+    const objKey = isFunc
+      ? `FUNCTION.${obj.schema}.${obj.oid}`
+      : `${obj.schema}.${obj.name}`;
+    return objKey !== optimisticlyRemovedObject;
+  });
 
   if (status === 'loading') {
     return (
@@ -246,13 +246,18 @@ function DataBrowserSidebarContent({
           {isNotEmptyValue(displayedObjects) && (
             <ul className="w-full max-w-full pb-6">
               {displayedObjects.map((databaseObject) => {
-                const objectPath = `${databaseObject.objectType}.${databaseObject.schema}.${databaseObject.name}`;
                 const isFunction = databaseObject.objectType === 'FUNCTION';
-                const activeObjectName = isFunction ? functionSlug : tableSlug;
-                const isSelected =
-                  databaseObject.schema === schemaSlug &&
-                  databaseObject.name === activeObjectName;
-                const isSidebarMenuOpen = sidebarMenuObject === objectPath;
+                const updatability = !isFunction
+                  ? databaseObject.updatability
+                  : undefined;
+                const objectKey = isFunction
+                  ? `FUNCTION.${databaseObject.schema}.${databaseObject.oid}`
+                  : `${databaseObject.objectType}.${databaseObject.schema}.${databaseObject.name}`;
+                const isSelected = isFunction
+                  ? databaseObject.oid === functionOID
+                  : databaseObject.schema === schemaSlug &&
+                    databaseObject.name === tableSlug;
+                const isSidebarMenuOpen = sidebarMenuObject === objectKey;
                 const tablePath = `${databaseObject.schema}.${databaseObject.name}`;
                 const isEnum = Boolean(enumTablePaths?.has(tablePath));
                 const isUntracked = isFunction
@@ -263,14 +268,14 @@ function DataBrowserSidebarContent({
                   isEnum,
                 );
                 return (
-                  <li className="group pb-1" key={objectPath}>
+                  <li className="group pb-1" key={objectKey}>
                     <Tooltip open={isUntracked ? undefined : false}>
                       <TooltipTrigger asChild>
                         <Button
                           asChild
                           variant="link"
                           size="sm"
-                          disabled={objectPath === removableObject}
+                          disabled={objectKey === removableObject}
                           className={cn(
                             'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
                             {
@@ -288,10 +293,10 @@ function DataBrowserSidebarContent({
                               )}
                               onClick={() => {
                                 if (onSidebarItemClick) {
-                                  onSidebarItemClick(`default.${objectPath}`);
+                                  onSidebarItemClick(`default.${objectKey}`);
                                 }
                               }}
-                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.schema}/${getObjectTypeUrlSegment(databaseObject.objectType)}/${databaseObject.name}`}
+                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.schema}/${getObjectTypeUrlSegment(databaseObject.objectType)}/${isFunction ? databaseObject.oid : databaseObject.name}`}
                             >
                               <DatabaseObjectIcon className="h-4 w-4 shrink-0" />
                               <span
@@ -308,9 +313,9 @@ function DataBrowserSidebarContent({
                               schema={databaseObject.schema}
                               dataSource={dataSourceSlug as string}
                               objectType={databaseObject.objectType}
-                              disabled={objectPath === removableObject}
+                              disabled={objectKey === removableObject}
                               open={isSidebarMenuOpen}
-                              onOpen={() => setSidebarMenuObject(objectPath)}
+                              onOpen={() => setSidebarMenuObject(objectKey)}
                               onClose={() => setSidebarMenuObject(undefined)}
                               className={cn(
                                 'relative z-10 opacity-0 group-hover:opacity-100',
@@ -328,7 +333,7 @@ function DataBrowserSidebarContent({
                                   databaseObject.name,
                                   true,
                                   databaseObject.objectType,
-                                  databaseObject.updatability,
+                                  updatability,
                                 )
                               }
                               onEditPermissions={() =>
@@ -337,7 +342,7 @@ function DataBrowserSidebarContent({
                                   databaseObject.name,
                                   undefined,
                                   databaseObject.objectType,
-                                  databaseObject.updatability,
+                                  updatability,
                                 )
                               }
                               onEdit={() => {
@@ -345,6 +350,7 @@ function DataBrowserSidebarContent({
                                   openEditFunctionDrawer(
                                     databaseObject.schema,
                                     databaseObject.name,
+                                    databaseObject.oid,
                                   );
                                 } else if (
                                   ['MATERIALIZED VIEW', 'VIEW'].includes(
@@ -354,7 +360,7 @@ function DataBrowserSidebarContent({
                                   openEditViewDrawer(
                                     databaseObject.schema,
                                     databaseObject.name,
-                                    databaseObject.objectType as TableLikeObjectType,
+                                    databaseObject.objectType,
                                   );
                                 } else {
                                   openEditTableDrawer(
@@ -397,6 +403,7 @@ function DataBrowserSidebarContent({
                                   databaseObject.schema,
                                   databaseObject.name,
                                   databaseObject.objectType,
+                                  isFunction ? databaseObject.oid : undefined,
                                 )
                               }
                             />

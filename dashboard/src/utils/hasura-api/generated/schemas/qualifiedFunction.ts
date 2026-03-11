@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface Function {
+export interface QualifiedFunction {
   /** Name of the function */
   name: string;
   /** Schema of the function */

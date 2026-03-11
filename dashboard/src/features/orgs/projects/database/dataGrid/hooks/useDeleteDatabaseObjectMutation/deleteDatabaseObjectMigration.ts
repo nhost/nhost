@@ -24,11 +24,15 @@ export interface DeleteDatabaseObjectMigrationVariables {
   /**
    * Database object to delete.
    */
-  table: string;
+  objectName: string;
   /**
    * Type of the database object to delete.
    */
   type: DatabaseObjectType;
+  /**
+   * Function OID. Used to fetch parameter types when type is FUNCTION.
+   */
+  functionOID?: string;
   /**
    * Function parameter types. Required when type is FUNCTION.
    */
@@ -42,7 +46,7 @@ export default async function deleteDatabaseObject({
   dataSource,
   adminSecret,
   schema,
-  table,
+  objectName,
   type,
   inputArgTypes,
 }: DeleteDatabaseObjectMigrationOptions &
@@ -51,7 +55,7 @@ export default async function deleteDatabaseObject({
   if (type === 'FUNCTION') {
     const signature = buildFunctionSignature(
       schema,
-      table,
+      objectName,
       inputArgTypes || [],
     );
     const preparedQuery = getPreparedHasuraQuery(
@@ -68,7 +72,7 @@ export default async function deleteDatabaseObject({
         dataSource,
         `DROP ${typeToQuery[type]} IF EXISTS %I.%I`,
         schema,
-        table,
+        objectName,
       ),
     ];
   }
@@ -81,7 +85,7 @@ export default async function deleteDatabaseObject({
     body: JSON.stringify({
       dataSource,
       skip_execution: false,
-      name: `drop_${type === 'FUNCTION' ? 'function' : 'table'}_${schema}_${table}`,
+      name: `drop_${type === 'FUNCTION' ? 'function' : 'table'}_${schema}_${objectName}`,
       down: [
         {
           type: 'run_sql',
