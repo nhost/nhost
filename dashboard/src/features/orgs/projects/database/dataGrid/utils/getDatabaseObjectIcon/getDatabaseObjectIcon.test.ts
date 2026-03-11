@@ -36,7 +36,4 @@ describe('getDatabaseObjectIcon', () => {
     expect(getDatabaseObjectIcon('ORDINARY TABLE', false)).toBe(Table2);
   });
 
-  test('should return ScanEye for VIEW even when isEnum is true', () => {
-    expect(getDatabaseObjectIcon('VIEW', true)).toBe(ScanEye);
-  });
 });

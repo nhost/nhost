@@ -250,9 +250,11 @@ function DataBrowserSidebarContent({
                 const updatability = !isFunction
                   ? databaseObject.updatability
                   : undefined;
-                const objectKey = isFunction
-                  ? `FUNCTION.${databaseObject.schema}.${databaseObject.oid}`
-                  : `${databaseObject.objectType}.${databaseObject.schema}.${databaseObject.name}`;
+
+                const keyIdentifier = isFunction
+                  ? databaseObject.oid
+                  : databaseObject.name;
+                const objectKey = `${databaseObject.objectType}.${databaseObject.schema}.${keyIdentifier}`;
                 const isSelected = isFunction
                   ? databaseObject.oid === functionOID
                   : databaseObject.schema === schemaSlug &&
