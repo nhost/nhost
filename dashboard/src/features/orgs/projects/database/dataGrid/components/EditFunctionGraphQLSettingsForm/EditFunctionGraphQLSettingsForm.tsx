@@ -34,7 +34,7 @@ const defaultValues: FunctionSettingsFormValues = {
   sessionArgument: '',
 };
 
-export interface EditFunctionSettingsFormProps {
+export interface EditFunctionGraphQLSettingsFormProps {
   /**
    * Function to be called when the form is closed.
    */
@@ -53,12 +53,12 @@ export interface EditFunctionSettingsFormProps {
   disabled?: boolean;
 }
 
-export default function EditFunctionSettingsForm({
+export default function EditFunctionGraphQLSettingsForm({
   onCancel,
   schema,
   functionName,
   disabled,
-}: EditFunctionSettingsFormProps) {
+}: EditFunctionGraphQLSettingsFormProps) {
   const { query } = useRouter();
   const { dataSourceSlug } = query;
 

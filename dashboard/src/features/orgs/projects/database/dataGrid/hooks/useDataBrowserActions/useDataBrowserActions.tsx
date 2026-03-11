@@ -13,10 +13,11 @@ import type {
   DatabaseObjectViewModel,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 
-const permissionTypeLabels: Record<DatabaseObjectType, string> = {
+const objectTypeLabels: Record<DatabaseObjectType, string> = {
   'ORDINARY TABLE': 'Table',
   VIEW: 'View',
   'MATERIALIZED VIEW': 'Materialized View',
@@ -82,10 +83,10 @@ const EditFunctionForm = dynamic(
   },
 );
 
-const EditFunctionSettingsForm = dynamic(
+const EditFunctionGraphQLSettingsForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/EditFunctionSettingsForm/EditFunctionSettingsForm'
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionGraphQLSettingsForm/EditFunctionGraphQLSettingsForm'
     ),
   {
     ssr: false,
@@ -107,8 +108,8 @@ const EditPermissionsForm = dynamic(
 const EditGraphQLSettingsForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm'
-    ).then((mod) => mod.EditGraphQLSettingsForm),
+      '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/EditGraphQLSettingsForm'
+    ),
   {
     ssr: false,
     loading: () => <FormActivityIndicator />,
@@ -134,7 +135,6 @@ export interface UseDataBrowserActionsParams {
   selectedSchema: string;
   refetchDatabaseQuery: () => Promise<unknown>;
   allObjects: DatabaseObjectViewModel[];
-  functions: Array<{ function_schema: string; function_name: string }>;
 }
 
 export function useDataBrowserActions({
@@ -145,7 +145,6 @@ export function useDataBrowserActions({
   selectedSchema,
   refetchDatabaseQuery,
   allObjects,
-  functions,
 }: UseDataBrowserActionsParams) {
   const queryClient = useQueryClient();
   const { openDrawer, openAlertDialog } = useDialog();
@@ -164,20 +163,18 @@ export function useDataBrowserActions({
 
   async function handleDeleteDatabaseObjectConfirmation(
     schema: string,
-    table: string,
-    type: TableLikeObjectType,
+    name: string,
+    objectType: DatabaseObjectType,
   ) {
-    const objectPath = `${schema}.${table}`;
+    const objectPath = `${schema}.${name}`;
+    const isFunction = objectType === 'FUNCTION';
 
-    // We are greying out and disabling it in the sidebar
     setRemovableObject(objectPath);
 
     try {
       let nextObjectIndex: number | null = null;
 
       if (isNotEmptyValue(allObjects) && allObjects.length > 1) {
-        // We go to the next object if available or to the previous one if the
-        // current one is the last one in the list
         const currentObjectIndex = allObjects.findIndex(
           (obj) => `${obj.schema}.${obj.name}` === objectPath,
         );
@@ -194,22 +191,30 @@ export function useDataBrowserActions({
           ? allObjects[nextObjectIndex]
           : null;
 
-      await deleteDatabaseObject({ schema, table, type });
-      queryClient.removeQueries({
-        queryKey: [`${dataSourceSlug}.${schema}.${table}`],
-      });
+      await deleteDatabaseObject({ schema, table: name, type: objectType });
 
-      // Note: At this point we can optimisticly assume that the object was
-      // removed, so we can improve the UX by removing it from the list right
-      // away, without waiting for the refetch to succeed.
+      if (isFunction) {
+        queryClient.removeQueries({
+          queryKey: [
+            'function-definition',
+            `${dataSourceSlug}.${schema}.${name}`,
+          ],
+        });
+      } else {
+        queryClient.removeQueries({
+          queryKey: [`${dataSourceSlug}.${schema}.${name}`],
+        });
+      }
+
       setOptimisticlyRemovedObject(objectPath);
       await refetchDatabaseQuery();
-      await queryClient.refetchQueries({
-        queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-      });
 
-      // If this was the last table in the schema, we go back to the data
-      // browser's main screen
+      if (!isFunction) {
+        await queryClient.refetchQueries({
+          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+        });
+      }
+
       if (!nextObject) {
         await router.push(
           `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
@@ -218,9 +223,12 @@ export function useDataBrowserActions({
         return;
       }
 
-      if (schema === schemaSlug && table === tableSlug) {
+      const activeSlug = isFunction ? functionSlug : tableSlug;
+
+      if (schema === schemaSlug && name === activeSlug) {
+        const urlSegment = getObjectTypeUrlSegment(nextObject.objectType);
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextObject.schema}/tables/${nextObject.name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextObject.schema}/${urlSegment}/${nextObject.name}`,
         );
       }
     } catch {
@@ -234,7 +242,7 @@ export function useDataBrowserActions({
   function handleDeleteDatabaseObject(
     schema: string,
     name: string,
-    objectType: TableLikeObjectType,
+    objectType: DatabaseObjectType,
   ) {
     const { label: objectLabel, title } =
       deleteObjectTypeLabels[objectType] ??
@@ -257,90 +265,6 @@ export function useDataBrowserActions({
     });
   }
 
-  async function handleDeleteFunctionConfirmation(
-    schema: string,
-    functionName: string,
-  ) {
-    const functionPath = `${schema}.${functionName}`;
-
-    setRemovableObject(functionPath);
-
-    try {
-      let nextFunctionIndex: number | null = null;
-
-      if (isNotEmptyValue(functions) && functions.length > 1) {
-        const currentFunctionIndex = functions.findIndex(
-          ({ function_schema: fnSchema, function_name: fnName }) =>
-            `${fnSchema}.${fnName}` === functionPath,
-        );
-
-        nextFunctionIndex = currentFunctionIndex + 1;
-
-        if (currentFunctionIndex + 1 === functions.length) {
-          nextFunctionIndex = currentFunctionIndex - 1;
-        }
-      }
-
-      const nextFunction =
-        isNotEmptyValue(nextFunctionIndex) && isNotEmptyValue(functions)
-          ? functions[nextFunctionIndex]
-          : null;
-
-      await deleteDatabaseObject({
-        schema,
-        table: functionName,
-        type: 'FUNCTION',
-      });
-
-      queryClient.removeQueries({
-        queryKey: [
-          'function-definition',
-          `${dataSourceSlug}.${schema}.${functionName}`,
-        ],
-      });
-
-      setOptimisticlyRemovedObject(functionPath);
-      await refetchDatabaseQuery();
-
-      if (!nextFunction) {
-        await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
-        );
-
-        return;
-      }
-
-      if (schema === schemaSlug && functionName === functionSlug) {
-        await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextFunction.function_schema}/functions/${nextFunction.function_name}`,
-        );
-      }
-    } catch {
-      // TODO: Introduce logging
-    } finally {
-      setRemovableObject(undefined);
-      setOptimisticlyRemovedObject(undefined);
-    }
-  }
-
-  function handleDeleteFunction(schema: string, functionName: string) {
-    openAlertDialog({
-      title: 'Delete Function',
-      payload: (
-        <span>
-          Are you sure you want to delete the{' '}
-          <strong className="break-all">{functionName}</strong> function?
-        </span>
-      ),
-      props: {
-        primaryButtonText: 'Delete',
-        primaryButtonColor: 'error',
-        onPrimaryAction: () =>
-          handleDeleteFunctionConfirmation(schema, functionName),
-      },
-    });
-  }
-
   function handleEditPermission(
     schema: string,
     table: string,
@@ -348,7 +272,7 @@ export function useDataBrowserActions({
     objectType?: DatabaseObjectType,
     updatability?: number,
   ) {
-    const typeLabel = objectType ? permissionTypeLabels[objectType] : 'Table';
+    const typeLabel = objectType ? objectTypeLabels[objectType] : 'Table';
 
     openDrawer({
       title: (
@@ -383,54 +307,37 @@ export function useDataBrowserActions({
 
   function handleEditGraphQLSettings(
     schema: string,
-    table: string,
+    name: string,
     disabled?: boolean,
+    objectType?: DatabaseObjectType,
   ) {
-    openDrawer({
-      title: (
-        <span className="inline-grid grid-flow-col items-center gap-2">
-          {disabled ? 'View GraphQL settings for' : 'Edit GraphQL settings for'}
-          <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
-          table
-        </span>
-      ),
-      component: (
-        <EditGraphQLSettingsForm
-          disabled={disabled}
-          schema={schema}
-          tableName={table}
-        />
-      ),
-      props: {
-        PaperProps: {
-          className: 'overflow-hidden ',
-        },
-      },
-    });
-  }
+    const actionLabel = disabled ? 'View' : 'Edit';
+    const typeLabel = objectType
+      ? objectTypeLabels[objectType].toLowerCase()
+      : 'table';
 
-  function handleEditFunctionSettings(
-    schema: string,
-    functionName: string,
-    disabled?: boolean,
-  ) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
-          {disabled ? 'View settings for' : 'Edit settings for'}
-          <InlineCode className="!text-sm+ font-normal">
-            {functionName}
-          </InlineCode>
-          function
+          {actionLabel} {'GraphQL settings for'}
+          <InlineCode className="!text-sm+ font-normal">{name}</InlineCode>
+          {typeLabel}
         </span>
       ),
-      component: (
-        <EditFunctionSettingsForm
-          disabled={disabled}
-          schema={schema}
-          functionName={functionName}
-        />
-      ),
+      component:
+        objectType === 'FUNCTION' ? (
+          <EditFunctionGraphQLSettingsForm
+            disabled={disabled}
+            schema={schema}
+            functionName={name}
+          />
+        ) : (
+          <EditGraphQLSettingsForm
+            disabled={disabled}
+            schema={schema}
+            tableName={name}
+          />
+        ),
       props: {
         PaperProps: {
           className: 'overflow-hidden ',
@@ -475,7 +382,7 @@ export function useDataBrowserActions({
 
   function openEditViewDrawer(
     schema: string,
-    tableName: string,
+    viewName: string,
     objectType: TableLikeObjectType,
   ) {
     const isMaterializedView = objectType === 'MATERIALIZED VIEW';
@@ -486,7 +393,7 @@ export function useDataBrowserActions({
       component: (
         <ViewDefinitionView
           schema={schema}
-          table={tableName}
+          table={viewName}
           dataSource={dataSourceSlug}
         />
       ),
@@ -546,10 +453,8 @@ export function useDataBrowserActions({
     sidebarMenuObject,
     setSidebarMenuObject,
     handleDeleteDatabaseObject,
-    handleDeleteFunction,
     handleEditPermission,
     handleEditGraphQLSettings,
-    handleEditFunctionSettings,
     handleEditRelationships,
     openEditTableDrawer,
     openEditViewDrawer,

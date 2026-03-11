@@ -21,17 +21,14 @@ export default function EditFunctionForm({
     data,
     status,
     error: queryError,
-  } = useFunctionQuery(
-    ['function-definition', currentFunctionPath],
-    {
-      functionName,
-      schema,
-      dataSource,
-      queryOptions: {
-        enabled: !!schema && !!functionName,
-      },
+  } = useFunctionQuery(['function-definition', currentFunctionPath], {
+    functionName,
+    schema,
+    dataSource,
+    queryOptions: {
+      enabled: !!schema && !!functionName,
     },
-  );
+  });
 
   const { functionDefinition, error: functionError } = data || {
     functionDefinition: '',

@@ -11,9 +11,7 @@ test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   await page.waitForURL(databaseRoute);
 });
 
-test('should delete a function', async ({
-  authenticatedNhostPage: page,
-}) => {
+test('should delete a function', async ({ authenticatedNhostPage: page }) => {
   const tableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
   const functionName = snakeCase(`e2e ${faker.lorem.words(2)}_fn`);
 

@@ -31,7 +31,6 @@ test('should navigate to a function and display its definition, metadata, parame
 
   await page.getByRole('link', { name: functionName, exact: true }).click();
 
-  // Definition heading and metadata
   await expect(
     page.getByRole('heading', { name: /function definition/i }),
   ).toBeVisible();
@@ -40,11 +39,9 @@ test('should navigate to a function and display its definition, metadata, parame
   await expect(page.getByText('SQL function')).toBeVisible();
   await expect(page.getByText('Query-only')).toBeVisible();
 
-  // Parameters
   await expect(page.getByText('Parameters')).toBeVisible();
   await expect(page.getByText('filter_title')).toBeVisible();
 
-  // Open definition drawer from context menu
   await page
     .locator(
       `li:has-text("${functionName}") #function-management-menu-${functionName}`,

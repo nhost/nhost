@@ -178,7 +178,7 @@ export default function FunctionDefinitionView({
                     {param.displayType}
                   </InlineCode>
                   {index >= requiredParamsCount && (
-                    <span className="italic text-muted-foreground text-xs">
+                    <span className="text-muted-foreground text-xs italic">
                       optional
                     </span>
                   )}

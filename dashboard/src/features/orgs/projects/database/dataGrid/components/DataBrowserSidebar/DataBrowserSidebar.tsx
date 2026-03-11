@@ -26,7 +26,6 @@ import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks
 import { useGetTrackedFunctionsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedFunctionsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type {
-  DatabaseObjectType,
   DatabaseObjectViewModel,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -117,19 +116,29 @@ function DataBrowserSidebarContent({
   const allObjectsInSelectedSchema: DatabaseObjectViewModel[] =
     sortDatabaseObjects(
       [
-        ...(tableLikeObjects || []).map((obj) => ({
-          schema: obj.table_schema,
-          name: obj.table_name,
-          objectType: obj.table_type || 'ORDINARY TABLE',
-          updatability: obj.updatability,
-        })),
-        ...(functions || []).map((fn) => ({
-          schema: fn.function_schema,
-          name: fn.function_name,
-          objectType: 'FUNCTION' as DatabaseObjectType,
-          updatability: 0,
-        })),
-      ].filter((obj) => obj.schema === selectedSchema),
+        ...(tableLikeObjects || [])
+          .filter(
+            (tableLikeObject) =>
+              tableLikeObject.table_schema === selectedSchema,
+          )
+          .map((tableLikeObject) => ({
+            schema: tableLikeObject.table_schema,
+            name: tableLikeObject.table_name,
+            objectType: tableLikeObject.table_type || 'ORDINARY TABLE',
+            updatability: tableLikeObject.updatability,
+          })),
+        ...(functions || [])
+          .filter(
+            (databaseFunction) =>
+              databaseFunction.function_schema === selectedSchema,
+          )
+          .map((databaseFunction) => ({
+            schema: databaseFunction.function_schema,
+            name: databaseFunction.function_name,
+            objectType: 'FUNCTION' as const,
+            updatability: 0,
+          })),
+      ],
       enumTablePaths,
     );
 
@@ -140,10 +149,8 @@ function DataBrowserSidebarContent({
     setSidebarMenuObject,
     openCreateTableDrawer,
     handleDeleteDatabaseObject,
-    handleDeleteFunction,
     handleEditPermission,
     handleEditGraphQLSettings,
-    handleEditFunctionSettings,
     handleEditRelationships,
     openEditTableDrawer,
     openEditViewDrawer,
@@ -156,7 +163,6 @@ function DataBrowserSidebarContent({
     selectedSchema,
     refetchDatabaseQuery,
     allObjects: allObjectsInSelectedSchema,
-    functions: functions || [],
   });
 
   const displayedObjects = allObjectsInSelectedSchema.filter(
@@ -242,11 +248,10 @@ function DataBrowserSidebarContent({
               {displayedObjects.map((databaseObject) => {
                 const objectPath = `${databaseObject.objectType}.${databaseObject.schema}.${databaseObject.name}`;
                 const isFunction = databaseObject.objectType === 'FUNCTION';
-                const isSelected = isFunction
-                  ? databaseObject.schema === schemaSlug &&
-                    databaseObject.name === functionSlug
-                  : databaseObject.schema === schemaSlug &&
-                    databaseObject.name === tableSlug;
+                const activeObjectName = isFunction ? functionSlug : tableSlug;
+                const isSelected =
+                  databaseObject.schema === schemaSlug &&
+                  databaseObject.name === activeObjectName;
                 const isSidebarMenuOpen = sidebarMenuObject === objectPath;
                 const tablePath = `${databaseObject.schema}.${databaseObject.name}`;
                 const isEnum = Boolean(enumTablePaths?.has(tablePath));
@@ -299,7 +304,7 @@ function DataBrowserSidebarContent({
                               </span>
                             </NextLink>
                             <DatabaseObjectActions
-                              tableName={databaseObject.name}
+                              objectName={databaseObject.name}
                               schema={databaseObject.schema}
                               dataSource={dataSourceSlug as string}
                               objectType={databaseObject.objectType}
@@ -359,30 +364,20 @@ function DataBrowserSidebarContent({
                                 }
                               }}
                               onEditGraphQLSettings={() =>
-                                isFunction
-                                  ? handleEditFunctionSettings(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                      false,
-                                    )
-                                  : handleEditGraphQLSettings(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                      false,
-                                    )
+                                handleEditGraphQLSettings(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                  false,
+                                  databaseObject.objectType,
+                                )
                               }
                               onViewGraphQLSettings={() =>
-                                isFunction
-                                  ? handleEditFunctionSettings(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                      true,
-                                    )
-                                  : handleEditGraphQLSettings(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                      true,
-                                    )
+                                handleEditGraphQLSettings(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                  true,
+                                  databaseObject.objectType,
+                                )
                               }
                               onEditRelationships={() =>
                                 handleEditRelationships(
@@ -398,16 +393,11 @@ function DataBrowserSidebarContent({
                                 )
                               }
                               onDelete={() =>
-                                isFunction
-                                  ? handleDeleteFunction(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                    )
-                                  : handleDeleteDatabaseObject(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                      databaseObject.objectType as TableLikeObjectType,
-                                    )
+                                handleDeleteDatabaseObject(
+                                  databaseObject.schema,
+                                  databaseObject.name,
+                                  databaseObject.objectType,
+                                )
                               }
                             />
                           </div>

@@ -163,7 +163,6 @@ export default async function fetchFunctionDefinition({
   const result = JSON.parse(rawResults[0]);
   const functionDefinition = result.function_definition || '';
 
-  // Parse parameters
   const inputArgTypes: Array<{
     name: string;
     schema: string;
@@ -180,8 +179,6 @@ export default async function fetchFunctionDefinition({
       schema: argType.schema,
     }),
   );
-
-  // Parameters with defaults are at the end, so required params are those before defaultArgsCount
 
   const functionMetadata = result.function_name
     ? {
