@@ -56,10 +56,11 @@ export default function useSetFunctionTrackingMutation(
       return setFunctionTrackingMigration(commonParams);
     },
     ...mutationOptions,
-    onSuccess: () => {
+    onSuccess: (...args) => {
       queryClient.invalidateQueries({
         queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
       });
+      mutationOptions?.onSuccess?.(...args);
     },
   });
 }
