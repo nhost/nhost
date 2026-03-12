@@ -1,3 +1,9 @@
+## [cli@1.38.2] - 2026-03-11
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.52.0 (#3945)
+
 ## [cli@1.38.1] - 2026-03-08
 
 ### ⚙️ Miscellaneous Tasks
