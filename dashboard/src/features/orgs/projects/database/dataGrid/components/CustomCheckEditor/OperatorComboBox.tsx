@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useMemo, useState } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -15,8 +15,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import { getAvailableOperators } from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/getAvailableOperators';
 import { cn } from '@/lib/utils';
+import { getAvailableOperators } from './getAvailableOperators';
 
 interface OperatorComboBoxProps {
   name: string;
@@ -30,14 +30,15 @@ export default function OperatorComboBox({
   selectedColumnType,
 }: OperatorComboBoxProps) {
   const [open, setOpen] = useState(false);
-  const { watch, setValue, clearErrors } = useFormContext();
+  const { setValue, clearErrors } = useFormContext();
 
-  const operator = watch(`${name}.operator`);
+  const operator = useWatch({ name: `${name}.operator` });
 
   const availableOperators = getAvailableOperators(selectedColumnType);
 
-  const maxOperatorLength = Math.max(
-    ...availableOperators.map((op) => op.value.length),
+  const maxOperatorLength = useMemo(
+    () => Math.max(...availableOperators.map((op) => op.value.length)),
+    [availableOperators],
   );
 
   const handleSelect = (value: string) => {

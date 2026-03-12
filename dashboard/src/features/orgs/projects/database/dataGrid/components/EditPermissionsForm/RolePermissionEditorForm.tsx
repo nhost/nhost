@@ -13,10 +13,12 @@ import { useManagePermissionMutation } from '@/features/orgs/projects/database/d
 import type {
   DatabaseAction,
   HasuraMetadataPermission,
-  RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { convertToHasuraPermissions } from '@/features/orgs/projects/database/dataGrid/utils/convertToHasuraPermissions';
-import { convertToRuleGroup } from '@/features/orgs/projects/database/dataGrid/utils/convertToRuleGroup';
+import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
+import {
+  unWrapRuleNodes,
+  wrapPermissionsInAGroup,
+} from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
@@ -113,20 +115,20 @@ export interface RolePermissionEditorFormProps extends DialogFormProps {
   permission?: HasuraMetadataPermission['permission'];
 }
 
-function getDefaultRuleGroup(
+function getDefaultCustomCheck(
   action: DatabaseAction,
   permission?: HasuraMetadataPermission['permission'],
-): RuleGroup | null {
+): GroupNode | null {
   if (!permission) {
     return null;
   }
 
   if (action === 'insert' && isNotEmptyValue(permission.check)) {
-    return convertToRuleGroup(permission.check);
+    return wrapPermissionsInAGroup(permission.check);
   }
 
   return isNotEmptyValue(permission.filter)
-    ? convertToRuleGroup(permission.filter)
+    ? wrapPermissionsInAGroup(permission.filter)
     : null;
 }
 
@@ -196,7 +198,7 @@ export default function RolePermissionEditorForm({
   const form = useForm<RolePermissionEditorFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      filter: getDefaultRuleGroup(action, permission),
+      filter: getDefaultCustomCheck(action, permission),
       columns: permission?.columns || [],
       limit: permission?.limit || null,
       allowAggregations: permission?.allow_aggregations || false,
@@ -244,11 +246,15 @@ export default function RolePermissionEditorForm({
           : null,
         filter:
           action !== 'insert'
-            ? (convertToHasuraPermissions(values.filter as RuleGroup) ?? {})
+            ? values.filter
+              ? unWrapRuleNodes(values.filter as GroupNode)
+              : {}
             : permission?.filter,
         check:
           action === 'insert'
-            ? (convertToHasuraPermissions(values.filter as RuleGroup) ?? {})
+            ? values.filter
+              ? unWrapRuleNodes(values.filter as GroupNode)
+              : {}
             : permission?.check,
         backend_only: values.backendOnly,
         computed_fields: isNotEmptyValue(permission?.computed_fields)

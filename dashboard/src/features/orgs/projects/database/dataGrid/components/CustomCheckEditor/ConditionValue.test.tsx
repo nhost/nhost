@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { type Mock, vi } from 'vitest';
 import * as useProject from '@/features/orgs/projects/hooks/useProject';
 import {
   mockPointerEvent,
@@ -9,10 +9,10 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import RuleValueInput from './RuleValueInput';
-import * as useRuleGroupEditor from './useRuleGroupEditor';
+import ConditionValue from './ConditionValue';
+import * as useCustomCheckEditor from './useCustomCheckEditor';
 
-vi.mock('./useRuleGroupEditor');
+vi.mock('./useCustomCheckEditor');
 vi.mock('@/features/orgs/projects/hooks/useProject');
 
 const mocks = vi.hoisted(() => ({
@@ -30,7 +30,7 @@ vi.mock('@/utils/__generated__/graphql', async () => {
   };
 });
 
-const mockUseRuleGroupEditor = useRuleGroupEditor.default as Mock;
+const mockUseCustomCheckEditor = useCustomCheckEditor.default as Mock;
 const mockUseProject = useProject.useProject as Mock;
 
 function TestWrapper({
@@ -75,11 +75,11 @@ const mockPermissionsData = {
   },
 };
 
-describe('RuleValueInput', () => {
+describe('ConditionValue', () => {
   beforeEach(() => {
     mockPointerEvent();
 
-    mockUseRuleGroupEditor.mockReturnValue({
+    mockUseCustomCheckEditor.mockReturnValue({
       schema: 'public',
       table: 'users',
       disabled: false,
@@ -98,7 +98,7 @@ describe('RuleValueInput', () => {
 
     render(
       <TestWrapper defaultValues={{ operator: '_in', value: [] }}>
-        <RuleValueInput name="test" selectedTablePath="public.users" />
+        <ConditionValue name="test" selectedTablePath="public.users" />
       </TestWrapper>,
     );
     const user = new TestUserEvent();
@@ -132,7 +132,7 @@ describe('RuleValueInput', () => {
 
     render(
       <TestWrapper defaultValues={{ operator: '_in', value: [] }}>
-        <RuleValueInput name="test" selectedTablePath="public.users" />
+        <ConditionValue name="test" selectedTablePath="public.users" />
       </TestWrapper>,
     );
     const user = new TestUserEvent();

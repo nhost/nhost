@@ -92,8 +92,7 @@ test('should create a table with role permissions and a custom check to select r
 
   await page.getByLabel('With custom check').click();
 
-  // await page.getByRole('combobox', { name: /select a column/i }).click();
-  await page.getByText('Select a column', { exact: true }).click();
+  await page.getByText('Add check', { exact: true }).click();
 
   const columnSelector = page.locator('input[role="combobox"]');
 
@@ -163,7 +162,7 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   await page.getByLabel('With custom check').click();
 
-  await page.getByText('Select a column', { exact: true }).click();
+  await page.getByText('Add check', { exact: true }).click();
 
   const columnSelector = page.locator('input[role="combobox"]');
 
