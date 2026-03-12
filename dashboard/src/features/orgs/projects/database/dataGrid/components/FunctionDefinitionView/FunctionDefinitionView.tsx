@@ -1,68 +1,57 @@
 import { Play } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
-import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
+import { TrackFunctionButton } from '@/features/orgs/projects/database/dataGrid/components/TrackFunctionButton';
 import { useFunctionPreviewHook } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPreview';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 
-export interface FunctionDefinitionViewProps {
-  schema?: string;
-  functionName?: string;
-  dataSource?: string;
-}
-
-export default function FunctionDefinitionView({
-  schema: schemaProp,
-  functionName: functionNameProp,
-  dataSource: dataSourceProp,
-}: FunctionDefinitionViewProps = {}) {
+export default function FunctionDefinitionView() {
   const router = useRouter();
   const {
-    query: { schemaSlug, functionSlug, dataSourceSlug },
+    query: { schemaSlug, functionOID: routerFunctionOID, dataSourceSlug },
   } = router;
 
-  const schema = schemaProp || (schemaSlug as string);
-  const functionName = functionNameProp || (functionSlug as string);
-  const dataSource = dataSourceProp || (dataSourceSlug as string) || 'default';
+  const schema = schemaSlug as string;
+  const dataSource = (dataSourceSlug as string) || 'default';
+  const functionOID = (routerFunctionOID as string) || '';
 
-  const {
-    data,
-    status,
-    error: queryError,
-  } = useFunctionQuery(
-    ['function-definition', dataSource, schema, functionName],
+  const cacheKey =
+    dataSource && functionOID ? `${dataSource}.${functionOID}` : '';
+
+  const { data, status, error } = useFunctionQuery(
+    ['function-definition', cacheKey],
     {
-      functionName,
-      schema,
+      functionOID,
       dataSource,
       queryOptions: {
-        enabled: !!schema && !!functionName,
+        enabled: !!cacheKey && !!functionOID,
       },
     },
   );
 
-  const {
-    functionDefinition,
-    functionMetadata,
-    error: functionError,
-  } = data || {
-    functionDefinition: '',
+  const { functionMetadata, error: functionError } = data || {
     functionMetadata: null,
     error: null,
   };
 
+  const functionName = functionMetadata?.functionName;
+
   const parameters = functionMetadata?.parameters ?? [];
   const defaultArgsCount = functionMetadata?.defaultArgsCount ?? 0;
-  const requiredParamCount = parameters.length - defaultArgsCount;
+  const requiredParamsCount = parameters.length - defaultArgsCount;
 
   const [paramValues, setParamValues] = useState<string[]>([]);
-  const { runPreview, loading: previewLoading, result: previewResult } =
-    useFunctionPreviewHook();
+  const {
+    runPreview,
+    loading: previewLoading,
+    result: previewResult,
+  } = useFunctionPreviewHook();
 
   function handleParamChange(index: number, value: string) {
     setParamValues((prev) => {
@@ -73,6 +62,10 @@ export default function FunctionDefinitionView({
   }
 
   async function handleExecute() {
+    if (!functionName) {
+      return;
+    }
+
     const args = parameters.map((_, index) => {
       const value = paramValues[index];
       if (value === undefined || value === '') {
@@ -108,8 +101,8 @@ export default function FunctionDefinitionView({
         title="Error loading function"
         description={
           <span>
-            {queryError instanceof Error
-              ? queryError.message
+            {error instanceof Error
+              ? error.message
               : functionError ||
                 'Unknown error occurred. Please try again later.'}
           </span>
@@ -118,17 +111,13 @@ export default function FunctionDefinitionView({
     );
   }
 
-  if (!functionDefinition) {
+  if (!functionMetadata) {
     return (
       <DataBrowserEmptyState
         title="Function not found"
         description={
           <span>
-            Function{' '}
-            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
-              {schema}.{functionName}
-            </InlineCode>{' '}
-            does not exist or is not a table-returning function.
+            The function does not exist or is not a table-returning function.
           </span>
         }
       />
@@ -137,96 +126,160 @@ export default function FunctionDefinitionView({
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <p className="border-b px-4 py-3 text-muted-foreground text-sm">
-        <InlineCode className="bg-opacity-80 px-1.5 text-sm">
-          {schema}.{functionName}
-        </InlineCode>
-        <span className="ml-1 text-xs">(FUNCTION)</span>
-      </p>
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="min-h-0 flex-1">
-          <SQLEditor initialSQL={functionDefinition} />
+      <div className="border-b p-4">
+        <div className="mb-4">
+          <TrackFunctionButton
+            schema={schema}
+            functionName={functionMetadata.functionName}
+          />
+          <h2 className="font-semibold text-lg">Function Definition</h2>
+          <p className="text-muted-foreground text-sm">
+            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
+              {schema}.{functionName}
+            </InlineCode>
+          </p>
         </div>
-        <div className="border-t">
-          <div className="flex flex-wrap items-end gap-2 px-4 py-3">
-            {parameters.map((param, index) => (
-              <div key={param.name || index} className="flex flex-col gap-1">
-                <label className="text-muted-foreground text-xs">
-                  {param.name || `arg${index + 1}`}
-                  <span className="ml-1 text-muted-foreground/60">
-                    ({param.displayType})
+        <div className="rounded-md border bg-muted/30 p-4">
+          <div className="mb-3">
+            <h3 className="font-semibold text-base">
+              {functionMetadata.functionName}
+            </h3>
+            {functionMetadata.comment && (
+              <p className="mt-1 text-muted-foreground text-sm">
+                {functionMetadata.comment}
+              </p>
+            )}
+            <p className="mt-1 text-muted-foreground text-sm">
+              {functionMetadata.language === 'sql'
+                ? 'SQL function'
+                : `${functionMetadata.language.toUpperCase()} function`}{' '}
+              {functionMetadata.functionType && (
+                <>
+                  ·{' '}
+                  <span className="font-medium">
+                    {functionMetadata.functionType}
                   </span>
-                  {index >= requiredParamCount && (
-                    <span className="ml-1 italic text-muted-foreground/40">
+                </>
+              )}{' '}
+              · Returns SETOF{' '}
+              <InlineCode className="bg-opacity-80 px-1 text-xs">
+                {functionMetadata.returnTableName
+                  ? `${functionMetadata.returnTableSchema}.${functionMetadata.returnTableName}`
+                  : functionMetadata.returnTypeName}
+              </InlineCode>
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {functionMetadata.functionType && (
+              <Badge variant="outline" className="font-medium">
+                {functionMetadata.functionType}
+              </Badge>
+            )}
+            <Badge variant="outline" className="font-medium">
+              SETOF {functionMetadata.returnTypeName}
+            </Badge>
+            {functionMetadata.returnTableName && (
+              <Badge variant="outline" className="font-medium">
+                Returns table: {functionMetadata.returnTableSchema}.
+                {functionMetadata.returnTableName}
+              </Badge>
+            )}
+            {functionMetadata.functionType === 'STABLE' ||
+            functionMetadata.functionType === 'IMMUTABLE' ? (
+              <Badge variant="outline" className="font-medium">
+                Query-only
+              </Badge>
+            ) : null}
+          </div>
+        </div>
+        {parameters.length > 0 && (
+          <div className="mt-4 rounded-md border bg-muted/20 p-4">
+            <h4 className="mb-3 font-medium text-sm">Parameters</h4>
+            <div className="space-y-2">
+              {parameters.map((param, index) => (
+                <div
+                  key={`param-${param.name || index}-${index}`}
+                  className="flex items-center gap-3 text-sm"
+                >
+                  <span className="w-32 font-medium">
+                    {param.name || `arg${index + 1}`}
+                  </span>
+                  <Input
+                    className="h-8 w-48 text-sm"
+                    placeholder={param.displayType}
+                    value={paramValues[index] ?? ''}
+                    onChange={(e) => handleParamChange(index, e.target.value)}
+                  />
+                  <InlineCode className="bg-opacity-80 px-1.5 text-xs">
+                    {param.displayType}
+                  </InlineCode>
+                  {index >= requiredParamsCount && (
+                    <span className="text-muted-foreground text-xs italic">
                       optional
                     </span>
                   )}
-                </label>
-                <Input
-                  className="h-8 w-40 text-sm"
-                  placeholder={param.displayType}
-                  value={paramValues[index] ?? ''}
-                  onChange={(e) => handleParamChange(index, e.target.value)}
-                />
-              </div>
-            ))}
-            <Button
-              size="sm"
-              onClick={handleExecute}
-              disabled={previewLoading}
-            >
-              <Play className="h-4 w-4" />
-              {previewLoading ? 'Executing...' : 'Execute'}
-            </Button>
+                </div>
+              ))}
+            </div>
           </div>
-          {previewResult?.error && (
-            <div className="border-t px-4 py-3">
-              <p className="text-destructive text-sm">{previewResult.error}</p>
-            </div>
-          )}
-          {previewResult && !previewResult.error && (
-            <div className="max-h-64 overflow-auto border-t">
-              {previewResult.rows.length === 0 ? (
-                <p className="px-4 py-3 text-muted-foreground text-sm">
-                  No rows returned.
-                </p>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-background">
-                    <tr>
-                      {previewResult.columns.map((col) => (
-                        <th
-                          key={col}
-                          className="border-b px-3 py-2 text-left font-medium text-muted-foreground"
-                        >
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewResult.rows.map((row, rowIndex) => (
-                      <tr
-                        key={`row-${rowIndex}`}
-                        className="border-b last:border-b-0"
-                      >
-                        {row.map((cell, cellIndex) => (
-                          <td
-                            key={`${rowIndex}-${cellIndex}`}
-                            className="px-3 py-1.5"
-                          >
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
+        )}
+        <div className="mt-4">
+          <Button
+            size="sm"
+            onClick={handleExecute}
+            disabled={previewLoading}
+          >
+            <Play className="h-4 w-4" />
+            {previewLoading ? 'Executing...' : 'Execute'}
+          </Button>
         </div>
       </div>
+      {previewResult?.error && (
+        <div className="border-b px-4 py-3">
+          <p className="text-destructive text-sm">{previewResult.error}</p>
+        </div>
+      )}
+      {previewResult && !previewResult.error && (
+        <div className="min-h-0 flex-1 overflow-auto">
+          {previewResult.rows.length === 0 ? (
+            <p className="px-4 py-3 text-muted-foreground text-sm">
+              No rows returned.
+            </p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-background">
+                <tr>
+                  {previewResult.columns.map((col) => (
+                    <th
+                      key={col}
+                      className="border-b px-3 py-2 text-left font-medium text-muted-foreground"
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {previewResult.rows.map((row, rowIndex) => (
+                  <tr
+                    key={`row-${rowIndex}`}
+                    className="border-b last:border-b-0"
+                  >
+                    {row.map((cell, cellIndex) => (
+                      <td
+                        key={`${rowIndex}-${cellIndex}`}
+                        className="px-3 py-1.5"
+                      >
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
     </div>
   );
 }

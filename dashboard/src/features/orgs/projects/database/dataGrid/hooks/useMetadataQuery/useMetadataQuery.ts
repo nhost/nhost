@@ -43,7 +43,7 @@ export default function useMetadataQuery(
 
   const query = useQuery<FetchMetadataReturnType>({
     queryKey,
-    queryFn: () => {
+    queryFn: async () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,

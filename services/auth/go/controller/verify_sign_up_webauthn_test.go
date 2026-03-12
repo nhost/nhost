@@ -254,6 +254,102 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name:   "touchID - options override",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().InsertUserWithSecurityKeyAndRefreshToken(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserWithSecurityKeyAndRefreshTokenParams{
+						ID:                    userID,
+						Disabled:              false,
+						DisplayName:           "Custom Name",
+						AvatarUrl:             "",
+						Email:                 sql.Text("jane@acme.com"),
+						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:       sql.TimestampTz(time.Now()),
+						EmailVerified:         false,
+						Locale:                "es",
+						DefaultRole:           "me",
+						Metadata:              []byte("null"),
+						Roles:                 []string{"me"},
+						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						CredentialID:          "LychOomEPgZu4XNwiDvzlP5hd1U",
+						CredentialPublicKey: []uint8{
+							0xa5, 0x01, 0x02, 0x03, 0x26, 0x20, 0x01, 0x21, 0x58, 0x20, 0x57, 0xe1, 0xb5, 0x82, 0xa0, 0x95, 0xc4, 0x1a, 0xf3, 0x65, 0x9d, 0xdd, 0xc2, 0x68, 0xcf, 0x66, 0x35, 0x25, 0x32, 0xa5, 0x86, 0x22, 0xfb, 0xf7, 0xc6, 0xc6, 0x08, 0x6d, 0xa9, 0xc9, 0x64, 0x7f, 0x22, 0x58, 0x20, 0xa3, 0x50, 0x94, 0x11, 0xb8, 0x27, 0x52, 0xae, 0x46, 0xec, 0x56, 0x3a, 0x3b, 0x3a, 0x6d, 0x71, 0x24, 0x10, 0x66, 0xae, 0xb2, 0x57, 0x75, 0xd5, 0xbb, 0x98, 0x8c, 0xd0, 0xc5, 0x91, 0x1f, 0x65, //nolint:lll
+						},
+						Nickname: pgtype.Text{}, //nolint:exhaustruct
+					}),
+				).Return(insertResponse, nil)
+
+				return mock
+			},
+			request: api.VerifySignUpWebauthnRequestObject{
+				Body: &api.SignUpWebauthnVerifyRequest{
+					Credential: touchIDRequest,
+					Options: &api.SignUpOptions{
+						AllowedRoles: ptr([]string{"me"}),
+						DefaultRole:  ptr("me"),
+						DisplayName:  ptr("Custom Name"),
+						Locale:       ptr("es"),
+						Metadata:     nil,
+						RedirectTo:   nil,
+					},
+					Nickname: nil,
+				},
+			},
+			expectedResponse: api.VerifySignUpWebauthn200JSONResponse{
+				Session: &api.Session{
+					AccessToken:          "xxxxx",
+					AccessTokenExpiresIn: 900,
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
+					RefreshToken:         "ff0499a1-7935-4052-baea-6c3a573b1b6a",
+					User: &api.User{
+						AvatarUrl:           "",
+						CreatedAt:           time.Now(),
+						DefaultRole:         "me",
+						DisplayName:         "Custom Name",
+						Email:               ptr(types.Email("jane@acme.com")),
+						EmailVerified:       false,
+						Id:                  "cf91d1bc-875e-49bc-897f-fbccf32ede11",
+						IsAnonymous:         false,
+						Locale:              "es",
+						Metadata:            nil,
+						PhoneNumber:         nil,
+						PhoneNumberVerified: false,
+						Roles:               []string{"me"},
+						ActiveMfaType:       nil,
+					},
+				},
+			},
+			expectedJWT: &jwt.Token{
+				Raw:    "",
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Claims: jwt.MapClaims{
+					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles": []any{"me"},
+						"x-hasura-default-role":  string("me"),
+						"x-hasura-user-id": string(
+							"cf91d1bc-875e-49bc-897f-fbccf32ede11",
+						),
+						"x-hasura-user-is-anonymous": string("false"),
+					},
+					"iat": float64(time.Now().Unix()),
+					"iss": string("hasura-auth"),
+					"sub": string("cf91d1bc-875e-49bc-897f-fbccf32ede11"),
+				},
+				Signature: []uint8{},
+				Valid:     true,
+			},
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
 			name:   "windows hello - no email verify",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -621,8 +717,15 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return
 			}
 
-			c.Webauthn.Storage["zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI"] = touchIDWebauthnChallenge
-			c.Webauthn.Storage["zv9lPTJpOlgxzlrKWl-tG7AdxeUIbCwxqV8MFZZNRdA"] = windowsHelloWebauthnChallenge
+			touchIDOpts := *touchIDWebauthnChallenge.Options
+			touchIDCh := touchIDWebauthnChallenge
+			touchIDCh.Options = &touchIDOpts
+			c.Webauthn.Storage["zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI"] = touchIDCh
+
+			windowsHelloOpts := *windowsHelloWebauthnChallenge.Options
+			windowsHelloCh := windowsHelloWebauthnChallenge
+			windowsHelloCh.Options = &windowsHelloOpts
+			c.Webauthn.Storage["zv9lPTJpOlgxzlrKWl-tG7AdxeUIbCwxqV8MFZZNRdA"] = windowsHelloCh
 
 			resp := assertRequest(
 				t.Context(),

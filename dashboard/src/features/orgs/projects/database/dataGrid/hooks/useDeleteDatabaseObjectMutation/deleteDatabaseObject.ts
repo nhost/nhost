@@ -29,11 +29,15 @@ export interface DeleteDatabaseObjectVariables {
   /**
    * Database object to delete.
    */
-  table: string;
+  objectName: string;
   /**
    * Type of the database object to delete.
    */
   type: DatabaseObjectType;
+  /**
+   * Function OID. Used to fetch parameter types when type is FUNCTION.
+   */
+  functionOID?: string;
   /**
    * Function parameter types. Required when type is FUNCTION to uniquely
    * identify overloaded functions.
@@ -49,7 +53,7 @@ export default async function deleteDatabaseObject({
   appUrl,
   adminSecret,
   schema,
-  table,
+  objectName,
   type,
   inputArgTypes,
 }: DeleteDatabaseObjectOptions & DeleteDatabaseObjectVariables) {
@@ -62,7 +66,7 @@ export default async function deleteDatabaseObject({
   if (type === 'FUNCTION') {
     const signature = buildFunctionSignature(
       schema,
-      table,
+      objectName,
       inputArgTypes || [],
     );
     const preparedQuery = getPreparedHasuraQuery(
@@ -79,7 +83,7 @@ export default async function deleteDatabaseObject({
       dataSource,
       `DROP ${queryType} %I.%I`,
       schema,
-      table,
+      objectName,
     );
   }
 

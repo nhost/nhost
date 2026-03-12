@@ -8,15 +8,27 @@ import type { Props } from '@astrojs/starlight/props';
 // For SEO meta tags, see Head.astro which renders <meta name="keywords"> in <head>.
 const entry = Astro.locals.starlightRoute?.entry;
 const keywords = entry?.data?.keywords as string[] | undefined;
+const description = entry?.data?.description as string | undefined;
 ---
 
 <Default {...Astro.props}><slot /></Default>
+{description && (
+  <p class="page-description">{description}</p>
+)}
 {/* Hidden keywords for Pagefind indexing */}
 {keywords && keywords.length > 0 && (
   <span data-pagefind-weight="2" class="sr-only">{keywords.join(' ')}</span>
 )}
 
 <style>
+  .page-description {
+    color: var(--sl-color-gray-3);
+    font-size: 1.125rem;
+    line-height: 1.6;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+  }
+
   .sr-only {
     position: absolute;
     width: 1px;

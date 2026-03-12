@@ -70,7 +70,8 @@ export default async function fetchDatabase({
           `SELECT row_to_json(func_data) as data FROM (
             SELECT
               n.nspname as function_schema,
-              p.proname as function_name
+              p.proname as function_name,
+              p.oid as function_oid
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
             JOIN pg_type ON p.prorettype = pg_type.oid

@@ -5,19 +5,25 @@ import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid
 import { useSetFunctionTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionTrackingMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
-export default function TrackFunctionButton() {
+export interface TrackFunctionButtonProps {
+  schema: string;
+  functionName: string;
+}
+
+export default function TrackFunctionButton({
+  schema,
+  functionName,
+}: TrackFunctionButtonProps) {
   const { query } = useRouter();
-  const { dataSourceSlug, functionSlug, schemaSlug } = query;
+  const { dataSourceSlug } = query;
+  const dataSource = (dataSourceSlug as string) || 'default';
 
   const { data: isTracked, isLoading: isTrackedLoading } = useIsTrackedFunction(
     {
-      dataSource: dataSourceSlug as string,
-      schema: schemaSlug as string,
-      functionName: functionSlug as string,
-      enabled:
-        typeof dataSourceSlug === 'string' &&
-        typeof schemaSlug === 'string' &&
-        typeof functionSlug === 'string',
+      dataSource,
+      schema,
+      functionName,
+      enabled: typeof dataSourceSlug === 'string' && !!schema && !!functionName,
     },
   );
 
@@ -32,10 +38,10 @@ export default function TrackFunctionButton() {
           tracked: true,
           resourceVersion,
           args: {
-            source: dataSourceSlug as string,
+            source: dataSource,
             function: {
-              name: functionSlug as string,
-              schema: schemaSlug as string,
+              name: functionName,
+              schema,
             },
           },
         });

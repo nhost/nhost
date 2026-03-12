@@ -1,0 +1,332 @@
+import { CommandLoading } from 'cmdk';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { useState } from 'react';
+import { useController, useFormContext, useWatch } from 'react-hook-form';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Command,
+  CommandCreateItem,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/v3/command';
+import {
+  FancyMultiSelect,
+  type Option,
+} from '@/components/ui/v3/fancy-multi-select';
+import { FormField, FormItem, FormMessage } from '@/components/ui/v3/form';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/v3/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import {
+  ColumnAutocomplete,
+  type ColumnAutocompleteProps,
+} from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
+import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
+import { cn, isNotEmptyValue } from '@/lib/utils';
+import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import useCustomCheckEditor from './useCustomCheckEditor';
+
+const xHasuraString = 'x-hasura-';
+
+function getValueForMultiSelect(value: string | string[]) {
+  if (Array.isArray(value)) {
+    return value.map((v) => ({ value: v, label: v }));
+  }
+  if (
+    typeof value === 'string' &&
+    value.toLocaleLowerCase().includes(xHasuraString)
+  ) {
+    return [
+      {
+        value,
+        label: value,
+        isSystemVariable: true,
+      },
+    ];
+  }
+  return [];
+}
+
+function ColumnSelectorInput({
+  name,
+  selectedTablePath,
+  schema,
+  table,
+  disabled,
+  ...props
+}: ColumnAutocompleteProps & { selectedTablePath: string; name: string }) {
+  const { setValue, control } = useFormContext();
+  const { field } = useController({
+    name,
+    control,
+  });
+
+  return (
+    <ColumnAutocomplete
+      {...props}
+      {...field}
+      disabled={disabled}
+      value={
+        // this array can either be ['$', 'columnName'] or ['columnName']
+        Array.isArray(field.value) ? field.value.slice(-1)[0] : field.value
+      }
+      schema={schema}
+      table={table}
+      disableRelationships
+      onChange={({ value }) => {
+        if (selectedTablePath === `${schema}.${table}`) {
+          setValue(name, [value], { shouldDirty: true });
+          return;
+        }
+
+        // For more information, see https://github.com/hasura/graphql-engine/issues/3459#issuecomment-1085666541
+        setValue(name, ['$', value], { shouldDirty: true });
+      }}
+    />
+  );
+}
+
+export interface ConditionValueProps {
+  /**
+   * Name of the parent group editor.
+   */
+  name: string;
+  /**
+   * Class name to apply to the input wrapper.
+   */
+  className?: string;
+  /**
+   * Path of the table selected through the column input.
+   */
+  selectedTablePath: string;
+}
+
+function ConditionValue({
+  name,
+  selectedTablePath,
+  className,
+}: ConditionValueProps) {
+  const { schema, table, disabled } = useCustomCheckEditor();
+  const { project } = useProject();
+  const { setValue, control } = useFormContext();
+  const inputName = `${name}.value`;
+  const { field } = useController({
+    name: inputName,
+    control,
+  });
+  const [open, setOpen] = useState(false);
+  const comboboxValue = useWatch({ name: inputName });
+  const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
+
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+
+  const { data, loading } = useGetRolesPermissionsQuery({
+    variables: { appId: project?.id },
+    skip: !project?.id || operator === '_is_null',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  if (operator === '_is_null') {
+    const triggerClasses =
+      'border hover:bg-accent-background hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+    return (
+      <Select
+        disabled={disabled}
+        name={inputName}
+        onValueChange={(newValue: string) => {
+          setValue(inputName, newValue, { shouldDirty: true });
+        }}
+        value={comboboxValue ?? undefined}
+      >
+        <SelectTrigger className={cn(triggerClasses, className)}>
+          <SelectValue placeholder="Is null?" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="true">
+            <span className="font-medium">true</span>
+          </SelectItem>
+          <SelectItem value="false">
+            <span className="font-medium">false</span>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    );
+  }
+  const availableHasuraPermissionVariables = getAllPermissionVariables(
+    data?.config?.auth?.session?.accessToken?.customClaims,
+  ).map(({ key, isSystemVariable }) => ({
+    value: `X-Hasura-${key}`,
+    label: `X-Hasura-${key}`,
+    group: 'Frequently used',
+    isSystemVariable: !!isSystemVariable,
+  }));
+
+  if (operator === '_in' || operator === '_nin') {
+    const defaultValue = getValueForMultiSelect(field.value);
+
+    function handleOnChange(value: Option[]) {
+      const typedValue = value as Array<Option & { isSystemVariable: boolean }>;
+      const [firstValue] = typedValue;
+      const [lastElement] = typedValue.slice(-1);
+
+      // first and only element is a system variable
+      if (
+        (firstValue.isSystemVariable ||
+          firstValue.value.toLocaleLowerCase().includes(xHasuraString)) &&
+        typedValue.length === 1
+      ) {
+        setValue(inputName, firstValue.value, { shouldDirty: true });
+        // System variable just added to the list
+      } else if (lastElement.isSystemVariable) {
+        setValue(inputName, lastElement.value, { shouldDirty: true });
+        // list of elements without system variables
+      } else {
+        const filteredAndTransformedValue = (
+          firstValue.isSystemVariable
+            ? typedValue.filter((v) => !v.isSystemVariable)
+            : typedValue
+        ).map((fv) => fv.value);
+        setValue(inputName, filteredAndTransformedValue, { shouldDirty: true });
+      }
+    }
+
+    return (
+      <FancyMultiSelect
+        className={className}
+        options={availableHasuraPermissionVariables}
+        creatable
+        disabled={disabled}
+        value={defaultValue}
+        onChange={handleOnChange}
+      />
+    );
+  }
+
+  if (['_ceq', '_cne', '_cgt', '_clt', '_cgte', '_clte'].includes(operator)) {
+    return (
+      <ColumnSelectorInput
+        disabled={disabled}
+        selectedTablePath={selectedTablePath}
+        schema={schema}
+        table={table}
+        name={inputName}
+        className={className}
+      />
+    );
+  }
+
+  const selectedVariable = availableHasuraPermissionVariables.find(
+    (variable) => variable.value === comboboxValue,
+  );
+  const comboboxLabel =
+    selectedVariable?.label || comboboxValue || 'Select variable...';
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className={cn('w-full justify-between', className)}
+        >
+          <span className="truncate">{comboboxLabel}</span>
+          <ChevronsUpDown className="h-5 min-h-5 w-5 min-w-5 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="bottom"
+        align="start"
+        className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0"
+      >
+        <Command>
+          <CommandInput placeholder="Choose variable..." />
+          <CommandList>
+            <CommandEmpty>No variable found.</CommandEmpty>
+            {loading && <CommandLoading>Loading...</CommandLoading>}
+            <CommandGroup>
+              {availableHasuraPermissionVariables.map((variable) => (
+                <CommandItem
+                  key={variable.value}
+                  value={variable.value}
+                  onSelect={(currentValue) => {
+                    setValue(inputName, currentValue, { shouldDirty: true });
+                    setOpen(false);
+                  }}
+                >
+                  {variable.label}
+                  <Check
+                    className={cn(
+                      'ml-auto',
+                      comboboxValue === variable.value
+                        ? 'opacity-100'
+                        : 'opacity-0',
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandCreateItem
+              onCreate={(currentValue) => {
+                setValue(inputName, currentValue, { shouldDirty: true });
+                setOpen(false);
+              }}
+            />
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export default function ConditionValueWrapper(props: ConditionValueProps) {
+  const { name, className } = props;
+
+  const { control } = useFormContext();
+  const inputName = `${name}.value`;
+
+  return (
+    <FormField
+      name={inputName}
+      control={control}
+      render={({ fieldState }) => {
+        const hasError = isNotEmptyValue(fieldState.error?.message);
+        const mergedProps = {
+          ...props,
+          className: cn(
+            {
+              'border-destructive text-destructive': hasError,
+            },
+            className,
+          ),
+        };
+        return (
+          <div className="flex w-full flex-col gap-2">
+            <FormItem>
+              <ConditionValue {...mergedProps} />
+            </FormItem>
+            <FormMessage />
+          </div>
+        );
+      }}
+    />
+  );
+}

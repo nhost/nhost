@@ -505,7 +505,7 @@ html:not([class~="dark"]) .welcome-get-started {
   color: var(--sl-color-text) !important;
   font-size: 2rem !important;
   font-weight: 600 !important;
-  margin-bottom: 1.5rem !important;
+  margin-bottom: 0.25rem !important;
   line-height: 1.2 !important;
 }
 
@@ -537,6 +537,26 @@ html:not([class~="dark"]) .welcome-get-started {
   margin-top: 1.5rem !important;
   margin-bottom: 0.5rem !important;
   line-height: 1.4 !important;
+}
+
+/* Match heading wrapper font-size to the heading overrides above.
+   Starlight's anchor link icon uses `em` units resolved against the wrapper's
+   font-size, while the heading padding resolves against the heading's font-size.
+   Without this, the icon is sized too large and overlaps the heading text. */
+.sl-markdown-content .sl-heading-wrapper.level-h2 {
+  font-size: 1.25rem !important;
+}
+.sl-markdown-content .sl-heading-wrapper.level-h3 {
+  font-size: 1rem !important;
+}
+.sl-markdown-content .sl-heading-wrapper.level-h4 {
+  font-size: 0.875rem !important;
+}
+
+/* Anchor icon sizing */
+.sl-markdown-content .sl-heading-wrapper {
+  --sl-anchor-icon-size: 1em;
+  --sl-anchor-icon-gap: 0.3em;
 }
 
 /* Paragraphs - better spacing (only direct children, not inside cards) */

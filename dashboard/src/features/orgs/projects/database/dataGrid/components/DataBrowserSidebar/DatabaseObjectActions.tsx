@@ -21,7 +21,7 @@ const editLabels: Record<DatabaseObjectType, string> = {
   VIEW: 'Edit View',
   'MATERIALIZED VIEW': 'Edit Materialized View',
   'FOREIGN TABLE': 'Edit Table',
-  FUNCTION: 'Function Definition',
+  FUNCTION: 'Edit Function',
 };
 
 const deleteLabels: Record<DatabaseObjectType, string> = {
@@ -41,7 +41,7 @@ const idPrefixes: Record<DatabaseObjectType, string> = {
 };
 
 type Props = {
-  tableName: string;
+  objectName: string;
   schema: string;
   dataSource: string;
   objectType: DatabaseObjectType;
@@ -62,7 +62,7 @@ type Props = {
 };
 
 function DatabaseObjectActions({
-  tableName,
+  objectName,
   schema,
   dataSource,
   objectType,
@@ -90,14 +90,14 @@ function DatabaseObjectActions({
   const { data: isTrackedTable } = useIsTrackedTable({
     dataSource,
     schema,
-    tableName,
+    tableName: objectName,
     enabled: !isFunction,
   });
 
   const { data: isTrackedFunction } = useIsTrackedFunction({
     dataSource,
     schema,
-    functionName: tableName,
+    functionName: objectName,
     enabled: isFunction,
   });
 
@@ -123,7 +123,7 @@ function DatabaseObjectActions({
         asChild
       >
         <Button
-          id={`${idPrefix}-management-menu-${tableName}`}
+          id={`${idPrefix}-management-menu-${objectName}`}
           variant="outline"
           size="icon"
           className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent"

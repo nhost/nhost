@@ -10,7 +10,6 @@ import type { ClearMetadataOperation } from './clearMetadataOperation';
 import type { CreateArrayRelationshipBulkOperation } from './createArrayRelationshipBulkOperation';
 import type { CreateCronTriggerBulkOperation } from './createCronTriggerBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
-import type { CreateFunctionPermissionBulkOperation } from './createFunctionPermissionBulkOperation';
 import type { CreateObjectRelationshipBulkOperation } from './createObjectRelationshipBulkOperation';
 import type { CreateRemoteRelationshipBulkOperation } from './createRemoteRelationshipBulkOperation';
 import type { CreateScheduledEventOperation } from './createScheduledEventOperation';
@@ -19,7 +18,6 @@ import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOp
 import type { DeleteRemoteRelationshipBulkOperation } from './deleteRemoteRelationshipBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { DeleteScheduledEventOperation } from './deleteScheduledEventOperation';
-import type { DropFunctionPermissionBulkOperation } from './dropFunctionPermissionBulkOperation';
 import type { DropInconsistentMetadataOperation } from './dropInconsistentMetadataOperation';
 import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
 import type { ExportMetadata } from './exportMetadata';
@@ -64,8 +62,6 @@ export type MetadataOperation =
   | SetTableCustomizationBulkOperation
   | SetTableIsEnumBulkOperation
   | SetFunctionCustomizationOperation
-  | CreateFunctionPermissionBulkOperation
-  | DropFunctionPermissionBulkOperation
   | SuggestRelationshipsOperation
   | DropRelationshipBulkOperation
   | DeleteRemoteRelationshipBulkOperation

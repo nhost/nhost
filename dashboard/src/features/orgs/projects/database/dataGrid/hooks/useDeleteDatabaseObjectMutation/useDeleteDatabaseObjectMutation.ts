@@ -64,13 +64,16 @@ export default function useDeleteDatabaseObjectMutation({
 
       let { inputArgTypes } = variables;
 
-      if (variables.type === 'FUNCTION' && !inputArgTypes) {
+      if (
+        variables.type === 'FUNCTION' &&
+        !inputArgTypes &&
+        variables.functionOID
+      ) {
         const functionDefinition = await fetchFunctionDefinition({
           dataSource: finalDataSource,
           appUrl: finalAppUrl,
           adminSecret: finalAdminSecret,
-          schema: variables.schema,
-          functionName: variables.table,
+          functionOID: variables.functionOID,
         });
 
         if (functionDefinition.error || !functionDefinition.functionMetadata) {

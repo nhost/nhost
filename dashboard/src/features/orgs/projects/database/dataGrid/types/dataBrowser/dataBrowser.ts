@@ -194,6 +194,7 @@ export type NormalizedQueryDataRow = Record<string, any>;
 export type FunctionObject = {
   function_schema: string;
   function_name: string;
+  function_oid: string;
 };
 
 /**
@@ -215,12 +216,19 @@ export type TableLikeObjectType =
 
 export type DatabaseObjectType = TableLikeObjectType | 'FUNCTION';
 
-export interface DatabaseObjectViewModel {
-  schema: string;
-  name: string;
-  objectType: DatabaseObjectType;
-  updatability: number;
-}
+export type DatabaseObjectViewModel =
+  | {
+      schema: string;
+      name: string;
+      objectType: TableLikeObjectType;
+      updatability: number;
+    }
+  | {
+      schema: string;
+      name: string;
+      objectType: 'FUNCTION';
+      oid: string;
+    };
 
 /**
  * Represents an object that can be used to set up ordering in an SQL query.
@@ -661,16 +669,4 @@ export interface Rule {
   operator: HasuraOperator;
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   value: any;
-}
-
-/**
- * Represents a rule group. A rule group can contain rules and other rule
- * groups.
- */
-export interface RuleGroup {
-  operator: '_and' | '_or';
-  rules: Rule[];
-  groups: RuleGroup[];
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  unsupported?: Record<string, any>[];
 }

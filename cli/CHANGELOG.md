@@ -1,3 +1,17 @@
+## [cli@1.38.2] - 2026-03-11
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.52.0 (#3945)
+
+## [cli@1.38.1] - 2026-03-08
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added brew and nix installation methods for the cli (#3975)
+- *(cli)* Fix formula name for brew (#3977)
+- *(cli)* Update certs (#3979)
+
 ## [cli@1.38.0] - 2026-02-19
 
 ### 🚀 Features

@@ -252,14 +252,13 @@ describe('BaseTableForm', () => {
 
   it('should display identity column picker when smallint is selected', async () => {
     render(<TestTableFormWrapper />);
-    const user = new TestUserEvent();
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(
+    await TestUserEvent.fireTypeEvent(
       screen.getByPlaceholderText('Select type'),
+      'int',
     );
-    await user.type(screen.getByPlaceholderText('Select type'), 'int');
     await TestUserEvent.fireClickEvent(
       screen.getByRole('option', { name: /^smallint.*int2/ }),
     );
