@@ -1,0 +1,145 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: "What's New at Nhost — Nov 2025 to Feb 2026",
+  description:
+    'OAuth2/OIDC provider, full trigger management, database views, embedded docs for LLMs, PostgreSQL 18.1, and more.',
+  image: '/images/blog/newsletter-2026q1/og-newsletter-2026q1.png',
+  date: '2026-03-09',
+  authors: [
+    {
+      name: 'David Barroso',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/david.jpeg',
+      url: 'https://twitter.com/dbarrosop',
+    },
+  ],
+  tags: ['Product', 'Newsletter'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+A lot has shipped over the past few months. Here's a roundup of the most important changes across the platform.
+
+## Nhost Auth is Now an OAuth2/OIDC Provider
+
+This is the biggest addition of the cycle. Nhost Auth can now act as a full OAuth2/OIDC provider, meaning your Nhost project can issue tokens to third-party applications — the same way Google or GitHub do.
+
+From the dashboard, you can configure the provider, manage OAuth2 clients, and control scopes. The new `/oauth2/authorize` page handles the authorization flow, and the userinfo endpoint supports GraphQL scopes for fine-grained data access.
+
+You can already see this in action: your project's Grafana instances now include a **Sign in with Nhost** button, powered entirely by this new OAuth2 provider functionality.
+
+<Image
+  src="/images/blog/newsletter-2026q1/grafana_oauth2.png"
+  alt="Grafana login page showing Sign in with Nhost button"
+  width={800}
+  height={500}
+/>
+
+Visit the [documentation](https://docs.nhost.io/products/auth/oauth2-provider/) for details and examples of how to use Nhost as an OAuth2 provider for your own applications, dashboards, or third-party tools.
+
+## Full Event & Cron Trigger Management in the Dashboard
+
+You no longer need the Hasura console to manage triggers. The dashboard now supports the full lifecycle:
+
+- **Event triggers**: create, edit, delete, and invoke event triggers directly from the UI.
+- **Cron triggers**: create, edit, delete, and visualize cron schedules.
+- **One-off scheduled events**: schedule a single event to fire at a specific time.
+
+<Image
+  src="/images/blog/newsletter-2026q1/events.png"
+  alt="Event triggers management page in the Nhost dashboard"
+  width={800}
+  height={500}
+/>
+
+## Database Views, Materialized Views & Enums
+
+The database page in the dashboard now goes beyond tables. You can browse views, materialized views, enums, and more.
+
+You can also track and untrack tables directly from the database page, making them available via the GraphQL API.
+
+<Image
+  src="/images/blog/newsletter-2026q1/database.png"
+  alt="Database page showing views and untracked tables"
+  width={800}
+  height={500}
+/>
+
+## Data Browser Improvements
+
+The data browser received several quality-of-life improvements:
+
+- **Filters**: proper column-level filtering for your table data.
+- **Column visibility and ordering**: control which columns are visible and in what order.
+
+<Image
+  src="/images/blog/newsletter-2026q1/data.png"
+  alt="Data browser with column filters"
+  width={800}
+  height={500}
+/>
+
+## GraphQL Metadata Management
+
+The dashboard now includes dedicated tools for managing your GraphQL metadata:
+
+- **Field settings**: modify field settings for GraphQL metadata customization.
+- **Edit relationships**: graphql relationships can now be edited directly from the database page dashboard.
+- **Metadata page**: a new dedicated page to inspect and manage GraphQL metadata.
+
+## PostgreSQL 18.1 Support
+
+PostgreSQL 18.1 is now available. Support for PostgreSQL 14 and 15 has been dropped. Extensions have been updated across the board. Visit the [Docker Hub](https://hub.docker.com/r/nhost/postgres#1611177181-20260119-1) for details on the new images and extension versions.
+
+## Storage: Memory Improvements
+
+We've shipped significant memory optimizations in the storage service, particularly around image processing and resource management. On larger setups, we have seen massive memory reductions, which directly translate to increased stability and fewer OOM-related restarts.
+
+## CLI: Homebrew & Nix
+
+The CLI is now installable via **Homebrew** and **Nix**, in addition to the existing direct download method:
+
+```
+brew install nhost/tap/nhost
+```
+
+## Embedded Docs for LLMs: CLI & MCP Server
+
+The CLI now embeds the full Nhost documentation directly in the binary. You can list, search, and read any documentation page straight from the terminal:
+
+<Image
+  src="/images/blog/newsletter-2026q1/cli_docs_list.png"
+  alt="nhost docs list command showing all available documentation pages"
+  width={800}
+  height={500}
+/>
+
+<Image
+  src="/images/blog/newsletter-2026q1/cli_docs_search.png"
+  alt="nhost docs search command finding relevant pages for passwordless authentication"
+  width={800}
+  height={500}
+/>
+
+<Image
+  src="/images/blog/newsletter-2026q1/cli_docs_show.png"
+  alt="nhost docs show command displaying the full content of a documentation page"
+  width={800}
+  height={500}
+/>
+
+These same tools are also exposed as an MCP server, so any MCP-compatible client — Claude Code, Cursor, Windsurf, etc. — can search and retrieve Nhost docs as part of its working context.
+
+This matters because LLMs are only as good as the context they have. Instead of relying on stale training data, your AI assistant can now pull the exact, up-to-date documentation it needs on demand — fewer hallucinated API calls, more accurate code. You can take this further by adding a line to your project instructions (`CLAUDE.md`, `.cursorrules`, etc.) telling the LLM to always consult the Nhost docs before writing code, or by creating dedicated skills that combine documentation lookups with specific workflows like scaffolding auth flows or generating file upload code.
+
+## Documentation Rebuilt on Astro
+
+The documentation site has been migrated from Mintlify to Astro (Starlight). It's faster, more customizable, and fully open-source. We also improved many documentation sections dedicated to [Storage](https://docs.nhost.io/products/storage/) and [Functions](https://docs.nhost.io/products/functions/), added new guides for Functions, the Guild's codegen, remote schemas, and much, much more.
+
+## Wrapping Up
+
+On top of everything listed above, there's been a lot of behind-the-scenes work — bug fixes, dependency upgrades, performance tuning, and quality-of-life improvements across the entire platform. Not every change makes it into a blog post, but they all add up to a more reliable and pleasant experience.
+
+Stay tuned — we have a couple of big announcements coming soon. As always, if you have questions or feedback, reach out on [Discord](https://discord.com/invite/9V7Qb2U) or [GitHub](https://github.com/nhost). We'll see you in the next update.
