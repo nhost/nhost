@@ -5,10 +5,13 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { ExportMetadataResponseMetadataSourcesItemFunctionsItemPermissionsItem } from './exportMetadataResponseMetadataSourcesItemFunctionsItemPermissionsItem';
 import type { FunctionConfiguration } from './functionConfiguration';
 import type { QualifiedFunction } from './qualifiedFunction';
 
 export type ExportMetadataResponseMetadataSourcesItemFunctionsItem = {
   function: QualifiedFunction;
   configuration?: FunctionConfiguration;
+  /** List of permissions for the function */
+  permissions?: ExportMetadataResponseMetadataSourcesItemFunctionsItemPermissionsItem[];
 };
