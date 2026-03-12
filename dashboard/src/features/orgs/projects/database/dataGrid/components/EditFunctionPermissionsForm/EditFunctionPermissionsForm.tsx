@@ -86,12 +86,7 @@ export default function EditFunctionPermissionsForm({
     useFunctionQuery(
       [`function-definition`, `default.${schema}.${functionName}`],
       {
-        functionName,
-        schema,
         dataSource: 'default',
-        queryOptions: {
-          enabled: !!schema && !!functionName,
-        },
       },
     );
 
