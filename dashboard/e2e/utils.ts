@@ -536,6 +536,83 @@ export async function createRelationship({
  * @param relationshipName - The name of the relationship to delete.
  * @returns A promise that resolves when the relationship is deleted.
  */
+export async function navigateToSQLEditor({
+  page,
+}: {
+  page: Page;
+  orgSlug?: string;
+  projectSubdomain?: string;
+}) {
+  await page.goto(editorRoute);
+  await page.waitForURL(editorRoute);
+}
+
+export async function runSQL({ page, sql }: { page: Page; sql: string }) {
+  const inputField = page.locator('[contenteditable]');
+  await inputField.fill(sql);
+  await page.locator('button[type="button"]', { hasText: /run/i }).click();
+  await expect(page.getByText(/success/i)).toBeVisible();
+}
+
+export async function navigateToGraphQLPlayground({
+  page,
+  orgSlug = TEST_ORGANIZATION_SLUG,
+  projectSubdomain = TEST_PROJECT_SUBDOMAIN,
+}: {
+  page: Page;
+  orgSlug?: string;
+  projectSubdomain?: string;
+}) {
+  const graphqlRoute = `/orgs/${orgSlug}/projects/${projectSubdomain}/graphql`;
+  await page.goto(graphqlRoute);
+  await page.waitForURL(graphqlRoute);
+  await page
+    .getByRole('button', { name: 'Execute GraphQL query' })
+    .waitFor({ timeout: 30000 });
+}
+
+export async function setGraphQLHeaders({
+  page,
+  headers,
+}: {
+  page: Page;
+  headers: Record<string, string>;
+}) {
+  await page.getByRole('button', { name: 'Headers' }).click();
+
+  const headersEditor = page.getByLabel('Headers');
+  await headersEditor.click();
+  await page.keyboard.press('Control+a');
+  await page.keyboard.press('Backspace');
+  await page.keyboard.type(JSON.stringify(headers), { delay: 10 });
+}
+
+export async function runGraphQLQuery({
+  page,
+  query,
+}: {
+  page: Page;
+  query: string;
+}) {
+  const queryEditor = page.getByLabel('Query Editor');
+  await queryEditor.click();
+  await page.keyboard.press('Control+a');
+  await page.keyboard.press('Backspace');
+  await page.keyboard.type(query, { delay: 5 });
+
+  await page.getByRole('button', { name: 'Execute GraphQL query' }).click();
+}
+
+export async function getGraphQLResult({
+  page,
+}: {
+  page: Page;
+}): Promise<string> {
+  const resultWindow = page.getByLabel('Result Window');
+  await expect(resultWindow).not.toBeEmpty({ timeout: 5000 });
+  return resultWindow.innerText();
+}
+
 export async function deleteRelationship({
   page,
   relationshipName,

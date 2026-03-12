@@ -53,7 +53,7 @@ runs:
         for file in "${!SHAS[@]}"; do
           sha="${SHAS[$file]}"
           # Extract the platform identifier from the filename (e.g. darwin-arm64)
-          platform=$(echo "$file" | sed "s/${FORMULA_NAME}-${VERSION}-//" | sed 's/\.tar\.gz//')
+          platform=$(echo "$file" | sed -E "s/.*${VERSION}-(.*)\.tar\.gz/\1/")
           FORMULA=$(echo "$FORMULA" | awk -v platform="$platform" -v sha="$sha" '
             prev ~ platform { sub(/sha256 ".*"/, "sha256 \""sha"\"") }
             { prev=$0; print }
