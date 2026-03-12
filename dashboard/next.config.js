@@ -69,6 +69,12 @@ module.exports = withBundleAnalyzer({
           '/orgs/:orgSlug/projects/:appSubdomain/database/browser/default',
         permanent: true,
       },
+      {
+        source: '/orgs/:orgSlug/projects/:appSubdomain/storage',
+        destination:
+          '/orgs/:orgSlug/projects/:appSubdomain/storage/bucket/default',
+        permanent: true,
+      },
     ];
   },
 });
