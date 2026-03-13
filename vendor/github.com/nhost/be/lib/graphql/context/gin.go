@@ -68,6 +68,21 @@ func HTTPHeaderFromGinContext(ctx context.Context) (http.Header, error) {
 	return ginContext.Request.Header, nil
 }
 
+// InitPayloadHeadersFromCtx retrieves the init payload headers from context.
+func InitPayloadHeadersFromCtx(ctx context.Context) http.Header {
+	raw := ctx.Value(initPayloadHeadersKey)
+	if raw == nil {
+		return nil
+	}
+
+	headers, ok := raw.(http.Header)
+	if !ok {
+		return nil
+	}
+
+	return headers
+}
+
 // WebSocketInit is meant to be used as a transport.WebsocketInitFunc. It will store the "headers"
 // in the init payload in the context so that they can be retrieved later using HTTPHeaderFromGinContext.
 func WebSocketInit(

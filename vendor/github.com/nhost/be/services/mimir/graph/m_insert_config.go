@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	nhcontext "github.com/nhost/be/lib/graphql/context"
@@ -30,6 +31,19 @@ func validateAndFillConfig(
 	return config, systemConfig, nil
 }
 
+func buildSecrets(
+	secretsInput []*model.ConfigEnvironmentVariableInsertInput,
+) []*model.ConfigEnvironmentVariable {
+	secrets := make([]*model.ConfigEnvironmentVariable, len(secretsInput))
+	for i, secretInput := range secretsInput {
+		secret := &model.ConfigEnvironmentVariable{} //nolint:exhaustruct
+		secret.Insert(secretInput)
+		secrets[i] = secret
+	}
+
+	return secrets
+}
+
 func (r *mutationResolver) insertConfig(
 	ctx context.Context,
 	appID string,
@@ -37,23 +51,25 @@ func (r *mutationResolver) insertConfig(
 	systemConfigInput model.ConfigSystemConfigInsertInput,
 	secretsInput []*model.ConfigEnvironmentVariableInsertInput,
 ) (*model.ConfigInsertConfigResponse, error) {
+	err := r.ensureLoaded(ctx, appID)
+	if err == nil {
+		return nil, ErrAppAlreadyExists
+	}
+
+	if !errors.Is(err, ErrAppNotFound) {
+		return nil, err
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	_, err := r.data.IndexApp(appID)
-	if err == nil {
+	// Double-check under lock
+	if _, err := r.store.GetApp(appID); err == nil {
 		return nil, ErrAppAlreadyExists
 	}
 
 	config := &model.ConfigConfig{} //nolint:exhaustruct
 	config.Insert(&configInput)
-
-	secrets := make([]*model.ConfigEnvironmentVariable, len(secretsInput))
-	for i, secretInput := range secretsInput {
-		secret := &model.ConfigEnvironmentVariable{} //nolint:exhaustruct
-		secret.Insert(secretInput)
-		secrets[i] = secret
-	}
 
 	systemConfig := &model.ConfigSystemConfig{} //nolint:exhaustruct
 	systemConfig.Insert(&systemConfigInput)
@@ -63,7 +79,7 @@ func (r *mutationResolver) insertConfig(
 		Config:         config,
 		resolvedConfig: nil,
 		SystemConfig:   systemConfig,
-		Secrets:        secrets,
+		Secrets:        buildSecrets(secretsInput),
 		Services:       make(Services, 0),
 	}
 
@@ -86,7 +102,7 @@ func (r *mutationResolver) insertConfig(
 		}
 	}
 
-	r.data = append(r.data, newApp)
+	r.store.SetApp(appID, newApp)
 
 	return &model.ConfigInsertConfigResponse{
 		Config:       newApp.Config,

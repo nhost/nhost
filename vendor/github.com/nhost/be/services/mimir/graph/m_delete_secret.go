@@ -15,15 +15,18 @@ func (r *mutationResolver) deleteSecret(
 	appID string,
 	key string,
 ) (*model.ConfigEnvironmentVariable, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	i, err := r.data.IndexApp(appID)
-	if err != nil {
+	if err := r.ensureLoaded(ctx, appID); err != nil {
 		return nil, err
 	}
 
-	oldApp := r.data[i]
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	oldApp, err := r.store.GetApp(appID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get app: %w", err)
+	}
+
 	newApp := &App{
 		AppID:          oldApp.AppID,
 		Config:         oldApp.Config,

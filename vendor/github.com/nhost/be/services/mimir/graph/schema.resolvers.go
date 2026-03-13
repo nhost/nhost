@@ -179,7 +179,7 @@ func (r *queryResolver) AppSecrets(
 
 // AppsSecrets is the resolver for the appsSecrets field.
 func (r *queryResolver) AppsSecrets(ctx context.Context) ([]*model.ConfigAppSecrets, error) {
-	return r.appsSecrets(ctx), nil
+	return r.appsSecrets(ctx)
 }
 
 // SystemConfig is the resolver for the systemConfig field.

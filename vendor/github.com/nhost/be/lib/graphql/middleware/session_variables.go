@@ -2,11 +2,13 @@ package nhmiddleware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"slices"
 	"strings"
 
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	nhcontext "github.com/nhost/be/lib/graphql/context"
@@ -19,7 +21,6 @@ const (
 	claimDefaultRole  = "x-hasura-default-role"
 
 	roleAdmin               = "admin"
-	roleUser                = "user"
 	rolePublic              = "public"
 	headerHasuraAdminSecret = "X-Hasura-Admin-Secret" //nolint:gosec
 	headerHasuraRole        = "X-Hasura-Role"
@@ -42,18 +43,58 @@ type SessionVariables struct {
 }
 
 type JWTSecret struct {
-	Type string `json:"type"`
-	Key  string `json:"key"`
+	Type   string `json:"type"`
+	Key    string `json:"key"`
+	Issuer string `json:"issuer"`
 }
 
-func ParseJWTFunc(jwtSecret JWTSecret) func(tokenString string) (*jwt.Token, error) {
+// ParseJWTSecret parses a JSON-encoded JWTSecret, handling literal newlines
+// in the key field that occur when PEM keys are rendered from TOML secrets.
+func ParseJWTSecret(data []byte) (JWTSecret, error) {
+	var secret JWTSecret
+	if err := json.Unmarshal(data, &secret); err != nil {
+		// Literal newlines inside JSON string values (from TOML-rendered PEM keys)
+		// make the JSON invalid. Escape them to preserve newline positions in the key.
+		sanitized := strings.ReplaceAll(string(data), "\n", "\\n")
+		if err := json.Unmarshal([]byte(sanitized), &secret); err != nil {
+			return JWTSecret{}, fmt.Errorf("problem parsing jwt secret: %w", err)
+		}
+	}
+
+	// Normalize literal \n sequences to actual newlines (common when PEM keys
+	// are passed through environment variables or config files as single-line values).
+	secret.Key = strings.ReplaceAll(secret.Key, `\n`, "\n")
+
+	return secret, nil
+}
+
+func ParseJWTFunc(jwtSecret JWTSecret) (func(tokenString string) (*jwt.Token, error), error) {
 	signinMethod := jwt.GetSigningMethod(jwtSecret.Type)
 
-	parser := jwt.NewParser(
-		jwt.WithIssuer("hasura-auth"),
+	parserOpts := []jwt.ParserOption{
 		jwt.WithIssuedAt(),
 		jwt.WithExpirationRequired(),
-	)
+	}
+
+	if jwtSecret.Issuer != "" {
+		parserOpts = append(parserOpts, jwt.WithIssuer(jwtSecret.Issuer))
+	}
+
+	parser := jwt.NewParser(parserOpts...)
+
+	var verificationKey any
+
+	switch signinMethod.(type) {
+	case *jwt.SigningMethodRSA, *jwt.SigningMethodRSAPSS:
+		key, err := jwt.ParseRSAPublicKeyFromPEM([]byte(jwtSecret.Key))
+		if err != nil {
+			return nil, fmt.Errorf("error parsing RSA public key: %w", err)
+		}
+
+		verificationKey = key
+	default:
+		verificationKey = []byte(jwtSecret.Key)
+	}
 
 	return func(tokenString string) (*jwt.Token, error) {
 		token, err := parser.Parse(tokenString, func(t *jwt.Token) (any, error) {
@@ -61,14 +102,14 @@ func ParseJWTFunc(jwtSecret JWTSecret) func(tokenString string) (*jwt.Token, err
 				return nil, ErrUnexpectSigningMethod
 			}
 
-			return []byte(jwtSecret.Key), nil
+			return verificationKey, nil
 		})
 		if err != nil {
 			return nil, fmt.Errorf("error parsing token: %w", err)
 		}
 
 		return token, nil
-	}
+	}, nil
 }
 
 func SessionVariablesToCtx(ctx context.Context, session *SessionVariables) context.Context {
@@ -117,6 +158,46 @@ func SessionVariablesReader(
 		)
 
 		c.Next()
+	}
+}
+
+// NewWebSocketInit returns a transport.WebsocketInitFunc that extracts headers
+// from the init payload and validates session variables (JWT, admin/webhook secrets).
+func NewWebSocketInit(
+	adminSecret string,
+	webhookSecret string,
+	jwtParser JWTParser,
+) transport.WebsocketInitFunc {
+	return func(
+		ctx context.Context,
+		initPayload transport.InitPayload,
+	) (context.Context, *transport.InitPayload, error) {
+		ctx, payload, err := nhcontext.WebSocketInit(ctx, initPayload)
+		if err != nil {
+			return ctx, payload, fmt.Errorf("websocket init: %w", err)
+		}
+
+		headers := nhcontext.InitPayloadHeadersFromCtx(ctx)
+		if headers == nil {
+			return ctx, payload, nil
+		}
+
+		logger := nhcontext.LoggerFromContext(ctx)
+
+		session, err := getSessionVariables(
+			adminSecret,
+			webhookSecret,
+			jwtParser,
+			headers,
+			logger,
+		)
+		if err != nil {
+			return ctx, payload, fmt.Errorf("unauthorized: %w", err)
+		}
+
+		ctx = SessionVariablesToCtx(ctx, session)
+
+		return ctx, payload, nil
 	}
 }
 

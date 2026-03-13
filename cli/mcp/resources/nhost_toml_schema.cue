@@ -265,7 +265,7 @@ import (
 	resources: {
 		compute?: #ResourcesCompute
 		storage: {
-			capacity: uint32 & >=1 & <=1000 // GiB
+			capacity: uint32 & >=1 & <=4000 // GiB
 		}
 
 		replicas?: 1
