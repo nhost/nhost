@@ -32,7 +32,7 @@ CronTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
         className: 'flex h-full',
       }}
     >
-      <CronTriggersBrowserSidebar className="w-full max-w-sidebar" />
+      <CronTriggersBrowserSidebar />
 
       <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
         {page}

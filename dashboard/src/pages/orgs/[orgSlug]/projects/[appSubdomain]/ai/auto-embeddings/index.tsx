@@ -225,7 +225,7 @@ AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
     <OrgLayout
       mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
     >
-      <AISidebar className="w-full max-w-sidebar" />
+      <AISidebar />
       <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
     </OrgLayout>
   );
