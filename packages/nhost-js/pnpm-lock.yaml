@@ -44,6 +44,8 @@ overrides:
   immutable@<4.3.8: '>=4.3.8'
   svgo@=4.0.0: '>=4.0.1'
   tar@<=7.5.10: '>=7.5.11'
+  devalue@<5.6.4: '>=5.6.4'
+  devalue@<=5.6.3: '>=5.6.4'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
