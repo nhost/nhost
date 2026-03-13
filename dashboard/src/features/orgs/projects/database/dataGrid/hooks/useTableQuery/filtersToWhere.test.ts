@@ -176,6 +176,92 @@ describe('filtersToWhere', () => {
     });
   });
 
+  describe('JSONB operators', () => {
+    it('should handle @> (contains) operator', () => {
+      const filters: DataGridFilter[] = [
+        {
+          column: 'metadata',
+          op: '@>',
+          value: '{"key": "value"}',
+          id: 'id',
+        },
+      ];
+      expect(filtersToWhere(filters)).toBe(
+        'WHERE metadata @> \'{"key": "value"}\'::jsonb',
+      );
+    });
+
+    it('should handle <@ (contained in) operator', () => {
+      const filters: DataGridFilter[] = [
+        {
+          column: 'metadata',
+          op: '<@',
+          value: '{"key": "value", "other": 123}',
+          id: 'id',
+        },
+      ];
+      expect(filtersToWhere(filters)).toBe(
+        'WHERE metadata <@ \'{"key": "value", "other": 123}\'::jsonb',
+      );
+    });
+
+    it('should handle ? (has key) operator', () => {
+      const filters: DataGridFilter[] = [
+        { column: 'metadata', op: '?', value: 'name', id: 'id' },
+      ];
+      expect(filtersToWhere(filters)).toBe("WHERE metadata ? 'name'");
+    });
+
+    it('should handle ?| (has any keys) operator', () => {
+      const filters: DataGridFilter[] = [
+        {
+          column: 'metadata',
+          op: '?|',
+          value: 'name,email,phone',
+          id: 'id',
+        },
+      ];
+      expect(filtersToWhere(filters)).toBe(
+        "WHERE metadata ?| array['name','email','phone']",
+      );
+    });
+
+    it('should handle ?& (has all keys) operator', () => {
+      const filters: DataGridFilter[] = [
+        {
+          column: 'metadata',
+          op: '?&',
+          value: 'name,email',
+          id: 'id',
+        },
+      ];
+      expect(filtersToWhere(filters)).toBe(
+        "WHERE metadata ?& array['name','email']",
+      );
+    });
+
+    it('should handle ?| with spaces around commas', () => {
+      const filters: DataGridFilter[] = [
+        {
+          column: 'data',
+          op: '?|',
+          value: 'key1 , key2 , key3',
+          id: 'id',
+        },
+      ];
+      expect(filtersToWhere(filters)).toBe(
+        "WHERE data ?| array['key1','key2','key3']",
+      );
+    });
+
+    it('should handle @> with empty object', () => {
+      const filters: DataGridFilter[] = [
+        { column: 'metadata', op: '@>', value: '{}', id: 'id' },
+      ];
+      expect(filtersToWhere(filters)).toBe("WHERE metadata @> '{}'::jsonb");
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle IN with empty array', () => {
       const filters: DataGridFilter[] = [

@@ -1,6 +1,8 @@
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import type { DataGridFilterOperator } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
+import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import DataGridFilterColumn from './DataGridFilterColumn';
 import DataGridFilterOperators from './DataGridFilterOperators';
 import { useDataGridFilters } from './DataGridFiltersProvider';
@@ -15,11 +17,21 @@ type FilterProps = {
 
 function DataGridFilter({ column, op, value, index }: FilterProps) {
   const { removeFilter } = useDataGridFilters();
+  const { getAllColumns } = useDataGridConfig<{ dataType: string }>();
+  const columns = getAllColumns().filter(
+    ({ id }) => id !== SELECTION_COLUMN_ID,
+  );
+  const selectedColumnDataType = columns.find((col) => col.id === column)
+    ?.columnDef.meta?.dataType;
 
   return (
     <div className="flex gap-2 p-1">
-      <DataGridFilterColumn value={column} index={index} />
-      <DataGridFilterOperators value={op} index={index} />
+      <DataGridFilterColumn value={column} index={index} currentOp={op} />
+      <DataGridFilterOperators
+        value={op}
+        index={index}
+        columnDataType={selectedColumnDataType}
+      />
       <DataGridFilterValue
         value={value}
         index={index}
