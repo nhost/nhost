@@ -1,3 +1,9 @@
+## [cli@1.38.3] - 2026-03-13
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema (#3999)
+
 ## [cli@1.38.2] - 2026-03-11
 
 ### ⚙️ Miscellaneous Tasks
