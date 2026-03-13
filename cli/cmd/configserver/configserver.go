@@ -121,7 +121,7 @@ func serve(_ context.Context, cmd *cli.Command) error {
 
 	plugins := []graph.Plugin{st}
 
-	resolver, err := graph.NewResolver(data, Querier{}, plugins)
+	resolver, err := graph.NewResolver(graph.NewMapStoreFromData(data), nil, Querier{}, plugins)
 	if err != nil {
 		return fmt.Errorf("failed to create resolver: %w", err)
 	}
