@@ -187,7 +187,7 @@ describe('filtersToWhere', () => {
         },
       ];
       expect(filtersToWhere(filters)).toBe(
-        "WHERE metadata @> '{\"key\": \"value\"}'::jsonb",
+        'WHERE metadata @> \'{"key": "value"}\'::jsonb',
       );
     });
 
@@ -201,7 +201,7 @@ describe('filtersToWhere', () => {
         },
       ];
       expect(filtersToWhere(filters)).toBe(
-        "WHERE metadata <@ '{\"key\": \"value\", \"other\": 123}'::jsonb",
+        'WHERE metadata <@ \'{"key": "value", "other": 123}\'::jsonb',
       );
     });
 
@@ -258,9 +258,7 @@ describe('filtersToWhere', () => {
       const filters: DataGridFilter[] = [
         { column: 'metadata', op: '@>', value: '{}', id: 'id' },
       ];
-      expect(filtersToWhere(filters)).toBe(
-        "WHERE metadata @> '{}'::jsonb",
-      );
+      expect(filtersToWhere(filters)).toBe("WHERE metadata @> '{}'::jsonb");
     });
   });
 

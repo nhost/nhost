@@ -21,9 +21,8 @@ function DataGridFilter({ column, op, value, index }: FilterProps) {
   const columns = getAllColumns().filter(
     ({ id }) => id !== SELECTION_COLUMN_ID,
   );
-  const selectedColumnDataType = columns.find(
-    (col) => col.id === column,
-  )?.columnDef.meta?.dataType;
+  const selectedColumnDataType = columns.find((col) => col.id === column)
+    ?.columnDef.meta?.dataType;
 
   return (
     <div className="flex gap-2 p-1">

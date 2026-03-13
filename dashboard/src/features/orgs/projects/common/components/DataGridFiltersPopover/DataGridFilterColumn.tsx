@@ -18,7 +18,11 @@ type DataFilterColumnProps = {
   currentOp: string;
 };
 
-function DataGridFilterColumn({ value, index, currentOp }: DataFilterColumnProps) {
+function DataGridFilterColumn({
+  value,
+  index,
+  currentOp,
+}: DataFilterColumnProps) {
   const { getAllColumns } = useDataGridConfig<{ dataType: string }>();
   const { setColumn, setOp, setValue } = useDataGridFilters();
   const selectRef = useRef<HTMLButtonElement | null>(null);
@@ -36,9 +40,8 @@ function DataGridFilterColumn({ value, index, currentOp }: DataFilterColumnProps
       value={value}
       onValueChange={(newColumn) => {
         setColumn(index, newColumn);
-        const newDataType = columns.find(
-          (col) => col.id === newColumn,
-        )?.columnDef.meta?.dataType;
+        const newDataType = columns.find((col) => col.id === newColumn)
+          ?.columnDef.meta?.dataType;
         const availableOps = getAvailableOperators(newDataType);
         if (!availableOps.some((o) => o.op === currentOp)) {
           setOp(index, availableOps[0].op);
