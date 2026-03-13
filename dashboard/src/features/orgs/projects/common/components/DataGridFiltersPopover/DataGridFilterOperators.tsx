@@ -6,17 +6,20 @@ import {
 } from '@/components/ui/v3/select';
 import {
   type DataGridFilterOperator,
-  operators,
+  getAvailableOperators,
 } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { useDataGridFilters } from './DataGridFiltersProvider';
 
 type DataFilterProps = {
   value: DataGridFilterOperator;
   index: number;
+  columnDataType?: string;
 };
 
-function DataGridOperators({ value, index }: DataFilterProps) {
+function DataGridOperators({ value, index, columnDataType }: DataFilterProps) {
   const { setOp, setValue } = useDataGridFilters();
+
+  const availableOperators = getAvailableOperators(columnDataType);
 
   function handleOpChange(newOp: DataGridFilterOperator) {
     setOp(index, newOp);
@@ -29,6 +32,8 @@ function DataGridOperators({ value, index }: DataFilterProps) {
       setValue(index, '%%');
     } else if (newOp === 'IS' || newOp === 'IS NOT') {
       setValue(index, 'NULL');
+    } else if (newOp === '@>' || newOp === '<@') {
+      setValue(index, '{}');
     } else {
       setValue(index, '');
     }
@@ -45,7 +50,7 @@ function DataGridOperators({ value, index }: DataFilterProps) {
         </span>
       </SelectTrigger>
       <SelectContent>
-        {operators.map(({ op, label }) => (
+        {availableOperators.map(({ op, label }) => (
           <SelectItem key={op} value={op}>
             <span>[{op}]</span> <span className="text-secondary">{label}</span>
           </SelectItem>

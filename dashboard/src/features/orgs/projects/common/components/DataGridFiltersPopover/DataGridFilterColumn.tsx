@@ -6,6 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/v3/select';
+import { getAvailableOperators } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -14,11 +15,12 @@ import { useDataGridFilters } from './DataGridFiltersProvider';
 type DataFilterColumnProps = {
   value: string;
   index: number;
+  currentOp: string;
 };
 
-function DataGridFilterColumn({ value, index }: DataFilterColumnProps) {
+function DataGridFilterColumn({ value, index, currentOp }: DataFilterColumnProps) {
   const { getAllColumns } = useDataGridConfig<{ dataType: string }>();
-  const { setColumn } = useDataGridFilters();
+  const { setColumn, setOp, setValue } = useDataGridFilters();
   const selectRef = useRef<HTMLButtonElement | null>(null);
   const columns = getAllColumns().filter(
     ({ id }) => id !== SELECTION_COLUMN_ID,
@@ -32,7 +34,17 @@ function DataGridFilterColumn({ value, index }: DataFilterColumnProps) {
   return (
     <Select
       value={value}
-      onValueChange={(newColumn) => setColumn(index, newColumn)}
+      onValueChange={(newColumn) => {
+        setColumn(index, newColumn);
+        const newDataType = columns.find(
+          (col) => col.id === newColumn,
+        )?.columnDef.meta?.dataType;
+        const availableOps = getAvailableOperators(newDataType);
+        if (!availableOps.some((o) => o.op === currentOp)) {
+          setOp(index, availableOps[0].op);
+          setValue(index, '');
+        }
+      }}
     >
       <SelectTrigger className="h-8 w-[8rem]" ref={selectRef}>
         <span
