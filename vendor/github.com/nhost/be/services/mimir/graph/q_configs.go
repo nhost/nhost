@@ -12,6 +12,10 @@ func (r *queryResolver) configs(
 	resolve bool,
 	where *model.ConfigConfigComparisonExp,
 ) ([]*model.ConfigAppConfig, error) {
+	if err := r.ensureAllLoaded(ctx); err != nil {
+		return nil, err
+	}
+
 	logger := nhcontext.LoggerFromContext(ctx)
 
 	r.mu.RLock()
@@ -19,13 +23,17 @@ func (r *queryResolver) configs(
 
 	res := make([]*model.ConfigAppConfig, 0, 10) //nolint:mnd
 
-	for _, app := range r.data {
+	var rangeErr error
+
+	r.store.Range(func(_ string, app *App) bool {
 		logger = logger.WithField("app", app.AppID)
 
 		cfg, err := app.ResolveConfig(r.schema, false)
 		if err != nil {
 			logger.WithError(err).Error("could not resolve config")
-			return nil, err
+			rangeErr = err
+
+			return false
 		}
 
 		if where.Matches(cfg) {
@@ -38,6 +46,12 @@ func (r *queryResolver) configs(
 				Config: cfg,
 			})
 		}
+
+		return true
+	})
+
+	if rangeErr != nil {
+		return nil, rangeErr
 	}
 
 	return res, nil

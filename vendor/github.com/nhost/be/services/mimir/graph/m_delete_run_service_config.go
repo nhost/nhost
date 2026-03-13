@@ -14,13 +14,7 @@ func (r *mutationResolver) deleteRunServiceConfig(
 	appID string,
 	serviceID string,
 ) (*model.ConfigRunServiceConfig, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	i, err := r.data.IndexApp(appID)
-	if err != nil {
-		// if the service is not found, we return nil, nil as there
-		// isn't anything to delete
+	if err := r.ensureLoaded(ctx, appID); err != nil {
 		if errors.Is(err, ErrAppNotFound) {
 			return nil, nil //nolint: nilnil
 		}
@@ -28,9 +22,19 @@ func (r *mutationResolver) deleteRunServiceConfig(
 		return nil, err
 	}
 
-	oldApp := r.data[i]
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-	i, err = oldApp.IndexService(serviceID)
+	oldApp, err := r.store.GetApp(appID)
+	if err != nil {
+		if errors.Is(err, ErrAppNotFound) {
+			return nil, nil //nolint: nilnil
+		}
+
+		return nil, fmt.Errorf("failed to get app: %w", err)
+	}
+
+	i, err := oldApp.IndexService(serviceID)
 	if err != nil {
 		// if the service is not found, we return nil, nil as there
 		// isn't anything to delete

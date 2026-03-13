@@ -53,15 +53,18 @@ func (r *mutationResolver) changeDatabaseVersionValidate(
 func (r *mutationResolver) changeDatabaseVersion(
 	ctx context.Context, appID string, version string, force *bool,
 ) (bool, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	i, err := r.data.IndexApp(appID)
-	if err != nil {
+	if err := r.ensureLoaded(ctx, appID); err != nil {
 		return false, err
 	}
 
-	oldApp := r.data[i]
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	oldApp, err := r.store.GetApp(appID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get app: %w", err)
+	}
+
 	newApp := &App{
 		AppID:          oldApp.AppID,
 		Config:         oldApp.Config.Clone(),
