@@ -30,12 +30,7 @@ From the dashboard, you can configure the provider, manage OAuth2 clients, and c
 
 You can already see this in action: your project's Grafana instances now include a **Sign in with Nhost** button, powered entirely by this new OAuth2 provider functionality.
 
-<Image
-  src="/images/blog/newsletter-2026q1/grafana_oauth2.png"
-  alt="Grafana login page showing Sign in with Nhost button"
-  width={800}
-  height={500}
-/>
+![Grafana login page showing Sign in with Nhost](/images/blog/newsletter-2026q1/grafana_oauth2.png)
 
 Visit the [documentation](https://docs.nhost.io/products/auth/oauth2-provider/) for details and examples of how to use Nhost as an OAuth2 provider for your own applications, dashboards, or third-party tools.
 
@@ -47,12 +42,7 @@ You no longer need the Hasura console to manage triggers. The dashboard now supp
 - **Cron triggers**: create, edit, delete, and visualize cron schedules.
 - **One-off scheduled events**: schedule a single event to fire at a specific time.
 
-<Image
-  src="/images/blog/newsletter-2026q1/events.png"
-  alt="Event triggers management page in the Nhost dashboard"
-  width={800}
-  height={500}
-/>
+![Event triggers management page in the Nhost Dashboard](/images/blog/newsletter-2026q1/events.png)
 
 ## Database Views, Materialized Views & Enums
 
@@ -60,12 +50,8 @@ The database page in the dashboard now goes beyond tables. You can browse views,
 
 You can also track and untrack tables directly from the database page, making them available via the GraphQL API.
 
-<Image
-  src="/images/blog/newsletter-2026q1/database.png"
-  alt="Database page showing views and untracked tables"
-  width={800}
-  height={500}
-/>
+
+![Database page showing views and untracked tables](/images/blog/newsletter-2026q1/database.png)
 
 ## Data Browser Improvements
 
@@ -74,12 +60,7 @@ The data browser received several quality-of-life improvements:
 - **Filters**: proper column-level filtering for your table data.
 - **Column visibility and ordering**: control which columns are visible and in what order.
 
-<Image
-  src="/images/blog/newsletter-2026q1/data.png"
-  alt="Data browser with column filters"
-  width={800}
-  height={500}
-/>
+![Data browser with column filters](/images/blog/newsletter-2026q1/data.png)
 
 ## GraphQL Metadata Management
 
@@ -109,26 +90,11 @@ brew install nhost/tap/nhost
 
 The CLI now embeds the full Nhost documentation directly in the binary. You can list, search, and read any documentation page straight from the terminal:
 
-<Image
-  src="/images/blog/newsletter-2026q1/cli_docs_list.png"
-  alt="nhost docs list command showing all available documentation pages"
-  width={800}
-  height={500}
-/>
+![nhost docs list command showing all available documentation pages](/images/blog/newsletter-2026q1/cli_docs_list.png)
 
-<Image
-  src="/images/blog/newsletter-2026q1/cli_docs_search.png"
-  alt="nhost docs search command finding relevant pages for passwordless authentication"
-  width={800}
-  height={500}
-/>
+![nhost docs search command finding relevant pages for passwordless authentication](/images/blog/newsletter-2026q1/cli_docs_search.png)
 
-<Image
-  src="/images/blog/newsletter-2026q1/cli_docs_show.png"
-  alt="nhost docs show command displaying the full content of a documentation page"
-  width={800}
-  height={500}
-/>
+![nhost docs show command displaying the full content of a documentation page](/images/blog/newsletter-2026q1/cli_docs_show.png)
 
 These same tools are also exposed as an MCP server, so any MCP-compatible client — Claude Code, Cursor, Windsurf, etc. — can search and retrieve Nhost docs as part of its working context.
 
