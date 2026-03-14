@@ -1,3 +1,15 @@
+## [auth@0.47.1] - 2026-03-14
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Abstract metadata management and allow for fixes/merges (#3953)
+- *(storage)* Handle webauthn verify request correctly (#3983)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update CLAUDE.md (#3948)
+
 ## [auth@0.47.0] - 2026-02-23
 
 ### 🚀 Features
