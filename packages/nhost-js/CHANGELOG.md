@@ -1,3 +1,17 @@
+## [@nhost/nhost-js@4.5.1] - 2026-03-14
+
+### 🐛 Bug Fixes
+
+- *(deps)* Upgrade svelte due to vuln (#3935)
+- *(deps)* Update rollup and minimatch due to vulnerability (#3959)
+- *(deps)* Override tar, svgo and immutable versions to address security audit (#3974)
+- *(deps)* Bump up tar version to address security vulnerability audit (#3991)
+
+
+### Chore
+
+- *(deps)* Bump devalue due to CVE (#4000)
+
 ## [@nhost/nhost-js@4.5.0] - 2026-02-19
 
 ### 🚀 Features
