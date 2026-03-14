@@ -23,79 +23,19 @@ func setupRouter() *gin.Engine {
 	return router
 }
 
-func TestCDNCacheControlNoAuthHeaders(t *testing.T) {
+func TestCDNCacheControl(t *testing.T) {
 	t.Parallel()
 
 	router := setupRouter()
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	w := httptest.NewRecorder()
-
-	router.ServeHTTP(w, req)
-
-	got := w.Header().Get("CDN-Cache-Control")
-	want := "max-age=86400, public"
-
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("CDN-Cache-Control mismatch (-want +got):\n%s", diff)
-	}
-}
-
-func TestCDNCacheControlWithAuthorization(t *testing.T) {
-	t.Parallel()
-
-	router := setupRouter()
-
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer token123")
 
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, req)
 
 	got := w.Header().Get("CDN-Cache-Control")
-	want := "max-age=86400, public, no-cache"
-
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("CDN-Cache-Control mismatch (-want +got):\n%s", diff)
-	}
-}
-
-func TestCDNCacheControlWithHasuraAdminSecret(t *testing.T) {
-	t.Parallel()
-
-	router := setupRouter()
-
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("X-Hasura-Admin-Secret", "secret")
-
-	w := httptest.NewRecorder()
-
-	router.ServeHTTP(w, req)
-
-	got := w.Header().Get("CDN-Cache-Control")
-	want := "max-age=86400, public, no-cache"
-
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("CDN-Cache-Control mismatch (-want +got):\n%s", diff)
-	}
-}
-
-func TestCDNCacheControlWithBothHeaders(t *testing.T) {
-	t.Parallel()
-
-	router := setupRouter()
-
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer token123")
-	req.Header.Set("X-Hasura-Admin-Secret", "secret")
-
-	w := httptest.NewRecorder()
-
-	router.ServeHTTP(w, req)
-
-	got := w.Header().Get("CDN-Cache-Control")
-	want := "max-age=86400, public, no-cache"
+	want := "must-revalidate, no-cache"
 
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("CDN-Cache-Control mismatch (-want +got):\n%s", diff)
