@@ -1,3 +1,10 @@
+## [storage@0.11.2] - 2026-03-14
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Abstract metadata management and allow for fixes/merges (#3953)
+- *(storage)* Cleanup multipart form correctly when replacing files (#4002)
+
 ## [storage@0.11.1] - 2026-02-16
 
 ### 🐛 Bug Fixes
