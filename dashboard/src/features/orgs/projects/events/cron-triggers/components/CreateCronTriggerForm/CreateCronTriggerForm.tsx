@@ -22,13 +22,7 @@ const renderCreateCronTriggerButton = ({
   </Button>
 );
 
-interface CreateCronTriggerFormProps {
-  disabled: boolean;
-}
-
-export default function CreateCronTriggerForm({
-  disabled,
-}: CreateCronTriggerFormProps) {
+export default function CreateCronTriggerForm() {
   const { mutateAsync: createCronTrigger } = useCreateCronTriggerMutation();
   const router = useRouter();
   const { orgSlug, appSubdomain } = router.query;
@@ -55,7 +49,7 @@ export default function CreateCronTriggerForm({
 
   return (
     <BaseCronTriggerForm
-      trigger={disabled ? undefined : renderCreateCronTriggerButton}
+      trigger={renderCreateCronTriggerButton}
       onSubmit={handleSubmit}
       titleText="Create a New Cron Trigger"
       descriptionText="Enter the details to create your cron trigger. Click Create when you're done."

@@ -2,6 +2,7 @@ import { Box, Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import ProjectStatus from '@/components/layout/Header/ProjectStatus';
+import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -16,15 +17,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 import { getProjectFeaturePagePath } from '@/utils/getProjectFeaturePagePath';
 
 type Option = {
   value: string;
   label: string;
+  hasGitHubRepo: boolean;
 };
 
 export default function ProjectsComboBox() {
@@ -36,14 +44,26 @@ export default function ProjectsComboBox() {
 
   const { state: appState } = useAppState();
   const { currentOrg: { slug: orgSlug, apps = [] } = {} } = useOrgs();
+  const { project } = useProject();
+  const isGitHubConnected = !!project?.githubRepository;
 
   const [selectedProject, setSelectedProject] = useState<Option | null>(null);
   const [open, setOpen] = useState(false);
 
-  const options: Option[] = apps.map((app) => ({
-    label: app.name,
-    value: app.subdomain,
-  }));
+  const options: Option[] = [
+    // TODO: remove this fake project — only for testing truncation + GitHub icon
+    {
+      label:
+        'my-super-long-project-name-that-should-definitely-be-truncated-with-ellipsis',
+      value: 'fake-long-project',
+      hasGitHubRepo: true,
+    },
+    ...apps.map((app) => ({
+      label: app.name,
+      value: app.subdomain,
+      hasGitHubRepo: !!app.githubRepository,
+    })),
+  ];
 
   const selectedProjectFromUrl = apps.find(
     (app) => app.subdomain === appSubdomain,
@@ -54,6 +74,7 @@ export default function ProjectsComboBox() {
       setSelectedProject({
         label: selectedProjectFromUrl.name,
         value: selectedProjectFromUrl.subdomain,
+        hasGitHubRepo: !!selectedProjectFromUrl.githubRepository,
       });
     }
   }, [selectedProjectFromUrl]);
@@ -78,6 +99,21 @@ export default function ProjectsComboBox() {
               <div className="flex items-center gap-2">
                 <ProjectStatusIndicator status={appState} />
                 {selectedProject.label}
+                {isGitHubConnected && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="flex items-center">
+                        <GitHubIcon className="h-3.5 w-3.5" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      sideOffset={8}
+                      className="pointer-events-none"
+                    >
+                      GitHub repository connected
+                    </TooltipContent>
+                  </Tooltip>
+                )}
                 <ProjectStatus />
               </div>
             ) : (
@@ -107,9 +143,25 @@ export default function ProjectsComboBox() {
                           : 'opacity-0',
                       )}
                     />
-                    <div className="flex items-center gap-1">
-                      <Box className="h-4 w-4" />
+                    <div className="flex w-full items-center gap-1">
+                      <Box className="h-4 w-4 shrink-0" />
                       <span className="max-w-52 truncate">{option.label}</span>
+                      {option.hasGitHubRepo && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="ml-auto flex shrink-0 items-center">
+                              <GitHubIcon className="h-3.5 w-3.5" />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="right"
+                            sideOffset={8}
+                            className="pointer-events-none"
+                          >
+                            GitHub repository connected
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </div>
                   </CommandItem>
                 ))}

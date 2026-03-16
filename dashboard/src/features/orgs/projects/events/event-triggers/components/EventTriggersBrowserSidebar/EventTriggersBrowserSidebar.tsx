@@ -1,4 +1,4 @@
-import { Database, InfoIcon } from 'lucide-react';
+import { Database } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -29,9 +29,6 @@ function EventTriggersBrowserSidebarContent() {
     isLoading: isLoadingEventTriggers,
     error: errorEventTriggers,
   } = useGetEventTriggers();
-  const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
-
   if (isLoadingEventTriggers) {
     return <EventTriggersBrowserSidebarSkeleton />;
   }
@@ -71,16 +68,8 @@ function EventTriggersBrowserSidebarContent() {
 
   return (
     <div className="flex h-full flex-col px-2">
-      {isGitHubConnected && (
-        <div className="box mt-1.5 flex items-center gap-2 px-2">
-          <InfoIcon className="size-6" />
-          <p className="text-disabled text-xs">
-            GitHub connected - use the CLI for event trigger changes
-          </p>
-        </div>
-      )}
       <div className="w-full">
-        <CreateEventTriggerForm disabled={isGitHubConnected} />
+        <CreateEventTriggerForm />
         <div className="pb-0">
           <div className="flex flex-row gap-2">
             <Accordion
@@ -106,7 +95,6 @@ function EventTriggersBrowserSidebarContent() {
                         <EventTriggerListItem
                           key={eventTrigger.name}
                           eventTrigger={eventTrigger}
-                          isViewOnly={isGitHubConnected}
                         />
                       ))}
                     </AccordionContent>
