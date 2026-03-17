@@ -99,9 +99,13 @@ export default function ProjectsComboBox() {
                     </TooltipTrigger>
                     <TooltipContent
                       sideOffset={8}
-                      className="pointer-events-none"
+                      className="pointer-events-none max-w-56"
                     >
-                      GitHub repository connected
+                      <p className="font-medium">GitHub connected</p>
+                      <p className="text-muted-foreground">
+                        Metadata changes may be overridden by the next
+                        deployment.
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -147,9 +151,13 @@ export default function ProjectsComboBox() {
                           <TooltipContent
                             side="right"
                             sideOffset={8}
-                            className="pointer-events-none"
+                            className="pointer-events-none max-w-56"
                           >
-                            GitHub repository connected
+                            <p className="font-medium">GitHub connected</p>
+                            <p className="text-muted-foreground">
+                              Metadata changes may be overridden by the next
+                              deployment.
+                            </p>
                           </TooltipContent>
                         </Tooltip>
                       )}
