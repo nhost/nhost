@@ -17,18 +17,13 @@ export interface EditRemoteSchemaRelationshipsProps extends DialogFormProps {
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
-  /**
-   * Whether the form is disabled.
-   */
-  disabled?: boolean;
 }
 
 export default function EditRemoteSchemaRelationships({
   schema,
   onCancel,
-  disabled,
 }: EditRemoteSchemaRelationshipsProps) {
-  const [view, setView] = useState<'list' | 'add' | 'edit' | 'view'>('list');
+  const [view, setView] = useState<'list' | 'add' | 'edit'>('list');
 
   const [selectedRelationship, setSelectedRelationship] =
     useState<RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem | null>(
@@ -52,13 +47,6 @@ export default function EditRemoteSchemaRelationships({
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
   ) => {
     setView('edit');
-    setSelectedRelationship(relationship);
-  };
-
-  const handleViewRelationship = (
-    relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
-  ) => {
-    setView('view');
     setSelectedRelationship(relationship);
   };
 
@@ -89,11 +77,8 @@ export default function EditRemoteSchemaRelationships({
         <RemoteSchemaRelationshipsInfoTable
           sourceRemoteSchema={schema}
           remoteRelationships={remoteRelationships}
-          disabled={disabled}
           onAddRelationship={() => setView('add')}
-          onSelectRelationship={
-            disabled ? handleViewRelationship : handleEditRelationship
-          }
+          onSelectRelationship={handleEditRelationship}
           onDeleteRelationship={() => {
             refetch();
           }}
@@ -102,7 +87,6 @@ export default function EditRemoteSchemaRelationships({
     }
     return (
       <EmptyRemoteSchemaRelationships
-        disabled={disabled}
         onAddRelationship={() => setView('add')}
       />
     );
@@ -123,7 +107,7 @@ export default function EditRemoteSchemaRelationships({
     );
   }
 
-  if ((view === 'edit' || view === 'view') && selectedRelationship) {
+  if (view === 'edit' && selectedRelationship) {
     return (
       <EditRemoteSchemaRelationshipForm
         schema={schema}
@@ -138,8 +122,7 @@ export default function EditRemoteSchemaRelationships({
           refetch();
           onCancel?.();
         }}
-        disabled={disabled}
-        nameInputDisabled={view === 'edit'}
+        nameInputDisabled
       />
     );
   }

@@ -27,12 +27,10 @@ import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm'
 import type { RemoteSchemaRelationshipFormValues } from './RemoteSchemaRelationshipForm';
 
 export interface SourceTypeComboboxProps {
-  disabled?: boolean;
   sourceTypes: { label: string; value: string }[];
 }
 
 export default function SourceTypeCombobox({
-  disabled,
   sourceTypes,
 }: SourceTypeComboboxProps) {
   const form = useFormContext<
@@ -53,7 +51,6 @@ export default function SourceTypeCombobox({
                 <Button
                   variant="outline"
                   role="combobox"
-                  disabled={disabled}
                   className={cn(
                     'w-full justify-between',
                     !field.value && 'text-muted-foreground',

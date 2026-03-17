@@ -3,12 +3,10 @@ import { Button } from '@/components/ui/v3/button';
 
 export interface EmptyRemoteSchemaRelationshipsProps {
   onAddRelationship: () => void;
-  disabled?: boolean;
 }
 
 export default function EmptyRemoteSchemaRelationships({
   onAddRelationship,
-  disabled,
 }: EmptyRemoteSchemaRelationshipsProps) {
   return (
     <div className="mt-8 flex flex-1 flex-col items-center gap-6">
@@ -21,12 +19,10 @@ export default function EmptyRemoteSchemaRelationships({
           All your remote schema&apos;s relationships will be listed here.
         </p>
       </div>
-      {!disabled && (
-        <Button className="flex gap-1" onClick={onAddRelationship}>
-          <PlusIcon className="h-4 w-4" />
-          Add Relationship
-        </Button>
-      )}
+      <Button className="flex gap-1" onClick={onAddRelationship}>
+        <PlusIcon className="h-4 w-4" />
+        Add Relationship
+      </Button>
     </div>
   );
 }
