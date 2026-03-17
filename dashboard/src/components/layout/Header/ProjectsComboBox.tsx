@@ -50,20 +50,11 @@ export default function ProjectsComboBox() {
   const [selectedProject, setSelectedProject] = useState<Option | null>(null);
   const [open, setOpen] = useState(false);
 
-  const options: Option[] = [
-    // TODO: remove this fake project — only for testing truncation + GitHub icon
-    {
-      label:
-        'my-super-long-project-name-that-should-definitely-be-truncated-with-ellipsis',
-      value: 'fake-long-project',
-      hasGitHubRepo: true,
-    },
-    ...apps.map((app) => ({
-      label: app.name,
-      value: app.subdomain,
-      hasGitHubRepo: !!app.githubRepository,
-    })),
-  ];
+  const options: Option[] = apps.map((app) => ({
+    label: app.name,
+    value: app.subdomain,
+    hasGitHubRepo: !!app.githubRepository,
+  }));
 
   const selectedProjectFromUrl = apps.find(
     (app) => app.subdomain === appSubdomain,
