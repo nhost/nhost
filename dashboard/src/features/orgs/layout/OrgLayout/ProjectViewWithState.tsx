@@ -8,6 +8,32 @@ import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProjectRedirectWhenReady } from '@/features/orgs/projects/common/hooks/useProjectRedirectWhenReady';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
+import ProjectStateOverlay, {
+  type ProjectStateOverlayVariant,
+} from './ProjectStateOverlay';
+
+const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
+const overlayPages = [
+  'database',
+  'database/browser/[dataSourceSlug]',
+  'graphql',
+  'graphql/remote-schemas',
+  'graphql/remote-schemas/[remoteSchemaSlug]',
+  'graphql/metadata',
+  'events/event-triggers',
+  'events/event-triggers/[eventTriggerSlug]',
+  'events/cron-triggers',
+  'events/cron-triggers/[cronTriggerSlug]',
+  'events/one-offs',
+  'hasura',
+  'auth/users',
+  'auth/oauth2-clients',
+  'storage',
+  'ai/auto-embeddings',
+  'ai/assistants',
+  'ai/file-stores',
+  'metrics',
+].map((page) => baseProjectPageRoute.concat(page));
 
 function PollingProjectContent({ children }: PropsWithChildren) {
   useProjectRedirectWhenReady({ pollInterval: 2000 });
@@ -31,11 +57,21 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
   const { state } = useAppState();
 
   const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
+  const showOverlay = overlayPages.includes(route);
 
   const projectPageContent = useMemo(() => {
     if (!appSubdomain || state === undefined) {
       return children;
     }
+
+    const overlayVariantByState: Record<string, ProjectStateOverlayVariant> = {
+      [ApplicationStatus.Paused]: 'paused',
+      [ApplicationStatus.Pausing]: 'pausing',
+      [ApplicationStatus.Unpausing]: 'unpausing',
+      [ApplicationStatus.Restoring]: 'unpausing',
+    };
+
+    const overlayVariant = overlayVariantByState[state];
 
     switch (state) {
       case ApplicationStatus.Empty: {
@@ -75,10 +111,24 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
         return children;
       case ApplicationStatus.Pausing:
       case ApplicationStatus.Paused:
-        return children;
+        return (
+          <>
+            {showOverlay && overlayVariant && (
+              <ProjectStateOverlay variant={overlayVariant} />
+            )}
+            {children}
+          </>
+        );
       case ApplicationStatus.Unpausing:
       case ApplicationStatus.Restoring:
-        return <PollingProjectContent>{children}</PollingProjectContent>;
+        return (
+          <PollingProjectContent>
+            {showOverlay && overlayVariant && (
+              <ProjectStateOverlay variant={overlayVariant} />
+            )}
+            {children}
+          </PollingProjectContent>
+        );
       case ApplicationStatus.Updating:
       case ApplicationStatus.Live:
       case ApplicationStatus.Migrating:
@@ -86,7 +136,7 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       default:
         return <ApplicationUnknown />;
     }
-  }, [state, children, appSubdomain, isOnOverviewPage]);
+  }, [state, children, appSubdomain, isOnOverviewPage, showOverlay]);
 
   return projectPageContent;
 }
