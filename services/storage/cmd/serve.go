@@ -385,7 +385,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 			},
 			&cli.IntFlag{ //nolint:exhaustruct
 				Name:     flagImageTransformerWorkers,
-				Usage:    "number of concurrent image transformation workers (0 = 4 * NumCPU)",
+				Usage:    "number of concurrent image transformation workers (0 = 4 * GOMAXPROCS)",
 				Value:    0,
 				Category: "server",
 				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_WORKERS"),

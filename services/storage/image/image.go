@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"runtime"
 	"sync"
 	"sync/atomic"
 
@@ -80,6 +81,10 @@ type Transformer struct {
 }
 
 func NewTransformer(maxWorkers int) *Transformer {
+	if maxWorkers <= 0 {
+		maxWorkers = 4 * runtime.GOMAXPROCS(0) //nolint:mnd
+	}
+
 	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
 		vips.Startup(&vips.Config{ //nolint:exhaustruct
 			ConcurrencyLevel: 1,
