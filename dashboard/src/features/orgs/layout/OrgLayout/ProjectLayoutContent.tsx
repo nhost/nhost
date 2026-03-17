@@ -11,7 +11,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { getConfigServerUrl, isPlatform as isPlatformFn } from '@/utils/env';
-import ProjectStateBanner from './ProjectStateBanner';
 import ProjectViewWithState from './ProjectViewWithState';
 
 const platFormOnlyPages = [
@@ -94,20 +93,17 @@ function ProjectLayoutContent({
   }
 
   return (
-    <>
-      <ProjectStateBanner />
-      <Box
-        component="main"
-        className={twMerge(
-          'relative h-full flex-auto overflow-y-auto',
-          mainContainerProps.className,
-        )}
-        {...mainContainerProps}
-      >
-        <ProjectViewWithState>{children}</ProjectViewWithState>
-        <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
-      </Box>
-    </>
+    <Box
+      component="main"
+      className={twMerge(
+        'relative h-full flex-auto overflow-y-auto',
+        mainContainerProps.className,
+      )}
+      {...mainContainerProps}
+    >
+      <ProjectViewWithState>{children}</ProjectViewWithState>
+      <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
+    </Box>
   );
 }
 
