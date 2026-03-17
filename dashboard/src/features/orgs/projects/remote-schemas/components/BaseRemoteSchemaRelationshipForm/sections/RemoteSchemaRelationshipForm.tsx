@@ -199,16 +199,10 @@ export default function RemoteSchemaRelationshipForm({
         </div>
         <div className="flex flex-col gap-4 px-6">
           <div className="flex flex-row gap-4">
-            <TargetRemoteSchemaCombobox
-              remoteSchemas={remoteSchemas}
-            />
-            <TargetRemoteSchemaFieldCombobox
-              targetFields={targetFields}
-            />
+            <TargetRemoteSchemaCombobox remoteSchemas={remoteSchemas} />
+            <TargetRemoteSchemaFieldCombobox targetFields={targetFields} />
           </div>
-          <SchemaToArgumentMapSelector
-            sourceSchema={sourceSchema}
-          />
+          <SchemaToArgumentMapSelector sourceSchema={sourceSchema} />
         </div>
         <div className="mt-auto flex justify-between gap-2 border-foreground/20 border-t-1 px-6 pt-4">
           <Button

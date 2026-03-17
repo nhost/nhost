@@ -211,9 +211,7 @@ export default function DatabaseRelationshipForm({
             )}
           />
         </div>
-        <FieldToColumnMapSelector
-          sourceSchema={sourceSchema}
-        />
+        <FieldToColumnMapSelector sourceSchema={sourceSchema} />
 
         <div className="mt-auto flex justify-between gap-2 border-foreground/20 border-t-1 px-6 pt-4">
           <Button

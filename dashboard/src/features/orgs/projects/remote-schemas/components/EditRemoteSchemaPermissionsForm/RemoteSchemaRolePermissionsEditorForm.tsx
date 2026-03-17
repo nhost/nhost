@@ -892,9 +892,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
               color="primary"
               onClick={handleSavePermission}
               disabled={
-                !schemaDefinition ||
-                isAddingPermission ||
-                isUpdatingPermission
+                !schemaDefinition || isAddingPermission || isUpdatingPermission
               }
               loading={isAddingPermission || isUpdatingPermission}
             >
