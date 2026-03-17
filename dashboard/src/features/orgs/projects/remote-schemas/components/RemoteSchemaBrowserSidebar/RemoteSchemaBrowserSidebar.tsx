@@ -153,7 +153,7 @@ function RemoteSchemaBrowserSidebarContent({
     });
   }
 
-  function handleEditPermissionClick(schema: string, disabled?: boolean) {
+  function handleEditPermissionClick(schema: string) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
@@ -161,9 +161,7 @@ function RemoteSchemaBrowserSidebarContent({
           <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
         </span>
       ),
-      component: (
-        <EditRemoteSchemaPermissionsForm schema={schema} disabled={disabled} />
-      ),
+      component: <EditRemoteSchemaPermissionsForm schema={schema} />,
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
@@ -172,7 +170,7 @@ function RemoteSchemaBrowserSidebarContent({
     });
   }
 
-  function handleEditRelationshipsClick(schema: string, disabled?: boolean) {
+  function handleEditRelationshipsClick(schema: string) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
@@ -180,9 +178,7 @@ function RemoteSchemaBrowserSidebarContent({
           <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
         </span>
       ),
-      component: (
-        <EditRemoteSchemaRelationships schema={schema} disabled={disabled} />
-      ),
+      component: <EditRemoteSchemaRelationships schema={schema} />,
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
