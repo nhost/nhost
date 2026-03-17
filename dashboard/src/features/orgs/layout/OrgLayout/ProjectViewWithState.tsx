@@ -3,13 +3,16 @@ import { useRouter } from 'next/router';
 import { type PropsWithChildren, useEffect, useMemo } from 'react';
 import { Alert } from '@/components/ui/v2/Alert';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
-import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { useProjectRedirectWhenReady } from '@/features/orgs/projects/common/hooks/useProjectRedirectWhenReady';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import PausedProjectContent from './PausedProjectContent';
-import UnpausingProjectContent from './UnpausingProjectContent';
+
+function PollingProjectContent({ children }: PropsWithChildren) {
+  useProjectRedirectWhenReady({ pollInterval: 2000 });
+  return children;
+}
 
 function ProjectViewWithState({ children }: PropsWithChildren) {
   const {
@@ -72,11 +75,10 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
         return children;
       case ApplicationStatus.Pausing:
       case ApplicationStatus.Paused:
-        return <PausedProjectContent>{children}</PausedProjectContent>;
+        return children;
       case ApplicationStatus.Unpausing:
-        return <UnpausingProjectContent>{children}</UnpausingProjectContent>;
       case ApplicationStatus.Restoring:
-        return <ApplicationRestoring />;
+        return <PollingProjectContent>{children}</PollingProjectContent>;
       case ApplicationStatus.Updating:
       case ApplicationStatus.Live:
       case ApplicationStatus.Migrating:

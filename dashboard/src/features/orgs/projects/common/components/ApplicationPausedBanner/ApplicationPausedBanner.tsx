@@ -25,7 +25,7 @@ export default function ApplicationPausedBanner({
   alertClassName?: string;
   textContainerClassName?: string;
   wakeUpButtonClassName?: string;
-  variant?: 'paused' | 'unpausing';
+  variant?: 'paused' | 'pausing' | 'unpausing';
 }) {
   const { org } = useCurrentOrg();
   const { state } = useAppState();
@@ -86,7 +86,19 @@ export default function ApplicationPausedBanner({
           textContainerClassName,
         )}
       >
-        {variant === 'unpausing' ? (
+        {variant === 'pausing' && (
+          <>
+            <p className="flex w-full items-center gap-2">
+              <ActivityIndicator />
+              Project <b>{project?.name}</b> is pausing...
+            </p>
+            <p className="w-full">
+              This may take a moment. You can continue browsing — some features
+              may become unavailable as the project shuts down.
+            </p>
+          </>
+        )}
+        {variant === 'unpausing' && (
           <>
             <p className="flex w-full items-center gap-2">
               <ActivityIndicator />
@@ -98,7 +110,8 @@ export default function ApplicationPausedBanner({
               active.
             </p>
           </>
-        ) : (
+        )}
+        {variant === 'paused' && (
           <>
             <p className="w-full">
               Project <b>{project?.name}</b> is paused.
