@@ -5,11 +5,11 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
-import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import PausedProjectContent from './PausedProjectContent';
+import UnpausingProjectContent from './UnpausingProjectContent';
 
 function ProjectViewWithState({ children }: PropsWithChildren) {
   const {
@@ -74,7 +74,7 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       case ApplicationStatus.Paused:
         return <PausedProjectContent>{children}</PausedProjectContent>;
       case ApplicationStatus.Unpausing:
-        return <ApplicationUnpausing />;
+        return <UnpausingProjectContent>{children}</UnpausingProjectContent>;
       case ApplicationStatus.Restoring:
         return <ApplicationRestoring />;
       case ApplicationStatus.Updating:

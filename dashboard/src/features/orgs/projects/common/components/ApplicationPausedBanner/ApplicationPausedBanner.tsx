@@ -20,10 +20,12 @@ export default function ApplicationPausedBanner({
   alertClassName,
   textContainerClassName,
   wakeUpButtonClassName,
+  variant = 'paused',
 }: {
   alertClassName?: string;
   textContainerClassName?: string;
   wakeUpButtonClassName?: string;
+  variant?: 'paused' | 'unpausing';
 }) {
   const { org } = useCurrentOrg();
   const { state } = useAppState();
@@ -84,30 +86,47 @@ export default function ApplicationPausedBanner({
           textContainerClassName,
         )}
       >
-        <p className="w-full">
-          Project <b>{project?.name}</b> is paused.
-        </p>
-        <p className="w-full">
-          Wake up your project to make it accessible again. Once reactivated,
-          all features will be fully functional. Go to settings to manage your
-          project.
-        </p>
-        {org?.plan?.isFree && (
-          <p>
-            Projects under your Personal Organization will stop responding to
-            API calls after 7 days of inactivity, so consider transferring the
-            project to a <b>Pro Organization</b> to avoid auto-sleep.
-          </p>
-        )}
-        {freeAndLiveProjectsNumberExceeded && (
-          <p>
-            Additionally, only 1 free project can be active at any given time,
-            so please pause your current active free project before unpausing
-            another.
-          </p>
+        {variant === 'unpausing' ? (
+          <>
+            <p className="flex w-full items-center gap-2">
+              <ActivityIndicator />
+              Project <b>{project?.name}</b> is waking up...
+            </p>
+            <p className="w-full">
+              This may take a couple of minutes. You can continue browsing —
+              some features may be unavailable until the project is fully
+              active.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="w-full">
+              Project <b>{project?.name}</b> is paused.
+            </p>
+            <p className="w-full">
+              Wake up your project to make it accessible again. Once
+              reactivated, all features will be fully functional. Go to settings
+              to manage your project.
+            </p>
+            {org?.plan?.isFree && (
+              <p>
+                Projects under your Personal Organization will stop responding
+                to API calls after 7 days of inactivity, so consider
+                transferring the project to a <b>Pro Organization</b> to avoid
+                auto-sleep.
+              </p>
+            )}
+            {freeAndLiveProjectsNumberExceeded && (
+              <p>
+                Additionally, only 1 free project can be active at any given
+                time, so please pause your current active free project before
+                unpausing another.
+              </p>
+            )}
+          </>
         )}
       </div>
-      {state === ApplicationStatus.Paused && (
+      {variant === 'paused' && state === ApplicationStatus.Paused && (
         <Button
           variant="outline"
           className={cn('w-full', wakeUpButtonClassName)}
