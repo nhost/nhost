@@ -21,6 +21,7 @@ func hasAuthHeaders(r *http.Request) bool {
 
 type writer struct {
 	gin.ResponseWriter
+
 	value string
 	wrote bool
 }
@@ -38,13 +39,13 @@ func (w *writer) setHeader() {
 func (w *writer) Write(data []byte) (int, error) {
 	w.setHeader()
 
-	return w.ResponseWriter.Write(data)
+	return w.ResponseWriter.Write(data) //nolint:wrapcheck
 }
 
 func (w *writer) WriteString(s string) (int, error) {
 	w.setHeader()
 
-	return w.ResponseWriter.WriteString(s)
+	return w.ResponseWriter.WriteString(s) //nolint:wrapcheck
 }
 
 func (w *writer) WriteHeaderNow() {
