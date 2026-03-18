@@ -211,3 +211,5 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
+
+replace github.com/buger/jsonparser => github.com/dbarrosop/jsonparser v1.1.2
