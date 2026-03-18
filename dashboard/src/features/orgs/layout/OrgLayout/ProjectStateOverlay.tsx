@@ -73,11 +73,7 @@ export default function ProjectStateOverlay({
   }
 
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => setDismissed(!open)}
-      modal={false}
-    >
+    <Dialog open onOpenChange={(open) => setDismissed(!open)} modal={false}>
       <div className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-black/30 py-4 backdrop-blur-sm">
         <DialogPrimitive.Content className="relative flex w-full max-w-sm flex-col items-center gap-4 rounded-lg bg-background p-6 shadow-lg">
           <DialogClose className="absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100">
