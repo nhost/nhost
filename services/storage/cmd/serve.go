@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
+	"runtime"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -53,6 +54,7 @@ const (
 	flagClamavServer             = "clamav-server"
 	flagHasuraDBName             = "hasura-db-name"
 	flagPprofBind                = "pprof-bind"
+	flagImageTransformerWorkers  = "image-transformer-workers"
 )
 
 func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
@@ -381,6 +383,13 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Category: "debug",
 				Sources:  cli.EnvVars("BIND_PPROF"),
 			},
+			&cli.IntFlag{ //nolint:exhaustruct
+				Name:     flagImageTransformerWorkers,
+				Usage:    "number of concurrent image transformation workers (0 = 2 * GOMAXPROCS)",
+				Value:    0,
+				Category: "server",
+				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_WORKERS"),
+			},
 		},
 		Action: serve,
 	}
@@ -419,7 +428,17 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	logFlags(ctx, logger, cmd)
 
-	imageTransformer := image.NewTransformer()
+	imageTransformerWorkers := cmd.Int(flagImageTransformerWorkers)
+	if imageTransformerWorkers <= 0 {
+		imageTransformerWorkers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
+		logger.InfoContext(
+			ctx,
+			"calculating number of image transformer workers based on GOMAXPROCS",
+			slog.Int("workers", imageTransformerWorkers),
+		)
+	}
+
+	imageTransformer := image.NewTransformer(imageTransformerWorkers)
 	defer imageTransformer.Shutdown()
 
 	servCtx, cancel := context.WithCancel(ctx)
