@@ -121,6 +121,7 @@ export default function FileStoresPage() {
         <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
           <TriangleAlert className="size-10 text-destructive" />
           <p className="font-semibold text-lg">Failed to load file stores</p>
+          <p className="text-muted-foreground text-sm">{error.message}</p>
           <ButtonWithLoading
             variant="outline"
             loading={isRetrying}

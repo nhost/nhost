@@ -141,6 +141,7 @@ export default function AutoEmbeddingsPage() {
           <p className="font-semibold text-lg">
             Failed to load auto-embeddings
           </p>
+          <p className="text-muted-foreground text-sm">{error.message}</p>
           <ButtonWithLoading
             variant="outline"
             loading={isRetrying}

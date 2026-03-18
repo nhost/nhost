@@ -61,6 +61,15 @@ vi.mock(
   }),
 );
 
+vi.mock('./ProjectStateOverlay', () => ({
+  __esModule: true,
+  default: ({ variant }: { variant: string }) => (
+    <div data-testid="projectStateOverlay">
+      Project State Overlay: {variant}
+    </div>
+  ),
+}));
+
 const getUseRouterObject = (
   route: string = '/orgs/[orgSlug]/projects/[appSubdomain]',
 ) => ({
@@ -138,35 +147,45 @@ describe('ProjectViewWithState', () => {
     expect(screen.queryByText('Application content')).not.toBeInTheDocument();
   });
 
-  it('should render the application in pausing state', async () => {
-    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+  it('should render the application in pausing state with overlay', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
     server.use(getProjectQuery);
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Pausing }]));
     render(<TestComponent />);
     expect(await screen.findByText('Application content')).toBeInTheDocument();
-    expect(await screen.findByText('Application Banner')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Project State Overlay: pausing'),
+    ).toBeInTheDocument();
   });
 
-  it('should render the application Unpausing application state', async () => {
-    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+  it('should render the application in unpausing state with overlay', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
     server.use(getProjectQuery);
     server.use(
       getProjectStateQuery([{ stateId: ApplicationStatus.Unpausing }]),
     );
     render(<TestComponent />);
-    expect(screen.queryByText('Application content')).not.toBeInTheDocument();
+    expect(await screen.findByText('Application content')).toBeInTheDocument();
     expect(
-      await screen.findByText('Application Unpausing'),
+      await screen.findByText('Project State Overlay: unpausing'),
     ).toBeInTheDocument();
   });
 
-  it('should render the application paused application state', async () => {
-    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+  it('should render the application in paused state with overlay', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
     server.use(getProjectQuery);
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Paused }]));
     render(<TestComponent />);
     expect(await screen.findByText('Application content')).toBeInTheDocument();
-    expect(await screen.findByText('Application Banner')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Project State Overlay: paused'),
+    ).toBeInTheDocument();
   });
 
   it('should render the application when the state is updating', async () => {
@@ -229,18 +248,20 @@ describe('ProjectViewWithState', () => {
     expect(screen.queryByText('Application Banner')).not.toBeInTheDocument();
   });
 
-  it('should render the application in an error state', async () => {
-    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+  it('should render the application in restoring state with overlay', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
     server.use(getProjectQuery);
     server.use(
       getProjectStateQuery([{ stateId: ApplicationStatus.Restoring }]),
     );
     render(<TestComponent />);
 
+    expect(await screen.findByText('Application content')).toBeInTheDocument();
     expect(
-      await screen.findByText('Application Restoring'),
+      await screen.findByText('Project State Overlay: unpausing'),
     ).toBeInTheDocument();
-    expect(screen.queryByText('Application content')).not.toBeInTheDocument();
   });
 
   it('should clear the query cache on unmount', async () => {
