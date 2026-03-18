@@ -10,7 +10,6 @@ const (
 	headerCDNCacheControl   = "CDN-Cache-Control"
 	headerAuthorization     = "Authorization"
 	headerHasuraAdminSecret = "X-Hasura-Admin-Secret" //nolint:gosec
-	cacheControlPublic      = "max-age=86400, public"
 	cacheControlPrivate     = "must-revalidate, no-cache"
 )
 
@@ -30,7 +29,7 @@ func (w *writer) setHeader() {
 	if !w.wrote {
 		w.wrote = true
 
-		if w.Status() < http.StatusBadRequest {
+		if w.Status() < http.StatusBadRequest && w.value != "" {
 			w.Header().Set(headerCDNCacheControl, w.value)
 		}
 	}
@@ -55,7 +54,7 @@ func (w *writer) WriteHeaderNow() {
 
 func New() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		value := cacheControlPublic
+		var value string
 		if hasAuthHeaders(ctx.Request) {
 			value = cacheControlPrivate
 		}
