@@ -796,7 +796,7 @@ Maximum height to resize image to while maintaining aspect ratio. Only applies t
 optional q: number;
 ```
 
-Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
+Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
 
 #### w?
 
@@ -846,7 +846,7 @@ Maximum height to resize image to while maintaining aspect ratio. Only applies t
 optional q: number;
 ```
 
-Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
+Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
 
 #### w?
 

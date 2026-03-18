@@ -10,9 +10,9 @@ runs:
   steps:
     - name: "Validate PR title format"
       shell: bash
+      env:
+        PR_TITLE: ${{ inputs.pr_title }}
       run: |
-        PR_TITLE="${{ inputs.pr_title }}"
-
         echo "Validating PR title: $PR_TITLE"
 
         # Define valid types and packages
