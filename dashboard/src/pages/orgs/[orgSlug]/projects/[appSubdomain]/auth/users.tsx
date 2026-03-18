@@ -1,4 +1,5 @@
 import debounce from 'lodash.debounce';
+import { TriangleAlert } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -13,6 +14,7 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
@@ -32,6 +34,7 @@ export default function UsersPage() {
   const { openDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const limit = useRef(25);
   const router = useRouter();
@@ -236,7 +239,30 @@ export default function UsersPage() {
   }
 
   if (remoteAppUsersError) {
-    throw remoteAppUsersError;
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <div className="mt-8 flex w-full max-w-md flex-col gap-6 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
+          <TriangleAlert className="mx-auto size-10 text-amber-500" />
+          <div className="flex flex-col gap-2">
+            <h3 className="font-semibold text-lg">Failed to load users</h3>
+          </div>
+          <ButtonWithLoading
+            variant="outline"
+            loading={isRetrying}
+            onClick={async () => {
+              setIsRetrying(true);
+              try {
+                await refetchProjectUsers();
+              } finally {
+                setIsRetrying(false);
+              }
+            }}
+          >
+            Try Again
+          </ButtonWithLoading>
+        </div>
+      </div>
+    );
   }
 
   const elementsPerPage =

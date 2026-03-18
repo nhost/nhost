@@ -34,6 +34,25 @@ export default function OverviewProjectHealthModal({
       isNotEmptyValue(service) && service.name.startsWith('run-'),
   );
 
+  const hasAnyService =
+    isNotEmptyValue(auth) ||
+    isNotEmptyValue(storage) ||
+    isNotEmptyValue(postgres) ||
+    isNotEmptyValue(hasura) ||
+    isNotEmptyValue(ai) ||
+    runServices.length > 0;
+
+  if (!hasAnyService) {
+    return (
+      <div className="w-full rounded-lg p-6">
+        <p className="text-muted-foreground text-sm">
+          Service health information is unavailable. This is usually temporary
+          while the project is paused or transitioning.
+        </p>
+      </div>
+    );
+  }
+
   const isAuthExpandedByDefault = defaultExpanded === 'hasura-auth';
   const isPostgresExpandedByDefault = defaultExpanded === 'postgres';
   const isStorageExpandedByDefault = defaultExpanded === 'hasura-storage';

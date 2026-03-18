@@ -1,9 +1,11 @@
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
+import { Dialog, DialogClose, DialogTitle } from '@/components/ui/v3/dialog';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -71,86 +73,75 @@ export default function ProjectStateOverlay({
   }
 
   return (
-    <button
-      type="button"
-      aria-label="Dismiss overlay"
-      className="absolute inset-0 z-20 grid cursor-default place-items-center bg-black/30 backdrop-blur-sm"
-      onClick={() => setDismissed(true)}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          setDismissed(true);
-        }
-      }}
+    <Dialog
+      open
+      onOpenChange={(open) => setDismissed(!open)}
+      modal={false}
     >
-      <div
-        role="dialog"
-        className="relative flex w-full max-w-sm flex-col items-center gap-4 rounded-lg bg-background p-6 shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          className="absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100"
-          onClick={() => setDismissed(true)}
-        >
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </button>
+      <div className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-black/30 py-4 backdrop-blur-sm">
+        <DialogPrimitive.Content className="relative flex w-full max-w-sm flex-col items-center gap-4 rounded-lg bg-background p-6 shadow-lg">
+          <DialogClose className="absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
 
-        <Image
-          src="/assets/PausedApp.svg"
-          alt="Paused project"
-          width={52}
-          height={40}
-        />
+          <DialogTitle className="sr-only">Project State</DialogTitle>
 
-        {variant === 'paused' && (
-          <>
-            <p className="text-center">
-              This project is paused. Unpause to make this available.
-            </p>
-            {freeAndLiveProjectsNumberExceeded && (
-              <p className="text-center text-muted-foreground text-sm">
-                Only 1 free project can be active at a time. Pause your current
-                active free project first.
+          <Image
+            src="/assets/PausedApp.svg"
+            alt="Paused project"
+            width={52}
+            height={40}
+          />
+
+          {variant === 'paused' && (
+            <>
+              <p className="text-center">
+                This project is paused. Unpause to make this available.
               </p>
-            )}
-            {state === ApplicationStatus.Paused && (
-              <Button
-                variant="outline"
-                className="w-full"
-                disabled={changingApplicationStateLoading}
-                onClick={handleTriggerUnpausing}
-              >
-                {changingApplicationStateLoading ? (
-                  <ActivityIndicator />
-                ) : (
-                  'Wake up'
-                )}
-              </Button>
-            )}
-          </>
-        )}
+              {freeAndLiveProjectsNumberExceeded && (
+                <p className="text-center text-muted-foreground text-sm">
+                  Only 1 free project can be active at a time. Pause your
+                  current active free project first.
+                </p>
+              )}
+              {state === ApplicationStatus.Paused && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={changingApplicationStateLoading}
+                  onClick={handleTriggerUnpausing}
+                >
+                  {changingApplicationStateLoading ? (
+                    <ActivityIndicator />
+                  ) : (
+                    'Wake up'
+                  )}
+                </Button>
+              )}
+            </>
+          )}
 
-        {variant === 'pausing' && (
-          <p className="flex items-center gap-2 text-center">
-            <ActivityIndicator />
-            Project is pausing...
-          </p>
-        )}
-
-        {variant === 'unpausing' && (
-          <>
+          {variant === 'pausing' && (
             <p className="flex items-center gap-2 text-center">
               <ActivityIndicator />
-              Project is waking up...
+              Project is pausing...
             </p>
-            <p className="text-center text-muted-foreground text-sm">
-              This may take a couple of minutes.
-            </p>
-          </>
-        )}
+          )}
+
+          {variant === 'unpausing' && (
+            <>
+              <p className="flex items-center gap-2 text-center">
+                <ActivityIndicator />
+                Project is waking up...
+              </p>
+              <p className="text-center text-muted-foreground text-sm">
+                This may take a couple of minutes.
+              </p>
+            </>
+          )}
+        </DialogPrimitive.Content>
       </div>
-    </button>
+    </Dialog>
   );
 }

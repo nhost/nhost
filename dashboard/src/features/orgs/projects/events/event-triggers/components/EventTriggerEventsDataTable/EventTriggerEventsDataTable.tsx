@@ -68,7 +68,7 @@ export default function EventTriggerEventsDataTable({
       containerClassName="overflow-visible"
       className="w-auto caption-bottom border-separate border-spacing-0 border-r-1 border-b-1 text-sm"
     >
-      <TableHeader className="sticky top-0 z-30">
+      <TableHeader className="sticky top-0 z-10">
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow
             key={headerGroup.id}
