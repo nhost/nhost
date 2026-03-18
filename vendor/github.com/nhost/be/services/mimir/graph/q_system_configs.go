@@ -27,7 +27,9 @@ func (r *queryResolver) systemConfigs(
 	r.store.Range(func(_ string, app *App) bool {
 		cfg, err := app.ResolveSystemConfig(r.schema)
 		if err != nil {
-			logger.WithField("app", app.AppID).WithError(err).Error("could not resolve system config")
+			logger.WithField("app", app.AppID).
+				WithError(err).
+				Error("could not resolve system config")
 			rangeErr = err
 
 			return false
