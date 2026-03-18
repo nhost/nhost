@@ -1,6 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useIsProjectReady } from '@/features/orgs/projects/common/hooks/useAppState';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
@@ -42,6 +43,7 @@ export default function useDatabaseQuery(
   } = useRouter();
 
   const { project } = useProject();
+  const isProjectReady = useIsProjectReady();
 
   const query = useQuery<FetchDatabaseReturnType>({
     queryKey,
@@ -62,6 +64,8 @@ export default function useDatabaseQuery(
       });
     },
     ...queryOptions,
+    retry: isProjectReady ? 3 : false,
+    refetchOnWindowFocus: isProjectReady,
     enabled:
       project?.config?.hasura.adminSecret && isReady
         ? queryOptions?.enabled
