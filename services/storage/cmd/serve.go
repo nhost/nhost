@@ -23,6 +23,7 @@ import (
 	"github.com/nhost/nhost/services/storage/image"
 	"github.com/nhost/nhost/services/storage/metadata"
 	"github.com/nhost/nhost/services/storage/middleware"
+	"github.com/nhost/nhost/services/storage/middleware/cdn/cdncachecontrol"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/fastly"
 	"github.com/nhost/nhost/services/storage/migrations"
 	"github.com/nhost/nhost/services/storage/storage"
@@ -53,6 +54,7 @@ const (
 	flagCorsAllowCredentials     = "cors-allow-credentials" //nolint: gosec
 	flagClamavServer             = "clamav-server"
 	flagHasuraDBName             = "hasura-db-name"
+	flagCDNCacheControl          = "cdn-cache-control"
 	flagPprofBind                = "pprof-bind"
 	flagImageTransformerWorkers  = "image-transformer-workers"
 )
@@ -67,10 +69,24 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 			"x-hasura-role",
 		},
 		ExposedHeaders: []string{
-			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
+			"Content-Length", "Content-Type", "Cache-Control", "CDN-Cache-Control", "ETag", "Last-Modified", "X-Error",
 		},
 		AllowCredentials: cmd.Bool(flagCorsAllowCredentials),
 		MaxAge:           "86400",
+	}
+}
+
+func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logger) {
+	if cmd.Bool(flagCDNCacheControl) {
+		logger.InfoContext(context.Background(), "enabling cdn-cache-control middleware")
+		router.Use(cdncachecontrol.New())
+	}
+
+	if cmd.String(flagFastlyService) != "" {
+		logger.InfoContext(context.Background(), "enabling fastly middleware")
+		router.Use(
+			fastly.New(cmd.String(flagFastlyService), cmd.String(flagFastlyKey), logger),
+		)
 	}
 }
 
@@ -114,12 +130,7 @@ func getServer(
 		c.String(http.StatusOK, "ok")
 	})
 
-	if cmd.String(flagFastlyService) != "" {
-		logger.InfoContext(context.Background(), "enabling fastly middleware")
-		router.Use(
-			fastly.New(cmd.String(flagFastlyService), cmd.String(flagFastlyKey), logger),
-		)
-	}
+	configureMiddleware(cmd, router, logger)
 
 	api.RegisterHandlersWithOptions(
 		router,
@@ -345,6 +356,12 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Category: "postgres",
 				Required: true,
 				Sources:  cli.EnvVars("POSTGRES_MIGRATIONS_SOURCE"),
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:     flagCDNCacheControl,
+				Usage:    "Enable CDN-Cache-Control header middleware",
+				Category: "cdn",
+				Sources:  cli.EnvVars("CDN_CACHE_CONTROL"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagFastlyService,
