@@ -6,7 +6,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
@@ -237,42 +236,7 @@ export default function UsersPage() {
   }
 
   if (remoteAppUsersError) {
-    return (
-      <Container
-        className="flex h-full max-w-9xl flex-col"
-        rootClassName="h-full"
-      >
-        <div className="flex shrink-0 grow-0 flex-row place-content-between">
-          <Input
-            className="rounded-sm"
-            placeholder="Search users"
-            startAdornment={
-              <SearchIcon
-                className="-mr-1 ml-2 h-4 w-4 shrink-0"
-                sx={{ color: 'text.disabled' }}
-              />
-            }
-            onChange={handleSearchStringChange}
-          />
-          <Button
-            onClick={openCreateUserDialog}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-            size="small"
-          >
-            Create User
-          </Button>
-        </div>
-
-        <div className="flex flex-auto flex-col items-center justify-center gap-4 overflow-hidden">
-          <Alert severity="error" className="w-full">
-            An error occurred while loading users.
-          </Alert>
-          <Button variant="outlined" onClick={() => refetchProjectUsers()}>
-            Retry
-          </Button>
-        </div>
-      </Container>
-    );
+    throw remoteAppUsersError;
   }
 
   const elementsPerPage =

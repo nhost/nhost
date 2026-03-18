@@ -1,5 +1,7 @@
+import { X } from 'lucide-react';
 import Image from 'next/image';
-import { useCallback } from 'react';
+import { useRouter } from 'next/router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
@@ -20,7 +22,15 @@ export default function ProjectStateOverlay({
 }: {
   variant: ProjectStateOverlayVariant;
 }) {
+  const { route } = useRouter();
+  const [lastRoute, setLastRoute] = useState(route);
+  const [dismissed, setDismissed] = useState(false);
   const { state } = useAppState();
+
+  if (route !== lastRoute) {
+    setLastRoute(route);
+    setDismissed(false);
+  }
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
   const { project, refetch: refetchProject } = useProject();
   const userData = useUserData();
@@ -56,9 +66,37 @@ export default function ProjectStateOverlay({
     );
   }, [unpauseApplication, project?.id, refetchProject]);
 
+  if (dismissed) {
+    return null;
+  }
+
   return (
-    <div className="absolute inset-0 z-50 grid place-items-center bg-black/30 backdrop-blur-sm">
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-lg bg-background p-6 shadow-lg">
+    <button
+      type="button"
+      aria-label="Dismiss overlay"
+      className="absolute inset-0 z-20 grid cursor-default place-items-center bg-black/30 backdrop-blur-sm"
+      onClick={() => setDismissed(true)}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          setDismissed(true);
+        }
+      }}
+    >
+      <div
+        role="dialog"
+        className="relative flex w-full max-w-sm flex-col items-center gap-4 rounded-lg bg-background p-6 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100"
+          onClick={() => setDismissed(true)}
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </button>
+
         <Image
           src="/assets/PausedApp.svg"
           alt="Paused project"
@@ -113,6 +151,6 @@ export default function ProjectStateOverlay({
           </>
         )}
       </div>
-    </div>
+    </button>
   );
 }
