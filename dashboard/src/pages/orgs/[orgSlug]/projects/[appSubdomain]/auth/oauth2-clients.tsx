@@ -1,4 +1,5 @@
 import debounce from 'lodash.debounce';
+import { TriangleAlert } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -6,13 +7,13 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
@@ -40,6 +41,7 @@ export default function OAuth2ClientsPage() {
   const { auth, loading: loadingVersions } = useSoftwareVersionsInfo();
 
   const [searchString, setSearchString] = useState('');
+  const [isRetrying, setIsRetrying] = useState(false);
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
   );
@@ -196,15 +198,7 @@ export default function OAuth2ClientsPage() {
   }
 
   if (settingsError) {
-    return (
-      <Container className="mx-auto max-w-9xl space-y-5">
-        <Alert severity="error">
-          <Text className="font-medium">
-            Failed to load OAuth2 provider settings. Please try again later.
-          </Text>
-        </Alert>
-      </Container>
-    );
+    throw settingsError;
   }
 
   if (!oauth2Enabled) {
@@ -270,13 +264,30 @@ export default function OAuth2ClientsPage() {
 
   if (clientsError) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5">
-        <Alert severity="error">
-          <Text className="font-medium">
-            Failed to load OAuth2 clients. Please try again later.
-          </Text>
-        </Alert>
-      </Container>
+      <div className="flex flex-1 items-center justify-center">
+        <div className="mt-8 flex w-full max-w-md flex-col gap-6 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
+          <TriangleAlert className="mx-auto size-10 text-amber-500" />
+          <div className="flex flex-col gap-2">
+            <h3 className="font-semibold text-lg">
+              Failed to load OAuth2 clients
+            </h3>
+          </div>
+          <ButtonWithLoading
+            variant="outline"
+            loading={isRetrying}
+            onClick={async () => {
+              setIsRetrying(true);
+              try {
+                await refetchClients();
+              } finally {
+                setIsRetrying(false);
+              }
+            }}
+          >
+            Try Again
+          </ButtonWithLoading>
+        </div>
+      </div>
     );
   }
 

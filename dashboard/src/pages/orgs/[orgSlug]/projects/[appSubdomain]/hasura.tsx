@@ -19,8 +19,12 @@ import { copy } from '@/utils/copy';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function HasuraPage() {
-  const { project, loading } = useProject();
+  const { project, loading, error } = useProject();
   const isPlatform = useIsPlatform();
+
+  if (error) {
+    throw error;
+  }
 
   const { adminSecret: projectAdminSecret, settings } =
     project?.config?.hasura || {};

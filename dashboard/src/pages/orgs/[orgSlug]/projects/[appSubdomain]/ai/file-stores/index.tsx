@@ -1,4 +1,5 @@
-import { type ReactElement, useMemo } from 'react';
+import { TriangleAlert } from 'lucide-react';
+import { type ReactElement, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -10,6 +11,7 @@ import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
@@ -32,6 +34,7 @@ export type GraphiteFileStore = Omit<
 
 export default function FileStoresPage() {
   const { openDrawer } = useDialog();
+  const [isRetrying, setIsRetrying] = useState(false);
   const isPlatform = useIsPlatform();
 
   const { org, loading: loadingOrg } = useCurrentOrg();
@@ -41,7 +44,7 @@ export default function FileStoresPage() {
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
   const { isFileStoreSupported } = useIsFileStoreSupported();
 
-  const { data, loading, refetch } = useGetGraphiteFileStoresQuery({
+  const { data, loading, error, refetch } = useGetGraphiteFileStoresQuery({
     client: adminClient,
   });
 
@@ -109,6 +112,31 @@ export default function FileStoresPage() {
           </Text>
         </Alert>
       </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
+          <TriangleAlert className="size-10 text-destructive" />
+          <p className="font-semibold text-lg">Failed to load file stores</p>
+          <ButtonWithLoading
+            variant="outline"
+            loading={isRetrying}
+            onClick={async () => {
+              setIsRetrying(true);
+              try {
+                await refetch();
+              } finally {
+                setIsRetrying(false);
+              }
+            }}
+          >
+            Try Again
+          </ButtonWithLoading>
+        </div>
+      </div>
     );
   }
 
