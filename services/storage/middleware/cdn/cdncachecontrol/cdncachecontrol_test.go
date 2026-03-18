@@ -44,7 +44,7 @@ func TestCDNCacheControl(t *testing.T) {
 			name:             "no auth headers",
 			path:             "/ok",
 			headers:          nil,
-			wantCacheControl: "max-age=86400, public",
+			wantCacheControl: "",
 		},
 		{
 			name: "with Authorization header",
