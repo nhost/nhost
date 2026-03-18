@@ -1,3 +1,11 @@
+## [cli@1.38.4] - 2026-03-18
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump schema (#4020)
+- *(cli)* Bump nhost/dashboard to 2.53.0 (#4009)
+- *(cli)* Bump schema (#4023)
+
 ## [cli@1.38.3] - 2026-03-13
 
 ### ⚙️ Miscellaneous Tasks
