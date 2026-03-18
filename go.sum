@@ -129,8 +129,6 @@ github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc h1:biVzkmvwrH8
 github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf h1:TqhNAT4zKbTdLa62d2HDBFdvgSbIGB3eJE8HqhgiL9I=
 github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf/go.mod h1:r5xuitiExdLAJ09PR7vBVENGvp4ZuTBeWTGtxuX3K+c=
-github.com/buger/jsonparser v1.1.1 h1:2PnMjfWD7wBILjqQbt530v576A/cAbQvEW9gGIpYMUs=
-github.com/buger/jsonparser v1.1.1/go.mod h1:6RYKKt7H4d4+iWqouImQ9R2FZql3VbhNgx27UK13J/0=
 github.com/bytedance/sonic v1.14.0 h1:/OfKt8HFw0kh2rj8N0F6C/qPGRESq0BbaNZgcNXXzQQ=
 github.com/bytedance/sonic v1.14.0/go.mod h1:WoEbx8WTcFJfzCe0hbmyTGrfjt8PzNEBdxlNUO24NhA=
 github.com/bytedance/sonic/loader v0.3.0 h1:dskwH8edlzNMctoruo8FPTJDF3vLtDT0sXZwvZJyqeA=
@@ -147,8 +145,6 @@ github.com/charmbracelet/x/cellbuf v0.0.13-0.20250311204145-2c3ea96c31dd h1:vy0G
 github.com/charmbracelet/x/cellbuf v0.0.13-0.20250311204145-2c3ea96c31dd/go.mod h1:xe0nKWGd3eJgtqZRaN9RjMtK7xUYchjzPr7q6kcvCCs=
 github.com/charmbracelet/x/term v0.2.1 h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=
 github.com/charmbracelet/x/term v0.2.1/go.mod h1:oQ4enTYFV7QN4m0i9mzHrViD7TQKvNEEkHUMCmsxdUg=
-github.com/cloudflare/circl v1.6.1 h1:zqIqSPIndyBh1bjLVVDHMPpVKqp8Su/V+6MeDzzQBQ0=
-github.com/cloudflare/circl v1.6.1/go.mod h1:uddAzsPgqdMAYatqJ0lsjX1oECcQLIlRpzZh3pJrofs=
 github.com/cloudflare/circl v1.6.3 h1:9GPOhQGF9MCYUeXyMYlqTR6a5gTrgR/fBLXvUgtVcg8=
 github.com/cloudflare/circl v1.6.3/go.mod h1:2eXP6Qfat4O/Yhh8BznvKnJ+uzEoTQ6jVKJRn81BiS4=
 github.com/cloudwego/base64x v0.1.6 h1:t11wG9AECkCDk5fMSoxmufanudBtJ+/HemLstXDLI2M=
@@ -172,6 +168,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dbarrosop/jsonparser v1.1.2 h1:2tZ6zR18MMGrbHmNDZXTlcJtj2o37+s1lMYxtFzSln0=
+github.com/dbarrosop/jsonparser v1.1.2/go.mod h1:6RYKKt7H4d4+iWqouImQ9R2FZql3VbhNgx27UK13J/0=
 github.com/dgrijalva/jwt-go v0.0.0-20160705203006-01aeca54ebda/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/trifles v0.0.0-20230903005119-f50d829f2e54 h1:SG7nF6SRlWhcT7cNTs5R6Hk4V2lcmLz2NsG2VnInyNo=
 github.com/dgryski/trifles v0.0.0-20230903005119-f50d829f2e54/go.mod h1:if7Fbed8SFyPtHLHbg49SI7NAdJiC5WIA09pe59rfAA=
@@ -217,8 +215,6 @@ github.com/go-git/go-billy/v5 v5.6.2 h1:6Q86EsPXMa7c3YZ3aLAQsMA0VlWmy43r6FHqa/UN
 github.com/go-git/go-billy/v5 v5.6.2/go.mod h1:rcFC2rAsp/erv7CMz9GczHcuD0D32fWzH+MJAU+jaUU=
 github.com/go-git/go-git-fixtures/v4 v4.3.2-0.20231010084843-55a94097c399 h1:eMje31YglSBqCdIqdhKBW8lokaMrL3uTkpGYlE2OOT4=
 github.com/go-git/go-git-fixtures/v4 v4.3.2-0.20231010084843-55a94097c399/go.mod h1:1OCfN199q1Jm3HZlxleg+Dw/mwps2Wbk9frAWm+4FII=
-github.com/go-git/go-git/v5 v5.16.2 h1:fT6ZIOjE5iEnkzKyxTHK1W4HGAsPhqEqiSAssSO77hM=
-github.com/go-git/go-git/v5 v5.16.2/go.mod h1:4Ge4alE/5gPs30F2H1esi2gPd69R0C39lolkucHBOp8=
 github.com/go-git/go-git/v5 v5.16.5 h1:mdkuqblwr57kVfXri5TTH+nMFLNUxIj9Z7F5ykFbw5s=
 github.com/go-git/go-git/v5 v5.16.5/go.mod h1:QOMLpNf1qxuSY4StA/ArOdfFR2TrKEjJiye2kel2m+M=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=
@@ -384,20 +380,6 @@ github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f/go.mod h1:ZdcZmHo+o7JKHSa8/e818NopupXU1YMK5fe1lsApnBw=
-github.com/nhost/be v0.0.0-20260202150031-69c6ca795273 h1:Ip+xKo3WITciAzfZ4114NkL9JxLQCf0mqOXI37lmySY=
-github.com/nhost/be v0.0.0-20260202150031-69c6ca795273/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
-github.com/nhost/be v0.0.0-20260212153331-7b8fd282d7d8 h1:LbGpT2QdlOoGdGF1Jc4YvcBq6r4aVRgzeCw8NK9ozdw=
-github.com/nhost/be v0.0.0-20260212153331-7b8fd282d7d8/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
-github.com/nhost/be v0.0.0-20260212161433-05c22f1fdd56 h1:GB8LaqWhR+5kXBhpv8ypYxbLlQiPgsjV2Yg0vzJzVaw=
-github.com/nhost/be v0.0.0-20260212161433-05c22f1fdd56/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
-github.com/nhost/be v0.0.0-20260213070520-702e50de92a6 h1:SKUjA2oKPUFnyJvhMUcQtScLhN1tN2vI0d2IBmdeS80=
-github.com/nhost/be v0.0.0-20260213070520-702e50de92a6/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
-github.com/nhost/be v0.0.0-20260214181053-5165b07e3bcd h1:E0A0o1//l/+Ktg2PCbFZL+mbjGYFHiQQUV32edMbI2s=
-github.com/nhost/be v0.0.0-20260214181053-5165b07e3bcd/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
-github.com/nhost/be v0.0.0-20260217172537-d8fd6b790c8c h1:V/LIgWoYQXuKnrDUMmOuV3tmOks+US53Y8jhWo2WMwo=
-github.com/nhost/be v0.0.0-20260217172537-d8fd6b790c8c/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
-github.com/nhost/be v0.0.0-20260218144230-559019421c8e h1:+Ho6JdI+QlTBjhOQZC11DdaMvod2reF/V3TKp6Js6gs=
-github.com/nhost/be v0.0.0-20260218144230-559019421c8e/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
 github.com/nhost/be v0.0.0-20260313115807-436682cb6d5c h1:rjhvIWCCVzFi5sGEVOvJEKtOtG6c4ctp2r/OydoDRDc=
 github.com/nhost/be v0.0.0-20260313115807-436682cb6d5c/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
