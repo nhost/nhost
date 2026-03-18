@@ -391,7 +391,7 @@ github.com/boombuler/barcode/utils
 # github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf
 ## explicit; go 1.18
 github.com/bradfitz/gomemcache/memcache
-# github.com/buger/jsonparser v1.1.1
+# github.com/buger/jsonparser v1.1.1 => github.com/dbarrosop/jsonparser v1.1.2
 ## explicit; go 1.13
 github.com/buger/jsonparser
 # github.com/bytedance/sonic v1.14.0
@@ -1273,3 +1273,4 @@ gopkg.in/yaml.v3
 ## explicit; go 1.12
 k8s.io/client-go/third_party/forked/golang/template
 k8s.io/client-go/util/jsonpath
+# github.com/buger/jsonparser => github.com/dbarrosop/jsonparser v1.1.2
