@@ -57,7 +57,7 @@ type OnboardingFormData = z.infer<typeof onboardingSchema>;
 export default function OnboardingPage() {
   const router = useRouter();
   const user = useUserData();
-  const { orgs, loading: loadingOrgs } = useOrgs();
+  const { orgs, loading: loadingOrgs, error: orgsError } = useOrgs();
   const { data: plansData, loading: loadingPlans } = usePrefetchNewAppQuery({
     skip: !user,
   });
@@ -102,10 +102,10 @@ export default function OnboardingPage() {
   }, [user?.id, getInvites]);
 
   useEffect(() => {
-    if (!loadingOrgs && orgs && orgs.length > 0) {
+    if (!loadingOrgs && !orgsError && orgs && orgs.length > 0) {
       router.push('/');
     }
-  }, [orgs, loadingOrgs, router]);
+  }, [orgs, loadingOrgs, orgsError, router]);
 
   useEffect(() => {
     if (isNotEmptyValue(plansData?.plans?.length) && !form.getValues('plan')) {

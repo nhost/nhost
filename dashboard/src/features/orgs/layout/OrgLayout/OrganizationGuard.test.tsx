@@ -1,6 +1,9 @@
+import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+import { ErrorBoundary } from 'react-error-boundary';
 import { afterEach, describe, vi } from 'vitest';
 import { mockOrganization } from '@/tests/mocks';
+import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   createGraphqlMockResolver,
@@ -94,6 +97,36 @@ describe('OrganizationGuard', () => {
     await waitFor(() => {
       expect(screen.queryByText('Organization loaded')).not.toBeInTheDocument();
       expect(mocks.push).toHaveBeenCalledWith('/404');
+    });
+  });
+
+  it('should not redirect to 404 when the query returns a GraphQL error', async () => {
+    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+    server.use(
+      nhostGraphQLLink.query('getOrganization', () =>
+        HttpResponse.json({
+          errors: [
+            {
+              message: "field 'config' not found in type: 'apps'",
+              extensions: {
+                path: '$.selectionSet.organizations.selectionSet.apps.selectionSet.config',
+                code: 'validation-failed',
+              },
+            },
+          ],
+        }),
+      ),
+    );
+
+    render(
+      <ErrorBoundary fallback={<p>Error boundary caught</p>}>
+        <TestComponent />
+      </ErrorBoundary>,
+    );
+
+    await waitFor(() => {
+      expect(mocks.push).not.toHaveBeenCalledWith('/404');
+      expect(screen.getByText('Error boundary caught')).toBeInTheDocument();
     });
   });
 
