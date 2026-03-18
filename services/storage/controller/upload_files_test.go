@@ -132,7 +132,7 @@ func TestUploadFile(t *testing.T) {
 				},
 				{
 					contents:    "more content",
-					contentType: "text/plain; charset=utf-8",
+					contentType: "image/png",
 					md: fakeFileMetadata{
 						Name:     "another_file.md",
 						ID:       uuid.New().String(),
