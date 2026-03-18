@@ -385,7 +385,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 			},
 			&cli.IntFlag{ //nolint:exhaustruct
 				Name:     flagImageTransformerWorkers,
-				Usage:    "number of concurrent image transformation workers (0 = 4 * GOMAXPROCS)",
+				Usage:    "number of concurrent image transformation workers (0 = 2 * GOMAXPROCS)",
 				Value:    0,
 				Category: "server",
 				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_WORKERS"),
@@ -430,7 +430,7 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 
 	imageTransformerWorkers := cmd.Int(flagImageTransformerWorkers)
 	if imageTransformerWorkers <= 0 {
-		imageTransformerWorkers = 4 * runtime.GOMAXPROCS(0) //nolint:mnd
+		imageTransformerWorkers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
 		logger.InfoContext(
 			ctx,
 			"calculating number of image transformer workers based on GOMAXPROCS",
