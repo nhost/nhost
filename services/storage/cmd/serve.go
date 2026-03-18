@@ -74,6 +74,20 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 	}
 }
 
+func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logger) {
+	if cmd.Bool(flagCDNCacheControl) {
+		logger.InfoContext(context.Background(), "enabling cdn-cache-control middleware")
+		router.Use(cdncachecontrol.New())
+	}
+
+	if cmd.String(flagFastlyService) != "" {
+		logger.InfoContext(context.Background(), "enabling fastly middleware")
+		router.Use(
+			fastly.New(cmd.String(flagFastlyService), cmd.String(flagFastlyKey), logger),
+		)
+	}
+}
+
 func getServer(
 	cmd *cli.Command,
 	metadataStorage controller.MetadataStorage,
@@ -114,17 +128,7 @@ func getServer(
 		c.String(http.StatusOK, "ok")
 	})
 
-	if cmd.Bool(flagCDNCacheControl) {
-		logger.InfoContext(context.Background(), "enabling cdn-cache-control middleware")
-		router.Use(cdncachecontrol.New())
-	}
-
-	if cmd.String(flagFastlyService) != "" {
-		logger.InfoContext(context.Background(), "enabling fastly middleware")
-		router.Use(
-			fastly.New(cmd.String(flagFastlyService), cmd.String(flagFastlyKey), logger),
-		)
-	}
+	configureMiddleware(cmd, router, logger)
 
 	api.RegisterHandlersWithOptions(
 		router,

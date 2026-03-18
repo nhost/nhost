@@ -26,18 +26,58 @@ func setupRouter() *gin.Engine {
 func TestCDNCacheControl(t *testing.T) {
 	t.Parallel()
 
+	cases := []struct {
+		name             string
+		headers          map[string]string
+		wantCacheControl string
+	}{
+		{
+			name:             "no auth headers",
+			headers:          nil,
+			wantCacheControl: "",
+		},
+		{
+			name: "with Authorization header",
+			headers: map[string]string{
+				"Authorization": "Bearer token",
+			},
+			wantCacheControl: "must-revalidate, no-cache",
+		},
+		{
+			name: "with X-Hasura-Admin-Secret header",
+			headers: map[string]string{
+				"X-Hasura-Admin-Secret": "secret",
+			},
+			wantCacheControl: "must-revalidate, no-cache",
+		},
+		{
+			name: "with both auth headers",
+			headers: map[string]string{
+				"Authorization":         "Bearer token",
+				"X-Hasura-Admin-Secret": "secret",
+			},
+			wantCacheControl: "must-revalidate, no-cache",
+		},
+	}
+
 	router := setupRouter()
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
+			}
 
-	router.ServeHTTP(w, req)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
 
-	got := w.Header().Get("CDN-Cache-Control")
-	want := "must-revalidate, no-cache"
-
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("CDN-Cache-Control mismatch (-want +got):\n%s", diff)
+			got := w.Header().Get("CDN-Cache-Control")
+			if diff := cmp.Diff(tc.wantCacheControl, got); diff != "" {
+				t.Errorf("CDN-Cache-Control mismatch (-want +got):\n%s", diff)
+			}
+		})
 	}
 }
