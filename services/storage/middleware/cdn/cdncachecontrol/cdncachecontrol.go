@@ -10,7 +10,8 @@ const (
 	headerCDNCacheControl   = "CDN-Cache-Control"
 	headerAuthorization     = "Authorization"
 	headerHasuraAdminSecret = "X-Hasura-Admin-Secret" //nolint:gosec
-	cacheControl            = "must-revalidate, no-cache"
+	cacheControlPublic      = "max-age=86400, public"
+	cacheControlPrivate     = "must-revalidate, no-cache"
 )
 
 func hasAuthHeaders(r *http.Request) bool {
@@ -18,12 +19,52 @@ func hasAuthHeaders(r *http.Request) bool {
 		r.Header.Get(headerHasuraAdminSecret) != ""
 }
 
+type writer struct {
+	gin.ResponseWriter
+	value string
+	wrote bool
+}
+
+func (w *writer) setHeader() {
+	if !w.wrote {
+		w.wrote = true
+
+		if w.Status() < http.StatusBadRequest {
+			w.Header().Set(headerCDNCacheControl, w.value)
+		}
+	}
+}
+
+func (w *writer) Write(data []byte) (int, error) {
+	w.setHeader()
+
+	return w.ResponseWriter.Write(data)
+}
+
+func (w *writer) WriteString(s string) (int, error) {
+	w.setHeader()
+
+	return w.ResponseWriter.WriteString(s)
+}
+
+func (w *writer) WriteHeaderNow() {
+	w.setHeader()
+	w.ResponseWriter.WriteHeaderNow()
+}
+
 func New() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.Next()
-
+		value := cacheControlPublic
 		if hasAuthHeaders(ctx.Request) {
-			ctx.Writer.Header().Set(headerCDNCacheControl, cacheControl)
+			value = cacheControlPrivate
 		}
+
+		ctx.Writer = &writer{
+			ResponseWriter: ctx.Writer,
+			value:          value,
+			wrote:          false,
+		}
+
+		ctx.Next()
 	}
 }
