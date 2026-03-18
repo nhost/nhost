@@ -1,3 +1,9 @@
+## [storage@0.12.1] - 2026-03-18
+
+### 🐛 Bug Fixes
+
+- *(storage)* Do not set CDN-Cache-Control header on public files (#4022)
+
 ## [storage@0.12.0] - 2026-03-18
 
 ### 🚀 Features
