@@ -1,6 +1,7 @@
 ---
 import Default from '@astrojs/starlight/components/PageTitle.astro';
 import type { Props } from '@astrojs/starlight/props';
+import CopyPageButton from './CopyPageButton.astro';
 
 // Keywords for Pagefind site search: Renders keywords as hidden text inside <main data-pagefind-body>.
 // Pagefind (v1.4) only indexes content within data-pagefind-body, so we render keywords here
@@ -9,9 +10,14 @@ import type { Props } from '@astrojs/starlight/props';
 const entry = Astro.locals.starlightRoute?.entry;
 const keywords = entry?.data?.keywords as string[] | undefined;
 const description = entry?.data?.description as string | undefined;
+const title = entry?.data?.title as string || '';
+const body = entry?.body || '';
 ---
 
-<Default {...Astro.props}><slot /></Default>
+<div class="page-title-row">
+  <Default {...Astro.props}><slot /></Default>
+  <CopyPageButton title={title} body={body} />
+</div>
 {description && (
   <p class="page-description">{description}</p>
 )}
@@ -21,6 +27,13 @@ const description = entry?.data?.description as string | undefined;
 )}
 
 <style>
+  .page-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
   .page-description {
     color: var(--sl-color-gray-3);
     font-size: 1.125rem;
