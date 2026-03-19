@@ -105,13 +105,19 @@ describe('DatabaseAllowedCIDRs', () => {
     const addButton = await screen.findByRole('button', { name: /add cidr/i });
 
     await user.click(addButton);
-    expect(screen.getAllByPlaceholderText(/192\.168\.1\.0\/24/)).toHaveLength(1);
+    expect(screen.getAllByPlaceholderText(/192\.168\.1\.0\/24/)).toHaveLength(
+      1,
+    );
 
     await user.click(addButton);
-    expect(screen.getAllByPlaceholderText(/192\.168\.1\.0\/24/)).toHaveLength(2);
+    expect(screen.getAllByPlaceholderText(/192\.168\.1\.0\/24/)).toHaveLength(
+      2,
+    );
 
     await user.click(addButton);
-    expect(screen.getAllByPlaceholderText(/192\.168\.1\.0\/24/)).toHaveLength(3);
+    expect(screen.getAllByPlaceholderText(/192\.168\.1\.0\/24/)).toHaveLength(
+      3,
+    );
 
     expect(
       screen.queryByRole('button', { name: /add cidr/i }),
@@ -119,7 +125,9 @@ describe('DatabaseAllowedCIDRs', () => {
 
     const removeButtons = screen.getAllByRole('button', { name: '' });
     await user.click(removeButtons[0]);
-    expect(screen.getAllByPlaceholderText(/192\.168\.1\.0\/24/)).toHaveLength(2);
+    expect(screen.getAllByPlaceholderText(/192\.168\.1\.0\/24/)).toHaveLength(
+      2,
+    );
     expect(
       screen.getByRole('button', { name: /add cidr/i }),
     ).toBeInTheDocument();
@@ -130,9 +138,7 @@ describe('DatabaseAllowedCIDRs', () => {
     const user = new TestUserEvent();
     render(<DatabaseAllowedCIDRs />);
 
-    await user.click(
-      await screen.findByRole('button', { name: /add cidr/i }),
-    );
+    await user.click(await screen.findByRole('button', { name: /add cidr/i }));
 
     const input = screen.getByPlaceholderText(/192\.168\.1\.0\/24/);
     await user.type(input, 'not-a-cidr');
@@ -151,9 +157,7 @@ describe('DatabaseAllowedCIDRs', () => {
     const user = new TestUserEvent();
     render(<DatabaseAllowedCIDRs />);
 
-    await user.click(
-      await screen.findByRole('button', { name: /add cidr/i }),
-    );
+    await user.click(await screen.findByRole('button', { name: /add cidr/i }));
 
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -167,9 +171,7 @@ describe('DatabaseAllowedCIDRs', () => {
     const user = new TestUserEvent();
     render(<DatabaseAllowedCIDRs />);
 
-    await user.click(
-      await screen.findByRole('button', { name: /add cidr/i }),
-    );
+    await user.click(await screen.findByRole('button', { name: /add cidr/i }));
 
     const input = screen.getByPlaceholderText(/192\.168\.1\.0\/24/);
     await user.type(input, '10.0.0.0/8');
