@@ -271,6 +271,12 @@ import (
 		replicas?: 1
 
 		enablePublicAccess?: bool | *false
+
+		// CIDR prefixes for IP-based access control.
+		// When set, only connections from these CIDRs are allowed.
+		// When unset, all IPs are allowed.
+		// Only effective when enablePublicAccess is true.
+		allowedCIDRs?: [...net.IPCIDR] & list.MaxItems(3)
 	}
 
 	settings?: {
