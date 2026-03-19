@@ -10,7 +10,7 @@ import CopyPageButton from './CopyPageButton.astro';
 const entry = Astro.locals.starlightRoute?.entry;
 const keywords = entry?.data?.keywords as string[] | undefined;
 const description = entry?.data?.description as string | undefined;
-const title = entry?.data?.title as string || '';
+const title = (entry?.data?.title as string) || '';
 const body = entry?.body || '';
 ---
 
