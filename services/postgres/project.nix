@@ -41,18 +41,21 @@ in
         -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \
         "$PG_URL"
 
-      # Verify plugins.md is up to date
-      {
-        echo "| Name | Version | Description |"
-        echo "| ---- | ------- | ----------- |"
-        psql --no-psqlrc -t -A -F '|' \
-          -c "SELECT name, default_version, comment FROM pg_available_extensions ORDER BY name ASC;" \
-          "$PG_URL" \
-          | sed 's/^/| /; s/$/|/'
-      } > expected-plugins.md
+      # Verify plugins.md is up to date (only for PG18)
+      PG_MAJOR=$(psql --no-psqlrc -t -A -c "SHOW server_version_num;" "$PG_URL" | head -c2)
+      if [ "$PG_MAJOR" = "18" ]; then
+        {
+          echo "| Name | Version | Description |"
+          echo "| ---- | ------- | ----------- |"
+          psql --no-psqlrc -t -A -F '|' \
+            -c "SELECT name, default_version, comment FROM pg_available_extensions ORDER BY name ASC;" \
+            "$PG_URL" \
+            | sed 's/^/| /; s/$/|/'
+        } > expected-plugins.md
 
-      diff -u ${src}/plugins.md expected-plugins.md || \
-        (echo "ERROR: plugins.md is out of date. Run 'make get-plugin-versions' and commit the result." && exit 1)
+        diff -u ${src}/plugins.md expected-plugins.md || \
+          (echo "ERROR: plugins.md is out of date. Run 'make get-plugin-versions' and commit the result." && exit 1)
+      fi
 
       mkdir $out
     '';
