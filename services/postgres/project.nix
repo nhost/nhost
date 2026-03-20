@@ -10,12 +10,8 @@ let
       (inDirectory "extensions")
       (inDirectory "tests")
       (matchExt "nix")
+      "plugins.md"
     ];
-  };
-
-  nix-src = nix-filter.lib.filter {
-    root = ./.;
-    include = [ (nix-filter.lib.matchExt "nix") ];
   };
 
   mkPostgres = basePostgres: import ./postgres.nix {
@@ -30,7 +26,36 @@ let
   pg18 = mkPostgres pkgs.postgresql_18;
 in
 {
-  check = nixops-lib.nix.check { src = nix-src; };
+  check = pkgs.runCommand "check-postgres"
+    {
+      nativeBuildInputs = with pkgs;
+        [
+          postgresql_18
+          diffutils
+        ];
+    }
+    ''
+      PG_URL="postgres://postgres@localhost:5432/local"
+
+      psql \
+        -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \
+        "$PG_URL"
+
+      # Verify plugins.md is up to date
+      {
+        echo "| Name | Version | Description |"
+        echo "| ---- | ------- | ----------- |"
+        psql --no-psqlrc -t -A -F '|' \
+          -c "SELECT name, default_version, comment FROM pg_available_extensions ORDER BY name ASC;" \
+          "$PG_URL" \
+          | sed 's/^/| /; s/$/|/'
+      } > expected-plugins.md
+
+      diff -u ${src}/plugins.md expected-plugins.md || \
+        (echo "ERROR: plugins.md is out of date. Run 'make get-plugin-versions' and commit the result." && exit 1)
+
+      mkdir $out
+    '';
 
   devShell = pkgs.mkShell {
     buildInputs = with pkgs; [ wal-g docker-client skopeo ];
