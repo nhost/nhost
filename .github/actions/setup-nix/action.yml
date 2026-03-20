@@ -33,8 +33,9 @@ runs:
       if: ${{ inputs.NAME != 'nixops' }}
       shell: bash
       run: |
-        drvPath=$(make build-nixops-dry-run)
-        if ! nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 "$drvPath" 2>/dev/null; then
+        ARCH=$([ "$(uname -m)" = "x86_64" ] && echo "x86_64" || echo "aarch64")
+        outPath=$(nix eval --raw .\#packages.$ARCH-linux.nixops.outPath)
+        if ! nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 "$outPath" 2>/dev/null; then
           echo "::error::nixops needs to be rebuilt — build and cache nixops first"
           exit 1
         fi
