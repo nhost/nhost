@@ -1076,6 +1076,11 @@ type ConfigPostgresPitrUpdateInput struct {
 
 // Resources for the service
 type ConfigPostgresResources struct {
+	// CIDR prefixes for IP-based access control.
+	// When set, only connections from these CIDRs are allowed.
+	// When unset, all IPs are allowed.
+	// Only effective when enablePublicAccess is true.
+	AllowedCIDRs       []string                        `json:"allowedCIDRs,omitempty"`
 	Compute            *ConfigResourcesCompute         `json:"compute,omitempty"`
 	EnablePublicAccess *bool                           `json:"enablePublicAccess,omitempty"`
 	Replicas           *int64                          `json:"replicas,omitempty"`
@@ -1091,6 +1096,7 @@ type ConfigPostgresResourcesStorageUpdateInput struct {
 }
 
 type ConfigPostgresResourcesUpdateInput struct {
+	AllowedCIDRs       []string                                   `json:"allowedCIDRs,omitempty"`
 	Compute            *ConfigResourcesComputeUpdateInput         `json:"compute,omitempty"`
 	EnablePublicAccess *bool                                      `json:"enablePublicAccess,omitempty"`
 	Replicas           *int64                                     `json:"replicas,omitempty"`
