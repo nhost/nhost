@@ -21,6 +21,14 @@ on:
         type: string
         required: false
         default: '["blacksmith-4vcpu-ubuntu-2404-arm", "blacksmith-2vcpu-ubuntu-2404"]'
+      ENV:
+        type: string
+        required: false
+        default: ''
+      ARTIFACT_SUFFIX:
+        type: string
+        required: false
+        default: ''
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -48,6 +56,11 @@ jobs:
     timeout-minutes: 180
 
     steps:
+    - name: "Set custom env"
+      if: ${{ inputs.ENV != '' }}
+      run: echo "${{ inputs.ENV }}" >> $GITHUB_ENV
+      working-directory: .
+
     - name: "Check out repository"
       uses: actions/checkout@v6
       with:
@@ -96,7 +109,7 @@ jobs:
     - name: "Push artifact to artifact repository"
       uses: actions/upload-artifact@v7
       with:
-        name: ${{ inputs.NAME }}-artifact-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
+        name: ${{ inputs.NAME }}-artifact${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
         path: ${{ inputs.PATH }}/result.zip
         retention-days: 7
 
@@ -111,7 +124,7 @@ jobs:
     - name: "Push docker image to artifact repository"
       uses: actions/upload-artifact@v7
       with:
-        name: ${{ inputs.NAME }}-docker-image-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
+        name: ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
         path: ${{ inputs.PATH }}/result
         retention-days: 7
       if: ${{ ( inputs.DOCKER ) }}

@@ -29,4 +29,14 @@ runs:
           keep-env-derivations = true
           keep-outputs = true
 
+    - name: "Verify nixops is cached"
+      if: ${{ inputs.NAME != 'nixops' }}
+      shell: bash
+      run: |
+        drvPath=$(make -C . build-nixops-dry-run)
+        if ! nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 "$drvPath" 2>/dev/null; then
+          echo "::error::nixops needs to be rebuilt — build and cache nixops first"
+          exit 1
+        fi
+
 

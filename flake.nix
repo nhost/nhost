@@ -16,6 +16,7 @@
       let
         pkgs = import nixpkgs {
           inherit system;
+          config.allowUnfree = true;
           overlays = [
             (import ./nixops/overlays/default.nix)
           ];
@@ -60,6 +61,10 @@
           inherit self pkgs nix2containerPkgs nix-filter nixops-lib;
         };
 
+        postgresf = import ./services/postgres/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
         storagef = import ./services/storage/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
@@ -80,6 +85,7 @@
           docs = docsf.check;
           nhost-js = nhost-jsf.check;
           nixops = nixopsf.check;
+          postgres = postgresf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
         };
@@ -166,6 +172,7 @@
           docs = docsf.devShell;
           nhost-js = nhost-jsf.devShell;
           nixops = nixopsf.devShell;
+          postgres = postgresf.devShell;
           storage = storagef.devShell;
           tutorials = tutorialsf.devShell;
         };
@@ -184,6 +191,12 @@
           nhost-js = nhost-jsf.package;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
+          postgres-pg16_11-docker-image = postgresf.packages.pg16_11-docker-image;
+          postgres-pg16_11-as-dir = postgresf.packages.pg16_11-as-dir;
+          postgres-pg17_7-docker-image = postgresf.packages.pg17_7-docker-image;
+          postgres-pg17_7-as-dir = postgresf.packages.pg17_7-as-dir;
+          postgres-pg18_1-docker-image = postgresf.packages.pg18_1-docker-image;
+          postgres-pg18_1-as-dir = postgresf.packages.pg18_1-as-dir;
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
           clamav-docker-image = storagef.clamav-docker-image;

@@ -11,6 +11,10 @@ on:
       GIT_REF:
         type: string
         required: false
+      ENV:
+        type: string
+        required: false
+        default: ''
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -39,6 +43,11 @@ jobs:
       actions: read
 
     steps:
+    - name: "Set custom env"
+      if: ${{ inputs.ENV != '' }}
+      run: echo "${{ inputs.ENV }}" >> $GITHUB_ENV
+      working-directory: .
+
     - name: "Check out repository"
       uses: actions/checkout@v6
       with:
