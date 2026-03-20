@@ -35,7 +35,7 @@ jobs:
   build_artifacts:
     strategy:
       matrix:
-        postgresql: ["16.11", "17.7", "18.1"]
+        postgresql: ["16.13", "17.9", "18.3"]
       fail-fast: true
     uses: ./.github/workflows/wf_build_artifacts.yaml
     needs:
@@ -58,7 +58,7 @@ jobs:
   tests:
     strategy:
       matrix:
-        postgresql: ["16.11", "17.7", "18.1"]
+        postgresql: ["16.13", "17.9", "18.3"]
       fail-fast: true
     uses: ./.github/workflows/wf_check.yaml
     needs:

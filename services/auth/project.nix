@@ -61,7 +61,7 @@ let
     mockgen
     oapi-codegen
     sqlc
-    postgresql_18_1-client
+    postgresql_18_3-client
     vacuum-go
     bun
   ];

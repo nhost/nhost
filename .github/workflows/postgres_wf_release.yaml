@@ -25,7 +25,7 @@ jobs:
   build_artifacts:
     strategy:
       matrix:
-        postgresql: ["16.11", "17.7", "18.1"]
+        postgresql: ["16.13", "17.9", "18.3"]
       fail-fast: true
     uses: ./.github/workflows/wf_build_artifacts.yaml
     with:
@@ -45,7 +45,7 @@ jobs:
   push-docker-hub:
     strategy:
       matrix:
-        postgresql: ["16.11", "17.7", "18.1"]
+        postgresql: ["16.13", "17.9", "18.3"]
       fail-fast: true
     uses: ./.github/workflows/wf_docker_push_image.yaml
     needs:
@@ -64,7 +64,7 @@ jobs:
   push-docker-ecr:
     strategy:
       matrix:
-        postgresql: ["16.11", "17.7", "18.1"]
+        postgresql: ["16.13", "17.9", "18.3"]
       fail-fast: true
     uses: ./.github/workflows/wf_docker_push_image_ecr.yaml
     needs:

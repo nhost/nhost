@@ -2,7 +2,7 @@ ROOT_DIR?=$(abspath ../..)
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
 ifndef POSTGRES_VERSION
-POSTGRES_VERSION=18.1
+POSTGRES_VERSION=18.3
 endif
 
 PGVER=$(shell echo $(POSTGRES_VERSION) | sed -e 's/\./_/g')

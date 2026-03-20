@@ -53,93 +53,93 @@ final: prev: rec {
     '';
   };
 
-  postgresql_16_11 = (prev.postgresql_16.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
+  postgresql_16_13 = (prev.postgresql_16.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
     pname = "postgresql";
-    version = "16.11";
+    version = "16.13";
 
     src = final.fetchurl {
       url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-      hash = "sha256-besIwj0D132Pi9HBQEnu72Su+JaP2Ikd8t/AtC8Xjqw=";
+      hash = "sha256-3C3bvSRcAmWmiUCOPS8vP5ui2pa9GTGCFLMTzdl5coc=";
     };
   });
 
-  postgresql_16_11-client = final.stdenv.mkDerivation {
+  postgresql_16_13-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
-    version = postgresql_16_11.version;
+    version = postgresql_16_13.version;
 
     phases = [ "installPhase" ];
 
     installPhase = ''
       mkdir -p $out/bin
-      cp ${postgresql_16_11}/bin/psql $out/bin/
-      cp ${postgresql_16_11}/bin/pg_dump $out/bin/
-      cp ${postgresql_16_11}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_16_11}/bin/pg_restore $out/bin/
+      cp ${postgresql_16_13}/bin/psql $out/bin/
+      cp ${postgresql_16_13}/bin/pg_dump $out/bin/
+      cp ${postgresql_16_13}/bin/pg_dumpall $out/bin/
+      cp ${postgresql_16_13}/bin/pg_restore $out/bin/
     '';
   };
 
-  postgresql_17_7 = (prev.postgresql_17.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
+  postgresql_17_9 = (prev.postgresql_17.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
     pname = "postgresql";
-    version = "17.7";
+    version = "17.9";
 
     src = final.fetchurl {
       url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-      hash = "sha256-7540MwLszTMRLxsvAke+STy1doMTretViwLeh5ei6bU=";
+      hash = "sha256-O5piU4qNoVHoB6PdsRmOhgXyAyVE149AOuiD0n7PHuQ=";
     };
   });
 
-  postgresql_17_7-client = final.stdenv.mkDerivation {
+  postgresql_17_9-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
-    version = postgresql_17_7.version;
+    version = postgresql_17_9.version;
 
     phases = [ "installPhase" ];
 
     installPhase = ''
       mkdir -p $out/bin
-      cp ${postgresql_17_7}/bin/psql $out/bin/
-      cp ${postgresql_17_7}/bin/pg_dump $out/bin/
-      cp ${postgresql_17_7}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_17_7}/bin/pg_restore $out/bin/
+      cp ${postgresql_17_9}/bin/psql $out/bin/
+      cp ${postgresql_17_9}/bin/pg_dump $out/bin/
+      cp ${postgresql_17_9}/bin/pg_dumpall $out/bin/
+      cp ${postgresql_17_9}/bin/pg_restore $out/bin/
     '';
   };
 
-  postgresql_18_1 = (prev.postgresql_18.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
+  postgresql_18_3 = (prev.postgresql_18.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
     pname = "postgresql";
-    version = "18.1";
+    version = "18.3";
 
     src = final.fetchurl {
       url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-      hash = "sha256-/4ZnXDNsRumKyZHrswbRtnYh7OHQZ4e+qt4xLCyRXVQ=";
+      hash = "sha256-2VZj+786gPganZjYlSZr3LdLonS8wE7212Ywpy3uAW8=";
     };
   });
 
-  postgresql_18_1-client = final.stdenv.mkDerivation {
+  postgresql_18_3-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
-    version = postgresql_18_1.version;
+    version = postgresql_18_3.version;
 
     phases = [ "installPhase" ];
 
     installPhase = ''
       mkdir -p $out/bin
-      cp ${postgresql_18_1}/bin/psql $out/bin/
-      cp ${postgresql_18_1}/bin/pg_dump $out/bin/
-      cp ${postgresql_18_1}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_18_1}/bin/pg_restore $out/bin/
+      cp ${postgresql_18_3}/bin/psql $out/bin/
+      cp ${postgresql_18_3}/bin/pg_dump $out/bin/
+      cp ${postgresql_18_3}/bin/pg_dumpall $out/bin/
+      cp ${postgresql_18_3}/bin/pg_restore $out/bin/
     '';
   };
 
   # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/rust/cargo-pgrx/default.nix
-  cargo-pgrx_0_16_1 = final.rustPlatform.buildRustPackage rec {
+  cargo-pgrx_0_17_0 = final.rustPlatform.buildRustPackage rec {
     pname = "cargo-pgrx";
-    version = "0.16.1";
+    version = "0.17.0";
 
     src = final.fetchCrate {
       pname = "cargo-pgrx";
-      hash = "sha256-AjoBr+/sEPdzbD0wLUNVm2syCySkGaFOFQ70TST1U9w=";
+      hash = "sha256-Ld7m7ggxlf8FufpeiAE9qcu49X0SgX6XXHS6KIewGyA=";
       inherit version;
     };
 
-    cargoHash = "sha256-95DHq5GLnAqb3bbKwwaeBeKEmkfRh81ZTRaJ7L59DAg=";
+    cargoHash = "sha256-hNj39YzJna8iZxnlrLz+uLduxaD+uvggQRM7ng3MN1k=";
 
     nativeBuildInputs = [
       final.pkg-config
@@ -171,18 +171,5 @@ final: prev: rec {
 
       vendorHash = "sha256-TwYl3B/VS24clUv1ge/RroULIY/04xTxc11qPNGhnfs=";
     });
-  };
-
-  python313 = prev.python313.override {
-    packageOverrides = pyFinal: pyPrev: {
-      pydantic = pyPrev.pydantic.overridePythonAttrs (
-        old: {
-          doCheck = false;
-        }
-      );
-
-    };
-
-    self = final.python313;
   };
 }

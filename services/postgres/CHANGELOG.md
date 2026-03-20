@@ -1,5 +1,16 @@
 ## CHANGELOG
 
+### {16.13,17.9,18.3}-20260320-1
+
+- Updated postgres to 16.13, 17.9 and 18.3
+- Updated extensions:
+  - pg_search: 0.21.1 → 0.22.2
+  - pgmq: 1.8.0 → 1.11.0
+  - pgvector: 0.8.1 → 0.8.2
+  - pgrouting: 4.0.0 → 4.0.1
+  - postgis: 3.6.1 → 3.6.2
+  - timescaledb: 2.24.0 → 2.25.2
+
 ### {16.11,17.7,18.1}-20260119-1
 
 - Added support for PostgreSQL 18.1
