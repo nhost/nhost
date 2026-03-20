@@ -191,10 +191,13 @@
           nhost-js = nhost-jsf.package;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
+          postgres-pg16_11 = postgresf.packages.pg16_11-package;
           postgres-pg16_11-docker-image = postgresf.packages.pg16_11-docker-image;
           postgres-pg16_11-as-dir = postgresf.packages.pg16_11-as-dir;
+          postgres-pg17_7 = postgresf.packages.pg17_7-package;
           postgres-pg17_7-docker-image = postgresf.packages.pg17_7-docker-image;
           postgres-pg17_7-as-dir = postgresf.packages.pg17_7-as-dir;
+          postgres-pg18_1 = postgresf.packages.pg18_1-package;
           postgres-pg18_1-docker-image = postgresf.packages.pg18_1-docker-image;
           postgres-pg18_1-as-dir = postgresf.packages.pg18_1-as-dir;
           storage = storagef.package;
