@@ -36,8 +36,10 @@ runs:
         ARCH=$([ "$(uname -m)" = "x86_64" ] && echo "x86_64" || echo "aarch64")
         outPath=$(nix eval --raw .\#packages.$ARCH-linux.nixops.outPath)
         storeHash=$(basename "$outPath" | cut -d- -f1)
+        echo "nixops outPath: $outPath"
+        echo "nixops storeHash: $storeHash"
         if ! aws s3api head-object --bucket nhost-nix-cache --region eu-central-1 --key "$storeHash.narinfo" >/dev/null 2>&1; then
-          echo "::error::nixops needs to be rebuilt — build and cache nixops first"
+          echo "::error::nixops ($storeHash) needs to be rebuilt — build and cache nixops first"
           exit 1
         fi
 
