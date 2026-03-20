@@ -10,12 +10,8 @@ let
       (inDirectory "extensions")
       (inDirectory "tests")
       (matchExt "nix")
+      "plugins.md"
     ];
-  };
-
-  nix-src = nix-filter.lib.filter {
-    root = ./.;
-    include = [ (nix-filter.lib.matchExt "nix") ];
   };
 
   mkPostgres = basePostgres: import ./postgres.nix {
@@ -25,26 +21,58 @@ let
   mkAsDir = image: pkgs.runCommand "image-as-dir" { }
     "${image.copyTo}/bin/copy-to dir:$out";
 
-  pg16_11 = mkPostgres pkgs.postgresql_16_11;
-  pg17_7 = mkPostgres pkgs.postgresql_17_7;
-  pg18_1 = mkPostgres pkgs.postgresql_18_1;
+  pg16 = mkPostgres pkgs.postgresql_16;
+  pg17 = mkPostgres pkgs.postgresql_17;
+  pg18 = mkPostgres pkgs.postgresql_18;
 in
 {
-  check = nixops-lib.nix.check { src = nix-src; };
+  check = pkgs.runCommand "check-postgres"
+    {
+      nativeBuildInputs = with pkgs;
+        [
+          postgresql_18
+          diffutils
+        ];
+    }
+    ''
+      PG_URL="postgres://postgres@localhost:5432/local"
+
+      psql \
+        -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \
+        "$PG_URL"
+
+      # Verify plugins.md is up to date (only for PG18)
+      PG_MAJOR=$(psql --no-psqlrc -t -A -c "SHOW server_version_num;" "$PG_URL" | head -c2)
+      if [ "$PG_MAJOR" = "18" ]; then
+        {
+          echo "| Name | Version | Description |"
+          echo "| ---- | ------- | ----------- |"
+          psql --no-psqlrc -t -A -F '|' \
+            -c "SELECT name, default_version, comment FROM pg_available_extensions ORDER BY name ASC;" \
+            "$PG_URL" \
+            | sed 's/^/| /; s/$/|/'
+        } > expected-plugins.md
+
+        diff -u ${src}/plugins.md expected-plugins.md || \
+          (echo "ERROR: plugins.md is out of date. Run 'make get-plugin-versions' and commit the result." && exit 1)
+      fi
+
+      mkdir $out
+    '';
 
   devShell = pkgs.mkShell {
     buildInputs = with pkgs; [ wal-g docker-client skopeo ];
   };
 
   packages = rec {
-    pg16_11-package = pg16_11.package;
-    pg16_11-docker-image = pg16_11.dockerImage;
-    pg16_11-as-dir = mkAsDir pg16_11-docker-image;
-    pg17_7-package = pg17_7.package;
-    pg17_7-docker-image = pg17_7.dockerImage;
-    pg17_7-as-dir = mkAsDir pg17_7-docker-image;
-    pg18_1-package = pg18_1.package;
-    pg18_1-docker-image = pg18_1.dockerImage;
-    pg18_1-as-dir = mkAsDir pg18_1-docker-image;
+    pg16-package = pg16.package;
+    pg16-docker-image = pg16.dockerImage;
+    pg16-as-dir = mkAsDir pg16-docker-image;
+    pg17-package = pg17.package;
+    pg17-docker-image = pg17.dockerImage;
+    pg17-as-dir = mkAsDir pg17-docker-image;
+    pg18-package = pg18.package;
+    pg18-docker-image = pg18.dockerImage;
+    pg18-as-dir = mkAsDir pg18-docker-image;
   };
 }

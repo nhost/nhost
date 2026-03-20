@@ -7,8 +7,8 @@ let
   };
 
   pgLatestConfig = {
-    version = "2.24.0";
-    hash = "sha256-sc8djQeDOCo3UdyKqFB9Ntzgw5Qopjk5f1BfATpONbI=";
+    version = "2.25.2";
+    hash = "sha256-PtkeGuBWGYMiacVUnJcM+jDDNxis9IQTcwQuaaUqMvE=";
   };
 
   isPostgres15 = pkgs.lib.versionAtLeast postgresql.version "15";

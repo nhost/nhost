@@ -4,7 +4,7 @@ let
 in
 buildPGXSExtension rec {
   pname = "postgis";
-  version = "3.6.1";
+  version = "3.6.2";
 
   outputs = [
     "out"
@@ -15,7 +15,7 @@ buildPGXSExtension rec {
     owner = "postgis";
     repo = "postgis";
     tag = version;
-    hash = "sha256-WVS2TWKishTnCWJ87Vvdcb0i3VR+g/qSjcTDO1cx1s0=";
+    hash = "sha256-zdwfk2cWUF3l6Rao3kzXdMWFs12F5545Dxkjd/DyPcQ=";
   };
 
   buildInputs = [

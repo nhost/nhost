@@ -1,7 +1,7 @@
 { buildPGXSExtension, pkgs, ... }:
 buildPGXSExtension rec {
   pname = "pgrouting";
-  version = "4.0.0";
+  version = "4.0.1";
 
   nativeBuildInputs = with pkgs; [
     cmake
@@ -14,7 +14,7 @@ buildPGXSExtension rec {
     owner = "pgRouting";
     repo = "pgrouting";
     tag = "v${version}";
-    hash = "sha256-HtTWpOE/4UzhUou3abuTKVTZ4yTANeHLl7UB1lLaikg=";
+    hash = "sha256-j3dlVcENhBveVmkuzWaLfHWy73OMDpC2FxrNQ4W6m9k=";
   };
 }
 
