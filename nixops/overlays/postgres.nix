@@ -128,4 +128,61 @@ final: prev: rec {
     '';
   };
 
+  # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/rust/cargo-pgrx/default.nix
+  cargo-pgrx_0_16_1 = final.rustPlatform.buildRustPackage rec {
+    pname = "cargo-pgrx";
+    version = "0.16.1";
+
+    src = final.fetchCrate {
+      pname = "cargo-pgrx";
+      hash = "sha256-AjoBr+/sEPdzbD0wLUNVm2syCySkGaFOFQ70TST1U9w=";
+      inherit version;
+    };
+
+    cargoHash = "sha256-95DHq5GLnAqb3bbKwwaeBeKEmkfRh81ZTRaJ7L59DAg=";
+
+    nativeBuildInputs = [
+      final.pkg-config
+    ];
+
+    buildInputs = [
+      final.openssl
+    ];
+
+    preCheck = ''
+      export PGRX_HOME=$(mktemp -d)
+    '';
+
+    checkFlags = [
+      # requires pgrx to be properly initialized with cargo pgrx init
+      "--skip=command::schema::tests::test_parse_managed_postmasters"
+    ];
+  };
+
+  wal-g = prev.wal-g.override {
+    buildGoModule = args: final.buildGoModule (args // rec {
+      version = "3.0.7";
+      src = final.fetchFromGitHub {
+        owner = "wal-g";
+        repo = "wal-g";
+        rev = "v${version}";
+        sha256 = "sha256-kUn1pJEdGec+WIZivqVAhELoBTKOF4E07Ovn795DgIY=";
+      };
+
+      vendorHash = "sha256-TwYl3B/VS24clUv1ge/RroULIY/04xTxc11qPNGhnfs=";
+    });
+  };
+
+  python313 = prev.python313.override {
+    packageOverrides = pyFinal: pyPrev: {
+      pydantic = pyPrev.pydantic.overridePythonAttrs (
+        old: {
+          doCheck = false;
+        }
+      );
+
+    };
+
+    self = final.python313;
+  };
 }

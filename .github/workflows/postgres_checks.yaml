@@ -1,10 +1,11 @@
 ---
-name: "nixops: check and build"
+name: "postgres: check and build"
 on:
   pull_request_target:
     paths:
+      - ".github/workflows/postgres_checks.yaml"
       - ".github/workflows/wf_check.yaml"
-      - ".github/workflows/nixops_checks.yaml"
+      - ".github/workflows/wf_build_artifacts.yaml"
 
       # common build
       - "flake.nix"
@@ -12,9 +13,8 @@ on:
       - "nixops/**"
       - "build/**"
 
-  push:
-    branches:
-      - main
+      # postgres
+      - "services/postgres/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
@@ -32,31 +32,44 @@ jobs:
         run: |
           exit 1
 
-  tests:
-    uses: ./.github/workflows/wf_check.yaml
+  build_artifacts:
+    strategy:
+      matrix:
+        postgresql: ["16.11", "17.7", "18.1"]
+      fail-fast: true
+    uses: ./.github/workflows/wf_build_artifacts.yaml
     needs:
       - check-permissions
     with:
-      NAME: nixops
-      PATH: nixops
+      NAME: postgres
+      PATH: services/postgres
+      OS_MATRIX: '["blacksmith-32vcpu-ubuntu-2404-arm", "blacksmith-8vcpu-ubuntu-2404"]'
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-
+      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
+      DOCKER: true
+      ENV: |
+        POSTGRES_VERSION=${{ matrix.postgresql }}
+      ARTIFACT_SUFFIX: "-pg${{ matrix.postgresql }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
-  build_artifacts:
-    uses: ./.github/workflows/wf_build_artifacts.yaml
+  tests:
+    strategy:
+      matrix:
+        postgresql: ["16.11", "17.7", "18.1"]
+      fail-fast: true
+    uses: ./.github/workflows/wf_check.yaml
     needs:
       - check-permissions
+      - build_artifacts
     with:
-      NAME: nixops
-      PATH: nixops
+      NAME: postgres
+      PATH: services/postgres
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
-      DOCKER: true
-      OS_MATRIX: '["blacksmith-32vcpu-ubuntu-2404-arm", "blacksmith-8vcpu-ubuntu-2404"]'
+      ENV: |
+        POSTGRES_VERSION=${{ matrix.postgresql }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}

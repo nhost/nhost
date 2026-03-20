@@ -1,0 +1,81 @@
+---
+name: "postgres: release"
+on:
+  workflow_call:
+    inputs:
+      GIT_REF:
+        required: true
+        type: string
+      VERSION:
+        required: true
+        type: string
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+
+jobs:
+  build_artifacts:
+    strategy:
+      matrix:
+        postgresql: ["16.11", "17.7", "18.1"]
+      fail-fast: true
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      NAME: postgres
+      PATH: services/postgres
+      GIT_REF: ${{ inputs.GIT_REF }}
+      VERSION: ${{ inputs.VERSION }}
+      DOCKER: true
+      ENV: |
+        POSTGRES_VERSION=${{ matrix.postgresql }}
+      ARTIFACT_SUFFIX: "-pg${{ matrix.postgresql }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+  push-docker-hub:
+    strategy:
+      matrix:
+        postgresql: ["16.11", "17.7", "18.1"]
+      fail-fast: true
+    uses: ./.github/workflows/wf_docker_push_image.yaml
+    needs:
+      - build_artifacts
+    with:
+      NAME: postgres
+      PATH: services/postgres
+      VERSION: ${{ inputs.VERSION }}
+      ENV: |
+        POSTGRES_VERSION=${{ matrix.postgresql }}
+      ARTIFACT_SUFFIX: "-pg${{ matrix.postgresql }}"
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  push-docker-ecr:
+    strategy:
+      matrix:
+        postgresql: ["16.11", "17.7", "18.1"]
+      fail-fast: true
+    uses: ./.github/workflows/wf_docker_push_image_ecr.yaml
+    needs:
+      - build_artifacts
+    with:
+      NAME: postgres
+      PATH: services/postgres
+      VERSION: ${{ inputs.VERSION }}
+      ENV: |
+        POSTGRES_VERSION=${{ matrix.postgresql }}
+      ARTIFACT_SUFFIX: "-pg${{ matrix.postgresql }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      CONTAINER_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
