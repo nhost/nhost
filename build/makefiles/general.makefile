@@ -50,9 +50,9 @@ print-vars:  ## print all variables
 .PHONY: get-version
 get-version:  ## Return version
 	@sed -i '/^\s*version = "0.0.0-dev";/s//version = "${VERSION}";/' project.nix
-ifneq ($(VERSION),0.0.0-dev)
-	@sed -i '/^\s*created = "1970-.*";/s//created = "${shell date --utc '+%Y-%m-%dT%H:%M:%SZ'}";/' project.nix
-endif
+	@if [ "$(VERSION)" != "0.0.0-dev" ]; then \
+		sed -i '/^\s*created = "1970-.*";/s//created = "${shell date --utc '+%Y-%m-%dT%H:%M:%SZ'}";/' project.nix; \
+	fi
 	@echo $(VERSION)
 
 
