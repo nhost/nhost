@@ -97,7 +97,11 @@ jobs:
     - name: Compute common env vars
       id: vars
       run: |
-        echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+        if [ "${{ inputs.VERSION }}" = "0.0.0-dev" ]; then
+          echo "VERSION=0.0.0-dev" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+        fi
         ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
         echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
 
