@@ -1,7 +1,7 @@
 ---
 name: "postgres: check and build"
 on:
-  pull_request:
+  pull_request_target:
     paths:
       - ".github/workflows/postgres_checks.yaml"
       - ".github/workflows/wf_check.yaml"
