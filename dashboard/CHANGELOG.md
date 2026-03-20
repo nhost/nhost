@@ -1,3 +1,19 @@
+## [@nhost/dashboard@2.54.0] - 2026-03-20
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring allowedCIDRs (#4029)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Filter by project name in the header's projects combobox (#4010)
+
+
+### Chore
+
+- *(deps)* Bump go/jsonparser and next due to CVEs (#4019)
+
 ## [@nhost/dashboard@2.53.0] - 2026-03-16
 
 ### 🚀 Features
