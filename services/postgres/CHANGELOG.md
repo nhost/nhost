@@ -10,6 +10,7 @@
   - pgrouting: 4.0.0 → 4.0.1
   - postgis: 3.6.1 → 3.6.2
   - timescaledb: 2.24.0 → 2.25.2
+- Enabled icu on pg_search extension
 
 ### {16.11,17.7,18.1}-20260119-1
 
