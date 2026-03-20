@@ -38,7 +38,7 @@ let
     gofumpt
     golines
     skopeo
-    postgresql_18_3-client
+    postgresql_18-client
     sqlc
     vacuum-go
     bun

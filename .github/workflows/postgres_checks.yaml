@@ -1,7 +1,7 @@
 ---
 name: "postgres: check and build"
 on:
-  pull_request_target:
+  pull_request:
     paths:
       - ".github/workflows/postgres_checks.yaml"
       - ".github/workflows/wf_check.yaml"
@@ -35,7 +35,7 @@ jobs:
   build_artifacts:
     strategy:
       matrix:
-        postgresql: ["16.13", "17.9", "18.3"]
+        postgresql: ["16", "17", "18"]
       fail-fast: true
     uses: ./.github/workflows/wf_build_artifacts.yaml
     needs:
@@ -58,7 +58,7 @@ jobs:
   tests:
     strategy:
       matrix:
-        postgresql: ["16.13", "17.9", "18.3"]
+        postgresql: ["16", "17", "18"]
       fail-fast: true
     uses: ./.github/workflows/wf_check.yaml
     needs:

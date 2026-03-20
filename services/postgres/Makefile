@@ -2,10 +2,8 @@ ROOT_DIR?=$(abspath ../..)
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
 ifndef POSTGRES_VERSION
-POSTGRES_VERSION=18.3
+POSTGRES_VERSION=18
 endif
-
-PGVER=$(shell echo $(POSTGRES_VERSION) | sed -e 's/\./_/g')
 
 # Prepend PG version to VERSION if not already present
 ifeq (,$(findstring $(POSTGRES_VERSION),$(VERSION)))
@@ -17,19 +15,19 @@ endif
 .PHONY: build
 build:  ## Build postgres binary
 	nix build --print-build-logs \
-		.\#packages.$(ARCH)-$(OS).postgres-pg$(PGVER)
+		.\#packages.$(ARCH)-$(OS).postgres-pg$(POSTGRES_VERSION)
 
 
 .PHONY: build-dry-run
 build-dry-run:  ## Returns the derivation of the build
 	@nix build --dry-run --json \
-		.\#packages.$(ARCH)-$(OS).postgres-pg$(PGVER) | jq -r '.[].outputs.out'
+		.\#packages.$(ARCH)-$(OS).postgres-pg$(POSTGRES_VERSION) | jq -r '.[].outputs.out'
 
 
 .PHONY: build-docker-image
 build-docker-image:  ## Build and load postgres docker image
 	nix build $(docker-build-options) --print-build-logs \
-		.\#packages.$(ARCH)-linux.postgres-pg$(PGVER)-as-dir
+		.\#packages.$(ARCH)-linux.postgres-pg$(POSTGRES_VERSION)-as-dir
 	skopeo copy --insecure-policy dir:./result docker-daemon:nhost/postgres:$(VERSION)
 	@echo Image Loaded: docker-daemon:nhost/postgres:$(VERSION)
 

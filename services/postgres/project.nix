@@ -25,9 +25,9 @@ let
   mkAsDir = image: pkgs.runCommand "image-as-dir" { }
     "${image.copyTo}/bin/copy-to dir:$out";
 
-  pg16_13 = mkPostgres pkgs.postgresql_16_13;
-  pg17_9 = mkPostgres pkgs.postgresql_17_9;
-  pg18_3 = mkPostgres pkgs.postgresql_18_3;
+  pg16 = mkPostgres pkgs.postgresql_16;
+  pg17 = mkPostgres pkgs.postgresql_17;
+  pg18 = mkPostgres pkgs.postgresql_18;
 in
 {
   check = nixops-lib.nix.check { src = nix-src; };
@@ -37,14 +37,14 @@ in
   };
 
   packages = rec {
-    pg16_13-package = pg16_13.package;
-    pg16_13-docker-image = pg16_13.dockerImage;
-    pg16_13-as-dir = mkAsDir pg16_13-docker-image;
-    pg17_9-package = pg17_9.package;
-    pg17_9-docker-image = pg17_9.dockerImage;
-    pg17_9-as-dir = mkAsDir pg17_9-docker-image;
-    pg18_3-package = pg18_3.package;
-    pg18_3-docker-image = pg18_3.dockerImage;
-    pg18_3-as-dir = mkAsDir pg18_3-docker-image;
+    pg16-package = pg16.package;
+    pg16-docker-image = pg16.dockerImage;
+    pg16-as-dir = mkAsDir pg16-docker-image;
+    pg17-package = pg17.package;
+    pg17-docker-image = pg17.dockerImage;
+    pg17-as-dir = mkAsDir pg17-docker-image;
+    pg18-package = pg18.package;
+    pg18-docker-image = pg18.dockerImage;
+    pg18-as-dir = mkAsDir pg18-docker-image;
   };
 }

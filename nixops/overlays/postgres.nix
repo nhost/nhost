@@ -1,5 +1,5 @@
 final: prev: rec {
-  postgresql_14_20 = (prev.postgresql_14.override { systemdSupport = false; }).overrideAttrs
+  postgresql_14 = (prev.postgresql_14.override { systemdSupport = false; }).overrideAttrs
     (finalAttrs: previousAttrs: rec {
       pname = "postgresql";
       version = "14.20";
@@ -13,22 +13,22 @@ final: prev: rec {
       doInstallCheck = false;
     });
 
-  postgresql_14_20-client = final.stdenv.mkDerivation {
+  postgresql_14-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
-    version = postgresql_14_20.version;
+    version = postgresql_14.version;
 
     phases = [ "installPhase" ];
 
     installPhase = ''
       mkdir -p $out/bin
-      cp ${postgresql_14_20}/bin/psql $out/bin/
-      cp ${postgresql_14_20}/bin/pg_dump $out/bin/
-      cp ${postgresql_14_20}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_14_20}/bin/pg_restore $out/bin/
+      cp ${postgresql_14}/bin/psql $out/bin/
+      cp ${postgresql_14}/bin/pg_dump $out/bin/
+      cp ${postgresql_14}/bin/pg_dumpall $out/bin/
+      cp ${postgresql_14}/bin/pg_restore $out/bin/
     '';
   };
 
-  postgresql_15_15 = (prev.postgresql_15.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
+  postgresql_15 = (prev.postgresql_15.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
     pname = "postgresql";
     version = "15.15";
 
@@ -38,22 +38,22 @@ final: prev: rec {
     };
   });
 
-  postgresql_15_15-client = final.stdenv.mkDerivation {
+  postgresql_15-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
-    version = postgresql_15_15.version;
+    version = postgresql_15.version;
 
     phases = [ "installPhase" ];
 
     installPhase = ''
       mkdir -p $out/bin
-      cp ${postgresql_15_15}/bin/psql $out/bin/
-      cp ${postgresql_15_15}/bin/pg_dump $out/bin/
-      cp ${postgresql_15_15}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_15_15}/bin/pg_restore $out/bin/
+      cp ${postgresql_15}/bin/psql $out/bin/
+      cp ${postgresql_15}/bin/pg_dump $out/bin/
+      cp ${postgresql_15}/bin/pg_dumpall $out/bin/
+      cp ${postgresql_15}/bin/pg_restore $out/bin/
     '';
   };
 
-  postgresql_16_13 = (prev.postgresql_16.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
+  postgresql_16 = (prev.postgresql_16.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
     pname = "postgresql";
     version = "16.13";
 
@@ -63,22 +63,22 @@ final: prev: rec {
     };
   });
 
-  postgresql_16_13-client = final.stdenv.mkDerivation {
+  postgresql_16-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
-    version = postgresql_16_13.version;
+    version = postgresql_16.version;
 
     phases = [ "installPhase" ];
 
     installPhase = ''
       mkdir -p $out/bin
-      cp ${postgresql_16_13}/bin/psql $out/bin/
-      cp ${postgresql_16_13}/bin/pg_dump $out/bin/
-      cp ${postgresql_16_13}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_16_13}/bin/pg_restore $out/bin/
+      cp ${postgresql_16}/bin/psql $out/bin/
+      cp ${postgresql_16}/bin/pg_dump $out/bin/
+      cp ${postgresql_16}/bin/pg_dumpall $out/bin/
+      cp ${postgresql_16}/bin/pg_restore $out/bin/
     '';
   };
 
-  postgresql_17_9 = (prev.postgresql_17.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
+  postgresql_17 = (prev.postgresql_17.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
     pname = "postgresql";
     version = "17.9";
 
@@ -88,22 +88,22 @@ final: prev: rec {
     };
   });
 
-  postgresql_17_9-client = final.stdenv.mkDerivation {
+  postgresql_17-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
-    version = postgresql_17_9.version;
+    version = postgresql_17.version;
 
     phases = [ "installPhase" ];
 
     installPhase = ''
       mkdir -p $out/bin
-      cp ${postgresql_17_9}/bin/psql $out/bin/
-      cp ${postgresql_17_9}/bin/pg_dump $out/bin/
-      cp ${postgresql_17_9}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_17_9}/bin/pg_restore $out/bin/
+      cp ${postgresql_17}/bin/psql $out/bin/
+      cp ${postgresql_17}/bin/pg_dump $out/bin/
+      cp ${postgresql_17}/bin/pg_dumpall $out/bin/
+      cp ${postgresql_17}/bin/pg_restore $out/bin/
     '';
   };
 
-  postgresql_18_3 = (prev.postgresql_18.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
+  postgresql_18 = (prev.postgresql_18.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
     pname = "postgresql";
     version = "18.3";
 
@@ -113,18 +113,18 @@ final: prev: rec {
     };
   });
 
-  postgresql_18_3-client = final.stdenv.mkDerivation {
+  postgresql_18-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
-    version = postgresql_18_3.version;
+    version = postgresql_18.version;
 
     phases = [ "installPhase" ];
 
     installPhase = ''
       mkdir -p $out/bin
-      cp ${postgresql_18_3}/bin/psql $out/bin/
-      cp ${postgresql_18_3}/bin/pg_dump $out/bin/
-      cp ${postgresql_18_3}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_18_3}/bin/pg_restore $out/bin/
+      cp ${postgresql_18}/bin/psql $out/bin/
+      cp ${postgresql_18}/bin/pg_dump $out/bin/
+      cp ${postgresql_18}/bin/pg_dumpall $out/bin/
+      cp ${postgresql_18}/bin/pg_restore $out/bin/
     '';
   };
 
