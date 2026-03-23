@@ -1299,6 +1299,30 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialCreationOptions`](#publickeycredentialcreationoptions)&gt;&gt;
 
+#### tokenExchange()
+
+```ts
+tokenExchange(body: TokenExchangeRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Exchange authorization code for session
+Exchange an authorization code (obtained via PKCE flow) together with the original code_verifier for a session containing access and refresh tokens.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+##### Parameters
+
+| Parameter  | Type                                            |
+| ---------- | ----------------------------------------------- |
+| `body`     | [`TokenExchangeRequest`](#tokenexchangerequest) |
+| `options?` | `RequestInit`                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
 #### verifyAddSecurityKey()
 
 ```ts
@@ -3242,6 +3266,14 @@ User authentication session containing tokens and user information
 
 ### Properties
 
+#### codeChallenge?
+
+```ts
+optional codeChallenge: string;
+```
+
+PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+
 #### email
 
 ```ts
@@ -3359,6 +3391,14 @@ optional allowedRoles: string[];
 ```
 
 Array of allowed roles for the user
+
+#### codeChallenge?
+
+```ts
+optional codeChallenge: string;
+```
+
+PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
 
 #### connect?
 
@@ -3494,6 +3534,14 @@ Request to register a new user with email and password
 
 ### Properties
 
+#### codeChallenge?
+
+```ts
+optional codeChallenge: string;
+```
+
+PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+
 #### email
 
 ```ts
@@ -3612,6 +3660,14 @@ optional options: SignUpOptions;
 
 ### Properties
 
+#### codeChallenge?
+
+```ts
+optional codeChallenge: string;
+```
+
+PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+
 #### credential
 
 ```ts
@@ -3633,6 +3689,33 @@ Nickname for the security key
 ```ts
 optional options: SignUpOptions;
 ```
+
+---
+
+## TokenExchangeRequest
+
+Request to exchange an authorization code for a session using PKCE
+
+### Properties
+
+#### code
+
+```ts
+code: string
+```
+
+(`string`) - The authorization code received from the redirect
+
+#### codeVerifier
+
+```ts
+codeVerifier: string
+```
+
+(`string`) - The original PKCE code verifier (43-128 characters)
+
+- MinLength - 43
+- MaxLength - 128
 
 ---
 
@@ -3817,6 +3900,14 @@ roles: string[];
 
 ### Properties
 
+#### codeChallenge?
+
+```ts
+optional codeChallenge: string;
+```
+
+PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+
 #### connection?
 
 ```ts
@@ -3867,6 +3958,14 @@ signInMethod: UserDeanonymizeRequestSignInMethod
 
 ### Properties
 
+#### codeChallenge?
+
+```ts
+optional codeChallenge: string;
+```
+
+PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+
 #### newEmail
 
 ```ts
@@ -3889,6 +3988,14 @@ optional options: OptionsRedirectTo;
 ## UserEmailSendVerificationEmailRequest
 
 ### Properties
+
+#### codeChallenge?
+
+```ts
+optional codeChallenge: string;
+```
+
+PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
 
 #### email
 
@@ -3997,6 +4104,14 @@ Pattern - ^passwordReset\:.\*$
 
 ### Properties
 
+#### codeChallenge?
+
+```ts
+optional codeChallenge: string;
+```
+
+PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+
 #### email
 
 ```ts
@@ -4067,6 +4182,14 @@ The nickname of the security key if provided
 Parameters for the verifyTicket method.
 
 ### Properties
+
+#### codeChallenge?
+
+```ts
+optional codeChallenge: string;
+```
+
+PKCE code challenge (S256). When present, the redirect will contain an authorization code instead of a refresh token.
 
 #### redirectTo
 
@@ -4391,3 +4514,57 @@ function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Clie
 ### Returns
 
 [`Client`](#client)
+
+---
+
+## generateCodeChallenge()
+
+```ts
+function generateCodeChallenge(verifier: string): Promise<string>
+```
+
+Derive a S256 code challenge from a code verifier.
+
+### Parameters
+
+| Parameter  | Type     |
+| ---------- | -------- |
+| `verifier` | `string` |
+
+### Returns
+
+`Promise`&lt;`string`&gt;
+
+---
+
+## generateCodeVerifier()
+
+```ts
+function generateCodeVerifier(): string
+```
+
+Generate a cryptographically random PKCE code verifier (43 base64url characters).
+
+### Returns
+
+`string`
+
+---
+
+## generatePKCEPair()
+
+```ts
+function generatePKCEPair(): Promise<{
+  challenge: string
+  verifier: string
+}>
+```
+
+Generate a PKCE code verifier and its S256 challenge in one call.
+
+### Returns
+
+`Promise`&lt;\{
+`challenge`: `string`;
+`verifier`: `string`;
+\}&gt;

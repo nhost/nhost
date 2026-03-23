@@ -24,42 +24,77 @@ To use One-Time Passwords, they need to be enabled in the configuration:
  </TabItem>
 </Tabs>
 
-After the functionality has been enabled the flow is as follows:
+## Sign In
 
-1. User requests an OTP:
+Signing in with an email OTP is a two-step process:
+
+### Step 1: Request OTP
+
+The user requests an OTP, which is sent to their email address:
 
 <Tabs>
-  <TabItem label="javascript">
+  <TabItem label="JavaScript">
   ```js
-  nhost.auth.signInOTPEmail({
-    email: 'user@example.com'
-  })
+  await nhost.auth.signInOTPEmail({
+    email: 'user@example.com',
+  });
   ```
   </TabItem>
 
-  <TabItem label="dart">
+  <TabItem label="Dart">
   ```dart
   nhost.auth.signInEmailOTP(email: "user@example.com");
   ```
   </TabItem>
 </Tabs>
 
-2. User receives an email with the OTP
-3. User enters the OTP
+### Step 2: Verify OTP
+
+The user enters the OTP code received via email:
 
 <Tabs>
-  <TabItem label="javascript">
+  <TabItem label="JavaScript">
   ```js
-  nhost.auth.verifySignInOTPEmail({
+  await nhost.auth.verifySignInOTPEmail({
     email: 'user@example.com',
-    otp: '123456'
-  })
+    otp: '123456',
+  });
   ```
   </TabItem>
 
-  <TabItem label="dart">
+  <TabItem label="Dart">
   ```dart
   nhost.auth.verifyEmailOTP(email: "user@example.com", otp: "123456");
   ```
   </TabItem>
 </Tabs>
+
+:::note
+A user account is created the first time an email is used with OTP.
+:::
+
+### Sign In Flow
+
+```mermaid
+sequenceDiagram
+	autonumber
+	actor U as User
+	participant C as Client
+	participant A as Nhost Auth
+	participant E as SMTP Server
+	U->>C: Enter email
+	C->>+A: POST /signin/passwordless/email-otp
+	Note right of C: email
+	opt No user found
+		A->>A: Create user
+	end
+	A->>A: Generate OTP (expires in 5 min)
+	A-)E: Send OTP email
+	A->>-C: OK
+	E-)U: Receive OTP via email
+	U->>C: Enter OTP code
+	C->>+A: POST /signin/passwordless/email-otp/verify
+	Note right of C: email + OTP code
+	A->>A: Verify OTP
+	A->>-C: Session (access + refresh tokens)
+```

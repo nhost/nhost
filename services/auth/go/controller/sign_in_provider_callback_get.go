@@ -7,11 +7,13 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
+	"github.com/nhost/nhost/services/auth/go/pkce"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -65,7 +67,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	ctx context.Context,
 	req providerCallbackData,
 	logger *slog.Logger,
-) (*api.SignUpOptions, *string, *url.URL, *APIError) {
+) (*api.SignUpOptions, *string, *string, *url.URL, *APIError) {
 	redirectTo := ctrl.config.ClientURL
 
 	stateData, apiErr := ctrl.getStateData(ctx, req.State, logger)
@@ -74,7 +76,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 			"provider_state": req.State,
 		})
 
-		return nil, nil, redirectTo, apiErr
+		return nil, nil, nil, redirectTo, apiErr
 	}
 
 	// we just care about the redirect URL for now, the rest is handled by the signin flow
@@ -86,7 +88,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 		logger,
 	)
 	if apiErr != nil {
-		return nil, nil, redirectTo, apiErr
+		return nil, nil, nil, redirectTo, apiErr
 	}
 
 	if req.Error != nil && *req.Error != "" {
@@ -102,13 +104,13 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 
 		redirectTo = appendURLValues(redirectTo, values)
 
-		return nil, nil, redirectTo, ErrOauthProviderError
+		return nil, nil, nil, redirectTo, ErrOauthProviderError
 	}
 
 	optionsRedirectTo, err := url.Parse(*options.RedirectTo)
 	if err != nil {
 		logger.ErrorContext(ctx, "error parsing redirect URL", logError(err))
-		return nil, nil, redirectTo, ErrInvalidRequest
+		return nil, nil, nil, redirectTo, ErrInvalidRequest
 	}
 
 	if stateData.State != nil && *stateData.State != "" {
@@ -117,7 +119,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 		})
 	}
 
-	return stateData.Options, stateData.Connect, optionsRedirectTo, nil
+	return stateData.Options, stateData.Connect, stateData.CodeChallenge, optionsRedirectTo, nil
 }
 
 func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
@@ -216,13 +218,57 @@ func encryptProviderSession(
 	return string(providerSessionEnc), nil
 }
 
+func (ctrl *Controller) signinProviderProviderCallbackSignIn(
+	ctx context.Context,
+	req providerCallbackData,
+	profile oidc.Profile,
+	options *api.SignUpOptions,
+	codeChallenge *string,
+	redirectTo *url.URL,
+	logger *slog.Logger,
+) (*url.URL, *APIError) {
+	if codeChallenge != nil && *codeChallenge != "" {
+		userID, apiErr := ctrl.providerResolveUser(
+			ctx, profile, req.Provider, options, logger,
+		)
+		if apiErr != nil {
+			return redirectTo, apiErr
+		}
+
+		if userID == uuid.Nil {
+			return redirectTo, nil
+		}
+
+		return ctrl.createPKCERedirect(
+			ctx, userID, *codeChallenge, redirectTo, logger,
+		)
+	}
+
+	session, apiErr := ctrl.providerSignInFlow(
+		ctx, profile, req.Provider, options, logger,
+	)
+	if apiErr != nil {
+		return redirectTo, apiErr
+	}
+
+	if session == nil {
+		return redirectTo, nil
+	}
+
+	values := redirectTo.Query()
+	values.Add("refreshToken", session.RefreshToken)
+	redirectTo.RawQuery = values.Encode()
+
+	return redirectTo, nil
+}
+
 func (ctrl *Controller) signinProviderProviderCallback(
 	ctx context.Context,
 	req providerCallbackData,
 ) (*url.URL, *APIError) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	options, connnect, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate(
+	options, connnect, codeChallenge, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate(
 		ctx,
 		req,
 		logger,
@@ -247,17 +293,11 @@ func (ctrl *Controller) signinProviderProviderCallback(
 			return redirectTo, apiErr
 		}
 	} else {
-		session, apiErr := ctrl.providerSignInFlow(
-			ctx, profile, req.Provider, options, logger,
+		redirectTo, apiErr = ctrl.signinProviderProviderCallbackSignIn(
+			ctx, req, profile, options, codeChallenge, redirectTo, logger,
 		)
 		if apiErr != nil {
 			return redirectTo, apiErr
-		}
-
-		if session != nil {
-			values := redirectTo.Query()
-			values.Add("refreshToken", session.RefreshToken)
-			redirectTo.RawQuery = values.Encode()
 		}
 	}
 
@@ -351,6 +391,45 @@ func (ctrl *Controller) signinProviderProviderCallbackConnect(
 	}
 
 	return nil
+}
+
+func (ctrl *Controller) createPKCERedirect(
+	ctx context.Context,
+	userID uuid.UUID,
+	codeChallenge string,
+	redirectTo *url.URL,
+	logger *slog.Logger,
+) (*url.URL, *APIError) {
+	if err := pkce.ValidateCodeChallengeFormat(codeChallenge); err != nil {
+		logger.WarnContext(ctx, "invalid code challenge format", logError(err))
+		return redirectTo, ErrInvalidRequest
+	}
+
+	code, err := pkce.GenerateCode()
+	if err != nil {
+		logger.ErrorContext(ctx, "error generating authorization code", logError(err))
+		return redirectTo, ErrInternalServerError
+	}
+
+	if _, err := ctrl.wf.db.InsertPKCEAuthorizationCode(
+		ctx,
+		sql.InsertPKCEAuthorizationCodeParams{
+			UserID:        userID,
+			CodeHash:      pkce.HashCode(code),
+			CodeChallenge: codeChallenge,
+			RedirectTo:    sql.Text(redirectTo.String()),
+			ExpiresAt:     sql.TimestampTz(time.Now().Add(In5Minutes)),
+		},
+	); err != nil {
+		logger.ErrorContext(ctx, "error inserting PKCE authorization code", logError(err))
+		return redirectTo, ErrInternalServerError
+	}
+
+	values := redirectTo.Query()
+	values.Add("code", code)
+	redirectTo.RawQuery = values.Encode()
+
+	return redirectTo, nil
 }
 
 func (ctrl *Controller) SignInProviderCallbackPost( //nolint:ireturn

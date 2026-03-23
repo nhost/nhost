@@ -8,6 +8,8 @@ import {
   mailHogSearch,
   deleteAllMailHogEmails,
   verfiyUserTicket,
+  generatePKCE,
+  verifyEmailAndExchangePKCE,
 } from '../../utils';
 
 describe('email-password', () => {
@@ -241,5 +243,29 @@ describe('email-password', () => {
       .expect(StatusCodes.FORBIDDEN);
 
     expect(body.message).toEqual('Sign up is disabled.');
+  });
+
+  it('should sign up with PKCE and exchange code for session after email verification', async () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const pkce = generatePKCE();
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({ email, password, codeChallenge: pkce.challenge })
+      .expect(StatusCodes.OK);
+
+    await verifyEmailAndExchangePKCE(email, pkce);
+
+    // should be able to sign in after verification
+    await request
+      .post('/signin/email-password')
+      .send({ email, password })
+      .expect(StatusCodes.OK);
   });
 });

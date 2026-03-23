@@ -86,6 +86,31 @@ A user account is created the first time a phone number is used
 Phone numbers should start with `+` (not `00`) to follow the [E.164 formatting standard](https://en.wikipedia.org/wiki/E.164)
 :::
 
+### Sign In Flow
+
+```mermaid
+sequenceDiagram
+	autonumber
+	actor U as User
+	participant A as Nhost Auth
+	participant S as SMS Service
+	U->>+A: POST /signin/passwordless/sms
+	Note right of U: Phone number
+	opt No user found
+		A->>A: Create user
+	end
+	A-)+S: Send OTP code by SMS
+	A->>-U: OK
+	S-)-U: Receive OTP code by SMS
+	U->>+A: POST /signin/passwordless/sms/otp
+	Note right of U: Phone number + OTP code
+	A->>-U: Session (access + refresh tokens)
+```
+
+## Test Phone Numbers
+
+The environment variable `AUTH_SMS_TEST_PHONE_NUMBERS` can be set with comma-separated test phone numbers. When sign in is invoked, the SMS message with the verification code will be available in the logs. This way you can also test your SMS templates.
+
 ## Other SMS Providers
 
 We only support Twilio for now. If you want support for another SMS provider, please create an issue on [GitHub](https://github.com/nhost/nhost).

@@ -62,7 +62,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -148,7 +148,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options: &api.SignUpOptions{
@@ -228,7 +228,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -287,7 +287,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -344,7 +344,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -391,7 +391,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -445,7 +445,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -475,7 +475,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "p",
 					Options:  nil,
@@ -505,7 +505,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -567,7 +567,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -643,7 +643,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options: &api.SignUpOptions{
@@ -701,7 +701,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -792,7 +792,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -911,7 +911,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -968,7 +968,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,

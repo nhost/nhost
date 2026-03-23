@@ -6,9 +6,11 @@ import (
 	"log/slog"
 	"net/url"
 	"strings"
+	"time"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/pkce"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -56,6 +58,51 @@ func (ctrl *Controller) getVerifyHandleTicketType(
 	return apiErr
 }
 
+func (ctrl *Controller) verifyTicketPKCERedirect( //nolint:ireturn
+	ctx context.Context,
+	user sql.AuthUser,
+	ticketType TicketType,
+	codeChallenge string,
+	redirectTo *url.URL,
+	logger *slog.Logger,
+) (api.VerifyTicketResponseObject, error) {
+	if err := pkce.ValidateCodeChallengeFormat(codeChallenge); err != nil {
+		logger.WarnContext(ctx, "invalid code challenge format", logError(err))
+		return ctrl.sendRedirectError(redirectTo, ErrInvalidRequest), nil
+	}
+
+	code, err := pkce.GenerateCode()
+	if err != nil {
+		logger.ErrorContext(ctx, "error generating authorization code", logError(err))
+		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
+	if _, err := ctrl.wf.db.InsertPKCEAuthorizationCode(
+		ctx,
+		sql.InsertPKCEAuthorizationCodeParams{
+			UserID:        user.ID,
+			CodeHash:      pkce.HashCode(code),
+			CodeChallenge: codeChallenge,
+			RedirectTo:    sql.Text(redirectTo.String()),
+			ExpiresAt:     sql.TimestampTz(time.Now().Add(In5Minutes)),
+		},
+	); err != nil {
+		logger.ErrorContext(ctx, "error inserting PKCE authorization code", logError(err))
+		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
+	redirectTo = appendURLValues(redirectTo, map[string]string{
+		"code": code,
+		"type": string(ticketType),
+	})
+
+	return api.VerifyTicket302Response{
+		Headers: api.VerifyTicket302ResponseHeaders{
+			Location: redirectTo.String(),
+		},
+	}, nil
+}
+
 func (ctrl *Controller) VerifyTicket( //nolint:ireturn
 	ctx context.Context, req api.VerifyTicketRequestObject,
 ) (api.VerifyTicketResponseObject, error) {
@@ -72,6 +119,12 @@ func (ctrl *Controller) VerifyTicket( //nolint:ireturn
 	apiErr = ctrl.getVerifyHandleTicketType(ctx, user, ticketType, logger)
 	if apiErr != nil {
 		return ctrl.sendRedirectError(redirectTo, apiErr), nil
+	}
+
+	if codeChallenge := deptr(req.Params.CodeChallenge); codeChallenge != "" {
+		return ctrl.verifyTicketPKCERedirect(
+			ctx, user, ticketType, codeChallenge, redirectTo, logger,
+		)
 	}
 
 	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)

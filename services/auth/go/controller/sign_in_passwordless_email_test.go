@@ -73,7 +73,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -127,7 +127,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -155,7 +155,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -183,7 +183,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"admin"},
@@ -247,7 +247,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: nil,
@@ -303,7 +303,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: nil,
@@ -373,7 +373,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"user"},
@@ -440,7 +440,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -504,7 +504,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -585,7 +585,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+				Body: &api.SignInPasswordlessEmailRequest{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},

@@ -86,7 +86,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{
+				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
 					NewEmail: "newEmail@acme.com",
 					Options:  nil,
 				},
@@ -149,7 +149,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{
+				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
 					NewEmail: "newEmail@acme.com",
 					Options:  nil,
 				},
@@ -183,7 +183,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{
+				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
 					NewEmail: "newEmail@acme.com",
 					Options:  nil,
 				},
@@ -238,7 +238,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{
+				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
 					NewEmail: "newEmail@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp/redirect"),
@@ -289,7 +289,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{
+				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
 					NewEmail: "newEmail@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp/redirect"),

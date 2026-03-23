@@ -58,7 +58,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{
+				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -133,7 +133,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{
+				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -208,7 +208,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{
+				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp.com/verify"),
@@ -264,7 +264,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{
+				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://evil.com/verify"),
@@ -295,7 +295,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{
+				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -331,7 +331,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{
+				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -366,7 +366,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{
+				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -395,7 +395,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{
+				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},

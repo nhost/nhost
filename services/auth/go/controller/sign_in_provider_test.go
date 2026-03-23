@@ -45,7 +45,7 @@ func TestSignInProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignInProviderRequestObject{
-				Params: api.SignInProviderParams{
+				Params: api.SignInProviderParams{ //nolint:exhaustruct
 					AllowedRoles:           &[]string{"admin", "user"},
 					DefaultRole:            new("admin"),
 					DisplayName:            new("Test User"),

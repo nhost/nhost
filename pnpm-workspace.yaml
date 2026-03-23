@@ -9,3 +9,5 @@ packages:
   - '!**/test/**'
   - '!out/**'
   - '!**/functions'
+
+nodeLinker: hoisted

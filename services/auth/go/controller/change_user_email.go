@@ -51,6 +51,7 @@ func (ctrl *Controller) ChangeUserEmail( //nolint:ireturn
 		updatedUser.DisplayName,
 		updatedUser.Email.String,
 		string(request.Body.NewEmail),
+		deptr(request.Body.CodeChallenge),
 		logger,
 	); err != nil {
 		return ctrl.sendError(err), nil

@@ -29,6 +29,32 @@ Nhost Auth is a ready-to-use authentication service seamlessly integrated with t
   </Card>
 </CardGroup>
 
+## Sessions and Token Refresh
+
+After a successful sign-in, Nhost Auth returns a **session** containing:
+
+- **Access token** - A short-lived JWT (default: 15 minutes) used to authenticate requests to the [GraphQL API](/products/graphql) and [Storage](/products/storage)
+- **Refresh token** - A long-lived token (default: 30 days) used to obtain new access tokens
+
+The Nhost SDK automatically refreshes the access token before it expires. You can also refresh tokens manually:
+
+```js
+await nhost.auth.refreshToken({ refreshToken });
+```
+
+### Token Refresh Flow
+
+```mermaid
+sequenceDiagram
+	autonumber
+	actor C as Client
+	participant A as Nhost Auth
+	C->>+A: POST /token
+	Note right of C: refreshToken
+	A->>A: Validate and rotate refresh token
+	A->>-C: New access token + new refresh token
+```
+
 ### OAuth Providers
 
 <CardGroup cols={4}>

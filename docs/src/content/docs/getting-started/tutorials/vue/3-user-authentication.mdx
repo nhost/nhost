@@ -50,7 +50,7 @@ File upload and management
 
 Build a comprehensive sign-in form with proper error handling and loading states. This page handles user authentication and includes special logic for post-verification sign-in.
 
-```vue src/views/SignIn.vue lines
+```vue title="src/views/SignIn.vue" showLineNumbers
 <template>
   <div>
     <h1>Sign In</h1>
@@ -155,7 +155,7 @@ const handleSubmit = async () => {
 
 Implement user registration with email verification flow. This page collects user information, creates accounts, and guides users through the email verification process.
 
-```vue src/views/SignUp.vue lines
+```vue title="src/views/SignUp.vue" showLineNumbers
 <template>
   <div>
     <h1 v-if="!success">Sign Up</h1>
@@ -231,6 +231,7 @@ Implement user registration with email verification flow. This page collects use
 </template>
 
 <script setup lang="ts">
+import { generatePKCEPair } from "@nhost/nhost-js/auth";
 import { onMounted, ref, useId } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
@@ -262,14 +263,18 @@ const handleSubmit = async () => {
   success.value = false;
 
   try {
+    // Generate PKCE pair and store verifier for email verification
+    const { verifier, challenge } = await generatePKCEPair();
+    localStorage.setItem("nhost_pkce_verifier", verifier);
+
     const response = await nhost.auth.signUpEmailPassword({
       email: email.value,
       password: password.value,
       options: {
         displayName: displayName.value,
-        // Set the redirect URL for email verification
         redirectTo: `${window.location.origin}/verify`,
       },
+      codeChallenge: challenge,
     });
 
     if (response.body?.session) {
@@ -293,9 +298,9 @@ const handleSubmit = async () => {
 
 ### Create the Email Verification Page
 
-Build a dedicated verification page that processes email verification tokens. This page handles the verification flow when users click the email verification link.
+Build a dedicated verification page that exchanges authorization codes for sessions using PKCE. This page handles the verification flow when users click the email verification link.
 
-```vue src/views/Verify.vue lines
+```vue title="src/views/Verify.vue" showLineNumbers
 <template>
   <div>
     <h1>Email Verification</h1>
@@ -352,24 +357,31 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 
+const PKCE_VERIFIER_KEY = "nhost_pkce_verifier";
+
+function consumePKCEVerifier(): string | null {
+  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
+  if (verifier) {
+    localStorage.removeItem(PKCE_VERIFIER_KEY);
+  }
+  return verifier;
+}
+
 const route = useRoute();
 const router = useRouter();
 const { nhost } = useAuth();
 
 const status = ref<"verifying" | "success" | "error">("verifying");
-const error = ref<string | null>(null);
+const error = ref<string>("");
 const urlParams = ref<Record<string, string>>({});
 
-// Flag to handle component unmounting during async operations
 let isMounted = true;
 
 onMounted(() => {
-  // Extract the refresh token from the URL
   const params = new URLSearchParams(route.fullPath.split("?")[1] || "");
-  const refreshToken = params.get("refreshToken");
+  const code = params.get("code");
 
-  if (!refreshToken) {
-    // Collect all URL parameters to display for debugging
+  if (!code) {
     const allParams: Record<string, string> = {};
     params.forEach((value, key) => {
       allParams[key] = value;
@@ -377,48 +389,38 @@ onMounted(() => {
     urlParams.value = allParams;
 
     status.value = "error";
-    error.value = "No refresh token found in URL";
+    error.value = "No authorization code found in URL";
     return;
   }
 
-  processToken(refreshToken, params);
+  exchangeCode(code);
 });
 
 onUnmounted(() => {
   isMounted = false;
 });
 
-async function processToken(
-  refreshToken: string,
-  params: URLSearchParams,
-): Promise<void> {
+async function exchangeCode(code: string): Promise<void> {
   try {
-    // First display the verifying message for at least a moment
+    // Small delay to ensure component is fully mounted
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     if (!isMounted) return;
 
-    if (!refreshToken) {
-      // Collect all URL parameters to display
-      const allParams: Record<string, string> = {};
-      params.forEach((value, key) => {
-        allParams[key] = value;
-      });
-      urlParams.value = allParams;
-
+    const codeVerifier = consumePKCEVerifier();
+    if (!codeVerifier) {
       status.value = "error";
-      error.value = "No refresh token found in URL";
+      error.value =
+        "No PKCE verifier found. The sign-in must be initiated from the same browser tab.";
       return;
     }
 
-    // Process the token
-    await nhost.auth.refreshToken({ refreshToken });
+    await nhost.auth.tokenExchange({ code, codeVerifier });
 
     if (!isMounted) return;
 
     status.value = "success";
 
-    // Wait to show success message briefly, then redirect
     setTimeout(() => {
       if (isMounted) router.push("/profile");
     }, 1500);
@@ -450,7 +452,7 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 Update your router configuration to include the new authentication routes:
 
-```ts src/router/index.ts lines highlight={5-7,17-31}
+```ts title="src/router/index.ts" showLineNumbers {5-7,17-31}
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 import HomeView from "../views/HomeView.vue";
@@ -522,7 +524,7 @@ export default router;
 
 Update the navigation component to include links to the sign-in and sign-up pages, and implement the sign-out.
 
-```vue src/components/Navigation.vue lines highlight={17-22,25-30,38,41-55}
+```vue title="src/components/Navigation.vue" showLineNumbers {17-22,25-30,38,41-55}
 <template>
   <nav class="navigation">
     <div class="nav-container">

@@ -53,7 +53,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -130,7 +130,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp.com"),
@@ -181,7 +181,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp.com"),
@@ -211,7 +211,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -236,7 +236,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -269,7 +269,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -307,7 +307,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},

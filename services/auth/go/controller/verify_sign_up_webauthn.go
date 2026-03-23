@@ -112,6 +112,7 @@ func (ctrl *Controller) VerifySignUpWebauthn( //nolint:ireturn
 		ctrl.postSignupWebauthnVerifyWithoutSession(
 			ctx, webauthnUser, options, credResult, nickname,
 		),
+		deptr(request.Body.CodeChallenge),
 		logger,
 	)
 	if apiErr != nil {

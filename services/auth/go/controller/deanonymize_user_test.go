@@ -89,7 +89,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
@@ -142,7 +142,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection: nil,
 					Email:      "jane@acme.com",
 					Options: &api.SignUpOptions{
@@ -213,7 +213,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
@@ -298,7 +298,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
@@ -350,7 +350,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
@@ -376,7 +376,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
@@ -409,7 +409,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 				return token
 			},
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
@@ -441,7 +441,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
@@ -472,7 +472,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,

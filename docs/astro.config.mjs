@@ -351,21 +351,7 @@ export default defineConfig({
                     { slug: 'products/auth/sign-in-magic-link' },
                     { slug: 'products/auth/sign-in-sms-otp' },
                     { slug: 'products/auth/webauthn' },
-                  ],
-                },
-                {
-                  label: 'Workflows',
-                  collapsed: false,
-                  items: [
-                    { slug: 'products/auth/workflows/email-password' },
-                    { slug: 'products/auth/workflows/passwordless-email' },
-                    { slug: 'products/auth/workflows/passwordless-sms' },
-                    { slug: 'products/auth/workflows/webauthn' },
-                    { slug: 'products/auth/workflows/anonymous-users' },
-                    { slug: 'products/auth/workflows/change-email' },
-                    { slug: 'products/auth/workflows/change-password' },
-                    { slug: 'products/auth/workflows/reset-password' },
-                    { slug: 'products/auth/workflows/refresh-token' },
+                    { slug: 'products/auth/mfa' },
                   ],
                 },
                 {

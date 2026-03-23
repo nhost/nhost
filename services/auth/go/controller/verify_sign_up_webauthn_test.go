@@ -198,7 +198,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifySignUpWebauthnRequestObject{
-				Body: &api.SignUpWebauthnVerifyRequest{
+				Body: &api.SignUpWebauthnVerifyRequest{ //nolint:exhaustruct
 					Credential: touchIDRequest,
 					Options:    nil,
 					Nickname:   new("my-authenticator"),
@@ -287,7 +287,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifySignUpWebauthnRequestObject{
-				Body: &api.SignUpWebauthnVerifyRequest{
+				Body: &api.SignUpWebauthnVerifyRequest{ //nolint:exhaustruct
 					Credential: touchIDRequest,
 					Options: &api.SignUpOptions{
 						AllowedRoles: ptr([]string{"me"}),
@@ -383,7 +383,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifySignUpWebauthnRequestObject{
-				Body: &api.SignUpWebauthnVerifyRequest{
+				Body: &api.SignUpWebauthnVerifyRequest{ //nolint:exhaustruct
 					Credential: windowsHelloRequest,
 					Options:    nil,
 					Nickname:   nil,
@@ -475,7 +475,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifySignUpWebauthnRequestObject{
-				Body: &api.SignUpWebauthnVerifyRequest{
+				Body: &api.SignUpWebauthnVerifyRequest{ //nolint:exhaustruct
 					Credential: touchIDRequest,
 					Options:    nil,
 					Nickname:   nil,
@@ -533,7 +533,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifySignUpWebauthnRequestObject{
-				Body: &api.SignUpWebauthnVerifyRequest{
+				Body: &api.SignUpWebauthnVerifyRequest{ //nolint:exhaustruct
 					Credential: touchIDRequest,
 					Options:    nil,
 					Nickname:   nil,
@@ -586,7 +586,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifySignUpWebauthnRequestObject{
-				Body: &api.SignUpWebauthnVerifyRequest{
+				Body: &api.SignUpWebauthnVerifyRequest{ //nolint:exhaustruct
 					Credential: touchIDRequest,
 					Options:    nil,
 					Nickname:   nil,
@@ -616,7 +616,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifySignUpWebauthnRequestObject{
-				Body: &api.SignUpWebauthnVerifyRequest{
+				Body: &api.SignUpWebauthnVerifyRequest{ //nolint:exhaustruct
 					Credential: touchIDRequest,
 					Options:    nil,
 					Nickname:   nil,
@@ -668,7 +668,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifySignUpWebauthnRequestObject{
-				Body: &api.SignUpWebauthnVerifyRequest{
+				Body: &api.SignUpWebauthnVerifyRequest{ //nolint:exhaustruct
 					Credential: touchIDRequest,
 					Options:    nil,
 					Nickname:   nil,
