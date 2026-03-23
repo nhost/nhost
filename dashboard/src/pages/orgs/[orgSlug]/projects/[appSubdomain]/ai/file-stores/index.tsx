@@ -186,7 +186,8 @@ FileStoresPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
       mainContainerProps={{
-        className: 'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
+        className:
+          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
       }}
     >
       <AISidebar className="w-full max-w-sidebar" />
