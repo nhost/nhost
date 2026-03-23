@@ -19,6 +19,31 @@ import {
 
 export type ProjectStateOverlayVariant = 'paused' | 'pausing' | 'unpausing';
 
+const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
+const overlayPages = new Set(
+  [
+    'database',
+    'database/browser/[dataSourceSlug]',
+    'graphql',
+    'graphql/remote-schemas',
+    'graphql/remote-schemas/[remoteSchemaSlug]',
+    'graphql/metadata',
+    'events/event-triggers',
+    'events/event-triggers/[eventTriggerSlug]',
+    'events/cron-triggers',
+    'events/cron-triggers/[cronTriggerSlug]',
+    'events/one-offs',
+    'hasura',
+    'auth/users',
+    'auth/oauth2-clients',
+    'storage',
+    'ai/auto-embeddings',
+    'ai/assistants',
+    'ai/file-stores',
+    'metrics',
+  ].map((page) => baseProjectPageRoute.concat(page)),
+);
+
 export default function ProjectStateOverlay({
   variant,
 }: {
@@ -67,6 +92,10 @@ export default function ProjectStateOverlay({
       },
     );
   }, [unpauseApplication, project?.id, refetchProject]);
+
+  if (!overlayPages.has(route)) {
+    return null;
+  }
 
   if (dismissed) {
     return null;

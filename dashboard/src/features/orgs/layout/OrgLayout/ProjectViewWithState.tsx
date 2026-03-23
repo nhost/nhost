@@ -3,42 +3,13 @@ import { useRouter } from 'next/router';
 import { type PropsWithChildren, useEffect, useMemo } from 'react';
 import { Alert } from '@/components/ui/v2/Alert';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
+import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
+import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
-import { useProjectRedirectWhenReady } from '@/features/orgs/projects/common/hooks/useProjectRedirectWhenReady';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import ProjectStateOverlay, {
-  type ProjectStateOverlayVariant,
-} from './ProjectStateOverlay';
-
-const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
-const overlayPages = [
-  'database',
-  'database/browser/[dataSourceSlug]',
-  'graphql',
-  'graphql/remote-schemas',
-  'graphql/remote-schemas/[remoteSchemaSlug]',
-  'graphql/metadata',
-  'events/event-triggers',
-  'events/event-triggers/[eventTriggerSlug]',
-  'events/cron-triggers',
-  'events/cron-triggers/[cronTriggerSlug]',
-  'events/one-offs',
-  'hasura',
-  'auth/users',
-  'auth/oauth2-clients',
-  'storage',
-  'ai/auto-embeddings',
-  'ai/assistants',
-  'ai/file-stores',
-  'metrics',
-].map((page) => baseProjectPageRoute.concat(page));
-
-function PollingProjectContent({ children }: PropsWithChildren) {
-  useProjectRedirectWhenReady({ pollInterval: 2000 });
-  return children;
-}
+import ProjectStateOverlay from './ProjectStateOverlay';
 
 function ProjectViewWithState({ children }: PropsWithChildren) {
   const {
@@ -57,21 +28,11 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
   const { state } = useAppState();
 
   const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
-  const showOverlay = overlayPages.includes(route);
 
   const projectPageContent = useMemo(() => {
     if (!appSubdomain || state === undefined) {
       return children;
     }
-
-    const overlayVariantByState: Record<string, ProjectStateOverlayVariant> = {
-      [ApplicationStatus.Paused]: 'paused',
-      [ApplicationStatus.Pausing]: 'pausing',
-      [ApplicationStatus.Unpausing]: 'unpausing',
-      [ApplicationStatus.Restoring]: 'unpausing',
-    };
-
-    const overlayVariant = overlayVariantByState[state];
 
     switch (state) {
       case ApplicationStatus.Empty: {
@@ -110,25 +71,23 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
         }
         return children;
       case ApplicationStatus.Pausing:
+        return (
+          <>
+            <ProjectStateOverlay variant="pausing" />
+            {children}
+          </>
+        );
       case ApplicationStatus.Paused:
         return (
           <>
-            {showOverlay && overlayVariant && (
-              <ProjectStateOverlay variant={overlayVariant} />
-            )}
+            <ProjectStateOverlay variant="paused" />
             {children}
           </>
         );
       case ApplicationStatus.Unpausing:
+        return <ApplicationUnpausing>{children}</ApplicationUnpausing>;
       case ApplicationStatus.Restoring:
-        return (
-          <PollingProjectContent>
-            {showOverlay && overlayVariant && (
-              <ProjectStateOverlay variant={overlayVariant} />
-            )}
-            {children}
-          </PollingProjectContent>
-        );
+        return <ApplicationRestoring>{children}</ApplicationRestoring>;
       case ApplicationStatus.Updating:
       case ApplicationStatus.Live:
       case ApplicationStatus.Migrating:
@@ -136,7 +95,7 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       default:
         return <ApplicationUnknown />;
     }
-  }, [state, children, appSubdomain, isOnOverviewPage, showOverlay]);
+  }, [state, children, appSubdomain, isOnOverviewPage]);
 
   return projectPageContent;
 }
