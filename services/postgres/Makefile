@@ -5,9 +5,13 @@ ifndef POSTGRES_VERSION
 POSTGRES_VERSION=18
 endif
 
-# Prepend PG version to VERSION if not already present
+# Resolve full PostgreSQL version (e.g., 18 -> 18.3) from the nix package.
+# Falls back to major version only if nix eval fails.
+POSTGRES_FULL_VERSION := $(shell nix eval --raw .#packages.$(ARCH)-$(OS).postgres-pg$(POSTGRES_VERSION).version 2>/dev/null)
+
+# Prepend full PG version to VERSION if not already present
 ifeq (,$(findstring $(POSTGRES_VERSION),$(VERSION)))
-VERSION:=$(POSTGRES_VERSION)-$(VERSION)
+VERSION:=$(POSTGRES_FULL_VERSION)-$(VERSION)
 endif
 
 
