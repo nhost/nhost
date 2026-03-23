@@ -30,7 +30,7 @@ func storage( //nolint:funlen
 		cfg,
 		"http://graphql:8080/v1",
 		"postgres://nhost_storage_admin@postgres:5432/local?sslmode=disable",
-		URL(subdomain, "storage", httpPort, useTLS),
+		URL(subdomain, "storage", httpPort, useTLS && exposePort == 0),
 		"http://minio:9000",
 		"",
 		"nhost",

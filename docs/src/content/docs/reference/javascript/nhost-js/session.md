@@ -69,7 +69,7 @@ The stored session or null if not found
 
 ##### Implementation of
 
-[`SessionStorageBackend`](#sessionstoragebackend).[`get`](#get-8)
+[`SessionStorageBackend`](#sessionstoragebackend).[`get`](#get-4)
 
 #### remove()
 
@@ -85,7 +85,7 @@ Removes the session cookie
 
 ##### Implementation of
 
-[`SessionStorageBackend`](#sessionstoragebackend).[`remove`](#remove-8)
+[`SessionStorageBackend`](#sessionstoragebackend).[`remove`](#remove-4)
 
 #### set()
 
@@ -107,7 +107,7 @@ Sets the session in a cookie
 
 ##### Implementation of
 
-[`SessionStorageBackend`](#sessionstoragebackend).[`set`](#set-8)
+[`SessionStorageBackend`](#sessionstoragebackend).[`set`](#set-4)
 
 ---
 
@@ -159,7 +159,7 @@ The stored session or null if not found
 
 ##### Implementation of
 
-[`SessionStorageBackend`](#sessionstoragebackend).[`get`](#get-8)
+[`SessionStorageBackend`](#sessionstoragebackend).[`get`](#get-4)
 
 #### remove()
 
@@ -175,7 +175,7 @@ Removes the session from localStorage
 
 ##### Implementation of
 
-[`SessionStorageBackend`](#sessionstoragebackend).[`remove`](#remove-8)
+[`SessionStorageBackend`](#sessionstoragebackend).[`remove`](#remove-4)
 
 #### set()
 
@@ -197,7 +197,7 @@ Sets the session in localStorage
 
 ##### Implementation of
 
-[`SessionStorageBackend`](#sessionstoragebackend).[`set`](#set-8)
+[`SessionStorageBackend`](#sessionstoragebackend).[`set`](#set-4)
 
 ---
 
@@ -240,7 +240,7 @@ The stored session or null if not set
 
 ##### Implementation of
 
-[`SessionStorageBackend`](#sessionstoragebackend).[`get`](#get-8)
+[`SessionStorageBackend`](#sessionstoragebackend).[`get`](#get-4)
 
 #### remove()
 
@@ -256,7 +256,7 @@ Clears the session from memory
 
 ##### Implementation of
 
-[`SessionStorageBackend`](#sessionstoragebackend).[`remove`](#remove-8)
+[`SessionStorageBackend`](#sessionstoragebackend).[`remove`](#remove-4)
 
 #### set()
 
@@ -278,7 +278,7 @@ Sets the session in memory
 
 ##### Implementation of
 
-[`SessionStorageBackend`](#sessionstoragebackend).[`set`](#set-8)
+[`SessionStorageBackend`](#sessionstoragebackend).[`set`](#set-4)
 
 ---
 
@@ -341,13 +341,7 @@ Subscribe to session changes
 
 An unsubscribe function to remove this subscription
 
-```ts
-(): void;
-```
-
-##### Returns
-
-`void`
+() => `void`
 
 #### remove()
 
@@ -398,7 +392,7 @@ Any other JWT claims
 #### exp?
 
 ```ts
-optional exp: number;
+optional exp?: number;
 ```
 
 Token expiration time as Date object
@@ -406,7 +400,7 @@ Token expiration time as Date object
 #### https://hasura.io/jwt/claims?
 
 ```ts
-optional https://hasura.io/jwt/claims: Record<string, unknown>;
+optional https://hasura.io/jwt/claims?: Record<string, unknown>;
 ```
 
 Hasura JWT claims with PostgreSQL arrays converted to JavaScript arrays
@@ -414,7 +408,7 @@ Hasura JWT claims with PostgreSQL arrays converted to JavaScript arrays
 #### iat?
 
 ```ts
-optional iat: number;
+optional iat?: number;
 ```
 
 Token issued at time as Date object
@@ -422,7 +416,7 @@ Token issued at time as Date object
 #### iss?
 
 ```ts
-optional iss: string;
+optional iss?: string;
 ```
 
 Token issuer
@@ -430,7 +424,7 @@ Token issuer
 #### sub?
 
 ```ts
-optional sub: string;
+optional sub?: string;
 ```
 
 Token subject (user ID)
@@ -494,7 +488,7 @@ Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 
 ##### Inherited from
 
-[`Session`](./auth#session).[`refreshToken`](./auth#refreshtoken-5)
+[`Session`](./auth#session).[`refreshToken`](./auth#refreshtoken-4)
 
 #### refreshTokenId
 
@@ -513,7 +507,7 @@ Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 #### user?
 
 ```ts
-optional user: User;
+optional user?: User;
 ```
 
 User profile and account information
@@ -577,7 +571,7 @@ Set the session in storage
 
 # Type Aliases
 
-## SessionChangeCallback()
+## SessionChangeCallback
 
 ```ts
 type SessionChangeCallback = (session: Session | null) => void
@@ -634,7 +628,7 @@ The best available storage implementation as a SessionStorageBackend
 function refreshSession(
   auth: Client,
   storage: SessionStorage,
-  marginSeconds: number
+  marginSeconds?: number
 ): Promise<Session | null>
 ```
 

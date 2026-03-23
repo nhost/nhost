@@ -360,6 +360,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 					Memory: 500,
 				},
 				EnablePublicAccess: new(false),
+				AllowedCIDRs:       nil,
 				Storage:            nil,
 				Replicas:           nil,
 			},
