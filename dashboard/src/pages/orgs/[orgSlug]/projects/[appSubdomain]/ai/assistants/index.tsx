@@ -1,9 +1,9 @@
-import { TriangleAlert } from 'lucide-react';
-import { type ReactElement, useMemo, useState } from 'react';
+import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { RetryableErrorCard } from '@/components/presentational/RetryableErrorCard';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
@@ -35,7 +34,6 @@ export type Assistant = Omit<
 
 export default function AssistantsPage() {
   const { openDrawer } = useDialog();
-  const [isRetrying, setIsRetrying] = useState(false);
   const isPlatform = useIsPlatform();
 
   const { org, loading: loadingOrg } = useCurrentOrg();
@@ -143,29 +141,11 @@ export default function AssistantsPage() {
 
   if (assistantsError || fileStoresError) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
-          <TriangleAlert className="size-10 text-destructive" />
-          <p className="font-semibold text-lg">Failed to load assistants</p>
-          <p className="text-muted-foreground text-sm">
-            {assistantsError?.message || fileStoresError?.message}
-          </p>
-          <ButtonWithLoading
-            variant="outline"
-            loading={isRetrying}
-            onClick={async () => {
-              setIsRetrying(true);
-              try {
-                await assistantsRefetch();
-              } finally {
-                setIsRetrying(false);
-              }
-            }}
-          >
-            Try Again
-          </ButtonWithLoading>
-        </div>
-      </div>
+      <RetryableErrorCard
+        title="Failed to load assistants"
+        errorMessage={assistantsError?.message || fileStoresError?.message}
+        onRetry={assistantsRefetch}
+      />
     );
   }
 

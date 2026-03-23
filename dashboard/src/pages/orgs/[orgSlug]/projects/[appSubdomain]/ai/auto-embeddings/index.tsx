@@ -1,4 +1,3 @@
-import { TriangleAlert } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -6,6 +5,7 @@ import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { RetryableErrorCard } from '@/components/presentational/RetryableErrorCard';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -13,7 +13,6 @@ import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
@@ -36,7 +35,6 @@ export type AutoEmbeddingsConfiguration = Omit<
 export default function AutoEmbeddingsPage() {
   const limit = useRef(25);
   const router = useRouter();
-  const [isRetrying, setIsRetrying] = useState(false);
 
   const { openDrawer } = useDialog();
   const isPlatform = useIsPlatform();
@@ -135,29 +133,11 @@ export default function AutoEmbeddingsPage() {
 
   if (error) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
-          <TriangleAlert className="size-10 text-destructive" />
-          <p className="font-semibold text-lg">
-            Failed to load auto-embeddings
-          </p>
-          <p className="text-muted-foreground text-sm">{error.message}</p>
-          <ButtonWithLoading
-            variant="outline"
-            loading={isRetrying}
-            onClick={async () => {
-              setIsRetrying(true);
-              try {
-                await refetch();
-              } finally {
-                setIsRetrying(false);
-              }
-            }}
-          >
-            Try Again
-          </ButtonWithLoading>
-        </div>
-      </div>
+      <RetryableErrorCard
+        title="Failed to load auto-embeddings"
+        errorMessage={error.message}
+        onRetry={refetch}
+      />
     );
   }
 

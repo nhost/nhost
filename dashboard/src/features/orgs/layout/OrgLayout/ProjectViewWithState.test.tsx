@@ -26,37 +26,10 @@ vi.mock(
 );
 
 vi.mock(
-  '@/features/orgs/projects/common/components/ApplicationRestoring',
-  () => ({
-    ApplicationRestoring: () => (
-      <div data-testid="appRestore">Application Restoring</div>
-    ),
-  }),
-);
-
-vi.mock(
   '@/features/orgs/projects/common/components/ApplicationUnknown',
   () => ({
     ApplicationUnknown: () => (
       <div data-testid="appUnknown">Application Unknown</div>
-    ),
-  }),
-);
-
-vi.mock(
-  '@/features/orgs/projects/common/components/ApplicationUnpausing',
-  () => ({
-    ApplicationUnpausing: () => (
-      <div data-testid="appUnpausing">Application Unpausing</div>
-    ),
-  }),
-);
-
-vi.mock(
-  '@/features/orgs/projects/common/components/ApplicationPausedBanner',
-  () => ({
-    ApplicationPausedBanner: () => (
-      <div data-testid="appBanner">Application Banner</div>
     ),
   }),
 );
@@ -196,10 +169,7 @@ describe('ProjectViewWithState', () => {
 
     expect(await screen.findByText('Application content')).toBeInTheDocument();
 
-    expect(screen.queryByText('Application Restoring')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Unknown')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Unpausing')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Banner')).not.toBeInTheDocument();
   });
 
   it('should render the application when the state is live', async () => {
@@ -210,10 +180,7 @@ describe('ProjectViewWithState', () => {
 
     expect(await screen.findByText('Application content')).toBeInTheDocument();
 
-    expect(screen.queryByText('Application Restoring')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Unknown')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Unpausing')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Banner')).not.toBeInTheDocument();
   });
 
   it('should render the application when the state is migrating', async () => {
@@ -226,10 +193,7 @@ describe('ProjectViewWithState', () => {
 
     expect(await screen.findByText('Application content')).toBeInTheDocument();
 
-    expect(screen.queryByText('Application Restoring')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Unknown')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Unpausing')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Banner')).not.toBeInTheDocument();
   });
 
   it('should render the application in an error state', async () => {
@@ -242,10 +206,7 @@ describe('ProjectViewWithState', () => {
 
     expect(await screen.findByText(/Error deploying/)).toBeInTheDocument();
 
-    expect(screen.queryByText('Application Restoring')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Unknown')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Unpausing')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Banner')).not.toBeInTheDocument();
   });
 
   it('should render the application in restoring state with overlay', async () => {
