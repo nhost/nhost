@@ -262,6 +262,36 @@ describe('filtersToWhere', () => {
     });
   });
 
+  describe('invalid operators', () => {
+    it('should ignore filters with invalid operators', () => {
+      const filters = [
+        {
+          column: 'name',
+          op: 'INVALID_OP' as DataGridFilter['op'],
+          value: '',
+          id: 'id',
+        },
+      ];
+      expect(filtersToWhere(filters)).toBe('');
+    });
+
+    it('should keep valid filters and discard invalid ones', () => {
+      const filters = [
+        { column: 'age', op: '>' as const, value: '18', id: 'id1' },
+        {
+          column: 'name',
+          op: 'NOT_A_REAL_OP' as DataGridFilter['op'],
+          value: '',
+          id: 'id2',
+        },
+        { column: 'status', op: '=' as const, value: 'active', id: 'id3' },
+      ];
+      expect(filtersToWhere(filters)).toBe(
+        "WHERE age > '18' AND status = 'active'",
+      );
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle IN with empty array', () => {
       const filters: DataGridFilter[] = [

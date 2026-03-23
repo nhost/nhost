@@ -44,6 +44,10 @@ export const operators = [
 
 export type DataGridFilterOperator = (typeof operators)[number]['op'];
 
+export const validOperators: Set<string> = new Set(
+  operators.map((o) => o.op),
+);
+
 export function getAvailableOperators(
   dataType?: string,
 ): readonly { op: DataGridFilterOperator; label: string }[] {

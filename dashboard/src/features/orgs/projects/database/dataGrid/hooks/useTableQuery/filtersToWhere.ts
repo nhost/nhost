@@ -1,5 +1,6 @@
 import { format } from 'node-pg-format';
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import { validOperators } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { isEmptyValue } from '@/lib/utils';
 
 export function filtersToWhere(filters?: DataGridFilter[]): string {
@@ -7,7 +8,15 @@ export function filtersToWhere(filters?: DataGridFilter[]): string {
     return '';
   }
 
-  const whereClauses = filters!.map((filter) => {
+  const validFilters = filters!.filter((filter) =>
+    validOperators.has(filter.op),
+  );
+
+  if (validFilters.length === 0) {
+    return '';
+  }
+
+  const whereClauses = validFilters.map((filter) => {
     const { column, op, value } = filter;
     if (['IN', 'NOT IN'].includes(op)) {
       const values = value.split(',');
