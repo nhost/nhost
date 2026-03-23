@@ -5,9 +5,12 @@ ifndef POSTGRES_VERSION
 POSTGRES_VERSION=18
 endif
 
-# Prepend PG version to VERSION if not already present
+# Resolve full PostgreSQL version (e.g., 18 -> 18.3) from the nix overlay.
+POSTGRES_FULL_VERSION := $(shell grep -A2 'postgresql_$(POSTGRES_VERSION) =' $(ROOT_DIR)/nixops/overlays/postgres.nix | grep -oP 'version = "\K[^"]+')
+
+# Prepend full PG version to VERSION if not already present
 ifeq (,$(findstring $(POSTGRES_VERSION),$(VERSION)))
-VERSION:=$(POSTGRES_VERSION)-$(VERSION)
+VERSION:=$(POSTGRES_FULL_VERSION)-$(VERSION)
 endif
 
 
