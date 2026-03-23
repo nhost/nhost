@@ -3,7 +3,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { RetryableErrorCard } from '@/components/presentational/RetryableErrorCard';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -58,13 +57,10 @@ export default function AssistantsPage() {
     },
     skip: isFileStoreSupported === null || fileStoreLoading,
   });
-  const {
-    data: fileStoresData,
-    error: fileStoresError,
-    refetch: fileStoresRefetch,
-  } = useGetGraphiteFileStoresQuery({
-    client: adminClient,
-  });
+  const { data: fileStoresData, error: fileStoresError } =
+    useGetGraphiteFileStoresQuery({
+      client: adminClient,
+    });
 
   const assistants = useMemo(
     () => assistantsData?.graphite?.assistants || [],
@@ -143,15 +139,7 @@ export default function AssistantsPage() {
   }
 
   if (assistantsError || fileStoresError) {
-    return (
-      <RetryableErrorCard
-        title="Failed to load assistants"
-        errorMessage={assistantsError?.message || fileStoresError?.message}
-        onRetry={async () => {
-          await Promise.all([assistantsRefetch(), fileStoresRefetch()]);
-        }}
-      />
-    );
+    throw assistantsError || fileStoresError;
   }
 
   if (assistants.length === 0 && !assistantsLoading) {
@@ -216,7 +204,9 @@ AssistantsPage.getLayout = function getLayout(page: ReactElement) {
       mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
     >
       <AISidebar className="w-full max-w-sidebar" />
-      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      <div className="w-full overflow-auto">
+        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      </div>
     </OrgLayout>
   );
 };

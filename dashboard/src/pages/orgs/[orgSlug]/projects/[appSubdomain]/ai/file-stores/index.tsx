@@ -2,7 +2,6 @@ import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { RetryableErrorCard } from '@/components/presentational/RetryableErrorCard';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -114,13 +113,7 @@ export default function FileStoresPage() {
   }
 
   if (error) {
-    return (
-      <RetryableErrorCard
-        title="Failed to load file stores"
-        errorMessage={error.message}
-        onRetry={refetch}
-      />
-    );
+    throw error;
   }
 
   if (fileStores.length === 0 && !loading) {
@@ -195,7 +188,9 @@ FileStoresPage.getLayout = function getLayout(page: ReactElement) {
       mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
     >
       <AISidebar className="w-full max-w-sidebar" />
-      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      <div className="w-full overflow-auto">
+        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      </div>
     </OrgLayout>
   );
 };

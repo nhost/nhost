@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
-import { RetryableErrorCard } from '@/components/presentational/RetryableErrorCard';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -261,13 +260,7 @@ export default function OAuth2ClientsPage() {
   }
 
   if (clientsError) {
-    return (
-      <RetryableErrorCard
-        title="Failed to load OAuth2 clients"
-        errorMessage={clientsError?.message}
-        onRetry={refetchClients}
-      />
-    );
+    throw clientsError;
   }
 
   const clients = clientsData?.authOauth2Clients ?? [];

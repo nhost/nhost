@@ -5,7 +5,6 @@ import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { RetryableErrorCard } from '@/components/presentational/RetryableErrorCard';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -132,13 +131,7 @@ export default function AutoEmbeddingsPage() {
   }
 
   if (error) {
-    return (
-      <RetryableErrorCard
-        title="Failed to load auto-embeddings"
-        errorMessage={error.message}
-        onRetry={refetch}
-      />
-    );
+    throw error;
   }
 
   if (autoEmbeddingsConfigurations.length === 0 && !loading) {
@@ -237,7 +230,9 @@ AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
       mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
     >
       <AISidebar className="w-full max-w-sidebar" />
-      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      <div className="w-full overflow-auto">
+        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      </div>
     </OrgLayout>
   );
 };
