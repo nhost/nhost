@@ -136,11 +136,6 @@ func getConfig(cmd *cli.Command) (*config.Config, error) {
 	cfg, err := config.Load(configPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			fmt.Println( //nolint:forbidigo
-				"No config file found, using default configuration. " +
-					"Run `nhost mcp config` to customize.",
-			)
-
 			return config.DefaultConfig(), nil
 		}
 
