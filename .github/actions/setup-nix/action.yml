@@ -29,4 +29,15 @@ runs:
           keep-env-derivations = true
           keep-outputs = true
 
+    - name: "Verify nixops is cached"
+      if: ${{ inputs.NAME != 'nixops' }}
+      shell: bash
+      run: |
+        ARCH=$([ "$(uname -m)" = "x86_64" ] && echo "x86_64" || echo "aarch64")
+        output=$(nix build --dry-run .\#packages.$ARCH-linux.nixops 2>&1)
+        if echo "$output" | grep -q "will be built"; then
+          echo "$output"
+          echo "::error::nixops needs to be rebuilt — build and cache nixops first"
+          exit 1
+        fi
 
