@@ -58,10 +58,13 @@ export default function AssistantsPage() {
     },
     skip: isFileStoreSupported === null || fileStoreLoading,
   });
-  const { data: fileStoresData, error: fileStoresError } =
-    useGetGraphiteFileStoresQuery({
-      client: adminClient,
-    });
+  const {
+    data: fileStoresData,
+    error: fileStoresError,
+    refetch: fileStoresRefetch,
+  } = useGetGraphiteFileStoresQuery({
+    client: adminClient,
+  });
 
   const assistants = useMemo(
     () => assistantsData?.graphite?.assistants || [],
@@ -144,7 +147,9 @@ export default function AssistantsPage() {
       <RetryableErrorCard
         title="Failed to load assistants"
         errorMessage={assistantsError?.message || fileStoresError?.message}
-        onRetry={assistantsRefetch}
+        onRetry={async () => {
+          await Promise.all([assistantsRefetch(), fileStoresRefetch()]);
+        }}
       />
     );
   }
