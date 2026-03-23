@@ -4,6 +4,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { DatabaseAllowedCIDRs } from '@/features/orgs/projects/database/settings/components/DatabaseAllowedCIDRs';
 import { DatabaseConnectionInfo } from '@/features/orgs/projects/database/settings/components/DatabaseConnectionInfo';
 import { DatabasePiTRSettings } from '@/features/orgs/projects/database/settings/components/DatabasePiTRSettings';
 import { DatabaseServiceVersionSettings } from '@/features/orgs/projects/database/settings/components/DatabaseServiceVersionSettings';
@@ -50,6 +51,7 @@ export default function DatabaseSettingsPage() {
         <>
           <DatabasePiTRSettings />
           <DatabaseConnectionInfo />
+          <DatabaseAllowedCIDRs />
           <ResetDatabasePasswordSettings />
         </>
       )}

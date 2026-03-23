@@ -11,6 +11,14 @@ on:
       VERSION:
         type: string
         required: true
+      ENV:
+        type: string
+        required: false
+        default: ''
+      ARTIFACT_SUFFIX:
+        type: string
+        required: false
+        default: ''
 
     secrets:
       DOCKER_USERNAME:
@@ -32,6 +40,11 @@ jobs:
         working-directory: ${{ inputs.PATH }}
 
     steps:
+      - name: "Set custom env"
+        if: ${{ inputs.ENV != '' }}
+        run: echo "${{ inputs.ENV }}" >> $GITHUB_ENV
+        working-directory: .
+
       - name: "Check out repository"
         uses: actions/checkout@v6
         with:
@@ -66,7 +79,7 @@ jobs:
 
           for ARCH in "x86_64" "aarch64"; do
             skopeo copy --insecure-policy \
-              dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image-$ARCH-$VERSION \
+              dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-$ARCH-$VERSION \
               docker://$CONTAINER_NAME:$VERSION-$ARCH
           done
 

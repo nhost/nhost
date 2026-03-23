@@ -545,6 +545,7 @@ type ComplexityRoot struct {
 	}
 
 	ConfigPostgresResources struct {
+		AllowedCIDRs       func(childComplexity int) int
 		Compute            func(childComplexity int) int
 		EnablePublicAccess func(childComplexity int) int
 		Replicas           func(childComplexity int) int
@@ -2444,6 +2445,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ConfigPostgresPitr.Retention(childComplexity), true
 
+	case "ConfigPostgresResources.allowedCIDRs":
+		if e.complexity.ConfigPostgresResources.AllowedCIDRs == nil {
+			break
+		}
+
+		return e.complexity.ConfigPostgresResources.AllowedCIDRs(childComplexity), true
 	case "ConfigPostgresResources.compute":
 		if e.complexity.ConfigPostgresResources.Compute == nil {
 			break
@@ -7145,6 +7152,13 @@ type ConfigPostgresResources {
 
     """
     enablePublicAccess: Boolean
+    """
+    CIDR prefixes for IP-based access control.
+    When set, only connections from these CIDRs are allowed.
+    When unset, all IPs are allowed.
+    Only effective when enablePublicAccess is true.
+    """
+    allowedCIDRs: [String!]
 }
 
 input ConfigPostgresResourcesUpdateInput {
@@ -7152,6 +7166,7 @@ input ConfigPostgresResourcesUpdateInput {
     storage: ConfigPostgresResourcesStorageUpdateInput
     replicas: Int
     enablePublicAccess: Boolean
+        allowedCIDRs: [String!]
 }
 
 input ConfigPostgresResourcesInsertInput {
@@ -7159,6 +7174,7 @@ input ConfigPostgresResourcesInsertInput {
     storage: ConfigPostgresResourcesStorageInsertInput!
     replicas: Int
     enablePublicAccess: Boolean
+        allowedCIDRs: [String!]
 }
 
 input ConfigPostgresResourcesComparisonExp {
@@ -7169,6 +7185,7 @@ input ConfigPostgresResourcesComparisonExp {
     storage: ConfigPostgresResourcesStorageComparisonExp
     replicas: ConfigIntComparisonExp
     enablePublicAccess: ConfigBooleanComparisonExp
+    allowedCIDRs: ConfigStringComparisonExp
 }
 
 """
@@ -17985,6 +18002,8 @@ func (ec *executionContext) fieldContext_ConfigPostgres_resources(_ context.Cont
 				return ec.fieldContext_ConfigPostgresResources_replicas(ctx, field)
 			case "enablePublicAccess":
 				return ec.fieldContext_ConfigPostgresResources_enablePublicAccess(ctx, field)
+			case "allowedCIDRs":
+				return ec.fieldContext_ConfigPostgresResources_allowedCIDRs(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigPostgresResources", field.Name)
 		},
@@ -18252,6 +18271,35 @@ func (ec *executionContext) fieldContext_ConfigPostgresResources_enablePublicAcc
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigPostgresResources_allowedCIDRs(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresResources) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigPostgresResources_allowedCIDRs,
+		func(ctx context.Context) (any, error) {
+			return obj.AllowedCIDRs, nil
+		},
+		nil,
+		ec.marshalOString2ᚕstringᚄ,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigPostgresResources_allowedCIDRs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigPostgresResources",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -32960,7 +33008,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "storage", "replicas", "enablePublicAccess"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "storage", "replicas", "enablePublicAccess", "allowedCIDRs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -33016,6 +33064,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(c
 				return it, err
 			}
 			it.EnablePublicAccess = data
+		case "allowedCIDRs":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowedCIDRs"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AllowedCIDRs = data
 		}
 	}
 
@@ -33029,7 +33084,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"compute", "storage", "replicas", "enablePublicAccess"}
+	fieldsInOrder := [...]string{"compute", "storage", "replicas", "enablePublicAccess", "allowedCIDRs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -33064,6 +33119,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 				return it, err
 			}
 			it.EnablePublicAccess = data
+		case "allowedCIDRs":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowedCIDRs"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AllowedCIDRs = data
 		}
 	}
 
@@ -39851,6 +39913,8 @@ func (ec *executionContext) _ConfigPostgresResources(ctx context.Context, sel as
 			out.Values[i] = ec._ConfigPostgresResources_replicas(ctx, field, obj)
 		case "enablePublicAccess":
 			out.Values[i] = ec._ConfigPostgresResources_enablePublicAccess(ctx, field, obj)
+		case "allowedCIDRs":
+			out.Values[i] = ec._ConfigPostgresResources_allowedCIDRs(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

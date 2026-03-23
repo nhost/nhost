@@ -204,8 +204,8 @@ var Microsoft = oauth2.Endpoint{
 //
 // Documentation: https://developers.naver.com/docs/login/devguide/devguide.md
 var Naver = oauth2.Endpoint{
-	AuthURL:  "https://nid.naver.com/oauth2/authorize",
-	TokenURL: "https://nid.naver.com/oauth2/token",
+	AuthURL:  "https://nid.naver.com/oauth2.0/authorize",
+	TokenURL: "https://nid.naver.com/oauth2.0/token",
 }
 
 // NokiaHealth is the endpoint for Nokia Health.
