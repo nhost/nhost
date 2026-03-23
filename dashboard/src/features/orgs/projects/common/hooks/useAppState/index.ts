@@ -1,1 +1,1 @@
-export { default as useAppState, useIsProjectReady } from './useAppState';
+export { default as useAppState } from './useAppState';

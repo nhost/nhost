@@ -1,6 +1,6 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { useIsProjectReady } from '@/features/orgs/projects/common/hooks/useAppState';
+import { useIsProjectReady } from '@/features/orgs/projects/common/hooks/useIsProjectReady';
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
