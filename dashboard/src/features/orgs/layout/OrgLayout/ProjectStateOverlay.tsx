@@ -2,7 +2,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
 import { Dialog, DialogClose, DialogTitle } from '@/components/ui/v3/dialog';
@@ -50,12 +50,12 @@ export default function ProjectStateOverlay({
   variant: ProjectStateOverlayVariant;
 }) {
   const { route } = useRouter();
-  const [lastRoute, setLastRoute] = useState(route);
+  const lastRouteRef = useRef(route);
   const [dismissed, setDismissed] = useState(false);
   const { state } = useAppState();
 
-  if (route !== lastRoute) {
-    setLastRoute(route);
+  if (route !== lastRouteRef.current) {
+    lastRouteRef.current = route;
     setDismissed(false);
   }
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
