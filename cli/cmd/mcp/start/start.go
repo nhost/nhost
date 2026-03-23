@@ -140,6 +140,7 @@ func getConfig(cmd *cli.Command) (*config.Config, error) {
 		}
 
 		fmt.Println("Please, run `nhost mcp config` to configure the service.") //nolint:forbidigo
+
 		return nil, cli.Exit("failed to load config file "+err.Error(), 1)
 	}
 
