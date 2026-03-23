@@ -201,7 +201,9 @@ export default function AssistantsPage() {
 AssistantsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
-      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+      mainContainerProps={{
+        className: 'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
+      }}
     >
       <AISidebar className="w-full max-w-sidebar" />
       <div className="w-full overflow-auto">
