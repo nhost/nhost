@@ -8,6 +8,39 @@ import { Card, CardGroup } from '@components';
 
 Nhost Auth is a ready-to-use authentication service seamlessly integrated with the [GraphQL API](/products/graphql) and its [Permission System](/products/graphql/permissions) from Hasura. This allows you to easily add user authentication to your application without having to build and maintain your own authentication system.
 
+## Sign In
+
+Use the Nhost SDK to sign in users. For example, with email and password:
+
+```js
+await nhost.auth.signIn({
+  email: 'user@example.com',
+  password: 's3cr3t',
+});
+```
+
+## Sign Out
+
+To sign out the current user and invalidate their session:
+
+```js
+await nhost.auth.signOut();
+```
+
+## Sessions and Token Refresh
+
+After a successful sign-in, Nhost Auth returns a **session** containing:
+
+- **Access token** - A short-lived JWT (default: 15 minutes) used to authenticate requests to the [GraphQL API](/products/graphql) and [Storage](/products/storage)
+- **Refresh token** - A long-lived token (default: 30 days) used to obtain new access tokens
+
+The session is typically handled by the client middleware or an authentication provider depending on the framework used. Refer to the quickstart guide for your framework for more details.
+However, you can refresh tokens with the SDK::
+
+```js
+await nhost.auth.refreshToken({ refreshToken });
+```
+
 ## Supported Methods
 
 <CardGroup cols={4}>
@@ -28,32 +61,6 @@ Nhost Auth is a ready-to-use authentication service seamlessly integrated with t
   <Card title="OAuth2 / OIDC Provider" icon="key" href="/products/auth/oauth2-provider">
   </Card>
 </CardGroup>
-
-## Sessions and Token Refresh
-
-After a successful sign-in, Nhost Auth returns a **session** containing:
-
-- **Access token** - A short-lived JWT (default: 15 minutes) used to authenticate requests to the [GraphQL API](/products/graphql) and [Storage](/products/storage)
-- **Refresh token** - A long-lived token (default: 30 days) used to obtain new access tokens
-
-The Nhost SDK automatically refreshes the access token before it expires. You can also refresh tokens manually:
-
-```js
-await nhost.auth.refreshToken({ refreshToken });
-```
-
-### Token Refresh Flow
-
-```mermaid
-sequenceDiagram
-	autonumber
-	actor C as Client
-	participant A as Nhost Auth
-	C->>+A: POST /token
-	Note right of C: refreshToken
-	A->>A: Validate and rotate refresh token
-	A->>-C: New access token + new refresh token
-```
 
 ### OAuth Providers
 

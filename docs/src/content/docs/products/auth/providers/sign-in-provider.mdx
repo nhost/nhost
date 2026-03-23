@@ -10,7 +10,7 @@ sidebar:
 
 ## Overview
 
-Nhost supports OAuth 2.0 authentication with various social providers including GitHub, Google, Apple, Discord, and more. This guide explains the OAuth sign-in flow and how to implement it using [PKCE](/products/auth/sign-in-email-password#pkce).
+Nhost supports OAuth 2.0 authentication with various social providers including GitHub, Google, Apple, Discord, and more. This guide explains the OAuth sign-in flow and how to implement it using [PKCE](/products/auth/pkce).
 
 ## OAuth Sign-In Flow
 
@@ -87,7 +87,7 @@ After successful authentication, Nhost redirects back to your `redirectTo` URL w
 https://your-app.com/verify?code=abc123...
 ```
 
-Exchange this code for a session using the stored PKCE verifier. See [Handling the Verification Redirect](/products/auth/sign-in-email-password#handling-the-verification-redirect) for the complete implementation.
+Exchange this code for a session using the stored PKCE verifier. See [Handling the Verification Redirect](/products/auth/pkce#handling-the-verification-redirect) for the complete implementation.
 
 ```tsx
 const params = new URLSearchParams(location.search);

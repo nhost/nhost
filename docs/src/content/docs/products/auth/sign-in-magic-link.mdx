@@ -12,7 +12,7 @@ Magic Links are disabled by default and can be enabled using the Nhost Dashboard
 
 ## Sign In
 
-To sign in users with a Magic Link, use `signInPasswordlessEmail` with an email and a `codeChallenge` for [PKCE](/products/auth/sign-in-email-password#pkce):
+To sign in users with a Magic Link, use `signInPasswordlessEmail` with an email and a `codeChallenge` for [PKCE](/products/auth/pkce):
 
 ```js
 import { generatePKCEPair } from '@nhost/nhost-js/auth';
@@ -29,7 +29,7 @@ await nhost.auth.signInPasswordlessEmail({
 });
 ```
 
-After the user clicks the magic link in their email, they'll be redirected to your app with an authorization code. See [Handling the Verification Redirect](/products/auth/sign-in-email-password#handling-the-verification-redirect) to exchange the code for a session.
+After the user clicks the magic link in their email, they'll be redirected to your app with an authorization code. See [Handling the Verification Redirect](/products/auth/pkce#handling-the-verification-redirect) to exchange the code for a session.
 
 :::note
 A user account is created the first time a Magic Link is used.

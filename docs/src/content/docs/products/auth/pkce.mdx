@@ -1,0 +1,98 @@
+---
+title: PKCE and Verification Redirects
+description: Learn how PKCE secures email verification, password reset, email change, and OAuth flows by preventing authorization code interception.
+keywords: ["PKCE", "code challenge", "code verifier", "token exchange", "verification redirect", "authorization code", "security"]
+sidebar:
+  label: PKCE
+---
+
+PKCE (Proof Key for Code Exchange, [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)) prevents authorization code interception attacks. Instead of including a refresh token directly in a redirect URL, the server returns an authorization code that can only be exchanged by presenting the original code verifier.
+
+PKCE is used across multiple authentication flows:
+
+- [Email/password sign-up](/products/auth/sign-in-email-password) (when email verification is enabled)
+- [Magic links](/products/auth/sign-in-magic-link)
+- [Password reset](/products/auth/sign-in-email-password#password-reset)
+- [Email change](/products/auth/sign-in-email-password#change-email)
+- [WebAuthn](/products/auth/webauthn)
+- [Anonymous deanonymization](/products/auth/sign-in-anonymous#deanonymization)
+- [OAuth providers](/products/auth/providers/sign-in-provider)
+
+## How It Works
+
+1. The client generates a random `codeVerifier` and derives a `codeChallenge` using SHA-256
+2. The `codeChallenge` is sent with the initial authentication request
+3. When the user completes verification (clicks an email link, completes OAuth), the server returns an authorization `code`
+4. The client exchanges the `code` + original `codeVerifier` via `POST /token/exchange`
+5. The server validates that `SHA256(codeVerifier) == storedCodeChallenge` and returns a session
+
+Authorization codes are single-use and expire after 5 minutes.
+
+## Generating a PKCE Pair
+
+The JavaScript SDK provides a helper for generating PKCE pairs:
+
+```js
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
+
+const { verifier, challenge } = await generatePKCEPair();
+```
+
+:::note
+The `codeVerifier` must be stored somewhere that persists across browser navigations (e.g., `localStorage`) since the user may be redirected away (to an email link or OAuth provider) before returning to your app.
+:::
+
+## Handling the Verification Redirect
+
+Email verification links and OAuth callbacks redirect to your app with a `code` query parameter. Your verification page must exchange this code for a session using the stored PKCE verifier.
+
+```tsx
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { nhost } from './lib/nhost';
+
+export default function Verify() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [status, setStatus] = useState('verifying');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+
+    if (!code) {
+      setStatus('error');
+      setError('No authorization code found in URL');
+      return;
+    }
+
+    async function exchangeCode() {
+      // Retrieve and consume the stored verifier
+      const codeVerifier = localStorage.getItem('nhost_pkce_verifier');
+      localStorage.removeItem('nhost_pkce_verifier');
+
+      if (!codeVerifier) {
+        setStatus('error');
+        setError(
+          'No PKCE verifier found. The flow must be initiated from the same browser.',
+        );
+        return;
+      }
+
+      try {
+        await nhost.auth.tokenExchange({ code, codeVerifier });
+        setStatus('success');
+        navigate('/profile');
+      } catch (err) {
+        setStatus('error');
+        setError(`Verification failed: ${err.message}`);
+      }
+    }
+
+    exchangeCode();
+  }, [location.search, navigate]);
+
+  // Render based on status...
+}
+```

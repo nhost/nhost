@@ -26,10 +26,12 @@ Once MFA is enabled for your project, individual users can activate it on their 
 Request a TOTP secret and QR code for the user to scan with their authenticator app:
 
 ```js
-const { totpSecret, imageUrl } = await nhost.auth.changeUserMfa();
+const response = await nhost.auth.changeUserMfa();
 
 // Display the QR code image for the user to scan
+const imageUrl = response.body.imageUrl;
 // Or show the totpSecret for manual entry
+const totpSecret = response.body.totpSecret;
 ```
 
 ### Step 2: Verify and Activate

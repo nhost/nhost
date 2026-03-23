@@ -352,12 +352,14 @@ export default defineConfig({
                     { slug: 'products/auth/sign-in-sms-otp' },
                     { slug: 'products/auth/webauthn' },
                     { slug: 'products/auth/mfa' },
+                    { slug: 'products/auth/sign-in-anonymous' },
                   ],
                 },
                 {
                   label: 'Security',
                   collapsed: false,
                   items: [
+                    { slug: 'products/auth/pkce' },
                     { slug: 'products/auth/elevated-permissions' },
                     { slug: 'products/auth/bot-protection' },
                     { slug: 'products/auth/custom-jwts' },

@@ -72,29 +72,3 @@ The user enters the OTP code received via email:
 :::note
 A user account is created the first time an email is used with OTP.
 :::
-
-### Sign In Flow
-
-```mermaid
-sequenceDiagram
-	autonumber
-	actor U as User
-	participant C as Client
-	participant A as Nhost Auth
-	participant E as SMTP Server
-	U->>C: Enter email
-	C->>+A: POST /signin/passwordless/email-otp
-	Note right of C: email
-	opt No user found
-		A->>A: Create user
-	end
-	A->>A: Generate OTP (expires in 5 min)
-	A-)E: Send OTP email
-	A->>-C: OK
-	E-)U: Receive OTP via email
-	U->>C: Enter OTP code
-	C->>+A: POST /signin/passwordless/email-otp/verify
-	Note right of C: email + OTP code
-	A->>A: Verify OTP
-	A->>-C: Session (access + refresh tokens)
-```

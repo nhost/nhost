@@ -26,7 +26,7 @@ You need to make sure you also set a valid client URL under **Settings -> Authen
 
 ## Sign Up
 
-Users must use an email address to sign up with a security key. When email verification is enabled, pass a `codeChallenge` for [PKCE](/products/auth/sign-in-email-password#pkce):
+Users must use an email address to sign up with a security key. When email verification is enabled, pass a `codeChallenge` for [PKCE](/products/auth/pkce):
 
 ```tsx
 import { generatePKCEPair } from '@nhost/nhost-js/auth';
@@ -57,7 +57,7 @@ await nhost.auth.verifySignUpWebauthn({
 });
 ```
 
-If email verification is required, the user will receive a verification email. After clicking the link, the authorization code is [exchanged for a session](/products/auth/sign-in-email-password#handling-the-verification-redirect).
+If email verification is required, the user will receive a verification email. After clicking the link, the authorization code is [exchanged for a session](/products/auth/pkce#handling-the-verification-redirect).
 
 ### Sign Up Flow
 
