@@ -2,7 +2,9 @@ package start
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/nhost/nhost/cli/clienv"
@@ -133,6 +135,15 @@ func getConfig(cmd *cli.Command) (*config.Config, error) {
 
 	cfg, err := config.Load(configPath)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Println( //nolint:forbidigo
+				"No config file found, using default configuration. " +
+					"Run `nhost mcp config` to customize.",
+			)
+
+			return config.DefaultConfig(), nil
+		}
+
 		fmt.Println("Please, run `nhost mcp config` to configure the service.") //nolint:forbidigo
 		return nil, cli.Exit("failed to load config file "+err.Error(), 1)
 	}
