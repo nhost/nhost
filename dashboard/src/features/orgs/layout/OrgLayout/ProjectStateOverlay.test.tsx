@@ -24,22 +24,18 @@ vi.mock('next/router', () => ({
 
 vi.mock('next/image', () => ({
   __esModule: true,
+  // biome-ignore lint/a11y/useAltText: test mock
+  // biome-ignore lint/performance/noImgElement: test mock
   default: (props: Record<string, unknown>) => <img {...props} />,
 }));
 
-vi.mock(
-  '@/features/orgs/projects/common/hooks/useAppState',
-  () => ({
-    useAppState: mocks.useAppState,
-  }),
-);
+vi.mock('@/features/orgs/projects/common/hooks/useAppState', () => ({
+  useAppState: mocks.useAppState,
+}));
 
-vi.mock(
-  '@/features/orgs/projects/common/hooks/useAppPausedReason',
-  () => ({
-    useAppPausedReason: mocks.useAppPausedReason,
-  }),
-);
+vi.mock('@/features/orgs/projects/common/hooks/useAppPausedReason', () => ({
+  useAppPausedReason: mocks.useAppPausedReason,
+}));
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: mocks.useProject,
@@ -137,7 +133,9 @@ describe('ProjectStateOverlay', () => {
       setupDefaultMocks({ route: overlayRoute });
       render(<ProjectStateOverlay variant="paused" />);
       expect(
-        screen.getByText('This project is paused. Unpause to make this available.'),
+        screen.getByText(
+          'This project is paused. Unpause to make this available.',
+        ),
       ).toBeInTheDocument();
     });
   });
@@ -147,7 +145,9 @@ describe('ProjectStateOverlay', () => {
       setupDefaultMocks();
       render(<ProjectStateOverlay variant="paused" />);
       expect(
-        screen.getByText('This project is paused. Unpause to make this available.'),
+        screen.getByText(
+          'This project is paused. Unpause to make this available.',
+        ),
       ).toBeInTheDocument();
     });
 
@@ -191,7 +191,9 @@ describe('ProjectStateOverlay', () => {
       render(<ProjectStateOverlay variant="paused" />);
 
       expect(
-        screen.getByText('This project is paused. Unpause to make this available.'),
+        screen.getByText(
+          'This project is paused. Unpause to make this available.',
+        ),
       ).toBeInTheDocument();
 
       const closeButton = screen.getByRole('button', { name: 'Close' });
@@ -209,9 +211,7 @@ describe('ProjectStateOverlay', () => {
     it('should re-show the overlay after a route change', async () => {
       setupDefaultMocks({ route: overlayRoute });
       const user = new TestUserEvent();
-      const { rerender } = render(
-        <ProjectStateOverlay variant="paused" />,
-      );
+      const { rerender } = render(<ProjectStateOverlay variant="paused" />);
 
       const closeButton = screen.getByRole('button', { name: 'Close' });
       await user.click(closeButton);
@@ -224,14 +224,15 @@ describe('ProjectStateOverlay', () => {
         ).not.toBeInTheDocument();
       });
 
-      const newRoute =
-        '/orgs/[orgSlug]/projects/[appSubdomain]/database';
+      const newRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/database';
       mocks.useRouter.mockReturnValue(getRouterMock(newRoute));
 
       rerender(<ProjectStateOverlay variant="paused" />);
 
       expect(
-        screen.getByText('This project is paused. Unpause to make this available.'),
+        screen.getByText(
+          'This project is paused. Unpause to make this available.',
+        ),
       ).toBeInTheDocument();
     });
   });
