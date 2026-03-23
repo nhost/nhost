@@ -1,88 +1,87 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
-import { useAuth } from "./lib/nhost/AuthProvider";
-import { commonStyles } from "./styles/commonStyles";
-import { colors } from "./styles/theme";
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from './lib/nhost/AuthProvider';
+import { commonStyles } from './styles/commonStyles';
+import { colors } from './styles/theme';
+
+const PKCE_VERIFIER_KEY = 'nhost_pkce_verifier';
+
+function consumePKCEVerifier(): string | null {
+  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
+  if (verifier) {
+    localStorage.removeItem(PKCE_VERIFIER_KEY);
+  }
+  return verifier;
+}
 
 export default function Verify() {
   const params = useLocalSearchParams();
 
-  const [status, setStatus] = useState<"verifying" | "success" | "error">(
-    "verifying",
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(
+    'verifying',
   );
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>('');
   const [urlParams, setUrlParams] = useState<Record<string, string>>({});
 
   const { nhost } = useAuth();
 
   useEffect(() => {
-    // Extract the refresh token from the URL
-    const refreshToken = params.refreshToken as string;
+    const code = params.code as string;
 
-    if (!refreshToken) {
-      // Collect all URL parameters to display for debugging
+    if (!code) {
       const allParams: Record<string, string> = {};
       Object.entries(params).forEach(([key, value]) => {
-        if (typeof value === "string") {
+        if (typeof value === 'string') {
           allParams[key] = value;
         }
       });
       setUrlParams(allParams);
 
-      setStatus("error");
-      setError("No refresh token found in URL");
+      setStatus('error');
+      setError('No authorization code found in URL');
       return;
     }
 
-    // Flag to handle component unmounting during async operations
+    const authCode = code;
     let isMounted = true;
 
-    async function processToken(): Promise<void> {
+    async function exchangeCode(): Promise<void> {
       try {
-        // First display the verifying message for at least a moment
+        // Small delay to ensure component is fully mounted
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         if (!isMounted) return;
 
-        if (!refreshToken) {
-          // Collect all URL parameters to display
-          const allParams: Record<string, string> = {};
-          Object.entries(params).forEach(([key, value]) => {
-            if (typeof value === "string") {
-              allParams[key] = value;
-            }
-          });
-          setUrlParams(allParams);
-
-          setStatus("error");
-          setError("No refresh token found in URL");
+        const codeVerifier = consumePKCEVerifier();
+        if (!codeVerifier) {
+          setStatus('error');
+          setError(
+            'No PKCE verifier found. The sign-in must be initiated from the same browser tab.',
+          );
           return;
         }
 
-        // Process the token
-        await nhost.auth.refreshToken({ refreshToken });
+        await nhost.auth.tokenExchange({ code: authCode, codeVerifier });
 
         if (!isMounted) return;
 
-        setStatus("success");
+        setStatus('success');
 
-        // Wait to show success message briefly, then redirect
         setTimeout(() => {
-          if (isMounted) router.replace("/profile");
+          if (isMounted) router.replace('/profile');
         }, 1500);
       } catch (err) {
-        const message = (err as Error).message || "Unknown error";
+        const message = (err as Error).message || 'Unknown error';
         if (!isMounted) return;
 
-        setStatus("error");
+        setStatus('error');
         setError(`An error occurred during verification: ${message}`);
       }
     }
 
-    processToken();
+    exchangeCode();
 
-    // Cleanup function
     return () => {
       isMounted = false;
     };
@@ -93,7 +92,7 @@ export default function Verify() {
       <Text style={commonStyles.title}>Email Verification</Text>
 
       <View style={commonStyles.card}>
-        {status === "verifying" && (
+        {status === 'verifying' && (
           <View style={commonStyles.alignCenter}>
             <Text style={[commonStyles.bodyText, commonStyles.marginBottom]}>
               Verifying your email...
@@ -102,7 +101,7 @@ export default function Verify() {
           </View>
         )}
 
-        {status === "success" && (
+        {status === 'success' && (
           <View style={commonStyles.alignCenter}>
             <Text style={commonStyles.successText}>
               ✓ Successfully verified!
@@ -113,7 +112,7 @@ export default function Verify() {
           </View>
         )}
 
-        {status === "error" && (
+        {status === 'error' && (
           <View style={commonStyles.alignCenter}>
             <Text style={commonStyles.errorText}>Verification failed</Text>
             <Text style={[commonStyles.bodyText, commonStyles.marginBottom]}>
@@ -134,7 +133,7 @@ export default function Verify() {
 
             <TouchableOpacity
               style={[commonStyles.button, commonStyles.fullWidth]}
-              onPress={() => router.replace("/signin")}
+              onPress={() => router.replace('/signin')}
             >
               <Text style={commonStyles.buttonText}>Back to Sign In</Text>
             </TouchableOpacity>
