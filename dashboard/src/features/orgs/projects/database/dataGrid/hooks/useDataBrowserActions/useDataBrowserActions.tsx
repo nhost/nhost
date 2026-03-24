@@ -232,7 +232,6 @@ export function useDataBrowserActions({
   function handleEditPermission(
     schema: string,
     table: string,
-    disabled?: boolean,
     objectType?: DatabaseObjectType,
     updatability?: number,
   ) {
@@ -254,7 +253,6 @@ export function useDataBrowserActions({
       ),
       component: (
         <EditPermissionsForm
-          disabled={disabled}
           schema={schema}
           table={table}
           objectType={objectType}
@@ -269,26 +267,16 @@ export function useDataBrowserActions({
     });
   }
 
-  function handleEditGraphQLSettings(
-    schema: string,
-    table: string,
-    disabled?: boolean,
-  ) {
+  function handleEditGraphQLSettings(schema: string, table: string) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
-          {disabled ? 'View GraphQL settings for' : 'Edit GraphQL settings for'}
+          Edit GraphQL settings for
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
           table
         </span>
       ),
-      component: (
-        <EditGraphQLSettingsForm
-          disabled={disabled}
-          schema={schema}
-          tableName={table}
-        />
-      ),
+      component: <EditGraphQLSettingsForm schema={schema} tableName={table} />,
       props: {
         PaperProps: {
           className: 'overflow-hidden ',
@@ -351,20 +339,10 @@ export function useDataBrowserActions({
     });
   }
 
-  function handleEditRelationships(
-    schema: string,
-    table: string,
-    disabled?: boolean,
-  ) {
+  function handleEditRelationships(schema: string, table: string) {
     openDrawer({
-      title: `${disabled ? 'View' : 'Edit'} Relationships`,
-      component: (
-        <EditRelationshipsForm
-          schema={schema}
-          table={table}
-          disabled={disabled}
-        />
-      ),
+      title: 'Edit Relationships',
+      component: <EditRelationshipsForm schema={schema} table={table} />,
       props: {
         PaperProps: {
           className: 'overflow-hidden',

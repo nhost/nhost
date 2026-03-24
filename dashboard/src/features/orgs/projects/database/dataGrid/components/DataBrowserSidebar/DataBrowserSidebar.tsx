@@ -275,7 +275,6 @@ function DataBrowserSidebarContent({
                                 handleEditPermission(
                                   databaseObject.schema,
                                   databaseObject.name,
-                                  undefined,
                                   databaseObject.objectType,
                                   databaseObject.updatability,
                                 )
@@ -298,7 +297,6 @@ function DataBrowserSidebarContent({
                                 handleEditGraphQLSettings(
                                   databaseObject.schema,
                                   databaseObject.name,
-                                  false,
                                 )
                               }
                               onEditRelationships={() =>
