@@ -20,7 +20,7 @@ import type {
   DataBrowserGridCellProps,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { copy } from '@/utils/copy';
 import { triggerToast } from '@/utils/toast';
