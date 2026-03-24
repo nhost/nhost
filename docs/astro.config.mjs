@@ -347,12 +347,18 @@ export default defineConfig({
                       ],
                     },
                     { slug: 'products/auth/sign-in-email-password' },
-                    { slug: 'products/auth/sign-in-otp' },
-                    { slug: 'products/auth/sign-in-magic-link' },
-                    { slug: 'products/auth/sign-in-sms-otp' },
-                    { slug: 'products/auth/webauthn' },
                     { slug: 'products/auth/mfa' },
+                    {
+                      label: 'One-Time Passwords',
+                      collapsed: true,
+                      items: [
+                        { slug: 'products/auth/otp/email' },
+                        { slug: 'products/auth/otp/sms' },
+                      ],
+                    },
+                    { slug: 'products/auth/sign-in-magic-link' },
                     { slug: 'products/auth/sign-in-anonymous' },
+                    { slug: 'products/auth/webauthn' },
                   ],
                 },
                 {

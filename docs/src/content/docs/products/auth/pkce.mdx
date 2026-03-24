@@ -44,9 +44,9 @@ The `codeVerifier` must be stored somewhere that persists across browser navigat
 
 ## Handling the Verification Redirect
 
-Email verification links and OAuth callbacks redirect to your app with a `code` query parameter. Your verification page must exchange this code for a session using the stored PKCE verifier.
+Email verification links and OAuth callbacks redirect to your app with a `code` query parameter. Your verification page must exchange this code for a session using the stored PKCE verifier. Below you can find an example page for React:
 
-```tsx
+```tsx showLineNumbers
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { nhost } from './lib/nhost';
@@ -96,3 +96,5 @@ export default function Verify() {
   // Render based on status...
 }
 ```
+
+Check our [tutorials](/getting-started/) for more detailed examples.
