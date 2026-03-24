@@ -100,11 +100,7 @@ export default function RowPermissionsSection({
       ) : null}
 
       {rowCheckType === 'custom' && (
-        <CustomCheckEditor
-          name="filter"
-          schema={schema}
-          table={table}
-        />
+        <CustomCheckEditor name="filter" schema={schema} table={table} />
       )}
 
       {action === 'select' && (

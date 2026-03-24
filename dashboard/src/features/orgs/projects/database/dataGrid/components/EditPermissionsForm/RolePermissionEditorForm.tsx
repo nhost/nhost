@@ -402,10 +402,7 @@ export default function RolePermissionEditorForm({
           )}
 
           {(action === 'insert' || action === 'update') && (
-            <ColumnPresetsSection
-              schema={schema}
-              table={table}
-            />
+            <ColumnPresetsSection schema={schema} table={table} />
           )}
 
           {action !== 'select' && <BackendOnlySection />}
