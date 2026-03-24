@@ -32,7 +32,13 @@ import RootFieldPermissionsSection from './sections/RootFieldPermissionsSection'
 import RowPermissionsSection from './sections/RowPermissionsSection';
 import validationSchemas from './validationSchemas';
 
+export type RowCheckType = 'none' | 'custom';
+
 export interface RolePermissionEditorFormValues {
+  /**
+   * Whether custom row checks are enabled.
+   */
+  rowCheckType: RowCheckType;
   /**
    * The permission filter to be applied for the role.
    */
@@ -111,21 +117,29 @@ export interface RolePermissionEditorFormProps extends DialogFormProps {
   permission?: HasuraMetadataPermission['permission'];
 }
 
-function getDefaultCustomCheck(
+function getDefaultFilter(
   action: DatabaseAction,
   permission?: HasuraMetadataPermission['permission'],
-): GroupNode | null {
+): { rowCheckType: RowCheckType; filter: RolePermissionEditorFormValues['filter'] } {
   if (!permission) {
-    return null;
+    return { rowCheckType: 'none', filter: {} };
   }
 
   if (action === 'insert' && isNotEmptyValue(permission.check)) {
-    return wrapPermissionsInAGroup(permission.check);
+    return {
+      rowCheckType: 'custom',
+      filter: wrapPermissionsInAGroup(permission.check),
+    };
   }
 
-  return isNotEmptyValue(permission.filter)
-    ? wrapPermissionsInAGroup(permission.filter)
-    : null;
+  if (isNotEmptyValue(permission.filter)) {
+    return {
+      rowCheckType: 'custom',
+      filter: wrapPermissionsInAGroup(permission.filter),
+    };
+  }
+
+  return { rowCheckType: 'none', filter: {} };
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
@@ -190,10 +204,14 @@ export default function RolePermissionEditorForm({
     },
   });
 
+  const { rowCheckType: defaultRowCheckType, filter: defaultFilter } =
+    getDefaultFilter(action, permission);
+
   const form = useForm<RolePermissionEditorFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      filter: getDefaultCustomCheck(action, permission),
+      rowCheckType: defaultRowCheckType,
+      filter: defaultFilter,
       columns: permission?.columns || [],
       limit: permission?.limit || null,
       allowAggregations: permission?.allow_aggregations || false,
@@ -222,6 +240,11 @@ export default function RolePermissionEditorForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(values: RolePermissionEditorFormValues) {
+    const permissionFilter =
+      values.rowCheckType === 'custom'
+        ? unWrapRuleNodes(values.filter as GroupNode)
+        : values.filter ?? {};
+
     const managePermissionPromise = managePermission({
       role,
       action,
@@ -239,18 +262,8 @@ export default function RolePermissionEditorForm({
         subscription_root_fields: isNotEmptyValue(values.subscriptionRootFields)
           ? values.subscriptionRootFields
           : null,
-        filter:
-          action !== 'insert'
-            ? values.filter
-              ? unWrapRuleNodes(values.filter as GroupNode)
-              : {}
-            : permission?.filter,
-        check:
-          action === 'insert'
-            ? values.filter
-              ? unWrapRuleNodes(values.filter as GroupNode)
-              : {}
-            : permission?.check,
+        filter: action !== 'insert' ? permissionFilter : permission?.filter,
+        check: action === 'insert' ? permissionFilter : permission?.check,
         backend_only: values.backendOnly,
         computed_fields: isNotEmptyValue(permission?.computed_fields)
           ? permission?.computed_fields
