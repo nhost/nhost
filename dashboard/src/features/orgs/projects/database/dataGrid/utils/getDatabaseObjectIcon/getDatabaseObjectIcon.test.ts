@@ -35,4 +35,8 @@ describe('getDatabaseObjectIcon', () => {
   test('should return Table2 for ordinary non-enum tables', () => {
     expect(getDatabaseObjectIcon('ORDINARY TABLE', false)).toBe(Table2);
   });
+
+  test('should return ScanEye for VIEW even when isEnum is true', () => {
+    expect(getDatabaseObjectIcon('VIEW', true)).toBe(ScanEye);
+  });
 });

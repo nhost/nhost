@@ -89,12 +89,13 @@ export default async function fetchFunctionDefinition({
               (SELECT COALESCE(json_agg(json_build_object(
                 'name', pt.typname,
                 'schema', pns.nspname,
-                'display_type', format_type(pat.oid, NULL)
+                'display_type', format_type(pat.oid, NULL),
+                'arg_name', p.proargnames[pat.ordinality::int]
                ) ORDER BY pat.ordinality), '[]'::json)
                FROM unnest(COALESCE(p.proallargtypes, p.proargtypes::oid[])) WITH ORDINALITY pat(oid, ordinality)
                LEFT JOIN pg_type pt ON pt.oid = pat.oid
-               LEFT JOIN pg_namespace pns ON pt.typnamespace = pns.oid) as input_arg_types,
-              to_json(COALESCE(p.proargnames, ARRAY[]::text[])) as input_arg_names,
+               LEFT JOIN pg_namespace pns ON pt.typnamespace = pns.oid
+               WHERE COALESCE(p.proargmodes[pat.ordinality::int], 'i') IN ('i', 'b', 'v')) as input_arg_types,
               p.pronargdefaults as default_args_count,
               CASE
                 WHEN rt.typrelid != 0 THEN
@@ -165,18 +166,16 @@ export default async function fetchFunctionDefinition({
     name: string;
     schema: string;
     display_type: string;
+    arg_name: string | null;
   }> = result.input_arg_types || [];
-  const inputArgNames: string[] = result.input_arg_names || [];
   const defaultArgsCount: number = result.default_args_count || 0;
 
-  const parameters: FunctionParameter[] = inputArgTypes.map(
-    (argType, index) => ({
-      name: inputArgNames[index] || null,
-      type: argType.name,
-      displayType: argType.display_type,
-      schema: argType.schema,
-    }),
-  );
+  const parameters: FunctionParameter[] = inputArgTypes.map((argType) => ({
+    name: argType.arg_name || null,
+    type: argType.name,
+    displayType: argType.display_type,
+    schema: argType.schema,
+  }));
 
   const functionMetadata = result.function_name
     ? {
