@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -30,6 +31,14 @@ import { isVersionGte } from '@/utils/compareVersions';
 const ELEMENTS_PER_PAGE = 25;
 
 export default function OAuth2ClientsPage() {
+  return (
+    <RetryableErrorBoundary>
+      <OAuth2ClientsPageContent />
+    </RetryableErrorBoundary>
+  );
+}
+
+function OAuth2ClientsPageContent() {
   const { openDrawer } = useDialog();
   const { project } = useProject();
   const isPlatform = useIsPlatform();

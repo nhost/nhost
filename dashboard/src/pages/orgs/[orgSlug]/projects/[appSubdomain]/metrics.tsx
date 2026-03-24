@@ -2,6 +2,7 @@ import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -17,6 +18,14 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { copy } from '@/utils/copy';
 
 export default function MetricsPage() {
+  return (
+    <RetryableErrorBoundary>
+      <MetricsPageContent />
+    </RetryableErrorBoundary>
+  );
+}
+
+function MetricsPageContent() {
   const { org, loading: loadingOrg, error: orgError } = useCurrentOrg();
   const {
     project,

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -29,6 +30,14 @@ export type RemoteAppUser = Exclude<
 >;
 
 export default function UsersPage() {
+  return (
+    <RetryableErrorBoundary>
+      <UsersPageContent />
+    </RetryableErrorBoundary>
+  );
+}
+
+function UsersPageContent() {
   const { openDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');

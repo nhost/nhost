@@ -2,6 +2,7 @@ import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
@@ -19,6 +20,14 @@ import { copy } from '@/utils/copy';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function HasuraPage() {
+  return (
+    <RetryableErrorBoundary>
+      <HasuraPageContent />
+    </RetryableErrorBoundary>
+  );
+}
+
+function HasuraPageContent() {
   const { project, loading, error } = useProject();
   const isPlatform = useIsPlatform();
 
