@@ -78,10 +78,6 @@ export interface RolePermissionEditorFormValues {
 
 export interface RolePermissionEditorFormProps extends DialogFormProps {
   /**
-   * Determines whether or not the form is disabled.
-   */
-  disabled?: boolean;
-  /**
    * The schema that is being edited.
    */
   schema: string;
@@ -176,7 +172,6 @@ export default function RolePermissionEditorForm({
   onSubmit,
   onCancel,
   permission,
-  disabled,
   location,
 }: RolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
@@ -384,7 +379,6 @@ export default function RolePermissionEditorForm({
           </PermissionSettingsSection>
 
           <RowPermissionsSection
-            disabled={disabled}
             role={role}
             action={action}
             schema={schema}
@@ -393,7 +387,6 @@ export default function RolePermissionEditorForm({
 
           {action !== 'delete' && (
             <ColumnPermissionsSection
-              disabled={disabled}
               role={role}
               action={action}
               schema={schema}
@@ -403,8 +396,8 @@ export default function RolePermissionEditorForm({
 
           {action === 'select' && (
             <>
-              <AggregationQuerySection role={role} disabled={disabled} />
-              <RootFieldPermissionsSection disabled={disabled} />
+              <AggregationQuerySection role={role} />
+              <RootFieldPermissionsSection />
             </>
           )}
 
@@ -412,11 +405,10 @@ export default function RolePermissionEditorForm({
             <ColumnPresetsSection
               schema={schema}
               table={table}
-              disabled={disabled}
             />
           )}
 
-          {action !== 'select' && <BackendOnlySection disabled={disabled} />}
+          {action !== 'select' && <BackendOnlySection />}
         </div>
 
         <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
@@ -429,29 +421,27 @@ export default function RolePermissionEditorForm({
             Cancel
           </Button>
 
-          {!disabled && (
-            <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
-              {Boolean(permission) && (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={handleDeleteClick}
-                  disabled={isPending}
-                >
-                  Delete Permissions
-                </Button>
-              )}
-
+          <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
+            {Boolean(permission) && (
               <Button
-                loading={isSubmitting}
-                disabled={isSubmitting}
-                type="submit"
-                className="justify-self-end"
+                variant="outlined"
+                color="error"
+                onClick={handleDeleteClick}
+                disabled={isPending}
               >
-                Save
+                Delete Permissions
               </Button>
-            </Box>
-          )}
+            )}
+
+            <Button
+              loading={isSubmitting}
+              disabled={isSubmitting}
+              type="submit"
+              className="justify-self-end"
+            >
+              Save
+            </Button>
+          </Box>
         </Box>
       </Form>
     </FormProvider>

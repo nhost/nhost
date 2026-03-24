@@ -28,10 +28,6 @@ import type {
 
 interface AddSuggestedRelationshipDialogProps {
   /**
-   * Whether the trigger button is disabled.
-   */
-  disabled?: boolean;
-  /**
    * Source where the relationship will be created.
    *
    * @default 'default'
@@ -62,7 +58,6 @@ const validationSchema = z.object({
 });
 
 export default function AddSuggestedRelationshipDialog({
-  disabled,
   source = 'default',
   schema,
   tableName,
@@ -198,7 +193,7 @@ export default function AddSuggestedRelationshipDialog({
 
   return (
     <>
-      <Button size="sm" onClick={() => setOpen(true)} disabled={disabled}>
+      <Button size="sm" onClick={() => setOpen(true)}>
         Add
       </Button>
       <Dialog open={open} onOpenChange={handleClose}>
