@@ -1,8 +1,8 @@
+import { SiGithub } from '@icons-pack/react-simple-icons';
 import { Box, Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import ProjectStatus from '@/components/layout/Header/ProjectStatus';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -94,7 +94,7 @@ export default function ProjectsComboBox() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="flex items-center">
-                        <GitHubIcon className="h-3.5 w-3.5" />
+                        <SiGithub className="h-3.5 w-3.5" />
                       </span>
                     </TooltipTrigger>
                     <TooltipContent
@@ -145,7 +145,7 @@ export default function ProjectsComboBox() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="ml-auto flex shrink-0 items-center">
-                              <GitHubIcon className="h-3.5 w-3.5" />
+                              <SiGithub className="h-3.5 w-3.5" />
                             </span>
                           </TooltipTrigger>
                           <TooltipContent

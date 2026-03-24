@@ -22,17 +22,12 @@ export interface EditGraphQLSettingsFormProps {
    * Table's name that is being edited/viewed.
    */
   tableName: string;
-  /**
-   * Whether the form is disabled, if true, the form will be read-only.
-   */
-  disabled?: boolean;
 }
 
 export default function EditGraphQLSettingsForm({
   onCancel,
   schema,
   tableName,
-  disabled,
 }: EditGraphQLSettingsFormProps) {
   const { query } = useRouter();
   const { dataSourceSlug } = query;
@@ -80,23 +75,22 @@ export default function EditGraphQLSettingsForm({
           isTracked={isTracked}
           isPending={isTrackingPending}
           onTrackToggle={handleTrackToggle}
-          disabled={disabled}
         />
 
         <ColumnsNameCustomizationSection
-          disabled={disabled || isTrackingPending}
+          disabled={isTrackingPending}
           isUntracked={isUntracked}
           schema={schema}
           tableName={tableName}
         />
         <CustomGraphQLRootFieldsSection
-          disabled={disabled || isTrackingPending}
+          disabled={isTrackingPending}
           isUntracked={isUntracked}
           schema={schema}
           tableName={tableName}
         />
         <SetIsEnumSection
-          disabled={disabled || isTrackingPending}
+          disabled={isTrackingPending}
           isUntracked={isUntracked}
           schema={schema}
           tableName={tableName}
