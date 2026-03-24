@@ -941,7 +941,10 @@ export interface SignInPATRequest {
     *    Example - `"john.smith@nhost.io"`
     *    Format - email
  @property options? (`SignUpOptions`) - 
- @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.*/
+ @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43*/
 export interface SignInPasswordlessEmailRequest {
   /**
    * A valid email
@@ -955,6 +958,9 @@ export interface SignInPasswordlessEmailRequest {
   options?: SignUpOptions;
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+   *    Pattern - ^[A-Za-z0-9_-]{43}$
+   *    MinLength - 43
+   *    MaxLength - 43
    */
   codeChallenge?: string;
 }
@@ -1066,7 +1072,10 @@ export interface SignOutRequest {
     *    MinLength - 3
     *    MaxLength - 50
  @property options? (`SignUpOptions`) - 
- @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.*/
+ @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43*/
 export interface SignUpEmailPasswordRequest {
   /**
    * Email address for the new user account
@@ -1087,6 +1096,9 @@ export interface SignUpEmailPasswordRequest {
   options?: SignUpOptions;
   /**
    * PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+   *    Pattern - ^[A-Za-z0-9_-]{43}$
+   *    MinLength - 43
+   *    MaxLength - 43
    */
   codeChallenge?: string;
 }
@@ -1172,7 +1184,10 @@ export interface SignUpWebauthnRequest {
  @property credential (`CredentialCreationResponse`) - 
  @property options? (`SignUpOptions`) - 
  @property nickname? (`string`) - Nickname for the security key
- @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.*/
+ @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43*/
 export interface SignUpWebauthnVerifyRequest {
   /**
    *
@@ -1188,6 +1203,9 @@ export interface SignUpWebauthnVerifyRequest {
   nickname?: string;
   /**
    * PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+   *    Pattern - ^[A-Za-z0-9_-]{43}$
+   *    MinLength - 43
+   *    MaxLength - 43
    */
   codeChallenge?: string;
 }
@@ -1365,7 +1383,10 @@ export type UserDeanonymizeRequestSignInMethod =
     *    MaxLength - 50
  @property connection? (`string`) - Deprecated, will be ignored
  @property options? (`SignUpOptions`) - 
- @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.*/
+ @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43*/
 export interface UserDeanonymizeRequest {
   /**
    * Which sign-in method to use
@@ -1394,6 +1415,9 @@ export interface UserDeanonymizeRequest {
   options?: SignUpOptions;
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+   *    Pattern - ^[A-Za-z0-9_-]{43}$
+   *    MinLength - 43
+   *    MaxLength - 43
    */
   codeChallenge?: string;
 }
@@ -1404,7 +1428,10 @@ export interface UserDeanonymizeRequest {
     *    Example - `"john.smith@nhost.io"`
     *    Format - email
  @property options? (`OptionsRedirectTo`) - 
- @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.*/
+ @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43*/
 export interface UserEmailChangeRequest {
   /**
    * A valid email
@@ -1418,6 +1445,9 @@ export interface UserEmailChangeRequest {
   options?: OptionsRedirectTo;
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+   *    Pattern - ^[A-Za-z0-9_-]{43}$
+   *    MinLength - 43
+   *    MaxLength - 43
    */
   codeChallenge?: string;
 }
@@ -1428,7 +1458,10 @@ export interface UserEmailChangeRequest {
     *    Example - `"john.smith@nhost.io"`
     *    Format - email
  @property options? (`OptionsRedirectTo`) - 
- @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.*/
+ @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43*/
 export interface UserEmailSendVerificationEmailRequest {
   /**
    * A valid email
@@ -1442,6 +1475,9 @@ export interface UserEmailSendVerificationEmailRequest {
   options?: OptionsRedirectTo;
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+   *    Pattern - ^[A-Za-z0-9_-]{43}$
+   *    MinLength - 43
+   *    MaxLength - 43
    */
   codeChallenge?: string;
 }
@@ -1519,7 +1555,10 @@ export interface UserPasswordRequest {
     *    Example - `"john.smith@nhost.io"`
     *    Format - email
  @property options? (`OptionsRedirectTo`) - 
- @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.*/
+ @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43*/
 export interface UserPasswordResetRequest {
   /**
    * A valid email
@@ -1533,6 +1572,9 @@ export interface UserPasswordResetRequest {
   options?: OptionsRedirectTo;
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+   *    Pattern - ^[A-Za-z0-9_-]{43}$
+   *    MinLength - 43
+   *    MaxLength - 43
    */
   codeChallenge?: string;
 }

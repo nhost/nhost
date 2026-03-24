@@ -3269,10 +3269,13 @@ User authentication session containing tokens and user information
 #### codeChallenge?
 
 ```ts
-optional codeChallenge: string;
+optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### email
 
@@ -3395,7 +3398,7 @@ Array of allowed roles for the user
 #### codeChallenge?
 
 ```ts
-optional codeChallenge: string;
+optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
@@ -3537,10 +3540,13 @@ Request to register a new user with email and password
 #### codeChallenge?
 
 ```ts
-optional codeChallenge: string;
+optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### email
 
@@ -3663,10 +3669,13 @@ optional options?: SignUpOptions;
 #### codeChallenge?
 
 ```ts
-optional codeChallenge: string;
+optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### credential
 
@@ -3903,10 +3912,13 @@ roles: string[];
 #### codeChallenge?
 
 ```ts
-optional codeChallenge: string;
+optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### connection?
 
@@ -3961,10 +3973,13 @@ signInMethod: UserDeanonymizeRequestSignInMethod
 #### codeChallenge?
 
 ```ts
-optional codeChallenge: string;
+optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### newEmail
 
@@ -3992,10 +4007,13 @@ optional options?: OptionsRedirectTo;
 #### codeChallenge?
 
 ```ts
-optional codeChallenge: string;
+optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### email
 
@@ -4107,10 +4125,13 @@ Pattern - ^passwordReset\:.\*$
 #### codeChallenge?
 
 ```ts
-optional codeChallenge: string;
+optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### email
 
@@ -4186,7 +4207,7 @@ Parameters for the verifyTicket method.
 #### codeChallenge?
 
 ```ts
-optional codeChallenge: string;
+optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When present, the redirect will contain an authorization code instead of a refresh token.
