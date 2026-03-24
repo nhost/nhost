@@ -28,11 +28,11 @@ const textOperators = [
 ] as const;
 
 const jsonbOperators = [
-  { op: '@>', label: 'contains (jsonb)' },
-  { op: '<@', label: 'contained in (jsonb)' },
-  { op: '?', label: 'has key (jsonb)' },
-  { op: '?|', label: 'has any keys (jsonb)' },
-  { op: '?&', label: 'has all keys (jsonb)' },
+  { op: '@>', label: 'contains' },
+  { op: '<@', label: 'contained in' },
+  { op: '?', label: 'has key' },
+  { op: '?|', label: 'has any keys' },
+  { op: '?&', label: 'has all keys' },
 ] as const;
 
 export const operators = [
