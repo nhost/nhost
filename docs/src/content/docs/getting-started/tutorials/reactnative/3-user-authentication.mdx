@@ -190,6 +190,7 @@ export default function SignIn() {
 Implement user registration with email verification flow. This screen collects user information, creates accounts, and guides users through the email verification process.
 
 ```tsx title="app/signup.tsx" showLineNumbers
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { generatePKCEPair } from "@nhost/nhost-js/auth";
 import * as Linking from "expo-linking";
 import { Link, router } from "expo-router";
@@ -233,7 +234,7 @@ export default function SignUp() {
     try {
       // Generate PKCE pair and store verifier for email verification
       const { verifier, challenge } = await generatePKCEPair();
-      localStorage.setItem("nhost_pkce_verifier", verifier);
+      await AsyncStorage.setItem("nhost_pkce_verifier", verifier);
 
       const response = await nhost.auth.signUpEmailPassword({
         email,
@@ -373,6 +374,7 @@ export default function SignUp() {
 Build a dedicated verification screen that exchanges authorization codes for sessions using PKCE. This screen handles the verification flow when users click the email verification link.
 
 ```tsx title="app/verify.tsx" showLineNumbers
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
@@ -382,10 +384,10 @@ import { colors } from "./styles/theme";
 
 const PKCE_VERIFIER_KEY = "nhost_pkce_verifier";
 
-function consumePKCEVerifier(): string | null {
-  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
+async function consumePKCEVerifier(): Promise<string | null> {
+  const verifier = await AsyncStorage.getItem(PKCE_VERIFIER_KEY);
   if (verifier) {
-    localStorage.removeItem(PKCE_VERIFIER_KEY);
+    await AsyncStorage.removeItem(PKCE_VERIFIER_KEY);
   }
   return verifier;
 }
@@ -428,7 +430,7 @@ export default function Verify() {
 
         if (!isMounted) return;
 
-        const codeVerifier = consumePKCEVerifier();
+        const codeVerifier = await consumePKCEVerifier();
         if (!codeVerifier) {
           setStatus("error");
           setError(

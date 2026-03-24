@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generatePKCEPair } from '@nhost/nhost-js/auth';
 import * as Linking from 'expo-linking';
 import { Link, router } from 'expo-router';
@@ -41,7 +42,7 @@ export default function SignUp() {
     try {
       // Generate PKCE pair and store verifier for email verification
       const { verifier, challenge } = await generatePKCEPair();
-      localStorage.setItem('nhost_pkce_verifier', verifier);
+      await AsyncStorage.setItem('nhost_pkce_verifier', verifier);
 
       const response = await nhost.auth.signUpEmailPassword({
         email,

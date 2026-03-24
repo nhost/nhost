@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
@@ -7,10 +8,10 @@ import { colors } from './styles/theme';
 
 const PKCE_VERIFIER_KEY = 'nhost_pkce_verifier';
 
-function consumePKCEVerifier(): string | null {
-  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
+async function consumePKCEVerifier(): Promise<string | null> {
+  const verifier = await AsyncStorage.getItem(PKCE_VERIFIER_KEY);
   if (verifier) {
-    localStorage.removeItem(PKCE_VERIFIER_KEY);
+    await AsyncStorage.removeItem(PKCE_VERIFIER_KEY);
   }
   return verifier;
 }
@@ -53,7 +54,7 @@ export default function Verify() {
 
         if (!isMounted) return;
 
-        const codeVerifier = consumePKCEVerifier();
+        const codeVerifier = await consumePKCEVerifier();
         if (!codeVerifier) {
           setStatus('error');
           setError(
