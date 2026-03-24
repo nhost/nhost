@@ -1,0 +1,209 @@
+---
+interface Props {
+  title: string;
+  body: string;
+}
+
+const { title, body } = Astro.props;
+
+const markdown = `# ${title}\n\n${body}`;
+---
+
+<div class="copy-page-wrapper" data-markdown={markdown}>
+  <button class="copy-page-btn" type="button" aria-expanded="false" aria-haspopup="true">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+    <span class="copy-page-label">Copy page</span>
+    <svg class="copy-page-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
+      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  <div class="copy-page-dropdown">
+    <button class="copy-page-option" type="button" data-action="copy">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      <span>Copy as Markdown</span>
+    </button>
+    <button class="copy-page-option" type="button" data-action="view">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+      <span>View as Markdown</span>
+    </button>
+  </div>
+</div>
+
+<style>
+  .copy-page-wrapper {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .copy-page-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.625rem;
+    background: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sl-color-accent) 40%, transparent);
+    border-radius: 0.375rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+
+  .copy-page-btn:hover {
+    background: color-mix(in srgb, var(--sl-color-accent) 15%, transparent);
+    border-color: color-mix(in srgb, var(--sl-color-accent) 60%, transparent);
+    color: var(--sl-color-text-accent);
+  }
+
+  .copy-page-arrow {
+    transition: transform 0.2s;
+  }
+
+  .copy-page-wrapper.open .copy-page-arrow {
+    transform: rotate(180deg);
+  }
+
+  .copy-page-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 180px;
+    padding: 0.25rem 0;
+    background: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-hairline-light);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
+    z-index: 100;
+  }
+
+  .copy-page-wrapper.open .copy-page-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .copy-page-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background: none;
+    border: none;
+    color: var(--sl-color-gray-3);
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+
+  .copy-page-option:hover {
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-1);
+  }
+</style>
+
+<script>
+  let controller: AbortController;
+
+  function initCopyPageButtons() {
+    controller?.abort();
+    controller = new AbortController();
+    const { signal } = controller;
+
+    document.querySelectorAll<HTMLDivElement>('.copy-page-wrapper').forEach((wrapper) => {
+      const btn = wrapper.querySelector<HTMLButtonElement>('.copy-page-btn');
+      const markdown = wrapper.dataset.markdown || '';
+
+      btn?.addEventListener('click', () => {
+        const isOpen = wrapper.classList.contains('open');
+        // Close all other open dropdowns
+        document.querySelectorAll('.copy-page-wrapper.open').forEach((el) => {
+          el.classList.remove('open');
+          el.querySelector('.copy-page-btn')?.setAttribute('aria-expanded', 'false');
+        });
+        if (!isOpen) {
+          wrapper.classList.add('open');
+          btn.setAttribute('aria-expanded', 'true');
+        }
+      });
+
+      wrapper.querySelectorAll<HTMLButtonElement>('.copy-page-option').forEach((option) => {
+        option.addEventListener('click', () => {
+          const action = option.dataset.action;
+
+          if (action === 'copy') {
+            const label = wrapper.querySelector<HTMLSpanElement>('.copy-page-label');
+            navigator.clipboard.writeText(markdown).then(() => {
+              if (label) {
+                const original = label.textContent;
+                label.textContent = 'Copied!';
+                setTimeout(() => {
+                  label.textContent = original;
+                }, 2000);
+              }
+            }).catch(() => {
+              if (label) {
+                const original = label.textContent;
+                label.textContent = 'Failed to copy';
+                setTimeout(() => {
+                  label.textContent = original;
+                }, 2000);
+              }
+            });
+          } else if (action === 'view') {
+            const blob = new Blob([markdown], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            URL.revokeObjectURL(url);
+          }
+
+          wrapper.classList.remove('open');
+          btn?.setAttribute('aria-expanded', 'false');
+        });
+      });
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!(e.target as Element).closest('.copy-page-wrapper')) {
+        document.querySelectorAll('.copy-page-wrapper.open').forEach((el) => {
+          el.classList.remove('open');
+          el.querySelector('.copy-page-btn')?.setAttribute('aria-expanded', 'false');
+        });
+      }
+    }, { signal });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.copy-page-wrapper.open').forEach((el) => {
+          el.classList.remove('open');
+          el.querySelector('.copy-page-btn')?.setAttribute('aria-expanded', 'false');
+        });
+      }
+    }, { signal });
+  }
+
+  // Initialize on page load and after Astro view transitions
+  initCopyPageButtons();
+  document.addEventListener('astro:after-swap', initCopyPageButtons);
+</script>

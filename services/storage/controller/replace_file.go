@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"mime/multipart"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
@@ -23,7 +24,9 @@ type ReplaceFileResponse struct {
 	Error *ErrorResponse `json:"error,omitempty"`
 }
 
-func replaceFileParseRequest(request api.ReplaceFileRequestObject) (fileData, *APIError) {
+func replaceFileParseRequest(
+	request api.ReplaceFileRequestObject,
+) (fileData, *multipart.Form, *APIError) {
 	res := fileData{
 		ID:       request.Id,
 		Name:     "",
@@ -33,15 +36,15 @@ func replaceFileParseRequest(request api.ReplaceFileRequestObject) (fileData, *A
 
 	form, err := request.Body.ReadForm(maxFormMemory)
 	if err != nil {
-		return fileData{}, InternalServerError(
+		return fileData{}, nil, InternalServerError(
 			fmt.Errorf("problem reading multipart form: %w", err),
 		)
 	}
-	defer form.RemoveAll() //nolint:errcheck
 
 	file := form.File["file"]
 	if len(file) != 1 {
-		return fileData{}, ErrMultipartFileWrong
+		form.RemoveAll() //nolint:errcheck
+		return fileData{}, nil, ErrMultipartFileWrong
 	}
 
 	res.header = file[0]
@@ -50,19 +53,21 @@ func replaceFileParseRequest(request api.ReplaceFileRequestObject) (fileData, *A
 	metadata, ok := form.Value["metadata"]
 	if ok {
 		if len(metadata) != len(file) {
-			return fileData{}, ErrMetadataLength
+			form.RemoveAll() //nolint:errcheck
+			return fileData{}, nil, ErrMetadataLength
 		}
 
 		var d replaceFileMetadata
 		if err := json.Unmarshal([]byte(metadata[0]), &d); err != nil {
-			return fileData{}, WrongMetadataFormatError(err)
+			form.RemoveAll() //nolint:errcheck
+			return fileData{}, nil, WrongMetadataFormatError(err)
 		}
 
 		res.Name = d.Name
 		res.Metadata = d.Metadata
 	}
 
-	return res, nil
+	return res, form, nil
 }
 
 func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
@@ -72,11 +77,12 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
-	file, apiErr := replaceFileParseRequest(request)
+	file, form, apiErr := replaceFileParseRequest(request)
 	if apiErr != nil {
 		logger.ErrorContext(ctx, "problem parsing request", slog.String("error", apiErr.Error()))
 		return apiErr, nil
 	}
+	defer form.RemoveAll() //nolint:errcheck
 
 	originalMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
 		ctx, request.Id, false, sessionHeaders,

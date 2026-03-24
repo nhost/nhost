@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
+	"runtime"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -22,6 +23,7 @@ import (
 	"github.com/nhost/nhost/services/storage/image"
 	"github.com/nhost/nhost/services/storage/metadata"
 	"github.com/nhost/nhost/services/storage/middleware"
+	"github.com/nhost/nhost/services/storage/middleware/cdn/cdncachecontrol"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/fastly"
 	"github.com/nhost/nhost/services/storage/migrations"
 	"github.com/nhost/nhost/services/storage/storage"
@@ -52,7 +54,9 @@ const (
 	flagCorsAllowCredentials     = "cors-allow-credentials" //nolint: gosec
 	flagClamavServer             = "clamav-server"
 	flagHasuraDBName             = "hasura-db-name"
+	flagCDNCacheControl          = "cdn-cache-control"
 	flagPprofBind                = "pprof-bind"
+	flagImageTransformerWorkers  = "image-transformer-workers"
 )
 
 func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
@@ -65,10 +69,24 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 			"x-hasura-role",
 		},
 		ExposedHeaders: []string{
-			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
+			"Content-Length", "Content-Type", "Cache-Control", "CDN-Cache-Control", "ETag", "Last-Modified", "X-Error",
 		},
 		AllowCredentials: cmd.Bool(flagCorsAllowCredentials),
 		MaxAge:           "86400",
+	}
+}
+
+func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logger) {
+	if cmd.Bool(flagCDNCacheControl) {
+		logger.InfoContext(context.Background(), "enabling cdn-cache-control middleware")
+		router.Use(cdncachecontrol.New())
+	}
+
+	if cmd.String(flagFastlyService) != "" {
+		logger.InfoContext(context.Background(), "enabling fastly middleware")
+		router.Use(
+			fastly.New(cmd.String(flagFastlyService), cmd.String(flagFastlyKey), logger),
+		)
 	}
 }
 
@@ -112,12 +130,7 @@ func getServer(
 		c.String(http.StatusOK, "ok")
 	})
 
-	if cmd.String(flagFastlyService) != "" {
-		logger.InfoContext(context.Background(), "enabling fastly middleware")
-		router.Use(
-			fastly.New(cmd.String(flagFastlyService), cmd.String(flagFastlyKey), logger),
-		)
-	}
+	configureMiddleware(cmd, router, logger)
 
 	api.RegisterHandlersWithOptions(
 		router,
@@ -344,6 +357,12 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Required: true,
 				Sources:  cli.EnvVars("POSTGRES_MIGRATIONS_SOURCE"),
 			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:     flagCDNCacheControl,
+				Usage:    "Enable CDN-Cache-Control header middleware",
+				Category: "cdn",
+				Sources:  cli.EnvVars("CDN_CACHE_CONTROL"),
+			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagFastlyService,
 				Usage:    "Enable Fastly middleware and enable automated purges",
@@ -380,6 +399,13 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Usage:    "If set, bind pprof and vips debug endpoints to this address. Example: :6060",
 				Category: "debug",
 				Sources:  cli.EnvVars("BIND_PPROF"),
+			},
+			&cli.IntFlag{ //nolint:exhaustruct
+				Name:     flagImageTransformerWorkers,
+				Usage:    "number of concurrent image transformation workers (0 = 2 * GOMAXPROCS)",
+				Value:    0,
+				Category: "server",
+				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_WORKERS"),
 			},
 		},
 		Action: serve,
@@ -419,7 +445,17 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	logFlags(ctx, logger, cmd)
 
-	imageTransformer := image.NewTransformer()
+	imageTransformerWorkers := cmd.Int(flagImageTransformerWorkers)
+	if imageTransformerWorkers <= 0 {
+		imageTransformerWorkers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
+		logger.InfoContext(
+			ctx,
+			"calculating number of image transformer workers based on GOMAXPROCS",
+			slog.Int("workers", imageTransformerWorkers),
+		)
+	}
+
+	imageTransformer := image.NewTransformer(imageTransformerWorkers)
 	defer imageTransformer.Shutdown()
 
 	servCtx, cancel := context.WithCancel(ctx)

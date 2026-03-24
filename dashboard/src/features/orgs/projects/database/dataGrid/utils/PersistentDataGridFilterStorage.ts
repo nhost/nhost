@@ -1,4 +1,5 @@
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import { validOperators } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { isEmptyValue } from '@/lib/utils';
 
 export const DATA_GRID_FILTER_STORAGE_KEY = 'nhost_data_grid_filter_storage';
@@ -15,7 +16,9 @@ function getAllStoredData(): Record<string, DataGridFilter[]> {
 
 export function getDataGridFilters(tablePath: string): DataGridFilter[] {
   const allStoredData = getAllStoredData();
-  return allStoredData[tablePath] ?? [];
+  const filters = allStoredData[tablePath] ?? [];
+
+  return filters.filter((filter) => validOperators.has(filter.op));
 }
 
 export function saveDataGridFilters(

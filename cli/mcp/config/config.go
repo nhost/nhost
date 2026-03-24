@@ -170,6 +170,32 @@ func GetConfigPath(cmd *cli.Command) string {
 	return filepath.Join(ce.Path.DotNhostFolder(), "mcp-nhost.toml")
 }
 
+// DefaultConfig returns a default configuration for local development.
+// It configures a local project with the same defaults the wizard uses.
+// Cloud access is not included as it requires authentication via `nhost login`.
+func DefaultConfig() *Config {
+	adminSecret := "nhost-admin-secret" //nolint:gosec
+
+	return &Config{
+		Cloud: nil,
+		Projects: ProjectList{
+			{
+				Subdomain:      "local",
+				Region:         "local",
+				Description:    "Local development project running via the Nhost CLI",
+				AdminSecret:    &adminSecret,
+				PAT:            nil,
+				ManageMetadata: true,
+				AllowQueries:   []string{"*"},
+				AllowMutations: []string{"*"},
+				GraphqlURL:     "",
+				AuthURL:        "",
+				HasuraURL:      "",
+			},
+		},
+	}
+}
+
 func Load(path string) (*Config, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {

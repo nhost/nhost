@@ -169,7 +169,7 @@
     "tailwindcss": "^3.4.12",
     "ts-node": "^10.9.2",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
-    "undici": "^7.19.2",
+    "undici": "^7.24.0",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^3.2.4"
   },

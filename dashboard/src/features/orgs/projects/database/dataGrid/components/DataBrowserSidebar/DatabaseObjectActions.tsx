@@ -10,7 +10,6 @@ import {
 import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import type { DatabaseObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 
 const menuItemClassName =
@@ -53,11 +52,8 @@ type Props = {
   isSelectedNotSchemaLocked: boolean;
   onEdit: () => void;
   onEditPermissions: () => void;
-  onViewPermissions: () => void;
   onEditGraphQLSettings: () => void;
-  onViewGraphQLSettings: () => void;
   onEditRelationships?: () => void;
-  onViewRelationships?: () => void;
   onDelete: () => void;
 };
 
@@ -74,15 +70,10 @@ function DatabaseObjectActions({
   isSelectedNotSchemaLocked,
   onEdit,
   onEditPermissions,
-  onViewPermissions,
   onEditGraphQLSettings,
-  onViewGraphQLSettings,
   onEditRelationships,
-  onViewRelationships,
   onDelete,
 }: Props) {
-  const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
   const isFunction = objectType === 'FUNCTION';
   const hasPermissions = !isFunction;
   const hasRelationships = !isFunction;
@@ -132,89 +123,52 @@ function DatabaseObjectActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="bottom" align="start" className="w-52 p-0">
-        {isGitHubConnected ? (
-          <>
-            {hasPermissions && (
-              <DropdownMenuItem
-                className={cn(menuItemClassName, {
-                  'italic opacity-50 hover:cursor-default hover:bg-transparent':
-                    !isTracked,
-                })}
-                disabled={!isTracked}
-                onClick={isTracked ? onViewPermissions : undefined}
-              >
-                <Users className="h-4 w-4" /> <span>View Permissions</span>
-              </DropdownMenuItem>
+        {isSelectedNotSchemaLocked && (
+          <DropdownMenuItem className={menuItemClassName} onClick={onEdit}>
+            <SquarePen className="h-4 w-4" /> <span>{editLabel}</span>
+          </DropdownMenuItem>
+        )}
+        {hasPermissions && (
+          <DropdownMenuItem
+            className={cn(menuItemClassName, {
+              'italic opacity-50 hover:cursor-default hover:bg-transparent':
+                !isTracked,
+            })}
+            disabled={!isTracked}
+            onClick={isTracked ? onEditPermissions : undefined}
+          >
+            <Users className="h-4 w-4" /> <span>Edit Permissions</span>
+          </DropdownMenuItem>
+        )}
+        {hasRelationships && (
+          <DropdownMenuItem
+            className={cn(menuItemClassName, {
+              'italic opacity-50 hover:cursor-default hover:bg-transparent':
+                !isTracked,
+            })}
+            disabled={!isTracked}
+            onClick={isTracked ? onEditRelationships : undefined}
+          >
+            <Anchor className="h-4 w-4" /> <span>Edit Relationships</span>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem
+          className={menuItemClassName}
+          onClick={onEditGraphQLSettings}
+        >
+          <GraphQLIcon className="h-4 w-4" /> <span>Edit GraphQL</span>
+        </DropdownMenuItem>
+        {isSelectedNotSchemaLocked && (
+          <DropdownMenuItem
+            className={cn(
+              menuItemClassName,
+              '!text-sm+ !text-destructive font-medium',
             )}
-            {hasRelationships && (
-              <DropdownMenuItem
-                className={cn(menuItemClassName, {
-                  'italic opacity-50 hover:cursor-default hover:bg-transparent':
-                    !isTracked,
-                })}
-                disabled={!isTracked}
-                onClick={isTracked ? onViewRelationships : undefined}
-              >
-                <Anchor className="h-4 w-4" /> <span>View Relationships</span>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem
-              className={menuItemClassName}
-              onClick={onViewGraphQLSettings}
-            >
-              <GraphQLIcon className="h-4 w-4" /> <span>View GraphQL</span>
-            </DropdownMenuItem>
-          </>
-        ) : (
-          <>
-            {isSelectedNotSchemaLocked && (
-              <DropdownMenuItem className={menuItemClassName} onClick={onEdit}>
-                <SquarePen className="h-4 w-4" /> <span>{editLabel}</span>
-              </DropdownMenuItem>
-            )}
-            {hasPermissions && (
-              <DropdownMenuItem
-                className={cn(menuItemClassName, {
-                  'italic opacity-50 hover:cursor-default hover:bg-transparent':
-                    !isTracked,
-                })}
-                disabled={!isTracked}
-                onClick={isTracked ? onEditPermissions : undefined}
-              >
-                <Users className="h-4 w-4" /> <span>Edit Permissions</span>
-              </DropdownMenuItem>
-            )}
-            {hasRelationships && (
-              <DropdownMenuItem
-                className={cn(menuItemClassName, {
-                  'italic opacity-50 hover:cursor-default hover:bg-transparent':
-                    !isTracked,
-                })}
-                disabled={!isTracked}
-                onClick={isTracked ? onEditRelationships : undefined}
-              >
-                <Anchor className="h-4 w-4" /> <span>Edit Relationships</span>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem
-              className={menuItemClassName}
-              onClick={onEditGraphQLSettings}
-            >
-              <GraphQLIcon className="h-4 w-4" /> <span>Edit GraphQL</span>
-            </DropdownMenuItem>
-            {isSelectedNotSchemaLocked && (
-              <DropdownMenuItem
-                className={cn(
-                  menuItemClassName,
-                  '!text-sm+ !text-destructive font-medium',
-                )}
-                onClick={onDelete}
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>{deleteLabel}</span>
-              </DropdownMenuItem>
-            )}
-          </>
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            <span>{deleteLabel}</span>
+          </DropdownMenuItem>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

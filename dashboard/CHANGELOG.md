@@ -1,3 +1,38 @@
+## [@nhost/dashboard@2.54.0] - 2026-03-20
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring allowedCIDRs (#4029)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Filter by project name in the header's projects combobox (#4010)
+
+
+### Chore
+
+- *(deps)* Bump go/jsonparser and next due to CVEs (#4019)
+
+## [@nhost/dashboard@2.53.0] - 2026-03-16
+
+### 🚀 Features
+
+- *(dashboard)* Improve custom check editor (#3931)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up tar version to address security vulnerability audit (#3991)
+- *(dashboard)* Fix select all row button in database page (#3994)
+- *(deps)* Bump up undici to address vulnerability audit (#4004)
+- *(dashboard)* Don't redirect to onboarding or 404 on GraphQL errors (#4005)
+
+
+### Chore
+
+- *(deps)* Bump devalue due to CVE (#4000)
+
 ## [@nhost/dashboard@2.52.0] - 2026-03-08
 
 ### 🚀 Features

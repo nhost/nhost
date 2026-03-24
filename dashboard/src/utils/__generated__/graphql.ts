@@ -2440,6 +2440,13 @@ export type ConfigPostgresPitrUpdateInput = {
 /** Resources for the service */
 export type ConfigPostgresResources = {
   __typename?: 'ConfigPostgresResources';
+  /**
+   * CIDR prefixes for IP-based access control.
+   * When set, only connections from these CIDRs are allowed.
+   * When unset, all IPs are allowed.
+   * Only effective when enablePublicAccess is true.
+   */
+  allowedCIDRs?: Maybe<Array<Scalars['String']>>;
   compute?: Maybe<ConfigResourcesCompute>;
   enablePublicAccess?: Maybe<Scalars['Boolean']>;
   replicas?: Maybe<Scalars['Int']>;
@@ -2450,6 +2457,7 @@ export type ConfigPostgresResourcesComparisonExp = {
   _and?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
   _not?: InputMaybe<ConfigPostgresResourcesComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
+  allowedCIDRs?: InputMaybe<ConfigStringComparisonExp>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
   enablePublicAccess?: InputMaybe<ConfigBooleanComparisonExp>;
   replicas?: InputMaybe<ConfigIntComparisonExp>;
@@ -2457,6 +2465,7 @@ export type ConfigPostgresResourcesComparisonExp = {
 };
 
 export type ConfigPostgresResourcesInsertInput = {
+  allowedCIDRs?: InputMaybe<Array<Scalars['String']>>;
   compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
   replicas?: InputMaybe<Scalars['Int']>;
@@ -2484,6 +2493,7 @@ export type ConfigPostgresResourcesStorageUpdateInput = {
 };
 
 export type ConfigPostgresResourcesUpdateInput = {
+  allowedCIDRs?: InputMaybe<Array<Scalars['String']>>;
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
   replicas?: InputMaybe<Scalars['Int']>;
@@ -29812,7 +29822,7 @@ export type GetPostgresSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } }, pitr?: { __typename?: 'ConfigPostgresPitr', retention?: any | null } | null } } | null };
+export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, allowedCIDRs?: Array<string> | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } }, pitr?: { __typename?: 'ConfigPostgresPitr', retention?: any | null } | null } } | null };
 
 export type ResetDatabasePasswordMutationVariables = Exact<{
   appId: Scalars['String'];
@@ -29860,14 +29870,14 @@ export type GetHasuraRemoteSchemaPermissionsEnabledQueryVariables = Exact<{
 
 export type GetHasuraRemoteSchemaPermissionsEnabledQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', settings?: { __typename?: 'ConfigHasuraSettings', enableRemoteSchemaPermissions?: boolean | null } | null } } | null };
 
-export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null }, postgres: { __typename?: 'ConfigPostgres', resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any }, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } }, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null };
+export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null }, postgres: { __typename?: 'ConfigPostgres', resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, allowedCIDRs?: Array<string> | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any }, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } }, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null };
 
 export type GetResourcesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null }, postgres: { __typename?: 'ConfigPostgres', resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any }, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } }, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null } | null };
+export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null }, postgres: { __typename?: 'ConfigPostgres', resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, allowedCIDRs?: Array<string> | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any }, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } }, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null } | null };
 
 export type GetStorageSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -30083,7 +30093,7 @@ export type UpdateConfigMutationVariables = Exact<{
 }>;
 
 
-export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } } }, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
+export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, allowedCIDRs?: Array<string> | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } } }, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
 
 export type UpdateDatabaseVersionMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -30762,6 +30772,7 @@ export const ServiceResourcesFragmentDoc = gql`
         capacity
       }
       enablePublicAccess
+      allowedCIDRs
       compute {
         cpu
         memory
@@ -31760,6 +31771,7 @@ export const GetPostgresSettingsDocument = gql`
           capacity
         }
         enablePublicAccess
+        allowedCIDRs
       }
       pitr {
         retention
@@ -33542,6 +33554,7 @@ export const UpdateConfigDocument = gql`
           capacity
         }
         enablePublicAccess
+        allowedCIDRs
       }
     }
     ai {

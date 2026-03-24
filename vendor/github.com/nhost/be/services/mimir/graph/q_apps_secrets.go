@@ -6,18 +6,24 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 )
 
-func (r *queryResolver) appsSecrets(_ context.Context) []*model.ConfigAppSecrets {
+func (r *queryResolver) appsSecrets(ctx context.Context) ([]*model.ConfigAppSecrets, error) {
+	if err := r.ensureAllLoaded(ctx); err != nil {
+		return nil, err
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	result := make([]*model.ConfigAppSecrets, len(r.data))
+	result := make([]*model.ConfigAppSecrets, 0, r.store.Len())
 
-	for i, root := range r.data {
-		result[i] = &model.ConfigAppSecrets{
-			AppID:   root.AppID,
-			Secrets: root.Secrets,
-		}
-	}
+	r.store.Range(func(_ string, app *App) bool {
+		result = append(result, &model.ConfigAppSecrets{
+			AppID:   app.AppID,
+			Secrets: app.Secrets,
+		})
 
-	return result
+		return true
+	})
+
+	return result, nil
 }

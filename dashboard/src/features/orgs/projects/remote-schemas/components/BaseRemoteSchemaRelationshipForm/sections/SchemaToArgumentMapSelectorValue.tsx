@@ -30,14 +30,12 @@ export interface SchemaToArgumentMapSelectorValueProps {
   mappingIndex: number;
   currentType: 'sourceTypeField' | 'staticValue' | null;
   sourceFields: { label: string; value: string; type: string }[];
-  disabled?: boolean;
 }
 
 export default function SchemaToArgumentMapSelectorValue({
   mappingIndex,
   currentType,
   sourceFields,
-  disabled,
 }: SchemaToArgumentMapSelectorValueProps) {
   const form = useFormContext<RemoteSchemaRelationshipFormValues>();
 
@@ -58,7 +56,6 @@ export default function SchemaToArgumentMapSelectorValue({
                     <Button
                       variant="outline"
                       role="combobox"
-                      disabled={disabled}
                       className={cn(
                         'w-full justify-between rounded-l-none',
                         !valueField.value && 'text-muted-foreground',
@@ -115,7 +112,6 @@ export default function SchemaToArgumentMapSelectorValue({
                 {...valueField}
                 placeholder="Enter static value"
                 className="rounded-l-none"
-                disabled={disabled}
               />
             </>
           )}
