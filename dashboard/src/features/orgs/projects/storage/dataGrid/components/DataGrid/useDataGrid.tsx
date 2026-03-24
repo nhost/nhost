@@ -117,7 +117,9 @@ export default function useDataGrid<T extends UnknownDataGridRow>({
           className="data-[state=checked]:!border-transparent border-[#21324b] dark:border-[#dfecf5]"
           checked={table.getIsAllRowsSelected()}
           disabled={table.getRowModel().rows.length === 0}
-          onCheckedChange={table.getToggleAllRowsSelectedHandler()}
+          onCheckedChange={(checked) =>
+            table.getToggleAllRowsSelectedHandler()({ target: { checked } })
+          }
           style={{
             cursor:
               table.getRowModel().rows.length === 0 ? 'default' : 'pointer',

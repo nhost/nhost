@@ -655,15 +655,3 @@ export interface Rule {
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   value: any;
 }
-
-/**
- * Represents a rule group. A rule group can contain rules and other rule
- * groups.
- */
-export interface RuleGroup {
-  operator: '_and' | '_or';
-  rules: Rule[];
-  groups: RuleGroup[];
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  unsupported?: Record<string, any>[];
-}

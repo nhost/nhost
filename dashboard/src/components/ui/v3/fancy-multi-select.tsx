@@ -26,6 +26,7 @@ interface FancyMultiSelectProps {
   options?: Option[];
   creatable?: boolean;
   className?: string;
+  disabled?: boolean;
   onChange?: (selected: Option[]) => void;
 }
 
@@ -34,6 +35,7 @@ export function FancyMultiSelect({
   options = [],
   creatable = false,
   className,
+  disabled,
   onChange,
 }: FancyMultiSelectProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +105,7 @@ export function FancyMultiSelect({
       <div
         className={cn(
           'group flex min-h-10 flex-1 rounded-md border bg-background px-4 py-0 text-sm ring-offset-background hover:bg-accent',
+          disabled && 'pointer-events-none opacity-50',
           className,
         )}
       >
@@ -123,7 +126,8 @@ export function FancyMultiSelect({
                 <button
                   type="button"
                   aria-label={`Remove ${option.label}`}
-                  className="ml-1 rounded-full outline-none"
+                  disabled={disabled}
+                  className="ml-1 rounded-full outline-none disabled:pointer-events-none disabled:opacity-30"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       handleUnselect(option);
@@ -147,8 +151,9 @@ export function FancyMultiSelect({
             onValueChange={setInputValue}
             onBlur={() => setOpen(false)}
             onFocus={() => setOpen(true)}
+            disabled={disabled}
             placeholder="Select options..."
-            className="!ring-0 !ring-offset-0 flex flex-1 border-none bg-transparent px-0 py-1 font-medium text-sm outline-none placeholder:text-muted-foreground placeholder:text-sm group-hover:text-accent-foreground"
+            className="!ring-0 !ring-offset-0 flex flex-1 border-none bg-transparent px-0 py-1 font-medium text-sm outline-none placeholder:text-muted-foreground placeholder:text-sm disabled:cursor-not-allowed disabled:opacity-50 group-hover:text-accent-foreground"
           />
         </div>
       </div>

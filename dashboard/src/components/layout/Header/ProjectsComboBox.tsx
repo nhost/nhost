@@ -96,6 +96,7 @@ export default function ProjectsComboBox() {
                   <CommandItem
                     key={option.value}
                     value={option.value}
+                    keywords={[option.label]}
                     onSelect={() => handleProjectSelect(option)}
                   >
                     <Check
