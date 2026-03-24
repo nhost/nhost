@@ -226,11 +226,9 @@ export function useDataBrowserActions({
 
       await refetchDatabaseQuery();
 
-      if (!isFunction) {
-        await queryClient.refetchQueries({
-          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-        });
-      }
+      await queryClient.refetchQueries({
+        queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+      });
 
       if (!nextObject) {
         await router.push(

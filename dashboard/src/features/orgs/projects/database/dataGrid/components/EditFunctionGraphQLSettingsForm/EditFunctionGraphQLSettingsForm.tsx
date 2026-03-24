@@ -112,7 +112,7 @@ export default function EditFunctionGraphQLSettingsForm({
       name: functionName,
       schema,
     },
-    dataSource: 'default',
+    dataSource: (dataSourceSlug as string) || 'default',
   });
 
   const form = useForm<FunctionSettingsFormValues>({
@@ -166,7 +166,7 @@ export default function EditFunctionGraphQLSettingsForm({
           name: functionName,
           schema,
         },
-        source: 'default',
+        source: (dataSourceSlug as string) || 'default',
         configuration: {
           custom_name: values.customName || undefined,
           custom_root_fields: {
