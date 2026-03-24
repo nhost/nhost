@@ -11,7 +11,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import type { ReactNode, RefObject } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import {
@@ -19,9 +19,12 @@ import {
   getColumnOrder,
   getColumnVisibility,
 } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
+import { SELECTION_COLUMN_ID } from './constants';
 import type { UnknownDataGridRow } from './types';
 
-export const SELECTION_COLUMN_ID = 'selection-column';
+if (typeof window !== 'undefined') {
+  convertToV8IfNeeded();
+}
 
 export interface UseDataGridBaseOptions<
   T extends UnknownDataGridRow = UnknownDataGridRow,
@@ -69,9 +72,7 @@ export type UseDataGridReturn<
   Omit<
     UseDataGridBaseOptions<T>,
     'enableRowSelection' | 'onSortingChange' | 'sorting'
-  > & {
-    tableInitialized: boolean;
-  };
+  >;
 
 export default function useDataGrid<T extends UnknownDataGridRow>({
   data,
@@ -85,7 +86,6 @@ export default function useDataGrid<T extends UnknownDataGridRow>({
   ...options
 }: UseDataGridOptions<T>): UseDataGridReturn<T> {
   const tablePath = useTablePath();
-  const [tableInitialized, setTableInitialized] = useState(false);
 
   const defaultColumn: Partial<ColumnDef<T>> = useMemo(
     () => ({
@@ -163,24 +163,8 @@ export default function useDataGrid<T extends UnknownDataGridRow>({
     ...options,
   });
 
-  useEffect(() => {
-    convertToV8IfNeeded();
-    setTableInitialized(false);
-    const columnVisibilityForTable = getColumnVisibility(tablePath);
-    reactTable.setColumnVisibility(columnVisibilityForTable);
-
-    const columnOrderForTable = getColumnOrder(tablePath);
-    reactTable.setColumnOrder(columnOrderForTable);
-    const st = setTimeout(() => {
-      setTableInitialized(true);
-    }, 250);
-
-    return () => clearTimeout(st);
-  }, [tablePath, reactTable]);
-
   return {
     ...reactTable,
-    tableInitialized,
     allowSort,
     allowResize,
     allowSelection,
