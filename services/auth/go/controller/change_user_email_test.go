@@ -162,7 +162,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
+				Body: &api.UserEmailChangeRequest{
 					NewEmail:      "newEmail@acme.com",
 					Options:       nil,
 					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),

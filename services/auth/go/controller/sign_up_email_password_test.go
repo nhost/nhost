@@ -359,6 +359,93 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name: "email verification required - with code challenge",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.RequireEmailVerification = true
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().InsertUser(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserParams{
+						ID:                uuid.UUID{},
+						Disabled:          false,
+						DisplayName:       "jane@acme.com",
+						AvatarUrl:         "",
+						Email:             sql.Text("jane@acme.com"),
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            sql.Text("verifyEmail:xxxx"),
+						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						EmailVerified:     false,
+						Locale:            "en",
+						DefaultRole:       "user",
+						Metadata:          []byte("null"),
+						Roles:             []string{"user", "me"},
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						Otp:               "",
+						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
+						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					),
+				).Return(sql.InsertUserRow{
+					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
+					CreatedAt: sql.TimestampTz(time.Now()),
+				}, nil)
+
+				return mock
+			},
+			request: api.SignUpEmailPasswordRequestObject{
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
+					Email:         "jane@acme.com",
+					Password:      "password",
+					Options:       nil,
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+			},
+			expectedResponse: api.SignUpEmailPassword200JSONResponse{
+				Session: nil,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
 			name:   "user duplicated",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {

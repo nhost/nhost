@@ -64,7 +64,13 @@ func (ctrl *Controller) verifyTicketPKCERedirect( //nolint:ireturn
 	redirectTo *url.URL,
 	logger *slog.Logger,
 ) (api.VerifyTicketResponseObject, error) {
-	code, apiErr := ctrl.createPKCEAuthorizationCode(ctx, user.ID, codeChallenge, redirectTo, logger)
+	code, apiErr := ctrl.createPKCEAuthorizationCode(
+		ctx,
+		user.ID,
+		codeChallenge,
+		redirectTo,
+		logger,
+	)
 	if apiErr != nil {
 		if apiErr == ErrInvalidRequest {
 			return ctrl.sendRedirectError(redirectTo, apiErr), nil

@@ -520,6 +520,88 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name: "touchID - email verify - with code challenge",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.RequireEmailVerification = true
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().InsertUserWithSecurityKey(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserWithSecurityKeyParams{
+						ID:              userID,
+						Disabled:        false,
+						DisplayName:     "Jane Doe",
+						AvatarUrl:       "",
+						Email:           sql.Text("jane@acme.com"),
+						Ticket:          sql.Text("verifyEmail:xxxx"),
+						TicketExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						EmailVerified:   false,
+						Locale:          "en",
+						DefaultRole:     "user",
+						Metadata:        []byte("null"),
+						Roles:           []string{"user", "me"},
+						CredentialID:    "LychOomEPgZu4XNwiDvzlP5hd1U",
+						CredentialPublicKey: []uint8{
+							0xa5, 0x01, 0x02, 0x03, 0x26, 0x20, 0x01, 0x21, 0x58, 0x20, 0x57, 0xe1, 0xb5, 0x82, 0xa0, 0x95, 0xc4, 0x1a, 0xf3, 0x65, 0x9d, 0xdd, 0xc2, 0x68, 0xcf, 0x66, 0x35, 0x25, 0x32, 0xa5, 0x86, 0x22, 0xfb, 0xf7, 0xc6, 0xc6, 0x08, 0x6d, 0xa9, 0xc9, 0x64, 0x7f, 0x22, 0x58, 0x20, 0xa3, 0x50, 0x94, 0x11, 0xb8, 0x27, 0x52, 0xae, 0x46, 0xec, 0x56, 0x3a, 0x3b, 0x3a, 0x6d, 0x71, 0x24, 0x10, 0x66, 0xae, 0xb2, 0x57, 0x75, 0xd5, 0xbb, 0x98, 0x8c, 0xd0, 0xc5, 0x91, 0x1f, 0x65, //nolint:lll
+						},
+						Nickname: pgtype.Text{}, //nolint:exhaustruct
+					}),
+				).Return(userID, nil)
+
+				return mock
+			},
+			request: api.VerifySignUpWebauthnRequestObject{
+				Body: &api.SignUpWebauthnVerifyRequest{
+					Credential:    touchIDRequest,
+					Options:       nil,
+					Nickname:      nil,
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+			},
+			expectedResponse: api.VerifySignUpWebauthn200JSONResponse{
+				Session: nil,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ac2ee89db-095c-4904-b796-f6a507ee1260&type=emailVerify", //nolint:lll
+								DisplayName: "Jane Doe",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:c2ee89db-095c-4904-b796-f6a507ee1260",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
 			name: "webauthn disabled",
 			config: func() *controller.Config {
 				c := getConfig()

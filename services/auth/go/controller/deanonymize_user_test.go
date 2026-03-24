@@ -172,7 +172,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByEmail(
@@ -259,7 +259,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 		{
 			name:   "email-passwordless",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByEmail(
@@ -349,7 +349,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByEmail(
@@ -390,12 +390,12 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
+				Body: &api.UserDeanonymizeRequest{
 					Connection:    nil,
 					Email:         "jane@acme.com",
 					Options:       nil,
 					Password:      ptr("password"),
-					SignInMethod:   "email-password",
+					SignInMethod:  "email-password",
 					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 				},
 			},
@@ -437,7 +437,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 		{
 			name:   "email-passwordless - with code challenge",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByEmail(
@@ -476,12 +476,12 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
+				Body: &api.UserDeanonymizeRequest{
 					Connection:    nil,
 					Email:         "jane@acme.com",
 					Options:       nil,
 					Password:      ptr("password"),
-					SignInMethod:   "passwordless",
+					SignInMethod:  "passwordless",
 					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 				},
 			},

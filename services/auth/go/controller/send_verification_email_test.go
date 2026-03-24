@@ -133,7 +133,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email:         "jane@acme.com",
 					Options:       nil,
 					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
