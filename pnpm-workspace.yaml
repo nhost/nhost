@@ -6,8 +6,6 @@ packages:
   - examples/guides/**
   - examples/quickstarts/**
   - examples/tutorials/**
-  - '!**/test/**'
-  - '!out/**'
-  - '!**/functions'
-
-nodeLinker: hoisted
+  - "!**/test/**"
+  - "!out/**"
+  - "!**/functions"
