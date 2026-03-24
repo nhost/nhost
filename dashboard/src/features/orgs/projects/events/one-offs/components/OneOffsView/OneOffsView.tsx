@@ -5,11 +5,7 @@ import { useGetScheduledEventLogsQuery } from '@/features/orgs/projects/events/c
 import type { EventsSection } from '@/features/orgs/projects/events/common/types';
 import { CreateOneOffForm } from '@/features/orgs/projects/events/one-offs/components/CreateOneOffForm';
 import { OneOffEventsDataTable } from '@/features/orgs/projects/events/one-offs/components/OneOffEventsDataTable';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-
 export default function OneOffsView() {
-  const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
   const [eventLogsSection, setEventLogsSection] =
     useState<EventsSection>('all');
 
@@ -51,7 +47,7 @@ export default function OneOffsView() {
               onNext={() => !hasNoNextPage && goNext()}
               onChangeLimit={setLimitAndReset}
             />
-            <CreateOneOffForm disabled={isGitHubConnected} />
+            <CreateOneOffForm />
           </div>
         </div>
       </div>

@@ -29,14 +29,12 @@ export interface FieldToColumnMapSelectorItemProps {
   itemIndex: number;
   sourceFields: { label: string; value: string; type: string }[];
   columns: string[];
-  disabled?: boolean;
 }
 
 export default function FieldToColumnMapSelectorItem({
   itemIndex,
   sourceFields,
   columns,
-  disabled,
 }: FieldToColumnMapSelectorItemProps) {
   const form = useFormContext<DatabaseRelationshipFormValues>();
 
@@ -79,7 +77,6 @@ export default function FieldToColumnMapSelectorItem({
                             ?.sourceField,
                       },
                     )}
-                    disabled={disabled}
                   >
                     {sourceFieldControl.value
                       ? sourceFields.find(
@@ -154,7 +151,6 @@ export default function FieldToColumnMapSelectorItem({
                             ?.referenceColumn,
                       },
                     )}
-                    disabled={disabled}
                   >
                     {columnField.value
                       ? columns.find((column) => column === columnField.value)

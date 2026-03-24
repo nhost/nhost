@@ -21,12 +21,10 @@ const menuItemClassName =
 
 export interface EventTriggerListItemProps {
   eventTrigger: EventTriggerViewModel;
-  isViewOnly: boolean;
 }
 
 export default function EventTriggerListItem({
   eventTrigger,
-  isViewOnly,
 }: EventTriggerListItemProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
@@ -78,21 +76,17 @@ export default function EventTriggerListItem({
             >
               <DropdownMenuTrigger
                 asChild
-                disabled={isViewOnly}
-                className={cn('relative z-10 opacity-0 transition-opacity', {
-                  'group-hover:opacity-100': !isViewOnly,
-                  'opacity-100': isSelected || isMenuOpen,
-                })}
+                className={cn(
+                  'relative z-10 opacity-0 transition-opacity group-hover:opacity-100',
+                  {
+                    'opacity-100': isSelected || isMenuOpen,
+                  },
+                )}
               >
                 <Button
                   variant="outline"
                   size="icon"
-                  className={cn(
-                    'h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent',
-                    {
-                      '!pointer-events-auto !cursor-not-allowed': isViewOnly,
-                    },
-                  )}
+                  className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent"
                   data-testid={`event-trigger-menu-${eventTrigger.name}`}
                   onClick={(event) => {
                     event.preventDefault();
