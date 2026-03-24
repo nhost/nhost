@@ -1,16 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/nhost/AuthProvider';
-
-const PKCE_VERIFIER_KEY = 'nhost_pkce_verifier';
-
-function consumePKCEVerifier(): string | null {
-  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
-  if (verifier) {
-    localStorage.removeItem(PKCE_VERIFIER_KEY);
-  }
-  return verifier;
-}
+import { consumePKCEVerifier } from '../lib/utils';
 
 export default function Verify() {
   const location = useLocation();
