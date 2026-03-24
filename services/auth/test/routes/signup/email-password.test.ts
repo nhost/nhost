@@ -252,6 +252,7 @@ describe('email-password', () => {
 
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
+      AUTH_DISABLE_SIGNUP: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
     });
 
