@@ -127,6 +127,83 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name:   "simple with code challenge",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(),
+					userID,
+				).Return(getSigninUser(userID), nil)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("newEmail@acme.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().UpdateUserChangeEmail(
+					gomock.Any(),
+					cmpDBParams(sql.UpdateUserChangeEmailParams{
+						ID:              uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb"),
+						Ticket:          sql.Text("emailConfirmChange:xxxxx"),
+						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
+						NewEmail:        sql.Text("newEmail@acme.com"),
+					}),
+				).Return(sql.AuthUser{ //nolint:exhaustruct
+					ID:          uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb"),
+					Locale:      "en",
+					DisplayName: "Jane Doe",
+					Email:       sql.Text("oldEmail@acme.com"),
+					Ticket:      sql.Text("emailConfirmChange:xxxxx"),
+				}, nil)
+
+				return mock
+			},
+			jwtTokenFn: jwtTokenFn,
+			request: api.ChangeUserEmailRequestObject{
+				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
+					NewEmail:      "newEmail@acme.com",
+					Options:       nil,
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+			},
+			expectedResponse: api.ChangeUserEmail200JSONResponse(api.OK),
+			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"newEmail@acme.com",
+						"en",
+						notifications.TemplateNameEmailConfirmChange,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=emailConfirmChange%3A9bd37c9c-8f5b-4c19-af01-a729922c1952&type=emailConfirmChange", //nolint:lll
+								DisplayName: "Jane Doe",
+								Email:       "oldEmail@acme.com",
+								NewEmail:    "newEmail@acme.com",
+								Ticket:      "emailConfirmChange:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
 			name:   "user with newEmail already exists",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
