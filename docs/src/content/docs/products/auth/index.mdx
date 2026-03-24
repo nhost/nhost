@@ -35,7 +35,7 @@ After a successful sign-in, Nhost Auth returns a **session** containing:
 - **Refresh token** - A long-lived token (default: 30 days) used to obtain new access tokens
 
 The session is typically handled by the client middleware or an authentication provider depending on the framework used. Refer to the quickstart guide for your framework for more details.
-However, you can refresh tokens with the SDK::
+However, you can refresh tokens with the SDK:
 
 ```js
 await nhost.auth.refreshToken({ refreshToken });
