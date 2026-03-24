@@ -393,22 +393,22 @@ func (ctrl *Controller) signinProviderProviderCallbackConnect(
 	return nil
 }
 
-func (ctrl *Controller) createPKCERedirect(
+func (ctrl *Controller) createPKCEAuthorizationCode(
 	ctx context.Context,
 	userID uuid.UUID,
 	codeChallenge string,
 	redirectTo *url.URL,
 	logger *slog.Logger,
-) (*url.URL, *APIError) {
+) (string, *APIError) {
 	if err := pkce.ValidateCodeChallengeFormat(codeChallenge); err != nil {
 		logger.WarnContext(ctx, "invalid code challenge format", logError(err))
-		return redirectTo, ErrInvalidRequest
+		return "", ErrInvalidRequest
 	}
 
 	code, err := pkce.GenerateCode()
 	if err != nil {
 		logger.ErrorContext(ctx, "error generating authorization code", logError(err))
-		return redirectTo, ErrInternalServerError
+		return "", ErrInternalServerError
 	}
 
 	if _, err := ctrl.wf.db.InsertPKCEAuthorizationCode(
@@ -422,7 +422,22 @@ func (ctrl *Controller) createPKCERedirect(
 		},
 	); err != nil {
 		logger.ErrorContext(ctx, "error inserting PKCE authorization code", logError(err))
-		return redirectTo, ErrInternalServerError
+		return "", ErrInternalServerError
+	}
+
+	return code, nil
+}
+
+func (ctrl *Controller) createPKCERedirect(
+	ctx context.Context,
+	userID uuid.UUID,
+	codeChallenge string,
+	redirectTo *url.URL,
+	logger *slog.Logger,
+) (*url.URL, *APIError) {
+	code, apiErr := ctrl.createPKCEAuthorizationCode(ctx, userID, codeChallenge, redirectTo, logger)
+	if apiErr != nil {
+		return redirectTo, apiErr
 	}
 
 	values := redirectTo.Query()

@@ -78,7 +78,7 @@ func validateS256Hash(codeChallenge, codeVerifier string) error {
 	return nil
 }
 
-// HashCode returns the SHA-256 hash of an authorization code, encoded as hex.
+// HashCode returns the SHA-256 hash of an authorization code, encoded as base64url (no padding).
 func HashCode(code string) string {
 	h := sha256.Sum256([]byte(code))
 

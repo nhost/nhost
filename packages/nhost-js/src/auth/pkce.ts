@@ -28,9 +28,7 @@ export function generateCodeVerifier(): string {
 /**
  * Derive a S256 code challenge from a code verifier.
  */
-export async function generateCodeChallenge(
-  verifier: string,
-): Promise<string> {
+export async function generateCodeChallenge(verifier: string): Promise<string> {
   const hash = await crypto.subtle.digest(
     'SHA-256',
     new TextEncoder().encode(verifier),

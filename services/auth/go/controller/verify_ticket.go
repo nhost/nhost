@@ -6,11 +6,9 @@ import (
 	"log/slog"
 	"net/url"
 	"strings"
-	"time"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/pkce"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -66,29 +64,13 @@ func (ctrl *Controller) verifyTicketPKCERedirect( //nolint:ireturn
 	redirectTo *url.URL,
 	logger *slog.Logger,
 ) (api.VerifyTicketResponseObject, error) {
-	if err := pkce.ValidateCodeChallengeFormat(codeChallenge); err != nil {
-		logger.WarnContext(ctx, "invalid code challenge format", logError(err))
-		return ctrl.sendRedirectError(redirectTo, ErrInvalidRequest), nil
-	}
+	code, apiErr := ctrl.createPKCEAuthorizationCode(ctx, user.ID, codeChallenge, redirectTo, logger)
+	if apiErr != nil {
+		if apiErr == ErrInvalidRequest {
+			return ctrl.sendRedirectError(redirectTo, apiErr), nil
+		}
 
-	code, err := pkce.GenerateCode()
-	if err != nil {
-		logger.ErrorContext(ctx, "error generating authorization code", logError(err))
-		return ctrl.sendError(ErrInternalServerError), nil
-	}
-
-	if _, err := ctrl.wf.db.InsertPKCEAuthorizationCode(
-		ctx,
-		sql.InsertPKCEAuthorizationCodeParams{
-			UserID:        user.ID,
-			CodeHash:      pkce.HashCode(code),
-			CodeChallenge: codeChallenge,
-			RedirectTo:    sql.Text(redirectTo.String()),
-			ExpiresAt:     sql.TimestampTz(time.Now().Add(In5Minutes)),
-		},
-	); err != nil {
-		logger.ErrorContext(ctx, "error inserting PKCE authorization code", logError(err))
-		return ctrl.sendError(ErrInternalServerError), nil
+		return ctrl.sendError(apiErr), nil
 	}
 
 	redirectTo = appendURLValues(redirectTo, map[string]string{
