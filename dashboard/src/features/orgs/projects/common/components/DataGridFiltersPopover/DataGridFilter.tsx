@@ -1,12 +1,11 @@
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import type { DataGridFilterOperator } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
-import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import DataGridFilterColumn from './DataGridFilterColumn';
 import DataGridFilterOperators from './DataGridFilterOperators';
 import { useDataGridFilters } from './DataGridFiltersProvider';
 import { DataGridFilterValue } from './DataGridFilterValue';
+import { useGetDataColumns } from './useGetDataColumns';
 
 type FilterProps = {
   column: string;
@@ -17,10 +16,7 @@ type FilterProps = {
 
 function DataGridFilter({ column, op, value, index }: FilterProps) {
   const { removeFilter } = useDataGridFilters();
-  const { getAllColumns } = useDataGridConfig<{ dataType: string }>();
-  const columns = getAllColumns().filter(
-    ({ id }) => id !== SELECTION_COLUMN_ID,
-  );
+  const columns = useGetDataColumns<{ dataType: string }>();
   const selectedColumnDataType = columns.find((col) => col.id === column)
     ?.columnDef.meta?.dataType;
 
