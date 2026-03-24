@@ -127,7 +127,7 @@
               vacuum-go
 
               # others
-              postgresql_18_1-client
+              postgresql_18-client
               bun
 
 
