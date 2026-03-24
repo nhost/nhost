@@ -48,12 +48,20 @@ export const validOperators: Set<string> = new Set(
   operators.map((operator) => operator.op),
 );
 
+const jsonbColumnOperators = [...commonOperators, ...jsonbOperators] as const;
+
+const defaultColumnOperators = [
+  ...commonOperators,
+  ...comparisonOperators,
+  ...textOperators,
+] as const;
+
 export function getAvailableOperators(
   dataType?: string,
 ): readonly { op: DataGridFilterOperator; label: string }[] {
   if (dataType === 'jsonb') {
-    return [...commonOperators, ...jsonbOperators];
+    return jsonbColumnOperators;
   }
 
-  return [...commonOperators, ...comparisonOperators, ...textOperators];
+  return defaultColumnOperators;
 }
