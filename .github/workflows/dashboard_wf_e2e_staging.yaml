@@ -87,7 +87,138 @@ env:
 
 
 jobs:
-  tests:
+  e2e:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.PATH }}
+
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+
+    steps:
+    - name: "Check out repository"
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.GIT_REF }}
+
+    - name: Collect Workflow Telemetry
+      uses: catchpoint/workflow-telemetry-action@v2
+      with:
+        comment_on_pr: false
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v6
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - name: Setup Nix with Cache
+      uses: ./.github/actions/setup-nix
+      with:
+        NAME: ${{ inputs.NAME }}
+        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run database e2e tests (serial)
+      run: nix develop .\#dashboard -c pnpm e2e:tests --project=database --workers=1
+
+    - name: Run main e2e tests (parallel)
+      run: nix develop .\#dashboard -c pnpm e2e:tests --project=main --workers=4
+
+    - name: Encrypt Playwright report
+      if: failure()
+      run: |
+        tar -czf playwright-report.tar.gz playwright-report/
+        openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
+          -in playwright-report.tar.gz \
+          -out playwright-report.tar.gz.enc \
+          -k "${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}"
+        rm playwright-report.tar.gz
+
+    - name: Upload encrypted Playwright report
+      uses: actions/upload-artifact@v7
+      if: failure()
+      with:
+        name: encrypted-playwright-report-e2e-${{ github.run_id }}
+        path: dashboard/playwright-report.tar.gz.enc
+        retention-days: 1
+
+    - name: "Store Nix cache"
+      uses: ./.github/actions/cache-nix
+      with:
+        NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      if: always()
+
+  e2e-onboarding:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.PATH }}
+
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+
+    steps:
+    - name: "Check out repository"
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.GIT_REF }}
+
+    - name: Collect Workflow Telemetry
+      uses: catchpoint/workflow-telemetry-action@v2
+      with:
+        comment_on_pr: false
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v6
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - name: Setup Nix with Cache
+      uses: ./.github/actions/setup-nix
+      with:
+        NAME: ${{ inputs.NAME }}
+        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run e2e onboarding tests
+      run: nix develop .\#dashboard -c pnpm e2e:onboarding
+
+    - name: Encrypt Playwright report
+      if: failure()
+      run: |
+        tar -czf playwright-report.tar.gz playwright-report/
+        openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
+          -in playwright-report.tar.gz \
+          -out playwright-report.tar.gz.enc \
+          -k "${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}"
+        rm playwright-report.tar.gz
+
+    - name: Upload encrypted Playwright report
+      uses: actions/upload-artifact@v7
+      if: failure()
+      with:
+        name: encrypted-playwright-report-onboarding-${{ github.run_id }}
+        path: dashboard/playwright-report.tar.gz.enc
+        retention-days: 1
+
+    - name: "Store Nix cache"
+      uses: ./.github/actions/cache-nix
+      with:
+        NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      if: always()
+
+  e2e-local:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 30
 
@@ -128,12 +259,6 @@ jobs:
       run: |
         nix develop .\#dashboard -c make dev-env-cli-up
 
-    - name: Run e2e tests
-      run: nix develop .\#dashboard -c pnpm e2e
-
-    - name: Run e2e onboarding tests
-      run: nix develop .\#dashboard -c pnpm e2e:onboarding
-
     - name: Run e2e local tests
       run: nix develop .\#dashboard -c pnpm e2e:local
 
@@ -151,7 +276,7 @@ jobs:
       uses: actions/upload-artifact@v7
       if: failure()
       with:
-        name: encrypted-playwright-report-${{ github.run_id }}
+        name: encrypted-playwright-report-local-${{ github.run_id }}
         path: dashboard/playwright-report.tar.gz.enc
         retention-days: 1
 

@@ -17,11 +17,11 @@ export default defineConfig({
   workers: 1,
   reporter: 'html',
   use: {
-    actionTimeout: 0,
-    trace: 'retain-on-failure',
+    actionTimeout: 15000,
+    trace: 'on-first-retry',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
     launchOptions: {
-      slowMo: 500,
+      slowMo: 100,
     },
   },
   projects: [
@@ -30,13 +30,26 @@ export default defineConfig({
       testMatch: ['**/setup/*.setup.ts'],
     },
     {
+      name: 'database',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/.auth/user.json',
+      },
+      dependencies: ['setup'],
+      testMatch: '**/database/**',
+    },
+    {
       name: 'main',
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
-      testIgnore: ['onboarding.test.ts', 'cli-local-dashboard.test.ts'],
+      testIgnore: [
+        '**/database/**',
+        'onboarding.test.ts',
+        'cli-local-dashboard.test.ts',
+      ],
     },
     {
       name: 'local',
