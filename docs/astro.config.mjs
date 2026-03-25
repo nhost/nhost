@@ -689,11 +689,6 @@ export default defineConfig({
                     { label: 'Commands', slug: 'reference/cli/commands' },
                   ],
                 },
-                {
-                  label: 'Deprecated Libraries',
-                  collapsed: false,
-                  autogenerate: { directory: 'reference/deprecated' },
-                },
               ],
             },
           ],
