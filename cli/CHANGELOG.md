@@ -1,3 +1,9 @@
+## [cli@1.40.0] - 2026-03-25
+
+### 🚀 Features
+
+- *(cli)* Add default MCP config for local development (#4036)
+
 ## [cli@1.39.0] - 2026-03-20
 
 ### 🚀 Features
