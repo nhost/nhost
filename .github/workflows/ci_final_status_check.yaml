@@ -2,8 +2,7 @@
 name: "ci: final status check"
 
 on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
