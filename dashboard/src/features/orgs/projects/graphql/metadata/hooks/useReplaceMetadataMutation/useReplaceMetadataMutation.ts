@@ -58,7 +58,9 @@ export default function useReplaceMetadataMutation(
     },
     {
       ...mutationOptions,
-      onSuccess: (data) => {
+      onSuccess: (...args) => {
+        const [data] = args;
+
         if (isPlatform) {
           queryClient.setQueryData(
             ['inconsistent-metadata', project?.subdomain],
@@ -68,6 +70,7 @@ export default function useReplaceMetadataMutation(
         queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
+        mutationOptions?.onSuccess?.(...args);
       },
     },
   );

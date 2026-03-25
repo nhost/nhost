@@ -229,7 +229,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.11.1"
+	version: string | *"0.12.1"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -265,12 +265,18 @@ import (
 	resources: {
 		compute?: #ResourcesCompute
 		storage: {
-			capacity: uint32 & >=1 & <=1000 // GiB
+			capacity: uint32 & >=1 & <=4000 // GiB
 		}
 
 		replicas?: 1
 
 		enablePublicAccess?: bool | *false
+
+		// CIDR prefixes for IP-based access control.
+		// When set, only connections from these CIDRs are allowed.
+		// When unset, all IPs are allowed.
+		// Only effective when enablePublicAccess is true.
+		allowedCIDRs?: [...net.IPCIDR] & list.MaxItems(3)
 	}
 
 	settings?: {

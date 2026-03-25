@@ -3,6 +3,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import starlight from '@astrojs/starlight';
+import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 import starlightOpenAPI, {
@@ -18,6 +19,14 @@ const storageAPISidebarGroup = createOpenAPISidebarGroup();
 // https://astro.build/config
 export default defineConfig({
   site: 'https://docs.nhost.io',
+  adapter: vercel({
+    includeFiles: [
+      './src/assets/fonts/Inter-Regular.ttf',
+      './src/assets/fonts/Inter-SemiBold.ttf',
+      './src/assets/fonts/Inter-Bold.ttf',
+      './src/assets/logo/dark.svg',
+    ],
+  }),
   cacheDir: path.resolve(__dirname, '.astro'),
   vite: {
     cacheDir: path.resolve(__dirname, '.vite'),

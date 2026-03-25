@@ -2,7 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { setupServer } from 'msw/node';
 import type { ReactNode } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { describe, vi } from 'vitest';
+import { describe, expect, vi } from 'vitest';
 import { Form } from '@/components/form/Form';
 import { editPermissionFormValidationSchemas } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
@@ -146,18 +146,30 @@ describe('RowPermissionsSection', () => {
 
   it('the Without any checks NOT selected when there are filters', () => {
     mocks.useRouter.mockImplementation(() => getRouter());
-    waitFor(async () => {
-      renderRowPermissionsSection(undefined, {
+    renderRowPermissionsSection(
+      { action: 'insert' },
+      {
         filter: {
-          rules: [{ column: 'id', operator: '_eq', value: 'x-hasura-user-id' }],
+          type: 'group',
+          id: 'test-group-id',
+          operator: '_and',
+          children: [
+            {
+              type: 'condition',
+              id: 'test-condition-id',
+              column: 'id',
+              operator: '_eq',
+              value: 'x-hasura-user-id',
+            },
+          ],
         },
-      });
-    });
+      },
+    );
     expect(screen.getByLabelText('Without any checks')).not.toBeChecked();
     expect(screen.getByLabelText('With custom check')).toBeChecked();
   });
 
-  it('should show validation errors and clear on column and operator change', async () => {
+  it('should show validation errors when condition has no value', async () => {
     mocks.useRouter.mockImplementation(() => getRouter());
     renderRowPermissionsSection({ action: 'insert' });
 
@@ -166,46 +178,38 @@ describe('RowPermissionsSection', () => {
     );
     expect(screen.getByLabelText('With custom check')).toBeChecked();
 
-    expect(await screen.findByText('Select a column')).toBeInTheDocument();
-    // await TestUserEvent.fireClickEvent(screen.getByText('Select a column'));
+    expect(await screen.findByText('Add check')).toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(screen.getByTestId('submitButton'));
-    expect(screen.getByText('Please select a column.')).toBeInTheDocument();
-    expect(screen.getByText('Please enter a value.')).toBeInTheDocument();
-  });
-  it('should clear errors when columns or operator changes', async () => {
-    mocks.useRouter.mockImplementation(() => getRouter());
-    renderRowPermissionsSection({ action: 'insert' });
+    await TestUserEvent.fireClickEvent(screen.getByText('Add check'));
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByLabelText('With custom check'),
-    );
-    expect(screen.getByLabelText('With custom check')).toBeChecked();
-
-    expect(await screen.findByText('Select a column')).toBeInTheDocument();
-
-    await TestUserEvent.fireClickEvent(screen.getByTestId('submitButton'));
-    expect(screen.getByText('Please select a column.')).toBeInTheDocument();
-    expect(screen.getByText('Please enter a value.')).toBeInTheDocument();
-
-    await TestUserEvent.fireClickEvent(screen.getByText('Select a column'));
-
-    const idOption = screen.getByText('id');
+    const idOption = await screen.findByText('id');
     await TestUserEvent.fireClickEvent(idOption);
 
-    expect(idOption).not.toBeInTheDocument();
-
-    const selectedColumn = screen.getByText('id');
-
-    expect(selectedColumn).toBeInTheDocument();
+    await TestUserEvent.fireClickEvent(screen.getByTestId('submitButton'));
     expect(
-      screen.queryByText('Please select a column.'),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText('Please enter a value.')).not.toBeInTheDocument();
+      await screen.findByText('Please enter a value.'),
+    ).toBeInTheDocument();
+  });
+  it('should clear errors when operator changes', async () => {
+    mocks.useRouter.mockImplementation(() => getRouter());
+    renderRowPermissionsSection({ action: 'insert' });
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByLabelText('With custom check'),
+    );
+    expect(screen.getByLabelText('With custom check')).toBeChecked();
+
+    expect(await screen.findByText('Add check')).toBeInTheDocument();
+
+    await TestUserEvent.fireClickEvent(screen.getByText('Add check'));
+
+    const idOption = await screen.findByText('id');
+    await TestUserEvent.fireClickEvent(idOption);
 
     await TestUserEvent.fireClickEvent(screen.getByTestId('submitButton'));
-
-    expect(screen.getByText('Please enter a value.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Please enter a value.'),
+    ).toBeInTheDocument();
 
     await TestUserEvent.fireClickEvent(screen.getByText('_eq'));
 
@@ -213,5 +217,45 @@ describe('RowPermissionsSection', () => {
 
     expect(screen.getByText('Is null?')).toBeInTheDocument();
     expect(screen.queryByText('Please enter a value.')).not.toBeInTheDocument();
+  });
+
+  it('should show duplicate condition error when the same column and operator appear twice', async () => {
+    mocks.useRouter.mockImplementation(() => getRouter());
+    renderRowPermissionsSection(
+      { action: 'select' },
+      {
+        filter: {
+          type: 'group',
+          id: 'test-group-id',
+          operator: '_implicit',
+          children: [
+            {
+              type: 'condition',
+              id: 'cond-1',
+              column: 'email',
+              operator: '_eq',
+              value: 'a',
+            },
+            {
+              type: 'condition',
+              id: 'cond-2',
+              column: 'email',
+              operator: '_eq',
+              value: 'b',
+            },
+          ],
+        },
+      },
+    );
+
+    await TestUserEvent.fireClickEvent(screen.getByTestId('submitButton'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          /Column "email" with operator "_eq" appears more than once/,
+        ),
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -1,14 +1,20 @@
-export const operators = [
+const commonOperators = [
   { op: '=', label: 'equals' },
   { op: '<>', label: 'not equals' },
-  { op: 'IN', label: 'in' },
-  { op: 'NOT IN', label: 'not in' },
   { op: 'IS', label: 'is NULL' },
   { op: 'IS NOT', label: 'is not NULL' },
+] as const;
+
+const comparisonOperators = [
+  { op: 'IN', label: 'in' },
+  { op: 'NOT IN', label: 'not in' },
   { op: '>', label: 'greater than' },
   { op: '<', label: 'less than' },
   { op: '>=', label: 'greater than or equal' },
   { op: '<=', label: 'less than or equal' },
+] as const;
+
+const textOperators = [
   { op: 'LIKE', label: 'like' },
   { op: 'NOT LIKE', label: 'not like' },
   { op: 'ILIKE', label: 'like (case-insensitive)' },
@@ -21,4 +27,41 @@ export const operators = [
   { op: '!~*', label: 'not regex (case-insensitive)' },
 ] as const;
 
+const jsonbOperators = [
+  { op: '@>', label: 'contains' },
+  { op: '<@', label: 'contained in' },
+  { op: '?', label: 'has key' },
+  { op: '?|', label: 'has any keys' },
+  { op: '?&', label: 'has all keys' },
+] as const;
+
+export const operators = [
+  ...commonOperators,
+  ...comparisonOperators,
+  ...textOperators,
+  ...jsonbOperators,
+] as const;
+
 export type DataGridFilterOperator = (typeof operators)[number]['op'];
+
+export const validOperators: Set<string> = new Set(
+  operators.map((operator) => operator.op),
+);
+
+const jsonbColumnOperators = [...commonOperators, ...jsonbOperators] as const;
+
+const defaultColumnOperators = [
+  ...commonOperators,
+  ...comparisonOperators,
+  ...textOperators,
+] as const;
+
+export function getAvailableOperators(
+  dataType?: string,
+): readonly { op: DataGridFilterOperator; label: string }[] {
+  if (dataType === 'jsonb') {
+    return jsonbColumnOperators;
+  }
+
+  return defaultColumnOperators;
+}

@@ -87,7 +87,7 @@ jobs:
         echo "\n🔗🔗🔗 Preview URL: $PREVIEW_URL"
         echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
 
-    - uses: marocchino/sticky-pull-request-comment@v2
+    - uses: marocchino/sticky-pull-request-comment@v3
       with:
         header: "vercel-${{ inputs.NAME }}-${{ inputs.ENVIRONMENT }}"
         message: |

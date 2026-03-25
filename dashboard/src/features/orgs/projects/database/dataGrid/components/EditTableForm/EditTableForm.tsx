@@ -17,10 +17,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
-import type {
-  DatabaseTable,
-  NormalizedQueryDataRow,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getUntrackedForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/getUntrackedForeignKeyRelations';
 import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -33,9 +30,9 @@ export interface EditTableFormProps
    */
   schema: string;
   /**
-   * Table to be edited.
+   * Table to be edited's name.
    */
-  table: NormalizedQueryDataRow;
+  tableName: string;
   /**
    * Function to be called when the form is submitted.
    */
@@ -45,7 +42,7 @@ export interface EditTableFormProps
 export default function EditTableForm({
   onSubmit,
   schema,
-  table: originalTable,
+  tableName: originalTableName,
   ...props
 }: EditTableFormProps) {
   const [formInitialized, setFormInitialized] = useState(false);
@@ -55,9 +52,9 @@ export default function EditTableForm({
     data,
     status: columnsStatus,
     error: columnsError,
-  } = useTableSchemaQuery([`default.${schema}.${originalTable.table_name}`], {
+  } = useTableSchemaQuery([`default.${schema}.${originalTableName}`], {
     schema,
-    table: originalTable.table_name,
+    table: originalTableName,
   });
 
   const columns = data?.columns;
@@ -90,7 +87,7 @@ export default function EditTableForm({
     BaseTableFormValues | Yup.InferType<typeof baseTableValidationSchema>
   >({
     defaultValues: {
-      name: originalTable.table_name,
+      name: originalTableName,
       columns: [],
       primaryKeyIndices: [],
       identityColumnIndex: null,
@@ -124,7 +121,7 @@ export default function EditTableForm({
       );
 
       form.reset({
-        name: originalTable.table_name,
+        name: originalTableName,
         columns: dataGridColumns.map((column) => ({
           // ID can't be changed through the form, so we can use it to
           // identify the column in the original array.
@@ -146,7 +143,7 @@ export default function EditTableForm({
     }
   }, [
     form,
-    originalTable,
+    originalTableName,
     columnsStatus,
     foreignKeyRelations,
     dataGridColumns,
@@ -169,7 +166,7 @@ export default function EditTableForm({
       };
 
       await updateTable({
-        originalTable,
+        originalTableName,
         originalColumns: dataGridColumns,
         originalForeignKeyRelations: foreignKeyRelations ?? [],
         updatedTable,
@@ -193,7 +190,7 @@ export default function EditTableForm({
         await onSubmit(updatedTable.name);
       }
 
-      if (originalTable.table_name !== updatedTable.name) {
+      if (originalTableName !== updatedTable.name) {
         await router.push(
           `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/tables/${updatedTable.name}`,
         );

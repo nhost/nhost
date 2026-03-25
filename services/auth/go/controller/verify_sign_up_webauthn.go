@@ -48,27 +48,27 @@ func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest( //nolint:cyclop
 	var apiErr *APIError
 
 	if request.Body.Options != nil { //nolint:nestif
-		if request.Body.Options.AllowedRoles == nil {
+		if request.Body.Options.AllowedRoles != nil {
 			options.AllowedRoles = request.Body.Options.AllowedRoles
 		}
 
-		if request.Body.Options.DefaultRole == nil {
+		if request.Body.Options.DefaultRole != nil {
 			options.DefaultRole = request.Body.Options.DefaultRole
 		}
 
-		if request.Body.Options.DisplayName == nil {
+		if request.Body.Options.DisplayName != nil {
 			options.DisplayName = request.Body.Options.DisplayName
 		}
 
-		if request.Body.Options.Locale == nil {
+		if request.Body.Options.Locale != nil {
 			options.Locale = request.Body.Options.Locale
 		}
 
-		if request.Body.Options.Metadata == nil {
+		if request.Body.Options.Metadata != nil {
 			options.Metadata = request.Body.Options.Metadata
 		}
 
-		if request.Body.Options.RedirectTo == nil {
+		if request.Body.Options.RedirectTo != nil {
 			options.RedirectTo = request.Body.Options.RedirectTo
 		}
 

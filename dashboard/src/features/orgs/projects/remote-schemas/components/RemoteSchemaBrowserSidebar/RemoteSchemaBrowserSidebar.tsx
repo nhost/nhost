@@ -18,7 +18,6 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
@@ -91,7 +90,6 @@ function RemoteSchemaBrowserSidebarContent({
   const queryClient = useQueryClient();
   const { openDrawer, openAlertDialog } = useDialog();
   const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
 
   const router = useRouter();
 
@@ -155,7 +153,7 @@ function RemoteSchemaBrowserSidebarContent({
     });
   }
 
-  function handleEditPermissionClick(schema: string, disabled?: boolean) {
+  function handleEditPermissionClick(schema: string) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
@@ -163,9 +161,7 @@ function RemoteSchemaBrowserSidebarContent({
           <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
         </span>
       ),
-      component: (
-        <EditRemoteSchemaPermissionsForm schema={schema} disabled={disabled} />
-      ),
+      component: <EditRemoteSchemaPermissionsForm schema={schema} />,
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
@@ -174,7 +170,7 @@ function RemoteSchemaBrowserSidebarContent({
     });
   }
 
-  function handleEditRelationshipsClick(schema: string, disabled?: boolean) {
+  function handleEditRelationshipsClick(schema: string) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
@@ -182,9 +178,7 @@ function RemoteSchemaBrowserSidebarContent({
           <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
         </span>
       ),
-      component: (
-        <EditRemoteSchemaRelationships schema={schema} disabled={disabled} />
-      ),
+      component: <EditRemoteSchemaRelationships schema={schema} />,
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
@@ -195,14 +189,6 @@ function RemoteSchemaBrowserSidebarContent({
 
   return (
     <Box className="flex h-full flex-col px-2">
-      {isGitHubConnected && (
-        <Box className="mt-1.5 flex items-center gap-1 px-2">
-          <InfoIcon className="h-4 w-4" sx={{ color: 'text.secondary' }} />
-          <Text className="text-xs" color="secondary">
-            GitHub connected - use the CLI for remote schema changes
-          </Text>
-        </Box>
-      )}
       <Button
         variant="borderless"
         endIcon={<PlusIcon />}
@@ -214,7 +200,6 @@ function RemoteSchemaBrowserSidebarContent({
           });
           onSidebarItemClick?.();
         }}
-        disabled={isGitHubConnected}
       >
         New Remote Schema
       </Button>
@@ -255,130 +240,78 @@ function RemoteSchemaBrowserSidebarContent({
                         </IconButton>
                       </Dropdown.Trigger>
                       <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
-                        {isGitHubConnected
-                          ? [
-                              <Dropdown.Item
-                                key="view-permissions"
-                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                                onClick={() =>
-                                  handleEditPermissionClick(
-                                    remoteSchema.name,
-                                    true,
-                                  )
-                                }
-                              >
-                                <UsersIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'text.secondary' }}
+                        <Dropdown.Item
+                          key="edit-table"
+                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                          onClick={() =>
+                            openDrawer({
+                              title: 'Edit Remote Schema',
+                              component: (
+                                <EditRemoteSchemaForm
+                                  originalSchema={remoteSchema}
+                                  onSubmit={async () => {
+                                    await queryClient.refetchQueries({
+                                      queryKey: [
+                                        `remote_schemas`,
+                                        project?.subdomain,
+                                      ],
+                                    });
+                                    await refetch();
+                                  }}
                                 />
-                                <span>View Permissions</span>
-                              </Dropdown.Item>,
-                              <Divider
-                                key="edit-permissions-separator"
-                                component="li"
-                              />,
-                              <Dropdown.Item
-                                key="view-relationships"
-                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                                onClick={() =>
-                                  handleEditRelationshipsClick(
-                                    remoteSchema.name,
-                                    true,
-                                  )
-                                }
-                              >
-                                <LinkIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'text.secondary' }}
-                                />
-                                <span>View Relationships</span>
-                              </Dropdown.Item>,
-                            ]
-                          : [
-                              <Dropdown.Item
-                                key="edit-table"
-                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                                onClick={() =>
-                                  openDrawer({
-                                    title: 'Edit Remote Schema',
-                                    component: (
-                                      <EditRemoteSchemaForm
-                                        originalSchema={remoteSchema}
-                                        onSubmit={async () => {
-                                          await queryClient.refetchQueries({
-                                            queryKey: [
-                                              `remote_schemas`,
-                                              project?.subdomain,
-                                            ],
-                                          });
-                                          await refetch();
-                                        }}
-                                      />
-                                    ),
-                                  })
-                                }
-                              >
-                                <PencilIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'text.secondary' }}
-                                />
-                                <span>Edit Remote Schema</span>
-                              </Dropdown.Item>,
-                              <Divider
-                                key="edit-table-separator"
-                                component="li"
-                              />,
-                              <Dropdown.Item
-                                key="edit-permissions"
-                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                                onClick={() =>
-                                  handleEditPermissionClick(remoteSchema.name)
-                                }
-                              >
-                                <UsersIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'text.secondary' }}
-                                />
-                                <span>Edit Permissions</span>
-                              </Dropdown.Item>,
-                              <Divider
-                                key="edit-permissions-separator"
-                                component="li"
-                              />,
-                              <Dropdown.Item
-                                key="edit-relationships"
-                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                                onClick={() =>
-                                  handleEditRelationshipsClick(
-                                    remoteSchema.name,
-                                  )
-                                }
-                              >
-                                <LinkIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'text.secondary' }}
-                                />
-                                <span>Edit Relationships</span>
-                              </Dropdown.Item>,
-                              <Divider
-                                key="edit-relationships-separator"
-                                component="li"
-                              />,
-                              <Dropdown.Item
-                                key="delete-remote-schema"
-                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                                sx={{ color: 'error.main' }}
-                                onClick={() =>
-                                  handleDeleteRemoteSchemaClick(remoteSchema)
-                                }
-                              >
-                                <TrashIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'error.main' }}
-                                />
-                                <span>Delete Remote Schema</span>
-                              </Dropdown.Item>,
-                            ]}
+                              ),
+                            })
+                          }
+                        >
+                          <PencilIcon
+                            className="h-4 w-4"
+                            sx={{ color: 'text.secondary' }}
+                          />
+                          <span>Edit Remote Schema</span>
+                        </Dropdown.Item>
+                        <Divider component="li" />
+                        <Dropdown.Item
+                          key="edit-permissions"
+                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                          onClick={() =>
+                            handleEditPermissionClick(remoteSchema.name)
+                          }
+                        >
+                          <UsersIcon
+                            className="h-4 w-4"
+                            sx={{ color: 'text.secondary' }}
+                          />
+                          <span>Edit Permissions</span>
+                        </Dropdown.Item>
+                        <Divider component="li" />
+                        <Dropdown.Item
+                          key="edit-relationships"
+                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                          onClick={() =>
+                            handleEditRelationshipsClick(remoteSchema.name)
+                          }
+                        >
+                          <LinkIcon
+                            className="h-4 w-4"
+                            sx={{ color: 'text.secondary' }}
+                          />
+                          <span>Edit Relationships</span>
+                        </Dropdown.Item>
+                        <Divider component="li" />
+                        <Dropdown.Item
+                          key="delete-remote-schema"
+                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                          sx={{ color: 'error.main' }}
+                          onClick={() =>
+                            handleDeleteRemoteSchemaClick(remoteSchema)
+                          }
+                        >
+                          <TrashIcon
+                            className="h-4 w-4"
+                            sx={{ color: 'error.main' }}
+                          />
+                          <span>Delete Remote Schema</span>
+                        </Dropdown.Item>
                       </Dropdown.Content>
                     </Dropdown.Root>
                   }

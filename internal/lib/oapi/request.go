@@ -37,7 +37,7 @@ func handleError(c *gin.Context, err error) {
 	case errors.As(err, &errReq):
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":  "request-validation-error",
-			"reason": errReq.Err.Error(),
+			"reason": errReq.Error(),
 		})
 	case errors.As(err, &errAuth):
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{

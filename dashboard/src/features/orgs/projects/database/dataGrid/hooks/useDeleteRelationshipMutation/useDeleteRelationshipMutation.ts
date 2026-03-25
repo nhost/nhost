@@ -47,13 +47,16 @@ export default function useDeleteRelationshipMutation({
     },
     {
       ...mutationOptions,
-      onSuccess: (_, variables) => {
+      onSuccess: (...args) => {
+        const [, variables] = args;
+
         queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
         queryClient.invalidateQueries({
           queryKey: ['suggest-relationships', variables.args.source],
         });
+        mutationOptions?.onSuccess?.(...args);
       },
     },
   );

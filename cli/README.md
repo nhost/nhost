@@ -19,13 +19,41 @@ It's recommended to use the Nhost CLI and the [Nhost GitHub Integration](https:/
 - [Minio S3](https://github.com/minio/minio)
 - [Mailhog](https://github.com/mailhog/MailHog)
 
-## Get Started
+## Install
 
-### Install the Nhost CLI
+### Homebrew
 
-```bash
-sudo curl -L https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
+```sh
+brew install nhost/tap/nhost
 ```
+
+### Nix
+
+If you have flakes enabled:
+
+```sh
+nix profile install github:nhost/nhost#cli
+```
+
+Or run it directly without installing:
+
+```sh
+nix run github:nhost/nhost#cli
+```
+
+### Quick install (Linux / macOS)
+
+```sh
+curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
+```
+
+Or specify a version:
+
+```sh
+curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash -s 1.38.0
+```
+
+## Get Started
 
 ### Initialize a project
 

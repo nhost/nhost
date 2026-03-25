@@ -3,28 +3,46 @@ name: "auth: check and build"
 on:
   pull_request_target:
     paths:
-      - '.github/workflows/auth_checks.yaml'
-      - '.github/workflows/wf_check.yaml'
-      - '.github/workflows/wf_build_artifacts.yaml'
+      - ".github/workflows/auth_checks.yaml"
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/wf_build_artifacts.yaml"
 
       # common build
-      - 'flake.nix'
-      - 'flake.lock'
-      - 'nixops/**'
-      - 'build/**'
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
 
       # common go
-      - '.golangci.yaml'
-      - 'go.mod'
-      - 'go.sum'
-      - 'internal/lib/**'
-      - 'vendor/**'
+      - ".golangci.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "internal/lib/**"
+      - "vendor/**"
 
       # auth
-      - 'services/auth/**'
-  push:
-    branches:
-      - main
+      - "services/auth/**"
+  merge_group:
+    paths:
+      - ".github/workflows/auth_checks.yaml"
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/wf_build_artifacts.yaml"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
+
+      # common go
+      - ".golangci.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "internal/lib/**"
+      - "vendor/**"
+
+      # auth
+      - "services/auth/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
@@ -38,7 +56,7 @@ jobs:
           echo "github.event_name: ${{ github.event_name }}"
           echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
       - name: "This task will run and fail if user has no permissions and label safe_to_test isn't present"
-        if: "github.event_name == 'pull_request_target' && ! ( contains(github.event.pull_request.labels.*.name, 'safe_to_test') || contains(fromJson('[\"OWNER\", \"MEMBER\", \"COLLABORATOR\"]'), github.event.pull_request.author_association) )"
+        if: 'github.event_name == ''pull_request_target'' && ! ( contains(github.event.pull_request.labels.*.name, ''safe_to_test'') || contains(fromJson(''["OWNER", "MEMBER", "COLLABORATOR"]''), github.event.pull_request.author_association) )'
         run: |
           exit 1
 

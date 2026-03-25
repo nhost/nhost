@@ -11,6 +11,7 @@ import { useTablePath } from '@/features/orgs/projects/database/common/hooks/use
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
+import { useIsReadOnlyDatabaseObject } from '@/features/orgs/projects/database/dataGrid/hooks/useIsReadOnlyDatabaseObject';
 import {
   createTableQueryKey,
   useTableQuery,
@@ -195,6 +196,18 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
   } = useDataGridQueryParams();
 
   const { mutateAsync: updateRow } = useUpdateRecordWithToastMutation();
+
+  const isReadOnlyObject = useIsReadOnlyDatabaseObject({
+    dataSource: dataSourceSlug as string,
+    schema: schemaSlug as string,
+    name: tableSlug as string,
+    queryOptions: {
+      enabled:
+        typeof schemaSlug === 'string' &&
+        typeof tableSlug === 'string' &&
+        typeof dataSourceSlug === 'string',
+    },
+  });
 
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
@@ -407,14 +420,13 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       }
       loading={status === 'loading'}
       className="pb-17 sm:pb-0"
-      onInsertRow={handleInsertRowClick}
       options={{
         manualSorting: true,
         enableMultiSort: false,
       }}
       controls={
         <DataBrowserGridControls
-          onInsertRowClick={handleInsertRowClick}
+          onInsertRowClick={isReadOnlyObject ? undefined : handleInsertRowClick}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
             totalPages: Math.max(numberOfPages, 1),

@@ -86,6 +86,7 @@ export interface HasuraMetadataTable {
     name: string;
     schema: string;
   };
+  is_enum?: boolean;
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   configuration: Record<string, Record<string, any>>;
   array_relationships?: HasuraMetadataRelationship[];
@@ -187,6 +188,32 @@ export type RawQueryDataRow = string[];
  */
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export type NormalizedQueryDataRow = Record<string, any>;
+
+/**
+ * Represents an object that can be a table, view or materialized view in the database.
+ */
+
+export interface TableLikeObject extends Record<string, unknown> {
+  table_schema: string;
+  table_name: string;
+  table_type: TableLikeObjectType;
+  updatability: number;
+}
+
+export type TableLikeObjectType =
+  | 'ORDINARY TABLE'
+  | 'VIEW'
+  | 'MATERIALIZED VIEW'
+  | 'FOREIGN TABLE';
+
+export type DatabaseObjectType = TableLikeObjectType;
+
+export interface DatabaseObjectViewModel {
+  schema: string;
+  name: string;
+  objectType: DatabaseObjectType;
+  updatability: number;
+}
 
 /**
  * Represents an object that can be used to set up ordering in an SQL query.
@@ -627,16 +654,4 @@ export interface Rule {
   operator: HasuraOperator;
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   value: any;
-}
-
-/**
- * Represents a rule group. A rule group can contain rules and other rule
- * groups.
- */
-export interface RuleGroup {
-  operator: '_and' | '_or';
-  rules: Rule[];
-  groups: RuleGroup[];
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  unsupported?: Record<string, any>[];
 }

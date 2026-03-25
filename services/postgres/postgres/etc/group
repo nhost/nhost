@@ -1,0 +1,3 @@
+root:x:0:
+nobody:x:65534:
+postgres:x:999:

@@ -1,3 +1,53 @@
+## [cli@1.40.0] - 2026-03-25
+
+### 🚀 Features
+
+- *(cli)* Add default MCP config for local development (#4036)
+
+## [cli@1.39.0] - 2026-03-20
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring allowedCIDRs (#4029)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Conditionally enable storage URL based on port exposure (#4033)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.54.0 (#4031)
+
+## [cli@1.38.4] - 2026-03-18
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump schema (#4020)
+- *(cli)* Bump nhost/dashboard to 2.53.0 (#4009)
+- *(cli)* Bump schema (#4023)
+
+## [cli@1.38.3] - 2026-03-13
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema (#3999)
+
+## [cli@1.38.2] - 2026-03-11
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.52.0 (#3945)
+
+## [cli@1.38.1] - 2026-03-08
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added brew and nix installation methods for the cli (#3975)
+- *(cli)* Fix formula name for brew (#3977)
+- *(cli)* Update certs (#3979)
+
 ## [cli@1.38.0] - 2026-02-19
 
 ### 🚀 Features

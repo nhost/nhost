@@ -61,16 +61,16 @@ function ProjectLayoutContent({
     if (
       isPlatformOnlyPage(route) ||
       isSelfHostedAndGraphitePage(route) ||
-      (isUserLoggedIn && projectNotFound)
+      (!error && isUserLoggedIn && projectNotFound)
     ) {
       push('/404');
     }
-  }, [route, push, projectNotFound, isUserLoggedIn]);
+  }, [route, push, projectNotFound, isUserLoggedIn, error]);
 
   if (
     isPlatformOnlyPage(route) ||
     isSelfHostedAndGraphitePage(route) ||
-    (isUserLoggedIn && projectNotFound)
+    (!error && isUserLoggedIn && projectNotFound)
   ) {
     return null;
   }

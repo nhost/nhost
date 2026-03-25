@@ -7,6 +7,7 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
@@ -24,7 +25,7 @@ export interface DeleteDatabaseObjectMigrationVariables {
   /**
    * Type of the database object to delete.
    */
-  type: 'BASE TABLE';
+  type: TableLikeObjectType;
 }
 
 export interface DeleteDatabaseObjectMigrationOptions

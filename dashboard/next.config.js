@@ -64,54 +64,9 @@ module.exports = withBundleAnalyzer({
         permanent: true,
       },
       {
-        source: '/:workspaceSlug/:appSlug/database/backups',
-        destination: '/:workspaceSlug/:appSlug/backups',
-        permanent: true,
-      },
-      {
-        source: '/:workspaceSlug/:appSlug/database/hasura',
-        destination: '/:workspaceSlug/:appSlug/hasura',
-        permanent: true,
-      },
-      {
-        source: '/:workspaceSlug/:appSlug/files',
-        destination: '/:workspaceSlug/:appSlug/storage',
-        permanent: true,
-      },
-      {
-        source: '/:workspaceSlug/:appSlug/database/browser',
-        destination: '/:workspaceSlug/:appSlug/database/browser/default',
-        permanent: true,
-      },
-      {
-        source: '/:workspaceSlug/:appSlug/users/logins',
-        destination: '/:workspaceSlug/:appSlug/settings/sign-in-methods',
-        permanent: true,
-      },
-      {
-        source: '/:workspaceSlug/:appSlug/users/logins/:providerId',
+        source: '/orgs/:orgSlug/projects/:appSubdomain/database/browser',
         destination:
-          '/:workspaceSlug/:appSlug/settings/sign-in-methods/:providerId',
-        permanent: true,
-      },
-      {
-        source: '/:workspaceSlug/:appSlug/users/smtp-settings',
-        destination: '/:workspaceSlug/:appSlug/settings/smtp',
-        permanent: true,
-      },
-      {
-        source: '/:workspaceSlug/:appSlug/users/roles',
-        destination: '/:workspaceSlug/:appSlug/settings/roles-and-permissions',
-        permanent: true,
-      },
-      {
-        source: '/:workspaceSlug/:appSlug/variables',
-        destination: '/:workspaceSlug/:appSlug/settings/environment-variables',
-        permanent: true,
-      },
-      {
-        source: '/:workspaceSlug/:appSlug/users/:userId',
-        destination: '/:workspaceSlug/:appSlug/users?userId=:userId',
+          '/orgs/:orgSlug/projects/:appSubdomain/database/browser/default',
         permanent: true,
       },
     ];

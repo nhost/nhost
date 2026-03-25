@@ -3,7 +3,8 @@
 set -euo pipefail
 
 echo "⚒️⚒️⚒️ Checking for broken links..."
-pnpm exec linkinator dist/ \
+
+pnpm exec linkinator dist/client/ \
     --recurse \
     --skip '^https?://(?!localhost)' \
     --skip '\/reference\/' \

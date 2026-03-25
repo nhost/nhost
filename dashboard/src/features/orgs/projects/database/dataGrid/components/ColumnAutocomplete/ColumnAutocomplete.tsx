@@ -17,7 +17,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
-import useRuleGroupEditor from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/useRuleGroupEditor';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { cn } from '@/lib/utils';
 import type { UseAsyncValueOptions } from './useAsyncValue';
@@ -41,8 +40,7 @@ export interface ColumnAutocompleteProps
    */
   onChange?: (value: {
     value: string;
-    // biome-ignore lint/suspicious/noExplicitAny: TODO
-    columnMetadata?: Record<string, any>;
+    columnMetadata: Record<string, unknown>;
     disableReset?: boolean;
   }) => void;
   /**
@@ -57,6 +55,10 @@ export interface ColumnAutocompleteProps
    * Custom classes
    */
   className?: string;
+  /**
+   * Whether the component is disabled or not
+   */
+  disabled?: boolean;
 }
 
 export default forwardRef(
@@ -69,16 +71,14 @@ export default forwardRef(
       onChange,
       className,
       onInitialized,
+      disabled,
     }: ColumnAutocompleteProps,
     ref: ForwardedRef<HTMLButtonElement>,
   ) => {
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState('');
 
-    const { disabled } = useRuleGroupEditor();
-
     const [search, setSearch] = useState('');
-
     const [activeRelationship, setActiveRelationship] = useState<{
       schema: string;
       table: string;

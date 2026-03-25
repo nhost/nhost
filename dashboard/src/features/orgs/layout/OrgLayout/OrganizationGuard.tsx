@@ -6,7 +6,7 @@ import { isEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 
 function OrganizationGuard({ children }: PropsWithChildren) {
-  const { org, loading } = useCurrentOrg();
+  const { org, loading, error } = useCurrentOrg();
   const router = useRouter();
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading, isSigningOut } = useAuth();
@@ -17,10 +17,18 @@ function OrganizationGuard({ children }: PropsWithChildren) {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: push does not change
   useEffect(() => {
+    if (error) {
+      return;
+    }
+
     if (isUserLoggedIn && orgNotFound) {
       router.push('/404');
     }
-  }, [orgNotFound, isUserLoggedIn]);
+  }, [orgNotFound, isUserLoggedIn, error]);
+
+  if (error) {
+    throw error;
+  }
 
   return (isUserLoggedIn && orgNotFound) || loading ? null : children;
 }

@@ -234,7 +234,7 @@ Add a middleware function to the fetch chain
 ## createAPIClient()
 
 ```ts
-function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Client
+function createAPIClient(baseURL: string, chainFunctions?: ChainFunction[]): Client
 ```
 
 Creates a Functions API client for interacting with serverless functions.

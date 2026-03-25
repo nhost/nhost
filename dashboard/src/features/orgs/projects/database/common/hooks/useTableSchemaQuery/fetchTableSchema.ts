@@ -2,6 +2,7 @@ import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/databas
 import {
   COLUMN_DEFINITION_QUERY,
   CONSTRAINT_DEFINITION_QUERY,
+  MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY,
 } from '@/features/orgs/projects/database/common/utils/sqlTemplates';
 import type { FetchTableReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type {
@@ -14,7 +15,13 @@ import type {
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 
-export type FetchTableSchemaOptions = MutationOrQueryBaseOptions;
+export interface FetchTableSchemaOptions extends MutationOrQueryBaseOptions {
+  /**
+   * When true, a pg_attribute-based query is used instead of
+   * information_schema.columns to fetch column metadata.
+   */
+  isMaterializedView?: boolean;
+}
 
 export type FetchTableSchemaReturnType = Omit<
   FetchTableReturnType,
@@ -34,7 +41,11 @@ export default async function fetchTableSchema({
   table,
   appUrl,
   adminSecret,
+  isMaterializedView,
 }: FetchTableSchemaOptions): Promise<FetchTableSchemaReturnType> {
+  const columnDefinitionQuery = isMaterializedView
+    ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
+    : COLUMN_DEFINITION_QUERY;
   const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
@@ -44,7 +55,7 @@ export default async function fetchTableSchema({
       args: [
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          COLUMN_DEFINITION_QUERY,
+          columnDefinitionQuery,
           schema,
           table,
         ),

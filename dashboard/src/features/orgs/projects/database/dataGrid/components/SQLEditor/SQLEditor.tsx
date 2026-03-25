@@ -24,11 +24,15 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 
-export default function SQLEditor() {
+interface SQLEditorProps {
+  initialSQL?: string;
+}
+
+export default function SQLEditor({ initialSQL }: SQLEditorProps) {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
 
-  const [sqlCode, setSQLCode] = useState('');
+  const [sqlCode, setSQLCode] = useState(initialSQL ?? '');
   const [track, setTrack] = useState(false);
   const [cascade, setCascade] = useState(false);
   const [readOnly, setReadOnly] = useState(false);

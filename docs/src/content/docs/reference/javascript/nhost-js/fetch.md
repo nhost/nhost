@@ -65,11 +65,11 @@ Error.constructor
 
 ### Properties
 
-| Property                       | Type      | Description                             |
-| ------------------------------ | --------- | --------------------------------------- |
-| <a id="body"></a> `body`       | `T`       | The original response body              |
-| <a id="headers"></a> `headers` | `Headers` | Response headers                        |
-| <a id="status"></a> `status`   | `number`  | HTTP status code of the failed response |
+| Property                                | Type      | Description                             |
+| --------------------------------------- | --------- | --------------------------------------- |
+| <a id="property-body"></a> `body`       | `T`       | The original response body              |
+| <a id="property-headers"></a> `headers` | `Headers` | Response headers                        |
+| <a id="property-status"></a> `status`   | `number`  | HTTP status code of the failed response |
 
 # Interfaces
 
@@ -90,7 +90,7 @@ Hasura admin secret for elevated permissions (sets x-hasura-admin-secret header)
 #### role?
 
 ```ts
-optional role: string;
+optional role?: string;
 ```
 
 Hasura role to use for the request (sets x-hasura-role header)
@@ -98,7 +98,7 @@ Hasura role to use for the request (sets x-hasura-role header)
 #### sessionVariables?
 
 ```ts
-optional sessionVariables: Record<string, string>;
+optional sessionVariables?: Record<string, string>;
 ```
 
 Additional Hasura session variables to attach to requests.
@@ -159,7 +159,7 @@ HTTP status code of the response
 
 # Type Aliases
 
-## ChainFunction()
+## ChainFunction
 
 ```ts
 type ChainFunction = (next: FetchFunction) => FetchFunction
@@ -187,7 +187,7 @@ Chain functions can be used to implement:
 
 ---
 
-## FetchFunction()
+## FetchFunction
 
 ```ts
 type FetchFunction = (url: string, options?: RequestInit) => Promise<Response>
@@ -243,7 +243,7 @@ A middleware function that adds Authorization headers
 ## createEnhancedFetch()
 
 ```ts
-function createEnhancedFetch(chainFunctions: ChainFunction[]): FetchFunction
+function createEnhancedFetch(chainFunctions?: ChainFunction[]): FetchFunction
 ```
 
 Creates an enhanced fetch function using a chain of middleware functions.
