@@ -101,7 +101,7 @@ export default function Notifications(): JSX.Element {
 
       const updated = response.body?.data?.update_notifications_by_pk;
       if (updated) {
-        setNotifications(notifications.map((n) => (n.id === id ? updated : n)));
+        setNotifications((prev) => prev.map((n) => (n.id === id ? updated : n)));
         window.dispatchEvent(new Event('notifications-updated'));
       }
       setError(null);
@@ -131,7 +131,7 @@ export default function Notifications(): JSX.Element {
         );
       }
 
-      setNotifications(notifications.map((n) => ({ ...n, read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       window.dispatchEvent(new Event('notifications-updated'));
       setError(null);
     } catch (err) {
