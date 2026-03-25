@@ -63,10 +63,6 @@ on:
       NHOST_TEST_STAGING_REGION:
         required: true
 
-concurrency:
-  group: dashboard-e2e-staging
-  cancel-in-progress: false
-
 env:
   NEXT_PUBLIC_ENV: dev
   NEXT_TELEMETRY_DISABLED: 1
@@ -90,6 +86,9 @@ jobs:
   tests:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 30
+    concurrency:
+      group: dashboard-e2e-staging-${{ matrix.suite }}
+      cancel-in-progress: false
 
     strategy:
       fail-fast: false
