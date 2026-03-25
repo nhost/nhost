@@ -22,6 +22,39 @@ func NewDocker() *Docker {
 	return &Docker{}
 }
 
+// setupInteractiveTerminal configures the terminal for interactive PTY usage:
+// raw mode for escape sequences, initial size inheritance, and resize handling.
+func setupInteractiveTerminal(ptmx *os.File) func() {
+	stdinFd := int(os.Stdin.Fd())
+
+	if !term.IsTerminal(stdinFd) {
+		return func() {}
+	}
+
+	_ = pty.InheritSize(os.Stdin, ptmx)
+
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGWINCH)
+
+	go func() {
+		for range ch {
+			_ = pty.InheritSize(os.Stdin, ptmx)
+		}
+	}()
+
+	oldState, err := term.MakeRaw(stdinFd)
+	if err != nil {
+		signal.Stop(ch)
+
+		return func() {}
+	}
+
+	return func() {
+		term.Restore(stdinFd, oldState) //nolint:errcheck
+		signal.Stop(ch)
+	}
+}
+
 func (d *Docker) HasuraWrapper(
 	ctx context.Context,
 	subdomain,
@@ -64,32 +97,9 @@ func (d *Docker) HasuraWrapper(
 	}
 	defer f.Close()
 
-	if term.IsTerminal(int(os.Stdin.Fd())) {
-		// Set the initial PTY size to match the user's terminal.
-		_ = pty.InheritSize(os.Stdin, f)
+	cleanup := setupInteractiveTerminal(f)
+	defer cleanup()
 
-		// Handle terminal resize events (SIGWINCH) by propagating the
-		// new size to the PTY so interactive menus render correctly.
-		ch := make(chan os.Signal, 1)
-		signal.Notify(ch, syscall.SIGWINCH)
-		defer signal.Stop(ch)
-
-		go func() {
-			for range ch {
-				_ = pty.InheritSize(os.Stdin, f)
-			}
-		}()
-
-		// Set stdin to raw mode so arrow keys and other escape sequences
-		// are forwarded to the PTY without interpretation.
-		oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-		if err != nil {
-			return fmt.Errorf("failed to set terminal to raw mode: %w", err)
-		}
-		defer term.Restore(int(os.Stdin.Fd()), oldState) //nolint:errcheck
-	}
-
-	// Forward stdin to the PTY so the interactive Hasura CLI receives user input.
 	go func() {
 		_, _ = io.Copy(f, os.Stdin)
 	}()
@@ -98,7 +108,6 @@ func (d *Docker) HasuraWrapper(
 		var pathError *fs.PathError
 		switch {
 		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
-			// linux pty returns an error when the process exits
 			return nil
 		default:
 			return fmt.Errorf("failed to copy pty output: %w", err)
