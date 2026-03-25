@@ -15,6 +15,20 @@ on:
 
       # postgres
       - "services/postgres/**"
+  merge_group:
+    paths:
+      - ".github/workflows/postgres_checks.yaml"
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/wf_build_artifacts.yaml"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
+
+      # postgres
+      - "services/postgres/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}

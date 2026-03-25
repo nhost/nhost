@@ -20,6 +20,25 @@ on:
 
       # codegen
       - "tools/codegen/**"
+  merge_group:
+    paths:
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/codegen_checks.yaml"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
+
+      # common go
+      - ".golangci.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "vendor/**"
+
+      # codegen
+      - "tools/codegen/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}

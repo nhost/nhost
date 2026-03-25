@@ -22,6 +22,27 @@ on:
 
       # auth
       - "services/auth/**"
+  merge_group:
+    paths:
+      - ".github/workflows/auth_checks.yaml"
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/wf_build_artifacts.yaml"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
+
+      # common go
+      - ".golangci.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "internal/lib/**"
+      - "vendor/**"
+
+      # auth
+      - "services/auth/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}

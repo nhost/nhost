@@ -36,6 +36,41 @@ on:
 
       # demos
       - "examples/demos/**"
+  merge_group:
+    paths:
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/examples_demos_checks.yaml"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
+
+      # common go
+      - ".golangci.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "vendor/**"
+
+      # codegen
+      - "tools/codegen/**"
+
+      # common javascript
+      - ".npmrc"
+      - ".prettierignore"
+      - ".prettierrc.js"
+      - "audit-ci.jsonc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+
+      # nhpst-js
+      - "packages/nhost-js/**"
+
+      # demos
+      - "examples/demos/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
