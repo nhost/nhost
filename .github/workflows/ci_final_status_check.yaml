@@ -24,25 +24,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const sha = context.payload.pull_request.head.sha;
-            const runId = process.env.GITHUB_RUN_ID;
-
-            // Check workflow names to monitor. Other checks (from third-party
-            // apps or non-PR workflows) are intentionally excluded so they
-            // cannot block the gate.
-            const CHECK_WORKFLOWS = [
-              'auth: check and build',
-              'cli: check and build',
-              'codegen: check and build',
-              'dashboard: check and build',
-              'docs: check and build',
-              'examples/demos: check and build',
-              'examples/guides: check and build',
-              'examples/tutorials: check and build',
-              'nhost-js: check and build',
-              'nixops: check and build',
-              'postgres: check and build',
-              'storage: check and build',
-            ];
+            const THIS_CHECK_NAME = 'ci: final status check';
 
             const POLL_INTERVAL_S = 30;
             // After all currently-known checks are complete, wait this long
@@ -69,11 +51,7 @@ jobs:
                 if (allRuns.length >= data.total_count) break;
                 page++;
               }
-              return allRuns.filter(
-                (r) =>
-                  r.name !== 'ci: final status check' &&
-                  CHECK_WORKFLOWS.some((wf) => r.name.startsWith(wf)),
-              );
+              return allRuns.filter((r) => r.name !== THIS_CHECK_NAME);
             }
 
             // Give other workflows time to be queued.
