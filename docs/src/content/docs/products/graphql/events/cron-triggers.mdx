@@ -1,0 +1,197 @@
+---
+title: Cron Triggers
+description: Call a webhook on a recurring schedule defined by a cron expression
+keywords: ["cron", "cron trigger", "scheduled", "recurring", "background jobs", "periodic", "webhook"]
+sidebar:
+  label: Cron Triggers
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+Cron triggers call a webhook on a recurring schedule defined by a cron expression. Use them for periodic background jobs — cleanup tasks, report generation, digest emails, or data checks.
+
+## Cron Expression Syntax
+
+Expressions follow the format `minute hour day-of-month month day-of-week` and run in **UTC**.
+
+| Expression | Description |
+|-----------|-------------|
+| `* * * * *` | Every minute |
+| `*/5 * * * *` | Every 5 minutes |
+| `*/30 * * * *` | Every 30 minutes |
+| `0 * * * *` | Every hour (at minute 0) |
+| `0 0 * * *` | Daily at midnight |
+| `0 9 * * 1-5` | Weekdays at 9:00 AM |
+
+The dashboard provides preset suggestions matching these common patterns.
+
+## Creating a Cron Trigger
+
+<Tabs>
+<TabItem label="Dashboard">
+Navigate to **Events** → **Cron Triggers**, then click **New Cron Trigger**.
+
+| Field | Description |
+|-------|-------------|
+| **Cron Trigger Name** | Unique identifier (e.g. `stale_todos_check`) |
+| **Comment** | Optional description of what the trigger does |
+| **Webhook URL or template** | Endpoint URL. Supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/stale-todos`) |
+| **Schedule (Cron Expression)** | Cron expression with preset suggestions dropdown |
+| **Payload** | JSON object sent in the webhook body |
+| **Retry and Headers Settings** (accordion) | Retry count, interval, timeout, **tolerance** (max seconds a late invocation can still fire), and custom HTTP headers |
+| **Request Options** (accordion) | Request options transform and payload transform (see [Transformations](#request-and-payload-transformations)) |
+
+![Create Cron Trigger](/images/graphql/events/cron-trigger-create.png)
+</TabItem>
+<TabItem label="Metadata">
+```yaml
+- name: stale_todos_check
+  webhook: '{{NHOST_FUNCTIONS_URL}}/events/stale-todos'
+  schedule: '*/5 * * * *'
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 3
+    retry_interval_seconds: 10
+    timeout_seconds: 60
+    tolerance_seconds: 21600
+  headers:
+    - name: nhost-webhook-secret
+      value_from_env: NHOST_WEBHOOK_SECRET
+  comment: Checks for incomplete todos not updated in 7+ days, marks them stale, and notifies owners.
+```
+
+:::note
+Cron trigger retry configuration uses `retry_interval_seconds` and `timeout_seconds`. These are different field names from event triggers, which use `interval_sec` and `timeout_sec`.
+:::
+</TabItem>
+</Tabs>
+
+## Webhook Handler
+
+Cron triggers deliver an HTTP POST to any endpoint. The request body contains a `payload` field with the JSON you configured, not database row data.
+
+A common pattern is targeting an Nhost Function to build async business workflows. The handler accesses the payload at `req.body.payload`. If configured with an empty payload (`{}`), the handler can ignore the body and run self-contained logic.
+
+```ts
+import type { Request, Response } from "express";
+import { createClient, withAdminSession } from "@nhost/nhost-js";
+
+export default async (req: Request, res: Response) => {
+  // Validate the webhook secret
+  const webhookSecret = req.headers["nhost-webhook-secret"];
+  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const nhost = createClient({
+    region: process.env.NHOST_REGION,
+    subdomain: process.env.NHOST_SUBDOMAIN,
+    configure: [
+      withAdminSession({
+        adminSecret: process.env.NHOST_ADMIN_SECRET,
+      }),
+    ],
+  });
+
+  // Payload is at req.body.payload (the JSON configured in the trigger)
+  const payload = req.body.payload;
+
+  // Run your periodic logic here — query the database, process data, send notifications
+  const { body } = await nhost.graphql.request({
+    query: `
+      query GetStaleTodos($cutoff: timestamptz!) {
+        todos(where: {
+          completed: { _eq: false },
+          stale: { _eq: false },
+          updated_at: { _lt: $cutoff }
+        }) {
+          id
+          title
+          user_id
+        }
+      }
+    `,
+    variables: {
+      cutoff: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  });
+
+  if (body.errors) {
+    return res.status(500).json({ errors: body.errors });
+  }
+
+  res.status(200).json({ processed: body.data?.todos?.length || 0 });
+};
+```
+
+For webhook security details, see [Event Triggers — Webhook Security](/products/graphql/events/event-triggers#webhook-security). For using the Nhost SDK inside handlers, see the [SDK guide](/products/functions/guides/nhost-sdk).
+
+## Cron Trigger Payload
+
+The complete webhook request body:
+
+```json
+{
+  "scheduled_time": "2024-01-15T12:00:00.000Z",
+  "payload": {},
+  "name": "stale_todos_check",
+  "comment": "Checks for incomplete todos not updated in 7+ days, marks them stale, and notifies owners."
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `scheduled_time` | ISO 8601 timestamp of the scheduled invocation (UTC) |
+| `payload` | The JSON object configured in the trigger definition |
+| `name` | The cron trigger name |
+| `comment` | The optional comment/description from the trigger definition |
+
+## Request and Payload Transformations
+
+Cron triggers support the same request and payload transformations as event triggers. Transform the outgoing webhook request to match any target API — override the HTTP method, customize the URL path, or reshape the request body.
+
+Transformations are configured from the **Request Options** accordion in the cron trigger form.
+
+For full details on available transform types and template variables, see [Event Triggers — Request and Payload Transformations](/products/graphql/events/event-triggers#request-and-payload-transformations).
+
+## Idempotency
+
+Cron triggers provide at-least-once delivery. A scheduled invocation may fire more than once due to retries or system recovery. Design handlers to check whether the work is already done before performing it again — for example, by checking timestamps or setting flags before processing.
+
+## Managing Cron Triggers
+
+The cron trigger sidebar in **Events** > **Cron Triggers** lists all triggers. Each trigger has **Edit** and **Delete** actions.
+
+Selecting a trigger opens its detail page with two tabs:
+
+### Overview
+
+Displays the trigger configuration: name, comment, schedule, webhook URL, retry settings (including tolerance), payload, request headers, and transformation configuration.
+
+![Cron Trigger Overview](/images/graphql/events/cron-trigger-overview.png)
+
+### Events
+
+Lists all scheduled invocations for this trigger. Filter by status using the buttons at the top: **Scheduled**, **Processed**, **Failed**, or **All**.
+
+![Cron Trigger Events](/images/graphql/events/cron-trigger-events.png)
+
+Each event shows its scheduled time, status, ID, and number of tries. Scheduled events that have not yet fired can be deleted individually.
+
+Expand an event to see its invocation logs. Each invocation shows the HTTP status code and a **View Details** action that opens the full request and response.
+
+## Retry Configuration
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `num_retries` | `0` | Number of retry attempts on failure |
+| `retry_interval_seconds` | `10` | Seconds between retry attempts |
+| `timeout_seconds` | `60` | Seconds before a request times out |
+| `tolerance_seconds` | `21600` (6 hours) | Maximum delay in seconds for a late invocation to still execute |
+
+Retries occur on non-2xx responses and network errors.
+
+---
+
+For a full working example — including the cron handler, stale todo detection, and notification UI — see the [react-demo](https://github.com/nhost/nhost/tree/main/examples/demos) ([`stale-todos.ts`](https://github.com/nhost/nhost/blob/main/examples/demos/backend/functions/events/stale-todos.ts)).

@@ -400,3 +400,35 @@ if (description) ogUrl.searchParams.set('description', description);
     }
     document.addEventListener('astro:after-swap', initLightbox);
 </script>
+
+<script>
+    // Fix TOC highlight offset: Starlight's IntersectionObserver only accounts for
+    // <header> height, but our custom subheader (.subheader-nav on desktop) and mobile
+    // nav toggle (.mobile-nav-toggle on mobile) add extra fixed-position height that
+    // shifts the detection zone, causing the wrong heading to be highlighted.
+    customElements.whenDefined('starlight-toc').then(() => {
+        const TocClass = customElements.get('starlight-toc');
+        if (!TocClass) return;
+
+        const origGetRootMargin = TocClass.prototype.getRootMargin;
+        TocClass.prototype.getRootMargin = function () {
+            const result = origGetRootMargin.call(this);
+
+            // Height of whichever extra nav element is currently visible (they're mutually exclusive)
+            const subheaderHeight =
+                document.querySelector('.subheader-nav')?.getBoundingClientRect().height || 0;
+            const mobileNavHeight =
+                document.querySelector('.mobile-nav-toggle')?.getBoundingClientRect().height || 0;
+            const extraHeight = subheaderHeight + mobileNavHeight;
+            if (extraHeight === 0) return result;
+
+            // Original format: "-{top}px 0% {bottom}px"
+            const match = result.match(/^-(\d+(?:\.\d+)?)px 0% (-?\d+(?:\.\d+)?)px$/);
+            if (!match) return result;
+
+            const top = parseFloat(match[1]) + extraHeight;
+            const bottom = parseFloat(match[2]) - extraHeight;
+            return `-${top}px 0% ${bottom}px`;
+        };
+    });
+</script>
