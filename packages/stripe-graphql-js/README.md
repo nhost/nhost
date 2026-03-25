@@ -9,11 +9,40 @@
   </a>
 </p>
 
+Expose Stripe's API as a GraphQL endpoint. Deploy as an [Nhost Function](https://docs.nhost.io/products/functions/) and connect it as a [Hasura Remote Schema](https://docs.nhost.io/products/graphql/remote-schemas) to query Stripe customers, subscriptions, invoices, payment methods, and more alongside your existing data.
+
+## Quick Start
+
+```bash
+pnpm add @nhost/stripe-graphql-js
+```
+
+Create a file at `functions/graphql/stripe.ts`:
+
+```ts
+import { createStripeGraphQLServer } from '@nhost/stripe-graphql-js';
+
+const server = createStripeGraphQLServer();
+
+export default server;
+```
+
+Then register it as a Remote Schema pointing to `{{NHOST_FUNCTIONS_URL}}/graphql/stripe`.
+
+See the full setup guide in the [documentation](https://docs.nhost.io/products/graphql/guides/stripe).
+
 ## Documentation
 
-[https://docs.nhost.io/graphql/remote-schemas/stripe](https://docs.nhost.io/graphql/remote-schemas/stripe).
+[https://docs.nhost.io/products/graphql/guides/stripe](https://docs.nhost.io/products/graphql/guides/stripe)
 
 ## Development
+
+Set the required environment variables:
+
+```bash
+export STRIPE_SECRET_KEY=sk_test_...
+export NHOST_ADMIN_SECRET=your-admin-secret
+```
 
 Install dependencies:
 
@@ -27,16 +56,14 @@ Start the development server:
 pnpm dev
 ```
 
-Include the correct admin secret header for admin access
+The GraphQL server will reload every time the code changes.
 
-```js
+Open GraphiQL: [http://localhost:4000/graphql](http://localhost:4000/graphql)
+
+To make requests as an admin, include the following header in GraphiQL:
+
+```json
 {
-  "x-hasura-admin-secret":"<secret value matching your NHOST_ADMIN_SECRET environment variable>"
+  "x-hasura-admin-secret": "<value matching your NHOST_ADMIN_SECRET>"
 }
 ```
-
-The GraphQL Server will reload every time the code changes.
-
-Open GraphiQL:
-
-[http://0.0.0.0:4000/graphql](http://0.0.0.0:4000/graphql)

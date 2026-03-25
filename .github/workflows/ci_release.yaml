@@ -95,6 +95,20 @@ jobs:
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
 
+  stripe-graphql-js:
+    needs: extract-project
+    if: needs.extract-project.outputs.project == '@nhost/stripe-graphql-js'
+    uses: ./.github/workflows/wf_release_npm.yaml
+    with:
+      NAME: stripe-graphql-js
+      PATH: packages/stripe-graphql-js
+      VERSION: ${{ needs.extract-project.outputs.version }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
+
   storage:
     needs: extract-project
     if: needs.extract-project.outputs.project == 'storage'

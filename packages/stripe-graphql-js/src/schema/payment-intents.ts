@@ -1,4 +1,4 @@
-import { builder } from '../builder'
+import { builder } from '../builder';
 
 builder.objectType('StripePaymentIntents', {
   fields: (t) => ({
@@ -7,7 +7,7 @@ builder.objectType('StripePaymentIntents', {
     hasMore: t.exposeBoolean('has_more'),
     data: t.expose('data', {
       type: ['StripePaymentIntent'],
-      nullable: false
-    })
-  })
-})
+      nullable: false,
+    }),
+  }),
+});

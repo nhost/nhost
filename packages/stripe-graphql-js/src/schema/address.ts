@@ -1,30 +1,30 @@
-import { builder } from '../builder'
+import { builder } from '../builder';
 
 builder.objectType('StripeAddress', {
   fields: (t) => ({
-    line1: t.exposeString('line1', { 
+    line1: t.exposeString('line1', {
       description: `Block/Building number.`,
-      nullable: true 
+      nullable: true,
     }),
-    line2: t.exposeString('line2', { 
+    line2: t.exposeString('line2', {
       description: `Building details.`,
-      nullable: true 
+      nullable: true,
     }),
-    postalCode: t.exposeString('postal_code', { 
+    postalCode: t.exposeString('postal_code', {
       description: `ZIP or postal code.`,
-      nullable: true 
+      nullable: true,
     }),
-    city: t.exposeString('city', { 
+    city: t.exposeString('city', {
       description: `City/Ward.`,
-      nullable: true 
+      nullable: true,
     }),
-    state: t.exposeString('state', { 
+    state: t.exposeString('state', {
       description: `Prefecture.`,
-      nullable: true 
+      nullable: true,
     }),
-    country: t.exposeString('country', { 
+    country: t.exposeString('country', {
       description: `Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).`,
-      nullable: true 
-    })
-  })
-})
+      nullable: true,
+    }),
+  }),
+});

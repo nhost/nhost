@@ -1,4 +1,4 @@
-import { builder } from '../builder'
+import { builder } from '../builder';
 
 builder.objectType('StripeConnectedAccount', {
   description: 'Stripe charge object',
@@ -23,6 +23,6 @@ builder.objectType('StripeConnectedAccount', {
     externalAccounts: t.expose('external_accounts', { type: 'JSON' }),
     futureRequirements: t.expose('future_requirements', { type: 'JSON' }),
     payoutsEnabled: t.exposeBoolean('payouts_enabled'),
-    settings: t.expose('settings', { type: 'JSON' })
-  })
-})
+    settings: t.expose('settings', { type: 'JSON' }),
+  }),
+});

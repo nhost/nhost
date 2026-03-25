@@ -1,4 +1,4 @@
-import { builder } from '../builder'
+import { builder } from '../builder';
 
 builder.objectType('StripeConnectedAccounts', {
   description: 'List of Stripe Connected Account objects',
@@ -8,7 +8,7 @@ builder.objectType('StripeConnectedAccounts', {
     hasMore: t.exposeBoolean('has_more'),
     data: t.expose('data', {
       type: ['StripeConnectedAccount'],
-      nullable: false
-    })
-  })
-})
+      nullable: false,
+    }),
+  }),
+});

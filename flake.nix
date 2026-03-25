@@ -56,6 +56,10 @@
           inherit self pkgs nix-filter nixops-lib;
         };
 
+        stripe-graphql-jsf = import ./packages/stripe-graphql-js/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         nixopsf = import ./nixops/project.nix {
           inherit self pkgs nix2containerPkgs nix-filter nixops-lib;
         };
@@ -79,6 +83,7 @@
           guides = guidesf.check;
           docs = docsf.check;
           nhost-js = nhost-jsf.check;
+          stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
@@ -165,6 +170,7 @@
           guides = guidesf.devShell;
           docs = docsf.devShell;
           nhost-js = nhost-jsf.devShell;
+          stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
           storage = storagef.devShell;
           tutorials = tutorialsf.devShell;
@@ -182,6 +188,7 @@
           demos = demosf.package;
           guides = guidesf.package;
           nhost-js = nhost-jsf.package;
+          stripe-graphql-js = stripe-graphql-jsf.package;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
           storage = storagef.package;

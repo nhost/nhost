@@ -1,4 +1,4 @@
-import { builder } from '../builder'
+import { builder } from '../builder';
 
 builder.objectType('StripeCharges', {
   description: 'List of Stripe charge objects',
@@ -8,7 +8,7 @@ builder.objectType('StripeCharges', {
     hasMore: t.exposeBoolean('has_more'),
     data: t.expose('data', {
       type: ['StripeCharge'],
-      nullable: false
-    })
-  })
-})
+      nullable: false,
+    }),
+  }),
+});
