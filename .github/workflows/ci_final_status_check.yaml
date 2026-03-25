@@ -17,6 +17,35 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 60
     steps:
+      - name: Validate PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "Validating PR title: $PR_TITLE"
+
+          VALID_TYPES="feat|fix|chore"
+          VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|internal\/lib|nhost-js|nixops|postgres|storage|observability"
+
+          if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\):\ .+ ]]; then
+            echo "PR title does not follow the required format!"
+            echo ""
+            echo "Expected format: TYPE(PKG): SUMMARY"
+            echo ""
+            echo "Valid TYPEs:"
+            echo "  - feat:   mark this pull request as a feature"
+            echo "  - fix:    mark this pull request as a bug fix"
+            echo "  - chore:  mark this pull request as a maintenance item"
+            echo ""
+            echo "Valid PKGs:"
+            echo "  - auth, ci, cli, codegen, dashboard, deps, docs, examples,"
+            echo "  - nhost-js, nixops, postgres, storage, observability, internal/lib"
+            echo ""
+            echo "Example: feat(cli): add new command for database migrations"
+            exit 1
+          fi
+
+          echo "PR title is valid!"
+
       - name: Wait for all checks and verify status
         uses: actions/github-script@v7
         with:
