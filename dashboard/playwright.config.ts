@@ -14,7 +14,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: 1,
+  workers: process.env.CI ? 2 : 1,
   reporter: 'html',
   use: {
     actionTimeout: 0,
@@ -36,7 +36,27 @@ export default defineConfig({
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
-      testIgnore: ['onboarding.test.ts', 'cli-local-dashboard.test.ts'],
+      testMatch: [
+        'database/**/*.test.ts',
+        'events/**/*.test.ts',
+        'ai/**/*.test.ts',
+        'remote-schemas/**/*.test.ts',
+        'graphql/**/*.test.ts',
+      ],
+    },
+    {
+      name: 'main-parallelizable',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/.auth/user.json',
+      },
+      dependencies: ['setup'],
+      testMatch: [
+        'auth/**/*.test.ts',
+        'account/**/*.test.ts',
+        'overview/**/*.test.ts',
+        'run/**/*.test.ts',
+      ],
     },
     {
       name: 'local',

@@ -21,7 +21,7 @@
     "format": "biome format --write src/",
     "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
     "e2e:tests": "pnpm playwright test --config=playwright.config.ts -x",
-    "e2e": "pnpm e2e:tests --project=main",
+    "e2e": "pnpm e2e:tests --project=main --project=main-parallelizable",
     "e2e:local": "pnpm e2e:tests --project=local",
     "e2e:onboarding": "pnpm e2e:tests --project=onboarding"
   },

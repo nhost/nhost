@@ -91,6 +91,18 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 30
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: main
+            script: pnpm e2e
+          - suite: onboarding
+            script: pnpm e2e:onboarding
+          - suite: local
+            script: pnpm e2e:local
+            needs-cli: true
+
     defaults:
       run:
         working-directory: ${{ inputs.PATH }}
@@ -125,17 +137,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Start CLI
+      if: matrix.needs-cli
       run: |
         nix develop .\#dashboard -c make dev-env-cli-up
 
-    - name: Run e2e tests
-      run: nix develop .\#dashboard -c pnpm e2e
-
-    - name: Run e2e onboarding tests
-      run: nix develop .\#dashboard -c pnpm e2e:onboarding
-
-    - name: Run e2e local tests
-      run: nix develop .\#dashboard -c pnpm e2e:local
+    - name: Run e2e ${{ matrix.suite }} tests
+      run: nix develop .\#dashboard -c ${{ matrix.script }}
 
     - name: Encrypt Playwright report
       if: failure()
@@ -151,7 +158,7 @@ jobs:
       uses: actions/upload-artifact@v7
       if: failure()
       with:
-        name: encrypted-playwright-report-${{ github.run_id }}
+        name: encrypted-playwright-report-${{ matrix.suite }}-${{ github.run_id }}
         path: dashboard/playwright-report.tar.gz.enc
         retention-days: 1
 
