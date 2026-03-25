@@ -4,6 +4,16 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
+// Tests that are safe to run in parallel. To opt a new test directory into
+// parallel execution, add its pattern here. Everything else runs sequentially
+// in the "main" project by default.
+const PARALLELIZABLE_TESTS = [
+  'auth/**/*.test.ts',
+  'account/**/*.test.ts',
+  'overview/**/*.test.ts',
+  'run/**/*.test.ts',
+];
+
 export default defineConfig({
   testDir: './e2e',
   maxFailures: process.env.CI ? 3 : 1,
@@ -36,12 +46,10 @@ export default defineConfig({
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
-      testMatch: [
-        'database/**/*.test.ts',
-        'events/**/*.test.ts',
-        'ai/**/*.test.ts',
-        'remote-schemas/**/*.test.ts',
-        'graphql/**/*.test.ts',
+      testIgnore: [
+        'onboarding.test.ts',
+        'cli-local-dashboard.test.ts',
+        ...PARALLELIZABLE_TESTS,
       ],
     },
     {
@@ -51,12 +59,7 @@ export default defineConfig({
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
-      testMatch: [
-        'auth/**/*.test.ts',
-        'account/**/*.test.ts',
-        'overview/**/*.test.ts',
-        'run/**/*.test.ts',
-      ],
+      testMatch: PARALLELIZABLE_TESTS,
     },
     {
       name: 'local',
