@@ -3,9 +3,10 @@ name: "ci: final status check"
 
 on:
   pull_request:
+  merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('mg-{0}', github.event.merge_group.head_sha) }}
   cancel-in-progress: true
 
 permissions:
@@ -18,6 +19,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Validate PR title
+        if: github.event_name == 'pull_request'
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
@@ -47,6 +49,7 @@ jobs:
           echo "PR title is valid!"
 
       - name: Wait for all checks and verify status
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
