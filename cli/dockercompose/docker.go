@@ -8,9 +8,12 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	"github.com/creack/pty"
+	"golang.org/x/term"
 )
 
 type Docker struct{}
@@ -60,6 +63,36 @@ func (d *Docker) HasuraWrapper(
 		return fmt.Errorf("failed to start pty: %w", err)
 	}
 	defer f.Close()
+
+	if term.IsTerminal(int(os.Stdin.Fd())) {
+		// Set the initial PTY size to match the user's terminal.
+		_ = pty.InheritSize(os.Stdin, f)
+
+		// Handle terminal resize events (SIGWINCH) by propagating the
+		// new size to the PTY so interactive menus render correctly.
+		ch := make(chan os.Signal, 1)
+		signal.Notify(ch, syscall.SIGWINCH)
+		defer signal.Stop(ch)
+
+		go func() {
+			for range ch {
+				_ = pty.InheritSize(os.Stdin, f)
+			}
+		}()
+
+		// Set stdin to raw mode so arrow keys and other escape sequences
+		// are forwarded to the PTY without interpretation.
+		oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+		if err != nil {
+			return fmt.Errorf("failed to set terminal to raw mode: %w", err)
+		}
+		defer term.Restore(int(os.Stdin.Fd()), oldState) //nolint:errcheck
+	}
+
+	// Forward stdin to the PTY so the interactive Hasura CLI receives user input.
+	go func() {
+		_, _ = io.Copy(f, os.Stdin)
+	}()
 
 	if n, err := io.Copy(os.Stdout, f); err != nil {
 		var pathError *fs.PathError
