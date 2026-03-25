@@ -31,13 +31,21 @@ export default defineConfig({
     trace: 'retain-on-failure',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
     launchOptions: {
-      slowMo: 250,
+      slowMo: 100,
     },
   },
   projects: [
     {
+      name: 'setup-auth',
+      testMatch: ['**/setup/auth.setup.ts'],
+    },
+    {
       name: 'setup',
-      testMatch: ['**/setup/*.setup.ts'],
+      testMatch: [
+        '**/setup/database.setup.ts',
+        '**/setup/refresh-metadata.setup.ts',
+      ],
+      dependencies: ['setup-auth'],
     },
     {
       name: 'main',
