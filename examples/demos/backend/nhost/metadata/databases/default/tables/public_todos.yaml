@@ -24,6 +24,7 @@ select_permissions:
         - title
         - details
         - completed
+        - stale
         - user_id
       filter:
         user_id:
@@ -35,6 +36,7 @@ update_permissions:
         - title
         - details
         - completed
+        - stale
       filter:
         user_id:
           _eq: X-Hasura-User-Id

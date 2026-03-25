@@ -1,0 +1,1 @@
+ALTER TABLE public.todos DROP COLUMN IF EXISTS stale;
