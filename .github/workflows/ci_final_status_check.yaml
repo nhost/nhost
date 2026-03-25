@@ -1,0 +1,147 @@
+---
+name: "ci: final status check"
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  checks: read
+
+jobs:
+  final-status:
+    name: "ci: final status check"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Wait for all checks and verify status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = context.payload.pull_request.head.sha;
+            const runId = process.env.GITHUB_RUN_ID;
+
+            // Check workflow names to monitor. Other checks (from third-party
+            // apps or non-PR workflows) are intentionally excluded so they
+            // cannot block the gate.
+            const CHECK_WORKFLOWS = [
+              'auth: check and build',
+              'cli: check and build',
+              'codegen: check and build',
+              'dashboard: check and build',
+              'docs: check and build',
+              'examples/demos: check and build',
+              'examples/guides: check and build',
+              'examples/tutorials: check and build',
+              'nhost-js: check and build',
+              'nixops: check and build',
+              'postgres: check and build',
+              'storage: check and build',
+            ];
+
+            const POLL_INTERVAL_S = 30;
+            // After all currently-known checks are complete, wait this long
+            // for late-arriving checks before concluding.
+            const SETTLE_TIME_S = 120;
+            const MAX_WAIT_S = 2700; // 45 min
+
+            const sleep = (s) => new Promise(r => setTimeout(r, s * 1000));
+
+            // Fetch all check runs for the PR head SHA, excluding our own.
+            async function getCheckRuns() {
+              const allRuns = [];
+              let page = 1;
+              while (true) {
+                const { data } = await github.rest.checks.listForRef({
+                  owner,
+                  repo,
+                  ref: sha,
+                  per_page: 100,
+                  page,
+                  filter: 'latest',
+                });
+                allRuns.push(...data.check_runs);
+                if (allRuns.length >= data.total_count) break;
+                page++;
+              }
+              return allRuns.filter(
+                (r) =>
+                  r.name !== 'ci: final status check' &&
+                  CHECK_WORKFLOWS.some((wf) => r.name.startsWith(wf)),
+              );
+            }
+
+            // Give other workflows time to be queued.
+            core.info('Waiting 60s for check workflows to start...');
+            await sleep(60);
+
+            let elapsed = 60;
+            let lastNewCheckTime = elapsed;
+            let knownCheckCount = 0;
+
+            while (elapsed < MAX_WAIT_S) {
+              const runs = await getCheckRuns();
+
+              if (runs.length > knownCheckCount) {
+                core.info(
+                  `New checks detected: ${runs.length} (was ${knownCheckCount})`,
+                );
+                lastNewCheckTime = elapsed;
+                knownCheckCount = runs.length;
+              }
+
+              const pending = runs.filter((r) => r.status !== 'completed');
+              const completed = runs.filter((r) => r.status === 'completed');
+              const failed = completed.filter(
+                (r) => !['success', 'skipped', 'neutral'].includes(r.conclusion),
+              );
+
+              const ts = `${Math.floor(elapsed / 60)}m${String(elapsed % 60).padStart(2, '0')}s`;
+              core.info(
+                `[${ts}] total=${runs.length} completed=${completed.length} pending=${pending.length} failed=${failed.length}`,
+              );
+
+              if (pending.length > 0) {
+                core.info(
+                  `  Pending: ${pending.map((r) => r.name).join(', ')}`,
+                );
+              }
+
+              // All current checks are done and no new ones appeared within
+              // the settle window — we can make a decision.
+              const settled =
+                pending.length === 0 &&
+                elapsed - lastNewCheckTime >= SETTLE_TIME_S;
+
+              if (settled) {
+                if (runs.length === 0) {
+                  core.info('No check workflows ran for this PR. Passing.');
+                  return;
+                }
+
+                if (failed.length > 0) {
+                  core.info('');
+                  core.info('Failed checks:');
+                  for (const r of failed) {
+                    core.info(`  - ${r.name}: ${r.conclusion}`);
+                  }
+                  core.setFailed(`${failed.length} check(s) failed`);
+                  return;
+                }
+
+                core.info('');
+                core.info(`All ${completed.length} check(s) passed.`);
+                return;
+              }
+
+              await sleep(POLL_INTERVAL_S);
+              elapsed += POLL_INTERVAL_S;
+            }
+
+            core.setFailed('Timed out waiting for checks to complete');
