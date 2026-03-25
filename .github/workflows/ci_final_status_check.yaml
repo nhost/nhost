@@ -14,7 +14,7 @@ permissions:
 jobs:
   final-status:
     name: "ci: final status check"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 60
     steps:
       - name: Wait for all checks and verify status
