@@ -27,11 +27,11 @@ export default defineConfig({
   workers: process.env.CI ? 2 : 1,
   reporter: 'html',
   use: {
-    actionTimeout: 0,
+    actionTimeout: 15000,
     trace: 'retain-on-failure',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
     launchOptions: {
-      slowMo: 500,
+      slowMo: 250,
     },
   },
   projects: [
