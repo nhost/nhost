@@ -1,28 +1,30 @@
-import type { Request, Response } from "express";
-import cors from "cors";
-import { createClient, withAdminSession } from "@nhost/nhost-js";
+import { createClient, withAdminSession } from '@nhost/nhost-js';
+import cors from 'cors';
+import type { Request, Response } from 'express';
 
 const corsMiddleware = cors();
 
 export default async (req: Request, res: Response) => {
   corsMiddleware(req, res, async () => {
-    const webhookSecret = req.headers["nhost-webhook-secret"];
+    const webhookSecret = req.headers['nhost-webhook-secret'];
     if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const event = req.body.event;
     if (!event) {
-      return res.status(400).json({ message: "No event payload" });
+      return res.status(400).json({ message: 'No event payload' });
     }
 
     const { old: oldRow, new: newRow } = event.data;
 
     if (oldRow.description === newRow.description) {
-      return res.status(200).json({ message: "Description unchanged, skipping" });
+      return res
+        .status(200)
+        .json({ message: 'Description unchanged, skipping' });
     }
 
-    const editorUserId = event.session_variables?.["x-hasura-user-id"];
+    const editorUserId = event.session_variables?.['x-hasura-user-id'];
 
     const nhost = createClient({
       region: process.env.NHOST_REGION,
@@ -56,19 +58,19 @@ export default async (req: Request, res: Response) => {
     }
 
     const members = body.data?.community_members || [];
-    const communityName = body.data?.communities_by_pk?.name || "A community";
+    const communityName = body.data?.communities_by_pk?.name || 'A community';
 
     const recipients = members.filter((m) => m.user_id !== editorUserId);
 
     if (recipients.length === 0) {
-      return res.status(200).json({ message: "No recipients" });
+      return res.status(200).json({ message: 'No recipients' });
     }
 
     const notifications = recipients.map((m) => ({
       user_id: m.user_id,
       title: `${communityName} description updated`,
-      message: newRow.description || "Description was cleared",
-      type: "community_update",
+      message: newRow.description || 'Description was cleared',
+      type: 'community_update',
     }));
 
     const insertResult = await nhost.graphql.request<{

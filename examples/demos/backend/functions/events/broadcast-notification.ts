@@ -1,31 +1,31 @@
-import type { Request, Response } from "express";
-import cors from "cors";
-import { createClient, withAdminSession } from "@nhost/nhost-js";
+import { createClient, withAdminSession } from '@nhost/nhost-js';
+import cors from 'cors';
+import type { Request, Response } from 'express';
 
 const corsMiddleware = cors();
 
 export default async (req: Request, res: Response) => {
   corsMiddleware(req, res, async () => {
-    const webhookSecret = req.headers["nhost-webhook-secret"];
+    const webhookSecret = req.headers['nhost-webhook-secret'];
     if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const payload = req.body.payload;
     if (!payload) {
-      return res.status(400).json({ message: "No payload" });
+      return res.status(400).json({ message: 'No payload' });
     }
 
     const { title, message } = payload;
-    const type = payload.type || "announcement";
+    const type = payload.type || 'announcement';
 
     if (!title) {
-      return res.status(400).json({ message: "Missing required field: title" });
+      return res.status(400).json({ message: 'Missing required field: title' });
     }
     if (!message) {
       return res
         .status(400)
-        .json({ message: "Missing required field: message" });
+        .json({ message: 'Missing required field: message' });
     }
 
     const nhost = createClient({
@@ -57,7 +57,7 @@ export default async (req: Request, res: Response) => {
     const activeUsers = body.data?.users || [];
 
     if (activeUsers.length === 0) {
-      return res.status(200).json({ message: "No active users found" });
+      return res.status(200).json({ message: 'No active users found' });
     }
 
     const notifications = activeUsers.map((u) => ({

@@ -1,14 +1,14 @@
-import type { Request, Response } from "express";
-import cors from "cors";
-import { createClient, withAdminSession } from "@nhost/nhost-js";
+import { createClient, withAdminSession } from '@nhost/nhost-js';
+import cors from 'cors';
+import type { Request, Response } from 'express';
 
 const corsMiddleware = cors();
 
 export default async (req: Request, res: Response) => {
   corsMiddleware(req, res, async () => {
-    const webhookSecret = req.headers["nhost-webhook-secret"];
+    const webhookSecret = req.headers['nhost-webhook-secret'];
     if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const nhost = createClient({
@@ -39,9 +39,7 @@ export default async (req: Request, res: Response) => {
         }
       `,
       variables: {
-        cutoff: new Date(
-          Date.now() - 7 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        cutoff: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
       },
     });
 
@@ -52,7 +50,7 @@ export default async (req: Request, res: Response) => {
     const staleTodos = body.data?.todos || [];
 
     if (staleTodos.length === 0) {
-      return res.status(200).json({ message: "No stale todos found" });
+      return res.status(200).json({ message: 'No stale todos found' });
     }
 
     // Mark todos as stale
@@ -76,10 +74,7 @@ export default async (req: Request, res: Response) => {
     }
 
     // Group by user and create notifications
-    const byUser = new Map<
-      string,
-      { titles: string[]; count: number }
-    >();
+    const byUser = new Map<string, { titles: string[]; count: number }>();
     for (const todo of staleTodos) {
       const entry = byUser.get(todo.user_id) || {
         titles: [],
@@ -93,12 +88,12 @@ export default async (req: Request, res: Response) => {
     const notifications = Array.from(byUser.entries()).map(
       ([userId, { titles, count }]) => ({
         user_id: userId,
-        title: `You have ${count} stale todo${count > 1 ? "s" : ""}`,
+        title: `You have ${count} stale todo${count > 1 ? 's' : ''}`,
         message:
           titles.length <= 3
-            ? titles.join(", ")
-            : `${titles.slice(0, 3).join(", ")} and ${titles.length - 3} more`,
-        type: "stale_todos",
+            ? titles.join(', ')
+            : `${titles.slice(0, 3).join(', ')} and ${titles.length - 3} more`,
+        type: 'stale_todos',
       }),
     );
 
