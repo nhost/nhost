@@ -33,6 +33,39 @@ on:
 
       # cli
       - cli/**
+  merge_group:
+    paths:
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/docs_checks.yaml"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
+
+      # common javascript
+      - ".npmrc"
+      - ".prettierignore"
+      - ".prettierrc.js"
+      - "audit-ci.jsonc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+
+      # docs
+      - docs/**
+
+      # nhost-js
+      - packages/nhost-js/**
+
+      # apis
+      - "services/auth/docs/openapi.yaml"
+      - "services/storage/controller/openapi.yaml"
+
+      # cli
+      - cli/**
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}

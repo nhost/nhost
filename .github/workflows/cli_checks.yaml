@@ -28,6 +28,33 @@ on:
 
       # docs
       - "docs/**"
+  merge_group:
+    paths:
+      - ".github/workflows/cli_checks.yaml"
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/wf_build_artifacts.yaml"
+      - ".github/workflows/cli_test_new_project.yaml"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
+
+      # common go
+      - ".golangci.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "vendor/**"
+
+      # cli
+      - "cli/**"
+
+      # lib
+      - "internal/lib/clidocs/**"
+
+      # docs
+      - "docs/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}

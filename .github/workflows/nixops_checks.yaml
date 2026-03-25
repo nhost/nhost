@@ -11,6 +11,16 @@ on:
       - "flake.lock"
       - "nixops/**"
       - "build/**"
+  merge_group:
+    paths:
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/nixops_checks.yaml"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}

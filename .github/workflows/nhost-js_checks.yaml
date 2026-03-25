@@ -37,6 +37,42 @@ on:
       # apis
       - "services/auth/docs/openapi.yaml"
       - "services/storage/controller/openapi.yaml"
+  merge_group:
+    paths:
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/nhost-js_checks.yaml"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
+
+      # common go
+      - ".golangci.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "vendor/**"
+
+      # codegen
+      - "tools/codegen/**"
+
+      # common javascript
+      - ".npmrc"
+      - ".prettierignore"
+      - ".prettierrc.js"
+      - "audit-ci.jsonc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+
+      # nhost-js
+      - "packages/nhost-js/**"
+
+      # apis
+      - "services/auth/docs/openapi.yaml"
+      - "services/storage/controller/openapi.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
