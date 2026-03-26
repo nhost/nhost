@@ -15,13 +15,29 @@ on:
 
       # postgres
       - "services/postgres/**"
+  merge_group:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  detect-changes:
+    uses: ./.github/workflows/wf_detect_changes.yaml
+    with:
+      patterns: |
+        .github/workflows/postgres_checks.yaml
+        .github/workflows/wf_check.yaml
+        .github/workflows/wf_build_artifacts.yaml
+        flake.nix
+        flake.lock
+        nixops/**
+        build/**
+        services/postgres/**
+
   check-permissions:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - run: |
@@ -39,7 +55,9 @@ jobs:
       fail-fast: true
     uses: ./.github/workflows/wf_build_artifacts.yaml
     needs:
+      - detect-changes
       - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: postgres
       PATH: services/postgres
@@ -62,8 +80,10 @@ jobs:
       fail-fast: true
     uses: ./.github/workflows/wf_check.yaml
     needs:
+      - detect-changes
       - check-permissions
       - build_artifacts
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: postgres
       PATH: services/postgres
@@ -78,10 +98,13 @@ jobs:
   remove_label:
     runs-on: ubuntu-latest
     needs:
+      - detect-changes
       - check-permissions
+    if: |
+      needs.detect-changes.outputs.should_run == 'true' &&
+      contains(github.event.pull_request.labels.*.name, 'safe_to_test')
     steps:
       - uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: |
             safe_to_test
-    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')

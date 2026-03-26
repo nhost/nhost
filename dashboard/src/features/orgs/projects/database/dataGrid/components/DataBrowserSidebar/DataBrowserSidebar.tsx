@@ -1,4 +1,4 @@
-import { Info, Lock, Plus, Terminal } from 'lucide-react';
+import { Lock, Plus, Terminal } from 'lucide-react';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
@@ -44,9 +44,6 @@ export interface DataBrowserSidebarContentProps {
 function DataBrowserSidebarContent({
   onSidebarItemClick,
 }: DataBrowserSidebarContentProps) {
-  const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
-
   const router = useRouter();
 
   const {
@@ -171,8 +168,7 @@ function DataBrowserSidebarContent({
                       <span className="text-disabled">schema.</span>
                       <span className="font-medium">{schema.schema_name}</span>
                     </p>
-                    {(isSchemaLocked(schema.schema_name) ||
-                      isGitHubConnected) && (
+                    {isSchemaLocked(schema.schema_name) && (
                       <Lock
                         className="text-[#556378] dark:text-[#a2b3be]"
                         size={12}
@@ -184,14 +180,6 @@ function DataBrowserSidebarContent({
             </SelectContent>
           </Select>
         )}
-        {isGitHubConnected && (
-          <div className="box mt-1.5 flex items-center gap-1 px-2">
-            <Info className="h-4 w-4 text-disabled" />
-            <p className="text-disabled text-xs">
-              GitHub connected - use the CLI for schema changes
-            </p>
-          </div>
-        )}
         {!isSelectedSchemaLocked && (
           <Button
             variant="link"
@@ -200,7 +188,6 @@ function DataBrowserSidebarContent({
               openCreateTableDrawer();
               onSidebarItemClick?.();
             }}
-            disabled={isGitHubConnected}
           >
             New Table <Plus className="h-4 w-4" />
           </Button>
@@ -284,20 +271,10 @@ function DataBrowserSidebarContent({
                               isSelectedNotSchemaLocked={
                                 !isSelectedSchemaLocked
                               }
-                              onViewPermissions={() =>
-                                handleEditPermission(
-                                  databaseObject.schema,
-                                  databaseObject.name,
-                                  true,
-                                  databaseObject.objectType,
-                                  databaseObject.updatability,
-                                )
-                              }
                               onEditPermissions={() =>
                                 handleEditPermission(
                                   databaseObject.schema,
                                   databaseObject.name,
-                                  undefined,
                                   databaseObject.objectType,
                                   databaseObject.updatability,
                                 )
@@ -320,27 +297,12 @@ function DataBrowserSidebarContent({
                                 handleEditGraphQLSettings(
                                   databaseObject.schema,
                                   databaseObject.name,
-                                  false,
-                                )
-                              }
-                              onViewGraphQLSettings={() =>
-                                handleEditGraphQLSettings(
-                                  databaseObject.schema,
-                                  databaseObject.name,
-                                  true,
                                 )
                               }
                               onEditRelationships={() =>
                                 handleEditRelationships(
                                   databaseObject.schema,
                                   databaseObject.name,
-                                )
-                              }
-                              onViewRelationships={() =>
-                                handleEditRelationships(
-                                  databaseObject.schema,
-                                  databaseObject.name,
-                                  true,
                                 )
                               }
                               onDelete={() =>

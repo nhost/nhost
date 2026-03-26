@@ -280,6 +280,7 @@ export default defineConfig({
                     { slug: 'products/graphql/guides/react-query' },
                     { slug: 'products/graphql/guides/react-urql' },
                     { slug: 'products/graphql/guides/codegen-nhost' },
+                    { slug: 'products/graphql/guides/stripe' },
                   ],
                 },
               ],
@@ -682,11 +683,6 @@ export default defineConfig({
                   items: [
                     { label: 'Commands', slug: 'reference/cli/commands' },
                   ],
-                },
-                {
-                  label: 'Deprecated Libraries',
-                  collapsed: false,
-                  autogenerate: { directory: 'reference/deprecated' },
                 },
               ],
             },

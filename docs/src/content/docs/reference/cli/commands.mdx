@@ -274,6 +274,8 @@ Start local development environment
 
 **--run-service**="": Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name] [$NHOST_RUN_SERVICE]
 
+**--run-service-volume**="": Mount a local directory into a run service container. Format: service-name=/local/path:/container/path. Can be passed multiple times [$NHOST_RUN_SERVICE_VOLUME]
+
 **--storage-port**="": If specified, expose storage on this port. Not recommended (default: 0)
 
 ### cloud
@@ -387,8 +389,6 @@ Shows a list of commands or help for one command
 ### start
 
 Starts the MCP server
-
-**--bind**="": Bind address in the form $host:$port. If omitted use stdio [$BIND]
 
 **--help, -h**: show help
 

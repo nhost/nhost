@@ -36,7 +36,6 @@ export interface RemoteSchemaRelationshipsInfoTableProps {
   ) => void;
   onDeleteRelationship?: () => void;
   onAddRelationship?: () => void;
-  disabled?: boolean;
 }
 
 export default function RemoteSchemaRelationshipsInfoTable({
@@ -45,7 +44,6 @@ export default function RemoteSchemaRelationshipsInfoTable({
   onSelectRelationship,
   onDeleteRelationship,
   onAddRelationship,
-  disabled,
 }: RemoteSchemaRelationshipsInfoTableProps) {
   const { openAlertDialog } = useDialog();
 
@@ -206,7 +204,6 @@ export default function RemoteSchemaRelationshipsInfoTable({
                 className="hover:no-underline"
                 color="secondary"
                 onClick={onAddRelationship}
-                disabled={disabled}
               >
                 <PlusIcon />
                 Add Relationship

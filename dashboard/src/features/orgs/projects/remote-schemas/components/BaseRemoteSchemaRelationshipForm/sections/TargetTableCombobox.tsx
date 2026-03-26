@@ -26,13 +26,7 @@ import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hoo
 import { cn } from '@/lib/utils';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
 
-export interface TargetTableComboboxProps {
-  disabled?: boolean;
-}
-
-export default function TargetTableCombobox({
-  disabled,
-}: TargetTableComboboxProps) {
+export default function TargetTableCombobox() {
   const form = useFormContext<DatabaseRelationshipFormValues>();
   const [open, setOpen] = useState(false);
 
@@ -99,7 +93,6 @@ export default function TargetTableCombobox({
                     (!field.value?.name || !field.value?.schema) &&
                       'text-muted-foreground',
                   )}
-                  disabled={disabled}
                 >
                   {field.value?.name && field.value?.schema
                     ? tables.find(

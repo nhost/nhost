@@ -74,6 +74,7 @@ jobs:
         TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
         TURBO_TEAM: nhost
       run: |
+        set -o pipefail
         TARGET_OPTS="--target=${{ inputs.ENVIRONMENT }}"
         echo "Deploying to: ${{ inputs.ENVIRONMENT }}..."
         nix develop .\#vercel -c \

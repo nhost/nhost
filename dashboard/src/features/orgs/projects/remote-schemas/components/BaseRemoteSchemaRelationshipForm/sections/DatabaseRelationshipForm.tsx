@@ -36,7 +36,6 @@ export interface DatabaseRelationshipFormProps {
   submitButtonText?: string;
   onCancel?: () => void;
   defaultValues?: DatabaseRelationshipFormValues;
-  disabled?: boolean;
   /**
    * Whether the name input should be disabled.
    */
@@ -76,7 +75,6 @@ export default function DatabaseRelationshipForm({
   submitButtonText,
   onCancel,
   defaultValues,
-  disabled,
   nameInputDisabled,
 }: DatabaseRelationshipFormProps) {
   const form = useForm<DatabaseRelationshipFormValues>({
@@ -143,7 +141,7 @@ export default function DatabaseRelationshipForm({
                       'border-destructive': form.formState.errors.name,
                     })}
                     {...field}
-                    disabled={disabled || nameInputDisabled}
+                    disabled={nameInputDisabled}
                   />
                 </FormControl>
                 <FormMessage />
@@ -179,7 +177,7 @@ export default function DatabaseRelationshipForm({
                 </FormItem>
               )}
             />
-            <SourceTypeCombobox sourceTypes={sourceTypes} disabled={disabled} />
+            <SourceTypeCombobox sourceTypes={sourceTypes} />
           </div>
         </div>
         <div className="flex flex-row items-center justify-center gap-2 border-muted-foreground/20 border-t-1 border-b-1 py-4">
@@ -187,7 +185,7 @@ export default function DatabaseRelationshipForm({
           <h4 className="font-medium text-xl tracking-tight">Type Mapped To</h4>
         </div>
         <div className="flex flex-col gap-4 px-6">
-          <TargetTableCombobox disabled={disabled} />
+          <TargetTableCombobox />
           <FormField
             control={form.control}
             name="relationshipType"
@@ -197,7 +195,6 @@ export default function DatabaseRelationshipForm({
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  disabled={disabled}
                 >
                   <FormControl>
                     <SelectTrigger className="w-[200px]">
@@ -214,10 +211,7 @@ export default function DatabaseRelationshipForm({
             )}
           />
         </div>
-        <FieldToColumnMapSelector
-          sourceSchema={sourceSchema}
-          disabled={disabled}
-        />
+        <FieldToColumnMapSelector sourceSchema={sourceSchema} />
 
         <div className="mt-auto flex justify-between gap-2 border-foreground/20 border-t-1 px-6 pt-4">
           <Button
@@ -228,7 +222,7 @@ export default function DatabaseRelationshipForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting || disabled}>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? <Spinner /> : submitButtonText}
           </Button>
         </div>

@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { GitRepoMetadataAlert } from '@/features/orgs/projects/graphql/metadata/components/GitRepoMetadataAlert';
 import { ImportExportMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard';
 import { MetadataStatusCard } from '@/features/orgs/projects/graphql/metadata/components/MetadataStatusCard';
 import { ReloadMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ReloadMetadataCard';
@@ -34,7 +33,6 @@ MetadataPage.getLayout = function getLayout(page: ReactElement) {
         className: 'bg-background-default',
       }}
     >
-      <GitRepoMetadataAlert />
       <div className="mx-auto w-full max-w-5xl px-10">{page}</div>
     </OrgLayout>
   );

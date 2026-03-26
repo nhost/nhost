@@ -1,3 +1,4 @@
+export * from './constants';
 export * from './DataGrid';
 export { default as DataGrid } from './DataGrid';
 export * from './types';

@@ -71,17 +71,12 @@ export interface RemoteSchemaRolePermissionsEditorFormProps
    * Function to be called when the operation is cancelled.
    */
   onCancel: () => void;
-  /**
-   * Whether the form is disabled.
-   */
-  disabled?: boolean;
 }
 
 export default function RemoteSchemaRolePermissionsEditorForm({
   remoteSchemaName,
   role,
   permission,
-  disabled,
   onSubmit,
   onCancel,
 }: RemoteSchemaRolePermissionsEditorFormProps) {
@@ -617,7 +612,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                 checked as boolean,
                                               )
                                             }
-                                            disabled={disabled}
                                             className="peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                                           >
                                             <span className="peer h-4 w-4 shrink-0 rounded-sm border border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground">
@@ -675,7 +669,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                         e.target.value,
                                                       )
                                                     }
-                                                    disabled={disabled}
                                                     className="text-xs"
                                                   />
                                                 </div>
@@ -702,7 +695,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           checked as boolean,
                                         )
                                       }
-                                      disabled={disabled}
                                     />
                                     <label
                                       htmlFor={fieldKey}
@@ -773,7 +765,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           checked as boolean,
                                         )
                                       }
-                                      disabled={disabled}
                                     />
                                     <label
                                       htmlFor={fieldKey}
@@ -837,7 +828,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                       e.target.value,
                                                     )
                                                   }
-                                                  disabled={disabled}
                                                   className="text-xs"
                                                 />
                                               </div>
@@ -884,35 +874,31 @@ export default function RemoteSchemaRolePermissionsEditorForm({
             Cancel
           </Button>
 
-          {!disabled && (
-            <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
-              {permission && (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={handleDeleteClick}
-                  disabled={isRemovingPermission}
-                  loading={isRemovingPermission}
-                >
-                  Delete Permissions
-                </Button>
-              )}
-
+          <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
+            {permission && (
               <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSavePermission}
-                disabled={
-                  !schemaDefinition ||
-                  isAddingPermission ||
-                  isUpdatingPermission
-                }
-                loading={isAddingPermission || isUpdatingPermission}
+                variant="outlined"
+                color="error"
+                onClick={handleDeleteClick}
+                disabled={isRemovingPermission}
+                loading={isRemovingPermission}
               >
-                Save Permissions
+                Delete Permissions
               </Button>
-            </Box>
-          )}
+            )}
+
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSavePermission}
+              disabled={
+                !schemaDefinition || isAddingPermission || isUpdatingPermission
+              }
+              loading={isAddingPermission || isUpdatingPermission}
+            >
+              Save Permissions
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Form>
