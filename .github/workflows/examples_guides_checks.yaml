@@ -3,23 +3,23 @@ name: "examples/guides: check and build"
 on:
   pull_request_target:
     paths:
-      - '.github/workflows/wf_check.yaml'
-      - '.github/workflows/examples_guides_checks.yaml'
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/examples_guides_checks.yaml"
 
       # common build
-      - 'flake.nix'
-      - 'flake.lock'
-      - 'nixops/**'
-      - 'build/**'
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
 
       # common go
-      - '.golangci.yaml'
-      - 'go.mod'
-      - 'go.sum'
-      - 'vendor/**'
+      - ".golangci.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "vendor/**"
 
       # codegen
-      - 'tools/codegen/**'
+      - "tools/codegen/**"
 
       # common javascript
       - ".npmrc"
@@ -32,34 +32,62 @@ on:
       - "turbo.json"
 
       # nhpst-js
-      - 'packages/nhost-js/**'
+      - "packages/nhost-js/**"
 
       # guides
-      - 'examples/guides/**'
-  push:
-    branches:
-      - main
+      - "examples/guides/**"
+  merge_group:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  detect-changes:
+    uses: ./.github/workflows/wf_detect_changes.yaml
+    with:
+      patterns: |
+        .github/workflows/wf_check.yaml
+        .github/workflows/examples_guides_checks.yaml
+        flake.nix
+        flake.lock
+        nixops/**
+        build/**
+        .golangci.yaml
+        go.mod
+        go.sum
+        vendor/**
+        tools/codegen/**
+        .npmrc
+        .prettierignore
+        .prettierrc.js
+        audit-ci.jsonc
+        package.json
+        pnpm-workspace.yaml
+        pnpm-lock.yaml
+        turbo.json
+        packages/nhost-js/**
+        examples/guides/**
+
   check-permissions:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - run: |
           echo "github.event_name: ${{ github.event_name }}"
           echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
       - name: "This task will run and fail if user has no permissions and label safe_to_test isn't present"
-        if: "github.event_name == 'pull_request_target' && ! ( contains(github.event.pull_request.labels.*.name, 'safe_to_test') || contains(fromJson('[\"OWNER\", \"MEMBER\", \"COLLABORATOR\"]'), github.event.pull_request.author_association) )"
+        if: 'github.event_name == ''pull_request_target'' && ! ( contains(github.event.pull_request.labels.*.name, ''safe_to_test'') || contains(fromJson(''["OWNER", "MEMBER", "COLLABORATOR"]''), github.event.pull_request.author_association) )'
         run: |
           exit 1
 
   tests:
     uses: ./.github/workflows/wf_check.yaml
     needs:
+      - detect-changes
       - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: guides
       PATH: examples/guides
@@ -73,7 +101,9 @@ jobs:
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
     needs:
+      - detect-changes
       - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: guides
       PATH: examples/guides
@@ -89,10 +119,13 @@ jobs:
   remove_label:
     runs-on: ubuntu-latest
     needs:
+      - detect-changes
       - check-permissions
+    if: |
+      needs.detect-changes.outputs.should_run == 'true' &&
+      contains(github.event.pull_request.labels.*.name, 'safe_to_test')
     steps:
       - uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: |
             safe_to_test
-    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')

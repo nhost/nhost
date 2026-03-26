@@ -3,7 +3,7 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { DataBrowserGrid } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
+import { DataBrowserGridContainer } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
 import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -19,7 +19,7 @@ export default function DataBrowserTableDetailsPage() {
   return (
     <RetryableErrorBoundary>
       <DataGridQueryParamsProvider>
-        <DataBrowserGrid />
+        <DataBrowserGridContainer />
       </DataGridQueryParamsProvider>
     </RetryableErrorBoundary>
   );
