@@ -7,12 +7,26 @@ describe('BucketActions', () => {
   it('should call onEdit when Edit Bucket is clicked', async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
+    const onDelete = vi.fn();
 
-    render(<BucketActions onEdit={onEdit} />);
+    render(<BucketActions onEdit={onEdit} onDelete={onDelete} />);
 
     await user.click(screen.getByRole('button'));
     await user.click(screen.getByText('Edit Bucket'));
 
     expect(onEdit).toHaveBeenCalledOnce();
+  });
+
+  it('should call onDelete when Delete Bucket is clicked', async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    const onDelete = vi.fn();
+
+    render(<BucketActions onEdit={onEdit} onDelete={onDelete} />);
+
+    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByText('Delete Bucket'));
+
+    expect(onDelete).toHaveBeenCalledOnce();
   });
 });

@@ -249,7 +249,6 @@ export default function FilesDataGrid({
 
       return;
     }
-
     if (file.size > bucket.maxUploadFileSize) {
       // biome-ignore lint/style/noParameterAssign: reset file input's value
       event.target.value = '';

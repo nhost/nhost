@@ -2,6 +2,7 @@ import { useApolloClient } from '@apollo/client';
 import { Archive, Plus } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
@@ -10,9 +11,12 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { BucketActions } from '@/features/orgs/projects/storage/components/BucketActions';
 import { CreateBucketForm } from '@/features/orgs/projects/storage/components/CreateBucketForm';
+import { DeleteBucketDialog } from '@/features/orgs/projects/storage/components/DeleteBucketDialog';
 import { EditBucketForm } from '@/features/orgs/projects/storage/components/EditBucketForm';
 import { useBuckets } from '@/features/orgs/projects/storage/hooks/useBuckets';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isNotEmptyValue } from '@/lib/utils';
+import { useDeleteBucketMutation } from '@/utils/__generated__/graphql';
 
 interface StorageSidebarContentProps {
   onSidebarItemClick?: VoidFunction;
@@ -29,6 +33,8 @@ function StorageSidebarContent({
   const apolloClient = useApolloClient();
   const { openDrawer, closeDrawerWithDirtyGuard } = useDialog();
   const { buckets, loading, error } = useBuckets();
+  const [deleteBucket] = useDeleteBucketMutation({ client: apolloClient });
+  const [bucketToDelete, setBucketToDelete] = useState<string | null>(null);
 
   function openCreateBucketDrawer() {
     openDrawer({
@@ -55,6 +61,34 @@ function StorageSidebarContent({
         />
       ),
     });
+  }
+
+  async function handleDeleteBucket() {
+    if (!bucketToDelete) {
+      return;
+    }
+
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteBucket({
+          variables: { id: bucketToDelete },
+          refetchQueries: ['getBuckets'],
+        });
+
+        if (bucketSlug === bucketToDelete) {
+          await router.push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/storage`,
+          );
+        }
+      },
+      {
+        loadingMessage: 'Deleting bucket...',
+        successMessage: 'Bucket has been deleted successfully.',
+        errorMessage: 'Failed to delete bucket.',
+      },
+    );
+
+    setBucketToDelete(null);
   }
 
   if (loading) {
@@ -118,6 +152,7 @@ function StorageSidebarContent({
                       </NextLink>
                       <BucketActions
                         onEdit={() => openEditBucketDrawer(bucket.id)}
+                        onDelete={() => setBucketToDelete(bucket.id)}
                       />
                     </div>
                   </Button>
@@ -127,6 +162,18 @@ function StorageSidebarContent({
           </ul>
         )}
       </nav>
+      {bucketToDelete && (
+        <DeleteBucketDialog
+          bucketId={bucketToDelete}
+          open={!!bucketToDelete}
+          onOpenChange={(open) => {
+            if (!open) {
+              setBucketToDelete(null);
+            }
+          }}
+          onDelete={handleDeleteBucket}
+        />
+      )}
     </div>
   );
 }
