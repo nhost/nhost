@@ -49,6 +49,11 @@ overrides:
   next@>=16.0.1 <16.1.7: '>=16.1.7'
   next@>=16.0.0-beta.0 <16.1.7: '>=16.1.7'
   next@>=10.0.0 <16.1.7: '>=16.1.7'
+  qs@>=6.7.0 <=6.14.1: '>=6.14.2'
+  yaml@>=1.0.0 <1.10.3: '>=1.10.3'
+  yaml@>=2.0.0 <2.8.3: '>=2.8.3'
+  picomatch@<2.3.2: '>=2.3.2'
+  picomatch@>=4.0.0 <4.0.4: '>=4.0.4'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
