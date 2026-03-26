@@ -1,12 +1,13 @@
 ---
 title: Cron Triggers
 description: Call a webhook on a recurring schedule defined by a cron expression
-keywords: ["cron", "cron trigger", "scheduled", "recurring", "background jobs", "periodic", "webhook"]
+keywords:
+  ['cron', 'cron trigger', 'scheduled', 'recurring', 'background jobs', 'periodic', 'webhook']
 sidebar:
   label: Cron Triggers
 ---
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
+import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Cron triggers call a webhook on a recurring schedule defined by a cron expression. Use them for periodic background jobs — cleanup tasks, report generation, digest emails, or data checks.
 
@@ -14,14 +15,14 @@ Cron triggers call a webhook on a recurring schedule defined by a cron expressio
 
 Expressions follow the format `minute hour day-of-month month day-of-week` and run in **UTC**.
 
-| Expression | Description |
-|-----------|-------------|
-| `* * * * *` | Every minute |
-| `*/5 * * * *` | Every 5 minutes |
-| `*/30 * * * *` | Every 30 minutes |
-| `0 * * * *` | Every hour (at minute 0) |
-| `0 0 * * *` | Daily at midnight |
-| `0 9 * * 1-5` | Weekdays at 9:00 AM |
+| Expression     | Description              |
+| -------------- | ------------------------ |
+| `* * * * *`    | Every minute             |
+| `*/5 * * * *`  | Every 5 minutes          |
+| `*/30 * * * *` | Every 30 minutes         |
+| `0 * * * *`    | Every hour (at minute 0) |
+| `0 0 * * *`    | Daily at midnight        |
+| `0 9 * * 1-5`  | Weekdays at 9:00 AM      |
 
 The dashboard provides preset suggestions matching these common patterns.
 
@@ -31,19 +32,39 @@ The dashboard provides preset suggestions matching these common patterns.
 <TabItem label="Dashboard">
 Navigate to **Events** → **Cron Triggers**, then click **New Cron Trigger**.
 
-| Field | Description |
-|-------|-------------|
-| **Cron Trigger Name** | Unique identifier (e.g. `stale_todos_check`) |
-| **Comment** | Optional description of what the trigger does |
-| **Webhook URL or template** | Endpoint URL. Supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/stale-todos`) |
-| **Schedule (Cron Expression)** | Cron expression with preset suggestions dropdown |
-| **Payload** | JSON object sent in the webhook body |
-| **Retry and Headers Settings** (accordion) | Retry count, interval, timeout, **tolerance** (max seconds a late invocation can still fire), and custom HTTP headers |
-| **Request Options** (accordion) | Request options transform and payload transform (see [Transformations](#request-and-payload-transformations)) |
-
 ![Create Cron Trigger](/images/graphql/events/cron-trigger-create.png)
+
+| Field                                      | Description                                                                                                           |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **Cron Trigger Name**                      | Unique identifier (e.g. `stale_todos_check`)                                                                          |
+| **Comment**                                | Optional description of what the trigger does                                                                         |
+| **Webhook URL or template**                | Endpoint URL. Supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/stale-todos`)                       |
+| **Schedule (Cron Expression)**             | Cron expression with preset suggestions dropdown                                                                      |
+| **Payload**                                | JSON object sent in the webhook body                                                                                  |
+| **Retry and Headers Settings** (accordion) | Retry count, interval, timeout, **tolerance** (max seconds a late invocation can still fire), and custom HTTP headers |
+| **Request Options** (accordion)            | Request options transform and payload transform (see [Transformations](#request-and-payload-transformations))         |
+
 </TabItem>
 <TabItem label="Metadata">
+
+Cron triggers are defined in `nhost/metadata/cron_triggers.yaml`.
+
+| Field                               | Description                                                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `name`                              | Unique identifier (e.g. `stale_todos_check`)                                                                  |
+| `webhook`                           | Endpoint URL, supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/stale-todos`)               |
+| `schedule`                          | Cron expression (UTC)                                                                                         |
+| `include_in_metadata`               | Whether this trigger is managed via metadata (`true` / `false`)                                               |
+| `payload`                           | JSON object sent in the webhook body                                                                          |
+| `retry_conf.num_retries`            | Number of retry attempts on failure                                                                           |
+| `retry_conf.retry_interval_seconds` | Seconds between retry attempts                                                                                |
+| `retry_conf.timeout_seconds`        | Seconds before the request times out                                                                          |
+| `retry_conf.tolerance_seconds`      | Max seconds a late invocation can still fire                                                                  |
+| `headers`                           | List of HTTP headers. Each entry has a `name` and either `value` (literal) or `value_from_env` (env variable) |
+| `comment`                           | Optional description of what the trigger does                                                                 |
+
+This example runs every 5 minutes (see the full [`cron_triggers.yaml`](https://github.com/nhost/nhost/blob/main/examples/demos/backend/nhost/metadata/cron_triggers.yaml)):
+
 ```yaml
 - name: stale_todos_check
   webhook: '{{NHOST_FUNCTIONS_URL}}/events/stale-todos'
@@ -64,24 +85,25 @@ Navigate to **Events** → **Cron Triggers**, then click **New Cron Trigger**.
 :::note
 Cron trigger retry configuration uses `retry_interval_seconds` and `timeout_seconds`. These are different field names from event triggers, which use `interval_sec` and `timeout_sec`.
 :::
+
 </TabItem>
 </Tabs>
 
 ## Webhook Handler
 
-Cron triggers deliver an HTTP POST to any endpoint. The request body contains a `payload` field with the JSON you configured, not database row data.
+Cron triggers deliver an HTTP request to any endpoint. The default method is POST, but you can change it using [request transformations](/products/graphql/events/event-triggers/#request-and-payload-transformations). The request body contains a `payload` field with the JSON you configured, not database row data.
 
-A common pattern is targeting an Nhost Function to build async business workflows. The handler accesses the payload at `req.body.payload`. If configured with an empty payload (`{}`), the handler can ignore the body and run self-contained logic.
+A common pattern is targeting an [Nhost Function](/products/functions) to build async business workflows. The handler accesses the payload at `req.body.payload`. If configured with an empty payload (`{}`), the handler can ignore the body and run self-contained logic.
 
 ```ts
-import type { Request, Response } from "express";
-import { createClient, withAdminSession } from "@nhost/nhost-js";
+import type { Request, Response } from 'express'
+import { createClient, withAdminSession } from '@nhost/nhost-js'
 
 export default async (req: Request, res: Response) => {
   // Validate the webhook secret
-  const webhookSecret = req.headers["nhost-webhook-secret"];
+  const webhookSecret = req.headers['nhost-webhook-secret']
   if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: 'Unauthorized' })
   }
 
   const nhost = createClient({
@@ -89,13 +111,13 @@ export default async (req: Request, res: Response) => {
     subdomain: process.env.NHOST_SUBDOMAIN,
     configure: [
       withAdminSession({
-        adminSecret: process.env.NHOST_ADMIN_SECRET,
-      }),
-    ],
-  });
+        adminSecret: process.env.NHOST_ADMIN_SECRET
+      })
+    ]
+  })
 
   // Payload is at req.body.payload (the JSON configured in the trigger)
-  const payload = req.body.payload;
+  const payload = req.body.payload
 
   // Run your periodic logic here — query the database, process data, send notifications
   const { body } = await nhost.graphql.request({
@@ -113,16 +135,16 @@ export default async (req: Request, res: Response) => {
       }
     `,
     variables: {
-      cutoff: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  });
+      cutoff: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  })
 
   if (body.errors) {
-    return res.status(500).json({ errors: body.errors });
+    return res.status(500).json({ errors: body.errors })
   }
 
-  res.status(200).json({ processed: body.data?.todos?.length || 0 });
-};
+  res.status(200).json({ processed: body.data?.todos?.length || 0 })
+}
 ```
 
 For webhook security details, see [Event Triggers — Webhook Security](/products/graphql/events/event-triggers#webhook-security). For using the Nhost SDK inside handlers, see the [SDK guide](/products/functions/guides/nhost-sdk).
@@ -140,12 +162,23 @@ The complete webhook request body:
 }
 ```
 
-| Field | Description |
-|-------|-------------|
-| `scheduled_time` | ISO 8601 timestamp of the scheduled invocation (UTC) |
-| `payload` | The JSON object configured in the trigger definition |
-| `name` | The cron trigger name |
-| `comment` | The optional comment/description from the trigger definition |
+| Field            | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| `scheduled_time` | ISO 8601 timestamp of the scheduled invocation (UTC)         |
+| `payload`        | The JSON object configured in the trigger definition         |
+| `name`           | The cron trigger name                                        |
+| `comment`        | The optional comment/description from the trigger definition |
+
+## Retry Configuration
+
+| Field                    | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `num_retries`            | `0`               | Number of retry attempts on failure                             |
+| `retry_interval_seconds` | `10`              | Seconds between retry attempts                                  |
+| `timeout_seconds`        | `60`              | Seconds before a request times out                              |
+| `tolerance_seconds`      | `21600` (6 hours) | Maximum delay in seconds for a late invocation to still execute |
+
+Retries occur on non-2xx responses and network errors.
 
 ## Request and Payload Transformations
 
@@ -173,24 +206,13 @@ Displays the trigger configuration: name, comment, schedule, webhook URL, retry 
 
 ### Events
 
-Lists all scheduled invocations for this trigger. Filter by status using the buttons at the top: **Scheduled**, **Processed**, **Failed**, or **All**.
+Lists all scheduled invocations for this cron trigger. Filter by status using the "Status" header buttons at the top: **Scheduled**, **Processed**, **Failed**, or **All**.
 
 ![Cron Trigger Events](/images/graphql/events/cron-trigger-events.png)
 
 Each event shows its scheduled time, status, ID, and number of tries. Scheduled events that have not yet fired can be deleted individually.
 
 Expand an event to see its invocation logs. Each invocation shows the HTTP status code and a **View Details** action that opens the full request and response.
-
-## Retry Configuration
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `num_retries` | `0` | Number of retry attempts on failure |
-| `retry_interval_seconds` | `10` | Seconds between retry attempts |
-| `timeout_seconds` | `60` | Seconds before a request times out |
-| `tolerance_seconds` | `21600` (6 hours) | Maximum delay in seconds for a late invocation to still execute |
-
-Retries occur on non-2xx responses and network errors.
 
 ---
 

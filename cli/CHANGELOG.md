@@ -1,3 +1,17 @@
+## [cli@1.41.0] - 2026-03-26
+
+### 🚀 Features
+
+- *(cli)* Add run service volume overrides for local dev (#4047)
+- *(stripe-graphql-js)* Update dependencies and modernize build (#3664)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Forward stdin to Hasura CLI wrapper for interactive navigation (#4046)
+- *(cli)* Require initialized project before running config pull (#4045)
+- *(cli)* Remove possibility to bind mcp server to a port for security reasons (#4060)
+
 ## [cli@1.40.0] - 2026-03-25
 
 ### 🚀 Features

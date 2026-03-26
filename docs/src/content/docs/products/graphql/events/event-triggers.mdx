@@ -1,12 +1,13 @@
 ---
 title: Event Triggers
 description: Fire webhooks when database rows are inserted, updated, or deleted
-keywords: ["event triggers", "database events", "webhooks", "insert", "update", "delete", "webhook handler"]
+keywords:
+  ['event triggers', 'database events', 'webhooks', 'insert', 'update', 'delete', 'webhook handler']
 sidebar:
   label: Event Triggers
 ---
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
+import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Event triggers fire a webhook whenever a row in a tracked table is inserted, updated, or deleted. The webhook receives the old and new row data, letting your handler react to exactly what changed.
 
@@ -26,21 +27,36 @@ Navigate to **Events** > **Event Triggers** and click **New Event Trigger**.
 
 ![Create Event Trigger](/images/graphql/events/event-trigger-create.png)
 
-| Field | Description |
-|-------|-------------|
-| **Trigger Name** | Unique identifier (e.g. `community_description_updated`) |
-| **Data Source** | The database to monitor (typically `default`) |
-| **Schema** / **Table** | Database schema and table to watch |
-| **Trigger Operations** | Checkboxes: Insert, Update, Delete, Manual |
-| **Update Columns** | When Update is selected — all columns or specific columns |
-| **Webhook URL or template** | Endpoint URL, supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/your-handler`) |
-| **Retry and Headers Settings** | Retry count, interval, timeout, and custom HTTP headers |
-| **Configure Transformation** | Request options transform and payload transform (see [Transformations](#request-and-payload-transformations)) |
+| Field                          | Description                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| **Trigger Name**               | Unique identifier (e.g. `community_description_updated`)                                                      |
+| **Data Source**                | The database to monitor (typically `default`)                                                                 |
+| **Schema** / **Table**         | Database schema and table to watch                                                                            |
+| **Trigger Operations**         | Checkboxes: Insert, Update, Delete, Manual                                                                    |
+| **Update Columns**             | When Update is selected — all columns or specific columns                                                     |
+| **Webhook URL or template**    | Endpoint URL, supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/your-handler`)              |
+| **Retry and Headers Settings** | Retry count, interval, timeout, and custom HTTP headers                                                       |
+| **Configure Transformation**   | Request options transform and payload transform (see [Transformations](#request-and-payload-transformations)) |
 
 </TabItem>
 <TabItem label="Metadata">
 
-Event triggers are defined in the table's metadata YAML file. This example watches the `description` column of the `communities` table:
+Event triggers are defined in the table's metadata YAML file under the `event_triggers` key.
+
+| Field                      | Description                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `name`                     | Unique identifier (e.g. `community_description_updated`)                                                      |
+| `definition.enable_manual` | Allow manual invocation via the API or dashboard (`true` / `false`)                                           |
+| `definition.insert`        | Listen for insert operations. Set `columns: "*"` to track all columns                                         |
+| `definition.update`        | Listen for update operations. Provide a `columns` list to filter which column changes fire the trigger        |
+| `definition.delete`        | Listen for delete operations. Set `columns: "*"` to track all columns                                         |
+| `webhook`                  | Endpoint URL, supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/your-handler`)              |
+| `retry_conf.num_retries`   | Number of retry attempts on failure                                                                           |
+| `retry_conf.interval_sec`  | Seconds between retry attempts                                                                                |
+| `retry_conf.timeout_sec`   | Seconds before the request times out                                                                          |
+| `headers`                  | List of HTTP headers. Each entry has a `name` and either `value` (literal) or `value_from_env` (env variable) |
+
+This example watches the `description` column of the `communities` table (see the full [`public_communities.yaml`](https://github.com/nhost/nhost/blob/main/examples/demos/backend/nhost/metadata/databases/default/tables/public_communities.yaml)):
 
 ```yaml
 event_triggers:
@@ -65,12 +81,12 @@ event_triggers:
 
 ## Trigger Operations
 
-| Operation | Fires When | Payload |
-|-----------|-----------|---------|
-| **Insert** | A new row is inserted | `old` is null, `new` contains the inserted row |
+| Operation  | Fires When                                                 | Payload                                                         |
+| ---------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
+| **Insert** | A new row is inserted                                      | `old` is null, `new` contains the inserted row                  |
 | **Update** | A row is updated (optionally filtered to specific columns) | `old` contains the previous row, `new` contains the updated row |
-| **Delete** | A row is deleted | `old` contains the deleted row, `new` is null |
-| **Manual** | Invoked via the metadata API (`pg_invoke_event_trigger`) | `old` is null, `new` contains the current row |
+| **Delete** | A row is deleted                                           | `old` contains the deleted row, `new` is null                   |
+| **Manual** | Invoked via the metadata API (`pg_invoke_event_trigger`)   | `old` is null, `new` contains the current row                   |
 
 The **Manual** operation enables on-demand invocation from the dashboard. When browsing a table in the **Database** section, select a row and click **Invoke Event Trigger** in the toolbar. A dropdown lists all event triggers for that table — triggers with Manual enabled can be invoked with the selected row's data as the payload. Triggers without Manual enabled appear disabled with a lock icon.
 
@@ -78,25 +94,25 @@ The **Manual** operation enables on-demand invocation from the dashboard. When b
 
 ## Webhook Handler
 
-The webhook target can be any HTTP endpoint that accepts POST requests and returns a 2xx status code. A common pattern is to use an Nhost Function for async business workflows.
+The webhook target can be any HTTP endpoint that returns a 2xx status code. By default, events are delivered as POST requests, but you can change the HTTP method using [request transformations](#request-and-payload-transformations). A common pattern is to use an Nhost Function for async business workflows.
 
 ```typescript
-import type { Request, Response } from "express";
+import type { Request, Response } from 'express'
 
 export default async (req: Request, res: Response) => {
   // Validate the webhook secret
-  const webhookSecret = req.headers["nhost-webhook-secret"];
+  const webhookSecret = req.headers['nhost-webhook-secret']
   if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: 'Unauthorized' })
   }
 
-  const { old: oldRow, new: newRow } = req.body.event.data;
+  const { old: oldRow, new: newRow } = req.body.event.data
 
   // Your business logic here
-  console.log("Row changed:", { oldRow, newRow });
+  console.log('Row changed:', { oldRow, newRow })
 
-  res.status(200).json({ success: true });
-};
+  res.status(200).json({ success: true })
+}
 ```
 
 :::note
@@ -150,18 +166,29 @@ The webhook receives a JSON payload with the following structure:
 }
 ```
 
-| Field | Description |
-|-------|-------------|
-| `id` | Unique event UUID |
-| `created_at` | Timestamp when the event was created |
-| `event.op` | Operation type: `INSERT`, `UPDATE`, `DELETE`, or `MANUAL` |
-| `event.data.old` | Previous row data (null for inserts; null for manual triggers) |
-| `event.data.new` | Updated row data (null for deletes) |
-| `event.session_variables` | Session variables of the user who triggered the change |
-| `event.trace_context` | Trace context with `span_id` and `trace_id` |
-| `delivery_info` | Current retry attempt and max retries configured |
-| `trigger.name` | Name of the event trigger |
-| `table` | Schema and table name that triggered the event |
+| Field                     | Description                                                    |
+| ------------------------- | -------------------------------------------------------------- |
+| `id`                      | Unique event UUID                                              |
+| `created_at`              | Timestamp when the event was created                           |
+| `event.op`                | Operation type: `INSERT`, `UPDATE`, `DELETE`, or `MANUAL`      |
+| `event.data.old`          | Previous row data (null for inserts; null for manual triggers) |
+| `event.data.new`          | Updated row data (null for deletes)                            |
+| `event.session_variables` | Session variables of the user who triggered the change         |
+| `event.trace_context`     | Trace context with `span_id` and `trace_id`                    |
+| `delivery_info`           | Current retry attempt and max retries configured               |
+| `trigger.name`            | Name of the event trigger                                      |
+| `table.schema`            | Schema of the table that triggered the event                   |
+| `table.name`              | Name of the table that triggered the event                     |
+
+## Retry Configuration
+
+| Field          | Default | Description                          |
+| -------------- | ------- | ------------------------------------ |
+| `num_retries`  | 0       | Number of retry attempts on failure  |
+| `interval_sec` | 10      | Seconds between retry attempts       |
+| `timeout_sec`  | 60      | Seconds before the request times out |
+
+Retries occur on non-2xx responses and network errors.
 
 ## Request and Payload Transformations
 
@@ -169,29 +196,29 @@ Transform the outgoing webhook request to match any target API. Configured from 
 
 ### Request Options Transform
 
-Override the default POST method (GET, PUT, PATCH, DELETE), customize the URL path with templates (`{{$base_url}}/custom-path`), and add query parameters as key-value pairs or a URL string template. The dashboard shows a live URL preview.
+Override the default POST method (GET, PUT, PATCH, DELETE), customize the URL path with templates (`{{$base_url}}/custom-path`), and add query parameters as key-value pairs or a URL string template.
 
 ### Payload Transform
 
 Reshape the request body. Choose the content type:
 
-| Content Type | Editor | Description |
-|-------------|--------|-------------|
-| `application/json` | Template editor | Kriti template with access to template variables |
-| `application/x-www-form-urlencoded` | Key-value form editor | Form-encoded key-value pairs |
-| Disabled | None | No body sent with the request |
+| Content Type                        | Editor                | Description                                      |
+| ----------------------------------- | --------------------- | ------------------------------------------------ |
+| `application/json`                  | Template editor       | Kriti template with access to template variables |
+| `application/x-www-form-urlencoded` | Key-value form editor | Form-encoded key-value pairs                     |
+| Disabled                            | None                  | No body sent with the request                    |
 
 The dashboard shows a live preview of the transformed request body.
 
 ### Template Variables
 
-| Variable | Description |
-|----------|-------------|
-| `$body` | Original request body (the full event payload) |
-| `$base_url` | Webhook base URL |
-| `$session_variables` | User session variables |
-| `$query_params` | URL query parameters |
-| `$response.status` | Response status code (for response transforms) |
+| Variable             | Description                                    |
+| -------------------- | ---------------------------------------------- |
+| `$body`              | Original request body (the full event payload) |
+| `$base_url`          | Webhook base URL                               |
+| `$session_variables` | User session variables                         |
+| `$query_params`      | URL query parameters                           |
+| `$response.status`   | Response status code (for response transforms) |
 
 ### Example: Sending to Slack
 
@@ -207,6 +234,8 @@ To send event data to a Slack incoming webhook, set the payload transform to `ap
 
 Protect your webhook endpoint by validating a shared secret. Configure a header with a secret stored in an environment variable:
 
+![Additional Headers for Event triggers](/images/graphql/events/additional-headers.png)
+
 ```yaml
 headers:
   - name: nhost-webhook-secret
@@ -216,9 +245,9 @@ headers:
 The handler checks this header on every request:
 
 ```typescript
-const webhookSecret = req.headers["nhost-webhook-secret"];
+const webhookSecret = req.headers['nhost-webhook-secret']
 if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-  return res.status(401).json({ message: "Unauthorized" });
+  return res.status(401).json({ message: 'Unauthorized' })
 }
 ```
 
@@ -244,20 +273,10 @@ Lists all events fired by this trigger. Each event shows its created time, deliv
 
 Expand an event to see its invocation logs. Each invocation shows the HTTP status code and has two actions:
 
-- **View Details** — opens the full request and response (URL, method, headers, body, status)
 - **Redeliver** — re-sends the webhook for that invocation
+- **View Details** — opens the full request and response (URL, method, headers, body, status)
 
 ![Event Trigger Invocation Details](/images/graphql/events/event-trigger-invocation-details.png)
-
-## Retry Configuration
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `num_retries` | 0 | Number of retry attempts on failure |
-| `interval_sec` | 10 | Seconds between retry attempts |
-| `timeout_sec` | 60 | Seconds before the request times out |
-
-Retries occur on non-2xx responses and network errors.
 
 ---
 
