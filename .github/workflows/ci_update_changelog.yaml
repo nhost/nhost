@@ -26,6 +26,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         fetch-depth: 0
+        token: ${{ secrets.GH_PAT }}
 
     - name: Configure aws
       uses: aws-actions/configure-aws-credentials@v6
@@ -63,7 +64,7 @@ jobs:
       if: steps.version.outputs.version != ''
       uses: peter-evans/create-pull-request@v8
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GH_PAT }}
         commit-message: "release(${{ matrix.project }}): ${{ steps.version.outputs.version }}"
         title: "release(${{ matrix.project }}): ${{ steps.version.outputs.version }}"
         committer: GitHub <noreply@github.com>
