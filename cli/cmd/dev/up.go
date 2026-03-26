@@ -42,11 +42,10 @@ const (
 	flagsHasuraConsolePort = "hasura-console-port"
 	flagDashboardVersion   = "dashboard-version"
 	flagConfigserverImage  = "configserver-image"
-	flagRunService        = "run-service"
-	flagRunServiceCommand = "run-service-command"
-	flagRunServiceVolume  = "run-service-volume"
-	flagDownOnError       = "down-on-error"
-	flagCACertificates    = "ca-certificates"
+	flagRunService         = "run-service"
+	flagRunServiceVolume   = "run-service-volume"
+	flagDownOnError        = "down-on-error"
+	flagCACertificates     = "ca-certificates"
 )
 
 const (
@@ -128,11 +127,6 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Sources: cli.EnvVars("NHOST_RUN_SERVICE"),
 			},
 			&cli.StringSliceFlag{ //nolint:exhaustruct
-				Name:    flagRunServiceCommand,
-				Usage:   "Override start command for a run service. Format: service-name=cmd arg1 arg2. Can be passed multiple times", //nolint:lll
-				Sources: cli.EnvVars("NHOST_RUN_SERVICE_COMMAND"),
-			},
-			&cli.StringSliceFlag{ //nolint:exhaustruct
 				Name:    flagRunServiceVolume,
 				Usage:   "Mount a local directory into a run service container. Format: service-name=/local/path:/container/path. Can be passed multiple times", //nolint:lll
 				Sources: cli.EnvVars("NHOST_RUN_SERVICE_VOLUME"),
@@ -197,7 +191,6 @@ func commandUp(ctx context.Context, cmd *cli.Command) error {
 		configserverImage,
 		cmd.String(flagCACertificates),
 		cmd.StringSlice(flagRunService),
-		cmd.StringSlice(flagRunServiceCommand),
 		cmd.StringSlice(flagRunServiceVolume),
 		cmd.Bool(flagDownOnError),
 	)
@@ -317,32 +310,15 @@ func parseRunServiceConfigFlag(value string) (string, string, error) {
 }
 
 func parseRunServiceOverride(value string) (string, string, error) {
-	idx := strings.Index(value, "=")
-	if idx == -1 {
+	before, after, ok := strings.Cut(value, "=")
+	if !ok {
 		return "", "", fmt.Errorf( //nolint:err113
 			"invalid format, must be service-name=value, got %s",
 			value,
 		)
 	}
 
-	return value[:idx], value[idx+1:], nil
-}
-
-func parseRunServiceCommands(
-	flags []string,
-) (map[string][]string, error) {
-	result := make(map[string][]string, len(flags))
-
-	for _, flag := range flags {
-		name, cmd, err := parseRunServiceOverride(flag)
-		if err != nil {
-			return nil, fmt.Errorf("invalid --run-service-command: %w", err)
-		}
-
-		result[name] = strings.Fields(cmd)
-	}
-
-	return result, nil
+	return before, after, nil
 }
 
 func parseRunServiceVolumes(
@@ -383,15 +359,9 @@ func parseRunServiceVolumes(
 func processRunServices(
 	ce *clienv.CliEnv,
 	runServices []string,
-	runServiceCommands []string,
 	runServiceVolumes []string,
 	secrets model.Secrets,
 ) ([]*dockercompose.RunService, error) {
-	cmdOverrides, err := parseRunServiceCommands(runServiceCommands)
-	if err != nil {
-		return nil, err
-	}
-
 	volOverrides, err := parseRunServiceVolumes(runServiceVolumes)
 	if err != nil {
 		return nil, err
@@ -410,10 +380,9 @@ func processRunServices(
 		}
 
 		svc := &dockercompose.RunService{
-			Path:            cfgPath,
-			Config:          cfg,
-			CommandOverride: cmdOverrides[cfg.GetName()],
-			BindMounts:      volOverrides[cfg.GetName()],
+			Path:       cfgPath,
+			Config:     cfg,
+			BindMounts: volOverrides[cfg.GetName()],
 		}
 
 		r = append(r, svc)
@@ -436,7 +405,6 @@ func up( //nolint:funlen,cyclop
 	configserverImage string,
 	caCertificatesPath string,
 	runServices []string,
-	runServiceCommands []string,
 	runServiceVolumes []string,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
@@ -472,7 +440,7 @@ func up( //nolint:funlen,cyclop
 	}
 
 	runServicesCfg, err := processRunServices(
-		ce, runServices, runServiceCommands, runServiceVolumes, secrets,
+		ce, runServices, runServiceVolumes, secrets,
 	)
 	if err != nil {
 		return err
@@ -655,7 +623,6 @@ func Up(
 	configserverImage string,
 	caCertificatesPath string,
 	runServices []string,
-	runServiceCommands []string,
 	runServiceVolumes []string,
 	downOnError bool,
 ) error {
@@ -675,7 +642,6 @@ func Up(
 		configserverImage,
 		caCertificatesPath,
 		runServices,
-		runServiceCommands,
 		runServiceVolumes,
 	); err != nil {
 		return upErr(ce, dc, downOnError, err) //nolint:contextcheck

@@ -645,10 +645,6 @@ func getServices( //nolint: funlen,cyclop
 	for _, runService := range runServices {
 		svc := run(runService.Config, subdomain, branch)
 
-		if len(runService.CommandOverride) > 0 {
-			svc.EntryPoint = runService.CommandOverride
-		}
-
 		if len(runService.BindMounts) > 0 {
 			svc.Volumes = append(svc.Volumes, runService.BindMounts...)
 		}
@@ -660,10 +656,9 @@ func getServices( //nolint: funlen,cyclop
 }
 
 type RunService struct {
-	Config          *model.ConfigRunServiceConfig
-	Path            string
-	CommandOverride []string
-	BindMounts      []Volume
+	Config     *model.ConfigRunServiceConfig
+	Path       string
+	BindMounts []Volume
 }
 
 func mountCACertificates(
