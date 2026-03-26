@@ -1,3 +1,17 @@
+## [@nhost/dashboard@2.55.0] - 2026-03-26
+
+### 🚀 Features
+
+- *(dashboard)* Add jsonb filters to database page (#3998)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove action restrictions when project connected to GitHub repository (#4013)
+- *(dashboard)* Keep column order from older configuration (#4039)
+- *(ci)* Parallelize dashboard e2e tests (#4056)
+- *(deps)* Override various npm packages due to vulns (#4059)
+
 ## [@nhost/dashboard@2.54.0] - 2026-03-20
 
 ### 🚀 Features
