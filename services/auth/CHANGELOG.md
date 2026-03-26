@@ -1,3 +1,20 @@
+## [auth@0.48.0] - 2026-03-26
+
+### 🚀 Features
+
+- *(postgres)* Update versions and extensions (#4034)
+
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Abstract metadata management and allow for fixes/merges (#3953)
+- *(storage)* Handle webauthn verify request correctly (#3983)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update CLAUDE.md (#3948)
+
 ## [auth@0.47.0] - 2026-02-23
 
 ### 🚀 Features
