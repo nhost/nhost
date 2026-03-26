@@ -42,7 +42,7 @@ One-off scheduled events do not support request or payload transformations.
 
 ## Webhook Handler
 
-One-off scheduled events deliver an HTTP POST to any endpoint. The request body contains a `payload` field with the JSON you configured, following the same structure as cron triggers.
+One-off scheduled events deliver an HTTP POST to any endpoint. The request body contains a `payload` field with the JSON you configured, following the same payload structure as cron triggers.
 
 A common pattern is targeting an Nhost Function to run deferred business logic. The handler accesses the payload at `req.body.payload`.
 
