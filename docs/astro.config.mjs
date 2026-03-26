@@ -273,6 +273,18 @@ export default defineConfig({
                   ],
                 },
                 {
+                  label: 'Events',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/graphql/events' },
+                    { slug: 'products/graphql/events/event-triggers' },
+                    { slug: 'products/graphql/events/cron-triggers' },
+                    {
+                      slug: 'products/graphql/events/one-off-scheduled-events',
+                    },
+                  ],
+                },
+                {
                   label: 'Guides',
                   collapsed: false,
                   items: [
