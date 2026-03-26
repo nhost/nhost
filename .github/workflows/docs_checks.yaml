@@ -34,45 +34,39 @@ on:
       # cli
       - cli/**
   merge_group:
-    paths:
-      - ".github/workflows/wf_check.yaml"
-      - ".github/workflows/docs_checks.yaml"
-
-      # common build
-      - "flake.nix"
-      - "flake.lock"
-      - "nixops/**"
-      - "build/**"
-
-      # common javascript
-      - ".npmrc"
-      - ".prettierignore"
-      - ".prettierrc.js"
-      - "audit-ci.jsonc"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - "pnpm-lock.yaml"
-      - "turbo.json"
-
-      # docs
-      - docs/**
-
-      # nhost-js
-      - packages/nhost-js/**
-
-      # apis
-      - "services/auth/docs/openapi.yaml"
-      - "services/storage/controller/openapi.yaml"
-
-      # cli
-      - cli/**
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  detect-changes:
+    uses: ./.github/workflows/wf_detect_changes.yaml
+    with:
+      patterns: |
+        .github/workflows/wf_check.yaml
+        .github/workflows/docs_checks.yaml
+        flake.nix
+        flake.lock
+        nixops/**
+        build/**
+        .npmrc
+        .prettierignore
+        .prettierrc.js
+        audit-ci.jsonc
+        package.json
+        pnpm-workspace.yaml
+        pnpm-lock.yaml
+        turbo.json
+        docs/**
+        packages/nhost-js/**
+        services/auth/docs/openapi.yaml
+        services/storage/controller/openapi.yaml
+        cli/**
+
   check-permissions:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - run: |
@@ -86,7 +80,9 @@ jobs:
   tests:
     uses: ./.github/workflows/wf_check.yaml
     needs:
+      - detect-changes
       - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: docs
       PATH: docs
@@ -99,7 +95,9 @@ jobs:
   deploy-vercel:
     uses: ./.github/workflows/wf_deploy_vercel.yaml
     needs:
+      - detect-changes
       - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: docs
       GIT_REF: ${{ github.event.pull_request.head.sha }}
@@ -116,10 +114,13 @@ jobs:
   remove_label:
     runs-on: ubuntu-latest
     needs:
+      - detect-changes
       - check-permissions
+    if: |
+      needs.detect-changes.outputs.should_run == 'true' &&
+      contains(github.event.pull_request.labels.*.name, 'safe_to_test')
     steps:
       - uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: |
             safe_to_test
-    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')
