@@ -643,15 +643,22 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	for _, runService := range runServices {
-		services["run-"+runService.Config.Name] = run(runService.Config, subdomain, branch)
+		svc := run(runService.Config, subdomain, branch)
+
+		if len(runService.BindMounts) > 0 {
+			svc.Volumes = append(svc.Volumes, runService.BindMounts...)
+		}
+
+		services["run-"+runService.Config.Name] = svc
 	}
 
 	return services, nil
 }
 
 type RunService struct {
-	Config *model.ConfigRunServiceConfig
-	Path   string
+	Config     *model.ConfigRunServiceConfig
+	Path       string
+	BindMounts []Volume
 }
 
 func mountCACertificates(

@@ -3,8 +3,14 @@ table:
   schema: auth
 is_enum: true
 configuration:
-  column_config: {}
-  custom_column_names: {}
+  column_config:
+    comment:
+      custom_name: comment
+    value:
+      custom_name: value
+  custom_column_names:
+    comment: comment
+    value: value
   custom_name: authRefreshTokenTypes
   custom_root_fields:
     delete: deleteAuthRefreshTokenTypes
