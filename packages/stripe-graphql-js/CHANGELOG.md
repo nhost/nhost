@@ -1,3 +1,9 @@
+## [@nhost/stripe-graphql-js@1.3.0] - 2026-03-26
+
+### 🚀 Features
+
+- *(stripe-graphql-js)* Update dependencies and modernize build (#3664)
+
 # @nhost/stripe-graphql-js
 
 ## 1.2.0
