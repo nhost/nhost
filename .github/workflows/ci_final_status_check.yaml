@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   checks: read
+  actions: write
 
 jobs:
   final-status:
@@ -68,6 +69,33 @@ jobs:
 
             const sleep = (s) => new Promise(r => setTimeout(r, s * 1000));
 
+            // Cancel all other in-progress workflow runs for the same head SHA.
+            async function cancelOtherRuns() {
+              const thisRunId = context.runId;
+              const workflows = await github.paginate(
+                github.rest.actions.listWorkflowRunsForRepo,
+                { owner, repo, head_sha: sha, status: 'in_progress', per_page: 100 },
+              );
+              const toCancel = workflows.filter((r) => r.id !== thisRunId);
+              if (toCancel.length === 0) {
+                core.info('No other in-progress workflow runs to cancel.');
+                return;
+              }
+              core.info(`Cancelling ${toCancel.length} other workflow run(s)...`);
+              for (const run of toCancel) {
+                try {
+                  await github.rest.actions.cancelWorkflowRun({
+                    owner,
+                    repo,
+                    run_id: run.id,
+                  });
+                  core.info(`  Cancelled: ${run.name} (#${run.id})`);
+                } catch (e) {
+                  core.warning(`  Failed to cancel ${run.name} (#${run.id}): ${e.message}`);
+                }
+              }
+            }
+
             // Fetch all check runs for the PR head SHA, excluding our own.
             async function getCheckRuns() {
               const allRuns = [];
@@ -124,6 +152,19 @@ jobs:
                 );
               }
 
+              // Fail fast: if any check has failed, cancel other runs and exit
+              // immediately instead of waiting for remaining checks to finish.
+              if (failed.length > 0) {
+                core.info('');
+                core.info('Failed checks:');
+                for (const r of failed) {
+                  core.info(`  - ${r.name}: ${r.conclusion}`);
+                }
+                await cancelOtherRuns();
+                core.setFailed(`${failed.length} check(s) failed — aborting immediately`);
+                return;
+              }
+
               // All current checks are done and no new ones appeared within
               // the settle window — we can make a decision.
               const settled =
@@ -133,16 +174,6 @@ jobs:
               if (settled) {
                 if (runs.length === 0) {
                   core.info('No check workflows ran for this PR. Passing.');
-                  return;
-                }
-
-                if (failed.length > 0) {
-                  core.info('');
-                  core.info('Failed checks:');
-                  for (const r of failed) {
-                    core.info(`  - ${r.name}: ${r.conclusion}`);
-                  }
-                  core.setFailed(`${failed.length} check(s) failed`);
                   return;
                 }
 
