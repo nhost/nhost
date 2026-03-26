@@ -18,6 +18,10 @@ export interface CreateEventTriggerMutationVariables {
    */
   args: CreateEventTriggerArgs;
   /**
+   * The previous event trigger args, used for the down migration when editing
+   */
+  previousArgs?: CreateEventTriggerArgs;
+  /**
    * The resource version for (platform mode only).
    */
   resourceVersion?: number;
@@ -74,6 +78,7 @@ export default function useCreateEventTriggerMutation({
 
       return createEventTriggerMigration({
         args: variables.args,
+        previousArgs: variables.previousArgs,
         ...base,
       });
     },
