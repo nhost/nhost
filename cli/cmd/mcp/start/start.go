@@ -71,26 +71,27 @@ func Command() *cli.Command {
 	}
 }
 
-func action(_ context.Context, cmd *cli.Command) error {
+// BuildServer creates and configures an MCP server from the parsed CLI command.
+func BuildServer(cmd *cli.Command) (*server.MCPServer, error) {
 	cfg, err := getConfig(cmd)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	ServerInstructions := ServerInstructions
-	ServerInstructions += "\n\n"
-	ServerInstructions += cfg.Projects.Instructions()
-	ServerInstructions += "\n"
-	ServerInstructions += resources.Instructions()
+	serverInstructions := ServerInstructions
+	serverInstructions += "\n\n"
+	serverInstructions += cfg.Projects.Instructions()
+	serverInstructions += "\n"
+	serverInstructions += resources.Instructions()
 
 	mcpServer := server.NewMCPServer(
 		cmd.Root().Name,
 		cmd.Root().Version,
-		server.WithInstructions(ServerInstructions),
+		server.WithInstructions(serverInstructions),
 	)
 
 	if err := resources.Register(cfg, mcpServer); err != nil {
-		return cli.Exit(fmt.Sprintf("failed to register resources: %s", err), 1)
+		return nil, fmt.Errorf("failed to register resources: %w", err)
 	}
 
 	if cfg.Cloud != nil {
@@ -101,20 +102,29 @@ func action(_ context.Context, cmd *cli.Command) error {
 			cmd.String(flagNhostAuthURL),
 			cmd.String(flagNhostGraphqlURL),
 		); err != nil {
-			return cli.Exit(fmt.Sprintf("failed to register cloud tools: %s", err), 1)
+			return nil, fmt.Errorf("failed to register cloud tools: %w", err)
 		}
 	}
 
 	if len(cfg.Projects) > 0 {
 		if err := registerProjectTool(mcpServer, cfg); err != nil {
-			return cli.Exit(fmt.Sprintf("failed to register project tools: %s", err), 1)
+			return nil, fmt.Errorf("failed to register project tools: %w", err)
 		}
 	}
 
-	resources := schemas.NewTool(cfg)
-	resources.Register(mcpServer)
+	schemasTool := schemas.NewTool(cfg)
+	schemasTool.Register(mcpServer)
 
 	docs.NewTool().Register(mcpServer)
+
+	return mcpServer, nil
+}
+
+func action(_ context.Context, cmd *cli.Command) error {
+	mcpServer, err := BuildServer(cmd)
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("failed to build server: %v", err), 1)
+	}
 
 	if err := server.ServeStdio(mcpServer); err != nil {
 		return cli.Exit(fmt.Sprintf("failed to serve stdio: %v", err), 1)

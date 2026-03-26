@@ -1,15 +1,12 @@
 package mcp_test
 
 import (
-	"bytes"
 	"context"
 	"testing"
-	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/mark3labs/mcp-go/client"
-	"github.com/mark3labs/mcp-go/client/transport"
 	"github.com/mark3labs/mcp-go/mcp"
 	nhostmcp "github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/mcp/start"
@@ -19,54 +16,69 @@ import (
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
 	"github.com/nhost/nhost/cli/mcp/tools/project"
 	"github.com/nhost/nhost/cli/mcp/tools/schemas"
+	"github.com/urfave/cli/v3"
 )
 
 func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
+	t.Setenv("HOME", t.TempDir())
+
 	loginCmd := user.CommandLogin()
-	mcpCmd := nhostmcp.Command()
-
-	buf := bytes.NewBuffer(nil)
-	mcpCmd.Writer = buf
-
-	go func() {
-		t.Setenv("HOME", t.TempDir())
-
-		if err := loginCmd.Run(
-			context.Background(),
-			[]string{
-				"main",
-				"--pat=user-pat",
-			},
-		); err != nil {
-			panic(err)
-		}
-
-		if err := mcpCmd.Run(
-			context.Background(),
-			[]string{
-				"main",
-				"start",
-				"--bind=:9000",
-				"--config-file=testdata/sample.toml",
-			},
-		); err != nil {
-			panic(err)
-		}
-	}()
-
-	time.Sleep(time.Second)
-
-	transportClient, err := transport.NewSSE("http://localhost:9000/sse")
-	if err != nil {
-		t.Fatalf("failed to create transport client: %v", err)
+	if err := loginCmd.Run(
+		context.Background(),
+		[]string{
+			"main",
+			"--pat=user-pat",
+		},
+	); err != nil {
+		t.Fatalf("failed to login: %v", err)
 	}
 
-	mcpClient := client.NewClient(transportClient)
+	// Build the MCP server by running the CLI command with a custom action
+	// that calls BuildServer and captures the result.
+	var mcpServer *mcp.ServerResult //nolint:exhaustruct
+	mcpCmd := nhostmcp.Command()
+
+	for _, sub := range mcpCmd.Commands {
+		if sub.Name == "start" {
+			sub.Action = func(_ context.Context, cmd *cli.Command) error {
+				s, err := start.BuildServer(cmd)
+				if err != nil {
+					return err
+				}
+
+				mcpClient, err := client.NewInProcessClient(s)
+				if err != nil {
+					t.Fatalf("failed to create in-process client: %v", err)
+				}
+				t.Cleanup(func() { mcpClient.Close() })
+
+				runTests(t, mcpClient)
+
+				return nil
+			}
+		}
+	}
+
+	if err := mcpCmd.Run(
+		context.Background(),
+		[]string{
+			"main",
+			"start",
+			"--config-file=testdata/sample.toml",
+		},
+	); err != nil {
+		t.Fatalf("failed to run mcp command: %v", err)
+	}
+
+	_ = mcpServer
+}
+
+func runTests(t *testing.T, mcpClient *client.Client) { //nolint:cyclop,maintidx
+	t.Helper()
 
 	if err := mcpClient.Start(t.Context()); err != nil {
 		t.Fatalf("failed to start mcp client: %v", err)
 	}
-	defer mcpClient.Close()
 
 	initRequest := mcp.InitializeRequest{} //nolint:exhaustruct
 	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
