@@ -36,13 +36,42 @@ on:
 
       # demos
       - "examples/demos/**"
+  merge_group:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  detect-changes:
+    uses: ./.github/workflows/wf_detect_changes.yaml
+    with:
+      patterns: |
+        .github/workflows/wf_check.yaml
+        .github/workflows/examples_demos_checks.yaml
+        flake.nix
+        flake.lock
+        nixops/**
+        build/**
+        .golangci.yaml
+        go.mod
+        go.sum
+        vendor/**
+        tools/codegen/**
+        .npmrc
+        .prettierignore
+        .prettierrc.js
+        audit-ci.jsonc
+        package.json
+        pnpm-workspace.yaml
+        pnpm-lock.yaml
+        turbo.json
+        packages/nhost-js/**
+        examples/demos/**
+
   check-permissions:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - run: |
@@ -56,7 +85,9 @@ jobs:
   tests:
     uses: ./.github/workflows/wf_check.yaml
     needs:
+      - detect-changes
       - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: demos
       PATH: examples/demos
@@ -70,7 +101,9 @@ jobs:
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
     needs:
+      - detect-changes
       - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: demos
       PATH: examples/demos
@@ -86,10 +119,13 @@ jobs:
   remove_label:
     runs-on: ubuntu-latest
     needs:
+      - detect-changes
       - check-permissions
+    if: |
+      needs.detect-changes.outputs.should_run == 'true' &&
+      contains(github.event.pull_request.labels.*.name, 'safe_to_test')
     steps:
       - uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: |
             safe_to_test
-    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')

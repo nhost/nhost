@@ -3,13 +3,15 @@ name: "ci: final status check"
 
 on:
   pull_request:
+  merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('mg-{0}', github.event.merge_group.head_sha) }}
   cancel-in-progress: true
 
 permissions:
   checks: read
+  actions: write
 
 jobs:
   final-status:
@@ -17,32 +19,46 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 60
     steps:
+      - name: Validate PR title
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "Validating PR title: $PR_TITLE"
+
+          VALID_TYPES="feat|fix|chore"
+          VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|internal\/lib|nhost-js|nixops|postgres|storage|observability"
+
+          if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\):\ .+ ]]; then
+            echo "PR title does not follow the required format!"
+            echo ""
+            echo "Expected format: TYPE(PKG): SUMMARY"
+            echo ""
+            echo "Valid TYPEs:"
+            echo "  - feat:   mark this pull request as a feature"
+            echo "  - fix:    mark this pull request as a bug fix"
+            echo "  - chore:  mark this pull request as a maintenance item"
+            echo ""
+            echo "Valid PKGs:"
+            echo "  - auth, ci, cli, codegen, dashboard, deps, docs, examples,"
+            echo "  - nhost-js, nixops, postgres, storage, observability, internal/lib"
+            echo ""
+            echo "Example: feat(cli): add new command for database migrations"
+            exit 1
+          fi
+
+          echo "PR title is valid!"
+
       - name: Wait for all checks and verify status
         uses: actions/github-script@v7
         with:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const sha = context.payload.pull_request.head.sha;
-            const runId = process.env.GITHUB_RUN_ID;
-
-            // Check workflow names to monitor. Other checks (from third-party
-            // apps or non-PR workflows) are intentionally excluded so they
-            // cannot block the gate.
-            const CHECK_WORKFLOWS = [
-              'auth: check and build',
-              'cli: check and build',
-              'codegen: check and build',
-              'dashboard: check and build',
-              'docs: check and build',
-              'examples/demos: check and build',
-              'examples/guides: check and build',
-              'examples/tutorials: check and build',
-              'nhost-js: check and build',
-              'nixops: check and build',
-              'postgres: check and build',
-              'storage: check and build',
-            ];
+            const sha = context.payload.pull_request?.head?.sha
+              || context.payload.merge_group?.head_sha
+              || context.sha;
+            const THIS_CHECK_NAME = 'ci: final status check';
 
             const POLL_INTERVAL_S = 30;
             // After all currently-known checks are complete, wait this long
@@ -51,6 +67,33 @@ jobs:
             const MAX_WAIT_S = 2700; // 45 min
 
             const sleep = (s) => new Promise(r => setTimeout(r, s * 1000));
+
+            // Cancel all other in-progress workflow runs for the same head SHA.
+            async function cancelOtherRuns() {
+              const thisRunId = context.runId;
+              const workflows = await github.paginate(
+                github.rest.actions.listWorkflowRunsForRepo,
+                { owner, repo, head_sha: sha, status: 'in_progress', per_page: 100 },
+              );
+              const toCancel = workflows.filter((r) => r.id !== thisRunId);
+              if (toCancel.length === 0) {
+                core.info('No other in-progress workflow runs to cancel.');
+                return;
+              }
+              core.info(`Cancelling ${toCancel.length} other workflow run(s)...`);
+              for (const run of toCancel) {
+                try {
+                  await github.rest.actions.cancelWorkflowRun({
+                    owner,
+                    repo,
+                    run_id: run.id,
+                  });
+                  core.info(`  Cancelled: ${run.name} (#${run.id})`);
+                } catch (e) {
+                  core.warning(`  Failed to cancel ${run.name} (#${run.id}): ${e.message}`);
+                }
+              }
+            }
 
             // Fetch all check runs for the PR head SHA, excluding our own.
             async function getCheckRuns() {
@@ -69,11 +112,7 @@ jobs:
                 if (allRuns.length >= data.total_count) break;
                 page++;
               }
-              return allRuns.filter(
-                (r) =>
-                  r.name !== 'ci: final status check' &&
-                  CHECK_WORKFLOWS.some((wf) => r.name.startsWith(wf)),
-              );
+              return allRuns.filter((r) => r.name !== THIS_CHECK_NAME);
             }
 
             // Give other workflows time to be queued.
@@ -112,6 +151,19 @@ jobs:
                 );
               }
 
+              // Fail fast: if any check has failed, cancel other runs and exit
+              // immediately instead of waiting for remaining checks to finish.
+              if (failed.length > 0) {
+                core.info('');
+                core.info('Failed checks:');
+                for (const r of failed) {
+                  core.info(`  - ${r.name}: ${r.conclusion}`);
+                }
+                await cancelOtherRuns();
+                core.setFailed(`${failed.length} check(s) failed — aborting immediately`);
+                return;
+              }
+
               // All current checks are done and no new ones appeared within
               // the settle window — we can make a decision.
               const settled =
@@ -121,16 +173,6 @@ jobs:
               if (settled) {
                 if (runs.length === 0) {
                   core.info('No check workflows ran for this PR. Passing.');
-                  return;
-                }
-
-                if (failed.length > 0) {
-                  core.info('');
-                  core.info('Failed checks:');
-                  for (const r of failed) {
-                    core.info(`  - ${r.name}: ${r.conclusion}`);
-                  }
-                  core.setFailed(`${failed.length} check(s) failed`);
                   return;
                 }
 
