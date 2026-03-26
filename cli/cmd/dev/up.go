@@ -43,6 +43,7 @@ const (
 	flagDashboardVersion   = "dashboard-version"
 	flagConfigserverImage  = "configserver-image"
 	flagRunService         = "run-service"
+	flagRunServiceVolume   = "run-service-volume"
 	flagDownOnError        = "down-on-error"
 	flagCACertificates     = "ca-certificates"
 )
@@ -125,6 +126,11 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Usage:   "Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name]", //nolint:lll
 				Sources: cli.EnvVars("NHOST_RUN_SERVICE"),
 			},
+			&cli.StringSliceFlag{ //nolint:exhaustruct
+				Name:    flagRunServiceVolume,
+				Usage:   "Mount a local directory into a run service container. Format: service-name=/local/path:/container/path. Can be passed multiple times", //nolint:lll
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_VOLUME"),
+			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagDownOnError,
 				Usage:   "Skip confirmation",
@@ -185,6 +191,7 @@ func commandUp(ctx context.Context, cmd *cli.Command) error {
 		configserverImage,
 		cmd.String(flagCACertificates),
 		cmd.StringSlice(flagRunService),
+		cmd.StringSlice(flagRunServiceVolume),
 		cmd.Bool(flagDownOnError),
 	)
 }
@@ -302,11 +309,64 @@ func parseRunServiceConfigFlag(value string) (string, string, error) {
 	}
 }
 
+func parseRunServiceOverride(value string) (string, string, error) {
+	before, after, ok := strings.Cut(value, "=")
+	if !ok {
+		return "", "", fmt.Errorf( //nolint:err113
+			"invalid format, must be service-name=value, got %s",
+			value,
+		)
+	}
+
+	return before, after, nil
+}
+
+func parseRunServiceVolumes(
+	flags []string,
+) (map[string][]dockercompose.Volume, error) {
+	result := make(map[string][]dockercompose.Volume, len(flags))
+
+	for _, flag := range flags {
+		name, vol, err := parseRunServiceOverride(flag)
+		if err != nil {
+			return nil, fmt.Errorf("invalid --run-service-volume: %w", err)
+		}
+
+		parts := strings.SplitN(vol, ":", 2) //nolint:mnd
+		if len(parts) != 2 {                 //nolint:mnd
+			return nil, fmt.Errorf( //nolint:err113
+				"invalid volume format, must be /local/path:/container/path, got %s",
+				vol,
+			)
+		}
+
+		absSource, err := filepath.Abs(parts[0])
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve volume path %s: %w", parts[0], err)
+		}
+
+		result[name] = append(result[name], dockercompose.Volume{
+			Type:     "bind",
+			Source:   absSource,
+			Target:   parts[1],
+			ReadOnly: new(false),
+		})
+	}
+
+	return result, nil
+}
+
 func processRunServices(
 	ce *clienv.CliEnv,
 	runServices []string,
+	runServiceVolumes []string,
 	secrets model.Secrets,
 ) ([]*dockercompose.RunService, error) {
+	volOverrides, err := parseRunServiceVolumes(runServiceVolumes)
+	if err != nil {
+		return nil, err
+	}
+
 	r := make([]*dockercompose.RunService, 0, len(runServices))
 	for _, runService := range runServices {
 		cfgPath, overlayName, err := parseRunServiceConfigFlag(runService)
@@ -319,10 +379,13 @@ func processRunServices(
 			return nil, fmt.Errorf("failed to validate run service %s: %w", cfgPath, err)
 		}
 
-		r = append(r, &dockercompose.RunService{
-			Path:   cfgPath,
-			Config: cfg,
-		})
+		svc := &dockercompose.RunService{
+			Path:       cfgPath,
+			Config:     cfg,
+			BindMounts: volOverrides[cfg.GetName()],
+		}
+
+		r = append(r, svc)
 	}
 
 	return r, nil
@@ -342,6 +405,7 @@ func up( //nolint:funlen,cyclop
 	configserverImage string,
 	caCertificatesPath string,
 	runServices []string,
+	runServiceVolumes []string,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -375,7 +439,9 @@ func up( //nolint:funlen,cyclop
 		ce.Warnln("Problem verifying recommended versions: %s", err.Error())
 	}
 
-	runServicesCfg, err := processRunServices(ce, runServices, secrets)
+	runServicesCfg, err := processRunServices(
+		ce, runServices, runServiceVolumes, secrets,
+	)
 	if err != nil {
 		return err
 	}
@@ -557,6 +623,7 @@ func Up(
 	configserverImage string,
 	caCertificatesPath string,
 	runServices []string,
+	runServiceVolumes []string,
 	downOnError bool,
 ) error {
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
@@ -575,6 +642,7 @@ func Up(
 		configserverImage,
 		caCertificatesPath,
 		runServices,
+		runServiceVolumes,
 	); err != nil {
 		return upErr(ce, dc, downOnError, err) //nolint:contextcheck
 	}
