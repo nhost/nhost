@@ -3,4 +3,4 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install --production
 COPY index.js ./
-EXPOSE 5000
+EXPOSE 8000

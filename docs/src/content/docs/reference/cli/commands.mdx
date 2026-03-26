@@ -34,7 +34,7 @@ nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 
 # GLOBAL OPTIONS
 
-**--branch**="": Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value. (default: &lt;current-git-branch&gt;) [$BRANCH]
+**--branch**="": Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value. (default: <current-git-branch>) [$BRANCH]
 
 **--dot-nhost-folder**="": Path to .nhost folder
 	 (default: ".nhost") [$NHOST_DOT_NHOST_FOLDER]
@@ -46,7 +46,7 @@ nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 **--nhost-folder**="": Path to nhost folder
 	 (default: "nhost") [$NHOST_NHOST_FOLDER]
 
-**--project-name**="": Project name (default: &lt;project-directory-name&gt;) [$NHOST_PROJECT_NAME]
+**--project-name**="": Project name (default: <project-directory-name>) [$NHOST_PROJECT_NAME]
 
 **--root-folder**="": Root folder of project
 	 (default: ".") [$NHOST_ROOT_FOLDER]
@@ -273,6 +273,8 @@ Start local development environment
 **--postgres-port**="": Postgres port to listen on (default: 5432) [$NHOST_POSTGRES_PORT]
 
 **--run-service**="": Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name] [$NHOST_RUN_SERVICE]
+
+**--run-service-volume**="": Mount a local directory into a run service container. Format: service-name=/local/path:/container/path. Can be passed multiple times [$NHOST_RUN_SERVICE_VOLUME]
 
 **--storage-port**="": If specified, expose storage on this port. Not recommended (default: 0)
 
