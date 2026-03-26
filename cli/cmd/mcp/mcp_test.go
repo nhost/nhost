@@ -2,6 +2,7 @@ package mcp_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -19,7 +20,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
+func TestStart(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 
 	loginCmd := user.CommandLogin()
@@ -35,7 +36,8 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 
 	// Build the MCP server by running the CLI command with a custom action
 	// that calls BuildServer and captures the result.
-	var mcpServer *mcp.ServerResult //nolint:exhaustruct
+	var mcpServer *mcp.ServerResult
+
 	mcpCmd := nhostmcp.Command()
 
 	for _, sub := range mcpCmd.Commands {
@@ -43,16 +45,17 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 			sub.Action = func(_ context.Context, cmd *cli.Command) error {
 				s, err := start.BuildServer(cmd)
 				if err != nil {
-					return err
+					return fmt.Errorf("problem building server: %w", err)
 				}
 
 				mcpClient, err := client.NewInProcessClient(s)
 				if err != nil {
 					t.Fatalf("failed to create in-process client: %v", err)
 				}
+
 				t.Cleanup(func() { mcpClient.Close() })
 
-				runTests(t, mcpClient)
+				runTests(t, mcpClient) //nolint:contextcheck
 
 				return nil
 			}
