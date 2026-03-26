@@ -169,6 +169,17 @@ The complete webhook request body:
 | `name`           | The cron trigger name                                        |
 | `comment`        | The optional comment/description from the trigger definition |
 
+## Retry Configuration
+
+| Field                    | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `num_retries`            | `0`               | Number of retry attempts on failure                             |
+| `retry_interval_seconds` | `10`              | Seconds between retry attempts                                  |
+| `timeout_seconds`        | `60`              | Seconds before a request times out                              |
+| `tolerance_seconds`      | `21600` (6 hours) | Maximum delay in seconds for a late invocation to still execute |
+
+Retries occur on non-2xx responses and network errors.
+
 ## Request and Payload Transformations
 
 Cron triggers support the same request and payload transformations as event triggers. Transform the outgoing webhook request to match any target API — override the HTTP method, customize the URL path, or reshape the request body.
@@ -202,17 +213,6 @@ Lists all scheduled invocations for this cron trigger. Filter by status using th
 Each event shows its scheduled time, status, ID, and number of tries. Scheduled events that have not yet fired can be deleted individually.
 
 Expand an event to see its invocation logs. Each invocation shows the HTTP status code and a **View Details** action that opens the full request and response.
-
-## Retry Configuration
-
-| Field                    | Default           | Description                                                     |
-| ------------------------ | ----------------- | --------------------------------------------------------------- |
-| `num_retries`            | `0`               | Number of retry attempts on failure                             |
-| `retry_interval_seconds` | `10`              | Seconds between retry attempts                                  |
-| `timeout_seconds`        | `60`              | Seconds before a request times out                              |
-| `tolerance_seconds`      | `21600` (6 hours) | Maximum delay in seconds for a late invocation to still execute |
-
-Retries occur on non-2xx responses and network errors.
 
 ---
 

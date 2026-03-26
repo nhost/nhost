@@ -143,6 +143,16 @@ The complete webhook request body:
 | `comment`        | The optional comment/description from the event definition       |
 | `created_at`     | ISO 8601 timestamp of when the event was created                 |
 
+## Retry Configuration
+
+| Field                    | Default | Description                         |
+| ------------------------ | ------- | ----------------------------------- |
+| `num_retries`            | `0`     | Number of retry attempts on failure |
+| `retry_interval_seconds` | `10`    | Seconds between retry attempts      |
+| `timeout_seconds`        | `60`    | Seconds before a request times out  |
+
+Retries occur on non-2xx responses and network errors.
+
 ## Example Payload
 
 A practical payload for a broadcast notification, entered in the dashboard **Payload** field:
@@ -166,16 +176,6 @@ Each event shows its comment, scheduled time, status, webhook URL, ID, and numbe
 Expand an event to see its invocation logs. Each invocation shows the HTTP status code and a **View Details** action that opens the full request and response.
 
 ![One-Off Scheduled Event Invocation Details](/images/graphql/events/scheduled-event-invocation-details.png)
-
-## Retry Configuration
-
-| Field                    | Default | Description                         |
-| ------------------------ | ------- | ----------------------------------- |
-| `num_retries`            | `0`     | Number of retry attempts on failure |
-| `retry_interval_seconds` | `10`    | Seconds between retry attempts      |
-| `timeout_seconds`        | `60`    | Seconds before a request times out  |
-
-Retries occur on non-2xx responses and network errors.
 
 ---
 

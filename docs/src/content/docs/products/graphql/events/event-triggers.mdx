@@ -180,6 +180,16 @@ The webhook receives a JSON payload with the following structure:
 | `table.schema`            | Schema of the table that triggered the event                   |
 | `table.name`              | Name of the table that triggered the event                     |
 
+## Retry Configuration
+
+| Field          | Default | Description                          |
+| -------------- | ------- | ------------------------------------ |
+| `num_retries`  | 0       | Number of retry attempts on failure  |
+| `interval_sec` | 10      | Seconds between retry attempts       |
+| `timeout_sec`  | 60      | Seconds before the request times out |
+
+Retries occur on non-2xx responses and network errors.
+
 ## Request and Payload Transformations
 
 Transform the outgoing webhook request to match any target API. Configured from the **Configure Transformation** accordion in the event trigger form.
@@ -267,16 +277,6 @@ Expand an event to see its invocation logs. Each invocation shows the HTTP statu
 - **View Details** — opens the full request and response (URL, method, headers, body, status)
 
 ![Event Trigger Invocation Details](/images/graphql/events/event-trigger-invocation-details.png)
-
-## Retry Configuration
-
-| Field          | Default | Description                          |
-| -------------- | ------- | ------------------------------------ |
-| `num_retries`  | 0       | Number of retry attempts on failure  |
-| `interval_sec` | 10      | Seconds between retry attempts       |
-| `timeout_sec`  | 60      | Seconds before the request times out |
-
-Retries occur on non-2xx responses and network errors.
 
 ---
 
