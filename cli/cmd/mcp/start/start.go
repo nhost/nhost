@@ -21,7 +21,6 @@ import (
 const (
 	flagNhostAuthURL    = "nhost-auth-url"
 	flagNhostGraphqlURL = "nhost-graphql-url"
-	flagBind            = "bind"
 )
 
 const (
@@ -66,13 +65,6 @@ func Command() *cli.Command {
 				Value:    "https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1",
 				Category: "Cloud Platform",
 				Sources:  cli.EnvVars("NHOST_GRAPHQL_URL"),
-			},
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:     flagBind,
-				Usage:    "Bind address in the form $host:$port. If omitted use stdio",
-				Required: false,
-				Category: "General",
-				Sources:  cli.EnvVars("BIND"),
 			},
 		},
 		Action: action,
@@ -124,7 +116,11 @@ func action(_ context.Context, cmd *cli.Command) error {
 
 	docs.NewTool().Register(mcpServer)
 
-	return start(mcpServer, cmd.String(flagBind))
+	if err := server.ServeStdio(mcpServer); err != nil {
+		return cli.Exit(fmt.Sprintf("failed to serve stdio: %v", err), 1)
+	}
+
+	return nil
 }
 
 func getConfig(cmd *cli.Command) (*config.Config, error) {
@@ -187,24 +183,6 @@ func registerProjectTool(
 	projectTool := project.NewTool(cfg)
 	if err := projectTool.Register(mcpServer); err != nil {
 		return fmt.Errorf("failed to register tool: %w", err)
-	}
-
-	return nil
-}
-
-func start(
-	mcpServer *server.MCPServer,
-	bind string,
-) error {
-	if bind != "" {
-		sseServer := server.NewSSEServer(mcpServer, server.WithBaseURL(bind))
-		if err := sseServer.Start(bind); err != nil {
-			return cli.Exit(fmt.Sprintf("failed to serve tcp: %v", err), 1)
-		}
-	} else {
-		if err := server.ServeStdio(mcpServer); err != nil {
-			return cli.Exit(fmt.Sprintf("failed to serve stdio: %v", err), 1)
-		}
 	}
 
 	return nil
