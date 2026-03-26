@@ -13,6 +13,7 @@ import { BucketActions } from '@/features/orgs/projects/storage/components/Bucke
 import { CreateBucketForm } from '@/features/orgs/projects/storage/components/CreateBucketForm';
 import { DeleteBucketDialog } from '@/features/orgs/projects/storage/components/DeleteBucketDialog';
 import { EditBucketForm } from '@/features/orgs/projects/storage/components/EditBucketForm';
+import { StoragePermissionsButton } from '@/features/orgs/projects/storage/components/StoragePermissionsButton';
 import { useBuckets } from '@/features/orgs/projects/storage/hooks/useBuckets';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isNotEmptyValue } from '@/lib/utils';
@@ -107,73 +108,78 @@ function StorageSidebarContent({
   }
 
   return (
-    <div className="flex h-full flex-col px-2">
-      <Button
-        variant="link"
-        className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
-        onClick={openCreateBucketDrawer}
-      >
-        New Bucket <Plus className="h-4 w-4" />
-      </Button>
-      {buckets.length === 0 && (
-        <p className="px-2 py-1.5 text-disabled text-xs">No buckets found.</p>
-      )}
-      <nav aria-label="Storage navigation">
-        {isNotEmptyValue(buckets) && (
-          <ul className="w-full max-w-full pb-6">
-            {buckets.map((bucket) => {
-              const isSelected = bucket.id === bucketSlug;
-              return (
-                <li className="group pb-1" key={bucket.id}>
-                  <Button
-                    asChild
-                    variant="link"
-                    size="sm"
-                    className={cn(
-                      'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-                      {
-                        'bg-table-selected': isSelected,
-                      },
-                    )}
-                  >
-                    <div className="flex w-full items-center">
-                      <NextLink
-                        className={cn(
-                          'flex min-w-0 flex-1 items-center gap-1.5 p-[0.625rem] text-left',
-                          {
-                            'text-primary-main': isSelected,
-                          },
-                        )}
-                        onClick={() => onSidebarItemClick?.()}
-                        href={`/orgs/${orgSlug}/projects/${appSubdomain}/storage/bucket/${bucket.id}`}
-                      >
-                        <Archive className="h-4 w-4 shrink-0" />
-                        <span className="!truncate">{bucket.id}</span>
-                      </NextLink>
-                      <BucketActions
-                        onEdit={() => openEditBucketDrawer(bucket.id)}
-                        onDelete={() => setBucketToDelete(bucket.id)}
-                      />
-                    </div>
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
+    <div className="flex h-full flex-col justify-between">
+      <div className="flex flex-col px-2">
+        <Button
+          variant="link"
+          className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
+          onClick={openCreateBucketDrawer}
+        >
+          New Bucket <Plus className="h-4 w-4" />
+        </Button>
+        {buckets.length === 0 && (
+          <p className="px-2 py-1.5 text-disabled text-xs">No buckets found.</p>
         )}
-      </nav>
-      {bucketToDelete && (
-        <DeleteBucketDialog
-          bucketId={bucketToDelete}
-          open={!!bucketToDelete}
-          onOpenChange={(open) => {
-            if (!open) {
-              setBucketToDelete(null);
-            }
-          }}
-          onDelete={handleDeleteBucket}
-        />
-      )}
+        <nav aria-label="Storage navigation">
+          {isNotEmptyValue(buckets) && (
+            <ul className="w-full max-w-full pb-6">
+              {buckets.map((bucket) => {
+                const isSelected = bucket.id === bucketSlug;
+                return (
+                  <li className="group pb-1" key={bucket.id}>
+                    <Button
+                      asChild
+                      variant="link"
+                      size="sm"
+                      className={cn(
+                        'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
+                        {
+                          'bg-table-selected': isSelected,
+                        },
+                      )}
+                    >
+                      <div className="flex w-full items-center">
+                        <NextLink
+                          className={cn(
+                            'flex min-w-0 flex-1 items-center gap-1.5 p-[0.625rem] text-left',
+                            {
+                              'text-primary-main': isSelected,
+                            },
+                          )}
+                          onClick={() => onSidebarItemClick?.()}
+                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/storage/bucket/${bucket.id}`}
+                        >
+                          <Archive className="h-4 w-4 shrink-0" />
+                          <span className="!truncate">{bucket.id}</span>
+                        </NextLink>
+                        <BucketActions
+                          onEdit={() => openEditBucketDrawer(bucket.id)}
+                          onDelete={() => setBucketToDelete(bucket.id)}
+                        />
+                      </div>
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </nav>
+        {bucketToDelete && (
+          <DeleteBucketDialog
+            bucketId={bucketToDelete}
+            open={!!bucketToDelete}
+            onOpenChange={(open) => {
+              if (!open) {
+                setBucketToDelete(null);
+              }
+            }}
+            onDelete={handleDeleteBucket}
+          />
+        )}
+      </div>
+      <div className="box border-t">
+        <StoragePermissionsButton />
+      </div>
     </div>
   );
 }

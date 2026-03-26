@@ -1,6 +1,5 @@
 import type { FocusEvent, ReactNode } from 'react';
-import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { Input } from '@/components/ui/v2/Input';
@@ -8,28 +7,18 @@ import { Radio } from '@/components/ui/v2/Radio';
 import { RadioGroup } from '@/components/ui/v2/RadioGroup';
 import { Text } from '@/components/ui/v2/Text';
 import { CustomCheckEditor } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor';
-import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
+import type {
+  RolePermissionEditorFormValues,
+  RowCheckType,
+} from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
-import { isNotEmptyValue } from '@/lib/utils';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
 export interface RowPermissionsSectionProps {
-  /**
-   * The role that is being edited.
-   */
   role: string;
-  /**
-   * The action that is being edited.
-   */
   action: DatabaseAction;
-  /**
-   * The schema that is being edited.
-   */
   schema: string;
-  /**
-   * The table that is being edited.
-   */
   table: string;
 }
 
@@ -42,24 +31,18 @@ export default function RowPermissionsSection({
   const {
     register,
     setValue,
-    getValues,
     formState: { errors },
   } = useFormContext<RolePermissionEditorFormValues>();
-  const { filter } = getValues();
 
-  const defaultRowCheckType = isNotEmptyValue(filter?.children)
-    ? 'custom'
-    : 'none';
+  const rowCheckType = useWatch<RolePermissionEditorFormValues, 'rowCheckType'>({
+    name: 'rowCheckType',
+  });
 
-  const [rowCheckType, setRowCheckType] = useState<'none' | 'custom'>(
-    defaultRowCheckType,
-  );
-
-  function handleCheckTypeChange(value: typeof rowCheckType) {
-    setRowCheckType(value);
+  function handleCheckTypeChange(value: RowCheckType) {
+    setValue('rowCheckType', value, { shouldDirty: true });
 
     if (value === 'none') {
-      setValue('filter', {});
+      setValue('filter', {}, { shouldDirty: true });
     } else {
       const emptyCustomCheck: GroupNode = {
         type: 'group',
@@ -67,7 +50,7 @@ export default function RowPermissionsSection({
         operator: '_implicit',
         children: [],
       };
-      setValue('filter', emptyCustomCheck);
+      setValue('filter', emptyCustomCheck, { shouldDirty: true });
     }
   }
 
