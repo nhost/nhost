@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Validate PR title
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && !startsWith(github.event.pull_request.title, 'release(')
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
