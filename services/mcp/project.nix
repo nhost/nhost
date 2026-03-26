@@ -18,6 +18,10 @@ let
         (inDirectory submodule)
         (matchExt "go")
       )
+      (and
+        (inDirectory "cli/mcp/graphql")
+        (matchExt "go")
+      )
     ];
   };
 

@@ -2,32 +2,19 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
-	"os/signal"
-	"syscall"
+
+	"github.com/nhost/nhost/services/mcp/server"
 )
 
 var Version string
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
+	app := server.Command(Version)
 
-	ctx, cancel := signal.NotifyContext(
-		context.Background(),
-		syscall.SIGINT,
-		syscall.SIGTERM,
-	)
-	defer cancel()
-
-	logger.InfoContext(ctx, "starting mcp service", slog.String("version", Version))
-
-	<-ctx.Done()
-
-	logger.InfoContext(ctx, "shutting down mcp service")
-
-	fmt.Println("goodbye")
+	if err := app.Run(context.Background(), os.Args); err != nil {
+		slog.Error("fatal error", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
 }
