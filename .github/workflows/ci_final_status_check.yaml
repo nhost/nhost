@@ -26,7 +26,7 @@ jobs:
         run: |
           echo "Validating PR title: $PR_TITLE"
 
-          VALID_TYPES="feat|fix|chore"
+          VALID_TYPES="feat|fix|chore|release"
           VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|internal\/lib|nhost-js|nixops|postgres|storage|observability|stripe-graphql-js"
 
           if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\):\ .+ ]]; then
