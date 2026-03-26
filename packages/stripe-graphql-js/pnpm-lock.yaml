@@ -49,6 +49,10 @@ overrides:
   next@>=16.0.1 <16.1.7: '>=16.1.7'
   next@>=16.0.0-beta.0 <16.1.7: '>=16.1.7'
   next@>=10.0.0 <16.1.7: '>=16.1.7'
+  qs@>=6.7.0 <=6.14.1: '>=6.14.2'
+  yaml: '>=2.8.3'
+  picomatch: '>=4.0.4'
+  smol-toml@<1.6.1: '>=1.6.1'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -519,8 +523,8 @@ packages:
   path-parse@1.0.7:
     resolution: {integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==}
 
-  picomatch@4.0.3:
-    resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
+  picomatch@4.0.4:
+    resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
 
   qs@6.15.0:
@@ -712,7 +716,7 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.8
       estree-walker: 2.0.2
-      picomatch: 4.0.3
+      picomatch: 4.0.4
     optionalDependencies:
       rollup: 4.59.0
 
@@ -994,7 +998,7 @@ snapshots:
 
   path-parse@1.0.7: {}
 
-  picomatch@4.0.3: {}
+  picomatch@4.0.4: {}
 
   qs@6.15.0:
     dependencies:
