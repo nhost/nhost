@@ -1,91 +1,86 @@
 import { createClient, withAdminSession } from '@nhost/nhost-js';
-import cors from 'cors';
 import type { Request, Response } from 'express';
 
-const corsMiddleware = cors();
-
 export default async (req: Request, res: Response) => {
-  corsMiddleware(req, res, async () => {
-    const webhookSecret = req.headers['nhost-webhook-secret'];
-    if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+  const webhookSecret = req.headers['nhost-webhook-secret'];
+  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
 
-    const payload = req.body.payload;
-    if (!payload) {
-      return res.status(400).json({ message: 'No payload' });
-    }
+  const payload = req.body.payload;
+  if (!payload) {
+    return res.status(400).json({ message: 'No payload' });
+  }
 
-    const { title, message } = payload;
-    const type = payload.type || 'announcement';
+  const { title, message } = payload;
+  const type = payload.type || 'announcement';
 
-    if (!title) {
-      return res.status(400).json({ message: 'Missing required field: title' });
-    }
-    if (!message) {
-      return res
-        .status(400)
-        .json({ message: 'Missing required field: message' });
-    }
+  if (!title) {
+    return res.status(400).json({ message: 'Missing required field: title' });
+  }
+  if (!message) {
+    return res
+      .status(400)
+      .json({ message: 'Missing required field: message' });
+  }
 
-    const nhost = createClient({
-      region: process.env.NHOST_REGION,
-      subdomain: process.env.NHOST_SUBDOMAIN,
-      configure: [
-        withAdminSession({
-          adminSecret: process.env.NHOST_ADMIN_SECRET,
-        }),
-      ],
-    });
+  const nhost = createClient({
+    region: process.env.NHOST_REGION,
+    subdomain: process.env.NHOST_SUBDOMAIN,
+    configure: [
+      withAdminSession({
+        adminSecret: process.env.NHOST_ADMIN_SECRET,
+      }),
+    ],
+  });
 
-    const { body } = await nhost.graphql.request<{
-      users: Array<{ id: string }>;
-    }>({
-      query: `
-        query GetActiveUsers {
-          users(where: { disabled: { _eq: false } }) {
-            id
-          }
+  const { body } = await nhost.graphql.request<{
+    users: Array<{ id: string }>;
+  }>({
+    query: `
+      query GetActiveUsers {
+        users(where: { disabled: { _eq: false } }) {
+          id
         }
-      `,
-    });
+      }
+    `,
+  });
 
-    if (body.errors) {
-      return res.status(500).json({ errors: body.errors });
-    }
+  if (body.errors) {
+    return res.status(500).json({ errors: body.errors });
+  }
 
-    const activeUsers = body.data?.users || [];
+  const activeUsers = body.data?.users || [];
 
-    if (activeUsers.length === 0) {
-      return res.status(200).json({ message: 'No active users found' });
-    }
+  if (activeUsers.length === 0) {
+    return res.status(200).json({ message: 'No active users found' });
+  }
 
-    const notifications = activeUsers.map((u) => ({
-      user_id: u.id,
-      title,
-      message,
-      type,
-    }));
+  const notifications = activeUsers.map((u) => ({
+    user_id: u.id,
+    title,
+    message,
+    type,
+  }));
 
-    const insertResult = await nhost.graphql.request<{
-      insert_notifications: { affected_rows: number } | null;
-    }>({
-      query: `
-        mutation InsertNotifications($objects: [notifications_insert_input!]!) {
-          insert_notifications(objects: $objects) {
-            affected_rows
-          }
+  const insertResult = await nhost.graphql.request<{
+    insert_notifications: { affected_rows: number } | null;
+  }>({
+    query: `
+      mutation InsertNotifications($objects: [notifications_insert_input!]!) {
+        insert_notifications(objects: $objects) {
+          affected_rows
         }
-      `,
-      variables: { objects: notifications },
-    });
+      }
+    `,
+    variables: { objects: notifications },
+  });
 
-    if (insertResult.body.errors) {
-      return res.status(500).json({ errors: insertResult.body.errors });
-    }
+  if (insertResult.body.errors) {
+    return res.status(500).json({ errors: insertResult.body.errors });
+  }
 
-    res.status(200).json({
-      message: `Broadcast sent to ${activeUsers.length} user(s)`,
-    });
+  res.status(200).json({
+    message: `Broadcast sent to ${activeUsers.length} user(s)`,
   });
 };
