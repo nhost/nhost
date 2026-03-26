@@ -51,7 +51,7 @@ jobs:
           echo "PR title is valid!"
 
       - name: Wait for all checks and verify status
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const owner = context.repo.owner;
