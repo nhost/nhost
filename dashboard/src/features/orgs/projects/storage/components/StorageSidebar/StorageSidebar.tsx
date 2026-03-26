@@ -1,13 +1,18 @@
+import { useApolloClient } from '@apollo/client';
 import { Archive, Plus } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
+import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { BucketActions } from '@/features/orgs/projects/storage/components/BucketActions';
+import { CreateBucketForm } from '@/features/orgs/projects/storage/components/CreateBucketForm';
+import { EditBucketForm } from '@/features/orgs/projects/storage/components/EditBucketForm';
+import { useBuckets } from '@/features/orgs/projects/storage/hooks/useBuckets';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
 
 interface StorageSidebarContentProps {
   onSidebarItemClick?: VoidFunction;
@@ -21,8 +26,36 @@ function StorageSidebarContent({
     query: { orgSlug, appSubdomain, bucketId: bucketSlug },
   } = router;
 
-  const { data, loading, error } = useGetBucketsQuery();
-  const buckets = data?.buckets || [];
+  const apolloClient = useApolloClient();
+  const { openDrawer, closeDrawerWithDirtyGuard } = useDialog();
+  const { buckets, loading, error } = useBuckets();
+
+  function openCreateBucketDrawer() {
+    openDrawer({
+      title: 'Create a New Bucket',
+      component: (
+        <CreateBucketForm
+          apolloClient={apolloClient}
+          onCancel={closeDrawerWithDirtyGuard}
+          location="drawer"
+        />
+      ),
+    });
+  }
+
+  function openEditBucketDrawer(bucketId: string) {
+    openDrawer({
+      title: 'Edit Bucket',
+      component: (
+        <EditBucketForm
+          bucketId={bucketId}
+          apolloClient={apolloClient}
+          onCancel={closeDrawerWithDirtyGuard}
+          location="drawer"
+        />
+      ),
+    });
+  }
 
   if (loading) {
     return (
@@ -44,7 +77,7 @@ function StorageSidebarContent({
       <Button
         variant="link"
         className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
-        disabled
+        onClick={openCreateBucketDrawer}
       >
         New Bucket <Plus className="h-4 w-4" />
       </Button>
@@ -69,10 +102,10 @@ function StorageSidebarContent({
                       },
                     )}
                   >
-                    <div>
+                    <div className="flex w-full items-center">
                       <NextLink
                         className={cn(
-                          'flex h-full w-full items-center gap-1.5 p-[0.625rem] text-left',
+                          'flex min-w-0 flex-1 items-center gap-1.5 p-[0.625rem] text-left',
                           {
                             'text-primary-main': isSelected,
                           },
@@ -83,6 +116,9 @@ function StorageSidebarContent({
                         <Archive className="h-4 w-4 shrink-0" />
                         <span className="!truncate">{bucket.id}</span>
                       </NextLink>
+                      <BucketActions
+                        onEdit={() => openEditBucketDrawer(bucket.id)}
+                      />
                     </div>
                   </Button>
                 </li>
