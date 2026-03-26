@@ -29,7 +29,7 @@ This is a very simple Nhost backend that we will use to demonstrate how to use t
 - A `communities` table (includes `updated_at` column with auto-update trigger)
 
 - An `attachments` table with the following columns:
-  - `task_id` (foreign key to `tasks.id`)
+  - `todo_id` (foreign key to `todos.id`)
   - `file_id` (foreign key to `storage.files.id`)
 
 ### Permissions
@@ -37,7 +37,7 @@ This is a very simple Nhost backend that we will use to demonstrate how to use t
 - `todos`: the `user` role can insert/select/update/delete todos that they own. Users can update `title`, `details`, `completed`, and `stale`. Ownership is tracked by the `user_id` column which is set automatically on insert from the session.
 - `notifications`: the `user` role can select all columns for their own notifications and update the `read` column. Aggregations are allowed (used by the notification bell to count unread).
 - `communities`: the `user` role can select all communities and update the `description` column for communities they are a member of.
-- `attachments`: the `user` role can insert/select/delete attachments for tasks and files that they own
+- `attachments`: the `user` role can insert/select/delete attachments for todos and files that they own
 - `storage.files`: the `user` role can insert/select/delete files that they own
 
 ## Functions
@@ -81,3 +81,4 @@ Created manually from the Hasura console. Point it at `{{NHOST_FUNCTIONS_URL}}/e
   "type": "announcement"
 }
 ```
+
