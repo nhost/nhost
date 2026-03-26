@@ -43,7 +43,7 @@ export default function EditEventTriggerForm({
       formValues: data,
       isEdit: true,
     });
-    const previousEventTriggerDTO = buildEventTriggerDTO({
+    const originalEventTriggerDTO = buildEventTriggerDTO({
       formValues: initialData,
       isEdit: true,
     });
@@ -51,7 +51,7 @@ export default function EditEventTriggerForm({
       async () => {
         await createEventTrigger({
           args: eventTriggerDTO,
-          previousArgs: previousEventTriggerDTO,
+          originalEventTrigger: originalEventTriggerDTO,
           resourceVersion: resourceVersion ?? undefined,
         });
         setInitialData(data);

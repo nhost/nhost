@@ -8,37 +8,38 @@ import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateEventTriggerMigrationVariables {
   args: CreateEventTriggerArgs;
-  previousArgs?: CreateEventTriggerArgs;
+  originalEventTrigger?: CreateEventTriggerArgs;
 }
 
 export default async function createEventTriggerMigration({
   appUrl,
   adminSecret,
   args,
-  previousArgs,
+  originalEventTrigger,
 }: MigrationOperationOptions & CreateEventTriggerMigrationVariables) {
   try {
     const isEdit = args.replace === true;
 
-    const down: MigrationStep[] = isEdit && previousArgs
-      ? [
-          {
-            type: 'pg_create_event_trigger',
-            args: {
-              ...previousArgs,
-              replace: true,
-            } satisfies CreateEventTriggerArgs,
-          },
-        ]
-      : [
-          {
-            type: 'pg_delete_event_trigger',
-            args: {
-              name: args.name,
-              source: args.source,
-            } satisfies DeleteEventTriggerStepArgs,
-          },
-        ];
+    const down: MigrationStep[] =
+      isEdit && originalEventTrigger
+        ? [
+            {
+              type: 'pg_create_event_trigger',
+              args: {
+                ...originalEventTrigger,
+                replace: true,
+              } satisfies CreateEventTriggerArgs,
+            },
+          ]
+        : [
+            {
+              type: 'pg_delete_event_trigger',
+              args: {
+                name: args.name,
+                source: args.source,
+              } satisfies DeleteEventTriggerStepArgs,
+            },
+          ];
 
     const response = await executeMigration(
       {
