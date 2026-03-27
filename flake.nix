@@ -127,6 +127,14 @@
               golangci-lint
               gqlgenc
               oapi-codegen
+              mockgen
+              sqlc
+              vacuum-go
+
+              # others
+              postgresql_18-client
+              bun
+
 
               # docs
               vale

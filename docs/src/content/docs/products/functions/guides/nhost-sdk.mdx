@@ -16,7 +16,7 @@ npm install @nhost/nhost-js
 
 Forward the caller's `Authorization` header via the `options` parameter on each request. The request runs with the permissions of the calling user:
 
-```ts ./functions/todos.ts
+```ts title="./functions/todos.ts"
 import type { Request, Response } from 'express'
 import { createClient } from '@nhost/nhost-js'
 
@@ -59,7 +59,7 @@ This pattern is useful when you want to add server-side logic (validation, side 
 
 Use `withAdminSession` when the function needs elevated access — for example, to read or write data the caller wouldn't normally have permission to access:
 
-```ts ./functions/admin-action.ts
+```ts title="./functions/admin-action.ts"
 import type { Request, Response } from 'express'
 import { createClient, withAdminSession } from '@nhost/nhost-js'
 
@@ -124,7 +124,7 @@ This is useful when you need to perform operations on behalf of a user without r
 
 The SDK can also be used for storage operations:
 
-```ts ./functions/generate-report.ts
+```ts title="./functions/generate-report.ts"
 import type { Request, Response } from 'express'
 import { createClient, withAdminSession } from '@nhost/nhost-js'
 

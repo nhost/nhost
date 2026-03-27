@@ -48,7 +48,7 @@ CRUD operations with GraphQL
 
 Build a comprehensive sign-in form with proper error handling and loading states. This page handles user authentication and includes special logic for post-verification sign-in.
 
-```svelte src/routes/signin/+page.svelte lines
+```svelte title="src/routes/signin/+page.svelte" showLineNumbers
 <script lang="ts">
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
@@ -149,8 +149,9 @@ async function handleSubmit(e: Event) {
 
 Implement user registration with email verification flow. This page collects user information, creates accounts, and guides users through the email verification process.
 
-```svelte src/routes/signup/+page.svelte lines
+```svelte title="src/routes/signup/+page.svelte" showLineNumbers
 <script lang="ts">
+import { generatePKCEPair } from "@nhost/nhost-js/auth";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
 import { goto } from "$app/navigation";
@@ -177,14 +178,18 @@ async function handleSubmit(e: Event) {
   success = false;
 
   try {
+    // Generate PKCE pair and store verifier for email verification
+    const { verifier, challenge } = await generatePKCEPair();
+    localStorage.setItem("nhost_pkce_verifier", verifier);
+
     const response = await nhost.auth.signUpEmailPassword({
       email,
       password,
       options: {
         displayName,
-        // Set the redirect URL for email verification
         redirectTo: `${window.location.origin}/verify`,
       },
+      codeChallenge: challenge,
     });
 
     if (response.body?.session) {
@@ -286,28 +291,34 @@ async function handleSubmit(e: Event) {
 
 ### Create the Email Verification Page
 
-Build a dedicated verification page that processes email verification tokens. This page handles the verification flow when users click the email verification link.
+Build a dedicated verification page that exchanges authorization codes for sessions using PKCE. This page handles the verification flow when users click the email verification link.
 
-```svelte src/routes/verify/+page.svelte lines
+```svelte title="src/routes/verify/+page.svelte" showLineNumbers
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
 import { onMount } from "svelte";
 import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import { nhost } from "$lib/nhost/auth";
+
+const PKCE_VERIFIER_KEY = "nhost_pkce_verifier";
+
+function consumePKCEVerifier(): string | null {
+  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
+  if (verifier) {
+    localStorage.removeItem(PKCE_VERIFIER_KEY);
+  }
+  return verifier;
+}
 
 let status: "verifying" | "success" | "error" = "verifying";
 let error = "";
 let urlParams: Record<string, string> = {};
 
 onMount(() => {
-  // Extract the refresh token from the URL
   const params = new URLSearchParams($page.url.search);
-  const refreshToken = params.get("refreshToken");
+  const code = params.get("code");
 
-  if (!refreshToken) {
-    // Collect all URL parameters to display for debugging
+  if (!code) {
     const allParams: Record<string, string> = {};
     params.forEach((value, key) => {
       allParams[key] = value;
@@ -315,56 +326,48 @@ onMount(() => {
     urlParams = allParams;
 
     status = "error";
-    error = "No refresh token found in URL";
+    error = "No authorization code found in URL";
     return;
   }
 
-  // Flag to handle component unmounting during async operations
+  const authCode = code;
   let isMounted = true;
 
-  async function processToken() {
+  async function exchangeCode() {
     try {
-      // First display the verifying message for at least a moment
+      // Small delay to ensure component is fully mounted
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (!isMounted) return;
 
-      if (!refreshToken) {
-        // Collect all URL parameters to display
-        const allParams: Record<string, string> = {};
-        params.forEach((value, key) => {
-          allParams[key] = value;
-        });
-        urlParams = allParams;
-
+      const codeVerifier = consumePKCEVerifier();
+      if (!codeVerifier) {
         status = "error";
-        error = "No refresh token found in URL";
+        error =
+          "No PKCE verifier found. The sign-in must be initiated from the same browser tab.";
         return;
       }
 
-      // Process the token
-      await nhost.auth.refreshToken({ refreshToken });
+      await nhost.auth.tokenExchange({ code: authCode, codeVerifier });
 
       if (!isMounted) return;
 
       status = "success";
 
-      // Wait to show success message briefly, then redirect
       setTimeout(() => {
         if (isMounted) void goto("/profile");
       }, 1500);
     } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
+      const message = (err as Error).message || "Unknown error";
       if (!isMounted) return;
 
       status = "error";
-      error = `An error occurred during verification: ${fetchError.message}`;
+      error = `An error occurred during verification: ${message}`;
     }
   }
 
-  void processToken();
+  void exchangeCode();
 
-  // Cleanup function
   return () => {
     isMounted = false;
   };
@@ -461,7 +464,7 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 Configure your application's routing structure to include the new authentication pages. In SvelteKit, routes are automatically created based on the file structure, so you'll update the layout component to handle authentication state properly.
 
-```svelte src/routes/+layout.svelte lines highlight={20-27,40-45,47-52}
+```svelte title="src/routes/+layout.svelte" showLineNumbers {20-27,40-45,47-52}
 <script lang="ts">
 import { onMount } from "svelte";
 import { goto } from "$app/navigation";

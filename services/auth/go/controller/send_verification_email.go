@@ -53,6 +53,7 @@ func (ctrl *Controller) SendVerificationEmail( //nolint:ireturn
 		user.DisplayName,
 		user.Email.String,
 		"",
+		deptr(request.Body.CodeChallenge),
 		logger,
 	); err != nil {
 		return ctrl.sendError(err), nil

@@ -8,6 +8,7 @@ import {
   saveGitHubToken,
 } from '@/features/orgs/projects/git/common/utils';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
+import { consumePKCEVerifier } from '@/lib/pkce';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost/';
 import { useGetAuthUserProvidersLazyQuery } from '@/utils/__generated__/graphql';
@@ -15,9 +16,11 @@ import { getToastStyleProps } from '@/utils/constants/settings';
 import { AuthContext, type AuthContextType } from './AuthContext';
 
 const removableParams = [
-  'refreshToken',
+  'code',
   'error',
   'errorDescription',
+  'pkceId',
+  'signinProvider',
   'state',
   'provider_state',
 ];
@@ -27,9 +30,10 @@ function AuthProvider({ children }: PropsWithChildren) {
   const [getAuthUserProviders] = useGetAuthUserProvidersLazyQuery();
   const { query, isReady: isRouterReady, push } = useRouter();
   const {
-    refreshToken,
+    code,
     error,
     errorDescription,
+    pkceId,
     signinProvider,
     state,
     provider_state: providerState,
@@ -65,41 +69,69 @@ function AuthProvider({ children }: PropsWithChildren) {
       }
       setIsLoading(true);
       setIsSigningOut(false);
-      if (refreshToken && typeof refreshToken === 'string') {
-        const sessionResponse = await nhost.auth.refreshToken({
-          refreshToken,
-        });
-        setSession(sessionResponse.body);
-        removeQueryParamsFromUrl(...removableParams);
-
-        if (sessionResponse.body && signinProvider === 'github') {
-          try {
-            const providerTokensResponse =
-              await nhost.auth.getProviderTokens(signinProvider);
-            if (providerTokensResponse.body) {
-              const { data } = await getAuthUserProviders();
-              const githubProvider = data?.authUserProviders?.find(
-                (provider) => provider.providerId === 'github',
-              );
-              const newGitHubToken: GitHubProviderToken =
-                providerTokensResponse.body;
-              if (
-                isNotEmptyValue(githubProvider) &&
-                isNotEmptyValue(githubProvider?.id)
-              ) {
-                newGitHubToken.authUserProviderId = githubProvider.id;
-              }
-              saveGitHubToken(newGitHubToken);
-            }
-          } catch (err) {
-            console.error('Failed to fetch provider tokens:', err);
-          }
+      if (code && typeof code === 'string') {
+        const codeVerifier =
+          typeof pkceId === 'string' ? consumePKCEVerifier(pkceId) : null;
+        if (!codeVerifier) {
+          toast.error(
+            'No PKCE verifier found. The sign-in must be initiated from the same browser.',
+            getToastStyleProps(),
+          );
+          removeQueryParamsFromUrl(...removableParams);
+          await push('/signin');
+          setIsLoading(false);
+          return;
         }
 
-        const postSignInRedirect = sessionStorage.getItem('postSignInRedirect');
-        if (postSignInRedirect?.startsWith('/')) {
-          sessionStorage.removeItem('postSignInRedirect');
-          await push(postSignInRedirect);
+        try {
+          const sessionResponse = await nhost.auth.tokenExchange({
+            code,
+            codeVerifier,
+          });
+          const exchangedSession = sessionResponse.body.session ?? null;
+          setSession(exchangedSession);
+          removeQueryParamsFromUrl(...removableParams);
+
+          if (exchangedSession && signinProvider === 'github') {
+            try {
+              const providerTokensResponse =
+                await nhost.auth.getProviderTokens('github');
+              if (providerTokensResponse.body) {
+                const { data } = await getAuthUserProviders();
+                const githubProvider = data?.authUserProviders?.find(
+                  (provider) => provider.providerId === 'github',
+                );
+                const newGitHubToken: GitHubProviderToken =
+                  providerTokensResponse.body;
+                if (
+                  isNotEmptyValue(githubProvider) &&
+                  isNotEmptyValue(githubProvider?.id)
+                ) {
+                  newGitHubToken.authUserProviderId = githubProvider.id;
+                }
+                saveGitHubToken(newGitHubToken);
+              }
+            } catch (err) {
+              console.error('Failed to fetch provider tokens:', err);
+            }
+          }
+
+          const postSignInRedirect =
+            sessionStorage.getItem('postSignInRedirect');
+          if (postSignInRedirect?.startsWith('/')) {
+            sessionStorage.removeItem('postSignInRedirect');
+            await push(postSignInRedirect);
+          }
+        } catch (err) {
+          console.error('Token exchange failed:', err);
+          toast.error(
+            'Authentication failed. Please try again.',
+            getToastStyleProps(),
+          );
+          removeQueryParamsFromUrl(...removableParams);
+          await push('/signin');
+          setIsLoading(false);
+          return;
         }
       } else {
         const currentSession = nhost.getUserSession();

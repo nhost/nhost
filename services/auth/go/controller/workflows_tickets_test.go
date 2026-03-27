@@ -16,20 +16,31 @@ func TestGenLink(t *testing.T) {
 	}
 
 	cases := []struct {
-		name       string
-		serverURL  url.URL
-		typ        controller.LinkType
-		ticket     string
-		redirectTo string
-		expected   string
+		name          string
+		serverURL     url.URL
+		typ           controller.LinkType
+		ticket        string
+		redirectTo    string
+		codeChallenge string
+		expected      string
 	}{
 		{
-			name:       "with redirectTo",
-			serverURL:  *urlWithPath,
-			typ:        controller.LinkTypeEmailVerify,
-			ticket:     "1234324324",
-			redirectTo: "http://asdasdasd.com/as2q3asd?a=123&b=asdqwe",
-			expected:   "http://serverURL.com/v1/verify?redirectTo=http%3A%2F%2Fasdasdasd.com%2Fas2q3asd%3Fa%3D123%26b%3Dasdqwe&ticket=1234324324&type=emailVerify", //nolint:lll
+			name:          "with redirectTo",
+			serverURL:     *urlWithPath,
+			typ:           controller.LinkTypeEmailVerify,
+			ticket:        "1234324324",
+			redirectTo:    "http://asdasdasd.com/as2q3asd?a=123&b=asdqwe",
+			codeChallenge: "",
+			expected:      "http://serverURL.com/v1/verify?redirectTo=http%3A%2F%2Fasdasdasd.com%2Fas2q3asd%3Fa%3D123%26b%3Dasdqwe&ticket=1234324324&type=emailVerify", //nolint:lll
+		},
+		{
+			name:          "with codeChallenge",
+			serverURL:     *urlWithPath,
+			typ:           controller.LinkTypeEmailVerify,
+			ticket:        "1234324324",
+			redirectTo:    "http://asdasdasd.com/as2q3asd?a=123&b=asdqwe",
+			codeChallenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+			expected:      "http://serverURL.com/v1/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Fasdasdasd.com%2Fas2q3asd%3Fa%3D123%26b%3Dasdqwe&ticket=1234324324&type=emailVerify", //nolint:lll
 		},
 	}
 
@@ -37,7 +48,13 @@ func TestGenLink(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := controller.GenLink(tc.serverURL, tc.typ, tc.ticket, tc.redirectTo)
+			got, err := controller.GenLink(
+				tc.serverURL,
+				tc.typ,
+				tc.ticket,
+				tc.redirectTo,
+				tc.codeChallenge,
+			)
 			if err != nil {
 				t.Fatalf("got unexpected error: %s", err)
 			}
