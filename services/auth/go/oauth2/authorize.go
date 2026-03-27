@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"slices"
 	"strings"
 	"time"
 
@@ -108,7 +107,7 @@ func (p *Provider) validateAuthorizeParams(
 	}
 
 	for _, s := range requestedScopes {
-		if !slices.Contains(client.Scopes, s) {
+		if !isScopeAllowed(s, client.Scopes) {
 			return nil, &Error{
 				Err:         "invalid_scope",
 				Description: fmt.Sprintf("Scope %q not allowed for this client", s),

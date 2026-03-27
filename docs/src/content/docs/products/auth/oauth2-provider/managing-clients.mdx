@@ -366,4 +366,4 @@ When creating a client, the `scopes` array defines which scopes the client is **
 }
 ```
 
-Each `graphql:role:xxxx` must be allowed independently. Having `graphql` in the client's scopes does not automatically allow any `graphql:role:xxxx` scope.
+The plain `graphql` scope acts as a superset — if a client is allowed `graphql`, any `graphql:role:xxxx` scope is implicitly permitted. The reverse is not true: having `graphql:role:xxxx` does not implicitly grant `graphql`. To restrict a client to specific roles only, omit `graphql` and list the individual `graphql:role:xxxx` scopes instead.

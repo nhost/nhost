@@ -461,6 +461,38 @@ describe('oauth2-scope-claims', () => {
       });
     });
 
+    it('graphql:role scope should be implicitly allowed when client has graphql scope', async () => {
+      // The outer client has 'graphql' but not 'graphql:role:user' — should still work
+      const tokenResp = await getTokens(jwt, clientId, clientSecret, 'openid graphql:role:user');
+      const payload = jose.decodeJwt(tokenResp.access_token);
+
+      expect(payload.scope).toBe('openid graphql:role:user');
+      expect(payload['https://hasura.io/jwt/claims']).toEqual({
+        'x-hasura-user-id': userId,
+        'x-hasura-default-role': 'user',
+        'x-hasura-allowed-roles': ['user'],
+        'x-hasura-user-is-anonymous': 'false',
+        'x-hasura-displayname': DEMO_DISPLAY_NAME,
+      });
+    });
+
+    it('graphql scope should not be implicitly allowed when client only has graphql:role', async () => {
+      // roleClient only has 'graphql:role:user', requesting 'graphql' should fail
+      const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
+        client_id: roleClientId,
+        redirect_uri: REDIRECT_URI,
+        response_type: 'code',
+        scope: 'openid graphql',
+        state: `reverse-implicit-${Date.now()}`,
+      });
+
+      const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
+      const location = authResp.headers.get('location')!;
+      const params = new URL(location).searchParams;
+
+      expect(params.get('error')).toBe('invalid_scope');
+    });
+
     it('should reject graphql:role scope not registered on the client', async () => {
       const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
         client_id: roleClientId,

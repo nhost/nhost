@@ -395,6 +395,29 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 			expectedErr: nil,
 		},
 		{
+			name:   "success - graphql:role scope implicitly allowed via graphql",
+			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			params: func() api.Oauth2AuthorizePostFormdataBody {
+				p := baseParams
+				p.Scope = new("openid graphql:role:admin")
+
+				return p
+			}(),
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				graphqlClient := confidentialClient
+				graphqlClient.Scopes = []string{"openid", "profile", "email", "graphql"}
+				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+					Return(graphqlClient, nil)
+				m.EXPECT().InsertOAuth2AuthRequest(gomock.Any(), gomock.Any()).
+					Return(authReqResult, nil)
+
+				return m
+			},
+			expectedURL: loginBase + "?request_id=" + authReqID.String(),
+			expectedErr: nil,
+		},
+		{
 			name:   "error - graphql:role scope not allowed for client",
 			config: oauth2.Config{}, //nolint:exhaustruct
 			params: func() api.Oauth2AuthorizePostFormdataBody {

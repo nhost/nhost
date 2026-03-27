@@ -20,7 +20,15 @@ export default function ScopePicker({
 }: ScopePickerProps) {
   const { scopes: standardScopes } = useAvailableScopes();
   const client = useRemoteApplicationGQLClient();
-  const { data: rolesData } = useGetRemoteAppRolesQuery({ client });
+  const {
+    data: rolesData,
+    loading: rolesLoading,
+    error: rolesError,
+  } = useGetRemoteAppRolesQuery({ client });
+
+  if (rolesError) {
+    throw rolesError;
+  }
 
   const roleScopes = useMemo(() => {
     const roles = rolesData?.authRoles ?? [];
@@ -76,7 +84,7 @@ export default function ScopePicker({
           );
         })}
       </div>
-      {roleScopes.length > 0 && (
+      {allScopes.some((s) => s.startsWith(GRAPHQL_ROLE_PREFIX)) && (
         <div>
           <p className="mb-1.5 text-muted-foreground text-xs">
             Role-specific GraphQL scopes

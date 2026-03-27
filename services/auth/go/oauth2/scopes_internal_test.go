@@ -89,6 +89,79 @@ func TestExtractGraphQLRoles(t *testing.T) {
 	}
 }
 
+func TestIsScopeAllowed(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name         string
+		scope        string
+		clientScopes []string
+		want         bool
+	}{
+		{
+			name:         "exact match",
+			scope:        "openid",
+			clientScopes: []string{"openid", "profile"},
+			want:         true,
+		},
+		{
+			name:         "no match",
+			scope:        "admin",
+			clientScopes: []string{"openid", "profile"},
+			want:         false,
+		},
+		{
+			name:         "graphql:role explicitly allowed",
+			scope:        "graphql:role:admin",
+			clientScopes: []string{"openid", "graphql:role:admin"},
+			want:         true,
+		},
+		{
+			name:         "graphql:role implicitly allowed via graphql",
+			scope:        "graphql:role:admin",
+			clientScopes: []string{"openid", "graphql"},
+			want:         true,
+		},
+		{
+			name:         "graphql:role not allowed when neither graphql nor role present",
+			scope:        "graphql:role:admin",
+			clientScopes: []string{"openid", "profile"},
+			want:         false,
+		},
+		{
+			name:         "graphql not implicitly allowed by graphql:role",
+			scope:        "graphql",
+			clientScopes: []string{"openid", "graphql:role:admin"},
+			want:         false,
+		},
+		{
+			name:         "graphql:role:editor not allowed when only graphql:role:admin present",
+			scope:        "graphql:role:editor",
+			clientScopes: []string{"openid", "graphql:role:admin"},
+			want:         false,
+		},
+		{
+			name:         "graphql:role with colons implicitly allowed via graphql",
+			scope:        "graphql:role:user:mcp",
+			clientScopes: []string{"openid", "graphql"},
+			want:         true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := isScopeAllowed(tc.scope, tc.clientScopes); got != tc.want {
+				t.Errorf(
+					"isScopeAllowed(%q, %v) = %v, want %v",
+					tc.scope, tc.clientScopes, got, tc.want,
+				)
+			}
+		})
+	}
+}
+
 func TestValidateGraphQLScopeCombination(t *testing.T) {
 	t.Parallel()
 

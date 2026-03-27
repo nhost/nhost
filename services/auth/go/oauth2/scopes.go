@@ -38,6 +38,23 @@ func extractGraphQLRoles(scopes []string) []string {
 	return roles
 }
 
+// isScopeAllowed reports whether the requested scope is permitted by the
+// client's allowed scopes. The plain "graphql" scope acts as a superset of
+// "graphql:role:xxxx" — if a client is allowed "graphql", any
+// "graphql:role:xxxx" scope is implicitly permitted. The reverse is not true:
+// having "graphql:role:xxxx" does not implicitly grant "graphql".
+func isScopeAllowed(scope string, clientScopes []string) bool {
+	if slices.Contains(clientScopes, scope) {
+		return true
+	}
+
+	if isGraphQLRoleScope(scope) && slices.Contains(clientScopes, "graphql") {
+		return true
+	}
+
+	return false
+}
+
 // validateGraphQLScopeCombination checks that the plain "graphql" scope and
 // "graphql:role:xxxx" scopes are not mixed in the same request. Returns an
 // error description string, or "" if the combination is valid.

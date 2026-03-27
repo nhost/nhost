@@ -59,7 +59,7 @@ Without the `graphql` scope, the `https://hasura.io/jwt/claims` namespace is omi
 
 The `graphql:role:xxxx` scope works like the `graphql` scope but **narrows the claims** to specific roles. This is useful when a third-party integration should only see a subset of the user's roles.
 
-- Each `graphql:role:xxxx` scope must be **independently allowed** on the client — having the `graphql` scope does not grant `graphql:role:admin`.
+- The plain `graphql` scope acts as a superset — if a client is allowed `graphql`, any `graphql:role:xxxx` scope is implicitly permitted. The reverse is not true: having `graphql:role:xxxx` does not grant `graphql`. To restrict a client to specific roles, omit `graphql` and list individual `graphql:role:xxxx` scopes.
 - Multiple `graphql:role:xxxx` scopes can be requested in a single authorization. The first becomes `x-hasura-default-role` and all of them become `x-hasura-allowed-roles`.
 - The `graphql` and `graphql:role:xxxx` scopes are **mutually exclusive** in a single request. A client may have both in its allowed scopes, but a request cannot use both at once.
 - At token time, every requested role must exist in the user's allowed roles. If the user lacks a requested role, the token exchange fails with `access_denied`.
