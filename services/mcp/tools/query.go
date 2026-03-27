@@ -3,11 +3,32 @@ package tools
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/nhost/nhost/cli/mcp/graphql"
 )
+
+type authorizationContextKey struct{}
+
+// AuthorizationToContext extracts the Authorization header from an HTTP request
+// and stores it in the context so tool handlers can forward it to downstream services.
+func AuthorizationToContext(ctx context.Context, r *http.Request) context.Context {
+	if auth := r.Header.Get("Authorization"); auth != "" {
+		ctx = context.WithValue(ctx, authorizationContextKey{}, auth)
+	}
+
+	return ctx
+}
+
+func authorizationInterceptor(ctx context.Context, req *http.Request) error {
+	if auth, ok := ctx.Value(authorizationContextKey{}).(string); ok {
+		req.Header.Set("Authorization", auth)
+	}
+
+	return nil
+}
 
 const (
 	ToolGraphqlQueryName = "graphql-query"
@@ -85,6 +106,7 @@ func (t *Tool) handleGraphqlQuery(
 		&resp,
 		[]string{"*"},
 		[]string{"*"},
+		authorizationInterceptor,
 	); err != nil {
 		return mcp.NewToolResultErrorFromErr("failed to query graphql endpoint", err), nil
 	}

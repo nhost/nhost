@@ -22,6 +22,10 @@ let
         (inDirectory "cli/mcp/graphql")
         (matchExt "go")
       )
+      (and
+        (inDirectory "internal/lib/oapi/middleware")
+        (matchExt "go")
+      )
     ];
   };
 

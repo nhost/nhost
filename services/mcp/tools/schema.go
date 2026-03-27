@@ -69,6 +69,7 @@ func (t *Tool) handleGetSchema(
 		&introspection,
 		[]string{"*"},
 		nil,
+		authorizationInterceptor,
 	); err != nil {
 		return mcp.NewToolResultErrorFromErr("failed to query GraphQL schema", err), nil
 	}

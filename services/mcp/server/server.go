@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	mcpserver "github.com/mark3labs/mcp-go/server"
+	"github.com/nhost/nhost/services/mcp/auth"
 	"github.com/nhost/nhost/services/mcp/tools"
 	"github.com/urfave/cli/v3"
 )
@@ -23,6 +25,9 @@ const (
 	FlagMCPInstructions    = "mcp-instructions"
 	FlagQueryInstructions  = "query-instructions"
 	FlagSchemaInstructions = "schema-instructions"
+	FlagAuthURL            = "auth-url"
+	FlagRealm              = "realm"
+	FlagScopes             = "scopes"
 
 	shutdownTimeout = 5 * time.Second
 )
@@ -64,6 +69,25 @@ func Command(version string) *cli.Command {
 				Usage:    "Instructions for the get-schema tool",
 				Sources:  cli.EnvVars("MCP_SCHEMA_INSTRUCTIONS"),
 				Category: "MCP",
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     FlagAuthURL,
+				Usage:    "OAuth2 authorization server URL (enables authentication)",
+				Sources:  cli.EnvVars("MCP_AUTH_URL"),
+				Category: "Auth",
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     FlagRealm,
+				Usage:    "Realm for WWW-Authenticate header",
+				Sources:  cli.EnvVars("MCP_REALM"),
+				Category: "Auth",
+			},
+			&cli.StringSliceFlag{ //nolint:exhaustruct
+				Name:     FlagScopes,
+				Usage:    "OAuth2 scopes required by this resource (e.g. openid, graphql)",
+				Sources:  cli.EnvVars("MCP_SCOPES"),
+				Value:    []string{"openid", "graphql"},
+				Category: "Auth",
 			},
 		},
 		Action: action,
@@ -110,14 +134,72 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	listenAddr := cmd.String(FlagListenAddr)
-	httpServer := mcpserver.NewStreamableHTTPServer(mcpServer)
+
+	httpHandler, err := buildHTTPHandler(ctx, cmd, mcpServer)
+	if err != nil {
+		return fmt.Errorf("failed to build HTTP handler: %w", err)
+	}
+
+	httpHandler = loggingMiddleware(logger)(httpHandler)
 
 	logger.InfoContext(
 		ctx, "starting mcp service",
 		slog.String("version", cmd.Root().Version),
 		slog.String("addr", listenAddr),
 		slog.String("graphql-endpoint", cmd.String(FlagGraphqlEndpoint)),
+		slog.String("auth-url", cmd.String(FlagAuthURL)),
 	)
+
+	return serve(ctx, logger, listenAddr, httpHandler)
+}
+
+func buildHTTPHandler(
+	ctx context.Context,
+	cmd *cli.Command,
+	mcpServer *mcpserver.MCPServer,
+) (http.Handler, error) {
+	mcpHTTP := mcpserver.NewStreamableHTTPServer(
+		mcpServer,
+		mcpserver.WithHTTPContextFunc(tools.AuthorizationToContext),
+	)
+	authURL := cmd.String(FlagAuthURL)
+
+	if authURL == "" {
+		return mcpHTTP, nil
+	}
+
+	a, err := auth.New(ctx, authURL, cmd.String(FlagRealm), cmd.StringSlice(FlagScopes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize auth: %w", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle(
+		"/.well-known/oauth-protected-resource",
+		a.ProtectedResourceHandler(),
+	)
+	mux.Handle(
+		"/.well-known/oauth-authorization-server",
+		a.AuthorizationServerHandler(),
+	)
+	mux.Handle("/mcp", a.Middleware(mcpHTTP))
+
+	return mux, nil
+}
+
+func serve(
+	ctx context.Context,
+	logger *slog.Logger,
+	listenAddr string,
+	handler http.Handler,
+) error {
+	const readHeaderTimeout = 10 * time.Second
+
+	httpSrv := &http.Server{ //nolint:exhaustruct
+		Addr:              listenAddr,
+		Handler:           handler,
+		ReadHeaderTimeout: readHeaderTimeout,
+	}
 
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
@@ -125,7 +207,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	errCh := make(chan error, 1)
 
 	go func() {
-		errCh <- httpServer.Start(listenAddr)
+		errCh <- httpSrv.ListenAndServe()
 	}()
 
 	select {
@@ -139,7 +221,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		)
 		defer shutdownCancel()
 
-		if err := httpServer.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck
+		if err := httpSrv.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck
 			return fmt.Errorf("failed to shutdown server: %w", err)
 		}
 
