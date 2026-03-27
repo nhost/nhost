@@ -199,7 +199,7 @@ func FetchCIMDMetadata(
 		}
 	}
 
-	metadata, oauthErr := parseCIMDMetadata(body, clientIDURL, logger)
+	metadata, oauthErr := parseCIMDMetadata(ctx, body, clientIDURL, logger)
 	if oauthErr != nil {
 		return nil, oauthErr
 	}
@@ -207,8 +207,65 @@ func FetchCIMDMetadata(
 	return metadata, nil
 }
 
+// matchRedirectURI checks if redirectURI matches any of the registered URIs.
+// For loopback URIs (localhost, 127.0.0.1, [::1]), the port is ignored per
+// RFC 8252 Section 7.3 — the authorization server MUST allow any port.
+func matchRedirectURI(redirectURI string, registered []string) bool {
+	ru, err := url.Parse(redirectURI)
+	if err != nil {
+		return false
+	}
+
+	for _, reg := range registered {
+		regURL, err := url.Parse(reg)
+		if err != nil {
+			continue
+		}
+
+		if ru.Scheme == regURL.Scheme &&
+			ru.Hostname() == regURL.Hostname() &&
+			ru.Path == regURL.Path &&
+			(ru.Port() == regURL.Port() || isLoopbackHost(ru.Hostname())) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isLoopbackHost(host string) bool {
+	ip := net.ParseIP(host)
+	if ip != nil {
+		return ip.IsLoopback()
+	}
+
+	return host == "localhost"
+}
+
+func isLoopbackRedirectURI(ctx context.Context, redirectURI *url.URL) bool {
+	host := redirectURI.Hostname()
+
+	ip := net.ParseIP(host)
+	if ip != nil {
+		return ip.IsLoopback()
+	}
+
+	ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
+	if err != nil {
+		return false
+	}
+
+	for _, resolved := range ips {
+		if resolved.IP.IsLoopback() {
+			return true
+		}
+	}
+
+	return false
+}
+
 func validateRedirectURIOrigins(
-	clientIDURL string, redirectURIs []string, logger *slog.Logger,
+	ctx context.Context, clientIDURL string, redirectURIs []string, logger *slog.Logger,
 ) *Error {
 	clientURL, err := url.Parse(clientIDURL)
 	if err != nil {
@@ -222,7 +279,27 @@ func validateRedirectURIOrigins(
 
 	for _, redirectURI := range redirectURIs {
 		ru, err := url.Parse(redirectURI)
-		if err != nil || ru.Scheme+"://"+ru.Host != clientOrigin {
+		if err != nil {
+			logger.Warn(
+				"CIMD redirect_uri is invalid",
+				slog.String("client_id", clientIDURL),
+				slog.String("redirect_uri", redirectURI),
+			)
+
+			return &Error{
+				Err:         "invalid_client",
+				Description: "redirect_uri is invalid",
+			}
+		}
+
+		// Per RFC 8252 (OAuth 2.0 for Native Apps) and the MCP authorization
+		// spec, loopback redirect URIs (localhost, 127.0.0.1, [::1]) are
+		// allowed for native/CLI clients regardless of client_id origin.
+		if isLoopbackRedirectURI(ctx, ru) {
+			continue
+		}
+
+		if ru.Scheme+"://"+ru.Host != clientOrigin {
 			logger.Warn(
 				"CIMD redirect_uri origin does not match client_id",
 				slog.String("client_id", clientIDURL),
@@ -231,7 +308,7 @@ func validateRedirectURIOrigins(
 
 			return &Error{
 				Err:         "invalid_client",
-				Description: "redirect_uri must be on the same origin as the client_id",
+				Description: "redirect_uri must be on the same origin as the client_id or use a loopback address",
 			}
 		}
 	}
@@ -240,7 +317,7 @@ func validateRedirectURIOrigins(
 }
 
 func parseCIMDMetadata(
-	body []byte, clientIDURL string, logger *slog.Logger,
+	ctx context.Context, body []byte, clientIDURL string, logger *slog.Logger,
 ) (*CIMDMetadata, *Error) {
 	var metadata CIMDMetadata
 	if err := json.Unmarshal(body, &metadata); err != nil {
@@ -280,6 +357,7 @@ func parseCIMDMetadata(
 	}
 
 	if oauthErr := validateRedirectURIOrigins(
+		ctx,
 		clientIDURL,
 		metadata.RedirectURIs,
 		logger,
