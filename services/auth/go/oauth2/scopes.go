@@ -3,7 +3,6 @@ package oauth2
 import (
 	"regexp"
 	"slices"
-	"strings"
 )
 
 // graphqlRoleScopeRe matches scopes of the form "graphql:role:<name>" where
@@ -12,8 +11,6 @@ import (
 // contain them. There is no parsing ambiguity because the prefix
 // "graphql:role:" is fixed and scopes are space-delimited.
 var graphqlRoleScopeRe = regexp.MustCompile(`^graphql:role:([a-zA-Z0-9_:.-]+)$`)
-
-const graphqlRoleScopePrefix = "graphql:role:"
 
 // isGraphQLRoleScope reports whether scope has the form "graphql:role:<name>".
 func isGraphQLRoleScope(scope string) bool {
@@ -27,11 +24,8 @@ func extractGraphQLRoles(scopes []string) []string {
 	var roles []string
 
 	for _, s := range scopes {
-		if strings.HasPrefix(s, graphqlRoleScopePrefix) {
-			name := s[len(graphqlRoleScopePrefix):]
-			if name != "" {
-				roles = append(roles, name)
-			}
+		if m := graphqlRoleScopeRe.FindStringSubmatch(s); m != nil {
+			roles = append(roles, m[1])
 		}
 	}
 
