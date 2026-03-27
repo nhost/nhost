@@ -19,7 +19,7 @@ npm install -D @types/jsonwebtoken
 
 Use this approach when your project signs JWTs with a symmetric key (`HS256`/`HS384`/`HS512`). You need access to the same secret used for signing.
 
-```ts ./functions/verify-symmetric.ts
+```ts title="./functions/verify-symmetric.ts"
 import type { Request, Response } from 'express'
 import process from 'node:process'
 import jwt from 'jsonwebtoken'
@@ -66,7 +66,7 @@ The JWKS endpoint is available at:
 https://[subdomain].auth.[region].nhost.run/v1/.well-known/jwks.json
 ```
 
-```ts ./functions/verify-asymmetric.ts
+```ts title="./functions/verify-asymmetric.ts"
 import type { Request, Response } from 'express'
 import process from 'node:process'
 import jwt from 'jsonwebtoken'

@@ -1,9 +1,9 @@
 ---
-title: Sign In with One-Time Passwords
-description: Learn about One-Time Passwords
+title: Email OTP
+description: Learn how to sign in users with one-time passwords delivered via email.
 keywords: ["OTP", "one-time password", "passwordless", "email verification", "temporary code", "2FA", "authentication code"]
 sidebar:
-  label: One-Time Passwords
+  label: Email
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
@@ -24,42 +24,51 @@ To use One-Time Passwords, they need to be enabled in the configuration:
  </TabItem>
 </Tabs>
 
-After the functionality has been enabled the flow is as follows:
+## Sign In
 
-1. User requests an OTP:
+Signing in with an email OTP is a two-step process:
+
+### Step 1: Request OTP
+
+The user requests an OTP, which is sent to their email address:
 
 <Tabs>
-  <TabItem label="javascript">
+  <TabItem label="JavaScript">
   ```js
-  nhost.auth.signInOTPEmail({
-    email: 'user@example.com'
-  })
+  await nhost.auth.signInOTPEmail({
+    email: 'user@example.com',
+  });
   ```
   </TabItem>
 
-  <TabItem label="dart">
+  <TabItem label="Dart">
   ```dart
   nhost.auth.signInEmailOTP(email: "user@example.com");
   ```
   </TabItem>
 </Tabs>
 
-2. User receives an email with the OTP
-3. User enters the OTP
+### Step 2: Verify OTP
+
+The user enters the OTP code received via email:
 
 <Tabs>
-  <TabItem label="javascript">
+  <TabItem label="JavaScript">
   ```js
-  nhost.auth.verifySignInOTPEmail({
+  await nhost.auth.verifySignInOTPEmail({
     email: 'user@example.com',
-    otp: '123456'
-  })
+    otp: '123456',
+  });
   ```
   </TabItem>
 
-  <TabItem label="dart">
+  <TabItem label="Dart">
   ```dart
   nhost.auth.verifyEmailOTP(email: "user@example.com", otp: "123456");
   ```
   </TabItem>
 </Tabs>
+
+:::note
+A user account is created the first time an email is used with OTP.
+:::

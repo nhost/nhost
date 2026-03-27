@@ -70,6 +70,7 @@ export const updateSessionFromResponseMiddleware = (
         // Check if this is an auth-related endpoint that might return session data
         if (
           url.endsWith('/token') ||
+          url.includes('/token/exchange') ||
           url.includes('/signin/') ||
           url.includes('/signup/')
         ) {

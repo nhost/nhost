@@ -165,7 +165,7 @@ For deleting todos, we are allowing users to delete rows only where the `user_id
 
 Now let's implement the React Native screen that uses the database we just configured.
 
-```tsx app/todos.tsx lines
+```tsx title="app/todos.tsx" showLineNumbers
 import { router, Stack } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -741,7 +741,7 @@ export default function Todos() {
 
 Since React Native uses file-based routing with Expo Router, you can add navigation to the todos screen from your home screen or any other screen using the `router.push()` method.
 
-```tsx app/index.tsx lines highlight={44-49}
+```tsx title="app/index.tsx" showLineNumbers {44-49}
 import { useRouter } from "expo-router";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";

@@ -1,47 +1,75 @@
 ---
 title: Sign In with a Magic Link
 description: Learn about Magic Links
-keywords: ["magic link", "passwordless", "email login", "link authentication", "no password", "email sign in"]
+keywords: ["magic link", "passwordless", "email login", "link authentication", "no password", "email sign in", "PKCE"]
 sidebar:
   label: Magic Links
 ---
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-
-Magic Links are a type of passwordless login that allow users to sign in into their account by clicking a link that is emailed to them, rather than typing in their user and password.
+Magic Links are a type of passwordless login that allow users to sign in by clicking a link emailed to them, rather than typing a password.
 
 Magic Links are disabled by default and can be enabled using the Nhost Dashboard under **Settings -> Sign-In Methods -> Magic Link**.
 
 ## Sign In
 
-To sign in users with a Magic Link, use `signIn` with only an email:
+To sign in users with a Magic Link, use `signInPasswordlessEmail` with an email and a `codeChallenge` for [PKCE](/products/auth/pkce):
 
-<Tabs>
-<TabItem label="JavaScript">
 ```js
-await nhost.auth.signIn({
-  email: 'joe@example.com'
-})
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
+
+const { verifier, challenge } = await generatePKCEPair();
+localStorage.setItem('nhost_pkce_verifier', verifier);
+
+await nhost.auth.signInPasswordlessEmail({
+  email: 'joe@example.com',
+  options: {
+    redirectTo: `${window.location.origin}/verify`,
+  },
+  codeChallenge: challenge,
+});
 ```
-</TabItem>
-<TabItem label="Dart">
-```dart
-await nhost.auth.signIn(
-  email: 'joe@example.com'
-)
-```
-</TabItem>
-</Tabs>
+
+After the user clicks the magic link in their email, they'll be redirected to your app with an authorization code. See [Handling the Verification Redirect](/products/auth/pkce#handling-the-verification-redirect) to exchange the code for a session.
 
 :::note
-A user account is created the first time a Magic Link is used
+A user account is created the first time a Magic Link is used.
 :::
 
 :::tip
-Users who have signed up with email and password can also sign in with a Magic Link
+Users who have signed up with email and password can also sign in with a Magic Link.
 :::
 
 :::tip
-It is possible to customize the email with the Magic Link, learn how to [here](/products/auth/email-templates)
+It is possible to customize the email with the Magic Link, learn how to [here](/products/auth/email-templates).
 :::
 
+### Sign In Flow
+
+```mermaid
+sequenceDiagram
+	autonumber
+	actor U as User
+	participant C as Client
+	participant A as Nhost Auth
+	participant E as SMTP Server
+	C->>C: Generate PKCE pair (verifier + challenge)
+	C->>C: Store verifier in localStorage
+	U->>+A: POST /signin/passwordless/email
+	Note right of U: email, codeChallenge
+	opt No user found
+		A->>A: Create user
+	end
+	A->>A: Generate ticket (stores codeChallenge)
+	A-)E: Send magic link email
+	A->>-U: OK
+	E-)U: Receive email
+	U->>+A: GET /verify (follow email link)
+	A->>A: Verify email
+	A->>A: Generate authorization code
+	A->>-C: Redirect with ?code=...
+	C->>C: Consume verifier from localStorage
+	C->>+A: POST /token/exchange
+	Note right of C: code + codeVerifier
+	A->>A: Validate S256(codeVerifier) == codeChallenge
+	A->>-C: Session (access + refresh tokens)
+```

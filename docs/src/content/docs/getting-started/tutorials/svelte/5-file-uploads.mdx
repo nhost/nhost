@@ -114,7 +114,7 @@ You can read more about storage permissions [here](/products/storage/#permission
 
 Now let's implement the SvelteKit page component for file upload functionality.
 
-```svelte src/routes/files/+page.svelte lines
+```svelte title="src/routes/files/+page.svelte" showLineNumbers
 <script lang="ts">
 import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { goto } from "$app/navigation";
@@ -526,7 +526,7 @@ async function handleDeleteFile(fileId: string) {
 
 Add a link to the files page in the navigation layout. Update your `src/routes/+layout.svelte` file to include the files link:
 
-```svelte src/routes/+layout.svelte lines highlight={40}
+```svelte title="src/routes/+layout.svelte" showLineNumbers {40}
 <script lang="ts">
 import { onMount } from "svelte";
 import { goto } from "$app/navigation";

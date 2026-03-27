@@ -114,7 +114,7 @@ You can read more about storage permissions [here](/products/storage/#permission
 
 Now let's implement the Vue component for file upload functionality.
 
-```vue src/views/Files.vue lines
+```vue title="src/views/Files.vue" showLineNumbers
 <template>
   <div class="container">
     <header class="page-header">
@@ -517,7 +517,7 @@ const handleDeleteFile = async (fileId: string): Promise<void> => {
 
 Add the files page to your application routing.
 
-```ts src/router/index.ts lines highlight={8,46-51}
+```ts title="src/router/index.ts" showLineNumbers {3,46-51}
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 import Files from "../views/Files.vue";
@@ -603,7 +603,7 @@ export default router;
 
 Add a link to the files page in the navigation bar.
 
-```vue src/components/Navigation.vue lines highlight={17-19}
+```vue title="src/components/Navigation.vue" showLineNumbers {17-19}
 <template>
   <nav class="navigation">
     <div class="nav-container">
