@@ -37,6 +37,7 @@ func TestServer(t *testing.T) { //nolint:paralleltest
 				"--graphql-endpoint=http://localhost:8080/v1/graphql",
 				"--mcp-instructions=Custom server instructions",
 				"--query-instructions=Custom query instructions",
+				"--mutation-instructions=Custom mutation instructions",
 				"--schema-instructions=Custom schema instructions",
 			},
 			expectedInstructions: "Custom server instructions",
@@ -196,13 +197,39 @@ func defaultTools() *mcp.ListToolsResult {
 				},
 			},
 			{ //nolint:exhaustruct
+				Name:        "graphql-mutation",
+				Description: tools.DefaultMutationInstructions,
+				InputSchema: mcp.ToolInputSchema{ //nolint:exhaustruct
+					Type: "object",
+					Properties: map[string]any{
+						"query": map[string]any{
+							"description": "GraphQL mutation to execute",
+							"type":        "string",
+						},
+						"variables": map[string]any{
+							"description": "variables to use in the mutation",
+							"type":        "object",
+							"properties":  map[string]any{},
+						},
+					},
+					Required: []string{"query"},
+				},
+				Annotations: mcp.ToolAnnotation{
+					Title:           "Execute GraphQL Mutation",
+					ReadOnlyHint:    new(false),
+					DestructiveHint: new(true),
+					IdempotentHint:  new(false),
+					OpenWorldHint:   new(true),
+				},
+			},
+			{ //nolint:exhaustruct
 				Name:        "graphql-query",
 				Description: tools.DefaultQueryInstructions,
 				InputSchema: mcp.ToolInputSchema{ //nolint:exhaustruct
 					Type: "object",
 					Properties: map[string]any{
 						"query": map[string]any{
-							"description": "GraphQL query or mutation to execute",
+							"description": "GraphQL query to execute",
 							"type":        "string",
 						},
 						"variables": map[string]any{
@@ -215,9 +242,9 @@ func defaultTools() *mcp.ListToolsResult {
 				},
 				Annotations: mcp.ToolAnnotation{
 					Title:           "Execute GraphQL Query",
-					ReadOnlyHint:    new(false),
-					DestructiveHint: new(true),
-					IdempotentHint:  new(false),
+					ReadOnlyHint:    new(true),
+					DestructiveHint: new(false),
+					IdempotentHint:  new(true),
 					OpenWorldHint:   new(true),
 				},
 			},
@@ -231,6 +258,8 @@ func customTools() *mcp.ListToolsResult {
 		switch result.Tools[i].Name {
 		case "graphql-query":
 			result.Tools[i].Description = "Custom query instructions"
+		case "graphql-mutation":
+			result.Tools[i].Description = "Custom mutation instructions"
 		case "get-schema":
 			result.Tools[i].Description = "Custom schema instructions"
 		}

@@ -17,6 +17,7 @@ func loggingMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 			rw := &responseWriter{
 				ResponseWriter: w,
 				statusCode:     http.StatusOK,
+				wroteHeader:    false,
 			}
 
 			reqLogger := logger.With(

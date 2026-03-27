@@ -33,24 +33,31 @@ func authorizationInterceptor(ctx context.Context, req *http.Request) error {
 const (
 	ToolGraphqlQueryName = "graphql-query"
 	//nolint:lll
-	DefaultQueryInstructions = `Execute a GraphQL query or mutation against the configured endpoint. If you run into issues executing queries, retrieve the schema again in case the schema has changed.`
+	DefaultQueryInstructions = `Execute a read-only GraphQL query against the configured endpoint. Only queries are allowed — mutations will be rejected. If you run into issues executing queries, retrieve the schema again in case the schema has changed.`
+
+	ToolGraphqlMutationName = "graphql-mutation"
+	//nolint:lll
+	DefaultMutationInstructions = `Execute a GraphQL mutation against the configured endpoint. Only mutations are allowed — queries will be rejected. If you run into issues executing mutations, retrieve the schema again in case the schema has changed.`
 )
 
 type Tool struct {
-	graphqlEndpoint    string
-	queryInstructions  string
-	schemaInstructions string
+	graphqlEndpoint      string
+	queryInstructions    string
+	mutationInstructions string
+	schemaInstructions   string
 }
 
 func NewTool(
 	graphqlEndpoint string,
 	queryInstructions string,
+	mutationInstructions string,
 	schemaInstructions string,
 ) *Tool {
 	return &Tool{
-		graphqlEndpoint:    graphqlEndpoint,
-		queryInstructions:  queryInstructions,
-		schemaInstructions: schemaInstructions,
+		graphqlEndpoint:      graphqlEndpoint,
+		queryInstructions:    queryInstructions,
+		mutationInstructions: mutationInstructions,
+		schemaInstructions:   schemaInstructions,
 	}
 }
 
@@ -71,15 +78,15 @@ func (t *Tool) RegisterQuery(mcpServer *mcpserver.MCPServer) {
 		mcp.WithToolAnnotation(
 			mcp.ToolAnnotation{
 				Title:           "Execute GraphQL Query",
-				ReadOnlyHint:    new(false),
-				DestructiveHint: new(true),
-				IdempotentHint:  new(false),
+				ReadOnlyHint:    new(true),
+				DestructiveHint: new(false),
+				IdempotentHint:  new(true),
 				OpenWorldHint:   new(true),
 			},
 		),
 		mcp.WithString(
 			"query",
-			mcp.Description("GraphQL query or mutation to execute"),
+			mcp.Description("GraphQL query to execute"),
 			mcp.Required(),
 		),
 		mcp.WithObject(
@@ -105,10 +112,70 @@ func (t *Tool) handleGraphqlQuery(
 		args.Variables,
 		&resp,
 		[]string{"*"},
-		[]string{"*"},
+		nil,
 		authorizationInterceptor,
 	); err != nil {
 		return mcp.NewToolResultErrorFromErr("failed to query graphql endpoint", err), nil
+	}
+
+	b, err := json.Marshal(resp)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("error marshalling response", err), nil
+	}
+
+	return mcp.NewToolResultStructured(resp, string(b)), nil
+}
+
+func (t *Tool) RegisterMutation(mcpServer *mcpserver.MCPServer) {
+	description := t.mutationInstructions
+	if description == "" {
+		description = DefaultMutationInstructions
+	}
+
+	mutationTool := mcp.NewTool(
+		ToolGraphqlMutationName,
+		mcp.WithDescription(description),
+		mcp.WithToolAnnotation(
+			mcp.ToolAnnotation{
+				Title:           "Execute GraphQL Mutation",
+				ReadOnlyHint:    new(false),
+				DestructiveHint: new(true),
+				IdempotentHint:  new(false),
+				OpenWorldHint:   new(true),
+			},
+		),
+		mcp.WithString(
+			"query",
+			mcp.Description("GraphQL mutation to execute"),
+			mcp.Required(),
+		),
+		mcp.WithObject(
+			"variables",
+			mcp.Description("variables to use in the mutation"),
+		),
+	)
+	mcpServer.AddTool(mutationTool, mcp.NewStructuredToolHandler(t.handleGraphqlMutation))
+}
+
+func (t *Tool) handleGraphqlMutation(
+	ctx context.Context, _ mcp.CallToolRequest, args GraphqlQueryRequest,
+) (*mcp.CallToolResult, error) {
+	if args.Query == "" {
+		return mcp.NewToolResultError("mutation is required"), nil
+	}
+
+	var resp graphql.Response[any]
+	if err := graphql.Query(
+		ctx,
+		t.graphqlEndpoint,
+		args.Query,
+		args.Variables,
+		&resp,
+		nil,
+		[]string{"*"},
+		authorizationInterceptor,
+	); err != nil {
+		return mcp.NewToolResultErrorFromErr("failed to execute graphql mutation", err), nil
 	}
 
 	b, err := json.Marshal(resp)

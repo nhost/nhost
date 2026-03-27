@@ -20,14 +20,15 @@ import (
 var ErrGraphqlEndpointRequired = errors.New("graphql-endpoint is required")
 
 const (
-	FlagListenAddr         = "listen-addr"
-	FlagGraphqlEndpoint    = "graphql-endpoint"
-	FlagMCPInstructions    = "mcp-instructions"
-	FlagQueryInstructions  = "query-instructions"
-	FlagSchemaInstructions = "schema-instructions"
-	FlagAuthURL            = "auth-url"
-	FlagRealm              = "realm"
-	FlagScopes             = "scopes"
+	FlagListenAddr           = "listen-addr"
+	FlagGraphqlEndpoint      = "graphql-endpoint"
+	FlagMCPInstructions      = "mcp-instructions"
+	FlagQueryInstructions    = "query-instructions"
+	FlagMutationInstructions = "mutation-instructions"
+	FlagSchemaInstructions   = "schema-instructions"
+	FlagAuthURL              = "auth-url"
+	FlagRealm                = "realm"
+	FlagScopes               = "scopes"
 
 	shutdownTimeout = 5 * time.Second
 )
@@ -62,6 +63,12 @@ func Command(version string) *cli.Command {
 				Name:     FlagQueryInstructions,
 				Usage:    "Instructions for the graphql-query tool",
 				Sources:  cli.EnvVars("MCP_QUERY_INSTRUCTIONS"),
+				Category: "MCP",
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     FlagMutationInstructions,
+				Usage:    "Instructions for the graphql-mutation tool",
+				Sources:  cli.EnvVars("MCP_MUTATION_INSTRUCTIONS"),
 				Category: "MCP",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -115,9 +122,11 @@ func BuildServer(cmd *cli.Command) (*mcpserver.MCPServer, error) {
 	t := tools.NewTool(
 		graphqlEndpoint,
 		cmd.String(FlagQueryInstructions),
+		cmd.String(FlagMutationInstructions),
 		cmd.String(FlagSchemaInstructions),
 	)
 	t.RegisterQuery(mcpServer)
+	t.RegisterMutation(mcpServer)
 	t.RegisterSchema(mcpServer)
 
 	return mcpServer, nil
