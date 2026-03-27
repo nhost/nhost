@@ -168,7 +168,7 @@ Now let's implement the Next.js page system that uses the database we just confi
 
 The main todos page is a **server component** that fetches initial data server-side and renders the todos interface. This component runs on the server and provides the initial state to the client component.
 
-```tsx src/app/todos/page.tsx
+```tsx title="src/app/todos/page.tsx" showLineNumbers
 import { createNhostClient } from "../../lib/nhost/server";
 import TodosClient from "./TodosClient";
 
@@ -241,7 +241,7 @@ export default async function TodosPage() {
 
 The todos client component is a **client component** that handles all interactive functionality including form submissions, state management, and user interactions. It receives initial data from the server component and manages the client-side state.
 
-```tsx src/app/todos/TodosClient.tsx
+```tsx title="src/app/todos/TodosClient.tsx" showLineNumbers
 "use client";
 
 import { useId, useState } from "react";
@@ -617,7 +617,7 @@ export default function TodosClient({
 
 Server actions handle all data mutations securely on the server side. They validate permissions, execute GraphQL operations, and return type-safe responses to the client components.
 
-```tsx src/app/todos/actions.ts
+```tsx title="src/app/todos/actions.ts" showLineNumbers
 "use server";
 
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
@@ -852,7 +852,7 @@ export async function deleteTodo(id: string): Promise<ActionResult> {
 
 Add the todos page to your application navigation by updating the Navigation component to include a link to the todos page.
 
-```tsx src/components/Navigation.tsx lines highlight={23-25}
+```tsx title="src/components/Navigation.tsx" showLineNumbers {23-25}
 import Link from "next/link";
 import { createNhostClient } from "../lib/nhost/server";
 import SignOutButton from "./SignOutButton";

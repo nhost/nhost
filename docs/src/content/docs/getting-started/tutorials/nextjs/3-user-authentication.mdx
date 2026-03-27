@@ -58,7 +58,7 @@ In this step, we'll create a complete sign-in flow using Next.js App Router patt
 
 The main sign-in page is a **server component** that handles URL parameters (like error messages) and renders the sign-in form. This component runs on the server and can access search parameters directly.
 
-```tsx src/app/signin/page.tsx
+```tsx title="src/app/signin/page.tsx" showLineNumbers
 import Link from "next/link";
 import SignInForm from "./SignInForm";
 
@@ -91,7 +91,7 @@ export default async function SignIn({
 
 The sign-in form is a **client component** that handles user interactions, loading states, and form submissions. It communicates with server actions and provides real-time feedback to users.
 
-```tsx src/app/signin/SignInForm.tsx
+```tsx title="src/app/signin/SignInForm.tsx" showLineNumbers
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -174,7 +174,7 @@ export default function SignInForm({ initialError }: SignInFormProps) {
 
 Server actions handle the authentication logic securely on the server side. They validate form data, communicate with Nhost, and return appropriate responses for success or error states.
 
-```tsx src/app/signin/actions.ts
+```tsx title="src/app/signin/actions.ts" showLineNumbers
 "use server";
 
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
@@ -229,7 +229,7 @@ In this step, we'll build the user registration system with email verification s
 
 The sign-up page is a **server component** that manages different states: showing the registration form or displaying the email verification success message. It handles URL parameters to determine which state to render.
 
-```tsx src/app/signup/page.tsx
+```tsx title="src/app/signup/page.tsx" showLineNumbers
 import Link from "next/link";
 import SignUpForm from "./SignUpForm";
 
@@ -288,9 +288,10 @@ export default async function SignUp({
 
 The registration form is a **client component** that collects user information (display name, email, password) and handles form validation, loading states, and error feedback during the sign-up process.
 
-```tsx src/app/signup/SignUpForm.tsx
+```tsx title="src/app/signup/SignUpForm.tsx" showLineNumbers
 "use client";
 
+import { generatePKCEPair } from "@nhost/nhost-js/auth";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { signUp } from "./actions";
@@ -313,6 +314,13 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
     setError(undefined);
 
     try {
+      // Generate PKCE pair and store verifier for email verification
+      const { verifier, challenge } = await generatePKCEPair();
+      document.cookie = `nhost_pkce_verifier=${verifier}; path=/; SameSite=Lax; max-age=3600`;
+
+      // Pass the challenge to the server action
+      formData.set("codeChallenge", challenge);
+
       const result = await signUp(formData);
 
       if (result.redirect) {
@@ -385,7 +393,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
 
 Server actions handle user registration with Nhost, including setting up email verification. They process form data, create user accounts, and coordinate the email verification flow by setting the appropriate redirect URLs.
 
-```tsx src/app/signup/actions.ts
+```tsx title="src/app/signup/actions.ts" showLineNumbers
 "use server";
 
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
@@ -396,6 +404,7 @@ export async function signUp(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const displayName = formData.get("displayName") as string;
+  const codeChallenge = formData.get("codeChallenge") as string;
 
   if (!email || !password || !displayName) {
     return {
@@ -411,9 +420,9 @@ export async function signUp(formData: FormData) {
       password,
       options: {
         displayName,
-        // Set the redirect URL for email verification
         redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/verify`,
       },
+      codeChallenge,
     });
 
     if (response.body?.session) {
@@ -441,63 +450,55 @@ export async function signUp(formData: FormData) {
 
 ### Create the Email Verification System
 
-In this step, we'll implement email verification using Next.js Route Handlers. When users click the verification link in their email, it will process the token server-side and either redirect them to their profile or show an error page with debugging information.
+In this step, we'll implement email verification using PKCE. When users click the verification link in their email, a Route Handler extracts the authorization code and exchanges it for a session using the PKCE verifier stored in a cookie during sign-up. On success it redirects to the profile page; on failure it redirects to an error page.
 
 <Tabs>
-<TabItem label="Route Handler">
+<TabItem label="Verify Route Handler">
 
-The verification Route Handler is a **server-side API endpoint** that processes email verification tokens. It validates the token, handles edge cases (like already signed-in users), and redirects appropriately based on the verification result.
+The verification endpoint is a **Route Handler** that exchanges the authorization code for a session using PKCE. It reads the code verifier from a cookie (set during sign-up), performs the token exchange server-side, and redirects to the profile page on success. We use a Route Handler instead of a Server Component because cookies can only be modified in a Server Action or Route Handler.
 
-```tsx src/app/verify/route.ts
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+```ts title="src/app/verify/route.ts" showLineNumbers
+import { cookies } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
 import { createNhostClient } from "../../lib/nhost/server";
 
+const PKCE_VERIFIER_KEY = "nhost_pkce_verifier";
+
 export async function GET(request: NextRequest) {
-  const refreshToken = request.nextUrl.searchParams.get("refreshToken");
+  const code = request.nextUrl.searchParams.get("code");
+  const errorUrl = new URL("/verify/error", request.url);
 
-  if (!refreshToken) {
-    // Collect all query parameters for debugging
-    const params = new URLSearchParams(request.nextUrl.searchParams);
-    params.set("message", "No refresh token provided");
-
-    return NextResponse.redirect(
-      new URL(`/verify/error?${params.toString()}`, request.url),
-    );
+  if (!code) {
+    errorUrl.searchParams.set("message", "No authorization code found in URL");
+    return NextResponse.redirect(errorUrl);
   }
+
+  const cookieStore = await cookies();
+  const codeVerifier = cookieStore.get(PKCE_VERIFIER_KEY)?.value;
+
+  if (!codeVerifier) {
+    errorUrl.searchParams.set(
+      "message",
+      "No PKCE verifier found. The sign-in must be initiated from the same browser.",
+    );
+    return NextResponse.redirect(errorUrl);
+  }
+
+  // Remove the PKCE verifier cookie
+  cookieStore.delete(PKCE_VERIFIER_KEY);
 
   try {
     const nhost = await createNhostClient();
-
-    if (nhost.getUserSession()) {
-      // Collect all query parameters
-      const params = new URLSearchParams(request.nextUrl.searchParams);
-      params.set("message", "Already signed in");
-
-      return NextResponse.redirect(
-        new URL(`/verify/error?${params.toString()}`, request.url),
-      );
-    }
-
-    // Process the verification token
-    await nhost.auth.refreshToken({ refreshToken });
-
-    // Redirect to profile on successful verification
-    return NextResponse.redirect(new URL("/profile", request.url));
+    await nhost.auth.tokenExchange({ code, codeVerifier });
   } catch (err) {
-    const error = err as FetchError<ErrorResponse>;
-    const errorMessage = `Failed to verify token: ${error.message}`;
-
-    // Collect all query parameters
-    const params = new URLSearchParams(request.nextUrl.searchParams);
-    params.set("message", errorMessage);
-
-    return NextResponse.redirect(
-      new URL(`/verify/error?${params.toString()}`, request.url),
+    errorUrl.searchParams.set(
+      "message",
+      `Verification failed: ${(err as Error).message}`,
     );
+    return NextResponse.redirect(errorUrl);
   }
+
+  return NextResponse.redirect(new URL("/profile", request.url));
 }
 ```
 
@@ -506,7 +507,7 @@ export async function GET(request: NextRequest) {
 
 The verification error page is a **server component** that displays helpful error messages and debugging information when email verification fails. It shows the specific error message and any URL parameters that might help diagnose the issue.
 
-```tsx src/app/verify/error/page.tsx
+```tsx title="src/app/verify/error/page.tsx" showLineNumbers
 import Link from "next/link";
 
 export default async function VerifyError({
@@ -574,7 +575,7 @@ In this step, we'll implement user sign-out functionality using Next.js patterns
 
 The sign-out button is a **client component** that provides an interactive button for users to sign out. It handles the user interaction and calls the server action, then manages navigation and component refresh after sign-out.
 
-```tsx src/components/SignOutButton.tsx
+```tsx title="src/components/SignOutButton.tsx" showLineNumbers
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -610,7 +611,7 @@ export default function SignOutButton() {
 
 The sign-out server action handles the authentication logic securely on the server side. It retrieves the current session, calls Nhost's sign-out method with the refresh token, and redirects the user to the home page after successful sign-out.
 
-```tsx src/lib/nhost/actions.ts
+```tsx title="src/lib/nhost/actions.ts" showLineNumbers
 "use server";
 
 import { redirect } from "next/navigation";
@@ -644,7 +645,7 @@ export async function signOut() {
 
 In this step, we'll update the server-side navigation component that shows different links based on the user's authentication state. The navigation will display "Sign In" and "Sign Up" links for unauthenticated users, and "Profile" and "Sign Out" for authenticated users.
 
-```tsx src/components/Navigation.tsx lines highlight={3,26,30-35}
+```tsx title="src/components/Navigation.tsx" showLineNumbers {3,26,30-35}
 import Link from "next/link";
 import { createNhostClient } from "../lib/nhost/server";
 import SignOutButton from "./SignOutButton";
@@ -691,19 +692,19 @@ export default async function Navigation() {
 
 
 
-### Update Public Routes in Middleware
+### Update Public Routes in Proxy
 
-In this step, we'll configure the middleware to allow access to authentication-related routes without requiring authentication. This ensures that users can access sign-in, sign-up, and email verification pages even when not logged in.
+In this step, we'll configure the proxy to allow access to authentication-related routes without requiring authentication. This ensures that users can access sign-in, sign-up, and email verification pages even when not logged in.
 
-```tsx src/middleware.ts lines highlight={6}
+```tsx title="src/proxy.ts" showLineNumbers {6}
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { handleNhostMiddleware } from "./lib/nhost/server";
+import { handleNhostProxy } from "./lib/nhost/server";
 
 // Define public routes that don't require authentication
 const publicRoutes = ["/", "/signin", "/signup", "/verify", "/verify/error"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Create a response that we'll modify as needed
   const response = NextResponse.next();
 
@@ -718,7 +719,7 @@ export async function middleware(request: NextRequest) {
   // Handle Nhost authentication and token refresh
   // Always call this to ensure session is up-to-date
   // even for public routes, so that session changes are detected
-  const session = await handleNhostMiddleware(request, response);
+  const session = await handleNhostProxy(request, response);
 
   // If it's a public route, allow access without checking auth
   if (isPublicRoute) {
@@ -735,7 +736,7 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// Define which routes this middleware should run on
+// Define which routes this proxy should run on
 export const config = {
   matcher: [
     /*
@@ -762,10 +763,10 @@ npm run dev
 
 Things to try out:
 
-1. **Email Verification Flow**: Try signing up with a new email address. Check your email for the verification link and click it. The verification route handler will process the token and redirect you to your profile.
+1. **Email Verification Flow**: Try signing up with a new email address. Check your email for the verification link and click it. The verification page will exchange the authorization code for a session using PKCE and redirect you to your profile.
 2. **Sign In/Out Flow**: Try signing out and then signing back in with the same credentials using the server actions.
 3. **Server-Side Navigation**: Notice how navigation links change based on authentication state - the navigation component is rendered server-side and shows different content based on the session.
-4. **Route Protection**: Try accessing protected routes while logged out to see the middleware-based protection in action.
+4. **Route Protection**: Try accessing protected routes while logged out to see the proxy-based protection in action.
 5. **Cross-Tab Consistency**: Open multiple tabs and test signing out from one tab. Unlike client-side React apps, you'll need to refresh or navigate to see changes in other tabs due to server-side rendering.
 
 
@@ -782,9 +783,9 @@ Full authentication flow using Next.js App Router with server components and ser
 </details>
 
 <details>
-<summary>Route Handlers</summary>
+<summary>PKCE Verification</summary>
 
-Custom `/verify` Route Handler that securely processes email verification tokens server-side with proper error handling.
+Server-side `/verify` page that exchanges authorization codes for sessions using PKCE, with the verifier stored in a cookie and the token exchange performed entirely on the server.
 
 </details>
 

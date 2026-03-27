@@ -45,7 +45,7 @@ func TestSignInProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignInProviderRequestObject{
-				Params: api.SignInProviderParams{
+				Params: api.SignInProviderParams{ //nolint:exhaustruct
 					AllowedRoles:           &[]string{"admin", "user"},
 					DefaultRole:            new("admin"),
 					DisplayName:            new("Test User"),
@@ -62,6 +62,54 @@ func TestSignInProvider(t *testing.T) {
 				Headers: api.SignInProvider302ResponseHeaders{
 					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
 				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "success with code challenge",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderRequestObject{
+				Params: api.SignInProviderParams{ //nolint:exhaustruct
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignInProvider302Response{
+				Headers: api.SignInProvider302ResponseHeaders{
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "invalid code challenge format",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderRequestObject{
+				Params: api.SignInProviderParams{ //nolint:exhaustruct
+					CodeChallenge: ptr("too-short"),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-request",
+				Message: "The request payload is incorrect",
+				Status:  400,
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,

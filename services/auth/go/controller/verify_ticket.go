@@ -56,6 +56,41 @@ func (ctrl *Controller) getVerifyHandleTicketType(
 	return apiErr
 }
 
+func (ctrl *Controller) verifyTicketPKCERedirect( //nolint:ireturn
+	ctx context.Context,
+	user sql.AuthUser,
+	ticketType TicketType,
+	codeChallenge string,
+	redirectTo *url.URL,
+	logger *slog.Logger,
+) (api.VerifyTicketResponseObject, error) {
+	code, apiErr := ctrl.createPKCEAuthorizationCode(
+		ctx,
+		user.ID,
+		codeChallenge,
+		redirectTo,
+		logger,
+	)
+	if apiErr != nil {
+		if apiErr == ErrInvalidRequest {
+			return ctrl.sendRedirectError(redirectTo, apiErr), nil
+		}
+
+		return ctrl.sendError(apiErr), nil
+	}
+
+	redirectTo = appendURLValues(redirectTo, map[string]string{
+		"code": code,
+		"type": string(ticketType),
+	})
+
+	return api.VerifyTicket302Response{
+		Headers: api.VerifyTicket302ResponseHeaders{
+			Location: redirectTo.String(),
+		},
+	}, nil
+}
+
 func (ctrl *Controller) VerifyTicket( //nolint:ireturn
 	ctx context.Context, req api.VerifyTicketRequestObject,
 ) (api.VerifyTicketResponseObject, error) {
@@ -72,6 +107,12 @@ func (ctrl *Controller) VerifyTicket( //nolint:ireturn
 	apiErr = ctrl.getVerifyHandleTicketType(ctx, user, ticketType, logger)
 	if apiErr != nil {
 		return ctrl.sendRedirectError(redirectTo, apiErr), nil
+	}
+
+	if codeChallenge := deptr(req.Params.CodeChallenge); codeChallenge != "" {
+		return ctrl.verifyTicketPKCERedirect(
+			ctx, user, ticketType, codeChallenge, redirectTo, logger,
+		)
 	}
 
 	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)

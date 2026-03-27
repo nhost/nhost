@@ -18,7 +18,7 @@ Place a `.js` or `.ts` file inside the `./functions` directory of your project:
 <Tabs>
   <TabItem label="JavaScript">
 
-```js ./functions/hello.js
+```js title="./functions/hello.js"
 export default (req, res) => {
   res.status(200).send(`Hello ${req.query.name}!`)
 }
@@ -27,7 +27,7 @@ export default (req, res) => {
   </TabItem>
   <TabItem label="TypeScript">
 
-```ts ./functions/hello.ts
+```ts title="./functions/hello.ts"
 import type { Request, Response } from 'express'
 
 export default (req: Request, res: Response) => {
@@ -58,7 +58,7 @@ Push your code to the connected GitHub repository. Nhost automatically deploys y
 
 A more complete example that returns request metadata:
 
-```ts ./functions/echo.ts
+```ts title="./functions/echo.ts"
 import process from 'node:process'
 import type { Request, Response } from 'express'
 

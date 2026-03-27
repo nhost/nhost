@@ -3,7 +3,6 @@ import debounce from 'lodash.debounce';
 import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { NavLink } from '@/components/common/NavLink';
 import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -30,6 +29,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { GitHubAPIError, listGitHubInstallationRepos } from '@/lib/github';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue } from '@/lib/utils';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
@@ -87,15 +87,18 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     (item) => item.providerId === 'github',
   );
 
-  const getGitHubConnectUrl = () => {
-    if (typeof window !== 'undefined') {
-      return nhost.auth.signInProviderURL('github', {
-        connect: token,
-        redirectTo: `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project?.subdomain}`,
-      });
-    }
-    return '';
-  };
+  async function handleConnectGitHub() {
+    const { challenge, id } = await generateAndStorePKCE();
+    const url = nhost.auth.signInProviderURL('github', {
+      connect: token,
+      redirectTo: appendPkceId(
+        `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project?.subdomain}`,
+        id,
+      ),
+      codeChallenge: challenge,
+    });
+    window.location.href = url;
+  }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close does the same thing every render
   useEffect(() => {
@@ -265,15 +268,14 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         <p className="text-center text-foreground">
           You need to connect your GitHub account to continue.
         </p>
-        <NavLink
-          variant="outline"
+        <Button
+          variant="outlined"
           className="flex w-72 max-w-72 gap-2"
-          href={getGitHubConnectUrl()}
-          rel="noreferrer noopener"
+          onClick={handleConnectGitHub}
         >
           <GitHubIcon />
           Connect to GitHub
-        </NavLink>
+        </Button>
       </div>
     );
   }

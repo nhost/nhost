@@ -21,6 +21,7 @@
     "@astrojs/starlight": "^0.37.7",
     "@astrojs/vercel": "^9.0.5",
     "@babel/parser": "^7.29.2",
+    "@expressive-code/plugin-line-numbers": "^0.41.7",
     "@readme/openapi-parser": "^5.5.0",
     "@resvg/resvg-js": "^2.6.2",
     "astro": "^5.18.1",
