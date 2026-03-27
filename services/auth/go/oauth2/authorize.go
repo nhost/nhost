@@ -116,6 +116,13 @@ func (p *Provider) validateAuthorizeParams(
 		}
 	}
 
+	if msg := validateGraphQLScopeCombination(requestedScopes); msg != "" {
+		return nil, &Error{
+			Err:         "invalid_scope",
+			Description: msg,
+		}
+	}
+
 	if !client.ClientSecretHash.Valid &&
 		(params.CodeChallenge == nil || *params.CodeChallenge == "") {
 		return nil, &Error{

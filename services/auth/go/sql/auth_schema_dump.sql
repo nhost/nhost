@@ -71,6 +71,43 @@ $$;
 ALTER FUNCTION auth.generate_oauth2_client_id() OWNER TO postgres;
 
 --
+-- Name: is_valid_oauth2_scope(text); Type: FUNCTION; Schema: auth; Owner: postgres
+--
+
+CREATE FUNCTION auth.is_valid_oauth2_scope(scope text) RETURNS boolean
+    LANGUAGE sql IMMUTABLE STRICT
+    AS $$
+    SELECT scope IN ('openid', 'profile', 'email', 'phone', 'offline_access', 'graphql')
+        OR scope ~ '^graphql:role:[a-zA-Z0-9_:.-]+$'
+$$;
+
+
+ALTER FUNCTION auth.is_valid_oauth2_scope(text) OWNER TO postgres;
+
+--
+-- Name: validate_oauth2_scopes(); Type: FUNCTION; Schema: auth; Owner: postgres
+--
+
+CREATE FUNCTION auth.validate_oauth2_scopes() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    s text;
+BEGIN
+    FOREACH s IN ARRAY NEW.scopes LOOP
+        IF NOT auth.is_valid_oauth2_scope(s) THEN
+            RAISE EXCEPTION 'invalid oauth2 scope: %', s
+                USING ERRCODE = 'check_violation';
+        END IF;
+    END LOOP;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION auth.validate_oauth2_scopes() OWNER TO postgres;
+
+--
 -- Name: set_current_timestamp_updated_at(); Type: FUNCTION; Schema: auth; Owner: postgres
 --
 
@@ -112,8 +149,7 @@ CREATE TABLE auth.oauth2_auth_requests (
     done boolean DEFAULT false NOT NULL,
     auth_time timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    expires_at timestamp with time zone NOT NULL,
-    CONSTRAINT oauth2_auth_requests_scopes_check CHECK ((scopes <@ ARRAY['openid'::text, 'profile'::text, 'email'::text, 'phone'::text, 'offline_access'::text, 'graphql'::text]))
+    expires_at timestamp with time zone NOT NULL
 );
 
 
@@ -163,7 +199,6 @@ CREATE TABLE auth.oauth2_clients (
     created_by uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT oauth2_clients_scopes_check CHECK ((scopes <@ ARRAY['openid'::text, 'profile'::text, 'email'::text, 'phone'::text, 'offline_access'::text, 'graphql'::text])),
     CONSTRAINT oauth2_clients_type_check CHECK ((type = ANY (ARRAY['registered'::text, 'client_id_metadata_document'::text])))
 );
 
@@ -189,8 +224,7 @@ CREATE TABLE auth.oauth2_refresh_tokens (
     user_id uuid NOT NULL,
     scopes text[] DEFAULT '{}'::text[] NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    expires_at timestamp with time zone NOT NULL,
-    CONSTRAINT oauth2_refresh_tokens_scopes_check CHECK ((scopes <@ ARRAY['openid'::text, 'profile'::text, 'email'::text, 'phone'::text, 'offline_access'::text, 'graphql'::text]))
+    expires_at timestamp with time zone NOT NULL
 );
 
 
@@ -723,6 +757,27 @@ CREATE TRIGGER set_auth_user_providers_updated_at BEFORE UPDATE ON auth.user_pro
 --
 
 CREATE TRIGGER set_auth_users_updated_at BEFORE UPDATE ON auth.users FOR EACH ROW EXECUTE FUNCTION auth.set_current_timestamp_updated_at();
+
+
+--
+-- Name: oauth2_auth_requests validate_oauth2_auth_requests_scopes; Type: TRIGGER; Schema: auth; Owner: postgres
+--
+
+CREATE TRIGGER validate_oauth2_auth_requests_scopes BEFORE INSERT OR UPDATE ON auth.oauth2_auth_requests FOR EACH ROW EXECUTE FUNCTION auth.validate_oauth2_scopes();
+
+
+--
+-- Name: oauth2_clients validate_oauth2_clients_scopes; Type: TRIGGER; Schema: auth; Owner: postgres
+--
+
+CREATE TRIGGER validate_oauth2_clients_scopes BEFORE INSERT OR UPDATE ON auth.oauth2_clients FOR EACH ROW EXECUTE FUNCTION auth.validate_oauth2_scopes();
+
+
+--
+-- Name: oauth2_refresh_tokens validate_oauth2_refresh_tokens_scopes; Type: TRIGGER; Schema: auth; Owner: postgres
+--
+
+CREATE TRIGGER validate_oauth2_refresh_tokens_scopes BEFORE INSERT OR UPDATE ON auth.oauth2_refresh_tokens FOR EACH ROW EXECUTE FUNCTION auth.validate_oauth2_scopes();
 
 
 --

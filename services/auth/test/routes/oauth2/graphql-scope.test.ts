@@ -371,6 +371,218 @@ describe('oauth2-scope-claims', () => {
     expect(payload['https://hasura.io/jwt/claims']).toBeUndefined();
   });
 
+  // --- graphql:role:xxxx scope ---
+
+  describe('graphql:role scope', () => {
+    let roleClientId: string;
+    let roleClientSecret: string;
+
+    beforeAll(async () => {
+      roleClientSecret = generateSecret();
+      const secretHash = await hashSecret(roleClientSecret);
+
+      const { body: { data } } = await nhost.graphql.request<{
+        insertAuthOauth2Client: { clientId: string };
+      }>(
+        {
+          query: `mutation ($object: authOauth2Clients_insert_input!) {
+            insertAuthOauth2Client(object: $object) {
+              clientId
+            }
+          }`,
+          variables: {
+            object: {
+              clientSecretHash: secretHash,
+              redirectUris: [REDIRECT_URI],
+              scopes: ['openid', 'profile', 'graphql:role:user'],
+            },
+          },
+        },
+        adminHeaders,
+      );
+
+      roleClientId = data!.insertAuthOauth2Client.clientId;
+    });
+
+    it('access token should contain narrowed Hasura claims with graphql:role:user', async () => {
+      const tokenResp = await getTokens(jwt, roleClientId, roleClientSecret, 'openid graphql:role:user');
+      const payload = jose.decodeJwt(tokenResp.access_token);
+
+      expect(payload['https://hasura.io/jwt/claims']).toEqual({
+        'x-hasura-user-id': userId,
+        'x-hasura-default-role': 'user',
+        'x-hasura-allowed-roles': ['user'],
+        'x-hasura-user-is-anonymous': 'false',
+        'x-hasura-displayname': DEMO_DISPLAY_NAME,
+      });
+
+      expect(payload.scope).toBe('openid graphql:role:user');
+    });
+
+    it('userinfo should contain narrowed Hasura claims with graphql:role:user', async () => {
+      const tokenResp = await getTokens(jwt, roleClientId, roleClientSecret, 'openid profile graphql:role:user');
+
+      const { body: userinfo } = await nhost.auth.oauth2UserinfoGet({
+        headers: { Authorization: `Bearer ${tokenResp.access_token}` },
+      });
+
+      expect(userinfo).toEqual({
+        sub: userId,
+        name: DEMO_DISPLAY_NAME,
+        locale: 'en',
+        picture: expect.stringContaining('gravatar.com'),
+        'https://hasura.io/jwt/claims': {
+          'x-hasura-user-id': userId,
+          'x-hasura-default-role': 'user',
+          'x-hasura-allowed-roles': ['user'],
+          'x-hasura-user-is-anonymous': false,
+          'x-hasura-displayname': DEMO_DISPLAY_NAME,
+        },
+      });
+    });
+
+    it('refresh should preserve narrowed Hasura claims from graphql:role scope', async () => {
+      const tokenResp = await getTokens(jwt, roleClientId, roleClientSecret, 'openid graphql:role:user');
+
+      const { body: refreshResp } = await nhost.auth.oauth2Token({
+        grant_type: 'refresh_token',
+        refresh_token: tokenResp.refresh_token!,
+        client_id: roleClientId,
+        client_secret: roleClientSecret,
+      });
+
+      const payload = jose.decodeJwt(refreshResp.access_token);
+      expect(payload['https://hasura.io/jwt/claims']).toEqual({
+        'x-hasura-user-id': userId,
+        'x-hasura-default-role': 'user',
+        'x-hasura-allowed-roles': ['user'],
+        'x-hasura-user-is-anonymous': 'false',
+        'x-hasura-displayname': DEMO_DISPLAY_NAME,
+      });
+    });
+
+    it('should reject graphql:role scope not registered on the client', async () => {
+      const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
+        client_id: roleClientId,
+        redirect_uri: REDIRECT_URI,
+        response_type: 'code',
+        scope: 'openid graphql:role:admin',
+        state: `role-reject-${Date.now()}`,
+      });
+
+      const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
+      const location = authResp.headers.get('location')!;
+      const params = new URL(location).searchParams;
+
+      expect(params.get('error')).toBe('invalid_scope');
+    });
+
+    it('should reject mixing graphql and graphql:role scopes', async () => {
+      // Create a client that has both graphql and graphql:role:user
+      const mixedSecret = generateSecret();
+      const mixedHash = await hashSecret(mixedSecret);
+
+      const { body: { data } } = await nhost.graphql.request<{
+        insertAuthOauth2Client: { clientId: string };
+      }>(
+        {
+          query: `mutation ($object: authOauth2Clients_insert_input!) {
+            insertAuthOauth2Client(object: $object) {
+              clientId
+            }
+          }`,
+          variables: {
+            object: {
+              clientSecretHash: mixedHash,
+              redirectUris: [REDIRECT_URI],
+              scopes: ['openid', 'graphql', 'graphql:role:user'],
+            },
+          },
+        },
+        adminHeaders,
+      );
+
+      const mixedClientId = data!.insertAuthOauth2Client.clientId;
+
+      const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
+        client_id: mixedClientId,
+        redirect_uri: REDIRECT_URI,
+        response_type: 'code',
+        scope: 'openid graphql graphql:role:user',
+        state: `mixed-reject-${Date.now()}`,
+      });
+
+      const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
+      const location = authResp.headers.get('location')!;
+      const params = new URL(location).searchParams;
+
+      expect(params.get('error')).toBe('invalid_scope');
+    });
+
+    it('should return access_denied when user lacks the requested role', async () => {
+      // Create a client with a role the user doesn't have
+      const adminSecret = generateSecret();
+      const adminHash = await hashSecret(adminSecret);
+
+      const { body: { data } } = await nhost.graphql.request<{
+        insertAuthOauth2Client: { clientId: string };
+      }>(
+        {
+          query: `mutation ($object: authOauth2Clients_insert_input!) {
+            insertAuthOauth2Client(object: $object) {
+              clientId
+            }
+          }`,
+          variables: {
+            object: {
+              clientSecretHash: adminHash,
+              redirectUris: [REDIRECT_URI],
+              scopes: ['openid', 'graphql:role:superadmin'],
+            },
+          },
+        },
+        adminHeaders,
+      );
+
+      const adminClientId = data!.insertAuthOauth2Client.clientId;
+
+      // Authorize succeeds (scope is valid for the client)
+      const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
+        client_id: adminClientId,
+        redirect_uri: REDIRECT_URI,
+        response_type: 'code',
+        scope: 'openid graphql:role:superadmin',
+        state: `admin-reject-${Date.now()}`,
+      });
+
+      const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
+      const requestId = new URL(authResp.headers.get('location')!).searchParams.get('request_id')!;
+
+      const { body: loginResp } = await nhost.auth.oauth2LoginPost(
+        { requestId },
+        { headers: { Authorization: `Bearer ${jwt}` } },
+      );
+      const authCode = new URL(loginResp.redirectUri).searchParams.get('code')!;
+
+      // Token exchange should fail with access_denied
+      try {
+        await nhost.auth.oauth2Token({
+          grant_type: 'authorization_code',
+          code: authCode,
+          redirect_uri: REDIRECT_URI,
+          client_id: adminClientId,
+          client_secret: adminSecret,
+        });
+        expect(true).toBe(false); // should not reach here
+      } catch (err) {
+        expect(err).toBeInstanceOf(FetchError);
+        const fetchErr = err as FetchError;
+        expect(fetchErr.status).toBe(403);
+        expect(fetchErr.body).toHaveProperty('error', 'access_denied');
+      }
+    });
+  });
+
   // --- Client scope enforcement ---
 
   describe('client scope restrictions', () => {

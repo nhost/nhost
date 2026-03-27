@@ -347,6 +347,112 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 			},
 		},
 		{
+			name:   "success - graphql:role scope allowed for client",
+			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			params: func() api.Oauth2AuthorizePostFormdataBody {
+				p := baseParams
+				p.Scope = new("openid graphql:role:admin")
+
+				return p
+			}(),
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				roleClient := confidentialClient
+				roleClient.Scopes = []string{"openid", "profile", "email", "graphql:role:admin"}
+				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+					Return(roleClient, nil)
+				m.EXPECT().InsertOAuth2AuthRequest(gomock.Any(), gomock.Any()).
+					Return(authReqResult, nil)
+
+				return m
+			},
+			expectedURL: loginBase + "?request_id=" + authReqID.String(),
+			expectedErr: nil,
+		},
+		{
+			name:   "success - multiple graphql:role scopes allowed",
+			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			params: func() api.Oauth2AuthorizePostFormdataBody {
+				p := baseParams
+				p.Scope = new("openid graphql:role:admin graphql:role:editor")
+
+				return p
+			}(),
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				roleClient := confidentialClient
+				roleClient.Scopes = []string{
+					"openid", "graphql:role:admin", "graphql:role:editor",
+				}
+				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+					Return(roleClient, nil)
+				m.EXPECT().InsertOAuth2AuthRequest(gomock.Any(), gomock.Any()).
+					Return(authReqResult, nil)
+
+				return m
+			},
+			expectedURL: loginBase + "?request_id=" + authReqID.String(),
+			expectedErr: nil,
+		},
+		{
+			name:   "error - graphql:role scope not allowed for client",
+			config: oauth2.Config{}, //nolint:exhaustruct
+			params: func() api.Oauth2AuthorizePostFormdataBody {
+				p := baseParams
+				p.Scope = new("openid graphql:role:admin")
+
+				return p
+			}(),
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+					Return(confidentialClient, nil)
+
+				return m
+			},
+			expectedURL: errRedirect(
+				&oauth2.Error{
+					Err:         "invalid_scope",
+					Description: `Scope "graphql:role:admin" not allowed for this client`,
+				},
+			),
+			expectedErr: &oauth2.Error{
+				Err:         "invalid_scope",
+				Description: `Scope "graphql:role:admin" not allowed for this client`,
+			},
+		},
+		{
+			name:   "error - graphql and graphql:role mixed",
+			config: oauth2.Config{}, //nolint:exhaustruct
+			params: func() api.Oauth2AuthorizePostFormdataBody {
+				p := baseParams
+				p.Scope = new("openid graphql graphql:role:admin")
+
+				return p
+			}(),
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				mixedClient := confidentialClient
+				mixedClient.Scopes = []string{
+					"openid", "graphql", "graphql:role:admin",
+				}
+				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+					Return(mixedClient, nil)
+
+				return m
+			},
+			expectedURL: errRedirect(
+				&oauth2.Error{
+					Err:         "invalid_scope",
+					Description: `"graphql" and "graphql:role:..." scopes are mutually exclusive`,
+				},
+			),
+			expectedErr: &oauth2.Error{
+				Err:         "invalid_scope",
+				Description: `"graphql" and "graphql:role:..." scopes are mutually exclusive`,
+			},
+		},
+		{
 			name:   "error - insert auth request fails",
 			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
 			params: baseParams,

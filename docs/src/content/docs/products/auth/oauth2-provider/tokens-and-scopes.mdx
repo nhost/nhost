@@ -55,6 +55,45 @@ When the `graphql` scope is requested, the access token includes GraphQL-compati
 
 Without the `graphql` scope, the `https://hasura.io/jwt/claims` namespace is omitted from the access token.
 
+### The `graphql:role:xxxx` Scope
+
+The `graphql:role:xxxx` scope works like the `graphql` scope but **narrows the claims** to specific roles. This is useful when a third-party integration should only see a subset of the user's roles.
+
+- Each `graphql:role:xxxx` scope must be **independently allowed** on the client — having the `graphql` scope does not grant `graphql:role:admin`.
+- Multiple `graphql:role:xxxx` scopes can be requested in a single authorization. The first becomes `x-hasura-default-role` and all of them become `x-hasura-allowed-roles`.
+- The `graphql` and `graphql:role:xxxx` scopes are **mutually exclusive** in a single request. A client may have both in its allowed scopes, but a request cannot use both at once.
+- At token time, every requested role must exist in the user's allowed roles. If the user lacks a requested role, the token exchange fails with `access_denied`.
+
+Example: a client with `scopes: ["openid", "graphql:role:viewer"]` requesting `scope=openid graphql:role:viewer` produces:
+
+```json
+{
+  "iss": "https://your-project.auth.nhost.run/v1",
+  "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+  "aud": "nhoa_a1b2c3d4e5f67890",
+  "iat": 1234567890,
+  "exp": 1234568790,
+  "scope": "openid graphql:role:viewer",
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-user-id": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+    "x-hasura-default-role": "viewer",
+    "x-hasura-allowed-roles": ["viewer"]
+  }
+}
+```
+
+With multiple roles (`scope=openid graphql:role:viewer graphql:role:editor`):
+
+```json
+{
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-user-id": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+    "x-hasura-default-role": "viewer",
+    "x-hasura-allowed-roles": ["viewer", "editor"]
+  }
+}
+```
+
 ## ID Token
 
 The ID token is issued when the `openid` scope is requested. It contains identity claims about the authenticated user, controlled by the scopes granted:
@@ -104,7 +143,7 @@ Example response (with `openid profile email` scopes):
 }
 ```
 
-When the `graphql` scope is present, the UserInfo response also includes the GraphQL claims namespace with roles and any custom claims. Unlike the access token (where values are Hasura-encoded strings), the UserInfo endpoint returns proper JSON types — arrays as JSON arrays, booleans as booleans, etc. This makes it suitable for third-party OIDC consumers (e.g. Grafana) that read user attributes from the UserInfo endpoint.
+When the `graphql` or `graphql:role:xxxx` scope is present, the UserInfo response also includes the GraphQL claims namespace with roles and any custom claims. With `graphql:role:xxxx`, the roles are narrowed the same way as in the access token. Unlike the access token (where values are Hasura-encoded strings), the UserInfo endpoint returns proper JSON types — arrays as JSON arrays, booleans as booleans, etc. This makes it suitable for third-party OIDC consumers (e.g. Grafana) that read user attributes from the UserInfo endpoint.
 
 Example response (with `openid profile graphql` scopes):
 

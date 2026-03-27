@@ -17,6 +17,8 @@ import (
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
+var errUserLacksRequestedRole = errors.New("user does not have the requested graphql role")
+
 // ValidatedCodeExchange holds the validated state of an authorization code
 // exchange, ready for token issuance.
 type ValidatedCodeExchange struct {
@@ -166,7 +168,17 @@ func (p *Provider) IssueTokensFromRefresh( //nolint:funlen
 		ctx, rt.UserID, rt.ClientID, rt.Scopes, accessTokenTTL, logger,
 	)
 	if err != nil {
+		if errors.Is(err, errUserLacksRequestedRole) {
+			logger.WarnContext(ctx, "user lacks requested graphql role", logError(err))
+
+			return nil, &Error{
+				Err:         "access_denied",
+				Description: "User does not have the requested role",
+			}
+		}
+
 		logger.ErrorContext(ctx, "error creating OAuth2 access token", logError(err))
+
 		return nil, &Error{Err: "server_error", Description: "Internal server error"}
 	}
 
@@ -236,7 +248,17 @@ func (p *Provider) issueTokens( //nolint:funlen
 		ctx, userID, authReq.ClientID, authReq.Scopes, accessTokenTTL, logger,
 	)
 	if err != nil {
+		if errors.Is(err, errUserLacksRequestedRole) {
+			logger.WarnContext(ctx, "user lacks requested graphql role", logError(err))
+
+			return nil, &Error{
+				Err:         "access_denied",
+				Description: "User does not have the requested role",
+			}
+		}
+
 		logger.ErrorContext(ctx, "error creating access token", logError(err))
+
 		return nil, &Error{Err: "server_error", Description: "Internal server error"}
 	}
 
@@ -312,25 +334,8 @@ func (p *Provider) createAccessToken(
 		"scope": strings.Join(scopes, " "),
 	}
 
-	if slices.Contains(scopes, "graphql") {
-		user, err := p.db.GetUser(ctx, userID)
-		if err != nil {
-			return "", fmt.Errorf("error getting user: %w", err)
-		}
-
-		roles, err := p.resolveUserGraphQLRoles(ctx, user, userID)
-		if err != nil {
-			return "", fmt.Errorf("error resolving user roles: %w", err)
-		}
-
-		ns, c, err := p.signer.GraphQLClaims(
-			ctx, userID, roles.IsAnonymous, roles.AllowedRoles, roles.DefaultRole, nil, logger,
-		)
-		if err != nil {
-			return "", fmt.Errorf("error creating GraphQL claims: %w", err)
-		}
-
-		claims[ns] = c
+	if err := p.addGraphQLClaims(ctx, claims, scopes, userID, logger); err != nil {
+		return "", err
 	}
 
 	exp := time.Now().Add(ttl)
@@ -341,6 +346,59 @@ func (p *Provider) createAccessToken(
 	}
 
 	return raw, nil
+}
+
+// addGraphQLClaims resolves and adds GraphQL/Hasura claims to the given claims
+// map based on the requested scopes. For "graphql:role:xxxx" scopes, the claims
+// are narrowed to only the requested roles. For the plain "graphql" scope, all
+// user roles are included.
+func (p *Provider) addGraphQLClaims(
+	ctx context.Context,
+	claims jwt.MapClaims,
+	scopes []string,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) error {
+	graphqlRoles := extractGraphQLRoles(scopes)
+
+	if len(graphqlRoles) == 0 && !slices.Contains(scopes, "graphql") {
+		return nil
+	}
+
+	user, err := p.db.GetUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("error getting user: %w", err)
+	}
+
+	roles, err := p.resolveUserGraphQLRoles(ctx, user, userID)
+	if err != nil {
+		return fmt.Errorf("error resolving user roles: %w", err)
+	}
+
+	allowedRoles := roles.AllowedRoles
+	defaultRole := roles.DefaultRole
+
+	if len(graphqlRoles) > 0 {
+		for _, r := range graphqlRoles {
+			if !slices.Contains(roles.AllowedRoles, r) {
+				return fmt.Errorf("%w: %s", errUserLacksRequestedRole, r)
+			}
+		}
+
+		allowedRoles = graphqlRoles
+		defaultRole = graphqlRoles[0]
+	}
+
+	ns, c, err := p.signer.GraphQLClaims(
+		ctx, userID, roles.IsAnonymous, allowedRoles, defaultRole, nil, logger,
+	)
+	if err != nil {
+		return fmt.Errorf("error creating GraphQL claims: %w", err)
+	}
+
+	claims[ns] = c
+
+	return nil
 }
 
 func (p *Provider) createIDToken(
