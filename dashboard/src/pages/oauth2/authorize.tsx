@@ -152,8 +152,8 @@ export default function OAuth2AuthorizePage() {
                 <p className="text-[#A2B3BE]">
                   The application with client ID{' '}
                   <strong>{authRequest.clientId}</strong> running on{' '}
-                  <strong>{clientDisplayName(authRequest)}</strong> is requesting
-                  access to your account.
+                  <strong>{clientDisplayName(authRequest)}</strong> is
+                  requesting access to your account.
                 </p>
               </div>
 
