@@ -161,6 +161,7 @@ func buildHTTPHandler(
 	mcpHTTP := mcpserver.NewStreamableHTTPServer(
 		mcpServer,
 		mcpserver.WithHTTPContextFunc(tools.AuthorizationToContext),
+		mcpserver.WithEndpointPath("/"),
 	)
 	authURL := cmd.String(FlagAuthURL)
 
@@ -182,7 +183,7 @@ func buildHTTPHandler(
 		"/.well-known/oauth-authorization-server",
 		a.AuthorizationServerHandler(),
 	)
-	mux.Handle("/mcp", a.Middleware(mcpHTTP))
+	mux.Handle("/", a.Middleware(mcpHTTP))
 
 	return mux, nil
 }
