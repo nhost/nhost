@@ -29,9 +29,19 @@ export function getSchemaStaticPaths(): StarlighOpenAPIRoute[] {
 function getPathItemStaticPaths(schema: Schema): StarlighOpenAPIRoute[] {
   const baseLink = getBasePath(schema.config)
   const operations = getOperationsByTag(schema)
+  const seenSlugs = new Set<string>()
 
   return [...operations.entries()].flatMap(([, operations]) => {
-    const paths: StarlighOpenAPIRoute[] = operations.entries.map((operation) => {
+    const paths: StarlighOpenAPIRoute[] = operations.entries
+      .filter((operation) => {
+        const fullSlug = stripLeadingAndTrailingSlashes(baseLink + operation.slug)
+        if (seenSlugs.has(fullSlug)) {
+          return false
+        }
+        seenSlugs.add(fullSlug)
+        return true
+      })
+      .map((operation) => {
       return {
         params: {
           openAPISlug: stripLeadingAndTrailingSlashes(baseLink + operation.slug),
