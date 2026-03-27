@@ -67,13 +67,13 @@ func TestAuth(t *testing.T) { //nolint:paralleltest
 		},
 		{
 			name:           "expired token",
-			authorization:  "Bearer " + makeToken(t, privateKey, true),
+			authorization:  "Bearer " + makeToken(t, privateKey, authServer.URL, true),
 			expectedStatus: http.StatusUnauthorized,
 			checkWWWAuth:   true,
 		},
 		{
 			name:           "valid token",
-			authorization:  "Bearer " + makeToken(t, privateKey, false),
+			authorization:  "Bearer " + makeToken(t, privateKey, authServer.URL, false),
 			expectedStatus: http.StatusOK,
 			checkWWWAuth:   false,
 		},
@@ -271,6 +271,7 @@ func newTestAuthServer(
 func makeToken(
 	t *testing.T,
 	key *rsa.PrivateKey,
+	issuer string,
 	expired bool,
 ) string {
 	t.Helper()
@@ -284,6 +285,7 @@ func makeToken(
 
 	claims := jwt.MapClaims{
 		"sub": "test-user",
+		"iss": issuer,
 		"iat": jwt.NewNumericDate(now),
 		"exp": jwt.NewNumericDate(exp),
 	}
