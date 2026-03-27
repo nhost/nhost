@@ -63,6 +63,7 @@ The `graphql:role:xxxx` scope works like the `graphql` scope but **narrows the c
 - Multiple `graphql:role:xxxx` scopes can be requested in a single authorization. The first becomes `x-hasura-default-role` and all of them become `x-hasura-allowed-roles`.
 - The `graphql` and `graphql:role:xxxx` scopes are **mutually exclusive** in a single request. A client may have both in its allowed scopes, but a request cannot use both at once.
 - At token time, every requested role must exist in the user's allowed roles. If the user lacks a requested role, the token exchange fails with `access_denied`.
+- On refresh, the original `graphql:role:xxxx` scopes are preserved and roles are re-validated against the user's current roles. If the user has lost a requested role since the original authorization, the refresh fails with `access_denied`.
 
 Example: a client with `scopes: ["openid", "graphql:role:viewer"]` requesting `scope=openid graphql:role:viewer` produces:
 

@@ -76,13 +76,32 @@ ALTER FUNCTION auth.generate_oauth2_client_id() OWNER TO postgres;
 
 CREATE FUNCTION auth.is_valid_oauth2_scope(scope text) RETURNS boolean
     LANGUAGE sql IMMUTABLE STRICT
-    AS $$
+    AS $_$
     SELECT scope IN ('openid', 'profile', 'email', 'phone', 'offline_access', 'graphql')
         OR scope ~ '^graphql:role:[a-zA-Z0-9_:.-]+$'
+$_$;
+
+
+ALTER FUNCTION auth.is_valid_oauth2_scope(scope text) OWNER TO postgres;
+
+--
+-- Name: set_current_timestamp_updated_at(); Type: FUNCTION; Schema: auth; Owner: postgres
+--
+
+CREATE FUNCTION auth.set_current_timestamp_updated_at() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  _new record;
+BEGIN
+  _new := new;
+  _new. "updated_at" = now();
+  RETURN _new;
+END;
 $$;
 
 
-ALTER FUNCTION auth.is_valid_oauth2_scope(text) OWNER TO postgres;
+ALTER FUNCTION auth.set_current_timestamp_updated_at() OWNER TO postgres;
 
 --
 -- Name: validate_oauth2_scopes(); Type: FUNCTION; Schema: auth; Owner: postgres
@@ -106,25 +125,6 @@ $$;
 
 
 ALTER FUNCTION auth.validate_oauth2_scopes() OWNER TO postgres;
-
---
--- Name: set_current_timestamp_updated_at(); Type: FUNCTION; Schema: auth; Owner: postgres
---
-
-CREATE FUNCTION auth.set_current_timestamp_updated_at() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-  _new record;
-BEGIN
-  _new := new;
-  _new. "updated_at" = now();
-  RETURN _new;
-END;
-$$;
-
-
-ALTER FUNCTION auth.set_current_timestamp_updated_at() OWNER TO postgres;
 
 SET default_tablespace = '';
 
