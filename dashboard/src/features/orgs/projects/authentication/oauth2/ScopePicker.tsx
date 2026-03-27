@@ -20,15 +20,9 @@ export default function ScopePicker({
 }: ScopePickerProps) {
   const { scopes: standardScopes } = useAvailableScopes();
   const client = useRemoteApplicationGQLClient();
-  const {
-    data: rolesData,
-    loading: rolesLoading,
-    error: rolesError,
-  } = useGetRemoteAppRolesQuery({ client });
-
-  if (rolesError) {
-    throw rolesError;
-  }
+  const { data: rolesData, error: rolesError } = useGetRemoteAppRolesQuery({
+    client,
+  });
 
   const roleScopes = useMemo(() => {
     const roles = rolesData?.authRoles ?? [];
@@ -84,33 +78,39 @@ export default function ScopePicker({
           );
         })}
       </div>
-      {allScopes.some((s) => s.startsWith(GRAPHQL_ROLE_PREFIX)) && (
-        <div>
-          <p className="mb-1.5 text-muted-foreground text-xs">
-            Role-specific GraphQL scopes
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {allScopes
-              .filter((s) => s.startsWith(GRAPHQL_ROLE_PREFIX))
-              .map((scope) => {
-                const isSelected = selected.has(scope);
-                return (
-                  <Badge
-                    key={scope}
-                    variant={isSelected ? 'default' : 'outline'}
-                    className={cn(
-                      'cursor-pointer select-none px-3 py-1 text-xs transition-opacity',
-                      !isSelected && 'opacity-50',
-                      disabled && 'pointer-events-none',
-                    )}
-                    onClick={() => toggleScope(scope)}
-                  >
-                    {scope}
-                  </Badge>
-                );
-              })}
+      {rolesError ? (
+        <p className="text-destructive text-xs">
+          Failed to load role-specific scopes.
+        </p>
+      ) : (
+        allScopes.some((s) => s.startsWith(GRAPHQL_ROLE_PREFIX)) && (
+          <div>
+            <p className="mb-1.5 text-muted-foreground text-xs">
+              Role-specific GraphQL scopes
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {allScopes
+                .filter((s) => s.startsWith(GRAPHQL_ROLE_PREFIX))
+                .map((scope) => {
+                  const isSelected = selected.has(scope);
+                  return (
+                    <Badge
+                      key={scope}
+                      variant={isSelected ? 'default' : 'outline'}
+                      className={cn(
+                        'cursor-pointer select-none px-3 py-1 text-xs transition-opacity',
+                        !isSelected && 'opacity-50',
+                        disabled && 'pointer-events-none',
+                      )}
+                      onClick={() => toggleScope(scope)}
+                    >
+                      {scope}
+                    </Badge>
+                  );
+                })}
+            </div>
           </div>
-        </div>
+        )
       )}
     </div>
   );
