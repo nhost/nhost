@@ -780,6 +780,9 @@ type SignInPATRequest struct {
 
 // SignInPasswordlessEmailRequest defines model for SignInPasswordlessEmailRequest.
 type SignInPasswordlessEmailRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *SignUpOptions      `json:"options,omitempty"`
@@ -837,6 +840,9 @@ type SignOutRequest struct {
 
 // SignUpEmailPasswordRequest Request to register a new user with email and password
 type SignUpEmailPasswordRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Email Email address for the new user account
 	Email   openapi_types.Email `json:"email"`
 	Options *SignUpOptions      `json:"options,omitempty"`
@@ -866,11 +872,22 @@ type SignUpWebauthnRequest struct {
 
 // SignUpWebauthnVerifyRequest defines model for SignUpWebauthnVerifyRequest.
 type SignUpWebauthnVerifyRequest struct {
-	Credential CredentialCreationResponse `json:"credential"`
+	// CodeChallenge PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string                    `json:"codeChallenge,omitempty"`
+	Credential    CredentialCreationResponse `json:"credential"`
 
 	// Nickname Nickname for the security key
 	Nickname *string        `json:"nickname,omitempty"`
 	Options  *SignUpOptions `json:"options,omitempty"`
+}
+
+// TokenExchangeRequest Request to exchange an authorization code for a session using PKCE
+type TokenExchangeRequest struct {
+	// Code The authorization code received from the redirect
+	Code string `json:"code"`
+
+	// CodeVerifier The original PKCE code verifier (43-128 characters)
+	CodeVerifier string `json:"codeVerifier"`
 }
 
 // TotpGenerateResponse Response containing TOTP setup information for MFA
@@ -932,6 +949,9 @@ type User struct {
 
 // UserDeanonymizeRequest defines model for UserDeanonymizeRequest.
 type UserDeanonymizeRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Connection Deprecated, will be ignored
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	Connection *string `json:"connection,omitempty"`
@@ -952,6 +972,9 @@ type UserDeanonymizeRequestSignInMethod string
 
 // UserEmailChangeRequest defines model for UserEmailChangeRequest.
 type UserEmailChangeRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// NewEmail A valid email
 	NewEmail openapi_types.Email `json:"newEmail"`
 	Options  *OptionsRedirectTo  `json:"options,omitempty"`
@@ -959,6 +982,9 @@ type UserEmailChangeRequest struct {
 
 // UserEmailSendVerificationEmailRequest defines model for UserEmailSendVerificationEmailRequest.
 type UserEmailSendVerificationEmailRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
@@ -999,6 +1025,9 @@ type UserPasswordRequest struct {
 
 // UserPasswordResetRequest defines model for UserPasswordResetRequest.
 type UserPasswordResetRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
@@ -1128,6 +1157,9 @@ type SignInProviderParams struct {
 
 	// ProviderSpecificParams Additional provider-specific parameters
 	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
+
+	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
 
 // SignInProviderParamsProvider defines parameters for SignInProvider.
@@ -1207,6 +1239,9 @@ type VerifyTicketParams struct {
 
 	// RedirectTo Target URL for the redirect
 	RedirectTo RedirectToQuery `form:"redirectTo" json:"redirectTo"`
+
+	// CodeChallenge PKCE code challenge (S256). When present, the redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
 
 // VerifyTicketParamsType defines parameters for VerifyTicket.
@@ -1289,6 +1324,9 @@ type VerifySignUpWebauthnJSONRequestBody = SignUpWebauthnVerifyRequest
 
 // RefreshTokenJSONRequestBody defines body for RefreshToken for application/json ContentType.
 type RefreshTokenJSONRequestBody = RefreshTokenRequest
+
+// TokenExchangeJSONRequestBody defines body for TokenExchange for application/json ContentType.
+type TokenExchangeJSONRequestBody = TokenExchangeRequest
 
 // RefreshProviderTokenJSONRequestBody defines body for RefreshProviderToken for application/json ContentType.
 type RefreshProviderTokenJSONRequestBody = RefreshProviderTokenRequest

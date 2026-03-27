@@ -1,9 +1,9 @@
 ---
-title: Sign In via SMS OTP
-description: Learn about SMS OTP
+title: SMS OTP
+description: Learn how to sign in users with one-time passwords delivered via SMS using Twilio.
 keywords: ["SMS", "OTP", "phone", "mobile", "text message", "Twilio", "passwordless", "phone verification"]
 sidebar:
-  label: SMS OTP
+  label: SMS
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
@@ -76,8 +76,6 @@ await nhost.auth.signIn(
 </Tabs>
 
 
-
-
 :::note
 A user account is created the first time a phone number is used
 :::
@@ -85,7 +83,3 @@ A user account is created the first time a phone number is used
 :::note
 Phone numbers should start with `+` (not `00`) to follow the [E.164 formatting standard](https://en.wikipedia.org/wiki/E.164)
 :::
-
-## Other SMS Providers
-
-We only support Twilio for now. If you want support for another SMS provider, please create an issue on [GitHub](https://github.com/nhost/nhost).

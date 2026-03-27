@@ -76,7 +76,9 @@ jobs:
                 github.rest.actions.listWorkflowRunsForRepo,
                 { owner, repo, head_sha: sha, status: 'in_progress', per_page: 100 },
               );
-              const toCancel = workflows.filter((r) => r.id !== thisRunId);
+              const toCancel = workflows.filter(
+                (r) => r.id !== thisRunId && !r.name.startsWith('nixops:'),
+              );
               if (toCancel.length === 0) {
                 core.info('No other in-progress workflow runs to cancel.');
                 return;

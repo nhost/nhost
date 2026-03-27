@@ -56,7 +56,7 @@ Apple authentication integration
 
 Build a comprehensive sign-in form with proper error handling and loading states. This screen handles user authentication and includes special logic for post-verification sign-in.
 
-```tsx app/signin.tsx lines
+```tsx title="app/signin.tsx" showLineNumbers
 import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -189,7 +189,9 @@ export default function SignIn() {
 
 Implement user registration with email verification flow. This screen collects user information, creates accounts, and guides users through the email verification process.
 
-```tsx app/signup.tsx lines
+```tsx title="app/signup.tsx" showLineNumbers
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { generatePKCEPair } from "@nhost/nhost-js/auth";
 import * as Linking from "expo-linking";
 import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -230,14 +232,18 @@ export default function SignUp() {
     setSuccess(false);
 
     try {
+      // Generate PKCE pair and store verifier for email verification
+      const { verifier, challenge } = await generatePKCEPair();
+      await AsyncStorage.setItem("nhost_pkce_verifier", verifier);
+
       const response = await nhost.auth.signUpEmailPassword({
         email,
         password,
         options: {
           displayName,
-          // Set the redirect URL for email verification
           redirectTo: Linking.createURL("verify"),
         },
+        codeChallenge: challenge,
       });
 
       if (response.body?.session) {
@@ -365,9 +371,10 @@ export default function SignUp() {
 
 ### Create the Email Verification Screen
 
-Build a dedicated verification screen that processes email verification tokens. This screen handles the verification flow when users click the email verification link.
+Build a dedicated verification screen that exchanges authorization codes for sessions using PKCE. This screen handles the verification flow when users click the email verification link.
 
-```tsx app/verify.tsx lines
+```tsx title="app/verify.tsx" showLineNumbers
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
@@ -375,23 +382,31 @@ import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
 
+const PKCE_VERIFIER_KEY = "nhost_pkce_verifier";
+
+async function consumePKCEVerifier(): Promise<string | null> {
+  const verifier = await AsyncStorage.getItem(PKCE_VERIFIER_KEY);
+  if (verifier) {
+    await AsyncStorage.removeItem(PKCE_VERIFIER_KEY);
+  }
+  return verifier;
+}
+
 export default function Verify() {
   const params = useLocalSearchParams();
 
   const [status, setStatus] = useState<"verifying" | "success" | "error">(
     "verifying",
   );
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>("");
   const [urlParams, setUrlParams] = useState<Record<string, string>>({});
 
   const { nhost } = useAuth();
 
   useEffect(() => {
-    // Extract the refresh token from the URL
-    const refreshToken = params.refreshToken as string;
+    const code = params.code as string;
 
-    if (!refreshToken) {
-      // Collect all URL parameters to display for debugging
+    if (!code) {
       const allParams: Record<string, string> = {};
       Object.entries(params).forEach(([key, value]) => {
         if (typeof value === "string") {
@@ -401,43 +416,35 @@ export default function Verify() {
       setUrlParams(allParams);
 
       setStatus("error");
-      setError("No refresh token found in URL");
+      setError("No authorization code found in URL");
       return;
     }
 
-    // Flag to handle component unmounting during async operations
+    const authCode = code;
     let isMounted = true;
 
-    async function processToken(): Promise<void> {
+    async function exchangeCode(): Promise<void> {
       try {
-        // First display the verifying message for at least a moment
+        // Small delay to ensure component is fully mounted
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         if (!isMounted) return;
 
-        if (!refreshToken) {
-          // Collect all URL parameters to display
-          const allParams: Record<string, string> = {};
-          Object.entries(params).forEach(([key, value]) => {
-            if (typeof value === "string") {
-              allParams[key] = value;
-            }
-          });
-          setUrlParams(allParams);
-
+        const codeVerifier = await consumePKCEVerifier();
+        if (!codeVerifier) {
           setStatus("error");
-          setError("No refresh token found in URL");
+          setError(
+            "No PKCE verifier found. The sign-in must be initiated from the same browser tab.",
+          );
           return;
         }
 
-        // Process the token
-        await nhost.auth.refreshToken({ refreshToken });
+        await nhost.auth.tokenExchange({ code: authCode, codeVerifier });
 
         if (!isMounted) return;
 
         setStatus("success");
 
-        // Wait to show success message briefly, then redirect
         setTimeout(() => {
           if (isMounted) router.replace("/profile");
         }, 1500);
@@ -450,9 +457,8 @@ export default function Verify() {
       }
     }
 
-    processToken();
+    exchangeCode();
 
-    // Cleanup function
     return () => {
       isMounted = false;
     };
@@ -534,7 +540,7 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 Update the home screen to include navigation to authentication screens and a button to sign out.
 
-```tsx app/index.tsx lines highlight={2, 8-31, 50-55, 61-78}
+```tsx title="app/index.tsx" showLineNumbers {2, 8-31, 50-55, 61-78}
 import { useRouter } from "expo-router";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";

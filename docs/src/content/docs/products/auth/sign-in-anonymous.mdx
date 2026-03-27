@@ -1,0 +1,49 @@
+---
+title: Anonymous Sign-In
+description: Learn how to let users try your application without creating an account, and how to convert them to permanent users.
+keywords: ["anonymous", "guest", "temporary user", "deanonymize", "convert account", "passwordless"]
+sidebar:
+  label: Anonymous
+---
+
+Anonymous sign-in creates a temporary user without requiring any credentials. This is useful for allowing users to try your application before committing to an account.
+
+## Sign In
+
+```js
+await nhost.auth.signInAnonymous();
+```
+
+## Deanonymization
+
+Anonymous users can be converted to permanent accounts by linking an email address. The deanonymization flow follows the same PKCE pattern as sign-up, using `userDeanonymize`:
+
+```js
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
+
+const { verifier, challenge } = await generatePKCEPair();
+localStorage.setItem('nhost_pkce_verifier', verifier);
+
+// Deanonymize with email + password
+await nhost.auth.userDeanonymize({
+  email: 'joe@example.com',
+  password: 'secret-password',
+  options: {
+    redirectTo: `${window.location.origin}/verify`,
+  },
+  codeChallenge: challenge,
+});
+
+// Or deanonymize with passwordless email (magic link)
+await nhost.auth.userDeanonymize({
+  email: 'joe@example.com',
+  options: {
+    redirectTo: `${window.location.origin}/verify`,
+  },
+  codeChallenge: challenge,
+});
+```
+
+After the user verifies their email, the authorization code is [exchanged for a session](/products/auth/pkce#handling-the-verification-redirect).
+
+Both pathways require [PKCE](/products/auth/pkce) via the `codeChallenge` parameter when email verification is required.
