@@ -1,11 +1,10 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
-import { Dialog, DialogClose, DialogTitle } from '@/components/ui/v3/dialog';
+import { Dialog, DialogTitle } from '@/components/ui/v3/dialog';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -50,14 +49,8 @@ export default function ProjectStateOverlay({
   variant: ProjectStateOverlayVariant;
 }) {
   const { route } = useRouter();
-  const lastRouteRef = useRef(route);
-  const [dismissed, setDismissed] = useState(false);
   const { state } = useAppState();
 
-  if (route !== lastRouteRef.current) {
-    lastRouteRef.current = route;
-    setDismissed(false);
-  }
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
   const { project, refetch: refetchProject } = useProject();
   const userData = useUserData();
@@ -97,22 +90,13 @@ export default function ProjectStateOverlay({
     return null;
   }
 
-  if (dismissed) {
-    return null;
-  }
-
   return (
-    <Dialog open onOpenChange={(open) => setDismissed(!open)} modal={false}>
+    <Dialog open modal={false}>
       <div className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-black/30 py-4 backdrop-blur-sm">
         <DialogPrimitive.Content
           onInteractOutside={(e) => e.preventDefault()}
-          className="relative flex w-full max-w-sm flex-col items-center gap-4 rounded-lg bg-background p-6 shadow-lg"
+          className="flex w-full max-w-sm flex-col items-center gap-4 rounded-lg bg-background p-6 shadow-lg"
         >
-          <DialogClose className="absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
-
           <DialogTitle className="sr-only">Project State</DialogTitle>
 
           <Image
