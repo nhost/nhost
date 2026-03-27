@@ -8,8 +8,10 @@ import { request, resetEnvironment } from '../../server';
 import { SignInResponse } from '../../src/types';
 import {
   expectUrlParameters,
+  generatePKCE,
   mailHogSearch,
   getUrlParameters,
+  verifyEmailAndExchangePKCE,
 } from '../../utils';
 import { ERRORS } from '../../src/errors';
 
@@ -270,6 +272,39 @@ describe('user email', () => {
       'error',
       'errorDescription',
     ]);
+  });
+
+  it('change email with PKCE', async () => {
+    expect(body?.session).toBeTruthy();
+
+    const newEmail = faker.internet.email();
+    const pkce = generatePKCE();
+
+    await request
+      .post('/user/email/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newEmail, codeChallenge: pkce.challenge })
+      .expect(StatusCodes.OK);
+
+    await verifyEmailAndExchangePKCE(newEmail, pkce);
+
+    // sign in with new email should work
+    await request
+      .post('/signin/email-password')
+      .send({ email: newEmail, password })
+      .expect(StatusCodes.OK);
+  });
+
+  it('send email verification with PKCE', async () => {
+    const pkce = generatePKCE();
+
+    await request
+      .post('/user/email/send-verification-email')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ email, codeChallenge: pkce.challenge })
+      .expect(StatusCodes.OK);
+
+    await verifyEmailAndExchangePKCE(email, pkce);
   });
 
   it('shoud not be possible to change email when anonymous', async () => {

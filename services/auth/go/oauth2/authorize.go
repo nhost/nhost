@@ -26,7 +26,7 @@ func (p *Provider) ValidateAuthorizeRequest(
 		return "", oauthErr
 	}
 
-	if !slices.Contains(client.RedirectUris, params.RedirectUri) {
+	if !matchRedirectURI(params.RedirectUri, client.RedirectUris) {
 		logger.WarnContext(
 			ctx,
 			"redirect URI not registered",

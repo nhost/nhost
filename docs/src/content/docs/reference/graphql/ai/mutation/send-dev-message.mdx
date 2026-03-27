@@ -65,7 +65,7 @@ Type: `MessageResponse!`
 
 **Request Example:**
 
-```graphql query
+```graphql title="query"
 query sendDevMessage (
   $sessionID: String!$message: String!$prevMessageID: String!
 ) {
@@ -85,7 +85,7 @@ query sendDevMessage (
 }
 ```
 
-```json variables
+```json title="variables"
 {
   "message": "string",
   "prevMessageID": "string",

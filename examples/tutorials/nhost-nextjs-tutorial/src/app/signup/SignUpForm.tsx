@@ -1,5 +1,6 @@
 'use client';
 
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
 import { useRouter } from 'next/navigation';
 import { useId, useState } from 'react';
 import { signUp } from './actions';
@@ -22,6 +23,13 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
     setError(undefined);
 
     try {
+      // Generate PKCE pair and store verifier for email verification
+      const { verifier, challenge } = await generatePKCEPair();
+      document.cookie = `nhost_pkce_verifier=${verifier}; path=/; SameSite=Lax; max-age=3600`;
+
+      // Pass the challenge to the server action
+      formData.set('codeChallenge', challenge);
+
       const result = await signUp(formData);
 
       if (result.redirect) {
