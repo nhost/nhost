@@ -192,4 +192,33 @@ describe('ProjectStateGuard', () => {
     });
   });
 
+  describe('pausing variant', () => {
+    it('should show the pausing message', () => {
+      setupDefaultMocks({ state: ApplicationStatus.Pausing });
+      render(<ProjectStateGuard variant="pausing" />);
+      expect(
+        screen.getByText('Project is pausing...'),
+      ).toBeInTheDocument();
+    });
+
+  });
+
+  describe('unpausing variant', () => {
+    it('should show the waking up message', () => {
+      setupDefaultMocks({ state: ApplicationStatus.Unpausing });
+      render(<ProjectStateGuard variant="unpausing" />);
+      expect(
+        screen.getByText('Project is waking up...'),
+      ).toBeInTheDocument();
+    });
+
+    it('should show the time estimate subtitle', () => {
+      setupDefaultMocks({ state: ApplicationStatus.Unpausing });
+      render(<ProjectStateGuard variant="unpausing" />);
+      expect(
+        screen.getByText('This may take a couple of minutes.'),
+      ).toBeInTheDocument();
+    });
+  });
+
 });
