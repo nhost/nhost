@@ -406,8 +406,9 @@ type setTableCustomizationArgs struct {
 }
 
 type exportMetadataRequest struct {
-	Type    string `json:"type"`
-	Version int    `json:"version"`
+	Type    string         `json:"type"`
+	Version int            `json:"version"`
+	Args    map[string]any `json:"args"`
 }
 
 type exportMetadataResponse struct {
@@ -440,8 +441,13 @@ func fetchExistingTableMetadata(
 	ctx context.Context, cfg Config,
 ) (map[string]existingTableMetadata, error) {
 	body, err := postMetadata(
-		ctx, cfg,
-		exportMetadataRequest{Type: "export_metadata", Version: 2}, //nolint:mnd
+		ctx,
+		cfg,
+		exportMetadataRequest{
+			Type:    "export_metadata",
+			Version: 2, //nolint:mnd
+			Args:    map[string]any{},
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("problem fetching metadata: %w", err)
