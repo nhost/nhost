@@ -1,3 +1,14 @@
+## [cli@1.41.1] - 2026-03-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* Add aliases matching internal cloud services (#4076)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump schema (#4084)
+
 ## [cli@1.41.0] - 2026-03-26
 
 ### 🚀 Features
