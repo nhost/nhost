@@ -202,8 +202,9 @@ func expectedAuth() *Service {
 			"traefik.http.routers.auth.tls":                       "true",
 			"traefik.http.services.auth.loadbalancer.server.port": "4000",
 		},
-		Ports:   nil,
-		Restart: "always",
+		Networks: networkAliases("hasura-auth-service"),
+		Ports:    nil,
+		Restart:  "always",
 		Volumes: []Volume{
 			{
 				Type:     "bind",

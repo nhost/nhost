@@ -76,6 +76,7 @@ func storage( //nolint:funlen
 				Rewrite: nil,
 			},
 		}.Labels(),
+		Networks:    networkAliases("hasura-storage-service"),
 		Ports:       ports(exposePort, storagePort),
 		Restart:     "always",
 		HealthCheck: nil,
