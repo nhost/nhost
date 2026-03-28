@@ -1,6 +1,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
+import type { PropsWithChildren } from 'react';
 import { useCallback } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
@@ -16,7 +17,9 @@ import {
   useUnpauseApplicationMutation,
 } from '@/utils/__generated__/graphql';
 
-export type ProjectStateOverlayVariant = 'paused' | 'pausing' | 'unpausing';
+import ProjectViewSkeleton from './ProjectViewSkeleton';
+
+export type ProjectStateGuardVariant = 'paused' | 'pausing' | 'unpausing';
 
 const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
 const overlayPages = new Set(
@@ -43,11 +46,12 @@ const overlayPages = new Set(
   ].map((page) => baseProjectPageRoute.concat(page)),
 );
 
-export default function ProjectStateOverlay({
+export default function ProjectStateGuard({
   variant,
-}: {
-  variant: ProjectStateOverlayVariant;
-}) {
+  children,
+}: PropsWithChildren<{
+  variant: ProjectStateGuardVariant;
+}>) {
   const { route } = useRouter();
   const { state } = useAppState();
 
@@ -87,73 +91,76 @@ export default function ProjectStateOverlay({
   }, [unpauseApplication, project?.id, refetchProject]);
 
   if (!overlayPages.has(route)) {
-    return null;
+    return <>{children}</>;
   }
 
   return (
-    <Dialog open modal={false}>
-      <div className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-black/30 py-4 backdrop-blur-sm">
-        <DialogPrimitive.Content
-          onInteractOutside={(e) => e.preventDefault()}
-          className="flex w-full max-w-sm flex-col items-center gap-4 rounded-lg bg-background p-6 shadow-lg"
-        >
-          <DialogTitle className="sr-only">Project State</DialogTitle>
+    <div className="relative h-full w-full">
+      <ProjectViewSkeleton />
+      <Dialog open modal={false}>
+        <div className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-black/30 py-4 backdrop-blur-sm">
+          <DialogPrimitive.Content
+            onInteractOutside={(e) => e.preventDefault()}
+            className="flex w-full max-w-sm flex-col items-center gap-4 rounded-lg bg-background p-6 shadow-lg"
+          >
+            <DialogTitle className="sr-only">Project State</DialogTitle>
 
-          <Image
-            src="/assets/PausedApp.svg"
-            alt="Paused project"
-            width={52}
-            height={40}
-          />
+            <Image
+              src="/assets/PausedApp.svg"
+              alt="Paused project"
+              width={52}
+              height={40}
+            />
 
-          {variant === 'paused' && (
-            <>
-              <p className="text-center">
-                This project is paused. Unpause to make this available.
-              </p>
-              {freeAndLiveProjectsNumberExceeded && (
-                <p className="text-center text-muted-foreground text-sm">
-                  Only 1 free project can be active at a time. Pause your
-                  current active free project first.
+            {variant === 'paused' && (
+              <>
+                <p className="text-center">
+                  This project is paused. Unpause to make this available.
                 </p>
-              )}
-              {state === ApplicationStatus.Paused && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  disabled={changingApplicationStateLoading}
-                  onClick={handleTriggerUnpausing}
-                >
-                  {changingApplicationStateLoading ? (
-                    <ActivityIndicator />
-                  ) : (
-                    'Wake up'
-                  )}
-                </Button>
-              )}
-            </>
-          )}
+                {freeAndLiveProjectsNumberExceeded && (
+                  <p className="text-center text-muted-foreground text-sm">
+                    Only 1 free project can be active at a time. Pause your
+                    current active free project first.
+                  </p>
+                )}
+                {state === ApplicationStatus.Paused && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    disabled={changingApplicationStateLoading}
+                    onClick={handleTriggerUnpausing}
+                  >
+                    {changingApplicationStateLoading ? (
+                      <ActivityIndicator />
+                    ) : (
+                      'Wake up'
+                    )}
+                  </Button>
+                )}
+              </>
+            )}
 
-          {variant === 'pausing' && (
-            <p className="flex items-center gap-2 text-center">
-              <ActivityIndicator />
-              Project is pausing...
-            </p>
-          )}
-
-          {variant === 'unpausing' && (
-            <>
+            {variant === 'pausing' && (
               <p className="flex items-center gap-2 text-center">
                 <ActivityIndicator />
-                Project is waking up...
+                Project is pausing...
               </p>
-              <p className="text-center text-muted-foreground text-sm">
-                This may take a couple of minutes.
-              </p>
-            </>
-          )}
-        </DialogPrimitive.Content>
-      </div>
-    </Dialog>
+            )}
+
+            {variant === 'unpausing' && (
+              <>
+                <p className="flex items-center gap-2 text-center">
+                  <ActivityIndicator />
+                  Project is waking up...
+                </p>
+                <p className="text-center text-muted-foreground text-sm">
+                  This may take a couple of minutes.
+                </p>
+              </>
+            )}
+          </DialogPrimitive.Content>
+        </div>
+      </Dialog>
+    </div>
   );
 }

@@ -9,7 +9,7 @@ import { ApplicationUnpausing } from '@/features/orgs/projects/common/components
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import ProjectStateOverlay from './ProjectStateOverlay';
+import ProjectStateGuard from './ProjectStateGuard';
 
 function ProjectViewWithState({ children }: PropsWithChildren) {
   const {
@@ -72,17 +72,15 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
         return children;
       case ApplicationStatus.Pausing:
         return (
-          <>
-            <ProjectStateOverlay variant="pausing" />
+          <ProjectStateGuard variant="pausing">
             {children}
-          </>
+          </ProjectStateGuard>
         );
       case ApplicationStatus.Paused:
         return (
-          <>
-            <ProjectStateOverlay variant="paused" />
+          <ProjectStateGuard variant="paused">
             {children}
-          </>
+          </ProjectStateGuard>
         );
       case ApplicationStatus.Unpausing:
         return <ApplicationUnpausing>{children}</ApplicationUnpausing>;

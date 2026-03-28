@@ -154,7 +154,7 @@ src/
 
 ### Navigation
 
-- When creating a new feature page, think if we have to add it to the `overlayPages` list in `ProjectStateOverlay.tsx`.
+- When creating a new feature page, think if we have to add it to the `overlayPages` list in `ProjectStateGuard.tsx`.
 - When creating a new feature page, add it accordingly to the ProjectPagesComboBox or ProjectSettingsPagesComboBox components.
 - When creating a new feature page, add it accordingly to the `NavTree.tsx` component.
 

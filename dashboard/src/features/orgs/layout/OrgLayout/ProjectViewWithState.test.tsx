@@ -34,11 +34,15 @@ vi.mock(
   }),
 );
 
-vi.mock('./ProjectStateOverlay', () => ({
+vi.mock('./ProjectStateGuard', () => ({
   __esModule: true,
-  default: ({ variant }: { variant: string }) => (
-    <div data-testid="projectStateOverlay">
-      Project State Overlay: {variant}
+  default: ({
+    variant,
+    children,
+  }: { variant: string; children?: React.ReactNode }) => (
+    <div data-testid="projectStateGuard">
+      Project State Guard: {variant}
+      {children}
     </div>
   ),
 }));
@@ -129,7 +133,7 @@ describe('ProjectViewWithState', () => {
     render(<TestComponent />);
     expect(await screen.findByText('Application content')).toBeInTheDocument();
     expect(
-      await screen.findByText('Project State Overlay: pausing'),
+      await screen.findByText('Project State Guard: pausing'),
     ).toBeInTheDocument();
   });
 
@@ -144,7 +148,7 @@ describe('ProjectViewWithState', () => {
     render(<TestComponent />);
     expect(await screen.findByText('Application content')).toBeInTheDocument();
     expect(
-      await screen.findByText('Project State Overlay: unpausing'),
+      await screen.findByText('Project State Guard: unpausing'),
     ).toBeInTheDocument();
   });
 
@@ -157,7 +161,7 @@ describe('ProjectViewWithState', () => {
     render(<TestComponent />);
     expect(await screen.findByText('Application content')).toBeInTheDocument();
     expect(
-      await screen.findByText('Project State Overlay: paused'),
+      await screen.findByText('Project State Guard: paused'),
     ).toBeInTheDocument();
   });
 
@@ -221,7 +225,7 @@ describe('ProjectViewWithState', () => {
 
     expect(await screen.findByText('Application content')).toBeInTheDocument();
     expect(
-      await screen.findByText('Project State Overlay: unpausing'),
+      await screen.findByText('Project State Guard: unpausing'),
     ).toBeInTheDocument();
   });
 

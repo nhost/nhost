@@ -1,13 +1,12 @@
 import type { PropsWithChildren } from 'react';
-import ProjectStateOverlay from '@/features/orgs/layout/OrgLayout/ProjectStateOverlay';
+import ProjectStateGuard from '@/features/orgs/layout/OrgLayout/ProjectStateGuard';
 import { useCheckProvisioning } from '@/features/orgs/projects/common/hooks/useCheckProvisioning';
 
 export default function ApplicationRestoring({ children }: PropsWithChildren) {
   useCheckProvisioning();
   return (
-    <>
-      <ProjectStateOverlay variant="unpausing" />
+    <ProjectStateGuard variant="unpausing">
       {children}
-    </>
+    </ProjectStateGuard>
   );
 }

@@ -5,7 +5,7 @@ import {
   screen,
 } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
-import ProjectStateOverlay from './ProjectStateOverlay';
+import ProjectStateGuard from './ProjectStateGuard';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -107,7 +107,7 @@ function setupDefaultMocks(overrides?: {
   ]);
 }
 
-describe('ProjectStateOverlay', () => {
+describe('ProjectStateGuard', () => {
   beforeAll(() => {
     mockPointerEvent();
   });
@@ -117,9 +117,14 @@ describe('ProjectStateOverlay', () => {
   });
 
   describe('route gating', () => {
-    it('should render nothing on non-overlay routes', () => {
+    it('should render children on non-overlay routes', () => {
       setupDefaultMocks({ route: nonOverlayRoute });
-      render(<ProjectStateOverlay variant="paused" />);
+      render(
+        <ProjectStateGuard variant="paused">
+          <div>Child content</div>
+        </ProjectStateGuard>,
+      );
+      expect(screen.getByText('Child content')).toBeInTheDocument();
       expect(
         screen.queryByText(
           'This project is paused. Unpause to make this available.',
@@ -127,9 +132,14 @@ describe('ProjectStateOverlay', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('should render the overlay on overlay routes', () => {
+    it('should render overlay with skeleton instead of children on overlay routes', () => {
       setupDefaultMocks({ route: overlayRoute });
-      render(<ProjectStateOverlay variant="paused" />);
+      render(
+        <ProjectStateGuard variant="paused">
+          <div>Child content</div>
+        </ProjectStateGuard>,
+      );
+      expect(screen.queryByText('Child content')).not.toBeInTheDocument();
       expect(
         screen.getByText(
           'This project is paused. Unpause to make this available.',
@@ -141,7 +151,7 @@ describe('ProjectStateOverlay', () => {
   describe('paused variant', () => {
     it('should show the paused message', () => {
       setupDefaultMocks();
-      render(<ProjectStateOverlay variant="paused" />);
+      render(<ProjectStateGuard variant="paused" />);
       expect(
         screen.getByText(
           'This project is paused. Unpause to make this available.',
@@ -151,7 +161,7 @@ describe('ProjectStateOverlay', () => {
 
     it('should show the wake up button when state is Paused', () => {
       setupDefaultMocks({ state: ApplicationStatus.Paused });
-      render(<ProjectStateOverlay variant="paused" />);
+      render(<ProjectStateGuard variant="paused" />);
       expect(
         screen.getByRole('button', { name: 'Wake up' }),
       ).toBeInTheDocument();
@@ -159,7 +169,7 @@ describe('ProjectStateOverlay', () => {
 
     it('should hide the wake up button when state is not Paused', () => {
       setupDefaultMocks({ state: ApplicationStatus.Pausing });
-      render(<ProjectStateOverlay variant="paused" />);
+      render(<ProjectStateGuard variant="paused" />);
       expect(
         screen.queryByRole('button', { name: 'Wake up' }),
       ).not.toBeInTheDocument();
@@ -167,7 +177,7 @@ describe('ProjectStateOverlay', () => {
 
     it('should show free project limit message when exceeded', () => {
       setupDefaultMocks({ freeAndLiveProjectsNumberExceeded: true });
-      render(<ProjectStateOverlay variant="paused" />);
+      render(<ProjectStateGuard variant="paused" />);
       expect(
         screen.getByText(/Only 1 free project can be active at a time/),
       ).toBeInTheDocument();
@@ -175,7 +185,7 @@ describe('ProjectStateOverlay', () => {
 
     it('should hide free project limit message when not exceeded', () => {
       setupDefaultMocks({ freeAndLiveProjectsNumberExceeded: false });
-      render(<ProjectStateOverlay variant="paused" />);
+      render(<ProjectStateGuard variant="paused" />);
       expect(
         screen.queryByText(/Only 1 free project can be active at a time/),
       ).not.toBeInTheDocument();
