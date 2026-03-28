@@ -441,8 +441,13 @@ func fetchExistingTableMetadata(
 	ctx context.Context, cfg Config,
 ) (map[string]existingTableMetadata, error) {
 	body, err := postMetadata(
-		ctx, cfg,
-		exportMetadataRequest{Type: "export_metadata", Version: 2, Args: map[string]any{}}, //nolint:mnd
+		ctx,
+		cfg,
+		exportMetadataRequest{
+			Type:    "export_metadata",
+			Version: 2, //nolint:mnd
+			Args:    map[string]any{},
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("problem fetching metadata: %w", err)
