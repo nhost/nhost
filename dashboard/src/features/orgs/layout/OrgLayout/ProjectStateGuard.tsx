@@ -46,6 +46,24 @@ const overlayPages = new Set(
   ].map((page) => baseProjectPageRoute.concat(page)),
 );
 
+const sidebarPages = new Set(
+  [
+    'events/event-triggers',
+    'events/event-triggers/[eventTriggerSlug]',
+    'events/cron-triggers',
+    'events/cron-triggers/[cronTriggerSlug]',
+    'events/one-offs',
+    'ai/auto-embeddings',
+    'ai/assistants',
+    'ai/file-stores',
+    'storage',
+    'graphql/remote-schemas',
+    'graphql/remote-schemas/[remoteSchemaSlug]',
+    'database',
+    'database/browser/[dataSourceSlug]',
+  ].map((page) => baseProjectPageRoute.concat(page)),
+);
+
 export default function ProjectStateGuard({
   variant,
   children,
@@ -96,7 +114,7 @@ export default function ProjectStateGuard({
 
   return (
     <div className="relative h-full w-full">
-      <ProjectViewSkeleton />
+      <ProjectViewSkeleton hasSidebar={sidebarPages.has(route)} />
       <Dialog open modal={false}>
         <div className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-black/30 py-4 backdrop-blur-sm">
           <DialogPrimitive.Content

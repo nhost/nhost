@@ -24,7 +24,7 @@ export default function DataGridHeader({
   return (
     <div
       className={cn(
-        'sticky top-0 z-10 inline-flex w-full items-center',
+        'sticky top-0 z-30 inline-flex w-full items-center',
         className,
       )}
       {...props}

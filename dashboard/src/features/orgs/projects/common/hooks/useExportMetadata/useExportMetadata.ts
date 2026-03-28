@@ -1,6 +1,5 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { useIsProjectReady } from '@/features/orgs/projects/common/hooks/useIsProjectReady';
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -25,8 +24,6 @@ export default function useExportMetadata<T>(
   options?: UseExportMetadataOptions,
 ): UseQueryResult<T, unknown> {
   const { project, loading } = useProject();
-  const isProjectReady = useIsProjectReady();
-
   return useQuery<ExportMetadataResponse, unknown, T>({
     queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
     queryFn: () => {
@@ -41,8 +38,7 @@ export default function useExportMetadata<T>(
       return fetchExportMetadata({ appUrl, adminSecret });
     },
     staleTime: EXPORT_METADATA_STALE_TIME,
-    retry: isProjectReady ? 3 : false,
-    refetchOnWindowFocus: isProjectReady,
+    refetchOnWindowFocus: false,
     enabled: !!(
       project?.subdomain &&
       project?.region &&

@@ -1,29 +1,10 @@
-import { useRouter } from 'next/router';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 
-const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
-const sidebarPages = new Set(
-  [
-    'events/event-triggers',
-    'events/event-triggers/[eventTriggerSlug]',
-    'events/cron-triggers',
-    'events/cron-triggers/[cronTriggerSlug]',
-    'events/one-offs',
-    'ai/auto-embeddings',
-    'ai/assistants',
-    'ai/file-stores',
-    'storage',
-    'graphql/remote-schemas',
-    'graphql/remote-schemas/[remoteSchemaSlug]',
-    'database',
-    'database/browser/[dataSourceSlug]',
-  ].map((page) => baseProjectPageRoute.concat(page)),
-);
-
-export default function ProjectViewSkeleton() {
-  const { route } = useRouter();
-  const hasSidebar = sidebarPages.has(route);
-
+export default function ProjectViewSkeleton({
+  hasSidebar,
+}: {
+  hasSidebar?: boolean;
+}) {
   return (
     <div className="flex h-full w-full">
       {hasSidebar && (
