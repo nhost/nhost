@@ -750,6 +750,32 @@ pre {
   transform: scale(1.1);
 }
 
+/* Scope tags (OAuth consent) */
+.scope-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.scope-tag {
+  display: inline-block;
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--primary);
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Client info block (OAuth consent) */
+.client-info {
+  background: rgba(31, 41, 55, 0.5);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+}
+
 /* Todo title hover effect */
 .hover\:text-primary-hover:hover {
   color: var(--primary-hover);

@@ -210,301 +210,304 @@ export const filterOptions = createFilterOptions<AutocompleteOption>({
   stringify: (option) => `${option.label} (${option.value})`,
 });
 
-function Autocomplete(
-  {
-    slotProps = {},
-    fullWidth,
-    placeholder,
-    label,
-    variant,
-    helperText,
-    hideEmptyHelperText,
-    error,
-    name,
-    inputValue: externalInputValue,
-    onInputChange,
-    filterOptions: externalFilterOptions,
-    autoSelect: externalAutoSelect,
-    customOptionLabel: externalCustomOptionLabel,
-    showCustomOption = 'never',
-    'aria-label': ariaLabel,
-    sortByOptions,
-    ...props
-  }: AutocompleteProps<AutocompleteOption>,
-  ref: ForwardedRef<HTMLInputElement>,
-) {
-  const { formControl: formControlSlotProps, ...defaultComponentsProps } =
-    slotProps || {};
-
-  const [inputValue, setInputValue] = useState<string>(
-    () => externalInputValue || '',
-  );
-
-  // TODO: Revisit this implementation. We should probably have a better way to
-  // make this component controlled.
-  useEffect(() => {
-    setInputValue(externalInputValue ?? '');
-  }, [externalInputValue]);
-
-  const filterOptionsFn = externalFilterOptions || filterOptions;
-  const filteredOptions = filterOptionsFn(
-    props.options as AutocompleteOption[],
+const Autocomplete = forwardRef(
+  (
     {
-      inputValue: inputValue || '',
-      getOptionLabel: props.getOptionLabel
-        ? props.getOptionLabel
-        : (option: string | number | AutocompleteOption<string>) => {
-            if (typeof option !== 'object') {
-              return option.toString();
-            }
+      slotProps = {},
+      fullWidth,
+      placeholder,
+      label,
+      variant,
+      helperText,
+      hideEmptyHelperText,
+      error,
+      name,
+      inputValue: externalInputValue,
+      onInputChange,
+      filterOptions: externalFilterOptions,
+      autoSelect: externalAutoSelect,
+      customOptionLabel: externalCustomOptionLabel,
+      showCustomOption = 'never',
+      'aria-label': ariaLabel,
+      sortByOptions,
+      ...props
+    }: AutocompleteProps<AutocompleteOption>,
+    ref: ForwardedRef<HTMLInputElement>,
+  ) => {
+    const { formControl: formControlSlotProps, ...defaultComponentsProps } =
+      slotProps || {};
 
-            return option.label ?? option.dropdownLabel;
-          },
-    },
-  );
+    const [inputValue, setInputValue] = useState<string>(
+      () => externalInputValue || '',
+    );
 
-  const autoSelect =
-    typeof externalAutoSelect === 'function'
-      ? externalAutoSelect(filteredOptions)
-      : externalAutoSelect;
+    // TODO: Revisit this implementation. We should probably have a better way to
+    // make this component controlled.
+    useEffect(() => {
+      setInputValue(externalInputValue ?? '');
+    }, [externalInputValue]);
 
-  const customOptionLabel =
-    typeof externalCustomOptionLabel === 'function'
-      ? externalCustomOptionLabel(inputValue)
-      : externalCustomOptionLabel;
-
-  return (
-    <StyledAutocomplete
-      ref={ref}
-      openOnFocus
-      disablePortal
-      disableClearable
-      autoFocus={false}
-      componentsProps={{
-        ...defaultComponentsProps,
-        popper: {
-          modifiers: [{ name: 'offset', options: { offset: [0, 10] } }],
-          ...defaultComponentsProps.popper,
-          placement: 'bottom-start',
-        },
-        popupIndicator: {
-          ...defaultComponentsProps?.popupIndicator,
-          disableRipple: true,
-          className: clsx(
-            materialAutocompleteClasses.popupIndicator,
-            defaultComponentsProps?.popupIndicator?.className,
-          ),
-        },
-      }}
-      inputValue={inputValue || ''}
-      onInputChange={(event, value, reason) => {
-        setInputValue(value);
-
-        if (onInputChange) {
-          onInputChange(event, value, reason);
-        }
-      }}
-      onKeyDown={(event) => {
-        if (event.key !== 'Escape') {
-          return;
-        }
-
-        event.stopPropagation();
-
-        if (document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
-        }
-      }}
-      PopperComponent={AutocompletePopper}
-      popupIcon={<ChevronDownIcon sx={{ width: 12, height: 12 }} />}
-      getOptionLabel={(
-        option: string | number | AutocompleteOption<string>,
-      ) => {
-        if (!option) {
-          return '';
-        }
-
-        if (typeof option !== 'object') {
-          return option.toString();
-        }
-
-        return option.label ?? option.dropdownLabel;
-      }}
-      isOptionEqualToValue={(
-        option,
-        value: string | AutocompleteOption<string>,
-      ) => {
-        if (!value) {
-          return false;
-        }
-
-        if (typeof value !== 'object') {
-          return option.value.toString() === value.toString();
-        }
-
-        return option.value === value.value && option.custom === value.custom;
-      }}
-      renderTags={(value, getTagProps) =>
-        value.map(
-          (option: string | number | AutocompleteOption<string>, index) => (
-            // biome-ignore lint/correctness/useJsxKeyInIterable: key is added with getTagProps
-            <StyledTag
-              deleteIcon={<XIcon />}
-              size="small"
-              sx={{ fontSize: (theme) => theme.typography.pxToRem(12) }}
-              label={
-                typeof option !== 'object' ? option.toString() : option.value
+    const filterOptionsFn = externalFilterOptions || filterOptions;
+    const filteredOptions = filterOptionsFn(
+      props.options as AutocompleteOption[],
+      {
+        inputValue: inputValue || '',
+        getOptionLabel: props.getOptionLabel
+          ? props.getOptionLabel
+          : (option: string | number | AutocompleteOption<string>) => {
+              if (typeof option !== 'object') {
+                return option.toString();
               }
-              {...getTagProps({ index })}
-            />
-          ),
-        )
-      }
-      renderGroup={({ group, key, children }) =>
-        group ? (
-          <div key={key}>
-            <OptionGroupBase>{group}</OptionGroupBase>
 
-            {children}
-          </div>
-        ) : (
-          <div key={key}>{children}</div>
-        )
-      }
-      renderOption={(
-        optionProps,
-        option: string | number | AutocompleteOption<string>,
-      ) => {
-        const selected = optionProps['aria-selected'];
+              return option.label ?? option.dropdownLabel;
+            },
+      },
+    );
 
-        if (typeof option !== 'object') {
+    const autoSelect =
+      typeof externalAutoSelect === 'function'
+        ? externalAutoSelect(filteredOptions)
+        : externalAutoSelect;
+
+    const customOptionLabel =
+      typeof externalCustomOptionLabel === 'function'
+        ? externalCustomOptionLabel(inputValue)
+        : externalCustomOptionLabel;
+
+    return (
+      <StyledAutocomplete
+        ref={ref}
+        openOnFocus
+        disablePortal
+        disableClearable
+        autoFocus={false}
+        componentsProps={{
+          ...defaultComponentsProps,
+          popper: {
+            modifiers: [{ name: 'offset', options: { offset: [0, 10] } }],
+            ...defaultComponentsProps.popper,
+            placement: 'bottom-start',
+          },
+          popupIndicator: {
+            ...defaultComponentsProps?.popupIndicator,
+            disableRipple: true,
+            className: clsx(
+              materialAutocompleteClasses.popupIndicator,
+              defaultComponentsProps?.popupIndicator?.className,
+            ),
+          },
+        }}
+        inputValue={inputValue || ''}
+        onInputChange={(event, value, reason) => {
+          setInputValue(value);
+
+          if (onInputChange) {
+            onInputChange(event, value, reason);
+          }
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+
+          event.stopPropagation();
+
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+        }}
+        PopperComponent={AutocompletePopper}
+        popupIcon={<ChevronDownIcon sx={{ width: 12, height: 12 }} />}
+        getOptionLabel={(
+          option: string | number | AutocompleteOption<string>,
+        ) => {
+          if (!option) {
+            return '';
+          }
+
+          if (typeof option !== 'object') {
+            return option.toString();
+          }
+
+          return option.label ?? option.dropdownLabel;
+        }}
+        isOptionEqualToValue={(
+          option,
+          value: string | AutocompleteOption<string>,
+        ) => {
+          if (!value) {
+            return false;
+          }
+
+          if (typeof value !== 'object') {
+            return option.value.toString() === value.toString();
+          }
+
+          return option.value === value.value && option.custom === value.custom;
+        }}
+        renderTags={(value, getTagProps) =>
+          value.map(
+            (option: string | number | AutocompleteOption<string>, index) => (
+              // biome-ignore lint/correctness/useJsxKeyInIterable: key is added with getTagProps
+              <StyledTag
+                deleteIcon={<XIcon />}
+                size="small"
+                sx={{ fontSize: (theme) => theme.typography.pxToRem(12) }}
+                label={
+                  typeof option !== 'object' ? option.toString() : option.value
+                }
+                {...getTagProps({ index })}
+              />
+            ),
+          )
+        }
+        renderGroup={({ group, key, children }) =>
+          group ? (
+            <div key={key}>
+              <OptionGroupBase>{group}</OptionGroupBase>
+
+              {children}
+            </div>
+          ) : (
+            <div key={key}>{children}</div>
+          )
+        }
+        renderOption={(
+          optionProps,
+          option: string | number | AutocompleteOption<string>,
+        ) => {
+          const selected = optionProps['aria-selected'];
+
+          if (typeof option !== 'object') {
+            return (
+              <StyledOptionBase {...optionProps} key={option.toString()}>
+                {option.toString()}
+                {selected && props.multiple && (
+                  <CheckIcon sx={{ width: 16, height: 16 }} />
+                )}
+              </StyledOptionBase>
+            );
+          }
+
           return (
-            <StyledOptionBase {...optionProps} key={option.toString()}>
-              {option.toString()}
+            <StyledOptionBase
+              {...optionProps}
+              key={option.dropdownLabel || option.label}
+            >
+              <span>{option.dropdownLabel || option.label}</span>
+
               {selected && props.multiple && (
-                <CheckIcon sx={{ width: 16, height: 16 }} />
+                <CheckIcon key="asd" sx={{ width: 16, height: 16 }} />
               )}
             </StyledOptionBase>
           );
+        }}
+        filterOptions={
+          showCustomOption !== 'never'
+            ? () => {
+                if (!inputValue) {
+                  return filteredOptions;
+                }
+                if (showCustomOption === 'first') {
+                  const isInputValueInOptions = filteredOptions.some(
+                    (filteredOption) => filteredOption.label === inputValue,
+                  );
+
+                  return isInputValueInOptions
+                    ? filteredOptions
+                    : [
+                        {
+                          value: inputValue,
+                          label: inputValue,
+                          dropdownLabel:
+                            customOptionLabel || `Select "${inputValue}"`,
+                          custom: Boolean(inputValue),
+                        },
+                        ...filteredOptions,
+                      ];
+                }
+                if (showCustomOption === 'auto') {
+                  const isInputValueInOptions = filteredOptions.some(
+                    (filteredOption) => filteredOption.label === inputValue,
+                  );
+
+                  return isInputValueInOptions
+                    ? filteredOptions
+                    : [
+                        ...filteredOptions,
+                        {
+                          value: inputValue,
+                          label: inputValue,
+                          dropdownLabel:
+                            customOptionLabel || `Select "${inputValue}"`,
+                          custom: Boolean(inputValue),
+                        },
+                      ];
+                }
+
+                return [
+                  ...filteredOptions,
+                  {
+                    value: inputValue,
+                    label: inputValue,
+                    dropdownLabel:
+                      customOptionLabel || `Select "${inputValue}"`,
+                    custom: Boolean(inputValue),
+                  },
+                ];
+              }
+            : filterOptionsFn
         }
-
-        return (
-          <StyledOptionBase
-            {...optionProps}
-            key={option.dropdownLabel || option.label}
-          >
-            <span>{option.dropdownLabel || option.label}</span>
-
-            {selected && props.multiple && (
-              <CheckIcon key="asd" sx={{ width: 16, height: 16 }} />
-            )}
-          </StyledOptionBase>
-        );
-      }}
-      filterOptions={
-        showCustomOption !== 'never'
-          ? () => {
-              if (!inputValue) {
-                return filteredOptions;
-              }
-              if (showCustomOption === 'first') {
-                const isInputValueInOptions = filteredOptions.some(
-                  (filteredOption) => filteredOption.label === inputValue,
-                );
-
-                return isInputValueInOptions
-                  ? filteredOptions
-                  : [
-                      {
-                        value: inputValue,
-                        label: inputValue,
-                        dropdownLabel:
-                          customOptionLabel || `Select "${inputValue}"`,
-                        custom: Boolean(inputValue),
+        autoSelect={autoSelect}
+        renderInput={({
+          InputProps: InternalInputProps,
+          InputLabelProps,
+          ...params
+        }) => (
+          <Input
+            slotProps={{
+              input: {
+                className: slotProps?.input?.className,
+                sx: props.multiple
+                  ? {
+                      flexWrap: 'wrap',
+                      [`& .${inputClasses.input}`]: {
+                        minWidth: 30,
+                        width: 0,
                       },
-                      ...filteredOptions,
-                    ];
-              }
-              if (showCustomOption === 'auto') {
-                const isInputValueInOptions = filteredOptions.some(
-                  (filteredOption) => filteredOption.label === inputValue,
-                );
-
-                return isInputValueInOptions
-                  ? filteredOptions
-                  : [
-                      ...filteredOptions,
-                      {
-                        value: inputValue,
-                        label: inputValue,
-                        dropdownLabel:
-                          customOptionLabel || `Select "${inputValue}"`,
-                        custom: Boolean(inputValue),
-                      },
-                    ];
-              }
-
-              return [
-                ...filteredOptions,
-                {
-                  value: inputValue,
-                  label: inputValue,
-                  dropdownLabel: customOptionLabel || `Select "${inputValue}"`,
-                  custom: Boolean(inputValue),
-                },
-              ];
-            }
-          : filterOptionsFn
-      }
-      autoSelect={autoSelect}
-      renderInput={({
-        InputProps: InternalInputProps,
-        InputLabelProps,
-        ...params
-      }) => (
-        <Input
-          slotProps={{
-            input: {
-              className: slotProps?.input?.className,
-              sx: props.multiple
-                ? {
-                    flexWrap: 'wrap',
-                    [`& .${inputClasses.input}`]: {
-                      minWidth: 30,
-                      width: 0,
-                    },
-                  }
-                : null,
-            },
-            inputRoot: {
-              'aria-label': ariaLabel,
-              ...slotProps.inputRoot,
-            },
-            label: InputLabelProps,
-            formControl: formControlSlotProps,
-          }}
-          {...InternalInputProps}
-          {...params}
-          {...slotProps?.input}
-          value={params?.inputProps?.value || ''}
-          // prevent className changes from the Autocomplete component
-          className={slotProps?.input?.className || ''}
-          autoComplete="off"
-          fullWidth={fullWidth}
-          placeholder={placeholder}
-          label={label}
-          variant={variant}
-          helperText={helperText}
-          hideEmptyHelperText={hideEmptyHelperText}
-          error={error}
-          name={name}
-        />
-      )}
-      {...props}
-    />
-  );
-}
+                    }
+                  : null,
+              },
+              inputRoot: {
+                'aria-label': ariaLabel,
+                ...slotProps.inputRoot,
+              },
+              label: InputLabelProps,
+              formControl: formControlSlotProps,
+            }}
+            {...InternalInputProps}
+            {...params}
+            {...slotProps?.input}
+            value={params?.inputProps?.value || ''}
+            // prevent className changes from the Autocomplete component
+            className={slotProps?.input?.className || ''}
+            autoComplete="off"
+            fullWidth={fullWidth}
+            placeholder={placeholder}
+            label={label}
+            variant={variant}
+            helperText={helperText}
+            hideEmptyHelperText={hideEmptyHelperText}
+            error={error}
+            name={name}
+          />
+        )}
+        {...props}
+      />
+    );
+  },
+);
 
 Autocomplete.displayName = 'NhostAutocomplete';
 
-export default forwardRef(Autocomplete);
+export default Autocomplete;

@@ -161,7 +161,23 @@ func (ctrl *Controller) manipulateImage(
 	defer object.Close()
 
 	buf := &bytes.Buffer{}
-	if err := ctrl.imageTransformer.Run(object, size, buf, opts); err != nil {
+
+	done := make(chan error, 1)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("panic in image manipulation", slog.Any("panic", r))
+
+				done <- fmt.Errorf("panic in image manipulation: %v", r) //nolint: err113
+			}
+		}()
+
+		done <- ctrl.imageTransformer.Run(object, size, buf, opts)
+	}()
+
+	if err := <-done; err != nil {
+		slog.Error("image manipulation failed", slog.String("error", err.Error()))
+
 		return nil, 0, InternalServerError(err)
 	}
 
@@ -227,8 +243,6 @@ func (ctrl *Controller) processFileToDownload(
 	contentLength := download.ContentLength
 
 	if !opts.IsEmpty() {
-		defer body.Close()
-
 		body, contentLength, apiErr = ctrl.manipulateImage(
 			body, uint64(contentLength), opts, //nolint:gosec
 		)
@@ -246,6 +260,8 @@ func (ctrl *Controller) processFileToDownload(
 		download.StatusCode,
 	)
 	if apiErr != nil {
+		body.Close()
+
 		return nil, apiErr
 	}
 
@@ -263,7 +279,7 @@ func (ctrl *Controller) processFileToDownload(
 	}, nil
 }
 
-func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
+func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,
@@ -306,6 +322,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 			ContentLength: file.contentLength,
 		}
 	case http.StatusNotModified:
+		file.body.Close()
+
 		return api.GetFile304Response{
 			Headers: api.GetFile304ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -314,6 +332,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 			},
 		}
 	case http.StatusPreconditionFailed:
+		file.body.Close()
+
 		return api.GetFile412Response{
 			Headers: api.GetFile412ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -322,6 +342,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 			},
 		}
 	default:
+		file.body.Close()
+
 		logger.ErrorContext(
 			ctx, "unexpected status code from download", slog.Int("statusCode", file.statusCode),
 		)

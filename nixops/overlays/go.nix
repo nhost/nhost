@@ -1,26 +1,28 @@
 final: prev: rec {
-  go = prev.go_1_25.overrideAttrs
+  go = prev.go_1_26.overrideAttrs
     (finalAttrs: previousAttrs: rec {
-      version = "1.25.5";
+      version = "1.26.1";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-IqX9CpHvzSihsFNxBrmVmygEth9Zw3WLUejlQpwalU8=";
+        sha256 = "sha256-MXIpPQSyCdwRRGmOe6E/BHf2uoxf/QvmbCD9vJeF37s=";
       };
 
     });
 
   buildGoModule = prev.buildGoModule.override { go = go; };
 
-  golangci-lint = prev.golangci-lint.overrideAttrs (oldAttrs: rec {
-    version = "2.8.0";
-    src = prev.fetchFromGitHub {
+  golangci-lint = final.buildGoModule rec {
+    pname = "golangci-lint";
+    version = "2.9.0";
+    src = final.fetchFromGitHub {
       owner = "golangci";
       repo = "golangci-lint";
       rev = "v${version}";
-      sha256 = "sha256-w6MAOirj8rPHYbKrW4gJeemXCS64fNtteV6IioqIQTQ=";
+      sha256 = "sha256-8LEtm1v0slKwdLBtS41OilKJLXytSxcI9fUlZbj5Gfw=";
     };
-    vendorHash = "sha256-/Vqo/yrmGh6XipELQ9NDtlMEO2a654XykmvnMs0BdrI=";
+    vendorHash = "sha256-w8JfF6n1ylrU652HEv/cYdsOdDZz9J2uRQDqxObyhkY=";
+    subPackages = [ "cmd/golangci-lint" ];
     ldflags = [
       "-s"
       "-w"
@@ -28,7 +30,8 @@ final: prev: rec {
       "-X main.commit=v${version}"
       "-X main.date=19700101-00:00:00"
     ];
-  });
+    doCheck = false;
+  };
 
   golines = final.buildGoModule rec {
     pname = "golines";
@@ -48,17 +51,19 @@ final: prev: rec {
     };
   };
 
-  govulncheck = prev.govulncheck.overrideAttrs (oldAttrs: rec {
-    version = "v1.1.4";
+  govulncheck = final.buildGoModule rec {
+    pname = "govulncheck";
+    version = "1.1.4";
     src = final.fetchFromGitHub {
       owner = "golang";
       repo = "vuln";
-      rev = "${version}";
+      rev = "v${version}";
       sha256 = "sha256-d1JWh/K+65p0TP5vAQbSyoatjN4L5nm3VEA+qBSrkAA=";
     };
     vendorHash = "sha256-MSTKDeWVxD2Fa6fNoku4EwFwC90XZ5acnM67crcgXDg=";
+    subPackages = [ "cmd/govulncheck" ];
     doCheck = false;
-  });
+  };
 
   gqlgen = prev.gqlgen.overrideAttrs (oldAttrs: rec {
     version = "0.17.86";

@@ -20,7 +20,7 @@ func MarshalUint16(i uint16) graphql.Marshaler { //nolint: ireturn
 	})
 }
 
-func UnmarshalUint16(v interface{}) (uint16, error) {
+func UnmarshalUint16(v any) (uint16, error) {
 	switch v := v.(type) {
 	case string:
 		iv, err := strconv.ParseInt(v, base, uint16bitSize)

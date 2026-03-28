@@ -29,7 +29,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
+import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
 import type { DialogFormProps } from '@/types/common';
 import {
   RemoteAppGetUsersAndAuthRolesDocument,

@@ -1,24 +1,10 @@
 import type {
   DatabaseColumn,
   DatabaseTable,
-  NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
-const originalTable: NormalizedQueryDataRow = {
-  table_catalog: 'postgres',
-  table_schema: 'public',
-  table_name: 'test_table',
-  table_type: 'BASE TABLE',
-  self_referencing_column_name: null,
-  reference_generation: null,
-  user_defined_type_catalog: null,
-  user_defined_type_schema: null,
-  user_defined_type_name: null,
-  is_insertable_into: 'YES',
-  is_typed: 'NO',
-  commit_action: null,
-};
+const originalTableName = 'test_table';
 
 const originalColumns: DatabaseColumn[] = [
   {
@@ -65,7 +51,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns,
       originalForeignKeyRelations: [],
@@ -102,7 +88,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns: originalColumns.filter(
         (column) => column.id !== 'author_id',
@@ -137,7 +123,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns,
       originalForeignKeyRelations: [],
@@ -176,7 +162,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns,
       originalForeignKeyRelations: [],
@@ -229,7 +215,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns,
       originalForeignKeyRelations: [],
@@ -267,7 +253,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns,
       originalForeignKeyRelations: [
@@ -325,7 +311,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns,
       originalForeignKeyRelations: [
@@ -387,7 +373,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns: originalColumnsWithPK,
       originalForeignKeyRelations: [],
@@ -439,7 +425,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns: originalColumnsWithPK,
       originalForeignKeyRelations: [],
@@ -499,7 +485,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns: originalColumnsWithPK,
       originalForeignKeyRelations: [],
@@ -543,7 +529,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns,
       originalForeignKeyRelations: [],
@@ -569,7 +555,7 @@ describe('prepareUpdateTableQuery', () => {
     const transaction = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
-      originalTable,
+      originalTableName,
       updatedTable,
       originalColumns,
       originalForeignKeyRelations: [],

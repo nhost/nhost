@@ -1,5 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
@@ -80,7 +81,7 @@ export default function useDeleteEventTriggerMutation({
     {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ['export-metadata', project?.subdomain],
+          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
       },
       ...mutationOptions,

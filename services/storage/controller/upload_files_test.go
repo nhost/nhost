@@ -132,7 +132,7 @@ func TestUploadFile(t *testing.T) {
 				},
 				{
 					contents:    "more content",
-					contentType: "text/markdown",
+					contentType: "image/png",
 					md: fakeFileMetadata{
 						Name:     "another_file.md",
 						ID:       uuid.New().String(),
@@ -204,14 +204,14 @@ func TestUploadFile(t *testing.T) {
 						UpdatedAt:        time.Time{}, // ignored
 						IsUploaded:       true,
 						MimeType:         "text/plain; charset=utf-8",
-						UploadedByUserId: ptr("some-valid-uuid"),
-						Metadata:         ptr(map[string]any{}),
+						UploadedByUserId: new("some-valid-uuid"),
+						Metadata:         new(map[string]any{}),
 					},
 					nil)
 			}
 
 			{
-				// file 2
+				// file 2 - client sends text/markdown but server detects from content
 				file := files[1]
 				metadataStorage.EXPECT().InitializeFile(
 					gomock.Any(),
@@ -219,7 +219,7 @@ func TestUploadFile(t *testing.T) {
 					file.md.Name,
 					int64(len(file.contents)),
 					"blah",
-					"text/markdown",
+					"text/plain; charset=utf-8",
 					gomock.Any(),
 				).Return(nil)
 
@@ -229,7 +229,7 @@ func TestUploadFile(t *testing.T) {
 						file.contents,
 					),
 					file.md.ID,
-					"text/markdown",
+					"text/plain; charset=utf-8",
 				).Return("some-etag", nil)
 
 				metadataStorage.EXPECT().PopulateMetadata(
@@ -240,7 +240,7 @@ func TestUploadFile(t *testing.T) {
 					"blah",
 					"some-etag",
 					true,
-					"text/markdown",
+					"text/plain; charset=utf-8",
 					file.md.Metadata,
 					gomock.Any(),
 				).Return(
@@ -253,9 +253,9 @@ func TestUploadFile(t *testing.T) {
 						CreatedAt:        time.Time{}, // ignored
 						UpdatedAt:        time.Time{}, // ignored
 						IsUploaded:       true,
-						MimeType:         "text/markdown",
-						UploadedByUserId: ptr("some-valid-uuid"),
-						Metadata:         ptr(map[string]any{"some": "metadata"}),
+						MimeType:         "text/plain; charset=utf-8",
+						UploadedByUserId: new("some-valid-uuid"),
+						Metadata:         new(map[string]any{"some": "metadata"}),
 					},
 					nil)
 			}
@@ -296,8 +296,8 @@ func TestUploadFile(t *testing.T) {
 						UpdatedAt:        time.Time{}, // ignored
 						IsUploaded:       true,
 						MimeType:         "text/plain; charset=utf-8",
-						UploadedByUserId: ptr("some-valid-uuid"),
-						Metadata:         ptr(map[string]any{}),
+						UploadedByUserId: new("some-valid-uuid"),
+						Metadata:         new(map[string]any{}),
 					},
 					{
 						Id:               "d041c7c5-10e7-410e-a599-799409b5",
@@ -308,9 +308,9 @@ func TestUploadFile(t *testing.T) {
 						CreatedAt:        time.Time{}, // ignored
 						UpdatedAt:        time.Time{}, // ignored
 						IsUploaded:       true,
-						MimeType:         "text/markdown",
-						UploadedByUserId: ptr("some-valid-uuid"),
-						Metadata:         ptr(map[string]any{"some": "metadata"}),
+						MimeType:         "text/plain; charset=utf-8",
+						UploadedByUserId: new("some-valid-uuid"),
+						Metadata:         new(map[string]any{"some": "metadata"}),
 					},
 				},
 			}, resp,

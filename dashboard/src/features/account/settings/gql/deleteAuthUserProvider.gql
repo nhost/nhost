@@ -1,0 +1,5 @@
+mutation deleteAuthUserProvider($id: uuid!) {
+  deleteAuthUserProvider(id: $id) {
+    __typename
+  }
+}

@@ -1,23 +1,26 @@
 import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 import { Input } from '@/components/ui/v3/input';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { cn } from '@/lib/utils';
 import { getDateComponents } from '@/utils/getDateComponents';
 
-export interface DataGridDateCellProps<TData extends object>
-  extends CommonDataGridCellProps<TData, string> {}
+export interface DataGridDateCellProps<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+> extends CommonDataGridCellProps<TData, string | null> {}
 
-export default function DataGridDateCell<TData extends object>({
+export default function DataGridDateCell<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+>({
   onSave,
   optimisticValue,
   temporaryValue,
   onTemporaryValueChange,
-  cell: {
-    column: { specificType },
-  },
-  className,
+  cell: { column },
 }: DataGridDateCellProps<TData>) {
+  const specificType = column.columnDef.meta?.specificType;
+
   // Note: No date (year-month-day) is saved for time / timetz columns, so we
   // need to add it manually.
   const date =
@@ -95,7 +98,7 @@ export default function DataGridDateCell<TData extends object>({
   }
 
   return (
-    <div className={cn('grid grid-flow-row', className)}>
+    <div className={cn('grid grid-flow-row')}>
       <p className="truncate text-xs">
         {specificType !== 'time' && specificType !== 'timetz' && (
           <span>{[year, month, day].filter(Boolean).join('-')}</span>

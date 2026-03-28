@@ -1,7 +1,6 @@
-import NavLink from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { useDialog } from '@/components/common/DialogProvider';
+import { NavLink } from '@/components/common/NavLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -46,17 +45,12 @@ export interface EditRemoteSchemaPermissionsFormProps extends DialogFormProps {
    * Function to be called when the form is cancelled.
    */
   onCancel?: () => void;
-  /**
-   * Whether the form is disabled.
-   */
-  disabled?: boolean;
 }
 
 export default function EditRemoteSchemaPermissionsForm({
   schema,
   onCancel,
   location,
-  disabled,
 }: EditRemoteSchemaPermissionsFormProps) {
   const [selectedRole, setSelectedRole] = useState<string>();
   const [isEditing, setIsEditing] = useState(false);
@@ -68,7 +62,6 @@ export default function EditRemoteSchemaPermissionsForm({
     error: rolesError,
   } = useGetRemoteAppRolesQuery({ client });
 
-  const { closeDrawerWithDirtyGuard } = useDialog();
   const { project } = useProject();
   const { org } = useCurrentOrg();
   const isPlatform = useIsPlatform();
@@ -203,7 +196,6 @@ export default function EditRemoteSchemaPermissionsForm({
         remoteSchemaName={schema}
         role={selectedRole}
         permission={existingPermission}
-        disabled={disabled}
         onSubmit={async () => {
           await refetchRemoteSchemas();
           setIsEditing(false);
@@ -295,16 +287,10 @@ export default function EditRemoteSchemaPermissionsForm({
             Please go to the{' '}
             <NavLink
               href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
-              passHref
-              legacyBehavior
+              underline="hover"
+              className="px-0"
             >
-              <Link
-                href="settings/roles-and-permissions"
-                underline="hover"
-                onClick={closeDrawerWithDirtyGuard}
-              >
-                Settings page
-              </Link>
+              Settings page
             </NavLink>{' '}
             to add and delete roles.
           </Alert>

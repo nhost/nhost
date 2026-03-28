@@ -1,0 +1,48 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
+import { dereference } from '@readme/openapi-parser'
+import type { InferGetStaticPropsType } from 'astro'
+
+import { getSchemaStaticPaths } from '../libs/route'
+import { getPageProps } from '../libs/starlight'
+
+import Operation from './operation/Operation.astro'
+import OperationTag from './OperationTag.astro'
+import Overview from './Overview.astro'
+
+export const prerender = true
+
+export function getStaticPaths() {
+  return getSchemaStaticPaths()
+}
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>
+
+const { schema, type } = Astro.props
+
+schema.document = await dereference(schema.document)
+
+const isOverview = type === 'overview'
+const isOperationTag = type === 'operation-tag'
+
+const title = isOverview || isOperationTag ? 'Overview' : Astro.props.operation.title
+---
+
+<StarlightPage
+  {...getPageProps(
+    title,
+    schema,
+    isOverview || isOperationTag ? undefined : Astro.props.operation,
+    isOperationTag ? Astro.props.tag : undefined,
+  )}
+>
+  {
+    isOverview ? (
+      <Overview {schema} />
+    ) : isOperationTag ? (
+      <OperationTag tag={Astro.props.tag} />
+    ) : (
+      <Operation {schema} operation={Astro.props.operation} />
+    )
+  }
+</StarlightPage>

@@ -1,0 +1,76 @@
+---
+title: Enabling Service
+description: Enable Graphite AI service for your Nhost project
+keywords: ["Graphite", "AI service", "OpenAI", "API key", "enable AI", "configuration", "setup"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+You can enable Graphite, Nhost's AI service, with the following steps:
+
+
+  ### Check your database version
+
+Check your project's settings and make sure the database version is at least `14.6-20231018-1`. If it isn't upgrade your database version (latest available version is recommended).
+    <Tabs>
+      <TabItem label="Dashboard">
+        ![database settings](/images/ai/enabling/database.png)
+      </TabItem>
+
+      <TabItem label="toml">
+        ```toml
+        [postgres]
+        version = '14.6-20231018-1'
+        ```
+      </TabItem>
+    </Tabs>
+
+
+  ### Get an OpenAPI key
+
+Get an OpenAI API key from their [customer portal](https://platform.openai.com/account/api-keys).
+
+    ![openai dashboard](/images/ai/enabling/openai.png)
+
+
+  ### Configure the service
+
+Finally, you can head to your project's settings -> AI section and enable the service or, alternatively, use your TOML configuration file to enable the service:
+    <Tabs>
+      <TabItem label="Dashboard">
+        ![ai configuration screenshot](/images/ai/enabling/settings.png)
+      </TabItem>
+
+      <TabItem label="toml">
+        ```toml
+        [ai]
+        # Version of the service to use. Check the settings page for available versions
+        version = '0.3.1'
+
+        # Used to validate requests between postgres and the AI service.
+        # The AI service will also include the header X-Graphite-Webhook-Secret
+        # with this value set when calling external webhooks so the source of
+        # the request can be validated.
+        webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
+
+        [ai.autoEmbeddings]
+        # How often to run the job that keeps embeddings up to date
+        synchPeriodMinutes = 5
+
+        [ai.openai]
+        # Key to use for authenticating API requests to OpenAI.
+        apiKey = '{{ secrets.OPENAI_API_KEY }}'
+        # OpenAI organization to use.
+        organization = 'my-org'
+
+        [ai.resources.compute]
+        # Dedicated resources allocated for the service
+        cpu = 128
+        memory = 256
+        ```
+      </TabItem>
+
+    </Tabs>
+
+
+

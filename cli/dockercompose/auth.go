@@ -99,14 +99,15 @@ func auth( //nolint:funlen
 				},
 			},
 		}.Labels(),
-		Ports:   ports(exposePort, authPort),
-		Restart: "always",
+		Networks: networkAliases("hasura-auth-service"),
+		Ports:    ports(exposePort, authPort),
+		Restart:  "always",
 		Volumes: []Volume{
 			{
 				Type:     "bind",
 				Source:   nhostFolder + "/emails",
 				Target:   "/app/email-templates",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,

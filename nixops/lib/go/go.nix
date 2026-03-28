@@ -139,7 +139,7 @@ in
     , nativeBuildInputs
     , postInstall ? ""
     }: (pkgs.buildGoModule.override { go = pkgs.go; } {
-      inherit src version ldflags buildInputs nativeBuildInputs;
+      inherit src version ldflags buildInputs;
 
       pname = name;
 
@@ -148,6 +148,12 @@ in
       doCheck = false;
 
       subPackages = [ submodule ];
+
+      nativeBuildInputs = nativeBuildInputs ++ [
+        pkgs.removeReferencesTo
+        pkgs.rcodesign
+        pkgs.file
+      ];
 
       postInstall = postInstall;
 
@@ -165,6 +171,17 @@ in
           mv $dir/* $dir/..
           rm -rf $dir
         fi
+      '';
+
+      postFixup = (old.postFixup or "") + ''
+        find $out/bin -type f -exec remove-references-to -t ${pkgs.go} {} +
+
+        # Re-sign darwin (Mach-O) binaries after modification to fix invalid signatures
+        for f in $out/bin/*; do
+          if file "$f" | grep -q "Mach-O"; then
+            rcodesign sign "$f"
+          fi
+        done
       '';
     });
 

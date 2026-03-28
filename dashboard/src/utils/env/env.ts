@@ -97,3 +97,10 @@ export function getHasuraApiUrl() {
 export function getConfigServerUrl() {
   return process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL;
 }
+
+/**
+ * Returns the current version of the dashboard.
+ */
+export function getDashboardVersion() {
+  return process.env.NEXT_PUBLIC_DASHBOARD_VERSION || '0.0.0-dev';
+}

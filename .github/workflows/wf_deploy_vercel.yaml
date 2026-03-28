@@ -54,7 +54,7 @@ jobs:
         ref: ${{ inputs.GIT_REF }}
 
     - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v5
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
         aws-region: eu-central-1
@@ -74,6 +74,7 @@ jobs:
         TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
         TURBO_TEAM: nhost
       run: |
+        set -o pipefail
         TARGET_OPTS="--target=${{ inputs.ENVIRONMENT }}"
         echo "Deploying to: ${{ inputs.ENVIRONMENT }}..."
         nix develop .\#vercel -c \
@@ -87,7 +88,7 @@ jobs:
         echo "\n🔗🔗🔗 Preview URL: $PREVIEW_URL"
         echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
 
-    - uses: marocchino/sticky-pull-request-comment@v2
+    - uses: marocchino/sticky-pull-request-comment@v3
       with:
         header: "vercel-${{ inputs.NAME }}-${{ inputs.ENVIRONMENT }}"
         message: |

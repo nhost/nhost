@@ -1,30 +1,15 @@
-import type { UseQueryOptions } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
-import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type {
-  ExportMetadataResponse,
-  QualifiedTable,
-} from '@/utils/hasura-api/generated/schemas';
+import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
+import type { QualifiedTable } from '@/utils/hasura-api/generated/schemas';
 
 export interface UseTableIsEnumQueryOptions {
-  /**
-   * Props passed to the underlying query hook.
-   */
-  queryOptions?: UseQueryOptions<ExportMetadataResponse, unknown, boolean>;
-  /**
-   * The table to get the enum status for.
-   */
   table: QualifiedTable;
-  /**
-   * The data source to get the enum status for.
-   */
   dataSource: string;
+  enabled?: boolean;
 }
 
 /**
- * This hook gets the enum status of a table from the metadata.
+ * Returns whether a given table is currently marked as an enum in Hasura metadata.
+ * Composes on top of useGetEnumsSet, sharing the same cached Set.
  *
  * @param options - Options to use for the query.
  * @returns True if the table is an enum, false otherwise.
@@ -32,53 +17,15 @@ export interface UseTableIsEnumQueryOptions {
 export default function useTableIsEnumQuery({
   table,
   dataSource,
-  queryOptions,
+  enabled,
 }: UseTableIsEnumQueryOptions) {
-  const { project, loading } = useProject();
+  const { data: enumsSet, ...rest } = useGetEnumsSet({
+    dataSource,
+    queryOptions: { enabled },
+  });
 
-  const query = useQuery<ExportMetadataResponse, unknown, boolean>(
-    ['export-metadata', project?.subdomain],
-    () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
-
-      const adminSecret = project!.config!.hasura.adminSecret;
-
-      return fetchExportMetadata({ appUrl, adminSecret });
-    },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-      select: (data) => {
-        if (!data.metadata.sources) {
-          return false;
-        }
-
-        const sourceMetadata = data.metadata.sources.find(
-          (item) => item.name === dataSource,
-        );
-        if (!sourceMetadata?.tables) {
-          return false;
-        }
-
-        const tableMetadata = sourceMetadata.tables.find(
-          (item) =>
-            item.table.name === table.name &&
-            item.table.schema === table.schema,
-        );
-        return Boolean(tableMetadata?.is_enum);
-      },
-    },
-  );
-
-  return query;
+  return {
+    ...rest,
+    data: enumsSet?.has(`${table.schema}.${table.name}`) ?? false,
+  };
 }

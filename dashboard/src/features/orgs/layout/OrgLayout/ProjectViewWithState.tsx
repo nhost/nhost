@@ -1,13 +1,14 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { type PropsWithChildren, useMemo } from 'react';
+import { type PropsWithChildren, useEffect, useMemo } from 'react';
 import { Alert } from '@/components/ui/v2/Alert';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
 import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-
 import PausedProjectContent from './PausedProjectContent';
 
 function ProjectViewWithState({ children }: PropsWithChildren) {
@@ -15,6 +16,14 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
     query: { appSubdomain },
     route,
   } = useRouter();
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    return () => {
+      queryClient.clear();
+    };
+  }, [queryClient]);
 
   const { state } = useAppState();
 
@@ -26,10 +35,25 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
     }
 
     switch (state) {
-      case ApplicationStatus.Empty:
+      case ApplicationStatus.Empty: {
+        if (typeof window !== 'undefined') {
+          const newProjectSubdomain = sessionStorage.getItem(
+            'newProjectSubdomain',
+          );
+          if (
+            isNotEmptyValue(newProjectSubdomain) &&
+            newProjectSubdomain === appSubdomain
+          ) {
+            return <ApplicationProvisioning />;
+          }
+        }
+
         return null;
-      case ApplicationStatus.Provisioning:
+      }
+      case ApplicationStatus.Provisioning: {
+        sessionStorage.removeItem('newProjectSubdomain');
         return <ApplicationProvisioning />;
+      }
       case ApplicationStatus.Errored:
         if (isOnOverviewPage) {
           return (

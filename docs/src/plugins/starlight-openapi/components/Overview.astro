@@ -1,0 +1,68 @@
+---
+import { getOpenAPIVersion, getSummary } from '../libs/document'
+import type { Schema } from '../libs/schema'
+import { getSecurityDefinitions } from '../libs/security'
+import { interspece } from '../libs/utils'
+
+import ExternalDocs from './ExternalDocs.astro'
+import Heading from './Heading.astro'
+import Md from './Md.astro'
+import SecurityDefinitions from './security/SecurityDefinitions.astro'
+import Text from './Text.astro'
+
+interface Props {
+  schema: Schema
+}
+
+const {
+  schema: { document },
+} = Astro.props
+
+const summary = getSummary(document)
+const securityDefinitions = getSecurityDefinitions(document)
+const contacts = [document.info.contact?.url, document.info.contact?.email].filter(
+  (contact): contact is string => !!contact,
+)
+---
+
+<Text>{summary}</Text>
+
+<Heading level={2} id="overview">{document.info.title} ({document.info.version})</Heading>
+
+<Md text={document.info.description} />
+<ExternalDocs docs={document.externalDocs} />
+<ul>
+  {
+    contacts.length > 0 && (
+      <li>
+        {document.info.contact?.name ?? 'Contact'}:{' '}
+        {interspece(
+          ' - ',
+          contacts.map((contact, index) => <a href={index === 1 ? `mailto:${contact}` : contact}>{contact}</a>),
+        )}
+      </li>
+    )
+  }
+  {
+    document.info.license && (
+      <li>
+        License:{' '}
+        {document.info.license.url ? (
+          <a href={document.info.license.url}>{document.info.license.name}</a>
+        ) : (
+          document.info.license.name
+        )}
+      </li>
+    )
+  }
+  {
+    document.info.termsOfService && (
+      <li>
+        <a href={document.info.termsOfService}>Terms of Service</a>
+      </li>
+    )
+  }
+  <li>OpenAPI version: {getOpenAPIVersion(document)}</li>
+</ul>
+
+<SecurityDefinitions definitions={securityDefinitions} />

@@ -10,6 +10,7 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/project"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/nhost/nhost/cli/system"
 	"github.com/pelletier/go-toml/v2"
@@ -49,6 +50,12 @@ func CommandPull() *cli.Command {
 
 func commandPull(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
+
+	if !clienv.PathExists(ce.Path.NhostFolder()) {
+		return errors.New( //nolint:err113
+			"nhost folder not found. Please run `nhost init --remote` first to initialize your project",
+		)
+	}
 
 	skipConfirmation := cmd.Bool(flagYes)
 
@@ -106,6 +113,12 @@ func respToSecrets(env []*graphql.GetSecrets_AppSecrets, anonymize bool) model.S
 				s.Value = DefaultGraphqlJWTSecret
 			case "NHOST_WEBHOOK_SECRET":
 				s.Value = DefaultNhostWebhookSecret
+			case "NHOST_JWT_PUBLIC_KEY":
+				s.Value = project.DefaultPubKey
+			case "NHOST_JWT_PRIVATE_KEY":
+				s.Value = project.DefaultPrivKey
+			case "NHOST_JWT_KID":
+				s.Value = project.DefaultNhostKID
 			default:
 				s.Value = "FIXME"
 			}

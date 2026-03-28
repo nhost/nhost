@@ -2,7 +2,6 @@ import NavLink from 'next/link';
 import type { ReactElement } from 'react';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 
 export default function NotFoundPage() {
@@ -16,10 +15,8 @@ export default function NotFoundPage() {
         Page Not Found
       </Text>
 
-      <NavLink href="/" passHref legacyBehavior>
-        <Link href="/" underline="hover">
-          Go back to home page
-        </Link>
+      <NavLink href="/" className="text-primary hover:underline">
+        Go back to home page
       </NavLink>
     </Container>
   );

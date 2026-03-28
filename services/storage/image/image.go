@@ -1,18 +1,17 @@
-package image
+package image //nolint:revive
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"runtime"
+	"sync"
 	"sync/atomic"
 
 	"github.com/cshum/vipsgen/vips"
 )
 
-const (
-	maxWorkers = 3
-)
-
-type ImageType int //nolint: revive
+type ImageType int //nolint:revive
 
 var initialized int32 //nolint: gochecknoglobals
 
@@ -78,11 +77,22 @@ func (o Options) FileExtension() string {
 
 type Transformer struct {
 	workers chan struct{}
+	pool    sync.Pool
 }
 
-func NewTransformer() *Transformer {
+func NewTransformer(maxWorkers int) *Transformer {
+	if maxWorkers <= 0 {
+		maxWorkers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
+	}
+
 	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
-		vips.Startup(nil)
+		vips.Startup(&vips.Config{ //nolint:exhaustruct
+			ConcurrencyLevel: 1,
+			MaxCacheFiles:    0,
+			MaxCacheMem:      0,
+			MaxCacheSize:     0,
+			VectorEnabled:    true,
+		})
 	}
 
 	workers := make(chan struct{}, maxWorkers)
@@ -92,6 +102,11 @@ func NewTransformer() *Transformer {
 
 	return &Transformer{
 		workers: workers,
+		pool: sync.Pool{
+			New: func() any {
+				return new(bytes.Buffer)
+			},
+		},
 	}
 }
 
@@ -99,64 +114,40 @@ func (t *Transformer) Shutdown() {
 	vips.Shutdown()
 }
 
-type readCloserAdapter struct {
-	io.Reader
-}
-
-func (r readCloserAdapter) Close() error {
-	if closer, ok := r.Reader.(io.Closer); ok {
-		return closer.Close() //nolint: wrapcheck
-	}
-
-	return nil
-}
-
-type writeCloserAdapter struct {
-	io.Writer
-}
-
-func (w writeCloserAdapter) Close() error {
-	if closer, ok := w.Writer.(io.Closer); ok {
-		return closer.Close() //nolint: wrapcheck
-	}
-
-	return nil
-}
-
-func exportToTarget(image *vips.Image, target *vips.Target, opts Options) error {
-	quality := opts.Quality
-	if quality == 0 {
-		quality = 75
-	}
-
-	var err error
+func export(image *vips.Image, opts Options) ([]byte, error) {
 	switch opts.Format {
 	case ImageTypeJPEG:
-		jpegOpts := vips.DefaultJpegsaveTargetOptions()
-		jpegOpts.Q = quality
-		err = image.JpegsaveTarget(target, jpegOpts)
-	case ImageTypePNG:
-		pngOpts := vips.DefaultPngsaveTargetOptions()
-		err = image.PngsaveTarget(target, pngOpts)
-	case ImageTypeWEBP:
-		webpOpts := vips.DefaultWebpsaveTargetOptions()
-		webpOpts.Q = quality
-		err = image.WebpsaveTarget(target, webpOpts)
-	case ImageTypeAVIF:
-		heifOpts := vips.DefaultHeifsaveTargetOptions()
-		heifOpts.Q = quality
-		heifOpts.Compression = vips.HeifCompressionAv1
-		err = image.HeifsaveTarget(target, heifOpts)
-	case ImageTypeHEIC:
-		heifOpts := vips.DefaultHeifsaveTargetOptions()
-		heifOpts.Q = quality
-		heifOpts.Compression = vips.HeifCompressionHevc
-		err = image.HeifsaveTarget(target, heifOpts)
-	default:
-		return fmt.Errorf("unsupported format: %d", opts.Format) //nolint: err113
-	}
+		jpegOpts := vips.DefaultJpegsaveBufferOptions()
+		jpegOpts.Q = opts.Quality
 
-	return err //nolint: wrapcheck
+		return image.JpegsaveBuffer(jpegOpts) //nolint: wrapcheck
+	case ImageTypePNG:
+		pngOpts := vips.DefaultPngsaveBufferOptions()
+
+		return image.PngsaveBuffer(pngOpts) //nolint: wrapcheck
+	case ImageTypeWEBP:
+		webpOpts := vips.DefaultWebpsaveBufferOptions()
+		webpOpts.Q = opts.Quality
+
+		return image.WebpsaveBuffer(webpOpts) //nolint: wrapcheck
+	case ImageTypeAVIF:
+		heifOpts := vips.DefaultHeifsaveBufferOptions()
+		heifOpts.Q = opts.Quality
+		heifOpts.Bitdepth = 8
+		heifOpts.Effort = 0
+		heifOpts.Compression = vips.HeifCompressionAv1
+
+		return image.HeifsaveBuffer(heifOpts) //nolint: wrapcheck
+	case ImageTypeHEIC:
+		heifOpts := vips.DefaultHeifsaveBufferOptions()
+		heifOpts.Q = opts.Quality
+		heifOpts.Bitdepth = 8
+		heifOpts.Compression = vips.HeifCompressionHevc
+
+		return image.HeifsaveBuffer(heifOpts) //nolint: wrapcheck
+	default:
+		return nil, fmt.Errorf("unsupported format: %d", opts.Format) //nolint: err113
+	}
 }
 
 func imageResize(image *vips.Image, opts Options) error {
@@ -189,14 +180,12 @@ func imagePipeline(image *vips.Image, opts Options) error {
 		return err
 	}
 
-	// Auto-rotate when converting formats to ensure correct display
 	if opts.FormatChanged() {
 		if err := image.Autorot(nil); err != nil {
 			return fmt.Errorf("failed to auto-rotate: %w", err)
 		}
 	}
 
-	// Apply blur if specified
 	if opts.Blur > 0 {
 		if err := image.Gaussblur(float64(opts.Blur), nil); err != nil {
 			return fmt.Errorf("failed to blur: %w", err)
@@ -208,37 +197,43 @@ func imagePipeline(image *vips.Image, opts Options) error {
 
 func (t *Transformer) Run(
 	orig io.Reader,
-	length uint64, //nolint:revive
+	length uint64,
 	modified io.Writer,
 	opts Options,
 ) error {
-	// Limit concurrent processing to avoid processing too many images at the same time
 	<-t.workers
 	defer func() { t.workers <- struct{}{} }()
 
-	// Create streaming source from io.Reader
-	// This avoids loading the entire file into a buffer!
-	source := vips.NewSource(readCloserAdapter{orig})
-	defer source.Close()
+	buf, _ := t.pool.Get().(*bytes.Buffer)
+	defer t.pool.Put(buf)
+	defer buf.Reset()
 
-	image, err := vips.NewImageFromSource(source, nil)
+	if l := int(length); buf.Cap() < l { //nolint:gosec
+		buf.Grow(l)
+	}
+
+	if _, err := io.Copy(buf, orig); err != nil {
+		return fmt.Errorf("failed to read image: %w", err)
+	}
+
+	image, err := vips.NewImageFromBuffer(buf.Bytes(), nil)
 	if err != nil {
-		return fmt.Errorf("failed to load image from source: %w", err)
+		return fmt.Errorf("failed to load image: %w", err)
 	}
 
 	defer image.Close()
 
-	// Apply additional processing (auto-rotate, blur)
 	if err := imagePipeline(image, opts); err != nil {
 		return err
 	}
 
-	// Export with streaming target
-	target := vips.NewTarget(writeCloserAdapter{modified})
-	defer target.Close()
-
-	if err := exportToTarget(image, target, opts); err != nil {
+	b, err := export(image, opts)
+	if err != nil {
 		return fmt.Errorf("failed to export: %w", err)
+	}
+
+	if _, err := modified.Write(b); err != nil {
+		return fmt.Errorf("failed to write: %w", err)
 	}
 
 	return nil

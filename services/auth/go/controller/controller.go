@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/notifications"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
@@ -26,10 +27,6 @@ func deptr[T any](x *T) T { //nolint:ireturn
 	}
 
 	return *x
-}
-
-func ptr[T any](x T) *T {
-	return &x
 }
 
 type Emailer interface {
@@ -116,6 +113,7 @@ type DBClient interface { //nolint:interfacebloat
 	DBClientInsertUser
 	DBClientUpdateUser
 	DBClientUserProvider
+	oauth2provider.DBClient
 
 	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserSecurityKey, error)
@@ -132,6 +130,14 @@ type DBClient interface { //nolint:interfacebloat
 
 	GetProviderSession(ctx context.Context, arg sql.GetProviderSessionParams) (string, error)
 	UpdateProviderSession(ctx context.Context, arg sql.UpdateProviderSessionParams) error
+
+	InsertPKCEAuthorizationCode(
+		ctx context.Context, arg sql.InsertPKCEAuthorizationCodeParams,
+	) (sql.AuthPkceAuthorizationCode, error)
+	ConsumePKCEAuthorizationCode(
+		ctx context.Context, codeHash string,
+	) (sql.AuthPkceAuthorizationCode, error)
+	DeleteExpiredPKCEAuthorizationCodes(ctx context.Context) error
 }
 
 type Encrypter interface {
@@ -148,6 +154,8 @@ type Controller struct {
 	Webauthn         *Webauthn
 	Providers        providers.Map
 	version          string
+	jwtGetter        *JWTGetter
+	oauth2           *oauth2provider.Provider
 }
 
 func New(
@@ -165,7 +173,7 @@ func New(
 ) (*Controller, error) {
 	validator, err := NewWorkflows(
 		&config,
-		*jwtGetter,
+		jwtGetter,
 		db,
 		hibp,
 		emailer,
@@ -187,7 +195,7 @@ func New(
 		}
 	}
 
-	return &Controller{
+	ctrl := &Controller{
 		config:           config,
 		wf:               validator,
 		Webauthn:         wa,
@@ -196,5 +204,32 @@ func New(
 		encrypter:        encrypter,
 		version:          version,
 		Providers:        providers,
-	}, nil
+		jwtGetter:        jwtGetter,
+		oauth2:           nil,
+	}
+
+	if config.OAuth2ProviderEnabled {
+		ctrl.oauth2 = ctrl.newOAuth2Provider()
+	}
+
+	return ctrl, nil
+}
+
+func (ctrl *Controller) newOAuth2Provider() *oauth2provider.Provider {
+	return oauth2provider.NewProvider(
+		ctrl.wf.db,
+		ctrl.jwtGetter,
+		ctrl.jwtGetter.JWKS(),
+		verifyHashPassword,
+		oauth2provider.Config{
+			LoginURL:                   ctrl.config.OAuth2ProviderLoginURL,
+			ClientURL:                  ctrl.config.ClientURL.String(),
+			ServerURL:                  ctrl.config.ServerURL.String(),
+			AccessTokenTTL:             ctrl.config.OAuth2ProviderAccessTokenTTL,
+			RefreshTokenTTL:            ctrl.config.OAuth2ProviderRefreshTokenTTL,
+			CIMDEnabled:                ctrl.config.OAuth2ProviderCIMDEnabled,
+			CIMDAllowInsecureTransport: ctrl.config.OAuth2ProviderCIMDAllowInsecureTransport,
+		},
+		nil,
+	)
 }

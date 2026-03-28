@@ -1,14 +1,13 @@
 import type { ApolloError } from '@apollo/client';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useUserData } from '@/hooks/useUserData';
-import { getToastBackgroundColor } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
 
 interface ErrorDetails {
@@ -59,15 +58,13 @@ const errorToObject = (error: ApolloError | Error) => {
 };
 
 export default function ErrorToast({
-  isVisible,
+  toastId,
   errorMessage,
   error,
-  close,
 }: {
-  isVisible: boolean;
+  toastId: string;
   errorMessage: string;
   error: ApolloError | Error;
-  close: () => void;
 }) {
   const userData = useUserData();
   const { asPath } = useRouter();
@@ -87,84 +84,55 @@ export default function ErrorToast({
   const msg = getInternalErrorMessage(error) || errorMessage;
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          style={{
-            backgroundColor: getToastBackgroundColor(),
-          }}
-          className="flex w-full max-w-xl flex-col space-y-4 rounded-lg p-4 text-white"
-          initial={{
-            opacity: 0,
-            y: 100,
-          }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            y: 0,
-          }}
-          exit={{
-            opacity: 0,
-            scale: 0,
-            y: 100,
-          }}
-          transition={{
-            bounce: 0.1,
-          }}
+    <div className="flex w-full flex-col gap-4 rounded-lg text-white">
+      <div className="flex flex-row items-center justify-between gap-4">
+        <button
+          className="flex-shrink-0"
+          onClick={() => toast.dismiss(toastId)}
+          type="button"
+          aria-label="Close"
         >
-          <div className="flex w-full flex-row items-center justify-between gap-4">
-            <button
-              className="flex-shrink-0"
-              onClick={close}
-              type="button"
-              aria-label="Close"
-            >
-              <XIcon className="h-4 w-4 text-white" />
-            </button>
-            <span className="flex-grow overflow-hidden break-words">
-              {msg ?? 'An unkown error has occured, please try again later!'}
-            </span>
+          <XIcon className="h-4 w-4 text-white" />
+        </button>
+        <span className="flex-grow overflow-hidden whitespace-normal break-words">
+          {msg ?? 'An unkown error has occured, please try again later!'}
+        </span>
 
+        <button
+          type="button"
+          onClick={() => setShowInfo(!showInfo)}
+          className="flex flex-shrink-0 flex-row items-center justify-center space-x-2 text-white"
+          aria-label="Show error details"
+        >
+          <span>Info</span>
+          {showInfo ? (
+            <ChevronUpIcon className="h-3 w-3 text-white" />
+          ) : (
+            <ChevronDownIcon className="h-3 w-3 text-white" />
+          )}
+        </button>
+      </div>
+
+      {showInfo && (
+        <div className="flex flex-col space-y-4">
+          <div className="relative flex flex-col">
+            <div className="relative flex max-h-[400px] w-full flex-row justify-between overflow-x-auto rounded-lg bg-black p-4">
+              <pre>{JSON.stringify(errorDetails, null, 2)}</pre>
+            </div>
             <button
               type="button"
-              onClick={() => setShowInfo(!showInfo)}
-              className="flex flex-shrink-0 flex-row items-center justify-center space-x-2 text-white"
-              aria-label="Show error details"
+              aria-label="Copy error details"
+              className="absolute top-2 right-2"
+              onClick={(event) => {
+                event.stopPropagation();
+                copy(JSON.stringify(errorDetails, null, 2), 'Error details');
+              }}
             >
-              <span>Info</span>
-              {showInfo ? (
-                <ChevronUpIcon className="h-3 w-3 text-white" />
-              ) : (
-                <ChevronDownIcon className="h-3 w-3 text-white" />
-              )}
+              <CopyIcon className="h-4 w-4" />
             </button>
           </div>
-
-          {showInfo && (
-            <div className="flex flex-col space-y-4">
-              <div className="relative flex flex-col">
-                <div className="relative flex max-h-[400px] w-full max-w-xl flex-row justify-between overflow-x-auto rounded-lg bg-black p-4">
-                  <pre>{JSON.stringify(errorDetails, null, 2)}</pre>
-                </div>
-                <button
-                  type="button"
-                  aria-label="Copy error details"
-                  className="absolute top-2 right-2"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    copy(
-                      JSON.stringify(errorDetails, null, 2),
-                      'Error details',
-                    );
-                  }}
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          )}
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </div>
   );
 }

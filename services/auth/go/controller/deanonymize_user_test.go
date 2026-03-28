@@ -89,11 +89,11 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -142,20 +142,20 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection: nil,
 					Email:      "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"user"},
-						DefaultRole:  ptr("user"),
-						DisplayName:  ptr("Jane"),
-						Locale:       ptr("fr"),
+						DefaultRole:  new("user"),
+						DisplayName:  new("Jane"),
+						Locale:       new("fr"),
 						Metadata: &map[string]any{
 							"key": "value",
 						},
-						RedirectTo: ptr("http://localhost:3000/redirect"),
+						RedirectTo: new("http://localhost:3000/redirect"),
 					},
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -172,7 +172,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByEmail(
@@ -213,11 +213,11 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -259,7 +259,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 		{
 			name:   "email-passwordless",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByEmail(
@@ -298,11 +298,11 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "passwordless",
 				},
 			},
@@ -342,6 +342,185 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name: "email-password - email verification - with code challenge",
+			config: func() *controller.Config {
+				config := getConfig()
+				config.RequireEmailVerification = true
+
+				return config
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().DeleteUserRoles(
+					gomock.Any(), userID,
+				).Return(nil)
+
+				mock.EXPECT().UpdateUserDeanonymize(
+					gomock.Any(),
+					cmpDBParams(sql.UpdateUserDeanonymizeParams{
+						Roles:       []string{"user", "me"},
+						Email:       sql.Text("jane@acme.com"),
+						DefaultRole: sql.Text("user"),
+						DisplayName: sql.Text("jane@acme.com"),
+						Locale:      sql.Text("en"),
+						Metadata:    nil,
+						PasswordHash: sql.Text(
+							"$2a$10$QwRLalqNq5jxjXNH6KUonuNYLhIFiyMo7JKplF2TOQsUfquoNqqq6",
+						),
+						Ticket:          sql.Text("verifyEmail:xxx"),
+						TicketExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						ID: pgtype.UUID{
+							Bytes: userID,
+							Valid: true,
+						},
+					}),
+				).Return(nil)
+
+				mock.EXPECT().DeleteRefreshTokens(
+					gomock.Any(), userID,
+				).Return(nil)
+
+				return mock
+			},
+			jwtTokenFn: jwtTokenFn,
+			request: api.DeanonymizeUserRequestObject{
+				Body: &api.UserDeanonymizeRequest{
+					Connection:    nil,
+					Email:         "jane@acme.com",
+					Options:       nil,
+					Password:      ptr("password"),
+					SignInMethod:  "email-password",
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+			},
+			expectedResponse: api.DeanonymizeUser200JSONResponse(api.OK),
+			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ab2a8b9c1-ab7e-4602-ac97-86baf828157a&type=emailVerify", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "email-passwordless - with code challenge",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().DeleteUserRoles(
+					gomock.Any(), userID,
+				).Return(nil)
+
+				mock.EXPECT().UpdateUserDeanonymize(
+					gomock.Any(),
+					cmpDBParams(sql.UpdateUserDeanonymizeParams{
+						Roles:           []string{"user", "me"},
+						Email:           sql.Text("jane@acme.com"),
+						DefaultRole:     sql.Text("user"),
+						DisplayName:     sql.Text("jane@acme.com"),
+						Locale:          sql.Text("en"),
+						Metadata:        nil,
+						PasswordHash:    sql.Text(""),
+						Ticket:          sql.Text("passwordlessEmail:xxx"),
+						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
+						ID: pgtype.UUID{
+							Bytes: userID,
+							Valid: true,
+						},
+					}),
+				).Return(nil)
+
+				mock.EXPECT().DeleteRefreshTokens(
+					gomock.Any(), userID,
+				).Return(nil)
+
+				return mock
+			},
+			jwtTokenFn: jwtTokenFn,
+			request: api.DeanonymizeUserRequestObject{
+				Body: &api.UserDeanonymizeRequest{
+					Connection:    nil,
+					Email:         "jane@acme.com",
+					Options:       nil,
+					Password:      ptr("password"),
+					SignInMethod:  "passwordless",
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+			},
+			expectedResponse: api.DeanonymizeUser200JSONResponse(api.OK),
+			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameSigninPasswordless,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ac000a5b3-d3af-4937-aa2e-cc86f19ee565&type=signinPasswordless", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordlessEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
 			name:   "email-password - missing password",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -350,7 +529,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
@@ -376,11 +555,11 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("a"),
+					Password:     new("a"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -409,11 +588,11 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 				return token
 			},
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("asdasdqweqwe"),
+					Password:     new("asdasdqweqwe"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -441,11 +620,11 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},
@@ -472,11 +651,11 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserRequestObject{
-				Body: &api.UserDeanonymizeRequest{
+				Body: &api.UserDeanonymizeRequest{ //nolint:exhaustruct
 					Connection:   nil,
 					Email:        "jane@acme.com",
 					Options:      nil,
-					Password:     ptr("password"),
+					Password:     new("password"),
 					SignInMethod: "email-password",
 				},
 			},

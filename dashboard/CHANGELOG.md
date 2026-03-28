@@ -1,3 +1,170 @@
+## [@nhost/dashboard@2.54.0] - 2026-03-20
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring allowedCIDRs (#4029)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Filter by project name in the header's projects combobox (#4010)
+
+
+### Chore
+
+- *(deps)* Bump go/jsonparser and next due to CVEs (#4019)
+
+## [@nhost/dashboard@2.53.0] - 2026-03-16
+
+### 🚀 Features
+
+- *(dashboard)* Improve custom check editor (#3931)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up tar version to address security vulnerability audit (#3991)
+- *(dashboard)* Fix select all row button in database page (#3994)
+- *(deps)* Bump up undici to address vulnerability audit (#4004)
+- *(dashboard)* Don't redirect to onboarding or 404 on GraphQL errors (#4005)
+
+
+### Chore
+
+- *(deps)* Bump devalue due to CVE (#4000)
+
+## [@nhost/dashboard@2.52.0] - 2026-03-08
+
+### 🚀 Features
+
+- *(dashboard)* Track/untrack tables in database page (#3923)
+- *(dashboard)* Display views, materialized views, and enums in database page (#3949)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Clear query cache on project switch (#3954)
+- *(dashboard)* Refactor data browser sidebar and routing to support non-table objects (#3943)
+- *(deps)* Update rollup and minimatch due to vulnerability (#3959)
+- *(dashboard)* Optimize query cache in database and event features (#3938)
+- *(dashboard)* Invalid permissions SDL composition in remote schemas if using local dashboard (#3928)
+- *(dashboard)* Maintain same feature page after changing project on top bar (#3964)
+- *(dashboard)* Invalidate stale metadata cache after table rename, enum, and graphql customization mutations (#3966)
+- *(deps)* Override tar, svgo and immutable versions to address security audit (#3974)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update CLAUDE.md (#3948)
+- *(dashboard)* Remove unused workspace redirects from next.config.js (#3965)
+
+## [@nhost/dashboard@2.51.0] - 2026-02-21
+
+### 🚀 Features
+
+- *(dashboard)* Added oauth2/authorize page (#3939)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove react-table package (#3898)
+- *(deps)* Upgrade svelte due to vuln (#3935)
+- *(dashboard)* Reduce over-fetching of metadata export (#3937)
+- *(dashboard)* Avoid over-fetching table rows in event triggers page (#3940)
+- *(dashboard)* Use functions instead of static only classes (#3906)
+- *(dashboard)* Introduce new type to represent columns in BaseRecordForm (#3910)
+
+## [@nhost/dashboard@2.50.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(dashboard)* Add metadata page (#3899)
+- *(dashboard)* Added oauth2 provider configuration form and oauth2 client management (customers) (#3930)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump Orval version and remove outdated pnpm overrides (#3920)
+- *(deps)* Bump ajv and tar due to cves (#3925)
+- *(docs)* Bump minimatch version (#3929)
+- *(dashboard)* Remove eslint (#3927)
+
+## [@nhost/dashboard@2.49.0] - 2026-02-17
+
+### 🚀 Features
+
+- *(dashboard)* Add jsonb specific operators to OperationComboBox (#3904)
+- *(dashboard)* Add one-off scheduled events (#3889)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up markdown-it to address vulnerability (#3914)
+- *(dashboard)* Allow transferring free and paused project to Starter orgs (#3918)
+
+## [@nhost/dashboard@2.48.0] - 2026-02-12
+
+### 🚀 Features
+
+- *(dashboard)* Edit table relationships (#3720)
+- *(ci)* Remove mintlify (#3887)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update brace-expansion due to cve (#3886)
+- *(dashboard)* Run type check before tests (#3894)
+
+## [@nhost/dashboard@2.47.0] - 2026-02-04
+
+### 🚀 Features
+
+- *(dashboard)* Disconnect GitHub's auth provider from Nhost account (#3847)
+- *(docs)* Release starlight (#3877)
+
+
+### 🐛 Bug Fixes
+
+- *(nixops)* Update nodejs to v24 (#3862)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add CLAUDE.md (#3880)
+- *(dashboard)* Test links (#3881)
+
+## [@nhost/dashboard@2.46.3] - 2026-02-02
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update orval to 8.0.3 (#3839)
+- *(dashboard)* Show paused banner in events and file stores pages (#3844)
+- *(dashboard)* Update nextjs to 16 (#3841)
+- *(deps)* Update nextjs due to vulnerability (#3854)
+- *(dashboard)* Update orval due to cve (#3869)
+- *(dashboard)* Disable delete personal account button if confirm checkbox isn't pressed (#3864)
+- *(dashboard)* Do not submit new record form after clicking on cancel (#3853)
+
+
+### Chore
+
+- *(deps)* Update tar due to cve (#3867)
+
+## [@nhost/dashboard@2.46.2] - 2026-01-22
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Show untracked tables in database view (#3833)
+
+## [@nhost/dashboard@2.46.1] - 2026-01-22
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update orval to version 8 (#3827)
+- *(ci)* Check that orval codegen files are up to date (#3829)
+- *(deps)* Added pnpm overrides due to cves (#3831)
+- *(dashboard)* Use optional chaining for concealErrors setting (#3830)
+
 ## [@nhost/dashboard@2.46.0] - 2026-01-19
 
 ### 🚀 Features

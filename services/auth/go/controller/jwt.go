@@ -81,14 +81,14 @@ func decodeJWTSecretForRSA(jwtSecret JWTSecret) (JWTSecret, []api.JWK, error) {
 	return jwtSecret, jwks, nil
 }
 
-func decodeJWTSecret(jwtSecretb []byte) (JWTSecret, []api.JWK, error) {
+func decodeJWTSecret(jwtSecretb []byte, defaultIssuer string) (JWTSecret, []api.JWK, error) {
 	var jwtSecret JWTSecret
 	if err := json.Unmarshal(jwtSecretb, &jwtSecret); err != nil {
 		return JWTSecret{}, nil, fmt.Errorf("error unmarshalling jwt secret: %w", err)
 	}
 
 	if jwtSecret.Issuer == "" {
-		jwtSecret.Issuer = "hasura-auth"
+		jwtSecret.Issuer = defaultIssuer
 	}
 
 	if jwtSecret.ClaimsNamespace == "" {
@@ -143,8 +143,9 @@ func NewJWTGetter(
 	customClaimer CustomClaimer,
 	elevatedClaimMode string,
 	db DBClient,
+	defaultIssuer string,
 ) (*JWTGetter, error) {
-	jwtSecret, jwks, err := decodeJWTSecret(jwtSecretb)
+	jwtSecret, jwks, err := decodeJWTSecret(jwtSecretb, defaultIssuer)
 	if err != nil {
 		return nil, err
 	}
@@ -164,6 +165,18 @@ func NewJWTGetter(
 		db:                   db,
 		jwks:                 jwks,
 	}, nil
+}
+
+func (j *JWTGetter) JWKS() []api.JWK {
+	return j.jwks
+}
+
+func (j *JWTGetter) IsRSA() bool {
+	return strings.HasPrefix(j.method.Alg(), "RS")
+}
+
+func (j *JWTGetter) Alg() string {
+	return j.method.Alg()
 }
 
 func pgEncode(v any) (string, error) {
@@ -226,6 +239,108 @@ func (j *JWTGetter) addClaimsToMap(
 	return nil
 }
 
+// fetchCustomClaims fetches custom claims and returns them. If the custom
+// claimer is nil or returns an error, an empty map is returned.
+func (j *JWTGetter) fetchCustomClaims(
+	ctx context.Context,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) map[string]any {
+	if j.customClaimer == nil {
+		return nil
+	}
+
+	customClaims, err := j.customClaimer.GetClaims(ctx, userID.String())
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"error getting custom claims",
+			slog.String("error", err.Error()),
+		)
+
+		return map[string]any{}
+	}
+
+	return customClaims
+}
+
+func (j *JWTGetter) GraphQLClaims(
+	ctx context.Context,
+	userID uuid.UUID,
+	isAnonymous bool,
+	allowedRoles []string,
+	defaultRole string,
+	extraClaims map[string]any,
+	logger *slog.Logger,
+) (string, map[string]any, error) {
+	customClaims := j.fetchCustomClaims(ctx, userID, logger)
+
+	c := map[string]any{
+		"x-hasura-allowed-roles":     allowedRoles,
+		"x-hasura-default-role":      defaultRole,
+		"x-hasura-user-id":           userID.String(),
+		"x-hasura-user-is-anonymous": strconv.FormatBool(isAnonymous),
+	}
+
+	if err := j.addClaimsToMap(c, customClaims, false); err != nil {
+		return "", nil, fmt.Errorf("error adding custom claims: %w", err)
+	}
+
+	if err := j.addClaimsToMap(c, extraClaims, true); err != nil {
+		return "", nil, fmt.Errorf("error adding extra claims: %w", err)
+	}
+
+	return j.claimsNamespace, c, nil
+}
+
+// RawGraphQLClaims returns the same claims as GraphQLClaims but without
+// Postgres-encoding values. Arrays remain as []any, booleans as bool, etc.
+// This is suitable for JSON responses (e.g. UserInfo) consumed by third
+// parties that expect standard JSON types.
+func (j *JWTGetter) RawGraphQLClaims(
+	ctx context.Context,
+	userID uuid.UUID,
+	isAnonymous bool,
+	allowedRoles []string,
+	defaultRole string,
+	extraClaims map[string]any,
+	logger *slog.Logger,
+) (string, map[string]any, error) {
+	customClaims := j.fetchCustomClaims(ctx, userID, logger)
+
+	c := map[string]any{
+		"x-hasura-allowed-roles":     allowedRoles,
+		"x-hasura-default-role":      defaultRole,
+		"x-hasura-user-id":           userID.String(),
+		"x-hasura-user-is-anonymous": isAnonymous,
+	}
+
+	addRawClaimsToMap(c, customClaims, false)
+	addRawClaimsToMap(c, extraClaims, true)
+
+	return j.claimsNamespace, c, nil
+}
+
+func addRawClaimsToMap(
+	claims map[string]any,
+	newClaims map[string]any,
+	allowOverwrite bool,
+) {
+	for k, v := range newClaims {
+		if !strings.HasPrefix(strings.ToLower(k), "x-hasura-") {
+			k = strings.ToLower("x-hasura-" + k)
+		}
+
+		if !allowOverwrite {
+			if _, ok := claims[k]; ok {
+				continue
+			}
+		}
+
+		claims[k] = v
+	}
+}
+
 func (j *JWTGetter) GetToken(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -239,46 +354,20 @@ func (j *JWTGetter) GetToken(
 	iat := now.Unix()
 	exp := now.Add(j.accessTokenExpiresIn).Unix()
 
-	var (
-		customClaims map[string]any
-		err          error
+	ns, c, err := j.GraphQLClaims(
+		ctx, userID, isAnonymous, allowedRoles, defaultRole, extraClaims, logger,
 	)
-
-	if j.customClaimer != nil {
-		customClaims, err = j.customClaimer.GetClaims(ctx, userID.String())
-		if err != nil {
-			logger.ErrorContext(
-				ctx,
-				"error getting custom claims",
-				slog.String("error", err.Error()),
-			)
-
-			customClaims = map[string]any{}
-		}
-	}
-
-	c := map[string]any{
-		"x-hasura-allowed-roles":     allowedRoles,
-		"x-hasura-default-role":      defaultRole,
-		"x-hasura-user-id":           userID.String(),
-		"x-hasura-user-is-anonymous": strconv.FormatBool(isAnonymous),
-	}
-
-	if err := j.addClaimsToMap(c, customClaims, false); err != nil {
-		return "", 0, fmt.Errorf("error adding custom claims: %w", err)
-	}
-
-	if err := j.addClaimsToMap(c, extraClaims, true); err != nil {
-		return "", 0, fmt.Errorf("error adding extra claims: %w", err)
+	if err != nil {
+		return "", 0, fmt.Errorf("error getting claims: %w", err)
 	}
 
 	// Create the Claims
 	claims := &jwt.MapClaims{
-		"sub":             userID.String(),
-		"iss":             j.issuer,
-		"iat":             iat,
-		"exp":             exp,
-		j.claimsNamespace: c,
+		"sub": userID.String(),
+		"iss": j.issuer,
+		"iat": iat,
+		"exp": exp,
+		ns:    c,
 	}
 
 	token := jwt.NewWithClaims(j.method, claims)
@@ -423,10 +512,12 @@ func (j *JWTGetter) MiddlewareFunc(
 
 	jwtToken, err := j.Validate(parts[1])
 	if err != nil {
+		slog.WarnContext(ctx, "error validating JWT", slog.String("error", err.Error()))
+
 		return &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
 			Code:    "unauthorized",
-			Message: fmt.Sprintf("error validating token: %s", err),
+			Message: "invalid or expired token",
 		}
 	}
 
@@ -446,10 +537,14 @@ func (j *JWTGetter) MiddlewareFunc(
 
 		found, err := j.verifyElevatedClaim(ctx, jwtToken, requestPath)
 		if err != nil {
+			slog.WarnContext(
+				ctx, "error verifying elevated claim", slog.String("error", err.Error()),
+			)
+
 			return &oapi.AuthenticatorError{
 				Scheme:  input.SecuritySchemeName,
 				Code:    "unauthorized",
-				Message: fmt.Sprintf("error verifying elevated claim: %s", err),
+				Message: "error verifying elevated claim",
 			}
 		}
 
@@ -487,12 +582,21 @@ func (j *JWTGetter) GetCustomClaim(token *jwt.Token, customClaim string) string 
 	return v
 }
 
+func (j *JWTGetter) Issuer() string {
+	return j.issuer
+}
+
 func (j *JWTGetter) IsAnonymous(token *jwt.Token) bool {
 	return j.GetCustomClaim(token, "x-hasura-user-is-anonymous") == "true"
 }
 
 func (j *JWTGetter) GetUserID(token *jwt.Token) (uuid.UUID, error) {
-	userID, err := uuid.Parse(j.GetCustomClaim(token, "x-hasura-user-id"))
+	sub, err := token.Claims.GetSubject()
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("error getting subject: %w", err)
+	}
+
+	userID, err := uuid.Parse(sub)
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("error parsing user id: %w", err)
 	}

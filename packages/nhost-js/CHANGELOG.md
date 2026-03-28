@@ -1,3 +1,56 @@
+## [@nhost/nhost-js@4.5.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(auth)* Added oauth2/oidc provider functionality (#3922)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up markdown-it to address vulnerability (#3914)
+- *(deps)* Bump Orval version and remove outdated pnpm overrides (#3920)
+- *(deps)* Bump ajv and tar due to cves (#3925)
+- *(docs)* Bump minimatch version (#3929)
+
+## [@nhost/nhost-js@4.4.0] - 2026-02-06
+
+### 🚀 Features
+
+- *(ci)* Remove mintlify (#3887)
+
+
+### 🐛 Bug Fixes
+
+- *(nixops)* Update nodejs to v24 (#3862)
+- *(deps)* Update brace-expansion due to cve (#3886)
+- *(nhost-js)* Decode base64url-encoded strings correctly in jwt tokens (#3892)
+
+## [@nhost/nhost-js@4.3.0] - 2026-02-02
+
+### 🚀 Features
+
+- *(auth)* Change locale so it allows for 3 characters (#3776)
+- *(nixops)* Update nixpkgs (#3808)
+- *(nixops)* Package mintlify (#3822)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate to biome from prettier in the dashboard (#3788)
+- *(examples)* Update svelte and devalue (#3817)
+- *(deps)* Added pnpm overrides due to cves (#3831)
+- *(deps)* Update nextjs due to vulnerability (#3854)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nhost-js)* Biome migration follow up (#3812)
+
+
+### Chore
+
+- *(deps)* Update tar due to cve (#3867)
+
 ## [@nhost/nhost-js@4.2.2] - 2026-01-13
 
 ### 🐛 Bug Fixes

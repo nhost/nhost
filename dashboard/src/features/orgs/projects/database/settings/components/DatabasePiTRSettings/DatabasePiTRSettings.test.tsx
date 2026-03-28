@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { getOrganizations } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import { prefetchNewAppQuery } from '@/tests/msw/mocks/graphql/prefetchNewAppQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import DatabasePiTRSettings from './DatabasePiTRSettings';
@@ -96,6 +97,7 @@ describe('DatabasePiTRSettings', () => {
 
   test('If the org is free the switch should not be available and the save button is disabled', async () => {
     server.use(getProjectQuery);
+    server.use(prefetchNewAppQuery);
     mocks.useCurrentOrg.mockImplementation(() =>
       getCurrentOrg({ isFree: true }),
     );

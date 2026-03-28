@@ -1,5 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -16,6 +17,10 @@ export interface CreateEventTriggerMutationVariables {
    * Arguments to create an event trigger.
    */
   args: CreateEventTriggerArgs;
+  /**
+   * The previous event trigger args, used for the down migration when editing
+   */
+  originalEventTrigger?: CreateEventTriggerArgs;
   /**
    * The resource version for (platform mode only).
    */
@@ -73,13 +78,14 @@ export default function useCreateEventTriggerMutation({
 
       return createEventTriggerMigration({
         args: variables.args,
+        originalEventTrigger: variables.originalEventTrigger,
         ...base,
       });
     },
     {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ['export-metadata', project?.subdomain],
+          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
       },
       ...mutationOptions,

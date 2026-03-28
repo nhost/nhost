@@ -4,7 +4,7 @@ import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../lib/nhost/AuthProvider';
 import { formatFileSize } from '../lib/utils';
 
-interface DeleteStatus {
+interface StatusMessage {
   message: string;
   isError: boolean;
 }
@@ -24,7 +24,13 @@ export default function Upload(): JSX.Element {
   const [files, setFiles] = useState<FileMetadata[]>([]);
   const [viewingFile, setViewingFile] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [deleteStatus, setDeleteStatus] = useState<DeleteStatus | null>(null);
+  const [replacing, setReplacing] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<StatusMessage | null>(
+    null,
+  );
+  const [presignedUrl, setPresignedUrl] = useState<string | null>(null);
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
+  const replaceInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchFiles = useCallback(async (): Promise<void> => {
     setIsFetching(true);
@@ -196,7 +202,7 @@ export default function Upload(): JSX.Element {
 
     setDeleting(fileId);
     setError(null);
-    setDeleteStatus(null);
+    setStatusMessage(null);
 
     // Get the file name for the status message
     const fileToDelete = files.find((file) => file.id === fileId);
@@ -207,7 +213,7 @@ export default function Upload(): JSX.Element {
       await nhost.storage.deleteFile(fileId);
 
       // Show success message
-      setDeleteStatus({
+      setStatusMessage({
         message: `${fileName} deleted successfully`,
         isError: false,
       });
@@ -220,12 +226,12 @@ export default function Upload(): JSX.Element {
 
       // Clear the success message after 3 seconds
       setTimeout(() => {
-        setDeleteStatus(null);
+        setStatusMessage(null);
       }, 3000);
     } catch (err) {
       // Show error message
       const error = err as FetchError<ErrorResponse>;
-      setDeleteStatus({
+      setStatusMessage({
         message: `Failed to delete ${fileName}: ${error.message}`,
         isError: true,
       });
@@ -234,6 +240,83 @@ export default function Upload(): JSX.Element {
       setDeleting(null);
     }
   };
+
+  // Function to handle replacing a file
+  const handleReplaceFile = async (
+    fileId: string,
+    newFile: File,
+  ): Promise<void> => {
+    setReplacing(fileId);
+    setStatusMessage(null);
+
+    try {
+      await nhost.storage.replaceFile(fileId, { file: newFile });
+
+      setStatusMessage({
+        message: 'File replaced successfully',
+        isError: false,
+      });
+
+      await fetchFiles();
+
+      setTimeout(() => {
+        setStatusMessage(null);
+      }, 3000);
+    } catch (err) {
+      const error = err as FetchError<ErrorResponse>;
+      setStatusMessage({
+        message: `Failed to replace file: ${error.message}`,
+        isError: true,
+      });
+    } finally {
+      setReplacing(null);
+    }
+  };
+
+  // Function to get a pre-signed URL for sharing
+  const handleGetPresignedUrl = async (fileId: string): Promise<void> => {
+    try {
+      const { body } = await nhost.storage.getFilePresignedURL(fileId);
+      setPresignedUrl(body.url);
+    } catch (err) {
+      const error = err as FetchError<ErrorResponse>;
+      setStatusMessage({
+        message: `Failed to get pre-signed URL: ${error.message}`,
+        isError: true,
+      });
+    }
+  };
+
+  // Load image thumbnails using image transformation
+  const loadThumbnail = useCallback(
+    async (fileId: string): Promise<void> => {
+      try {
+        const { body } = await nhost.storage.getFile(fileId, {
+          w: 100,
+          h: 100,
+          f: 'webp',
+        });
+        const url = URL.createObjectURL(body);
+        setThumbnails((prev) => ({ ...prev, [fileId]: url }));
+      } catch {
+        // Silently skip thumbnails that fail to load
+      }
+    },
+    [nhost.storage],
+  );
+
+  // Load thumbnails for image files
+  useEffect(() => {
+    for (const file of files) {
+      if (
+        file.mimeType?.startsWith('image/') &&
+        file.id &&
+        !thumbnails[file.id]
+      ) {
+        loadThumbnail(file.id);
+      }
+    }
+  }, [files, thumbnails, loadThumbnail]);
 
   return (
     <div className="flex flex-col">
@@ -318,11 +401,11 @@ export default function Upload(): JSX.Element {
       <div className="glass-card p-8">
         <h2 className="text-2xl mb-6">Your Files</h2>
 
-        {deleteStatus && (
+        {statusMessage && (
           <div
-            className={`alert ${deleteStatus.isError ? 'alert-error' : 'alert-success'} mb-4`}
+            className={`alert ${statusMessage.isError ? 'alert-error' : 'alert-success'} mb-4`}
           >
-            {deleteStatus.message}
+            {statusMessage.message}
           </div>
         )}
 
@@ -344,7 +427,31 @@ export default function Upload(): JSX.Element {
               <tbody>
                 {files.map((file) => (
                   <tr key={file.id}>
-                    <td>{file.name}</td>
+                    <td>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        {file.mimeType?.startsWith('image/') &&
+                          file.id &&
+                          thumbnails[file.id] && (
+                            <img
+                              src={thumbnails[file.id]}
+                              alt={file.name || ''}
+                              style={{
+                                width: 32,
+                                height: 32,
+                                objectFit: 'cover',
+                                borderRadius: 4,
+                              }}
+                            />
+                          )}
+                        {file.name}
+                      </div>
+                    </td>
                     <td>{file.mimeType}</td>
                     <td>{formatFileSize(file.size || 0)}</td>
                     <td>
@@ -394,6 +501,75 @@ export default function Upload(): JSX.Element {
                         </button>
                         <button
                           type="button"
+                          onClick={() => {
+                            replaceInputRef.current?.setAttribute(
+                              'data-file-id',
+                              file.id || '',
+                            );
+                            replaceInputRef.current?.click();
+                          }}
+                          disabled={replacing === file.id}
+                          className="action-icon action-icon-view"
+                          title="Replace File"
+                        >
+                          {replacing === file.id ? (
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              role="img"
+                              aria-label="Replacing"
+                            >
+                              <circle cx="12" cy="12" r="10" />
+                              <path d="M12 6v6" />
+                            </svg>
+                          ) : (
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              role="img"
+                              aria-label="Replace file"
+                            >
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="17 8 12 3 7 8" />
+                              <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleGetPresignedUrl(file.id || 'unknown')
+                          }
+                          className="action-icon action-icon-view"
+                          title="Get Share Link"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            role="img"
+                            aria-label="Share file"
+                          >
+                            <circle cx="18" cy="5" r="3" />
+                            <circle cx="6" cy="12" r="3" />
+                            <circle cx="18" cy="19" r="3" />
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleDeleteFile(file.id || 'unknown')}
                           disabled={deleting === file.id}
                           className="action-icon action-icon-delete"
@@ -436,6 +612,57 @@ export default function Upload(): JSX.Element {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Hidden file input for replace */}
+        <input
+          type="file"
+          ref={replaceInputRef}
+          onChange={(e) => {
+            const newFile = e.target.files?.[0];
+            const fileId =
+              replaceInputRef.current?.getAttribute('data-file-id');
+            if (newFile && fileId) {
+              handleReplaceFile(fileId, newFile);
+            }
+            e.target.value = '';
+          }}
+          style={{ display: 'none' }}
+        />
+
+        {/* Pre-signed URL display */}
+        {presignedUrl && (
+          <div className="glass-card p-4 mt-4">
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <strong>Pre-signed URL</strong>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setPresignedUrl(null)}
+              >
+                Close
+              </button>
+            </div>
+            <input
+              type="text"
+              readOnly
+              value={presignedUrl}
+              onClick={(e) => (e.target as HTMLInputElement).select()}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                fontFamily: 'monospace',
+                fontSize: '0.8rem',
+              }}
+            />
           </div>
         )}
       </div>

@@ -1,0 +1,16 @@
+name = "redis"
+
+[image]
+image = "redis:7-alpine"
+
+[[ports]]
+type = "tcp"
+port = 6379
+publish = false
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128

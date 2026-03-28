@@ -69,6 +69,7 @@ func applyMigrations(
 		ctx,
 		strings.Replace(cmd.String(flagGraphqlURL), "/v1/graphql", "/v1/metadata", 1),
 		cmd.String(flagHasuraAdminSecret),
+		logger,
 	); err != nil {
 		logger.ErrorContext(
 			ctx, "failed to apply hasura metadata", slog.String("error", err.Error()))

@@ -15,10 +15,6 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func TestGetFile(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
@@ -52,7 +48,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			request: api.GetFileRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{
-					IfMatch: ptr("\"55af1e60-0f28-454e-885e-ea6aab2bb288\""),
+					IfMatch: new("\"55af1e60-0f28-454e-885e-ea6aab2bb288\""),
 				},
 			},
 			expected: api.GetFile200ApplicationoctetStreamResponse{
@@ -74,7 +70,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			request: api.GetFileRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{
-					IfMatch: ptr("blah"),
+					IfMatch: new("blah"),
 				},
 			},
 			expected: api.GetFile412Response{
@@ -90,7 +86,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			request: api.GetFileRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{
-					IfNoneMatch: ptr("\"55af1e60-0f28-454e-885e-ea6aab2bb288\""),
+					IfNoneMatch: new("\"55af1e60-0f28-454e-885e-ea6aab2bb288\""),
 				},
 			},
 			expected: api.GetFile304Response{
@@ -106,7 +102,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			request: api.GetFileRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{
-					IfNoneMatch: ptr("blah"),
+					IfNoneMatch: new("blah"),
 				},
 			},
 			expected: api.GetFile200ApplicationoctetStreamResponse{
@@ -128,7 +124,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			request: api.GetFileRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{
-					IfModifiedSince: ptr(api.Date(2020, 1, 15, 10, 0, 0, 0, time.UTC)),
+					IfModifiedSince: new(api.Date(2020, 1, 15, 10, 0, 0, 0, time.UTC)),
 				},
 			},
 			expected: api.GetFile200ApplicationoctetStreamResponse{
@@ -150,7 +146,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			request: api.GetFileRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{
-					IfModifiedSince: ptr(api.Date(2024, 1, 25, 10, 0, 0, 0, time.UTC)),
+					IfModifiedSince: new(api.Date(2024, 1, 25, 10, 0, 0, 0, time.UTC)),
 				},
 			},
 			expected: api.GetFile304Response{
@@ -166,7 +162,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			request: api.GetFileRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{
-					IfUnmodifiedSince: ptr(api.Date(2024, 1, 25, 10, 0, 0, 0, time.UTC)),
+					IfUnmodifiedSince: new(api.Date(2024, 1, 25, 10, 0, 0, 0, time.UTC)),
 				},
 			},
 			expected: api.GetFile200ApplicationoctetStreamResponse{
@@ -188,7 +184,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			request: api.GetFileRequestObject{
 				Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{
-					IfUnmodifiedSince: ptr(api.Date(2020, 1, 15, 10, 0, 0, 0, time.UTC)),
+					IfUnmodifiedSince: new(api.Date(2020, 1, 15, 10, 0, 0, 0, time.UTC)),
 				},
 			},
 			expected: api.GetFile412Response{
@@ -225,7 +221,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				UpdatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 				IsUploaded:       true,
 				MimeType:         "text/plain; charset=utf-8",
-				UploadedByUserId: ptr("0f7f0ff0-f945-4597-89e1-3636b16775cd"),
+				UploadedByUserId: new("0f7f0ff0-f945-4597-89e1-3636b16775cd"),
 			}, nil)
 
 			metadataStorage.EXPECT().GetBucketByID(

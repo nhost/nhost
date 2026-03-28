@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
+import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import type { FetchTableReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface UseAsyncValueOptions {
@@ -28,7 +28,7 @@ export interface UseAsyncValueOptions {
   /**
    * Table data to be used to determine the initial value.
    */
-  tableData?: FetchTableReturnType;
+  tableData?: FetchTableSchemaReturnType;
   /**
    * Metadata to be used to determine the initial value.
    */
@@ -38,8 +38,7 @@ export interface UseAsyncValueOptions {
    */
   onInitialized?: (value: {
     value: string;
-    // biome-ignore lint/suspicious/noExplicitAny: TODO
-    columnMetadata?: Record<string, any>;
+    columnMetadata: Record<string, unknown>;
   }) => void;
 }
 
@@ -60,7 +59,7 @@ export default function useAsyncValue({
   // look for the column in a stale table when initializing
   const [asyncTablePath, setAsyncTablePath] = useState(currentTablePath);
   const [remainingColumnPath, setRemainingColumnPath] = useState(
-    initialValue?.split('.') || [],
+    initialValue ? initialValue.split('.') : [],
   );
   const [selectedRelationships, setSelectedRelationships] = useState<
     { schema: string; table: string; name: string }[]
@@ -128,7 +127,7 @@ export default function useAsyncValue({
       group: 'columns',
       metadata: tableData.columns.find(
         (column) => column.column_name === activeColumn,
-      ),
+      )!,
     });
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
   }, [

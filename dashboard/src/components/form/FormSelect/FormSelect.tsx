@@ -34,7 +34,7 @@ interface FormSelectProps<
 > {
   control: Control<TFieldValues>;
   name: TName;
-  label: ReactNode;
+  label?: ReactNode;
   placeholder?: string;
   className?: string;
   containerClassName?: string;
@@ -42,6 +42,7 @@ interface FormSelectProps<
   helperText?: string | null;
   disabled?: boolean;
   transform?: Transformer;
+  'data-testid'?: string;
 }
 
 function FormSelectImpl<
@@ -60,6 +61,7 @@ function FormSelectImpl<
     disabled,
     children,
     transform,
+    'data-testid': dataTestId,
   }: PropsWithChildren<FormSelectProps<TFieldValues, TName>>,
   ref?: ForwardedRef<HTMLButtonElement>,
 ) {
@@ -105,6 +107,7 @@ function FormSelectImpl<
                   <SelectTrigger
                     className={cn(selectClasses, className)}
                     ref={mergeRefs([fieldRef, ref])}
+                    data-testid={dataTestId}
                   >
                     <SelectValue placeholder={placeholder} />
                   </SelectTrigger>

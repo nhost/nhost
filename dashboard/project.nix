@@ -46,11 +46,11 @@ let
       ".gitignore"
       "${submodule}/.env.test"
       "${submodule}/.env.example"
-      "${submodule}/eslint.config.mjs"
       "${submodule}/.lintstagedrc.json"
       "${submodule}/biome.json"
       "${submodule}/.npmrc"
       "${submodule}/.prettierignore"
+      "${submodule}/.lychee.toml"
       "${submodule}/components.json"
       "${submodule}/graphite.graphql.config.yaml"
       "${submodule}/graphql.config.yaml"
@@ -65,7 +65,7 @@ let
       "${submodule}/tailwind.config.js"
       "${submodule}/tsconfig.json"
       "${submodule}/tsconfig.test.json"
-      "${submodule}/vitest.config.ts"
+      "${submodule}/vitest.config.mts"
       "${submodule}/vitest.global-setup.ts"
       (inDirectory "${submodule}/e2e")
       (inDirectory "${submodule}/public")
@@ -75,6 +75,7 @@ let
 
   checkDeps = with pkgs; [
     nhost-cli
+    lychee
     playwright-driver
   ];
 
@@ -145,6 +146,7 @@ rec {
     buildInputs = with pkgs; [ nodejs ];
 
     configurePhase = ''
+      export NEXT_PUBLIC_DASHBOARD_VERSION=${version}
       export NEXT_PUBLIC_NHOST_ADMIN_SECRET=__NEXT_PUBLIC_NHOST_ADMIN_SECRET__
       export NEXT_PUBLIC_NHOST_AUTH_URL=__NEXT_PUBLIC_NHOST_AUTH_URL__
       export NEXT_PUBLIC_NHOST_FUNCTIONS_URL=__NEXT_PUBLIC_NHOST_FUNCTIONS_URL__
@@ -210,6 +212,7 @@ rec {
           "NEXT_TELEMETRY_DISABLED=1"
           "NEXT_PUBLIC_ENV=dev"
           "NEXT_PUBLIC_NHOST_PLATFORM=false"
+          "NEXT_PUBLIC_DASHBOARD_VERSION=${version}"
           # placeholders for URLs, will be replaced on runtime by entrypoint script
           "NEXT_PUBLIC_NHOST_ADMIN_SECRET=__NEXT_PUBLIC_NHOST_ADMIN_SECRET__"
           "NEXT_PUBLIC_NHOST_AUTH_URL=__NEXT_PUBLIC_NHOST_AUTH_URL__"

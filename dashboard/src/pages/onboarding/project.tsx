@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import slugify from 'slugify';
 import { z } from 'zod';
@@ -52,6 +52,7 @@ type ProjectFormData = z.infer<typeof projectSchema>;
 export default function OnboardingProjectPage() {
   const router = useRouter();
   const user = useUserData();
+  const [isRegionIdNotSet, setIsRegionIdNotSet] = useState(true);
   const { orgs, loading: loadingOrgs } = useOrgs();
   const { data: regionsData, loading: loadingRegions } = usePrefetchNewAppQuery(
     {
@@ -76,7 +77,6 @@ export default function OnboardingProjectPage() {
       form.setValue('organizationId', orgs[0].id);
     }
   }, [orgs, form]);
-
   useEffect(() => {
     if (
       isNotEmptyValue(regionsData?.regions?.length) &&
@@ -85,6 +85,8 @@ export default function OnboardingProjectPage() {
       const activeRegion = regionsData.regions.find((region) => region.active);
       if (activeRegion) {
         form.setValue('regionId', activeRegion.id);
+        //NOTE: This is a workaround, sometimes the page would not rerender after setting the regionId.
+        setIsRegionIdNotSet(false);
       }
     }
   }, [regionsData, form]);
@@ -137,9 +139,10 @@ export default function OnboardingProjectPage() {
             regionId: data.regionId,
             isOnboarding: true,
           });
-
           // clear onboarding flow and redirect to project dashboard
           sessionStorage.removeItem('onboarding');
+          // store the subdomain in session storage to indicate that the user has created a project
+          sessionStorage.setItem('newProjectSubdomain', subdomain);
           router.push(`/orgs/${selectedOrg?.slug}/projects/${subdomain}`);
         }
       },
@@ -151,7 +154,7 @@ export default function OnboardingProjectPage() {
     );
   };
 
-  if (loadingOrgs || loadingRegions) {
+  if (loadingOrgs || loadingRegions || isRegionIdNotSet) {
     return (
       <Container>
         <div className="flex h-screen items-center justify-center">
@@ -256,7 +259,6 @@ export default function OnboardingProjectPage() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="regionId"

@@ -130,7 +130,9 @@ export const createApolloClient = ({
         fetchPolicy,
       },
     },
-    connectToDevTools,
+    devtools: {
+      enabled: connectToDevTools,
+    },
     link,
   });
 

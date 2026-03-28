@@ -26,12 +26,10 @@ import { cn } from '@/lib/utils';
 import type { RemoteSchemaRelationshipFormValues } from './RemoteSchemaRelationshipForm';
 
 export interface TargetRemoteSchemaFieldComboboxProps {
-  disabled?: boolean;
   targetFields: { label: string; value: string }[];
 }
 
 export default function TargetRemoteSchemaFieldCombobox({
-  disabled,
   targetFields,
 }: TargetRemoteSchemaFieldComboboxProps) {
   const form = useFormContext<RemoteSchemaRelationshipFormValues>();
@@ -49,7 +47,6 @@ export default function TargetRemoteSchemaFieldCombobox({
               <FormControl>
                 <Button
                   variant="outline"
-                  disabled={disabled}
                   role="combobox"
                   className={cn(
                     'w-full justify-between',

@@ -63,10 +63,6 @@ func CommandNew() *cli.Command {
 	}
 }
 
-func ptr[i any](v i) *i {
-	return &v
-}
-
 func commandNew(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
@@ -75,7 +71,7 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain)) //nolint:staticcheck
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
@@ -84,12 +80,12 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 		ctx,
 		graphql.DeploymentsInsertInput{
 			App:                 nil,
-			AppID:               ptr(proj.ID),
-			CommitMessage:       ptr(cmd.String(flagMessage)),
-			CommitSha:           ptr(cmd.String(flagRef)),
-			CommitUserAvatarURL: ptr(cmd.String(flagUserAvatarURL)),
-			CommitUserName:      ptr(cmd.String(flagUser)),
-			DeploymentStatus:    ptr("SCHEDULED"),
+			AppID:               new(proj.ID),
+			CommitMessage:       new(cmd.String(flagMessage)),
+			CommitSha:           new(cmd.String(flagRef)),
+			CommitUserAvatarURL: new(cmd.String(flagUserAvatarURL)),
+			CommitUserName:      new(cmd.String(flagUser)),
+			DeploymentStatus:    new("SCHEDULED"),
 		},
 	)
 	if err != nil {

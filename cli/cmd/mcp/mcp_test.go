@@ -1,15 +1,13 @@
 package mcp_test
 
 import (
-	"bytes"
 	"context"
+	"fmt"
 	"testing"
-	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/mark3labs/mcp-go/client"
-	"github.com/mark3labs/mcp-go/client/transport"
 	"github.com/mark3labs/mcp-go/mcp"
 	nhostmcp "github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/mcp/start"
@@ -19,58 +17,71 @@ import (
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
 	"github.com/nhost/nhost/cli/mcp/tools/project"
 	"github.com/nhost/nhost/cli/mcp/tools/schemas"
+	"github.com/urfave/cli/v3"
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
+func TestStart(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
 
-func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 	loginCmd := user.CommandLogin()
-	mcpCmd := nhostmcp.Command()
-
-	buf := bytes.NewBuffer(nil)
-	mcpCmd.Writer = buf
-
-	go func() {
-		t.Setenv("HOME", t.TempDir())
-
-		if err := loginCmd.Run(
-			context.Background(),
-			[]string{
-				"main",
-				"--pat=user-pat",
-			},
-		); err != nil {
-			panic(err)
-		}
-
-		if err := mcpCmd.Run(
-			context.Background(),
-			[]string{
-				"main",
-				"start",
-				"--bind=:9000",
-				"--config-file=testdata/sample.toml",
-			},
-		); err != nil {
-			panic(err)
-		}
-	}()
-
-	time.Sleep(time.Second)
-
-	transportClient, err := transport.NewSSE("http://localhost:9000/sse")
-	if err != nil {
-		t.Fatalf("failed to create transport client: %v", err)
+	if err := loginCmd.Run(
+		context.Background(),
+		[]string{
+			"main",
+			"--pat=user-pat",
+		},
+	); err != nil {
+		t.Fatalf("failed to login: %v", err)
 	}
 
-	mcpClient := client.NewClient(transportClient)
+	// Build the MCP server by running the CLI command with a custom action
+	// that calls BuildServer and captures the result.
+	var mcpServer *mcp.ServerResult
+
+	mcpCmd := nhostmcp.Command()
+
+	for _, sub := range mcpCmd.Commands {
+		if sub.Name == "start" {
+			sub.Action = func(_ context.Context, cmd *cli.Command) error {
+				s, err := start.BuildServer(cmd)
+				if err != nil {
+					return fmt.Errorf("problem building server: %w", err)
+				}
+
+				mcpClient, err := client.NewInProcessClient(s)
+				if err != nil {
+					t.Fatalf("failed to create in-process client: %v", err)
+				}
+
+				t.Cleanup(func() { mcpClient.Close() })
+
+				runTests(t, mcpClient) //nolint:contextcheck
+
+				return nil
+			}
+		}
+	}
+
+	if err := mcpCmd.Run(
+		context.Background(),
+		[]string{
+			"main",
+			"start",
+			"--config-file=testdata/sample.toml",
+		},
+	); err != nil {
+		t.Fatalf("failed to run mcp command: %v", err)
+	}
+
+	_ = mcpServer
+}
+
+func runTests(t *testing.T, mcpClient *client.Client) { //nolint:cyclop,maintidx
+	t.Helper()
 
 	if err := mcpClient.Start(t.Context()); err != nil {
 		t.Fatalf("failed to start mcp client: %v", err)
 	}
-	defer mcpClient.Close()
 
 	initRequest := mcp.InitializeRequest{} //nolint:exhaustruct
 	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
@@ -172,10 +183,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Perform GraphQL Query on Nhost Cloud Platform",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(false),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(false),
+						DestructiveHint: new(true),
+						IdempotentHint:  new(false),
+						OpenWorldHint:   new(true),
 					},
 				},
 				{
@@ -221,10 +232,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Get GraphQL/API schema for various services",
-						ReadOnlyHint:    ptr(true),
-						DestructiveHint: ptr(false),
-						IdempotentHint:  ptr(true),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(true),
+						DestructiveHint: new(false),
+						IdempotentHint:  new(true),
+						OpenWorldHint:   new(true),
 					},
 				},
 				{
@@ -265,10 +276,38 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Perform GraphQL Query on Nhost Project running on Nhost Cloud",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(false),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(false),
+						DestructiveHint: new(true),
+						IdempotentHint:  new(false),
+						OpenWorldHint:   new(true),
+					},
+				},
+				{
+					Name:        "list",
+					Description: docs.ToolListInstructions,
+					InputSchema: mcp.ToolInputSchema{
+						Type: "object",
+						Properties: map[string]any{
+							"grouped": map[string]any{
+								"description": string(
+									"Show pages organized by top-level section",
+								),
+								"type": string("boolean"),
+							},
+							"summary": map[string]any{
+								"description": string(
+									"Show page descriptions",
+								),
+								"type": string("boolean"),
+							},
+						},
+					},
+					Annotations: mcp.ToolAnnotation{
+						Title:           "List Nhost Docs",
+						ReadOnlyHint:    new(true),
+						IdempotentHint:  new(true),
+						DestructiveHint: new(false),
+						OpenWorldHint:   new(false),
 					},
 				},
 				{
@@ -299,10 +338,33 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Manage GraphQL's Metadata on an Nhost Development Project",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(true),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(false),
+						DestructiveHint: new(true),
+						IdempotentHint:  new(true),
+						OpenWorldHint:   new(true),
+					},
+				},
+				{
+					Name:        "read_page",
+					Description: docs.ToolReadPageInstructions,
+					InputSchema: mcp.ToolInputSchema{
+						Type: "object",
+						Properties: map[string]any{
+							"path": map[string]any{
+								"description": string(
+									"The documentation page path (e.g., /products/auth/overview or products/auth/overview)",
+								),
+								"type": string("string"),
+							},
+						},
+						Required: []string{"path"},
+					},
+					Annotations: mcp.ToolAnnotation{
+						Title:           "Read Nhost Documentation Page",
+						ReadOnlyHint:    new(true),
+						IdempotentHint:  new(true),
+						DestructiveHint: new(false),
+						OpenWorldHint:   new(false),
 					},
 				},
 				{
@@ -315,15 +377,21 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								"description": string("The search query"),
 								"type":        string("string"),
 							},
+							"limit": map[string]any{
+								"description": string(
+									"Maximum number of results to return (default: 10)",
+								),
+								"type": string("number"),
+							},
 						},
 						Required: []string{"query"},
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Search Nhost Docs",
-						ReadOnlyHint:    ptr(true),
-						IdempotentHint:  ptr(true),
-						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(true),
+						IdempotentHint:  new(true),
+						DestructiveHint: new(false),
+						OpenWorldHint:   new(false),
 					},
 				},
 			},

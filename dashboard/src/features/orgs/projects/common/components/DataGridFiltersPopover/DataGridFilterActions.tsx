@@ -5,9 +5,9 @@ import { ButtonGroup } from '@/components/ui/v3/button-group';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { createTableQueryKey } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { useDataGridFilters } from './DataGridFiltersProvider';
+import { useGetDataColumns } from './useGetDataColumns';
 
 function DataGridFilterActions() {
   const {
@@ -32,7 +32,7 @@ function DataGridFilterActions() {
     ),
   });
 
-  const { columns } = useDataGridConfig();
+  const columns = useGetDataColumns();
 
   function handleAddFilter() {
     addFilter({ column: columns[0].id, op: '=', value: '', id: uuidV4() });

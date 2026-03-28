@@ -34,6 +34,11 @@ const projectEventsPages = [
     slug: 'cron-triggers',
     route: 'cron-triggers',
   },
+  {
+    name: 'One-Off Scheduled Events',
+    slug: 'one-offs',
+    route: 'one-offs',
+  },
 ].map((item) => ({
   label: item.name,
   value: item.slug,

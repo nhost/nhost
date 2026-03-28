@@ -12,6 +12,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
@@ -51,11 +52,17 @@ export default function NewPasswordPage() {
     turnstileToken,
   }: NewPasswordFormValues) {
     try {
+      const { challenge, id } = await generateAndStorePKCE();
+
       await nhost.auth.sendPasswordResetEmail(
         {
           email,
+          codeChallenge: challenge,
           options: {
-            redirectTo: `${window.location.origin}/password/reset`,
+            redirectTo: appendPkceId(
+              `${window.location.origin}/password/reset`,
+              id,
+            ),
           },
         },
         {
@@ -156,7 +163,10 @@ export default function NewPasswordPage() {
 
       <Text color="secondary" className="text-center text-base lg:text-lg">
         Is your password okay?{' '}
-        <NavLink href="/signin/email" color="white" className="font-medium">
+        <NavLink
+          href="/signin/email"
+          className="px-0 font-medium text-[1.125rem] text-white"
+        >
           Sign In
         </NavLink>
       </Text>

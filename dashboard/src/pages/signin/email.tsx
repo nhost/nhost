@@ -22,7 +22,7 @@ function SigninPage() {
 
       <p className="text-center text-base lg:text-lg">
         Don&apos;t have an account?{' '}
-        <NavLink href="/signup" color="white">
+        <NavLink href="/signup" className="px-0 text-[1.125rem] text-inherit">
           Sign Up
         </NavLink>
       </p>

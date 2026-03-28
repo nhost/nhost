@@ -1,15 +1,15 @@
-import type { MutableRefObject, PropsWithChildren } from 'react';
+import type { PropsWithChildren, RefObject } from 'react';
 import { createContext, useMemo, useReducer, useRef } from 'react';
 
 export interface DataGridCellContextProps<T = HTMLElement> {
   /**
    * This `ref` should be attached to the cell element.
    */
-  cellRef: MutableRefObject<HTMLDivElement | null>;
+  cellRef: RefObject<HTMLDivElement | null>;
   /**
    * This `ref` should be attached to the input element inside the data grid cell.
    */
-  inputRef: MutableRefObject<T | null>;
+  inputRef: RefObject<T | null>;
   /**
    * Determines whether or not the cell is currently being edited.
    */

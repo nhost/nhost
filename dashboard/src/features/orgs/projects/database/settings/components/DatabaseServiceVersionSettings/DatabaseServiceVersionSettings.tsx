@@ -160,7 +160,6 @@ export default function DatabaseServiceVersionSettings() {
     };
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: need to run when currentPostgresMajor changes
   const { availableMajorVersions, majorToMinorVersions } = useMemo(
     getMajorAndMinorVersions,
     [availableVersions, currentPostgresMajor],

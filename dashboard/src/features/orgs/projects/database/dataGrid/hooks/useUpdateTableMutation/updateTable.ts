@@ -4,7 +4,6 @@ import type {
   DatabaseTable,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
-  NormalizedQueryDataRow,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -13,9 +12,9 @@ import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 export interface UpdateTableVariables {
   /**
-   * Original table.
+   * Original table name.
    */
-  originalTable: NormalizedQueryDataRow;
+  originalTableName: string;
   /**
    * Original columns of the table.
    */
@@ -38,7 +37,7 @@ export default async function updateTable({
   schema,
   appUrl,
   adminSecret,
-  originalTable,
+  originalTableName,
   originalColumns,
   originalForeignKeyRelations,
   updatedTable,
@@ -46,7 +45,7 @@ export default async function updateTable({
   const args = prepareUpdateTableQuery({
     dataSource,
     schema,
-    originalTable,
+    originalTableName,
     updatedTable,
     originalForeignKeyRelations,
     originalColumns,

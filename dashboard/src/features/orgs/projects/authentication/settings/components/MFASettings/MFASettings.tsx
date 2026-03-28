@@ -133,7 +133,7 @@ export default function MFASettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/products/auth/overview#multi-factor-authentication"
+          docsLink="https://docs.nhost.io/products/auth"
           switchId="enabled"
           showSwitch
           className={twMerge(

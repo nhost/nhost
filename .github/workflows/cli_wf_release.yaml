@@ -62,61 +62,70 @@ jobs:
     timeout-minutes: 180
 
     steps:
-    - name: "Check out repository"
-      uses: actions/checkout@v6
-      with:
-        ref: ${{ inputs.GIT_REF }}
+      - name: "Check out repository"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.GIT_REF }}
 
-    - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v5
-      with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-        aws-region: eu-central-1
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
 
-    - name: Setup Nix with Cache
-      uses: ./.github/actions/setup-nix
-      with:
-        NAME: cli
-        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: cli
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Compute common env vars
-      id: vars
-      run: |
-        echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
-        ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
-        echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
+      - name: Compute common env vars
+        id: vars
+        run: |
+          echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+          ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
+          echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
 
-    - name: "Build artifact"
-      run: |
-        make build-multiplatform
+      - name: "Build artifact"
+        run: |
+          make build-multiplatform
 
-    - name: "Upload assets"
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-      run: |
-        export VERSION=${{ steps.vars.outputs.VERSION }}
+      - name: "Upload assets"
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          export VERSION=${{ steps.vars.outputs.VERSION }}
 
-        mkdir upload
+          mkdir upload
 
-        tar cvzf upload/cli-$VERSION-darwin-amd64.tar.gz -C result/darwin/amd64 cli
-        tar cvzf upload/cli-$VERSION-darwin-arm64.tar.gz -C result/darwin/arm64 cli
-        tar cvzf upload/cli-$VERSION-linux-amd64.tar.gz -C result/linux/amd64 cli
-        tar cvzf upload/cli-$VERSION-linux-arm64.tar.gz -C result/linux/arm64 cli
+          tar cvzf upload/cli-$VERSION-darwin-amd64.tar.gz -C result/darwin/amd64 cli
+          tar cvzf upload/cli-$VERSION-darwin-arm64.tar.gz -C result/darwin/arm64 cli
+          tar cvzf upload/cli-$VERSION-linux-amd64.tar.gz -C result/linux/amd64 cli
+          tar cvzf upload/cli-$VERSION-linux-arm64.tar.gz -C result/linux/arm64 cli
 
-        cd upload
-        find . -type f -exec sha256sum {} + > ../checksums.txt
-        cd ..
+          cd upload
+          find . -type f -exec sha256sum {} + > ../checksums.txt
+          cd ..
 
-        cat checksums.txt
+          cat checksums.txt
 
-        gh release upload \
-          --clobber "${{ github.ref_name }}" \
-          ./upload/* checksums.txt
+          gh release upload \
+            --clobber "${{ github.ref_name }}" \
+            ./upload/* checksums.txt
 
-    - name: "Store Nix cache"
-      uses: ./.github/actions/cache-nix
-      with:
-        NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      if: always()
+      - name: "Update Homebrew formula"
+        uses: ./.github/actions/update-homebrew-formula
+        with:
+          formula-name: nhost
+          homebrew-tap: nhost/homebrew-tap
+          version: ${{ steps.vars.outputs.VERSION }}
+          assets-dir: cli/upload
+          github-token: ${{ secrets.GH_PAT }}
+
+      - name: "Store Nix cache"
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+        if: always()

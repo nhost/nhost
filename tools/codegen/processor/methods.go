@@ -15,6 +15,7 @@ const (
 	minStatusForError           = 300
 	mediaApplicationJSON        = "application/json"
 	mediaApplicationOctetStream = "application/octet-stream"
+	mediaFormURLEncoded         = "application/x-www-form-urlencoded"
 )
 
 type Method struct {
@@ -131,6 +132,16 @@ func (m *Method) RequestJSON() Type { //nolint:ireturn
 func (m *Method) RequestFormData() Type { //nolint:ireturn
 	for m, t := range m.Bodies {
 		if m == "multipart/form-data" {
+			return t
+		}
+	}
+
+	return nil
+}
+
+func (m *Method) RequestFormURLEncoded() Type { //nolint:ireturn
+	for m, t := range m.Bodies {
+		if m == mediaFormURLEncoded {
 			return t
 		}
 	}

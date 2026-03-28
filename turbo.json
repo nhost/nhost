@@ -3,7 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": ["dist/**", ".next/**", ".vercel/output/**"]
     },
     "@nhost/dashboard#build": {
       "dependsOn": ["^build"],

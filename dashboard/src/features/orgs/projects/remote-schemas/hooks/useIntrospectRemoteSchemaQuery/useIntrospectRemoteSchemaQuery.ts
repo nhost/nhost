@@ -38,9 +38,9 @@ export default function useIntrospectRemoteSchemaQuery(
     unknown,
     IntrospectionQuery,
     readonly ['introspect-remote-schema', string]
-  >(
-    ['introspect-remote-schema', remoteSchemaName],
-    () => {
+  >({
+    queryKey: ['introspect-remote-schema', remoteSchemaName],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -57,21 +57,19 @@ export default function useIntrospectRemoteSchemaQuery(
         },
       });
     },
-    {
-      // Avoid endless retries/refetches on deterministic errors like "remote schema not found"
-      retry: false,
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        remoteSchemaName &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-      select: (data) => data.data,
-    },
-  );
+    // Avoid endless retries/refetches on deterministic errors like "remote schema not found"
+    retry: false,
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      remoteSchemaName &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+    select: (data) => data.data,
+  });
 
   return query;
 }

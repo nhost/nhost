@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { goto } from '$app/navigation';
 import { auth, nhost } from '$lib/nhost/auth';
@@ -25,14 +26,18 @@ async function handleSubmit(e: Event) {
   success = false;
 
   try {
+    // Generate PKCE pair and store verifier for email verification
+    const { verifier, challenge } = await generatePKCEPair();
+    localStorage.setItem('nhost_pkce_verifier', verifier);
+
     const response = await nhost.auth.signUpEmailPassword({
       email,
       password,
       options: {
         displayName,
-        // Set the redirect URL for email verification
         redirectTo: `${window.location.origin}/verify`,
       },
+      codeChallenge: challenge,
     });
 
     if (response.body?.session) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"mime/multipart"
 	"net/http"
@@ -53,16 +54,20 @@ func (ctrl *Controller) getMultipartFile(file fileData) (multipart.File, string,
 		)
 	}
 
-	contentType := file.header.Header.Get("Content-Type")
-	if contentType != "" && contentType != "application/octet-stream" {
-		return fileContent, contentType, nil
-	}
-
+	// Always detect MIME type from file content, never trust the client-provided
+	// Content-Type header to prevent MIME type spoofing (GHSA-g9f6-9775-hffm).
 	mt, err := mimetype.DetectReader(fileContent)
 	if err != nil {
 		return nil, "",
 			InternalServerError(
 				fmt.Errorf("problem figuring out content type for file %s: %w", file.Name, err),
+			)
+	}
+
+	if _, err := fileContent.Seek(0, io.SeekStart); err != nil {
+		return nil, "",
+			InternalServerError(
+				fmt.Errorf("problem seeking file %s: %w", file.Name, err),
 			)
 	}
 
@@ -261,6 +266,7 @@ func (ctrl *Controller) UploadFiles( //nolint:ireturn
 
 		return InternalServerError(err), nil
 	}
+	defer form.RemoveAll() //nolint:errcheck
 
 	uploadFilesRequest, apiErr := parseUploadRequest(form)
 	if apiErr != nil {

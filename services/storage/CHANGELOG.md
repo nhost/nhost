@@ -1,3 +1,48 @@
+## [storage@0.12.1] - 2026-03-18
+
+### 🐛 Bug Fixes
+
+- *(storage)* Do not set CDN-Cache-Control header on public files (#4022)
+
+## [storage@0.12.0] - 2026-03-18
+
+### 🚀 Features
+
+- *(storage)* Allow configuring image processing workers defaulting to 2 * GOMAXPROCS (#4015)
+- *(storage)* Added cdn-cache-control middleware (#4003)
+
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Abstract metadata management and allow for fixes/merges (#3953)
+- *(storage)* Cleanup multipart form correctly when replacing files (#4002)
+- *(storage)* Always detect mimetype when uploading files (#4018)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(storage)* Reflect supported formats for quality option correctly (#4014)
+
+## [storage@0.11.1] - 2026-02-16
+
+### 🐛 Bug Fixes
+
+- *(nixops)* Bump go to 1.26.0 (#3907)
+- *(storage)* Memory improvements (#3912)
+
+## [storage@0.11.0] - 2026-02-02
+
+### 🚀 Features
+
+- *(nixops)* Update nixpkgs (#3808)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Bump schema (#3763)
+- *(internal/lib)* Avoid reading multipart-form body (#3861)
+- *(storage)* Improve image processing and resource management (#3835)
+
 ## [storage@0.10.0] - 2025-11-27
 
 ### 🚀 Features

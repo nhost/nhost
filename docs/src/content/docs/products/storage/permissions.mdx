@@ -1,0 +1,198 @@
+---
+title: Permissions
+description: Control file access with Hasura's permission system
+keywords: ["storage", "permissions", "access control", "Hasura", "authorization", "roles", "security"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+File permissions are managed through [Hasura's permission system](/products/graphql/permissions) on the `storage.files` table. The same role-based, row-level permissions used for your application data control who can upload, download, and delete files.
+
+Permissions follow a **Zero Trust** model -- by default no role has access. Access must be explicitly granted.
+
+## Permission Types
+
+| Operation | Hasura Permission | Required Columns |
+|-----------|------------------|-----------------|
+| **Upload** | `insert` on `storage.files` | `id` must be granted. Optionally: `bucket_id`, `name`, `size`, `mime_type` |
+| **Download** | `select` on `storage.files` | **All** columns must be granted |
+| **Delete** | `delete` on `storage.files` | -- |
+
+## How It Works
+
+When a user makes a request to the Storage API:
+
+1. The Storage service extracts the JWT from the `Authorization` header
+2. The JWT contains the user's ID, role, and any custom claims
+3. Storage forwards these as Hasura session variables (`X-Hasura-User-Id`, `X-Hasura-Role`, etc.)
+4. Hasura evaluates the permission rules for the `storage.files` table
+5. If the permission check passes, the operation proceeds
+
+This means the same permission variables available in your GraphQL permissions also work for storage:
+- `X-Hasura-User-Id` -- the authenticated user's ID
+- `X-Hasura-Role` -- the user's role
+- Custom claims like `X-Hasura-Org-Id` (see [Permission Variables](/products/graphql/permissions#permission-variables))
+
+## Examples
+
+### Private Files -- Users Access Only Their Own Files
+
+The most common pattern. Users can upload, download, and delete only files they own, in a specific bucket.
+
+<Tabs>
+<TabItem label="Insert (Upload)">
+
+**Row check:** `bucket_id` equals `personal`
+
+**Column presets:** `uploaded_by_user_id` set to `X-Hasura-User-Id`
+
+| Setting | Value |
+|---------|-------|
+| Role | `user` |
+| Columns | `id`, `bucket_id`, `name`, `size`, `mime_type` |
+| Row check | `{"bucket_id": {"_eq": "personal"}}` |
+| Column preset | `uploaded_by_user_id` = `X-Hasura-User-Id` |
+
+The column preset automatically sets `uploaded_by_user_id` from the session, ensuring every file is tagged with its uploader.
+
+</TabItem>
+<TabItem label="Select (Download)">
+
+**Row check:** `uploaded_by_user_id` equals the current user AND `bucket_id` equals `personal`
+
+| Setting | Value |
+|---------|-------|
+| Role | `user` |
+| Columns | **All** |
+| Row check | `{"_and": [{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}, {"bucket_id": {"_eq": "personal"}}]}` |
+
+</TabItem>
+<TabItem label="Delete">
+
+**Row check:** same as select -- user owns the file and it's in the `personal` bucket.
+
+| Setting | Value |
+|---------|-------|
+| Role | `user` |
+| Row check | `{"_and": [{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}, {"bucket_id": {"_eq": "personal"}}]}` |
+
+</TabItem>
+</Tabs>
+
+### Public Read, Authenticated Write
+
+Files in a `public` bucket can be downloaded by anyone (including `public` role), but only authenticated users can upload.
+
+<Tabs>
+<TabItem label="Insert (Upload)">
+
+| Setting | Value |
+|---------|-------|
+| Role | `user` |
+| Columns | `id`, `bucket_id`, `name`, `size`, `mime_type` |
+| Row check | `{"bucket_id": {"_eq": "public"}}` |
+| Column preset | `uploaded_by_user_id` = `X-Hasura-User-Id` |
+
+</TabItem>
+<TabItem label="Select (Download)">
+
+Grant select to **both** the `user` and `public` roles:
+
+| Setting | Value |
+|---------|-------|
+| Role | `public` |
+| Columns | **All** |
+| Row check | `{"bucket_id": {"_eq": "public"}}` |
+
+| Setting | Value |
+|---------|-------|
+| Role | `user` |
+| Columns | **All** |
+| Row check | `{"bucket_id": {"_eq": "public"}}` |
+
+</TabItem>
+</Tabs>
+
+### Multi-Tenant -- Organization-Scoped Files
+
+For multi-tenant applications where files belong to an organization. This uses a custom claim `X-Hasura-Org-Id` (see [Permission Variables](/products/graphql/permissions#permission-variables)).
+
+This example assumes you have a relationship from `storage.files` to your `organizations` table through a custom `org_id` column in your file metadata or through a linking table.
+
+A simpler approach uses the file's custom `metadata` JSONB column to store the organization ID, and a Hasura computed field or relationship to evaluate it.
+
+Alternatively, you can create a dedicated `organization_files` table that references `storage.files`:
+
+```sql
+CREATE TABLE public.organization_files (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  file_id uuid NOT NULL REFERENCES storage.files(id) ON DELETE CASCADE,
+  org_id uuid NOT NULL REFERENCES public.organizations(id)
+);
+```
+
+Then set permissions on this linking table using `X-Hasura-Org-Id`, and configure a relationship from `storage.files` to `organization_files`. For the storage permissions themselves:
+
+<Tabs>
+<TabItem label="Insert (Upload)">
+
+| Setting | Value |
+|---------|-------|
+| Role | `user` |
+| Columns | `id`, `bucket_id`, `name`, `size`, `mime_type` |
+| Row check | `{"bucket_id": {"_eq": "org-files"}}` |
+| Column preset | `uploaded_by_user_id` = `X-Hasura-User-Id` |
+
+</TabItem>
+<TabItem label="Select (Download)">
+
+Use a relationship-based permission that checks the linked `organization_files` table:
+
+| Setting | Value |
+|---------|-------|
+| Role | `user` |
+| Columns | **All** |
+| Row check | `{"organization_files": {"org_id": {"_eq": "X-Hasura-Org-Id"}}}` |
+
+</TabItem>
+</Tabs>
+
+### Role-Based Access
+
+Different roles get different levels of access. For example, `editor` can upload and delete, while `viewer` can only download.
+
+<Tabs>
+<TabItem label="Editor Role">
+
+**Insert:**
+| Setting | Value |
+|---------|-------|
+| Role | `editor` |
+| Columns | `id`, `bucket_id`, `name`, `size`, `mime_type` |
+| Column preset | `uploaded_by_user_id` = `X-Hasura-User-Id` |
+
+**Select:** All columns, no row restriction.
+
+**Delete:** `{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}` (editors can only delete their own uploads).
+
+</TabItem>
+<TabItem label="Viewer Role">
+
+**Select only:** All columns, no row restriction.
+
+No insert or delete permissions.
+
+</TabItem>
+</Tabs>
+
+## Tips
+
+- Always use column presets for `uploaded_by_user_id` on insert permissions. This prevents users from impersonating others.
+- Restrict `bucket_id` in row checks to control which buckets a role can access.
+- Use the `public` role for files that should be accessible without authentication.
+- Combine bucket restrictions with ownership checks for fine-grained control.
+- Test permissions by signing in as different users and verifying access is correctly scoped.
+
+:::caution
+Deleting file metadata directly through GraphQL does **not** delete the actual file from S3. Always use the Storage API to delete files so both the metadata and the file content are removed.
+:::

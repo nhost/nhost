@@ -57,10 +57,16 @@ func TestReplaceFile(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name string
+		name     string
+		contents string
 	}{
 		{
-			name: "successful",
+			name:     "successful",
+			contents: "some content",
+		},
+		{
+			name:     "successful with large file exceeding maxFormMemory",
+			contents: strings.Repeat("x", 1<<20+1),
 		},
 	}
 
@@ -73,7 +79,7 @@ func TestReplaceFile(t *testing.T) {
 			)
 
 			file := fakeFile{
-				contents:    "some content",
+				contents:    tc.contents,
 				contentType: "",
 				md: fakeFileMetadata{
 					Name: "a_file.txt",
@@ -104,7 +110,7 @@ func TestReplaceFile(t *testing.T) {
 					UpdatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC), // ignored
 					IsUploaded:       true,
 					MimeType:         "text/plain; charset=utf-8",
-					UploadedByUserId: ptr("some-valid-uuid"),
+					UploadedByUserId: new("some-valid-uuid"),
 				},
 				nil,
 			)
@@ -114,7 +120,7 @@ func TestReplaceFile(t *testing.T) {
 				controller.BucketMetadata{
 					ID:                   "blah",
 					MinUploadFile:        0,
-					MaxUploadFile:        100,
+					MaxUploadFile:        2 << 20,
 					PresignedURLsEnabled: true,
 					DownloadExpiration:   30,
 					CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
@@ -158,8 +164,8 @@ func TestReplaceFile(t *testing.T) {
 					UpdatedAt:        time.Time{}, // ignored
 					IsUploaded:       true,
 					MimeType:         "text/plain; charset=utf-8",
-					UploadedByUserId: ptr("some-valid-uuid"),
-					Metadata:         ptr(map[string]any{"some": "metadata"}),
+					UploadedByUserId: new("some-valid-uuid"),
+					Metadata:         new(map[string]any{"some": "metadata"}),
 				},
 				nil)
 
@@ -190,15 +196,15 @@ func TestReplaceFile(t *testing.T) {
 			assert(t, api.ReplaceFile200JSONResponse{
 				Id:               file.md.ID,
 				Name:             "a_file.txt",
-				Size:             12,
+				Size:             int64(len(tc.contents)),
 				BucketId:         "blah",
 				Etag:             "some-etag",
 				CreatedAt:        time.Time{}, // ignored
 				UpdatedAt:        time.Time{}, // ignored
 				IsUploaded:       true,
 				MimeType:         "text/plain; charset=utf-8",
-				UploadedByUserId: ptr("some-valid-uuid"),
-				Metadata:         ptr(map[string]any{"some": "metadata"}),
+				UploadedByUserId: new("some-valid-uuid"),
+				Metadata:         new(map[string]any{"some": "metadata"}),
 			}, resp,
 				cmpopts.IgnoreFields(api.FileMetadata{}, "Id", "CreatedAt", "UpdatedAt"),
 			)

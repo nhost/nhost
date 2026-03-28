@@ -1,0 +1,45 @@
+---
+import { getType } from '../../libs/items'
+import type { Properties, SchemaObject } from '../../libs/schemaObject'
+import Key from '../Key.astro'
+import Tag from '../Tag.astro'
+
+import Schema from './SchemaObject.astro'
+
+interface Props {
+  parents: SchemaObject[]
+  properties: Properties
+  required: string[] | undefined
+}
+
+const { parents, properties, required } = Astro.props
+---
+
+{
+  Object.entries(properties).map(([name, schema]) => {
+    const isRecursive = parents?.some(
+      (parent) => parent === schema || (schema.type === 'array' && parent === schema.items),
+    )
+
+    return (
+      <Key name={name} required={required?.includes(name)}>
+        {isRecursive ? (
+          <div>
+            <span class="type">{getType(schema)}</span>
+            <Tag>recursive</Tag>
+          </div>
+        ) : (
+          <Schema parents={parents} nested schemaObject={schema} />
+        )}
+      </Key>
+    )
+  })
+}
+
+<style>
+  .type {
+    color: var(--sl-color-text-accent);
+    font-weight: 600;
+    margin-inline-end: 0.3rem;
+  }
+</style>

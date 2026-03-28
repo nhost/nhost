@@ -27,35 +27,35 @@ export interface ControlledSwitchProps<TFieldValues extends FieldValues = any>
   control?: UseControllerProps<TFieldValues>['control'];
 }
 
-function ControlledSwitch(
-  { controllerProps, name, control, ...props }: ControlledSwitchProps,
-  ref: ForwardedRef<HTMLSpanElement>,
-) {
-  const { setValue } = useFormContext();
-  const nameAttr = controllerProps?.name || name || '';
-  const { field } = useController({
-    ...controllerProps,
-    name: nameAttr,
-    control: controllerProps?.control || control,
-  });
+export default forwardRef(
+  (
+    { controllerProps, name, control, ...props }: ControlledSwitchProps,
+    ref: ForwardedRef<HTMLSpanElement>,
+  ) => {
+    const { setValue } = useFormContext();
+    const nameAttr = controllerProps?.name || name || '';
+    const { field } = useController({
+      ...controllerProps,
+      name: nameAttr,
+      control: controllerProps?.control || control,
+    });
 
-  return (
-    <Switch
-      {...props}
-      {...field}
-      ref={mergeRefs([field.ref, ref])}
-      onChange={(event) => {
-        setValue(nameAttr, event.target.checked, {
-          shouldDirty: true,
-        });
+    return (
+      <Switch
+        {...props}
+        {...field}
+        ref={mergeRefs([field.ref, ref])}
+        onChange={(event) => {
+          setValue(nameAttr, event.target.checked, {
+            shouldDirty: true,
+          });
 
-        if (props.onChange) {
-          props.onChange(event);
-        }
-      }}
-      checked={field.value || false}
-    />
-  );
-}
-
-export default forwardRef(ControlledSwitch);
+          if (props.onChange) {
+            props.onChange(event);
+          }
+        }}
+        checked={field.value || false}
+      />
+    );
+  },
+);

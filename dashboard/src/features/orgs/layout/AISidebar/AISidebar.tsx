@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { NavLink } from '@/components/common/NavLink';
+import { ListNavLink } from '@/components/common/NavLink';
 import { Backdrop } from '@/components/ui/v2/Backdrop';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
@@ -47,7 +47,7 @@ function AINavLink({ exact = true, href, children, ...props }: AINavLinkProps) {
       <ListItem.Button
         dense
         href={finalUrl}
-        component={NavLink}
+        component={ListNavLink}
         selected={active}
         {...props}
       >

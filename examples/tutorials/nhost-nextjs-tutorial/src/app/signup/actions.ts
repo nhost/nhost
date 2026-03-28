@@ -8,6 +8,7 @@ export async function signUp(formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
   const displayName = formData.get('displayName') as string;
+  const codeChallenge = formData.get('codeChallenge') as string;
 
   if (!email || !password || !displayName) {
     return {
@@ -23,9 +24,9 @@ export async function signUp(formData: FormData) {
       password,
       options: {
         displayName,
-        // Set the redirect URL for email verification
         redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify`,
       },
+      codeChallenge,
     });
 
     if (response.body?.session) {

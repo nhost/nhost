@@ -67,6 +67,7 @@ function ConfirmDeleteAccountModal({
           <Button
             color="error"
             onClick={onClickConfirm}
+            disabled={!remove}
             loading={loadingRemove}
           >
             Delete

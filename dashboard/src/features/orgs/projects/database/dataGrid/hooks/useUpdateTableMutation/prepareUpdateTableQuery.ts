@@ -1,4 +1,8 @@
 import { format } from 'node-pg-format';
+import {
+  getPreparedHasuraQuery,
+  type HasuraOperation,
+} from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import { prepareCreateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateColumnMutation';
 import { prepareUpdateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateColumnMutation';
 import type {
@@ -6,12 +10,7 @@ import type {
   DatabaseTable,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
-  NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  getPreparedHasuraQuery,
-  type HasuraOperation,
-} from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import { prepareUpdateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
 import { areStrArraysEqual, isNotEmptyValue } from '@/lib/utils';
@@ -19,9 +18,9 @@ import { areStrArraysEqual, isNotEmptyValue } from '@/lib/utils';
 export interface PrepareUpdateTableQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'table' | 'adminSecret'> {
   /**
-   * Original table.
+   * Original table name.
    */
-  originalTable: NormalizedQueryDataRow;
+  originalTableName: string;
   /**
    * Updated table data.
    */
@@ -45,7 +44,7 @@ export interface PrepareUpdateTableQueryVariables
 export default function prepareUpdateTableQuery({
   dataSource,
   schema,
-  originalTable,
+  originalTableName,
   updatedTable,
   originalColumns,
   originalForeignKeyRelations,
@@ -73,7 +72,7 @@ export default function prepareUpdateTableQuery({
           dataSource,
           'ALTER TABLE %I.%I DROP COLUMN IF EXISTS %I',
           schema,
-          originalTable.table_name,
+          originalTableName,
           column.id,
         ),
       ),
@@ -85,7 +84,7 @@ export default function prepareUpdateTableQuery({
       const baseVariables = {
         dataSource,
         schema,
-        table: originalTable.table_name,
+        table: originalTableName,
         column: {
           ...column,
           isIdentity: updatedTable.identityColumn === column.name,
@@ -133,7 +132,7 @@ export default function prepareUpdateTableQuery({
             dataSource,
             'ALTER TABLE %I.%I DROP CONSTRAINT IF EXISTS %I',
             schema,
-            originalTable.table_name,
+            originalTableName,
             primaryConstraint,
           ),
         ),
@@ -144,7 +143,7 @@ export default function prepareUpdateTableQuery({
           dataSource,
           'ALTER TABLE %I.%I ADD PRIMARY KEY (%s)',
           schema,
-          originalTable.table_name,
+          originalTableName,
           primaryKeyList,
         ),
       );
@@ -171,7 +170,7 @@ export default function prepareUpdateTableQuery({
           dataSource,
           'ALTER TABLE %I.%I DROP CONSTRAINT IF EXISTS %I',
           schema,
-          originalTable.table_name,
+          originalTableName,
           foreignKeyRelation.name,
         ),
       ),
@@ -191,7 +190,7 @@ export default function prepareUpdateTableQuery({
           const baseVariables = {
             dataSource,
             schema,
-            table: originalTable.table_name,
+            table: originalTableName,
             foreignKeyRelation,
           };
 
@@ -219,13 +218,13 @@ export default function prepareUpdateTableQuery({
     );
   }
 
-  if (originalTable.table_name !== updatedTable.name) {
+  if (originalTableName !== updatedTable.name) {
     args = args.concat(
       getPreparedHasuraQuery(
         dataSource,
         'ALTER TABLE %I.%I RENAME TO %I',
         schema,
-        originalTable.table_name,
+        originalTableName,
         updatedTable.name,
       ),
     );

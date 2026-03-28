@@ -15,6 +15,7 @@ export default function MfaVerification(): JSX.Element {
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const ticket = searchParams.get('ticket');
+  const redirect = searchParams.get('redirect');
   const initialError = searchParams.get('error');
 
   const { isAuthenticated, nhost } = useAuth();
@@ -25,16 +26,16 @@ export default function MfaVerification(): JSX.Element {
 
   // Use effect to handle redirects
   useEffect(() => {
-    // If user is already authenticated, redirect to profile
+    // If user is already authenticated, redirect to destination
     if (isAuthenticated) {
-      navigate('/profile', { replace: true });
+      navigate(redirect || '/profile', { replace: true });
     }
 
     // If no ticket is provided, redirect to sign in
     if (!ticket && !isLoading) {
       navigate('/signin', { replace: true });
     }
-  }, [isAuthenticated, ticket, navigate, isLoading]);
+  }, [isAuthenticated, ticket, navigate, isLoading, redirect]);
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>,
@@ -49,7 +50,7 @@ export default function MfaVerification(): JSX.Element {
       if (result.error) {
         setError(result.error);
       } else if (result.success) {
-        navigate('/profile', { replace: true });
+        navigate(redirect || '/profile', { replace: true });
       }
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;

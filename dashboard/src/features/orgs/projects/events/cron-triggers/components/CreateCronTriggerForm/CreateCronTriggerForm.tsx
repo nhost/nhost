@@ -16,20 +16,13 @@ const renderCreateCronTriggerButton = ({
   <Button
     variant="link"
     className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
-    aria-label="Add cron trigger"
     onClick={() => open()}
   >
     New Cron Trigger <Plus className="h-4 w-4" />
   </Button>
 );
 
-interface CreateCronTriggerFormProps {
-  disabled: boolean;
-}
-
-export default function CreateCronTriggerForm({
-  disabled,
-}: CreateCronTriggerFormProps) {
+export default function CreateCronTriggerForm() {
   const { mutateAsync: createCronTrigger } = useCreateCronTriggerMutation();
   const router = useRouter();
   const { orgSlug, appSubdomain } = router.query;
@@ -56,7 +49,7 @@ export default function CreateCronTriggerForm({
 
   return (
     <BaseCronTriggerForm
-      trigger={disabled ? undefined : renderCreateCronTriggerButton}
+      trigger={renderCreateCronTriggerButton}
       onSubmit={handleSubmit}
       titleText="Create a New Cron Trigger"
       descriptionText="Enter the details to create your cron trigger. Click Create when you're done."

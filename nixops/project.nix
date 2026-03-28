@@ -38,12 +38,13 @@ let
     gofumpt
     golines
     skopeo
-    postgresql_18_1-client
+    postgresql_18-client
     sqlc
     vacuum-go
     bun
     clang
     pkg-config
+    nodejs
   ];
 
   nativeBuildInputs = [ ];

@@ -1,5 +1,5 @@
+import { buildRequestTransformDTO } from '@/features/orgs/projects/events/common/utils/buildRequestTransformDTO';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
-import { buildCronTriggerRequestTransformDTO } from '@/features/orgs/projects/events/cron-triggers/utils/buildCronTriggerRequestTransformDTO';
 import { isNotEmptyValue } from '@/lib/utils';
 import type {
   CreateCronTriggerArgs,
@@ -49,7 +49,7 @@ export default function buildCronTriggerDTO({
   const shouldIncludeRequestTransform =
     !!formValues.requestOptionsTransform || !!formValues.payloadTransform;
   const request_transform = shouldIncludeRequestTransform
-    ? buildCronTriggerRequestTransformDTO(formValues)
+    ? buildRequestTransformDTO(formValues)
     : undefined;
 
   return {

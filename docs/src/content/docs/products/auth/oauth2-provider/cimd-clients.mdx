@@ -1,0 +1,81 @@
+---
+title: CIMD Clients
+description: Support URL-based client IDs for MCP tools and dynamic clients using RFC 9728
+keywords: ["oauth2", "cimd", "client id metadata document", "rfc 9728", "mcp", "url-based", "dynamic"]
+sidebar:
+  label: CIMD Clients
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+Client ID Metadata Document (CIMD) clients use a **URL as their client ID** instead of a pre-registered identifier. This follows [draft-ietf-oauth-client-id-metadata-document-00
+](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00) and is designed for tools that need to dynamically register with authorization servers — most notably [MCP (Model Context Protocol)](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization#client-id-metadata-documents) servers.
+
+## When to Use
+
+CIMD is for scenarios where:
+
+- The third-party app cannot pre-register a client (e.g. an MCP tool connecting to many different auth providers)
+- You want to support dynamic clients without manual registration
+- The tool follows RFC 9728 for client metadata discovery
+
+## Enabling CIMD
+
+CIMD must be explicitly enabled. Go to your project's dashboard, then **Settings** → **OAuth2 Provider** and toggle **Client ID Metadata Document**, or add it to your `nhost.toml`:
+
+<Tabs>
+<TabItem label="Dashboard">
+
+![OAuth2 Provider settings with CIMD toggle](/images/products/auth/oauth2/settings.png)
+
+</TabItem>
+<TabItem label="nhost.toml">
+
+```toml
+[auth.oauth2Provider]
+# Enable the OAuth2/OIDC provider
+enabled = true # default: false
+
+[auth.oauth2Provider.clientIdMetadataDocument]
+# Enable Client ID Metadata Document (CIMD) support
+enabled = true # default: false
+```
+
+</TabItem>
+</Tabs>
+
+## How It Works
+
+Instead of a pre-registered `nhoa_...` client ID, the third-party app provides an HTTPS URL as its `client_id` in the authorization request. Nhost Auth:
+
+1. Fetches the metadata document from that URL
+2. Validates the metadata (redirect URIs, scopes, grant types)
+3. Creates or updates the client record automatically
+4. Proceeds with the standard authorization code flow
+
+The metadata document hosted at the client ID URL looks like:
+
+```json
+{
+  "client_id": "https://my-mcp-tool.example.com/oauth/client.json",
+  "redirect_uris": ["https://my-mcp-tool.example.com/callback"],
+  "scope": "openid profile email",
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+CIMD clients are always **public** (no secret) and must use **PKCE**.
+
+## Security
+
+Nhost Auth enforces several security measures when fetching client metadata:
+
+- The `client_id` URL must use **HTTPS** (HTTP is only allowed in development)
+- The URL must have a non-trivial path, no fragment, no credentials, and no dot segments
+- **Private and loopback IP addresses are blocked** (SSRF protection)
+- DNS rebinding protection is enforced
+- Metadata is **cached for 1 hour** to avoid excessive fetching
+- Maximum response size is **5 KB** with a **5-second timeout**
+- Redirect URIs in the metadata must be on the **same origin** as the client ID URL

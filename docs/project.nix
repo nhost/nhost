@@ -11,7 +11,7 @@ let
 
     src = nix-filter.lib.filter {
       root = ../.;
-      include = [
+      include = with nix-filter.lib; [
         ".npmrc"
         "package.json"
         "pnpm-workspace.yaml"
@@ -29,7 +29,9 @@ let
       ".npmrc"
       ".prettierignore"
       ".prettierrc.js"
+      ".gitignore"
       "audit-ci.jsonc"
+      "biome.json"
       "package.json"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
@@ -48,12 +50,12 @@ let
     ];
   };
 
-  checkDeps = [
-    self.packages.${pkgs.system}.cli
-    self.packages.${pkgs.system}.mintlify-openapi
+  checkDeps = with pkgs; [
+    self.packages.${pkgs.stdenv.hostPlatform.system}.cli
+    vale
   ];
 
-  buildInputs = with pkgs; [ nodejs mintlify ];
+  buildInputs = with pkgs; [ nodejs ];
 
   nativeBuildInputs = with pkgs; [ pnpm cacert ];
 in
@@ -70,8 +72,8 @@ in
 
     preCheck = ''
       mkdir -p packages/nhost-js
-      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
-      cp -r ${self.packages.${pkgs.system}.nhost-js}/node_modules packages/nhost-js/node_modules
+      cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js}/dist packages/nhost-js/dist
+      cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js}/node_modules packages/nhost-js/node_modules
     '';
   };
 }

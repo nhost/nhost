@@ -109,7 +109,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				AttestationFormats:    nil,
 				AuthenticatorSelection: protocol.AuthenticatorSelection{
 					AuthenticatorAttachment: "",
-					RequireResidentKey:      ptr(false),
+					RequireResidentKey:      new(false),
 					ResidentKey:             "preferred",
 					UserVerification:        "preferred",
 				},
@@ -272,7 +272,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				AttestationFormats: nil,
 				AuthenticatorSelection: protocol.AuthenticatorSelection{
 					AuthenticatorAttachment: "",
-					RequireResidentKey:      ptr(false),
+					RequireResidentKey:      new(false),
 					ResidentKey:             "preferred",
 					UserVerification:        "preferred",
 				},

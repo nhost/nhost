@@ -11,7 +11,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
-func GetClaim[T any](token *jwt.Token, claim string) (T, error) { //nolint:ireturn
+func GetClaim[T any](token *jwt.Token, claim string) (T, error) { //nolint:ireturn,nolintlint
 	var claimValue T
 
 	claims, ok := token.Claims.(jwt.MapClaims)

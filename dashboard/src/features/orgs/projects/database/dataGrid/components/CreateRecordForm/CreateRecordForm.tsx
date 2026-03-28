@@ -33,7 +33,10 @@ export default function CreateRecordForm({
   const form = useForm({
     defaultValues: props.columns.reduce((defaultValues, column) => {
       if (column.defaultValue && column.type === 'boolean') {
-        return { ...defaultValues, [column.id]: column.defaultValue };
+        return {
+          ...defaultValues,
+          [column.id]: column.defaultValue,
+        };
       }
 
       return { ...defaultValues, [column.id]: null };

@@ -10,8 +10,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/common/constants';
 import { InvocationLogDetailsDialogContent } from '@/features/orgs/projects/events/event-triggers/components/InvocationLogDetailsDialogContent';
-import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
 import useRedeliverEventMutation from '@/features/orgs/projects/events/event-triggers/hooks/useRedeliverEventMutation/useRedeliverEventMutation';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { GetEventAndInvocationLogsByIdResponse } from '@/utils/hasura-api/generated/schemas';
@@ -27,7 +27,7 @@ export default function InvocationLogActionsCell({
 }) {
   const meta = table.options.meta as EventTriggerInvocationLogsDataTableMeta;
 
-  const { mutateAsync: redeliverEvent, isLoading: isRedelivering } =
+  const { mutateAsync: redeliverEvent, isPending: isRedelivering } =
     useRedeliverEventMutation();
 
   const [open, setOpen] = useState(false);

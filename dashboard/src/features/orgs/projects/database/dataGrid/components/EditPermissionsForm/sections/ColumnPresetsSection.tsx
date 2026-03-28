@@ -11,8 +11,8 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -33,23 +33,18 @@ export interface ColumnPresetSectionProps {
    * Table to use for fetching available columns.
    */
   table: string;
-  /**
-   * Determines whether or not the section is disabled.
-   */
-  disabled?: boolean;
 }
 
 export default function ColumnPresetsSection({
   schema,
   table,
-  disabled,
 }: ColumnPresetSectionProps) {
   const theme = useTheme();
   const {
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`default.${schema}.${table}`], { schema, table });
+  } = useTableSchemaQuery([`default.${schema}.${table}`], { schema, table });
 
   const { project } = useProject();
 
@@ -109,7 +104,6 @@ export default function ColumnPresetsSection({
                 className="grid grid-cols-[1fr_1fr_40px] gap-2"
               >
                 <ControlledSelect
-                  disabled={disabled}
                   name={`columnPresets.${index}.column`}
                   error={Boolean(
                     errors?.columnPresets?.at?.(index)?.column?.message,
@@ -127,7 +121,6 @@ export default function ColumnPresetsSection({
                 </ControlledSelect>
 
                 <Autocomplete
-                  disabled={disabled}
                   options={permissionVariableOptions}
                   groupBy={(option) => option.group || ''}
                   name={`columnPresets.${index}.value`}
@@ -192,7 +185,6 @@ export default function ColumnPresetsSection({
                 />
 
                 <IconButton
-                  disabled={disabled}
                   variant="outlined"
                   color="secondary"
                   className="flex-[40px] shrink-0 grow-0"
@@ -218,9 +210,7 @@ export default function ColumnPresetsSection({
           startIcon={<PlusIcon />}
           size="small"
           onClick={() => append({ column: '', value: '' })}
-          disabled={
-            selectedColumns.length === allColumnNames.length || disabled
-          }
+          disabled={selectedColumns.length === allColumnNames.length}
           className="justify-self-start"
         >
           Add Column

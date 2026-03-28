@@ -52,12 +52,32 @@ object_relationships:
   - name: bucket
     using:
       foreign_key_constraint_on: bucket_id
+  - name: uploadedByUser
+    using:
+      manual_configuration:
+        column_mapping:
+          uploaded_by_user_id: id
+        insertion_order: null
+        remote_table:
+          name: users
+          schema: auth
+array_relationships:
+  - name: community_files
+    using:
+      foreign_key_constraint_on:
+        column: file_id
+        table:
+          name: community_files
+          schema: public
 insert_permissions:
   - role: user
     permission:
       check:
         bucket_id:
-          _eq: default
+          _in:
+            - default
+            - personal
+            - communities
       set:
         uploaded_by_user_id: X-Hasura-User-Id
       columns:
@@ -82,11 +102,19 @@ select_permissions:
         - uploaded_by_user_id
         - metadata
       filter:
-        _and:
-          - bucket_id:
-              _eq: default
-          - uploaded_by_user_id:
-              _eq: X-Hasura-User-Id
+        _or:
+          - _and:
+              - uploaded_by_user_id:
+                  _eq: X-Hasura-User-Id
+              - bucket_id:
+                  _in:
+                    - default
+                    - personal
+          - community_files:
+              community:
+                members:
+                  user_id:
+                    _eq: X-Hasura-User-Id
 delete_permissions:
   - role: user
     permission:

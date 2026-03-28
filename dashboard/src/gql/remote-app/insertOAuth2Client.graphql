@@ -1,0 +1,11 @@
+mutation InsertOAuth2Client($object: authOauth2Clients_insert_input!) {
+  insertAuthOauth2Client(object: $object) {
+    clientId
+    clientSecretHash
+    redirectUris
+    scopes
+    metadata
+    createdAt
+    updatedAt
+  }
+}

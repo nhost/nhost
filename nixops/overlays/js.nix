@@ -1,41 +1,41 @@
 (final: prev:
 let
-  biome_version = "2.3.11";
+  biome_version = "2.4.2";
   biome_dist = {
     aarch64-darwin = {
       url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-arm64";
-      sha256 = "0arxr9ghdkg0xnq11fnj0klnwllh7s56pjnw591fs989yj7wh3sh";
+      sha256 = "1qjmbnw0v000d6qgfa8rgicra9sq737w555s2l0n4phkp465yyqw";
     };
     x86_64-darwin = {
       url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-x64";
-      sha256 = "1fpm6nkfypbq46va1mi8ybfqp75bhkp6b16np1gdn4kc2hqxzx90";
+      sha256 = "05jjj2nw0fziiagcahw29lr6km3dlcpjjl5rnv2y16r067288srl";
     };
     aarch64-linux = {
       url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-arm64";
-      sha256 = "0y2mab4ggz4w9wj5f5j7h47hpzzx0jfm6a2z3s609b5bmnqf8v03";
+      sha256 = "116mddjdy8m23mc0i7g51qv2g0lcfhwzg13g189gnqwg3isb99qy";
     };
     x86_64-linux = {
       url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-x64";
-      sha256 = "0rwfwksvbdawrpgcd7r52w8vzp7lz224inqzmgwcncrf22n7yn4j";
+      sha256 = "10pr2ymh7846karlswy9xnd24pfv6p4bjcm2azmii3pczv2shnh2";
     };
   };
 in
 rec{
-  nodejs-slim_20 = prev.nodejs-slim_20.overrideAttrs (oldAttrs: rec {
-    version = "20.20.0";
+  nodejs-slim_24 = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
+    version = "24.13.0";
     src = prev.fetchurl {
       url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
-      sha256 = "sha256-UpTZ0pFWIOgZ5okv1+VFuY1lC6022uVOZSfqrEgq3Zg=";
+      sha256 = "sha256-Mg/pCcuzR9z1FiAeSWTvF3uBON+af4ENDVSVBIGzFYs=";
     };
   });
 
   nodejs = final.symlinkJoin {
     name = "nodejs";
-    version = final.nodejs-slim_20.version;
-    paths = [ final.nodejs-slim_20 npm_11 ];
+    version = final.nodejs-slim_24.version;
+    paths = [ final.nodejs-slim_24 npm_11 ];
 
     passthru = {
-      inherit (final.nodejs-slim_20) version python meta src;
+      inherit (final.nodejs-slim_24) version python meta src;
 
       pkgs = final.callPackage "${final.path}/pkgs/development/node-packages/default.nix" {
         nodejs = final.nodejs;
@@ -43,7 +43,12 @@ rec{
     };
   };
 
-  nodePackages = prev.nodejs.pkgs;
+  nodePackages = prev.nodejs.pkgs // {
+    vercel = (import ./vercel {
+      pkgs = final;
+      nodejs = final.nodejs;
+    })."vercel-50.9.5";
+  };
 
   buildNpmPackage = prev.buildNpmPackage.override {
     nodejs = prev.nodejs;

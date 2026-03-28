@@ -1,0 +1,33 @@
+---
+interface Props {
+  deprecated: boolean | undefined
+}
+
+const { deprecated } = Astro.props
+---
+
+{deprecated && <div>Deprecated</div>}
+
+<style>
+  :root {
+    --sl-openapi-deprecated-hue: 50;
+  }
+
+  div {
+    --sl-openapi-deprecated-bg: hsl(var(--sl-openapi-deprecated-hue), 82%, 13%);
+    --sl-openapi-deprecated-border: hsl(var(--sl-openapi-deprecated-hue), 82%, 63%);
+
+    background-color: var(--sl-openapi-deprecated-bg);
+    border: 1px solid var(--sl-openapi-deprecated-border);
+    color: hsl(0, 0%, 100%);
+    display: inline-block;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    padding: 0.13rem 0.6rem;
+  }
+
+  :global(:root[data-theme='light']) div {
+    --sl-openapi-deprecated-bg: hsl(var(--sl-openapi-deprecated-hue), 90%, 28%);
+    --sl-openapi-deprecated-border: hsl(var(--sl-openapi-deprecated-hue), 90%, 60%);
+  }
+</style>

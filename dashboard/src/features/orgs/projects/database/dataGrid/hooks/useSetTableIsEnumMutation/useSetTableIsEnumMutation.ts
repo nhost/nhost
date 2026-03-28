@@ -1,5 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -32,35 +33,45 @@ export default function useSetTableIsEnumMutation({
 }: UseSetTableIsEnumMutationOptions = {}) {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const queryClient = useQueryClient();
 
   const mutation = useMutation<
     SuccessResponse | MetadataOperation200,
     unknown,
     SetTableIsEnumVariables | SetTableIsEnumMigrationVariables
-  >((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+  >({
+    mutationFn: (variables) => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
 
-    const base = {
-      appUrl,
-      adminSecret: project!.config!.hasura.adminSecret,
-    } as const;
+      const commonParams = {
+        appUrl,
+        adminSecret: project!.config!.hasura.adminSecret,
+      } as const;
 
-    if (isPlatform) {
-      return setTableIsEnum({
-        ...(variables as SetTableIsEnumVariables),
-        ...base,
+      if (isPlatform) {
+        return setTableIsEnum({
+          ...(variables as SetTableIsEnumVariables),
+          ...commonParams,
+        });
+      }
+
+      return setTableIsEnumMigration({
+        ...(variables as SetTableIsEnumMigrationVariables),
+        ...commonParams,
       });
-    }
-
-    return setTableIsEnumMigration({
-      ...(variables as SetTableIsEnumMigrationVariables),
-      ...base,
-    });
-  }, mutationOptions);
+    },
+    ...mutationOptions,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({
+        queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+      });
+      mutationOptions?.onSuccess?.(...args);
+    },
+  });
 
   return mutation;
 }

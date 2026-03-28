@@ -1,4 +1,4 @@
-package user
+package user //nolint:revive,nolintlint
 
 import (
 	"context"

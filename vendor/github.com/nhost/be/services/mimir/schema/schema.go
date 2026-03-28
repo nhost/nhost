@@ -94,7 +94,7 @@ func (s *Schema) ValidateConfig(config any) error {
 	return nil
 }
 
-// Validate the configuration and return a new configureation object with
+// Fill validates the configuration and returns a new configuration object with
 // the missing values set to their defaults.
 func (s *Schema) Fill(config any) (*model.ConfigConfig, error) {
 	s.mu.Lock()

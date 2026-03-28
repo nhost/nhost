@@ -69,6 +69,15 @@ func DisallowUnknownField() DecodeOption {
 	}
 }
 
+// AllowFieldPrefixes, when paired with [DisallowUnknownField], allows fields
+// with the specified prefixes to bypass the unknown field check.
+func AllowFieldPrefixes(prefixes ...string) DecodeOption {
+	return func(d *Decoder) error {
+		d.allowedFieldPrefixes = append(d.allowedFieldPrefixes, prefixes...)
+		return nil
+	}
+}
+
 // AllowDuplicateMapKey ignore syntax error when mapping keys that are duplicates.
 func AllowDuplicateMapKey() DecodeOption {
 	return func(d *Decoder) error {

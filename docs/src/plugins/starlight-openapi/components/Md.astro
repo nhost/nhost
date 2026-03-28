@@ -1,0 +1,14 @@
+---
+import { transformMarkdown } from '../libs/markdown'
+import { capitalize } from '../libs/utils'
+
+interface Props {
+  text: string | undefined
+}
+
+const { text } = Astro.props
+
+const code = text && text.length > 0 ? await transformMarkdown(capitalize(text)) : ''
+---
+
+{text && text.length > 0 && <div set:html={code} />}

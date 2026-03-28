@@ -9,7 +9,6 @@ final: prev:
   });
 
   nhost-cli = final.callPackage ./nhost-cli.nix { inherit final; };
-  mintlify = final.callPackage ./mintlify/default.nix { inherit final; };
 }
 // import ./go.nix final prev
 // import ./js.nix final prev

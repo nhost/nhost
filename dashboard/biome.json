@@ -12,6 +12,21 @@
       "style": {
         "noNonNullAssertion": "off",
         "useThrowOnlyError": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": ["../**/*"],
+                "message": "Please use absolute imports instead. (e.g: @/components/, @/hooks/, etc.)"
+              },
+              {
+                "group": ["@testing-library/react*"],
+                "message": "Please use @/tests/testUtils instead."
+              }
+            ]
+          }
+        },
         "noUselessElse": "error",
         "noParameterAssign": {
           "level": "error",
@@ -23,6 +38,7 @@
       },
       "suspicious": {
         "noExtraNonNullAssertion": "off",
+        "noImportCycles": "error",
         "noConsole": {
           "level": "error",
           "options": {
@@ -41,7 +57,6 @@
         "noUnusedFunctionParameters": "off"
       },
       "nursery": {
-        "noImportCycles": "error",
         "noShadow": "error",
         "useSortedClasses": {
           "level": "error",
@@ -59,12 +74,33 @@
       "!src/styles/graphiql.min.css",
       "!src/utils/hasura-api/generated/**",
       "!src/utils/__generated__/**",
-      "!public/**"
+      "!public/**",
+      "!e2e/e2e-tests-project/**"
     ]
   },
   "javascript": { "formatter": { "quoteStyle": "single" } },
   "css": { "parser": { "tailwindDirectives": true } },
   "overrides": [
+    {
+      "includes": ["src/tests/testUtils.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["../**/*"],
+                    "message": "Please use absolute imports instead. (e.g: @/components/, @/hooks/, etc.)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     {
       "includes": ["**/*.css"],
       "linter": {

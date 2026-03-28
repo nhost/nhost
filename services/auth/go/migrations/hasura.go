@@ -1,324 +1,32 @@
 package migrations
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"net/http"
+	"log/slog"
 	"time"
+
+	"github.com/nhost/nhost/internal/lib/hasura/metadata"
 )
 
 const (
-	timeout                 = 180
-	hasuraDBName            = "default"
-	errorCodeAlreadyTracked = "already-tracked"
-	errorCodeAlreadyExists  = "already-exists"
+	hasuraDBName   = "default"
+	defaultTimeout = 180 * time.Second
 )
 
-type hasuraErrResponse struct {
-	Path  string `json:"path"`
-	Error string `json:"error"`
-	Code  string `json:"code"`
-}
-
-type metadataError struct {
-	code string
-	msg  string
-}
-
-func (e *metadataError) Error() string {
-	return e.msg
-}
-
-func (e *metadataError) Code() string {
-	return e.code
-}
-
-func postMetadata(ctx context.Context, url, hasuraSecret string, data any) error {
-	client := &http.Client{ //nolint: exhaustruct
-		Timeout: time.Second * timeout,
-	}
-
-	b, err := json.Marshal(data)
-	if err != nil {
-		return fmt.Errorf("problem marshalling data: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(b))
-	if err != nil {
-		return fmt.Errorf("problem creating request: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
-	req.Header.Set("X-Hasura-Admin-Secret", hasuraSecret)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("problem executing request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var errResponse *hasuraErrResponse
-
-		b, _ := io.ReadAll(resp.Body)
-		if err := json.Unmarshal(b, &errResponse); err != nil {
-			return fmt.Errorf( //nolint: err113
-				"status_code: %d\nresponse: %s",
-				resp.StatusCode,
-				b,
-			)
-		}
-
-		if errResponse.Code == errorCodeAlreadyTracked ||
-			errResponse.Code == errorCodeAlreadyExists {
-			return &metadataError{
-				code: errResponse.Code,
-				msg:  errResponse.Error,
-			}
-		}
-
-		return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) //nolint: err113
-	}
-
-	return nil
-}
-
-type TrackTable struct {
-	Type   string           `json:"type"`
-	Args   PgTrackTableArgs `json:"args"`
-	IsEnum bool             `json:"is_enum,omitempty"` //nolint: tagliatelle
-}
-
-type Table struct {
-	Schema string `json:"schema"`
-	Name   string `json:"name"`
-}
-
-type CustomRootFields struct {
-	Select          string `json:"select"`
-	SelectByPk      string `json:"select_by_pk"`     //nolint: tagliatelle
-	SelectAggregate string `json:"select_aggregate"` //nolint: tagliatelle
-	Insert          string `json:"insert"`
-	InsertOne       string `json:"insert_one"` //nolint: tagliatelle
-	Update          string `json:"update"`
-	UpdateByPk      string `json:"update_by_pk"` //nolint: tagliatelle
-	Delete          string `json:"delete"`
-	DeleteByPk      string `json:"delete_by_pk"` //nolint: tagliatelle
-}
-
-type Configuration struct {
-	CustomName        string            `json:"custom_name"`         //nolint: tagliatelle
-	CustomRootFields  CustomRootFields  `json:"custom_root_fields"`  //nolint: tagliatelle
-	CustomColumnNames map[string]string `json:"custom_column_names"` //nolint: tagliatelle
-}
-
-type PgTrackTableArgs struct {
-	Source              string                     `json:"source"`
-	Table               Table                      `json:"table"`
-	Configuration       Configuration              `json:"configuration"`
-	ObjectRelationships []ObjectRelationshipConfig `json:"object_relationships,omitempty"` //nolint: tagliatelle
-	ArrayRelationships  []ArrayRelationshipConfig  `json:"array_relationships,omitempty"`  //nolint: tagliatelle
-}
-
-type ObjectRelationshipConfig struct {
-	Name  string                        `json:"name"`
-	Using ObjectRelationshipConfigUsing `json:"using"`
-}
-
-type ObjectRelationshipConfigUsing struct {
-	ForeignKeyConstraintOn any `json:"foreign_key_constraint_on"` //nolint: tagliatelle
-}
-
-type ArrayRelationshipConfig struct {
-	Name  string                       `json:"name"`
-	Using ArrayRelationshipConfigUsing `json:"using"`
-}
-
-type ArrayRelationshipConfigUsing struct {
-	ForeignKeyConstraintOn ForeignKeyConstraintOn `json:"foreign_key_constraint_on"` //nolint: tagliatelle
-}
-
-type CreateObjectRelationship struct {
-	Type string                       `json:"type"`
-	Args CreateObjectRelationshipArgs `json:"args"`
-}
-
-type CreateObjectRelationshipUsing struct {
-	ForeignKeyConstraintOn []string `json:"foreign_key_constraint_on"` //nolint: tagliatelle
-}
-
-type CreateObjectRelationshipArgs struct {
-	Table  Table                         `json:"table"`
-	Name   string                        `json:"name"`
-	Source string                        `json:"source"`
-	Using  CreateObjectRelationshipUsing `json:"using"`
-}
-
-type CreateArrayRelationship struct {
-	Type string                      `json:"type"`
-	Args CreateArrayRelationshipArgs `json:"args"`
-}
-
-type ForeignKeyConstraintOn struct {
-	Table   Table    `json:"table"`
-	Columns []string `json:"columns"`
-}
-
-type CreateArrayRelationshipUsing struct {
-	ForeignKeyConstraintOn ForeignKeyConstraintOn `json:"foreign_key_constraint_on"` //nolint: tagliatelle
-}
-
-type CreateArrayRelationshipArgs struct {
-	Table  Table                        `json:"table"`
-	Name   string                       `json:"name"`
-	Source string                       `json:"source"`
-	Using  CreateArrayRelationshipUsing `json:"using"`
-}
-
-type DropRelationship struct {
-	Type string               `json:"type"`
-	Args DropRelationshipArgs `json:"args"`
-}
-
-type DropRelationshipArgs struct {
-	Table        string `json:"table"`
-	Source       string `json:"source"`
-	Cascade      bool   `json:"cascade"`
-	Relationship string `json:"relationship"`
-}
-
-type SetTableCustomization struct {
-	Type string                    `json:"type"`
-	Args SetTableCustomizationArgs `json:"args"`
-}
-
-type SetTableCustomizationArgs struct {
-	Source        string        `json:"source"`
-	Table         Table         `json:"table"`
-	Configuration Configuration `json:"configuration"`
-}
-
-func applyTableCustomization(
-	ctx context.Context,
-	url, hasuraSecret string,
-	table TrackTable,
-) error {
-	customization := SetTableCustomization{
-		Type: "pg_set_table_customization",
-		Args: SetTableCustomizationArgs{
-			Source:        table.Args.Source,
-			Table:         table.Args.Table,
-			Configuration: table.Args.Configuration,
-		},
-	}
-
-	return postMetadata(ctx, url, hasuraSecret, customization)
-}
-
-func applyObjectRelationships(
-	ctx context.Context,
-	url, hasuraSecret string,
-	table TrackTable,
-) error {
-	for _, rel := range table.Args.ObjectRelationships {
-		relationship := CreateObjectRelationship{
-			Type: "pg_create_object_relationship",
-			Args: CreateObjectRelationshipArgs{
-				Source: table.Args.Source,
-				Table:  table.Args.Table,
-				Name:   rel.Name,
-				Using: CreateObjectRelationshipUsing{
-					ForeignKeyConstraintOn: func() []string {
-						// Handle both string and array cases
-						switch v := rel.Using.ForeignKeyConstraintOn.(type) {
-						case string:
-							return []string{v}
-						case []string:
-							return v
-						default:
-							return []string{}
-						}
-					}(),
-				},
-			},
-		}
-
-		if err := postMetadata(ctx, url, hasuraSecret, relationship); err != nil {
-			var metaErr *metadataError
-			if ok := errors.As(err, &metaErr); ok && metaErr.Code() == errorCodeAlreadyExists {
-				continue // Skip if relationship already exists
-			}
-
-			return fmt.Errorf(
-				"problem creating object relationship %s for table %s.%s: %w",
-				rel.Name,
-				table.Args.Table.Schema,
-				table.Args.Table.Name,
-				err,
-			)
-		}
-	}
-
-	return nil
-}
-
-func applyArrayRelationships(
-	ctx context.Context,
-	url, hasuraSecret string,
-	table TrackTable,
-) error {
-	for _, rel := range table.Args.ArrayRelationships {
-		relationship := CreateArrayRelationship{
-			Type: "pg_create_array_relationship",
-			Args: CreateArrayRelationshipArgs{
-				Source: table.Args.Source,
-				Table:  table.Args.Table,
-				Name:   rel.Name,
-				Using: CreateArrayRelationshipUsing{
-					ForeignKeyConstraintOn: rel.Using.ForeignKeyConstraintOn,
-				},
-			},
-		}
-
-		if err := postMetadata(ctx, url, hasuraSecret, relationship); err != nil {
-			var metaErr *metadataError
-			if ok := errors.As(err, &metaErr); ok && metaErr.Code() == errorCodeAlreadyExists {
-				continue // Skip if relationship already exists
-			}
-
-			return fmt.Errorf(
-				"problem creating array relationship %s for table %s.%s: %w",
-				rel.Name,
-				table.Args.Table.Schema,
-				table.Args.Table.Name,
-				err,
-			)
-		}
-	}
-
-	return nil
-}
-
-func ApplyHasuraMetadata( //nolint: funlen,maintidx
-	ctx context.Context,
-	url, hasuraSecret string,
-) error {
-	authTables := []TrackTable{
+func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
+	return []metadata.TrackTable{
 		{ //nolint:exhaustruct
 			Type: "pg_track_table",
-			Args: PgTrackTableArgs{ //nolint:exhaustruct
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
-				Table: Table{
+				Table: metadata.Table{
 					Schema: "auth",
 					Name:   "provider_requests",
 				},
-				Configuration: Configuration{
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authProviderRequests",
-					CustomRootFields: CustomRootFields{
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
 						Select:          "authProviderRequests",
 						SelectByPk:      "authProviderRequest",
 						SelectAggregate: "authProviderRequestsAggregate",
@@ -339,15 +47,15 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 		{
 			Type:   "pg_track_table",
 			IsEnum: true,
-			Args: PgTrackTableArgs{ //nolint:exhaustruct
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
-				Table: Table{
+				Table: metadata.Table{
 					Schema: "auth",
 					Name:   "refresh_token_types",
 				},
-				Configuration: Configuration{
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authRefreshTokenTypes",
-					CustomRootFields: CustomRootFields{
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
 						Select:          "authRefreshTokenTypes",
 						SelectByPk:      "authRefreshTokenType",
 						SelectAggregate: "authRefreshTokenTypesAggregate",
@@ -363,12 +71,12 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 						"comment": "comment",
 					},
 				},
-				ArrayRelationships: []ArrayRelationshipConfig{
+				ArrayRelationships: []metadata.ArrayRelationshipConfig{
 					{
 						Name: "refreshTokens",
-						Using: ArrayRelationshipConfigUsing{
-							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
-								Table: Table{
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
 									Schema: "auth",
 									Name:   "refresh_tokens",
 								},
@@ -381,15 +89,15 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 		},
 		{ //nolint:exhaustruct
 			Type: "pg_track_table",
-			Args: PgTrackTableArgs{ //nolint:exhaustruct
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
-				Table: Table{
+				Table: metadata.Table{
 					Schema: "auth",
 					Name:   "refresh_tokens",
 				},
-				Configuration: Configuration{
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authRefreshTokens",
-					CustomRootFields: CustomRootFields{
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
 						Select:          "authRefreshTokens",
 						SelectByPk:      "authRefreshToken",
 						SelectAggregate: "authRefreshTokensAggregate",
@@ -407,10 +115,10 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 						"user_id":            "userId",
 					},
 				},
-				ObjectRelationships: []ObjectRelationshipConfig{
+				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
 						Name: "user",
-						Using: ObjectRelationshipConfigUsing{
+						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: "user_id",
 						},
 					},
@@ -419,15 +127,15 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 		},
 		{ //nolint:exhaustruct
 			Type: "pg_track_table",
-			Args: PgTrackTableArgs{ //nolint:exhaustruct
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
-				Table: Table{
+				Table: metadata.Table{
 					Schema: "auth",
 					Name:   "roles",
 				},
-				Configuration: Configuration{
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authRoles",
-					CustomRootFields: CustomRootFields{
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
 						Select:          "authRoles",
 						SelectByPk:      "authRole",
 						SelectAggregate: "authRolesAggregate",
@@ -442,12 +150,12 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 						"role": "role",
 					},
 				},
-				ArrayRelationships: []ArrayRelationshipConfig{
+				ArrayRelationships: []metadata.ArrayRelationshipConfig{
 					{
 						Name: "userRoles",
-						Using: ArrayRelationshipConfigUsing{
-							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
-								Table: Table{
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
 									Schema: "auth",
 									Name:   "user_roles",
 								},
@@ -457,9 +165,9 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 					},
 					{
 						Name: "usersByDefaultRole",
-						Using: ArrayRelationshipConfigUsing{
-							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
-								Table: Table{
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
 									Schema: "auth",
 									Name:   "users",
 								},
@@ -472,15 +180,15 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 		},
 		{ //nolint:exhaustruct
 			Type: "pg_track_table",
-			Args: PgTrackTableArgs{ //nolint:exhaustruct
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
-				Table: Table{
+				Table: metadata.Table{
 					Schema: "auth",
 					Name:   "user_providers",
 				},
-				Configuration: Configuration{
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authUserProviders",
-					CustomRootFields: CustomRootFields{
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
 						Select:          "authUserProviders",
 						SelectByPk:      "authUserProvider",
 						SelectAggregate: "authUserProvidersAggregate",
@@ -502,16 +210,16 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 						"provider_user_id": "providerUserId",
 					},
 				},
-				ObjectRelationships: []ObjectRelationshipConfig{
+				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
 						Name: "user",
-						Using: ObjectRelationshipConfigUsing{
+						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: "user_id",
 						},
 					},
 					{
 						Name: "provider",
-						Using: ObjectRelationshipConfigUsing{
+						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: "provider_id",
 						},
 					},
@@ -520,15 +228,15 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 		},
 		{ //nolint:exhaustruct
 			Type: "pg_track_table",
-			Args: PgTrackTableArgs{ //nolint:exhaustruct
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
-				Table: Table{
+				Table: metadata.Table{
 					Schema: "auth",
 					Name:   "user_roles",
 				},
-				Configuration: Configuration{
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authUserRoles",
-					CustomRootFields: CustomRootFields{
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
 						Select:          "authUserRoles",
 						SelectByPk:      "authUserRole",
 						SelectAggregate: "authUserRolesAggregate",
@@ -546,16 +254,16 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 						"role":       "role",
 					},
 				},
-				ObjectRelationships: []ObjectRelationshipConfig{
+				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
 						Name: "user",
-						Using: ObjectRelationshipConfigUsing{
+						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: "user_id",
 						},
 					},
 					{
 						Name: "roleByRole",
-						Using: ObjectRelationshipConfigUsing{
+						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: "role",
 						},
 					},
@@ -564,15 +272,15 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 		},
 		{ //nolint:exhaustruct
 			Type: "pg_track_table",
-			Args: PgTrackTableArgs{
+			Args: metadata.PgTrackTableArgs{
 				Source: hasuraDBName,
-				Table: Table{
+				Table: metadata.Table{
 					Schema: "auth",
 					Name:   "users",
 				},
-				Configuration: Configuration{
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "users",
-					CustomRootFields: CustomRootFields{
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
 						Select:          "users",
 						SelectByPk:      "user",
 						SelectAggregate: "usersAggregate",
@@ -610,20 +318,20 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 						"webauthn_current_challenge": "currentChallenge",
 					},
 				},
-				ObjectRelationships: []ObjectRelationshipConfig{
+				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
 						Name: "defaultRoleByRole",
-						Using: ObjectRelationshipConfigUsing{
+						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: "default_role",
 						},
 					},
 				},
-				ArrayRelationships: []ArrayRelationshipConfig{
+				ArrayRelationships: []metadata.ArrayRelationshipConfig{
 					{
 						Name: "userProviders",
-						Using: ArrayRelationshipConfigUsing{
-							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
-								Table: Table{
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
 									Schema: "auth",
 									Name:   "user_providers",
 								},
@@ -633,9 +341,9 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 					},
 					{
 						Name: "roles",
-						Using: ArrayRelationshipConfigUsing{
-							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
-								Table: Table{
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
 									Schema: "auth",
 									Name:   "user_roles",
 								},
@@ -645,9 +353,9 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 					},
 					{
 						Name: "refreshTokens",
-						Using: ArrayRelationshipConfigUsing{
-							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
-								Table: Table{
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
 									Schema: "auth",
 									Name:   "refresh_tokens",
 								},
@@ -657,11 +365,35 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 					},
 					{
 						Name: "securityKeys",
-						Using: ArrayRelationshipConfigUsing{
-							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
-								Table: Table{
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
 									Schema: "auth",
 									Name:   "user_security_keys",
+								},
+								Columns: []string{"user_id"},
+							},
+						},
+					},
+					{
+						Name: "oauth2AuthRequests",
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
+									Schema: "auth",
+									Name:   "oauth2_auth_requests",
+								},
+								Columns: []string{"user_id"},
+							},
+						},
+					},
+					{
+						Name: "oauth2RefreshTokens",
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
+									Schema: "auth",
+									Name:   "oauth2_refresh_tokens",
 								},
 								Columns: []string{"user_id"},
 							},
@@ -672,15 +404,15 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 		},
 		{ //nolint:exhaustruct
 			Type: "pg_track_table",
-			Args: PgTrackTableArgs{ //nolint:exhaustruct
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
-				Table: Table{
+				Table: metadata.Table{
 					Schema: "auth",
 					Name:   "providers",
 				},
-				Configuration: Configuration{
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authProviders",
-					CustomRootFields: CustomRootFields{
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
 						Select:          "authProviders",
 						SelectByPk:      "authProvider",
 						SelectAggregate: "authProvidersAggregate",
@@ -695,12 +427,12 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 						"id": "id",
 					},
 				},
-				ArrayRelationships: []ArrayRelationshipConfig{
+				ArrayRelationships: []metadata.ArrayRelationshipConfig{
 					{
 						Name: "userProviders",
-						Using: ArrayRelationshipConfigUsing{
-							ForeignKeyConstraintOn: ForeignKeyConstraintOn{
-								Table: Table{
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
 									Schema: "auth",
 									Name:   "user_providers",
 								},
@@ -713,15 +445,15 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 		},
 		{ //nolint:exhaustruct
 			Type: "pg_track_table",
-			Args: PgTrackTableArgs{ //nolint:exhaustruct
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
-				Table: Table{
+				Table: metadata.Table{
 					Schema: "auth",
 					Name:   "user_security_keys",
 				},
-				Configuration: Configuration{
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authUserSecurityKeys",
-					CustomRootFields: CustomRootFields{
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
 						Select:          "authUserSecurityKeys",
 						SelectByPk:      "authUserSecurityKey",
 						SelectAggregate: "authUserSecurityKeysAggregate",
@@ -739,10 +471,254 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 						"credential_public_key": "credentialPublicKey",
 					},
 				},
-				ObjectRelationships: []ObjectRelationshipConfig{
+				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
 						Name: "user",
-						Using: ObjectRelationshipConfigUsing{
+						Using: metadata.ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "user_id",
+						},
+					},
+				},
+			},
+		},
+		{ //nolint:exhaustruct
+			Type: "pg_track_table",
+			Args: metadata.PgTrackTableArgs{
+				Source: hasuraDBName,
+				Table: metadata.Table{
+					Schema: "auth",
+					Name:   "oauth2_clients",
+				},
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
+					CustomName: "authOauth2Clients",
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
+						Select:          "authOauth2Clients",
+						SelectByPk:      "authOauth2Client",
+						SelectAggregate: "authOauth2ClientsAggregate",
+						Insert:          "insertAuthOauth2Clients",
+						InsertOne:       "insertAuthOauth2Client",
+						Update:          "updateAuthOauth2Clients",
+						UpdateByPk:      "updateAuthOauth2Client",
+						Delete:          "deleteAuthOauth2Clients",
+						DeleteByPk:      "deleteAuthOauth2Client",
+					},
+					CustomColumnNames: map[string]string{
+						"client_id":                    "clientId",
+						"client_secret_hash":           "clientSecretHash",
+						"redirect_uris":                "redirectUris",
+						"scopes":                       "scopes",
+						"type":                         "type",
+						"metadata":                     "metadata",
+						"metadata_document_fetched_at": "metadataDocumentFetchedAt",
+						"created_by":                   "createdBy",
+						"created_at":                   "createdAt",
+						"updated_at":                   "updatedAt",
+					},
+				},
+				ObjectRelationships: []metadata.ObjectRelationshipConfig{
+					{
+						Name: "createdByUser",
+						Using: metadata.ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "created_by",
+						},
+					},
+				},
+				ArrayRelationships: []metadata.ArrayRelationshipConfig{
+					{
+						Name: "authRequests",
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
+									Schema: "auth",
+									Name:   "oauth2_auth_requests",
+								},
+								Columns: []string{"client_id"},
+							},
+						},
+					},
+					{
+						Name: "oauth2RefreshTokens",
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
+									Schema: "auth",
+									Name:   "oauth2_refresh_tokens",
+								},
+								Columns: []string{"client_id"},
+							},
+						},
+					},
+				},
+			},
+		},
+		{ //nolint:exhaustruct
+			Type: "pg_track_table",
+			Args: metadata.PgTrackTableArgs{
+				Source: hasuraDBName,
+				Table: metadata.Table{
+					Schema: "auth",
+					Name:   "oauth2_auth_requests",
+				},
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
+					CustomName: "authOauth2AuthRequests",
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
+						Select:          "authOauth2AuthRequests",
+						SelectByPk:      "authOauth2AuthRequest",
+						SelectAggregate: "authOauth2AuthRequestsAggregate",
+						Insert:          "insertAuthOauth2AuthRequests",
+						InsertOne:       "insertAuthOauth2AuthRequest",
+						Update:          "updateAuthOauth2AuthRequests",
+						UpdateByPk:      "updateAuthOauth2AuthRequest",
+						Delete:          "deleteAuthOauth2AuthRequests",
+						DeleteByPk:      "deleteAuthOauth2AuthRequest",
+					},
+					CustomColumnNames: map[string]string{
+						"id":                    "id",
+						"client_id":             "clientId",
+						"scopes":                "scopes",
+						"redirect_uri":          "redirectUri",
+						"state":                 "state",
+						"nonce":                 "nonce",
+						"response_type":         "responseType",
+						"code_challenge":        "codeChallenge",
+						"code_challenge_method": "codeChallengeMethod",
+						"resource":              "resource",
+						"user_id":               "userId",
+						"done":                  "done",
+						"auth_time":             "authTime",
+						"created_at":            "createdAt",
+						"expires_at":            "expiresAt",
+					},
+				},
+				ObjectRelationships: []metadata.ObjectRelationshipConfig{
+					{
+						Name: "client",
+						Using: metadata.ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "client_id",
+						},
+					},
+					{
+						Name: "user",
+						Using: metadata.ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "user_id",
+						},
+					},
+				},
+				ArrayRelationships: []metadata.ArrayRelationshipConfig{
+					{
+						Name: "authorizationCodes",
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
+									Schema: "auth",
+									Name:   "oauth2_authorization_codes",
+								},
+								Columns: []string{"auth_request_id"},
+							},
+						},
+					},
+					{
+						Name: "refreshTokens",
+						Using: metadata.ArrayRelationshipConfigUsing{
+							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
+								Table: metadata.Table{
+									Schema: "auth",
+									Name:   "oauth2_refresh_tokens",
+								},
+								Columns: []string{"auth_request_id"},
+							},
+						},
+					},
+				},
+			},
+		},
+		{ //nolint:exhaustruct
+			Type: "pg_track_table",
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
+				Source: hasuraDBName,
+				Table: metadata.Table{
+					Schema: "auth",
+					Name:   "oauth2_authorization_codes",
+				},
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
+					CustomName: "authOauth2AuthorizationCodes",
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
+						Select:          "authOauth2AuthorizationCodes",
+						SelectByPk:      "authOauth2AuthorizationCode",
+						SelectAggregate: "authOauth2AuthorizationCodesAggregate",
+						Insert:          "insertAuthOauth2AuthorizationCodes",
+						InsertOne:       "insertAuthOauth2AuthorizationCode",
+						Update:          "updateAuthOauth2AuthorizationCodes",
+						UpdateByPk:      "updateAuthOauth2AuthorizationCode",
+						Delete:          "deleteAuthOauth2AuthorizationCodes",
+						DeleteByPk:      "deleteAuthOauth2AuthorizationCode",
+					},
+					CustomColumnNames: map[string]string{
+						"id":              "id",
+						"code_hash":       "codeHash",
+						"auth_request_id": "authRequestId",
+						"created_at":      "createdAt",
+						"expires_at":      "expiresAt",
+					},
+				},
+				ObjectRelationships: []metadata.ObjectRelationshipConfig{
+					{
+						Name: "authRequest",
+						Using: metadata.ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "auth_request_id",
+						},
+					},
+				},
+			},
+		},
+		{ //nolint:exhaustruct
+			Type: "pg_track_table",
+			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
+				Source: hasuraDBName,
+				Table: metadata.Table{
+					Schema: "auth",
+					Name:   "oauth2_refresh_tokens",
+				},
+				Configuration: metadata.Configuration{ //nolint:exhaustruct
+					CustomName: "authOauth2RefreshTokens",
+					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
+						Select:          "authOauth2RefreshTokens",
+						SelectByPk:      "authOauth2RefreshToken",
+						SelectAggregate: "authOauth2RefreshTokensAggregate",
+						Insert:          "insertAuthOauth2RefreshTokens",
+						InsertOne:       "insertAuthOauth2RefreshToken",
+						Update:          "updateAuthOauth2RefreshTokens",
+						UpdateByPk:      "updateAuthOauth2RefreshToken",
+						Delete:          "deleteAuthOauth2RefreshTokens",
+						DeleteByPk:      "deleteAuthOauth2RefreshToken",
+					},
+					CustomColumnNames: map[string]string{
+						"id":              "id",
+						"token_hash":      "tokenHash",
+						"auth_request_id": "authRequestId",
+						"client_id":       "clientId",
+						"user_id":         "userId",
+						"scopes":          "scopes",
+						"created_at":      "createdAt",
+						"expires_at":      "expiresAt",
+					},
+				},
+				ObjectRelationships: []metadata.ObjectRelationshipConfig{
+					{
+						Name: "authRequest",
+						Using: metadata.ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "auth_request_id",
+						},
+					},
+					{
+						Name: "client",
+						Using: metadata.ObjectRelationshipConfigUsing{
+							ForeignKeyConstraintOn: "client_id",
+						},
+					},
+					{
+						Name: "user",
+						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: "user_id",
 						},
 					},
@@ -750,39 +726,22 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 			},
 		},
 	}
+}
 
-	for _, table := range authTables {
-		err := postMetadata(ctx, url, hasuraSecret, table)
-		if err != nil {
-			var metaErr *metadataError
-			if ok := errors.As(err, &metaErr); ok && metaErr.Code() == errorCodeAlreadyTracked {
-				if err := applyTableCustomization(ctx, url, hasuraSecret, table); err != nil {
-					return fmt.Errorf(
-						"problem updating customization for table %s.%s: %w",
-						table.Args.Table.Schema,
-						table.Args.Table.Name,
-						err,
-					)
-				}
-			} else {
-				return fmt.Errorf(
-					"problem adding metadata for table %s.%s: %w",
-					table.Args.Table.Schema,
-					table.Args.Table.Name,
-					err,
-				)
-			}
-		}
+func ApplyHasuraMetadata(
+	ctx context.Context,
+	url, hasuraSecret string,
+	logger *slog.Logger,
+) error {
+	cfg := metadata.Config{
+		URL:         url,
+		AdminSecret: hasuraSecret,
+		DBName:      hasuraDBName,
+		Timeout:     defaultTimeout,
 	}
 
-	for _, table := range authTables {
-		if err := applyObjectRelationships(ctx, url, hasuraSecret, table); err != nil {
-			return err
-		}
-
-		if err := applyArrayRelationships(ctx, url, hasuraSecret, table); err != nil {
-			return err
-		}
+	if err := metadata.ApplyMetadata(ctx, cfg, authTables(), logger); err != nil {
+		return fmt.Errorf("applying Hasura metadata: %w", err)
 	}
 
 	return nil

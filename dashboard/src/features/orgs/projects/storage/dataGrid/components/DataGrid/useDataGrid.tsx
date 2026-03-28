@@ -1,19 +1,34 @@
-import type { MutableRefObject } from 'react';
-import { useMemo } from 'react';
-import type { PluginHook, TableInstance, TableOptions } from 'react-table';
 import {
-  useBlockLayout,
-  useColumnOrder,
-  useResizeColumns,
-  useRowSelect,
-  useSortBy,
-  useTable,
-} from 'react-table';
+  type CellContext,
+  type ColumnDef,
+  getCoreRowModel,
+  getSortedRowModel,
+  type OnChangeFn,
+  type Row,
+  type SortingState,
+  type Table,
+  type TableOptions,
+  useReactTable,
+} from '@tanstack/react-table';
+import type { ReactNode, RefObject } from 'react';
+import { useMemo } from 'react';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import PersistenColumnConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import {
+  convertToV8IfNeeded,
+  getColumnOrder,
+  getColumnVisibility,
+} from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
+import { SELECTION_COLUMN_ID } from './constants';
+import type { UnknownDataGridRow } from './types';
 
-export interface UseDataGridBaseOptions {
+if (typeof window !== 'undefined') {
+  convertToV8IfNeeded();
+}
+
+export interface UseDataGridBaseOptions<
+  T extends UnknownDataGridRow = UnknownDataGridRow,
+> {
   /**
    * Determines whether data grid columns are selectable.
    *
@@ -35,110 +50,123 @@ export interface UseDataGridBaseOptions {
   /**
    * Reference to the data grid root element.
    */
-  tableRef?: MutableRefObject<HTMLDivElement | null>;
+  tableRef?: RefObject<HTMLDivElement | null>;
+  /**
+   * Determines whether a row is selectable.
+   *
+   * @default true
+   */
+  enableRowSelection?: boolean | ((row: Row<T>) => boolean);
+  sorting?: SortingState;
+  onSortingChange?: OnChangeFn<SortingState>;
 }
 
-export type UseDataGridOptions<T extends object = {}> = TableOptions<T> &
-  UseDataGridBaseOptions;
-export type UseDataGridReturn<T extends object = {}> = TableInstance<T> &
-  UseDataGridBaseOptions;
+export type UseDataGridOptions<
+  T extends UnknownDataGridRow = UnknownDataGridRow,
+> = Omit<TableOptions<T>, 'getCoreRowModel' | 'onSortingChange' | 'state'> &
+  UseDataGridBaseOptions<T>;
 
-export default function useDataGrid<T extends object>(
-  { allowSelection, allowSort, allowResize, ...options }: UseDataGridOptions<T>,
-  ...plugins: PluginHook<T>[]
-): UseDataGridReturn<T> {
-  const defaultColumn = useMemo(
+export type UseDataGridReturn<
+  T extends UnknownDataGridRow = UnknownDataGridRow,
+> = Table<T> &
+  Omit<
+    UseDataGridBaseOptions<T>,
+    'enableRowSelection' | 'onSortingChange' | 'sorting'
+  >;
+
+export default function useDataGrid<T extends UnknownDataGridRow>({
+  data,
+  columns,
+  allowSelection,
+  allowSort,
+  allowResize,
+  enableRowSelection = true,
+  sorting,
+  onSortingChange,
+  ...options
+}: UseDataGridOptions<T>): UseDataGridReturn<T> {
+  const tablePath = useTablePath();
+
+  const defaultColumn: Partial<ColumnDef<T>> = useMemo(
     () => ({
-      width: 32,
-      minWidth: 32,
-      // biome-ignore lint/suspicious/noExplicitAny: TODO
-      Cell: ({ value }: { value: any }) => (
-        <span className="truncate">
-          {typeof value === 'object' ? JSON.stringify(value) : value}
-        </span>
-      ),
+      minSize: 32,
+      size: 32,
+      cell: ({ getValue }: CellContext<T, unknown>) => {
+        const value = getValue();
+        return (
+          <span className="truncate">
+            {typeof value === 'object'
+              ? JSON.stringify(value)
+              : (value as ReactNode)}
+          </span>
+        );
+      },
     }),
     [],
   );
 
-  const tablePath = useTablePath();
+  const tableColumns = useMemo(() => {
+    if (!allowSelection) {
+      return columns;
+    }
 
-  const pluginHooks = [
-    useBlockLayout,
-    useResizeColumns,
-    useSortBy,
-    useRowSelect,
-    useColumnOrder,
-  ];
-
-  const tableData = useTable<T>(
-    {
-      defaultColumn,
-      ...options,
-      initialState: {
-        hiddenColumns:
-          PersistenColumnConfigurationStorage.getHiddenColumns(tablePath),
-        columnOrder:
-          PersistenColumnConfigurationStorage.getColumnOrder(tablePath),
+    const selectionColumn: ColumnDef<T> = {
+      id: SELECTION_COLUMN_ID,
+      header: ({ table }) => (
+        <Checkbox
+          className="data-[state=checked]:!border-transparent border-[#21324b] dark:border-[#dfecf5]"
+          checked={table.getIsAllRowsSelected()}
+          disabled={table.getRowModel().rows.length === 0}
+          onCheckedChange={(checked) =>
+            table.getToggleAllRowsSelectedHandler()({ target: { checked } })
+          }
+          style={{
+            cursor:
+              table.getRowModel().rows.length === 0 ? 'default' : 'pointer',
+          }}
+        />
+      ),
+      cell: ({ row }) => {
+        return (
+          <Checkbox
+            className="data-[state=checked]:!border-transparent border-[#21324b] dark:border-[#dfecf5]"
+            checked={row.getIsSelected()}
+            disabled={!row.getCanSelect()}
+            onCheckedChange={row.getToggleSelectedHandler()}
+          />
+        );
       },
+      enableSorting: false,
+      enableResizing: false,
+    };
+
+    return [selectionColumn, ...columns];
+  }, [columns, allowSelection]);
+
+  const reactTable = useReactTable({
+    data,
+    columns: tableColumns,
+    defaultColumn,
+    initialState: {
+      columnVisibility: getColumnVisibility(tablePath),
+      columnOrder: getColumnOrder(tablePath),
     },
-    ...pluginHooks,
-    ...plugins,
-    (hooks) =>
-      allowSelection
-        ? hooks.visibleColumns.push((columns) => [
-            {
-              id: 'selection-column',
-              // biome-ignore lint/suspicious/noExplicitAny: TODO
-              Header: ({ rows, getToggleAllRowsSelectedProps }: any) => {
-                const { indeterminate, style, onChange, ...props } =
-                  getToggleAllRowsSelectedProps();
+    state: {
+      ...(sorting !== undefined ? { sorting } : {}),
+    },
+    onSortingChange,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: allowSort ? getSortedRowModel() : undefined,
+    enableRowSelection,
+    enableColumnResizing: allowResize,
+    columnResizeMode: 'onChange',
+    ...options,
+  });
 
-                function handleCheckedChange(newCheckedState: boolean) {
-                  onChange({ target: { checked: newCheckedState } });
-                }
-                return (
-                  <Checkbox
-                    className="data-[state=checked]:!border-transparent border-[#21324b] dark:border-[#dfecf5]"
-                    disabled={rows.length === 0}
-                    {...props}
-                    style={{
-                      ...style,
-                      cursor: rows.length === 0 ? 'default' : 'pointer',
-                    }}
-                    onCheckedChange={handleCheckedChange}
-                  />
-                );
-              },
-              // biome-ignore lint/suspicious/noExplicitAny: TODO
-              Cell: ({ row }: any) => {
-                // biome-ignore lint/suspicious/noExplicitAny: TODO
-                const originalValue = row.original as any;
-
-                const { indeterminate, onChange, ...props } =
-                  row.getToggleRowSelectedProps();
-
-                function handleCheckedChange(newCheckedState: boolean) {
-                  onChange({ target: { checked: newCheckedState } });
-                }
-                return (
-                  <Checkbox
-                    className="data-[state=checked]:!border-transparent border-[#21324b] dark:border-[#dfecf5]"
-                    {...props}
-                    // disable selection if row is just a upload preview
-                    checked={originalValue.uploading ? false : row.isSelected}
-                    disabled={originalValue.uploading}
-                    onCheckedChange={handleCheckedChange}
-                  />
-                );
-              },
-              disableSortBy: true,
-              disableResizing: true,
-            },
-            ...columns,
-          ])
-        : hooks.visibleColumns,
-  );
-
-  return { ...tableData, allowSort, allowResize, allowSelection };
+  return {
+    ...reactTable,
+    allowSort,
+    allowResize,
+    allowSelection,
+  };
 }

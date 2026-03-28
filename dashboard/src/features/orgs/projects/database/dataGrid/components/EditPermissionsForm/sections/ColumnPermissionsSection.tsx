@@ -4,8 +4,8 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
@@ -26,10 +26,6 @@ export interface ColumnPermissionsSectionProps {
    * The table that is being edited.
    */
   table: string;
-  /**
-   * Determines whether or not the section is disabled.
-   */
-  disabled?: boolean;
 }
 
 export default function ColumnPermissionsSection({
@@ -37,7 +33,6 @@ export default function ColumnPermissionsSection({
   action,
   schema,
   table,
-  disabled,
 }: ColumnPermissionsSectionProps) {
   const { register, setValue } =
     useFormContext<RolePermissionEditorFormValues>();
@@ -47,7 +42,7 @@ export default function ColumnPermissionsSection({
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`default.${schema}.${table}`], { schema, table });
+  } = useTableSchemaQuery([`default.${schema}.${table}`], { schema, table });
 
   if (tableError) {
     throw tableError;
@@ -66,7 +61,6 @@ export default function ColumnPermissionsSection({
         <Button
           variant="borderless"
           size="small"
-          disabled={disabled}
           onClick={() => {
             if (isAllSelected) {
               setValue('columns', []);
@@ -92,7 +86,6 @@ export default function ColumnPermissionsSection({
         <div className="flex flex-row flex-wrap items-center justify-start gap-6">
           {tableData?.columns?.map((column) => (
             <Checkbox
-              disabled={disabled}
               value={column.column_name}
               label={column.column_name}
               key={column.column_name}

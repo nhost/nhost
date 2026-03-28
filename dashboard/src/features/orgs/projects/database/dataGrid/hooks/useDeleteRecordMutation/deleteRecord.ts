@@ -1,18 +1,19 @@
+import type { Row } from '@tanstack/react-table';
 import { format } from 'node-pg-format';
-import type { Row } from 'react-table';
+import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   AffectedRowsResult,
   MutationOrQueryBaseOptions,
   QueryError,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 
 export interface DeleteRecordVariables {
   /**
    * List of rows to delete.
    */
-  selectedRows: Row[];
+  selectedRows: Row<UnknownDataGridRow>[];
   /**
    * Name of the columns that are used as a primary key or are unique.
    */

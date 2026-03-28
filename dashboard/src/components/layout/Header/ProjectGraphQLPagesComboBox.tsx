@@ -34,6 +34,11 @@ const projectGraphQLPages = [
     slug: 'remote-schemas',
     route: 'remote-schemas',
   },
+  {
+    name: 'Metadata',
+    slug: 'metadata',
+    route: 'metadata',
+  },
 ].map((item) => ({
   label: item.name,
   value: item.slug,

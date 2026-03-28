@@ -1,4 +1,4 @@
-package format
+package format //nolint:revive
 
 import (
 	"strings"

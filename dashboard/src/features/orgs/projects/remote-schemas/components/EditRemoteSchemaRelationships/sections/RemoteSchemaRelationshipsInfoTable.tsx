@@ -16,11 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { useDeleteRemoteSchemaRelationshipMutation } from '@/features/orgs/projects/remote-schemas/hooks/useDeleteRemoteSchemaRelationshipMutation';
 import {
   isToRemoteSchemaRelationshipDefinition,
   isToSourceRelationshipDefinition,
-} from '@/features/orgs/projects/remote-schemas/utils/guards';
+} from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
+import { useDeleteRemoteSchemaRelationshipMutation } from '@/features/orgs/projects/remote-schemas/hooks/useDeleteRemoteSchemaRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   RemoteSchemaInfoRemoteRelationshipsItem,
@@ -36,7 +36,6 @@ export interface RemoteSchemaRelationshipsInfoTableProps {
   ) => void;
   onDeleteRelationship?: () => void;
   onAddRelationship?: () => void;
-  disabled?: boolean;
 }
 
 export default function RemoteSchemaRelationshipsInfoTable({
@@ -45,7 +44,6 @@ export default function RemoteSchemaRelationshipsInfoTable({
   onSelectRelationship,
   onDeleteRelationship,
   onAddRelationship,
-  disabled,
 }: RemoteSchemaRelationshipsInfoTableProps) {
   const { openAlertDialog } = useDialog();
 
@@ -206,7 +204,6 @@ export default function RemoteSchemaRelationshipsInfoTable({
                 className="hover:no-underline"
                 color="secondary"
                 onClick={onAddRelationship}
-                disabled={disabled}
               >
                 <PlusIcon />
                 Add Relationship

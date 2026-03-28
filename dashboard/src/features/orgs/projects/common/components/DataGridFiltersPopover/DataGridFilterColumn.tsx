@@ -6,18 +6,24 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/v3/select';
-import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import { getAvailableOperators } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useDataGridFilters } from './DataGridFiltersProvider';
+import { useGetDataColumns } from './useGetDataColumns';
 
 type DataFilterColumnProps = {
   value: string;
   index: number;
+  currentOp: string;
 };
 
-function DataGrdiFitlerColumn({ value, index }: DataFilterColumnProps) {
-  const { columns } = useDataGridConfig<{ dataType: string }>();
-  const { setColumn } = useDataGridFilters();
+function DataGridFilterColumn({
+  value,
+  index,
+  currentOp,
+}: DataFilterColumnProps) {
+  const columns = useGetDataColumns<{ dataType: string }>();
+  const { setColumn, setOp, setValue } = useDataGridFilters();
   const selectRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
@@ -28,7 +34,16 @@ function DataGrdiFitlerColumn({ value, index }: DataFilterColumnProps) {
   return (
     <Select
       value={value}
-      onValueChange={(newColumn) => setColumn(index, newColumn)}
+      onValueChange={(newColumn) => {
+        setColumn(index, newColumn);
+        const newDataType = columns.find((col) => col.id === newColumn)
+          ?.columnDef.meta?.dataType;
+        const availableOps = getAvailableOperators(newDataType);
+        if (!availableOps.some((o) => o.op === currentOp)) {
+          setOp(index, availableOps[0].op);
+          setValue(index, '');
+        }
+      }}
     >
       <SelectTrigger className="h-8 w-[8rem]" ref={selectRef}>
         <span
@@ -43,8 +58,7 @@ function DataGrdiFitlerColumn({ value, index }: DataFilterColumnProps) {
           <SelectItem key={column.id} value={column.id}>
             {column.id}{' '}
             <Badge className="rounded-sm+ bg-secondary p-1 font-normal text-[0.75rem] leading-[0.75]">
-              {/* biome-ignore lint/suspicious/noExplicitAny: TODO: https://github.com/nhost/nhost/issues/3728  */}
-              {(column as any).dataType}
+              {column.columnDef.meta?.dataType}
             </Badge>
           </SelectItem>
         ))}
@@ -53,4 +67,4 @@ function DataGrdiFitlerColumn({ value, index }: DataFilterColumnProps) {
   );
 }
 
-export default DataGrdiFitlerColumn;
+export default DataGridFilterColumn;

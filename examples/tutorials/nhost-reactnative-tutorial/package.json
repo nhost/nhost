@@ -10,24 +10,24 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
-    "@react-native-async-storage/async-storage": "~2",
-    "expo": "~54.0.9",
-    "expo-apple-authentication": "7",
-    "expo-constants": "~18",
-    "expo-crypto": "14",
-    "expo-document-picker": "13",
-    "expo-file-system": "18",
-    "expo-linking": "^8.0.8",
-    "expo-router": "~6",
-    "expo-sharing": "13",
-    "expo-status-bar": "~3.0.8",
-    "metro-minify-terser": "^0.83.3",
+    "@react-native-async-storage/async-storage": "~2.2.0",
+    "expo": "~55.0.8",
+    "expo-apple-authentication": "^7.2.4",
+    "expo-constants": "~18.0.13",
+    "expo-crypto": "^14.1.5",
+    "expo-document-picker": "^13.1.6",
+    "expo-file-system": "^18.1.11",
+    "expo-linking": "^8.0.11",
+    "expo-router": "~6.0.23",
+    "expo-sharing": "^13.1.5",
+    "expo-status-bar": "~3.0.9",
+    "metro-minify-terser": "^0.83.5",
     "react": "19.1.0",
     "react-native": "0.81.4"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0",
-    "typescript": "~5.9.2"
+    "@types/react": "~19.1.17",
+    "typescript": "~5.9.3"
   },
   "private": true
 }

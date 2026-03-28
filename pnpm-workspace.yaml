@@ -6,6 +6,6 @@ packages:
   - examples/guides/**
   - examples/quickstarts/**
   - examples/tutorials/**
-  - '!**/test/**'
-  - '!out/**'
-  - '!**/functions'
+  - "!**/test/**"
+  - "!out/**"
+  - "!**/functions"

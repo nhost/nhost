@@ -22,7 +22,7 @@ import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteAp
 import type { EditUserFormValues } from '@/features/orgs/projects/authentication/users/components/EditUserForm';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
+import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
 import type { Role } from '@/types/application';
 import {
   useDeleteRemoteAppUserRolesMutation,
@@ -97,7 +97,13 @@ export default function UsersBody({
           phoneNumberVerified: values.phoneNumberVerified,
           locale: values.locale,
           ...(values?.metadata !== undefined && values.metadata !== ''
-            ? { metadata: JSON.parse(values.metadata) }
+            ? (() => {
+                try {
+                  return { metadata: JSON.parse(values.metadata) };
+                } catch {
+                  return { metadata: null };
+                }
+              })()
             : { metadata: null }),
         },
       },

@@ -1,6 +1,6 @@
+import type { Row } from '@tanstack/react-table';
 import type { PropsWithoutRef } from 'react';
 import { useState } from 'react';
-import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Badge } from '@/components/ui/v3/badge';
@@ -49,8 +49,12 @@ export default function FilesDataGridControls({
   const { className: filterClassName, ...restFilterProps } =
     filterProps || ({} as FilterProps);
 
-  const { selectedFlatRows: selectedFiles, toggleAllRowsSelected } =
-    useDataGridConfig<Files>();
+  const table = useDataGridConfig<Files>();
+  const { toggleAllRowsSelected } = table;
+
+  const selectedFiles = table
+    .getRowModel()
+    .rows.filter((row) => row.getIsSelected());
 
   // note: this array ensures that there won't be a glitch with the submit
   // button when files are being deleted
@@ -84,7 +88,7 @@ export default function FilesDataGridControls({
       );
       triggerToast(
         selectedFiles.length === 1
-          ? `The file was successfully deleted.`
+          ? 'The file was successfully deleted.'
           : `${selectedFiles.length} files were successfully deleted.`,
       );
 

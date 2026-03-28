@@ -1,6 +1,7 @@
 package dockercompose
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
@@ -37,10 +38,6 @@ func functionsNodeModules(branch string) string {
 	return sanitizeBranch(branch) + "-functions_node_modules"
 }
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func ports(host, container uint) []Port {
 	if host == 0 {
 		return nil
@@ -63,22 +60,33 @@ type ComposeFile struct {
 
 //nolint:tagliatelle
 type Service struct {
-	Image       string               `yaml:"image"`
-	DependsOn   map[string]DependsOn `yaml:"depends_on,omitempty"`
-	EntryPoint  []string             `yaml:"entrypoint,omitempty"`
-	Command     []string             `yaml:"command,omitempty"`
-	Environment map[string]string    `yaml:"environment,omitempty"`
-	ExtraHosts  []string             `yaml:"extra_hosts"`
-	HealthCheck *HealthCheck         `yaml:"healthcheck,omitempty"`
-	Labels      map[string]string    `yaml:"labels,omitempty"`
-	Ports       []Port               `yaml:"ports,omitempty"`
-	Restart     string               `yaml:"restart"`
-	Volumes     []Volume             `yaml:"volumes,omitempty"`
-	WorkingDir  *string              `yaml:"working_dir,omitempty"`
+	Image       string                    `yaml:"image"`
+	DependsOn   map[string]DependsOn      `yaml:"depends_on,omitempty"`
+	EntryPoint  []string                  `yaml:"entrypoint,omitempty"`
+	Command     []string                  `yaml:"command,omitempty"`
+	Environment map[string]string         `yaml:"environment,omitempty"`
+	ExtraHosts  []string                  `yaml:"extra_hosts"`
+	HealthCheck *HealthCheck              `yaml:"healthcheck,omitempty"`
+	Labels      map[string]string         `yaml:"labels,omitempty"`
+	Networks    map[string]*NetworkConfig `yaml:"networks,omitempty"`
+	Ports       []Port                    `yaml:"ports,omitempty"`
+	Restart     string                    `yaml:"restart"`
+	Volumes     []Volume                  `yaml:"volumes,omitempty"`
+	WorkingDir  *string                   `yaml:"working_dir,omitempty"`
 }
 
 type DependsOn struct {
 	Condition string `yaml:"condition"`
+}
+
+type NetworkConfig struct {
+	Aliases []string `yaml:"aliases,omitempty"`
+}
+
+func networkAliases(aliases ...string) map[string]*NetworkConfig {
+	return map[string]*NetworkConfig{
+		"default": {Aliases: aliases},
+	}
 }
 
 //nolint:tagliatelle
@@ -238,7 +246,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		Type:     "bind",
 		Source:   filepath.Join(dotnhostfolder, "traefik"),
 		Target:   "/opt/traefik",
-		ReadOnly: ptr(true),
+		ReadOnly: new(true),
 	}}
 
 	dockerEndpoint := dockerURL.String()
@@ -247,7 +255,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			Type:     "bind",
 			Source:   dockerURL.Path,
 			Target:   "/var/run/docker.sock",
-			ReadOnly: ptr(true),
+			ReadOnly: new(true),
 		})
 		dockerEndpoint = "unix:///var/run/docker.sock"
 	}
@@ -273,6 +281,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,
 		Labels:      nil,
+		Networks:    nil,
 		Ports: []Port{
 			{
 				Mode:      "ingress",
@@ -304,6 +313,7 @@ func minio(subdomain, volumeName string) *Service {
 		Restart:     "always",
 		HealthCheck: nil,
 		Labels:      nil,
+		Networks:    nil,
 		Volumes: []Volume{
 			{
 				Type:     "volume",
@@ -362,11 +372,35 @@ func dashboard(
 				Rewrite: nil,
 			},
 		}.Labels(),
+		Networks:   nil,
 		Ports:      []Port{},
 		Restart:    "",
 		Volumes:    []Volume{},
 		WorkingDir: new(string),
 	}
+}
+
+func stripJWTSecretToPublic(value string) (string, error) {
+	var full map[string]any
+	if err := json.Unmarshal([]byte(value), &full); err != nil {
+		return value, nil //nolint:nilerr
+	}
+
+	public := make(map[string]any)
+	if v, ok := full["key"]; ok {
+		public["key"] = v
+	}
+
+	if v, ok := full["type"]; ok {
+		public["type"] = v
+	}
+
+	b, err := json.Marshal(public)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal JWT secret: %w", err)
+	}
+
+	return string(b), nil
 }
 
 func functions( //nolint:funlen
@@ -378,7 +412,12 @@ func functions( //nolint:funlen
 	jwtSecret string,
 	port uint,
 	branch string,
-) *Service {
+) (*Service, error) {
+	jwtSecret, err := stripJWTSecretToPublic(jwtSecret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to strip JWT secret for %s: %w", "functions", err)
+	}
+
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 		"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_auth_admin@local.db.nhost.run:5432/local",
@@ -425,30 +464,31 @@ func functions( //nolint:funlen
 				},
 			},
 		}.Labels(),
-		Ports:   ports(port, functionsPort),
-		Restart: "always",
+		Networks: networkAliases("functions-service"),
+		Ports:    ports(port, functionsPort),
+		Restart:  "always",
 		Volumes: []Volume{
 			{
 				Type:     "bind",
 				Source:   rootFolder,
 				Target:   "/opt/project",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 			{
 				Type:     "volume",
 				Source:   rootNodeModules(branch),
 				Target:   "/opt/project/node_modules",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 			{
 				Type:     "volume",
 				Source:   functionsNodeModules(branch),
 				Target:   "/opt/project/functions/node_modules",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,
-	}
+	}, nil
 }
 
 func mailhog(subdomain, volumeName string, useTLS bool) *Service {
@@ -476,14 +516,15 @@ func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 				Rewrite: nil,
 			},
 		}.Labels(),
-		Ports:   nil,
-		Restart: "always",
+		Networks: nil,
+		Ports:    nil,
+		Restart:  "always",
 		Volumes: []Volume{
 			{
 				Type:     "volume",
 				Source:   volumeName,
 				Target:   "/maildir",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,
@@ -587,7 +628,7 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	if startFunctions {
-		services["functions"] = functions(
+		services["functions"], err = functions(
 			cfg,
 			subdomain,
 			httpPort,
@@ -597,6 +638,9 @@ func getServices( //nolint: funlen,cyclop
 			ports.Functions,
 			branch,
 		)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
@@ -615,15 +659,22 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	for _, runService := range runServices {
-		services["run-"+runService.Config.Name] = run(runService.Config, subdomain, branch)
+		svc := run(runService.Config, subdomain, branch)
+
+		if len(runService.BindMounts) > 0 {
+			svc.Volumes = append(svc.Volumes, runService.BindMounts...)
+		}
+
+		services["run-"+runService.Config.Name] = svc
 	}
 
 	return services, nil
 }
 
 type RunService struct {
-	Config *model.ConfigRunServiceConfig
-	Path   string
+	Config     *model.ConfigRunServiceConfig
+	Path       string
+	BindMounts []Volume
 }
 
 func mountCACertificates(
@@ -635,7 +686,7 @@ func mountCACertificates(
 			Type:     "bind",
 			Source:   path,
 			Target:   "/etc/ssl/certs/ca-certificates.crt",
-			ReadOnly: ptr(true),
+			ReadOnly: new(true),
 		})
 	}
 }

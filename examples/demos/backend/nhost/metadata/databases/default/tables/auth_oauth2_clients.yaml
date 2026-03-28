@@ -1,0 +1,113 @@
+table:
+  name: oauth2_clients
+  schema: auth
+configuration:
+  column_config:
+    client_id:
+      custom_name: clientId
+    client_secret_hash:
+      custom_name: clientSecretHash
+    created_at:
+      custom_name: createdAt
+    created_by:
+      custom_name: createdBy
+    id:
+      custom_name: id
+    metadata:
+      custom_name: metadata
+    metadata_document_fetched_at:
+      custom_name: metadataDocumentFetchedAt
+    redirect_uris:
+      custom_name: redirectUris
+    scopes:
+      custom_name: scopes
+    type:
+      custom_name: type
+    updated_at:
+      custom_name: updatedAt
+  custom_column_names:
+    client_id: clientId
+    client_secret_hash: clientSecretHash
+    created_at: createdAt
+    created_by: createdBy
+    id: id
+    metadata: metadata
+    metadata_document_fetched_at: metadataDocumentFetchedAt
+    redirect_uris: redirectUris
+    scopes: scopes
+    type: type
+    updated_at: updatedAt
+  custom_name: authOauth2Clients
+  custom_root_fields:
+    delete: deleteAuthOauth2Clients
+    delete_by_pk: deleteAuthOauth2Client
+    insert: insertAuthOauth2Clients
+    insert_one: insertAuthOauth2Client
+    select: authOauth2Clients
+    select_aggregate: authOauth2ClientsAggregate
+    select_by_pk: authOauth2Client
+    update: updateAuthOauth2Clients
+    update_by_pk: updateAuthOauth2Client
+object_relationships:
+  - name: createdByUser
+    using:
+      foreign_key_constraint_on: created_by
+array_relationships:
+  - name: authRequests
+    using:
+      foreign_key_constraint_on:
+        column: client_id
+        table:
+          name: oauth2_auth_requests
+          schema: auth
+  - name: oauth2RefreshTokens
+    using:
+      foreign_key_constraint_on:
+        column: client_id
+        table:
+          name: oauth2_refresh_tokens
+          schema: auth
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        created_by: X-Hasura-User-Id
+      columns:
+        - client_secret_hash
+        - redirect_uris
+        - scopes
+        - metadata
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - client_id
+        - redirect_uris
+        - scopes
+        - metadata
+        - created_by
+        - created_at
+        - updated_at
+      filter:
+        created_by:
+          _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - client_secret_hash
+        - redirect_uris
+        - scopes
+        - metadata
+      filter:
+        created_by:
+          _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        created_by:
+          _eq: X-Hasura-User-Id

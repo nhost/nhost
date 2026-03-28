@@ -1,6 +1,5 @@
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
-import NavLink from 'next/link';
 import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -18,7 +17,7 @@ import { Link } from '@/components/ui/v2/Link';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
-import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/components/GithubAuthButton';
+import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/GithubAuthButton';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { EditRepositorySettings } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 import {
@@ -30,6 +29,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { GitHubAPIError, listGitHubInstallationRepos } from '@/lib/github';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue } from '@/lib/utils';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
@@ -87,15 +87,18 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     (item) => item.providerId === 'github',
   );
 
-  const getGitHubConnectUrl = () => {
-    if (typeof window !== 'undefined') {
-      return nhost.auth.signInProviderURL('github', {
-        connect: token,
-        redirectTo: `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project?.subdomain}`,
-      });
-    }
-    return '';
-  };
+  async function handleConnectGitHub() {
+    const { challenge, id } = await generateAndStorePKCE();
+    const url = nhost.auth.signInProviderURL('github', {
+      connect: token,
+      redirectTo: appendPkceId(
+        `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project?.subdomain}`,
+        id,
+      ),
+      codeChallenge: challenge,
+    });
+    window.location.href = url;
+  }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close does the same thing every render
   useEffect(() => {
@@ -265,21 +268,14 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         <p className="text-center text-foreground">
           You need to connect your GitHub account to continue.
         </p>
-        <NavLink
-          href={getGitHubConnectUrl()}
-          passHref
-          rel="noreferrer noopener"
-          legacyBehavior
+        <Button
+          variant="outlined"
+          className="flex w-72 max-w-72 gap-2"
+          onClick={handleConnectGitHub}
         >
-          <Button
-            className="w-full max-w-72"
-            variant="outlined"
-            color="secondary"
-            startIcon={<GitHubIcon />}
-          >
-            Connect to GitHub
-          </Button>
-        </NavLink>
+          <GitHubIcon />
+          Connect to GitHub
+        </Button>
       </div>
     );
   }

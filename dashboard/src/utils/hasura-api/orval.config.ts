@@ -13,6 +13,7 @@ export default defineConfig({
       schemas: 'generated/schemas',
       client: 'fetch',
       biome: true,
+      clean: true,
       override: {
         mutator: {
           path: './customFetch.ts',

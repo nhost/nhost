@@ -45,15 +45,15 @@ func TestSignInProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignInProviderRequestObject{
-				Params: api.SignInProviderParams{
+				Params: api.SignInProviderParams{ //nolint:exhaustruct
 					AllowedRoles:           &[]string{"admin", "user"},
-					DefaultRole:            ptr("admin"),
-					DisplayName:            ptr("Test User"),
-					Locale:                 ptr("es"),
-					Metadata:               ptr(map[string]any{"key": "value"}),
-					RedirectTo:             ptr("http://localhost:3000/redirect"),
-					Connect:                ptr("asdasd"),
-					State:                  ptr("custom-state"),
+					DefaultRole:            new("admin"),
+					DisplayName:            new("Test User"),
+					Locale:                 new("es"),
+					Metadata:               new(map[string]any{"key": "value"}),
+					RedirectTo:             new("http://localhost:3000/redirect"),
+					Connect:                new("asdasd"),
+					State:                  new("custom-state"),
 					ProviderSpecificParams: nil,
 				},
 				Provider: "fake",
@@ -62,6 +62,54 @@ func TestSignInProvider(t *testing.T) {
 				Headers: api.SignInProvider302ResponseHeaders{
 					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
 				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "success with code challenge",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderRequestObject{
+				Params: api.SignInProviderParams{ //nolint:exhaustruct
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignInProvider302Response{
+				Headers: api.SignInProvider302ResponseHeaders{
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "invalid code challenge format",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderRequestObject{
+				Params: api.SignInProviderParams{ //nolint:exhaustruct
+					CodeChallenge: ptr("too-short"),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-request",
+				Message: "The request payload is incorrect",
+				Status:  400,
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,
@@ -78,7 +126,7 @@ func TestSignInProvider(t *testing.T) {
 			},
 			request: api.SignInProviderRequestObject{
 				Params: api.SignInProviderParams{ //nolint:exhaustruct
-					RedirectTo: ptr("http://not.allowed.com"),
+					RedirectTo: new("http://not.allowed.com"),
 				},
 				Provider: "not-enabled",
 			},

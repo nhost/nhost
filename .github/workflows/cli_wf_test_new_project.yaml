@@ -50,7 +50,7 @@ jobs:
         comment_on_pr: false
 
     - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v5
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
         aws-region: eu-central-1
@@ -63,7 +63,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: "Get artifacts"
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         path: ~/artifacts
 

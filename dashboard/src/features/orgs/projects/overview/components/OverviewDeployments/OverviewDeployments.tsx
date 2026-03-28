@@ -1,5 +1,5 @@
-import NavLink from 'next/link';
 import { Fragment } from 'react';
+import { NavLink } from '@/components/common/NavLink';
 import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -34,13 +34,13 @@ function OverviewDeploymentsTopBar() {
 
       <NavLink
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
-        passHref
-        legacyBehavior
+        disabled={!isGitHubConnected}
+        variant="ghost"
+        className="text-primary"
+        underline="none"
       >
-        <Button variant="borderless" disabled={!isGitHubConnected}>
-          View all
-          <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
-        </Button>
+        View all
+        <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
       </NavLink>
     </div>
   );
@@ -111,12 +111,11 @@ function OverviewDeploymentList() {
 
           <NavLink
             href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
-            passHref
-            legacyBehavior
+            variant="ghost"
+            className="text-primary"
+            underline="none"
           >
-            <Button variant="borderless" size="small">
-              Edit
-            </Button>
+            Edit
           </NavLink>
         </Box>
       </Box>

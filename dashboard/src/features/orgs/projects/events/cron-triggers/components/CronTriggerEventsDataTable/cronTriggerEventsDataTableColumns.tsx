@@ -3,9 +3,9 @@ import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimesta
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { ScheduledEventStatusCell } from '@/features/orgs/projects/events/common/components/ScheduledEventStatusCell';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
+import { StatusColumnHeader } from '@/features/orgs/projects/events/common/components/StatusColumnHeader';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import CronTriggerEventsLogActionsCell from './CronTriggerEventsLogActionsCell';
-import StatusColumnHeader from './StatusColumnHeader';
 
 export type CronTriggerEventsSection =
   | 'scheduled'

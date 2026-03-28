@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -19,7 +20,7 @@ function useOnSignInWithEmailAndPasswordHandler({ onNeedsMfa }: Props) {
   const [isLoading, setIsloading] = useState(false);
   const nhost = useNhostClient();
   const router = useRouter();
-  const emailAndPasswordRef = useRef<EmailAndPasswordRef>();
+  const emailAndPasswordRef = useRef<EmailAndPasswordRef>(null);
 
   async function onSignInWithEmailAndPassword({
     email,
@@ -47,7 +48,14 @@ function useOnSignInWithEmailAndPasswordHandler({ onNeedsMfa }: Props) {
       if (isNotEmptyValue(error?.body)) {
         const errorCode = error.body.error;
         if (errorCode === 'unverified-user') {
-          await nhost.auth.sendVerificationEmail({ email });
+          const { challenge, id } = await generateAndStorePKCE();
+          await nhost.auth.sendVerificationEmail({
+            email,
+            codeChallenge: challenge,
+            options: {
+              redirectTo: appendPkceId(window.location.origin, id),
+            },
+          });
           router.push(`/email/verify?email=${encodeURIComponent(email)}`);
           return;
         }

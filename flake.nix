@@ -16,6 +16,7 @@
       let
         pkgs = import nixpkgs {
           inherit system;
+          config.allowUnfree = true;
           overlays = [
             (import ./nixops/overlays/default.nix)
           ];
@@ -52,16 +53,20 @@
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
-        mintlify-openapif = import ./tools/mintlify-openapi/project.nix {
+        nhost-jsf = import ./packages/nhost-js/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
 
-        nhost-jsf = import ./packages/nhost-js/project.nix {
+        stripe-graphql-jsf = import ./packages/stripe-graphql-js/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
 
         nixopsf = import ./nixops/project.nix {
           inherit self pkgs nix2containerPkgs nix-filter nixops-lib;
+        };
+
+        postgresf = import ./services/postgres/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
         storagef = import ./services/storage/project.nix {
@@ -82,9 +87,10 @@
           demos = demosf.check;
           guides = guidesf.check;
           docs = docsf.check;
-          mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
+          stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
+          postgres = postgresf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
         };
@@ -107,6 +113,7 @@
               # dashboard
               nodePackages.vercel
               playwright-driver
+              lychee
 
               # javascript
               nodejs
@@ -120,13 +127,20 @@
               golangci-lint
               gqlgenc
               oapi-codegen
+              mockgen
+              sqlc
+              vacuum-go
+
+              # others
+              postgresql_18-client
+              bun
+
 
               # docs
-              mintlify
+              vale
 
               # internal packages
               self.packages.${system}.codegen
-              self.packages.${system}.mintlify-openapi
             ];
 
             shellHook = ''
@@ -169,9 +183,10 @@
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
-          mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
+          stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
+          postgres = postgresf.devShell;
           storage = storagef.devShell;
           tutorials = tutorialsf.devShell;
         };
@@ -187,10 +202,19 @@
           dashboard-docker-image = dashboardf.dockerImage;
           demos = demosf.package;
           guides = guidesf.package;
-          mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
+          stripe-graphql-js = stripe-graphql-jsf.package;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
+          postgres-pg16 = postgresf.packages.pg16-package;
+          postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
+          postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
+          postgres-pg17 = postgresf.packages.pg17-package;
+          postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
+          postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;
+          postgres-pg18 = postgresf.packages.pg18-package;
+          postgres-pg18-docker-image = postgresf.packages.pg18-docker-image;
+          postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
           clamav-docker-image = storagef.clamav-docker-image;

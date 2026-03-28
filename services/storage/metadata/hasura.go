@@ -11,10 +11,6 @@ import (
 	"github.com/nhost/nhost/services/storage/controller"
 )
 
-func ptr[T any](x T) *T {
-	return &x
-}
-
 func parseGraphqlError(err error) *controller.APIError {
 	var ghErr *clientv2.ErrorResponse
 	if errors.As(err, &ghErr) {
@@ -69,7 +65,7 @@ func (md *FileMetadataFragment) ToControllerType() api.FileMetadata {
 		UpdatedAt:        *md.GetUpdatedAt(),
 		IsUploaded:       *md.GetIsUploaded(),
 		MimeType:         *md.GetMimeType(),
-		Metadata:         ptr(md.GetMetadata()),
+		Metadata:         new(md.GetMetadata()),
 		UploadedByUserId: md.GetUploadedByUserID(),
 	}
 }
@@ -136,11 +132,11 @@ func (h *Hasura) InitializeFile(
 	_, err := h.cl.InsertFile(
 		ctx,
 		FilesInsertInput{ //nolint:exhaustruct
-			BucketID: ptr(bucketID),
-			ID:       ptr(fileID),
-			MimeType: ptr(mimeType),
-			Name:     ptr(name),
-			Size:     ptr(size),
+			BucketID: new(bucketID),
+			ID:       new(fileID),
+			MimeType: new(mimeType),
+			Name:     new(name),
+			Size:     new(size),
 		},
 		WithHeaders(headers),
 	)
@@ -162,13 +158,13 @@ func (h *Hasura) PopulateMetadata(
 		ctx,
 		fileID,
 		FilesSetInput{ //nolint:exhaustruct
-			BucketID:   ptr(bucketID),
-			Etag:       ptr(etag),
-			IsUploaded: ptr(isUploaded),
+			BucketID:   new(bucketID),
+			Etag:       new(etag),
+			IsUploaded: new(isUploaded),
 			Metadata:   metadata,
-			MimeType:   ptr(mimeType),
-			Name:       ptr(name),
-			Size:       ptr(size),
+			MimeType:   new(mimeType),
+			Name:       new(name),
+			Size:       new(size),
 		},
 		WithHeaders(headers),
 	)
@@ -213,7 +209,7 @@ func (h *Hasura) SetIsUploaded(
 		ctx,
 		fileID,
 		FilesSetInput{ //nolint:exhaustruct
-			IsUploaded: ptr(isUploaded),
+			IsUploaded: new(isUploaded),
 		},
 		WithHeaders(headers),
 	)
@@ -281,10 +277,10 @@ func (h *Hasura) InsertVirus(
 	_, err := h.cl.InsertVirus(
 		ctx,
 		VirusInsertInput{ //nolint:exhaustruct
-			FileID:      ptr(fileID),
-			Filename:    ptr(filename),
+			FileID:      new(fileID),
+			Filename:    new(filename),
 			UserSession: userSession,
-			Virus:       ptr(virus),
+			Virus:       new(virus),
 		},
 		WithHeaders(headers),
 	)

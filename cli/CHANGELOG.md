@@ -1,3 +1,126 @@
+## [cli@1.41.0] - 2026-03-26
+
+### 🚀 Features
+
+- *(cli)* Add run service volume overrides for local dev (#4047)
+- *(stripe-graphql-js)* Update dependencies and modernize build (#3664)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Forward stdin to Hasura CLI wrapper for interactive navigation (#4046)
+- *(cli)* Require initialized project before running config pull (#4045)
+- *(cli)* Remove possibility to bind mcp server to a port for security reasons (#4060)
+
+## [cli@1.40.0] - 2026-03-25
+
+### 🚀 Features
+
+- *(cli)* Add default MCP config for local development (#4036)
+
+## [cli@1.39.0] - 2026-03-20
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring allowedCIDRs (#4029)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Conditionally enable storage URL based on port exposure (#4033)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.54.0 (#4031)
+
+## [cli@1.38.4] - 2026-03-18
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump schema (#4020)
+- *(cli)* Bump nhost/dashboard to 2.53.0 (#4009)
+- *(cli)* Bump schema (#4023)
+
+## [cli@1.38.3] - 2026-03-13
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema (#3999)
+
+## [cli@1.38.2] - 2026-03-11
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.52.0 (#3945)
+
+## [cli@1.38.1] - 2026-03-08
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added brew and nix installation methods for the cli (#3975)
+- *(cli)* Fix formula name for brew (#3977)
+- *(cli)* Update certs (#3979)
+
+## [cli@1.38.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(auth)* Added oauth2/oidc provider functionality (#3922)
+
+
+### 🐛 Bug Fixes
+
+- *(docs)* Fix CLI reference documentation (#3895)
+- *(nixops)* Bump go to 1.26.0 (#3907)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.50.0 (#3919)
+
+## [cli@1.37.0] - 2026-02-05
+
+### 🚀 Features
+
+- *(docs)* Release starlight (#3877)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.47.0 (#3884)
+
+## [cli@1.36.0] - 2026-02-02
+
+### 🚀 Features
+
+- *(cli)* Added mcp tool to list documentation (#3863)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Use astro docs as source (#3859)
+- *(cli)* Bump schema (#3872)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.46.3 (#3800)
+
+## [cli@1.35.0] - 2026-01-28
+
+### 🚀 Features
+
+- *(docs)* Document functions logging (#3793)
+- *(nixops)* Update nixpkgs (#3808)
+- *(cli)* Embed documentation in the binary and add subcommands and MCP tools to search/retrieve (#3836)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update certs (#3791)
+- *(cli)* Update dev/local certs (#3843)
+
 ## [cli@1.34.12] - 2025-12-23
 
 ### Chore

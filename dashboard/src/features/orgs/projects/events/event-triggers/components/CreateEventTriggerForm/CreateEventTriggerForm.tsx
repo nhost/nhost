@@ -11,26 +11,20 @@ import { useCreateEventTriggerMutation } from '@/features/orgs/projects/events/e
 import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildEventTriggerDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
-interface CreateEventTriggerFormProps {
-  disabled: boolean;
-}
-
 const renderCreateEventTriggerButton = ({
   open,
 }: BaseEventTriggerFormTriggerProps) => (
   <Button
     variant="link"
     className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
-    aria-label="Add event trigger"
+    aria-label="Create event trigger"
     onClick={() => open()}
   >
     New Event Trigger <Plus className="h-4 w-4" />
   </Button>
 );
 
-export default function CreateEventTriggerForm({
-  disabled,
-}: CreateEventTriggerFormProps) {
+export default function CreateEventTriggerForm() {
   const { mutateAsync: createEventTrigger } = useCreateEventTriggerMutation();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const router = useRouter();
@@ -59,7 +53,7 @@ export default function CreateEventTriggerForm({
 
   return (
     <BaseEventTriggerForm
-      trigger={disabled ? undefined : renderCreateEventTriggerButton}
+      trigger={renderCreateEventTriggerButton}
       onSubmit={handleSubmit}
       titleText="Create a New Event Trigger"
       descriptionText="Enter the details to create your event trigger. Click Create when you're done."

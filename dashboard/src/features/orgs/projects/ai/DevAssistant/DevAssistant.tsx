@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { type Toast, toast } from 'react-hot-toast';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -124,16 +124,16 @@ export default function DevAssistant() {
         setMessages(thread);
       }
     } catch (error) {
-      toast.custom(
-        (t) => (
+      toast(
+        (t: Toast) => (
           <ErrorToast
-            isVisible={t.visible}
+            toastId={t.id}
             errorMessage="Failed to send the message. Please try again later."
             error={error}
-            close={() => toast.dismiss()}
           />
         ),
         {
+          className: 'error-toast',
           duration: Number.POSITIVE_INFINITY,
         },
       );
@@ -142,7 +142,7 @@ export default function DevAssistant() {
     }
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       const form = event.currentTarget.closest('form');
@@ -205,7 +205,7 @@ export default function DevAssistant() {
               const { value } = event.target;
               setUserInput(value);
             }}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Ask graphite anything!"
             className="w-full"
             required

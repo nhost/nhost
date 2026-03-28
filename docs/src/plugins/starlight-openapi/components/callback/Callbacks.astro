@@ -1,0 +1,54 @@
+---
+import { getCallbackObject, getCallbacks } from '../../libs/callback'
+import { getCallbackOperations, type Operation as CallbacksOperation } from '../../libs/operation'
+import { slug } from '../../libs/path'
+import type { Schema } from '../../libs/schema'
+import CallbackOperation from '../callback/CallbackOperation.astro'
+import Heading from '../Heading.astro'
+import Md from '../Md.astro'
+
+interface Props {
+  operation: CallbacksOperation
+  schema: Schema
+}
+
+const { operation, schema } = Astro.props
+
+const callbacks = getCallbacks(operation)
+const identifiers = Object.keys(callbacks ?? {})
+---
+
+{
+  callbacks && identifiers.length > 0 && (
+    <>
+      <Heading level={2} id="callbacks">
+        Callbacks
+      </Heading>
+      {identifiers.map((identifier) => {
+        const callbackObject = getCallbackObject(callbacks, identifier)
+        const id = slug(identifier)
+
+        return (
+          <>
+            <Heading level={3} {id}>
+              <code>{identifier}</code>
+            </Heading>
+            {Object.entries(callbackObject).map(([url, callback]) => {
+              const operations = getCallbackOperations(callback)
+
+              return (
+                <>
+                  {callback.summary && <p>{callback.summary}</p>}
+                  <Md text={callback.description} />
+                  {operations.map((operation) => (
+                    <CallbackOperation {callback} {id} {operation} {schema} {url} />
+                  ))}
+                </>
+              )
+            })}
+          </>
+        )
+      })}
+    </>
+  )
+}

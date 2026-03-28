@@ -324,3 +324,34 @@ func RegisterCustomUnmarshalerContext[T any](unmarshaler func(context.Context, *
 		return unmarshaler(ctx, v.(*T), b)
 	}
 }
+
+// RawMessage is a raw encoded YAML value. It implements [BytesMarshaler] and
+// [BytesUnmarshaler] and can be used to delay YAML decoding or precompute a YAML
+// encoding.
+// It also implements [json.Marshaler] and [json.Unmarshaler].
+//
+// This is similar to [json.RawMessage] in the stdlib.
+type RawMessage []byte
+
+func (m RawMessage) MarshalYAML() ([]byte, error) {
+	if m == nil {
+		return []byte("null"), nil
+	}
+	return m, nil
+}
+
+func (m *RawMessage) UnmarshalYAML(dt []byte) error {
+	if m == nil {
+		return errors.New("yaml.RawMessage: UnmarshalYAML on nil pointer")
+	}
+	*m = append((*m)[0:0], dt...)
+	return nil
+}
+
+func (m *RawMessage) UnmarshalJSON(b []byte) error {
+	return m.UnmarshalYAML(b)
+}
+
+func (m RawMessage) MarshalJSON() ([]byte, error) {
+	return YAMLToJSON(m)
+}

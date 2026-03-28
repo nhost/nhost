@@ -28,7 +28,7 @@ export default function DeleteEventTriggerDialog({
 }: DeleteEventTriggerDialogProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
-  const { mutateAsync: deleteEventTrigger, isLoading: isDeletingEventTrigger } =
+  const { mutateAsync: deleteEventTrigger, isPending: isDeletingEventTrigger } =
     useDeleteEventTriggerMutation();
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();

@@ -163,7 +163,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},
@@ -221,7 +221,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},
@@ -253,7 +253,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},
@@ -327,7 +327,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},
@@ -355,7 +355,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  "asdasdasd",
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Provider: "fake",
 				},
 			},

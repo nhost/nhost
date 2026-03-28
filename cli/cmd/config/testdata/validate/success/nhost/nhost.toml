@@ -9,8 +9,10 @@ adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
 [[hasura.jwtSecrets]]
-type = 'HS256'
-key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
+type = 'RS256'
+key = '{{ secrets.NHOST_JWT_PUBLIC_KEY }}'
+signingKey = '{{ secrets.NHOST_JWT_PRIVATE_KEY }}'
+kid = '{{ secrets.NHOST_JWT_KID }}'
 
 [hasura.settings]
 corsDomain = ['*']

@@ -1,6 +1,6 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 const plugin = require('tailwindcss/plugin');
-const screens = require('./src/constants/screens').default;
+const screens = require('./src/constants/screens.cjs');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -23,6 +23,7 @@ module.exports = {
         'data-cell-bg': 'hsl(var(--data-cell-bg))',
         'data-cell-bg-odd': 'hsl(var(--data-cell-bg-odd))',
         'data-cell-bg-hover': 'hsl(var(--data-cell-bg-hover))',
+        'data-cell-bg-disabled': 'hsl(var(--data-cell-bg-disabled))',
         'data-table-border-color': 'hsl(var(--data-table-border-color))',
         'primary-text': 'hsl(var(--primary-text))',
         'primary-main': 'hsl(var(--primary-main))',
@@ -34,6 +35,8 @@ module.exports = {
         'background-default': 'hsl(var(--background-default))',
         'table-selected': 'hsl(var(--table-selected))',
         'error-main': '#f13154',
+        'error-bg': '#f131541a',
+        'error-toast-bg': 'hsl(var(--error-toast-bg))',
         'secondary-hover': '#475569',
         default: 'hsl(var(--default))',
         background: 'hsl(var(--background))',
@@ -53,6 +56,14 @@ module.exports = {
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
+          100: 'hsl(var(--secondary-100))',
+          200: 'hsl(var(--secondary-200))',
+          300: 'hsl(var(--secondary-300))',
+          400: 'hsl(var(--secondary-400))',
+          500: 'hsl(var(--secondary-500))',
+          600: 'hsl(var(--secondary-600))',
+          700: 'hsl(var(--secondary-700))',
+          800: 'hsl(var(--secondary-800))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',

@@ -24,3 +24,6 @@ sql:
           - column: auth.refresh_tokens.type
             go_type:
               type: "RefreshTokenType"
+          - column: auth.oauth2_clients.type
+            go_type:
+              type: "OAuth2ClientType"

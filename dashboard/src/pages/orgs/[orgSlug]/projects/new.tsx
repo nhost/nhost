@@ -122,6 +122,8 @@ export function NewProjectPageContent({
             regionName: selectedRegion.name,
           });
 
+          // store the subdomain in session storage to indicate that the user has created a project
+          sessionStorage.setItem('newProjectSubdomain', subdomain);
           await router.push(`/orgs/${selectedOrg.slug}/projects/${subdomain}`);
         }
       },

@@ -9,19 +9,26 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Skeleton } from '@/components/ui/v3/skeleton';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { isEmptyValue } from '@/lib/utils';
 
-export default function UpdateTriggerColumnsSection() {
+interface UpdateTriggerColumnsSectionProps {
+  isSheetOpen: boolean;
+}
+
+export default function UpdateTriggerColumnsSection({
+  isSheetOpen,
+}: UpdateTriggerColumnsSectionProps) {
   const form = useFormContext<BaseEventTriggerFormValues>();
 
   const selectedTableSchema = form.watch('tableSchema');
   const selectedTableName = form.watch('tableName');
 
-  const canFetchColumns = Boolean(selectedTableSchema && selectedTableName);
+  const canFetchColumns =
+    isSheetOpen && Boolean(selectedTableSchema && selectedTableName);
 
-  const { data: selectedTableData, isLoading } = useTableQuery(
+  const { data: selectedTableData, isLoading } = useTableSchemaQuery(
     [`default.${selectedTableSchema}.${selectedTableName}`],
     {
       schema: selectedTableSchema,

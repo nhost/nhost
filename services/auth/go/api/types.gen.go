@@ -99,6 +99,24 @@ const (
 	IdTokenProviderGoogle IdTokenProvider = "google"
 )
 
+// Defines values for OAuth2IntrospectRequestTokenTypeHint.
+const (
+	OAuth2IntrospectRequestTokenTypeHintAccessToken  OAuth2IntrospectRequestTokenTypeHint = "access_token"
+	OAuth2IntrospectRequestTokenTypeHintRefreshToken OAuth2IntrospectRequestTokenTypeHint = "refresh_token"
+)
+
+// Defines values for OAuth2RevokeRequestTokenTypeHint.
+const (
+	OAuth2RevokeRequestTokenTypeHintAccessToken  OAuth2RevokeRequestTokenTypeHint = "access_token"
+	OAuth2RevokeRequestTokenTypeHintRefreshToken OAuth2RevokeRequestTokenTypeHint = "refresh_token"
+)
+
+// Defines values for OAuth2TokenRequestGrantType.
+const (
+	AuthorizationCode OAuth2TokenRequestGrantType = "authorization_code"
+	RefreshToken      OAuth2TokenRequestGrantType = "refresh_token"
+)
+
 // Defines values for OKResponse.
 const (
 	OK OKResponse = "OK"
@@ -163,6 +181,11 @@ const (
 	TicketTypeQueryEmailVerify        TicketTypeQuery = "emailVerify"
 	TicketTypeQueryPasswordReset      TicketTypeQuery = "passwordReset"
 	TicketTypeQuerySigninPasswordless TicketTypeQuery = "signinPasswordless"
+)
+
+// Defines values for Oauth2AuthorizeParamsCodeChallengeMethod.
+const (
+	S256 Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
 )
 
 // Defines values for SignInProviderParamsProvider.
@@ -453,6 +476,132 @@ type MFAChallengePayload struct {
 	Ticket string `json:"ticket"`
 }
 
+// OAuth2DiscoveryResponse defines model for OAuth2DiscoveryResponse.
+type OAuth2DiscoveryResponse struct {
+	AuthorizationEndpoint                      string    `json:"authorization_endpoint"`
+	AuthorizationResponseIssParameterSupported *bool     `json:"authorization_response_iss_parameter_supported,omitempty"`
+	ClaimsSupported                            *[]string `json:"claims_supported,omitempty"`
+	ClientIdMetadataDocumentSupported          *bool     `json:"client_id_metadata_document_supported,omitempty"`
+	CodeChallengeMethodsSupported              *[]string `json:"code_challenge_methods_supported,omitempty"`
+	GrantTypesSupported                        *[]string `json:"grant_types_supported,omitempty"`
+	IdTokenSigningAlgValuesSupported           *[]string `json:"id_token_signing_alg_values_supported,omitempty"`
+	IntrospectionEndpoint                      *string   `json:"introspection_endpoint,omitempty"`
+	Issuer                                     string    `json:"issuer"`
+	JwksUri                                    string    `json:"jwks_uri"`
+	RequestParameterSupported                  *bool     `json:"request_parameter_supported,omitempty"`
+	ResponseTypesSupported                     []string  `json:"response_types_supported"`
+	RevocationEndpoint                         *string   `json:"revocation_endpoint,omitempty"`
+	ScopesSupported                            *[]string `json:"scopes_supported,omitempty"`
+	SubjectTypesSupported                      *[]string `json:"subject_types_supported,omitempty"`
+	TokenEndpoint                              string    `json:"token_endpoint"`
+	TokenEndpointAuthMethodsSupported          *[]string `json:"token_endpoint_auth_methods_supported,omitempty"`
+	UserinfoEndpoint                           *string   `json:"userinfo_endpoint,omitempty"`
+}
+
+// OAuth2ErrorResponse defines model for OAuth2ErrorResponse.
+type OAuth2ErrorResponse struct {
+	// Error OAuth2 error code
+	Error string `json:"error"`
+
+	// ErrorDescription Human-readable error description
+	ErrorDescription *string `json:"error_description,omitempty"`
+}
+
+// OAuth2IntrospectRequest defines model for OAuth2IntrospectRequest.
+type OAuth2IntrospectRequest struct {
+	ClientId      *string                               `json:"client_id"`
+	ClientSecret  *string                               `json:"client_secret"`
+	Token         string                                `json:"token"`
+	TokenTypeHint *OAuth2IntrospectRequestTokenTypeHint `json:"token_type_hint"`
+}
+
+// OAuth2IntrospectRequestTokenTypeHint defines model for OAuth2IntrospectRequest.TokenTypeHint.
+type OAuth2IntrospectRequestTokenTypeHint string
+
+// OAuth2IntrospectResponse defines model for OAuth2IntrospectResponse.
+type OAuth2IntrospectResponse struct {
+	Active    bool    `json:"active"`
+	ClientId  *string `json:"client_id,omitempty"`
+	Exp       *int    `json:"exp,omitempty"`
+	Iat       *int    `json:"iat,omitempty"`
+	Iss       *string `json:"iss,omitempty"`
+	Scope     *string `json:"scope,omitempty"`
+	Sub       *string `json:"sub,omitempty"`
+	TokenType *string `json:"token_type,omitempty"`
+}
+
+// OAuth2JWKSResponse defines model for OAuth2JWKSResponse.
+type OAuth2JWKSResponse struct {
+	Keys []JWK `json:"keys"`
+}
+
+// OAuth2LoginCompleteResponse defines model for OAuth2LoginCompleteResponse.
+type OAuth2LoginCompleteResponse struct {
+	RedirectUri string `json:"redirectUri"`
+}
+
+// OAuth2LoginRequest defines model for OAuth2LoginRequest.
+type OAuth2LoginRequest struct {
+	RequestId openapi_types.UUID `json:"requestId"`
+}
+
+// OAuth2LoginResponse defines model for OAuth2LoginResponse.
+type OAuth2LoginResponse struct {
+	ClientId    string             `json:"clientId"`
+	RedirectUri string             `json:"redirectUri"`
+	RequestId   openapi_types.UUID `json:"requestId"`
+	Scopes      []string           `json:"scopes"`
+}
+
+// OAuth2RevokeRequest defines model for OAuth2RevokeRequest.
+type OAuth2RevokeRequest struct {
+	ClientId      *string                           `json:"client_id"`
+	ClientSecret  *string                           `json:"client_secret"`
+	Token         string                            `json:"token"`
+	TokenTypeHint *OAuth2RevokeRequestTokenTypeHint `json:"token_type_hint"`
+}
+
+// OAuth2RevokeRequestTokenTypeHint defines model for OAuth2RevokeRequest.TokenTypeHint.
+type OAuth2RevokeRequestTokenTypeHint string
+
+// OAuth2TokenRequest defines model for OAuth2TokenRequest.
+type OAuth2TokenRequest struct {
+	ClientId     *string                     `json:"client_id"`
+	ClientSecret *string                     `json:"client_secret"`
+	Code         *string                     `json:"code"`
+	CodeVerifier *string                     `json:"code_verifier"`
+	GrantType    OAuth2TokenRequestGrantType `json:"grant_type"`
+	RedirectUri  *string                     `json:"redirect_uri"`
+	RefreshToken *string                     `json:"refresh_token"`
+	Resource     *string                     `json:"resource"`
+}
+
+// OAuth2TokenRequestGrantType defines model for OAuth2TokenRequest.GrantType.
+type OAuth2TokenRequestGrantType string
+
+// OAuth2TokenResponse defines model for OAuth2TokenResponse.
+type OAuth2TokenResponse struct {
+	AccessToken  string  `json:"access_token"`
+	ExpiresIn    int     `json:"expires_in"`
+	IdToken      *string `json:"id_token,omitempty"`
+	RefreshToken *string `json:"refresh_token,omitempty"`
+	Scope        *string `json:"scope,omitempty"`
+	TokenType    string  `json:"token_type"`
+}
+
+// OAuth2UserinfoResponse defines model for OAuth2UserinfoResponse.
+type OAuth2UserinfoResponse struct {
+	Email                *string                `json:"email,omitempty"`
+	EmailVerified        *bool                  `json:"email_verified,omitempty"`
+	Locale               *string                `json:"locale,omitempty"`
+	Name                 *string                `json:"name,omitempty"`
+	PhoneNumber          *string                `json:"phone_number,omitempty"`
+	PhoneNumberVerified  *bool                  `json:"phone_number_verified,omitempty"`
+	Picture              *string                `json:"picture,omitempty"`
+	Sub                  string                 `json:"sub"`
+	AdditionalProperties map[string]interface{} `json:"-"`
+}
+
 // OKResponse defines model for OKResponse.
 type OKResponse string
 
@@ -631,6 +780,9 @@ type SignInPATRequest struct {
 
 // SignInPasswordlessEmailRequest defines model for SignInPasswordlessEmailRequest.
 type SignInPasswordlessEmailRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *SignUpOptions      `json:"options,omitempty"`
@@ -688,6 +840,9 @@ type SignOutRequest struct {
 
 // SignUpEmailPasswordRequest Request to register a new user with email and password
 type SignUpEmailPasswordRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Email Email address for the new user account
 	Email   openapi_types.Email `json:"email"`
 	Options *SignUpOptions      `json:"options,omitempty"`
@@ -717,11 +872,22 @@ type SignUpWebauthnRequest struct {
 
 // SignUpWebauthnVerifyRequest defines model for SignUpWebauthnVerifyRequest.
 type SignUpWebauthnVerifyRequest struct {
-	Credential CredentialCreationResponse `json:"credential"`
+	// CodeChallenge PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string                    `json:"codeChallenge,omitempty"`
+	Credential    CredentialCreationResponse `json:"credential"`
 
 	// Nickname Nickname for the security key
 	Nickname *string        `json:"nickname,omitempty"`
 	Options  *SignUpOptions `json:"options,omitempty"`
+}
+
+// TokenExchangeRequest Request to exchange an authorization code for a session using PKCE
+type TokenExchangeRequest struct {
+	// Code The authorization code received from the redirect
+	Code string `json:"code"`
+
+	// CodeVerifier The original PKCE code verifier (43-128 characters)
+	CodeVerifier string `json:"codeVerifier"`
 }
 
 // TotpGenerateResponse Response containing TOTP setup information for MFA
@@ -783,6 +949,9 @@ type User struct {
 
 // UserDeanonymizeRequest defines model for UserDeanonymizeRequest.
 type UserDeanonymizeRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Connection Deprecated, will be ignored
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	Connection *string `json:"connection,omitempty"`
@@ -803,6 +972,9 @@ type UserDeanonymizeRequestSignInMethod string
 
 // UserEmailChangeRequest defines model for UserEmailChangeRequest.
 type UserEmailChangeRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// NewEmail A valid email
 	NewEmail openapi_types.Email `json:"newEmail"`
 	Options  *OptionsRedirectTo  `json:"options,omitempty"`
@@ -810,6 +982,9 @@ type UserEmailChangeRequest struct {
 
 // UserEmailSendVerificationEmailRequest defines model for UserEmailSendVerificationEmailRequest.
 type UserEmailSendVerificationEmailRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
@@ -850,6 +1025,9 @@ type UserPasswordRequest struct {
 
 // UserPasswordResetRequest defines model for UserPasswordResetRequest.
 type UserPasswordResetRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
@@ -893,6 +1071,64 @@ type TicketQuery = string
 // TicketTypeQuery Type of the ticket
 type TicketTypeQuery string
 
+// Oauth2AuthorizeParams defines parameters for Oauth2Authorize.
+type Oauth2AuthorizeParams struct {
+	// ClientId The OAuth2 client identifier (RFC 6749 Section 2.2).
+	ClientId string `form:"client_id" json:"client_id"`
+
+	// RedirectUri The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
+	RedirectUri string `form:"redirect_uri" json:"redirect_uri"`
+
+	// ResponseType The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+	ResponseType string `form:"response_type" json:"response_type"`
+
+	// Scope Space-delimited list of requested scopes (RFC 6749 Section 3.3).
+	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
+
+	// State Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
+	State *string `form:"state,omitempty" json:"state,omitempty"`
+
+	// Nonce String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
+	Nonce *string `form:"nonce,omitempty" json:"nonce,omitempty"`
+
+	// CodeChallenge PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
+	CodeChallenge *string `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+
+	// CodeChallengeMethod Only S256 is supported. The plain method is not allowed.
+	CodeChallengeMethod *Oauth2AuthorizeParamsCodeChallengeMethod `form:"code_challenge_method,omitempty" json:"code_challenge_method,omitempty"`
+
+	// Resource Resource indicator for the target service (RFC 8707).
+	Resource *string `form:"resource,omitempty" json:"resource,omitempty"`
+
+	// Prompt Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
+	Prompt *string `form:"prompt,omitempty" json:"prompt,omitempty"`
+}
+
+// Oauth2AuthorizeParamsCodeChallengeMethod defines parameters for Oauth2Authorize.
+type Oauth2AuthorizeParamsCodeChallengeMethod string
+
+// Oauth2AuthorizePostFormdataBody defines parameters for Oauth2AuthorizePost.
+type Oauth2AuthorizePostFormdataBody struct {
+	ClientId      string  `form:"client_id" json:"client_id"`
+	CodeChallenge *string `form:"code_challenge" json:"code_challenge"`
+
+	// CodeChallengeMethod Only S256 is supported. The plain method is not allowed.
+	CodeChallengeMethod *string `form:"code_challenge_method" json:"code_challenge_method"`
+	Nonce               *string `form:"nonce" json:"nonce"`
+	Prompt              *string `form:"prompt" json:"prompt"`
+	RedirectUri         string  `form:"redirect_uri" json:"redirect_uri"`
+	Resource            *string `form:"resource" json:"resource"`
+	ResponseType        string  `form:"response_type" json:"response_type"`
+	Scope               *string `form:"scope" json:"scope"`
+	State               *string `form:"state" json:"state"`
+}
+
+// Oauth2LoginGetParams defines parameters for Oauth2LoginGet.
+type Oauth2LoginGetParams struct {
+	// RequestId The pending authorization request identifier.
+	RequestId openapi_types.UUID `form:"request_id" json:"request_id"`
+}
+
 // SignInProviderParams defines parameters for SignInProvider.
 type SignInProviderParams struct {
 	// AllowedRoles Array of allowed roles for the user
@@ -921,6 +1157,9 @@ type SignInProviderParams struct {
 
 	// ProviderSpecificParams Additional provider-specific parameters
 	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
+
+	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
 
 // SignInProviderParamsProvider defines parameters for SignInProvider.
@@ -1000,6 +1239,9 @@ type VerifyTicketParams struct {
 
 	// RedirectTo Target URL for the redirect
 	RedirectTo RedirectToQuery `form:"redirectTo" json:"redirectTo"`
+
+	// CodeChallenge PKCE code challenge (S256). When present, the redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
 
 // VerifyTicketParamsType defines parameters for VerifyTicket.
@@ -1010,6 +1252,21 @@ type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest
 
 // LinkIdTokenJSONRequestBody defines body for LinkIdToken for application/json ContentType.
 type LinkIdTokenJSONRequestBody = LinkIdTokenRequest
+
+// Oauth2AuthorizePostFormdataRequestBody defines body for Oauth2AuthorizePost for application/x-www-form-urlencoded ContentType.
+type Oauth2AuthorizePostFormdataRequestBody Oauth2AuthorizePostFormdataBody
+
+// Oauth2IntrospectFormdataRequestBody defines body for Oauth2Introspect for application/x-www-form-urlencoded ContentType.
+type Oauth2IntrospectFormdataRequestBody = OAuth2IntrospectRequest
+
+// Oauth2LoginPostJSONRequestBody defines body for Oauth2LoginPost for application/json ContentType.
+type Oauth2LoginPostJSONRequestBody = OAuth2LoginRequest
+
+// Oauth2RevokeFormdataRequestBody defines body for Oauth2Revoke for application/x-www-form-urlencoded ContentType.
+type Oauth2RevokeFormdataRequestBody = OAuth2RevokeRequest
+
+// Oauth2TokenFormdataRequestBody defines body for Oauth2Token for application/x-www-form-urlencoded ContentType.
+type Oauth2TokenFormdataRequestBody = OAuth2TokenRequest
 
 // CreatePATJSONRequestBody defines body for CreatePAT for application/json ContentType.
 type CreatePATJSONRequestBody = CreatePATRequest
@@ -1067,6 +1324,9 @@ type VerifySignUpWebauthnJSONRequestBody = SignUpWebauthnVerifyRequest
 
 // RefreshTokenJSONRequestBody defines body for RefreshToken for application/json ContentType.
 type RefreshTokenJSONRequestBody = RefreshTokenRequest
+
+// TokenExchangeJSONRequestBody defines body for TokenExchange for application/json ContentType.
+type TokenExchangeJSONRequestBody = TokenExchangeRequest
 
 // RefreshProviderTokenJSONRequestBody defines body for RefreshProviderToken for application/json ContentType.
 type RefreshProviderTokenJSONRequestBody = RefreshProviderTokenRequest
@@ -1338,6 +1598,177 @@ func (a AuthenticationExtensionsClientOutputs) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error marshaling 'hmacCreateSecret': %w", err)
 		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for OAuth2UserinfoResponse. Returns the specified
+// element and whether it was found
+func (a OAuth2UserinfoResponse) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for OAuth2UserinfoResponse
+func (a *OAuth2UserinfoResponse) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for OAuth2UserinfoResponse to handle AdditionalProperties
+func (a *OAuth2UserinfoResponse) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["email"]; found {
+		err = json.Unmarshal(raw, &a.Email)
+		if err != nil {
+			return fmt.Errorf("error reading 'email': %w", err)
+		}
+		delete(object, "email")
+	}
+
+	if raw, found := object["email_verified"]; found {
+		err = json.Unmarshal(raw, &a.EmailVerified)
+		if err != nil {
+			return fmt.Errorf("error reading 'email_verified': %w", err)
+		}
+		delete(object, "email_verified")
+	}
+
+	if raw, found := object["locale"]; found {
+		err = json.Unmarshal(raw, &a.Locale)
+		if err != nil {
+			return fmt.Errorf("error reading 'locale': %w", err)
+		}
+		delete(object, "locale")
+	}
+
+	if raw, found := object["name"]; found {
+		err = json.Unmarshal(raw, &a.Name)
+		if err != nil {
+			return fmt.Errorf("error reading 'name': %w", err)
+		}
+		delete(object, "name")
+	}
+
+	if raw, found := object["phone_number"]; found {
+		err = json.Unmarshal(raw, &a.PhoneNumber)
+		if err != nil {
+			return fmt.Errorf("error reading 'phone_number': %w", err)
+		}
+		delete(object, "phone_number")
+	}
+
+	if raw, found := object["phone_number_verified"]; found {
+		err = json.Unmarshal(raw, &a.PhoneNumberVerified)
+		if err != nil {
+			return fmt.Errorf("error reading 'phone_number_verified': %w", err)
+		}
+		delete(object, "phone_number_verified")
+	}
+
+	if raw, found := object["picture"]; found {
+		err = json.Unmarshal(raw, &a.Picture)
+		if err != nil {
+			return fmt.Errorf("error reading 'picture': %w", err)
+		}
+		delete(object, "picture")
+	}
+
+	if raw, found := object["sub"]; found {
+		err = json.Unmarshal(raw, &a.Sub)
+		if err != nil {
+			return fmt.Errorf("error reading 'sub': %w", err)
+		}
+		delete(object, "sub")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for OAuth2UserinfoResponse to handle AdditionalProperties
+func (a OAuth2UserinfoResponse) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Email != nil {
+		object["email"], err = json.Marshal(a.Email)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'email': %w", err)
+		}
+	}
+
+	if a.EmailVerified != nil {
+		object["email_verified"], err = json.Marshal(a.EmailVerified)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'email_verified': %w", err)
+		}
+	}
+
+	if a.Locale != nil {
+		object["locale"], err = json.Marshal(a.Locale)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'locale': %w", err)
+		}
+	}
+
+	if a.Name != nil {
+		object["name"], err = json.Marshal(a.Name)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'name': %w", err)
+		}
+	}
+
+	if a.PhoneNumber != nil {
+		object["phone_number"], err = json.Marshal(a.PhoneNumber)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'phone_number': %w", err)
+		}
+	}
+
+	if a.PhoneNumberVerified != nil {
+		object["phone_number_verified"], err = json.Marshal(a.PhoneNumberVerified)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'phone_number_verified': %w", err)
+		}
+	}
+
+	if a.Picture != nil {
+		object["picture"], err = json.Marshal(a.Picture)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'picture': %w", err)
+		}
+	}
+
+	object["sub"], err = json.Marshal(a.Sub)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'sub': %w", err)
 	}
 
 	for fieldName, field := range a.AdditionalProperties {

@@ -1,29 +1,55 @@
 import NextLink from 'next/link';
-import type { ForwardedRef, PropsWithoutRef } from 'react';
-import { forwardRef } from 'react';
-import { twMerge } from 'tailwind-merge';
-import type { LinkProps } from '@/components/ui/v2/Link';
-import { Link } from '@/components/ui/v2/Link';
-import type { MakeRequired } from '@/types/common';
+import { type ForwardedRef, forwardRef } from 'react';
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
+import { cn } from '@/lib/utils';
 
-export interface NavLinkProps
-  extends MakeRequired<PropsWithoutRef<LinkProps>, 'href'> {
-  /**
-   * Determines whether or not the link should be disabled.
-   */
-  disabled?: boolean;
-}
+export type NavLinkProps = {
+  underline?: 'none' | 'always' | 'hover';
+  href: string;
+  variant?: ButtonProps['variant'];
+} & ButtonProps &
+  Pick<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'target' | 'rel'>;
 
 function NavLink(
-  { className, children, href, ...props }: NavLinkProps,
-  ref: ForwardedRef<HTMLAnchorElement>,
+  {
+    className,
+    children,
+    href,
+    underline,
+    target,
+    rel,
+    variant = 'link',
+    disabled,
+    ...props
+  }: NavLinkProps,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   return (
-    <NextLink href={href} passHref legacyBehavior>
-      <Link className={twMerge('font-display', className)} ref={ref} {...props}>
+    <Button
+      asChild
+      variant={variant}
+      disabled={disabled}
+      className={cn(
+        'mr-0 h-8 font-display',
+        underline === 'none' && 'no-underline hover:no-underline',
+        underline === 'always' && 'underline',
+        underline === 'hover' && 'hover:underline',
+        disabled && 'pointer-events-none text-disabled opacity-60',
+        className,
+      )}
+      ref={ref}
+      {...props}
+    >
+      <NextLink
+        href={href}
+        target={target}
+        rel={rel}
+        tabIndex={disabled ? -1 : undefined}
+        aria-disabled={disabled}
+      >
         {children}
-      </Link>
-    </NextLink>
+      </NextLink>
+    </Button>
   );
 }
 

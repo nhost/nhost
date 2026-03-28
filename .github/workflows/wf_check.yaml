@@ -11,6 +11,10 @@ on:
       GIT_REF:
         type: string
         required: false
+      ENV:
+        type: string
+        required: false
+        default: ''
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -39,16 +43,15 @@ jobs:
       actions: read
 
     steps:
+    - name: "Set custom env"
+      if: ${{ inputs.ENV != '' }}
+      run: echo "${{ inputs.ENV }}" >> $GITHUB_ENV
+      working-directory: .
+
     - name: "Check out repository"
       uses: actions/checkout@v6
       with:
         ref: ${{ inputs.GIT_REF }}
-
-    - name: "Validate PR title"
-      uses: ./.github/actions/validate-pr-title
-      with:
-        pr_title: ${{ github.event.pull_request.title }}
-      if: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
 
     - name: Collect Workflow Telemetry
       uses: catchpoint/workflow-telemetry-action@v2
@@ -56,7 +59,7 @@ jobs:
         comment_on_pr: false
 
     - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v5
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
         aws-region: eu-central-1
@@ -92,4 +95,4 @@ jobs:
       uses: ./.github/actions/cache-nix
       with:
         NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      if: always()
+      if: ${{ always() && steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}

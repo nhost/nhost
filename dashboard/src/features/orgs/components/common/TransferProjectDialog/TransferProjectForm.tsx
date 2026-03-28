@@ -21,11 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { cn, isNotEmptyValue } from '@/lib/utils';
+import { ApplicationStatus } from '@/types/application';
 import {
   Organization_Members_Role_Enum,
   useBillingTransferAppMutation,
@@ -53,7 +55,9 @@ function TransferProjectForm({
   const { push } = useRouter();
   const { orgs, currentOrg } = useOrgs();
   const { project } = useProject();
+  const { state } = useAppState();
   const user = useUserData();
+  const isProjectNotPaused = state !== ApplicationStatus.Paused;
   const [transferProject] = useBillingTransferAppMutation();
 
   const form = useForm<z.infer<typeof transferProjectFormSchema>>({
@@ -124,32 +128,50 @@ function TransferProjectForm({
               <Select onValueChange={onOrganizationChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Organization" />
+                    <SelectValue
+                      placeholder={
+                        <span className="flex items-center">
+                          {currentOrg?.name}
+                          <Badge
+                            variant={
+                              currentOrg?.plan.isFree ? 'outline' : 'default'
+                            }
+                            className={cn(
+                              currentOrg?.plan.isFree ? 'bg-muted' : '',
+                              'hover:none ml-2 h-5 px-[6px] text-[10px]',
+                            )}
+                          >
+                            {currentOrg?.plan.name}
+                          </Badge>
+                        </span>
+                      }
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {orgs.map((org) => (
-                    <SelectItem
-                      key={org.id}
-                      value={org.id}
-                      disabled={
-                        org.plan.isFree || // disable the personal org
-                        org.id === currentOrg?.id || // disable the current org as it can't be a destination org
-                        !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
-                      }
-                    >
-                      {org.name}
-                      <Badge
-                        variant={org.plan.isFree ? 'outline' : 'default'}
-                        className={cn(
-                          org.plan.isFree ? 'bg-muted' : '',
-                          'hover:none ml-2 h-5 px-[6px] text-[10px]',
-                        )}
+                  {orgs
+                    .filter((org) => org.id !== currentOrg?.id)
+                    .map((org) => (
+                      <SelectItem
+                        key={org.id}
+                        value={org.id}
+                        textContent={org.name}
+                        disabled={
+                          (org.plan.isFree && isProjectNotPaused) || // disable free orgs unless project is paused
+                          !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
+                        }
                       >
-                        {org.plan.name}
-                      </Badge>
-                    </SelectItem>
-                  ))}
+                        <Badge
+                          variant={org.plan.isFree ? 'outline' : 'default'}
+                          className={cn(
+                            org.plan.isFree ? 'bg-muted' : '',
+                            'hover:none ml-2 h-5 px-[6px] text-[10px]',
+                          )}
+                        >
+                          {org.plan.name}
+                        </Badge>
+                      </SelectItem>
+                    ))}
                   <SelectItem key={CREATE_NEW_ORG} value={CREATE_NEW_ORG}>
                     <div className="flex items-center justify-center gap-2">
                       <Plus className="h-4 w-4 font-bold" strokeWidth={3} />{' '}

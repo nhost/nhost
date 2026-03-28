@@ -124,7 +124,7 @@ type jwtSecret struct {
 	Type                *string           `graphql:"type"                  json:"type,omitempty"`
 }
 
-func marshalJWT(jwt *model.ConfigJWTSecret) ([]byte, error) {
+func marshalJWT(jwt *model.ConfigJWTSecret, withPrivKeys bool) ([]byte, error) {
 	var claimsMap map[string]*claim
 	if jwt.ClaimsMap != nil {
 		claimsMap = make(map[string]*claim, len(jwt.ClaimsMap))
@@ -137,7 +137,7 @@ func marshalJWT(jwt *model.ConfigJWTSecret) ([]byte, error) {
 		}
 	}
 
-	return json.Marshal(&jwtSecret{ //nolint:wrapcheck
+	j := &jwtSecret{
 		AllowedSkew:         jwt.AllowedSkew,
 		Audience:            jwt.Audience,
 		ClaimsMap:           claimsMap,
@@ -151,5 +151,12 @@ func marshalJWT(jwt *model.ConfigJWTSecret) ([]byte, error) {
 		SigninKey:           jwt.SigningKey,
 		KeyID:               jwt.Kid,
 		Type:                jwt.Type,
-	})
+	}
+
+	if !withPrivKeys {
+		j.SigninKey = nil
+		j.KeyID = nil
+	}
+
+	return json.Marshal(j) //nolint:wrapcheck
 }

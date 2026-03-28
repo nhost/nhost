@@ -1,10 +1,11 @@
+import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
   QueryError,
   QueryResult,
+  TableLikeObject,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 
 export interface FetchDatabaseOptions
   extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}
@@ -15,9 +16,9 @@ export interface FetchDatabaseReturnType {
    */
   schemas?: NormalizedQueryDataRow[];
   /**
-   * List of available tables in the database.
+   * List of available table-like objects in the database: tables, views, enums...
    */
-  tables?: NormalizedQueryDataRow[];
+  tableLikeObjects?: TableLikeObject[];
   /**
    * Response metadata.
    */
@@ -54,8 +55,8 @@ export default async function fetchDatabase({
         ),
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT row_to_json(table_data) as data FROM information_schema.tables table_data WHERE %s ORDER BY table_name ASC`,
-          SYSTEM_TABLES.map((value) => `table_schema NOT LIKE '${value}'`).join(
+          `SELECT row_to_json(obj_data) as data FROM (SELECT n.nspname AS table_schema, c.relname AS table_name, CASE c.relkind WHEN 'r' THEN 'ORDINARY TABLE' WHEN 'v' THEN 'VIEW' WHEN 'm' THEN 'MATERIALIZED VIEW' WHEN 'f' THEN 'FOREIGN TABLE' END AS table_type, pg_relation_is_updatable(c.oid, true) AS updatability FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind IN ('r', 'v', 'm', 'f') AND %s) obj_data ORDER BY table_name ASC`,
+          SYSTEM_TABLES.map((value) => `n.nspname NOT LIKE '${value}'`).join(
             ' AND ',
           ),
         ),
@@ -82,7 +83,7 @@ export default async function fetchDatabase({
       if (queryError.code === 'not-exists') {
         return {
           schemas: [],
-          tables: [],
+          tableLikeObjects: [],
           metadata: { dataSource, databaseNotFound: true },
         };
       }
@@ -92,14 +93,14 @@ export default async function fetchDatabase({
   }
 
   const [, ...rawSchemas] = responseData[0].result;
-  const [, ...rawTables] = responseData[1].result;
+  const [, ...rawTableLikeObjects] = responseData[1].result;
 
   return {
     schemas: rawSchemas.map((rawData) =>
       JSON.parse(rawData),
     ) as NormalizedQueryDataRow[],
-    tables: rawTables.map((rawData) =>
+    tableLikeObjects: rawTableLikeObjects.map((rawData) =>
       JSON.parse(rawData),
-    ) as NormalizedQueryDataRow[],
+    ) as TableLikeObject[],
   };
 }

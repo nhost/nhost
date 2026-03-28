@@ -17,7 +17,7 @@ func TestSignOut(t *testing.T) {
 	t.Parallel()
 
 	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
-	token := uuid.MustParse("1fb17604-86c7-444e-b337-09a644465f2d")
+	token := uuid.MustParse("1fb17604-86c7-444e-b337-09a644465f2d") //nolint:staticcheck
 	hashedToken := `\x9698157153010b858587119503cbeef0cf288f11775e51cdb6bfd65e930d9310`
 
 	cases := []testRequest[api.SignOutRequestObject, api.SignOutResponseObject]{
@@ -36,8 +36,8 @@ func TestSignOut(t *testing.T) {
 			},
 			request: api.SignOutRequestObject{
 				Body: &api.SignOutRequest{
-					RefreshToken: ptr(token.String()),
-					All:          ptr(false),
+					RefreshToken: new(token.String()),
+					All:          new(false),
 				},
 			},
 			expectedResponse:  api.SignOut200JSONResponse(api.OK),
@@ -60,7 +60,7 @@ func TestSignOut(t *testing.T) {
 			},
 			request: api.SignOutRequestObject{
 				Body: &api.SignOutRequest{
-					RefreshToken: ptr(token.String()),
+					RefreshToken: new(token.String()),
 					All:          nil, // All is nil, should default to false
 				},
 			},
@@ -84,8 +84,8 @@ func TestSignOut(t *testing.T) {
 			},
 			request: api.SignOutRequestObject{
 				Body: &api.SignOutRequest{
-					RefreshToken: ptr(token.String()),
-					All:          ptr(true),
+					RefreshToken: new(token.String()),
+					All:          new(true),
 				},
 			},
 			expectedResponse: api.SignOut200JSONResponse(api.OK),
@@ -124,8 +124,8 @@ func TestSignOut(t *testing.T) {
 			},
 			request: api.SignOutRequestObject{
 				Body: &api.SignOutRequest{
-					RefreshToken: ptr(token.String()),
-					All:          ptr(true),
+					RefreshToken: new(token.String()),
+					All:          new(true),
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -152,8 +152,8 @@ func TestSignOut(t *testing.T) {
 			},
 			request: api.SignOutRequestObject{
 				Body: &api.SignOutRequest{
-					RefreshToken: ptr(token.String()),
-					All:          ptr(false),
+					RefreshToken: new(token.String()),
+					All:          new(false),
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -180,8 +180,8 @@ func TestSignOut(t *testing.T) {
 			},
 			request: api.SignOutRequestObject{
 				Body: &api.SignOutRequest{
-					RefreshToken: ptr(token.String()),
-					All:          ptr(true),
+					RefreshToken: new(token.String()),
+					All:          new(true),
 				},
 			},
 			expectedResponse: controller.ErrorResponse{

@@ -132,6 +132,13 @@ func expectedAuth() *Service {
 			"AUTH_RATE_LIMIT_ENABLE":                    "true",
 			"AUTH_RATE_LIMIT_GLOBAL_BURST":              "33",
 			"AUTH_RATE_LIMIT_GLOBAL_INTERVAL":           "15m",
+			"AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL":     "900",
+			"AUTH_OAUTH2_PROVIDER_CIMD_ENABLED":         "true",
+			"AUTH_OAUTH2_PROVIDER_ENABLED":              "true",
+			"AUTH_OAUTH2_PROVIDER_LOGIN_URL":            "https://example.com/oauth2/login",
+			"AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL":    "2592000",
+			"AUTH_RATE_LIMIT_OAUTH2_SERVER_BURST":       "33",
+			"AUTH_RATE_LIMIT_OAUTH2_SERVER_INTERVAL":    "5m",
 			"AUTH_RATE_LIMIT_SIGNUPS_BURST":             "3",
 			"AUTH_RATE_LIMIT_SIGNUPS_INTERVAL":          "5m",
 			"AUTH_RATE_LIMIT_SMS_BURST":                 "3",
@@ -195,14 +202,15 @@ func expectedAuth() *Service {
 			"traefik.http.routers.auth.tls":                       "true",
 			"traefik.http.services.auth.loadbalancer.server.port": "4000",
 		},
-		Ports:   nil,
-		Restart: "always",
+		Networks: networkAliases("hasura-auth-service"),
+		Ports:    nil,
+		Restart:  "always",
 		Volumes: []Volume{
 			{
 				Type:     "bind",
 				Source:   "/tmp/nhost/emails",
 				Target:   "/app/email-templates",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,
@@ -230,7 +238,7 @@ func TestAuth(t *testing.T) {
 			name: "pre-0.22.0",
 			cfg: func() *model.ConfigConfig {
 				cfg := getConfig()
-				cfg.Auth.Version = ptr("0.21.3")
+				cfg.Auth.Version = new("0.21.3")
 
 				return cfg
 			},

@@ -1,17 +1,17 @@
 ---
 name: "dashboard: check and build"
 on:
-  pull_request:
+  pull_request_target:
     paths:
-      - '.github/workflows/wf_build_artifacts.yaml'
-      - '.github/workflows/wf_check.yaml'
-      - '.github/workflows/dashboard_checks.yaml'
+      - ".github/workflows/wf_build_artifacts.yaml"
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/dashboard_checks.yaml"
 
       # common build
-      - 'flake.nix'
-      - 'flake.lock'
-      - 'nixops/**'
-      - 'build/**'
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
 
       # common javascript
       - ".npmrc"
@@ -28,34 +28,57 @@ on:
 
       # nhost-js
       - packages/nhost-js/**
-  issue_comment:
-    types: [created]
-  push:
-    branches:
-      - main
+  merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'issue_comment' && format('pr-{0}', github.event.issue.number) || format('push-{0}', github.sha) }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'issue_comment' }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  check-pr-authorization:
+  detect-changes:
+    uses: ./.github/workflows/wf_detect_changes.yaml
+    with:
+      patterns: |
+        .github/workflows/wf_build_artifacts.yaml
+        .github/workflows/wf_check.yaml
+        .github/workflows/dashboard_checks.yaml
+        flake.nix
+        flake.lock
+        nixops/**
+        build/**
+        .npmrc
+        .prettierignore
+        .prettierrc.js
+        audit-ci.jsonc
+        package.json
+        pnpm-workspace.yaml
+        pnpm-lock.yaml
+        turbo.json
+        dashboard/**
+        packages/nhost-js/**
+
+  check-permissions:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.auth.outputs.should_run }}
-      sha: ${{ steps.auth.outputs.sha }}
     steps:
-      - uses: actions/checkout@v6
-      - id: auth
-        uses: ./.github/actions/check-pr-authorization
+      - run: |
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
+      - name: "This task will run and fail if user has no permissions and label safe_to_test isn't present"
+        if: 'github.event_name == ''pull_request_target'' && ! ( contains(github.event.pull_request.labels.*.name, ''safe_to_test'') || contains(fromJson(''["OWNER", "MEMBER", "COLLABORATOR"]''), github.event.pull_request.author_association) )'
+        run: |
+          exit 1
 
   deploy-vercel:
-    needs: check-pr-authorization
-    if: needs.check-pr-authorization.outputs.should_run == 'true'
     uses: ./.github/workflows/wf_deploy_vercel.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: dashboard
-      GIT_REF: ${{ needs.check-pr-authorization.outputs.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       ENVIRONMENT: preview
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
@@ -67,13 +90,15 @@ jobs:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
   build_artifacts:
-    needs: check-pr-authorization
-    if: needs.check-pr-authorization.outputs.should_run == 'true'
     uses: ./.github/workflows/wf_build_artifacts.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: dashboard
       PATH: dashboard
-      GIT_REF: ${{ needs.check-pr-authorization.outputs.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
       OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
@@ -83,31 +108,33 @@ jobs:
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
   tests:
-    needs:
-      - check-pr-authorization
-      - build_artifacts
-    if: needs.check-pr-authorization.outputs.should_run == 'true'
     uses: ./.github/workflows/wf_check.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+      - build_artifacts
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: dashboard
       PATH: dashboard
-      GIT_REF: ${{ needs.check-pr-authorization.outputs.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
   e2e_staging:
+    uses: ./.github/workflows/dashboard_wf_e2e_staging.yaml
     needs:
-      - check-pr-authorization
+      - detect-changes
+      - check-permissions
       - deploy-vercel
       - build_artifacts
-    if: needs.check-pr-authorization.outputs.should_run == 'true'
-    uses: ./.github/workflows/dashboard_wf_e2e_staging.yaml
+    if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: dashboard
       PATH: dashboard
-      GIT_REF: ${{ needs.check-pr-authorization.outputs.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       NHOST_TEST_DASHBOARD_URL: ${{ needs.deploy-vercel.outputs.preview-url }}
       NHOST_TEST_PROJECT_NAME: ${{ vars.NHOST_TEST_PROJECT_NAME }}
       NHOST_TEST_ORGANIZATION_NAME: ${{ vars.NHOST_TEST_ORGANIZATION_NAME }}
@@ -130,3 +157,17 @@ jobs:
       PLAYWRIGHT_REPORT_ENCRYPTION_KEY: ${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}
       NHOST_TEST_STAGING_SUBDOMAIN: ${{ secrets.NHOST_TEST_STAGING_SUBDOMAIN }}
       NHOST_TEST_STAGING_REGION: ${{ secrets.NHOST_TEST_STAGING_REGION }}
+
+  remove_label:
+    runs-on: ubuntu-latest
+    needs:
+      - detect-changes
+      - check-permissions
+    if: |
+      needs.detect-changes.outputs.should_run == 'true' &&
+      contains(github.event.pull_request.labels.*.name, 'safe_to_test')
+    steps:
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: |
+            safe_to_test

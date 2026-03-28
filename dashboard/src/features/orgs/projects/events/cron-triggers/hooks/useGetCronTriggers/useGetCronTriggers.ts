@@ -29,9 +29,9 @@ export default function useGetCronTriggers({
 }: UseGetCronTriggersOptions = {}) {
   const { project, loading } = useProject();
 
-  const query = useQuery(
-    ['get-cron-triggers', project?.subdomain],
-    () => {
+  const query = useQuery({
+    queryKey: ['get-cron-triggers', project?.subdomain] as const,
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -45,17 +45,15 @@ export default function useGetCronTriggers({
         adminSecret,
       });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-    },
-  );
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+  });
 
   return query;
 }

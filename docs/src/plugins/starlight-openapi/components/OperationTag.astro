@@ -1,0 +1,18 @@
+---
+import type { OperationTag } from '../libs/operation'
+
+import ExternalDocs from './ExternalDocs.astro'
+import Heading from './Heading.astro'
+import Md from './Md.astro'
+
+interface Props {
+  tag: OperationTag
+}
+
+const { tag } = Astro.props
+---
+
+<Heading level={2} id="overview">{tag.name}</Heading>
+
+{tag.description && <Md text={tag.description} />}
+{tag.externalDocs && <ExternalDocs docs={tag.externalDocs} />}

@@ -58,21 +58,22 @@ func configserver( //nolint: funlen
 				Rewrite: nil,
 			},
 		}.Labels(),
-		Ports:   []Port{},
-		Restart: "always",
+		Networks: nil,
+		Ports:    []Port{},
+		Restart:  "always",
 		Volumes: append(
 			[]Volume{
 				{
 					Type:     "bind",
 					Source:   nhostPath,
 					Target:   "/tmp/root/nhost",
-					ReadOnly: ptr(false),
+					ReadOnly: new(false),
 				},
 				{
 					Type:     "bind",
 					Source:   rootPath,
 					Target:   "/tmp/root",
-					ReadOnly: ptr(false),
+					ReadOnly: new(false),
 				},
 			},
 			bindings...,

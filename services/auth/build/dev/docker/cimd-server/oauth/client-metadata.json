@@ -1,0 +1,10 @@
+{
+  "client_id": "http://cimd-server/oauth/client-metadata.json",
+  "client_name": "CIMD Test Client",
+  "client_uri": "http://localhost:9999",
+  "redirect_uris": ["http://cimd-server/callback"],
+  "scope": "openid profile email",
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}

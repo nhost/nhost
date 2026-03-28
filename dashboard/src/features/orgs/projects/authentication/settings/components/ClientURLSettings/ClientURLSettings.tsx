@@ -125,7 +125,7 @@ export default function ClientURLSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/products/auth/overview#client-url"
+          docsLink="https://docs.nhost.io/products/auth/client_and_redirect_urls#client-url"
           className="grid grid-flow-row lg:grid-cols-5"
         >
           <Input

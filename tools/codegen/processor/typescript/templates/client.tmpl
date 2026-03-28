@@ -214,6 +214,31 @@ export const createAPIClient = (
       method: "{{ .Method }}",
       body: formData,
     });
+  {{- else if .RequestFormURLEncoded }}
+    const params = new URLSearchParams();
+    {{- range .RequestFormURLEncoded.Properties }}
+    {{- if eq .Type.Kind "array" }}
+    if (body["{{ .Name }}"] !== undefined) {
+      body["{{ .Name }}"].forEach((value) => {
+        params.append("{{ .Name }}", String(value));
+      });
+    }
+    {{- else }}
+    if (body["{{ .Name }}"] !== undefined) {
+      params.append("{{ .Name }}", String(body["{{ .Name }}"]));
+    }
+    {{- end }}
+    {{- end }}
+
+    const res = await fetch(url, {
+      ...options,
+      method: "{{ .Method }}",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        ...options?.headers,
+      },
+      body: params.toString(),
+    });
   {{- else if not .RequestHasBody }}
     const res = await fetch(url, {
       ...options,

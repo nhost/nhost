@@ -68,7 +68,8 @@ func postgres( //nolint:funlen
 			Interval:    "5s",
 			StartPeriod: "60s",
 		},
-		Labels: nil,
+		Labels:   nil,
+		Networks: networkAliases("postgres-service"),
 		Ports: []Port{
 			{
 				Mode:      "ingress",
@@ -83,13 +84,13 @@ func postgres( //nolint:funlen
 				Type:     "volume",
 				Source:   volumeName,
 				Target:   "/var/lib/postgresql/data/pgdata",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 			{
 				Type:     "bind",
 				Source:   dataFolder + "/db/pg_hba_local.conf",
 				Target:   "/etc/pg_hba_local.conf",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,

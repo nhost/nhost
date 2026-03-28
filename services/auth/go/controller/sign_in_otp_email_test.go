@@ -23,8 +23,8 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	cases := []testRequest[api.SignInOTPEmailRequestObject, api.SignInOTPEmailResponseObject]{ //nolint:dupl
-		{
+	cases := []testRequest[api.SignInOTPEmailRequestObject, api.SignInOTPEmailResponseObject]{
+		{ //nolint:dupl
 			name:   "signup required",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -246,7 +246,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 						AllowedRoles: nil,
 						DefaultRole:  nil,
 						DisplayName:  nil,
-						Locale:       ptr("xx"),
+						Locale:       new("xx"),
 						Metadata:     nil,
 						RedirectTo:   nil,
 					},
@@ -304,7 +304,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 						DisplayName:  nil,
 						Locale:       nil,
 						Metadata:     nil,
-						RedirectTo:   ptr("https://evil.com"),
+						RedirectTo:   new("https://evil.com"),
 					},
 				},
 			},
@@ -370,11 +370,11 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 					Email: "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"user"},
-						DefaultRole:  ptr("user"),
-						DisplayName:  ptr("Jane Doe"),
-						Locale:       ptr("fr"),
+						DefaultRole:  new("user"),
+						DisplayName:  new("Jane Doe"),
+						Locale:       new("fr"),
 						Metadata:     &map[string]any{"asd": "asd"},
-						RedirectTo:   ptr("http://myapp"),
+						RedirectTo:   new("http://myapp"),
 					},
 				},
 			},
@@ -448,10 +448,10 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{
+		{ //nolint:dupl
 			name:   "signup not required",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByEmail(

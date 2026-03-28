@@ -1,0 +1,36 @@
+table:
+  name: community_members
+  schema: public
+object_relationships:
+  - name: community
+    using:
+      foreign_key_constraint_on: community_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      set:
+        user_id: X-Hasura-User-Id
+      columns:
+        - user_id
+        - community_id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - user_id
+        - community_id
+        - joined_at
+      filter: {}
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

@@ -26,6 +26,18 @@ func getState(
 ) string {
 	t.Helper()
 
+	return getStateWithPKCE(t, jwtGetter, connect, options, nil)
+}
+
+func getStateWithPKCE(
+	t *testing.T,
+	jwtGetter *controller.JWTGetter,
+	connect *string,
+	options api.SignUpOptions,
+	codeChallenge *string,
+) string {
+	t.Helper()
+
 	state, err := jwtGetter.SignTokenWithClaims(
 		jwt.MapClaims{
 			"connect": connect,
@@ -37,7 +49,8 @@ func getState(
 				Metadata:     options.Metadata,
 				RedirectTo:   options.RedirectTo,
 			},
-			"state": "some-random-state",
+			"state":         "some-random-state",
+			"codeChallenge": codeChallenge,
 		},
 		time.Now().Add(time.Minute),
 	)
@@ -57,6 +70,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		nil,
 		"",
 		nil,
+		"hasura-auth",
 	)
 	if err != nil {
 		t.Fatalf("failed to create jwt getter: %v", err)
@@ -130,7 +144,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -200,16 +214,16 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{
 						AllowedRoles: &[]string{"me"},
-						DefaultRole:  ptr("me"),
-						DisplayName:  ptr("My Name"),
-						Locale:       ptr("es"),
+						DefaultRole:  new("me"),
+						DisplayName:  new("My Name"),
+						Locale:       new("es"),
 						Metadata: &map[string]any{
 							"key": "value",
 						},
-						RedirectTo: ptr("http://localhost:3000/redirect/me/here"),
+						RedirectTo: new("http://localhost:3000/redirect/me/here"),
 					}),
 				},
 				Provider: "fake",
@@ -252,7 +266,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -320,7 +334,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -363,7 +377,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -455,7 +469,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -572,7 +586,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -637,7 +651,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -662,7 +676,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: "wrong-state",
 				},
 				Provider: "fake",
@@ -687,9 +701,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://now.allowed/redirect/me/here"),
+						RedirectTo: new("http://now.allowed/redirect/me/here"),
 					}),
 				},
 				Provider: "fake",
@@ -714,7 +728,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "idontexist",
@@ -742,9 +756,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					State: getState(
 						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
 					),
-					Error:            ptr("error-coming-from-provider"),
-					ErrorDescription: ptr("This is an error coming from the provider"),
-					ErrorUri:         ptr("https://example.com/error"),
+					Error:            new("error-coming-from-provider"),
+					ErrorDescription: new("This is an error coming from the provider"),
+					ErrorUri:         new("https://example.com/error"),
 				},
 				Provider: "fake",
 			},
@@ -830,9 +844,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://localhost:3000/connect-success"),
+						RedirectTo: new("http://localhost:3000/connect-success"),
 					}),
 				},
 				Provider: "fake",
@@ -893,9 +907,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://localhost:3000/connect-success"),
+						RedirectTo: new("http://localhost:3000/connect-success"),
 					}),
 				},
 				Provider: "fake",
@@ -925,9 +939,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://localhost:3000/connect-success"),
+						RedirectTo: new("http://localhost:3000/connect-success"),
 					}),
 				},
 				Provider: "fake",
@@ -1000,9 +1014,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://localhost:3000/connect-success"),
+						RedirectTo: new("http://localhost:3000/connect-success"),
 					}),
 				},
 				Provider: "fake",
@@ -1026,10 +1040,10 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
-					State: getState(t, jwtGetter, ptr("invalid-jwt-token"),
+					Code: new("valid-code-1"),
+					State: getState(t, jwtGetter, new("invalid-jwt-token"),
 						api.SignUpOptions{ //nolint:exhaustruct
-							RedirectTo: ptr("http://localhost:3000/connect-success"),
+							RedirectTo: new("http://localhost:3000/connect-success"),
 						},
 					),
 				},
@@ -1100,7 +1114,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-empty-email"),
+					Code:  new("valid-code-empty-email"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -1143,7 +1157,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-empty-email"),
+					Code:  new("valid-code-empty-email"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -1211,8 +1225,410 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-empty-email"),
+					Code:  new("valid-code-empty-email"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "pkce - signin - existing user - no session created",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID( //nolint:dupl
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(
+					sql.AuthUser{
+						ID: userID,
+						CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+							Time: time.Now(),
+						},
+						UpdatedAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
+						LastSeen:    pgtype.Timestamptz{}, //nolint:exhaustruct
+						Disabled:    false,
+						DisplayName: "Jane",
+						AvatarUrl:   "https://myapp.local/jane.jpg",
+						Locale:      "en",
+						Email:       sql.Text("jane@myapp.local"),
+						PhoneNumber: pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash: sql.Text(
+							"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
+						),
+						EmailVerified:            true,
+						PhoneNumberVerified:      false,
+						NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
+						OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
+						OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
+						OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+						DefaultRole:              "user",
+						IsAnonymous:              false,
+						TotpSecret:               pgtype.Text{}, //nolint:exhaustruct
+						ActiveMfaType:            pgtype.Text{}, //nolint:exhaustruct
+						Ticket:                   pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:          sql.TimestampTz(time.Now()),
+						Metadata:                 []byte{},
+						WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+					}, nil)
+
+				// PKCE: no InsertRefreshtoken, no GetUserRoles, no UpdateUserLastSeen
+				mock.EXPECT().InsertPKCEAuthorizationCode(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(sql.AuthPkceAuthorizationCode{}, nil) //nolint:exhaustruct
+
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-1"),
+					State: getStateWithPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignInProviderCallbackGet302Response{
+				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
+					Location: `^http://localhost:3000\?code=[\w-]+&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "pkce - signup - new user - no session created",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("user1@fake.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				// PKCE signup: InsertUserWithUserProvider (no refresh token)
+				mock.EXPECT().InsertUserWithUserProvider(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserWithUserProviderParams{
+						ID:              userID,
+						Disabled:        false,
+						DisplayName:     "User One",
+						AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
+						Email:           sql.Text("user1@fake.com"),
+						Ticket:          pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt: sql.TimestampTz(time.Now()),
+						EmailVerified:   true,
+						Locale:          "en",
+						DefaultRole:     "user",
+						Metadata:        []byte("null"),
+						Roles:           []string{"user", "me"},
+						ProviderID:      "fake",
+						ProviderUserID:  "1234567890",
+					},
+						cmpopts.IgnoreFields(
+							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
+							"ID",
+						),
+					),
+				).Return(userID, nil)
+
+				// PKCE: no InsertRefreshtoken, no GetUserRoles, no UpdateUserLastSeen
+				mock.EXPECT().InsertPKCEAuthorizationCode(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(sql.AuthPkceAuthorizationCode{}, nil) //nolint:exhaustruct
+
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-1"),
+					State: getStateWithPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignInProviderCallbackGet302Response{
+				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
+					Location: `^http://localhost:3000\?code=[\w-]+&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "pkce - signin - email found - provider linked",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail( //nolint:dupl
+					gomock.Any(),
+					sql.Text("user1@fake.com"),
+				).Return(
+					sql.AuthUser{
+						ID: userID,
+						CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+							Time: time.Now(),
+						},
+						UpdatedAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
+						LastSeen:    pgtype.Timestamptz{}, //nolint:exhaustruct
+						Disabled:    false,
+						DisplayName: "Jane",
+						AvatarUrl:   "https://myapp.local/jane.jpg",
+						Locale:      "en",
+						Email:       sql.Text("jane@myapp.local"),
+						PhoneNumber: pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash: sql.Text(
+							"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
+						),
+						EmailVerified:            true,
+						PhoneNumberVerified:      false,
+						NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
+						OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
+						OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
+						OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+						DefaultRole:              "user",
+						IsAnonymous:              false,
+						TotpSecret:               pgtype.Text{}, //nolint:exhaustruct
+						ActiveMfaType:            pgtype.Text{}, //nolint:exhaustruct
+						Ticket:                   pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:          sql.TimestampTz(time.Now()),
+						Metadata:                 []byte{},
+						WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+					}, nil)
+
+				// Provider not found by ID, so it should be linked
+				mock.EXPECT().InsertUserProvider(
+					gomock.Any(),
+					sql.InsertUserProviderParams{
+						UserID:         userID,
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(
+					sql.AuthUserProvider{
+						ID:             userID,
+						CreatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
+						UpdatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
+						UserID:         userID,
+						AccessToken:    "unset",
+						RefreshToken:   pgtype.Text{}, //nolint:exhaustruct
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					}, nil,
+				)
+
+				// PKCE: no InsertRefreshtoken, no GetUserRoles, no UpdateUserLastSeen
+				mock.EXPECT().InsertPKCEAuthorizationCode(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(sql.AuthPkceAuthorizationCode{}, nil) //nolint:exhaustruct
+
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-1"),
+					State: getStateWithPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignInProviderCallbackGet302Response{
+				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
+					Location: `^http://localhost:3000\?code=[\w-]+&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name: "pkce - signup - disable new users",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.DisableNewUsers = true
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("user1@fake.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().InsertUserWithUserProvider(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserWithUserProviderParams{
+						ID:              userID,
+						Disabled:        true,
+						DisplayName:     "User One",
+						AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
+						Email:           sql.Text("user1@fake.com"),
+						Ticket:          pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt: sql.TimestampTz(time.Now()),
+						EmailVerified:   true,
+						Locale:          "en",
+						DefaultRole:     "user",
+						Metadata:        []byte("null"),
+						Roles:           []string{"user", "me"},
+						ProviderID:      "fake",
+						ProviderUserID:  "1234567890",
+					},
+						cmpopts.IgnoreFields(
+							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
+							"ID",
+						),
+					),
+				).Return(userID, nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-1"),
+					State: getStateWithPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name: "pkce - signup - disable new users - empty email",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.DisableNewUsers = true
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "9876543210",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text(""),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().InsertUserWithUserProvider(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserWithUserProviderParams{
+						ID:              userID,
+						Disabled:        true,
+						DisplayName:     "User No Email",
+						AvatarUrl:       "https://fake.com/images/profile/user2.jpg",
+						Email:           pgtype.Text{}, //nolint:exhaustruct
+						Ticket:          pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt: sql.TimestampTz(time.Now()),
+						EmailVerified:   false,
+						Locale:          "en",
+						DefaultRole:     "user",
+						Metadata:        []byte("null"),
+						Roles:           []string{"user", "me"},
+						ProviderID:      "fake",
+						ProviderUserID:  "9876543210",
+					},
+						cmpopts.IgnoreFields(
+							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
+							"ID",
+						),
+					),
+				).Return(userID, nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-empty-email"),
+					State: getStateWithPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
 				},
 				Provider: "fake",
 			},

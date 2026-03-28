@@ -6,7 +6,7 @@ import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DatabaseRecordInputGroup } from '@/features/orgs/projects/database/dataGrid/components/DatabaseRecordInputGroup';
 import type {
   ColumnInsertOptions,
-  DataBrowserGridColumn,
+  DataBrowserColumnMetadata,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
@@ -15,7 +15,7 @@ export interface BaseRecordFormProps extends DialogFormProps {
   /**
    * The columns of the table.
    */
-  columns: DataBrowserGridColumn[];
+  columns: DataBrowserColumnMetadata[];
   /**
    * Function to be called when the form is submitted.
    */
@@ -41,8 +41,8 @@ export default function BaseRecordForm({
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
   const { requiredColumns, optionalColumns } = columns.reduce<{
-    requiredColumns: DataBrowserGridColumn<{}>[];
-    optionalColumns: DataBrowserGridColumn<{}>[];
+    requiredColumns: DataBrowserColumnMetadata[];
+    optionalColumns: DataBrowserColumnMetadata[];
   }>(
     (accumulator, column) => {
       if (
@@ -82,7 +82,7 @@ export default function BaseRecordForm({
   // for tables with many columns.
   const gridColumnMap = columns.reduce(
     (map, column) => map.set(column.id, column),
-    new Map<string, DataBrowserGridColumn>(),
+    new Map<string, DataBrowserColumnMetadata>(),
   );
 
   if (!columns?.length) {
@@ -91,8 +91,7 @@ export default function BaseRecordForm({
     );
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  async function handleSubmit(columnValues: Record<string, any>) {
+  async function handleSubmit(columnValues: Record<string, unknown>) {
     const columnIds = Object.keys(columnValues);
 
     const insertableValues: Record<string, ColumnInsertOptions> =
@@ -166,6 +165,7 @@ export default function BaseRecordForm({
         <Button
           variant="outline"
           className="border-none"
+          type="button"
           size="sm"
           onClick={onCancel}
           tabIndex={isDirty ? -1 : 0}

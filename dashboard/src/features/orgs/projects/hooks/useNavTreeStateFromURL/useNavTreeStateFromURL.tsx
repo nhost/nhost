@@ -34,6 +34,10 @@ const useNavTreeStateFromURL = (): TreeState => {
   const eventsSubPage =
     isEventsPage && pathSegments.length > 6 ? pathSegments[6] || null : null;
 
+  const isAuthPage = pathSegments[5] === 'auth';
+  const authSubPage =
+    isAuthPage && pathSegments.length > 6 ? pathSegments[6] || null : null;
+
   return useMemo(() => {
     if (!orgSlug) {
       // If no orgSlug, return an empty state
@@ -93,6 +97,15 @@ const useNavTreeStateFromURL = (): TreeState => {
       }
     }
 
+    if (isAuthPage) {
+      expandedItems.push(`${orgSlug}-${appSubdomain}-auth`);
+      if (!authSubPage) {
+        focusedItem = `${orgSlug}-${appSubdomain}-auth-users`;
+      } else {
+        focusedItem = `${orgSlug}-${appSubdomain}-auth-${authSubPage}`;
+      }
+    }
+
     return { expandedItems, focusedItem };
   }, [
     orgSlug,
@@ -105,6 +118,8 @@ const useNavTreeStateFromURL = (): TreeState => {
     graphqlSubPage,
     isEventsPage,
     eventsSubPage,
+    isAuthPage,
+    authSubPage,
     newProject,
   ]);
 };

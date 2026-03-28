@@ -1,0 +1,36 @@
+---
+import type { ExamplesV2 } from '../../libs/example'
+import ContentPicker from '../ContentPicker.astro'
+import Example from '../example/Example.astro'
+import Section from '../Section.astro'
+
+interface Props {
+  examples: ExamplesV2
+}
+
+const examples = Object.entries(Astro.props.examples)
+---
+
+{
+  examples.length > 0 && (
+    <Section level={4} title="Examples">
+      <ContentPicker label="Select response example" types={Object.keys(Astro.props.examples)}>
+        {examples.map(([type, data], index) => (
+          <div data-openapi-content-type={type} hidden={index > 0} role="tabpanel">
+            <Example raw={data} {type} />
+          </div>
+        ))}
+      </ContentPicker>
+    </Section>
+  )
+}
+
+<style>
+  :global(main .content) div[data-openapi-content-type] {
+    margin-top: 0.8rem;
+  }
+
+  :global(main .content) div[data-openapi-content-type] :global(pre) {
+    margin-top: 0rem;
+  }
+</style>

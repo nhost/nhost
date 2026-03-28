@@ -1,0 +1,59 @@
+---
+import {
+  getNullable,
+  getProperties,
+  getSchemaObjects,
+  isSchemaObject,
+  isSchemaObjectObject,
+  type SchemaObject,
+} from '../../libs/schemaObject'
+import Items from '../Items.astro'
+
+import SchemaObjectObjectProperties from './SchemaObjectObjectProperties.astro'
+import SchemaObjects from './SchemaObjects.astro'
+
+interface Props {
+  nested: boolean
+  parents?: SchemaObject[]
+  schemaObject: SchemaObject
+}
+
+const { nested, schemaObject, parents = [] } = Astro.props
+---
+
+{
+  schemaObject.allOf &&
+    schemaObject.allOf.map((allOfSchemaObject) => {
+      if (!isSchemaObject(allOfSchemaObject)) return null
+      const schemaObjects = getSchemaObjects(allOfSchemaObject)
+      if (schemaObjects !== undefined) {
+        return (
+          <SchemaObjects
+            parents={[...parents, schemaObject]}
+            discriminator={schemaObject.discriminator}
+            {nested}
+            {schemaObjects}
+          />
+        )
+      } else if (isSchemaObjectObject(schemaObject)) {
+        return (
+          <>
+            <SchemaObjectObjectProperties
+              parents={[...parents, schemaObject]}
+              properties={getProperties(allOfSchemaObject)}
+              required={allOfSchemaObject.required}
+            />
+            <Astro.self {nested} parents={[...parents, schemaObject]} schemaObject={allOfSchemaObject} />
+          </>
+        )
+      }
+      return (
+        <Items
+          items={allOfSchemaObject}
+          negated={allOfSchemaObject.not !== undefined}
+          nullable={getNullable(allOfSchemaObject)}
+          parents={[...parents, schemaObject]}
+        />
+      )
+    })
+}

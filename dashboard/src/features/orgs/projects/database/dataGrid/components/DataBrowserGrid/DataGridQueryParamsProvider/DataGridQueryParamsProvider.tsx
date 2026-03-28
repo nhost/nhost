@@ -1,9 +1,10 @@
+import type { ColumnSort } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
 import {
   createContext,
   type Dispatch,
-  type MutableRefObject,
   type PropsWithChildren,
+  type RefObject,
   type SetStateAction,
   useContext,
   useEffect,
@@ -11,18 +12,18 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { SortingRule } from 'react-table';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import PersistenDataGrdiFilterStorage from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
+import {
+  getDataGridFilters,
+  saveDataGridFilters,
+} from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
 import type { DataGridFilterOperator } from './operators';
 
 function compareLoadedFiltersToStorage(
   tablePath: string,
   filters: DataGridFilter[],
 ) {
-  const filtersInStorage = JSON.stringify(
-    PersistenDataGrdiFilterStorage.getDataGridFilters(tablePath),
-  );
+  const filtersInStorage = JSON.stringify(getDataGridFilters(tablePath));
   const loadedFilters = JSON.stringify(filters);
 
   return filtersInStorage === loadedFilters;
@@ -36,13 +37,11 @@ export type DataGridFilter = {
 };
 
 type DataGridQueryParamsContextProps = {
-  isFiltersLoadedFromStorage: MutableRefObject<boolean>;
+  isFiltersLoadedFromStorage: RefObject<boolean>;
   appliedFilters: DataGridFilter[];
   setAppliedFilters: (filters: DataGridFilter[]) => void;
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  sortBy: SortingRule<any>[];
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  setSortBy: Dispatch<SetStateAction<SortingRule<any>[]>>;
+  sortBy: ColumnSort[];
+  setSortBy: Dispatch<SetStateAction<ColumnSort[]>>;
   currentOffset: number;
   setCurrentOffset: Dispatch<SetStateAction<number>>;
 };
@@ -64,21 +63,19 @@ function DataGridQueryParamsProvider({ children }: PropsWithChildren) {
     query: { page },
   } = useRouter();
 
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  const [sortBy, setSortBy] = useState<SortingRule<any>[]>([]);
+  const [sortBy, setSortBy] = useState<ColumnSort[]>([]);
   const [currentOffset, setCurrentOffset] = useState<number>(
     parseInt(page as string, 10) - 1 || 0,
   );
   const [appliedFilters, _setAppliedFilters] = useState<DataGridFilter[]>(() =>
-    PersistenDataGrdiFilterStorage.getDataGridFilters(tablePath),
+    getDataGridFilters(tablePath),
   );
   // NOTE: this ref will prevent fetching the table data until the filters are not loaded for the current table
   // navigating between tables
   const isFiltersLoadedFromStorage = useRef(false);
 
   useEffect(() => {
-    const filtersForTheTable =
-      PersistenDataGrdiFilterStorage.getDataGridFilters(tablePath);
+    const filtersForTheTable = getDataGridFilters(tablePath);
     _setAppliedFilters(filtersForTheTable);
     setSortBy([]);
   }, [tablePath]);
@@ -94,10 +91,7 @@ function DataGridQueryParamsProvider({ children }: PropsWithChildren) {
       appliedFilters,
       setAppliedFilters(newFilters: DataGridFilter[]) {
         _setAppliedFilters(newFilters);
-        PersistenDataGrdiFilterStorage.saveDataGridFilters(
-          tablePath,
-          newFilters,
-        );
+        saveDataGridFilters(tablePath, newFilters);
       },
       sortBy,
       setSortBy,

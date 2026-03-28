@@ -12,17 +12,18 @@ import (
 	"github.com/nhost/nhost/cli/cmd/deployments"
 	"github.com/nhost/nhost/cli/cmd/dev"
 	"github.com/nhost/nhost/cli/cmd/dockercredentials"
+	nhostdocs "github.com/nhost/nhost/cli/cmd/docs"
 	"github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/project"
 	"github.com/nhost/nhost/cli/cmd/run"
 	"github.com/nhost/nhost/cli/cmd/secrets"
 	"github.com/nhost/nhost/cli/cmd/software"
 	"github.com/nhost/nhost/cli/cmd/user"
-	docs "github.com/urfave/cli-docs/v3"
+	"github.com/nhost/nhost/internal/lib/clidocs"
 	"github.com/urfave/cli/v3"
 )
 
-var Version string
+var Version = "0.0.0-dev"
 
 func main() {
 	flags, err := clienv.Flags()
@@ -48,6 +49,7 @@ func main() {
 			project.CommandInit(),
 			project.CommandList(),
 			project.CommandLink(),
+			nhostdocs.Command(),
 			run.Command(),
 			secrets.Command(),
 			software.Command(),
@@ -68,10 +70,10 @@ func main() {
 
 func markdownDocs() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:  "docs",
+		Name:  "gen-docs",
 		Usage: "Generate markdown documentation for the CLI",
 		Action: func(_ context.Context, cmd *cli.Command) error {
-			md, err := docs.ToMarkdown(cmd.Root())
+			md, err := clidocs.ToMarkdown(cmd.Root())
 			if err != nil {
 				return cli.Exit("failed to generate markdown documentation: "+err.Error(), 1)
 			}

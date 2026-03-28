@@ -4,7 +4,11 @@ import { StatusCodes } from 'http-status-codes';
 
 import { request, resetEnvironment } from '../../server';
 import { ENV } from '../../src/env';
-import { mailHogSearch } from '../../utils';
+import {
+  generatePKCE,
+  mailHogSearch,
+  verifyEmailAndExchangePKCE,
+} from '../../utils';
 import { SignInResponse } from '../../src/types';
 
 describe('user password', () => {
@@ -203,6 +207,17 @@ describe('user password', () => {
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expect(redirectTo).toStrictEqual(options.redirectTo);
+  });
+
+  it('should reset password with PKCE and receive code instead of refreshToken', async () => {
+    const pkce = generatePKCE();
+
+    await request
+      .post('/user/password/reset')
+      .send({ email, codeChallenge: pkce.challenge })
+      .expect(StatusCodes.OK);
+
+    await verifyEmailAndExchangePKCE(email, pkce);
   });
 
   it('shoud not be possible to change password when anonymous', async () => {

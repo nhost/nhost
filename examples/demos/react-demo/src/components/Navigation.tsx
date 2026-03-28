@@ -34,6 +34,24 @@ export default function Navigation(): JSX.Element {
                 >
                   Upload
                 </Link>
+                <Link
+                  to="/communities"
+                  className={`nav-link ${isActive('/communities')}`}
+                >
+                  Communities
+                </Link>
+                <Link
+                  to="/functions"
+                  className={`nav-link ${isActive('/functions')}`}
+                >
+                  Functions
+                </Link>
+                <Link
+                  to="/oauth2-providers"
+                  className={`nav-link ${isActive('/oauth2-providers')}`}
+                >
+                  OAuth2
+                </Link>
               </>
             ) : (
               <>

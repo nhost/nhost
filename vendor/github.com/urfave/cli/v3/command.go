@@ -85,9 +85,9 @@ type Command struct {
 	Writer io.Writer `json:"-"`
 	// ErrWriter writes error output
 	ErrWriter io.Writer `json:"-"`
-	// ExitErrHandler processes any error encountered while running an App before
-	// it is returned to the caller. If no function is provided, HandleExitCoder
-	// is used as the default behavior.
+	// ExitErrHandler processes any error encountered while running a Command before it is
+	// returned to the caller. If no function is provided, HandleExitCoder is used as the
+	// default behavior.
 	ExitErrHandler ExitErrHandlerFunc `json:"-"`
 	// Other custom info
 	Metadata map[string]interface{} `json:"metadata"`
@@ -101,6 +101,8 @@ type Command struct {
 	SliceFlagSeparator string `json:"sliceFlagSeparator"`
 	// DisableSliceFlagSeparator is used to disable SliceFlagSeparator, the default is false
 	DisableSliceFlagSeparator bool `json:"disableSliceFlagSeparator"`
+	// MapFlagKeyValueSeparator is used to customize the separator for MapFlag, the default is "="
+	MapFlagKeyValueSeparator string `json:"mapFlagKeyValueSeparator"`
 	// Boolean to enable short-option handling so user can combine several
 	// single-character bool arguments into one
 	// i.e. foobar -o -v -> foobar -ov
@@ -127,6 +129,14 @@ type Command struct {
 	// Whether to read arguments from stdin
 	// applicable to root command only
 	ReadArgsFromStdin bool `json:"readArgsFromStdin"`
+	// StopOnNthArg provides v2-like behavior for specific commands by stopping
+	// flag parsing after N positional arguments are encountered. When set to N,
+	// all remaining arguments after the Nth positional argument will be treated
+	// as arguments, not flags.
+	//
+	// A value of 0 means all arguments are treated as positional (no flag parsing).
+	// A nil value means normal v3 flag parsing behavior (flags can appear anywhere).
+	StopOnNthArg *int `json:"stopOnNthArg"`
 
 	// categories contains the categorized commands and is populated on app startup
 	categories CommandCategories
@@ -147,6 +157,10 @@ type Command struct {
 	didSetupDefaults bool
 	// whether in shell completion mode
 	shellCompletion bool
+	// whether global help flag was added
+	globaHelpFlagAdded bool
+	// whether global version flag was added
+	globaVersionFlagAdded bool
 }
 
 // FullName returns the full name of the command.
@@ -341,6 +355,7 @@ func (cmd *Command) Root() *Command {
 
 func (cmd *Command) set(fName string, f Flag, val string) error {
 	cmd.setFlags[f] = struct{}{}
+	cmd.setMultiValueParsingConfig(f)
 	if err := f.Set(fName, val); err != nil {
 		return fmt.Errorf("invalid value %q for flag -%s: %v", val, fName, err)
 	}
@@ -365,6 +380,21 @@ func (cmd *Command) lookupFlag(name string) Flag {
 	}
 
 	tracef("flag NOT found for name %[1]q (cmd=%[2]q)", name, cmd.Name)
+	cmd.onInvalidFlag(context.TODO(), name)
+	return nil
+}
+
+// this looks up only allowed flags, i.e. local flags for current command
+// or persistent flags from ancestors
+func (cmd *Command) lookupAppliedFlag(name string) Flag {
+	for _, f := range cmd.appliedFlags {
+		if slices.Contains(f.Names(), name) {
+			tracef("appliedFlag found for name %[1]q (cmd=%[2]q)", name, cmd.Name)
+			return f
+		}
+	}
+
+	tracef("lookupAppliedflag NOT found for name %[1]q (cmd=%[2]q)", name, cmd.Name)
 	cmd.onInvalidFlag(context.TODO(), name)
 	return nil
 }
@@ -432,9 +462,21 @@ func (cmd *Command) NumFlags() int {
 	return count // cmd.flagSet.NFlag()
 }
 
+func (cmd *Command) setMultiValueParsingConfig(f Flag) {
+	tracef("setMultiValueParsingConfig %T, %+v", f, f)
+	if cf, ok := f.(multiValueParsingConfigSetter); ok {
+		cf.setMultiValueParsingConfig(multiValueParsingConfig{
+			SliceFlagSeparator:        cmd.SliceFlagSeparator,
+			DisableSliceFlagSeparator: cmd.DisableSliceFlagSeparator,
+			MapFlagKeyValueSeparator:  cmd.MapFlagKeyValueSeparator,
+		})
+	}
+}
+
 // Set sets a context flag to a value.
 func (cmd *Command) Set(name, value string) error {
 	if f := cmd.lookupFlag(name); f != nil {
+		cmd.setMultiValueParsingConfig(f)
 		return f.Set(name, value)
 	}
 

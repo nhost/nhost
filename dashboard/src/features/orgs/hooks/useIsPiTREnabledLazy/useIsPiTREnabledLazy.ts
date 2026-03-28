@@ -7,7 +7,7 @@ function useIsPiTREnabledLazy(appId?: string) {
     useGetPostgresSettingsLazyQuery({
       fetchPolicy: 'no-cache',
     });
-  const prevAppId = useRef<string>();
+  const prevAppId = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     async function fetchPiTRSettings() {
