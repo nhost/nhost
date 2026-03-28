@@ -8,14 +8,15 @@ import (
 )
 
 func expectedAI() *Service {
-	return &Service{ //nolint:exhaustruct
+	return &Service{
 		Image: "nhost/graphite:0.2.5",
 		DependsOn: map[string]DependsOn{
 			"auth":     {Condition: "service_healthy"},
 			"graphql":  {Condition: "service_healthy"},
 			"postgres": {Condition: "service_healthy"},
 		},
-		Command: []string{"serve"},
+		EntryPoint: nil,
+		Command:    []string{"serve"},
 		Environment: map[string]string{
 			"ENV1":                        "VALUE1",
 			"ENV2":                        "VALUE2",
@@ -51,8 +52,12 @@ func expectedAI() *Service {
 			Interval:    "5s",
 			StartPeriod: "10s",
 		},
-
-		Restart: "always",
+		Labels:     nil,
+		Networks:   nil,
+		Ports:      nil,
+		Restart:    "always",
+		Volumes:    nil,
+		WorkingDir: nil,
 	}
 }
 

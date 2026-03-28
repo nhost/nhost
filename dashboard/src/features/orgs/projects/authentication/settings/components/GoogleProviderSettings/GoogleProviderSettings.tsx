@@ -199,8 +199,8 @@ export default function GoogleProviderSettings() {
             {...register('audience')}
             name="audience"
             id="audience"
-            label="Audience (optional)"
-            placeholder="Enter Audience"
+            label="Audience, set it to enable idtokens (optional)"
+            placeholder="GoogleAudience1,GoogleAudience2"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
