@@ -39,7 +39,10 @@ vi.mock('./ProjectStateGuard', () => ({
   default: ({
     variant,
     children,
-  }: { variant: string; children?: React.ReactNode }) => (
+  }: {
+    variant: string;
+    children?: React.ReactNode;
+  }) => (
     <div data-testid="projectStateGuard">
       Project State Guard: {variant}
       {children}

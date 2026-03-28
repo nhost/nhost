@@ -4,9 +4,5 @@ import { useProjectRedirectWhenReady } from '@/features/orgs/projects/common/hoo
 
 export default function ApplicationUnpausing({ children }: PropsWithChildren) {
   useProjectRedirectWhenReady({ pollInterval: 2000 });
-  return (
-    <ProjectStateGuard variant="unpausing">
-      {children}
-    </ProjectStateGuard>
-  );
+  return <ProjectStateGuard variant="unpausing">{children}</ProjectStateGuard>;
 }

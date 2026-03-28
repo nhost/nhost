@@ -72,15 +72,11 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
         return children;
       case ApplicationStatus.Pausing:
         return (
-          <ProjectStateGuard variant="pausing">
-            {children}
-          </ProjectStateGuard>
+          <ProjectStateGuard variant="pausing">{children}</ProjectStateGuard>
         );
       case ApplicationStatus.Paused:
         return (
-          <ProjectStateGuard variant="paused">
-            {children}
-          </ProjectStateGuard>
+          <ProjectStateGuard variant="paused">{children}</ProjectStateGuard>
         );
       case ApplicationStatus.Unpausing:
         return <ApplicationUnpausing>{children}</ApplicationUnpausing>;

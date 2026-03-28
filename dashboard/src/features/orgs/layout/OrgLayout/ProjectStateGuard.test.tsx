@@ -1,9 +1,5 @@
 import { vi } from 'vitest';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-} from '@/tests/testUtils';
+import { mockPointerEvent, render, screen } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
 import ProjectStateGuard from './ProjectStateGuard';
 
@@ -196,20 +192,15 @@ describe('ProjectStateGuard', () => {
     it('should show the pausing message', () => {
       setupDefaultMocks({ state: ApplicationStatus.Pausing });
       render(<ProjectStateGuard variant="pausing" />);
-      expect(
-        screen.getByText('Project is pausing...'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Project is pausing...')).toBeInTheDocument();
     });
-
   });
 
   describe('unpausing variant', () => {
     it('should show the waking up message', () => {
       setupDefaultMocks({ state: ApplicationStatus.Unpausing });
       render(<ProjectStateGuard variant="unpausing" />);
-      expect(
-        screen.getByText('Project is waking up...'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Project is waking up...')).toBeInTheDocument();
     });
 
     it('should show the time estimate subtitle', () => {
@@ -220,5 +211,4 @@ describe('ProjectStateGuard', () => {
       ).toBeInTheDocument();
     });
   });
-
 });

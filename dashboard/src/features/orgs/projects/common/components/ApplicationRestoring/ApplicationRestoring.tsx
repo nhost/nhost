@@ -4,9 +4,5 @@ import { useCheckProvisioning } from '@/features/orgs/projects/common/hooks/useC
 
 export default function ApplicationRestoring({ children }: PropsWithChildren) {
   useCheckProvisioning();
-  return (
-    <ProjectStateGuard variant="unpausing">
-      {children}
-    </ProjectStateGuard>
-  );
+  return <ProjectStateGuard variant="unpausing">{children}</ProjectStateGuard>;
 }
