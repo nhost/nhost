@@ -318,6 +318,7 @@ export function useDataBrowserActions({
     schema: string,
     name: string,
     objectType?: DatabaseObjectType,
+    oid?: string,
   ) {
     const typeLabel = objectType
       ? objectTypeLabels[objectType].toLowerCase()
@@ -336,6 +337,7 @@ export function useDataBrowserActions({
           <EditFunctionGraphQLSettingsForm
             schema={schema}
             functionName={name}
+            functionOID={oid}
           />
         ) : (
           <EditGraphQLSettingsForm schema={schema} tableName={name} />

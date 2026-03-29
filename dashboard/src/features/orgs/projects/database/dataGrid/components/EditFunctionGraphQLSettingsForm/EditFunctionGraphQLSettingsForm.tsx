@@ -47,6 +47,10 @@ export interface EditFunctionGraphQLSettingsFormProps {
    */
   functionName: string;
   /**
+   * Function OID used to fetch the function definition.
+   */
+  functionOID?: string;
+  /**
    * Whether the form is disabled, if true, the form will be read-only.
    */
   disabled?: boolean;
@@ -56,13 +60,13 @@ export default function EditFunctionGraphQLSettingsForm({
   onCancel,
   schema,
   functionName,
+  functionOID,
   disabled,
 }: EditFunctionGraphQLSettingsFormProps) {
   const { query } = useRouter();
-  const { dataSourceSlug, functionOID: routerFunctionOID } = query;
+  const { dataSourceSlug } = query;
 
-  const dataSource = (dataSourceSlug as string) || 'default';
-  const functionOID = (routerFunctionOID as string) || '';
+  const dataSource = dataSourceSlug as string;
   const functionCacheKey =
     dataSource && functionOID ? `${dataSource}.${functionOID}` : '';
 

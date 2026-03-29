@@ -175,6 +175,7 @@ export default function DatabaseObjectListItem({
                     databaseObject.schema,
                     databaseObject.name,
                     databaseObject.objectType,
+                    isFunction ? databaseObject.oid : undefined,
                   )
                 }
                 onEditRelationships={() =>
