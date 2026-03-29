@@ -1,3 +1,26 @@
+## [@nhost/dashboard@2.55.0] - 2026-03-29
+
+### 🚀 Features
+
+- *(dashboard)* Add jsonb filters to database page (#3998)
+- *(auth)* Added pkce (#4038)
+- *(auth)* Added support for multiple audiences in idtokens (#3819)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove action restrictions when project connected to GitHub repository (#4013)
+- *(dashboard)* Keep column order from older configuration (#4039)
+- *(ci)* Parallelize dashboard e2e tests (#4056)
+- *(deps)* Override various npm packages due to vulns (#4059)
+- *(dashboard)* Editing event triggers in local dashboard failed because replace was disabled (#4071)
+- *(auth)* Allow localhost redirects for CIMD client (#4072)
+
+
+### Chore
+
+- *(deps)* Update various npm packages due to cves (#4073)
+
 ## [@nhost/dashboard@2.54.0] - 2026-03-20
 
 ### 🚀 Features
