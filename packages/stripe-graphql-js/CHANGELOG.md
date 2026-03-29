@@ -1,3 +1,9 @@
+## [@nhost/stripe-graphql-js@1.3.1] - 2026-03-29
+
+### Chore
+
+- *(deps)* Update various npm packages due to cves (#4073)
+
 ## [@nhost/stripe-graphql-js@1.3.0] - 2026-03-26
 
 ### 🚀 Features
