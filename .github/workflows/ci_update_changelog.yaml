@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        project: [cli, dashboard, packages/nhost-js, services/auth, services/storage]
+        project: [cli, dashboard, packages/nhost-js, packages/stripe-graphql-js, services/auth, services/storage]
 
     permissions:
       id-token: write
@@ -26,11 +26,18 @@ jobs:
       uses: actions/checkout@v6
       with:
         fetch-depth: 0
+        token: ${{ secrets.GH_PAT }}
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v6
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
 
     - name: Setup Nix with Cache
       uses: ./.github/actions/setup-nix
       with:
-        NAME: ${{ inputs.NAME }}
+        NAME: ${{ matrix.project }}
         NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -57,7 +64,7 @@ jobs:
       if: steps.version.outputs.version != ''
       uses: peter-evans/create-pull-request@v8
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GH_PAT }}
         commit-message: "release(${{ matrix.project }}): ${{ steps.version.outputs.version }}"
         title: "release(${{ matrix.project }}): ${{ steps.version.outputs.version }}"
         committer: GitHub <noreply@github.com>

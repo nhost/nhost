@@ -58,8 +58,9 @@ func configserver( //nolint: funlen
 				Rewrite: nil,
 			},
 		}.Labels(),
-		Ports:   []Port{},
-		Restart: "always",
+		Networks: nil,
+		Ports:    []Port{},
+		Restart:  "always",
 		Volumes: append(
 			[]Volume{
 				{

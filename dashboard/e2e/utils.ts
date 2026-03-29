@@ -520,6 +520,7 @@ export async function createRelationship({
 
   await page.waitForSelector(
     'div:has-text("Relationship created successfully.")',
+    { timeout: 30000 },
   );
 
   await expect(

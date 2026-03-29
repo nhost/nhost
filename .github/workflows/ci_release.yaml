@@ -12,26 +12,26 @@ jobs:
       project: ${{ steps.extract.outputs.project }}
       version: ${{ steps.extract.outputs.version }}
     steps:
-    - name: "Extract project and version from tag"
-      id: extract
-      run: |
-        TAG="${{ github.event.release.tag_name }}"
+      - name: "Extract project and version from tag"
+        id: extract
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
 
-        PROJECT=$(echo "${TAG}" | sed 's/@[^@]*$//')
-        if [ -z "$PROJECT" ]; then
-          echo "Error: Could not extract project name from tag"
-          exit 1
-        fi
+          PROJECT=$(echo "${TAG}" | sed 's/@[^@]*$//')
+          if [ -z "$PROJECT" ]; then
+            echo "Error: Could not extract project name from tag"
+            exit 1
+          fi
 
-        VERSION=$(echo "${TAG}" | sed 's/.*@//')
-        if [ -z "$VERSION" ]; then
-          echo "Error: Could not extract version from tag"
-          exit 1
-        fi
+          VERSION=$(echo "${TAG}" | sed 's/.*@//')
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from tag"
+            exit 1
+          fi
 
-        echo "project=$PROJECT" >> $GITHUB_OUTPUT
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "Extracted project: $PROJECT, version: $VERSION"
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted project: $PROJECT, version: $VERSION"
 
   auth:
     needs: extract-project
@@ -108,6 +108,20 @@ jobs:
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  stripe-graphql-js:
+    needs: extract-project
+    if: needs.extract-project.outputs.project == '@nhost/stripe-graphql-js'
+    uses: ./.github/workflows/wf_release_npm.yaml
+    with:
+      NAME: stripe-graphql-js
+      PATH: packages/stripe-graphql-js
+      VERSION: ${{ needs.extract-project.outputs.version }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
 
   storage:
     needs: extract-project

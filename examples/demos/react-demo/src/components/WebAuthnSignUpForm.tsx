@@ -6,7 +6,7 @@ import type { FetchError } from '@nhost/nhost-js/fetch';
 import { startRegistration } from '@simplewebauthn/browser';
 import { type JSX, useId, useState } from 'react';
 import { useAuth } from '../lib/nhost/AuthProvider';
-import { isWebAuthnSupported } from '../lib/utils';
+import { generateAndStorePKCE, isWebAuthnSupported } from '../lib/utils';
 
 /**
  * WebAuthn Registration (Sign Up) Flow
@@ -81,6 +81,8 @@ export default function WebAuthnSignUpForm({
     }
 
     try {
+      const { challenge } = await generateAndStorePKCE();
+
       // Step 1: Request a registration challenge from the server
       // The server generates a random challenge and credential creation options
       // including information like:
@@ -92,6 +94,7 @@ export default function WebAuthnSignUpForm({
         email,
         options: {
           displayName,
+          redirectTo: `${window.location.origin}/verify`,
         },
       });
 
@@ -121,8 +124,10 @@ export default function WebAuthnSignUpForm({
           credential,
           options: {
             displayName: displayName || undefined,
+            redirectTo: `${window.location.origin}/verify`,
           },
           nickname: keyNickname || `Security Key for ${displayName || email}`,
+          codeChallenge: challenge,
         });
 
         // Step 4: Handle registration success

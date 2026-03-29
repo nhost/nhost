@@ -40,16 +40,16 @@ export async function createNhostClient(): Promise<NhostClient> {
 }
 
 /**
- * Middleware function to handle Nhost authentication and session management.
+ * Proxy function to handle Nhost authentication and session management.
  *
- * This function is designed to be used in Next.js middleware to manage user sessions
- * and refresh tokens. Refreshing the session needs to be done in the middleware
- * to ensure that the session is always up-to-date an accessible by both server and client components.
+ * This function is designed to be used in Next.js proxy to manage user sessions
+ * and refresh tokens. Refreshing the session needs to be done in the proxy
+ * to ensure that the session is always up-to-date and accessible by both server and client components.
  *
  * @param {NextRequest} request - The incoming Next.js request object
  * @param {NextResponse} response - The outgoing Next.js response object
  */
-export async function handleNhostMiddleware(
+export async function handleNhostProxy(
   request: NextRequest,
   response: NextResponse<unknown>,
 ): Promise<Session | null> {
@@ -57,7 +57,7 @@ export async function handleNhostMiddleware(
     region: process.env['NHOST_REGION'] || 'local',
     subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
     storage: {
-      // storage compatible with Next.js middleware
+      // storage compatible with Next.js proxy
       get: (): Session | null => {
         const raw = request.cookies.get(key)?.value || null;
         if (!raw) {

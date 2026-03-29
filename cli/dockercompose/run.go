@@ -61,6 +61,7 @@ func run(
 		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,
 		Labels:      map[string]string{},
+		Networks:    nil,
 		Ports:       ports,
 		Restart:     "always",
 		Volumes:     volumes,

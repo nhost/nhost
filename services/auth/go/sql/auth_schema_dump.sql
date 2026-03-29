@@ -204,6 +204,23 @@ COMMENT ON TABLE auth.oauth2_refresh_tokens IS 'OAuth2 refresh tokens with clien
 
 
 --
+-- Name: pkce_authorization_codes; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.pkce_authorization_codes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    code_hash text NOT NULL,
+    code_challenge text NOT NULL,
+    redirect_to text,
+    expires_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE auth.pkce_authorization_codes OWNER TO postgres;
+
+--
 -- Name: provider_requests; Type: TABLE; Schema: auth; Owner: postgres
 --
 
@@ -475,6 +492,22 @@ ALTER TABLE ONLY auth.oauth2_refresh_tokens
 
 
 --
+-- Name: pkce_authorization_codes pkce_authorization_codes_code_hash_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.pkce_authorization_codes
+    ADD CONSTRAINT pkce_authorization_codes_code_hash_key UNIQUE (code_hash);
+
+
+--
+-- Name: pkce_authorization_codes pkce_authorization_codes_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.pkce_authorization_codes
+    ADD CONSTRAINT pkce_authorization_codes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: provider_requests provider_requests_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
 --
 
@@ -651,6 +684,13 @@ CREATE INDEX oauth2_refresh_tokens_user_id_idx ON auth.oauth2_refresh_tokens USI
 
 
 --
+-- Name: pkce_authorization_codes_expires_at_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX pkce_authorization_codes_expires_at_idx ON auth.pkce_authorization_codes USING btree (expires_at);
+
+
+--
 -- Name: refresh_tokens_refresh_token_hash_expires_at_user_id_idx; Type: INDEX; Schema: auth; Owner: postgres
 --
 
@@ -795,6 +835,14 @@ ALTER TABLE ONLY auth.user_roles
 
 ALTER TABLE ONLY auth.user_security_keys
     ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: pkce_authorization_codes pkce_authorization_codes_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.pkce_authorization_codes
+    ADD CONSTRAINT pkce_authorization_codes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

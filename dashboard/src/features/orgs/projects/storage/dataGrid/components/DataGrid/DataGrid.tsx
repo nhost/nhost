@@ -119,33 +119,29 @@ function DataGrid<TColumnData extends UnknownDataGridRow>(
           />
         )}
         {columns.length > 0 && allColumnsHidden && <AllColumnsHiddenMessage />}
-        {columns.length > 0 &&
-          !allColumnsHidden &&
-          dataGridProps.tableInitialized && (
-            <div
-              ref={mergeRefs([ref, tableRef])}
-              className={cn(
-                'box overflow-x-auto bg-background',
-                { 'h-[calc(100%-1px)]': !loading }, // need to set height like this to remove vertical scrollbar
-                className,
-              )}
-            >
-              <DataGridFrame>
-                <div className="relative h-full">
-                  <DataGridHeader {...headerProps} />
-                  <DataGridBody
-                    isRowDisabled={isRowDisabled}
-                    emptyStateMessage={emptyStateMessage}
-                    loading={loading}
-                  />
-                </div>
-              </DataGridFrame>
-            </div>
-          )}
-
-        {(loading || !dataGridProps.tableInitialized) && (
-          <Spinner className="my-4" />
+        {columns.length > 0 && !allColumnsHidden && (
+          <div
+            ref={mergeRefs([ref, tableRef])}
+            className={cn(
+              'box overflow-x-auto bg-background',
+              { 'h-[calc(100%-1px)]': !loading }, // need to set height like this to remove vertical scrollbar
+              className,
+            )}
+          >
+            <DataGridFrame>
+              <div className="relative h-full">
+                <DataGridHeader {...headerProps} />
+                <DataGridBody
+                  isRowDisabled={isRowDisabled}
+                  emptyStateMessage={emptyStateMessage}
+                  loading={loading}
+                />
+              </div>
+            </DataGridFrame>
+          </div>
         )}
+
+        {loading && <Spinner className="my-4" />}
       </DataTableDesignProvider>
     </DataGridConfigProvider>
   );

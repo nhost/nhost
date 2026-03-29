@@ -1,3 +1,4 @@
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
 import { useEffect, useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/nhost/AuthProvider';
@@ -31,14 +32,18 @@ export default function SignUp() {
     setSuccess(false);
 
     try {
+      // Generate PKCE pair and store verifier for email verification
+      const { verifier, challenge } = await generatePKCEPair();
+      localStorage.setItem('nhost_pkce_verifier', verifier);
+
       const response = await nhost.auth.signUpEmailPassword({
         email,
         password,
         options: {
           displayName,
-          // Set the redirect URL for email verification
           redirectTo: `${window.location.origin}/verify`,
         },
+        codeChallenge: challenge,
       });
 
       if (response.body?.session) {

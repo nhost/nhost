@@ -269,14 +269,16 @@ describe('BaseTableForm', () => {
 
   it('should display identity column picker when integer is selected', async () => {
     render(<TestTableFormWrapper />);
-    const user = new TestUserEvent();
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
     await TestUserEvent.fireClickEvent(
       screen.getByPlaceholderText('Select type'),
     );
-    await user.type(screen.getByPlaceholderText('Select type'), 'int');
+    await TestUserEvent.fireTypeEvent(
+      screen.getByPlaceholderText('Select type'),
+      'int',
+    );
     await TestUserEvent.fireClickEvent(
       screen.getByRole('option', { name: /^integer.*int4/ }),
     );
