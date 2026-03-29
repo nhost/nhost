@@ -113,7 +113,7 @@ export default function ProjectStateGuard({
   }
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full bg-background">
       <ProjectViewSkeleton hasSidebar={sidebarPages.has(route)} />
       <Dialog open modal={false}>
         <div className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-black/30 py-4 backdrop-blur-sm">
