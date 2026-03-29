@@ -1,7 +1,7 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
-import type { TableLikeObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DatabaseObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import deleteDatabaseObject from './deleteDatabaseObject';
 
 const defaultOptions = {
@@ -31,7 +31,7 @@ describe('deleteDatabaseObject', () => {
     await deleteDatabaseObject({
       ...defaultOptions,
       schema: 'public',
-      table: 'users',
+      objectName: 'users',
       type: 'ORDINARY TABLE',
     });
 
@@ -46,7 +46,7 @@ describe('deleteDatabaseObject', () => {
     await deleteDatabaseObject({
       ...defaultOptions,
       schema: 'public',
-      table: 'active_users',
+      objectName: 'active_users',
       type: 'VIEW',
     });
 
@@ -61,7 +61,7 @@ describe('deleteDatabaseObject', () => {
     await deleteDatabaseObject({
       ...defaultOptions,
       schema: 'analytics',
-      table: 'daily_stats',
+      objectName: 'daily_stats',
       type: 'MATERIALIZED VIEW',
     });
 
@@ -76,7 +76,7 @@ describe('deleteDatabaseObject', () => {
     await deleteDatabaseObject({
       ...defaultOptions,
       schema: 'public',
-      table: 'external_data',
+      objectName: 'external_data',
       type: 'FOREIGN TABLE',
     });
 
@@ -91,7 +91,7 @@ describe('deleteDatabaseObject', () => {
       ...defaultOptions,
       dataSource: 'my_source',
       schema: 'public',
-      table: 'test',
+      objectName: 'test',
       type: 'ORDINARY TABLE',
     });
 
@@ -104,8 +104,8 @@ describe('deleteDatabaseObject', () => {
       deleteDatabaseObject({
         ...defaultOptions,
         schema: 'public',
-        table: 'test',
-        type: 'UNKNOWN_TYPE' as TableLikeObjectType,
+        objectName: 'test',
+        type: 'UNKNOWN_TYPE' as DatabaseObjectType,
       }),
     ).rejects.toThrow('Unsupported database object type: UNKNOWN_TYPE');
   });
@@ -127,7 +127,7 @@ describe('deleteDatabaseObject', () => {
       deleteDatabaseObject({
         ...defaultOptions,
         schema: 'public',
-        table: 'test',
+        objectName: 'test',
         type: 'ORDINARY TABLE',
       }),
     ).rejects.toThrow();

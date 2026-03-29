@@ -23,9 +23,11 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
+import { useGetTrackedFunctionsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedFunctionsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
+import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
 
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
@@ -48,10 +50,21 @@ function DataBrowserSidebarContent({
 
   const {
     asPath,
-    query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
+    query: {
+      orgSlug,
+      appSubdomain,
+      dataSourceSlug,
+      schemaSlug,
+      tableSlug,
+      functionOID,
+    },
   } = router;
 
   const { data: trackedTablesSet } = useGetTrackedTablesSet({
+    dataSource: dataSourceSlug as string,
+  });
+
+  const { data: trackedFunctionsSet } = useGetTrackedFunctionsSet({
     dataSource: dataSourceSlug as string,
   });
 
@@ -66,7 +79,7 @@ function DataBrowserSidebarContent({
     refetch: refetchDatabaseQuery,
   } = useDatabaseQuery([dataSourceSlug as string]);
 
-  const { schemas, tableLikeObjects, metadata } = data || {
+  const { schemas, tableLikeObjects, functions, metadata } = data || {
     schemas: [],
   };
 
@@ -96,14 +109,30 @@ function DataBrowserSidebarContent({
 
   const allObjectsInSelectedSchema: DatabaseObjectViewModel[] =
     sortDatabaseObjects(
-      (tableLikeObjects || [])
-        .filter((obj) => obj.table_schema === selectedSchema)
-        .map((obj) => ({
-          schema: obj.table_schema,
-          name: obj.table_name,
-          objectType: obj.table_type || 'ORDINARY TABLE',
-          updatability: obj.updatability,
-        })),
+      [
+        ...(tableLikeObjects || [])
+          .filter(
+            (tableLikeObject) =>
+              tableLikeObject.table_schema === selectedSchema,
+          )
+          .map((tableLikeObject) => ({
+            schema: tableLikeObject.table_schema,
+            name: tableLikeObject.table_name,
+            objectType: tableLikeObject.table_type || 'ORDINARY TABLE',
+            updatability: tableLikeObject.updatability,
+          })),
+        ...(functions || [])
+          .filter(
+            (databaseFunction) =>
+              databaseFunction.function_schema === selectedSchema,
+          )
+          .map((databaseFunction) => ({
+            schema: databaseFunction.function_schema,
+            name: databaseFunction.function_name,
+            objectType: 'FUNCTION' as const,
+            oid: databaseFunction.function_oid,
+          })),
+      ],
       enumTablePaths,
     );
 
@@ -112,26 +141,31 @@ function DataBrowserSidebarContent({
     optimisticlyRemovedObject,
     sidebarMenuObject,
     setSidebarMenuObject,
+    openCreateTableDrawer,
     handleDeleteDatabaseObject,
     handleEditPermission,
     handleEditGraphQLSettings,
     handleEditRelationships,
     openEditTableDrawer,
     openEditViewDrawer,
-    openCreateTableDrawer,
+    openEditFunctionDrawer,
   } = useDataBrowserActions({
     dataSourceSlug: dataSourceSlug as string,
     schemaSlug: schemaSlug as string | undefined,
     tableSlug: tableSlug as string | undefined,
+    functionOID: functionOID as string | undefined,
     selectedSchema,
     refetchDatabaseQuery,
     allObjects: allObjectsInSelectedSchema,
   });
 
-  const displayedObjects = allObjectsInSelectedSchema.filter(
-    ({ schema: tableSchema, name: tableName }) =>
-      `${tableSchema}.${tableName}` !== optimisticlyRemovedObject,
-  );
+  const displayedObjects = allObjectsInSelectedSchema.filter((obj) => {
+    const isFunc = obj.objectType === 'FUNCTION';
+    const objKey = isFunc
+      ? `FUNCTION.${obj.schema}.${obj.oid}`
+      : `${obj.schema}.${obj.name}`;
+    return objKey !== optimisticlyRemovedObject;
+  });
 
   if (status === 'loading') {
     return (
@@ -139,7 +173,7 @@ function DataBrowserSidebarContent({
         wrapperClassName="flex-row text-[12px] leading-[1.66] font-normal gap-1"
         className="h-4 w-4 justify-center"
       >
-        Loading schemas and tables...
+        Loading schemas and objects...
       </Spinner>
     );
   }
@@ -193,33 +227,44 @@ function DataBrowserSidebarContent({
           </Button>
         )}
         {isNotEmptyValue(schemas) && isEmptyValue(displayedObjects) && (
-          <p className="px-2 py-1.5 text-disabled text-xs">No tables found.</p>
+          <p className="px-2 py-1.5 text-disabled text-xs">No objects found.</p>
         )}
         <nav aria-label="Database navigation">
           {isNotEmptyValue(displayedObjects) && (
             <ul className="w-full max-w-full pb-6">
               {displayedObjects.map((databaseObject) => {
-                const objectPath = `${databaseObject.objectType}.${databaseObject.schema}.${databaseObject.name}`;
-                const isSelected =
-                  databaseObject.schema === schemaSlug &&
-                  databaseObject.name === tableSlug;
-                const isSidebarMenuOpen = sidebarMenuObject === objectPath;
+                const isFunction = databaseObject.objectType === 'FUNCTION';
+                const updatability = !isFunction
+                  ? databaseObject.updatability
+                  : undefined;
+
+                const keyIdentifier = isFunction
+                  ? databaseObject.oid
+                  : databaseObject.name;
+                const objectKey = `${databaseObject.objectType}.${databaseObject.schema}.${keyIdentifier}`;
+                const isSelected = isFunction
+                  ? databaseObject.oid === functionOID
+                  : databaseObject.schema === schemaSlug &&
+                    databaseObject.name === tableSlug;
+                const isSidebarMenuOpen = sidebarMenuObject === objectKey;
                 const tablePath = `${databaseObject.schema}.${databaseObject.name}`;
                 const isEnum = Boolean(enumTablePaths?.has(tablePath));
-                const isUntracked = !trackedTablesSet?.has(tablePath);
+                const isUntracked = isFunction
+                  ? !trackedFunctionsSet?.has(tablePath)
+                  : !trackedTablesSet?.has(tablePath);
                 const DatabaseObjectIcon = getDatabaseObjectIcon(
                   databaseObject.objectType,
                   isEnum,
                 );
                 return (
-                  <li className="group pb-1" key={objectPath}>
+                  <li className="group pb-1" key={objectKey}>
                     <Tooltip open={isUntracked ? undefined : false}>
                       <TooltipTrigger asChild>
                         <Button
                           asChild
                           variant="link"
                           size="sm"
-                          disabled={objectPath === removableObject}
+                          disabled={objectKey === removableObject}
                           className={cn(
                             'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
                             {
@@ -237,10 +282,10 @@ function DataBrowserSidebarContent({
                               )}
                               onClick={() => {
                                 if (onSidebarItemClick) {
-                                  onSidebarItemClick(`default.${objectPath}`);
+                                  onSidebarItemClick(`default.${objectKey}`);
                                 }
                               }}
-                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.schema}/tables/${databaseObject.name}`}
+                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.schema}/${getObjectTypeUrlSegment(databaseObject.objectType)}/${isFunction ? databaseObject.oid : databaseObject.name}`}
                             >
                               <DatabaseObjectIcon className="h-4 w-4 shrink-0" />
                               <span
@@ -253,14 +298,14 @@ function DataBrowserSidebarContent({
                               </span>
                             </NextLink>
                             <DatabaseObjectActions
-                              tableName={databaseObject.name}
+                              objectName={databaseObject.name}
                               schema={databaseObject.schema}
                               dataSource={dataSourceSlug as string}
                               objectType={databaseObject.objectType}
+                              disabled={objectKey === removableObject}
                               open={isSidebarMenuOpen}
-                              onOpen={() => setSidebarMenuObject(objectPath)}
+                              onOpen={() => setSidebarMenuObject(objectKey)}
                               onClose={() => setSidebarMenuObject(undefined)}
-                              disabled={objectPath === removableObject}
                               className={cn(
                                 'relative z-10 opacity-0 group-hover:opacity-100',
                                 {
@@ -276,27 +321,38 @@ function DataBrowserSidebarContent({
                                   databaseObject.schema,
                                   databaseObject.name,
                                   databaseObject.objectType,
-                                  databaseObject.updatability,
+                                  updatability,
                                 )
                               }
-                              onEdit={() =>
-                                ['MATERIALIZED VIEW', 'VIEW'].includes(
-                                  databaseObject.objectType,
-                                )
-                                  ? openEditViewDrawer(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                      databaseObject.objectType,
-                                    )
-                                  : openEditTableDrawer(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                    )
-                              }
+                              onEdit={() => {
+                                if (isFunction) {
+                                  openEditFunctionDrawer(
+                                    databaseObject.schema,
+                                    databaseObject.name,
+                                    databaseObject.oid,
+                                  );
+                                } else if (
+                                  ['MATERIALIZED VIEW', 'VIEW'].includes(
+                                    databaseObject.objectType,
+                                  )
+                                ) {
+                                  openEditViewDrawer(
+                                    databaseObject.schema,
+                                    databaseObject.name,
+                                    databaseObject.objectType,
+                                  );
+                                } else {
+                                  openEditTableDrawer(
+                                    databaseObject.schema,
+                                    databaseObject.name,
+                                  );
+                                }
+                              }}
                               onEditGraphQLSettings={() =>
                                 handleEditGraphQLSettings(
                                   databaseObject.schema,
                                   databaseObject.name,
+                                  databaseObject.objectType,
                                 )
                               }
                               onEditRelationships={() =>
@@ -310,6 +366,7 @@ function DataBrowserSidebarContent({
                                   databaseObject.schema,
                                   databaseObject.name,
                                   databaseObject.objectType,
+                                  isFunction ? databaseObject.oid : undefined,
                                 )
                               }
                             />

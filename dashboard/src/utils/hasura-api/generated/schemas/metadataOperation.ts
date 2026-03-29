@@ -37,11 +37,14 @@ import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemo
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
 import type { RenameRelationshipBulkOperation } from './renameRelationshipBulkOperation';
 import type { ReplaceMetadataOperation } from './replaceMetadataOperation';
+import type { SetFunctionCustomizationOperation } from './setFunctionCustomizationOperation';
 import type { SetTableCustomizationBulkOperation } from './setTableCustomizationBulkOperation';
 import type { SetTableIsEnumBulkOperation } from './setTableIsEnumBulkOperation';
 import type { SuggestRelationshipsOperation } from './suggestRelationshipsOperation';
 import type { TestWebhookTransformOperation } from './testWebhookTransformOperation';
+import type { TrackFunctionBulkOperation } from './trackFunctionBulkOperation';
 import type { TrackTableBulkOperation } from './trackTableBulkOperation';
+import type { UntrackFunctionBulkOperation } from './untrackFunctionBulkOperation';
 import type { UntrackTableBulkOperation } from './untrackTableBulkOperation';
 import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOperation';
 
@@ -54,8 +57,11 @@ export type MetadataOperation =
   | ReplaceMetadataOperation
   | TrackTableBulkOperation
   | UntrackTableBulkOperation
+  | TrackFunctionBulkOperation
+  | UntrackFunctionBulkOperation
   | SetTableCustomizationBulkOperation
   | SetTableIsEnumBulkOperation
+  | SetFunctionCustomizationOperation
   | SuggestRelationshipsOperation
   | DropRelationshipBulkOperation
   | DeleteRemoteRelationshipBulkOperation
