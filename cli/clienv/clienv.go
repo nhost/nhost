@@ -24,6 +24,9 @@ type CliEnv struct {
 	Path           *PathStructure
 	authURL        string
 	graphqlURL     string
+	oauth2Issuer   string
+	oauth2ClientID string
+	pat            string
 	branch         string
 	nhclient       *nhostclient.Client
 	nhpublicclient *nhostclient.Client
@@ -37,6 +40,9 @@ func New(
 	path *PathStructure,
 	authURL string,
 	graphqlURL string,
+	oauth2Issuer string,
+	oauth2ClientID string,
+	pat string,
 	branch string,
 	projectName string,
 	localSubdomain string,
@@ -47,6 +53,9 @@ func New(
 		Path:           path,
 		authURL:        authURL,
 		graphqlURL:     graphqlURL,
+		oauth2Issuer:   oauth2Issuer,
+		oauth2ClientID: oauth2ClientID,
+		pat:            pat,
 		branch:         branch,
 		nhclient:       nil,
 		nhpublicclient: nil,
@@ -72,6 +81,9 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 		),
 		authURL:        cmd.String(flagAuthURL),
 		graphqlURL:     cmd.String(flagGraphqlURL),
+		oauth2Issuer:   cmd.String(flagOAuth2Issuer),
+		oauth2ClientID: cmd.String(flagOAuth2ClientID),
+		pat:            cmd.String(flagPAT),
 		branch:         cmd.String(flagBranch),
 		projectName:    sanitizeName(cmd.String(flagProjectName)),
 		nhclient:       nil,
@@ -96,13 +108,25 @@ func (ce *CliEnv) GraphqlURL() string {
 	return ce.graphqlURL
 }
 
+func (ce *CliEnv) OAuth2Issuer() string {
+	return ce.oauth2Issuer
+}
+
+func (ce *CliEnv) OAuth2ClientID() string {
+	return ce.oauth2ClientID
+}
+
+func (ce *CliEnv) PAT() string {
+	return ce.pat
+}
+
 func (ce *CliEnv) Branch() string {
 	return ce.branch
 }
 
 func (ce *CliEnv) GetNhostClient(ctx context.Context) (*nhostclient.Client, error) {
 	if ce.nhclient == nil {
-		session, err := ce.LoadSession(ctx)
+		accessToken, err := ce.LoadSession(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load session: %w", err)
 		}
@@ -110,7 +134,7 @@ func (ce *CliEnv) GetNhostClient(ctx context.Context) (*nhostclient.Client, erro
 		ce.nhclient = nhostclient.New(
 			ce.authURL,
 			ce.graphqlURL,
-			graphql.WithAccessToken(session.Session.AccessToken),
+			graphql.WithAccessToken(accessToken),
 		)
 	}
 

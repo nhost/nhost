@@ -3,16 +3,16 @@ package gen
 import (
 	"context"
 	"fmt"
+	"net/http"
 
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/mcp/graphql"
 	"github.com/nhost/nhost/cli/mcp/nhost/auth"
 	"github.com/urfave/cli/v3"
 )
 
 const (
-	flagNhostAuthURL    = "nhost-auth-url"
 	flagNhostGraphqlURL = "nhost-graphql-url"
-	flagNhostPAT        = "nhost-pat"
 	flagWithMutations   = "with-mutations"
 )
 
@@ -22,24 +22,11 @@ func Command() *cli.Command {
 		Usage: "Generate GraphQL schema for Nhost Cloud",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagNhostAuthURL,
-				Usage:   "Nhost auth URL",
-				Hidden:  true,
-				Value:   "https://otsispdzcwxyqzbfntmj.auth.eu-central-1.nhost.run/v1",
-				Sources: cli.EnvVars("NHOST_AUTH_URL"),
-			},
-			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagNhostGraphqlURL,
 				Usage:   "Nhost GraphQL URL",
 				Hidden:  true,
 				Value:   "https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1",
 				Sources: cli.EnvVars("NHOST_GRAPHQL_URL"),
-			},
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:     flagNhostPAT,
-				Usage:    "Personal Access Token",
-				Required: true,
-				Sources:  cli.EnvVars("NHOST_PAT"),
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagWithMutations,
@@ -52,10 +39,59 @@ func Command() *cli.Command {
 	}
 }
 
+func buildFilter(withMutations bool) graphql.Filter {
+	filter := graphql.Filter{
+		AllowQueries: []graphql.Queries{
+			{Name: "organizations", DisableNesting: true},
+			{Name: "organization", DisableNesting: true},
+			{Name: "app", DisableNesting: true},
+			{Name: "apps", DisableNesting: true},
+			{Name: "config", DisableNesting: false},
+		},
+		AllowMutations: []graphql.Queries{},
+	}
+
+	if withMutations {
+		filter.AllowMutations = []graphql.Queries{
+			{Name: "updateConfig", DisableNesting: false},
+		}
+	}
+
+	return filter
+}
+
+func buildInterceptor(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+) (func(ctx context.Context, req *http.Request) error, error) {
+	if pat := ce.PAT(); pat != "" {
+		return auth.WithPAT(ce.AuthURL(), pat)
+	}
+
+	creds, err := ce.Credentials()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to load credentials (run `nhost login` first): %w",
+			err,
+		)
+	}
+
+	metadata, err := clienv.FetchOAuth2Metadata(ctx, ce.OAuth2Issuer())
+	if err != nil {
+		return nil, err
+	}
+
+	return auth.WithRefreshToken(
+		metadata.TokenEndpoint,
+		ce.OAuth2ClientID(),
+		creds.RefreshToken,
+	), nil
+}
+
 func action(ctx context.Context, cmd *cli.Command) error {
-	interceptor, err := auth.WithPAT(
-		cmd.String(flagNhostAuthURL), cmd.String(flagNhostPAT),
-	)
+	ce := clienv.FromCLI(cmd)
+
+	interceptor, err := buildInterceptor(ctx, ce)
 	if err != nil {
 		return cli.Exit(err.Error(), 1)
 	}
@@ -74,42 +110,10 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		return cli.Exit(err.Error(), 1)
 	}
 
-	filter := graphql.Filter{
-		AllowQueries: []graphql.Queries{
-			{
-				Name:           "organizations",
-				DisableNesting: true,
-			},
-			{
-				Name:           "organization",
-				DisableNesting: true,
-			},
-			{
-				Name:           "app",
-				DisableNesting: true,
-			},
-			{
-				Name:           "apps",
-				DisableNesting: true,
-			},
-			{
-				Name:           "config",
-				DisableNesting: false,
-			},
-		},
-		AllowMutations: []graphql.Queries{},
-	}
-
-	if cmd.Bool(flagWithMutations) {
-		filter.AllowMutations = []graphql.Queries{
-			{
-				Name:           "updateConfig",
-				DisableNesting: false,
-			},
-		}
-	}
-
-	schema := graphql.ParseSchema(introspection, filter)
+	schema := graphql.ParseSchema(
+		introspection,
+		buildFilter(cmd.Bool(flagWithMutations)),
+	)
 
 	fmt.Print(schema) //nolint:forbidigo
 
