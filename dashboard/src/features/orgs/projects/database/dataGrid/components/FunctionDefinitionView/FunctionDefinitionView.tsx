@@ -89,6 +89,8 @@ export default function FunctionDefinitionView() {
           <TrackFunctionButton
             schema={schema}
             functionName={functionMetadata.functionName}
+            returnTableName={functionMetadata.returnTableName}
+            returnTableSchema={functionMetadata.returnTableSchema}
           />
           <h2 className="font-semibold text-lg">Function Definition</h2>
           <p className="text-muted-foreground text-sm">
