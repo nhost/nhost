@@ -24,6 +24,7 @@ export default function useExportMetadata<T>(
   options?: UseExportMetadataOptions,
 ): UseQueryResult<T, unknown> {
   const { project, loading } = useProject();
+
   return useQuery<ExportMetadataResponse, unknown, T>({
     queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
     queryFn: () => {

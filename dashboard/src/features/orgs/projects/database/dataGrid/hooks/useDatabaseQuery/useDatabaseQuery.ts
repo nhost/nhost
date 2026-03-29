@@ -42,6 +42,7 @@ export default function useDatabaseQuery(
   } = useRouter();
 
   const { project } = useProject();
+
   const query = useQuery<FetchDatabaseReturnType>({
     queryKey,
     staleTime: DATABASE_QUERY_STALE_TIME,
