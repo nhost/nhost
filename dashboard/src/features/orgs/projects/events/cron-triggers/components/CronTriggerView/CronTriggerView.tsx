@@ -46,6 +46,7 @@ export default function CronTriggerView() {
     hasNoNextPage,
     data: eventsData,
     isLoading: isEventsLoading,
+    error: eventsError,
   } = useEventPagination({
     initialLimit: 10,
     useQueryHook: useGetScheduledEventLogsQuery,
@@ -61,6 +62,10 @@ export default function CronTriggerView() {
     },
     resetKey: `${triggerName}:${eventLogsSection}`,
   });
+
+  if (eventsError) {
+    throw eventsError;
+  }
 
   if (isLoading && cronTriggerSlug) {
     return <CronTriggerViewSkeleton />;

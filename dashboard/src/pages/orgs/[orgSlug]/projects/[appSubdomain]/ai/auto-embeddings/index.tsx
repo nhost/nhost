@@ -50,7 +50,7 @@ export default function AutoEmbeddingsPage() {
   const [nrOfPages, setNrOfPages] = useState(0);
   const offset = useMemo(() => currentPage - 1, [currentPage]);
 
-  const { data, loading, refetch } =
+  const { data, loading, error, refetch } =
     useGetGraphiteAutoEmbeddingsConfigurationsQuery({
       client: adminClient,
       variables: {
@@ -128,6 +128,10 @@ export default function AutoEmbeddingsPage() {
         </Alert>
       </Box>
     );
+  }
+
+  if (error) {
+    throw error;
   }
 
   if (autoEmbeddingsConfigurations.length === 0 && !loading) {
@@ -223,10 +227,15 @@ export default function AutoEmbeddingsPage() {
 AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
-      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+      mainContainerProps={{
+        className:
+          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
+      }}
     >
       <AISidebar className="w-full max-w-sidebar" />
-      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      <div className="w-full overflow-auto">
+        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      </div>
     </OrgLayout>
   );
 };

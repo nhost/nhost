@@ -25,9 +25,11 @@ export default function useProjectRedirectWhenReady(
   const userData = useUserData();
   const [getOrgs] = useGetOrganizationsLazyQuery();
 
+  const { pollInterval: _pollInterval, ...queryOptions } = options;
+
   const { data, startPolling, ...rest } = useGetApplicationStateQuery({
-    ...options,
-    variables: { ...options.variables, appId: project?.id },
+    ...queryOptions,
+    variables: { ...queryOptions.variables, appId: project?.id },
     skip: !project?.id,
   });
 

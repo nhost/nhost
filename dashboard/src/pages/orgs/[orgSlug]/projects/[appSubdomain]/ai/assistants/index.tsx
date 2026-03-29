@@ -48,6 +48,7 @@ export default function AssistantsPage() {
   const {
     data: assistantsData,
     loading: assistantsLoading,
+    error: assistantsError,
     refetch: assistantsRefetch,
   } = useGetAssistantsQuery({
     client: adminClient,
@@ -56,9 +57,10 @@ export default function AssistantsPage() {
     },
     skip: isFileStoreSupported === null || fileStoreLoading,
   });
-  const { data: fileStoresData } = useGetGraphiteFileStoresQuery({
-    client: adminClient,
-  });
+  const { data: fileStoresData, error: fileStoresError } =
+    useGetGraphiteFileStoresQuery({
+      client: adminClient,
+    });
 
   const assistants = useMemo(
     () => assistantsData?.graphite?.assistants || [],
@@ -136,6 +138,10 @@ export default function AssistantsPage() {
     );
   }
 
+  if (assistantsError || fileStoresError) {
+    throw assistantsError || fileStoresError;
+  }
+
   if (assistants.length === 0 && !assistantsLoading) {
     return (
       <Box
@@ -195,10 +201,15 @@ export default function AssistantsPage() {
 AssistantsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
-      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+      mainContainerProps={{
+        className:
+          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
+      }}
     >
       <AISidebar className="w-full max-w-sidebar" />
-      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      <div className="w-full overflow-auto">
+        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      </div>
     </OrgLayout>
   );
 };
