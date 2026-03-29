@@ -47,10 +47,39 @@ type gitHubUser struct {
 	AvatarURL string `json:"avatar_url"`
 }
 
-type gitHubEmail []struct {
+type gitHubEmailEntry struct {
 	Email    string `json:"email"`
 	Verified bool   `json:"verified"`
 	Primary  bool   `json:"primary"`
+}
+
+type gitHubEmail []gitHubEmailEntry
+
+// selectEmail picks the best email from a GitHub user's email list.
+// Priority: primary+verified > first verified > first email.
+func selectEmail(emails gitHubEmail) gitHubEmailEntry {
+	selected := emails[0]
+	primarySeen := false
+
+	for _, e := range emails {
+		if e.Primary && e.Verified {
+			return e
+		}
+
+		if e.Primary {
+			primarySeen = true
+		}
+
+		if e.Verified && !selected.Verified {
+			selected = e
+		}
+
+		if selected.Verified && primarySeen {
+			break
+		}
+	}
+
+	return selected
 }
 
 func (g *Github) GetProfile(
@@ -84,23 +113,7 @@ func (g *Github) GetProfile(
 		return oidc.Profile{}, errors.New("GitHub user has no email addresses") //nolint:err113
 	}
 
-	// Select the primary verified email. Fall back to first verified,
-	// then first email if none are verified.
-	selected := emails[0]
-	for _, e := range emails {
-		if e.Primary && e.Verified {
-			selected = e
-			break
-		}
-	}
-	if !selected.Primary {
-		for _, e := range emails {
-			if e.Verified {
-				selected = e
-				break
-			}
-		}
-	}
+	selected := selectEmail(emails)
 
 	return oidc.Profile{
 		ProviderUserID: strconv.Itoa(user.ID),
