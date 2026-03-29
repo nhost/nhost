@@ -400,3 +400,21 @@ if (description) ogUrl.searchParams.set('description', description);
     }
     document.addEventListener('astro:after-swap', initLightbox);
 </script>
+
+<script>
+    // Fix TOC highlight: Starlight's getRootMargin only accounts for <header> height,
+    // but our subheader/mobile-nav-toggle add extra fixed-position height below it.
+    // Override to include those elements in the IntersectionObserver rootMargin.
+    customElements.whenDefined('starlight-toc').then(() => {
+        const TocClass = customElements.get('starlight-toc');
+        if (!TocClass) return;
+        TocClass.prototype.getRootMargin = function () {
+            const header = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
+            const mobileToc = this.querySelector('summary')?.getBoundingClientRect().height ?? 0;
+            const subheader = document.querySelector('.subheader-nav')?.getBoundingClientRect().height ?? 0;
+            const mobileNav = document.querySelector('.mobile-nav-toggle')?.getBoundingClientRect().height ?? 0;
+            const top = header + mobileToc + subheader + mobileNav + 32;
+            return `-${top}px 0% ${top + 53 - document.documentElement.clientHeight}px`;
+        };
+    });
+</script>

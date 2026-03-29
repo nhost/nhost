@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/nhost/AuthProvider';
+import NotificationBell from './NotificationBell';
 
 export default function Navigation(): JSX.Element {
   const { isAuthenticated, nhost, session } = useAuth();
@@ -73,7 +74,8 @@ export default function Navigation(): JSX.Element {
         </div>
 
         {isAuthenticated && (
-          <div>
+          <div className="navbar-actions">
+            <NotificationBell />
             <button
               type="button"
               onClick={async () => {

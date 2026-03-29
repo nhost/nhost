@@ -1,0 +1,182 @@
+---
+title: One-Off Scheduled Events
+description: Fire a webhook once at a specific date and time
+keywords: ['scheduled event', 'one-off', 'one-time', 'deferred', 'delayed', 'webhook', 'scheduled']
+sidebar:
+  label: One-Off Scheduled Events
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+One-off scheduled events fire a webhook once at a specific date and time. Unlike cron triggers that recur, these execute exactly once and are then done.
+
+## When to Use One-Off Events
+
+|                     | One-Off Scheduled Event                                            | Cron Trigger                                       |
+| ------------------- | ------------------------------------------------------------------ | -------------------------------------------------- |
+| **Frequency**       | Fires once                                                         | Recurs on a schedule                               |
+| **Schedule format** | Specific date and time                                             | Cron expression                                    |
+| **Configuration**   | Dashboard only (ephemeral)                                         | Dashboard or metadata YAML                         |
+| **Use case**        | Deferred reminders, scheduled broadcasts, timed content publishing | Periodic cleanup, report generation, digest emails |
+
+## Creating a One-Off Scheduled Event
+
+<Tabs>
+<TabItem label="Dashboard">
+Navigate to **Events** → **One-Off Scheduled Events**, then click **New One-off**.
+
+![Create One-Off Scheduled Event](/images/graphql/events/scheduled-event-create.png)
+
+| Field                                      | Description                                                                                                |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| **Comment**                                | Optional description of what the event does                                                                |
+| **Schedule At**                            | Datetime picker with timezone selector (future dates only)                                                 |
+| **Webhook URL or template**                | Endpoint URL. Supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/broadcast-notification`) |
+| **Payload**                                | JSON object sent in the webhook body                                                                       |
+| **Retry and Headers Settings** (accordion) | Retry count, interval, timeout, and custom HTTP headers                                                    |
+
+One-off scheduled events do not support request or payload transformations.
+
+</TabItem>
+</Tabs>
+
+## Webhook Handler
+
+One-off scheduled events deliver an HTTP POST to any endpoint. The request body contains a `payload` field with the JSON you configured, following the same payload structure as cron triggers.
+
+A common pattern is targeting an Nhost Function to run deferred business logic. The handler accesses the payload at `req.body.payload`.
+
+```ts
+import type { Request, Response } from 'express'
+import { createClient, withAdminSession } from '@nhost/nhost-js'
+
+export default async (req: Request, res: Response) => {
+  // Validate the webhook secret
+  const webhookSecret = req.headers['nhost-webhook-secret']
+  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
+
+  const payload = req.body.payload
+  if (!payload) {
+    return res.status(400).json({ message: 'No payload' })
+  }
+
+  const { title, message } = payload
+  const type = payload.type || 'announcement'
+
+  const nhost = createClient({
+    region: process.env.NHOST_REGION,
+    subdomain: process.env.NHOST_SUBDOMAIN,
+    configure: [
+      withAdminSession({
+        adminSecret: process.env.NHOST_ADMIN_SECRET
+      })
+    ]
+  })
+
+  // Fetch all active users and send them the broadcast notification
+  const { body } = await nhost.graphql.request<{
+    users: Array<{ id: string }>
+  }>({
+    query: `
+      query GetActiveUsers {
+        users(where: { disabled: { _eq: false } }) {
+          id
+        }
+      }
+    `
+  })
+
+  if (body.errors) {
+    return res.status(500).json({ errors: body.errors })
+  }
+
+  const activeUsers = body.data?.users || []
+  const notifications = activeUsers.map((u) => ({
+    user_id: u.id,
+    title,
+    message,
+    type
+  }))
+
+  const insertResult = await nhost.graphql.request({
+    query: `
+      mutation InsertNotifications($objects: [notifications_insert_input!]!) {
+        insert_notifications(objects: $objects) {
+          affected_rows
+        }
+      }
+    `,
+    variables: { objects: notifications }
+  })
+
+  if (insertResult.body.errors) {
+    return res.status(500).json({ errors: insertResult.body.errors })
+  }
+
+  res.status(200).json({
+    message: `Broadcast sent to ${activeUsers.length} user(s)`
+  })
+}
+```
+
+For webhook security details, see [Event Triggers — Webhook Security](/products/graphql/events/event-triggers#webhook-security). For using the Nhost SDK inside handlers, see the [SDK guide](/products/functions/guides/nhost-sdk).
+
+## Scheduled Event Payload
+
+The complete webhook request body:
+
+```json
+{
+  "scheduled_time": "2024-06-15T14:30:00.000Z",
+  "payload": {},
+  "comment": "Broadcast maintenance notification to all active users",
+  "created_at": "2024-06-14T10:00:00.000Z"
+}
+```
+
+| Field            | Description                                                      |
+| ---------------- | ---------------------------------------------------------------- |
+| `scheduled_time` | ISO 8601 timestamp of when the event was scheduled to fire (UTC) |
+| `payload`        | The JSON object configured when creating the event               |
+| `comment`        | The optional comment/description from the event definition       |
+| `created_at`     | ISO 8601 timestamp of when the event was created                 |
+
+## Retry Configuration
+
+| Field                    | Default | Description                         |
+| ------------------------ | ------- | ----------------------------------- |
+| `num_retries`            | `0`     | Number of retry attempts on failure |
+| `retry_interval_seconds` | `10`    | Seconds between retry attempts      |
+| `timeout_seconds`        | `60`    | Seconds before a request times out  |
+
+Retries occur on non-2xx responses and network errors.
+
+## Example Payload
+
+A practical payload for a broadcast notification, entered in the dashboard **Payload** field:
+
+```json
+{
+  "title": "New Feature Released",
+  "message": "Collaborative editing is now available for all projects.",
+  "type": "announcement"
+}
+```
+
+## Monitoring Scheduled Events
+
+The **Events** > **One-Off Scheduled Events** page lists all one-off events. Filter by status using the "Status" header button at the top: **All**, **Scheduled**, **Pending**, **Processed**, or **Failed**.
+
+![One-Off Scheduled Events List](/images/graphql/events/scheduled-event-list.png)
+
+Each event shows its comment, scheduled time, status, webhook URL, ID, and number of tries. Scheduled events that have not yet fired can be deleted individually.
+
+Expand an event to see its invocation logs. Each invocation shows the HTTP status code and a **View Details** action that opens the full request and response.
+
+![One-Off Scheduled Event Invocation Details](/images/graphql/events/scheduled-event-invocation-details.png)
+
+---
+
+For a full working example — including the broadcast handler and notification UI — see the [react-demo](https://github.com/nhost/nhost/tree/main/examples/demos) ([`broadcast-notification.ts`](https://github.com/nhost/nhost/blob/main/examples/demos/backend/functions/events/broadcast-notification.ts)).

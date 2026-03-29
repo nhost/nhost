@@ -11,6 +11,7 @@
   --accent: #8b5cf6;
   --accent-hover: #7c3aed;
   --success: #22c55e;
+  --warning: #f59e0b;
   --error: #ef4444;
   --text-primary: #f9fafb;
   --text-secondary: #d1d5db;
@@ -779,4 +780,212 @@ pre {
 /* Todo title hover effect */
 .hover\:text-primary-hover:hover {
   color: var(--primary-hover);
+}
+
+/* Notification bell badge */
+.notification-bell {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: var(--error);
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+/* Notification list items */
+.notification-item {
+  transition: all 0.2s ease;
+}
+
+.notification-unread {
+  border-left: 3px solid var(--primary);
+}
+
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: 9999px;
+  background-color: var(--primary);
+  display: inline-block;
+}
+
+/* Notification type badges */
+.notification-type-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.notification-type-community {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--secondary);
+}
+
+.notification-type-todos {
+  background: rgba(139, 92, 246, 0.2);
+  color: var(--accent);
+}
+
+.notification-type-announcement {
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--primary);
+}
+
+.notification-type-default {
+  background: rgba(156, 163, 175, 0.2);
+  color: var(--text-muted);
+}
+
+/* Navbar actions group */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Community description inline edit */
+.community-description {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.community-description-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-edit-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.community-edit-btn:hover {
+  color: var(--primary);
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.community-edit-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.community-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.community-edit-form textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 10px;
+  background: rgba(31, 41, 55, 0.5);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.community-edit-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.community-edit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.community-edit-actions button {
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.community-edit-save {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+}
+
+.community-edit-save:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.community-edit-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.community-edit-cancel {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.community-edit-cancel:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+/* Stale todo styles */
+.todo-stale {
+  border-left: 3px solid var(--warning);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.stale-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--warning);
+  white-space: nowrap;
+}
+
+.action-icon-warning {
+  color: var(--warning);
+}
+
+.action-icon-warning:hover:not(:disabled) {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #d97706;
 }
