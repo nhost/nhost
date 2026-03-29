@@ -419,6 +419,113 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			expectedErr: nil,
 		},
 		{
+			name: "success - graphql:role scope narrows claims to single role",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				graphqlUser := fullUser
+				graphqlUser.DefaultRole = "user"
+				m.EXPECT().GetUser(gomock.Any(), userID).Return(graphqlUser, nil)
+				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
+					[]sql.AuthUserRole{
+						{Role: "user"},   //nolint:exhaustruct
+						{Role: "editor"}, //nolint:exhaustruct
+					}, nil,
+				)
+
+				return m
+			},
+			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
+				m := mock.NewMockSigner(ctrl)
+				m.EXPECT().RawGraphQLClaims(
+					gomock.Any(), userID, false,
+					[]string{"editor"}, "editor", nil, gomock.Any(),
+				).Return("https://hasura.io/jwt/claims", map[string]any{
+					"x-hasura-user-id":       userID.String(),
+					"x-hasura-default-role":  "editor",
+					"x-hasura-allowed-roles": []string{"editor"},
+				}, nil)
+
+				return m
+			},
+			scopes: []string{"graphql:role:editor"},
+			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+				Sub: userID.String(),
+				AdditionalProperties: map[string]any{
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-user-id":       userID.String(),
+						"x-hasura-default-role":  "editor",
+						"x-hasura-allowed-roles": []string{"editor"},
+					},
+				},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "success - multiple graphql:role scopes",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				graphqlUser := fullUser
+				graphqlUser.DefaultRole = "user"
+				m.EXPECT().GetUser(gomock.Any(), userID).Return(graphqlUser, nil)
+				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
+					[]sql.AuthUserRole{
+						{Role: "user"},   //nolint:exhaustruct
+						{Role: "editor"}, //nolint:exhaustruct
+					}, nil,
+				)
+
+				return m
+			},
+			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
+				m := mock.NewMockSigner(ctrl)
+				m.EXPECT().RawGraphQLClaims(
+					gomock.Any(), userID, false,
+					[]string{"user", "editor"}, "user", nil, gomock.Any(),
+				).Return("https://hasura.io/jwt/claims", map[string]any{
+					"x-hasura-user-id":       userID.String(),
+					"x-hasura-default-role":  "user",
+					"x-hasura-allowed-roles": []string{"user", "editor"},
+				}, nil)
+
+				return m
+			},
+			scopes: []string{"graphql:role:user", "graphql:role:editor"},
+			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+				Sub: userID.String(),
+				AdditionalProperties: map[string]any{
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-user-id":       userID.String(),
+						"x-hasura-default-role":  "user",
+						"x-hasura-allowed-roles": []string{"user", "editor"},
+					},
+				},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "error - graphql:role scope user lacks role",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				graphqlUser := fullUser
+				graphqlUser.DefaultRole = "user"
+				m.EXPECT().GetUser(gomock.Any(), userID).Return(graphqlUser, nil)
+				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
+					[]sql.AuthUserRole{
+						{Role: "user"}, //nolint:exhaustruct
+					}, nil,
+				)
+
+				return m
+			},
+			signer:           nil,
+			scopes:           []string{"graphql:role:superadmin"},
+			expectedResponse: nil,
+			expectedErr: &oauth2.Error{
+				Err:         "access_denied",
+				Description: "User does not have the requested role",
+			},
+		},
+		{
 			name: "error - graphql scope GetUserRoles failure",
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)

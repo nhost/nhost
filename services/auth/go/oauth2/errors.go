@@ -15,6 +15,8 @@ func ErrorStatusCode(errCode string) int {
 	case "invalid_request", "invalid_scope", "unsupported_response_type",
 		"unsupported_grant_type", "invalid_client_metadata":
 		return http.StatusBadRequest
+	case "access_denied":
+		return http.StatusForbidden
 	case "invalid_client":
 		return http.StatusUnauthorized
 	case "invalid_grant":
