@@ -1,3 +1,9 @@
+## [auth@0.48.1] - 2026-03-29
+
+### 🐛 Bug Fixes
+
+- *(auth)* Select primary verified email from GitHub OAuth (#4085)
+
 ## [auth@0.48.0] - 2026-03-28
 
 ### 🚀 Features
