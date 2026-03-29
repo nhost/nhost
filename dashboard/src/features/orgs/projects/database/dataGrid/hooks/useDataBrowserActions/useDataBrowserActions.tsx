@@ -171,11 +171,8 @@ export function useDataBrowserActions({
     const isFunction = objectType === 'FUNCTION';
     const functionKey = `FUNCTION.${schema}.${oid}`;
 
-    if (isFunction) {
-      setRemovableObject(functionKey);
-    } else {
-      setRemovableObject(tableLikeObjectKey);
-    }
+    const removableObjectKey = isFunction ? functionKey : tableLikeObjectKey;
+    setRemovableObject(removableObjectKey);
 
     try {
       let nextObjectIndex: number | null = null;
@@ -208,21 +205,13 @@ export function useDataBrowserActions({
         functionOID: oid,
       });
 
-      if (isFunction) {
-        queryClient.removeQueries({
-          queryKey: ['function-definition', `${dataSourceSlug}.${oid}`],
-        });
-      } else {
-        queryClient.removeQueries({
-          queryKey: [`${dataSourceSlug}.${schema}.${name}`],
-        });
-      }
+      const queryKey = isFunction
+        ? ['function-definition', `${dataSourceSlug}.${oid}`]
+        : [`${dataSourceSlug}.${schema}.${name}`];
 
-      if (isFunction) {
-        setOptimisticlyRemovedObject(functionKey);
-      } else {
-        setOptimisticlyRemovedObject(tableLikeObjectKey);
-      }
+      queryClient.removeQueries({ queryKey });
+
+      setOptimisticlyRemovedObject(removableObjectKey);
 
       await refetchDatabaseQuery();
 

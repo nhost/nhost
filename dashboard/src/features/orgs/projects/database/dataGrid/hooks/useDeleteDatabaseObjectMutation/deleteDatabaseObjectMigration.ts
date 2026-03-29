@@ -30,10 +30,6 @@ export interface DeleteDatabaseObjectMigrationVariables {
    */
   type: DatabaseObjectType;
   /**
-   * Function OID. Used to fetch parameter types when type is FUNCTION.
-   */
-  functionOID?: string;
-  /**
    * Function parameter types. Required when type is FUNCTION.
    */
   inputArgTypes?: FunctionParameter[];

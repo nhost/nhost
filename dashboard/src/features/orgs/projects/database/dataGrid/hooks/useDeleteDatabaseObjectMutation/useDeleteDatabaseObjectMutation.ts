@@ -13,6 +13,14 @@ import type {
 import deleteDatabaseObject from './deleteDatabaseObject';
 import deleteDatabaseObjectMigration from './deleteDatabaseObjectMigration';
 
+export interface UseDeleteDatabaseObjectVariables
+  extends DeleteDatabaseObjectVariables {
+  /**
+   * Function OID. Used to fetch parameter types when type is FUNCTION.
+   */
+  functionOID?: string;
+}
+
 export interface UseDeleteDatabaseObjectMutationOptions
   extends Partial<DeleteDatabaseObjectOptions> {
   /**
@@ -21,7 +29,7 @@ export interface UseDeleteDatabaseObjectMutationOptions
   mutationOptions?: MutationOptions<
     void,
     unknown,
-    DeleteDatabaseObjectVariables
+    UseDeleteDatabaseObjectVariables
   >;
 }
 
@@ -49,7 +57,7 @@ export default function useDeleteDatabaseObjectMutation({
     : deleteDatabaseObjectMigration;
 
   const mutation = useMutation(
-    async (variables: DeleteDatabaseObjectVariables) => {
+    async (variables: UseDeleteDatabaseObjectVariables) => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
