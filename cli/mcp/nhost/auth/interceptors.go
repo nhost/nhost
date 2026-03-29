@@ -6,9 +6,32 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/nhost/nhost/cli/nhostclient"
+	"golang.org/x/oauth2"
 )
 
 var ErrSigninIn = errors.New("error during sign in")
+
+func WithRefreshToken(
+	tokenEndpoint string,
+	clientID string,
+	refreshToken string,
+) func(ctx context.Context, req *http.Request) error {
+	src := nhostclient.NewRotatingTokenSource(tokenEndpoint, clientID, refreshToken)
+	tokenSource := oauth2.ReuseTokenSource(nil, src)
+
+	return func(_ context.Context, req *http.Request) error {
+		t, err := tokenSource.Token()
+		if err != nil {
+			return fmt.Errorf("failed to refresh access token: %w", err)
+		}
+
+		req.Header.Add("Authorization", "Bearer "+t.AccessToken)
+
+		return nil
+	}
+}
 
 func WithPAT(
 	url string,

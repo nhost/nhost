@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/mark3labs/mcp-go/server"
@@ -19,7 +20,6 @@ import (
 )
 
 const (
-	flagNhostAuthURL    = "nhost-auth-url"
 	flagNhostGraphqlURL = "nhost-graphql-url"
 )
 
@@ -51,14 +51,6 @@ func Command() *cli.Command {
 		Usage: "Starts the MCP server",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:     flagNhostAuthURL,
-				Usage:    "Nhost auth URL",
-				Hidden:   true,
-				Value:    "https://otsispdzcwxyqzbfntmj.auth.eu-central-1.nhost.run/v1",
-				Category: "Cloud Platform",
-				Sources:  cli.EnvVars("NHOST_AUTH_URL"),
-			},
-			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagNhostGraphqlURL,
 				Usage:    "Nhost GraphQL URL",
 				Hidden:   true,
@@ -72,7 +64,7 @@ func Command() *cli.Command {
 }
 
 // BuildServer creates and configures an MCP server from the parsed CLI command.
-func BuildServer(cmd *cli.Command) (*server.MCPServer, error) {
+func BuildServer(ctx context.Context, cmd *cli.Command) (*server.MCPServer, error) {
 	cfg, err := getConfig(cmd)
 	if err != nil {
 		return nil, err
@@ -96,10 +88,10 @@ func BuildServer(cmd *cli.Command) (*server.MCPServer, error) {
 
 	if cfg.Cloud != nil {
 		if err := registerCloud(
+			ctx,
 			cmd,
 			mcpServer,
 			cfg,
-			cmd.String(flagNhostAuthURL),
 			cmd.String(flagNhostGraphqlURL),
 		); err != nil {
 			return nil, fmt.Errorf("failed to register cloud tools: %w", err)
@@ -120,8 +112,8 @@ func BuildServer(cmd *cli.Command) (*server.MCPServer, error) {
 	return mcpServer, nil
 }
 
-func action(_ context.Context, cmd *cli.Command) error {
-	mcpServer, err := BuildServer(cmd)
+func action(ctx context.Context, cmd *cli.Command) error {
+	mcpServer, err := BuildServer(ctx, cmd)
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("failed to build server: %v", err), 1)
 	}
@@ -154,25 +146,39 @@ func getConfig(cmd *cli.Command) (*config.Config, error) {
 }
 
 func registerCloud(
+	ctx context.Context,
 	cmd *cli.Command,
 	mcpServer *server.MCPServer,
 	cfg *config.Config,
-	authURL string,
 	graphqlURL string,
 ) error {
 	ce := clienv.FromCLI(cmd)
 
-	creds, err := ce.Credentials()
-	if err != nil {
-		return fmt.Errorf("failed to load credentials: %w", err)
-	}
+	var interceptor func(ctx context.Context, req *http.Request) error
 
-	interceptor, err := auth.WithPAT(
-		authURL,
-		creds.PersonalAccessToken,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create PAT interceptor: %w", err)
+	if pat := ce.PAT(); pat != "" {
+		var err error
+
+		interceptor, err = auth.WithPAT(ce.AuthURL(), pat)
+		if err != nil {
+			return fmt.Errorf("failed to create PAT interceptor: %w", err)
+		}
+	} else {
+		creds, err := ce.Credentials()
+		if err != nil {
+			return fmt.Errorf("failed to load credentials: %w", err)
+		}
+
+		metadata, err := clienv.FetchOAuth2Metadata(ctx, ce.OAuth2Issuer())
+		if err != nil {
+			return fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
+		}
+
+		interceptor = auth.WithRefreshToken(
+			metadata.TokenEndpoint,
+			ce.OAuth2ClientID(),
+			creds.RefreshToken,
+		)
 	}
 
 	cloudTool := cloud.NewTool(

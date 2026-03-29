@@ -50,17 +50,20 @@ func getToken(ctx context.Context, authURL, graphqlURL string) (string, error) {
 		&clienv.PathStructure{},
 		authURL,
 		graphqlURL,
+		"",
+		"",
+		"",
 		"unneeded",
 		"unneeded",
 		"unneeded",
 	)
 
-	session, err := ce.LoadSession(ctx)
+	accessToken, err := ce.LoadSession(ctx)
 	if err != nil {
 		return "", err //nolint:wrapcheck
 	}
 
-	return session.Session.AccessToken, nil
+	return accessToken, nil
 }
 
 //nolint:tagliatelle
