@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -9,21 +8,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { TrackUntrackSection } from '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/TrackUntrackSection';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
-import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
-import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
 import { useSetFunctionCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionCustomizationMutation';
-import { useSetFunctionTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionTrackingMutation';
-import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
+import { useTrackFunctionWithTable } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable';
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
-import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
 const validationSchema = z.object({
   customName: z.string().optional(),
@@ -68,8 +60,6 @@ export default function EditFunctionGraphQLSettingsForm({
 }: EditFunctionGraphQLSettingsFormProps) {
   const { query } = useRouter();
   const { dataSourceSlug, functionOID: routerFunctionOID } = query;
-  const { project } = useProject();
-  const queryClient = useQueryClient();
 
   const dataSource = (dataSourceSlug as string) || 'default';
   const functionOID = (routerFunctionOID as string) || '';
@@ -91,88 +81,35 @@ export default function EditFunctionGraphQLSettingsForm({
   const returnTableSchema =
     functionDefinition?.functionMetadata?.returnTableSchema;
 
-  const { data: trackedTablesSet } = useGetTrackedTablesSet({ dataSource });
-
-  const isReturnTableUntracked =
-    !!returnTableName &&
-    !!returnTableSchema &&
-    !trackedTablesSet?.has(`${returnTableSchema}.${returnTableName}`);
-
-  const { data: isTracked } = useIsTrackedFunction({
+  const {
+    isTracked,
+    isReturnTableUntracked,
+    isPending: isTrackingPending,
+    toggleTracking,
+  } = useTrackFunctionWithTable({
     dataSource,
     schema,
     functionName,
+    returnTableName,
+    returnTableSchema,
   });
-
-  const { data: resourceVersion } = useGetMetadataResourceVersion();
-
-  const { mutateAsync: setFunctionTracking, isPending: isTrackingPending } =
-    useSetFunctionTrackingMutation();
-
-  const { mutateAsync: setTableTracking, isPending: isTableTrackingPending } =
-    useSetTableTrackingMutation();
 
   async function handleTrackToggle() {
     const tracked = !isTracked;
     const action = tracked ? 'track' : 'untrack';
     const shouldTrackTable = tracked && isReturnTableUntracked;
 
-    const loadingMessage = shouldTrackTable
-      ? 'Tracking table and function...'
-      : `${tracked ? 'Tracking' : 'Untracking'} function...`;
-    const successMessage = shouldTrackTable
-      ? 'Table and function tracked successfully.'
-      : `Function ${action}ed successfully.`;
-    const errorMessage = shouldTrackTable
-      ? 'Failed to track table and function.'
-      : `Failed to ${action} function.`;
-
-    await execPromiseWithErrorToast(
-      async () => {
-        if (shouldTrackTable) {
-          await setTableTracking({
-            tracked: true,
-            resourceVersion,
-            args: {
-              source: dataSource,
-              table: {
-                name: returnTableName!,
-                schema: returnTableSchema!,
-              },
-            },
-          });
-
-          const freshMetadata =
-            await queryClient.fetchQuery<ExportMetadataResponse>({
-              queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-              staleTime: 0,
-            });
-
-          await setFunctionTracking({
-            tracked: true,
-            resourceVersion: freshMetadata?.resource_version,
-            args: {
-              source: dataSource,
-              function: { name: functionName, schema },
-            },
-          });
-        } else {
-          await setFunctionTracking({
-            tracked,
-            resourceVersion,
-            args: {
-              source: dataSource,
-              function: { name: functionName, schema },
-            },
-          });
-        }
-      },
-      {
-        loadingMessage,
-        successMessage,
-        errorMessage,
-      },
-    );
+    await execPromiseWithErrorToast(() => toggleTracking(), {
+      loadingMessage: shouldTrackTable
+        ? 'Tracking table and function...'
+        : `${tracked ? 'Tracking' : 'Untracking'} function...`,
+      successMessage: shouldTrackTable
+        ? 'Table and function tracked successfully.'
+        : `Function ${action}ed successfully.`,
+      errorMessage: shouldTrackTable
+        ? 'Failed to track table and function.'
+        : `Failed to ${action} function.`,
+    });
   }
 
   const isUntracked = !isTracked;
@@ -313,7 +250,7 @@ export default function EditFunctionGraphQLSettingsForm({
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4">
         <TrackUntrackSection
           isTracked={isTracked}
-          isPending={isTrackingPending || isTableTrackingPending}
+          isPending={isTrackingPending}
           onTrackToggle={handleTrackToggle}
           disabled={disabled}
           trackLabel={
