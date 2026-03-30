@@ -46,7 +46,7 @@ func actionGet(ctx context.Context, cmd *cli.Command) error {
 
 	token, err := ce.LoadSession(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load session: %w", err)
 	}
 
 	b, err := json.Marshal(response{
