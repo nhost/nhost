@@ -179,14 +179,26 @@ func (ce *CliEnv) NewCloudInterceptor(
 		return nil, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
 	}
 
-	return nhostclient.WithOAuth2RefreshToken(
-		auth.NewRotatingTokenSource(
-			ctx,
-			metadata.TokenEndpoint,
-			ce.OAuth2ClientID(),
-			creds.RefreshToken,
-		),
-	), nil
+	src := auth.NewRotatingTokenSource(
+		ctx,
+		metadata.TokenEndpoint,
+		ce.OAuth2ClientID(),
+		creds.RefreshToken,
+	)
+	baseInterceptor := nhostclient.WithOAuth2RefreshToken(src)
+
+	return func(ctx context.Context, req *http.Request) error {
+		if err := baseInterceptor(ctx, req); err != nil {
+			return err
+		}
+
+		if rt := src.GetRefreshToken(); rt != creds.RefreshToken {
+			creds.RefreshToken = rt
+			_ = saveCredentials(ce, creds)
+		}
+
+		return nil
+	}, nil
 }
 
 func (ce *CliEnv) GetNhostClient(ctx context.Context) (*graphql.Client, error) {
