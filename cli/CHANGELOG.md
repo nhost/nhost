@@ -1,3 +1,15 @@
+## [cli@1.42.0] - 2026-03-30
+
+### 🚀 Features
+
+- *(cli)* Login via oauth2 (#4089)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema and certs (#4097)
+- *(cli)* Bump nhost/dashboard to 2.55.0 (#4090)
+
 ## [cli@1.41.1] - 2026-03-28
 
 ### 🐛 Bug Fixes
