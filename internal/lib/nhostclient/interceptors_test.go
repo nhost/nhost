@@ -36,6 +36,8 @@ func (m *mockAuthClient) SignInPATWithResponse(
 	resp := &auth.SignInPATR{
 		Body:         []byte(`{}`),
 		HTTPResponse: &http.Response{StatusCode: m.statusCode}, //nolint:exhaustruct
+		JSON200:      nil,
+		JSONDefault:  nil,
 	}
 
 	if m.statusCode == http.StatusOK {

@@ -26,6 +26,7 @@ func (m *mockDoer) Do(req *http.Request) (*http.Response, error) {
 	if req.Body != nil {
 		b, _ := io.ReadAll(req.Body)
 		req.Body.Close()
+
 		m.bodies = append(m.bodies, string(b))
 	}
 
@@ -57,8 +58,14 @@ func TestRetryDoer_SuccessFirstTry(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockDoer{
-		failFor:  0,
-		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+		calls:   0,
+		failFor: 0,
+		err:     nil,
+		response: &http.Response{ //nolint:exhaustruct
+			StatusCode: http.StatusOK,
+			Body:       http.NoBody,
+		},
+		bodies: nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(mock, nhostclient.WithBaseDelay(time.Millisecond))
@@ -67,6 +74,8 @@ func TestRetryDoer_SuccessFirstTry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
@@ -81,9 +90,14 @@ func TestRetryDoer_SuccessAfterRetries(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockDoer{
-		failFor:  2,
-		err:      errTransient,
-		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+		calls:   0,
+		failFor: 2,
+		err:     errTransient,
+		response: &http.Response{ //nolint:exhaustruct
+			StatusCode: http.StatusOK,
+			Body:       http.NoBody,
+		},
+		bodies: nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(
@@ -96,6 +110,8 @@ func TestRetryDoer_SuccessAfterRetries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
@@ -110,8 +126,11 @@ func TestRetryDoer_ExhaustsRetries(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockDoer{
-		failFor: 100,
-		err:     errTransient,
+		calls:    0,
+		failFor:  100,
+		err:      errTransient,
+		response: nil,
+		bodies:   nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(
@@ -120,7 +139,11 @@ func TestRetryDoer_ExhaustsRetries(t *testing.T) {
 		nhostclient.WithBaseDelay(time.Millisecond),
 	)
 
-	_, err := doer.Do(&http.Request{}) //nolint:exhaustruct
+	resp, err := doer.Do(&http.Request{}) //nolint:exhaustruct
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
+
 	if !errors.Is(err, errTransient) {
 		t.Fatalf("expected errTransient, got: %v", err)
 	}
@@ -137,9 +160,14 @@ func TestRetryDoer_RetriesPreserveRequestBody(t *testing.T) {
 	const body = `{"email":"test@example.com"}`
 
 	mock := &mockDoer{
-		failFor:  2,
-		err:      errTransient,
-		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+		calls:   0,
+		failFor: 2,
+		err:     errTransient,
+		response: &http.Response{ //nolint:exhaustruct
+			StatusCode: http.StatusOK,
+			Body:       http.NoBody,
+		},
+		bodies: nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(
@@ -162,6 +190,8 @@ func TestRetryDoer_RetriesPreserveRequestBody(t *testing.T) {
 		t.Fatalf("expected no error, got: %v", err)
 	}
 
+	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
 	}
@@ -183,9 +213,14 @@ func TestRetryDoer_RetriesPreserveRequestBodyBytesReader(t *testing.T) {
 	const body = `{"token":"abc123"}`
 
 	mock := &mockDoer{
-		failFor:  1,
-		err:      errTransient,
-		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+		calls:   0,
+		failFor: 1,
+		err:     errTransient,
+		response: &http.Response{ //nolint:exhaustruct
+			StatusCode: http.StatusOK,
+			Body:       http.NoBody,
+		},
+		bodies: nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(
@@ -207,6 +242,8 @@ func TestRetryDoer_RetriesPreserveRequestBodyBytesReader(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
@@ -236,8 +273,14 @@ func TestRetryDoer_Post_SuccessFirstTry(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockDoer{
-		failFor:  0,
-		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+		calls:   0,
+		failFor: 0,
+		err:     nil,
+		response: &http.Response{ //nolint:exhaustruct
+			StatusCode: http.StatusOK,
+			Body:       http.NoBody,
+		},
+		bodies: nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(mock, nhostclient.WithBaseDelay(time.Millisecond))
@@ -248,6 +291,8 @@ func TestRetryDoer_Post_SuccessFirstTry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
@@ -262,9 +307,14 @@ func TestRetryDoer_Post_SuccessAfterRetries(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockDoer{
-		failFor:  2,
-		err:      errTransient,
-		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+		calls:   0,
+		failFor: 2,
+		err:     errTransient,
+		response: &http.Response{ //nolint:exhaustruct
+			StatusCode: http.StatusOK,
+			Body:       http.NoBody,
+		},
+		bodies: nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(
@@ -280,6 +330,8 @@ func TestRetryDoer_Post_SuccessAfterRetries(t *testing.T) {
 		t.Fatalf("expected no error, got: %v", err)
 	}
 
+	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
 	}
@@ -293,8 +345,11 @@ func TestRetryDoer_Post_ExhaustsRetries(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockDoer{
-		failFor: 100,
-		err:     errTransient,
+		calls:    0,
+		failFor:  100,
+		err:      errTransient,
+		response: nil,
+		bodies:   nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(
@@ -303,7 +358,11 @@ func TestRetryDoer_Post_ExhaustsRetries(t *testing.T) {
 		nhostclient.WithBaseDelay(time.Millisecond),
 	)
 
-	_, err := doer.Post("http://localhost/test", "application/json", strings.NewReader(`{}`))
+	resp, err := doer.Post("http://localhost/test", "application/json", strings.NewReader(`{}`))
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
+
 	if !errors.Is(err, errTransient) {
 		t.Fatalf("expected errTransient, got: %v", err)
 	}
@@ -318,8 +377,14 @@ func TestRetryDoer_Post_NilBody(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockDoer{
-		failFor:  0,
-		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+		calls:   0,
+		failFor: 0,
+		err:     nil,
+		response: &http.Response{ //nolint:exhaustruct
+			StatusCode: http.StatusOK,
+			Body:       http.NoBody,
+		},
+		bodies: nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(mock, nhostclient.WithBaseDelay(time.Millisecond))
@@ -328,6 +393,8 @@ func TestRetryDoer_Post_NilBody(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
@@ -344,9 +411,14 @@ func TestRetryDoer_Post_BodyReplayedOnRetry(t *testing.T) {
 	const body = `{"email":"test@example.com"}`
 
 	mock := &mockDoer{
-		failFor:  2,
-		err:      errTransient,
-		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+		calls:   0,
+		failFor: 2,
+		err:     errTransient,
+		response: &http.Response{ //nolint:exhaustruct
+			StatusCode: http.StatusOK,
+			Body:       http.NoBody,
+		},
+		bodies: nil,
 	}
 
 	doer := nhostclient.NewRetryDoer(
@@ -361,6 +433,8 @@ func TestRetryDoer_Post_BodyReplayedOnRetry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
