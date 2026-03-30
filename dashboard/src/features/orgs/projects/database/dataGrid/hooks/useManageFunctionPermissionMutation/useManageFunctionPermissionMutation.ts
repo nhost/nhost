@@ -69,12 +69,10 @@ export default function useManageFunctionPermissionMutation({
     {
       ...mutationOptions,
       onSuccess: async (data, variables, context) => {
-        // Refetch metadata query - useFunctionPermissionQuery derives from this
         await queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
 
-        // Call the original onSuccess if provided
         mutationOptions?.onSuccess?.(data, variables, context);
       },
     },

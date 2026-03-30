@@ -55,7 +55,6 @@ export default function useFunctionPermissionQuery(
     refetch,
   } = useMetadataQuery([`${dataSource}.metadata`]);
 
-  // Derive function permission data from metadata
   const data = useMemo<UseFunctionPermissionQueryResult | undefined>(() => {
     if (metadataStatus !== 'success' || !metadata) {
       return undefined;
@@ -64,13 +63,11 @@ export default function useFunctionPermissionQuery(
     const resourceVersion = metadata.resourceVersion ?? 0;
     const functions = metadata.functions ?? [];
 
-    // Find the function in the metadata
     const functionMetadata = functions.find(
       (fn) =>
         fn.function?.name === functionName && fn.function?.schema === schema,
     );
 
-    // Extract permissions from the function metadata
     const permissions: FunctionPermission[] =
       functionMetadata?.permissions ?? [];
 
