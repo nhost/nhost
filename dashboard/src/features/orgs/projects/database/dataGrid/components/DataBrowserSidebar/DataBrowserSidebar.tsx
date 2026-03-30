@@ -1,10 +1,8 @@
 import { Lock, Plus, Terminal } from 'lucide-react';
-import Image from 'next/image';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Backdrop } from '@/components/ui/v2/Backdrop';
+import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
 import {
   Select,
@@ -24,10 +22,6 @@ import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import DatabaseObjectListItem from './DatabaseObjectListItem';
-
-export interface DataBrowserSidebarProps {
-  className?: string;
-}
 
 export interface DataBrowserSidebarContentProps {
   onSidebarItemClick?: (tablePath?: string) => void;
@@ -243,86 +237,19 @@ function DataBrowserSidebarContent({
   );
 }
 
-export default function DataBrowserSidebar({
-  className,
-}: DataBrowserSidebarProps) {
+export default function DataBrowserSidebar() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
-
-  const [expanded, setExpanded] = useState(false);
-
-  function toggleExpanded() {
-    setExpanded(!expanded);
-  }
-
-  function handleSidebarItemClick() {
-    setExpanded(false);
-  }
-
-  useEffect(() => {
-    function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setExpanded(false);
-      }
-    }
-    if (typeof document !== 'undefined') {
-      document.addEventListener('keydown', closeSidebarWhenEscapeIsPressed);
-    }
-
-    return () =>
-      document.removeEventListener('keydown', closeSidebarWhenEscapeIsPressed);
-  }, []);
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return null;
   }
 
   return (
-    <>
-      <Backdrop
-        open={expanded}
-        className="absolute top-0 right-0 bottom-0 left-0 z-[34] sm:hidden"
-        role="button"
-        tabIndex={-1}
-        onClick={() => setExpanded(false)}
-        aria-label="Close sidebar overlay"
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter' && event.key !== ' ') {
-            return;
-          }
-
-          setExpanded(false);
-        }}
-      />
-
-      <aside
-        className={cn(
-          'box absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
-          expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
-          className,
-        )}
-      >
-        <RetryableErrorBoundary>
-          <DataBrowserSidebarContent
-            onSidebarItemClick={handleSidebarItemClick}
-          />
-        </RetryableErrorBoundary>
-      </aside>
-
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute bottom-4 left-8 z-[38] h-11 w-11 rounded-full bg-primary md:hidden"
-        onClick={toggleExpanded}
-        aria-label="Toggle sidebar"
-      >
-        <Image
-          width={16}
-          height={16}
-          src="/assets/table.svg"
-          alt="A monochrome table"
-        />
-      </Button>
-    </>
+    <FeatureSidebar toggleOffset="left-8" className="box">
+      {(collapse) => (
+        <DataBrowserSidebarContent onSidebarItemClick={collapse} />
+      )}
+    </FeatureSidebar>
   );
 }
