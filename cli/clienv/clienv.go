@@ -174,6 +174,17 @@ func (ce *CliEnv) NewCloudInterceptor(
 		)
 	}
 
+	if creds.OAuth2RefreshToken != "" {
+		return ce.newOAuth2CloudInterceptor(ctx, creds)
+	}
+
+	return ce.newRefreshTokenCloudInterceptor(ctx, creds)
+}
+
+func (ce *CliEnv) newOAuth2CloudInterceptor(
+	ctx context.Context,
+	creds Credentials,
+) (func(context.Context, *http.Request) error, error) {
 	metadata, err := ce.FetchOAuth2Metadata(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
@@ -183,7 +194,7 @@ func (ce *CliEnv) NewCloudInterceptor(
 		ctx,
 		metadata.TokenEndpoint,
 		ce.OAuth2ClientID(),
-		creds.RefreshToken,
+		creds.OAuth2RefreshToken,
 	)
 	baseInterceptor := nhostclient.WithOAuth2RefreshToken(src)
 
@@ -192,13 +203,25 @@ func (ce *CliEnv) NewCloudInterceptor(
 			return err
 		}
 
-		if rt := src.GetRefreshToken(); rt != creds.RefreshToken {
-			creds.RefreshToken = rt
+		if rt := src.GetRefreshToken(); rt != creds.OAuth2RefreshToken {
+			creds.OAuth2RefreshToken = rt
 			_ = saveCredentials(ce, creds)
 		}
 
 		return nil
 	}, nil
+}
+
+func (ce *CliEnv) newRefreshTokenCloudInterceptor(
+	_ context.Context,
+	creds Credentials,
+) (func(context.Context, *http.Request) error, error) {
+	cl, err := ce.NewAuthClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create auth client: %w", err)
+	}
+
+	return nhostclient.WithRefreshToken(cl, creds.RefreshToken), nil
 }
 
 func (ce *CliEnv) GetNhostClient(ctx context.Context) (*graphql.Client, error) {

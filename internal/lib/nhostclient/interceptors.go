@@ -30,6 +30,58 @@ func WithOAuth2RefreshToken(
 	}
 }
 
+// WithRefreshToken returns an HTTP request interceptor that authenticates
+// using the standard refresh token endpoint, caching the session and
+// refreshing it when it nears expiry.
+func WithRefreshToken(
+	cl auth.ClientWithResponsesInterface,
+	refreshToken string,
+) func(ctx context.Context, req *http.Request) error {
+	var (
+		mu          sync.Mutex
+		accessToken string
+		currentRT   = refreshToken
+		expiresAt   time.Time
+	)
+
+	return func(ctx context.Context, req *http.Request) error {
+		mu.Lock()
+		defer mu.Unlock()
+
+		if time.Now().Add(time.Minute).After(expiresAt) {
+			resp, err := cl.RefreshTokenWithResponse(
+				ctx,
+				auth.RefreshTokenJSONRequestBody{
+					RefreshToken: currentRT,
+				},
+			)
+			if err != nil {
+				return fmt.Errorf("failed to refresh token: %w", err)
+			}
+
+			if resp.StatusCode() != http.StatusOK {
+				return fmt.Errorf( //nolint:err113
+					"error during token refresh: %s\n%s",
+					resp.Status(),
+					resp.Body,
+				)
+			}
+
+			accessToken = resp.JSON200.AccessToken
+			expiresAt = time.Now().Add(
+				time.Second * time.Duration(resp.JSON200.AccessTokenExpiresIn))
+
+			if resp.JSON200.RefreshToken != "" {
+				currentRT = resp.JSON200.RefreshToken
+			}
+		}
+
+		req.Header.Set("Authorization", "Bearer "+accessToken)
+
+		return nil
+	}
+}
+
 // WithPAT returns an HTTP request interceptor that authenticates using a
 // Personal Access Token, caching the session and refreshing it when it
 // nears expiry.

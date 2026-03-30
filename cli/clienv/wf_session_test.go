@@ -19,13 +19,16 @@ func newTestCliEnv() *CliEnv {
 
 func setupAuthFile(t *testing.T, refreshToken string) {
 	t.Helper()
+	setupAuthFileWithCreds(t, Credentials{RefreshToken: refreshToken})
+}
+
+func setupAuthFileWithCreds(t *testing.T, creds Credentials) {
+	t.Helper()
 
 	nhostDir := filepath.Join(os.Getenv("XDG_STATE_HOME"), "nhost")
 	if err := os.MkdirAll(nhostDir, 0o755); err != nil {
 		t.Fatalf("failed to create nhost dir: %v", err)
 	}
-
-	creds := Credentials{RefreshToken: refreshToken}
 
 	data, err := json.Marshal(creds)
 	if err != nil {
@@ -66,6 +69,33 @@ func TestCredentials(t *testing.T) {
 		}
 	})
 
+	t.Run("valid oauth2 credentials", func(t *testing.T) {
+		t.Setenv("XDG_STATE_HOME", t.TempDir())
+		setupAuthFileWithCreds(t, Credentials{
+			OAuth2RefreshToken: "test-oauth2-refresh-token",
+		})
+
+		result, err := newTestCliEnv().Credentials()
+		if err != nil {
+			t.Fatalf("expected no error, got: %v", err)
+		}
+
+		if result.OAuth2RefreshToken != "test-oauth2-refresh-token" {
+			t.Fatalf(
+				"expected oauth2 refresh token %q, got %q",
+				"test-oauth2-refresh-token",
+				result.OAuth2RefreshToken,
+			)
+		}
+
+		if result.RefreshToken != "" {
+			t.Fatalf(
+				"expected empty refresh token, got %q",
+				result.RefreshToken,
+			)
+		}
+	})
+
 	t.Run("empty refresh token", func(t *testing.T) {
 		t.Setenv("XDG_STATE_HOME", t.TempDir())
 		setupAuthFile(t, "")
@@ -99,6 +129,37 @@ func TestSaveCredentials(t *testing.T) {
 		t.Fatalf(
 			"expected refresh token %q, got %q",
 			"saved-token",
+			result.RefreshToken,
+		)
+	}
+}
+
+func TestSaveOAuth2Credentials(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+
+	ce := newTestCliEnv()
+	creds := Credentials{OAuth2RefreshToken: "saved-oauth2-token"}
+
+	if err := saveCredentials(ce, creds); err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+
+	result, err := ce.Credentials()
+	if err != nil {
+		t.Fatalf("expected no error reading back, got: %v", err)
+	}
+
+	if result.OAuth2RefreshToken != "saved-oauth2-token" {
+		t.Fatalf(
+			"expected oauth2 refresh token %q, got %q",
+			"saved-oauth2-token",
+			result.OAuth2RefreshToken,
+		)
+	}
+
+	if result.RefreshToken != "" {
+		t.Fatalf(
+			"expected empty refresh token, got %q",
 			result.RefreshToken,
 		)
 	}
