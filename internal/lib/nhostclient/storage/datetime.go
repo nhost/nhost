@@ -24,7 +24,7 @@ func (dt Time) MarshalText() ([]byte, error) {
 
 func (dt *Time) UnmarshalText(text []byte) error {
 	if len(text) == 0 || string(text) == `""` {
-		*dt = Time{}
+		*dt = Time{t: time.Time{}}
 		return nil
 	}
 

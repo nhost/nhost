@@ -10,7 +10,7 @@ import (
 // RotatingTokenSource wraps an oauth2.Config and always uses the latest
 // refresh token for each refresh call, since the server rotates them.
 type RotatingTokenSource struct {
-	ctx context.Context
+	ctx context.Context //nolint:containedctx // oauth2.TokenSource interface has no context parameter
 	cfg *oauth2.Config
 
 	mu           sync.Mutex

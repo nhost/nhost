@@ -86,7 +86,7 @@ func (r *RetryDoer) Do(req *http.Request) (*http.Response, error) {
 		}
 	}
 
-	return resp, err
+	return resp, fmt.Errorf("doing request: %w", err)
 }
 
 func (r *RetryDoer) Post(
@@ -126,5 +126,5 @@ func (r *RetryDoer) Post(
 		}
 	}
 
-	return resp, err
+	return resp, fmt.Errorf("posting request: %w", err)
 }
