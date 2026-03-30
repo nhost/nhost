@@ -278,7 +278,6 @@ func TestValidate(t *testing.T) {
 				"fakegraphqlurl",
 				"",
 				"",
-				"",
 				"fakebranch",
 				"",
 				"local",

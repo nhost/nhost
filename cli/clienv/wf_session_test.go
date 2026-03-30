@@ -7,15 +7,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/nhost/nhost/cli/nhostclient/credentials"
 )
 
 func newTestCliEnv() *CliEnv {
 	return New(
 		io.Discard, io.Discard,
 		NewPathStructure("", "", "", ""),
-		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "",
 	)
 }
 
@@ -27,7 +25,7 @@ func setupAuthFile(t *testing.T, refreshToken string) {
 		t.Fatalf("failed to create nhost dir: %v", err)
 	}
 
-	creds := credentials.Credentials{RefreshToken: refreshToken}
+	creds := Credentials{RefreshToken: refreshToken}
 
 	data, err := json.Marshal(creds)
 	if err != nil {
@@ -86,7 +84,7 @@ func TestSaveCredentials(t *testing.T) {
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
 
 	ce := newTestCliEnv()
-	creds := credentials.Credentials{RefreshToken: "saved-token"}
+	creds := Credentials{RefreshToken: "saved-token"}
 
 	if err := saveCredentials(ce, creds); err != nil {
 		t.Fatalf("expected no error, got: %v", err)

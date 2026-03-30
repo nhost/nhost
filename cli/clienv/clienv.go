@@ -8,8 +8,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/nhost/nhost/cli/nhostclient"
+	"github.com/Yamashou/gqlgenc/clientv2"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/internal/lib/nhostclient"
+	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
 	"github.com/urfave/cli/v3"
 )
 
@@ -24,12 +26,11 @@ type CliEnv struct {
 	Path           *PathStructure
 	authURL        string
 	graphqlURL     string
-	oauth2Issuer   string
 	oauth2ClientID string
 	pat            string
 	branch         string
-	nhclient       *nhostclient.Client
-	nhpublicclient *nhostclient.Client
+	nhclient       *graphql.Client
+	nhpublicclient *graphql.Client
 	projectName    string
 	localSubdomain string
 }
@@ -40,7 +41,6 @@ func New(
 	path *PathStructure,
 	authURL string,
 	graphqlURL string,
-	oauth2Issuer string,
 	oauth2ClientID string,
 	pat string,
 	branch string,
@@ -53,7 +53,6 @@ func New(
 		Path:           path,
 		authURL:        authURL,
 		graphqlURL:     graphqlURL,
-		oauth2Issuer:   oauth2Issuer,
 		oauth2ClientID: oauth2ClientID,
 		pat:            pat,
 		branch:         branch,
@@ -81,7 +80,6 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 		),
 		authURL:        cmd.String(flagAuthURL),
 		graphqlURL:     cmd.String(flagGraphqlURL),
-		oauth2Issuer:   cmd.String(flagOAuth2Issuer),
 		oauth2ClientID: cmd.String(flagOAuth2ClientID),
 		pat:            cmd.String(flagPAT),
 		branch:         cmd.String(flagBranch),
@@ -108,10 +106,6 @@ func (ce *CliEnv) GraphqlURL() string {
 	return ce.graphqlURL
 }
 
-func (ce *CliEnv) OAuth2Issuer() string {
-	return ce.oauth2Issuer
-}
-
 func (ce *CliEnv) OAuth2ClientID() string {
 	return ce.oauth2ClientID
 }
@@ -124,16 +118,24 @@ func (ce *CliEnv) Branch() string {
 	return ce.branch
 }
 
-func (ce *CliEnv) GetNhostClient(ctx context.Context) (*nhostclient.Client, error) {
+func (ce *CliEnv) NewAuthClient() (*auth.ClientWithResponses, error) {
+	return auth.NewClientWithResponses(
+		ce.authURL,
+		auth.WithHTTPClient(nhostclient.NewRetryDoer(nil)),
+	)
+}
+
+func (ce *CliEnv) GetNhostClient(ctx context.Context) (*graphql.Client, error) {
 	if ce.nhclient == nil {
 		accessToken, err := ce.LoadSession(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load session: %w", err)
 		}
 
-		ce.nhclient = nhostclient.New(
-			ce.authURL,
+		ce.nhclient = graphql.NewClient(
+			nhostclient.NewRetryDoer(nil),
 			ce.graphqlURL,
+			&clientv2.Options{}, //nolint:exhaustruct
 			graphql.WithAccessToken(accessToken),
 		)
 	}
@@ -141,9 +143,13 @@ func (ce *CliEnv) GetNhostClient(ctx context.Context) (*nhostclient.Client, erro
 	return ce.nhclient, nil
 }
 
-func (ce *CliEnv) GetNhostPublicClient() (*nhostclient.Client, error) {
+func (ce *CliEnv) GetNhostPublicClient() (*graphql.Client, error) {
 	if ce.nhpublicclient == nil {
-		ce.nhpublicclient = nhostclient.New(ce.authURL, ce.graphqlURL)
+		ce.nhpublicclient = graphql.NewClient(
+			nhostclient.NewRetryDoer(nil),
+			ce.graphqlURL,
+			&clientv2.Options{}, //nolint:exhaustruct
+		)
 	}
 
 	return ce.nhpublicclient, nil

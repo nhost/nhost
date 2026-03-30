@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/nhost/nhost/cli/nhostclient"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/urfave/cli/v3"
 )
 
@@ -44,7 +44,7 @@ func CommandLogs() *cli.Command {
 func showLogsSimple(
 	ctx context.Context,
 	ce *clienv.CliEnv,
-	cl *nhostclient.Client,
+	cl *graphql.Client,
 	deploymentID string,
 ) error {
 	resp, err := cl.GetDeploymentLogs(ctx, deploymentID)
@@ -66,7 +66,7 @@ func showLogsSimple(
 func showLogsFollow(
 	ctx context.Context,
 	ce *clienv.CliEnv,
-	cl *nhostclient.Client,
+	cl *graphql.Client,
 	deploymentID string,
 ) (string, error) {
 	ticker := time.NewTicker(time.Second * 2) //nolint:mnd

@@ -15,22 +15,15 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/nhost/nhost/cli/nhostclient"
-	"github.com/nhost/nhost/cli/nhostclient/credentials"
+	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
 	"golang.org/x/oauth2"
 )
 
 const loginTimeout = 5 * time.Minute
 
-// OAuth2Metadata holds the discovered OAuth2 authorization server metadata.
-type OAuth2Metadata struct {
-	AuthorizationEndpoint string `json:"authorization_endpoint"`
-	TokenEndpoint         string `json:"token_endpoint"`
-}
-
 func saveCredentials(
 	ce *CliEnv,
-	creds credentials.Credentials,
+	creds Credentials,
 ) error {
 	dir := filepath.Dir(ce.Path.AuthFile())
 	if !PathExists(dir) {
@@ -65,38 +58,6 @@ func openBrowser(ctx context.Context, url string) error {
 	}
 
 	return nil
-}
-
-func FetchOAuth2Metadata(
-	ctx context.Context,
-	issuerURL string,
-) (OAuth2Metadata, error) {
-	metadataURL := issuerURL + "/.well-known/oauth-authorization-server"
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, metadataURL, nil)
-	if err != nil {
-		return OAuth2Metadata{}, fmt.Errorf("failed to create metadata request: %w", err)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return OAuth2Metadata{}, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return OAuth2Metadata{}, fmt.Errorf( //nolint:err113
-			"OAuth2 metadata endpoint returned status %d",
-			resp.StatusCode,
-		)
-	}
-
-	var metadata OAuth2Metadata
-	if err := json.NewDecoder(resp.Body).Decode(&metadata); err != nil {
-		return OAuth2Metadata{}, fmt.Errorf("failed to decode OAuth2 metadata: %w", err)
-	}
-
-	return metadata, nil
 }
 
 func generateState() (string, error) {
@@ -154,23 +115,6 @@ func callbackHandler(
 		fmt.Fprint(w, "Login successful. You may close this window.")
 
 		resultCh <- callbackResult{code: code, err: nil}
-	}
-}
-
-func OAuth2Config(
-	metadata OAuth2Metadata,
-	clientID string,
-	redirectURL string,
-) *oauth2.Config {
-	return &oauth2.Config{ //nolint:exhaustruct
-		ClientID: clientID,
-		Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
-			AuthURL:   metadata.AuthorizationEndpoint,
-			TokenURL:  metadata.TokenEndpoint,
-			AuthStyle: oauth2.AuthStyleInParams,
-		},
-		RedirectURL: redirectURL,
-		Scopes:      []string{"openid", "offline_access", "graphql"},
 	}
 }
 
@@ -250,30 +194,49 @@ func waitForCallback(
 
 func (ce *CliEnv) loginOAuth2PKCE(
 	ctx context.Context,
-) (credentials.Credentials, error) {
-	metadata, err := FetchOAuth2Metadata(ctx, ce.OAuth2Issuer())
+) (Credentials, error) {
+	authClient, err := ce.NewAuthClient()
 	if err != nil {
-		return credentials.Credentials{}, err
+		return Credentials{}, fmt.Errorf("failed to create auth client: %w", err)
 	}
+
+	metadataResp, err := authClient.GetOAuthAuthorizationServerWithResponse(ctx)
+	if err != nil {
+		return Credentials{}, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
+	}
+
+	if metadataResp.JSON200 == nil {
+		return Credentials{}, fmt.Errorf( //nolint:err113
+			"OAuth2 metadata endpoint returned status %d",
+			metadataResp.StatusCode(),
+		)
+	}
+
+	metadata := metadataResp.JSON200
 
 	verifier := oauth2.GenerateVerifier()
 
 	state, err := generateState()
 	if err != nil {
-		return credentials.Credentials{}, err
+		return Credentials{}, err
 	}
 
 	cb, err := startCallbackServer(ctx, state)
 	if err != nil {
-		return credentials.Credentials{}, err
+		return Credentials{}, err
 	}
 	defer cb.server.Shutdown(ctx) //nolint:errcheck
 
-	oauthCfg := OAuth2Config(
-		metadata,
-		ce.OAuth2ClientID(),
-		fmt.Sprintf("http://localhost:%d/callback", cb.port),
-	)
+	oauthCfg := &oauth2.Config{ //nolint:exhaustruct
+		ClientID: ce.OAuth2ClientID(),
+		Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			AuthURL:   metadata.AuthorizationEndpoint,
+			TokenURL:  metadata.TokenEndpoint,
+			AuthStyle: oauth2.AuthStyleInParams,
+		},
+		RedirectURL: fmt.Sprintf("http://localhost:%d/callback", cb.port),
+		Scopes:      []string{"openid", "offline_access", "graphql"},
+	}
 
 	authURL := oauthCfg.AuthCodeURL(
 		state,
@@ -291,7 +254,7 @@ func (ce *CliEnv) loginOAuth2PKCE(
 
 	code, err := waitForCallback(ctx, cb.resultCh)
 	if err != nil {
-		return credentials.Credentials{}, err
+		return Credentials{}, err
 	}
 
 	token, err := oauthCfg.Exchange(
@@ -300,51 +263,61 @@ func (ce *CliEnv) loginOAuth2PKCE(
 		oauth2.VerifierOption(verifier),
 	)
 	if err != nil {
-		return credentials.Credentials{}, fmt.Errorf(
+		return Credentials{}, fmt.Errorf(
 			"failed to exchange authorization code: %w",
 			err,
 		)
 	}
 
 	if token.RefreshToken == "" {
-		return credentials.Credentials{}, errors.New( //nolint:err113
+		return Credentials{}, errors.New( //nolint:err113
 			"no refresh token received; ensure offline_access scope is requested",
 		)
 	}
 
 	ce.Infoln("Successfully logged in")
 
-	return credentials.Credentials{
+	return Credentials{
 		RefreshToken: token.RefreshToken,
 	}, nil
 }
 
-func signInWithPAT(
+func (ce *CliEnv) signInWithPAT(
 	ctx context.Context,
-	authURL string,
-	pat string,
 ) (string, error) {
-	cl := nhostclient.New(authURL, "")
+	cl, err := ce.NewAuthClient()
+	if err != nil {
+		return "", fmt.Errorf("failed to create auth client: %w", err)
+	}
 
-	resp, err := cl.LoginPAT(ctx, pat)
+	resp, err := cl.SignInPATWithResponse(ctx, auth.SignInPATJSONRequestBody{
+		PersonalAccessToken: ce.pat,
+	})
 	if err != nil {
 		return "", fmt.Errorf("failed to sign in with PAT: %w", err)
 	}
 
-	return resp.Session.AccessToken, nil
+	if resp.JSON200 == nil || resp.JSON200.Session == nil {
+		return "", fmt.Errorf( //nolint:err113
+			"unexpected response from PAT sign-in: %s",
+			resp.Status(),
+		)
+	}
+
+	return resp.JSON200.Session.AccessToken, nil
 }
 
 func (ce *CliEnv) Login(
 	ctx context.Context,
-) (credentials.Credentials, error) {
+) (Credentials, error) {
 	if ce.pat != "" {
-		if _, err := signInWithPAT(ctx, ce.AuthURL(), ce.pat); err != nil {
-			return credentials.Credentials{}, err
+		if _, err := ce.signInWithPAT(ctx); err != nil {
+			return Credentials{}, err
 		}
 
 		ce.Infoln("Successfully authenticated with PAT")
 
-		return credentials.Credentials{}, nil
+		return Credentials{}, nil //nolint:exhaustruct
 	}
 
 	creds, err := ce.loginOAuth2PKCE(ctx)
@@ -353,7 +326,7 @@ func (ce *CliEnv) Login(
 	}
 
 	if err := saveCredentials(ce, creds); err != nil {
-		return credentials.Credentials{}, err
+		return Credentials{}, err
 	}
 
 	return creds, nil

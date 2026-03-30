@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/nhost/nhost/cli/mcp/graphql"
-	"github.com/nhost/nhost/cli/mcp/nhost/auth"
+	"github.com/nhost/nhost/internal/lib/nhostclient"
 )
 
 const (
@@ -60,7 +60,7 @@ func (t *Tool) handleProjectGraphqlSchema(
 
 	interceptors := []func(ctx context.Context, req *http.Request) error{
 		authInterceptor,
-		auth.WithRole(role),
+		nhostclient.WithRole(role),
 	}
 
 	var introspection graphql.ResponseIntrospection

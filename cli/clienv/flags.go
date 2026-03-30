@@ -12,7 +12,6 @@ import (
 const (
 	flagAuthURL        = "auth-url"
 	flagGraphqlURL     = "graphql-url"
-	flagOAuth2Issuer   = "oauth2-issuer"
 	flagOAuth2ClientID = "oauth2-client-id"
 	flagPAT            = "pat"
 	flagBranch         = "branch"
@@ -65,13 +64,6 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 			Usage:   "Nhost GraphQL URL",
 			Sources: cli.EnvVars("NHOST_CLI_GRAPHQL_URL"),
 			Value:   "https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1",
-			Hidden:  true,
-		},
-		&cli.StringFlag{ //nolint:exhaustruct
-			Name:    flagOAuth2Issuer,
-			Usage:   "OAuth2 issuer URL for PKCE login",
-			Sources: cli.EnvVars("NHOST_OAUTH2_ISSUER"),
-			Value:   "https://auth.nhost.io/v1",
 			Hidden:  true,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct

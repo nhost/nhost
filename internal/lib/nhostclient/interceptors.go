@@ -1,24 +1,20 @@
-package auth
+package nhostclient
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/nhost/nhost/cli/nhostclient"
+	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
 	"golang.org/x/oauth2"
 )
 
-var ErrSigninIn = errors.New("error during sign in")
-
-func WithRefreshToken(
-	tokenEndpoint string,
-	clientID string,
-	refreshToken string,
+// WithOAuth2RefreshToken returns an HTTP request interceptor that automatically
+// refreshes and injects an OAuth2 access token using a rotating refresh token.
+func WithOAuth2RefreshToken(
+	src *auth.RotatingTokenSource,
 ) func(ctx context.Context, req *http.Request) error {
-	src := nhostclient.NewRotatingTokenSource(tokenEndpoint, clientID, refreshToken)
 	tokenSource := oauth2.ReuseTokenSource(nil, src)
 
 	return func(_ context.Context, req *http.Request) error {
@@ -33,15 +29,13 @@ func WithRefreshToken(
 	}
 }
 
+// WithPAT returns an HTTP request interceptor that authenticates using a
+// Personal Access Token, caching the session and refreshing it when it
+// nears expiry.
 func WithPAT(
-	url string,
+	cl auth.ClientWithResponsesInterface,
 	pat string,
-) (func(ctx context.Context, req *http.Request) error, error) {
-	authc, err := NewClientWithResponses(url)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't not create auth client: %w", err)
-	}
-
+) func(ctx context.Context, req *http.Request) error {
 	session := &struct {
 		AccessToken string
 		ExpiresAt   time.Time
@@ -52,9 +46,9 @@ func WithPAT(
 
 	return func(ctx context.Context, req *http.Request) error {
 		if time.Now().Add(time.Minute).After(session.ExpiresAt) {
-			resp, err := authc.PostSigninPatWithResponse(
+			resp, err := cl.SignInPATWithResponse(
 				ctx,
-				SignInPATRequest{
+				auth.SignInPATJSONRequestBody{
 					PersonalAccessToken: pat,
 				},
 			)
@@ -63,7 +57,11 @@ func WithPAT(
 			}
 
 			if resp.StatusCode() != http.StatusOK {
-				return fmt.Errorf("%w: %s\n%s", ErrSigninIn, resp.Status(), resp.Body)
+				return fmt.Errorf( //nolint:err113
+					"error during sign in: %s\n%s",
+					resp.Status(),
+					resp.Body,
+				)
 			}
 
 			session.AccessToken = resp.JSON200.Session.AccessToken
@@ -74,9 +72,11 @@ func WithPAT(
 		req.Header.Add("Authorization", "Bearer "+session.AccessToken)
 
 		return nil
-	}, nil
+	}
 }
 
+// WithAdminSecret returns an HTTP request interceptor that injects
+// the Hasura admin secret header.
 func WithAdminSecret(
 	adminSecret string,
 ) func(ctx context.Context, req *http.Request) error {
@@ -86,6 +86,8 @@ func WithAdminSecret(
 	}
 }
 
+// WithRole returns an HTTP request interceptor that injects the
+// Hasura role header.
 func WithRole(
 	role string,
 ) func(ctx context.Context, req *http.Request) error {
@@ -95,6 +97,8 @@ func WithRole(
 	}
 }
 
+// WithUserID returns an HTTP request interceptor that injects the
+// Hasura user ID header.
 func WithUserID(
 	userID string,
 ) func(ctx context.Context, req *http.Request) error {

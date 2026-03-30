@@ -52,7 +52,6 @@ func getToken(ctx context.Context, authURL, graphqlURL string) (string, error) {
 		graphqlURL,
 		"",
 		"",
-		"",
 		"unneeded",
 		"unneeded",
 		"unneeded",

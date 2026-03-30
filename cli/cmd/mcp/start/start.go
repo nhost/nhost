@@ -10,8 +10,9 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/mcp/config"
-	"github.com/nhost/nhost/cli/mcp/nhost/auth"
 	"github.com/nhost/nhost/cli/mcp/resources"
+	"github.com/nhost/nhost/internal/lib/nhostclient"
+	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
 	"github.com/nhost/nhost/cli/mcp/tools/cloud"
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
 	"github.com/nhost/nhost/cli/mcp/tools/project"
@@ -157,27 +158,41 @@ func registerCloud(
 	var interceptor func(ctx context.Context, req *http.Request) error
 
 	if pat := ce.PAT(); pat != "" {
-		var err error
-
-		interceptor, err = auth.WithPAT(ce.AuthURL(), pat)
+		cl, err := ce.NewAuthClient()
 		if err != nil {
-			return fmt.Errorf("failed to create PAT interceptor: %w", err)
+			return fmt.Errorf("failed to create auth client: %w", err)
 		}
+
+		interceptor = nhostclient.WithPAT(cl, pat)
 	} else {
 		creds, err := ce.Credentials()
 		if err != nil {
 			return fmt.Errorf("failed to load credentials: %w", err)
 		}
 
-		metadata, err := clienv.FetchOAuth2Metadata(ctx, ce.OAuth2Issuer())
+		authClient, err := ce.NewAuthClient()
+		if err != nil {
+			return fmt.Errorf("failed to create auth client: %w", err)
+		}
+
+		metadataResp, err := authClient.GetOAuthAuthorizationServerWithResponse(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
 		}
 
-		interceptor = auth.WithRefreshToken(
-			metadata.TokenEndpoint,
-			ce.OAuth2ClientID(),
-			creds.RefreshToken,
+		if metadataResp.JSON200 == nil {
+			return fmt.Errorf( //nolint:err113
+				"OAuth2 metadata endpoint returned status %d",
+				metadataResp.StatusCode(),
+			)
+		}
+
+		interceptor = nhostclient.WithOAuth2RefreshToken(
+			auth.NewRotatingTokenSource(
+				metadataResp.JSON200.TokenEndpoint,
+				ce.OAuth2ClientID(),
+				creds.RefreshToken,
+			),
 		)
 	}
 

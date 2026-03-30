@@ -11,7 +11,6 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/config"
-	"github.com/nhost/nhost/cli/nhostclient"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
@@ -86,7 +85,7 @@ func loadConfig(
 
 func getAppIDFromServiceID(
 	ctx context.Context,
-	cl *nhostclient.Client,
+	cl *graphql.Client,
 	serviceID string,
 ) (string, error) {
 	resp, err := cl.GetRunServiceInfo(
@@ -138,7 +137,7 @@ func Validate(
 
 func getRemoteSecrets(
 	ctx context.Context,
-	cl *nhostclient.Client,
+	cl *graphql.Client,
 	serviceID string,
 ) (model.Secrets, string, error) {
 	appID, err := getAppIDFromServiceID(ctx, cl, serviceID)

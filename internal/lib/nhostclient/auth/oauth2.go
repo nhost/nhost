@@ -1,4 +1,4 @@
-package nhostclient
+package auth
 
 import (
 	"context"
@@ -13,6 +13,9 @@ type RotatingTokenSource struct {
 	RefreshToken string
 }
 
+// NewRotatingTokenSource creates a token source that handles refresh token
+// rotation. Each time a token is refreshed, if the server returns a new
+// refresh token, it is stored for subsequent refreshes.
 func NewRotatingTokenSource(
 	tokenEndpoint string,
 	clientID string,
@@ -30,12 +33,12 @@ func NewRotatingTokenSource(
 	}
 }
 
-func (s *RotatingTokenSource) Token() (*oauth2.Token, error) {
+func (s *RotatingTokenSource) Token(ctx context.Context) (*oauth2.Token, error) {
 	token := &oauth2.Token{ //nolint:exhaustruct
 		RefreshToken: s.RefreshToken,
 	}
 
-	fresh, err := s.cfg.TokenSource(context.Background(), token).Token()
+	fresh, err := s.cfg.TokenSource(ctx, token).Token()
 	if err != nil {
 		return nil, err //nolint:wrapcheck
 	}
