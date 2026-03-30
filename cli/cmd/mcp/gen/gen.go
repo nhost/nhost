@@ -3,12 +3,9 @@ package gen
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/mcp/graphql"
-	"github.com/nhost/nhost/internal/lib/nhostclient"
-	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
 	"github.com/urfave/cli/v3"
 )
 
@@ -61,58 +58,10 @@ func buildFilter(withMutations bool) graphql.Filter {
 	return filter
 }
 
-func buildInterceptor(
-	ctx context.Context,
-	ce *clienv.CliEnv,
-) (func(ctx context.Context, req *http.Request) error, error) {
-	if pat := ce.PAT(); pat != "" {
-		cl, err := ce.NewAuthClient()
-		if err != nil {
-			return nil, fmt.Errorf("failed to create auth client: %w", err)
-		}
-
-		return nhostclient.WithPAT(cl, pat), nil
-	}
-
-	creds, err := ce.Credentials()
-	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to load credentials (run `nhost login` first): %w",
-			err,
-		)
-	}
-
-	authClient, err := ce.NewAuthClient()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create auth client: %w", err)
-	}
-
-	metadataResp, err := authClient.GetOAuthAuthorizationServerWithResponse(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
-	}
-
-	if metadataResp.JSON200 == nil {
-		return nil, fmt.Errorf( //nolint:err113
-			"OAuth2 metadata endpoint returned status %d",
-			metadataResp.StatusCode(),
-		)
-	}
-
-	return nhostclient.WithOAuth2RefreshToken(
-		auth.NewRotatingTokenSource(
-			ctx,
-			metadataResp.JSON200.TokenEndpoint,
-			ce.OAuth2ClientID(),
-			creds.RefreshToken,
-		),
-	), nil
-}
-
 func action(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
-	interceptor, err := buildInterceptor(ctx, ce)
+	interceptor, err := ce.NewCloudInterceptor(ctx)
 	if err != nil {
 		return cli.Exit(err.Error(), 1)
 	}

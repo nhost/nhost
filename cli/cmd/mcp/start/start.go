@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/mark3labs/mcp-go/server"
@@ -15,8 +14,6 @@ import (
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
 	"github.com/nhost/nhost/cli/mcp/tools/project"
 	"github.com/nhost/nhost/cli/mcp/tools/schemas"
-	"github.com/nhost/nhost/internal/lib/nhostclient"
-	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
 	"github.com/urfave/cli/v3"
 )
 
@@ -146,39 +143,6 @@ func getConfig(cmd *cli.Command) (*config.Config, error) {
 	return cfg, nil
 }
 
-func buildInterceptor(
-	ctx context.Context,
-	ce *clienv.CliEnv,
-) (func(ctx context.Context, req *http.Request) error, error) {
-	if pat := ce.PAT(); pat != "" {
-		cl, err := ce.NewAuthClient()
-		if err != nil {
-			return nil, fmt.Errorf("failed to create auth client: %w", err)
-		}
-
-		return nhostclient.WithPAT(cl, pat), nil
-	}
-
-	creds, err := ce.Credentials()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load credentials: %w", err)
-	}
-
-	metadata, err := ce.FetchOAuth2Metadata(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
-	}
-
-	return nhostclient.WithOAuth2RefreshToken(
-		auth.NewRotatingTokenSource(
-			ctx,
-			metadata.TokenEndpoint,
-			ce.OAuth2ClientID(),
-			creds.RefreshToken,
-		),
-	), nil
-}
-
 func registerCloud(
 	ctx context.Context,
 	cmd *cli.Command,
@@ -188,7 +152,7 @@ func registerCloud(
 ) error {
 	ce := clienv.FromCLI(cmd)
 
-	interceptor, err := buildInterceptor(ctx, ce)
+	interceptor, err := ce.NewCloudInterceptor(ctx)
 	if err != nil {
 		return err
 	}

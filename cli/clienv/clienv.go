@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -151,6 +152,41 @@ func (ce *CliEnv) FetchOAuth2Metadata(
 	}
 
 	return metadataResp.JSON200, nil
+}
+
+func (ce *CliEnv) NewCloudInterceptor(
+	ctx context.Context,
+) (func(context.Context, *http.Request) error, error) {
+	if pat := ce.PAT(); pat != "" {
+		cl, err := ce.NewAuthClient()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create auth client: %w", err)
+		}
+
+		return nhostclient.WithPAT(cl, pat), nil
+	}
+
+	creds, err := ce.Credentials()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to load credentials (run `nhost login` first): %w",
+			err,
+		)
+	}
+
+	metadata, err := ce.FetchOAuth2Metadata(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
+	}
+
+	return nhostclient.WithOAuth2RefreshToken(
+		auth.NewRotatingTokenSource(
+			ctx,
+			metadata.TokenEndpoint,
+			ce.OAuth2ClientID(),
+			creds.RefreshToken,
+		),
+	), nil
 }
 
 func (ce *CliEnv) GetNhostClient(ctx context.Context) (*graphql.Client, error) {
