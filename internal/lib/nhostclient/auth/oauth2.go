@@ -9,6 +9,7 @@ import (
 // RotatingTokenSource wraps an oauth2.Config and always uses the latest
 // refresh token for each refresh call, since the server rotates them.
 type RotatingTokenSource struct {
+	ctx          context.Context
 	cfg          *oauth2.Config
 	RefreshToken string
 }
@@ -17,11 +18,13 @@ type RotatingTokenSource struct {
 // rotation. Each time a token is refreshed, if the server returns a new
 // refresh token, it is stored for subsequent refreshes.
 func NewRotatingTokenSource(
+	ctx context.Context,
 	tokenEndpoint string,
 	clientID string,
 	refreshToken string,
 ) *RotatingTokenSource {
 	return &RotatingTokenSource{
+		ctx: ctx,
 		cfg: &oauth2.Config{ //nolint:exhaustruct
 			ClientID: clientID,
 			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
@@ -33,12 +36,12 @@ func NewRotatingTokenSource(
 	}
 }
 
-func (s *RotatingTokenSource) Token(ctx context.Context) (*oauth2.Token, error) {
+func (s *RotatingTokenSource) Token() (*oauth2.Token, error) {
 	token := &oauth2.Token{ //nolint:exhaustruct
 		RefreshToken: s.RefreshToken,
 	}
 
-	fresh, err := s.cfg.TokenSource(ctx, token).Token()
+	fresh, err := s.cfg.TokenSource(s.ctx, token).Token()
 	if err != nil {
 		return nil, err //nolint:wrapcheck
 	}

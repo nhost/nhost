@@ -195,24 +195,10 @@ func waitForCallback(
 func (ce *CliEnv) loginOAuth2PKCE(
 	ctx context.Context,
 ) (Credentials, error) {
-	authClient, err := ce.NewAuthClient()
+	metadata, err := ce.FetchOAuth2Metadata(ctx)
 	if err != nil {
-		return Credentials{}, fmt.Errorf("failed to create auth client: %w", err)
+		return Credentials{}, err
 	}
-
-	metadataResp, err := authClient.GetOAuthAuthorizationServerWithResponse(ctx)
-	if err != nil {
-		return Credentials{}, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
-	}
-
-	if metadataResp.JSON200 == nil {
-		return Credentials{}, fmt.Errorf( //nolint:err113
-			"OAuth2 metadata endpoint returned status %d",
-			metadataResp.StatusCode(),
-		)
-	}
-
-	metadata := metadataResp.JSON200
 
 	verifier := oauth2.GenerateVerifier()
 
@@ -238,10 +224,7 @@ func (ce *CliEnv) loginOAuth2PKCE(
 		Scopes:      []string{"openid", "offline_access", "graphql"},
 	}
 
-	authURL := oauthCfg.AuthCodeURL(
-		state,
-		oauth2.S256ChallengeOption(verifier),
-	)
+	authURL := oauthCfg.AuthCodeURL(state, oauth2.S256ChallengeOption(verifier))
 
 	ce.Infoln("Opening browser to sign in")
 
@@ -257,16 +240,9 @@ func (ce *CliEnv) loginOAuth2PKCE(
 		return Credentials{}, err
 	}
 
-	token, err := oauthCfg.Exchange(
-		ctx,
-		code,
-		oauth2.VerifierOption(verifier),
-	)
+	token, err := oauthCfg.Exchange(ctx, code, oauth2.VerifierOption(verifier))
 	if err != nil {
-		return Credentials{}, fmt.Errorf(
-			"failed to exchange authorization code: %w",
-			err,
-		)
+		return Credentials{}, fmt.Errorf("failed to exchange authorization code: %w", err)
 	}
 
 	if token.RefreshToken == "" {
@@ -287,7 +263,7 @@ func (ce *CliEnv) signInWithPAT(
 ) (string, error) {
 	cl, err := ce.NewAuthClient()
 	if err != nil {
-		return "", fmt.Errorf("failed to create auth client: %w", err)
+		return "", err
 	}
 
 	resp, err := cl.SignInPATWithResponse(ctx, auth.SignInPATJSONRequestBody{

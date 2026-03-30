@@ -1,6 +1,7 @@
 package nhostclient
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -70,6 +71,13 @@ func (r *RetryDoer) Do(req *http.Request) (*http.Response, error) {
 
 	for i := range r.maxRetries {
 		time.Sleep(time.Duration(i+1) * r.baseDelay)
+
+		if req.GetBody != nil {
+			req.Body, err = req.GetBody()
+			if err != nil {
+				return nil, fmt.Errorf("failed to reset request body for retry: %w", err)
+			}
+		}
 
 		resp, err = r.client.Do(req)
 		if err == nil {

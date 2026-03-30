@@ -119,10 +119,38 @@ func (ce *CliEnv) Branch() string {
 }
 
 func (ce *CliEnv) NewAuthClient() (*auth.ClientWithResponses, error) {
-	return auth.NewClientWithResponses(
+	cl, err := auth.NewClientWithResponses(
 		ce.authURL,
 		auth.WithHTTPClient(nhostclient.NewRetryDoer(nil)),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create auth client: %w", err)
+	}
+
+	return cl, nil
+}
+
+func (ce *CliEnv) FetchOAuth2Metadata(
+	ctx context.Context,
+) (*auth.OAuth2DiscoveryResponse, error) {
+	authClient, err := ce.NewAuthClient()
+	if err != nil {
+		return nil, err
+	}
+
+	metadataResp, err := authClient.GetOAuthAuthorizationServerWithResponse(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
+	}
+
+	if metadataResp.JSON200 == nil {
+		return nil, fmt.Errorf( //nolint:err113
+			"OAuth2 metadata endpoint returned status %d",
+			metadataResp.StatusCode(),
+		)
+	}
+
+	return metadataResp.JSON200, nil
 }
 
 func (ce *CliEnv) GetNhostClient(ctx context.Context) (*graphql.Client, error) {

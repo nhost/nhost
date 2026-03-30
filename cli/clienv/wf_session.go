@@ -46,33 +46,27 @@ func (ce *CliEnv) LoadSession(
 		return accessToken, nil
 	}
 
+	return ce.loadOAuth2Session(ctx)
+}
+
+func (ce *CliEnv) loadOAuth2Session(
+	ctx context.Context,
+) (string, error) {
 	creds, err := ce.loadCredentials(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	authClient, err := ce.NewAuthClient()
+	metadata, err := ce.FetchOAuth2Metadata(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to create auth client: %w", err)
-	}
-
-	metadataResp, err := authClient.GetOAuthAuthorizationServerWithResponse(ctx)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch OAuth2 metadata: %w", err)
-	}
-
-	if metadataResp.JSON200 == nil {
-		return "", fmt.Errorf( //nolint:err113
-			"OAuth2 metadata endpoint returned status %d",
-			metadataResp.StatusCode(),
-		)
+		return "", err
 	}
 
 	src := auth.NewRotatingTokenSource(
-		metadataResp.JSON200.TokenEndpoint, ce.OAuth2ClientID(), creds.RefreshToken,
+		ctx, metadata.TokenEndpoint, ce.OAuth2ClientID(), creds.RefreshToken,
 	)
 
-	token, err := src.Token(ctx)
+	token, err := src.Token()
 	if err != nil {
 		creds, err = ce.Login(ctx)
 		if err != nil {
@@ -80,10 +74,10 @@ func (ce *CliEnv) LoadSession(
 		}
 
 		src = auth.NewRotatingTokenSource(
-			metadataResp.JSON200.TokenEndpoint, ce.OAuth2ClientID(), creds.RefreshToken,
+			ctx, metadata.TokenEndpoint, ce.OAuth2ClientID(), creds.RefreshToken,
 		)
 
-		token, err = src.Token(ctx)
+		token, err = src.Token()
 		if err != nil {
 			return "", fmt.Errorf("failed to refresh access token: %w", err)
 		}

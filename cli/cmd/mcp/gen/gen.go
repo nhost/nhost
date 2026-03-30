@@ -101,6 +101,7 @@ func buildInterceptor(
 
 	return nhostclient.WithOAuth2RefreshToken(
 		auth.NewRotatingTokenSource(
+			ctx,
 			metadataResp.JSON200.TokenEndpoint,
 			ce.OAuth2ClientID(),
 			creds.RefreshToken,

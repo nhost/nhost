@@ -1,9 +1,11 @@
 package nhostclient_test
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,10 +17,18 @@ type mockDoer struct {
 	failFor  int
 	err      error
 	response *http.Response
+	bodies   []string
 }
 
-func (m *mockDoer) Do(_ *http.Request) (*http.Response, error) {
+func (m *mockDoer) Do(req *http.Request) (*http.Response, error) {
 	m.calls++
+
+	if req.Body != nil {
+		b, _ := io.ReadAll(req.Body)
+		req.Body.Close()
+		m.bodies = append(m.bodies, string(b))
+	}
+
 	if m.calls <= m.failFor {
 		return nil, m.err
 	}
@@ -112,6 +122,98 @@ func TestRetryDoer_ExhaustsRetries(t *testing.T) {
 	// 1 initial + 2 retries = 3
 	if mock.calls != 3 {
 		t.Fatalf("expected 3 calls, got %d", mock.calls)
+	}
+}
+
+func TestRetryDoer_RetriesPreserveRequestBody(t *testing.T) {
+	t.Parallel()
+
+	const body = `{"email":"test@example.com"}`
+
+	mock := &mockDoer{
+		failFor:  2,
+		err:      errTransient,
+		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+	}
+
+	doer := nhostclient.NewRetryDoer(
+		mock,
+		nhostclient.WithMaxRetries(3),
+		nhostclient.WithBaseDelay(time.Millisecond),
+	)
+
+	req, err := http.NewRequest( //nolint:noctx
+		http.MethodPost,
+		"http://localhost/test",
+		strings.NewReader(body),
+	)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+
+	resp, err := doer.Do(req)
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	if mock.calls != 3 {
+		t.Fatalf("expected 3 calls, got %d", mock.calls)
+	}
+
+	for i, got := range mock.bodies {
+		if got != body {
+			t.Fatalf("call %d: expected body %q, got %q", i+1, body, got)
+		}
+	}
+}
+
+func TestRetryDoer_RetriesPreserveRequestBodyBytesReader(t *testing.T) {
+	t.Parallel()
+
+	const body = `{"token":"abc123"}`
+
+	mock := &mockDoer{
+		failFor:  1,
+		err:      errTransient,
+		response: &http.Response{StatusCode: http.StatusOK}, //nolint:exhaustruct
+	}
+
+	doer := nhostclient.NewRetryDoer(
+		mock,
+		nhostclient.WithMaxRetries(2),
+		nhostclient.WithBaseDelay(time.Millisecond),
+	)
+
+	req, err := http.NewRequest( //nolint:noctx
+		http.MethodPost,
+		"http://localhost/test",
+		bytes.NewReader([]byte(body)),
+	)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+
+	resp, err := doer.Do(req)
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	if mock.calls != 2 {
+		t.Fatalf("expected 2 calls, got %d", mock.calls)
+	}
+
+	for i, got := range mock.bodies {
+		if got != body {
+			t.Fatalf("call %d: expected body %q, got %q", i+1, body, got)
+		}
 	}
 }
 
