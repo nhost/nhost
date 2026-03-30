@@ -19,7 +19,10 @@ func newTestCliEnv() *CliEnv {
 
 func setupAuthFile(t *testing.T, refreshToken string) {
 	t.Helper()
-	setupAuthFileWithCreds(t, Credentials{RefreshToken: refreshToken})
+	setupAuthFileWithCreds(t, Credentials{
+		RefreshToken:       refreshToken,
+		OAuth2RefreshToken: "",
+	})
 }
 
 func setupAuthFileWithCreds(t *testing.T, creds Credentials) {
@@ -72,6 +75,7 @@ func TestCredentials(t *testing.T) {
 	t.Run("valid oauth2 credentials", func(t *testing.T) {
 		t.Setenv("XDG_STATE_HOME", t.TempDir())
 		setupAuthFileWithCreds(t, Credentials{
+			RefreshToken:       "",
 			OAuth2RefreshToken: "test-oauth2-refresh-token",
 		})
 
@@ -114,7 +118,7 @@ func TestSaveCredentials(t *testing.T) {
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
 
 	ce := newTestCliEnv()
-	creds := Credentials{RefreshToken: "saved-token"}
+	creds := Credentials{RefreshToken: "saved-token", OAuth2RefreshToken: ""}
 
 	if err := saveCredentials(ce, creds); err != nil {
 		t.Fatalf("expected no error, got: %v", err)
@@ -138,7 +142,7 @@ func TestSaveOAuth2Credentials(t *testing.T) {
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
 
 	ce := newTestCliEnv()
-	creds := Credentials{OAuth2RefreshToken: "saved-oauth2-token"}
+	creds := Credentials{RefreshToken: "", OAuth2RefreshToken: "saved-oauth2-token"}
 
 	if err := saveCredentials(ce, creds); err != nil {
 		t.Fatalf("expected no error, got: %v", err)

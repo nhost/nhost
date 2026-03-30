@@ -221,7 +221,20 @@ func (ce *CliEnv) newRefreshTokenCloudInterceptor(
 		return nil, fmt.Errorf("failed to create auth client: %w", err)
 	}
 
-	return nhostclient.WithRefreshToken(cl, creds.RefreshToken), nil
+	interceptor := nhostclient.NewRefreshTokenInterceptor(cl, creds.RefreshToken)
+
+	return func(ctx context.Context, req *http.Request) error {
+		if err := interceptor.Intercept(ctx, req); err != nil {
+			return err //nolint:wrapcheck // error is already wrapped by Intercept
+		}
+
+		if rt := interceptor.GetRefreshToken(); rt != creds.RefreshToken {
+			creds.RefreshToken = rt
+			_ = saveCredentials(ce, creds)
+		}
+
+		return nil
+	}, nil
 }
 
 func (ce *CliEnv) GetNhostClient(ctx context.Context) (*graphql.Client, error) {

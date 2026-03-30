@@ -264,34 +264,9 @@ func (ce *CliEnv) loginOAuth2PKCE(
 	ce.Infoln("Successfully logged in")
 
 	return Credentials{
+		RefreshToken:       "",
 		OAuth2RefreshToken: token.RefreshToken,
 	}, nil
-}
-
-func (ce *CliEnv) signInWithPAT(
-	ctx context.Context,
-) (string, error) {
-	cl, err := ce.NewAuthClient()
-	if err != nil {
-		return "", err
-	}
-
-	resp, err := cl.SignInPATWithResponse(ctx, auth.SignInPATJSONRequestBody{
-		PersonalAccessToken: ce.pat,
-	})
-	if err != nil {
-		return "", fmt.Errorf("failed to sign in with PAT: %w", err)
-	}
-
-	if resp.JSON200 == nil || resp.JSON200.Session == nil {
-		return "", fmt.Errorf( //nolint:err113
-			"unexpected response from PAT sign-in: %s - %s",
-			resp.Status(),
-			string(resp.Body),
-		)
-	}
-
-	return resp.JSON200.Session.AccessToken, nil
 }
 
 func (ce *CliEnv) loginWithPAT(
@@ -320,7 +295,8 @@ func (ce *CliEnv) loginWithPAT(
 	ce.Infoln("Successfully authenticated with PAT")
 
 	return Credentials{
-		RefreshToken: resp.JSON200.Session.RefreshToken,
+		RefreshToken:       resp.JSON200.Session.RefreshToken,
+		OAuth2RefreshToken: "",
 	}, nil
 }
 

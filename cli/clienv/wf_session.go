@@ -13,7 +13,7 @@ import (
 // RefreshToken is used for PAT-based login (standard refresh token endpoint).
 // OAuth2RefreshToken is used for OAuth2 PKCE login (OAuth2 token endpoint).
 type Credentials struct {
-	RefreshToken      string `json:"refreshToken,omitempty"`
+	RefreshToken       string `json:"refreshToken,omitempty"`
 	OAuth2RefreshToken string `json:"oauth2RefreshToken,omitempty"`
 }
 
@@ -40,15 +40,6 @@ func (ce *CliEnv) loadCredentials(
 func (ce *CliEnv) LoadSession(
 	ctx context.Context,
 ) (string, error) {
-	if ce.pat != "" {
-		accessToken, err := ce.signInWithPAT(ctx)
-		if err != nil {
-			return "", fmt.Errorf("failed to sign in with PAT: %w", err)
-		}
-
-		return accessToken, nil
-	}
-
 	creds, err := ce.loadCredentials(ctx)
 	if err != nil {
 		return "", err
