@@ -36,7 +36,7 @@ export default function useMetadataQuery(
   }: UseDataBrowserDatabaseQueryOptions = {},
 ) {
   const {
-    query: { dataSourceSlug },
+    query: { dataSourceSlug = 'default' },
     isReady,
   } = useRouter();
   const { project } = useProject();
