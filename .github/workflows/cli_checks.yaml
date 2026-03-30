@@ -25,6 +25,7 @@ on:
 
       # lib
       - "internal/lib/clidocs/**"
+      - "internal/lib/nhostclient/**"
 
       # docs
       - "docs/**"
