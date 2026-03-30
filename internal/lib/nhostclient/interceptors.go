@@ -30,56 +30,80 @@ func WithOAuth2RefreshToken(
 	}
 }
 
-// WithRefreshToken returns an HTTP request interceptor that authenticates
-// using the standard refresh token endpoint, caching the session and
-// refreshing it when it nears expiry.
-func WithRefreshToken(
+// RefreshTokenInterceptor authenticates HTTP requests using the standard
+// refresh token endpoint, caching the session and refreshing it when it
+// nears expiry. It tracks refresh token rotation so callers can persist
+// the latest token via GetRefreshToken.
+type RefreshTokenInterceptor struct {
+	cl auth.ClientWithResponsesInterface
+
+	mu          sync.Mutex
+	accessToken string
+	currentRT   string
+	expiresAt   time.Time
+}
+
+// NewRefreshTokenInterceptor creates a RefreshTokenInterceptor.
+func NewRefreshTokenInterceptor(
 	cl auth.ClientWithResponsesInterface,
 	refreshToken string,
-) func(ctx context.Context, req *http.Request) error {
-	var (
-		mu          sync.Mutex
-		accessToken string
-		currentRT   = refreshToken
-		expiresAt   time.Time
-	)
+) *RefreshTokenInterceptor {
+	return &RefreshTokenInterceptor{
+		cl:          cl,
+		mu:          sync.Mutex{},
+		accessToken: "",
+		currentRT:   refreshToken,
+		expiresAt:   time.Time{},
+	}
+}
 
-	return func(ctx context.Context, req *http.Request) error {
-		mu.Lock()
-		defer mu.Unlock()
+// GetRefreshToken returns the current refresh token in a thread-safe manner.
+func (i *RefreshTokenInterceptor) GetRefreshToken() string {
+	i.mu.Lock()
+	defer i.mu.Unlock()
 
-		if time.Now().Add(time.Minute).After(expiresAt) {
-			resp, err := cl.RefreshTokenWithResponse(
-				ctx,
-				auth.RefreshTokenJSONRequestBody{
-					RefreshToken: currentRT,
-				},
-			)
-			if err != nil {
-				return fmt.Errorf("failed to refresh token: %w", err)
-			}
+	return i.currentRT
+}
 
-			if resp.StatusCode() != http.StatusOK {
-				return fmt.Errorf( //nolint:err113
-					"error during token refresh: %s\n%s",
-					resp.Status(),
-					resp.Body,
-				)
-			}
+// Intercept is the HTTP request interceptor that injects the access token.
+func (i *RefreshTokenInterceptor) Intercept(
+	ctx context.Context,
+	req *http.Request,
+) error {
+	i.mu.Lock()
+	defer i.mu.Unlock()
 
-			accessToken = resp.JSON200.AccessToken
-			expiresAt = time.Now().Add(
-				time.Second * time.Duration(resp.JSON200.AccessTokenExpiresIn))
-
-			if resp.JSON200.RefreshToken != "" {
-				currentRT = resp.JSON200.RefreshToken
-			}
+	if time.Now().Add(time.Minute).After(i.expiresAt) {
+		resp, err := i.cl.RefreshTokenWithResponse(
+			ctx,
+			auth.RefreshTokenJSONRequestBody{
+				RefreshToken: i.currentRT,
+			},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to refresh token: %w", err)
 		}
 
-		req.Header.Set("Authorization", "Bearer "+accessToken)
+		if resp.StatusCode() != http.StatusOK {
+			return fmt.Errorf( //nolint:err113
+				"error during token refresh: %s\n%s",
+				resp.Status(),
+				resp.Body,
+			)
+		}
 
-		return nil
+		i.accessToken = resp.JSON200.AccessToken
+		i.expiresAt = time.Now().Add(
+			time.Second * time.Duration(resp.JSON200.AccessTokenExpiresIn))
+
+		if resp.JSON200.RefreshToken != "" {
+			i.currentRT = resp.JSON200.RefreshToken
+		}
 	}
+
+	req.Header.Set("Authorization", "Bearer "+i.accessToken)
+
+	return nil
 }
 
 // WithPAT returns an HTTP request interceptor that authenticates using a
