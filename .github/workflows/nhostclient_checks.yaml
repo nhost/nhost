@@ -1,12 +1,10 @@
 ---
-name: "cli: check and build"
+name: "nhostclient: check"
 on:
   pull_request_target:
     paths:
-      - ".github/workflows/cli_checks.yaml"
+      - ".github/workflows/nhostclient_checks.yaml"
       - ".github/workflows/wf_check.yaml"
-      - ".github/workflows/wf_build_artifacts.yaml"
-      - ".github/workflows/cli_test_new_project.yaml"
 
       # common build
       - "flake.nix"
@@ -20,30 +18,25 @@ on:
       - "go.sum"
       - "vendor/**"
 
-      # cli
-      - "cli/**"
-
-      # lib
-      - "internal/lib/clidocs/**"
+      # nhostclient
       - "internal/lib/nhostclient/**"
 
-      # docs
-      - "docs/**"
+      # OpenAPI specs used for code generation
+      - "services/auth/docs/openapi.yaml"
+      - "services/storage/controller/openapi.yaml"
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
-  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   detect-changes:
     uses: ./.github/workflows/wf_detect_changes.yaml
     with:
       patterns: |
-        .github/workflows/cli_checks.yaml
+        .github/workflows/nhostclient_checks.yaml
         .github/workflows/wf_check.yaml
-        .github/workflows/wf_build_artifacts.yaml
-        .github/workflows/cli_test_new_project.yaml
         flake.nix
         flake.lock
         nixops/**
@@ -52,9 +45,9 @@ jobs:
         go.mod
         go.sum
         vendor/**
-        cli/**
-        internal/lib/clidocs/**
-        docs/**
+        internal/lib/nhostclient/**
+        services/auth/docs/openapi.yaml
+        services/storage/controller/openapi.yaml
 
   check-permissions:
     needs: [detect-changes]
@@ -76,50 +69,14 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: cli
-      PATH: cli
+      NAME: nhostclient
+      PATH: internal/lib/nhostclient
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NHOST_PAT: ${{ secrets.NHOST_PAT }}
-
-  build_artifacts:
-    uses: ./.github/workflows/wf_build_artifacts.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: cli
-      PATH: cli
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
-      DOCKER: true
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-
-  test_cli_build:
-    uses: ./.github/workflows/cli_wf_test_new_project.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-      - build_artifacts
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: cli
-      PATH: cli
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   remove_label:
     runs-on: ubuntu-latest
