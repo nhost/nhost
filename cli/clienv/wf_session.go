@@ -52,6 +52,21 @@ func (ce *CliEnv) LoadSession(
 	return ce.loadOAuth2Session(ctx, creds)
 }
 
+func (ce *CliEnv) refreshToken(
+	ctx context.Context,
+	cl auth.ClientWithResponsesInterface,
+	creds Credentials,
+) (*auth.Session, error) {
+	resp, err := cl.RefreshTokenWithResponse(ctx, auth.RefreshTokenJSONRequestBody{
+		RefreshToken: creds.RefreshToken,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh token: %w", err)
+	}
+
+	return resp.JSON200, nil
+}
+
 func (ce *CliEnv) loadRefreshTokenSession(
 	ctx context.Context,
 	creds Credentials,
@@ -61,34 +76,41 @@ func (ce *CliEnv) loadRefreshTokenSession(
 		return "", err
 	}
 
-	resp, err := cl.RefreshTokenWithResponse(ctx, auth.RefreshTokenJSONRequestBody{
-		RefreshToken: creds.RefreshToken,
-	})
+	session, err := ce.refreshToken(ctx, cl, creds)
 	if err != nil {
-		return "", fmt.Errorf("failed to refresh token: %w", err)
+		return "", err
 	}
 
-	if resp.JSON200 == nil {
+	if session == nil {
 		creds, err = ce.Login(ctx)
 		if err != nil {
 			return "", fmt.Errorf("failed to login: %w", err)
 		}
 
-		if creds.RefreshToken != "" {
-			return ce.loadRefreshTokenSession(ctx, creds)
+		if creds.RefreshToken == "" {
+			return ce.loadOAuth2Session(ctx, creds)
 		}
 
-		return ce.loadOAuth2Session(ctx, creds)
+		session, err = ce.refreshToken(ctx, cl, creds)
+		if err != nil {
+			return "", err
+		}
+
+		if session == nil {
+			return "", fmt.Errorf( //nolint:err113
+				"failed to refresh token after re-login",
+			)
+		}
 	}
 
-	if resp.JSON200.RefreshToken != creds.RefreshToken {
-		creds.RefreshToken = resp.JSON200.RefreshToken
+	if session.RefreshToken != creds.RefreshToken {
+		creds.RefreshToken = session.RefreshToken
 		if err := saveCredentials(ce, creds); err != nil {
 			return "", fmt.Errorf("failed to persist new refresh token: %w", err)
 		}
 	}
 
-	return resp.JSON200.AccessToken, nil
+	return session.AccessToken, nil
 }
 
 func (ce *CliEnv) loadOAuth2Session(
