@@ -285,8 +285,9 @@ func (ce *CliEnv) signInWithPAT(
 
 	if resp.JSON200 == nil || resp.JSON200.Session == nil {
 		return "", fmt.Errorf( //nolint:err113
-			"unexpected response from PAT sign-in: %s",
+			"unexpected response from PAT sign-in: %s - %s",
 			resp.Status(),
+			string(resp.Body),
 		)
 	}
 

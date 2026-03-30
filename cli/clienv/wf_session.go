@@ -83,8 +83,8 @@ func (ce *CliEnv) loadOAuth2Session(
 		}
 	}
 
-	if src.RefreshToken != creds.RefreshToken {
-		creds.RefreshToken = src.RefreshToken
+	if src.GetRefreshToken() != creds.RefreshToken {
+		creds.RefreshToken = src.GetRefreshToken()
 		if err := saveCredentials(ce, creds); err != nil {
 			return "", fmt.Errorf("failed to persist new refresh token: %w", err)
 		}
