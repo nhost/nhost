@@ -41,7 +41,7 @@ export default function FileStoresPage() {
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
   const { isFileStoreSupported } = useIsFileStoreSupported();
 
-  const { data, loading, refetch } = useGetGraphiteFileStoresQuery({
+  const { data, loading, error, refetch } = useGetGraphiteFileStoresQuery({
     client: adminClient,
   });
 
@@ -110,6 +110,10 @@ export default function FileStoresPage() {
         </Alert>
       </Box>
     );
+  }
+
+  if (error) {
+    throw error;
   }
 
   if (fileStores.length === 0 && !loading) {
@@ -181,10 +185,15 @@ export default function FileStoresPage() {
 FileStoresPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
-      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+      mainContainerProps={{
+        className:
+          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
+      }}
     >
       <AISidebar />
-      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      <div className="w-full overflow-auto">
+        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      </div>
     </OrgLayout>
   );
 };

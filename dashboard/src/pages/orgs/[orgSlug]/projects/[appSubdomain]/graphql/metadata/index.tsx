@@ -30,7 +30,7 @@ MetadataPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
       mainContainerProps={{
-        className: 'bg-background-default',
+        className: 'flex flex-1 bg-background-default',
       }}
     >
       <div className="mx-auto w-full max-w-5xl px-10">{page}</div>
