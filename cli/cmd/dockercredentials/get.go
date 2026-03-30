@@ -5,16 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/urfave/cli/v3"
-)
-
-const (
-	flagAuthURL    = "auth-url"
-	flagGraphqlURL = "graphql-url"
 )
 
 func CommandGet() *cli.Command {
@@ -23,44 +17,8 @@ func CommandGet() *cli.Command {
 		Aliases: []string{},
 		Usage:   "Get credentials for the logged in user",
 		Hidden:  true,
-		Flags: []cli.Flag{
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagAuthURL,
-				Usage:   "Nhost auth URL",
-				Sources: cli.EnvVars("NHOST_CLI_AUTH_URL"),
-				Value:   "https://otsispdzcwxyqzbfntmj.auth.eu-central-1.nhost.run/v1",
-				Hidden:  true,
-			},
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagGraphqlURL,
-				Usage:   "Nhost GraphQL URL",
-				Sources: cli.EnvVars("NHOST_CLI_GRAPHQL_URL"),
-				Value:   "https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1",
-				Hidden:  true,
-			},
-		},
-		Action: actionGet,
+		Action:  actionGet,
 	}
-}
-
-func getToken(ctx context.Context, authURL, graphqlURL string) (string, error) {
-	ce := clienv.New(
-		os.Stdout,
-		os.Stderr,
-		&clienv.PathStructure{},
-		authURL,
-		graphqlURL,
-		"unneeded",
-		"unneeded",
-		"unneeded",
-	)
-
-	session, err := ce.LoadSession(ctx)
-	if err != nil {
-		return "", err //nolint:wrapcheck
-	}
-
-	return session.Session.AccessToken, nil
 }
 
 //nolint:tagliatelle
@@ -84,9 +42,11 @@ func actionGet(ctx context.Context, cmd *cli.Command) error {
 
 	input += inputSb76.String()
 
-	token, err := getToken(ctx, cmd.String(flagAuthURL), cmd.String(flagGraphqlURL))
+	ce := clienv.FromCLI(cmd)
+
+	token, err := ce.LoadSession(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load session: %w", err)
 	}
 
 	b, err := json.Marshal(response{

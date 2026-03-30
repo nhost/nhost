@@ -1,10 +1,10 @@
 ---
-name: "examples/tutorials: check and build"
+name: "nhostclient: check"
 on:
   pull_request_target:
     paths:
+      - ".github/workflows/nhostclient_checks.yaml"
       - ".github/workflows/wf_check.yaml"
-      - ".github/workflows/examples_tutorials_checks.yaml"
 
       # common build
       - "flake.nix"
@@ -18,37 +18,25 @@ on:
       - "go.sum"
       - "vendor/**"
 
-      # codegen
-      - "tools/codegen/**"
+      # nhostclient
+      - "internal/lib/nhostclient/**"
 
-      # common javascript
-      - ".npmrc"
-      - ".prettierignore"
-      - ".prettierrc.js"
-      - "audit-ci.jsonc"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - "pnpm-lock.yaml"
-      - "turbo.json"
-
-      # nhpst-js
-      - "packages/nhost-js/**"
-
-      # tutorials
-      - "examples/tutorials/**"
+      # OpenAPI specs used for code generation
+      - "services/auth/docs/openapi.yaml"
+      - "services/storage/controller/openapi.yaml"
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
-  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   detect-changes:
     uses: ./.github/workflows/wf_detect_changes.yaml
     with:
       patterns: |
+        .github/workflows/nhostclient_checks.yaml
         .github/workflows/wf_check.yaml
-        .github/workflows/examples_tutorials_checks.yaml
         flake.nix
         flake.lock
         nixops/**
@@ -57,17 +45,9 @@ jobs:
         go.mod
         go.sum
         vendor/**
-        tools/codegen/**
-        .npmrc
-        .prettierignore
-        .prettierrc.js
-        audit-ci.jsonc
-        package.json
-        pnpm-workspace.yaml
-        pnpm-lock.yaml
-        turbo.json
-        packages/nhost-js/**
-        examples/tutorials/**
+        internal/lib/nhostclient/**
+        services/auth/docs/openapi.yaml
+        services/storage/controller/openapi.yaml
 
   check-permissions:
     needs: [detect-changes]
@@ -89,28 +69,10 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: tutorials
-      PATH: examples/tutorials
+      NAME: nhostclient
+      PATH: internal/lib/nhostclient
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-
-  build_artifacts:
-    uses: ./.github/workflows/wf_build_artifacts.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: tutorials
-      PATH: examples/tutorials
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
-      DOCKER: false
-      OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}

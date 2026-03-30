@@ -39,59 +39,60 @@ jobs:
       actions: read
 
     steps:
-    - name: "Check out repository"
-      uses: actions/checkout@v6
-      with:
-        ref: ${{ inputs.GIT_REF }}
+      - name: "Check out repository"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.GIT_REF }}
 
-    - name: Collect Workflow Telemetry
-      uses: catchpoint/workflow-telemetry-action@v2
-      with:
-        comment_on_pr: false
+      - name: Collect Workflow Telemetry
+        uses: catchpoint/workflow-telemetry-action@v2
+        with:
+          comment_on_pr: false
 
-    - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v6
-      with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-        aws-region: eu-central-1
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
 
-    - name: Setup Nix with Cache
-      uses: ./.github/actions/setup-nix
-      with:
-        NAME: ${{ inputs.NAME }}
-        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: ${{ inputs.NAME }}
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: "Get artifacts"
-      uses: actions/download-artifact@v8
-      with:
-        path: ~/artifacts
+      - name: "Get artifacts"
+        uses: actions/download-artifact@v8
+        with:
+          path: ~/artifacts
 
-    - name: "Inspect artifacts"
-      run: find ~/artifacts
+      - name: "Inspect artifacts"
+        run: find ~/artifacts
 
-    - name: Load docker image
-      run: |
+      - name: Load docker image
+        run: |
           skopeo copy --insecure-policy \
             dir:/home/runner/artifacts/cli-docker-image-x86_64-0.0.0-dev \
             docker-daemon:cli:0.0.0-dev
 
-    - name: "Create a new project"
-      run: |
-        export NHOST_DOMAIN=staging.nhost.run
-        export NHOST_CONFIGSERVER_IMAGE=cli:0.0.0-dev
+      - name: "Create a new project"
+        run: |
+          export NHOST_CLI_AUTH_URL="https://mytpiiwxeyrvlqrxuknp.auth.eu-central-1.nhost.run/v1"
+          export NHOST_CLI_GRAPHQL_URL="https://mytpiiwxeyrvlqrxuknp.graphql.eu-central-1.nhost.run/v1"
+          export NHOST_CONFIGSERVER_IMAGE=cli:0.0.0-dev
 
-        unzip /home/runner/artifacts/cli-artifact-x86_64-0.0.0-dev/result.zip
+          unzip /home/runner/artifacts/cli-artifact-x86_64-0.0.0-dev/result.zip
 
-        mkdir new-project
-        cd new-project
-        /home/runner/_work/nhost/nhost/cli/result/bin/cli login --pat ${{ secrets.NHOST_PAT }}
-        /home/runner/_work/nhost/nhost/cli/result/bin/cli init
-        /home/runner/_work/nhost/nhost/cli/result/bin/cli up --down-on-error
-        /home/runner/_work/nhost/nhost/cli/result/bin/cli down --volumes
+          mkdir new-project
+          cd new-project
+          /home/runner/_work/nhost/nhost/cli/result/bin/cli login --pat ${{ secrets.NHOST_PAT }}
+          /home/runner/_work/nhost/nhost/cli/result/bin/cli init
+          /home/runner/_work/nhost/nhost/cli/result/bin/cli up --down-on-error
+          /home/runner/_work/nhost/nhost/cli/result/bin/cli down --volumes
 
-    - name: "Store Nix cache"
-      uses: ./.github/actions/cache-nix
-      with:
-        NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      if: always()
+      - name: "Store Nix cache"
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+        if: always()

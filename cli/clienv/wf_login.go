@@ -2,14 +2,12 @@ package clienv
 
 import (
 	"context"
-	"crypto"
-	"crypto/tls"
-	"crypto/x509"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"errors"
 	"fmt"
-	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -17,14 +15,15 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/nhost/nhost/cli/nhostclient"
-	"github.com/nhost/nhost/cli/nhostclient/credentials"
-	"github.com/nhost/nhost/cli/ssl"
+	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
+	"golang.org/x/oauth2"
 )
 
-func savePAT(
+const loginTimeout = 5 * time.Minute
+
+func saveCredentials(
 	ce *CliEnv,
-	session credentials.Credentials,
+	creds Credentials,
 ) error {
 	dir := filepath.Dir(ce.Path.AuthFile())
 	if !PathExists(dir) {
@@ -33,19 +32,11 @@ func savePAT(
 		}
 	}
 
-	if err := MarshalFile(session, ce.Path.AuthFile(), json.Marshal); err != nil {
-		return fmt.Errorf("failed to write PAT to file: %w", err)
+	if err := MarshalFile(creds, ce.Path.AuthFile(), json.Marshal); err != nil {
+		return fmt.Errorf("failed to write credentials to file: %w", err)
 	}
 
 	return nil
-}
-
-func signinHandler(ch chan<- string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ch <- r.URL.Query().Get("refreshToken")
-
-		fmt.Fprintf(w, "You may now close this window.")
-	}
 }
 
 func openBrowser(ctx context.Context, url string) error {
@@ -69,228 +60,261 @@ func openBrowser(ctx context.Context, url string) error {
 	return nil
 }
 
-func getTLSServer() (*http.Server, error) {
-	block, _ := pem.Decode(ssl.LocalKeyFile)
-	// Parse the PEM data to obtain the private key
-	privateKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse private key: %w", err)
+func generateState() (string, error) {
+	const stateBytes = 16
+
+	b := make([]byte, stateBytes)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed to generate state: %w", err)
 	}
 
-	// Type assert the private key to crypto.PrivateKey
-	pk, ok := privateKey.(crypto.PrivateKey)
-	if !ok {
-		return nil, errors.New( //nolint:err113
-			"failed to type assert private key to crypto.PrivateKey",
-		)
-	}
-
-	block, _ = pem.Decode(ssl.LocalCertFile)
-
-	certificate, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse certificate: %w", err)
-	}
-
-	tlsConfig := &tls.Config{ //nolint:exhaustruct
-		MinVersion:   tls.VersionTLS12,
-		CipherSuites: nil,
-		Certificates: []tls.Certificate{
-			{ //nolint:exhaustruct
-				Certificate: [][]byte{certificate.Raw},
-				PrivateKey:  pk,
-			},
-		},
-	}
-
-	return &http.Server{ //nolint:exhaustruct
-		Addr:              ":8099",
-		TLSConfig:         tlsConfig,
-		ReadHeaderTimeout: time.Second * 10, //nolint:mnd
-	}, nil
+	return base64.RawURLEncoding.EncodeToString(b), nil
 }
 
-func (ce *CliEnv) loginPAT(pat string) credentials.Credentials {
-	session := credentials.Credentials{
-		ID:                  "",
-		PersonalAccessToken: pat,
-	}
-
-	return session
+type callbackResult struct {
+	code string
+	err  error
 }
 
-func (ce *CliEnv) loginEmailPassword(
+func callbackHandler(
+	expectedState string,
+	resultCh chan<- callbackResult,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+
+		if errParam := r.URL.Query().Get("error"); errParam != "" {
+			desc := r.URL.Query().Get("error_description")
+			fmt.Fprintf(w, "Login failed: %s", desc)
+
+			resultCh <- callbackResult{
+				code: "",
+				err: fmt.Errorf( //nolint:err113
+					"oauth2 error: %s: %s",
+					errParam,
+					desc,
+				),
+			}
+
+			return
+		}
+
+		if r.URL.Query().Get("state") != expectedState {
+			fmt.Fprint(w, "Login failed: state mismatch")
+
+			resultCh <- callbackResult{
+				code: "",
+				err:  errors.New("oauth2 callback state mismatch"), //nolint:err113
+			}
+
+			return
+		}
+
+		code := r.URL.Query().Get("code")
+		if code == "" {
+			fmt.Fprint(w, "Login failed: no authorization code received")
+
+			resultCh <- callbackResult{
+				code: "",
+				err:  errors.New("no authorization code in callback"), //nolint:err113
+			}
+
+			return
+		}
+
+		fmt.Fprint(w, "Login successful. You may close this window.")
+
+		resultCh <- callbackResult{code: code, err: nil}
+	}
+}
+
+type callbackServer struct {
+	port     int
+	resultCh <-chan callbackResult
+	server   *http.Server
+}
+
+func startCallbackServer(
 	ctx context.Context,
-	email string,
-	password string,
-) (credentials.Credentials, error) {
-	cl := nhostclient.New(ce.AuthURL(), ce.GraphqlURL())
+	state string,
+) (*callbackServer, error) {
+	lc := net.ListenConfig{} //nolint:exhaustruct
 
-	var err error
-
-	if email == "" {
-		ce.PromptMessage("email: ")
-
-		email, err = ce.PromptInput(false)
-		if err != nil {
-			return credentials.Credentials{}, fmt.Errorf("failed to read email: %w", err)
-		}
-	}
-
-	if password == "" {
-		ce.PromptMessage("password: ")
-		password, err = ce.PromptInput(true)
-		ce.Println("")
-
-		if err != nil {
-			return credentials.Credentials{}, fmt.Errorf("failed to read password: %w", err)
-		}
-	}
-
-	ce.Infoln("Authenticating")
-
-	loginResp, err := cl.Login(ctx, email, password)
+	listener, err := lc.Listen(ctx, "tcp", "127.0.0.1:0")
 	if err != nil {
-		return credentials.Credentials{}, fmt.Errorf("failed to login: %w", err)
+		return nil, fmt.Errorf("failed to start callback server: %w", err)
 	}
 
-	session, err := cl.CreatePAT(ctx, loginResp.Session.AccessToken)
-	if err != nil {
-		return credentials.Credentials{}, fmt.Errorf("failed to create PAT: %w", err)
+	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
+	if !ok {
+		listener.Close()
+
+		return nil, errors.New("unexpected listener address type") //nolint:err113
 	}
 
-	ce.Infoln("Successfully logged in")
+	resultCh := make(chan callbackResult, 1)
 
-	return session, nil
-}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/callback", callbackHandler(state, resultCh))
 
-func (ce *CliEnv) loginGithub(ctx context.Context) (credentials.Credentials, error) {
-	refreshToken := make(chan string)
-	http.HandleFunc("/signin", signinHandler(refreshToken))
+	srv := &http.Server{ //nolint:exhaustruct
+		Handler:           mux,
+		ReadHeaderTimeout: time.Second * 10, //nolint:mnd
+	}
 
 	go func() {
-		server, err := getTLSServer()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if err := server.ListenAndServeTLS("", ""); err != nil {
-			log.Fatal(err)
+		if serveErr := srv.Serve(listener); serveErr != nil &&
+			!errors.Is(serveErr, http.ErrServerClosed) {
+			resultCh <- callbackResult{
+				code: "",
+				err:  fmt.Errorf("callback server error: %w", serveErr),
+			}
 		}
 	}()
 
-	signinPage := ce.AuthURL() + "/signin/provider/github/?redirectTo=https://local.dashboard.local.nhost.run:8099/signin"
-	ce.Infoln("Opening browser to sign-in")
+	return &callbackServer{
+		port:     tcpAddr.Port,
+		resultCh: resultCh,
+		server:   srv,
+	}, nil
+}
 
-	if err := openBrowser(ctx, signinPage); err != nil {
-		return credentials.Credentials{}, err
+func waitForCallback(
+	ctx context.Context,
+	resultCh <-chan callbackResult,
+) (string, error) {
+	select {
+	case result := <-resultCh:
+		if result.err != nil {
+			return "", result.err
+		}
+
+		return result.code, nil
+	case <-time.After(loginTimeout):
+		return "", errors.New( //nolint:err113
+			"login timed out waiting for browser callback",
+		)
+	case <-ctx.Done():
+		return "", fmt.Errorf(
+			"login cancelled: %w",
+			ctx.Err(),
+		)
+	}
+}
+
+func (ce *CliEnv) loginOAuth2PKCE(
+	ctx context.Context,
+) (Credentials, error) {
+	metadata, err := ce.FetchOAuth2Metadata(ctx)
+	if err != nil {
+		return Credentials{}, err
 	}
 
-	ce.Infoln("Waiting for sign-in to complete")
+	verifier := oauth2.GenerateVerifier()
 
-	refreshTokenValue := <-refreshToken
-
-	cl := nhostclient.New(ce.AuthURL(), ce.GraphqlURL())
-
-	refreshTokenResp, err := cl.RefreshToken(ctx, refreshTokenValue)
+	state, err := generateState()
 	if err != nil {
-		return credentials.Credentials{}, fmt.Errorf("failed to get access token: %w", err)
+		return Credentials{}, err
 	}
 
-	session, err := cl.CreatePAT(ctx, refreshTokenResp.AccessToken)
+	cb, err := startCallbackServer(ctx, state)
 	if err != nil {
-		return credentials.Credentials{}, fmt.Errorf("failed to create PAT: %w", err)
+		return Credentials{}, err
+	}
+	defer cb.server.Shutdown(ctx) //nolint:errcheck
+
+	oauthCfg := &oauth2.Config{ //nolint:exhaustruct
+		ClientID: ce.OAuth2ClientID(),
+		Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			AuthURL:   metadata.AuthorizationEndpoint,
+			TokenURL:  metadata.TokenEndpoint,
+			AuthStyle: oauth2.AuthStyleInParams,
+		},
+		RedirectURL: fmt.Sprintf("http://localhost:%d/callback", cb.port),
+		Scopes:      []string{"openid", "offline_access", "graphql"},
+	}
+
+	authURL := oauthCfg.AuthCodeURL(state, oauth2.S256ChallengeOption(verifier))
+
+	ce.Infoln("Opening browser to sign in")
+
+	if err := openBrowser(ctx, authURL); err != nil {
+		ce.Warnln("Failed to open browser automatically")
+	}
+
+	ce.Infoln("If the browser didn't open, visit:\n%s\n", authURL)
+	ce.Infoln("Waiting for sign-in to complete\n")
+
+	code, err := waitForCallback(ctx, cb.resultCh)
+	if err != nil {
+		return Credentials{}, err
+	}
+
+	token, err := oauthCfg.Exchange(ctx, code, oauth2.VerifierOption(verifier))
+	if err != nil {
+		return Credentials{}, fmt.Errorf("failed to exchange authorization code: %w", err)
+	}
+
+	if token.RefreshToken == "" {
+		return Credentials{}, errors.New( //nolint:err113
+			"no refresh token received; ensure offline_access scope is requested",
+		)
 	}
 
 	ce.Infoln("Successfully logged in")
 
-	return session, nil
+	return Credentials{
+		RefreshToken: token.RefreshToken,
+	}, nil
 }
 
-func (ce *CliEnv) loginMethod(ctx context.Context) (credentials.Credentials, error) {
-	ce.Infoln("Select authentication method:\n1. PAT\n2. Email/Password\n3. Github")
-	ce.PromptMessage("method: ")
-
-	method, err := ce.PromptInput(false)
+func (ce *CliEnv) signInWithPAT(
+	ctx context.Context,
+) (string, error) {
+	cl, err := ce.NewAuthClient()
 	if err != nil {
-		return credentials.Credentials{}, fmt.Errorf(
-			"failed to read authentication method: %w",
-			err,
+		return "", err
+	}
+
+	resp, err := cl.SignInPATWithResponse(ctx, auth.SignInPATJSONRequestBody{
+		PersonalAccessToken: ce.pat,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to sign in with PAT: %w", err)
+	}
+
+	if resp.JSON200 == nil || resp.JSON200.Session == nil {
+		return "", fmt.Errorf( //nolint:err113
+			"unexpected response from PAT sign-in: %s - %s",
+			resp.Status(),
+			string(resp.Body),
 		)
 	}
 
-	var session credentials.Credentials
-
-	switch method {
-	case "1":
-		ce.PromptMessage("PAT: ")
-
-		pat, err := ce.PromptInput(true)
-		if err != nil {
-			return credentials.Credentials{}, fmt.Errorf("failed to read PAT: %w", err)
-		}
-
-		session = ce.loginPAT(pat)
-	case "2":
-		session, err = ce.loginEmailPassword(ctx, "", "")
-	case "3":
-		session, err = ce.loginGithub(ctx)
-	default:
-		return ce.loginMethod(ctx)
-	}
-
-	return session, err
-}
-
-func (ce *CliEnv) verifyEmail(
-	ctx context.Context,
-	email string,
-) error {
-	ce.Infoln("Your email address is not verified")
-
-	cl := nhostclient.New(ce.AuthURL(), ce.GraphqlURL())
-	if err := cl.VerifyEmail(ctx, email); err != nil {
-		return fmt.Errorf("failed to send verification email: %w", err)
-	}
-
-	ce.Infoln("A verification email has been sent to %s", email)
-	ce.Infoln("Please verify your email address and try again")
-
-	return nil
+	return resp.JSON200.Session.AccessToken, nil
 }
 
 func (ce *CliEnv) Login(
 	ctx context.Context,
-	pat string,
-	email string,
-	password string,
-) (credentials.Credentials, error) {
-	var (
-		session credentials.Credentials
-		err     error
-	)
+) (Credentials, error) {
+	if ce.pat != "" {
+		if _, err := ce.signInWithPAT(ctx); err != nil {
+			return Credentials{}, err
+		}
 
-	switch {
-	case pat != "":
-		session = ce.loginPAT(pat)
-	case email != "" || password != "":
-		session, err = ce.loginEmailPassword(ctx, email, password)
-	default:
-		session, err = ce.loginMethod(ctx)
+		ce.Infoln("Successfully authenticated with PAT")
+
+		return Credentials{}, nil //nolint:exhaustruct
 	}
 
-	var reqErr *nhostclient.RequestError
-	if errors.As(err, &reqErr) && reqErr.ErrorCode == "unverified-user" {
-		return credentials.Credentials{}, ce.verifyEmail(ctx, email)
-	}
-
+	creds, err := ce.loginOAuth2PKCE(ctx)
 	if err != nil {
-		return session, err
+		return creds, err
 	}
 
-	if err := savePAT(ce, session); err != nil {
-		return credentials.Credentials{}, err
+	if err := saveCredentials(ce, creds); err != nil {
+		return Credentials{}, err
 	}
 
-	return session, nil
+	return creds, nil
 }
