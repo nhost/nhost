@@ -25,7 +25,7 @@ Event triggers fire a webhook whenever a row in a tracked table is inserted, upd
 
 Navigate to **Events** > **Event Triggers** and click **New Event Trigger**.
 
-![Create Event Trigger](/images/graphql/events/event-trigger-create.png)
+![Create Event Trigger](/images/events/event-trigger-create.png)
 
 | Field                          | Description                                                                                                   |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
@@ -90,7 +90,7 @@ event_triggers:
 
 The **Manual** operation enables on-demand invocation from the dashboard. When browsing a table in the **Database** section, select a row and click **Invoke Event Trigger** in the toolbar. A dropdown lists all event triggers for that table — triggers with Manual enabled can be invoked with the selected row's data as the payload. Triggers without Manual enabled appear disabled with a lock icon.
 
-![Invoke Event Trigger](/images/graphql/events/event-trigger-invoke.png)
+![Invoke Event Trigger](/images/events/event-trigger-invoke.png)
 
 ## Webhook Handler
 
@@ -234,7 +234,7 @@ To send event data to a Slack incoming webhook, set the payload transform to `ap
 
 Protect your webhook endpoint by validating a shared secret. Configure a header with a secret stored in an environment variable:
 
-![Additional Headers for Event triggers](/images/graphql/events/additional-headers.png)
+![Additional Headers for Event triggers](/images/events/additional-headers.png)
 
 ```yaml
 headers:
@@ -263,20 +263,20 @@ Selecting a trigger opens its detail page with two tabs:
 
 Displays the trigger configuration: data source, schema, table, webhook URL, trigger operations, update columns, retry settings, request headers, and transformation configuration.
 
-![Event Trigger Overview](/images/graphql/events/event-trigger-overview.png)
+![Event Trigger Overview](/images/events/event-trigger-overview.png)
 
 ### Events
 
 Lists all events fired by this trigger. Each event shows its created time, delivery status, ID, and number of tries.
 
-![Event Trigger Events](/images/graphql/events/event-trigger-events.png)
+![Event Trigger Events](/images/events/event-trigger-events.png)
 
 Expand an event to see its invocation logs. Each invocation shows the HTTP status code and has two actions:
 
 - **Redeliver** — re-sends the webhook for that invocation
 - **View Details** — opens the full request and response (URL, method, headers, body, status)
 
-![Event Trigger Invocation Details](/images/graphql/events/event-trigger-invocation-details.png)
+![Event Trigger Invocation Details](/images/events/event-trigger-invocation-details.png)
 
 ---
 

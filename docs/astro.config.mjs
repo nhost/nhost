@@ -273,18 +273,6 @@ export default defineConfig({
                   ],
                 },
                 {
-                  label: 'Events',
-                  collapsed: false,
-                  items: [
-                    { slug: 'products/graphql/events' },
-                    { slug: 'products/graphql/events/event-triggers' },
-                    { slug: 'products/graphql/events/cron-triggers' },
-                    {
-                      slug: 'products/graphql/events/one-off-scheduled-events',
-                    },
-                  ],
-                },
-                {
                   label: 'Guides',
                   collapsed: false,
                   items: [
@@ -512,6 +500,26 @@ export default defineConfig({
                     { slug: 'products/functions/guides/error-handling' },
                     { slug: 'products/functions/guides/nhost-sdk' },
                     { slug: 'products/functions/guides/cors' },
+                  ],
+                },
+              ],
+            },
+            {
+              id: 'products-events',
+              label: 'Events',
+              link: '/products/events/',
+              icon: 'seti:lightning',
+              items: [
+                { label: 'Events', slug: 'products/events' },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/events/event-triggers' },
+                    { slug: 'products/events/cron-triggers' },
+                    {
+                      slug: 'products/events/one-off-scheduled-events',
+                    },
                   ],
                 },
               ],

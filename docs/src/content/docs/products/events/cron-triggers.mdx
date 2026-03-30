@@ -32,7 +32,7 @@ The dashboard provides preset suggestions matching these common patterns.
 <TabItem label="Dashboard">
 Navigate to **Events** → **Cron Triggers**, then click **New Cron Trigger**.
 
-![Create Cron Trigger](/images/graphql/events/cron-trigger-create.png)
+![Create Cron Trigger](/images/events/cron-trigger-create.png)
 
 | Field                                      | Description                                                                                                           |
 | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
@@ -91,7 +91,7 @@ Cron trigger retry configuration uses `retry_interval_seconds` and `timeout_seco
 
 ## Webhook Handler
 
-Cron triggers deliver an HTTP request to any endpoint. The default method is POST, but you can change it using [request transformations](/products/graphql/events/event-triggers/#request-and-payload-transformations). The request body contains a `payload` field with the JSON you configured, not database row data.
+Cron triggers deliver an HTTP request to any endpoint. The default method is POST, but you can change it using [request transformations](/products/events/event-triggers/#request-and-payload-transformations). The request body contains a `payload` field with the JSON you configured, not database row data.
 
 A common pattern is targeting an [Nhost Function](/products/functions) to build async business workflows. The handler accesses the payload at `req.body.payload`. If configured with an empty payload (`{}`), the handler can ignore the body and run self-contained logic.
 
@@ -147,7 +147,7 @@ export default async (req: Request, res: Response) => {
 }
 ```
 
-For webhook security details, see [Event Triggers — Webhook Security](/products/graphql/events/event-triggers#webhook-security). For using the Nhost SDK inside handlers, see the [SDK guide](/products/functions/guides/nhost-sdk).
+For webhook security details, see [Event Triggers — Webhook Security](/products/events/event-triggers#webhook-security). For using the Nhost SDK inside handlers, see the [SDK guide](/products/functions/guides/nhost-sdk).
 
 ## Cron Trigger Payload
 
@@ -186,7 +186,7 @@ Cron triggers support the same request and payload transformations as event trig
 
 Transformations are configured from the **Request Options** accordion in the cron trigger form.
 
-For full details on available transform types and template variables, see [Event Triggers — Request and Payload Transformations](/products/graphql/events/event-triggers#request-and-payload-transformations).
+For full details on available transform types and template variables, see [Event Triggers — Request and Payload Transformations](/products/events/event-triggers#request-and-payload-transformations).
 
 ## Idempotency
 
@@ -202,13 +202,13 @@ Selecting a trigger opens its detail page with two tabs:
 
 Displays the trigger configuration: name, comment, schedule, webhook URL, retry settings (including tolerance), payload, request headers, and transformation configuration.
 
-![Cron Trigger Overview](/images/graphql/events/cron-trigger-overview.png)
+![Cron Trigger Overview](/images/events/cron-trigger-overview.png)
 
 ### Events
 
 Lists all scheduled invocations for this cron trigger. Filter by status using the "Status" header buttons at the top: **Scheduled**, **Processed**, **Failed**, or **All**.
 
-![Cron Trigger Events](/images/graphql/events/cron-trigger-events.png)
+![Cron Trigger Events](/images/events/cron-trigger-events.png)
 
 Each event shows its scheduled time, status, ID, and number of tries. Scheduled events that have not yet fired can be deleted individually.
 

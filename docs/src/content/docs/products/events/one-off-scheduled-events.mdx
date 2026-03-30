@@ -25,7 +25,7 @@ One-off scheduled events fire a webhook once at a specific date and time. Unlike
 <TabItem label="Dashboard">
 Navigate to **Events** → **One-Off Scheduled Events**, then click **New One-off**.
 
-![Create One-Off Scheduled Event](/images/graphql/events/scheduled-event-create.png)
+![Create One-Off Scheduled Event](/images/events/scheduled-event-create.png)
 
 | Field                                      | Description                                                                                                |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
@@ -121,7 +121,7 @@ export default async (req: Request, res: Response) => {
 }
 ```
 
-For webhook security details, see [Event Triggers — Webhook Security](/products/graphql/events/event-triggers#webhook-security). For using the Nhost SDK inside handlers, see the [SDK guide](/products/functions/guides/nhost-sdk).
+For webhook security details, see [Event Triggers — Webhook Security](/products/events/event-triggers#webhook-security). For using the Nhost SDK inside handlers, see the [SDK guide](/products/functions/guides/nhost-sdk).
 
 ## Scheduled Event Payload
 
@@ -169,13 +169,13 @@ A practical payload for a broadcast notification, entered in the dashboard **Pay
 
 The **Events** > **One-Off Scheduled Events** page lists all one-off events. Filter by status using the "Status" header button at the top: **All**, **Scheduled**, **Pending**, **Processed**, or **Failed**.
 
-![One-Off Scheduled Events List](/images/graphql/events/scheduled-event-list.png)
+![One-Off Scheduled Events List](/images/events/scheduled-event-list.png)
 
 Each event shows its comment, scheduled time, status, webhook URL, ID, and number of tries. Scheduled events that have not yet fired can be deleted individually.
 
 Expand an event to see its invocation logs. Each invocation shows the HTTP status code and a **View Details** action that opens the full request and response.
 
-![One-Off Scheduled Event Invocation Details](/images/graphql/events/scheduled-event-invocation-details.png)
+![One-Off Scheduled Event Invocation Details](/images/events/scheduled-event-invocation-details.png)
 
 ---
 
