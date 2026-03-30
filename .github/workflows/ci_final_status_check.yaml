@@ -6,7 +6,7 @@ on:
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('mg-{0}', github.event.merge_group.head_sha) }}
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('mg-{0}', github.event.merge_group.head_sha) }}
   cancel-in-progress: true
 
 permissions:
