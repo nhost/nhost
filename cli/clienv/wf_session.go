@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
 )
@@ -64,6 +65,18 @@ func (ce *CliEnv) refreshToken(
 		return nil, fmt.Errorf("failed to refresh token: %w", err)
 	}
 
+	if resp.StatusCode() == http.StatusUnauthorized {
+		return nil, nil //nolint:nilnil // nil session signals caller to re-login
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf( //nolint:err113
+			"error during token refresh: %s\n%s",
+			resp.Status(),
+			resp.Body,
+		)
+	}
+
 	return resp.JSON200, nil
 }
 
@@ -97,9 +110,7 @@ func (ce *CliEnv) loadRefreshTokenSession(
 		}
 
 		if session == nil {
-			return "", fmt.Errorf( //nolint:err113
-				"failed to refresh token after re-login",
-			)
+			return "", errors.New("failed to refresh token after re-login") //nolint:err113
 		}
 	}
 
