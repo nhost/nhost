@@ -30,7 +30,7 @@ RemoteSchemaDetailsPage.getLayout = function getLayout(page: ReactElement) {
         className: 'flex h-full',
       }}
     >
-      <RemoteSchemaBrowserSidebar className="w-full max-w-sidebar" />
+      <RemoteSchemaBrowserSidebar />
 
       <Box
         className="flex w-full flex-auto flex-col overflow-x-hidden"
