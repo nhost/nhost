@@ -51,17 +51,19 @@ final: prev: rec {
     };
   };
 
-  govulncheck = prev.govulncheck.overrideAttrs (oldAttrs: rec {
-    version = "v1.1.4";
+  govulncheck = final.buildGoModule rec {
+    pname = "govulncheck";
+    version = "1.1.4";
     src = final.fetchFromGitHub {
       owner = "golang";
       repo = "vuln";
-      rev = "${version}";
+      rev = "v${version}";
       sha256 = "sha256-d1JWh/K+65p0TP5vAQbSyoatjN4L5nm3VEA+qBSrkAA=";
     };
     vendorHash = "sha256-MSTKDeWVxD2Fa6fNoku4EwFwC90XZ5acnM67crcgXDg=";
+    subPackages = [ "cmd/govulncheck" ];
     doCheck = false;
-  });
+  };
 
   gqlgen = prev.gqlgen.overrideAttrs (oldAttrs: rec {
     version = "0.17.86";

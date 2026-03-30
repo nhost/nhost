@@ -13,13 +13,7 @@ func (r *mutationResolver) deleteConfig(
 	ctx context.Context,
 	appID string,
 ) (*model.ConfigConfig, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	i, err := r.data.IndexApp(appID)
-	if err != nil {
-		// if the app is not found, we return nil, nil as there
-		// isn't anything to delete
+	if err := r.ensureLoaded(ctx, appID); err != nil {
 		if errors.Is(err, ErrAppNotFound) {
 			return nil, nil //nolint: nilnil
 		}
@@ -27,7 +21,17 @@ func (r *mutationResolver) deleteConfig(
 		return nil, err
 	}
 
-	oldApp := r.data[i]
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	oldApp, err := r.store.GetApp(appID)
+	if err != nil {
+		if errors.Is(err, ErrAppNotFound) {
+			return nil, nil //nolint: nilnil
+		}
+
+		return nil, fmt.Errorf("failed to get app: %w", err)
+	}
 
 	logger := nhcontext.LoggerFromContext(ctx).WithField("app_id", appID)
 	for _, p := range r.plugins {
@@ -36,7 +40,7 @@ func (r *mutationResolver) deleteConfig(
 		}
 	}
 
-	r.data = append(r.data[:i], r.data[i+1:]...)
+	r.store.DeleteApp(appID)
 
 	return oldApp.Config, nil
 }

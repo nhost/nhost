@@ -2,10 +2,34 @@ package graph
 
 import (
 	"context"
+	"errors"
 
 	nhcontext "github.com/nhost/be/lib/graphql/context"
 	"github.com/nhost/be/services/mimir/model"
 )
+
+func (r *queryResolver) ensureRunServiceConfigsLoaded(
+	ctx context.Context, appID *string,
+) ([]*model.ConfigRunServiceConfigWithID, error) {
+	if appID != nil {
+		err := r.ensureLoaded(ctx, *appID)
+		if err == nil {
+			return nil, nil
+		}
+
+		if errors.Is(err, ErrAppNotFound) {
+			return make([]*model.ConfigRunServiceConfigWithID, 0), nil
+		}
+
+		return nil, err
+	}
+
+	if err := r.ensureAllLoaded(ctx); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
 
 func (r *queryResolver) runServiceConfigs(
 	ctx context.Context,
@@ -13,6 +37,11 @@ func (r *queryResolver) runServiceConfigs(
 	resolve bool,
 	where *model.ConfigRunServiceConfigComparisonExp,
 ) ([]*model.ConfigRunServiceConfigWithID, error) {
+	early, err := r.ensureRunServiceConfigsLoaded(ctx, appID)
+	if early != nil || err != nil {
+		return early, err
+	}
+
 	logger := nhcontext.LoggerFromContext(ctx)
 
 	r.mu.RLock()
@@ -20,9 +49,11 @@ func (r *queryResolver) runServiceConfigs(
 
 	services := make([]*model.ConfigRunServiceConfigWithID, 0, 10) //nolint:mnd
 
-	for _, app := range r.data {
+	var rangeErr error
+
+	r.store.Range(func(_ string, app *App) bool {
 		if appID != nil && app.AppID != *appID {
-			continue
+			return true
 		}
 
 		for _, svc := range app.Services {
@@ -31,7 +62,9 @@ func (r *queryResolver) runServiceConfigs(
 			cfg, err := svc.ResolveConfig(r.schema, false, app.Secrets)
 			if err != nil {
 				logger.WithError(err).Error("could not resolve config")
-				return nil, err
+				rangeErr = err
+
+				return false
 			}
 
 			if where.Matches(cfg) {
@@ -45,6 +78,12 @@ func (r *queryResolver) runServiceConfigs(
 				})
 			}
 		}
+
+		return true
+	})
+
+	if rangeErr != nil {
+		return nil, rangeErr
 	}
 
 	return services, nil

@@ -8,12 +8,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { TrackUntrackSection } from '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/TrackUntrackSection';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
-import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
+import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 import { useSetFunctionCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionCustomizationMutation';
-import { useSetFunctionTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionTrackingMutation';
+import { useTrackFunctionWithTable } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable';
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
@@ -48,6 +47,10 @@ export interface EditFunctionGraphQLSettingsFormProps {
    */
   functionName: string;
   /**
+   * Function OID used to fetch the function definition.
+   */
+  functionOID?: string;
+  /**
    * Whether the form is disabled, if true, the form will be read-only.
    */
   disabled?: boolean;
@@ -57,43 +60,60 @@ export default function EditFunctionGraphQLSettingsForm({
   onCancel,
   schema,
   functionName,
+  functionOID,
   disabled,
 }: EditFunctionGraphQLSettingsFormProps) {
   const { query } = useRouter();
   const { dataSourceSlug } = query;
 
-  const { data: isTracked } = useIsTrackedFunction({
-    dataSource: (dataSourceSlug as string) || 'default',
+  const dataSource = dataSourceSlug as string;
+  const functionCacheKey =
+    dataSource && functionOID ? `${dataSource}.${functionOID}` : '';
+
+  const { data: functionDefinition } = useFunctionQuery(
+    ['function-definition', functionCacheKey],
+    {
+      functionOID,
+      dataSource,
+      queryOptions: {
+        enabled: !!functionCacheKey && !!functionOID,
+      },
+    },
+  );
+
+  const returnTableName = functionDefinition?.functionMetadata?.returnTableName;
+  const returnTableSchema =
+    functionDefinition?.functionMetadata?.returnTableSchema;
+
+  const {
+    isTracked,
+    isReturnTableUntracked,
+    isPending: isTrackingPending,
+    toggleTracking,
+  } = useTrackFunctionWithTable({
+    dataSource,
     schema,
     functionName,
+    returnTableName,
+    returnTableSchema,
   });
-
-  const { data: resourceVersion } = useGetMetadataResourceVersion();
-
-  const { mutateAsync: setFunctionTracking, isPending: isTrackingPending } =
-    useSetFunctionTrackingMutation();
 
   async function handleTrackToggle() {
     const tracked = !isTracked;
     const action = tracked ? 'track' : 'untrack';
+    const shouldTrackTable = tracked && isReturnTableUntracked;
 
-    await execPromiseWithErrorToast(
-      async () => {
-        await setFunctionTracking({
-          tracked,
-          resourceVersion,
-          args: {
-            source: (dataSourceSlug as string) || 'default',
-            function: { name: functionName, schema },
-          },
-        });
-      },
-      {
-        loadingMessage: `${tracked ? 'Tracking' : 'Untracking'} function...`,
-        successMessage: `Function ${action}ed successfully.`,
-        errorMessage: `Failed to ${action} function.`,
-      },
-    );
+    await execPromiseWithErrorToast(() => toggleTracking(), {
+      loadingMessage: shouldTrackTable
+        ? 'Tracking table and function...'
+        : `${tracked ? 'Tracking' : 'Untracking'} function...`,
+      successMessage: shouldTrackTable
+        ? 'Table and function tracked successfully.'
+        : `Function ${action}ed successfully.`,
+      errorMessage: shouldTrackTable
+        ? 'Failed to track table and function.'
+        : `Failed to ${action} function.`,
+    });
   }
 
   const isUntracked = !isTracked;
@@ -112,7 +132,7 @@ export default function EditFunctionGraphQLSettingsForm({
       name: functionName,
       schema,
     },
-    dataSource: 'default',
+    dataSource,
   });
 
   const form = useForm<FunctionSettingsFormValues>({
@@ -166,7 +186,7 @@ export default function EditFunctionGraphQLSettingsForm({
           name: functionName,
           schema,
         },
-        source: 'default',
+        source: dataSource,
         configuration: {
           custom_name: values.customName || undefined,
           custom_root_fields: {
@@ -202,13 +222,11 @@ export default function EditFunctionGraphQLSettingsForm({
       'customRootFieldFunctionAggregate',
     );
 
-    // Convert customName
     const nextCustomName = isEmptyValue(currentCustomName?.trim())
       ? convertSnakeToCamelCase(functionName)
       : convertSnakeToCamelCase(currentCustomName);
     setValue('customName', nextCustomName, { shouldDirty: true });
 
-    // Convert customRootFieldFunction
     const nextCustomRootFieldFunction = isEmptyValue(
       currentCustomRootFieldFunction?.trim(),
     )
@@ -218,7 +236,6 @@ export default function EditFunctionGraphQLSettingsForm({
       shouldDirty: true,
     });
 
-    // Convert customRootFieldFunctionAggregate
     const defaultAggregateValue = `${functionName}_aggregate`;
     const nextCustomRootFieldFunctionAggregate = isEmptyValue(
       currentCustomRootFieldFunctionAggregate?.trim(),
@@ -240,6 +257,21 @@ export default function EditFunctionGraphQLSettingsForm({
           isPending={isTrackingPending}
           onTrackToggle={handleTrackToggle}
           disabled={disabled}
+          trackLabel={
+            isReturnTableUntracked ? 'Track table and function' : undefined
+          }
+          description={
+            isReturnTableUntracked && !isTracked ? (
+              <p className="text-muted-foreground text-xs">
+                The return table{' '}
+                <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+                  {returnTableSchema}.{returnTableName}
+                </code>{' '}
+                is not tracked in GraphQL and will be tracked along with this
+                function.
+              </p>
+            ) : undefined
+          }
         />
 
         <Form {...form}>
@@ -248,15 +280,6 @@ export default function EditFunctionGraphQLSettingsForm({
             className="flex min-h-0 flex-1 flex-col gap-4 px-6"
           >
             <div className="box grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 py-4">
-              <div className="grid grid-flow-col place-content-between gap-3 px-4">
-                <div className="grid grid-flow-row gap-1">
-                  <h2 className="font-semibold text-lg">Function Settings</h2>
-                  <p className="text-muted-foreground text-sm+">
-                    Configure the GraphQL settings for this function.
-                  </p>
-                </div>
-              </div>
-
               {isFunctionCustomizationError ? (
                 <div className="px-4">
                   <Alert variant="destructive">

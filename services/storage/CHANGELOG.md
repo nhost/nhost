@@ -1,3 +1,28 @@
+## [storage@0.12.1] - 2026-03-18
+
+### 🐛 Bug Fixes
+
+- *(storage)* Do not set CDN-Cache-Control header on public files (#4022)
+
+## [storage@0.12.0] - 2026-03-18
+
+### 🚀 Features
+
+- *(storage)* Allow configuring image processing workers defaulting to 2 * GOMAXPROCS (#4015)
+- *(storage)* Added cdn-cache-control middleware (#4003)
+
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Abstract metadata management and allow for fixes/merges (#3953)
+- *(storage)* Cleanup multipart form correctly when replacing files (#4002)
+- *(storage)* Always detect mimetype when uploading files (#4018)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(storage)* Reflect supported formats for quality option correctly (#4014)
+
 ## [storage@0.11.1] - 2026-02-16
 
 ### 🐛 Bug Fixes

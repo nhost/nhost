@@ -11,8 +11,6 @@ import {
 
 describe('PersistentDataTableConfigurationStorage', () => {
   const TABLE_PATH = 'default.public.myTable';
-  const CONFIG_HAS_BEEN_CONVERTED_TO_V8_KEY = 'nhost_has_been_converted_to_v8';
-
   beforeAll(() => {
     global.localStorage = localStorageMock();
   });
@@ -130,30 +128,142 @@ describe('PersistentDataTableConfigurationStorage', () => {
 
     expect(moviesConfig).toStrictEqual({ director: false, rating: false });
     expect(booksConfig).toStrictEqual({ isbn: false });
-    expect(localStorage.getItem(CONFIG_HAS_BEEN_CONVERTED_TO_V8_KEY)).toBe(
-      'true',
-    );
   });
 
-  it('should not convert if already converted', () => {
+  it('should convert columnOrder even when there are no hiddenColumns', () => {
     const MOVIES_TABLE = 'default.public.movies';
-    const initialStore = {
+
+    setInitialStore({
+      [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
+        [MOVIES_TABLE]: {
+          hiddenColumns: [],
+          columnOrder: ['title', 'year', 'director'],
+        },
+      }),
+    });
+
+    convertToV8IfNeeded();
+
+    const columnOrder = getColumnOrder(MOVIES_TABLE);
+    expect(columnOrder).toStrictEqual([
+      'selection-column',
+      'title',
+      'year',
+      'director',
+    ]);
+  });
+
+  it('should convert both hiddenColumns and columnOrder independently', () => {
+    const MOVIES_TABLE = 'default.public.movies';
+
+    setInitialStore({
+      [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
+        [MOVIES_TABLE]: {
+          hiddenColumns: ['director'],
+          columnOrder: ['title', 'year', 'director'],
+        },
+      }),
+    });
+
+    convertToV8IfNeeded();
+
+    const columnVisibility = getColumnVisibility(MOVIES_TABLE);
+    const columnOrder = getColumnOrder(MOVIES_TABLE);
+
+    expect(columnVisibility).toStrictEqual({ director: false });
+    expect(columnOrder).toStrictEqual([
+      'selection-column',
+      'title',
+      'year',
+      'director',
+    ]);
+  });
+
+  it('should be idempotent — calling convertToV8IfNeeded twice should not duplicate selection-column', () => {
+    const MOVIES_TABLE = 'default.public.movies';
+
+    setInitialStore({
+      [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
+        [MOVIES_TABLE]: {
+          hiddenColumns: ['director'],
+          columnOrder: ['title', 'year', 'director'],
+        },
+      }),
+    });
+
+    convertToV8IfNeeded();
+    convertToV8IfNeeded();
+
+    const columnOrder = getColumnOrder(MOVIES_TABLE);
+    expect(columnOrder).toStrictEqual([
+      'selection-column',
+      'title',
+      'year',
+      'director',
+    ]);
+
+    const columnVisibility = getColumnVisibility(MOVIES_TABLE);
+    expect(columnVisibility).toStrictEqual({ director: false });
+  });
+
+  it('should only convert old-format entries when mixed with v8 entries', () => {
+    const MOVIES_TABLE = 'default.public.movies';
+    const BOOKS_TABLE = 'default.public.books';
+
+    setInitialStore({
       [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
         [MOVIES_TABLE]: {
           hiddenColumns: ['director'],
           columnOrder: ['title', 'director'],
         },
+        [BOOKS_TABLE]: {
+          columnVisibility: { isbn: false },
+          columnOrder: ['selection-column', 'title', 'isbn'],
+        },
       }),
-      [CONFIG_HAS_BEEN_CONVERTED_TO_V8_KEY]: 'true',
-    };
-    setInitialStore(initialStore);
+    });
 
     convertToV8IfNeeded();
 
-    const storedData = JSON.parse(
-      localStorage.getItem(COLUMN_CONFIGURATION_STORAGE_KEY) || '{}',
-    );
-    expect(storedData[MOVIES_TABLE]).toHaveProperty('hiddenColumns');
-    expect(storedData[MOVIES_TABLE]).not.toHaveProperty('columnVisibility');
+    expect(getColumnVisibility(MOVIES_TABLE)).toStrictEqual({
+      director: false,
+    });
+    expect(getColumnOrder(MOVIES_TABLE)).toStrictEqual([
+      'selection-column',
+      'title',
+      'director',
+    ]);
+
+    expect(getColumnVisibility(BOOKS_TABLE)).toStrictEqual({ isbn: false });
+    expect(getColumnOrder(BOOKS_TABLE)).toStrictEqual([
+      'selection-column',
+      'title',
+      'isbn',
+    ]);
+  });
+
+  it('should not convert if data is already in v8 format', () => {
+    const MOVIES_TABLE = 'default.public.movies';
+
+    setInitialStore({
+      [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
+        [MOVIES_TABLE]: {
+          columnVisibility: { director: false },
+          columnOrder: ['selection-column', 'title', 'director'],
+        },
+      }),
+    });
+
+    convertToV8IfNeeded();
+
+    const columnVisibility = getColumnVisibility(MOVIES_TABLE);
+    const columnOrder = getColumnOrder(MOVIES_TABLE);
+
+    expect(columnVisibility).toStrictEqual({ director: false });
+    expect(columnOrder).toStrictEqual([
+      'selection-column',
+      'title',
+      'director',
+    ]);
   });
 });

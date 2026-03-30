@@ -254,7 +254,7 @@ Start local development environment
 
 **--ca-certificates**="": Mounts and everrides path to CA certificates in the containers [$NHOST_CA_CERTIFICATES]
 
-**--dashboard-version**="": Dashboard version to use (default: "nhost/dashboard:2.52.0") [$NHOST_DASHBOARD_VERSION]
+**--dashboard-version**="": Dashboard version to use (default: "nhost/dashboard:2.54.0") [$NHOST_DASHBOARD_VERSION]
 
 **--disable-tls**: Disable TLS [$NHOST_DISABLE_TLS]
 
@@ -274,6 +274,8 @@ Start local development environment
 
 **--run-service**="": Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name] [$NHOST_RUN_SERVICE]
 
+**--run-service-volume**="": Mount a local directory into a run service container. Format: service-name=/local/path:/container/path. Can be passed multiple times [$NHOST_RUN_SERVICE_VOLUME]
+
 **--storage-port**="": If specified, expose storage on this port. Not recommended (default: 0)
 
 ### cloud
@@ -284,7 +286,7 @@ Start local development environment connected to an Nhost Cloud project (BETA)
 
 **--ca-certificates**="": Mounts and everrides path to CA certificates in the containers [$NHOST_CA_CERTIFICATES]
 
-**--dashboard-version**="": Dashboard version to use (default: "nhost/dashboard:2.52.0") [$NHOST_DASHBOARD_VERSION]
+**--dashboard-version**="": Dashboard version to use (default: "nhost/dashboard:2.54.0") [$NHOST_DASHBOARD_VERSION]
 
 **--disable-tls**: Disable TLS [$NHOST_DISABLE_TLS]
 
@@ -387,8 +389,6 @@ Shows a list of commands or help for one command
 ### start
 
 Starts the MCP server
-
-**--bind**="": Bind address in the form $host:$port. If omitted use stdio [$BIND]
 
 **--help, -h**: show help
 

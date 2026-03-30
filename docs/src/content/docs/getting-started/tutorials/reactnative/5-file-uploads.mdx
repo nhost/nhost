@@ -132,7 +132,7 @@ npx expo install expo-document-picker@13 expo-file-system@18 expo-sharing@13
 
 Now let's implement the React Native screen for file upload functionality using the shared theme from the protected routes tutorial.
 
-```tsx app/files.tsx lines
+```tsx title="app/files.tsx" showLineNumbers
 import type { FetchError } from "@nhost/nhost-js/fetch";
 import type { ErrorResponse, FileMetadata } from "@nhost/nhost-js/storage";
 import * as DocumentPicker from "expo-document-picker";
@@ -617,7 +617,7 @@ export default function Files() {
 
 Update the home screen to include navigation to the new file upload screen.
 
-```tsx app/index.tsx lines highlight={51-56}
+```tsx title="app/index.tsx" showLineNumbers {51-56}
 import { useRouter } from "expo-router";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";

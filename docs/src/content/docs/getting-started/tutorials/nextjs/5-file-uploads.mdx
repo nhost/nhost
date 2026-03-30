@@ -119,7 +119,7 @@ Now let's implement the Next.js file upload functionality using server actions, 
 
 First, let's create server actions to handle file upload and delete operations. Server actions run on the server and provide a secure way to handle file operations.
 
-```tsx src/app/files/actions.ts
+```tsx title="src/app/files/actions.ts" showLineNumbers
 "use server";
 
 import type { FileMetadata } from "@nhost/nhost-js/storage";
@@ -211,7 +211,7 @@ export async function deleteFileAction(
 
 Create an API route to handle file viewing and downloading. This route will fetch the file from Nhost storage and return it with appropriate headers to the client.
 
-```tsx src/app/files/download/[fileId]/route.ts
+```tsx title="src/app/files/download/[fileId]/route.ts" showLineNumbers
 import { type NextRequest, NextResponse } from "next/server";
 import { createNhostClient } from "../../../../lib/nhost/server";
 
@@ -276,7 +276,7 @@ export async function GET(
 
 The main files page is a **server component** that fetches the user's files on the server and renders the file management interface. This component runs on the server and can directly access the Nhost client for data fetching.
 
-```tsx src/app/files/page.tsx
+```tsx title="src/app/files/page.tsx" showLineNumbers
 import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { createNhostClient } from "../../lib/nhost/server";
 import FilesClient from "./FilesClient";
@@ -338,7 +338,7 @@ export default async function FilesPage() {
 
 The files client component is a **client component** that handles all user interactions including file uploads, viewing, and deletion. It uses server actions for upload and delete operations, and API routes for file viewing and downloading.
 
-```tsx src/app/files/FilesClient.tsx
+```tsx title="src/app/files/FilesClient.tsx" showLineNumbers
 "use client";
 
 import type { FileMetadata } from "@nhost/nhost-js/storage";
@@ -709,7 +709,7 @@ export default function FilesClient({
 
 Add a link to the files page in the server-side navigation component.
 
-```tsx src/components/Navigation.tsx lines highlight={26-28}
+```tsx title="src/components/Navigation.tsx" showLineNumbers {26-28}
 import Link from "next/link";
 import { createNhostClient } from "../lib/nhost/server";
 import SignOutButton from "./SignOutButton";

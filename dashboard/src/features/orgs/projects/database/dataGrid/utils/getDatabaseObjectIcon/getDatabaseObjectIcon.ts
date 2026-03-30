@@ -21,7 +21,7 @@ export default function getDatabaseObjectIcon(
   objectType: DatabaseObjectType,
   isEnum: boolean,
 ) {
-  if (isEnum) {
+  if (isEnum && objectType === 'ORDINARY TABLE') {
     return List;
   }
   return iconByType[objectType];

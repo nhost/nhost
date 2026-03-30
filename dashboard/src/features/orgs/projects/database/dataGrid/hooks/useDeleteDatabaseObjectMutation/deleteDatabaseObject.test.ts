@@ -99,6 +99,74 @@ describe('deleteDatabaseObject', () => {
     expect(body.args[0].args.source).toBe('my_source');
   });
 
+  test('should produce DROP FUNCTION SQL for FUNCTION with no parameters', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'public',
+      objectName: 'get_users',
+      type: 'FUNCTION',
+      inputArgTypes: [],
+    });
+
+    const body = capturedBody as {
+      args: Array<{ args: { sql: string; cascade: boolean } }>;
+    };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP FUNCTION');
+    expect(sql).toContain('public');
+    expect(sql).toContain('get_users');
+    expect(body.args[0].args.cascade).toBe(false);
+  });
+
+  test('should produce DROP FUNCTION SQL for FUNCTION with parameters', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'public',
+      objectName: 'search_users',
+      type: 'FUNCTION',
+      inputArgTypes: [
+        { name: 'query', type: 'text', displayType: 'text', schema: null },
+        { name: 'limit', type: 'int4', displayType: 'integer', schema: null },
+      ],
+    });
+
+    const body = capturedBody as {
+      args: Array<{ args: { sql: string; cascade: boolean } }>;
+    };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP FUNCTION');
+    expect(sql).toContain('search_users');
+    expect(sql).toContain('text');
+    expect(sql).toContain('int4');
+    expect(body.args[0].args.cascade).toBe(false);
+  });
+
+  test('should produce DROP FUNCTION SQL with schema-qualified parameter types', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'public',
+      objectName: 'process',
+      type: 'FUNCTION',
+      inputArgTypes: [
+        {
+          name: 'input',
+          type: 'my_type',
+          displayType: 'my_type',
+          schema: 'custom',
+        },
+      ],
+    });
+
+    const body = capturedBody as {
+      args: Array<{ args: { sql: string; cascade: boolean } }>;
+    };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP FUNCTION');
+    expect(sql).toContain('custom');
+    expect(sql).toContain('my_type');
+    expect(body.args[0].args.cascade).toBe(false);
+  });
+
   test('should throw an error for unsupported object type', async () => {
     await expect(
       deleteDatabaseObject({

@@ -16,10 +16,6 @@ import PermissionSettingsSection from './PermissionSettingsSection';
 
 export interface RowPermissionsSectionProps {
   /**
-   * Determines whether or not the section is disabled.
-   */
-  disabled?: boolean;
-  /**
    * The role that is being edited.
    */
   role: string;
@@ -42,7 +38,6 @@ export default function RowPermissionsSection({
   action,
   schema,
   table,
-  disabled,
 }: RowPermissionsSectionProps) {
   const {
     register,
@@ -90,8 +85,8 @@ export default function RowPermissionsSection({
           handleCheckTypeChange(value as typeof rowCheckType)
         }
       >
-        <Radio value="none" label="Without any checks" disabled={disabled} />
-        <Radio value="custom" label="With custom check" disabled={disabled} />
+        <Radio value="none" label="Without any checks" />
+        <Radio value="custom" label="With custom check" />
       </RadioGroup>
 
       {errors?.filter?.root?.message || errors?.filter?.message ? (
@@ -105,12 +100,7 @@ export default function RowPermissionsSection({
       ) : null}
 
       {rowCheckType === 'custom' && (
-        <CustomCheckEditor
-          name="filter"
-          schema={schema}
-          table={table}
-          disabled={disabled}
-        />
+        <CustomCheckEditor name="filter" schema={schema} table={table} />
       )}
 
       {action === 'select' && (
@@ -122,7 +112,6 @@ export default function RowPermissionsSection({
               }
             },
           })}
-          disabled={disabled}
           id="limit"
           type="number"
           label="Limit number of rows"

@@ -531,6 +531,25 @@ WHERE user_id = $1;
 DELETE FROM auth.oauth2_refresh_tokens
 WHERE expires_at < now();
 
+-- =============================================================================
+-- PKCE Authorization Codes
+-- =============================================================================
+
+-- name: InsertPKCEAuthorizationCode :one
+INSERT INTO auth.pkce_authorization_codes (
+    user_id, code_hash, code_challenge, redirect_to, expires_at
+) VALUES ($1, $2, $3, $4, $5)
+RETURNING *;
+
+-- name: ConsumePKCEAuthorizationCode :one
+DELETE FROM auth.pkce_authorization_codes
+WHERE code_hash = $1 AND expires_at > now()
+RETURNING *;
+
+-- name: DeleteExpiredPKCEAuthorizationCodes :exec
+DELETE FROM auth.pkce_authorization_codes
+WHERE expires_at < now();
+
 -- name: UpsertOAuth2CIMDClient :one
 INSERT INTO auth.oauth2_clients (
     client_id, redirect_uris, scopes,

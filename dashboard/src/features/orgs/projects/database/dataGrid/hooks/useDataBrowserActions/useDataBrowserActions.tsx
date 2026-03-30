@@ -182,11 +182,8 @@ export function useDataBrowserActions({
     const isFunction = objectType === 'FUNCTION';
     const functionKey = `FUNCTION.${schema}.${oid}`;
 
-    if (isFunction) {
-      setRemovableObject(functionKey);
-    } else {
-      setRemovableObject(tableLikeObjectKey);
-    }
+    const removableObjectKey = isFunction ? functionKey : tableLikeObjectKey;
+    setRemovableObject(removableObjectKey);
 
     try {
       let nextObjectIndex: number | null = null;
@@ -219,29 +216,19 @@ export function useDataBrowserActions({
         functionOID: oid,
       });
 
-      if (isFunction) {
-        queryClient.removeQueries({
-          queryKey: ['function-definition', `${dataSourceSlug}.${oid}`],
-        });
-      } else {
-        queryClient.removeQueries({
-          queryKey: [`${dataSourceSlug}.${schema}.${name}`],
-        });
-      }
+      const queryKey = isFunction
+        ? ['function-definition', `${dataSourceSlug}.${oid}`]
+        : [`${dataSourceSlug}.${schema}.${name}`];
 
-      if (isFunction) {
-        setOptimisticlyRemovedObject(functionKey);
-      } else {
-        setOptimisticlyRemovedObject(tableLikeObjectKey);
-      }
+      queryClient.removeQueries({ queryKey });
+
+      setOptimisticlyRemovedObject(removableObjectKey);
 
       await refetchDatabaseQuery();
 
-      if (!isFunction) {
-        await queryClient.refetchQueries({
-          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-        });
-      }
+      await queryClient.refetchQueries({
+        queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+      });
 
       if (!nextObject) {
         await router.push(
@@ -303,7 +290,6 @@ export function useDataBrowserActions({
   function handleEditPermission(
     schema: string,
     table: string,
-    disabled?: boolean,
     objectType?: DatabaseObjectType,
     updatability?: number,
   ) {
@@ -325,7 +311,6 @@ export function useDataBrowserActions({
       ),
       component: (
         <EditPermissionsForm
-          disabled={disabled}
           schema={schema}
           table={table}
           objectType={objectType}
@@ -372,10 +357,9 @@ export function useDataBrowserActions({
   function handleEditGraphQLSettings(
     schema: string,
     name: string,
-    disabled?: boolean,
     objectType?: DatabaseObjectType,
+    oid?: string,
   ) {
-    const actionLabel = disabled ? 'View' : 'Edit';
     const typeLabel = objectType
       ? objectTypeLabels[objectType].toLowerCase()
       : 'table';
@@ -383,7 +367,7 @@ export function useDataBrowserActions({
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
-          {actionLabel} {'GraphQL settings for'}
+          Edit GraphQL settings for
           <InlineCode className="!text-sm+ font-normal">{name}</InlineCode>
           {typeLabel}
         </span>
@@ -391,16 +375,12 @@ export function useDataBrowserActions({
       component:
         objectType === 'FUNCTION' ? (
           <EditFunctionGraphQLSettingsForm
-            disabled={disabled}
             schema={schema}
             functionName={name}
+            functionOID={oid}
           />
         ) : (
-          <EditGraphQLSettingsForm
-            disabled={disabled}
-            schema={schema}
-            tableName={name}
-          />
+          <EditGraphQLSettingsForm schema={schema} tableName={name} />
         ),
       props: {
         PaperProps: {
@@ -482,20 +462,10 @@ export function useDataBrowserActions({
     });
   }
 
-  function handleEditRelationships(
-    schema: string,
-    table: string,
-    disabled?: boolean,
-  ) {
+  function handleEditRelationships(schema: string, table: string) {
     openDrawer({
-      title: `${disabled ? 'View' : 'Edit'} Relationships`,
-      component: (
-        <EditRelationshipsForm
-          schema={schema}
-          table={table}
-          disabled={disabled}
-        />
-      ),
+      title: 'Edit Relationships',
+      component: <EditRelationshipsForm schema={schema} table={table} />,
       props: {
         PaperProps: {
           className: 'overflow-hidden',

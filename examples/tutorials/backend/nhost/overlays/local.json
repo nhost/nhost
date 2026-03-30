@@ -1,0 +1,55 @@
+[
+  {
+    "value": "{{ secrets.APPLE_AUDIENCE }}",
+    "op": "add",
+    "path": "/auth/method/oauth/apple/audience"
+  },
+  {
+    "value": "{{ secrets.APPLE_CLIENT_ID }}",
+    "op": "add",
+    "path": "/auth/method/oauth/apple/clientId"
+  },
+  {
+    "value": true,
+    "op": "replace",
+    "path": "/auth/method/oauth/apple/enabled"
+  },
+  {
+    "value": "{{ secrets.APPLE_KEY_ID }}",
+    "op": "add",
+    "path": "/auth/method/oauth/apple/keyId"
+  },
+  {
+    "value": "{{ secrets.APPLE_PRIVATE_KEY }}",
+    "op": "add",
+    "path": "/auth/method/oauth/apple/privateKey"
+  },
+  {
+    "value": "{{ secrets.APPLE_TEAM_ID }}",
+    "op": "add",
+    "path": "/auth/method/oauth/apple/teamId"
+  },
+  {
+    "value": "http://localhost:3000",
+    "op": "replace",
+    "path": "/auth/redirections/allowedUrls/0"
+  },
+  {
+    "value": "exp://192.168.1.108:8081",
+    "op": "replace",
+    "path": "/auth/redirections/allowedUrls/1"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "value": "http://localhost:5173",
+    "op": "replace",
+    "path": "/auth/redirections/clientUrl"
+  }
+]

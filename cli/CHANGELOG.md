@@ -1,3 +1,64 @@
+## [cli@1.41.1] - 2026-03-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* Add aliases matching internal cloud services (#4076)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump schema (#4084)
+
+## [cli@1.41.0] - 2026-03-26
+
+### 🚀 Features
+
+- *(cli)* Add run service volume overrides for local dev (#4047)
+- *(stripe-graphql-js)* Update dependencies and modernize build (#3664)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Forward stdin to Hasura CLI wrapper for interactive navigation (#4046)
+- *(cli)* Require initialized project before running config pull (#4045)
+- *(cli)* Remove possibility to bind mcp server to a port for security reasons (#4060)
+
+## [cli@1.40.0] - 2026-03-25
+
+### 🚀 Features
+
+- *(cli)* Add default MCP config for local development (#4036)
+
+## [cli@1.39.0] - 2026-03-20
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring allowedCIDRs (#4029)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Conditionally enable storage URL based on port exposure (#4033)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.54.0 (#4031)
+
+## [cli@1.38.4] - 2026-03-18
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump schema (#4020)
+- *(cli)* Bump nhost/dashboard to 2.53.0 (#4009)
+- *(cli)* Bump schema (#4023)
+
+## [cli@1.38.3] - 2026-03-13
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema (#3999)
+
 ## [cli@1.38.2] - 2026-03-11
 
 ### ⚙️ Miscellaneous Tasks

@@ -3,67 +3,59 @@ title: Sign In with OAuth Providers
 description: >-
   Learn how OAuth provider sign-in works in Nhost and how to implement it in
   your application.
-keywords: ["OAuth", "social login", "provider sign-in", "authentication flow", "redirect URL", "refresh token", "access token"]
+keywords: ["OAuth", "social login", "provider sign-in", "authentication flow", "redirect URL", "PKCE", "access token"]
 sidebar:
   label: Sign In
 ---
 
 ## Overview
 
-Nhost supports OAuth 2.0 authentication with various social providers including GitHub, Google, Apple, Discord, and more. This guide explains the OAuth sign-in flow and how to implement it in your application.
+Nhost supports OAuth 2.0 authentication with various social providers including GitHub, Google, Apple, Discord, and more. This guide explains the OAuth sign-in flow and how to implement it using [PKCE](/products/auth/pkce).
 
 ## OAuth Sign-In Flow
 
-The OAuth authentication flow in Nhost involves several steps coordinating between your client application, Nhost Auth service, and the OAuth provider:
+The OAuth authentication flow uses PKCE to securely exchange an authorization code for a session after the OAuth provider callback:
 
 ```mermaid
 sequenceDiagram
-    participant Client as Client Application
-    participant NhostAuth as Nhost Auth Service
-    participant Provider as OAuth Provider
-
-    Client->>Client: User clicks "Sign in with Provider"
-    Client->>Client: Call nhost.auth.signInProviderURL(provider, options)
-    Client->>Client: Redirect to returned URL
-
-    Client->>NhostAuth: GET /v1/signin/provider/{provider}
-    Note over NhostAuth: Generate OAuth state & store session
-    NhostAuth->>Provider: 302 Redirect to provider authorization
-
-    Provider->>Provider: User authorizes application
-    Provider->>NhostAuth: 302 Callback with authorization code
-    Note over NhostAuth: Exchange code for tokens<br/>Create/update user<br/>Generate refresh token
-
-    NhostAuth->>Client: 302 Redirect to redirectTo URL
-    Note over Client: URL contains refreshToken<br/>or error information
-
-    Client->>Client: Extract refreshToken from URL
-    Client->>NhostAuth: POST /v1/token with refreshToken
-    NhostAuth->>Client: Return session with accessToken
-
-    Client->>Client: Store session & authenticate user
+	participant C as Client
+	participant A as Nhost Auth
+	participant P as OAuth Provider
+	C->>C: Generate PKCE pair (verifier + challenge)
+	C->>C: Store verifier in localStorage
+	C->>C: signInProviderURL(provider, { codeChallenge })
+	C->>+A: GET /signin/provider/{provider}
+	Note over A: Generate state JWT<br/>(includes codeChallenge)
+	A->>-P: 302 Redirect to provider authorization
+	P->>P: User authorizes application
+	P->>+A: Callback with authorization code
+	Note over A: Exchange code for provider tokens<br/>Create/update user<br/>Generate authorization code
+	A->>-C: 302 Redirect to redirectTo with ?code=...
+	C->>C: Consume verifier from localStorage
+	C->>+A: POST /token/exchange
+	Note right of C: code + codeVerifier
+	A->>A: Validate S256(codeVerifier) == codeChallenge
+	A->>-C: Session (access + refresh tokens)
 ```
 
 ## Implementation Steps
 
 ### 1. Generate the Provider Sign-In URL
 
-Use the `signInProviderURL()` method to generate the OAuth authorization URL. This method returns a URL that you'll redirect the user to:
+Use `signInProviderURL()` to generate the OAuth authorization URL with a PKCE `codeChallenge`:
 
 ```tsx
-import { nhost } from './lib/nhost';
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
 
-const handleSocialSignIn = (provider: 'github' | 'google' | 'apple') => {
-  // Get the current origin to build the callback URL
-  const origin = window.location.origin;
-  const redirectUrl = `${origin}/verify`;
+const handleSocialSignIn = async (provider: 'github' | 'google' | 'apple') => {
+  const { verifier, challenge } = await generatePKCEPair();
+  localStorage.setItem('nhost_pkce_verifier', verifier);
 
-  // Generate the provider sign-in URL
   const url = nhost.auth.signInProviderURL(provider, {
-    redirectTo: redirectUrl,
+    redirectTo: `${window.location.origin}/verify`,
+    codeChallenge: challenge,
   });
 
-  // Redirect the user to the OAuth provider
   window.location.href = url;
 };
 ```
@@ -84,111 +76,35 @@ Nhost Auth receives the callback from the OAuth provider at `/v1/signin/provider
 2. **Exchanges the authorization code** for access and refresh tokens from the provider
 3. **Fetches the user's profile** from the provider
 4. **Creates or updates the user** in your Nhost database
-5. **Generates a Nhost refresh token** for the session
-6. **Redirects to your client application** at the `redirectTo` URL
+5. **Generates an authorization code** bound to the PKCE challenge
+6. **Redirects to your client application** with `?code=...`
 
 ### 4. Handle the Redirect
 
-After successful authentication, Nhost redirects back to your `redirectTo` URL with query parameters. You need to handle two scenarios:
-
-#### Success - Extract the Refresh Token
-
-On success, the URL will contain a `refreshToken` parameter:
+After successful authentication, Nhost redirects back to your `redirectTo` URL with a `code` query parameter:
 
 ```
-https://your-app.com/verify?refreshToken=abc123...
+https://your-app.com/verify?code=abc123...
 ```
 
-Extract this token and exchange it for a session:
+Exchange this code for a session using the stored PKCE verifier. See [Handling the Verification Redirect](/products/auth/pkce#handling-the-verification-redirect) for the complete implementation.
 
 ```tsx
-import type { ErrorResponse } from '@nhost/nhost-js/auth';
-import type { FetchError } from '@nhost/nhost-js/fetch';
-import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { nhost } from './lib/nhost';
+const params = new URLSearchParams(location.search);
+const code = params.get('code');
 
-export default function Verify() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
-  const [error, setError] = useState<string>('');
+const codeVerifier = localStorage.getItem('nhost_pkce_verifier');
+localStorage.removeItem('nhost_pkce_verifier');
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const refreshToken = params.get('refreshToken');
-
-    if (!refreshToken) {
-      setStatus('error');
-      setError('No refresh token found in URL');
-      return;
-    }
-
-    let isMounted = true;
-
-    async function processToken() {
-      try {
-        // Exchange refresh token for session
-        await nhost.auth.refreshToken({ refreshToken });
-
-        if (!isMounted) return;
-
-        setStatus('success');
-
-        // Redirect to the application
-        setTimeout(() => {
-          if (isMounted) navigate('/profile');
-        }, 1500);
-      } catch (err) {
-        const error = err as FetchError<ErrorResponse>;
-        if (!isMounted) return;
-
-        setStatus('error');
-        setError(`An error occurred during verification: ${error.message}`);
-      }
-    }
-
-    processToken();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [location.search, navigate]);
-
-  return (
-    <div>
-      {status === 'verifying' && <p>Verifying...</p>}
-      {status === 'success' && <p>Successfully verified! Redirecting...</p>}
-      {status === 'error' && (
-        <div>
-          <p>Verification failed: {error}</p>
-          <button onClick={() => navigate('/signin')}>Back to Sign In</button>
-        </div>
-      )}
-    </div>
-  );
-}
+await nhost.auth.tokenExchange({ code, codeVerifier });
 ```
 
-#### Error - Handle Authentication Failure
+#### Error Handling
 
 On error, the URL will contain error parameters:
 
 ```
 https://your-app.com/verify?error=access_denied
-```
-
-You can handle these errors by checking for the `error` query parameter:
-
-```tsx
-const params = new URLSearchParams(location.search);
-const error = params.get('error');
-
-if (error) {
-  // Handle error - redirect to sign-in page with error message
-  navigate(`/signin?error=${encodeURIComponent(error)}`);
-  return;
-}
 ```
 
 Common error scenarios include:
@@ -199,13 +115,17 @@ Common error scenarios include:
 
 ### 5. Session Management
 
-Once you've exchanged the refresh token for a session, the Nhost SDK automatically manages:
+Once you've exchanged the authorization code for a session, the Nhost SDK automatically manages:
 
 - **Access token** - Short-lived JWT for API requests (default: 15 minutes)
 - **Refresh token** - Used to obtain new access tokens (default: 30 days)
 - **Automatic token refresh** - The SDK refreshes tokens before expiration
 
 ## Security Considerations
+
+### PKCE Protection
+
+PKCE prevents authorization code interception attacks by binding the authorization code to the client that initiated the request. The code can only be exchanged by presenting the original `codeVerifier` that matches the `codeChallenge` sent during initiation.
 
 ### CSRF Protection
 

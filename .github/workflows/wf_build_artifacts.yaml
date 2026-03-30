@@ -21,6 +21,14 @@ on:
         type: string
         required: false
         default: '["blacksmith-4vcpu-ubuntu-2404-arm", "blacksmith-2vcpu-ubuntu-2404"]'
+      ENV:
+        type: string
+        required: false
+        default: ""
+      ARTIFACT_SUFFIX:
+        type: string
+        required: false
+        default: ""
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -48,76 +56,79 @@ jobs:
     timeout-minutes: 180
 
     steps:
-    - name: "Check out repository"
-      uses: actions/checkout@v6
-      with:
-        ref: ${{ inputs.GIT_REF }}
+      - name: "Set custom env"
+        if: ${{ inputs.ENV != '' }}
+        run: echo "${{ inputs.ENV }}" >> $GITHUB_ENV
+        working-directory: .
 
-    - name: "Validate PR title"
-      uses: ./.github/actions/validate-pr-title
-      with:
-        pr_title: ${{ github.event.pull_request.title }}
-      if: ${{ github.event_name == 'pull_request' }}
+      - name: "Check out repository"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.GIT_REF }}
 
-    - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v6
-      with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-        aws-region: eu-central-1
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
 
-    - name: Setup Nix with Cache
-      uses: ./.github/actions/setup-nix
-      with:
-        NAME: ${{ inputs.NAME }}
-        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: ${{ inputs.NAME }}
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: "Verify if we need to build"
-      id: verify-build
-      run: |
-        export drvPath=$(make build-dry-run)
-        nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
-          && export BUILD_NEEDED=no \
-          || export BUILD_NEEDED=yes
-        echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
+      - name: "Verify if we need to build"
+        id: verify-build
+        run: |
+          export drvPath=$(make build-dry-run)
+          nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
+            && export BUILD_NEEDED=no \
+            || export BUILD_NEEDED=yes
+          echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
 
-    - name: Compute common env vars
-      id: vars
-      run: |
-        echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
-        ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
-        echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
+      - name: Compute common env vars
+        id: vars
+        run: |
+          if [ "${{ inputs.VERSION }}" = "0.0.0-dev" ]; then
+            echo "VERSION=0.0.0-dev" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+          fi
+          ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
+          echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
 
-    - name: "Build artifact"
-      run: |
-        make build
-        zip -r result.zip result
+      - name: "Build artifact"
+        run: |
+          make build
+          zip -r result.zip result
 
-    - name: "Push artifact to artifact repository"
-      uses: actions/upload-artifact@v7
-      with:
-        name: ${{ inputs.NAME }}-artifact-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
-        path: ${{ inputs.PATH }}/result.zip
-        retention-days: 7
+      - name: "Push artifact to artifact repository"
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.NAME }}-artifact${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
+          path: ${{ inputs.PATH }}/result.zip
+          retention-days: 7
 
-    - name: "Build docker image"
-      run: |
-        sudo chmod 755 /run/containers
-        sudo mkdir -p "/run/containers/$(id -u runner)"
-        sudo chown runner: "/run/containers/$(id -u runner)"
-        make build-docker-image
-      if: ${{ ( inputs.DOCKER ) }}
+      - name: "Build docker image"
+        run: |
+          sudo chmod 755 /run/containers
+          sudo mkdir -p "/run/containers/$(id -u runner)"
+          sudo chown runner: "/run/containers/$(id -u runner)"
+          make build-docker-image
+        if: ${{ ( inputs.DOCKER ) }}
 
-    - name: "Push docker image to artifact repository"
-      uses: actions/upload-artifact@v7
-      with:
-        name: ${{ inputs.NAME }}-docker-image-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
-        path: ${{ inputs.PATH }}/result
-        retention-days: 7
-      if: ${{ ( inputs.DOCKER ) }}
+      - name: "Push docker image to artifact repository"
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
+          path: ${{ inputs.PATH }}/result
+          retention-days: 7
+        if: ${{ ( inputs.DOCKER ) }}
 
-    - name: "Store Nix cache"
-      uses: ./.github/actions/cache-nix
-      with:
-        NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      if: ${{ always() && steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+      - name: "Store Nix cache"
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+        if: ${{ always() && steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}

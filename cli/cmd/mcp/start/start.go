@@ -2,7 +2,9 @@ package start
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/nhost/nhost/cli/clienv"
@@ -19,7 +21,6 @@ import (
 const (
 	flagNhostAuthURL    = "nhost-auth-url"
 	flagNhostGraphqlURL = "nhost-graphql-url"
-	flagBind            = "bind"
 )
 
 const (
@@ -65,38 +66,32 @@ func Command() *cli.Command {
 				Category: "Cloud Platform",
 				Sources:  cli.EnvVars("NHOST_GRAPHQL_URL"),
 			},
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:     flagBind,
-				Usage:    "Bind address in the form $host:$port. If omitted use stdio",
-				Required: false,
-				Category: "General",
-				Sources:  cli.EnvVars("BIND"),
-			},
 		},
 		Action: action,
 	}
 }
 
-func action(_ context.Context, cmd *cli.Command) error {
+// BuildServer creates and configures an MCP server from the parsed CLI command.
+func BuildServer(cmd *cli.Command) (*server.MCPServer, error) {
 	cfg, err := getConfig(cmd)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	ServerInstructions := ServerInstructions
-	ServerInstructions += "\n\n"
-	ServerInstructions += cfg.Projects.Instructions()
-	ServerInstructions += "\n"
-	ServerInstructions += resources.Instructions()
+	serverInstructions := ServerInstructions
+	serverInstructions += "\n\n"
+	serverInstructions += cfg.Projects.Instructions()
+	serverInstructions += "\n"
+	serverInstructions += resources.Instructions()
 
 	mcpServer := server.NewMCPServer(
 		cmd.Root().Name,
 		cmd.Root().Version,
-		server.WithInstructions(ServerInstructions),
+		server.WithInstructions(serverInstructions),
 	)
 
 	if err := resources.Register(cfg, mcpServer); err != nil {
-		return cli.Exit(fmt.Sprintf("failed to register resources: %s", err), 1)
+		return nil, fmt.Errorf("failed to register resources: %w", err)
 	}
 
 	if cfg.Cloud != nil {
@@ -107,22 +102,35 @@ func action(_ context.Context, cmd *cli.Command) error {
 			cmd.String(flagNhostAuthURL),
 			cmd.String(flagNhostGraphqlURL),
 		); err != nil {
-			return cli.Exit(fmt.Sprintf("failed to register cloud tools: %s", err), 1)
+			return nil, fmt.Errorf("failed to register cloud tools: %w", err)
 		}
 	}
 
 	if len(cfg.Projects) > 0 {
 		if err := registerProjectTool(mcpServer, cfg); err != nil {
-			return cli.Exit(fmt.Sprintf("failed to register project tools: %s", err), 1)
+			return nil, fmt.Errorf("failed to register project tools: %w", err)
 		}
 	}
 
-	resources := schemas.NewTool(cfg)
-	resources.Register(mcpServer)
+	schemasTool := schemas.NewTool(cfg)
+	schemasTool.Register(mcpServer)
 
 	docs.NewTool().Register(mcpServer)
 
-	return start(mcpServer, cmd.String(flagBind))
+	return mcpServer, nil
+}
+
+func action(_ context.Context, cmd *cli.Command) error {
+	mcpServer, err := BuildServer(cmd)
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("failed to build server: %v", err), 1)
+	}
+
+	if err := server.ServeStdio(mcpServer); err != nil {
+		return cli.Exit(fmt.Sprintf("failed to serve stdio: %v", err), 1)
+	}
+
+	return nil
 }
 
 func getConfig(cmd *cli.Command) (*config.Config, error) {
@@ -133,7 +141,12 @@ func getConfig(cmd *cli.Command) (*config.Config, error) {
 
 	cfg, err := config.Load(configPath)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return config.DefaultConfig(), nil
+		}
+
 		fmt.Println("Please, run `nhost mcp config` to configure the service.") //nolint:forbidigo
+
 		return nil, cli.Exit("failed to load config file "+err.Error(), 1)
 	}
 
@@ -180,24 +193,6 @@ func registerProjectTool(
 	projectTool := project.NewTool(cfg)
 	if err := projectTool.Register(mcpServer); err != nil {
 		return fmt.Errorf("failed to register tool: %w", err)
-	}
-
-	return nil
-}
-
-func start(
-	mcpServer *server.MCPServer,
-	bind string,
-) error {
-	if bind != "" {
-		sseServer := server.NewSSEServer(mcpServer, server.WithBaseURL(bind))
-		if err := sseServer.Start(bind); err != nil {
-			return cli.Exit(fmt.Sprintf("failed to serve tcp: %v", err), 1)
-		}
-	} else {
-		if err := server.ServeStdio(mcpServer); err != nil {
-			return cli.Exit(fmt.Sprintf("failed to serve stdio: %v", err), 1)
-		}
 	}
 
 	return nil

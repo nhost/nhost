@@ -1,6 +1,6 @@
 import type { ColumnOrderState, VisibilityState } from '@tanstack/react-table';
 import type { RowDensity } from '@/features/orgs/projects/common/types/dataTableConfigurationTypes';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/constants';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 export const COLUMN_CONFIGURATION_STORAGE_KEY =
@@ -8,8 +8,6 @@ export const COLUMN_CONFIGURATION_STORAGE_KEY =
 
 const DATA_TABLE_CONFIGURATION_STORAGE_KEY =
   'nhost_data_table_configuration_storage';
-
-const CONFIG_HAS_BEEN_CONVERTED_TO_V8_KEY = 'nhost_has_been_converted_to_v8';
 
 type ColumnConfiguration = {
   columnVisibility: VisibilityState;
@@ -20,6 +18,12 @@ type OldColumnConfiguration = {
   hiddenColumns: string[];
   columnOrder: string[];
 };
+
+function isOldFormat(
+  config: ColumnConfiguration | OldColumnConfiguration,
+): config is OldColumnConfiguration {
+  return 'hiddenColumns' in config;
+}
 
 type DataTableViewConfiguration = {
   rowDensity: RowDensity;
@@ -123,47 +127,48 @@ export function saveRowDensity(rowDensity: RowDensity) {
   );
 }
 export function convertToV8IfNeeded() {
-  const isConfigNotConvertedToV8 =
-    localStorage.getItem(CONFIG_HAS_BEEN_CONVERTED_TO_V8_KEY) !== 'true';
-
   const allStoredData = getAllStoredData();
-  if (isConfigNotConvertedToV8 && isNotEmptyValue(allStoredData)) {
-    const convertedData = {
-      ...allStoredData,
-    };
 
-    Object.keys(allStoredData).forEach((key) => {
-      const tableConfiguration = allStoredData[
-        key
-      ] as unknown as OldColumnConfiguration;
+  const needsConversion = Object.values(allStoredData).some((config) =>
+    isOldFormat(config as ColumnConfiguration | OldColumnConfiguration),
+  );
 
-      const { hiddenColumns = [] } = tableConfiguration;
-      if (isNotEmptyValue(hiddenColumns)) {
-        const columnVisibility = hiddenColumns.reduce<VisibilityState>(
+  if (!needsConversion) {
+    return;
+  }
+
+  const convertedData = { ...allStoredData };
+
+  for (const key of Object.keys(allStoredData)) {
+    const entry = allStoredData[key] as unknown as
+      | ColumnConfiguration
+      | OldColumnConfiguration;
+
+    if (!isOldFormat(entry)) {
+      continue;
+    }
+
+    const tableConfiguration = entry;
+
+    const columnVisibility = isNotEmptyValue(tableConfiguration.hiddenColumns)
+      ? tableConfiguration.hiddenColumns.reduce<VisibilityState>(
           (vs, col) => ({
             ...vs,
             [col]: false,
           }),
           {},
-        );
+        )
+      : (convertedData[key].columnVisibility ?? {});
 
-        const columnOrder = isNotEmptyValue(tableConfiguration.columnOrder)
-          ? [SELECTION_COLUMN_ID, ...(tableConfiguration.columnOrder ?? [])]
-          : [];
+    const columnOrder = isNotEmptyValue(tableConfiguration.columnOrder)
+      ? [SELECTION_COLUMN_ID, ...tableConfiguration.columnOrder]
+      : (convertedData[key].columnOrder ?? []);
 
-        const v8TableConfig: ColumnConfiguration = {
-          columnVisibility,
-          columnOrder,
-        };
-        convertedData[key] = v8TableConfig;
-      }
-    });
-
-    localStorage.setItem(
-      COLUMN_CONFIGURATION_STORAGE_KEY,
-      JSON.stringify(convertedData),
-    );
-
-    localStorage.setItem(CONFIG_HAS_BEEN_CONVERTED_TO_V8_KEY, 'true');
+    convertedData[key] = { columnVisibility, columnOrder };
   }
+
+  localStorage.setItem(
+    COLUMN_CONFIGURATION_STORAGE_KEY,
+    JSON.stringify(convertedData),
+  );
 }

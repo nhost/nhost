@@ -1,62 +1,63 @@
 import { useRouter } from 'next/router';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
-import { useSetFunctionTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionTrackingMutation';
+import { useTrackFunctionWithTable } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export interface TrackFunctionButtonProps {
   schema: string;
   functionName: string;
+  returnTableName?: string | null;
+  returnTableSchema?: string | null;
 }
 
 export default function TrackFunctionButton({
   schema,
   functionName,
+  returnTableName,
+  returnTableSchema,
 }: TrackFunctionButtonProps) {
   const { query } = useRouter();
   const { dataSourceSlug } = query;
   const dataSource = (dataSourceSlug as string) || 'default';
 
-  const { data: isTracked, isLoading: isTrackedLoading } = useIsTrackedFunction(
-    {
-      dataSource,
-      schema,
-      functionName,
-      enabled: typeof dataSourceSlug === 'string' && !!schema && !!functionName,
-    },
-  );
-
-  const { data: resourceVersion } = useGetMetadataResourceVersion();
-  const { mutateAsync: setFunctionTracking, isPending: isMutatingTracking } =
-    useSetFunctionTrackingMutation();
+  const {
+    isTracked,
+    isTrackedLoading,
+    isReturnTableUntracked,
+    isPending,
+    trackFunction,
+  } = useTrackFunctionWithTable({
+    dataSource,
+    schema,
+    functionName,
+    returnTableName,
+    returnTableSchema,
+    enabled: typeof dataSourceSlug === 'string' && !!schema && !!functionName,
+  });
 
   const handleTrack = async () => {
-    await execPromiseWithErrorToast(
-      async () => {
-        await setFunctionTracking({
-          tracked: true,
-          resourceVersion,
-          args: {
-            source: dataSource,
-            function: {
-              name: functionName,
-              schema,
-            },
-          },
-        });
-      },
-      {
-        successMessage: 'Function tracked successfully.',
-        loadingMessage: 'Tracking function...',
-        errorMessage: 'Failed to track function.',
-      },
-    );
+    const shouldTrackTable = isReturnTableUntracked;
+
+    await execPromiseWithErrorToast(() => trackFunction(), {
+      loadingMessage: shouldTrackTable
+        ? 'Tracking table and function...'
+        : 'Tracking function...',
+      successMessage: shouldTrackTable
+        ? 'Table and function tracked successfully.'
+        : 'Function tracked successfully.',
+      errorMessage: shouldTrackTable
+        ? 'Failed to track table and function.'
+        : 'Failed to track function.',
+    });
   };
 
   if (isTrackedLoading || isTracked) {
     return null;
   }
+
+  const trackLabel = isReturnTableUntracked
+    ? 'Track table and function'
+    : 'Track now';
 
   return (
     <div className="flex items-center gap-2">
@@ -66,14 +67,14 @@ export default function TrackFunctionButton({
       </span>
       <Button
         onClick={handleTrack}
-        disabled={isMutatingTracking}
-        loading={isMutatingTracking}
+        disabled={isPending}
+        loading={isPending}
         size="sm"
         variant="outline"
         className="border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
       >
         <span className="sm:hidden">Track</span>
-        <span className="hidden sm:inline">Track now</span>
+        <span className="hidden sm:inline">{trackLabel}</span>
       </Button>
     </div>
   );

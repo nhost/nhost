@@ -170,7 +170,7 @@ export default function SMSSettings() {
           }}
           switchId="enabled"
           showSwitch
-          docsLink="https://docs.nhost.io/products/auth/sign-in-sms-otp"
+          docsLink="https://docs.nhost.io/products/auth/otp/sms"
           docsTitle="how to sign in users with a phone number (SMS)"
           className={twMerge(
             'grid grid-flow-col grid-cols-2 grid-rows-4 gap-x-3 gap-y-4 px-4 py-2',

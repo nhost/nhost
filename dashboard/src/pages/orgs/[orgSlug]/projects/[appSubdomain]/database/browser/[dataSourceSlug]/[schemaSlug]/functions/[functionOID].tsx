@@ -31,7 +31,7 @@ DataBrowserFunctionDetailsPage.getLayout = function getLayout(
         className: 'flex h-full',
       }}
     >
-      <DataBrowserSidebar className="w-full max-w-sidebar" />
+      <DataBrowserSidebar />
 
       <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
         {page}
