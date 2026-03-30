@@ -111,6 +111,16 @@ func callbackHandler(
 		}
 
 		code := r.URL.Query().Get("code")
+		if code == "" {
+			fmt.Fprint(w, "Login failed: no authorization code received")
+
+			resultCh <- callbackResult{
+				code: "",
+				err:  errors.New("no authorization code in callback"), //nolint:err113
+			}
+
+			return
+		}
 
 		fmt.Fprint(w, "Login successful. You may close this window.")
 

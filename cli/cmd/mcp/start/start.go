@@ -154,7 +154,7 @@ func registerCloud(
 
 	interceptor, err := ce.NewCloudInterceptor(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating interceptor: %w", err)
 	}
 
 	cloudTool := cloud.NewTool(

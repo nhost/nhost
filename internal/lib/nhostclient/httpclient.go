@@ -1,6 +1,7 @@
 package nhostclient
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -92,7 +93,26 @@ func (r *RetryDoer) Post(
 	url, contentType string,
 	body io.Reader,
 ) (*http.Response, error) {
-	resp, err := r.client.Post(url, contentType, body)
+	var buf []byte
+
+	if body != nil {
+		var err error
+
+		buf, err = io.ReadAll(body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to buffer request body: %w", err)
+		}
+	}
+
+	newBody := func() io.Reader {
+		if buf == nil {
+			return http.NoBody
+		}
+
+		return bytes.NewReader(buf)
+	}
+
+	resp, err := r.client.Post(url, contentType, newBody())
 	if err == nil {
 		return resp, nil
 	}
@@ -100,7 +120,7 @@ func (r *RetryDoer) Post(
 	for i := range r.maxRetries {
 		time.Sleep(time.Duration(i+1) * r.baseDelay)
 
-		resp, err = r.client.Post(url, contentType, body)
+		resp, err = r.client.Post(url, contentType, newBody())
 		if err == nil {
 			return resp, nil
 		}

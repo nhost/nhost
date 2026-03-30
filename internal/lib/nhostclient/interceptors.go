@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
@@ -23,7 +24,7 @@ func WithOAuth2RefreshToken(
 			return fmt.Errorf("failed to refresh access token: %w", err)
 		}
 
-		req.Header.Add("Authorization", "Bearer "+t.AccessToken)
+		req.Header.Set("Authorization", "Bearer "+t.AccessToken)
 
 		return nil
 	}
@@ -36,16 +37,17 @@ func WithPAT(
 	cl auth.ClientWithResponsesInterface,
 	pat string,
 ) func(ctx context.Context, req *http.Request) error {
-	session := &struct {
-		AccessToken string
-		ExpiresAt   time.Time
-	}{
-		AccessToken: "",
-		ExpiresAt:   time.Time{},
-	}
+	var (
+		mu          sync.Mutex
+		accessToken string
+		expiresAt   time.Time
+	)
 
 	return func(ctx context.Context, req *http.Request) error {
-		if time.Now().Add(time.Minute).After(session.ExpiresAt) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		if time.Now().Add(time.Minute).After(expiresAt) {
 			resp, err := cl.SignInPATWithResponse(
 				ctx,
 				auth.SignInPATJSONRequestBody{
@@ -64,12 +66,12 @@ func WithPAT(
 				)
 			}
 
-			session.AccessToken = resp.JSON200.Session.AccessToken
-			session.ExpiresAt = time.Now().Add(
+			accessToken = resp.JSON200.Session.AccessToken
+			expiresAt = time.Now().Add(
 				time.Second * time.Duration(resp.JSON200.Session.AccessTokenExpiresIn))
 		}
 
-		req.Header.Add("Authorization", "Bearer "+session.AccessToken)
+		req.Header.Set("Authorization", "Bearer "+accessToken)
 
 		return nil
 	}
@@ -81,7 +83,7 @@ func WithAdminSecret(
 	adminSecret string,
 ) func(ctx context.Context, req *http.Request) error {
 	return func(_ context.Context, req *http.Request) error {
-		req.Header.Add("X-Hasura-Admin-Secret", adminSecret)
+		req.Header.Set("X-Hasura-Admin-Secret", adminSecret)
 		return nil
 	}
 }
@@ -92,7 +94,7 @@ func WithRole(
 	role string,
 ) func(ctx context.Context, req *http.Request) error {
 	return func(_ context.Context, req *http.Request) error {
-		req.Header.Add("X-Hasura-Role", role)
+		req.Header.Set("X-Hasura-Role", role)
 		return nil
 	}
 }
@@ -103,7 +105,7 @@ func WithUserID(
 	userID string,
 ) func(ctx context.Context, req *http.Request) error {
 	return func(_ context.Context, req *http.Request) error {
-		req.Header.Add("X-Hasura-User-Id", userID)
+		req.Header.Set("X-Hasura-User-Id", userID)
 		return nil
 	}
 }

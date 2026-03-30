@@ -39,6 +39,13 @@ func TestCallbackHandler(t *testing.T) {
 			expectErr:    true,
 			expectedBody: "Login failed: User denied access",
 		},
+		{
+			name:         "missing code",
+			query:        "?state=test-state",
+			expectedCode: "",
+			expectErr:    true,
+			expectedBody: "Login failed: no authorization code received",
+		},
 	}
 
 	for _, tc := range cases {
