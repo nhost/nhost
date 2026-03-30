@@ -4,7 +4,7 @@ import { PartialPermissionIcon } from '@/components/ui/v2/icons/PartialPermissio
 
 export default function PermissionsLegend() {
   return (
-    <div className="grid grid-flow-col items-center justify-start gap-4 font-medium text-sm">
+    <div className="grid grid-flow-col items-center justify-start gap-4 font-medium text-muted-foreground text-xs">
       <span className="grid grid-flow-col items-center gap-1">
         full access <FullPermissionIcon />
       </span>

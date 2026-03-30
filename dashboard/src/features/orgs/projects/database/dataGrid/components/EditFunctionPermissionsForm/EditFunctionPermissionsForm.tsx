@@ -1,4 +1,5 @@
 import NavLink from 'next/link';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
@@ -11,17 +12,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
-import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/v3/table';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { FunctionPermissionsDescription } from '@/features/orgs/projects/database/dataGrid/components/EditFunctionPermissionsForm/FunctionPermissionsDescription';
 import { PermissionsLegend } from '@/features/orgs/projects/database/dataGrid/components/PermissionsLegend';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionPermissionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPermissionQuery';
@@ -31,6 +24,7 @@ import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hoo
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { cn } from '@/lib/utils';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
 
@@ -48,6 +42,10 @@ export interface EditFunctionPermissionsFormProps {
    */
   functionName: string;
   /**
+   * Function OID used to fetch the function definition.
+   */
+  functionOID?: string;
+  /**
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
@@ -57,8 +55,13 @@ export default function EditFunctionPermissionsForm({
   disabled,
   schema,
   functionName,
+  functionOID,
   onCancel,
 }: EditFunctionPermissionsFormProps) {
+  const { query } = useRouter();
+  const { dataSourceSlug } = query;
+  const dataSource = (dataSourceSlug as string) || 'default';
+
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -79,14 +82,15 @@ export default function EditFunctionPermissionsForm({
         name: functionName,
         schema,
       },
-      dataSource: 'default',
+      dataSource,
     });
 
   const { data: functionData, isLoading: isLoadingFunctionData } =
     useFunctionQuery(
-      [`function-definition`, `default.${schema}.${functionName}`],
+      [`function-definition`, `${dataSource}.${schema}.${functionName}`],
       {
-        dataSource: 'default',
+        dataSource,
+        functionOID,
       },
     );
 
@@ -95,28 +99,25 @@ export default function EditFunctionPermissionsForm({
     status: permissionStatus,
     error: permissionError,
   } = useFunctionPermissionQuery(
-    [`function-permissions`, `default.${schema}.${functionName}`],
+    [`function-permissions`, `${dataSource}.${schema}.${functionName}`],
     {
       schema,
       functionName,
-      dataSource: 'default',
+      dataSource,
     },
   );
 
-  // Fetch metadata to check table permissions
   const {
     data: metadata,
     status: metadataStatus,
     error: metadataError,
-  } = useMetadataQuery([`default.metadata`]);
+  } = useMetadataQuery([`${dataSource}.metadata`]);
 
   const { org } = useCurrentOrg();
   const { closeDrawerWithDirtyGuard } = useDialog();
 
-  // State for tracking which role's collapsible is expanded
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
 
-  // Mutation for managing function permissions
   const { mutateAsync: manageFunctionPermission, isPending: isMutating } =
     useManageFunctionPermissionMutation();
 
@@ -129,10 +130,6 @@ export default function EditFunctionPermissionsForm({
       | undefined
   )?.response?.table;
 
-  // Determine the return table name and schema using fallbacks:
-  // 1. Direct table reference from function metadata (returnTableName/returnTableSchema)
-  // 2. Response table from function configuration
-  // 3. Return type name (might match a table name)
   const returnTableName =
     functionData?.functionMetadata?.returnTableName ||
     responseTable?.name ||
@@ -143,8 +140,6 @@ export default function EditFunctionPermissionsForm({
     responseTable?.schema ||
     functionData?.functionMetadata?.returnTypeSchema ||
     null;
-
-  const referencedTable = returnTableName || 'the referenced table';
 
   if (
     hasuraSettingsLoading ||
@@ -168,9 +163,6 @@ export default function EditFunctionPermissionsForm({
     throw metadataError;
   }
 
-  // Collect all roles from the system, similar to Hasura console's rolesSelector
-  // Only include roles that have at least one permission configured in metadata
-  // This excludes roles like 'me', 'anonymous' that are in authRoles but have no permissions
   const metadataRoles = new Set<string>();
   if (metadata?.tables) {
     for (const table of metadata.tables) {
@@ -194,9 +186,7 @@ export default function EditFunctionPermissionsForm({
     }
   }
 
-  // Only use roles from metadata (roles that have permissions configured somewhere)
   const allRoles = Array.from(metadataRoles).sort((a, b) => {
-    // Keep 'public' first, then sort alphabetically
     if (a === 'public') {
       return -1;
     }
@@ -206,17 +196,15 @@ export default function EditFunctionPermissionsForm({
     return a.localeCompare(b);
   });
 
-  // Find the metadata for the return table to check role permissions
   const returnTableMetadata = metadata?.tables?.find(
     ({ table: currentTable }) =>
       currentTable.name === returnTableName &&
       currentTable.schema === returnTableSchema,
   );
 
-  // Check if a role has SELECT permission on the return table
   const roleHasSelectPermission = (role: string): boolean => {
     if (!returnTableMetadata) {
-      return true; // If we can't find the table, assume SELECT is allowed
+      return true;
     }
 
     return (
@@ -226,22 +214,17 @@ export default function EditFunctionPermissionsForm({
     );
   };
 
-  // Show all roles (like Hasura console), not filtered by SELECT permission
-  // The permission state icons will indicate whether SELECT permission exists
   const availableRoles = allRoles;
 
-  // Get permissions and resourceVersion from the custom hook
   const { permissions, resourceVersion } = functionPermissionData || {
     permissions: [],
     resourceVersion: 0,
   };
 
-  // Check if the role is in the function's permissions array
   const hasFunctionPermission = (role: string) => {
     return permissions.some((perm) => perm.role === role);
   };
 
-  // Determine the permission state for a role
   type PermissionState = 'allowed' | 'partial' | 'not-allowed';
   const getPermissionState = (role: string): PermissionState => {
     const hasSelect = roleHasSelectPermission(role);
@@ -256,7 +239,6 @@ export default function EditFunctionPermissionsForm({
     return 'not-allowed';
   };
 
-  // Render the appropriate icon for a permission state
   const renderPermissionIcon = (state: PermissionState) => {
     switch (state) {
       case 'allowed':
@@ -277,7 +259,7 @@ export default function EditFunctionPermissionsForm({
         resourceVersion,
         type: currentlyHasPermission ? 'drop' : 'create',
         args: {
-          source: 'default',
+          source: dataSource,
           function: {
             name: functionName,
             schema,
@@ -303,47 +285,12 @@ export default function EditFunctionPermissionsForm({
     }
   };
 
-  const description = (
-    <>
-      Permissions will be inherited from the SELECT permissions of the
-      referenced table ({referencedTable}) by default.
-      {inferFunctionPermissions === false ? (
-        <>
-          <br />
-          <br />
-          The function will be exposed to the role if SELECT permissions are
-          enabled and function permissions are enabled for the role.
-        </>
-      ) : (
-        <>
-          <br />
-          <br />
-          Function will be exposed automatically if there are SELECT permissions
-          for the role. To expose query functions to roles explicitly, set{' '}
-          <InlineCode className="max-w-none">
-            HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS=false
-          </InlineCode>{' '}
-          in{' '}
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
-            className="text-primary underline-offset-4 hover:underline"
-            onClick={closeDrawerWithDirtyGuard}
-          >
-            Hasura Settings
-          </NavLink>
-          .
-        </>
-      )}
-    </>
-  );
-
   return (
     <div className="box flex flex-auto flex-col content-between overflow-hidden border-t bg-background">
       <div className="flex-auto overflow-hidden">
         <div className="box grid h-full grid-flow-row content-start gap-6 overflow-y-auto border-b p-6">
           <div className="grid grid-flow-row gap-2">
             <h2 className="font-bold">Roles & Permissions overview</h2>
-
             <p>
               Click on a permission cell to toggle function permissions for a
               role.
@@ -351,129 +298,127 @@ export default function EditFunctionPermissionsForm({
           </div>
 
           <div className="box grid grid-flow-row gap-4 border-b pb-4">
-            <p className="text-sm">{description}</p>
+            <div className="max-w-prose space-y-2 text-sm">
+              <FunctionPermissionsDescription
+                schema={schema}
+                dataSource={dataSource}
+                returnTableSchema={returnTableSchema}
+                returnTableName={returnTableName}
+                inferFunctionPermissions={inferFunctionPermissions}
+              />
+            </div>
           </div>
 
           <PermissionsLegend />
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="text-center">Permission</TableHead>
-                </TableRow>
-              </TableHeader>
+          <div>
+            <div className="grid grid-cols-2 items-center">
+              <span className="p-2 text-muted-foreground text-sm">Role</span>
+              <span className="p-2 text-center text-muted-foreground text-sm">
+                Permission
+              </span>
+            </div>
 
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">admin</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center justify-center">
-                      <FullPermissionIcon />
+            <div className="rounded-sm border">
+              <div className="grid grid-cols-2 items-center border-b">
+                <span className="truncate border-r p-2 text-sm">admin</span>
+                <span className="inline-grid items-center justify-center text-center">
+                  <FullPermissionIcon />
+                </span>
+              </div>
+
+              {availableRoles.map((currentRole, index) => {
+                const permState = getPermissionState(currentRole);
+                const hasFuncPerm = hasFunctionPermission(currentRole);
+                const isExpanded = expandedRole === currentRole;
+                const isLast = index === availableRoles.length - 1;
+
+                const stateDescription = {
+                  allowed: 'allowed (has SELECT permission)',
+                  partial:
+                    'partially allowed (missing SELECT permission on table)',
+                  'not-allowed': 'not allowed',
+                }[permState];
+
+                return (
+                  <Collapsible
+                    key={currentRole}
+                    open={isExpanded}
+                    onOpenChange={(open) =>
+                      setExpandedRole(open ? currentRole : null)
+                    }
+                    className={cn(!isLast && 'border-b')}
+                  >
+                    <div className="grid grid-cols-2 items-center">
+                      <span className="truncate border-r p-2 text-sm">
+                        {currentRole}
+                      </span>
+                      <span className="inline-grid h-full w-full items-center p-0 text-center">
+                        {disabled ? (
+                          <span className="inline-grid items-center justify-center">
+                            {renderPermissionIcon(permState)}
+                          </span>
+                        ) : (
+                          <CollapsibleTrigger asChild>
+                            <button
+                              type="button"
+                              className="flex h-full w-full items-center justify-center rounded-none p-2 hover:bg-muted/50"
+                            >
+                              {renderPermissionIcon(permState)}
+                            </button>
+                          </CollapsibleTrigger>
+                        )}
+                      </span>
                     </div>
-                  </TableCell>
-                </TableRow>
+                    <CollapsibleContent>
+                      <div className="border-t bg-muted/30 p-4">
+                        <div className="flex flex-col gap-3">
+                          <p className="text-sm">
+                            This function is <strong>{stateDescription}</strong>{' '}
+                            for role: <strong>{currentRole}</strong>
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setExpandedRole(null)}
+                              disabled={isMutating}
+                            >
+                              Cancel
+                            </Button>
 
-                {availableRoles.map((currentRole) => {
-                  const permState = getPermissionState(currentRole);
-                  const hasFuncPerm = hasFunctionPermission(currentRole);
-                  const isExpanded = expandedRole === currentRole;
-
-                  const stateDescription = {
-                    allowed: 'allowed (has SELECT permission)',
-                    partial:
-                      'partially allowed (missing SELECT permission on table)',
-                    'not-allowed': 'not allowed',
-                  }[permState];
-
-                  return (
-                    <Collapsible
-                      key={currentRole}
-                      asChild
-                      open={isExpanded}
-                      onOpenChange={(open) =>
-                        setExpandedRole(open ? currentRole : null)
-                      }
-                    >
-                      {/* biome-ignore lint/complexity/noUselessFragments: Fragment required for Collapsible with multiple children */}
-                      <>
-                        <TableRow>
-                          <TableCell className="font-medium">
-                            {currentRole}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {disabled ? (
-                              <div className="flex items-center justify-center">
-                                {renderPermissionIcon(permState)}
-                              </div>
-                            ) : (
-                              <CollapsibleTrigger asChild>
-                                <button
-                                  type="button"
-                                  className="flex h-full w-full items-center justify-center rounded p-2 hover:bg-muted/50"
-                                >
-                                  {renderPermissionIcon(permState)}
-                                </button>
-                              </CollapsibleTrigger>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                        <CollapsibleContent asChild>
-                          <TableRow className="bg-muted/30">
-                            <TableCell colSpan={2} className="p-4">
-                              <div className="flex flex-col gap-3">
-                                <p className="text-sm">
-                                  This function is{' '}
-                                  <strong>{stateDescription}</strong> for role:{' '}
-                                  <strong>{currentRole}</strong>
-                                </p>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setExpandedRole(null)}
-                                    disabled={isMutating}
-                                  >
-                                    Cancel
-                                  </Button>
-
-                                  <Button
-                                    variant={
-                                      hasFuncPerm ? 'destructive' : 'default'
-                                    }
-                                    size="sm"
-                                    onClick={() =>
-                                      handleTogglePermission(
-                                        currentRole,
-                                        hasFuncPerm,
-                                      )
-                                    }
-                                    disabled={isMutating}
-                                  >
-                                    {isMutating ? (
-                                      <Spinner className="h-4 w-4" />
-                                    ) : hasFuncPerm ? (
-                                      'Disallow'
-                                    ) : (
-                                      'Allow'
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        </CollapsibleContent>
-                      </>
-                    </Collapsible>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                            <Button
+                              variant={hasFuncPerm ? 'outline' : 'default'}
+                              size="sm"
+                              className={cn(
+                                hasFuncPerm &&
+                                  'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive',
+                              )}
+                              onClick={() =>
+                                handleTogglePermission(currentRole, hasFuncPerm)
+                              }
+                              disabled={isMutating}
+                            >
+                              {isMutating ? (
+                                <Spinner className="h-4 w-4" />
+                              ) : hasFuncPerm ? (
+                                'Delete Permissions'
+                              ) : (
+                                'Allow'
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+            </div>
           </div>
 
-          <Alert>
-            <AlertDescription className="space-y-2">
+          <Alert className="border-none bg-primary/10 text-left">
+            <AlertDescription className="space-y-2 text-sm+">
               <p>
                 Please go to the{' '}
                 <NavLink
@@ -481,7 +426,7 @@ export default function EditFunctionPermissionsForm({
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={closeDrawerWithDirtyGuard}
                 >
-                  Roles and Permissions
+                  Settings page
                 </NavLink>{' '}
                 page to add and delete roles.
               </p>

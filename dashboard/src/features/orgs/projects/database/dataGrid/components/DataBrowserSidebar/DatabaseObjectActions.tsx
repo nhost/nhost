@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import type { DatabaseObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
@@ -76,12 +77,21 @@ function DatabaseObjectActions({
   const isFunction = objectType === 'FUNCTION';
   const hasRelationships = !isFunction;
 
-  const { data: isTracked } = useIsTrackedTable({
+  const { data: isTrackedTable } = useIsTrackedTable({
     dataSource,
     schema,
     tableName: objectName,
     enabled: !isFunction,
   });
+
+  const { data: isTrackedFunction } = useIsTrackedFunction({
+    dataSource,
+    schema,
+    functionName: objectName,
+    enabled: isFunction,
+  });
+
+  const isTracked = isFunction ? isTrackedFunction : isTrackedTable;
 
   function handleOnOpenChange(newOpenState: boolean) {
     if (newOpenState) {

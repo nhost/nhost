@@ -144,6 +144,7 @@ export default function DatabaseObjectListItem({
                     ? handleEditFunctionPermission(
                         databaseObject.schema,
                         databaseObject.name,
+                        databaseObject.oid,
                       )
                     : handleEditPermission(
                         databaseObject.schema,

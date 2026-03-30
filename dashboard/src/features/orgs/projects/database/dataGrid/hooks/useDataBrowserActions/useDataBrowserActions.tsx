@@ -328,15 +328,17 @@ export function useDataBrowserActions({
   function handleEditFunctionPermission(
     schema: string,
     functionName: string,
+    oid?: string,
     disabled?: boolean,
   ) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
-          Permissions
+          Permissions for
           <InlineCode className="!text-sm+ font-normal">
             {functionName}
           </InlineCode>
+          Function
         </span>
       ),
       component: (
@@ -344,6 +346,7 @@ export function useDataBrowserActions({
           disabled={disabled}
           schema={schema}
           functionName={functionName}
+          functionOID={oid}
         />
       ),
       props: {
