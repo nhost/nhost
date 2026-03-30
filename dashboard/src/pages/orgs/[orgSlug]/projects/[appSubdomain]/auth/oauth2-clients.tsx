@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
@@ -31,6 +31,14 @@ import { isVersionGte } from '@/utils/compareVersions';
 const ELEMENTS_PER_PAGE = 25;
 
 export default function OAuth2ClientsPage() {
+  return (
+    <RetryableErrorBoundary>
+      <OAuth2ClientsPageContent />
+    </RetryableErrorBoundary>
+  );
+}
+
+function OAuth2ClientsPageContent() {
   const { openDrawer } = useDialog();
   const { project } = useProject();
   const isPlatform = useIsPlatform();
@@ -196,15 +204,7 @@ export default function OAuth2ClientsPage() {
   }
 
   if (settingsError) {
-    return (
-      <Container className="mx-auto max-w-9xl space-y-5">
-        <Alert severity="error">
-          <Text className="font-medium">
-            Failed to load OAuth2 provider settings. Please try again later.
-          </Text>
-        </Alert>
-      </Container>
-    );
+    throw settingsError;
   }
 
   if (!oauth2Enabled) {
@@ -269,15 +269,7 @@ export default function OAuth2ClientsPage() {
   }
 
   if (clientsError) {
-    return (
-      <Container className="mx-auto max-w-9xl space-y-5">
-        <Alert severity="error">
-          <Text className="font-medium">
-            Failed to load OAuth2 clients. Please try again later.
-          </Text>
-        </Alert>
-      </Container>
-    );
+    throw clientsError;
   }
 
   const clients = clientsData?.authOauth2Clients ?? [];

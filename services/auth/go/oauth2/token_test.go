@@ -688,6 +688,45 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			},
 		},
 		{
+			name: "error - graphql:role scope user lacks role",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				codeUser := sql.AuthUser{ //nolint:exhaustruct
+					ID:          userID,
+					DefaultRole: "user",
+				}
+				m.EXPECT().GetUser(gomock.Any(), userID).Return(codeUser, nil)
+				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
+					[]sql.AuthUserRole{
+						{Role: "user"},   //nolint:exhaustruct
+						{Role: "editor"}, //nolint:exhaustruct
+					}, nil,
+				)
+
+				return m
+			},
+			signer: mock.NewMockSigner,
+			validated: oauth2.ValidatedCodeExchange{
+				UserID:   userID,
+				CodeHash: codeHash,
+				AuthReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+					ClientID: clientID,
+					Scopes:   []string{"graphql:role:superadmin"},
+				},
+			},
+			expectedErr: &oauth2.Error{
+				Err:         "access_denied",
+				Description: "User does not have the requested role",
+			},
+			verifyResp: func(t *testing.T, resp *api.OAuth2TokenResponse) {
+				t.Helper()
+
+				if resp != nil {
+					t.Errorf("expected nil response, got %v", resp)
+				}
+			},
+		},
+		{
 			name: "error - code already consumed",
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
@@ -1477,6 +1516,135 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			expectedErr: &oauth2.Error{
 				Err:         "server_error",
 				Description: "Internal server error",
+			},
+			verifyResp: func(t *testing.T, resp *api.OAuth2TokenResponse) {
+				t.Helper()
+
+				if resp != nil {
+					t.Errorf("expected nil response, got %v", resp)
+				}
+			},
+		},
+		{
+			name: "success - graphql:role scope narrows claims to single role",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				m.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
+				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(userRoles, nil)
+				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
+					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+
+				return m
+			},
+			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
+				m := mock.NewMockSigner(ctrl)
+				m.EXPECT().GraphQLClaims(
+					gomock.Any(), userID, false,
+					[]string{"user"}, "user", nil, gomock.Any(),
+				).Return("https://hasura.io/jwt/claims", map[string]any{
+					"x-hasura-user-id":       userID.String(),
+					"x-hasura-default-role":  "user",
+					"x-hasura-allowed-roles": []string{"user"},
+				}, nil)
+
+				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+					Return("fake-token", nil)
+
+				return m
+			},
+			validated: oauth2.ValidatedRefreshGrant{
+				UserID:    userID,
+				TokenHash: tokenHash,
+				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+					ClientID: clientID,
+					UserID:   userID,
+					Scopes:   []string{"graphql:role:user"},
+				},
+			},
+			expectedErr: nil,
+			verifyResp: func(t *testing.T, resp *api.OAuth2TokenResponse) {
+				t.Helper()
+
+				if resp == nil {
+					t.Fatal("expected non-nil response")
+				}
+
+				if resp.AccessToken != "fake-token" {
+					t.Errorf("expected access token 'fake-token', got %q", resp.AccessToken)
+				}
+			},
+		},
+		{
+			name: "success - multiple graphql:role scopes",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				m.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
+				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(userRoles, nil)
+				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
+					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+
+				return m
+			},
+			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
+				m := mock.NewMockSigner(ctrl)
+				m.EXPECT().GraphQLClaims(
+					gomock.Any(), userID, false,
+					[]string{"user", "editor"}, "user", nil, gomock.Any(),
+				).Return("https://hasura.io/jwt/claims", map[string]any{
+					"x-hasura-user-id":       userID.String(),
+					"x-hasura-default-role":  "user",
+					"x-hasura-allowed-roles": []string{"user", "editor"},
+				}, nil)
+
+				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+					Return("fake-token", nil)
+
+				return m
+			},
+			validated: oauth2.ValidatedRefreshGrant{
+				UserID:    userID,
+				TokenHash: tokenHash,
+				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+					ClientID: clientID,
+					UserID:   userID,
+					Scopes:   []string{"graphql:role:user", "graphql:role:editor"},
+				},
+			},
+			expectedErr: nil,
+			verifyResp: func(t *testing.T, resp *api.OAuth2TokenResponse) {
+				t.Helper()
+
+				if resp == nil {
+					t.Fatal("expected non-nil response")
+				}
+
+				if resp.AccessToken != "fake-token" {
+					t.Errorf("expected access token 'fake-token', got %q", resp.AccessToken)
+				}
+			},
+		},
+		{
+			name: "error - graphql:role scope user lacks requested role",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				m.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
+				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(userRoles, nil)
+
+				return m
+			},
+			signer: mock.NewMockSigner,
+			validated: oauth2.ValidatedRefreshGrant{
+				UserID:    userID,
+				TokenHash: tokenHash,
+				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+					ClientID: clientID,
+					UserID:   userID,
+					Scopes:   []string{"graphql:role:superadmin"},
+				},
+			},
+			expectedErr: &oauth2.Error{
+				Err:         "access_denied",
+				Description: "User does not have the requested role",
 			},
 			verifyResp: func(t *testing.T, resp *api.OAuth2TokenResponse) {
 				t.Helper()
