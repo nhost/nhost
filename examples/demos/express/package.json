@@ -14,11 +14,11 @@
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
     "cookie-parser": "^1.4.7",
-    "express": "^5.1.0"
+    "express": "^5.2.1"
   },
   "devDependencies": {
-    "@types/cookie-parser": "^1.4.8",
-    "@types/express": "^5.0.2",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
     "ts-node": "^10.9.2"
   }
 }
