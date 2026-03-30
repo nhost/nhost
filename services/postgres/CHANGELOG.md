@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### main
+
+- Update extensions script to dynamically update all outdated extensions instead of only timescaledb
+
 ### {16.13,17.9,18.3}-20260320-1
 
 - Updated postgres to 16.13, 17.9 and 18.3
