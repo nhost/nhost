@@ -20,11 +20,13 @@ export default async function manageFunctionPermission({
   type,
   args,
 }: MetadataOperationOptions & ManageFunctionPermissionVariables) {
+  const source = args.source ?? 'default';
+
   const payload =
     type === 'create'
       ? ({
           type: 'bulk',
-          source: 'default',
+          source,
           resource_version: resourceVersion,
           args: [
             {
@@ -35,7 +37,7 @@ export default async function manageFunctionPermission({
         } satisfies CreateFunctionPermissionBulkOperation)
       : ({
           type: 'bulk',
-          source: 'default',
+          source,
           resource_version: resourceVersion,
           args: [
             {
