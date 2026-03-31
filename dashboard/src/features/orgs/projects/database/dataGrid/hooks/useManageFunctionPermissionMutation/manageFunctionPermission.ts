@@ -7,9 +7,13 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
+export type FunctionPermissionOperationType =
+  | 'pg_create_function_permission'
+  | 'pg_drop_function_permission';
+
 export interface ManageFunctionPermissionVariables {
   resourceVersion: number;
-  type: 'create' | 'drop';
+  type: FunctionPermissionOperationType;
   args: CreateFunctionPermissionArgs | DropFunctionPermissionArgs;
 }
 
@@ -22,36 +26,21 @@ export default async function manageFunctionPermission({
 }: MetadataOperationOptions & ManageFunctionPermissionVariables) {
   const source = args.source ?? 'default';
 
-  const payload =
-    type === 'create'
-      ? ({
-          type: 'bulk',
-          source,
-          resource_version: resourceVersion,
-          args: [
-            {
-              type: 'pg_create_function_permission',
-              args,
-            },
-          ],
-        } satisfies CreateFunctionPermissionBulkOperation)
-      : ({
-          type: 'bulk',
-          source,
-          resource_version: resourceVersion,
-          args: [
-            {
-              type: 'pg_drop_function_permission',
-              args,
-            },
-          ],
-        } satisfies DropFunctionPermissionBulkOperation);
-
   try {
-    const response = await metadataOperation(payload, {
-      baseUrl: appUrl,
-      adminSecret,
-    });
+    const response = await metadataOperation(
+      {
+        type: 'bulk',
+        source,
+        resource_version: resourceVersion,
+        args: [{ type, args }],
+      } as
+        | CreateFunctionPermissionBulkOperation
+        | DropFunctionPermissionBulkOperation,
+      {
+        baseUrl: appUrl,
+        adminSecret,
+      },
+    );
 
     if (response.status === 200) {
       return response.data;

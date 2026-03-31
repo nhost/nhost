@@ -257,7 +257,9 @@ export default function EditFunctionPermissionsForm({
     try {
       await manageFunctionPermission({
         resourceVersion,
-        type: currentlyHasPermission ? 'drop' : 'create',
+        type: currentlyHasPermission
+          ? 'pg_drop_function_permission'
+          : 'pg_create_function_permission',
         args: {
           source: dataSource,
           function: {

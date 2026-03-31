@@ -4,9 +4,18 @@ import type {
   DropFunctionPermissionArgs,
 } from '@/utils/hasura-api/generated/schemas';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
+import type { FunctionPermissionOperationType } from './manageFunctionPermission';
+
+const inverseOperation: Record<
+  FunctionPermissionOperationType,
+  FunctionPermissionOperationType
+> = {
+  pg_create_function_permission: 'pg_drop_function_permission',
+  pg_drop_function_permission: 'pg_create_function_permission',
+};
 
 export interface ManageFunctionPermissionMigrationVariables {
-  type: 'create' | 'drop';
+  type: FunctionPermissionOperationType;
   args: CreateFunctionPermissionArgs | DropFunctionPermissionArgs;
   /**
    * Resource version is not used for migrations but is accepted for compatibility
@@ -26,67 +35,18 @@ export default async function manageFunctionPermissionMigration({
   const { role } = args;
   const source = args.source ?? 'default';
 
-  const migrationName =
-    type === 'create'
-      ? `set_permission_role_${role}_function_${functionSchema}_${functionName}`
-      : `drop_permission_role_${role}_function_${functionSchema}_${functionName}`;
-
-  const upStep =
-    type === 'create'
-      ? {
-          type: 'pg_create_function_permission' as const,
-          args: {
-            function: {
-              schema: functionSchema,
-              name: functionName,
-            },
-            role,
-            source,
-          },
-        }
-      : {
-          type: 'pg_drop_function_permission' as const,
-          args: {
-            function: {
-              schema: functionSchema,
-              name: functionName,
-            },
-            role,
-            source,
-          },
-        };
-
-  const downStep =
-    type === 'create'
-      ? {
-          type: 'pg_drop_function_permission' as const,
-          args: {
-            function: {
-              schema: functionSchema,
-              name: functionName,
-            },
-            role,
-            source,
-          },
-        }
-      : {
-          type: 'pg_create_function_permission' as const,
-          args: {
-            function: {
-              schema: functionSchema,
-              name: functionName,
-            },
-            role,
-            source,
-          },
-        };
+  const stepArgs = {
+    function: { schema: functionSchema, name: functionName },
+    role,
+    source,
+  };
 
   try {
     const response = await executeMigration(
       {
-        name: migrationName,
-        up: [upStep],
-        down: [downStep],
+        name: `${type}_role_${role}_function_${functionSchema}_${functionName}`,
+        up: [{ type, args: stepArgs }],
+        down: [{ type: inverseOperation[type], args: stepArgs }],
         datasource: source,
         skip_execution: false,
       },
