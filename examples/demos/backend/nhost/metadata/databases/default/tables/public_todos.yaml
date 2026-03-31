@@ -14,8 +14,39 @@ insert_permissions:
         - details
         - completed
         - user_id
+  - role: user_mcp
+    permission:
+      check: {}
+      set:
+        user_id: X-Hasura-User-Id
+      columns:
+        - created_at
+        - updated_at
+        - title
+        - details
+        - completed
+        - user_id
 select_permissions:
+  - role: public
+    permission:
+      columns:
+        - details
+      filter: {}
+    comment: ""
   - role: user
+    permission:
+      columns:
+        - id
+        - created_at
+        - updated_at
+        - title
+        - details
+        - completed
+        - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user_mcp
     permission:
       columns:
         - id
@@ -39,8 +70,23 @@ update_permissions:
         user_id:
           _eq: X-Hasura-User-Id
       check: null
+  - role: user_mcp
+    permission:
+      columns:
+        - title
+        - details
+        - completed
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
 delete_permissions:
   - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user_mcp
     permission:
       filter:
         user_id:

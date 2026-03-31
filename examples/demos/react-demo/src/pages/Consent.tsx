@@ -13,9 +13,9 @@ interface AuthRequestInfo {
 
 function clientDisplayName(info: AuthRequestInfo): string {
   try {
-    return new URL(info.redirectUri).hostname;
-  } catch {
     return info.clientId;
+  } catch {
+    return new URL(info.redirectUri).hostname;
   }
 }
 

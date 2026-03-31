@@ -3,6 +3,7 @@ package server_test
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -26,6 +27,7 @@ func TestServer(t *testing.T) { //nolint:paralleltest
 			args: []string{
 				"mcp",
 				"--graphql-endpoint=http://localhost:8080/v1/graphql",
+				"--auth-url=http://localhost:4000",
 			},
 			expectedInstructions: "",
 			expectedTools:        defaultTools(),
@@ -35,6 +37,7 @@ func TestServer(t *testing.T) { //nolint:paralleltest
 			args: []string{
 				"mcp",
 				"--graphql-endpoint=http://localhost:8080/v1/graphql",
+				"--auth-url=http://localhost:4000",
 				"--mcp-instructions=Custom server instructions",
 				"--query-instructions=Custom query instructions",
 				"--mutation-instructions=Custom mutation instructions",
@@ -49,8 +52,10 @@ func TestServer(t *testing.T) { //nolint:paralleltest
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := server.Command("")
 
-			cmd.Action = func(_ context.Context, cmd *cli.Command) error {
-				s, err := server.BuildServer(cmd)
+			cmd.Action = func(ctx context.Context, cmd *cli.Command) error {
+				logger := slog.New(slog.DiscardHandler)
+
+				s, err := server.BuildServer(ctx, logger, cmd)
 				if err != nil {
 					return fmt.Errorf("problem building server: %w", err)
 				}

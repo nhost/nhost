@@ -15,19 +15,19 @@ This document contains patterns, conventions, and workflows for implementing new
 
 ```
 services/mcp/
-├── main.go                 # Entry point
+├── main.go                          # Entry point
 ├── server/
-│   ├── server.go          # MCP server setup, CLI command, HTTP handler composition
-│   ├── middleware.go      # Request/response logging with trace IDs
-│   └── server_test.go     # Server initialization and tool registration tests
+│   ├── server.go                    # MCP server setup, CLI command, HTTP handler composition
+│   └── server_test.go               # Server initialization and tool registration tests
 ├── auth/
-│   ├── auth.go            # OAuth2/OIDC middleware, JWT validation, discovery endpoints
-│   └── auth_test.go       # Auth middleware and discovery endpoint tests
+│   ├── auth.go                      # OAuth2/OIDC middleware, JWT validation, discovery endpoints
+│   └── auth_test.go                 # Auth middleware and discovery endpoint tests
 ├── tools/
-│   ├── query.go           # GraphQL query and mutation tools
-│   └── schema.go          # Schema introspection and summarization tool
-├── project.nix            # Nix build configuration
-└── Makefile               # Standard shared Makefile targets
+│   ├── query.go                     # GraphQL query and mutation tools
+│   ├── schema.go                    # Schema introspection and summarization tool
+│   └── query_internal_test.go       # Tool handler tests
+├── project.nix                      # Nix build configuration
+└── Makefile                         # Standard shared Makefile targets
 ```
 
 GraphQL query parsing and validation lives in `cli/mcp/graphql/` (shared with the CLI MCP server).
@@ -95,19 +95,20 @@ Add tool verification to `server/server_test.go` to confirm registration and cor
 
 ## Authentication Flow
 
-The auth middleware (`auth/auth.go`) implements OAuth2/OIDC:
+The auth middleware (`auth/auth.go`) implements OAuth2 with PKCE for MCP clients:
 
-1. Client sends `Authorization: Bearer <token>` header
-2. Middleware discovers JWKS endpoint from the auth server's `/.well-known/openid-configuration`
-3. JWT is validated (signature, issuer, expiration)
-4. Authorization header is propagated to tool handlers via context
-5. Tool handlers forward the header to downstream GraphQL requests via `authorizationInterceptor`
+1. MCP client discovers auth requirements via `/.well-known/oauth-protected-resource`
+2. Client obtains a token from the authorization server (Nhost Auth) using the OAuth2 authorization code flow with PKCE
+3. Client sends `Authorization: Bearer <token>` header on MCP requests
+4. Middleware fetches JWKS from `<auth-url>/.well-known/jwks.json` and validates the JWT (signature, issuer, expiration)
+5. The validated JWT (and its Authorization header) are propagated to tool handlers via context
+6. Tool handlers forward the Authorization header to downstream GraphQL requests via `authorizationInterceptor`, so Hasura enforces permissions based on the JWT's Hasura claims
 
 **Discovery endpoints** served by the MCP server:
-- `/.well-known/oauth-authorization-server` - server metadata
-- `/.well-known/oauth-protected-resource` - resource metadata
+- `/.well-known/oauth-authorization-server` - authorization server metadata (issuer, token endpoint, supported grants/scopes)
+- `/.well-known/oauth-protected-resource` - resource metadata (resource URI, authorized servers, supported scopes)
 
-Auth is optional - when `--auth-url` is not set, requests proceed unauthenticated.
+**Role enforcement**: The `--enforce-role` flag checks that the JWT's `x-hasura-default-role` Hasura claim matches the specified role. When set, requests whose token carries a different default role receive a 403 Forbidden response. OAuth2 scopes (`openid`, `graphql`) are always advertised in the well-known endpoints.
 
 ## GraphQL Query Validation
 
@@ -117,20 +118,6 @@ Queries and mutations are validated against allowlists before execution (`cli/mc
 - Rejects subscriptions
 - Checks top-level selection fields against `allowedQueries` / `allowedMutations`
 - Supports `"*"` wildcard to allow any operation
-
-## CLI Flags
-
-```
---listen-addr             HTTP listen address (default: :3000)
---graphql-endpoint        GraphQL endpoint URL (required)
---mcp-instructions        Server-level instructions
---query-instructions      Query tool instructions
---mutation-instructions   Mutation tool instructions
---schema-instructions     Schema tool instructions
---auth-url                OAuth2 auth server URL (enables auth)
---realm                   WWW-Authenticate realm
---scopes                  OAuth2 scopes (default: openid, graphql)
-```
 
 ## Testing
 

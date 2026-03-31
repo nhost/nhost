@@ -1,20 +1,31 @@
 package auth_test
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
+	"log/slog"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/mcp/auth"
 )
+
+func TestMain(m *testing.M) {
+	gin.SetMode(gin.TestMode)
+	os.Exit(m.Run())
+}
 
 func TestAuth(t *testing.T) { //nolint:paralleltest
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -25,15 +36,15 @@ func TestAuth(t *testing.T) { //nolint:paralleltest
 	authServer := newTestAuthServer(t, &privateKey.PublicKey)
 	t.Cleanup(authServer.Close)
 
-	a, err := auth.New(context.Background(), authServer.URL, "test-realm", nil)
+	a, err := auth.New(context.Background(), authServer.URL, "test-realm", "")
 	if err != nil {
 		t.Fatalf("failed to create auth: %v", err)
 	}
 
-	backend := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
+	router := gin.New()
+	router.POST("/mcp", a.Middleware(), func(c *gin.Context) {
+		c.Status(http.StatusOK)
 	})
-	handler := a.Middleware(backend)
 
 	tests := []struct {
 		name           string
@@ -87,7 +98,7 @@ func TestAuth(t *testing.T) { //nolint:paralleltest
 			}
 
 			rr := httptest.NewRecorder()
-			handler.ServeHTTP(rr, req)
+			router.ServeHTTP(rr, req)
 
 			if rr.Code != tc.expectedStatus {
 				t.Errorf(
@@ -102,6 +113,139 @@ func TestAuth(t *testing.T) { //nolint:paralleltest
 				if wwwAuth == "" {
 					t.Error("expected WWW-Authenticate header")
 				}
+
+				if !strings.Contains(wwwAuth, `resource_metadata="http://`) {
+					t.Errorf(
+						"expected resource_metadata to use http:// scheme, got: %s",
+						wwwAuth,
+					)
+				}
+			}
+		})
+	}
+}
+
+func TestMiddlewareSessionLogging(t *testing.T) { //nolint:paralleltest
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("failed to generate RSA key: %v", err)
+	}
+
+	authServer := newTestAuthServer(t, &privateKey.PublicKey)
+	t.Cleanup(authServer.Close)
+
+	a, err := auth.New(context.Background(), authServer.URL, "test-realm", "")
+	if err != nil {
+		t.Fatalf("failed to create auth: %v", err)
+	}
+
+	var logBuf bytes.Buffer
+
+	logger := slog.New(slog.NewJSONHandler(&logBuf, nil))
+
+	router := gin.New()
+	router.Use(middleware.Logger(logger))
+	router.POST("/mcp", a.Middleware(), func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/mcp", nil)
+	req.Header.Set(
+		"Authorization",
+		"Bearer "+makeToken(t, privateKey, authServer.URL, false),
+	)
+
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rr.Code)
+	}
+
+	logOutput := logBuf.String()
+
+	for _, expected := range []string{
+		`"sub"`,
+		`"test-user"`,
+		`"x-hasura-user-id"`,
+		`"test-user-id"`,
+		`"x-hasura-default-role"`,
+		`"user"`,
+		`"x-hasura-allowed-roles"`,
+	} {
+		if !strings.Contains(logOutput, expected) {
+			t.Errorf(
+				"expected log output to contain %s, got:\n%s",
+				expected,
+				logOutput,
+			)
+		}
+	}
+}
+
+func TestEnforceRole(t *testing.T) { //nolint:paralleltest
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("failed to generate RSA key: %v", err)
+	}
+
+	authServer := newTestAuthServer(t, &privateKey.PublicKey)
+	t.Cleanup(authServer.Close)
+
+	tests := []struct {
+		name           string
+		enforceRole    string
+		expectedStatus int
+	}{
+		{
+			name:           "matching role",
+			enforceRole:    "user",
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "mismatched role",
+			enforceRole:    "admin",
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "no enforcement",
+			enforceRole:    "",
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for _, tc := range tests { //nolint:paralleltest
+		t.Run(tc.name, func(t *testing.T) {
+			a, err := auth.New(
+				context.Background(),
+				authServer.URL,
+				"test-realm",
+				tc.enforceRole,
+			)
+			if err != nil {
+				t.Fatalf("failed to create auth: %v", err)
+			}
+
+			router := gin.New()
+			router.POST("/mcp", a.Middleware(), func(c *gin.Context) {
+				c.Status(http.StatusOK)
+			})
+
+			req := httptest.NewRequest(http.MethodPost, "/mcp", nil)
+			req.Header.Set(
+				"Authorization",
+				"Bearer "+makeToken(t, privateKey, authServer.URL, false),
+			)
+
+			rr := httptest.NewRecorder()
+			router.ServeHTTP(rr, req)
+
+			if rr.Code != tc.expectedStatus {
+				t.Errorf(
+					"expected status %d, got %d",
+					tc.expectedStatus,
+					rr.Code,
+				)
 			}
 		})
 	}
@@ -120,7 +264,7 @@ func TestDiscoveryEndpoints(t *testing.T) { //nolint:paralleltest
 		context.Background(),
 		authServer.URL,
 		"test-realm",
-		[]string{"openid", "graphql"},
+		"",
 	)
 	if err != nil {
 		t.Fatalf("failed to create auth: %v", err)
@@ -128,16 +272,19 @@ func TestDiscoveryEndpoints(t *testing.T) { //nolint:paralleltest
 
 	tests := []struct {
 		name    string
-		handler http.HandlerFunc
+		path    string
+		handler gin.HandlerFunc
 		check   func(t *testing.T, body map[string]any)
 	}{
 		{
 			name:    "oauth-authorization-server",
+			path:    "/.well-known/oauth-authorization-server",
 			handler: a.AuthorizationServerHandler(),
 			check:   checkAuthorizationServer(authServer.URL),
 		},
 		{
 			name:    "oauth-protected-resource",
+			path:    "/.well-known/oauth-protected-resource",
 			handler: a.ProtectedResourceHandler(),
 			check:   checkProtectedResource(authServer.URL),
 		},
@@ -145,10 +292,13 @@ func TestDiscoveryEndpoints(t *testing.T) { //nolint:paralleltest
 
 	for _, tc := range tests { //nolint:paralleltest
 		t.Run(tc.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			router := gin.New()
+			router.GET(tc.path, tc.handler)
+
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rr := httptest.NewRecorder()
 
-			tc.handler.ServeHTTP(rr, req)
+			router.ServeHTTP(rr, req)
 
 			if rr.Code != http.StatusOK {
 				t.Fatalf("expected 200, got %d", rr.Code)
@@ -201,6 +351,15 @@ func checkProtectedResource(
 ) func(t *testing.T, body map[string]any) {
 	return func(t *testing.T, body map[string]any) {
 		t.Helper()
+
+		resource, ok := body["resource"].(string)
+		if !ok {
+			t.Fatal("expected resource string")
+		}
+
+		if !strings.HasPrefix(resource, "http://") {
+			t.Errorf("expected resource to use http:// scheme, got %s", resource)
+		}
 
 		servers, ok := body["authorization_servers"].([]any)
 		if !ok || len(servers) == 0 {
@@ -288,6 +447,11 @@ func makeToken(
 		"iss": issuer,
 		"iat": jwt.NewNumericDate(now),
 		"exp": jwt.NewNumericDate(exp),
+		"https://hasura.io/jwt/claims": map[string]any{
+			"x-hasura-user-id":       "test-user-id",
+			"x-hasura-default-role":  "user",
+			"x-hasura-allowed-roles": []string{"user", "me"},
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)

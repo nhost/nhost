@@ -1,0 +1,37 @@
+name = 'mcp'
+command = ['mcp']
+
+[image]
+image = 'nhost/mcp:0.0.7'
+
+[[environment]]
+name = 'MCP_AUTH_URL'
+value = 'https://local.auth.local.nhost.run/v1'
+
+[[environment]]
+name = 'MCP_REALM'
+value = 'https://mytodoapp.local'
+
+[[environment]]
+name = 'MCP_GRAPHQL_ENDPOINT'
+value = 'http://hasura-service:8080/v1/graphql'
+
+[[environment]]
+name = 'MCP_INSTRUCTIONS'
+value = 'This MCP server interacts with my ToDo app'
+
+[[environment]]
+name = 'MCP_ENFORCE_ROLE'
+value = 'user_mcp'
+
+[[ports]]
+port = 3000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 125
+memory = 256

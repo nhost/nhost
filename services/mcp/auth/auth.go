@@ -2,27 +2,38 @@ package auth
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
 	"github.com/MicahParks/keyfunc/v3"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 )
 
 var (
 	ErrMissingToken = errors.New("missing bearer token")
 	ErrInvalidToken = errors.New("invalid bearer token")
+	ErrRoleMismatch = errors.New("token default role does not match enforced role")
 )
 
+func scopesForRole(enforceRole string) []string {
+	if enforceRole != "" {
+		return []string{"openid", "graphql:role:" + enforceRole}
+	}
+
+	return []string{"openid", "graphql"}
+}
+
 type Auth struct {
-	authURL  string
-	realm    string
-	scopes   []string
-	keyfunc  keyfunc.Keyfunc
-	metadata AuthorizationServerMetadata
+	authURL     string
+	realm       string
+	enforceRole string
+	keyfunc     keyfunc.Keyfunc
+	metadata    AuthorizationServerMetadata
 }
 
 type AuthorizationServerMetadata struct {
@@ -49,7 +60,7 @@ func New(
 	ctx context.Context,
 	authURL string,
 	realm string,
-	scopes []string,
+	enforceRole string,
 ) (*Auth, error) {
 	authURL = strings.TrimRight(authURL, "/")
 
@@ -65,7 +76,7 @@ func New(
 		JWKSURI:                           jwksURL,
 		AuthorizationEndpoint:             authURL + "/oauth2/authorize",
 		TokenEndpoint:                     authURL + "/oauth2/token",
-		ScopesSupported:                   scopes,
+		ScopesSupported:                   scopesForRole(enforceRole),
 		ResponseTypesSupported:            []string{"code"},
 		GrantTypesSupported:               []string{"authorization_code", "refresh_token"},
 		TokenEndpointAuthMethodsSupported: []string{"none"},
@@ -74,53 +85,103 @@ func New(
 	}
 
 	return &Auth{
-		authURL:  authURL,
-		realm:    realm,
-		scopes:   scopes,
-		keyfunc:  kf,
-		metadata: metadata,
+		authURL:     authURL,
+		realm:       realm,
+		enforceRole: enforceRole,
+		keyfunc:     kf,
+		metadata:    metadata,
 	}, nil
 }
 
-func (a *Auth) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, err := a.extractAndValidateToken(r)
+func (a *Auth) Middleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token, err := a.extractAndValidateToken(c.Request)
 		if err != nil {
-			a.writeUnauthorized(w, r)
+			_ = c.Error(err)
+
+			a.writeUnauthorized(c)
+
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), jwtContextKey{}, token)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
+		if a.enforceRole != "" {
+			if err := a.checkRole(token); err != nil {
+				_ = c.Error(err)
+				c.AbortWithStatus(http.StatusForbidden)
 
-func (a *Auth) AuthorizationServerHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		if err := json.NewEncoder(w).Encode(a.metadata); err != nil {
-			http.Error(w, "failed to encode metadata", http.StatusInternalServerError)
+				return
+			}
 		}
+
+		ctx := context.WithValue(c.Request.Context(), jwtContextKey{}, token)
+
+		logger := middleware.LoggerFromContext(ctx)
+		logger = logger.With(sessionAttributes(token))
+		ctx = middleware.LoggerToContext(ctx, logger)
+
+		c.Request = c.Request.WithContext(ctx)
+		c.Next()
 	}
 }
 
-func (a *Auth) ProtectedResourceHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		resource := "https://" + r.Host
+func (a *Auth) checkRole(token *jwt.Token) error {
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return ErrRoleMismatch
+	}
 
-		resp := ProtectedResourceMetadata{
+	hasuraClaims, ok := claims[hasuraClaimsNamespace].(map[string]any)
+	if !ok {
+		return ErrRoleMismatch
+	}
+
+	defaultRole, ok := hasuraClaims["x-hasura-default-role"].(string)
+	if !ok || defaultRole != a.enforceRole {
+		return ErrRoleMismatch
+	}
+
+	return nil
+}
+
+const hasuraClaimsNamespace = "https://hasura.io/jwt/claims"
+
+func sessionAttributes(token *jwt.Token) slog.Attr {
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return slog.Group("session")
+	}
+
+	attrs := make([]any, 0)
+
+	if sub, ok := claims["sub"].(string); ok {
+		attrs = append(attrs, slog.String("sub", sub))
+	}
+
+	if hasuraClaims, ok := claims[hasuraClaimsNamespace].(map[string]any); ok {
+		for key, value := range hasuraClaims {
+			attrs = append(attrs, slog.Any(key, value))
+		}
+	}
+
+	return slog.Group("session", attrs...)
+}
+
+func (a *Auth) AuthorizationServerHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, a.metadata)
+	}
+}
+
+func (a *Auth) ProtectedResourceHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		resource := requestScheme(c.Request) + "://" + c.Request.Host
+
+		c.JSON(http.StatusOK, ProtectedResourceMetadata{
 			Resource:             resource,
 			AuthorizationServers: []string{a.authURL},
-			ScopesSupported:      a.scopes,
+			ScopesSupported:      scopesForRole(a.enforceRole),
 			ResourceName:         "",
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
-			http.Error(w, "failed to encode metadata", http.StatusInternalServerError)
-		}
+		})
 	}
 }
 
@@ -158,11 +219,11 @@ func (a *Auth) extractAndValidateToken(r *http.Request) (*jwt.Token, error) {
 	return token, nil
 }
 
-func (a *Auth) writeUnauthorized(w http.ResponseWriter, r *http.Request) {
-	resourceMetadataURL := "https://" + r.Host +
+func (a *Auth) writeUnauthorized(c *gin.Context) {
+	resourceMetadataURL := requestScheme(c.Request) + "://" + c.Request.Host +
 		"/.well-known/oauth-protected-resource"
 
-	w.Header().Set(
+	c.Header(
 		"WWW-Authenticate",
 		fmt.Sprintf(
 			`Bearer realm="%s", resource_metadata="%s"`,
@@ -170,7 +231,19 @@ func (a *Auth) writeUnauthorized(w http.ResponseWriter, r *http.Request) {
 			resourceMetadataURL,
 		),
 	)
-	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	c.AbortWithStatus(http.StatusUnauthorized)
+}
+
+func requestScheme(r *http.Request) string {
+	if r.TLS != nil {
+		return "https"
+	}
+
+	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
+		return proto
+	}
+
+	return "http"
 }
 
 type jwtContextKey struct{}

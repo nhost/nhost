@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	mcpserver "github.com/mark3labs/mcp-go/server"
+	"github.com/nhost/nhost/cli/mcp/graphql"
+	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/mcp/auth"
 	"github.com/nhost/nhost/services/mcp/tools"
 	"github.com/urfave/cli/v3"
@@ -21,6 +23,8 @@ var ErrGraphqlEndpointRequired = errors.New("graphql-endpoint is required")
 
 const (
 	FlagListenAddr           = "listen-addr"
+	FlagDebug                = "debug"
+	FlagLogFormatTEXT        = "log-format-text"
 	FlagGraphqlEndpoint      = "graphql-endpoint"
 	FlagMCPInstructions      = "mcp-instructions"
 	FlagQueryInstructions    = "query-instructions"
@@ -28,7 +32,7 @@ const (
 	FlagSchemaInstructions   = "schema-instructions"
 	FlagAuthURL              = "auth-url"
 	FlagRealm                = "realm"
-	FlagScopes               = "scopes"
+	FlagEnforceRole          = "enforce-role"
 
 	shutdownTimeout = 5 * time.Second
 )
@@ -44,6 +48,18 @@ func Command(version string) *cli.Command {
 				Usage:    "HTTP listen address",
 				Value:    ":3000",
 				Sources:  cli.EnvVars("MCP_LISTEN_ADDR"),
+				Category: "Server",
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:     FlagDebug,
+				Usage:    "Enable debug logging",
+				Sources:  cli.EnvVars("MCP_DEBUG"),
+				Category: "Server",
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:     FlagLogFormatTEXT,
+				Usage:    "Format logs in plain text instead of JSON",
+				Sources:  cli.EnvVars("MCP_LOG_FORMAT_TEXT"),
 				Category: "Server",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -81,6 +97,7 @@ func Command(version string) *cli.Command {
 				Name:     FlagAuthURL,
 				Usage:    "OAuth2 authorization server URL (enables authentication)",
 				Sources:  cli.EnvVars("MCP_AUTH_URL"),
+				Required: true,
 				Category: "Auth",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -89,11 +106,10 @@ func Command(version string) *cli.Command {
 				Sources:  cli.EnvVars("MCP_REALM"),
 				Category: "Auth",
 			},
-			&cli.StringSliceFlag{ //nolint:exhaustruct
-				Name:     FlagScopes,
-				Usage:    "OAuth2 scopes required by this resource (e.g. openid, graphql)",
-				Sources:  cli.EnvVars("MCP_SCOPES"),
-				Value:    []string{"openid", "graphql"},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     FlagEnforceRole,
+				Usage:    "Enforce that the JWT's default Hasura role matches this value",
+				Sources:  cli.EnvVars("MCP_ENFORCE_ROLE"),
 				Category: "Auth",
 			},
 		},
@@ -101,7 +117,11 @@ func Command(version string) *cli.Command {
 	}
 }
 
-func BuildServer(cmd *cli.Command) (*mcpserver.MCPServer, error) {
+func BuildServer(
+	ctx context.Context,
+	logger *slog.Logger,
+	cmd *cli.Command,
+) (*mcpserver.MCPServer, error) {
 	graphqlEndpoint := cmd.String(FlagGraphqlEndpoint)
 	if graphqlEndpoint == "" {
 		return nil, ErrGraphqlEndpointRequired
@@ -112,8 +132,25 @@ func BuildServer(cmd *cli.Command) (*mcpserver.MCPServer, error) {
 		version = cmd.Root().Version
 	}
 
+	instructions := cmd.String(FlagMCPInstructions)
+
+	schemaSummary, err := fetchSchemaSummary(ctx, graphqlEndpoint)
+	if err != nil {
+		logger.WarnContext(
+			ctx,
+			"failed to fetch schema summary for instructions",
+			slog.String("error", err.Error()),
+		)
+	} else {
+		if instructions != "" {
+			instructions += "\n\n"
+		}
+
+		instructions += "## Schema\n\n" + schemaSummary
+	}
+
 	opts := []mcpserver.ServerOption{}
-	if instructions := cmd.String(FlagMCPInstructions); instructions != "" {
+	if instructions != "" {
 		opts = append(opts, mcpserver.WithInstructions(instructions))
 	}
 
@@ -132,69 +169,99 @@ func BuildServer(cmd *cli.Command) (*mcpserver.MCPServer, error) {
 	return mcpServer, nil
 }
 
-func action(ctx context.Context, cmd *cli.Command) error {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{ //nolint:exhaustruct
-		Level: slog.LevelInfo,
-	}))
+func fetchSchemaSummary(
+	ctx context.Context,
+	graphqlEndpoint string,
+) (string, error) {
+	var introspection graphql.ResponseIntrospection
+	if err := graphql.Query(
+		ctx,
+		graphqlEndpoint,
+		graphql.IntrospectionQuery,
+		nil,
+		&introspection,
+		[]string{"*"},
+		nil,
+	); err != nil {
+		return "", fmt.Errorf("introspection query failed: %w", err)
+	}
 
-	mcpServer, err := BuildServer(cmd)
+	return graphql.SummarizeSchema(introspection), nil
+}
+
+func action(ctx context.Context, cmd *cli.Command) error {
+	logger := getLogger(cmd.Bool(FlagDebug), cmd.Bool(FlagLogFormatTEXT))
+
+	logFlags(ctx, logger, cmd)
+
+	mcpServer, err := BuildServer(ctx, logger, cmd)
 	if err != nil {
 		return fmt.Errorf("failed to build server: %w", err)
 	}
 
 	listenAddr := cmd.String(FlagListenAddr)
 
-	httpHandler, err := buildHTTPHandler(ctx, cmd, mcpServer)
+	router, err := buildRouter(ctx, cmd, mcpServer, logger)
 	if err != nil {
-		return fmt.Errorf("failed to build HTTP handler: %w", err)
+		return fmt.Errorf("failed to build router: %w", err)
 	}
 
-	httpHandler = loggingMiddleware(logger)(httpHandler)
-
-	logger.InfoContext(
-		ctx, "starting mcp service",
-		slog.String("version", cmd.Root().Version),
-		slog.String("addr", listenAddr),
-		slog.String("graphql-endpoint", cmd.String(FlagGraphqlEndpoint)),
-		slog.String("auth-url", cmd.String(FlagAuthURL)),
-	)
-
-	return serve(ctx, logger, listenAddr, httpHandler)
+	return serve(ctx, logger, listenAddr, router)
 }
 
-func buildHTTPHandler(
+func buildRouter(
 	ctx context.Context,
 	cmd *cli.Command,
 	mcpServer *mcpserver.MCPServer,
-) (http.Handler, error) {
+	logger *slog.Logger,
+) (*gin.Engine, error) {
 	mcpHTTP := mcpserver.NewStreamableHTTPServer(
 		mcpServer,
 		mcpserver.WithHTTPContextFunc(tools.AuthorizationToContext),
-		mcpserver.WithEndpointPath("/"),
 	)
-	authURL := cmd.String(FlagAuthURL)
 
+	router := gin.New()
+	router.Use(
+		gin.Recovery(),
+		middleware.Logger(logger), //nolint:contextcheck
+	)
+
+	mcpHandler := gin.WrapH(mcpHTTP)
+
+	authURL := cmd.String(FlagAuthURL)
 	if authURL == "" {
-		return mcpHTTP, nil
+		router.POST("/", mcpHandler)
+		router.GET("/", mcpHandler)
+		router.DELETE("/", mcpHandler)
+
+		return router, nil
 	}
 
-	a, err := auth.New(ctx, authURL, cmd.String(FlagRealm), cmd.StringSlice(FlagScopes))
+	a, err := auth.New(
+		ctx,
+		authURL,
+		cmd.String(FlagRealm),
+		cmd.String(FlagEnforceRole),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize auth: %w", err)
 	}
 
-	mux := http.NewServeMux()
-	mux.Handle(
+	router.GET(
 		"/.well-known/oauth-protected-resource",
 		a.ProtectedResourceHandler(),
 	)
-	mux.Handle(
+	router.GET(
 		"/.well-known/oauth-authorization-server",
 		a.AuthorizationServerHandler(),
 	)
-	mux.Handle("/", a.Middleware(mcpHTTP))
 
-	return mux, nil
+	authMiddleware := a.Middleware() //nolint:contextcheck
+	router.POST("/", authMiddleware, mcpHandler)
+	router.GET("/", authMiddleware, mcpHandler)
+	router.DELETE("/", authMiddleware, mcpHandler)
+
+	return router, nil
 }
 
 func serve(
