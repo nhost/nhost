@@ -122,14 +122,22 @@ export default function EditFunctionPermissionsForm({
   const { mutateAsync: manageFunctionPermission, isPending: isMutating } =
     useManageFunctionPermissionMutation();
 
-  // Get the referenced table from function configuration or return type.
-  // The generated FunctionConfiguration type doesn't include `response`, but
-  // Hasura may return it at runtime for functions that reference a table.
-  const responseTable = (
-    functionConfig?.configuration as
-      | { response?: { table?: { name?: string; schema?: string } } }
-      | undefined
-  )?.response?.table;
+  // The generated FunctionConfiguration type doesn't include `response` or
+  // `exposed_as`, but Hasura may return them at runtime.
+  const runtimeConfig = functionConfig?.configuration as
+    | {
+        response?: { table?: { name?: string; schema?: string } };
+        exposed_as?: 'mutation' | 'query';
+      }
+    | undefined;
+
+  const responseTable = runtimeConfig?.response?.table;
+
+  const exposedAs = runtimeConfig?.exposed_as;
+  const isMutationFunction =
+    exposedAs === 'mutation' ||
+    (exposedAs == null &&
+      functionData?.functionMetadata?.functionType === 'VOLATILE');
 
   const returnTableName =
     functionData?.functionMetadata?.returnTableName ||
@@ -230,7 +238,7 @@ export default function EditFunctionPermissionsForm({
   const getPermissionState = (role: string): PermissionState => {
     const hasSelect = roleHasSelectPermission(role);
 
-    if (inferFunctionPermissions) {
+    if (inferFunctionPermissions && !isMutationFunction) {
       return hasSelect ? 'allowed' : 'not-allowed';
     }
 
@@ -313,6 +321,7 @@ export default function EditFunctionPermissionsForm({
                 returnTableSchema={returnTableSchema}
                 returnTableName={returnTableName}
                 inferFunctionPermissions={inferFunctionPermissions}
+                isMutationFunction={isMutationFunction}
               />
             </div>
           </div>
@@ -362,7 +371,7 @@ export default function EditFunctionPermissionsForm({
                         {currentRole}
                       </span>
                       <span className="inline-grid h-full w-full items-center p-0 text-center">
-                        {disabled || inferFunctionPermissions ? (
+                        {disabled || (inferFunctionPermissions && !isMutationFunction) ? (
                           <span className="inline-grid items-center justify-center">
                             {renderPermissionIcon(permState)}
                           </span>

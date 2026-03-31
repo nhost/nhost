@@ -10,6 +10,7 @@ export interface FunctionPermissionsDescriptionProps {
   returnTableSchema: string | null;
   returnTableName: string | null;
   inferFunctionPermissions?: boolean | null;
+  isMutationFunction?: boolean;
 }
 
 export function FunctionPermissionsDescription({
@@ -18,6 +19,7 @@ export function FunctionPermissionsDescription({
   returnTableSchema,
   returnTableName,
   inferFunctionPermissions,
+  isMutationFunction,
 }: FunctionPermissionsDescriptionProps) {
   const { org } = useCurrentOrg();
   const { project } = useProject();
@@ -39,7 +41,7 @@ export function FunctionPermissionsDescription({
         </NavLink>
         ) by default.
       </p>
-      {inferFunctionPermissions !== false && (
+      {inferFunctionPermissions !== false && !isMutationFunction && (
         <p>
           Function will be exposed automatically if there are SELECT permissions
           for the role. To expose query functions to roles explicitly, set{' '}
