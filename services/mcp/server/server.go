@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -32,6 +34,7 @@ const (
 	FlagAuthURL              = "auth-url"
 	FlagRealm                = "realm"
 	FlagEnforceRole          = "enforce-role"
+	FlagBrowserHTMLPath      = "browser-html-path"
 
 	shutdownTimeout = 5 * time.Second
 )
@@ -110,6 +113,12 @@ func Command(version string) *cli.Command {
 				Usage:    "Enforce that the JWT's default Hasura role matches this value",
 				Sources:  cli.EnvVars("MCP_ENFORCE_ROLE"),
 				Category: "Auth",
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     FlagBrowserHTMLPath,
+				Usage:    "Path to an HTML file to serve when a browser visits the service URL",
+				Sources:  cli.EnvVars("MCP_BROWSER_HTML_PATH"),
+				Category: "Server",
 			},
 		},
 		Action: action,
@@ -210,11 +219,72 @@ func buildRouter(
 	)
 
 	authMiddleware := a.Middleware() //nolint:contextcheck
+
+	browserMiddleware, err := browserRedirectMiddleware(
+		cmd.String(FlagBrowserHTMLPath),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize browser middleware: %w", err)
+	}
+
 	router.POST("/", authMiddleware, mcpHandler)
-	router.GET("/", authMiddleware, mcpHandler)
+	router.GET("/", browserMiddleware, authMiddleware, mcpHandler)
 	router.DELETE("/", authMiddleware, mcpHandler)
 
 	return router, nil
+}
+
+const defaultBrowserHTML = `<!DOCTYPE html>
+<html>
+<head><title>Nhost MCP Service</title></head>
+<body>
+<h1>Nhost MCP Service</h1>
+<p>This is an MCP (Model Context Protocol) endpoint designed for AI assistants, not for browsers.</p>
+<p>To use this service, connect an MCP-compatible client with proper authentication.</p>
+</body>
+</html>`
+
+// IsBrowserRequest returns true if the request appears to come from a web
+// browser rather than an MCP client. It checks for GET requests whose Accept
+// header contains "text/html".
+func IsBrowserRequest(r *http.Request) bool {
+	if r.Method != http.MethodGet {
+		return false
+	}
+
+	accept := r.Header.Get("Accept")
+
+	return strings.Contains(accept, "text/html")
+}
+
+func browserRedirectMiddleware(htmlPath string) (gin.HandlerFunc, error) {
+	var body []byte
+
+	if htmlPath != "" {
+		content, err := os.ReadFile(htmlPath)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to read browser HTML file %s: %w",
+				htmlPath,
+				err,
+			)
+		}
+
+		body = content
+	} else {
+		body = []byte(defaultBrowserHTML)
+	}
+
+	return func(c *gin.Context) {
+		if IsBrowserRequest(c.Request) {
+			c.Data(http.StatusOK, "text/html; charset=utf-8", body)
+			c.Abort()
+
+			return
+		}
+
+		c.Next()
+	}, nil
 }
 
 func serve(
