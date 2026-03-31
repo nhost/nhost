@@ -61,23 +61,13 @@ To demonstrate what this looks like in practice, we've deployed the MCP service 
 
 In Claude, go to **Customize > Connectors**, click the **+** button, give it a name (e.g. "Nhost cloud") and enter `https://mcp.nhost.io` as the URL:
 
-<Image
-  src="/images/blog/mcp-service/add-connector.png"
-  alt="Adding the Nhost MCP connector in Claude"
-  width={800}
-  height={450}
-/>
+![Adding the Nhost MCP connector in Claude](/images/blog/mcp-service/add-connector.png)
 
 ### Authorizing via OAuth2
 
 After clicking **Add**, you'll be redirected to the Nhost OAuth2 consent page. Here you can see the client ID, redirect URI, and the scopes being requested — in this case `openid`, `graphql:role:user_mcp`, and `offline_access`:
 
-<Image
-  src="/images/blog/mcp-service/oauth-consent.png"
-  alt="Nhost OAuth2 consent page showing authorization details"
-  width={800}
-  height={600}
-/>
+![Nhost OAuth2 consent page showing authorization details](/images/blog/mcp-service/oauth-consent.png)
 
 Click **Authorize** to grant access. The MCP client handles the rest of the OAuth2 flow automatically.
 
@@ -85,12 +75,7 @@ Click **Authorize** to grant access. The MCP client handles the rest of the OAut
 
 Once connected, the AI assistant has context about the Nhost platform's data model and can query it on your behalf. For example, you can ask questions about your projects and deployments in natural language:
 
-<Image
-  src="/images/blog/mcp-service/claude-example.png"
-  alt="Claude querying Nhost project data via MCP"
-  width={800}
-  height={700}
-/>
+![Claude querying Nhost project data via MCP](/images/blog/mcp-service/claude-example.png)
 
 In this example, Claude lists the user's projects and retrieves deployment details — all through the MCP service, all respecting the `user_mcp` role permissions. We will keep iterating on the permissions to provide more functionality over time.
 
