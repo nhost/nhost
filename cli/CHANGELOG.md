@@ -1,3 +1,32 @@
+## [cli@1.42.1] - 2026-03-31
+
+### 🐛 Bug Fixes
+
+- *(cli)* Restore PAT login by separating refresh token mechanisms (#4098)
+
+## [cli@1.42.0] - 2026-03-30
+
+### 🚀 Features
+
+- *(cli)* Login via oauth2 (#4089)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema and certs (#4097)
+- *(cli)* Bump nhost/dashboard to 2.55.0 (#4090)
+
+## [cli@1.41.1] - 2026-03-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* Add aliases matching internal cloud services (#4076)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump schema (#4084)
+
 ## [cli@1.41.0] - 2026-03-26
 
 ### 🚀 Features

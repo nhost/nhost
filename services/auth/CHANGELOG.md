@@ -1,3 +1,34 @@
+## [auth@0.49.0] - 2026-03-30
+
+### 🚀 Features
+
+- *(auth)* Allow scoping oauth2 clients by role (#4075)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Select primary verified email from GitHub OAuth (#4085)
+
+## [auth@0.48.0] - 2026-03-28
+
+### 🚀 Features
+
+- *(postgres)* Update versions and extensions (#4034)
+- *(auth)* Added pkce (#4038)
+- *(auth)* Added support for multiple audiences in idtokens (#3819)
+
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Abstract metadata management and allow for fixes/merges (#3953)
+- *(storage)* Handle webauthn verify request correctly (#3983)
+- *(auth)* Allow localhost redirects for CIMD client (#4072)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update CLAUDE.md (#3948)
+
 ## [auth@0.47.0] - 2026-02-23
 
 ### 🚀 Features

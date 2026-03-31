@@ -19,6 +19,7 @@ export default function OneOffsView() {
     hasNoNextPage,
     data: eventsData,
     isLoading: isEventsLoading,
+    error: eventsError,
   } = useEventPagination({
     initialLimit: 10,
     useQueryHook: useGetScheduledEventLogsQuery,
@@ -29,6 +30,10 @@ export default function OneOffsView() {
       offset: offsetArg,
     }),
   });
+
+  if (eventsError) {
+    throw eventsError;
+  }
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">

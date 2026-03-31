@@ -51,6 +51,7 @@ export default function EventTriggerInvocationLogsDataTable({
     data,
     isLoading,
     isInitialLoading,
+    error: invocationError,
     refetch: refetchInvocations,
   } = useEventPagination({
     useQueryHook: useGetEventAndInvocationLogsById,
@@ -62,6 +63,10 @@ export default function EventTriggerInvocationLogsDataTable({
     }),
     getPageLength: (resp) => resp?.invocations?.length,
   });
+
+  if (invocationError) {
+    throw invocationError;
+  }
 
   const invocations = data?.invocations;
 

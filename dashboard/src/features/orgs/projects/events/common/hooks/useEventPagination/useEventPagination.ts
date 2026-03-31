@@ -4,6 +4,7 @@ type QueryResult<TData> = {
   data: TData | undefined;
   isLoading: boolean;
   isInitialLoading: boolean;
+  error: unknown;
   refetch: () => Promise<unknown> | undefined;
 };
 
@@ -55,6 +56,7 @@ export interface UseEventPaginationResult<TData = unknown[]> {
   data: TData | undefined;
   isLoading: boolean;
   isInitialLoading: boolean;
+  error: unknown;
   refetch: () => Promise<unknown> | undefined;
 }
 
@@ -84,7 +86,7 @@ export default function useEventPagination<
       ? (queryOptions as (args: TArgs) => TQueryOptions)(queryArgs)
       : queryOptions;
 
-  const { data, isLoading, isInitialLoading, refetch } = useQueryHook(
+  const { data, isLoading, isInitialLoading, error, refetch } = useQueryHook(
     queryArgs,
     { queryOptions: resolvedQueryOptions },
   );
@@ -137,6 +139,7 @@ export default function useEventPagination<
     data,
     isLoading,
     isInitialLoading,
+    error,
     refetch,
   };
 }

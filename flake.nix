@@ -73,6 +73,10 @@
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
+        nhostclientf = import ./internal/lib/nhostclient/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         storagef = import ./services/storage/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
@@ -92,6 +96,7 @@
           guides = guidesf.check;
           docs = docsf.check;
           mcp = mcpf.check;
+          nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
@@ -132,6 +137,13 @@
               golangci-lint
               gqlgenc
               oapi-codegen
+              mockgen
+              sqlc
+              vacuum-go
+
+              # others
+              postgresql_18-client
+              bun
 
               # docs
               vale
@@ -181,6 +193,7 @@
           guides = guidesf.devShell;
           docs = docsf.devShell;
           mcp = mcpf.devShell;
+          nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;

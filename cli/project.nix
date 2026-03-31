@@ -30,6 +30,11 @@ let
         (matchExt "go")
       )
 
+      (and
+        (inDirectory "internal/lib/nhostclient")
+        (matchExt "go")
+      )
+
       "${submodule}/mcp/nhost/auth/openapi.yaml"
       "${submodule}/mcp/nhost/graphql/openapi.yaml"
       "${submodule}/mcp/resources/cloud_schema.graphql"

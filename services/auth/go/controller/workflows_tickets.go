@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/nhost/nhost/services/auth/go/pkce"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -65,7 +66,9 @@ const (
 	LinkTypePasswordReset      LinkType = "passwordReset"
 )
 
-func GenLink(serverURL url.URL, typ LinkType, ticket, redirectTo string) (string, error) {
+func GenLink(
+	serverURL url.URL, typ LinkType, ticket, redirectTo string, codeChallenge string,
+) (string, error) {
 	if typ == LinkTypeNone {
 		return "", nil
 	}
@@ -81,6 +84,15 @@ func GenLink(serverURL url.URL, typ LinkType, ticket, redirectTo string) (string
 	query.Add("type", string(typ))
 	query.Add("ticket", ticket)
 	query.Add("redirectTo", redirectTo)
+
+	if codeChallenge != "" {
+		if err := pkce.ValidateCodeChallengeFormat(codeChallenge); err != nil {
+			return "", fmt.Errorf("invalid code challenge: %w", err)
+		}
+
+		query.Add("codeChallenge", codeChallenge)
+	}
+
 	serverURL.RawQuery = query.Encode()
 
 	return serverURL.String(), nil

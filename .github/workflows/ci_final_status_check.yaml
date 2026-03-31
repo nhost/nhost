@@ -6,7 +6,7 @@ on:
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('mg-{0}', github.event.merge_group.head_sha) }}
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('mg-{0}', github.event.merge_group.head_sha) }}
   cancel-in-progress: true
 
 permissions:
@@ -51,7 +51,7 @@ jobs:
           echo "PR title is valid!"
 
       - name: Wait for all checks and verify status
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const owner = context.repo.owner;
@@ -76,7 +76,9 @@ jobs:
                 github.rest.actions.listWorkflowRunsForRepo,
                 { owner, repo, head_sha: sha, status: 'in_progress', per_page: 100 },
               );
-              const toCancel = workflows.filter((r) => r.id !== thisRunId);
+              const toCancel = workflows.filter(
+                (r) => r.id !== thisRunId && !r.name.startsWith('nixops:'),
+              );
               if (toCancel.length === 0) {
                 core.info('No other in-progress workflow runs to cancel.');
                 return;

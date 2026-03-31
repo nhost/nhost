@@ -769,6 +769,7 @@ func (wf *Workflows) SendEmail(
 	displayName string,
 	email string,
 	newEmail string,
+	codeChallenge string,
 	logger *slog.Logger,
 ) *APIError {
 	link, err := GenLink(
@@ -776,6 +777,7 @@ func (wf *Workflows) SendEmail(
 		linkType,
 		ticket,
 		redirectTo,
+		codeChallenge,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "problem generating email verification link", logError(err))
@@ -827,11 +829,13 @@ func (wf *Workflows) SignupUserWithFn(
 	sendConfirmationEmail bool,
 	databaseWithSession databaseWithSessionFn,
 	databaseWithoutSession databaseWithoutSessionFn,
+	codeChallenge string,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
 	if (sendConfirmationEmail && wf.config.RequireEmailVerification) || wf.config.DisableNewUsers {
 		return nil, wf.SignupUserWithouthSession(
-			ctx, email, options, sendConfirmationEmail, databaseWithoutSession, logger,
+			ctx, email, options, sendConfirmationEmail,
+			databaseWithoutSession, codeChallenge, logger,
 		)
 	}
 
@@ -915,6 +919,7 @@ func (wf *Workflows) SignupUserWithouthSession(
 	options *api.SignUpOptions,
 	sendConfirmationEmail bool,
 	databaseWithoutSession databaseWithoutSessionFn,
+	codeChallenge string,
 	logger *slog.Logger,
 ) *APIError {
 	if wf.config.DisableSignup {
@@ -959,6 +964,7 @@ func (wf *Workflows) SignupUserWithouthSession(
 			deptr(options.DisplayName),
 			email,
 			"",
+			codeChallenge,
 			logger,
 		); err != nil {
 			return err

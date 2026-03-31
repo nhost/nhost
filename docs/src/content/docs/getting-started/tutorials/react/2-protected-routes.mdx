@@ -92,7 +92,7 @@ Replace `<region>` and `<subdomain>` with the actual values from your Nhost proj
 
 Build the core authentication provider that manages user sessions across your application. This component provides authentication state to all child components and handles cross-tab synchronization.
 
-```tsx src/lib/nhost/AuthProvider.tsx lines
+```tsx title="src/lib/nhost/AuthProvider.tsx" showLineNumbers
 import { createClient, type NhostClient } from "@nhost/nhost-js";
 import type { Session } from "@nhost/nhost-js/auth";
 import {
@@ -275,7 +275,7 @@ export const useAuth = (): AuthContextType => {
 
 Build a reusable component that wraps protected routes and handles authentication checks. This component prevents unauthorized access and provides loading states during authentication verification.
 
-```tsx src/components/ProtectedRoute.tsx lines
+```tsx title="src/components/ProtectedRoute.tsx" showLineNumbers
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
@@ -313,7 +313,7 @@ export default function ProtectedRoute({
 
 Create a page that displays user information. Note that the page itself doesn't need any special authentication logic - the route protection is handled entirely by wrapping it with the ProtectedRoute component from the previous step when we set up routing later.
 
-```tsx src/pages/Profile.tsx lines
+```tsx title="src/pages/Profile.tsx" showLineNumbers
 import { useAuth } from "../lib/nhost/AuthProvider";
 
 export default function Profile() {
@@ -372,7 +372,7 @@ export default function Profile() {
 
 Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
 
-```tsx src/pages/Home.tsx lines
+```tsx title="src/pages/Home.tsx" showLineNumbers
 import { useAuth } from "../lib/nhost/AuthProvider";
 
 export default function Home() {
@@ -404,7 +404,7 @@ export default function Home() {
 
 Create a reusable navigation component that provides consistent navigation across all pages. This component adapts its links based on authentication status - showing different options for signed-in and signed-out users.
 
-```tsx src/components/Navigation.tsx lines
+```tsx title="src/components/Navigation.tsx" showLineNumbers
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
@@ -447,7 +447,7 @@ export default function Navigation() {
 
 Configure the application's routing structure with React Router. This sets up the route hierarchy, wraps protected routes with the ProtectedRoute component, includes the navigation component, and provides the authentication context to the entire app.
 
-```tsx src/App.tsx lines
+```tsx title="src/App.tsx" showLineNumbers
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -504,7 +504,7 @@ export default App;
 
 Replace the contents of the file `src/index.css` with the following styles to provide a clean and modern look for the application. This file will be used across the rest of series.
 
-```css src/index.css lines
+```css title="src/index.css" showLineNumbers
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
