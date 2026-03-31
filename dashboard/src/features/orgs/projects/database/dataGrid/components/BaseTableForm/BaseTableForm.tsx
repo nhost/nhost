@@ -16,7 +16,7 @@ import ColumnEditorTable from './ColumnEditorTable';
 import ForeignKeyEditorSection from './ForeignKeyEditorSection';
 import IdentityColumnSelect from './IdentityColumnSelect';
 import PrimaryKeySelect from './PrimaryKeySelect';
-
+import TableObjectsSection from './TableObjectsSection';
 export interface BaseTableFormValues
   extends Omit<DatabaseTable, 'primaryKey' | 'identityColumn'> {
   /**
@@ -48,6 +48,16 @@ export interface BaseTableFormProps extends DialogFormProps {
    * @default 'Save'
    */
   submitButtonText?: string;
+  /**
+   * Schema where the table is located. When provided together with
+   * `tableName`, the table objects section (constraints, indexes, triggers)
+   * is rendered.
+   */
+  schema?: string;
+  /**
+   * Name of the table being edited.
+   */
+  tableName?: string;
 }
 
 export const baseColumnValidationSchema = Yup.object().shape({
@@ -164,6 +174,8 @@ export default function BaseTableForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
+  schema,
+  tableName,
 }: BaseTableFormProps) {
   return (
     <Form
@@ -192,6 +204,10 @@ export default function BaseTableForm({
         </Box>
 
         <ForeignKeyEditorSection />
+
+        {schema && tableName && (
+          <TableObjectsSection schema={schema} table={tableName} />
+        )}
       </div>
 
       <FormFooter
