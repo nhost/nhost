@@ -73,8 +73,9 @@ export default function EditFunctionPermissionsForm({
       skip: !project?.id,
     });
 
-  const inferFunctionPermissions =
-    hasuraSettingsData?.config?.hasura.settings?.inferFunctionPermissions;
+  const inferFunctionPermissions = Boolean(
+    hasuraSettingsData?.config?.hasura.settings?.inferFunctionPermissions,
+  );
 
   const { data: functionConfig, isLoading: isLoadingFunctionConfig } =
     useFunctionCustomizationQuery({
@@ -204,7 +205,7 @@ export default function EditFunctionPermissionsForm({
 
   const roleHasSelectPermission = (role: string): boolean => {
     if (!returnTableMetadata) {
-      return true;
+      return false;
     }
 
     return (
@@ -228,6 +229,11 @@ export default function EditFunctionPermissionsForm({
   type PermissionState = 'allowed' | 'partial' | 'not-allowed';
   const getPermissionState = (role: string): PermissionState => {
     const hasSelect = roleHasSelectPermission(role);
+
+    if (inferFunctionPermissions) {
+      return hasSelect ? 'allowed' : 'not-allowed';
+    }
+
     const hasFuncPerm = hasFunctionPermission(role);
 
     if (hasFuncPerm && hasSelect) {
@@ -300,7 +306,7 @@ export default function EditFunctionPermissionsForm({
           </div>
 
           <div className="box grid grid-flow-row gap-4 border-b pb-4">
-            <div className="max-w-prose space-y-2 text-sm">
+            <div className="max-w-prose space-y-2 text-sm+">
               <FunctionPermissionsDescription
                 schema={schema}
                 dataSource={dataSource}
@@ -356,7 +362,7 @@ export default function EditFunctionPermissionsForm({
                         {currentRole}
                       </span>
                       <span className="inline-grid h-full w-full items-center p-0 text-center">
-                        {disabled ? (
+                        {disabled || inferFunctionPermissions ? (
                           <span className="inline-grid items-center justify-center">
                             {renderPermissionIcon(permState)}
                           </span>
