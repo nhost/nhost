@@ -5,4 +5,4 @@ if [ ! -f .secrets ]; then
   cp .secrets.example .secrets
 fi
 
-nhost up
+nhost up --run-service run-mcp.toml

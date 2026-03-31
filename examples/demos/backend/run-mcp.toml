@@ -2,7 +2,7 @@ name = 'mcp'
 command = ['mcp']
 
 [image]
-image = 'nhost/mcp:0.0.7'
+image = 'nhost/mcp:0.0.8'
 
 [[environment]]
 name = 'MCP_AUTH_URL'
