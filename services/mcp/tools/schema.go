@@ -15,7 +15,7 @@ const (
 )
 
 type GetSchemaRequest struct {
-	Summary   bool     `json:"summary,omitempty"`
+	Summary   *bool    `json:"summary,omitempty"`
 	Queries   []string `json:"queries,omitempty"`
 	Mutations []string `json:"mutations,omitempty"`
 }
@@ -75,7 +75,7 @@ func (t *Tool) handleGetSchema(
 	}
 
 	var schema string
-	if args.Summary {
+	if args.Summary == nil || *args.Summary {
 		schema = graphql.SummarizeSchema(introspection)
 	} else {
 		schema = graphql.ParseSchema(
