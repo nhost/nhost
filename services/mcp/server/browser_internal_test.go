@@ -88,7 +88,7 @@ func TestIsBrowserRequest(t *testing.T) {
 	}
 }
 
-func TestBrowserRedirectMiddleware(t *testing.T) { //nolint:cyclop
+func TestBrowserRedirectMiddleware(t *testing.T) {
 	t.Parallel()
 
 	gin.SetMode(gin.TestMode)
