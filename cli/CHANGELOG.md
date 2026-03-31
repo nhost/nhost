@@ -1,3 +1,9 @@
+## [cli@1.42.1] - 2026-03-31
+
+### 🐛 Bug Fixes
+
+- *(cli)* Restore PAT login by separating refresh token mechanisms (#4098)
+
 ## [cli@1.42.0] - 2026-03-30
 
 ### 🚀 Features
