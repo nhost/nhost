@@ -264,52 +264,58 @@ func (ce *CliEnv) loginOAuth2PKCE(
 	ce.Infoln("Successfully logged in")
 
 	return Credentials{
-		RefreshToken: token.RefreshToken,
+		RefreshToken:       "",
+		OAuth2RefreshToken: token.RefreshToken,
 	}, nil
 }
 
-func (ce *CliEnv) signInWithPAT(
+func (ce *CliEnv) loginWithPAT(
 	ctx context.Context,
-) (string, error) {
+) (Credentials, error) {
 	cl, err := ce.NewAuthClient()
 	if err != nil {
-		return "", err
+		return Credentials{}, err
 	}
 
 	resp, err := cl.SignInPATWithResponse(ctx, auth.SignInPATJSONRequestBody{
 		PersonalAccessToken: ce.pat,
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to sign in with PAT: %w", err)
+		return Credentials{}, fmt.Errorf("failed to sign in with PAT: %w", err)
 	}
 
 	if resp.JSON200 == nil || resp.JSON200.Session == nil {
-		return "", fmt.Errorf( //nolint:err113
+		return Credentials{}, fmt.Errorf( //nolint:err113
 			"unexpected response from PAT sign-in: %s - %s",
 			resp.Status(),
 			string(resp.Body),
 		)
 	}
 
-	return resp.JSON200.Session.AccessToken, nil
+	ce.Infoln("Successfully authenticated with PAT")
+
+	return Credentials{
+		RefreshToken:       resp.JSON200.Session.RefreshToken,
+		OAuth2RefreshToken: "",
+	}, nil
 }
 
 func (ce *CliEnv) Login(
 	ctx context.Context,
 ) (Credentials, error) {
+	var (
+		creds Credentials
+		err   error
+	)
+
 	if ce.pat != "" {
-		if _, err := ce.signInWithPAT(ctx); err != nil {
-			return Credentials{}, err
-		}
-
-		ce.Infoln("Successfully authenticated with PAT")
-
-		return Credentials{}, nil //nolint:exhaustruct
+		creds, err = ce.loginWithPAT(ctx)
+	} else {
+		creds, err = ce.loginOAuth2PKCE(ctx)
 	}
 
-	creds, err := ce.loginOAuth2PKCE(ctx)
 	if err != nil {
-		return creds, err
+		return Credentials{}, err
 	}
 
 	if err := saveCredentials(ce, creds); err != nil {
