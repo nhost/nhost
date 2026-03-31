@@ -3,8 +3,6 @@ package server
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -98,10 +96,7 @@ func TestBrowserRedirectMiddleware(t *testing.T) { //nolint:cyclop
 	t.Run("default HTML when no path configured", func(t *testing.T) {
 		t.Parallel()
 
-		handler, err := browserRedirectMiddleware("")
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		handler := browserMiddleware("")
 
 		w := httptest.NewRecorder()
 		c, router := gin.CreateTestContext(w)
@@ -149,19 +144,8 @@ func TestBrowserRedirectMiddleware(t *testing.T) { //nolint:cyclop
 		t.Parallel()
 
 		htmlContent := "<html><body><h1>Custom Page</h1></body></html>"
-		tmpDir := t.TempDir()
-		htmlFile := filepath.Join(tmpDir, "custom.html")
 
-		if err := os.WriteFile(
-			htmlFile, []byte(htmlContent), 0o600,
-		); err != nil {
-			t.Fatalf("failed to write temp file: %v", err)
-		}
-
-		handler, err := browserRedirectMiddleware(htmlFile)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		handler := browserMiddleware(htmlContent)
 
 		w := httptest.NewRecorder()
 		_, router := gin.CreateTestContext(w)
@@ -189,10 +173,7 @@ func TestBrowserRedirectMiddleware(t *testing.T) { //nolint:cyclop
 	t.Run("non-browser request passes through", func(t *testing.T) {
 		t.Parallel()
 
-		handler, err := browserRedirectMiddleware("")
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		handler := browserMiddleware("")
 
 		w := httptest.NewRecorder()
 		_, router := gin.CreateTestContext(w)
@@ -215,15 +196,6 @@ func TestBrowserRedirectMiddleware(t *testing.T) { //nolint:cyclop
 
 		if w.Code != http.StatusNoContent {
 			t.Errorf("expected status 204, got %d", w.Code)
-		}
-	})
-
-	t.Run("missing HTML file returns error", func(t *testing.T) {
-		t.Parallel()
-
-		_, err := browserRedirectMiddleware("/nonexistent/path.html")
-		if err == nil {
-			t.Error("expected error for missing file")
 		}
 	})
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -34,7 +33,7 @@ const (
 	FlagAuthURL              = "auth-url"
 	FlagRealm                = "realm"
 	FlagEnforceRole          = "enforce-role"
-	FlagBrowserHTMLPath      = "browser-html-path"
+	FlagBrowserHTML          = "browser-html"
 
 	shutdownTimeout = 5 * time.Second
 )
@@ -115,9 +114,9 @@ func Command(version string) *cli.Command { //nolint:funlen
 				Category: "Auth",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:     FlagBrowserHTMLPath,
-				Usage:    "Path to an HTML file to serve when a browser visits the service URL",
-				Sources:  cli.EnvVars("MCP_BROWSER_HTML_PATH"),
+				Name:     FlagBrowserHTML,
+				Usage:    "HTML content to serve when a browser visits the service URL",
+				Sources:  cli.EnvVars("MCP_BROWSER_HTML"),
 				Category: "Server",
 			},
 		},
@@ -220,12 +219,9 @@ func buildRouter(
 
 	authMiddleware := a.Middleware() //nolint:contextcheck
 
-	browserMiddleware, err := browserRedirectMiddleware(
-		cmd.String(FlagBrowserHTMLPath),
+	browserMiddleware := browserMiddleware(
+		cmd.String(FlagBrowserHTML),
 	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize browser middleware: %w", err)
-	}
 
 	router.POST("/", authMiddleware, mcpHandler)
 	router.GET("/", browserMiddleware, authMiddleware, mcpHandler)
@@ -257,22 +253,10 @@ func IsBrowserRequest(r *http.Request) bool {
 	return strings.Contains(accept, "text/html")
 }
 
-func browserRedirectMiddleware(htmlPath string) (gin.HandlerFunc, error) {
-	var body []byte
-
-	if htmlPath != "" {
-		content, err := os.ReadFile(htmlPath)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"failed to read browser HTML file %s: %w",
-				htmlPath,
-				err,
-			)
-		}
-
-		body = content
-	} else {
-		body = []byte(defaultBrowserHTML)
+func browserMiddleware(html string) gin.HandlerFunc {
+	body := []byte(defaultBrowserHTML)
+	if html != "" {
+		body = []byte(html)
 	}
 
 	return func(c *gin.Context) {
@@ -284,7 +268,7 @@ func browserRedirectMiddleware(htmlPath string) (gin.HandlerFunc, error) {
 		}
 
 		c.Next()
-	}, nil
+	}
 }
 
 func serve(

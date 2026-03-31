@@ -49,22 +49,27 @@ All flags can be set via environment variables.
 | Flag | Env Var | Description |
 |------|---------|-------------|
 | `--listen-addr` | `MCP_LISTEN_ADDR` | HTTP listen address (default: `:3000`) |
+| `--debug` | `MCP_DEBUG` | Enable debug logging |
+| `--log-format-text` | `MCP_LOG_FORMAT_TEXT` | Format logs in plain text instead of JSON |
 | `--graphql-endpoint` | `MCP_GRAPHQL_ENDPOINT` | GraphQL endpoint URL (**required**) |
 | `--mcp-instructions` | `MCP_INSTRUCTIONS` | Server-level MCP instructions |
 | `--query-instructions` | `MCP_QUERY_INSTRUCTIONS` | Instructions for the graphql-query tool |
 | `--mutation-instructions` | `MCP_MUTATION_INSTRUCTIONS` | Instructions for the graphql-mutation tool |
 | `--schema-instructions` | `MCP_SCHEMA_INSTRUCTIONS` | Instructions for the get-schema tool |
-| `--auth-url` | `MCP_AUTH_URL` | OAuth2 authorization server URL (enables auth) |
+| `--auth-url` | `MCP_AUTH_URL` | OAuth2 authorization server URL (**required**) |
 | `--realm` | `MCP_REALM` | Realm for WWW-Authenticate header |
 | `--enforce-role` | `MCP_ENFORCE_ROLE` | Enforce that the JWT's default Hasura role matches this value |
+| `--browser-html` | `MCP_BROWSER_HTML` | HTML content to serve when a browser visits the service URL |
 
 ## Deploying to Nhost
 
 To deploy to Nhost Run you can use the one-click install link below:
 
-https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4wLjgiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWUsImluZ3Jlc3NlcyI6W3siZnFkbiI6WyJtY3Auc3RhZ2luZy5uaG9zdC5pbyJdfV0sInJhdGVMaW1pdCI6bnVsbH1dLCJoZWFsdGhDaGVjayI6bnVsbH0=
+https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4xLjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWV9XSwiaGVhbHRoQ2hlY2siOm51bGx9
 
 And edit as needed. Make sure to set the correct subdomain and region in the `MCP_AUTH_URL` (or your custom domain if you using one), set the `MCP_REALM` to the URL you will use for your MCP service, change the `MCP_INSTRUCTIONS` as needed and change or remove `MCP_ENFORCE_ROLE`
+
+NOTE: Check the [releases](https://github.com/nhost/nhost/releases) page and make sure you are using the most recent version of the service.
 
 Alternatively, add a `run-mcp.toml` to your project directory:
 
@@ -73,7 +78,7 @@ name = 'mcp'
 command = ['mcp']
 
 [image]
-image = 'nhost/mcp:0.0.8'
+image = 'nhost/mcp:0.1.0'
 
 [[environment]]
 name = 'MCP_AUTH_URL'
