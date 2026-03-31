@@ -1,3 +1,19 @@
+## [@nhost/dashboard@2.56.0] - 2026-03-30
+
+### 🚀 Features
+
+- *(auth)* Allow scoping oauth2 clients by role (#4075)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Show page content during unpausing and surface query errors (#4016)
+
+
+### Chore
+
+- *(deps)* Update deps due to cve (#4091)
+
 ## [@nhost/dashboard@2.55.0] - 2026-03-30
 
 ### 🚀 Features

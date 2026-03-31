@@ -8,7 +8,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/nhost/nhost/cli/mcp/graphql"
-	"github.com/nhost/nhost/cli/mcp/nhost/auth"
+	"github.com/nhost/nhost/internal/lib/nhostclient"
 )
 
 const (
@@ -106,11 +106,11 @@ func (t *Tool) handleGraphqlQuery(
 
 	interceptors := []func(ctx context.Context, req *http.Request) error{
 		authInterceptor,
-		auth.WithRole(args.Role),
+		nhostclient.WithRole(args.Role),
 	}
 
 	if args.UserID != "" {
-		interceptors = append(interceptors, auth.WithUserID(args.UserID))
+		interceptors = append(interceptors, nhostclient.WithUserID(args.UserID))
 	}
 
 	var resp graphql.Response[any]

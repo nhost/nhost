@@ -69,6 +69,10 @@
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
+        nhostclientf = import ./internal/lib/nhostclient/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         storagef = import ./services/storage/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
@@ -87,6 +91,7 @@
           demos = demosf.check;
           guides = guidesf.check;
           docs = docsf.check;
+          nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
@@ -183,6 +188,7 @@
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
+          nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
