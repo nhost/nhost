@@ -322,18 +322,23 @@ func TestHandleGetSchema(t *testing.T) {
 	runSchemaTests(t, tool, []schemaTestCase{
 		{
 			name:     "returns summary",
-			request:  GetSchemaRequest{Summary: true, Queries: nil, Mutations: nil},
+			request:  GetSchemaRequest{Summary: new(true), Queries: nil, Mutations: nil},
+			contains: []string{"users", "posts", "insert_users"},
+		},
+		{
+			name:     "returns summary (default)",
+			request:  GetSchemaRequest{Summary: nil, Queries: nil, Mutations: nil},
 			contains: []string{"users", "posts", "insert_users"},
 		},
 		{
 			name:     "returns full schema",
-			request:  GetSchemaRequest{Summary: false, Queries: nil, Mutations: nil},
+			request:  GetSchemaRequest{Summary: new(false), Queries: nil, Mutations: nil},
 			contains: []string{"users", "posts", "insert_users"},
 		},
 		{
 			name: "filters queries",
 			request: GetSchemaRequest{
-				Summary:   false,
+				Summary:   new(false),
 				Queries:   []string{"users"},
 				Mutations: nil,
 			},
@@ -342,7 +347,7 @@ func TestHandleGetSchema(t *testing.T) {
 		{
 			name: "filters mutations",
 			request: GetSchemaRequest{
-				Summary:   false,
+				Summary:   new(false),
 				Queries:   nil,
 				Mutations: []string{"insert_users"},
 			},
@@ -393,7 +398,7 @@ func TestAuthorizationForwarding(t *testing.T) {
 				return tool.handleGetSchema(
 					ctx,
 					mcp.CallToolRequest{}, //nolint:exhaustruct
-					GetSchemaRequest{Summary: true, Queries: nil, Mutations: nil},
+					GetSchemaRequest{Summary: new(true), Queries: nil, Mutations: nil},
 				)
 			},
 		},
