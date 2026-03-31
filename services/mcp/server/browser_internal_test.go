@@ -90,7 +90,7 @@ func TestIsBrowserRequest(t *testing.T) {
 	}
 }
 
-func TestBrowserRedirectMiddleware(t *testing.T) {
+func TestBrowserRedirectMiddleware(t *testing.T) { //nolint:cyclop
 	t.Parallel()
 
 	gin.SetMode(gin.TestMode)
@@ -200,6 +200,7 @@ func TestBrowserRedirectMiddleware(t *testing.T) {
 		reached := false
 		router.GET("/", handler, func(c *gin.Context) {
 			reached = true
+
 			c.Status(http.StatusNoContent)
 		})
 
@@ -226,4 +227,3 @@ func TestBrowserRedirectMiddleware(t *testing.T) {
 		}
 	})
 }
-

@@ -39,7 +39,7 @@ const (
 	shutdownTimeout = 5 * time.Second
 )
 
-func Command(version string) *cli.Command {
+func Command(version string) *cli.Command { //nolint:funlen
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "mcp",
 		Version: version,
