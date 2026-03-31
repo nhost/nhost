@@ -94,7 +94,7 @@ func (t *Tool) RegisterQuery(mcpServer *mcpserver.MCPServer) {
 			mcp.Description("variables to use in the query"),
 		),
 	)
-	mcpServer.AddTool(queryTool, mcp.NewStructuredToolHandler(t.handleGraphqlQuery))
+	mcpServer.AddTool(queryTool, mcp.NewTypedToolHandler(t.handleGraphqlQuery))
 }
 
 func (t *Tool) handleGraphqlQuery(
@@ -154,7 +154,7 @@ func (t *Tool) RegisterMutation(mcpServer *mcpserver.MCPServer) {
 			mcp.Description("variables to use in the mutation"),
 		),
 	)
-	mcpServer.AddTool(mutationTool, mcp.NewStructuredToolHandler(t.handleGraphqlMutation))
+	mcpServer.AddTool(mutationTool, mcp.NewTypedToolHandler(t.handleGraphqlMutation))
 }
 
 func (t *Tool) handleGraphqlMutation(

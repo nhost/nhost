@@ -54,7 +54,7 @@ func (t *Tool) RegisterSchema(mcpServer *mcpserver.MCPServer) {
 			mcp.Description("list of mutation names to include in the schema"),
 		),
 	)
-	mcpServer.AddTool(schemaTool, mcp.NewStructuredToolHandler(t.handleGetSchema))
+	mcpServer.AddTool(schemaTool, mcp.NewTypedToolHandler(t.handleGetSchema))
 }
 
 func (t *Tool) handleGetSchema(
