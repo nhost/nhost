@@ -228,18 +228,9 @@ func buildRouter(
 
 	mcpHandler := gin.WrapH(mcpHTTP)
 
-	authURL := cmd.String(FlagAuthURL)
-	if authURL == "" {
-		router.POST("/", mcpHandler)
-		router.GET("/", mcpHandler)
-		router.DELETE("/", mcpHandler)
-
-		return router, nil
-	}
-
 	a, err := auth.New(
 		ctx,
-		authURL,
+		cmd.String(FlagAuthURL),
 		cmd.String(FlagRealm),
 		cmd.String(FlagEnforceRole),
 	)

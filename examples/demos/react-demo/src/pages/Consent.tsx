@@ -12,11 +12,7 @@ interface AuthRequestInfo {
 }
 
 function clientDisplayName(info: AuthRequestInfo): string {
-  try {
-    return info.clientId;
-  } catch {
-    return new URL(info.redirectUri).hostname;
-  }
+  return info.clientId || new URL(info.redirectUri).hostname;
 }
 
 export default function Consent(): JSX.Element {
