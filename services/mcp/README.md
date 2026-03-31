@@ -60,14 +60,20 @@ All flags can be set via environment variables.
 
 ## Deploying to Nhost
 
-Add a `run-mcp.toml` to your project's `nhost/` directory:
+To deploy to Nhost Run you can use the one-click install link below:
+
+https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4wLjgiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWUsImluZ3Jlc3NlcyI6W3siZnFkbiI6WyJtY3Auc3RhZ2luZy5uaG9zdC5pbyJdfV0sInJhdGVMaW1pdCI6bnVsbH1dLCJoZWFsdGhDaGVjayI6bnVsbH0=
+
+And edit as needed. Make sure to set the correct subdomain and region in the `MCP_AUTH_URL` (or your custom domain if you using one), set the `MCP_REALM` to the URL you will use for your MCP service, change the `MCP_INSTRUCTIONS` as needed and change or remove `MCP_ENFORCE_ROLE`
+
+Alternatively, add a `run-mcp.toml` to your project directory:
 
 ```toml
 name = 'mcp'
 command = ['mcp']
 
 [image]
-image = 'nhost/mcp:latest'
+image = 'nhost/mcp:0.0.8'
 
 [[environment]]
 name = 'MCP_AUTH_URL'
@@ -103,6 +109,12 @@ memory = 256
 ```
 
 Then deploy your project as usual. The MCP server will be available at the published port and any MCP-compatible client can connect to it.
+
+You can also try locally with:
+
+```
+nhost up --run-service run-mcp.toml
+```
 
 ## Connecting an MCP Client
 
