@@ -9,7 +9,7 @@ export interface FunctionPermissionsDescriptionProps {
   dataSource: string;
   returnTableSchema: string | null;
   returnTableName: string | null;
-  inferFunctionPermissions?: boolean;
+  inferFunctionPermissions?: boolean | null;
 }
 
 export function FunctionPermissionsDescription({
