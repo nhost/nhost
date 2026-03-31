@@ -1,0 +1,174 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Turn any Nhost project into an agentic service',
+  description:
+    'Deploy the open-source Nhost MCP service and let your users interact with your app through any AI agent',
+  image: '/images/blog/og-mcp-service.png',
+  date: '2026-03-31',
+  authors: [
+    {
+      name: 'David Barroso',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/david.jpeg',
+      url: 'https://twitter.com/dbarrosop',
+    },
+  ],
+  tags: ['Product', 'AI', 'MCP'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+AI agents are becoming the new interface layer for applications. Instead of navigating dashboards and forms, users increasingly want to interact with their data through natural language. Today we're releasing an open-source service that lets you turn any Nhost project into an agentic service in just a few clicks.
+
+## The Nhost MCP Service
+
+The <a href="https://github.com/nhost/nhost/tree/main/services/mcp" target="_blank" rel="noopener noreferrer">Nhost MCP service</a> is an open-source Go service that exposes your project's GraphQL API through the <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">Model Context Protocol (MCP)</a>. MCP is an open standard that allows AI assistants like Claude, Cursor, or any compatible client to connect to external services and data sources.
+
+Deploy it alongside your Nhost project and any MCP-compatible AI assistant can authenticate on behalf of your users via your existing Nhost Auth setup and interact with your data within the permissions you've defined. No custom integration code required.
+
+### How it works
+
+The MCP server sits between the AI assistant and your project's GraphQL API and exposes three tools:
+
+- **`get-schema`** — Returns a summary of your GraphQL schema or the full SDL for specific queries/mutations, giving the AI assistant context about your data model.
+- **`graphql-query`** — Executes read-only GraphQL queries against your project.
+- **`graphql-mutation`** — Executes GraphQL mutations to create, update, or delete data.
+
+The AI assistant discovers these tools automatically through the MCP protocol, understands your data model from the schema, and can then query and mutate data on behalf of the authenticated user.
+
+### Authentication and permissions
+
+The service integrates with Nhost Auth as an <a href="https://docs.nhost.io/products/auth/oauth2-provider/" target="_blank" rel="noopener noreferrer">OAuth2 authorization server</a>, following the <a href="https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization" target="_blank" rel="noopener noreferrer">MCP Authorization specification</a>. The flow is:
+
+1. The MCP client discovers auth requirements via `/.well-known/oauth-protected-resource`.
+2. The user is redirected to your Nhost Auth authorization endpoint (authorization code flow with PKCE).
+3. After login, the client exchanges the authorization code for a JWT access token.
+4. All MCP requests include the JWT as a Bearer token.
+5. The MCP server validates the JWT via JWKS and forwards it on every GraphQL request.
+6. The GraphQL service enforces row-level and column-level permissions based on the JWT claims.
+
+This means the AI assistant can only access data the authenticated user is allowed to see — your existing permission model applies as-is.
+
+You can further restrict access with the `--enforce-role` flag. For example, setting `--enforce-role=user_mcp` means only tokens issued with `user_mcp` as the default role will be accepted. This lets you create a dedicated role with limited permissions specifically for AI access — read-only on certain tables, restricted columns, whatever fits your use case.
+
+## Reference implementation: mcp.nhost.io
+
+To demonstrate what this looks like in practice, we've deployed the MCP service on our own Nhost platform at `https://mcp.nhost.io`. This instance uses the `user_mcp` role to provide read-only access to our customers' project data and demonstrates how you can leverage MCP for agentic purposes.
+
+### Adding the connector
+
+In Claude, go to **Customize > Connectors**, click the **+** button, give it a name (e.g. "Nhost cloud") and enter `https://mcp.nhost.io` as the URL:
+
+![Adding the Nhost MCP connector in Claude](/images/blog/mcp-service/add-connector.png)
+
+### Authorizing via OAuth2
+
+After clicking **Add**, you'll be redirected to the Nhost OAuth2 consent page. Here you can see the client ID, redirect URI, and the scopes being requested — in this case `openid`, `graphql:role:user_mcp`, and `offline_access`:
+
+![Nhost OAuth2 consent page showing authorization details](/images/blog/mcp-service/oauth-consent.png)
+
+Click **Authorize** to grant access. The MCP client handles the rest of the OAuth2 flow automatically.
+
+### Using it
+
+Once connected, the AI assistant has context about the Nhost platform's data model and can query it on your behalf. For example, you can ask questions about your projects and deployments in natural language:
+
+![Claude querying Nhost project data via MCP](/images/blog/mcp-service/claude-example.png)
+
+In this example, Claude lists the user's projects and retrieves deployment details — all through the MCP service, all respecting the `user_mcp` role permissions. We will keep iterating on the permissions to provide more functionality over time.
+
+## Deploy your own in minutes
+
+Getting your own MCP service up and running takes just a few steps.
+
+### 1. Enable OAuth2 and CIMD
+
+The MCP service relies on Nhost Auth's OAuth2 provider capabilities. You'll need to enable OAuth2 and <a href="https://docs.nhost.io/products/auth/oauth2-provider/cimd-clients/" target="_blank" rel="noopener noreferrer">CIMD (Client Identity Metadata Document)</a> so that MCP clients can dynamically register themselves.
+
+### 2. Build a consent page
+
+OAuth2 requires a consent page where users authorize the MCP client to access their data. You'll need to build this page as part of your application's authentication flow. See the <a href="https://docs.nhost.io/products/auth/oauth2-provider/authorization-flow#what-you-build-the-consent-page" target="_blank" rel="noopener noreferrer">consent page documentation</a> for details.
+
+### 3. Deploy the MCP service
+
+The fastest way is through the one-click install link:
+
+<a href="https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4wLjgiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWUsImluZ3Jlc3NlcyI6W3siZnFkbiI6WyJtY3Auc3RhZ2luZy5uaG9zdC5pbyJdfV0sInJhdGVMaW1pdCI6bnVsbH1dLCJoZWFsdGhDaGVjayI6bnVsbH0=" target="_blank" rel="noopener noreferrer">Deploy MCP to Nhost Run</a>
+
+After clicking the link, edit the environment variables to match your project:
+
+- **`MCP_AUTH_URL`** — Set your project's subdomain and region (e.g. `https://mysubdomain.auth.eu-central-1.nhost.run/v1`)
+- **`MCP_REALM`** — The public URL where your MCP service will be accessible
+- **`MCP_INSTRUCTIONS`** — Custom instructions to help the AI assistant understand your application
+- **`MCP_ENFORCE_ROLE`** — The role to enforce (e.g. `user_mcp`), or remove it to allow any role
+
+Alternatively, add a `run-mcp.toml` file to your project:
+
+```toml
+name = 'mcp'
+command = ['mcp']
+
+[image]
+image = 'nhost/mcp:0.0.8'
+
+[[environment]]
+name = 'MCP_AUTH_URL'
+value = 'https://SUBDOMAIN.auth.REGION.nhost.run/v1'
+
+[[environment]]
+name = 'MCP_REALM'
+value = 'https://mcp.acme.com'
+
+[[environment]]
+name = 'MCP_GRAPHQL_ENDPOINT'
+value = 'http://hasura-service:8080/v1/graphql'
+
+[[environment]]
+name = 'MCP_INSTRUCTIONS'
+value = 'This MCP server interacts with my application'
+
+[[environment]]
+name = 'MCP_ENFORCE_ROLE'
+value = 'user_mcp'
+
+[[ports]]
+port = 3000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 125
+memory = 256
+```
+
+Then deploy with:
+
+```bash
+nhost run config-deploy \
+    --config run-mcp.toml \
+    --service-id $SERVICE_ID
+```
+
+or run locally with:
+
+```bash
+nhost up --run-service run-mcp.toml
+```
+
+That's it. Your MCP service is live and any MCP-compatible client can connect to it.
+
+## What's next
+
+This is our first iteration and we'd love your feedback. Both the open-source MCP service and our own reference implementation at `mcp.nhost.io` will evolve based on what we hear from you. Some things we're thinking about:
+
+- Allowing you to configure which projects are accessible to LLMs and which ones aren't
+- Expanding the permissions on our reference implementation beyond read-only access
+- Adding more tools and capabilities to the MCP service
+- Allowing you to enable/disable the service via a setting on your `nhost.toml` without needing a dedicated Run service.
+
+The MCP service is fully open source — check out the <a href="https://github.com/nhost/nhost/tree/main/services/mcp" target="_blank" rel="noopener noreferrer">source code</a>, open issues, or submit PRs. If you have questions or feedback, reach out to us on <a href="https://discord.com/invite/9V7Qb2U" target="_blank" rel="noopener noreferrer">Discord</a> or <a href="https://github.com/nhost/nhost/issues" target="_blank" rel="noopener noreferrer">GitHub</a>.
