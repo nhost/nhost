@@ -12,7 +12,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	mcpserver "github.com/mark3labs/mcp-go/server"
-	"github.com/nhost/nhost/cli/mcp/graphql"
 	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/mcp/auth"
 	"github.com/nhost/nhost/services/mcp/tools"
@@ -118,8 +117,6 @@ func Command(version string) *cli.Command {
 }
 
 func BuildServer(
-	ctx context.Context,
-	logger *slog.Logger,
 	cmd *cli.Command,
 ) (*mcpserver.MCPServer, error) {
 	graphqlEndpoint := cmd.String(FlagGraphqlEndpoint)
@@ -133,21 +130,6 @@ func BuildServer(
 	}
 
 	instructions := cmd.String(FlagMCPInstructions)
-
-	schemaSummary, err := fetchSchemaSummary(ctx, graphqlEndpoint)
-	if err != nil {
-		logger.WarnContext(
-			ctx,
-			"failed to fetch schema summary for instructions",
-			slog.String("error", err.Error()),
-		)
-	} else {
-		if instructions != "" {
-			instructions += "\n\n"
-		}
-
-		instructions += "## Schema\n\n" + schemaSummary
-	}
 
 	opts := []mcpserver.ServerOption{}
 	if instructions != "" {
@@ -169,32 +151,12 @@ func BuildServer(
 	return mcpServer, nil
 }
 
-func fetchSchemaSummary(
-	ctx context.Context,
-	graphqlEndpoint string,
-) (string, error) {
-	var introspection graphql.ResponseIntrospection
-	if err := graphql.Query(
-		ctx,
-		graphqlEndpoint,
-		graphql.IntrospectionQuery,
-		nil,
-		&introspection,
-		[]string{"*"},
-		nil,
-	); err != nil {
-		return "", fmt.Errorf("introspection query failed: %w", err)
-	}
-
-	return graphql.SummarizeSchema(introspection), nil
-}
-
 func action(ctx context.Context, cmd *cli.Command) error {
 	logger := getLogger(cmd.Bool(FlagDebug), cmd.Bool(FlagLogFormatTEXT))
 
 	logFlags(ctx, logger, cmd)
 
-	mcpServer, err := BuildServer(ctx, logger, cmd)
+	mcpServer, err := BuildServer(cmd)
 	if err != nil {
 		return fmt.Errorf("failed to build server: %w", err)
 	}

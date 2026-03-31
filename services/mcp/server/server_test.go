@@ -3,7 +3,6 @@ package server_test
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -52,10 +51,8 @@ func TestServer(t *testing.T) { //nolint:paralleltest
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := server.Command("")
 
-			cmd.Action = func(ctx context.Context, cmd *cli.Command) error {
-				logger := slog.New(slog.DiscardHandler)
-
-				s, err := server.BuildServer(ctx, logger, cmd)
+			cmd.Action = func(_ context.Context, cmd *cli.Command) error {
+				s, err := server.BuildServer(cmd)
 				if err != nil {
 					return fmt.Errorf("problem building server: %w", err)
 				}
