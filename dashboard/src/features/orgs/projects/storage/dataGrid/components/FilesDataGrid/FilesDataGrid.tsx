@@ -63,9 +63,6 @@ const columns: ColumnDef<StoredFile>[] = [
       <DataGridTextCell {...(props as CellContext<StoredFile, string>)} />
     ),
     size: 318,
-    meta: {
-      isPrimary: true,
-    },
   },
   {
     header: 'name',
