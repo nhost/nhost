@@ -44,6 +44,7 @@ export default function DatabaseObjectListItem({
     sidebarMenuObject,
     setSidebarMenuObject,
     handleEditPermission,
+    handleEditFunctionPermission,
     handleDeleteDatabaseObject,
     handleEditGraphQLSettings,
     handleEditRelationships,
@@ -139,12 +140,18 @@ export default function DatabaseObjectListItem({
                 )}
                 isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
                 onEditPermissions={() =>
-                  handleEditPermission(
-                    databaseObject.schema,
-                    databaseObject.name,
-                    databaseObject.objectType,
-                    updatability,
-                  )
+                  isFunction
+                    ? handleEditFunctionPermission(
+                        databaseObject.schema,
+                        databaseObject.name,
+                        databaseObject.oid,
+                      )
+                    : handleEditPermission(
+                        databaseObject.schema,
+                        databaseObject.name,
+                        databaseObject.objectType,
+                        updatability,
+                      )
                 }
                 onEdit={() => {
                   if (isFunction) {
