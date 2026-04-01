@@ -18,7 +18,8 @@ flowchart LR
     B["Cron Schedule"] --> D
     C["One-Off Schedule"] --> D
     D --> E["Nhost Function"]
-    D --> F["External API, e.g. Slack, Teams"]
+    D --> F["Nhost Run Service"]
+    D --> G["External API, e.g. Slack, Teams"]
 ```
 
 ## When to Use Each Type
@@ -34,6 +35,7 @@ flowchart LR
 Events call any HTTP endpoint. Common targets:
 
 - **Nhost Functions** — build async business workflows (notifications, data processing, external syncs). Functions receive automatic access to `NHOST_WEBHOOK_SECRET` and the Nhost SDK for querying your database and calling other services. See the [Nhost SDK guide](/products/functions/guides/nhost-sdk) for details on using the admin client inside functions.
+- **Nhost Run services** — call any custom container running on [Nhost Run](/products/run). Useful when your webhook handler needs a specific runtime, framework, or long-running process that doesn't fit into a serverless function.
 - **External services** — send directly to Slack, PagerDuty, or any API that accepts webhooks. Use request/payload transformations to match the target API's expected format.
 
 ## Shared Concepts
