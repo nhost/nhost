@@ -59,6 +59,9 @@ func Logger(logger *slog.Logger) gin.HandlerFunc {
 		)
 		ctx.Next()
 
+		// Re-read logger in case inner middleware enriched it
+		logger = LoggerFromContext(ctx.Request.Context())
+
 		latencyTime := time.Since(startTime)
 		statusCode := ctx.Writer.Status()
 
