@@ -7,8 +7,8 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export interface FunctionPermissionsDescriptionProps {
   schema: string;
   dataSource: string;
-  returnTableSchema: string | null;
-  returnTableName: string | null;
+  returnTableSchema?: string | null;
+  returnTableName?: string | null;
   inferFunctionPermissions?: boolean | null;
   isMutationFunction?: boolean;
 }

@@ -1,10 +1,10 @@
-import { getPermissionState } from './getPermissionState';
+import getFunctionPermissionState from './getFunctionPermissionState';
 
-describe('getPermissionState', () => {
+describe('getFunctionPermissionState', () => {
   describe('when inferFunctionPermissions is true and function is not a mutation (inferred path)', () => {
     it('returns allowed when role has SELECT permission', () => {
       expect(
-        getPermissionState({
+        getFunctionPermissionState({
           inferFunctionPermissions: true,
           isMutationFunction: false,
           hasSelectPermission: true,
@@ -15,7 +15,7 @@ describe('getPermissionState', () => {
 
     it('returns not-allowed when role lacks SELECT permission', () => {
       expect(
-        getPermissionState({
+        getFunctionPermissionState({
           inferFunctionPermissions: true,
           isMutationFunction: false,
           hasSelectPermission: false,
@@ -26,7 +26,7 @@ describe('getPermissionState', () => {
 
     it('ignores hasFunctionPermission (SELECT alone grants access)', () => {
       expect(
-        getPermissionState({
+        getFunctionPermissionState({
           inferFunctionPermissions: true,
           isMutationFunction: false,
           hasSelectPermission: true,
@@ -39,7 +39,7 @@ describe('getPermissionState', () => {
   describe('when on the explicit permission path', () => {
     it('returns allowed when role has both function permission and SELECT', () => {
       expect(
-        getPermissionState({
+        getFunctionPermissionState({
           inferFunctionPermissions: false,
           isMutationFunction: false,
           hasFunctionPermission: true,
@@ -50,7 +50,7 @@ describe('getPermissionState', () => {
 
     it('returns partial when role has function permission but no SELECT', () => {
       expect(
-        getPermissionState({
+        getFunctionPermissionState({
           inferFunctionPermissions: false,
           isMutationFunction: false,
           hasFunctionPermission: true,
@@ -61,7 +61,7 @@ describe('getPermissionState', () => {
 
     it('returns not-allowed when role lacks function permission despite having SELECT', () => {
       expect(
-        getPermissionState({
+        getFunctionPermissionState({
           inferFunctionPermissions: false,
           isMutationFunction: false,
           hasFunctionPermission: false,
@@ -72,7 +72,7 @@ describe('getPermissionState', () => {
 
     it('returns not-allowed when role has neither function permission nor SELECT', () => {
       expect(
-        getPermissionState({
+        getFunctionPermissionState({
           inferFunctionPermissions: false,
           isMutationFunction: false,
           hasFunctionPermission: false,
@@ -85,7 +85,7 @@ describe('getPermissionState', () => {
   describe('mutation functions bypass inference', () => {
     it('falls through to explicit path even when inferFunctionPermissions is true', () => {
       expect(
-        getPermissionState({
+        getFunctionPermissionState({
           inferFunctionPermissions: true,
           isMutationFunction: true,
           hasSelectPermission: true,

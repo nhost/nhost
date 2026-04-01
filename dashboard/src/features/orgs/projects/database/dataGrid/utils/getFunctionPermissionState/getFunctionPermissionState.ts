@@ -1,18 +1,18 @@
 export type PermissionState = 'allowed' | 'partial' | 'not-allowed';
 
-export interface GetPermissionStateParams {
+export interface GetFunctionPermissionStateParams {
   inferFunctionPermissions: boolean;
   isMutationFunction: boolean;
   hasSelectPermission: boolean;
   hasFunctionPermission: boolean;
 }
 
-export function getPermissionState({
+export default function getFunctionPermissionState({
   inferFunctionPermissions,
   isMutationFunction,
   hasSelectPermission,
   hasFunctionPermission,
-}: GetPermissionStateParams): PermissionState {
+}: GetFunctionPermissionStateParams): PermissionState {
   if (inferFunctionPermissions && !isMutationFunction) {
     return hasSelectPermission ? 'allowed' : 'not-allowed';
   }

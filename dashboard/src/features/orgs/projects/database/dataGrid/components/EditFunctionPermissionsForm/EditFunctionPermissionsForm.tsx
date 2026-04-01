@@ -22,14 +22,14 @@ import { useFunctionPermissionQuery } from '@/features/orgs/projects/database/da
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 import { useManageFunctionPermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManageFunctionPermissionMutation';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import type { PermissionState } from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
+import { getFunctionPermissionState } from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
-import type { PermissionState } from './getPermissionState';
-import { getPermissionState } from './getPermissionState';
 
 export interface EditFunctionPermissionsFormProps {
   /**
@@ -124,33 +124,16 @@ export default function EditFunctionPermissionsForm({
   const { mutateAsync: manageFunctionPermission, isPending: isMutating } =
     useManageFunctionPermissionMutation();
 
-  // The generated FunctionConfiguration type doesn't include `response` or
-  // `exposed_as`, but Hasura may return them at runtime.
-  const runtimeConfig = functionConfig?.configuration as
-    | {
-        response?: { table?: { name?: string; schema?: string } };
-        exposed_as?: 'mutation' | 'query';
-      }
-    | undefined;
+  const configuration = functionConfig?.configuration;
 
-  const responseTable = runtimeConfig?.response?.table;
-
-  const exposedAs = runtimeConfig?.exposed_as;
+  const exposedAs = configuration?.exposed_as;
   const isMutationFunction =
     exposedAs === 'mutation' ||
     (exposedAs == null &&
       functionData?.functionMetadata?.functionType === 'VOLATILE');
 
-  const returnTableName =
-    functionData?.functionMetadata?.returnTableName ||
-    responseTable?.name ||
-    functionData?.functionMetadata?.returnTypeName ||
-    null;
-  const returnTableSchema =
-    functionData?.functionMetadata?.returnTableSchema ||
-    responseTable?.schema ||
-    functionData?.functionMetadata?.returnTypeSchema ||
-    null;
+  const returnTableName = functionData?.functionMetadata?.returnTableName;
+  const returnTableSchema = functionData?.functionMetadata?.returnTableSchema;
 
   if (
     hasuraSettingsLoading ||
@@ -323,7 +306,7 @@ export default function EditFunctionPermissionsForm({
               </div>
 
               {availableRoles.map((currentRole, index) => {
-                const permState = getPermissionState({
+                const permState = getFunctionPermissionState({
                   inferFunctionPermissions,
                   isMutationFunction,
                   hasSelectPermission: roleHasSelectPermission(currentRole),
