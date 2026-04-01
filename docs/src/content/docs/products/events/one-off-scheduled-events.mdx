@@ -10,15 +10,6 @@ import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 One-off scheduled events fire a webhook once at a specific date and time. Unlike cron triggers that recur, these execute exactly once and are then done.
 
-## When to Use One-Off Events
-
-|                     | One-Off Scheduled Event                                            | Cron Trigger                                       |
-| ------------------- | ------------------------------------------------------------------ | -------------------------------------------------- |
-| **Frequency**       | Fires once                                                         | Recurs on a schedule                               |
-| **Schedule format** | Specific date and time                                             | Cron expression                                    |
-| **Configuration**   | Dashboard only (ephemeral)                                         | Dashboard or metadata YAML                         |
-| **Use case**        | Deferred reminders, scheduled broadcasts, timed content publishing | Periodic cleanup, report generation, digest emails |
-
 ## Creating a One-Off Scheduled Event
 
 <Tabs>
@@ -48,26 +39,6 @@ For working handler examples, see:
 - [Broadcast Notifications](/products/events/guides/broadcast-notifications) — send a notification to all active users
 - [Webhook Security](/products/events/guides/webhook-security) — validate the shared secret in your handler
 - [Using the Nhost SDK](/products/functions/guides/nhost-sdk) — query your database from inside a handler
-
-## Scheduled Event Payload
-
-The webhook receives the same shape as cron triggers, with `created_at` instead of `name`. See [Webhook Payloads](/products/events/guides/webhook-payloads#one-off-scheduled-events) for the full structure and field reference.
-
-## Retry Configuration
-
-Retries occur on non-2xx responses and network errors. See [Retry Configuration](/products/events/guides/retry-configuration) for defaults and field reference.
-
-## Example Payload
-
-A practical payload for a broadcast notification, entered in the dashboard **Payload** field:
-
-```json
-{
-  "title": "New Feature Released",
-  "message": "Collaborative editing is now available for all projects.",
-  "type": "announcement"
-}
-```
 
 ## Monitoring Scheduled Events
 

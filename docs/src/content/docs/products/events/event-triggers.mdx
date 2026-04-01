@@ -11,13 +11,6 @@ import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Event triggers fire a webhook whenever a row in a tracked table is inserted, updated, or deleted. The webhook receives the old and new row data, letting your handler react to exactly what changed.
 
-## When to Use Event Triggers
-
-- Send notifications when content is edited
-- Sync data to external services on insert or delete
-- Create audit logs for sensitive table changes
-- Trigger downstream workflows (emails, Slack messages, data processing)
-
 ## Creating an Event Trigger
 
 <Tabs>
@@ -100,18 +93,6 @@ For working handler examples, see:
 - [Community Notifications](/products/events/guides/community-notifications) — notify members when a community description changes
 - [Webhook Security](/products/events/guides/webhook-security) — validate the shared secret in your handler
 - [Using the Nhost SDK](/products/functions/guides/nhost-sdk) — query your database from inside a handler
-
-## Event Payload
-
-The webhook receives the old and new row data, the operation type, and session variables identifying who made the change. See [Webhook Payloads](/products/events/guides/webhook-payloads#event-triggers) for the full structure and field reference.
-
-## Retry Configuration
-
-Retries occur on non-2xx responses and network errors. See [Retry Configuration](/products/events/guides/retry-configuration) for defaults and field reference.
-
-## Request and Payload Transformations
-
-Event triggers support transforming the outgoing webhook request — override the HTTP method, customize the URL path, or reshape the request body. See [Transformations](/products/events/transformations) for configuration details and template variables.
 
 ## Managing Event Triggers
 

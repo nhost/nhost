@@ -98,18 +98,6 @@ For working handler examples, see:
 - [Webhook Security](/products/events/guides/webhook-security) — validate the shared secret in your handler
 - [Using the Nhost SDK](/products/functions/guides/nhost-sdk) — query your database from inside a handler
 
-## Cron Trigger Payload
-
-The webhook receives schedule metadata and the custom JSON payload you configured. See [Webhook Payloads](/products/events/guides/webhook-payloads#cron-triggers) for the full structure and field reference.
-
-## Retry Configuration
-
-Retries occur on non-2xx responses and network errors. Cron triggers also support a `tolerance_seconds` field — the maximum delay for a late invocation to still execute (default: 6 hours). See [Retry Configuration](/products/events/guides/retry-configuration) for defaults and field reference.
-
-## Request and Payload Transformations
-
-Cron triggers support the same request and payload transformations as event triggers. See [Transformations](/products/events/transformations) for configuration details and template variables.
-
 ## Managing Cron Triggers
 
 The cron trigger sidebar in **Events** > **Cron Triggers** lists all triggers. Each trigger has **Edit** and **Delete** actions.
