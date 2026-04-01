@@ -91,6 +91,7 @@ export default function FunctionDefinitionView() {
             functionName={functionMetadata.functionName}
             returnTableName={functionMetadata.returnTableName}
             returnTableSchema={functionMetadata.returnTableSchema}
+            functionType={functionMetadata.functionType}
           />
           <h2 className="font-semibold text-lg">Function Definition</h2>
           <p className="text-muted-foreground text-sm">

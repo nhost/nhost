@@ -6,7 +6,10 @@ import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid
 import { useSetFunctionTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionTrackingMutation';
 import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
+import type {
+  ExportMetadataResponse,
+  FunctionConfiguration,
+} from '@/utils/hasura-api/generated/schemas';
 
 export interface UseTrackFunctionWithTableOptions {
   dataSource: string;
@@ -54,7 +57,7 @@ export default function useTrackFunctionWithTable({
 
   const isPending = isFunctionPending || isTablePending;
 
-  async function trackFunction() {
+  async function trackFunction(configuration?: FunctionConfiguration) {
     const shouldTrackTable = isReturnTableUntracked;
 
     if (shouldTrackTable) {
@@ -82,6 +85,7 @@ export default function useTrackFunctionWithTable({
         args: {
           source: dataSource,
           function: { name: functionName, schema },
+          ...(configuration ? { configuration } : {}),
         },
       });
     } else {
@@ -91,6 +95,7 @@ export default function useTrackFunctionWithTable({
         args: {
           source: dataSource,
           function: { name: functionName, schema },
+          ...(configuration ? { configuration } : {}),
         },
       });
     }
@@ -107,11 +112,11 @@ export default function useTrackFunctionWithTable({
     });
   }
 
-  async function toggleTracking() {
+  async function toggleTracking(configuration?: FunctionConfiguration) {
     if (isTracked) {
       await untrackFunction();
     } else {
-      await trackFunction();
+      await trackFunction(configuration);
     }
   }
 
