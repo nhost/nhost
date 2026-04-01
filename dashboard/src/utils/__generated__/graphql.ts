@@ -30188,7 +30188,7 @@ export type GetBucketQuery = { __typename?: 'query_root', bucket?: { __typename?
 export type GetBucketsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetBucketsQuery = { __typename?: 'query_root', buckets: Array<{ __typename?: 'buckets', id: string, minUploadFileSize: number, maxUploadFileSize: number, presignedUrlsEnabled: boolean, downloadExpiration: number, cacheControl?: string | null, createdAt: any, updatedAt: any }> };
+export type GetBucketsQuery = { __typename?: 'query_root', buckets: Array<{ __typename?: 'buckets', id: string, minUploadFileSize: number, maxUploadFileSize: number, presignedUrlsEnabled: boolean, downloadExpiration: number, cacheControl?: string | null }> };
 
 export type GetFilesQueryVariables = Exact<{
   where?: InputMaybe<Files_Bool_Exp>;
@@ -30213,6 +30213,14 @@ export type InsertBucketMutationVariables = Exact<{
 
 
 export type InsertBucketMutation = { __typename?: 'mutation_root', insertBucket?: { __typename?: 'buckets', id: string } | null };
+
+export type UpdateBucketMutationVariables = Exact<{
+  id: Scalars['String'];
+  bucket: Buckets_Set_Input;
+}>;
+
+
+export type UpdateBucketMutation = { __typename?: 'mutation_root', updateBucket?: { __typename?: 'buckets', id: string } | null };
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
@@ -34057,8 +34065,6 @@ export const GetBucketsDocument = gql`
     presignedUrlsEnabled
     downloadExpiration
     cacheControl
-    createdAt
-    updatedAt
   }
 }
     `;
@@ -34215,6 +34221,40 @@ export function useInsertBucketMutation(baseOptions?: Apollo.MutationHookOptions
 export type InsertBucketMutationHookResult = ReturnType<typeof useInsertBucketMutation>;
 export type InsertBucketMutationResult = Apollo.MutationResult<InsertBucketMutation>;
 export type InsertBucketMutationOptions = Apollo.BaseMutationOptions<InsertBucketMutation, InsertBucketMutationVariables>;
+export const UpdateBucketDocument = gql`
+    mutation updateBucket($id: String!, $bucket: buckets_set_input!) {
+  updateBucket(pk_columns: {id: $id}, _set: $bucket) {
+    id
+  }
+}
+    `;
+export type UpdateBucketMutationFn = Apollo.MutationFunction<UpdateBucketMutation, UpdateBucketMutationVariables>;
+
+/**
+ * __useUpdateBucketMutation__
+ *
+ * To run a mutation, you first call `useUpdateBucketMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateBucketMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateBucketMutation, { data, loading, error }] = useUpdateBucketMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      bucket: // value for 'bucket'
+ *   },
+ * });
+ */
+export function useUpdateBucketMutation(baseOptions?: Apollo.MutationHookOptions<UpdateBucketMutation, UpdateBucketMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateBucketMutation, UpdateBucketMutationVariables>(UpdateBucketDocument, options);
+      }
+export type UpdateBucketMutationHookResult = ReturnType<typeof useUpdateBucketMutation>;
+export type UpdateBucketMutationResult = Apollo.MutationResult<UpdateBucketMutation>;
+export type UpdateBucketMutationOptions = Apollo.BaseMutationOptions<UpdateBucketMutation, UpdateBucketMutationVariables>;
 export const GetGithubRepositoriesDocument = gql`
     query getGithubRepositories {
   githubRepositories {
