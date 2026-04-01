@@ -73,8 +73,7 @@ function DataGridCellContent<
     column: { id, columnDef },
     row,
   } = cell;
-  const { onCellEdit, isNullable, isPrimary, type, isEditable } =
-    columnDef.meta || {};
+  const { onCellEdit, isNullable, type, isEditable } = columnDef.meta || {};
   const { openAlertDialog } = useDialog();
 
   const {
@@ -111,12 +110,6 @@ function DataGridCellContent<
   } = useDataGridCell();
 
   function activateInput() {
-    if (isPrimary) {
-      openTooltip("Primary keys can't be edited.");
-
-      return;
-    }
-
     editCell();
 
     if (type === 'boolean') {
@@ -127,7 +120,7 @@ function DataGridCellContent<
   }
 
   async function handleClick(event: MouseEvent<HTMLDivElement>) {
-    if (!isEditable || isEditing || isPrimary) {
+    if (!isEditable || isEditing) {
       return;
     }
 
@@ -228,12 +221,6 @@ function DataGridCellContent<
   }
 
   function resetCell() {
-    if (isPrimary) {
-      openTooltip('Primary keys are non-nullable.');
-
-      return;
-    }
-
     if (!isNullable) {
       openTooltip(
         <span>
