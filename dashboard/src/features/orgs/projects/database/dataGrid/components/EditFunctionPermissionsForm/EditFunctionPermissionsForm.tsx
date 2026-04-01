@@ -28,6 +28,8 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
+import type { PermissionState } from './getPermissionState';
+import { getPermissionState } from './getPermissionState';
 
 export interface EditFunctionPermissionsFormProps {
   /**
@@ -229,25 +231,6 @@ export default function EditFunctionPermissionsForm({
     return permissions.some((perm) => perm.role === role);
   };
 
-  type PermissionState = 'allowed' | 'partial' | 'not-allowed';
-  const getPermissionState = (role: string): PermissionState => {
-    const hasSelect = roleHasSelectPermission(role);
-
-    if (inferFunctionPermissions && !isMutationFunction) {
-      return hasSelect ? 'allowed' : 'not-allowed';
-    }
-
-    const hasFuncPerm = hasFunctionPermission(role);
-
-    if (hasFuncPerm && hasSelect) {
-      return 'allowed';
-    }
-    if (hasFuncPerm && !hasSelect) {
-      return 'partial';
-    }
-    return 'not-allowed';
-  };
-
   const renderPermissionIcon = (state: PermissionState) => {
     switch (state) {
       case 'allowed':
@@ -340,7 +323,12 @@ export default function EditFunctionPermissionsForm({
               </div>
 
               {availableRoles.map((currentRole, index) => {
-                const permState = getPermissionState(currentRole);
+                const permState = getPermissionState({
+                  inferFunctionPermissions,
+                  isMutationFunction,
+                  hasSelectPermission: roleHasSelectPermission(currentRole),
+                  hasFunctionPermission: hasFunctionPermission(currentRole),
+                });
                 const hasFuncPerm = hasFunctionPermission(currentRole);
                 const isExpanded = expandedRole === currentRole;
                 const isLast = index === availableRoles.length - 1;
@@ -366,7 +354,8 @@ export default function EditFunctionPermissionsForm({
                         {currentRole}
                       </span>
                       <span className="inline-grid h-full w-full items-center p-0 text-center">
-                        {disabled || (inferFunctionPermissions && !isMutationFunction) ? (
+                        {disabled ||
+                        (inferFunctionPermissions && !isMutationFunction) ? (
                           <span className="inline-grid items-center justify-center">
                             {renderPermissionIcon(permState)}
                           </span>
