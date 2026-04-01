@@ -13,6 +13,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { FunctionPermissionsDescription } from '@/features/orgs/projects/database/dataGrid/components/EditFunctionPermissionsForm/FunctionPermissionsDescription';
 import { PermissionsLegend } from '@/features/orgs/projects/database/dataGrid/components/PermissionsLegend';
@@ -96,17 +97,16 @@ export default function EditFunctionPermissionsForm({
     );
 
   const {
-    data: functionPermissionData,
+    data: permissions = [],
     status: permissionStatus,
     error: permissionError,
-  } = useFunctionPermissionQuery(
-    [`function-permissions`, `${dataSource}.${schema}.${functionName}`],
-    {
-      schema,
-      functionName,
-      dataSource,
-    },
-  );
+  } = useFunctionPermissionQuery({
+    schema,
+    functionName,
+    dataSource,
+  });
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const {
     data: metadata,
@@ -224,11 +224,6 @@ export default function EditFunctionPermissionsForm({
   };
 
   const availableRoles = allRoles;
-
-  const { permissions, resourceVersion } = functionPermissionData || {
-    permissions: [],
-    resourceVersion: 0,
-  };
 
   const hasFunctionPermission = (role: string) => {
     return permissions.some((perm) => perm.role === role);

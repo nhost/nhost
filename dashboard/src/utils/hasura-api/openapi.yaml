@@ -436,6 +436,16 @@ components:
           description: In which part of the schema to expose this function. Either "mutation" or "query".
           enum: ["mutation", "query"]
 
+    FunctionPermission:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          description: Name of the role
+          example: "user"
+
     CustomFunctionRootFields:
       type: object
       properties:
@@ -1472,13 +1482,7 @@ components:
                           type: array
                           description: List of permissions for the function
                           items:
-                            type: object
-                            required:
-                              - role
-                            properties:
-                              role:
-                                type: string
-                                example: "user"
+                            $ref: "#/components/schemas/FunctionPermission"
                 additionalProperties: true
             remote_schemas:
               type: array
