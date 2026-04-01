@@ -1,0 +1,54 @@
+---
+title: Securing Webhook Endpoints
+description: Validate a shared secret to protect your webhook endpoints from unauthorized requests
+keywords: ["webhook security", "webhook secret", "NHOST_WEBHOOK_SECRET", "authentication", "headers"]
+sidebar:
+  label: Webhook Security
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+Protect your webhook endpoints by validating a shared secret sent as an HTTP header. Configure the secret once, then check it in every handler.
+
+## Configuring the Header
+
+<Tabs>
+<TabItem label="Dashboard">
+
+Navigate to the event trigger's **Additional Headers** section and add a header:
+
+![Additional Headers](/images/events/additional-headers.png)
+
+Set the header name to `nhost-webhook-secret` and the value from the environment variable `NHOST_WEBHOOK_SECRET`.
+
+</TabItem>
+<TabItem label="Metadata">
+
+```yaml
+headers:
+  - name: nhost-webhook-secret
+    value_from_env: NHOST_WEBHOOK_SECRET
+```
+
+</TabItem>
+</Tabs>
+
+## Validating in Your Handler
+
+```ts title="./functions/events/your-handler.ts"
+import type { Request, Response } from 'express'
+
+export default async (req: Request, res: Response) => {
+  // Every event handler should validate the webhook secret
+  const webhookSecret = req.headers['nhost-webhook-secret']
+  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
+
+  // ... handler logic
+}
+```
+
+:::caution
+Always validate the webhook secret when targeting your own functions. Without it, anyone who discovers your endpoint URL can send fake events.
+:::

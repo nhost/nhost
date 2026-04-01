@@ -1,0 +1,40 @@
+---
+title: Retry Configuration
+description: Configure retry behavior for event triggers, cron triggers, and one-off scheduled events
+keywords: ["retry", "retries", "timeout", "tolerance", "error handling", "webhook"]
+sidebar:
+  label: Retry Configuration
+---
+
+All event types retry on non-2xx responses and network errors. Configure the retry count, interval, and timeout when creating a trigger.
+
+## Event Triggers
+
+| Field          | Default | Description                          |
+| -------------- | ------- | ------------------------------------ |
+| `num_retries`  | `0`     | Number of retry attempts on failure  |
+| `interval_sec` | `10`    | Seconds between retry attempts       |
+| `timeout_sec`  | `60`    | Seconds before the request times out |
+
+## Cron Triggers
+
+| Field                    | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `num_retries`            | `0`               | Number of retry attempts on failure                             |
+| `retry_interval_seconds` | `10`              | Seconds between retry attempts                                  |
+| `timeout_seconds`        | `60`              | Seconds before a request times out                              |
+| `tolerance_seconds`      | `21600` (6 hours) | Maximum delay in seconds for a late invocation to still execute |
+
+:::note
+Cron triggers use `retry_interval_seconds` and `timeout_seconds`. Event triggers use the shorter `interval_sec` and `timeout_sec`. The field names differ but the behavior is the same.
+:::
+
+## One-Off Scheduled Events
+
+| Field                    | Default | Description                         |
+| ------------------------ | ------- | ----------------------------------- |
+| `num_retries`            | `0`     | Number of retry attempts on failure |
+| `retry_interval_seconds` | `10`    | Seconds between retry attempts      |
+| `timeout_seconds`        | `60`    | Seconds before a request times out  |
+
+One-off events use the same field names as cron triggers.

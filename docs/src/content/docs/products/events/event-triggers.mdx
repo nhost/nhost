@@ -1,5 +1,5 @@
 ---
-title: Event Triggers
+title: Configuring Event Triggers
 description: Fire webhooks when database rows are inserted, updated, or deleted
 keywords:
   ['event triggers', 'database events', 'webhooks', 'insert', 'update', 'delete', 'webhook handler']
@@ -36,7 +36,7 @@ Navigate to **Events** > **Event Triggers** and click **New Event Trigger**.
 | **Update Columns**             | When Update is selected — all columns or specific columns                                                     |
 | **Webhook URL or template**    | Endpoint URL, supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/your-handler`)              |
 | **Retry and Headers Settings** | Retry count, interval, timeout, and custom HTTP headers                                                       |
-| **Configure Transformation**   | Request options transform and payload transform (see [Transformations](#request-and-payload-transformations)) |
+| **Configure Transformation**   | Request options transform and payload transform (see [Transformations](/products/events/transformations)) |
 
 </TabItem>
 <TabItem label="Metadata">
@@ -94,164 +94,24 @@ The **Manual** operation enables on-demand invocation from the dashboard. When b
 
 ## Webhook Handler
 
-The webhook target can be any HTTP endpoint that returns a 2xx status code. By default, events are delivered as POST requests, but you can change the HTTP method using [request transformations](#request-and-payload-transformations). A common pattern is to use an Nhost Function for async business workflows.
+The webhook target can be any HTTP endpoint that returns a 2xx status code. By default, events are delivered as POST requests, but you can change the HTTP method using [request transformations](/products/events/transformations).
 
-```typescript
-import type { Request, Response } from 'express'
-
-export default async (req: Request, res: Response) => {
-  // Validate the webhook secret
-  const webhookSecret = req.headers['nhost-webhook-secret']
-  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-    return res.status(401).json({ message: 'Unauthorized' })
-  }
-
-  const { old: oldRow, new: newRow } = req.body.event.data
-
-  // Your business logic here
-  console.log('Row changed:', { oldRow, newRow })
-
-  res.status(200).json({ success: true })
-}
-```
-
-:::note
-CORS middleware is only needed if the function is also called from browser clients. See the [CORS guide](/products/functions/guides/cors) for configuration details.
-:::
-
-For using the Nhost SDK inside handlers (e.g. querying your database or calling other services with admin privileges), see the [SDK guide](/products/functions/guides/nhost-sdk).
-
-If targeting an external service directly (e.g. Slack), use [request/payload transformations](#request-and-payload-transformations) instead of writing a handler.
+For working handler examples, see:
+- [Community Notifications](/products/events/guides/community-notifications) — notify members when a community description changes
+- [Webhook Security](/products/events/guides/webhook-security) — validate the shared secret in your handler
+- [Using the Nhost SDK](/products/functions/guides/nhost-sdk) — query your database from inside a handler
 
 ## Event Payload
 
-The webhook receives a JSON payload with the following structure:
-
-```json
-{
-  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "created_at": "2026-03-25T12:00:00.000Z",
-  "event": {
-    "op": "UPDATE",
-    "data": {
-      "old": {
-        "id": "community-123",
-        "description": "Old description"
-      },
-      "new": {
-        "id": "community-123",
-        "description": "New description"
-      }
-    },
-    "session_variables": {
-      "x-hasura-role": "user",
-      "x-hasura-user-id": "user-456"
-    },
-    "trace_context": {
-      "span_id": "abc123",
-      "trace_id": "def456"
-    }
-  },
-  "delivery_info": {
-    "current_retry": 0,
-    "max_retries": 3
-  },
-  "trigger": {
-    "name": "community_description_updated"
-  },
-  "table": {
-    "schema": "public",
-    "name": "communities"
-  }
-}
-```
-
-| Field                     | Description                                                    |
-| ------------------------- | -------------------------------------------------------------- |
-| `id`                      | Unique event UUID                                              |
-| `created_at`              | Timestamp when the event was created                           |
-| `event.op`                | Operation type: `INSERT`, `UPDATE`, `DELETE`, or `MANUAL`      |
-| `event.data.old`          | Previous row data (null for inserts; null for manual triggers) |
-| `event.data.new`          | Updated row data (null for deletes)                            |
-| `event.session_variables` | Session variables of the user who triggered the change         |
-| `event.trace_context`     | Trace context with `span_id` and `trace_id`                    |
-| `delivery_info`           | Current retry attempt and max retries configured               |
-| `trigger.name`            | Name of the event trigger                                      |
-| `table.schema`            | Schema of the table that triggered the event                   |
-| `table.name`              | Name of the table that triggered the event                     |
+The webhook receives the old and new row data, the operation type, and session variables identifying who made the change. See [Webhook Payloads](/products/events/guides/webhook-payloads#event-triggers) for the full structure and field reference.
 
 ## Retry Configuration
 
-| Field          | Default | Description                          |
-| -------------- | ------- | ------------------------------------ |
-| `num_retries`  | 0       | Number of retry attempts on failure  |
-| `interval_sec` | 10      | Seconds between retry attempts       |
-| `timeout_sec`  | 60      | Seconds before the request times out |
-
-Retries occur on non-2xx responses and network errors.
+Retries occur on non-2xx responses and network errors. See [Retry Configuration](/products/events/guides/retry-configuration) for defaults and field reference.
 
 ## Request and Payload Transformations
 
-Transform the outgoing webhook request to match any target API. Configured from the **Configure Transformation** accordion in the event trigger form.
-
-### Request Options Transform
-
-Override the default POST method (GET, PUT, PATCH, DELETE), customize the URL path with templates (`{{$base_url}}/custom-path`), and add query parameters as key-value pairs or a URL string template.
-
-### Payload Transform
-
-Reshape the request body. Choose the content type:
-
-| Content Type                        | Editor                | Description                                      |
-| ----------------------------------- | --------------------- | ------------------------------------------------ |
-| `application/json`                  | Template editor       | Kriti template with access to template variables |
-| `application/x-www-form-urlencoded` | Key-value form editor | Form-encoded key-value pairs                     |
-| Disabled                            | None                  | No body sent with the request                    |
-
-The dashboard shows a live preview of the transformed request body.
-
-### Template Variables
-
-| Variable             | Description                                    |
-| -------------------- | ---------------------------------------------- |
-| `$body`              | Original request body (the full event payload) |
-| `$base_url`          | Webhook base URL                               |
-| `$session_variables` | User session variables                         |
-| `$query_params`      | URL query parameters                           |
-| `$response.status`   | Response status code (for response transforms) |
-
-### Example: Sending to Slack
-
-To send event data to a Slack incoming webhook, set the payload transform to `application/json` with a template like:
-
-```json
-{
-  "text": "Row {{ $body.event.op }} in {{ $body.table.name }}: {{ $body.event.data.new }}"
-}
-```
-
-## Webhook Security
-
-Protect your webhook endpoint by validating a shared secret. Configure a header with a secret stored in an environment variable:
-
-![Additional Headers for Event triggers](/images/events/additional-headers.png)
-
-```yaml
-headers:
-  - name: nhost-webhook-secret
-    value_from_env: NHOST_WEBHOOK_SECRET
-```
-
-The handler checks this header on every request:
-
-```typescript
-const webhookSecret = req.headers['nhost-webhook-secret']
-if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-  return res.status(401).json({ message: 'Unauthorized' })
-}
-```
-
-Always validate the webhook secret when targeting your own functions.
+Event triggers support transforming the outgoing webhook request — override the HTTP method, customize the URL path, or reshape the request body. See [Transformations](/products/events/transformations) for configuration details and template variables.
 
 ## Managing Event Triggers
 
@@ -277,7 +137,3 @@ Expand an event to see its invocation logs. Each invocation shows the HTTP statu
 - **View Details** — opens the full request and response (URL, method, headers, body, status)
 
 ![Event Trigger Invocation Details](/images/events/event-trigger-invocation-details.png)
-
----
-
-For a full working example of events integrated with Nhost Functions — including the event trigger handler, notifications system, and React UI — see the [react-demo](https://github.com/nhost/nhost/tree/main/examples/demos) ([`community-updated.ts`](https://github.com/nhost/nhost/blob/main/examples/demos/backend/functions/events/community-updated.ts)).

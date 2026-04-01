@@ -512,13 +512,36 @@ export default defineConfig({
               items: [
                 { label: 'Events', slug: 'products/events' },
                 {
-                  label: 'Guides',
+                  label: 'Configuration',
                   collapsed: false,
                   items: [
                     { slug: 'products/events/event-triggers' },
                     { slug: 'products/events/cron-triggers' },
                     {
                       slug: 'products/events/one-off-scheduled-events',
+                    },
+                    { slug: 'products/events/transformations' },
+                    {
+                      slug: 'products/events/guides/webhook-payloads',
+                    },
+                    {
+                      slug: 'products/events/guides/retry-configuration',
+                    },
+                  ],
+                },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/events/guides/webhook-security' },
+                    {
+                      slug: 'products/events/guides/community-notifications',
+                    },
+                    {
+                      slug: 'products/events/guides/stale-todo-cleanup',
+                    },
+                    {
+                      slug: 'products/events/guides/broadcast-notifications',
                     },
                   ],
                 },

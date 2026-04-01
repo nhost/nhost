@@ -45,9 +45,9 @@ Events call any HTTP endpoint. Common targets:
 - All three are configured from the dashboard under **Events**
 - Event triggers and cron triggers support request and payload transformations
 
-## Event Types
+## Configuration
 
-<CardGroup cols={3}>
+<CardGroup cols={4}>
   <Card title="Event Triggers" href="/products/events/event-triggers">
     Fire webhooks when database rows are inserted, updated, or deleted
   </Card>
@@ -56,5 +56,31 @@ Events call any HTTP endpoint. Common targets:
   </Card>
   <Card title="One-Off Scheduled Events" href="/products/events/one-off-scheduled-events">
     Fire a webhook once at a specific date and time
+  </Card>
+  <Card title="Transformations" href="/products/events/transformations">
+    Reshape the outgoing webhook request to match any target API
+  </Card>
+  <Card title="Webhook Payloads" href="/products/events/guides/webhook-payloads">
+    Payload structure reference for each event type
+  </Card>
+  <Card title="Retry Configuration" href="/products/events/guides/retry-configuration">
+    Configure retry count, interval, timeout, and tolerance
+  </Card>
+</CardGroup>
+
+## Guides
+
+<CardGroup cols={4}>
+  <Card title="Webhook Security" href="/products/events/guides/webhook-security">
+    Protect your endpoints with a shared secret
+  </Card>
+  <Card title="Community Notifications" href="/products/events/guides/community-notifications">
+    Notify members on data changes with an event trigger
+  </Card>
+  <Card title="Stale Todo Cleanup" href="/products/events/guides/stale-todo-cleanup">
+    Detect stale todos on a schedule with a cron trigger
+  </Card>
+  <Card title="Broadcast Notifications" href="/products/events/guides/broadcast-notifications">
+    Send a broadcast with a one-off scheduled event
   </Card>
 </CardGroup>

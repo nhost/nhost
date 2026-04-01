@@ -1,5 +1,5 @@
 ---
-title: Cron Triggers
+title: Configuring Cron Triggers
 description: Call a webhook on a recurring schedule defined by a cron expression
 keywords:
   ['cron', 'cron trigger', 'scheduled', 'recurring', 'background jobs', 'periodic', 'webhook']
@@ -42,7 +42,7 @@ Navigate to **Events** → **Cron Triggers**, then click **New Cron Trigger**.
 | **Schedule (Cron Expression)**             | Cron expression with preset suggestions dropdown                                                                      |
 | **Payload**                                | JSON object sent in the webhook body                                                                                  |
 | **Retry and Headers Settings** (accordion) | Retry count, interval, timeout, **tolerance** (max seconds a late invocation can still fire), and custom HTTP headers |
-| **Request Options** (accordion)            | Request options transform and payload transform (see [Transformations](#request-and-payload-transformations))         |
+| **Request Options** (accordion)            | Request options transform and payload transform (see [Transformations](/products/events/transformations))         |
 
 </TabItem>
 <TabItem label="Metadata">
@@ -91,106 +91,24 @@ Cron trigger retry configuration uses `retry_interval_seconds` and `timeout_seco
 
 ## Webhook Handler
 
-Cron triggers deliver an HTTP request to any endpoint. The default method is POST, but you can change it using [request transformations](/products/events/event-triggers/#request-and-payload-transformations). The request body contains a `payload` field with the JSON you configured, not database row data.
+Cron triggers deliver an HTTP request to any endpoint. The default method is POST, but you can change it using [request transformations](/products/events/transformations). The request body contains a `payload` field with the JSON you configured, not database row data.
 
-A common pattern is targeting an [Nhost Function](/products/functions) to build async business workflows. The handler accesses the payload at `req.body.payload`. If configured with an empty payload (`{}`), the handler can ignore the body and run self-contained logic.
-
-```ts
-import type { Request, Response } from 'express'
-import { createClient, withAdminSession } from '@nhost/nhost-js'
-
-export default async (req: Request, res: Response) => {
-  // Validate the webhook secret
-  const webhookSecret = req.headers['nhost-webhook-secret']
-  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
-    return res.status(401).json({ message: 'Unauthorized' })
-  }
-
-  const nhost = createClient({
-    region: process.env.NHOST_REGION,
-    subdomain: process.env.NHOST_SUBDOMAIN,
-    configure: [
-      withAdminSession({
-        adminSecret: process.env.NHOST_ADMIN_SECRET
-      })
-    ]
-  })
-
-  // Payload is at req.body.payload (the JSON configured in the trigger)
-  const payload = req.body.payload
-
-  // Run your periodic logic here — query the database, process data, send notifications
-  const { body } = await nhost.graphql.request({
-    query: `
-      query GetStaleTodos($cutoff: timestamptz!) {
-        todos(where: {
-          completed: { _eq: false },
-          stale: { _eq: false },
-          updated_at: { _lt: $cutoff }
-        }) {
-          id
-          title
-          user_id
-        }
-      }
-    `,
-    variables: {
-      cutoff: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    }
-  })
-
-  if (body.errors) {
-    return res.status(500).json({ errors: body.errors })
-  }
-
-  res.status(200).json({ processed: body.data?.todos?.length || 0 })
-}
-```
-
-For webhook security details, see [Event Triggers — Webhook Security](/products/events/event-triggers#webhook-security). For using the Nhost SDK inside handlers, see the [SDK guide](/products/functions/guides/nhost-sdk).
+For working handler examples, see:
+- [Stale Todo Cleanup](/products/events/guides/stale-todo-cleanup) — detect and flag stale todos on a schedule
+- [Webhook Security](/products/events/guides/webhook-security) — validate the shared secret in your handler
+- [Using the Nhost SDK](/products/functions/guides/nhost-sdk) — query your database from inside a handler
 
 ## Cron Trigger Payload
 
-The complete webhook request body:
-
-```json
-{
-  "scheduled_time": "2024-01-15T12:00:00.000Z",
-  "payload": {},
-  "name": "stale_todos_check",
-  "comment": "Checks for incomplete todos not updated in 7+ days, marks them stale, and notifies owners."
-}
-```
-
-| Field            | Description                                                  |
-| ---------------- | ------------------------------------------------------------ |
-| `scheduled_time` | ISO 8601 timestamp of the scheduled invocation (UTC)         |
-| `payload`        | The JSON object configured in the trigger definition         |
-| `name`           | The cron trigger name                                        |
-| `comment`        | The optional comment/description from the trigger definition |
+The webhook receives schedule metadata and the custom JSON payload you configured. See [Webhook Payloads](/products/events/guides/webhook-payloads#cron-triggers) for the full structure and field reference.
 
 ## Retry Configuration
 
-| Field                    | Default           | Description                                                     |
-| ------------------------ | ----------------- | --------------------------------------------------------------- |
-| `num_retries`            | `0`               | Number of retry attempts on failure                             |
-| `retry_interval_seconds` | `10`              | Seconds between retry attempts                                  |
-| `timeout_seconds`        | `60`              | Seconds before a request times out                              |
-| `tolerance_seconds`      | `21600` (6 hours) | Maximum delay in seconds for a late invocation to still execute |
-
-Retries occur on non-2xx responses and network errors.
+Retries occur on non-2xx responses and network errors. Cron triggers also support a `tolerance_seconds` field — the maximum delay for a late invocation to still execute (default: 6 hours). See [Retry Configuration](/products/events/guides/retry-configuration) for defaults and field reference.
 
 ## Request and Payload Transformations
 
-Cron triggers support the same request and payload transformations as event triggers. Transform the outgoing webhook request to match any target API — override the HTTP method, customize the URL path, or reshape the request body.
-
-Transformations are configured from the **Request Options** accordion in the cron trigger form.
-
-For full details on available transform types and template variables, see [Event Triggers — Request and Payload Transformations](/products/events/event-triggers#request-and-payload-transformations).
-
-## Idempotency
-
-Cron triggers provide at-least-once delivery. A scheduled invocation may fire more than once due to retries or system recovery. Design handlers to check whether the work is already done before performing it again — for example, by checking timestamps or setting flags before processing.
+Cron triggers support the same request and payload transformations as event triggers. See [Transformations](/products/events/transformations) for configuration details and template variables.
 
 ## Managing Cron Triggers
 
@@ -213,7 +131,3 @@ Lists all scheduled invocations for this cron trigger. Filter by status using th
 Each event shows its scheduled time, status, ID, and number of tries. Scheduled events that have not yet fired can be deleted individually.
 
 Expand an event to see its invocation logs. Each invocation shows the HTTP status code and a **View Details** action that opens the full request and response.
-
----
-
-For a full working example — including the cron handler, stale todo detection, and notification UI — see the [react-demo](https://github.com/nhost/nhost/tree/main/examples/demos) ([`stale-todos.ts`](https://github.com/nhost/nhost/blob/main/examples/demos/backend/functions/events/stale-todos.ts)).
