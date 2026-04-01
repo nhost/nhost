@@ -258,6 +258,8 @@ export default function EditTableForm({
       <BaseTableForm
         submitButtonText="Save"
         onSubmit={handleSubmit}
+        schema={schema}
+        tableName={originalTableName}
         {...props}
       />
     </FormProvider>
