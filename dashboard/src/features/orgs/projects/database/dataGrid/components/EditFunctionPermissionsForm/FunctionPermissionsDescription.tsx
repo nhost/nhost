@@ -32,13 +32,17 @@ export function FunctionPermissionsDescription({
       <p>
         Permissions will be inherited from the SELECT permissions of the
         referenced table (
-        <NavLink
-          href={`/orgs/${org?.slug}/projects/${project?.subdomain}/database/browser/${dataSource}/${returnTableSchema || schema}/tables/${returnTableName}`}
-          className="text-primary underline-offset-4 hover:underline"
-          onClick={closeDrawerWithDirtyGuard}
-        >
-          {referencedTable}
-        </NavLink>
+        {returnTableName ? (
+          <NavLink
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/database/browser/${dataSource}/${returnTableSchema || schema}/tables/${returnTableName}`}
+            className="text-primary underline-offset-4 hover:underline"
+            onClick={closeDrawerWithDirtyGuard}
+          >
+            {returnTableName}
+          </NavLink>
+        ) : (
+          <span>{referencedTable}</span>
+        )}
         ) by default.
       </p>
       {inferFunctionPermissions !== false && !isMutationFunction && (
