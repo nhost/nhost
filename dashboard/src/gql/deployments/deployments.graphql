@@ -26,11 +26,6 @@ fragment Deployment on deployments {
   functionsStartedAt
   functionsEndedAt
   functionsStatus
-  deploymentLogs(order_by: { createdAt: asc }) {
-    id
-    createdAt
-    message
-  }
 }
 
 subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {

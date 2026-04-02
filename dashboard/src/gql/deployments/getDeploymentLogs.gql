@@ -1,0 +1,29 @@
+query getDeploymentLogs(
+  $appID: String!
+  $deploymentID: String!
+  $from: Timestamp!
+  $to: Timestamp!
+) {
+  getDeploymentLogs(
+    appID: $appID
+    deploymentID: $deploymentID
+    from: $from
+    to: $to
+  ) {
+    timestamp
+    task
+    log
+  }
+}
+
+subscription getDeploymentLogsSubscription(
+  $appID: String!
+  $deploymentID: String!
+  $from: Timestamp!
+) {
+  getDeploymentLogs(appID: $appID, deploymentID: $deploymentID, from: $from) {
+    timestamp
+    task
+    log
+  }
+}
