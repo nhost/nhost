@@ -1,0 +1,45 @@
+[
+  {
+    "value": 20,
+    "op": "replace",
+    "path": "/functions/node/version"
+  },
+  {
+    "value": {
+      "name": "STRIPE_SECRET_KEY",
+      "value": "{{ secrets.STRIPE_SECRET_KEY }}"
+    },
+    "op": "add",
+    "path": "/global/environment/-"
+  },
+  {
+    "value": "OVERLAY",
+    "op": "replace",
+    "path": "/global/environment/0/name"
+  },
+  {
+    "value": "YES",
+    "op": "replace",
+    "path": "/global/environment/0/value"
+  },
+  {
+    "value": "GREET",
+    "op": "replace",
+    "path": "/global/environment/1/name"
+  },
+  {
+    "value": "Sayonara",
+    "op": "replace",
+    "path": "/global/environment/1/value"
+  },
+  {
+    "value": "NODE_ENV",
+    "op": "replace",
+    "path": "/global/environment/2/name"
+  },
+  {
+    "value": "production",
+    "op": "replace",
+    "path": "/global/environment/2/value"
+  }
+]
