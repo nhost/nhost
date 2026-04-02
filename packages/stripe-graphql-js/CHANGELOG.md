@@ -1,3 +1,15 @@
+## [@nhost/stripe-graphql-js@1.3.1] - 2026-04-02
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update lodash due to vulnerability (#4108)
+
+
+### Chore
+
+- *(deps)* Update various npm packages due to cves (#4073)
+- *(deps)* Update deps due to cve (#4091)
+
 ## [@nhost/stripe-graphql-js@1.3.0] - 2026-03-26
 
 ### 🚀 Features
