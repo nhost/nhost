@@ -1,5 +1,7 @@
+import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mockMatchMediaValue } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   createGraphqlMockResolver,
@@ -9,10 +11,16 @@ import {
 } from '@/tests/testUtils';
 import StorageSidebar from './StorageSidebar';
 
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(mockMatchMediaValue),
+});
+
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
   useIsPlatform: vi.fn(),
   useProject: vi.fn(),
+  useAppClient: vi.fn(),
 }));
 
 vi.mock('next/router', () => ({
@@ -25,6 +33,10 @@ vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: mocks.useProject,
+}));
+
+vi.mock('@/features/orgs/projects/hooks/useAppClient', () => ({
+  useAppClient: mocks.useAppClient,
 }));
 
 const getUseRouterObject = (bucketId?: string) => ({
@@ -92,12 +104,18 @@ describe('StorageSidebar', () => {
     mocks.useProject.mockReturnValue({
       project: { config: { hasura: { adminSecret: 'secret' } } },
     });
+    mocks.useAppClient.mockReturnValue({
+      storage: {
+        deleteOrphanedFiles: vi.fn().mockResolvedValue(undefined),
+      },
+    });
   });
 
   afterEach(() => {
     mocks.useRouter.mockRestore();
     mocks.useIsPlatform.mockRestore();
     mocks.useProject.mockRestore();
+    mocks.useAppClient.mockRestore();
     vi.restoreAllMocks();
   });
 
@@ -197,6 +215,167 @@ describe('StorageSidebar', () => {
         'href',
         '/orgs/xyz/projects/test-project/storage/bucket/avatars',
       );
+    });
+  });
+
+  it('should open confirmation dialog when Delete Bucket is clicked', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    mocks.useRouter.mockReturnValue(getUseRouterObject('default'));
+    const resolver = createGraphqlMockResolver('getBuckets', 'query');
+    server.use(resolver.handler);
+
+    render(<StorageSidebar />);
+
+    resolver.resolve({ buckets: mockBuckets });
+
+    await waitFor(() => {
+      expect(screen.getByText('default')).toBeInTheDocument();
+    });
+
+    const actionButtons = screen.getAllByRole('button', { name: '' });
+    const ellipsisButton = actionButtons.find((btn) =>
+      btn.querySelector('.lucide-ellipsis'),
+    );
+    await user.click(ellipsisButton!);
+    await user.click(screen.getByText('Delete Bucket'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Are you sure you want to delete/),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('default', { selector: 'span.font-mono' }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('should call delete mutation and navigate away when confirming deletion of current bucket', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const routerObj = getUseRouterObject('avatars');
+    mocks.useRouter.mockReturnValue(routerObj);
+
+    const bucketsResolver = createGraphqlMockResolver('getBuckets', 'query');
+    const deleteResolver = createGraphqlMockResolver(
+      'deleteBucket',
+      'mutation',
+    );
+    server.use(bucketsResolver.handler, deleteResolver.handler);
+
+    render(<StorageSidebar />);
+
+    bucketsResolver.resolve({ buckets: mockBuckets });
+
+    await waitFor(() => {
+      expect(screen.getByText('avatars')).toBeInTheDocument();
+    });
+
+    const avatarsItem = screen.getByText('avatars').closest('li');
+    const ellipsisButton = avatarsItem!.querySelector('button[data-state]');
+    await user.click(ellipsisButton!);
+    await user.click(screen.getByText('Delete Bucket'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Are you sure you want to delete/),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    deleteResolver.resolve({ deleteBucket: { id: 'avatars' } });
+
+    await waitFor(() => {
+      expect(routerObj.push).toHaveBeenCalledWith(
+        '/orgs/xyz/projects/test-project/storage',
+      );
+    });
+  });
+
+  it('should call deleteOrphanedFiles on the storage client when deleting a bucket', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const routerObj = getUseRouterObject('default');
+    mocks.useRouter.mockReturnValue(routerObj);
+
+    const deleteOrphanedFiles = vi.fn().mockResolvedValue(undefined);
+    mocks.useAppClient.mockReturnValue({
+      storage: { deleteOrphanedFiles },
+    });
+
+    const bucketsResolver = createGraphqlMockResolver('getBuckets', 'query');
+    const deleteResolver = createGraphqlMockResolver(
+      'deleteBucket',
+      'mutation',
+    );
+    server.use(bucketsResolver.handler, deleteResolver.handler);
+
+    render(<StorageSidebar />);
+
+    bucketsResolver.resolve({ buckets: mockBuckets });
+
+    await waitFor(() => {
+      expect(screen.getByText('avatars')).toBeInTheDocument();
+    });
+
+    const avatarsItem = screen.getByText('avatars').closest('li');
+    const ellipsisButton = avatarsItem!.querySelector('button[data-state]');
+    await user.click(ellipsisButton!);
+    await user.click(screen.getByText('Delete Bucket'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Are you sure you want to delete/),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    deleteResolver.resolve({ deleteBucket: { id: 'avatars' } });
+
+    await waitFor(() => {
+      expect(deleteOrphanedFiles).toHaveBeenCalledOnce();
+    });
+  });
+
+  it('should not navigate away when deleting a bucket that is not currently viewed', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const routerObj = getUseRouterObject('default');
+    mocks.useRouter.mockReturnValue(routerObj);
+
+    const bucketsResolver = createGraphqlMockResolver('getBuckets', 'query');
+    const deleteResolver = createGraphqlMockResolver(
+      'deleteBucket',
+      'mutation',
+    );
+    server.use(bucketsResolver.handler, deleteResolver.handler);
+
+    render(<StorageSidebar />);
+
+    bucketsResolver.resolve({ buckets: mockBuckets });
+
+    await waitFor(() => {
+      expect(screen.getByText('avatars')).toBeInTheDocument();
+    });
+
+    const avatarsItem = screen.getByText('avatars').closest('li');
+    const ellipsisButton = avatarsItem!.querySelector('button[data-state]');
+    await user.click(ellipsisButton!);
+    await user.click(screen.getByText('Delete Bucket'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Are you sure you want to delete/),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    deleteResolver.resolve({ deleteBucket: { id: 'avatars' } });
+
+    await waitFor(() => {
+      expect(routerObj.push).not.toHaveBeenCalled();
     });
   });
 });
