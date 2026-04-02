@@ -126,6 +126,7 @@ export default function BaseRecordForm({
               gridColumn?.type === 'date' && value instanceof Date
                 ? value.toUTCString()
                 : value,
+            specificType: gridColumn?.specificType,
           },
         };
       }, {});

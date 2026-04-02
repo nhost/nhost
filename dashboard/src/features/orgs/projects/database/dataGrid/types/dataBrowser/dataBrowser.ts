@@ -256,6 +256,11 @@ export interface ColumnInsertOptions {
    * Fallback value if the column value is `undefined`.
    */
   fallbackValue?: 'NULL' | 'DEFAULT';
+  /**
+   * PostgreSQL specific type of the column (e.g. `text`, `integer[]`).
+   * Used to determine special SQL formatting such as ARRAY[...] literals.
+   */
+  specificType?: string;
 }
 
 /**
