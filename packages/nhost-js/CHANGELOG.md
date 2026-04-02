@@ -1,3 +1,14 @@
+## [@nhost/nhost-js@4.6.1] - 2026-04-02
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update lodash due to vulnerability (#4108)
+
+
+### Chore
+
+- *(deps)* Update deps due to cve (#4091)
+
 ## [@nhost/nhost-js@4.6.0] - 2026-03-28
 
 ### 🚀 Features
