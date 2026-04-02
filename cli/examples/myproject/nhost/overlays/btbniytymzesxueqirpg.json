@@ -1,10 +1,5 @@
 [
   {
-    "value": 20,
-    "op": "replace",
-    "path": "/functions/node/version"
-  },
-  {
     "value": {
       "name": "STRIPE_SECRET_KEY",
       "value": "{{ secrets.STRIPE_SECRET_KEY }}"
@@ -43,3 +38,4 @@
     "path": "/global/environment/2/value"
   }
 ]
+
