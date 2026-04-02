@@ -1,3 +1,10 @@
+## [@nhost/dashboard@2.56.1] - 2026-04-02
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Allow editing primary keys (#4103)
+- *(deps)* Update lodash due to vulnerability (#4108)
+
 ## [@nhost/dashboard@2.56.0] - 2026-03-30
 
 ### 🚀 Features
