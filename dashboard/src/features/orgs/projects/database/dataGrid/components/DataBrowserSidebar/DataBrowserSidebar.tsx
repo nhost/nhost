@@ -12,24 +12,16 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
-import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
-
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
-import DatabaseObjectActions from './DatabaseObjectActions';
+import DatabaseObjectListItem from './DatabaseObjectListItem';
 
 export interface DataBrowserSidebarContentProps {
   onSidebarItemClick?: (tablePath?: string) => void;
@@ -42,12 +34,15 @@ function DataBrowserSidebarContent({
 
   const {
     asPath,
-    query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
+    query: {
+      orgSlug,
+      appSubdomain,
+      dataSourceSlug,
+      schemaSlug,
+      tableSlug,
+      functionOID,
+    },
   } = router;
-
-  const { data: trackedTablesSet } = useGetTrackedTablesSet({
-    dataSource: dataSourceSlug as string,
-  });
 
   const { data: enumTablePaths } = useGetEnumsSet({
     dataSource: dataSourceSlug as string,
@@ -60,7 +55,7 @@ function DataBrowserSidebarContent({
     refetch: refetchDatabaseQuery,
   } = useDatabaseQuery([dataSourceSlug as string]);
 
-  const { schemas, tableLikeObjects, metadata } = data || {
+  const { schemas, tableLikeObjects, functions, metadata } = data || {
     schemas: [],
   };
 
@@ -90,42 +85,50 @@ function DataBrowserSidebarContent({
 
   const allObjectsInSelectedSchema: DatabaseObjectViewModel[] =
     sortDatabaseObjects(
-      (tableLikeObjects || [])
-        .filter((obj) => obj.table_schema === selectedSchema)
-        .map((obj) => ({
-          schema: obj.table_schema,
-          name: obj.table_name,
-          objectType: obj.table_type || 'ORDINARY TABLE',
-          updatability: obj.updatability,
-        })),
+      [
+        ...(tableLikeObjects || [])
+          .filter(
+            (tableLikeObject) =>
+              tableLikeObject.table_schema === selectedSchema,
+          )
+          .map((tableLikeObject) => ({
+            schema: tableLikeObject.table_schema,
+            name: tableLikeObject.table_name,
+            objectType: tableLikeObject.table_type || 'ORDINARY TABLE',
+            updatability: tableLikeObject.updatability,
+          })),
+        ...(functions || [])
+          .filter(
+            (databaseFunction) =>
+              databaseFunction.function_schema === selectedSchema,
+          )
+          .map((databaseFunction) => ({
+            schema: databaseFunction.function_schema,
+            name: databaseFunction.function_name,
+            objectType: 'FUNCTION' as const,
+            oid: databaseFunction.function_oid,
+          })),
+      ],
       enumTablePaths,
     );
 
-  const {
-    removableObject,
-    optimisticlyRemovedObject,
-    sidebarMenuObject,
-    setSidebarMenuObject,
-    handleDeleteDatabaseObject,
-    handleEditPermission,
-    handleEditGraphQLSettings,
-    handleEditRelationships,
-    openEditTableDrawer,
-    openEditViewDrawer,
-    openCreateTableDrawer,
-  } = useDataBrowserActions({
+  const dataBrowserActions = useDataBrowserActions({
     dataSourceSlug: dataSourceSlug as string,
     schemaSlug: schemaSlug as string | undefined,
     tableSlug: tableSlug as string | undefined,
+    functionOID: functionOID as string | undefined,
     selectedSchema,
     refetchDatabaseQuery,
     allObjects: allObjectsInSelectedSchema,
   });
 
-  const displayedObjects = allObjectsInSelectedSchema.filter(
-    ({ schema: tableSchema, name: tableName }) =>
-      `${tableSchema}.${tableName}` !== optimisticlyRemovedObject,
-  );
+  const displayedObjects = allObjectsInSelectedSchema.filter((obj) => {
+    const isFunc = obj.objectType === 'FUNCTION';
+    const objKey = isFunc
+      ? `FUNCTION.${obj.schema}.${obj.oid}`
+      : `${obj.schema}.${obj.name}`;
+    return objKey !== dataBrowserActions.optimisticlyRemovedObject;
+  });
 
   if (status === 'loading') {
     return (
@@ -133,7 +136,7 @@ function DataBrowserSidebarContent({
         wrapperClassName="flex-row text-[12px] leading-[1.66] font-normal gap-1"
         className="h-4 w-4 justify-center"
       >
-        Loading schemas and tables...
+        Loading schemas and objects...
       </Spinner>
     );
   }
@@ -179,7 +182,7 @@ function DataBrowserSidebarContent({
             variant="link"
             className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
             onClick={() => {
-              openCreateTableDrawer();
+              dataBrowserActions.openCreateTableDrawer();
               onSidebarItemClick?.();
             }}
           >
@@ -187,134 +190,24 @@ function DataBrowserSidebarContent({
           </Button>
         )}
         {isNotEmptyValue(schemas) && isEmptyValue(displayedObjects) && (
-          <p className="px-2 py-1.5 text-disabled text-xs">No tables found.</p>
+          <p className="px-2 py-1.5 text-disabled text-xs">No objects found.</p>
         )}
         <nav aria-label="Database navigation">
           {isNotEmptyValue(displayedObjects) && (
             <ul className="w-full max-w-full pb-6">
               {displayedObjects.map((databaseObject) => {
-                const objectPath = `${databaseObject.objectType}.${databaseObject.schema}.${databaseObject.name}`;
-                const isSelected =
-                  databaseObject.schema === schemaSlug &&
-                  databaseObject.name === tableSlug;
-                const isSidebarMenuOpen = sidebarMenuObject === objectPath;
-                const tablePath = `${databaseObject.schema}.${databaseObject.name}`;
-                const isEnum = Boolean(enumTablePaths?.has(tablePath));
-                const isUntracked = !trackedTablesSet?.has(tablePath);
-                const DatabaseObjectIcon = getDatabaseObjectIcon(
-                  databaseObject.objectType,
-                  isEnum,
-                );
+                const isFunction = databaseObject.objectType === 'FUNCTION';
+                const keyIdentifier = isFunction
+                  ? databaseObject.oid
+                  : databaseObject.name;
+
                 return (
-                  <li className="group pb-1" key={objectPath}>
-                    <Tooltip open={isUntracked ? undefined : false}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          asChild
-                          variant="link"
-                          size="sm"
-                          disabled={objectPath === removableObject}
-                          className={cn(
-                            'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-                            {
-                              'bg-table-selected': isSelected,
-                            },
-                          )}
-                        >
-                          <div>
-                            <NextLink
-                              className={cn(
-                                'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
-                                {
-                                  'text-primary-main': isSelected,
-                                },
-                              )}
-                              onClick={() => {
-                                if (onSidebarItemClick) {
-                                  onSidebarItemClick(`default.${objectPath}`);
-                                }
-                              }}
-                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.schema}/tables/${databaseObject.name}`}
-                            >
-                              <DatabaseObjectIcon className="h-4 w-4 shrink-0" />
-                              <span
-                                className={cn('!truncate text-ellipsis', {
-                                  italic: isUntracked,
-                                  'opacity-50': isUntracked && !isSelected,
-                                })}
-                              >
-                                {databaseObject.name}
-                              </span>
-                            </NextLink>
-                            <DatabaseObjectActions
-                              tableName={databaseObject.name}
-                              schema={databaseObject.schema}
-                              dataSource={dataSourceSlug as string}
-                              objectType={databaseObject.objectType}
-                              open={isSidebarMenuOpen}
-                              onOpen={() => setSidebarMenuObject(objectPath)}
-                              onClose={() => setSidebarMenuObject(undefined)}
-                              disabled={objectPath === removableObject}
-                              className={cn(
-                                'relative z-10 opacity-0 group-hover:opacity-100',
-                                {
-                                  'opacity-100':
-                                    isSelected || isSidebarMenuOpen,
-                                },
-                              )}
-                              isSelectedNotSchemaLocked={
-                                !isSelectedSchemaLocked
-                              }
-                              onEditPermissions={() =>
-                                handleEditPermission(
-                                  databaseObject.schema,
-                                  databaseObject.name,
-                                  databaseObject.objectType,
-                                  databaseObject.updatability,
-                                )
-                              }
-                              onEdit={() =>
-                                ['MATERIALIZED VIEW', 'VIEW'].includes(
-                                  databaseObject.objectType,
-                                )
-                                  ? openEditViewDrawer(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                      databaseObject.objectType,
-                                    )
-                                  : openEditTableDrawer(
-                                      databaseObject.schema,
-                                      databaseObject.name,
-                                    )
-                              }
-                              onEditGraphQLSettings={() =>
-                                handleEditGraphQLSettings(
-                                  databaseObject.schema,
-                                  databaseObject.name,
-                                )
-                              }
-                              onEditRelationships={() =>
-                                handleEditRelationships(
-                                  databaseObject.schema,
-                                  databaseObject.name,
-                                )
-                              }
-                              onDelete={() =>
-                                handleDeleteDatabaseObject(
-                                  databaseObject.schema,
-                                  databaseObject.name,
-                                  databaseObject.objectType,
-                                )
-                              }
-                            />
-                          </div>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" sideOffset={8}>
-                        Not tracked in GraphQL
-                      </TooltipContent>
-                    </Tooltip>
-                  </li>
+                  <DatabaseObjectListItem
+                    key={`${databaseObject.objectType}.${databaseObject.schema}.${keyIdentifier}`}
+                    databaseObject={databaseObject}
+                    dataBrowserActions={dataBrowserActions}
+                    onSidebarItemClick={onSidebarItemClick}
+                  />
                 );
               })}
             </ul>
