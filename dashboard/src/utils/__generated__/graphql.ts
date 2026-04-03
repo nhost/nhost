@@ -3374,6 +3374,13 @@ export type ContainerError = {
   name: Scalars['String'];
 };
 
+export type DeploymentLog = {
+  __typename?: 'DeploymentLog';
+  log: Scalars['String'];
+  task: Scalars['String'];
+  timestamp: Scalars['Timestamp'];
+};
+
 export type InsertRunServiceConfigResponse = {
   __typename?: 'InsertRunServiceConfigResponse';
   config: ConfigRunServiceConfig;
@@ -12527,6 +12534,7 @@ export type Deployments = {
   functionsStartedAt?: Maybe<Scalars['timestamptz']>;
   functionsStatus?: Maybe<Scalars['String']>;
   id: Scalars['uuid'];
+  metadata?: Maybe<Scalars['jsonb']>;
   metadataEndedAt?: Maybe<Scalars['timestamptz']>;
   metadataStartedAt?: Maybe<Scalars['timestamptz']>;
   metadataStatus?: Maybe<Scalars['String']>;
@@ -12553,6 +12561,12 @@ export type DeploymentsDeploymentLogs_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<DeploymentLogs_Order_By>>;
   where?: InputMaybe<DeploymentLogs_Bool_Exp>;
+};
+
+
+/** Table that keeps track of deployments done by watchtower */
+export type DeploymentsMetadataArgs = {
+  path?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregated selection of "deployments" */
@@ -12595,6 +12609,11 @@ export type Deployments_Aggregate_Order_By = {
   min?: InputMaybe<Deployments_Min_Order_By>;
 };
 
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type Deployments_Append_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
+};
+
 /** input type for inserting array relation for remote table "deployments" */
 export type Deployments_Arr_Rel_Insert_Input = {
   data: Array<Deployments_Insert_Input>;
@@ -12623,6 +12642,7 @@ export type Deployments_Bool_Exp = {
   functionsStartedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   functionsStatus?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   metadataEndedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   metadataStartedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   metadataStatus?: InputMaybe<String_Comparison_Exp>;
@@ -12636,6 +12656,21 @@ export enum Deployments_Constraint {
   /** unique or primary key constraint on columns "id" */
   DeploymentsPkey = 'deployments_pkey'
 }
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type Deployments_Delete_At_Path_Input = {
+  metadata?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type Deployments_Delete_Elem_Input = {
+  metadata?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type Deployments_Delete_Key_Input = {
+  metadata?: InputMaybe<Scalars['String']>;
+};
 
 /** input type for inserting data into table "deployments" */
 export type Deployments_Insert_Input = {
@@ -12654,6 +12689,7 @@ export type Deployments_Insert_Input = {
   functionsStartedAt?: InputMaybe<Scalars['timestamptz']>;
   functionsStatus?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
   metadataEndedAt?: InputMaybe<Scalars['timestamptz']>;
   metadataStartedAt?: InputMaybe<Scalars['timestamptz']>;
   metadataStatus?: InputMaybe<Scalars['String']>;
@@ -12796,6 +12832,7 @@ export type Deployments_Order_By = {
   functionsStartedAt?: InputMaybe<Order_By>;
   functionsStatus?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   metadataEndedAt?: InputMaybe<Order_By>;
   metadataStartedAt?: InputMaybe<Order_By>;
   metadataStatus?: InputMaybe<Order_By>;
@@ -12807,6 +12844,11 @@ export type Deployments_Order_By = {
 /** primary key columns input for table: deployments */
 export type Deployments_Pk_Columns_Input = {
   id: Scalars['uuid'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type Deployments_Prepend_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
 };
 
 /** select columns of table "deployments" */
@@ -12838,6 +12880,8 @@ export enum Deployments_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  Metadata = 'metadata',
+  /** column name */
   MetadataEndedAt = 'metadataEndedAt',
   /** column name */
   MetadataStartedAt = 'metadataStartedAt',
@@ -12866,6 +12910,7 @@ export type Deployments_Set_Input = {
   functionsStartedAt?: InputMaybe<Scalars['timestamptz']>;
   functionsStatus?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
   metadataEndedAt?: InputMaybe<Scalars['timestamptz']>;
   metadataStartedAt?: InputMaybe<Scalars['timestamptz']>;
   metadataStatus?: InputMaybe<Scalars['String']>;
@@ -12897,6 +12942,7 @@ export type Deployments_Stream_Cursor_Value_Input = {
   functionsStartedAt?: InputMaybe<Scalars['timestamptz']>;
   functionsStatus?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
   metadataEndedAt?: InputMaybe<Scalars['timestamptz']>;
   metadataStartedAt?: InputMaybe<Scalars['timestamptz']>;
   metadataStatus?: InputMaybe<Scalars['String']>;
@@ -12934,6 +12980,8 @@ export enum Deployments_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  Metadata = 'metadata',
+  /** column name */
   MetadataEndedAt = 'metadataEndedAt',
   /** column name */
   MetadataStartedAt = 'metadataStartedAt',
@@ -12948,6 +12996,16 @@ export enum Deployments_Update_Column {
 }
 
 export type Deployments_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<Deployments_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<Deployments_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<Deployments_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<Deployments_Delete_Key_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<Deployments_Prepend_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<Deployments_Set_Input>;
   /** filter the rows which have to be updated */
@@ -17515,6 +17573,11 @@ export type Mutation_RootUpdateConfigArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateDeploymentArgs = {
+  _append?: InputMaybe<Deployments_Append_Input>;
+  _delete_at_path?: InputMaybe<Deployments_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Deployments_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Deployments_Delete_Key_Input>;
+  _prepend?: InputMaybe<Deployments_Prepend_Input>;
   _set?: InputMaybe<Deployments_Set_Input>;
   pk_columns: Deployments_Pk_Columns_Input;
 };
@@ -17536,6 +17599,11 @@ export type Mutation_RootUpdateDeploymentLogsArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateDeploymentsArgs = {
+  _append?: InputMaybe<Deployments_Append_Input>;
+  _delete_at_path?: InputMaybe<Deployments_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Deployments_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Deployments_Delete_Key_Input>;
+  _prepend?: InputMaybe<Deployments_Prepend_Input>;
   _set?: InputMaybe<Deployments_Set_Input>;
   where: Deployments_Bool_Exp;
 };
@@ -21461,6 +21529,11 @@ export type Query_Root = {
   filesAggregate: Files_Aggregate;
   getBackupPresignedURL: BackupPresignedUrl;
   getCPUSecondsUsage: Metrics;
+  /**
+   * Returns deployment logs for a given application and deployment.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   */
+  getDeploymentLogs: Array<DeploymentLog>;
   getEgressVolume: Metrics;
   getFunctionsDuration: Metrics;
   getFunctionsInvocations: Metrics;
@@ -22474,6 +22547,14 @@ export type Query_RootGetBackupPresignedUrlArgs = {
 
 export type Query_RootGetCpuSecondsUsageArgs = {
   appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetDeploymentLogsArgs = {
+  appID: Scalars['String'];
+  deploymentID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
@@ -25330,6 +25411,11 @@ export type Subscription_Root = {
   filesAggregate: Files_Aggregate;
   /** fetch data from the table in a streaming manner: "storage.files" */
   files_stream: Array<Files>;
+  /**
+   * Returns deployment logs for a given application and deployment.
+   * If `from` is not provided, it defaults to an hour ago.
+   */
+  getDeploymentLogs: Array<DeploymentLog>;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -26547,6 +26633,13 @@ export type Subscription_RootFiles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Files_Stream_Cursor_Input>>;
   where?: InputMaybe<Files_Bool_Exp>;
+};
+
+
+export type Subscription_RootGetDeploymentLogsArgs = {
+  appID: Scalars['String'];
+  deploymentID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
@@ -30125,7 +30218,7 @@ export type GetCountriesQuery = { __typename?: 'query_root', countries: Array<{ 
 
 export type DeploymentRowFragment = { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null };
 
-export type DeploymentFragment = { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> };
+export type DeploymentFragment = { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, metadata?: any | null };
 
 export type ScheduledOrPendingDeploymentsSubSubscriptionVariables = Exact<{
   appId: Scalars['uuid'];
@@ -30162,14 +30255,33 @@ export type DeploymentSubSubscriptionVariables = Exact<{
 }>;
 
 
-export type DeploymentSubSubscription = { __typename?: 'subscription_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
+export type DeploymentSubSubscription = { __typename?: 'subscription_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, metadata?: any | null } | null };
 
 export type GetDeploymentQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type GetDeploymentQuery = { __typename?: 'query_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
+export type GetDeploymentQuery = { __typename?: 'query_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, metadata?: any | null } | null };
+
+export type GetDeploymentLogsQueryVariables = Exact<{
+  appID: Scalars['String'];
+  deploymentID: Scalars['String'];
+  from: Scalars['Timestamp'];
+  to: Scalars['Timestamp'];
+}>;
+
+
+export type GetDeploymentLogsQuery = { __typename?: 'query_root', getDeploymentLogs: Array<{ __typename?: 'DeploymentLog', timestamp: any, task: string, log: string }> };
+
+export type GetDeploymentLogsSubscriptionSubscriptionVariables = Exact<{
+  appID: Scalars['String'];
+  deploymentID: Scalars['String'];
+  from: Scalars['Timestamp'];
+}>;
+
+
+export type GetDeploymentLogsSubscriptionSubscription = { __typename?: 'subscription_root', getDeploymentLogs: Array<{ __typename?: 'DeploymentLog', timestamp: any, task: string, log: string }> };
 
 export type GetBucketsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -30888,11 +31000,7 @@ export const DeploymentFragmentDoc = gql`
   functionsStartedAt
   functionsEndedAt
   functionsStatus
-  deploymentLogs(order_by: {createdAt: asc}) {
-    id
-    createdAt
-    message
-  }
+  metadata
 }
     `;
 export const AppStateHistoryFragmentDoc = gql`
@@ -33949,6 +34057,88 @@ export type GetDeploymentQueryResult = Apollo.QueryResult<GetDeploymentQuery, Ge
 export function refetchGetDeploymentQuery(variables: GetDeploymentQueryVariables) {
       return { query: GetDeploymentDocument, variables: variables }
     }
+export const GetDeploymentLogsDocument = gql`
+    query getDeploymentLogs($appID: String!, $deploymentID: String!, $from: Timestamp!, $to: Timestamp!) {
+  getDeploymentLogs(
+    appID: $appID
+    deploymentID: $deploymentID
+    from: $from
+    to: $to
+  ) {
+    timestamp
+    task
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetDeploymentLogsQuery__
+ *
+ * To run a query within a React component, call `useGetDeploymentLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeploymentLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeploymentLogsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      deploymentID: // value for 'deploymentID'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetDeploymentLogsQuery(baseOptions: Apollo.QueryHookOptions<GetDeploymentLogsQuery, GetDeploymentLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetDeploymentLogsQuery, GetDeploymentLogsQueryVariables>(GetDeploymentLogsDocument, options);
+      }
+export function useGetDeploymentLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDeploymentLogsQuery, GetDeploymentLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetDeploymentLogsQuery, GetDeploymentLogsQueryVariables>(GetDeploymentLogsDocument, options);
+        }
+export type GetDeploymentLogsQueryHookResult = ReturnType<typeof useGetDeploymentLogsQuery>;
+export type GetDeploymentLogsLazyQueryHookResult = ReturnType<typeof useGetDeploymentLogsLazyQuery>;
+export type GetDeploymentLogsQueryResult = Apollo.QueryResult<GetDeploymentLogsQuery, GetDeploymentLogsQueryVariables>;
+export function refetchGetDeploymentLogsQuery(variables: GetDeploymentLogsQueryVariables) {
+      return { query: GetDeploymentLogsDocument, variables: variables }
+    }
+export const GetDeploymentLogsSubscriptionDocument = gql`
+    subscription getDeploymentLogsSubscription($appID: String!, $deploymentID: String!, $from: Timestamp!) {
+  getDeploymentLogs(appID: $appID, deploymentID: $deploymentID, from: $from) {
+    timestamp
+    task
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetDeploymentLogsSubscriptionSubscription__
+ *
+ * To run a query within a React component, call `useGetDeploymentLogsSubscriptionSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeploymentLogsSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeploymentLogsSubscriptionSubscription({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      deploymentID: // value for 'deploymentID'
+ *      from: // value for 'from'
+ *   },
+ * });
+ */
+export function useGetDeploymentLogsSubscriptionSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetDeploymentLogsSubscriptionSubscription, GetDeploymentLogsSubscriptionSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetDeploymentLogsSubscriptionSubscription, GetDeploymentLogsSubscriptionSubscriptionVariables>(GetDeploymentLogsSubscriptionDocument, options);
+      }
+export type GetDeploymentLogsSubscriptionSubscriptionHookResult = ReturnType<typeof useGetDeploymentLogsSubscriptionSubscription>;
+export type GetDeploymentLogsSubscriptionSubscriptionResult = Apollo.SubscriptionResult<GetDeploymentLogsSubscriptionSubscription>;
 export const GetBucketsDocument = gql`
     query getBuckets {
   buckets {

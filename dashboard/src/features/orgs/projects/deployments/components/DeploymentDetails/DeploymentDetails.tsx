@@ -1,8 +1,6 @@
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Container } from '@/components/layout/Container';
-import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
-import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
@@ -15,14 +13,34 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
-import { DeploymentServiceLogs } from '@/features/orgs/projects/deployments/components/DeploymentServiceLogs';
 import { useDeployment } from '@/features/orgs/projects/deployments/hooks/useDeployment';
 import {
   type DeploymentLog,
   useDeploymentLogs,
 } from '@/features/orgs/projects/deployments/hooks/useDeploymentLogs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { ifNullconvertToUndefined } from '@/lib/utils';
+import { cn, ifNullconvertToUndefined } from '@/lib/utils';
+
+type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed';
+
+interface TaskMetadata {
+  name: string;
+  status: TaskStatus;
+  started_at?: string;
+  ended_at?: string;
+}
+
+interface DeploymentMetadata {
+  tasks?: TaskMetadata[];
+}
+
+interface TaskGroup {
+  name: string;
+  status: TaskStatus;
+  startedAt?: string;
+  endedAt?: string;
+  logs: DeploymentLog[];
+}
 
 function formatTaskName(task: string): string {
   return task
@@ -31,31 +49,131 @@ function formatTaskName(task: string): string {
     .join(' ');
 }
 
-function useTaskGroups(logs: DeploymentLog[] | undefined) {
+function formatTaskDuration(
+  startedAt?: string,
+  endedAt?: string,
+): string | null {
+  if (!startedAt || !endedAt) {
+    return null;
+  }
+  const ms = new Date(endedAt).getTime() - new Date(startedAt).getTime();
+  const seconds = Math.round(ms / 1000);
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}m ${remainingSeconds}s`;
+}
+
+function TaskStatusIndicator({ status }: { status: TaskStatus }) {
+  const baseClasses = 'h-2 w-2 rounded-full';
+  switch (status) {
+    case 'running':
+      return <span className={cn(baseClasses, 'animate-pulse bg-blue-500')} />;
+    case 'succeeded':
+      return <span className={cn(baseClasses, 'bg-green-500')} />;
+    case 'failed':
+      return <span className={cn(baseClasses, 'bg-red-500')} />;
+    default:
+      return <span className={cn(baseClasses, 'bg-gray-400')} />;
+  }
+}
+
+function TaskLogList({ logs }: { logs: DeploymentLog[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prevLengthRef = useRef(logs.length);
+
+  useEffect(() => {
+    if (logs.length > prevLengthRef.current && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+    prevLengthRef.current = logs.length;
+  }, [logs.length]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="max-h-64 overflow-x-auto overflow-y-scroll"
+    >
+      {logs.map((log, index) => (
+        <div key={`${log.timestamp}-${index}`} className="flex font-mono">
+          <div className="mr-2 flex-shrink-0 text-white/60">
+            {format(parseISO(log.timestamp), 'HH:mm:ss')}
+          </div>
+          <div className="whitespace-pre">{log.log}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function useTaskGroups(
+  logs: DeploymentLog[] | undefined,
+  metadata: DeploymentMetadata | undefined,
+): TaskGroup[] {
   return useMemo(() => {
-    if (!logs || logs.length === 0) {
-      return [];
-    }
-
-    const groups = new Map<string, DeploymentLog[]>();
-    for (const log of logs) {
-      const existing = groups.get(log.task) ?? [];
+    const logsMap = new Map<string, DeploymentLog[]>();
+    for (const log of logs ?? []) {
+      const existing = logsMap.get(log.task) ?? [];
       existing.push(log);
-      groups.set(log.task, existing);
+      logsMap.set(log.task, existing);
     }
 
-    for (const groupLogs of groups.values()) {
+    for (const groupLogs of logsMap.values()) {
       groupLogs.sort(
         (a, b) =>
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
       );
     }
 
-    return Array.from(groups.entries()).sort(
-      ([, a], [, b]) =>
-        new Date(a[0].timestamp).getTime() - new Date(b[0].timestamp).getTime(),
-    );
-  }, [logs]);
+    if (metadata?.tasks) {
+      const result: TaskGroup[] = metadata.tasks.map((task) => ({
+        name: task.name,
+        status: task.status,
+        startedAt: task.started_at,
+        endedAt: task.ended_at,
+        logs: logsMap.get(task.name) ?? [],
+      }));
+
+      const metadataNames = new Set(metadata.tasks.map((t) => t.name));
+      for (const [name, taskLogs] of logsMap) {
+        if (!metadataNames.has(name)) {
+          result.push({ name, status: 'running', logs: taskLogs });
+        }
+      }
+
+      result.sort((a, b) => {
+        if (!a.startedAt) {
+          return 1;
+        }
+        if (!b.startedAt) {
+          return -1;
+        }
+        return (
+          new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
+        );
+      });
+
+      return result;
+    }
+
+    if (!logs || logs.length === 0) {
+      return [];
+    }
+
+    return Array.from(logsMap.entries())
+      .sort(
+        ([, a], [, b]) =>
+          new Date(a[0].timestamp).getTime() -
+          new Date(b[0].timestamp).getTime(),
+      )
+      .map(([name, taskLogs]) => ({
+        name,
+        status: 'running' as const,
+        logs: taskLogs,
+      }));
+  }, [logs, metadata]);
 }
 
 function DeploymentDetails() {
@@ -63,6 +181,8 @@ function DeploymentDetails() {
   const { data, error, loading } = useDeployment();
 
   const deployment = data?.deployment;
+  const metadata = (deployment as { metadata?: DeploymentMetadata } | undefined)
+    ?.metadata;
 
   const { data: logsData, loading: logsLoading } = useDeploymentLogs({
     appID: project?.id,
@@ -72,21 +192,24 @@ function DeploymentDetails() {
     deploymentEndedAt: deployment?.deploymentEndedAt,
   });
 
-  const taskGroups = useTaskGroups(logsData?.getDeploymentLogs);
-
-  const taskNames = useMemo(
-    () => taskGroups.map(([task]) => task),
-    [taskGroups],
-  );
+  const taskGroups = useTaskGroups(logsData?.getDeploymentLogs, metadata);
 
   const [expandedTasks, setExpandedTasks] = useState<string[]>([]);
+  const seenTasks = useRef(new Set<string>());
 
   useEffect(() => {
-    setExpandedTasks((prev) => {
-      const newTasks = taskNames.filter((name) => !prev.includes(name));
-      return newTasks.length > 0 ? [...prev, ...newTasks] : prev;
-    });
-  }, [taskNames]);
+    const newTasks = taskGroups
+      .filter((g) => g.status !== 'pending' && !seenTasks.current.has(g.name))
+      .map((g) => g.name);
+
+    for (const name of newTasks) {
+      seenTasks.current.add(name);
+    }
+
+    if (newTasks.length > 0) {
+      setExpandedTasks((prev) => [...prev, ...newTasks]);
+    }
+  }, [taskGroups]);
 
   if (loading) {
     return (
@@ -126,26 +249,6 @@ function DeploymentDetails() {
           <Text variant="h2" component="h1">
             Deployment Details
           </Text>
-        </div>
-        <div className="flex space-x-8">
-          <div className="flex items-center space-x-2">
-            <StatusCircle
-              status={deployment.migrationsStatus as DeploymentStatus}
-            />
-            <Text>Database Migrations</Text>
-          </div>
-          <div className="flex items-center space-x-2">
-            <StatusCircle
-              status={deployment.metadataStatus as DeploymentStatus}
-            />
-            <Text>Hasura Metadata</Text>
-          </div>
-          <div className="flex items-center space-x-2">
-            <StatusCircle
-              status={deployment.functionsStatus as DeploymentStatus}
-            />
-            <Text>Serverless Functions</Text>
-          </div>
         </div>
       </div>
 
@@ -205,27 +308,31 @@ function DeploymentDetails() {
               value={expandedTasks}
               onValueChange={setExpandedTasks}
             >
-              {taskGroups.map(([task, logs]) => (
+              {taskGroups.map((group) => (
                 <AccordionItem
-                  key={task}
-                  value={task}
+                  key={group.name}
+                  value={group.name}
                   className="border-white/20"
                 >
                   <AccordionTrigger className="py-2 text-white hover:no-underline">
-                    {formatTaskName(task)}
+                    <div className="flex items-center gap-2">
+                      <TaskStatusIndicator status={group.status} />
+                      <span>{formatTaskName(group.name)}</span>
+                      {group.startedAt && (
+                        <span className="text-white/40 text-xs">
+                          {formatTaskDuration(group.startedAt, group.endedAt)}
+                        </span>
+                      )}
+                    </div>
                   </AccordionTrigger>
-                  <AccordionContent className="overflow-x-auto pb-2">
-                    {logs.map((log, index) => (
-                      <div
-                        key={`${log.timestamp}-${index}`}
-                        className="flex font-mono"
-                      >
-                        <div className="mr-2 flex-shrink-0 text-white/60">
-                          {format(parseISO(log.timestamp), 'HH:mm:ss')}
-                        </div>
-                        <div className="whitespace-pre">{log.log}</div>
-                      </div>
-                    ))}
+                  <AccordionContent className="pb-2">
+                    {group.logs.length === 0 ? (
+                      <span className="font-mono text-white/40">
+                        Waiting...
+                      </span>
+                    ) : (
+                      <TaskLogList logs={group.logs} />
+                    )}
                   </AccordionContent>
                 </AccordionItem>
               ))}
@@ -233,13 +340,6 @@ function DeploymentDetails() {
           )}
         </Box>
       </div>
-
-      {project?.id && deployment.deploymentStartedAt && (
-        <DeploymentServiceLogs
-          from={deployment.deploymentStartedAt}
-          to={deployment.deploymentEndedAt ?? null}
-        />
-      )}
     </Container>
   );
 }

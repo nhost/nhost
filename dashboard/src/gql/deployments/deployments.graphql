@@ -17,15 +17,7 @@ fragment Deployment on deployments {
   deploymentStartedAt
   deploymentEndedAt
   deploymentStatus
-  metadataStartedAt
-  metadataEndedAt
-  metadataStatus
-  migrationsStartedAt
-  migrationsEndedAt
-  migrationsStatus
-  functionsStartedAt
-  functionsEndedAt
-  functionsStatus
+  metadata
 }
 
 subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {

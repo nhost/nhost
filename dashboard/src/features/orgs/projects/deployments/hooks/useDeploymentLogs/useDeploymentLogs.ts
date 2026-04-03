@@ -1,5 +1,5 @@
 import { gql, useQuery } from '@apollo/client';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
 
 const GET_DEPLOYMENT_LOGS_QUERY = gql`
@@ -96,10 +96,7 @@ function useDeploymentLogs({
   deploymentStartedAt,
   deploymentEndedAt,
 }: UseDeploymentLogsProps) {
-  const to = useMemo(
-    () => deploymentEndedAt || new Date().toISOString(),
-    [deploymentEndedAt],
-  );
+  const toRef = useRef(deploymentEndedAt || new Date().toISOString());
 
   const skip = !appID || !deploymentID || !deploymentStartedAt;
 
@@ -110,7 +107,7 @@ function useDeploymentLogs({
         appID,
         deploymentID,
         from: deploymentStartedAt,
-        to,
+        to: toRef.current,
       },
       client: splitGraphqlClient,
       fetchPolicy: 'cache-and-network',
