@@ -1,0 +1,135 @@
+---
+title: Stale Todo Cleanup
+description: Detect and flag stale todos on a recurring schedule using a cron trigger
+keywords: ["cron trigger", "stale todos", "cleanup", "scheduled", "webhook handler", "example"]
+sidebar:
+  label: Stale Todo Cleanup (Cron Trigger)
+---
+
+A cron trigger runs every 5 minutes to find incomplete todos not updated in 7+ days, marks them stale, and notifies their owners.
+
+```ts title="./functions/events/stale-todos.ts"
+import { createClient, withAdminSession } from '@nhost/nhost-js'
+import type { Request, Response } from 'express'
+
+export default async (req: Request, res: Response) => {
+  // Validate the webhook secret — see the Webhook Security guide
+  const webhookSecret = req.headers['nhost-webhook-secret']
+  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
+
+  // Create an admin client to query the database
+  const nhost = createClient({
+    region: process.env.NHOST_REGION,
+    subdomain: process.env.NHOST_SUBDOMAIN,
+    configure: [
+      withAdminSession({
+        adminSecret: process.env.NHOST_ADMIN_SECRET,
+      }),
+    ],
+  })
+
+  // Find incomplete, non-stale todos not updated in 7+ days
+  const { body } = await nhost.graphql.request<{
+    todos: Array<{ id: string; title: string; user_id: string }>
+  }>({
+    query: `
+      query GetStaleTodos($cutoff: timestamptz!) {
+        todos(where: {
+          completed: { _eq: false },
+          stale: { _eq: false },
+          updated_at: { _lt: $cutoff }
+        }) {
+          id
+          title
+          user_id
+        }
+      }
+    `,
+    variables: {
+      cutoff: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  })
+
+  if (body.errors) {
+    return res.status(500).json({ errors: body.errors })
+  }
+
+  const staleTodos = body.data?.todos || []
+
+  if (staleTodos.length === 0) {
+    return res.status(200).json({ message: 'No stale todos found' })
+  }
+
+  // Mark all matching todos as stale in a single mutation
+  const staleIds = staleTodos.map((t) => t.id)
+
+  const markResult = await nhost.graphql.request<{
+    update_todos: { affected_rows: number } | null
+  }>({
+    query: `
+      mutation MarkTodosStale($ids: [uuid!]!) {
+        update_todos(where: { id: { _in: $ids } }, _set: { stale: true }) {
+          affected_rows
+        }
+      }
+    `,
+    variables: { ids: staleIds },
+  })
+
+  if (markResult.body.errors) {
+    return res.status(500).json({ errors: markResult.body.errors })
+  }
+
+  // Group stale todos by user so each user gets one notification
+  const byUser = new Map<string, { titles: string[]; count: number }>()
+  for (const todo of staleTodos) {
+    const entry = byUser.get(todo.user_id) || { titles: [], count: 0 }
+    entry.titles.push(todo.title)
+    entry.count += 1
+    byUser.set(todo.user_id, entry)
+  }
+
+  // Create one notification per user listing their stale todos
+  const notifications = Array.from(byUser.entries()).map(
+    ([userId, { titles, count }]) => ({
+      user_id: userId,
+      title: `You have ${count} stale todo${count > 1 ? 's' : ''}`,
+      message:
+        titles.length <= 3
+          ? titles.join(', ')
+          : `${titles.slice(0, 3).join(', ')} and ${titles.length - 3} more`,
+      type: 'stale_todos',
+    }),
+  )
+
+  const insertResult = await nhost.graphql.request<{
+    insert_notifications: { affected_rows: number } | null
+  }>({
+    query: `
+      mutation InsertNotifications($objects: [notifications_insert_input!]!) {
+        insert_notifications(objects: $objects) {
+          affected_rows
+        }
+      }
+    `,
+    variables: { objects: notifications },
+  })
+
+  if (insertResult.body.errors) {
+    return res.status(500).json({ errors: insertResult.body.errors })
+  }
+
+  res.status(200).json({
+    message: `Marked ${staleTodos.length} todo(s) stale, notified ${byUser.size} user(s)`,
+  })
+}
+```
+
+## Related resources
+
+- [Cron trigger configuration](/products/events/cron-triggers) -- how to set up the schedule
+- [Webhook Security](/products/events/guides/webhook-security) -- configuring the shared secret
+- [Full source code](https://github.com/nhost/nhost/tree/main/examples/demos/backend/functions/events/stale-todos.ts) on GitHub
+- [React UI](https://github.com/nhost/nhost/tree/main/examples/demos/react-demo/src/pages/Todos.tsx) -- the Todos page showing stale badges

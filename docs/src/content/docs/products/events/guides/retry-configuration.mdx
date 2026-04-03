@@ -1,0 +1,20 @@
+---
+title: Retry Configuration
+description: Configure retry behavior for event triggers, cron triggers, and one-off scheduled events
+keywords: ["retry", "retries", "timeout", "tolerance", "error handling", "webhook"]
+sidebar:
+  label: Retry Configuration
+---
+
+All event types retry on non-2xx responses and network errors. Configure the retry count, interval, and timeout when creating a trigger.
+
+| Field                    | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `num_retries`            | `0`               | Number of retry attempts on failure                             |
+| `retry_interval_seconds` | `10`              | Seconds between retry attempts                                  |
+| `timeout_seconds`        | `60`              | Seconds before a request times out                              |
+| `tolerance_seconds`      | `21600` (6 hours) | Maximum delay for a late invocation to still execute (cron triggers only) |
+
+:::note
+Event triggers use shorter field names: `interval_sec` and `timeout_sec` instead of `retry_interval_seconds` and `timeout_seconds`. The behavior is the same.
+:::

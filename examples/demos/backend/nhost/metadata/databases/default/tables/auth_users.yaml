@@ -99,6 +99,13 @@ array_relationships:
         table:
           name: community_members
           schema: public
+  - name: notifications
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: notifications
+          schema: public
   - name: oauth2AuthRequests
     using:
       foreign_key_constraint_on:

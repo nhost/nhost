@@ -1,0 +1,47 @@
+---
+title: Request and Payload Transformations
+description: Reshape the outgoing webhook request with method, URL, and body transforms
+keywords: ["transformations", "request transform", "payload transform", "template variables", "webhooks"]
+sidebar:
+  label: Transformations
+---
+
+Event triggers and cron triggers support request and payload transformations to reshape the outgoing webhook request. One-off scheduled events do not support transformations.
+
+## Request Options Transform
+
+Override the default POST method (GET, PUT, PATCH, DELETE), customize the URL path with templates, and add query parameters.
+
+- **Method** -- choose GET, PUT, PATCH, or DELETE instead of the default POST
+- **URL path** -- use a template to append to the base URL: `{{$base_url}}/custom-path`
+- **Query parameters** -- add as key-value pairs or as a URL string template
+
+## Payload Transform
+
+| Content Type | Editor | Description |
+|---|---|---|
+| `application/json` | Template editor | Kriti template with access to template variables |
+| `application/x-www-form-urlencoded` | Key-value form editor | Form-encoded key-value pairs |
+| Disabled | None | No body sent with the request |
+
+:::note
+The dashboard shows a live preview of the transformed request body.
+:::
+
+## Template Variables
+
+| Variable | Description |
+|---|---|
+| `$body` | Original request body (the full event payload) |
+| `$base_url` | Webhook base URL |
+| `$session_variables` | User session variables |
+| `$query_params` | URL query parameters |
+| `$response.status` | Response status code (for response transforms) |
+
+## Example: Sending to Slack
+
+```json
+{
+  "text": "Row {{ $body.event.op }} in {{ $body.table.name }}: {{ $body.event.data.new }}"
+}
+```

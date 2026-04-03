@@ -1,0 +1,118 @@
+---
+title: Community Notifications
+description: Notify community members when a community's description is updated using an event trigger
+keywords: ["event trigger", "community", "notifications", "webhook handler", "example"]
+sidebar:
+  label: Community Notifications (Event Trigger)
+---
+
+An event trigger fires when a community's description is updated. The handler notifies all members except the editor.
+
+```ts title="./functions/events/community-updated.ts"
+import { createClient, withAdminSession } from '@nhost/nhost-js'
+import type { Request, Response } from 'express'
+
+export default async (req: Request, res: Response) => {
+  // Validate the webhook secret — see the Webhook Security guide
+  const webhookSecret = req.headers['nhost-webhook-secret']
+  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
+
+  // Event triggers deliver the payload at req.body.event
+  const event = req.body.event
+  if (!event) {
+    return res.status(400).json({ message: 'No event payload' })
+  }
+
+  // event.data contains { old, new } — the row before and after the change
+  const { old: oldRow, new: newRow } = event.data
+
+  // Skip if description didn't actually change (e.g. other columns updated)
+  if (oldRow.description === newRow.description) {
+    return res.status(200).json({ message: 'Description unchanged, skipping' })
+  }
+
+  // session_variables contains the Hasura session of the user who made the change
+  const editorUserId = event.session_variables?.['x-hasura-user-id']
+
+  // Create an admin client to query the database
+  const nhost = createClient({
+    region: process.env.NHOST_REGION,
+    subdomain: process.env.NHOST_SUBDOMAIN,
+    configure: [
+      withAdminSession({
+        adminSecret: process.env.NHOST_ADMIN_SECRET,
+      }),
+    ],
+  })
+
+  // Fetch all members of the community that was updated
+  const { body } = await nhost.graphql.request<{
+    community_members: Array<{ user_id: string }>
+    communities_by_pk: { name: string } | null
+  }>({
+    query: `
+      query GetCommunityMembers($communityId: uuid!) {
+        community_members(where: { community_id: { _eq: $communityId } }) {
+          user_id
+        }
+        communities_by_pk(id: $communityId) {
+          name
+        }
+      }
+    `,
+    variables: { communityId: newRow.id },
+  })
+
+  if (body.errors) {
+    return res.status(500).json({ errors: body.errors })
+  }
+
+  const members = body.data?.community_members || []
+  const communityName = body.data?.communities_by_pk?.name || 'A community'
+
+  // Don't notify the user who made the edit
+  const recipients = members.filter((m) => m.user_id !== editorUserId)
+
+  if (recipients.length === 0) {
+    return res.status(200).json({ message: 'No recipients' })
+  }
+
+  // Create a notification for each recipient
+  const notifications = recipients.map((m) => ({
+    user_id: m.user_id,
+    title: `${communityName} description updated`,
+    message: newRow.description || 'Description was cleared',
+    type: 'community_update',
+  }))
+
+  const insertResult = await nhost.graphql.request<{
+    insert_notifications: { affected_rows: number } | null
+  }>({
+    query: `
+      mutation InsertNotifications($objects: [notifications_insert_input!]!) {
+        insert_notifications(objects: $objects) {
+          affected_rows
+        }
+      }
+    `,
+    variables: { objects: notifications },
+  })
+
+  if (insertResult.body.errors) {
+    return res.status(500).json({ errors: insertResult.body.errors })
+  }
+
+  res.status(200).json({
+    message: `Notified ${recipients.length} member(s)`,
+  })
+}
+```
+
+## Related resources
+
+- [Event trigger configuration](/products/events/event-triggers) -- how to set up the trigger that calls this handler
+- [Webhook Security](/products/events/guides/webhook-security) -- configuring the shared secret
+- [Full source code](https://github.com/nhost/nhost/tree/main/examples/demos/backend/functions/events/community-updated.ts) on GitHub
+- [React UI](https://github.com/nhost/nhost/tree/main/examples/demos/react-demo/src/pages/Communities.tsx) -- the Communities page that triggers description updates

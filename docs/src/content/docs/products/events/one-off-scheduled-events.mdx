@@ -1,0 +1,53 @@
+---
+title: Configuring One-Off Scheduled Events
+description: Fire a webhook once at a specific date and time
+keywords: ['scheduled event', 'one-off', 'one-time', 'deferred', 'delayed', 'webhook', 'scheduled']
+sidebar:
+  label: One-Off Scheduled Events
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+One-off scheduled events fire a webhook once at a specific date and time. Unlike cron triggers that recur, these execute exactly once and are then done.
+
+## Creating a One-Off Scheduled Event
+
+<Tabs>
+<TabItem label="Dashboard">
+Navigate to **Events** → **One-Off Scheduled Events**, then click **New One-off**.
+
+![Create One-Off Scheduled Event](/images/events/scheduled-event-create.png)
+
+| Field                                      | Description                                                                                                |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| **Comment**                                | Optional description of what the event does                                                                |
+| **Schedule At**                            | Datetime picker with timezone selector (future dates only)                                                 |
+| **Webhook URL or template**                | Endpoint URL. Supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/broadcast-notification`) |
+| **Payload**                                | JSON object sent in the webhook body                                                                       |
+| **Retry and Headers Settings** (accordion) | Retry count, interval, timeout, and custom HTTP headers                                                    |
+
+One-off scheduled events do not support request or payload transformations.
+
+</TabItem>
+</Tabs>
+
+## Webhook Handler
+
+One-off scheduled events deliver an HTTP POST to any endpoint. The request body contains a `payload` field with the JSON you configured, following the same structure as cron triggers.
+
+For working handler examples, see:
+- [Broadcast Notifications](/products/events/guides/broadcast-notifications) — send a notification to all active users
+- [Webhook Security](/products/events/guides/webhook-security) — validate the shared secret in your handler
+- [Using the Nhost SDK](/products/functions/guides/nhost-sdk) — query your database from inside a handler
+
+## Monitoring Scheduled Events
+
+The **Events** > **One-Off Scheduled Events** page lists all one-off events. Filter by status using the "Status" header button at the top: **All**, **Scheduled**, **Pending**, **Processed**, or **Failed**.
+
+![One-Off Scheduled Events List](/images/events/scheduled-event-list.png)
+
+Each event shows its comment, scheduled time, status, webhook URL, ID, and number of tries. Scheduled events that have not yet fired can be deleted individually.
+
+Expand an event to see its invocation logs. Each invocation shows the HTTP status code and a **View Details** action that opens the full request and response.
+
+![One-Off Scheduled Event Invocation Details](/images/events/scheduled-event-invocation-details.png)
