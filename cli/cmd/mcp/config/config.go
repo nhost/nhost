@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/mcp/config"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v3"
@@ -39,8 +40,9 @@ func Command() *cli.Command {
 	}
 }
 
-//nolint:forbidigo
 func action(_ context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
+
 	cfg, err := config.RunWizard()
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("failed to run wizard: %s", err), 1)
@@ -51,22 +53,22 @@ func action(_ context.Context, cmd *cli.Command) error {
 		return cli.Exit(fmt.Sprintf("failed to marshal config: %s", err), 1)
 	}
 
-	fmt.Println("Configuration Preview:")
-	fmt.Println("---------------------")
-	fmt.Println(string(tomlData))
-	fmt.Println()
+	ce.Println("Configuration Preview:")
+	ce.Println("---------------------")
+	ce.Println("%s", string(tomlData))
 
 	filePath := config.GetConfigPath(cmd)
-	fmt.Printf("Save configuration to %s?\n", filePath)
-	fmt.Print("Proceed? (y/N): ")
 
-	var confirm string
-	if _, err := fmt.Scanln(&confirm); err != nil {
+	confirmed, err := ce.ConfirmPrompt(
+		fmt.Sprintf("Save configuration to %s?", filePath),
+		false,
+	)
+	if err != nil {
 		return cli.Exit(fmt.Sprintf("failed to read input: %s", err), 1)
 	}
 
-	if confirm != "y" && confirm != "Y" {
-		fmt.Println("Operation cancelled.")
+	if !confirmed {
+		ce.Println("Operation cancelled.")
 		return nil
 	}
 
@@ -84,9 +86,9 @@ func action(_ context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 
-	fmt.Println("\nConfiguration saved successfully!")
-	fmt.Println("Note: Review the documentation for additional configuration options,")
-	fmt.Println("      especially for fine-tuning LLM access permissions.")
+	ce.Println("\nConfiguration saved successfully!")
+	ce.Println("Note: Review the documentation for additional configuration options,")
+	ce.Println("      especially for fine-tuning LLM access permissions.")
 
 	return nil
 }

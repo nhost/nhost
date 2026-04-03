@@ -141,6 +141,32 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error)
 		return nil, errors.New("no apps found") //nolint:err113
 	}
 
+	var app *graphql.AppSummaryFragment
+
+	if ce.interactive {
+		app, err = ce.selectProjectInteractive(orgs)
+	} else {
+		app, err = ce.selectProjectPlain(orgs)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:mnd
+		return nil, fmt.Errorf("failed to create .nhost folder: %w", err)
+	}
+
+	if err := MarshalFile(app, ce.Path.ProjectFile(), json.Marshal); err != nil {
+		return nil, fmt.Errorf("failed to marshal project information: %w", err)
+	}
+
+	return app, nil
+}
+
+func (ce *CliEnv) selectProjectPlain(
+	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+) (*graphql.AppSummaryFragment, error) {
 	if err := Printlist(ce, orgs); err != nil {
 		return nil, err
 	}
@@ -159,14 +185,6 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error)
 
 	if err := confirmApp(ce, app); err != nil {
 		return nil, err
-	}
-
-	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:mnd
-		return nil, fmt.Errorf("failed to create .nhost folder: %w", err)
-	}
-
-	if err := MarshalFile(app, ce.Path.ProjectFile(), json.Marshal); err != nil {
-		return nil, fmt.Errorf("failed to marshal project information: %w", err)
 	}
 
 	return app, nil

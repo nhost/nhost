@@ -152,18 +152,19 @@ func actionConfigure(ctx context.Context, cmd *cli.Command) error {
 		return configureDocker(cmd.String(flagDockerConfig))
 	}
 
-	//nolint:lll
-	ce.PromptMessage(
-		"I am about to configure docker to authenticate with Nhost's registry. This will modify your docker config file on %s. Should I continue? [y/N] ",
-		cmd.String(flagDockerConfig),
+	confirmed, err := ce.ConfirmPrompt(
+		fmt.Sprintf(
+			"Configure docker to authenticate with Nhost's registry?\n"+
+				"This will modify your docker config file on %s.",
+			cmd.String(flagDockerConfig),
+		),
+		false,
 	)
-
-	v, err := ce.PromptInput(false)
 	if err != nil {
 		return fmt.Errorf("could not read input: %w", err)
 	}
 
-	if v == "y" || v == "Y" {
+	if confirmed {
 		return configureDocker(cmd.String(flagDockerConfig))
 	}
 

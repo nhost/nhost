@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-	"text/tabwriter"
 	"time"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -511,51 +510,56 @@ func up( //nolint:funlen,cyclop
 	}
 
 	ce.Infoln("Nhost development environment started.")
-	printInfo(ce.LocalSubdomain(), httpPort, postgresPort, useTLS, runServicesCfg)
+	printInfo(ce, httpPort, postgresPort, useTLS, runServicesCfg)
 
 	return nil
 }
 
 func printInfo(
-	subdomain string,
+	ce *clienv.CliEnv,
 	httpPort, postgresPort uint,
 	useTLS bool,
 	runServices []*dockercompose.RunService,
 ) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:mnd
-	fmt.Fprintf(w, "URLs:\n")
-	fmt.Fprintf(w,
-		"- Postgres:\t\tpostgres://postgres:postgres@localhost:%d/local\n",
+	subdomain := ce.LocalSubdomain()
+
+	ce.Println("URLs:")
+	ce.Println(
+		"- %-14spostgres://postgres:postgres@localhost:%d/local",
+		"Postgres:",
 		postgresPort,
 	)
-	fmt.Fprintf(w, "- Hasura:\t\t%s\n", dockercompose.URL(
-		subdomain, "hasura", httpPort, useTLS))
-	fmt.Fprintf(w, "- GraphQL:\t\t%s\n", dockercompose.URL(
-		subdomain, "graphql", httpPort, useTLS))
-	fmt.Fprintf(w, "- Auth:\t\t%s\n", dockercompose.URL(
-		subdomain, "auth", httpPort, useTLS))
-	fmt.Fprintf(w, "- Storage:\t\t%s\n", dockercompose.URL(
-		subdomain, "storage", httpPort, useTLS))
-	fmt.Fprintf(w, "- Functions:\t\t%s\n", dockercompose.URL(
-		subdomain, "functions", httpPort, useTLS))
-	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL(
-		subdomain, "dashboard", httpPort, useTLS))
-	fmt.Fprintf(w, "- Mailhog:\t\t%s\n", dockercompose.URL(
-		subdomain, "mailhog", httpPort, useTLS))
+
+	for _, entry := range []struct{ label, name string }{
+		{"Hasura", "hasura"},
+		{"GraphQL", "graphql"},
+		{"Auth", "auth"},
+		{"Storage", "storage"},
+		{"Functions", "functions"},
+		{"Dashboard", "dashboard"},
+		{"Mailhog", "mailhog"},
+	} {
+		ce.Println(
+			"- %-14s%s",
+			entry.label+":",
+			dockercompose.URL(subdomain, entry.name, httpPort, useTLS),
+		)
+	}
 
 	for _, svc := range runServices {
 		for _, port := range svc.Config.GetPorts() {
 			if deptr(port.GetPublish()) {
-				fmt.Fprintf(
-					w,
-					"- run-%s:\t\tFrom laptop:\t%s://localhost:%d\n",
-					svc.Config.Name,
+				label := "run-" + svc.Config.Name + ":"
+
+				ce.Println(
+					"- %-14sFrom laptop:   %s://localhost:%d",
+					label,
 					port.GetType(),
 					port.GetPort(),
 				)
-				fmt.Fprintf(
-					w,
-					"\t\tFrom services:\t%s://run-%s:%d\n",
+				ce.Println(
+					"  %-14sFrom services: %s://run-%s:%d",
+					"",
 					port.GetType(),
 					svc.Config.Name,
 					port.GetPort(),
@@ -564,16 +568,14 @@ func printInfo(
 		}
 	}
 
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "SDK Configuration:\n")
-	fmt.Fprintf(w, " Subdomain:\t%s\n", subdomain)
-	fmt.Fprintf(w, " Region:\tlocal\n")
-	fmt.Fprintf(w, "")
-	fmt.Fprintf(w, "Run `nhost up` to reload the development environment\n")
-	fmt.Fprintf(w, "Run `nhost down` to stop the development environment\n")
-	fmt.Fprintf(w, "Run `nhost logs` to watch the logs\n")
-
-	w.Flush()
+	ce.Println("")
+	ce.Println("SDK Configuration:")
+	ce.Println("  Subdomain:  %s", subdomain)
+	ce.Println("  Region:     local")
+	ce.Println("")
+	ce.Println("Run `nhost up` to reload the development environment")
+	ce.Println("Run `nhost down` to stop the development environment")
+	ce.Println("Run `nhost logs` to watch the logs")
 }
 
 func upErr(
@@ -585,15 +587,16 @@ func upErr(
 	ce.Warnln("%s", err.Error())
 
 	if !downOnError {
-		ce.PromptMessage("Do you want to stop Nhost's development environment? [y/N] ")
-
-		resp, err := ce.PromptInput(false)
+		confirmed, err := ce.ConfirmPrompt(
+			"Do you want to stop Nhost's development environment?",
+			false,
+		)
 		if err != nil {
 			ce.Warnln("failed to read input: %s", err)
 			return nil
 		}
 
-		if resp != "y" && resp != "Y" {
+		if !confirmed {
 			return nil
 		}
 	}

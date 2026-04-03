@@ -85,16 +85,15 @@ func commandPull(ctx context.Context, cmd *cli.Command) error {
 
 func verifyFile(ce *clienv.CliEnv, name string) error {
 	if clienv.PathExists(name) {
-		ce.PromptMessage("%s",
-			name+" already exists. Do you want to overwrite it? [y/N] ",
+		confirmed, err := ce.ConfirmPrompt(
+			name+" already exists. Do you want to overwrite it?",
+			false,
 		)
-
-		resp, err := ce.PromptInput(false)
 		if err != nil {
 			return fmt.Errorf("failed to read input: %w", err)
 		}
 
-		if resp != "y" && resp != "Y" {
+		if !confirmed {
 			return errors.New("aborting") //nolint:err113
 		}
 	}
@@ -138,22 +137,26 @@ func pullSecrets(
 	ce *clienv.CliEnv,
 	proj *graphql.AppSummaryFragment,
 ) error {
-	ce.Infoln("Getting secrets list from Nhost...")
+	var secrets model.Secrets
 
-	cl, err := ce.GetNhostClient(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get nhost client: %w", err)
-	}
+	if err := ce.Spinner("Getting secrets list from Nhost...", func() error {
+		cl, err := ce.GetNhostClient(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get nhost client: %w", err)
+		}
 
-	resp, err := cl.GetSecrets(
-		ctx,
-		proj.ID,
-	)
-	if err != nil {
+		resp, err := cl.GetSecrets(ctx, proj.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get secrets: %w", err)
+		}
+
+		secrets = respToSecrets(resp.GetAppSecrets(), true)
+
+		return nil
+	}); err != nil {
 		return fmt.Errorf("failed to get secrets: %w", err)
 	}
 
-	secrets := respToSecrets(resp.GetAppSecrets(), true)
 	if err := clienv.MarshalFile(&secrets, ce.Path.Secrets(), env.Marshal); err != nil {
 		return fmt.Errorf("failed to save nhost.toml: %w", err)
 	}
@@ -173,24 +176,26 @@ func Pull(
 	proj *graphql.AppSummaryFragment,
 	writeSecrts bool,
 ) (*model.ConfigConfig, error) {
-	ce.Infoln("Pulling config from Nhost...")
-
-	cl, err := ce.GetNhostClient(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get nhost client: %w", err)
-	}
-
-	cfg, err := cl.GetConfigRawJSON(
-		ctx,
-		proj.ID,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get config: %w", err)
-	}
-
 	var v model.ConfigConfig
-	if err := json.Unmarshal([]byte(cfg.ConfigRawJSON), &v); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+
+	if err := ce.Spinner("Pulling config from Nhost...", func() error {
+		cl, err := ce.GetNhostClient(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get nhost client: %w", err)
+		}
+
+		cfg, err := cl.GetConfigRawJSON(ctx, proj.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get config: %w", err)
+		}
+
+		if err := json.Unmarshal([]byte(cfg.ConfigRawJSON), &v); err != nil {
+			return fmt.Errorf("failed to unmarshal config: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("failed to pull config: %w", err)
 	}
 
 	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd

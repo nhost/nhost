@@ -1,35 +1,32 @@
 package config
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strings"
+
+	"github.com/charmbracelet/huh"
 )
 
-//nolint:forbidigo
+const defaultAdminSecret = "nhost-admin-secret" //nolint:gosec
+
 func RunWizard() (*Config, error) {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Welcome to the Nhost MCP Configuration Wizard!")
-	fmt.Println("==============================================")
-	fmt.Println()
-
-	cloudConfig := wizardCloud(reader)
-
-	fmt.Println()
-
-	localConfig := wizardLocal(reader)
-
-	fmt.Println()
-
-	projects := wizardProject(reader)
-
-	if localConfig != nil {
-		projects = append(projects, *localConfig)
+	cloudConfig, err := wizardCloud()
+	if err != nil {
+		return nil, fmt.Errorf("cloud configuration: %w", err)
 	}
 
-	fmt.Println()
+	localConfig, err := wizardLocal()
+	if err != nil {
+		return nil, fmt.Errorf("local configuration: %w", err)
+	}
+
+	projects, err := wizardProject()
+	if err != nil {
+		return nil, fmt.Errorf("project configuration: %w", err)
+	}
+
+	if localConfig != nil {
+		projects = append([]Project{*localConfig}, projects...)
+	}
 
 	return &Config{
 		Cloud:    cloudConfig,
@@ -37,171 +34,253 @@ func RunWizard() (*Config, error) {
 	}, nil
 }
 
-//nolint:forbidigo
-func wizardCloud(reader *bufio.Reader) *Cloud {
-	fmt.Println("1. Nhost Cloud Access")
-	fmt.Println("   This allows LLMs to manage your Nhost projects and organizations.")
-	fmt.Println("   You can view and configure projects as you would in the dashboard.")
+func wizardCloud() (*Cloud, error) {
+	var enableCloud bool
 
-	if promptYesNo(reader, "Enable Nhost Cloud access?") {
-		fmt.Println("  Note: If you haven't already, run `nhost login` to authenticate.")
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Enable Nhost Cloud access?").
+				Description(
+					"This allows LLMs to manage your Nhost projects and organizations.\n" +
+						"You can view and configure projects as you would in the dashboard.",
+				).
+				Value(&enableCloud).
+				Affirmative("Yes").
+				Negative("No"),
+		),
+	)
 
-		return &Cloud{
-			EnableMutations: true,
-		}
+	if err := form.Run(); err != nil {
+		return nil, fmt.Errorf("cloud access form: %w", err)
 	}
 
-	return nil
-}
-
-//nolint:forbidigo
-func wizardLocal(reader *bufio.Reader) *Project {
-	fmt.Println("2. Local Development Access")
-	fmt.Println("   This allows LLMs to interact with your local Nhost environment,")
-	fmt.Println("   including project configuration and GraphQL API access.")
-	fmt.Println("   This gives LLMs context to generate code to interact with your Nhost project.")
-
-	if promptYesNo(reader, "Enable local development access?") {
-		adminSecret := promptString(reader, "Enter Admin Secret (default: nhost-admin-secret):")
-		if adminSecret == "" {
-			adminSecret = "nhost-admin-secret" //nolint:gosec
-		}
-
-		return &Project{
-			Subdomain:      "local",
-			Region:         "local",
-			Description:    "Local development project running via the Nhost CLI",
-			AdminSecret:    &adminSecret,
-			PAT:            nil,
-			ManageMetadata: true,
-			AllowQueries:   []string{"*"},
-			AllowMutations: []string{"*"},
-			AuthURL:        "",
-			GraphqlURL:     "",
-			HasuraURL:      "",
-		}
+	if !enableCloud {
+		return nil, nil //nolint:nilnil
 	}
 
-	return nil
+	return &Cloud{
+		EnableMutations: true,
+	}, nil
 }
 
-//nolint:forbidigo
-func wizardProject(reader *bufio.Reader) []Project {
+func wizardLocal() (*Project, error) {
+	var enableLocal bool
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Enable local development access?").
+				Description(
+					"This allows LLMs to interact with your local Nhost environment,\n" +
+						"including project configuration and GraphQL API access.\n" +
+						"This gives LLMs context to generate code to interact with your Nhost project.",
+				).
+				Value(&enableLocal).
+				Affirmative("Yes").
+				Negative("No"),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		return nil, fmt.Errorf("local access form: %w", err)
+	}
+
+	if !enableLocal {
+		return nil, nil //nolint:nilnil
+	}
+
+	adminSecret := defaultAdminSecret
+
+	secretForm := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Admin Secret").
+				Description("Leave empty for default: nhost-admin-secret").
+				Value(&adminSecret),
+		),
+	)
+
+	if err := secretForm.Run(); err != nil {
+		return nil, fmt.Errorf("admin secret form: %w", err)
+	}
+
+	if adminSecret == "" {
+		adminSecret = defaultAdminSecret
+	}
+
+	return &Project{
+		Subdomain:      "local",
+		Region:         "local",
+		Description:    "Local development project running via the Nhost CLI",
+		AdminSecret:    &adminSecret,
+		PAT:            nil,
+		ManageMetadata: true,
+		AllowQueries:   []string{"*"},
+		AllowMutations: []string{"*"},
+		AuthURL:        "",
+		GraphqlURL:     "",
+		HasuraURL:      "",
+	}, nil
+}
+
+func wizardProject() ([]Project, error) {
+	var enableProjects bool
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Configure project-specific access?").
+				Description(
+					"Configure LLM access to your projects' GraphQL APIs.\n" +
+						"This allows using agents to query and analyze your data and even to add new data.\n" +
+						"You can control which queries and mutations are allowed per project.",
+				).
+				Value(&enableProjects).
+				Affirmative("Yes").
+				Negative("No"),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		return nil, fmt.Errorf("project access form: %w", err)
+	}
+
+	if !enableProjects {
+		return nil, nil
+	}
+
 	projects := make([]Project, 0)
 
-	fmt.Println("3. Project-Specific Access")
-	fmt.Println("   Configure LLM access to your projects' GraphQL APIs.")
-	fmt.Println(
-		"   This allows using agents to query and analyze your data and even to add new data",
-	)
-	fmt.Println(
-		"   You can control which queries and mutations are allowed per project. See the docs",
-	)
-	fmt.Println("   for more details on how to configure this.")
-
-	if promptYesNo(reader, "Configure project access?") {
-		for {
-			project := Project{
-				Description:    "",
-				Subdomain:      "",
-				Region:         "",
-				AdminSecret:    nil,
-				PAT:            nil,
-				ManageMetadata: false,
-				AllowQueries:   []string{"*"},
-				AllowMutations: []string{"*"},
-				GraphqlURL:     "",
-				AuthURL:        "",
-				HasuraURL:      "",
-			}
-
-			project.Subdomain = promptString(reader, "Project subdomain:")
-			project.Region = promptString(reader, "Project region:")
-			project.Description = promptString(
-				reader,
-				"Project description to provide additional information to LLMs:",
-			)
-			project.ManageMetadata = promptYesNo(
-				reader,
-				"Allow managing metadata (tables, relationships, permissions, etc)?",
-			)
-
-			authType := promptChoice(
-				reader,
-				"Select authentication method:",
-				[]string{"Admin Secret", "PAT"},
-			)
-			if authType == "Admin Secret" {
-				adminSecret := promptString(reader, "Project Admin Secret:")
-				project.AdminSecret = &adminSecret
-			} else {
-				pat := promptString(reader, "Project PAT:")
-				project.PAT = &pat
-			}
-
-			projects = append(projects, project)
-
-			if !promptYesNo(reader, "Add another project?") {
-				break
-			}
-		}
-	}
-
-	return projects
-}
-
-//nolint:forbidigo
-func promptString(reader *bufio.Reader, prompt string) string {
-	fmt.Print(prompt + " ")
-
-	input, _ := reader.ReadString('\n')
-
-	return strings.TrimSpace(input)
-}
-
-//nolint:forbidigo
-func promptYesNo(reader *bufio.Reader, prompt string) bool {
 	for {
-		fmt.Printf("%s (y/n) ", prompt)
-
-		input, _ := reader.ReadString('\n')
-		input = strings.ToLower(strings.TrimSpace(input))
-
-		if input == "y" || input == "yes" {
-			return true
+		project, err := wizardSingleProject()
+		if err != nil {
+			return nil, err
 		}
 
-		if input == "n" || input == "no" {
-			return false
+		projects = append(projects, *project)
+
+		var addAnother bool
+
+		anotherForm := huh.NewForm(
+			huh.NewGroup(
+				huh.NewConfirm().
+					Title("Add another project?").
+					Value(&addAnother).
+					Affirmative("Yes").
+					Negative("No"),
+			),
+		)
+
+		if err := anotherForm.Run(); err != nil {
+			return nil, fmt.Errorf("add another project form: %w", err)
 		}
 
-		fmt.Println("Please answer with 'y' or 'n'")
+		if !addAnother {
+			break
+		}
 	}
+
+	return projects, nil
 }
 
-//nolint:forbidigo
-func promptChoice(reader *bufio.Reader, prompt string, options []string) string {
-	for {
-		fmt.Printf("%s\n", prompt)
-
-		for i, opt := range options {
-			fmt.Printf("%d) %s\n", i+1, opt)
-		}
-
-		fmt.Print("Enter number: ")
-
-		input, _ := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
-
-		if num := strings.TrimSpace(input); num != "" {
-			switch num {
-			case "1":
-				return options[0]
-			case "2":
-				return options[1]
-			}
-		}
-
-		fmt.Println("Please select a valid option")
+func wizardSingleProject() (*Project, error) {
+	project, authType, err := wizardProjectDetails()
+	if err != nil {
+		return nil, err
 	}
+
+	if err := wizardProjectAuth(project, authType); err != nil {
+		return nil, err
+	}
+
+	return project, nil
+}
+
+func wizardProjectDetails() (*Project, string, error) {
+	var (
+		subdomain      string
+		region         string
+		description    string
+		manageMetadata bool
+		authType       string
+	)
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Project subdomain").
+				Value(&subdomain),
+			huh.NewInput().
+				Title("Project region").
+				Value(&region),
+			huh.NewInput().
+				Title("Project description").
+				Description("Provide additional information to LLMs").
+				Value(&description),
+			huh.NewConfirm().
+				Title("Allow managing metadata?").
+				Description("Tables, relationships, permissions, etc").
+				Value(&manageMetadata).
+				Affirmative("Yes").
+				Negative("No"),
+			huh.NewSelect[string]().
+				Title("Authentication method").
+				Options(
+					huh.NewOption("Admin Secret", "admin_secret"),
+					huh.NewOption("PAT", "pat"),
+				).
+				Value(&authType),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		return nil, "", fmt.Errorf("project details form: %w", err)
+	}
+
+	project := &Project{
+		Subdomain:      subdomain,
+		Region:         region,
+		Description:    description,
+		AdminSecret:    nil,
+		PAT:            nil,
+		ManageMetadata: manageMetadata,
+		AllowQueries:   []string{"*"},
+		AllowMutations: []string{"*"},
+		GraphqlURL:     "",
+		AuthURL:        "",
+		HasuraURL:      "",
+	}
+
+	return project, authType, nil
+}
+
+func wizardProjectAuth(project *Project, authType string) error {
+	var secret string
+
+	title := "Admin Secret"
+	if authType != "admin_secret" {
+		title = "PAT"
+	}
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title(title).
+				EchoMode(huh.EchoModePassword).
+				Value(&secret),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		return fmt.Errorf("project auth form: %w", err)
+	}
+
+	if authType == "admin_secret" {
+		project.AdminSecret = &secret
+	} else {
+		project.PAT = &secret
+	}
+
+	return nil
 }

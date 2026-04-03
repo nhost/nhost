@@ -68,36 +68,37 @@ func Apply(
 	skipConfirmation bool,
 ) error {
 	if !skipConfirmation {
-		ce.PromptMessage(
-			"We are going to overwrite the project's configuration. Do you want to proceed? [y/N] ",
+		confirmed, err := ce.ConfirmPrompt(
+			"We are going to overwrite the project's configuration. Do you want to proceed?",
+			false,
 		)
-
-		resp, err := ce.PromptInput(false)
 		if err != nil {
 			return fmt.Errorf("failed to read input: %w", err)
 		}
 
-		if resp != "y" && resp != "Y" {
+		if !confirmed {
 			return errors.New("aborting") //nolint:err113
 		}
 	}
 
-	cl, err := ce.GetNhostClient(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get nhost client: %w", err)
-	}
+	if err := ce.Spinner("Applying configuration...", func() error {
+		cl, err := ce.GetNhostClient(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get nhost client: %w", err)
+		}
 
-	b, err := json.Marshal(cfg)
-	if err != nil {
-		return fmt.Errorf("failed to marshal config: %w", err)
-	}
+		b, err := json.Marshal(cfg)
+		if err != nil {
+			return fmt.Errorf("failed to marshal config: %w", err)
+		}
 
-	if _, err := cl.ReplaceConfigRawJSON(
-		ctx,
-		appID,
-		string(b),
-	); err != nil {
-		return fmt.Errorf("failed to apply config: %w", err)
+		if _, err := cl.ReplaceConfigRawJSON(ctx, appID, string(b)); err != nil {
+			return fmt.Errorf("failed to apply config: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to apply configuration: %w", err)
 	}
 
 	ce.Infoln("Configuration applied successfully!")

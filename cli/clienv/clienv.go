@@ -7,10 +7,12 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"syscall"
 
 	"github.com/nhost/nhost/cli/nhostclient"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 )
 
 func sanitizeName(name string) string {
@@ -21,6 +23,8 @@ func sanitizeName(name string) string {
 type CliEnv struct {
 	stdout         io.Writer
 	stderr         io.Writer
+	stdin          io.Reader
+	interactive    bool
 	Path           *PathStructure
 	authURL        string
 	graphqlURL     string
@@ -44,6 +48,8 @@ func New(
 	return &CliEnv{
 		stdout:         stdout,
 		stderr:         stderr,
+		stdin:          os.Stdin,
+		interactive:    term.IsTerminal(syscall.Stdin),
 		Path:           path,
 		authURL:        authURL,
 		graphqlURL:     graphqlURL,
@@ -62,8 +68,10 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 	}
 
 	return &CliEnv{
-		stdout: cmd.Writer,
-		stderr: cmd.ErrWriter,
+		stdout:      cmd.Writer,
+		stderr:      cmd.ErrWriter,
+		stdin:       os.Stdin,
+		interactive: term.IsTerminal(syscall.Stdin),
 		Path: NewPathStructure(
 			cwd,
 			cmd.String(flagRootFolder),
@@ -78,6 +86,10 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 		nhpublicclient: nil,
 		localSubdomain: cmd.String(flagLocalSubdomain),
 	}
+}
+
+func (ce *CliEnv) Interactive() bool {
+	return ce.interactive
 }
 
 func (ce *CliEnv) ProjectName() string {

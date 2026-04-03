@@ -1,6 +1,9 @@
 package clienv
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
+)
 
 type Column struct {
 	Header string
@@ -8,37 +11,50 @@ type Column struct {
 }
 
 func Table(columns ...Column) string {
-	list := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder(), false, true, false, false).
-		BorderForeground(ANSIColorGray).
-		Padding(1)
-	// Width(30 + 1) //nolint:mnd
-
-	listHeader := lipgloss.NewStyle().
-		Foreground(ANSIColorPurple).
-		Render
-
-	listItem := lipgloss.NewStyle().Render
-
-	strs := make([]string, len(columns))
-	for i, col := range columns {
-		c := make([]string, len(col.Rows)+1)
-
-		c[0] = listHeader(col.Header)
-		for i, row := range col.Rows {
-			c[i+1] = listItem(row)
-		}
-
-		strs[i] = list.Render(
-			lipgloss.JoinVertical(
-				lipgloss.Left,
-				c...,
-			),
-		)
+	if len(columns) == 0 {
+		return ""
 	}
 
-	return lipgloss.JoinHorizontal(
-		lipgloss.Top,
-		strs...,
-	)
+	headers := make([]string, len(columns))
+	for i, col := range columns {
+		headers[i] = col.Header
+	}
+
+	rowCount := 0
+	for _, col := range columns {
+		if len(col.Rows) > rowCount {
+			rowCount = len(col.Rows)
+		}
+	}
+
+	rows := make([][]string, rowCount)
+	for i := range rowCount {
+		row := make([]string, len(columns))
+		for j, col := range columns {
+			if i < len(col.Rows) {
+				row[j] = col.Rows[i]
+			}
+		}
+
+		rows[i] = row
+	}
+
+	headerStyle := lipgloss.NewStyle().
+		Foreground(ANSIColorPurple).
+		Bold(true)
+
+	t := table.New().
+		Headers(headers...).
+		Rows(rows...).
+		Border(lipgloss.NormalBorder()).
+		BorderStyle(lipgloss.NewStyle().Foreground(ANSIColorGray)).
+		StyleFunc(func(row, _ int) lipgloss.Style {
+			if row == table.HeaderRow {
+				return headerStyle
+			}
+
+			return lipgloss.NewStyle()
+		})
+
+	return t.Render()
 }

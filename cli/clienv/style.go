@@ -4,7 +4,6 @@ package clienv
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"strings"
 	"syscall"
 
@@ -66,7 +65,7 @@ func (ce *CliEnv) PromptMessage(msg string, a ...any) {
 }
 
 func (ce *CliEnv) PromptInput(hide bool) (string, error) {
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(ce.stdin)
 
 	var (
 		response string

@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"text/tabwriter"
 	"time"
 
 	"github.com/nhost/nhost/cli/clienv"
@@ -254,24 +253,29 @@ func cloud( //nolint:funlen
 	}
 
 	ce.Infoln("Nhost development environment started.")
-	printCloudInfo(ce.LocalSubdomain(), httpPort, useTLS)
+	printCloudInfo(ce, httpPort, useTLS)
 
 	return nil
 }
 
 func printCloudInfo(
-	subdomain string,
+	ce *clienv.CliEnv,
 	httpPort uint,
 	useTLS bool,
 ) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:mnd
-	fmt.Fprintf(w, "URLs:\n")
-	fmt.Fprintf(w, "- Console:\t\t%s\n", dockercompose.URL(
-		subdomain, "hasura", httpPort, useTLS))
-	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL(
-		subdomain, "dashboard", httpPort, useTLS))
+	subdomain := ce.LocalSubdomain()
 
-	w.Flush()
+	ce.Println("URLs:")
+	ce.Println(
+		"- %-13s%s",
+		"Console:",
+		dockercompose.URL(subdomain, "hasura", httpPort, useTLS),
+	)
+	ce.Println(
+		"- %-13s%s",
+		"Dashboard:",
+		dockercompose.URL(subdomain, "dashboard", httpPort, useTLS),
+	)
 }
 
 func Cloud(

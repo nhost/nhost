@@ -46,14 +46,15 @@ func commandUninstall(_ context.Context, cmd *cli.Command) error {
 	ce.Infoln("Found Nhost cli in %s", path)
 
 	if !cmd.Bool(forceFlag) {
-		ce.PromptMessage("Are you sure you want to uninstall Nhost CLI? [y/N] ")
-
-		resp, err := ce.PromptInput(false)
+		confirmed, err := ce.ConfirmPrompt(
+			"Are you sure you want to uninstall Nhost CLI?",
+			false,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to read user input: %w", err)
 		}
 
-		if resp != "y" && resp != "Y" {
+		if !confirmed {
 			return nil
 		}
 	}

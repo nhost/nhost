@@ -147,16 +147,22 @@ func (ce *CliEnv) loginEmailPassword(
 		}
 	}
 
-	ce.Infoln("Authenticating")
+	var session credentials.Credentials
 
-	loginResp, err := cl.Login(ctx, email, password)
-	if err != nil {
-		return credentials.Credentials{}, fmt.Errorf("failed to login: %w", err)
-	}
+	if err := ce.Spinner("Authenticating", func() error {
+		loginResp, err := cl.Login(ctx, email, password)
+		if err != nil {
+			return fmt.Errorf("failed to login: %w", err)
+		}
 
-	session, err := cl.CreatePAT(ctx, loginResp.Session.AccessToken)
-	if err != nil {
-		return credentials.Credentials{}, fmt.Errorf("failed to create PAT: %w", err)
+		session, err = cl.CreatePAT(ctx, loginResp.Session.AccessToken)
+		if err != nil {
+			return fmt.Errorf("failed to create PAT: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return credentials.Credentials{}, err
 	}
 
 	ce.Infoln("Successfully logged in")
@@ -208,6 +214,34 @@ func (ce *CliEnv) loginGithub(ctx context.Context) (credentials.Credentials, err
 }
 
 func (ce *CliEnv) loginMethod(ctx context.Context) (credentials.Credentials, error) {
+	if ce.interactive {
+		return ce.loginMethodWithTUI(ctx)
+	}
+
+	return ce.loginMethodPlain(ctx)
+}
+
+func (ce *CliEnv) loginMethodWithTUI(ctx context.Context) (credentials.Credentials, error) {
+	result, err := ce.loginMethodInteractive()
+	if err != nil {
+		return credentials.Credentials{}, err
+	}
+
+	var session credentials.Credentials
+
+	switch result.method {
+	case loginMethodPAT:
+		session = ce.loginPAT(result.pat)
+	case loginMethodEmailPassword:
+		session, err = ce.loginEmailPassword(ctx, result.email, result.password)
+	case loginMethodGithub:
+		session, err = ce.loginGithub(ctx)
+	}
+
+	return session, err
+}
+
+func (ce *CliEnv) loginMethodPlain(ctx context.Context) (credentials.Credentials, error) {
 	ce.Infoln("Select authentication method:\n1. PAT\n2. Email/Password\n3. Github")
 	ce.PromptMessage("method: ")
 
@@ -236,7 +270,7 @@ func (ce *CliEnv) loginMethod(ctx context.Context) (credentials.Credentials, err
 	case "3":
 		session, err = ce.loginGithub(ctx)
 	default:
-		return ce.loginMethod(ctx)
+		return ce.loginMethodPlain(ctx)
 	}
 
 	return session, err
