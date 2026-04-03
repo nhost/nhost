@@ -7,10 +7,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"text/tabwriter"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/nhost/nhost/cli/cmd/config"
 	"github.com/nhost/nhost/cli/cmd/software"
 	"github.com/nhost/nhost/cli/dockercompose"
@@ -105,7 +106,7 @@ func commandCloud(ctx context.Context, cmd *cli.Command) error {
 		)
 	}
 
-	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
@@ -264,14 +265,15 @@ func printCloudInfo(
 	httpPort uint,
 	useTLS bool,
 ) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:mnd
-	fmt.Fprintf(w, "URLs:\n")
-	fmt.Fprintf(w, "- Console:\t\t%s\n", dockercompose.URL(
-		subdomain, "hasura", httpPort, useTLS))
-	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL(
-		subdomain, "dashboard", httpPort, useTLS))
+	dimStyle := lipgloss.NewStyle().Foreground(clienv.ANSIColorDim)
+	bullet := lipgloss.NewStyle().Foreground(clienv.ANSIColorGreen).Render("●")
+	urlStyle := lipgloss.NewStyle().Underline(true)
 
-	w.Flush()
+	fmt.Println("  " + dimStyle.Render("URLs"))
+	fmt.Printf("    %s %-14s %s\n", bullet, "Console",
+		urlStyle.Render(dockercompose.URL(subdomain, "hasura", httpPort, useTLS)))
+	fmt.Printf("    %s %-14s %s\n", bullet, "Dashboard",
+		urlStyle.Render(dockercompose.URL(subdomain, "dashboard", httpPort, useTLS)))
 }
 
 func Cloud(

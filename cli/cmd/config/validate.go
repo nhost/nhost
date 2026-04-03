@@ -11,6 +11,7 @@ import (
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v3"
@@ -38,7 +39,7 @@ func commandValidate(ctx context.Context, cmd *cli.Command) error {
 
 	subdomain := cmd.String(flagSubdomain)
 	if subdomain != "" && subdomain != "local" {
-		proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+		proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
 		if err != nil {
 			return fmt.Errorf("failed to get app info: %w", err)
 		}

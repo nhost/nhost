@@ -8,7 +8,9 @@ import (
 	"os/exec"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 )
 
 const (
@@ -152,20 +154,38 @@ func actionConfigure(ctx context.Context, cmd *cli.Command) error {
 		return configureDocker(cmd.String(flagDockerConfig))
 	}
 
-	//nolint:lll
-	ce.PromptMessage(
-		"I am about to configure docker to authenticate with Nhost's registry. This will modify your docker config file on %s. Should I continue? [y/N] ",
-		cmd.String(flagDockerConfig),
-	)
-
-	v, err := ce.PromptInput(false)
+	confirmed, err := confirmDockerConfigure(ce, cmd.String(flagDockerConfig))
 	if err != nil {
 		return fmt.Errorf("could not read input: %w", err)
 	}
 
-	if v == "y" || v == "Y" {
+	if confirmed {
 		return configureDocker(cmd.String(flagDockerConfig))
 	}
 
 	return nil
+}
+
+func confirmDockerConfigure(
+	ce *clienv.CliEnv,
+	dockerConfig string,
+) (bool, error) {
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		return tui.RunConfirm(
+			"Configure Docker for Nhost registry authentication?",
+		)
+	}
+
+	//nolint:lll
+	ce.PromptMessage(
+		"I am about to configure docker to authenticate with Nhost's registry. This will modify your docker config file on %s. Should I continue? [y/N] ",
+		dockerConfig,
+	)
+
+	v, err := ce.PromptInput(false)
+	if err != nil {
+		return false, fmt.Errorf("could not read input: %w", err)
+	}
+
+	return v == "y" || v == "Y", nil
 }

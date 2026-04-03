@@ -12,9 +12,12 @@ import (
 	"github.com/hashicorp/go-getter/v2"
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/nhost/nhost/cli/cmd/config"
 	"github.com/nhost/nhost/cli/dockercompose"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 )
 
@@ -36,27 +39,39 @@ func writeFiles(ps *clienv.PathStructure, root, relPath string) error {
 			return writeFiles(ps, root, filepath.Join(relPath, entry.Name()))
 		}
 
-		src := filepath.Join(root, relPath, entry.Name())
-
-		fileData, err := fs.ReadFile(embeddedFS, src)
-		if err != nil {
-			return fmt.Errorf("failed to read file %s: %w", src, err)
+		if err := writeEmbeddedFile(ps, root, relPath, entry); err != nil {
+			return err
 		}
+	}
 
-		dst := filepath.Join(ps.Root(), relPath, entry.Name())
+	return nil
+}
 
-		f, err := os.OpenFile(
-			filepath.Join(ps.Root(), dst),
-			os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600, //nolint:mnd
-		)
-		if err != nil {
-			return fmt.Errorf("failed to open file %s: %w", dst, err)
-		}
-		defer f.Close()
+func writeEmbeddedFile(
+	ps *clienv.PathStructure,
+	root, relPath string,
+	entry fs.DirEntry,
+) error {
+	src := filepath.Join(root, relPath, entry.Name())
 
-		if _, err := f.Write(fileData); err != nil {
-			return fmt.Errorf("failed to write file %s: %w", dst, err)
-		}
+	fileData, err := fs.ReadFile(embeddedFS, src)
+	if err != nil {
+		return fmt.Errorf("failed to read file %s: %w", src, err)
+	}
+
+	dst := filepath.Join(ps.Root(), relPath, entry.Name())
+
+	f, err := os.OpenFile(
+		filepath.Join(ps.Root(), dst),
+		os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600, //nolint:mnd
+	)
+	if err != nil {
+		return fmt.Errorf("failed to open file %s: %w", dst, err)
+	}
+	defer f.Close()
+
+	if _, err := f.Write(fileData); err != nil {
+		return fmt.Errorf("failed to write file %s: %w", dst, err)
 	}
 
 	return nil
@@ -85,14 +100,12 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
 	if clienv.PathExists(ce.Path.NhostFolder()) {
-		return errors.New("nhost folder already exists") //nolint:err113
+		return errors.New("project already initialized. To reinitialize, remove the nhost/ folder first") //nolint:err113
 	}
 
 	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create nhost folder: %w", err)
 	}
-
-	ce.Infoln("Initializing Nhost project")
 
 	if err := config.InitConfigAndSecrets(ce); err != nil {
 		return fmt.Errorf("failed to initialize configuration: %w", err)
@@ -103,32 +116,86 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to initialize remote project: %w", err)
 		}
 	} else {
-		if err := initInit(ctx, ce.Path); err != nil {
+		if err := initInit(ctx, ce); err != nil {
 			return fmt.Errorf("failed to initialize project: %w", err)
 		}
 	}
 
-	ce.Infoln("Successfully initialized Nhost project, run `nhost up` to start development")
+	ce.Infoln("Successfully initialized, run `nhost up` to start development")
 
 	return nil
 }
 
-func initInit(
-	ctx context.Context, ps *clienv.PathStructure,
-) error {
+func initInit(ctx context.Context, ce *clienv.CliEnv) error {
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		return initInitTUI(ctx, ce)
+	}
+
+	return initInitPlain(ctx, ce)
+}
+
+func initInitTUI(ctx context.Context, ce *clienv.CliEnv) error {
+	return tui.RunSteps([]tui.Step{
+		{
+			Name: "Creating project structure",
+			Fn: func() error {
+				return initFolders(ce.Path)
+			},
+		},
+		{
+			Name: "Initializing Hasura",
+			Fn: func() error {
+				hasuraConf := map[string]any{"version": hasuraMetadataVersion}
+				return clienv.MarshalFile(
+					hasuraConf, ce.Path.HasuraConfig(), yaml.Marshal,
+				)
+			},
+		},
+		{
+			Name: "Writing default configuration",
+			Fn: func() error {
+				return writeFiles(ce.Path, "templates/init", "")
+			},
+		},
+		{
+			Name: "Downloading email templates",
+			Fn: func() error {
+				return downloadEmailTemplates(ctx)
+			},
+		},
+	}) //nolint:wrapcheck
+}
+
+func initInitPlain(ctx context.Context, ce *clienv.CliEnv) error {
+	ce.Infoln("Creating project structure...")
+
+	if err := initFolders(ce.Path); err != nil {
+		return err
+	}
+
+	ce.Infoln("Initializing Hasura...")
+
 	hasuraConf := map[string]any{"version": hasuraMetadataVersion}
-	if err := clienv.MarshalFile(hasuraConf, ps.HasuraConfig(), yaml.Marshal); err != nil {
+	if err := clienv.MarshalFile(hasuraConf, ce.Path.HasuraConfig(), yaml.Marshal); err != nil {
 		return fmt.Errorf("failed to save hasura config: %w", err)
 	}
 
-	if err := initFolders(ps); err != nil {
+	ce.Infoln("Writing default configuration...")
+
+	if err := writeFiles(ce.Path, "templates/init", ""); err != nil {
 		return err
 	}
 
-	if err := writeFiles(ps, "templates/init", ""); err != nil {
+	ce.Infoln("Downloading email templates...")
+
+	if err := downloadEmailTemplates(ctx); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func downloadEmailTemplates(ctx context.Context) error {
 	getclient := &getter.Client{}                    //nolint:exhaustruct
 	if _, err := getclient.Get(ctx, &getter.Request{ //nolint:exhaustruct
 		Src:             "git::https://github.com/nhost/nhost.git//services/auth/email-templates",
@@ -163,7 +230,7 @@ func InitRemote(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 ) error {
-	proj, err := ce.GetAppInfo(ctx, "")
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, "")
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
@@ -173,7 +240,7 @@ func InitRemote(
 		return fmt.Errorf("failed to pull config: %w", err)
 	}
 
-	if err := initInit(ctx, ce.Path); err != nil {
+	if err := initInit(ctx, ce); err != nil {
 		return err
 	}
 

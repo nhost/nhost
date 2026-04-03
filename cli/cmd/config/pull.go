@@ -9,12 +9,15 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/cli/project"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/nhost/nhost/cli/system"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 )
 
 const (
@@ -73,7 +76,7 @@ func commandPull(ctx context.Context, cmd *cli.Command) error {
 		}
 	}
 
-	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
@@ -84,19 +87,36 @@ func commandPull(ctx context.Context, cmd *cli.Command) error {
 }
 
 func verifyFile(ce *clienv.CliEnv, name string) error {
-	if clienv.PathExists(name) {
-		ce.PromptMessage("%s",
-			name+" already exists. Do you want to overwrite it? [y/N] ",
-		)
+	if !clienv.PathExists(name) {
+		return nil
+	}
 
-		resp, err := ce.PromptInput(false)
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		confirmed, err := tui.RunConfirm(
+			fmt.Sprintf("Overwrite %s?", name),
+		)
 		if err != nil {
 			return fmt.Errorf("failed to read input: %w", err)
 		}
 
-		if resp != "y" && resp != "Y" {
-			return errors.New("aborting") //nolint:err113
+		if !confirmed {
+			return errors.New("operation cancelled") //nolint:err113
 		}
+
+		return nil
+	}
+
+	ce.PromptMessage("%s",
+		name+" already exists. Do you want to overwrite it? [y/N] ",
+	)
+
+	resp, err := ce.PromptInput(false)
+	if err != nil {
+		return fmt.Errorf("failed to read input: %w", err)
+	}
+
+	if resp != "y" && resp != "Y" {
+		return errors.New("operation cancelled") //nolint:err113
 	}
 
 	return nil
@@ -106,22 +126,7 @@ func respToSecrets(env []*graphql.GetSecrets_AppSecrets, anonymize bool) model.S
 	secrets := make(model.Secrets, len(env))
 	for i, s := range env {
 		if anonymize {
-			switch s.Name {
-			case "HASURA_GRAPHQL_ADMIN_SECRET":
-				s.Value = DefaultHasuraGraphqlAdminSecret
-			case "HASURA_GRAPHQL_JWT_SECRET":
-				s.Value = DefaultGraphqlJWTSecret
-			case "NHOST_WEBHOOK_SECRET":
-				s.Value = DefaultNhostWebhookSecret
-			case "NHOST_JWT_PUBLIC_KEY":
-				s.Value = project.DefaultPubKey
-			case "NHOST_JWT_PRIVATE_KEY":
-				s.Value = project.DefaultPrivKey
-			case "NHOST_JWT_KID":
-				s.Value = project.DefaultNhostKID
-			default:
-				s.Value = "FIXME"
-			}
+			s = anonymizeSecret(s)
 		}
 
 		secrets[i] = &model.ConfigEnvironmentVariable{
@@ -131,6 +136,31 @@ func respToSecrets(env []*graphql.GetSecrets_AppSecrets, anonymize bool) model.S
 	}
 
 	return secrets
+}
+
+func anonymizeSecret(
+	s *graphql.GetSecrets_AppSecrets,
+) *graphql.GetSecrets_AppSecrets {
+	clone := *s
+
+	switch clone.Name {
+	case "HASURA_GRAPHQL_ADMIN_SECRET":
+		clone.Value = DefaultHasuraGraphqlAdminSecret
+	case "HASURA_GRAPHQL_JWT_SECRET":
+		clone.Value = DefaultGraphqlJWTSecret
+	case "NHOST_WEBHOOK_SECRET":
+		clone.Value = DefaultNhostWebhookSecret
+	case "NHOST_JWT_PUBLIC_KEY":
+		clone.Value = project.DefaultPubKey
+	case "NHOST_JWT_PRIVATE_KEY":
+		clone.Value = project.DefaultPrivKey
+	case "NHOST_JWT_KID":
+		clone.Value = project.DefaultNhostKID
+	default:
+		clone.Value = "FIXME"
+	}
+
+	return &clone
 }
 
 func pullSecrets(

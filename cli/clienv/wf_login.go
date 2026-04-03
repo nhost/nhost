@@ -104,7 +104,7 @@ func callbackHandler(
 
 			resultCh <- callbackResult{
 				code: "",
-				err:  errors.New("oauth2 callback state mismatch"), //nolint:err113
+				err:  errors.New("login failed: session mismatch. Please try again"), //nolint:err113
 			}
 
 			return
@@ -116,7 +116,7 @@ func callbackHandler(
 
 			resultCh <- callbackResult{
 				code: "",
-				err:  errors.New("no authorization code in callback"), //nolint:err113
+				err:  errors.New("login failed: no authorization received from browser"), //nolint:err113
 			}
 
 			return
@@ -149,7 +149,7 @@ func startCallbackServer(
 	if !ok {
 		listener.Close()
 
-		return nil, errors.New("unexpected listener address type") //nolint:err113
+		return nil, errors.New("login failed: could not start local authentication server") //nolint:err113
 	}
 
 	resultCh := make(chan callbackResult, 1)
@@ -192,7 +192,7 @@ func waitForCallback(
 		return result.code, nil
 	case <-time.After(loginTimeout):
 		return "", errors.New( //nolint:err113
-			"login timed out waiting for browser callback",
+			"login timed out. Please try again and complete the browser authentication",
 		)
 	case <-ctx.Done():
 		return "", fmt.Errorf(
@@ -257,7 +257,7 @@ func (ce *CliEnv) loginOAuth2PKCE(
 
 	if token.RefreshToken == "" {
 		return Credentials{}, errors.New( //nolint:err113
-			"no refresh token received; ensure offline_access scope is requested",
+			"login incomplete: authentication server did not provide a session token. Please try again",
 		)
 	}
 

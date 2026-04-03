@@ -5,10 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 )
 
 func CommandApply() *cli.Command {
@@ -36,7 +40,7 @@ func CommandApply() *cli.Command {
 func commandApply(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
-	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Failed to get app info: %v", err), 1)
 	}
@@ -68,17 +72,8 @@ func Apply(
 	skipConfirmation bool,
 ) error {
 	if !skipConfirmation {
-		ce.PromptMessage(
-			"We are going to overwrite the project's configuration. Do you want to proceed? [y/N] ",
-		)
-
-		resp, err := ce.PromptInput(false)
-		if err != nil {
-			return fmt.Errorf("failed to read input: %w", err)
-		}
-
-		if resp != "y" && resp != "Y" {
-			return errors.New("aborting") //nolint:err113
+		if err := confirmApply(ce); err != nil {
+			return err
 		}
 	}
 
@@ -101,6 +96,36 @@ func Apply(
 	}
 
 	ce.Infoln("Configuration applied successfully!")
+
+	return nil
+}
+
+func confirmApply(ce *clienv.CliEnv) error {
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		confirmed, err := tui.RunConfirm("Overwrite project configuration?")
+		if err != nil {
+			return fmt.Errorf("failed to read input: %w", err)
+		}
+
+		if !confirmed {
+			return errors.New("operation cancelled") //nolint:err113
+		}
+
+		return nil
+	}
+
+	ce.PromptMessage(
+		"We are going to overwrite the project's configuration. Do you want to proceed? [y/N] ",
+	)
+
+	resp, err := ce.PromptInput(false)
+	if err != nil {
+		return fmt.Errorf("failed to read input: %w", err)
+	}
+
+	if resp != "y" && resp != "Y" {
+		return errors.New("operation cancelled") //nolint:err113
+	}
 
 	return nil
 }

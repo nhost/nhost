@@ -4,6 +4,7 @@ package clienv
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"syscall"
@@ -21,6 +22,7 @@ const (
 	ANSIColorGreen  = lipgloss.Color("10")
 	ANSIColorRed    = lipgloss.Color("9")
 	ANSIColorGray   = lipgloss.Color("8")
+	ANSIColorDim    = lipgloss.Color("240")
 )
 
 const (
@@ -40,6 +42,10 @@ var promptMessage = lipgloss.NewStyle().
 	Foreground(ANSIColorCyan).
 	Bold(true).
 	Render
+
+func (ce *CliEnv) SetStdout(w io.Writer) {
+	ce.stdout = w
+}
 
 func (ce *CliEnv) Println(msg string, a ...any) {
 	if _, err := fmt.Fprintln(ce.stdout, fmt.Sprintf(msg, a...)); err != nil {

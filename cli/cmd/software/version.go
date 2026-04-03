@@ -3,9 +3,11 @@ package software
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/config"
@@ -13,6 +15,7 @@ import (
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/nhost/nhost/cli/software"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 )
 
 func CommandVersion() *cli.Command {
@@ -22,6 +25,22 @@ func CommandVersion() *cli.Command {
 		Usage:   "Show the current version of Nhost CLI you have installed",
 		Action:  commandVersion,
 	}
+}
+
+func styledCheck(name, version, extra string, ok bool) string {
+	if ok {
+		check := lipgloss.NewStyle().Foreground(clienv.ANSIColorGreen).Render("✓")
+
+		return fmt.Sprintf("%s %s\t%s\t%s", check, name, version, extra)
+	}
+
+	cross := lipgloss.NewStyle().Foreground(clienv.ANSIColorRed).Render("✗")
+
+	return fmt.Sprintf(
+		"%s %s\t%s\t%s",
+		cross, name, version,
+		lipgloss.NewStyle().Foreground(clienv.ANSIColorYellow).Render(extra),
+	)
 }
 
 func checkCLIVersion(
@@ -36,11 +55,22 @@ func checkCLIVersion(
 		return fmt.Errorf("failed to get releases: %w", err)
 	}
 
+	isTTY := term.IsTerminal(int(os.Stdout.Fd()))
+
 	if len(releases) == 0 {
-		ce.Infoln(
-			"✅ Nhost CLI %s for %s-%s is already on the latest version",
+		msg := fmt.Sprintf(
+			"Nhost CLI %s for %s-%s",
 			curVersion, runtime.GOOS, runtime.GOARCH,
 		)
+
+		if isTTY {
+			ce.Println("%s", styledCheck(msg, "", "(latest)", true))
+		} else {
+			ce.Infoln(
+				"✅ Nhost CLI %s for %s-%s is already on the latest version",
+				curVersion, runtime.GOOS, runtime.GOARCH,
+			)
+		}
 
 		return nil
 	}
@@ -50,7 +80,15 @@ func checkCLIVersion(
 		return nil
 	}
 
-	ce.Warnln("🟡 A new version of Nhost CLI is available: %s", latest.TagName)
+	if isTTY {
+		ce.Println(
+			"%s",
+			styledCheck("Nhost CLI", curVersion, "(latest: "+latest.TagName+")", false),
+		)
+	} else {
+		ce.Warnln("🟡 A new version of Nhost CLI is available: %s", latest.TagName)
+	}
+
 	ce.Println("   You can upgrade the CLI by running `nhost sw upgrade`")
 	ce.Println("   More info: https://github.com/nhost/nhost/cli/releases")
 
@@ -59,26 +97,60 @@ func checkCLIVersion(
 
 func checkServiceVersion(
 	ce *clienv.CliEnv,
-	software graphql.SoftwareTypeEnum,
+	sw graphql.SoftwareTypeEnum,
 	curVersion string,
 	availableVersions *graphql.GetSoftwareVersions,
 	changelog string,
 ) {
+	isTTY := term.IsTerminal(int(os.Stdout.Fd()))
 	recommendedVersions := make([]string, 0, 5) //nolint:mnd
 
 	for _, v := range availableVersions.GetSoftwareVersions() {
-		if *v.GetSoftware() == software && v.GetVersion() == curVersion {
-			ce.Infoln("✅ %s is already on a recommended version: %s", software, curVersion)
+		if *v.GetSoftware() == sw && v.GetVersion() == curVersion {
+			printServiceMatch(ce, sw, curVersion, isTTY)
+
 			return
-		} else if *v.GetSoftware() == software {
+		} else if *v.GetSoftware() == sw {
 			recommendedVersions = append(recommendedVersions, v.GetVersion())
 		}
 	}
 
-	ce.Warnln(
-		"🟡 %s is not on a recommended version. Recommended: %s",
-		software, strings.Join(recommendedVersions, ", "),
-	)
+	printServiceMismatch(ce, sw, curVersion, recommendedVersions, changelog, isTTY)
+}
+
+func printServiceMatch(
+	ce *clienv.CliEnv,
+	sw graphql.SoftwareTypeEnum,
+	curVersion string,
+	isTTY bool,
+) {
+	if isTTY {
+		ce.Println(
+			"%s",
+			styledCheck(string(sw), curVersion, "(recommended)", true),
+		)
+	} else {
+		ce.Infoln("✅ %s is already on a recommended version: %s", sw, curVersion)
+	}
+}
+
+func printServiceMismatch(
+	ce *clienv.CliEnv,
+	sw graphql.SoftwareTypeEnum,
+	curVersion string,
+	recommended []string,
+	changelog string,
+	isTTY bool,
+) {
+	if isTTY {
+		extra := fmt.Sprintf("(recommended: %s)", strings.Join(recommended, ", "))
+		ce.Println("%s", styledCheck(string(sw), curVersion, extra, false))
+	} else {
+		ce.Warnln(
+			"🟡 %s is not on a recommended version. Recommended: %s",
+			sw, strings.Join(recommended, ", "),
+		)
+	}
 
 	if changelog != "" {
 		ce.Println("   More info: %s", changelog)

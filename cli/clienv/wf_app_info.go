@@ -46,6 +46,10 @@ func getRemoteAppInfo(
 	return nil, fmt.Errorf("failed to find app with subdomain: %s", subdomain) //nolint:err113
 }
 
+var ErrNoLinkedProject = errors.New( //nolint:gochecknoglobals
+	"no linked project. Run `nhost link` to link a project first",
+)
+
 func (ce *CliEnv) GetAppInfo(
 	ctx context.Context,
 	subdomain string,
@@ -57,16 +61,10 @@ func (ce *CliEnv) GetAppInfo(
 	var project *graphql.AppSummaryFragment
 	if err := UnmarshalFile(ce.Path.ProjectFile(), &project, json.Unmarshal); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			project, err = ce.Link(ctx)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			ce.Warnln("Failed to find linked project: %v", err)
-			ce.Infoln("Please run `nhost link` to link a project first")
-
-			return nil, err
+			return nil, ErrNoLinkedProject
 		}
+
+		return nil, fmt.Errorf("failed to read project file: %w", err)
 	}
 
 	return project, nil
