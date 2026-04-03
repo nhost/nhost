@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/nhost/nhost/cli/clienv"
@@ -44,6 +43,7 @@ func main() {
 			dev.CommandUp(),
 			dev.CommandDown(),
 			dev.CommandLogs(),
+			dev.CommandAttach(),
 			dockercredentials.Command(),
 			mcp.Command(),
 			project.CommandInit(),
@@ -64,7 +64,8 @@ func main() {
 	}
 
 	if err := app.Run(context.Background(), os.Args); err != nil {
-		log.Fatal(err)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 }
 

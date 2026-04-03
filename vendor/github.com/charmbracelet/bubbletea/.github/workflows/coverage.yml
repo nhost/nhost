@@ -1,0 +1,29 @@
+name: coverage
+on: [push, pull_request]
+
+jobs:
+  coverage:
+    strategy:
+      matrix:
+        go-version: [^1]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      GO111MODULE: "on"
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Coverage
+        run: |
+          go test -race -covermode=atomic -coverprofile=coverage.txt ./...
+
+      - uses: codecov/codecov-action@v5
+        with:
+          file: ./coverage.txt
+          token: ${{ secrets.CODECOV_TOKEN }}

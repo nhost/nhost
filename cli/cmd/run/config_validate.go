@@ -164,7 +164,7 @@ func commandConfigValidate(ctx context.Context, cmd *cli.Command) error {
 
 	switch {
 	case cmd.String(flagServiceID) != "" && cmd.String(flagOverlayName) != "":
-		return errors.New("cannot specify both service id and overlay name") //nolint:err113
+		return errors.New("cannot specify both --service-id and --overlay-name") //nolint:err113
 	case cmd.String(flagServiceID) != "":
 		serviceID = cmd.String(flagServiceID)
 		overlayName = serviceID

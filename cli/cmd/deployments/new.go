@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/urfave/cli/v3"
 )
@@ -72,7 +73,7 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

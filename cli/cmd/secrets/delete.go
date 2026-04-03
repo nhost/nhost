@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/urfave/cli/v3"
 )
 
@@ -22,12 +23,12 @@ func CommandDelete() *cli.Command {
 
 func commandDelete(ctx context.Context, cmd *cli.Command) error {
 	if cmd.NArg() != 1 {
-		return errors.New("invalid number of arguments") //nolint:err113
+		return errors.New("expected 1 argument: NAME") //nolint:err113
 	}
 
 	ce := clienv.FromCLI(cmd)
 
-	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

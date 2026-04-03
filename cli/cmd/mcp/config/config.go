@@ -51,10 +51,9 @@ func action(_ context.Context, cmd *cli.Command) error {
 		return cli.Exit(fmt.Sprintf("failed to marshal config: %s", err), 1)
 	}
 
-	fmt.Println("Configuration Preview:")
-	fmt.Println("---------------------")
-	fmt.Println(string(tomlData))
+	fmt.Println("Configuration Preview")
 	fmt.Println()
+	fmt.Println(string(tomlData))
 
 	filePath := config.GetConfigPath(cmd)
 	fmt.Printf("Save configuration to %s?\n", filePath)
@@ -66,7 +65,6 @@ func action(_ context.Context, cmd *cli.Command) error {
 	}
 
 	if confirm != "y" && confirm != "Y" {
-		fmt.Println("Operation cancelled.")
 		return nil
 	}
 
@@ -84,9 +82,7 @@ func action(_ context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 
-	fmt.Println("\nConfiguration saved successfully!")
-	fmt.Println("Note: Review the documentation for additional configuration options,")
-	fmt.Println("      especially for fine-tuning LLM access permissions.")
+	fmt.Printf("\nConfiguration saved to %s\n", filePath)
 
 	return nil
 }

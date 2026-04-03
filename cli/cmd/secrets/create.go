@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/urfave/cli/v3"
 )
 
@@ -22,12 +23,12 @@ func CommandCreate() *cli.Command {
 
 func commandCreate(ctx context.Context, cmd *cli.Command) error {
 	if cmd.NArg() != 2 { //nolint:mnd
-		return errors.New("invalid number of arguments") //nolint:err113
+		return errors.New("expected 2 arguments: NAME VALUE") //nolint:err113
 	}
 
 	ce := clienv.FromCLI(cmd)
 
-	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
