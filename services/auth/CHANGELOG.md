@@ -1,3 +1,14 @@
+## [auth@0.49.0] - 2026-03-30
+
+### 🚀 Features
+
+- *(auth)* Allow scoping oauth2 clients by role (#4075)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Select primary verified email from GitHub OAuth (#4085)
+
 ## [auth@0.48.0] - 2026-03-28
 
 ### 🚀 Features

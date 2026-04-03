@@ -9,10 +9,11 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/nhost/nhost/cli/clienv"
 	nhostmcp "github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/mcp/start"
-	"github.com/nhost/nhost/cli/cmd/user"
 	"github.com/nhost/nhost/cli/mcp/resources"
+
 	"github.com/nhost/nhost/cli/mcp/tools/cloud"
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
 	"github.com/nhost/nhost/cli/mcp/tools/project"
@@ -22,17 +23,7 @@ import (
 
 func TestStart(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
-
-	loginCmd := user.CommandLogin()
-	if err := loginCmd.Run(
-		context.Background(),
-		[]string{
-			"main",
-			"--pat=user-pat",
-		},
-	); err != nil {
-		t.Fatalf("failed to login: %v", err)
-	}
+	t.Setenv("NHOST_PAT", "test-pat")
 
 	// Build the MCP server by running the CLI command with a custom action
 	// that calls BuildServer and captures the result.
@@ -40,10 +31,17 @@ func TestStart(t *testing.T) {
 
 	mcpCmd := nhostmcp.Command()
 
+	flags, err := clienv.Flags()
+	if err != nil {
+		t.Fatalf("failed to get clienv flags: %v", err)
+	}
+
+	mcpCmd.Flags = append(mcpCmd.Flags, flags...)
+
 	for _, sub := range mcpCmd.Commands {
 		if sub.Name == "start" {
-			sub.Action = func(_ context.Context, cmd *cli.Command) error {
-				s, err := start.BuildServer(cmd)
+			sub.Action = func(ctx context.Context, cmd *cli.Command) error {
+				s, err := start.BuildServer(ctx, cmd)
 				if err != nil {
 					return fmt.Errorf("problem building server: %w", err)
 				}

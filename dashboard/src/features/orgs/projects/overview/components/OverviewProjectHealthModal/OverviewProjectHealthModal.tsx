@@ -14,7 +14,7 @@ import {
   findHighestImportanceState,
   type ServiceHealthInfo,
 } from '@/features/orgs/projects/overview/health';
-import { isNotEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { removeTypename } from '@/utils/helpers';
 
 export interface OverviewProjectHealthModalProps {
@@ -33,6 +33,25 @@ export default function OverviewProjectHealthModal({
     (service): service is ServiceHealthInfo =>
       isNotEmptyValue(service) && service.name.startsWith('run-'),
   );
+
+  const hasNoServices =
+    isEmptyValue(auth) &&
+    isEmptyValue(storage) &&
+    isEmptyValue(postgres) &&
+    isEmptyValue(hasura) &&
+    isEmptyValue(ai) &&
+    isEmptyValue(runServices);
+
+  if (hasNoServices) {
+    return (
+      <div className="w-full rounded-lg p-6">
+        <p className="text-muted-foreground text-sm">
+          Service health information is unavailable. This is usually temporary
+          while the project is paused or transitioning.
+        </p>
+      </div>
+    );
+  }
 
   const isAuthExpandedByDefault = defaultExpanded === 'hasura-auth';
   const isPostgresExpandedByDefault = defaultExpanded === 'postgres';

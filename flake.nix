@@ -53,6 +53,10 @@
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
+        mcpf = import ./services/mcp/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         nhost-jsf = import ./packages/nhost-js/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
@@ -67,6 +71,10 @@
 
         postgresf = import ./services/postgres/project.nix {
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
+        nhostclientf = import ./internal/lib/nhostclient/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
         };
 
         storagef = import ./services/storage/project.nix {
@@ -87,6 +95,8 @@
           demos = demosf.check;
           guides = guidesf.check;
           docs = docsf.check;
+          mcp = mcpf.check;
+          nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
@@ -135,7 +145,6 @@
               postgresql_18-client
               bun
 
-
               # docs
               vale
 
@@ -183,6 +192,8 @@
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
+          mcp = mcpf.devShell;
+          nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
@@ -204,6 +215,8 @@
           guides = guidesf.package;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
+          mcp = mcpf.package;
+          mcp-docker-image = mcpf.dockerImage;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
           postgres-pg16 = postgresf.packages.pg16-package;

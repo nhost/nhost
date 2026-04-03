@@ -6,7 +6,7 @@ on:
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('mg-{0}', github.event.merge_group.head_sha) }}
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('mg-{0}', github.event.merge_group.head_sha) }}
   cancel-in-progress: true
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
           echo "Validating PR title: $PR_TITLE"
 
           VALID_TYPES="feat|fix|chore|release"
-          VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|internal\/lib|nhost-js|nixops|postgres|storage|observability|stripe-graphql-js"
+          VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|internal\/lib|mcp|nhost-js|nixops|postgres|storage|observability|stripe-graphql-js"
 
           if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\):\ .+ ]]; then
             echo "PR title does not follow the required format!"
@@ -41,7 +41,7 @@ jobs:
             echo ""
             echo "Valid PKGs:"
             echo "  - auth, ci, cli, codegen, dashboard, deps, docs, examples,"
-            echo "  - nhost-js, nixops, postgres, storage, observability, internal/lib"
+            echo "  - mcp, nhost-js, nixops, postgres, storage, observability, internal/lib"
             echo "  - stripe-graphql-js"
             echo ""
             echo "Example: feat(cli): add new command for database migrations"
