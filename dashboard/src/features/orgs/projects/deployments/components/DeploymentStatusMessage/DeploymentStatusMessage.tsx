@@ -2,12 +2,8 @@ import { formatDistance } from 'date-fns';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Text } from '@/components/ui/v2/Text';
 import { ifNullconvertToUndefined } from '@/lib/utils';
+import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
 import type { PipelineRunRowFragment } from '@/utils/__generated__/graphql';
-
-interface PipelineRunInput {
-  commit_user_name?: string;
-  commit_user_avatar_url?: string;
-}
 
 export interface DeploymentStatusMessageProps {
   pipelineRun: Partial<PipelineRunRowFragment>;

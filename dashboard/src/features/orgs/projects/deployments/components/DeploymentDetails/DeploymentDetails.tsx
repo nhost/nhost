@@ -25,6 +25,7 @@ import {
 } from '@/features/orgs/projects/deployments/hooks/useDeploymentLogs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, ifNullconvertToUndefined } from '@/lib/utils';
+import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
 
 type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed';
 type PipelineRunStatusValue =
@@ -43,15 +44,6 @@ interface TaskMetadata {
 
 interface PipelineRunSubstatus {
   tasks?: TaskMetadata[];
-}
-
-interface PipelineRunInput {
-  name: string;
-  app_id: string;
-  commit_sha: string;
-  commit_user_name?: string;
-  commit_user_avatar_url?: string;
-  commit_message?: string;
 }
 
 interface TaskGroup {

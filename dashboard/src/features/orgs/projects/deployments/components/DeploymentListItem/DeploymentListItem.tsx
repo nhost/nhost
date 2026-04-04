@@ -17,20 +17,12 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { ifNullconvertToUndefined } from '@/lib/utils';
+import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
 import type { PipelineRunRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetOrganizationsDocument,
   useInsertPipelineRunMutation,
 } from '@/utils/__generated__/graphql';
-
-interface PipelineRunInput {
-  name: string;
-  app_id: string;
-  commit_sha: string;
-  commit_user_name?: string;
-  commit_user_avatar_url?: string;
-  commit_message?: string;
-}
 
 export interface DeploymentListItemProps {
   pipelineRun: PipelineRunRowFragment;
