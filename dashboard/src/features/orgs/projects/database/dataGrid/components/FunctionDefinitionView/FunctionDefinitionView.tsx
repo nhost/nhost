@@ -1,9 +1,14 @@
+import { Play } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
+import { Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
+import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { TrackFunctionButton } from '@/features/orgs/projects/database/dataGrid/components/TrackFunctionButton';
+import { useFunctionPreviewHook } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPreview';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 
 export default function FunctionDefinitionView() {
@@ -36,6 +41,46 @@ export default function FunctionDefinitionView() {
   };
 
   const functionName = functionMetadata?.functionName;
+
+  const parameters = functionMetadata?.parameters ?? [];
+  const defaultArgsCount = functionMetadata?.defaultArgsCount ?? 0;
+  const requiredParamsCount = parameters.length - defaultArgsCount;
+
+  const [paramValues, setParamValues] = useState<string[]>([]);
+  const {
+    runPreview,
+    loading: previewLoading,
+    result: previewResult,
+  } = useFunctionPreviewHook();
+
+  function handleParamChange(index: number, value: string) {
+    setParamValues((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  }
+
+  async function handleExecute() {
+    if (!functionName) {
+      return;
+    }
+
+    const args = parameters.map((_, index) => {
+      const value = paramValues[index];
+      if (value === undefined || value === '') {
+        return null;
+      }
+      return value;
+    });
+
+    await runPreview({
+      schema,
+      functionName,
+      dataSource,
+      parameters: args,
+    });
+  }
 
   if (status === 'loading') {
     return (
@@ -78,9 +123,6 @@ export default function FunctionDefinitionView() {
       />
     );
   }
-
-  const requiredParamsCount =
-    functionMetadata.parameters.length - functionMetadata.defaultArgsCount;
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -152,11 +194,11 @@ export default function FunctionDefinitionView() {
             ) : null}
           </div>
         </div>
-        {functionMetadata.parameters.length > 0 && (
+        {parameters.length > 0 && (
           <div className="mt-4 rounded-md border bg-muted/20 p-4">
             <h4 className="mb-3 font-medium text-sm">Parameters</h4>
             <div className="space-y-2">
-              {functionMetadata.parameters.map((param, index) => (
+              {parameters.map((param, index) => (
                 <div
                   key={`param-${param.name || index}-${index}`}
                   className="flex items-center gap-3 text-sm"
@@ -164,6 +206,12 @@ export default function FunctionDefinitionView() {
                   <span className="w-32 font-medium">
                     {param.name || `arg${index + 1}`}
                   </span>
+                  <Input
+                    className="h-8 w-48 text-sm"
+                    placeholder={param.displayType}
+                    value={paramValues[index] ?? ''}
+                    onChange={(e) => handleParamChange(index, e.target.value)}
+                  />
                   <InlineCode className="bg-opacity-80 px-1.5 text-xs">
                     {param.displayType}
                   </InlineCode>
@@ -177,7 +225,63 @@ export default function FunctionDefinitionView() {
             </div>
           </div>
         )}
+        <div className="mt-4">
+          <Button
+            size="sm"
+            onClick={handleExecute}
+            disabled={previewLoading}
+          >
+            <Play className="h-4 w-4" />
+            {previewLoading ? 'Executing...' : 'Execute'}
+          </Button>
+        </div>
       </div>
+      {previewResult?.error && (
+        <div className="border-b px-4 py-3">
+          <p className="text-destructive text-sm">{previewResult.error}</p>
+        </div>
+      )}
+      {previewResult && !previewResult.error && (
+        <div className="min-h-0 flex-1 overflow-auto">
+          {previewResult.rows.length === 0 ? (
+            <p className="px-4 py-3 text-muted-foreground text-sm">
+              No rows returned.
+            </p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-background">
+                <tr>
+                  {previewResult.columns.map((col) => (
+                    <th
+                      key={col}
+                      className="border-b px-3 py-2 text-left font-medium text-muted-foreground"
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {previewResult.rows.map((row, rowIndex) => (
+                  <tr
+                    key={`row-${rowIndex}`}
+                    className="border-b last:border-b-0"
+                  >
+                    {row.map((cell, cellIndex) => (
+                      <td
+                        key={`${rowIndex}-${cellIndex}`}
+                        className="px-3 py-1.5"
+                      >
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
     </div>
   );
 }
