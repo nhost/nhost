@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef } from 'react';
 import {
-  DeploymentSubDocument,
-  useGetDeploymentQuery,
+  PipelineRunSubDocument,
+  useGetPipelineRunQuery,
 } from '@/generated/graphql';
 
 function useDeployment() {
@@ -12,17 +12,17 @@ function useDeployment() {
 
   const unsubscribe = useRef<(() => void) | null>(null);
 
-  const { subscribeToMore, ...result } = useGetDeploymentQuery({
+  const { subscribeToMore, ...result } = useGetPipelineRunQuery({
     variables: {
       id: deploymentId,
     },
   });
   const { data } = result;
 
-  const subscribeToDeployment = useCallback(
+  const subscribeToPipelineRun = useCallback(
     () =>
       subscribeToMore({
-        document: DeploymentSubDocument,
+        document: PipelineRunSubDocument,
         variables: {
           id: deploymentId,
         },
@@ -32,21 +32,19 @@ function useDeployment() {
 
   useEffect(() => {
     if (
-      ['PENDING', 'SCHEDULED'].includes(
-        data?.deployment?.deploymentStatus as string,
-      ) &&
+      ['pending', 'running'].includes(data?.pipelineRun?.status as string) &&
       unsubscribe.current === null
     ) {
-      unsubscribe.current = subscribeToDeployment();
+      unsubscribe.current = subscribeToPipelineRun();
     } else if (
-      ['DEPLOYED', 'FAILED'].includes(
-        data?.deployment?.deploymentStatus as string,
+      ['succeeded', 'failed', 'aborted'].includes(
+        data?.pipelineRun?.status as string,
       ) &&
       unsubscribe.current !== null
     ) {
       unsubscribe.current();
     }
-  }, [data?.deployment?.deploymentStatus, subscribeToDeployment]);
+  }, [data?.pipelineRun?.status, subscribeToPipelineRun]);
 
   useEffect(
     () => () => {

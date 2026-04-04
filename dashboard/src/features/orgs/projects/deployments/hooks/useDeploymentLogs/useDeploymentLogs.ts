@@ -1,77 +1,36 @@
-import { gql, useQuery } from '@apollo/client';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  type GetPipelineRunLogsQuery,
+  GetPipelineRunLogsSubscriptionDocument,
+  useGetPipelineRunLogsQuery,
+} from '@/generated/graphql';
 import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
 
-const GET_DEPLOYMENT_LOGS_QUERY = gql`
-  query getDeploymentLogs(
-    $appID: String!
-    $deploymentID: String!
-    $from: Timestamp!
-    $to: Timestamp!
-  ) {
-    getDeploymentLogs(
-      appID: $appID
-      deploymentID: $deploymentID
-      from: $from
-      to: $to
-    ) {
-      timestamp
-      task
-      log
-    }
-  }
-`;
-
-const GET_DEPLOYMENT_LOGS_SUBSCRIPTION = gql`
-  subscription getDeploymentLogsSubscription(
-    $appID: String!
-    $deploymentID: String!
-    $from: Timestamp!
-  ) {
-    getDeploymentLogs(
-      appID: $appID
-      deploymentID: $deploymentID
-      from: $from
-    ) {
-      timestamp
-      task
-      log
-    }
-  }
-`;
-
-export interface DeploymentLog {
-  timestamp: string;
-  task: string;
-  log: string;
-}
-
-interface GetDeploymentLogsData {
-  getDeploymentLogs: DeploymentLog[];
-}
+export type DeploymentLog =
+  GetPipelineRunLogsQuery['getPipelineRunLogs'][number];
 
 export interface UseDeploymentLogsProps {
   appID: string | undefined;
-  deploymentID: string | undefined;
-  deploymentStatus: string | null | undefined;
-  deploymentStartedAt: string | null | undefined;
-  deploymentEndedAt: string | null | undefined;
+  pipelineRunID: string | undefined;
+  status: string | null | undefined;
+  startedAt: string | null | undefined;
+  endedAt: string | null | undefined;
 }
 
 function updateQuery(
-  prev: GetDeploymentLogsData,
-  { subscriptionData }: { subscriptionData: { data: GetDeploymentLogsData } },
-): GetDeploymentLogsData {
+  prev: GetPipelineRunLogsQuery,
+  { subscriptionData }: { subscriptionData: { data: GetPipelineRunLogsQuery } },
+): GetPipelineRunLogsQuery {
   if (!subscriptionData.data) {
     return prev;
   }
 
-  const prevLogs = prev.getDeploymentLogs;
+  const prevLogs = prev.getPipelineRunLogs;
   if (!prevLogs || prevLogs.length === 0) {
     return subscriptionData.data;
   }
 
-  const newLogs = subscriptionData.data.getDeploymentLogs;
+  const newLogs = subscriptionData.data.getPipelineRunLogs;
   const latestPrevTimestamp = Math.max(
     ...prevLogs.map((log) => new Date(log.timestamp).getTime()),
   );
@@ -85,55 +44,54 @@ function updateQuery(
   }
 
   return {
-    getDeploymentLogs: [...prevLogs, ...newLogsToAdd],
+    getPipelineRunLogs: [...prevLogs, ...newLogsToAdd],
   };
 }
 
 function useDeploymentLogs({
   appID,
-  deploymentID,
-  deploymentStatus,
-  deploymentStartedAt,
-  deploymentEndedAt,
+  pipelineRunID,
+  status,
+  startedAt,
+  endedAt,
 }: UseDeploymentLogsProps) {
-  const toRef = useRef(deploymentEndedAt || new Date().toISOString());
+  // Capture `to` once at mount. For completed deployments it equals endedAt;
+  // for in-progress ones it equals "now". We never update it afterwards so
+  // that the query variables stay stable — the subscription delivers any new
+  // logs while the run is active, and when it completes there is no redundant
+  // refetch that would reset scroll positions.
+  const [to] = useState(() => endedAt || new Date().toISOString());
 
-  const skip = !appID || !deploymentID || !deploymentStartedAt;
+  const skip = !appID || !pipelineRunID || !startedAt;
 
-  const { subscribeToMore, ...result } = useQuery<GetDeploymentLogsData>(
-    GET_DEPLOYMENT_LOGS_QUERY,
-    {
-      variables: {
-        appID,
-        deploymentID,
-        from: deploymentStartedAt,
-        to: toRef.current,
-      },
-      client: splitGraphqlClient,
-      fetchPolicy: 'cache-and-network',
-      skip,
+  const { subscribeToMore, ...result } = useGetPipelineRunLogsQuery({
+    variables: {
+      appID: appID as string,
+      pipelineRunID: pipelineRunID as string,
+      from: startedAt as string,
+      to,
     },
-  );
+    client: splitGraphqlClient,
+    fetchPolicy: 'cache-and-network',
+    skip,
+  });
 
   const subscribeToMoreLogs = useCallback(
     () =>
       subscribeToMore({
-        document: GET_DEPLOYMENT_LOGS_SUBSCRIPTION,
+        document: GetPipelineRunLogsSubscriptionDocument,
         variables: {
           appID,
-          deploymentID,
-          from: deploymentStartedAt,
+          pipelineRunID,
+          from: startedAt,
         },
         updateQuery,
       }),
-    [subscribeToMore, appID, deploymentID, deploymentStartedAt],
+    [subscribeToMore, appID, pipelineRunID, startedAt],
   );
 
   useEffect(() => {
-    if (
-      skip ||
-      !['PENDING', 'SCHEDULED'].includes(deploymentStatus as string)
-    ) {
+    if (skip || !['pending', 'running'].includes(status as string)) {
       return;
     }
 
@@ -141,7 +99,7 @@ function useDeploymentLogs({
     return () => {
       unsubscribe();
     };
-  }, [skip, deploymentStatus, subscribeToMoreLogs]);
+  }, [skip, status, subscribeToMoreLogs]);
 
   return result;
 }

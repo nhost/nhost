@@ -9,9 +9,9 @@ import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import {
-  useGetDeploymentsSubSubscription,
-  useLatestLiveDeploymentSubSubscription,
-  useScheduledOrPendingDeploymentsSubSubscription,
+  useGetPipelineRunsSubSubscription,
+  useLatestSucceededPipelineRunSubSubscription,
+  usePendingOrRunningPipelineRunsSubSubscription,
 } from '@/generated/graphql';
 
 export type AppDeploymentsProps = {
@@ -79,33 +79,29 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const offset = (page - 1) * limit;
 
   const {
-    data: deploymentPageData,
-    loading: deploymentPageLoading,
+    data: pipelineRunPageData,
+    loading: pipelineRunPageLoading,
     error,
-  } = useGetDeploymentsSubSubscription({
+  } = useGetPipelineRunsSubSubscription({
     variables: { id: appId, limit, offset },
   });
 
-  const { data: latestDeploymentData, loading: latestDeploymentLoading } =
-    useGetDeploymentsSubSubscription({
+  const { data: latestPipelineRunData, loading: latestPipelineRunLoading } =
+    useGetPipelineRunsSubSubscription({
       variables: { id: appId, limit: 1, offset: 0 },
     });
 
-  const {
-    data: latestLiveDeploymentData,
-    loading: latestLiveDeploymentLoading,
-  } = useLatestLiveDeploymentSubSubscription({ variables: { appId } });
+  const { data: latestSucceededData, loading: latestSucceededLoading } =
+    useLatestSucceededPipelineRunSubSubscription({ variables: { appId } });
 
-  const {
-    data: scheduledOrPendingDeploymentsData,
-    loading: scheduledOrPendingDeploymentsLoading,
-  } = useScheduledOrPendingDeploymentsSubSubscription({ variables: { appId } });
+  const { data: pendingOrRunningData, loading: pendingOrRunningLoading } =
+    usePendingOrRunningPipelineRunsSubSubscription({ variables: { appId } });
 
   const loading =
-    deploymentPageLoading ||
-    scheduledOrPendingDeploymentsLoading ||
-    latestDeploymentLoading ||
-    latestLiveDeploymentLoading;
+    pipelineRunPageLoading ||
+    pendingOrRunningLoading ||
+    latestPipelineRunLoading ||
+    latestSucceededLoading;
 
   if (loading) {
     return (
@@ -121,40 +117,40 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     throw error;
   }
 
-  const { deployments } = deploymentPageData || { deployments: [] };
-  const { deployments: scheduledOrPendingDeployments } =
-    scheduledOrPendingDeploymentsData || { deployments: [] };
-  const isDeploymentInProgress = deployments?.some((deployment) =>
-    ['PENDING', 'SCHEDULED'].includes(deployment?.deploymentStatus as string),
+  const pipelineRuns = pipelineRunPageData?.pipelineRuns ?? [];
+  const pendingOrRunningRuns = pendingOrRunningData?.pipelineRuns ?? [];
+  const isInProgress = pipelineRuns.some((run) =>
+    ['pending', 'running'].includes(run.status as string),
   );
 
-  const latestDeployment = latestDeploymentData?.deployments[0];
-  const latestLiveDeployment = latestLiveDeploymentData?.deployments[0];
+  const latestRun = latestPipelineRunData?.pipelineRuns[0];
+  const latestSucceededRun = latestSucceededData?.pipelineRuns[0];
 
-  const nrOfDeployments = deployments?.length || 0;
-  const nextAllowed = !(nrOfDeployments < limit);
-  const liveDeploymentId = latestLiveDeployment?.id || '';
+  const nrOfRuns = pipelineRuns.length;
+  const nextAllowed = !(nrOfRuns < limit);
+  const liveRunId = latestSucceededRun?.id || '';
 
   return (
     <div className="mt-6">
-      {nrOfDeployments === 0 ? (
+      {nrOfRuns === 0 ? (
         <Text variant="subtitle2">No deployments yet.</Text>
       ) : (
         <div>
           <List className="mt-3 border-y" sx={{ borderColor: 'grey.300' }}>
-            {deployments.map((deployment, index) => (
-              <Fragment key={deployment.id}>
+            {pipelineRuns.map((run, index) => (
+              <Fragment key={run.id}>
                 <DeploymentListItem
-                  deployment={deployment}
-                  isLive={liveDeploymentId === deployment.id}
-                  showRedeploy={latestDeployment?.id === deployment.id}
+                  pipelineRun={run}
+                  isLive={liveRunId === run.id}
+                  showRedeploy={latestRun?.id === run.id}
                   disableRedeploy={
-                    scheduledOrPendingDeployments?.length > 0 ||
-                    isDeploymentInProgress
+                    pendingOrRunningRuns.length > 0 || isInProgress
                   }
                 />
 
-                {index !== deployments.length - 1 && <Divider component="li" />}
+                {index !== pipelineRuns.length - 1 && (
+                  <Divider component="li" />
+                )}
               </Fragment>
             ))}
           </List>

@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { renderHook } from '@/tests/testUtils';
-import { useGetDeploymentQuery } from '@/utils/__generated__/graphql';
+import { useGetPipelineRunQuery } from '@/utils/__generated__/graphql';
 
 import useDeployment from './useDeployment';
 
@@ -13,8 +13,8 @@ vi.mock('@/utils/__generated__/graphql', async () => {
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
-    useGetDeploymentQuery: vi.fn(),
-    DeploymentSubDocument: 'DeploymentSubDocument',
+    useGetPipelineRunQuery: vi.fn(),
+    PipelineRunSubDocument: 'PipelineRunSubDocument',
   };
 });
 
@@ -25,7 +25,7 @@ vi.mock('next/router', () => ({
   }),
 }));
 
-const mockUseGetDeploymentQuery = vi.mocked(useGetDeploymentQuery);
+const mockUseGetPipelineRunQuery = vi.mocked(useGetPipelineRunQuery);
 
 describe('useDeployment', () => {
   beforeEach(() => {
@@ -37,11 +37,11 @@ describe('useDeployment', () => {
     vi.clearAllMocks();
   });
 
-  const createMockQueryResult = (deploymentStatus: string) =>
+  const createMockQueryResult = (status: string) =>
     ({
       data: {
-        deployment: {
-          deploymentStatus,
+        pipelineRun: {
+          status,
         },
       },
       subscribeToMore: mockSubscribeToMore,
@@ -50,37 +50,39 @@ describe('useDeployment', () => {
       // biome-ignore lint/suspicious/noExplicitAny: test file
     }) as any;
 
-  it('should start subscription when deployment status is PENDING', () => {
-    mockUseGetDeploymentQuery.mockReturnValue(createMockQueryResult('PENDING'));
-
-    renderHook(() => useDeployment());
-
-    expect(mockSubscribeToMore).toHaveBeenCalledWith({
-      document: 'DeploymentSubDocument',
-      variables: {
-        id: 'test-deployment-id',
-      },
-    });
-  });
-
-  it('should start subscription when deployment status is SCHEDULED', () => {
-    mockUseGetDeploymentQuery.mockReturnValue(
-      createMockQueryResult('SCHEDULED'),
+  it('should start subscription when status is pending', () => {
+    mockUseGetPipelineRunQuery.mockReturnValue(
+      createMockQueryResult('pending'),
     );
 
     renderHook(() => useDeployment());
 
     expect(mockSubscribeToMore).toHaveBeenCalledWith({
-      document: 'DeploymentSubDocument',
+      document: 'PipelineRunSubDocument',
       variables: {
         id: 'test-deployment-id',
       },
     });
   });
 
-  it('should not start subscription when deployment status is DEPLOYED', () => {
-    mockUseGetDeploymentQuery.mockReturnValue(
-      createMockQueryResult('DEPLOYED'),
+  it('should start subscription when status is running', () => {
+    mockUseGetPipelineRunQuery.mockReturnValue(
+      createMockQueryResult('running'),
+    );
+
+    renderHook(() => useDeployment());
+
+    expect(mockSubscribeToMore).toHaveBeenCalledWith({
+      document: 'PipelineRunSubDocument',
+      variables: {
+        id: 'test-deployment-id',
+      },
+    });
+  });
+
+  it('should not start subscription when status is succeeded', () => {
+    mockUseGetPipelineRunQuery.mockReturnValue(
+      createMockQueryResult('succeeded'),
     );
 
     renderHook(() => useDeployment());
@@ -88,52 +90,56 @@ describe('useDeployment', () => {
     expect(mockSubscribeToMore).not.toHaveBeenCalled();
   });
 
-  it('should not start subscription when deployment status is FAILED', () => {
-    mockUseGetDeploymentQuery.mockReturnValue(createMockQueryResult('FAILED'));
+  it('should not start subscription when status is failed', () => {
+    mockUseGetPipelineRunQuery.mockReturnValue(createMockQueryResult('failed'));
 
     renderHook(() => useDeployment());
 
     expect(mockSubscribeToMore).not.toHaveBeenCalled();
   });
 
-  it('should cleanup subscription when status changes from PENDING to DEPLOYED', () => {
+  it('should cleanup subscription when status changes from pending to succeeded', () => {
     const { rerender } = renderHook(() => useDeployment());
 
-    // Initially PENDING - should start subscription
-    mockUseGetDeploymentQuery.mockReturnValue(createMockQueryResult('PENDING'));
+    // Initially pending - should start subscription
+    mockUseGetPipelineRunQuery.mockReturnValue(
+      createMockQueryResult('pending'),
+    );
     rerender();
 
     expect(mockSubscribeToMore).toHaveBeenCalledTimes(1);
 
-    // Status changes to DEPLOYED - should cleanup subscription
-    mockUseGetDeploymentQuery.mockReturnValue(
-      createMockQueryResult('DEPLOYED'),
+    // Status changes to succeeded - should cleanup subscription
+    mockUseGetPipelineRunQuery.mockReturnValue(
+      createMockQueryResult('succeeded'),
     );
     rerender();
 
     expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it('should cleanup subscription when status changes from SCHEDULED to FAILED', () => {
+  it('should cleanup subscription when status changes from running to failed', () => {
     const { rerender } = renderHook(() => useDeployment());
 
-    // Initially SCHEDULED - should start subscription
-    mockUseGetDeploymentQuery.mockReturnValue(
-      createMockQueryResult('SCHEDULED'),
+    // Initially running - should start subscription
+    mockUseGetPipelineRunQuery.mockReturnValue(
+      createMockQueryResult('running'),
     );
     rerender();
 
     expect(mockSubscribeToMore).toHaveBeenCalledTimes(1);
 
-    // Status changes to FAILED - should cleanup subscription
-    mockUseGetDeploymentQuery.mockReturnValue(createMockQueryResult('FAILED'));
+    // Status changes to failed - should cleanup subscription
+    mockUseGetPipelineRunQuery.mockReturnValue(createMockQueryResult('failed'));
     rerender();
 
     expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
   });
 
   it('should not create duplicate subscriptions when already subscribed', () => {
-    mockUseGetDeploymentQuery.mockReturnValue(createMockQueryResult('PENDING'));
+    mockUseGetPipelineRunQuery.mockReturnValue(
+      createMockQueryResult('pending'),
+    );
 
     const { rerender } = renderHook(() => useDeployment());
 
@@ -146,7 +152,9 @@ describe('useDeployment', () => {
   });
 
   it('should cleanup subscription on component unmount', () => {
-    mockUseGetDeploymentQuery.mockReturnValue(createMockQueryResult('PENDING'));
+    mockUseGetPipelineRunQuery.mockReturnValue(
+      createMockQueryResult('pending'),
+    );
 
     const { unmount } = renderHook(() => useDeployment());
 
@@ -157,8 +165,8 @@ describe('useDeployment', () => {
     expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it('should handle missing deployment data gracefully', () => {
-    mockUseGetDeploymentQuery.mockReturnValue({
+  it('should handle missing pipeline run data gracefully', () => {
+    mockUseGetPipelineRunQuery.mockReturnValue({
       data: undefined,
       subscribeToMore: mockSubscribeToMore,
       loading: false,
@@ -171,8 +179,8 @@ describe('useDeployment', () => {
   });
 
   it('should return query result excluding subscribeToMore', () => {
-    const mockResult = createMockQueryResult('DEPLOYED');
-    mockUseGetDeploymentQuery.mockReturnValue(mockResult);
+    const mockResult = createMockQueryResult('succeeded');
+    mockUseGetPipelineRunQuery.mockReturnValue(mockResult);
 
     const { result } = renderHook(() => useDeployment());
 

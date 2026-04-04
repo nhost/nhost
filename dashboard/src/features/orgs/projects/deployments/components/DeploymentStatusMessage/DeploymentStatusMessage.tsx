@@ -2,51 +2,52 @@ import { formatDistance } from 'date-fns';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Text } from '@/components/ui/v2/Text';
 import { ifNullconvertToUndefined } from '@/lib/utils';
-import type { Deployment } from '@/types/application';
+import type { PipelineRunRowFragment } from '@/utils/__generated__/graphql';
+
+interface PipelineRunInput {
+  commit_user_name?: string;
+  commit_user_avatar_url?: string;
+}
 
 export interface DeploymentStatusMessageProps {
-  deployment: Partial<Deployment>;
+  pipelineRun: Partial<PipelineRunRowFragment>;
 }
 
 export default function DeploymentStatusMessage({
-  deployment,
+  pipelineRun,
 }: DeploymentStatusMessageProps) {
-  const isDeployingToProduction = [
-    'SCHEDULED',
-    'PENDING',
-    'DEPLOYING',
-  ].includes(deployment?.deploymentStatus as string);
+  const input = pipelineRun?.input as PipelineRunInput | undefined;
+  const isInProgress = ['pending', 'running'].includes(
+    pipelineRun?.status as string,
+  );
 
-  if (
-    isDeployingToProduction ||
-    (deployment && !deployment.deploymentEndedAt)
-  ) {
+  if (isInProgress || (pipelineRun && !pipelineRun.endedAt)) {
     return (
       <span className="flex flex-row justify-start">
         <Avatar
-          alt={`Avatar of ${deployment.commitUserName}`}
-          src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
+          alt={`Avatar of ${input?.commit_user_name}`}
+          src={ifNullconvertToUndefined(input?.commit_user_avatar_url)}
           className="mr-1 h-4 w-4 self-center"
         />
         <Text component="span" className="self-center text-sm">
-          {deployment.commitUserName} updated just now
+          {input?.commit_user_name} updated just now
         </Text>
       </span>
     );
   }
 
-  if (!isDeployingToProduction && deployment?.deploymentEndedAt) {
-    const statusMessage = `deployed ${formatDistance(new Date(deployment.deploymentEndedAt), new Date(), { addSuffix: true })}`;
+  if (!isInProgress && pipelineRun?.endedAt) {
+    const statusMessage = `deployed ${formatDistance(new Date(pipelineRun.endedAt), new Date(), { addSuffix: true })}`;
 
     return (
       <div className="relative flex flex-row">
         <Avatar
-          alt={`Avatar of ${deployment.commitUserName}`}
-          src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
+          alt={`Avatar of ${input?.commit_user_name}`}
+          src={ifNullconvertToUndefined(input?.commit_user_avatar_url)}
           className="mt-1 mr-2 h-4 w-4"
         />
         <div className="flex flex-col text-muted-foreground text-sm">
-          <p className="line-clamp-1 break-all">{deployment.commitUserName}</p>
+          <p className="line-clamp-1 break-all">{input?.commit_user_name}</p>
           <p>{statusMessage}</p>
         </div>
       </div>

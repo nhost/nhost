@@ -14,7 +14,7 @@ type Project = GetProjectsQuery['apps'][0];
 function ProjectCard({ project }: { project: Project }) {
   const { org } = useCurrentOrg();
 
-  const [latestDeployment] = project.deployments;
+  const [latestPipelineRun] = project.pipelineRuns;
 
   return (
     <Link
@@ -35,7 +35,7 @@ function ProjectCard({ project }: { project: Project }) {
       </div>
 
       <div className="flex flex-1 flex-row items-start gap-2">
-        <DeploymentStatusMessage deployment={latestDeployment} />
+        <DeploymentStatusMessage pipelineRun={latestPipelineRun} />
       </div>
 
       <div className="flex w-full justify-end">

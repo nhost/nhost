@@ -1,4 +1,4 @@
-import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -12,6 +12,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
 import { useDeployment } from '@/features/orgs/projects/deployments/hooks/useDeployment';
 import {
@@ -22,6 +27,12 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, ifNullconvertToUndefined } from '@/lib/utils';
 
 type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed';
+type PipelineRunStatusValue =
+  | 'pending'
+  | 'running'
+  | 'succeeded'
+  | 'failed'
+  | 'aborted';
 
 interface TaskMetadata {
   name: string;
@@ -30,8 +41,17 @@ interface TaskMetadata {
   ended_at?: string;
 }
 
-interface DeploymentMetadata {
+interface PipelineRunSubstatus {
   tasks?: TaskMetadata[];
+}
+
+interface PipelineRunInput {
+  name: string;
+  app_id: string;
+  commit_sha: string;
+  commit_user_name?: string;
+  commit_user_avatar_url?: string;
+  commit_message?: string;
 }
 
 interface TaskGroup {
@@ -64,6 +84,50 @@ function formatTaskDuration(
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes}m ${remainingSeconds}s`;
+}
+
+function StatusBadge({ status }: { status: PipelineRunStatusValue }) {
+  const base =
+    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium';
+  switch (status) {
+    case 'running':
+      return (
+        <span className={cn(base, 'bg-blue-500/10 text-blue-500')}>
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+          Running
+        </span>
+      );
+    case 'pending':
+      return (
+        <span className={cn(base, 'bg-yellow-500/10 text-yellow-500')}>
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-500" />
+          Pending
+        </span>
+      );
+    case 'succeeded':
+      return (
+        <span className={cn(base, 'bg-green-500/10 text-green-500')}>
+          <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+          Succeeded
+        </span>
+      );
+    case 'failed':
+      return (
+        <span className={cn(base, 'bg-red-500/10 text-red-500')}>
+          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+          Failed
+        </span>
+      );
+    case 'aborted':
+      return (
+        <span className={cn(base, 'bg-gray-500/10 text-gray-400')}>
+          <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+          Aborted
+        </span>
+      );
+    default:
+      return null;
+  }
 }
 
 function TaskStatusIndicator({ status }: { status: TaskStatus }) {
@@ -110,7 +174,7 @@ function TaskLogList({ logs }: { logs: DeploymentLog[] }) {
 
 function useTaskGroups(
   logs: DeploymentLog[] | undefined,
-  metadata: DeploymentMetadata | undefined,
+  substatus: PipelineRunSubstatus | undefined,
 ): TaskGroup[] {
   return useMemo(() => {
     const logsMap = new Map<string, DeploymentLog[]>();
@@ -127,8 +191,8 @@ function useTaskGroups(
       );
     }
 
-    if (metadata?.tasks) {
-      const result: TaskGroup[] = metadata.tasks.map((task) => ({
+    if (substatus?.tasks) {
+      const result: TaskGroup[] = substatus.tasks.map((task) => ({
         name: task.name,
         status: task.status,
         startedAt: task.started_at,
@@ -136,9 +200,9 @@ function useTaskGroups(
         logs: logsMap.get(task.name) ?? [],
       }));
 
-      const metadataNames = new Set(metadata.tasks.map((t) => t.name));
+      const substatusNames = new Set(substatus.tasks.map((t) => t.name));
       for (const [name, taskLogs] of logsMap) {
-        if (!metadataNames.has(name)) {
+        if (!substatusNames.has(name)) {
           result.push({ name, status: 'running', logs: taskLogs });
         }
       }
@@ -173,26 +237,26 @@ function useTaskGroups(
         status: 'running' as const,
         logs: taskLogs,
       }));
-  }, [logs, metadata]);
+  }, [logs, substatus]);
 }
 
 function DeploymentDetails() {
   const { project } = useProject();
   const { data, error, loading } = useDeployment();
 
-  const deployment = data?.deployment;
-  const metadata = (deployment as { metadata?: DeploymentMetadata } | undefined)
-    ?.metadata;
+  const pipelineRun = data?.pipelineRun;
+  const input = pipelineRun?.input as PipelineRunInput | undefined;
+  const substatus = pipelineRun?.substatus as PipelineRunSubstatus | undefined;
 
   const { data: logsData, loading: logsLoading } = useDeploymentLogs({
     appID: project?.id,
-    deploymentID: deployment?.id,
-    deploymentStatus: deployment?.deploymentStatus,
-    deploymentStartedAt: deployment?.deploymentStartedAt,
-    deploymentEndedAt: deployment?.deploymentEndedAt,
+    pipelineRunID: pipelineRun?.id,
+    status: pipelineRun?.status,
+    startedAt: pipelineRun?.startedAt,
+    endedAt: pipelineRun?.endedAt,
   });
 
-  const taskGroups = useTaskGroups(logsData?.getDeploymentLogs, metadata);
+  const taskGroups = useTaskGroups(logsData?.getPipelineRunLogs, substatus);
 
   const [expandedTasks, setExpandedTasks] = useState<string[]>([]);
   const seenTasks = useRef(new Set<string>());
@@ -223,7 +287,7 @@ function DeploymentDetails() {
     throw error;
   }
 
-  if (!deployment) {
+  if (!pipelineRun) {
     return (
       <Container>
         <Text variant="h1" className="text font-semibold text-4xl">
@@ -236,12 +300,6 @@ function DeploymentDetails() {
     );
   }
 
-  const relativeDateOfDeployment = deployment.deploymentStartedAt
-    ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
-        addSuffix: true,
-      })
-    : '';
-
   return (
     <Container>
       <div className="flex justify-between">
@@ -252,36 +310,91 @@ function DeploymentDetails() {
         </div>
       </div>
 
-      <div className="my-8 flex justify-between">
-        <div className="grid grid-flow-col items-center gap-4">
-          <Avatar
-            alt={ifNullconvertToUndefined(deployment.commitUserName)}
-            src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
-            className="h-8 w-8"
-          >
-            {deployment.commitUserName!}
-          </Avatar>
-          <div>
-            <Text>{deployment.commitMessage}</Text>
-            <Text color="secondary">{relativeDateOfDeployment}</Text>
-          </div>
-        </div>
-        <div className="flex items-center">
-          <Link
-            className="self-center font-medium font-mono"
-            target="_blank"
-            rel="noreferrer"
-            href={`https://github.com/${project?.githubRepository?.fullName}/commit/${deployment?.commitSHA}`}
-            underline="hover"
-          >
-            {deployment.commitSHA.substring(0, 7)}
-          </Link>
-          <div className="w-20 text-right">
-            <DeploymentDurationLabel
-              startedAt={deployment.deploymentStartedAt}
-              endedAt={deployment.deploymentEndedAt}
+      <div className="my-8 grid grid-cols-3 gap-x-6 gap-y-4 sm:grid-cols-6">
+        <div>
+          <Text className="text-xs" color="secondary">
+            Status
+          </Text>
+          <div className="mt-1">
+            <StatusBadge
+              status={pipelineRun.status as PipelineRunStatusValue}
             />
           </div>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Commit
+          </Text>
+          <div className="mt-0.5">
+            <Link
+              className="font-medium font-mono text-sm"
+              target="_blank"
+              rel="noreferrer"
+              href={`https://github.com/${project?.githubRepository?.fullName}/commit/${input?.commit_sha}`}
+              underline="hover"
+            >
+              {input?.commit_sha?.substring(0, 7)}
+            </Link>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Text
+                  className="line-clamp-1 cursor-default text-sm"
+                  color="secondary"
+                >
+                  {input?.commit_message}
+                </Text>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-sm">
+                {input?.commit_message}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Author
+          </Text>
+          <div className="mt-1 flex items-center gap-1.5">
+            <Avatar
+              alt={ifNullconvertToUndefined(input?.commit_user_name)}
+              src={ifNullconvertToUndefined(input?.commit_user_avatar_url)}
+              className="h-5 w-5"
+            >
+              {input?.commit_user_name ?? ''}
+            </Avatar>
+            <Text className="truncate text-sm">{input?.commit_user_name}</Text>
+          </div>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Started at
+          </Text>
+          <Text className="mt-0.5 text-sm">
+            {pipelineRun.startedAt
+              ? format(parseISO(pipelineRun.startedAt), 'MMM d, HH:mm:ss')
+              : '-'}
+          </Text>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Ended at
+          </Text>
+          <Text className="mt-0.5 text-sm">
+            {pipelineRun.endedAt
+              ? format(parseISO(pipelineRun.endedAt), 'MMM d, HH:mm:ss')
+              : '-'}
+          </Text>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Duration
+          </Text>
+          <Text className="mt-0.5 font-medium text-sm">
+            <DeploymentDurationLabel
+              startedAt={pipelineRun.startedAt}
+              endedAt={pipelineRun.endedAt}
+            />
+          </Text>
         </div>
       </div>
 

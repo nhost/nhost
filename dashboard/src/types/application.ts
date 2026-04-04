@@ -1,11 +1,11 @@
 import type {
   AppStateHistoryFragment,
   BackupFragment,
-  DeploymentRowFragment,
   EnvironmentVariableFragment,
   GetOrganizationQuery,
   GetProjectQuery,
   PermissionVariableFragment,
+  PipelineRunRowFragment,
   SecretFragment,
 } from '@/utils/__generated__/graphql';
 
@@ -37,7 +37,7 @@ export type DesiredState =
   | ApplicationStatus.Migrating;
 
 export type ApplicationState = AppStateHistoryFragment;
-export type Deployment = DeploymentRowFragment;
+export type PipelineRun = PipelineRunRowFragment;
 export type Organization = GetOrganizationQuery['organizations'][0];
 // export type Project = ProjectFragment;
 export type Project = GetProjectQuery['apps'][0];

@@ -60,7 +60,7 @@ export const mockApplication: Project = {
     domain: 'nhost.run',
   },
   createdAt: new Date().toISOString(),
-  deployments: [],
+  pipelineRuns: [],
   desiredState: ApplicationStatus.Live,
   featureFlags: [],
   githubRepository: { fullName: 'test/git-project' },

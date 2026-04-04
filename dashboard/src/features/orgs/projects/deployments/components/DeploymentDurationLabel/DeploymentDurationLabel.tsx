@@ -6,11 +6,11 @@ export interface DeploymentDurationLabelProps {
   /**
    * Start date of the deployment.
    */
-  startedAt: string;
+  startedAt?: string | null;
   /**
    * End date of the deployment.
    */
-  endedAt?: string;
+  endedAt?: string | null;
 }
 
 export default function DeploymentDurationLabel({
@@ -31,6 +31,10 @@ export default function DeploymentDurationLabel({
       clearInterval(interval);
     };
   }, [endedAt]);
+
+  if (!startedAt) {
+    return null;
+  }
 
   const totalDurationInSeconds = differenceInSeconds(
     endedAt ? parseISO(endedAt) : currentTime,

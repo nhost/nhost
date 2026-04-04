@@ -2,18 +2,17 @@ import slugify from 'slugify';
 import { ApplicationStatus } from '@/types/application';
 import type {
   ConfigRunServicePort,
-  DeploymentRowFragment,
+  PipelineRunRowFragment,
 } from '@/utils/__generated__/graphql';
 
-export function getLastLiveDeployment(deployments?: DeploymentRowFragment[]) {
-  if (!deployments) {
+export function getLastSucceededPipelineRun(
+  pipelineRuns?: PipelineRunRowFragment[],
+) {
+  if (!pipelineRuns) {
     return '';
   }
 
-  return (
-    deployments.find((deployment) => deployment.deploymentStatus === 'DEPLOYED')
-      ?.id || ''
-  );
+  return pipelineRuns.find((run) => run.status === 'succeeded')?.id || '';
 }
 
 export function slugifyString(s: string) {

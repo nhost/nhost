@@ -1,69 +1,69 @@
-fragment DeploymentRow on deployments {
+fragment PipelineRunRow on pipelineRuns {
   id
-  commitSHA
-  deploymentStartedAt
-  deploymentEndedAt
-  deploymentStatus
-  commitUserName
-  commitUserAvatarUrl
-  commitMessage
+  name
+  startedAt
+  endedAt
+  status
+  input
+  appId
+  createdAt
 }
-fragment Deployment on deployments {
+fragment PipelineRun on pipelineRuns {
   id
-  commitMessage
-  commitSHA
-  commitUserName
-  commitUserAvatarUrl
-  deploymentStartedAt
-  deploymentEndedAt
-  deploymentStatus
-  metadata
+  name
+  startedAt
+  endedAt
+  status
+  input
+  substatus
+  appId
+  createdAt
 }
 
-subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
-  deployments(
-    where: { deploymentStatus: { _in: ["SCHEDULED"] }, appId: { _eq: $appId } }
+subscription PendingOrRunningPipelineRunsSub($appId: uuid!) {
+  pipelineRuns(
+    where: { status: { _in: [pending, running] }, appId: { _eq: $appId } }
   ) {
-    ...DeploymentRow
+    ...PipelineRunRow
   }
 }
 
-subscription LatestLiveDeploymentSub($appId: uuid!) {
-  deployments(
-    where: { deploymentStatus: { _eq: "DEPLOYED" }, appId: { _eq: $appId } }
-    order_by: { deploymentStartedAt: desc }
+subscription LatestSucceededPipelineRunSub($appId: uuid!) {
+  pipelineRuns(
+    where: { status: { _eq: succeeded }, appId: { _eq: $appId } }
+    order_by: { startedAt: desc }
     limit: 1
     offset: 0
   ) {
-    ...DeploymentRow
+    ...PipelineRunRow
   }
 }
 
-mutation InsertDeployment($object: deployments_insert_input!) {
-  insertDeployment(object: $object) {
-    ...DeploymentRow
+mutation InsertPipelineRun($object: pipelineRuns_insert_input!) {
+  insertPipelineRun(object: $object) {
+    ...PipelineRunRow
   }
 }
 
-subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
-  deployments(
+subscription getPipelineRunsSub($id: uuid!, $limit: Int!, $offset: Int!) {
+  pipelineRuns(
     where: { appId: { _eq: $id } }
-    order_by: { deploymentStartedAt: desc }
+    order_by: { startedAt: desc }
     limit: $limit
     offset: $offset
   ) {
-    ...DeploymentRow
+    ...PipelineRunRow
   }
 }
 
-subscription deploymentSub($id: uuid!) {
-  deployment(id: $id) {
-    ...Deployment
+subscription pipelineRunSub($id: uuid!) {
+  pipelineRun(id: $id) {
+    ...PipelineRun
   }
 }
 
-query getDeployment($id: uuid!) {
-  deployment(id: $id) {
-    ...Deployment
+query getPipelineRun($id: uuid!) {
+  pipelineRun(id: $id) {
+    ...PipelineRun
   }
 }

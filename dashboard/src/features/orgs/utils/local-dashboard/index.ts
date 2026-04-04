@@ -18,7 +18,7 @@ export const localApplication: GetProjectQuery['apps'][0] = {
       createdAt: new Date().toISOString(),
     },
   ],
-  deployments: [],
+  pipelineRuns: [],
   subdomain: 'local',
   region: {
     id: null,

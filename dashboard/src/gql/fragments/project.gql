@@ -53,15 +53,15 @@ fragment Project on apps {
   githubRepository {
     fullName
   }
-  deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
+  pipelineRuns(limit: 4, order_by: { startedAt: desc }) {
     id
-    commitSHA
-    commitMessage
-    commitUserName
-    deploymentStartedAt
-    deploymentEndedAt
-    commitUserAvatarUrl
-    deploymentStatus
+    name
+    startedAt
+    endedAt
+    status
+    input
+    appId
+    createdAt
   }
   creator {
     id

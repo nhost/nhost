@@ -2,7 +2,7 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import type { MouseEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
-import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
+import type { PipelineRunStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Button } from '@/components/ui/v2/Button';
@@ -17,34 +17,30 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { ifNullconvertToUndefined } from '@/lib/utils';
-import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
+import type { PipelineRunRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetOrganizationsDocument,
-  useInsertDeploymentMutation,
+  useInsertPipelineRunMutation,
 } from '@/utils/__generated__/graphql';
 
+interface PipelineRunInput {
+  name: string;
+  app_id: string;
+  commit_sha: string;
+  commit_user_name?: string;
+  commit_user_avatar_url?: string;
+  commit_message?: string;
+}
+
 export interface DeploymentListItemProps {
-  /**
-   * Deployment data.
-   */
-  deployment: DeploymentRowFragment;
-  /**
-   * Determines whether or not the deployment is live.
-   */
+  pipelineRun: PipelineRunRowFragment;
   isLive?: boolean;
-  /**
-   * Determines whether or not the redeploy button should be shown for the
-   * deployment.
-   */
   showRedeploy?: boolean;
-  /**
-   * Determines whether or not the redeploy button is disabled.
-   */
   disableRedeploy?: boolean;
 }
 
 export default function DeploymentListItem({
-  deployment,
+  pipelineRun,
   isLive,
   showRedeploy,
   disableRedeploy,
@@ -53,39 +49,44 @@ export default function DeploymentListItem({
   const { org } = useCurrentOrg();
   const userData = useUserData();
 
-  const relativeDateOfDeployment = deployment.deploymentStartedAt
-    ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
+  const input = pipelineRun.input as PipelineRunInput;
+
+  const relativeDateOfDeployment = pipelineRun.startedAt
+    ? formatDistanceToNowStrict(parseISO(pipelineRun.startedAt), {
         addSuffix: true,
       })
     : '';
 
-  const [insertDeployment, { loading }] = useInsertDeploymentMutation({
+  const [insertPipelineRun, { loading }] = useInsertPipelineRunMutation({
     refetchQueries: [
       { query: GetOrganizationsDocument, variables: { userId: userData?.id } },
     ],
   });
-  const { commitMessage } = deployment;
 
-  async function redeployDeployment(event: MouseEvent<HTMLButtonElement>) {
+  const commitMessage = input?.commit_message;
+
+  async function redeployPipelineRun(event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
     event.preventDefault();
 
-    const insertDeploymentPromise = insertDeployment({
+    const insertPromise = insertPipelineRun({
       variables: {
         object: {
-          appId: project?.id,
-          commitMessage: deployment.commitMessage,
-          commitSHA: deployment.commitSHA,
-          commitUserAvatarUrl: deployment.commitUserAvatarUrl,
-          commitUserName: deployment.commitUserName,
-          deploymentStatus: 'SCHEDULED',
+          input: {
+            name: 'nhost-backend-build',
+            app_id: project?.id,
+            commit_sha: input.commit_sha,
+            commit_user_name: input.commit_user_name,
+            commit_user_avatar_url: input.commit_user_avatar_url,
+            commit_message: input.commit_message,
+          },
         },
       },
     });
 
     await execPromiseWithErrorToast(
       async () => {
-        await insertDeploymentPromise;
+        await insertPromise;
       },
       {
         loadingMessage: 'Scheduling deployment...',
@@ -100,17 +101,17 @@ export default function DeploymentListItem({
       <ListItem.Button
         className="grid h-fit grid-flow-col items-center justify-between gap-2 rounded-none p-2 hover:no-underline"
         component={NavLink}
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
+        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${pipelineRun.id}`}
         aria-label={commitMessage || 'No commit message'}
       >
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
           <ListItem.Avatar>
             <Avatar
-              alt={ifNullconvertToUndefined(deployment.commitUserName)}
-              src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
+              alt={ifNullconvertToUndefined(input?.commit_user_name)}
+              src={ifNullconvertToUndefined(input?.commit_user_avatar_url)}
               className="h-8 w-8 shrink-0"
             >
-              {deployment.commitUserName!}
+              {input?.commit_user_name ?? ''}
             </Avatar>
           </ListItem.Avatar>
 
@@ -142,7 +143,7 @@ export default function DeploymentListItem({
                 size="small"
                 color="secondary"
                 variant="outlined"
-                onClick={redeployDeployment}
+                onClick={redeployPipelineRun}
                 startIcon={
                   <ArrowCounterclockwiseIcon className={twMerge('h-4 w-4')} />
                 }
@@ -161,19 +162,17 @@ export default function DeploymentListItem({
           )}
 
           <div className="hidden w-16 text-right font-medium font-mono text-sm- text-white sm:block">
-            {deployment.commitSHA.substring(0, 7)}
+            {input?.commit_sha?.substring(0, 7)}
           </div>
 
           <div className="text-right font-medium font-mono text-sm- sm:w-20">
             <DeploymentDurationLabel
-              startedAt={deployment.deploymentStartedAt}
-              endedAt={deployment.deploymentEndedAt}
+              startedAt={pipelineRun.startedAt}
+              endedAt={pipelineRun.endedAt}
             />
           </div>
 
-          <StatusCircle
-            status={deployment.deploymentStatus as DeploymentStatus}
-          />
+          <StatusCircle status={pipelineRun.status as PipelineRunStatus} />
 
           <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>

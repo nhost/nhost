@@ -15,10 +15,10 @@ import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGit
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  useGetDeploymentsSubSubscription,
-  useScheduledOrPendingDeploymentsSubSubscription,
+  useGetPipelineRunsSubSubscription,
+  usePendingOrRunningPipelineRunsSubSubscription,
 } from '@/utils/__generated__/graphql';
-import { getLastLiveDeployment } from '@/utils/helpers';
+import { getLastSucceededPipelineRun } from '@/utils/helpers';
 
 function OverviewDeploymentsTopBar() {
   const { org } = useCurrentOrg();
@@ -50,7 +50,7 @@ function OverviewDeploymentList() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
 
-  const { data, loading } = useGetDeploymentsSubSubscription({
+  const { data, loading } = useGetPipelineRunsSubSubscription({
     variables: {
       id: project?.id,
       limit: 5,
@@ -58,16 +58,14 @@ function OverviewDeploymentList() {
     },
   });
 
-  const {
-    data: scheduledOrPendingDeploymentsData,
-    loading: scheduledOrPendingDeploymentsLoading,
-  } = useScheduledOrPendingDeploymentsSubSubscription({
-    variables: {
-      appId: project?.id,
-    },
-  });
+  const { data: pendingOrRunningData, loading: pendingOrRunningLoading } =
+    usePendingOrRunningPipelineRunsSubSubscription({
+      variables: {
+        appId: project?.id,
+      },
+    });
 
-  if (loading || scheduledOrPendingDeploymentsLoading) {
+  if (loading || pendingOrRunningLoading) {
     return (
       <Box className="h-[323px] rounded-lg border-1 p-2">
         <ActivityIndicator label="Loading deployments..." />
@@ -75,9 +73,9 @@ function OverviewDeploymentList() {
     );
   }
 
-  const { deployments } = data || { deployments: [] };
+  const pipelineRuns = data?.pipelineRuns ?? [];
 
-  if (!deployments?.length) {
+  if (!pipelineRuns.length) {
     return (
       <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 px-4 py-12 shadow-sm">
         <RocketIcon
@@ -122,11 +120,10 @@ function OverviewDeploymentList() {
     );
   }
 
-  const liveDeploymentId = getLastLiveDeployment(deployments);
-  const { deployments: scheduledOrPendingDeployments } =
-    scheduledOrPendingDeploymentsData || { deployments: [] };
-  const isDeploymentInProgress = deployments?.some((deployment) =>
-    ['PENDING', 'SCHEDULED'].includes(deployment.deploymentStatus as string),
+  const liveRunId = getLastSucceededPipelineRun(pipelineRuns);
+  const pendingOrRunningRuns = pendingOrRunningData?.pipelineRuns ?? [];
+  const isInProgress = pipelineRuns.some((run) =>
+    ['pending', 'running'].includes(run.status as string),
   );
 
   return (
@@ -134,19 +131,16 @@ function OverviewDeploymentList() {
       className="flex flex-col overflow-hidden rounded-lg rounded-x-lg"
       sx={{ borderColor: 'grey.300', borderWidth: 1 }}
     >
-      {deployments?.map((deployment, index) => (
-        <Fragment key={deployment.id}>
+      {pipelineRuns.map((run, index) => (
+        <Fragment key={run.id}>
           <DeploymentListItem
-            deployment={deployment}
-            isLive={deployment.id === liveDeploymentId}
+            pipelineRun={run}
+            isLive={run.id === liveRunId}
             showRedeploy={index === 0}
-            disableRedeploy={
-              scheduledOrPendingDeployments?.length > 0 ||
-              isDeploymentInProgress
-            }
+            disableRedeploy={pendingOrRunningRuns.length > 0 || isInProgress}
           />
 
-          {index !== deployments.length - 1 && <Divider component="li" />}
+          {index !== pipelineRuns.length - 1 && <Divider component="li" />}
         </Fragment>
       ))}
     </List>

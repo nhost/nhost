@@ -88,7 +88,7 @@ test('should render an empty state when GitHub is not connected', async () => {
 
         return HttpResponse.json({
           data: {
-            deployments: [],
+            pipelineRuns: [],
           },
         });
       },
@@ -126,7 +126,7 @@ test('should render an empty state when GitHub is connected, but there are no de
           });
         }
 
-        return HttpResponse.json({ data: { deployments: [] } });
+        return HttpResponse.json({ data: { pipelineRuns: [] } });
       },
     ),
   );
@@ -155,8 +155,8 @@ test('should render a list of deployments', async () => {
         // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
-        if (operationName === 'ScheduledOrPendingDeploymentsSub') {
-          return HttpResponse.json({ data: { deployments: [] } });
+        if (operationName === 'PendingOrRunningPipelineRunsSub') {
+          return HttpResponse.json({ data: { pipelineRuns: [] } });
         }
 
         if (operationName === 'getProject') {
@@ -176,16 +176,24 @@ test('should render a list of deployments', async () => {
 
         return HttpResponse.json({
           data: {
-            deployments: [
+            pipelineRuns: [
               {
                 id: '1',
-                commitSHA: 'abc123',
-                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-                deploymentStatus: 'DEPLOYED',
-                commitUserName: 'test.user',
-                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-                commitMessage: 'Test commit message',
+                name: 'nhost-backend-build',
+                startedAt: '2021-08-01T00:00:00.000Z',
+                endedAt: '2021-08-01T00:05:00.000Z',
+                status: 'succeeded',
+                input: {
+                  name: 'nhost-backend-build',
+                  appId: 'test-app-id',
+                  commit_sha: 'abc123',
+                  commit_user_name: 'test.user',
+                  commit_user_avatar_url:
+                    'http://images.example.com/avatar.png',
+                  commit_message: 'Test commit message',
+                },
+                appId: 'test-app-id',
+                createdAt: '2021-08-01T00:00:00.000Z',
               },
             ],
           },
@@ -222,19 +230,27 @@ test('should disable redeployments if a deployment is already in progress', asyn
         // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
-        if (operationName === 'ScheduledOrPendingDeploymentsSub') {
+        if (operationName === 'PendingOrRunningPipelineRunsSub') {
           return HttpResponse.json({
             data: {
-              deployments: [
+              pipelineRuns: [
                 {
                   id: '2',
-                  commitSHA: 'abc234',
-                  deploymentStartedAt: '2021-08-02T00:00:00.000Z',
-                  deploymentEndedAt: null,
-                  deploymentStatus: 'PENDING',
-                  commitUserName: 'test.user',
-                  commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-                  commitMessage: 'Test commit message',
+                  name: 'nhost-backend-build',
+                  startedAt: '2021-08-02T00:00:00.000Z',
+                  endedAt: null,
+                  status: 'pending',
+                  input: {
+                    name: 'nhost-backend-build',
+                    appId: 'test-app-id',
+                    commit_sha: 'abc234',
+                    commit_user_name: 'test.user',
+                    commit_user_avatar_url:
+                      'http://images.example.com/avatar.png',
+                    commit_message: 'Test commit message',
+                  },
+                  appId: 'test-app-id',
+                  createdAt: '2021-08-02T00:00:00.000Z',
                 },
               ],
             },
@@ -258,16 +274,24 @@ test('should disable redeployments if a deployment is already in progress', asyn
 
         return HttpResponse.json({
           data: {
-            deployments: [
+            pipelineRuns: [
               {
                 id: '1',
-                commitSHA: 'abc123',
-                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-                deploymentStatus: 'DEPLOYED',
-                commitUserName: 'test.user',
-                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-                commitMessage: 'Test commit message',
+                name: 'nhost-backend-build',
+                startedAt: '2021-08-01T00:00:00.000Z',
+                endedAt: '2021-08-01T00:05:00.000Z',
+                status: 'succeeded',
+                input: {
+                  name: 'nhost-backend-build',
+                  appId: 'test-app-id',
+                  commit_sha: 'abc123',
+                  commit_user_name: 'test.user',
+                  commit_user_avatar_url:
+                    'http://images.example.com/avatar.png',
+                  commit_message: 'Test commit message',
+                },
+                appId: 'test-app-id',
+                createdAt: '2021-08-01T00:00:00.000Z',
               },
             ],
           },

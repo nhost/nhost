@@ -1,12 +1,12 @@
-query getDeploymentLogs(
+query getPipelineRunLogs(
   $appID: String!
-  $deploymentID: String!
-  $from: Timestamp!
-  $to: Timestamp!
+  $pipelineRunID: String!
+  $from: Timestamp
+  $to: Timestamp
 ) {
-  getDeploymentLogs(
+  getPipelineRunLogs(
     appID: $appID
-    deploymentID: $deploymentID
+    pipelineRunID: $pipelineRunID
     from: $from
     to: $to
   ) {
@@ -16,12 +16,16 @@ query getDeploymentLogs(
   }
 }
 
-subscription getDeploymentLogsSubscription(
+subscription getPipelineRunLogsSubscription(
   $appID: String!
-  $deploymentID: String!
-  $from: Timestamp!
+  $pipelineRunID: String!
+  $from: Timestamp
 ) {
-  getDeploymentLogs(appID: $appID, deploymentID: $deploymentID, from: $from) {
+  getPipelineRunLogs(
+    appID: $appID
+    pipelineRunID: $pipelineRunID
+    from: $from
+  ) {
     timestamp
     task
     log

@@ -1,23 +1,23 @@
 import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 
-export type DeploymentStatus =
-  | 'DEPLOYING'
-  | 'DEPLOYED'
-  | 'FAILED'
-  | 'PENDING'
-  | 'SCHEDULED'
+export type PipelineRunStatus =
+  | 'pending'
+  | 'running'
+  | 'succeeded'
+  | 'failed'
+  | 'aborted'
   | undefined
   | null;
 
 export type StatusCircleProps = {
-  status: DeploymentStatus;
+  status: PipelineRunStatus;
 };
 
 export default function StatusCircle({ status }: StatusCircleProps) {
   const baseClasses = 'w-1.5 h-1.5 rounded-full';
 
-  if (status === 'DEPLOYING' || status === 'PENDING') {
+  if (status === 'running' || status === 'pending') {
     return (
       <Box
         className={twMerge(baseClasses, 'animate-pulse')}
@@ -26,13 +26,13 @@ export default function StatusCircle({ status }: StatusCircleProps) {
     );
   }
 
-  if (status === 'DEPLOYED') {
+  if (status === 'succeeded') {
     return (
       <Box className={baseClasses} sx={{ backgroundColor: 'success.main' }} />
     );
   }
 
-  if (status === 'FAILED') {
+  if (status === 'failed') {
     return (
       <Box className={baseClasses} sx={{ backgroundColor: 'error.main' }} />
     );
