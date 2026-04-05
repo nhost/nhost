@@ -1,4 +1,4 @@
-{ self, pkgs, nix2containerPkgs }:
+{ pkgs, nix2containerPkgs }:
 let
   goCheckDeps = with pkgs; [
     go
@@ -8,7 +8,7 @@ let
     golines
     gofumpt
     govulncheck
-    self.packages.${pkgs.system}.govulncheck-wrapper
+    govulncheck-wrapper
   ];
 
   dockerImageFn =

@@ -11,22 +11,19 @@
     {
       #nixops
       lib = import ./nixops/lib/lib.nix;
-      overlays.default = import ./nixops/overlays/default.nix;
+      overlays.default = import ./nixops/overlays/default.nix { inherit self nix-filter; };
     } // flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
           overlays = [
-            (import ./nixops/overlays/default.nix)
+            (import ./nixops/overlays/default.nix { inherit self nix-filter; })
           ];
         };
 
         nix2containerPkgs = nix2container.packages.${system};
-
-        nixops-lib = (import ./nixops/lib/lib.nix) {
-          inherit self pkgs nix2containerPkgs;
-        };
+        nixops-lib = (import ./nixops/lib/lib.nix) { inherit pkgs nix2containerPkgs; };
 
         authf = import ./services/auth/project.nix {
           inherit self pkgs nix-filter nixops-lib;
