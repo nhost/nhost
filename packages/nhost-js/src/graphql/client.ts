@@ -99,32 +99,11 @@ export interface Client {
 }
 
 /**
- * Removes duplicate fragment definitions from a GraphQL source string,
- * keeping the first occurrence of each named fragment.
- */
-export const deduplicateFragments = (source: string): string => {
-  const seen = new Set<string>();
-  return source
-    .replace(
-      /fragment\s+(\w+)\s+on\s+\w+\s*\{(?:[^{}]*|\{(?:[^{}]*|\{[^{}]*\})*\})*\}/g,
-      (match, name: string) => {
-        if (seen.has(name)) {
-          return '';
-        }
-        seen.add(name);
-        return match;
-      },
-    )
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-
-/**
  * Extracts a deduplicated query string from a TypedDocumentNode.
  *
- * Uses AST definition locations when available (e.g. codegen output),
- * otherwise falls back to regex-based deduplication on the raw source text
- * (e.g. graphql-tag runtime documents).
+ * When definition nodes have loc offsets (e.g. codegen output), deduplicates
+ * fragment definitions by name and reconstructs the query from AST slices.
+ * Falls back to the raw source text when loc is unavailable.
  */
 export const extractQueryFromDocument = <TResponseData, TVariables>(
   document: TypedDocumentNode<TResponseData, TVariables>,
@@ -134,9 +113,8 @@ export const extractQueryFromDocument = <TResponseData, TVariables>(
     return '';
   }
 
-  const hasDefinitionLocs = document.definitions.every((def) => def.loc);
-  if (!hasDefinitionLocs) {
-    return deduplicateFragments(source);
+  if (!document.definitions.every((def) => def.loc)) {
+    return source;
   }
 
   const seen = new Set<string>();
