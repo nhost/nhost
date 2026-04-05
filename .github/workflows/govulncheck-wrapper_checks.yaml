@@ -1,12 +1,10 @@
 ---
-name: "cli: check and build"
+name: "govulncheck-wrapper: check and build"
 on:
   pull_request_target:
     paths:
-      - ".github/workflows/cli_checks.yaml"
       - ".github/workflows/wf_check.yaml"
-      - ".github/workflows/wf_build_artifacts.yaml"
-      - ".github/workflows/cli_test_new_project.yaml"
+      - ".github/workflows/govulncheck-wrapper_checks.yaml"
 
       # common build
       - "flake.nix"
@@ -21,15 +19,8 @@ on:
       - "go.sum"
       - "vendor/**"
 
-      # cli
-      - "cli/**"
-
-      # lib
-      - "internal/lib/clidocs/**"
-      - "internal/lib/nhostclient/**"
-
-      # docs
-      - "docs/**"
+      # govulncheck-wrapper
+      - "tools/govulncheck-wrapper/**"
   merge_group:
 
 concurrency:
@@ -41,10 +32,8 @@ jobs:
     uses: ./.github/workflows/wf_detect_changes.yaml
     with:
       patterns: |
-        .github/workflows/cli_checks.yaml
         .github/workflows/wf_check.yaml
-        .github/workflows/wf_build_artifacts.yaml
-        .github/workflows/cli_test_new_project.yaml
+        .github/workflows/govulncheck-wrapper_checks.yaml
         flake.nix
         flake.lock
         nixops/**
@@ -54,9 +43,7 @@ jobs:
         go.mod
         go.sum
         vendor/**
-        cli/**
-        internal/lib/clidocs/**
-        docs/**
+        tools/govulncheck-wrapper/**
 
   check-permissions:
     needs: [detect-changes]
@@ -78,15 +65,14 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: cli
-      PATH: cli
+      NAME: govulncheck-wrapper
+      PATH: tools/govulncheck-wrapper
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
@@ -95,33 +81,15 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: cli
-      PATH: cli
+      NAME: govulncheck-wrapper
+      PATH: tools/govulncheck-wrapper
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
-      DOCKER: true
+      DOCKER: false
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-
-  test_cli_build:
-    uses: ./.github/workflows/cli_wf_test_new_project.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-      - build_artifacts
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: cli
-      PATH: cli
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   remove_label:
     runs-on: ubuntu-latest

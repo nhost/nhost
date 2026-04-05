@@ -1,4 +1,4 @@
-final: prev:
+{ self, nix-filter }: final: prev:
 {
   certbot-full = prev.certbot.overrideAttrs (old: {
     doCheck = false;
@@ -10,7 +10,7 @@ final: prev:
 
   nhost-cli = final.callPackage ./nhost-cli.nix { inherit final; };
 }
-// import ./go.nix final prev
+// import ./go.nix { inherit self nix-filter; } final prev
 // import ./js.nix final prev
   // import ./postgres.nix final prev
 
