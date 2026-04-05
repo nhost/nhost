@@ -185,7 +185,7 @@ test('should render a list of deployments', async () => {
                 status: 'succeeded',
                 input: {
                   name: 'nhost-backend-build',
-                  appId: 'test-app-id',
+                  app_id: 'test-app-id',
                   commit_sha: 'abc123',
                   commit_user_name: 'test.user',
                   commit_user_avatar_url:
@@ -242,14 +242,14 @@ test('should disable redeployments if a deployment is already in progress', asyn
                   status: 'pending',
                   input: {
                     name: 'nhost-backend-build',
-                    appId: 'test-app-id',
+                    app_id: 'test-app-id',
                     commit_sha: 'abc234',
                     commit_user_name: 'test.user',
                     commit_user_avatar_url:
                       'http://images.example.com/avatar.png',
                     commit_message: 'Test commit message',
                   },
-                  appId: 'test-app-id',
+                  app_id: 'test-app-id',
                   createdAt: '2021-08-02T00:00:00.000Z',
                 },
               ],
@@ -283,7 +283,7 @@ test('should disable redeployments if a deployment is already in progress', asyn
                 status: 'succeeded',
                 input: {
                   name: 'nhost-backend-build',
-                  appId: 'test-app-id',
+                  app_id: 'test-app-id',
                   commit_sha: 'abc123',
                   commit_user_name: 'test.user',
                   commit_user_avatar_url:
