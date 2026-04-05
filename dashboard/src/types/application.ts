@@ -1,6 +1,7 @@
 import type {
   AppStateHistoryFragment,
   BackupFragment,
+  DeploymentRowFragment,
   EnvironmentVariableFragment,
   GetOrganizationQuery,
   GetProjectQuery,
@@ -37,6 +38,7 @@ export type DesiredState =
   | ApplicationStatus.Migrating;
 
 export type ApplicationState = AppStateHistoryFragment;
+export type Deployment = DeploymentRowFragment;
 export type PipelineRun = PipelineRunRowFragment;
 export type Organization = GetOrganizationQuery['organizations'][0];
 // export type Project = ProjectFragment;

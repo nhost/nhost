@@ -1,10 +1,13 @@
 import { vi } from 'vitest';
 import { renderHook } from '@/tests/testUtils';
-import { useGetPipelineRunQuery } from '@/utils/__generated__/graphql';
+import {
+  useGetLegacyDeploymentQuery,
+  useGetPipelineRunQuery,
+} from '@/utils/__generated__/graphql';
 
 import useDeployment from './useDeployment';
 
-// Mock the GraphQL hook
+// Mock the GraphQL hooks
 const mockSubscribeToMore = vi.fn();
 const mockUnsubscribe = vi.fn();
 
@@ -14,6 +17,7 @@ vi.mock('@/utils/__generated__/graphql', async () => {
   return {
     ...actual,
     useGetPipelineRunQuery: vi.fn(),
+    useGetLegacyDeploymentQuery: vi.fn(),
     PipelineRunSubDocument: 'PipelineRunSubDocument',
   };
 });
@@ -26,11 +30,20 @@ vi.mock('next/router', () => ({
 }));
 
 const mockUseGetPipelineRunQuery = vi.mocked(useGetPipelineRunQuery);
+const mockUseGetLegacyDeploymentQuery = vi.mocked(useGetLegacyDeploymentQuery);
+
+// biome-ignore lint/suspicious/noExplicitAny: test file
+const legacyQueryResult: any = {
+  data: undefined,
+  loading: false,
+  error: null,
+};
 
 describe('useDeployment', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSubscribeToMore.mockReturnValue(mockUnsubscribe);
+    mockUseGetLegacyDeploymentQuery.mockReturnValue(legacyQueryResult);
   });
 
   afterEach(() => {
@@ -178,17 +191,17 @@ describe('useDeployment', () => {
     expect(mockSubscribeToMore).not.toHaveBeenCalled();
   });
 
-  it('should return query result excluding subscribeToMore', () => {
+  it('should return query result with legacy deployment fields', () => {
     const mockResult = createMockQueryResult('succeeded');
     mockUseGetPipelineRunQuery.mockReturnValue(mockResult);
 
     const { result } = renderHook(() => useDeployment());
 
-    expect(result.current).toEqual({
-      data: mockResult.data,
-      loading: mockResult.loading,
-      error: mockResult.error,
-    });
+    expect(result.current.data).toEqual(mockResult.data);
+    expect(result.current.loading).toEqual(mockResult.loading);
+    expect(result.current.error).toEqual(mockResult.error);
+    expect(result.current.legacyDeployment).toBeNull();
+    expect(result.current.legacyLoading).toBe(false);
     expect(result.current).not.toHaveProperty('subscribeToMore');
   });
 });

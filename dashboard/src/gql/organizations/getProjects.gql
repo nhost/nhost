@@ -9,6 +9,16 @@ query getProjects($orgSlug: String!) {
       id
       name
     }
+    deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
+      id
+      commitSHA
+      commitMessage
+      commitUserName
+      deploymentStartedAt
+      deploymentEndedAt
+      commitUserAvatarUrl
+      deploymentStatus
+    }
     pipelineRuns(limit: 4, order_by: { startedAt: desc }) {
       id
       name

@@ -86,6 +86,10 @@ test('should render an empty state when GitHub is not connected', async () => {
           });
         }
 
+        if (operationName === 'getDeployments') {
+          return HttpResponse.json({ data: { deployments: [] } });
+        }
+
         return HttpResponse.json({
           data: {
             pipelineRuns: [],
@@ -124,6 +128,10 @@ test('should render an empty state when GitHub is connected, but there are no de
               organizations: [{ ...mockOrganization }],
             },
           });
+        }
+
+        if (operationName === 'getDeployments') {
+          return HttpResponse.json({ data: { deployments: [] } });
         }
 
         return HttpResponse.json({ data: { pipelineRuns: [] } });
@@ -172,6 +180,10 @@ test('should render a list of deployments', async () => {
               organizations: [{ ...mockOrganization }],
             },
           });
+        }
+
+        if (operationName === 'getDeployments') {
+          return HttpResponse.json({ data: { deployments: [] } });
         }
 
         return HttpResponse.json({
@@ -270,6 +282,10 @@ test('should disable redeployments if a deployment is already in progress', asyn
               organizations: [{ ...mockOrganization }],
             },
           });
+        }
+
+        if (operationName === 'getDeployments') {
+          return HttpResponse.json({ data: { deployments: [] } });
         }
 
         return HttpResponse.json({

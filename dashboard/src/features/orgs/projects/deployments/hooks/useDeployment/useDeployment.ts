@@ -2,6 +2,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef } from 'react';
 import {
   PipelineRunSubDocument,
+  useGetLegacyDeploymentQuery,
   useGetPipelineRunQuery,
 } from '@/generated/graphql';
 
@@ -12,12 +13,26 @@ function useDeployment() {
 
   const unsubscribe = useRef<(() => void) | null>(null);
 
-  const { subscribeToMore, ...result } = useGetPipelineRunQuery({
+  // Try pipeline run first
+  const { subscribeToMore, ...pipelineRunResult } = useGetPipelineRunQuery({
     variables: {
       id: deploymentId,
     },
   });
-  const { data } = result;
+
+  // Also try legacy deployment (deprecated, query only, no subscription)
+  const {
+    data: legacyData,
+    loading: legacyLoading,
+    error: legacyError,
+  } = useGetLegacyDeploymentQuery({
+    variables: {
+      id: deploymentId as string,
+    },
+    skip: !!pipelineRunResult.data?.pipelineRun,
+  });
+
+  const { data } = pipelineRunResult;
 
   const subscribeToPipelineRun = useCallback(
     () =>
@@ -55,7 +70,12 @@ function useDeployment() {
     [],
   );
 
-  return result;
+  return {
+    ...pipelineRunResult,
+    legacyDeployment: legacyData?.deployment ?? null,
+    legacyLoading,
+    legacyError,
+  };
 }
 
 export default useDeployment;

@@ -10,14 +10,30 @@ export type PipelineRunStatus =
   | undefined
   | null;
 
+// Legacy deployment statuses (deprecated)
+export type DeploymentStatus =
+  | 'DEPLOYING'
+  | 'DEPLOYED'
+  | 'FAILED'
+  | 'PENDING'
+  | 'SCHEDULED'
+  | undefined
+  | null;
+
 export type StatusCircleProps = {
-  status: PipelineRunStatus;
+  status: PipelineRunStatus | DeploymentStatus;
 };
 
 export default function StatusCircle({ status }: StatusCircleProps) {
   const baseClasses = 'w-1.5 h-1.5 rounded-full';
 
-  if (status === 'running' || status === 'pending') {
+  if (
+    status === 'running' ||
+    status === 'pending' ||
+    status === 'DEPLOYING' ||
+    status === 'PENDING' ||
+    status === 'SCHEDULED'
+  ) {
     return (
       <Box
         className={twMerge(baseClasses, 'animate-pulse')}
@@ -26,13 +42,13 @@ export default function StatusCircle({ status }: StatusCircleProps) {
     );
   }
 
-  if (status === 'succeeded') {
+  if (status === 'succeeded' || status === 'DEPLOYED') {
     return (
       <Box className={baseClasses} sx={{ backgroundColor: 'success.main' }} />
     );
   }
 
-  if (status === 'failed') {
+  if (status === 'failed' || status === 'FAILED') {
     return (
       <Box className={baseClasses} sx={{ backgroundColor: 'error.main' }} />
     );

@@ -162,9 +162,7 @@ describe('useDeploymentLogs', () => {
     });
 
     it('should skip when startedAt is null', () => {
-      renderHook(() =>
-        useDeploymentLogs({ ...defaultProps, startedAt: null }),
-      );
+      renderHook(() => useDeploymentLogs({ ...defaultProps, startedAt: null }));
 
       expect(mockSubscribeToMore).not.toHaveBeenCalled();
     });
@@ -182,12 +180,9 @@ describe('useDeploymentLogs', () => {
     });
 
     it('should clean up and recreate subscription when props change', () => {
-      const { rerender } = renderHook(
-        ({ props }) => useDeploymentLogs(props),
-        {
-          initialProps: { props: defaultProps },
-        },
-      );
+      const { rerender } = renderHook(({ props }) => useDeploymentLogs(props), {
+        initialProps: { props: defaultProps },
+      });
 
       expect(mockSubscribeToMore).toHaveBeenCalledTimes(1);
 
@@ -203,12 +198,9 @@ describe('useDeploymentLogs', () => {
     });
 
     it('should not create subscription when status changes to succeeded', () => {
-      const { rerender } = renderHook(
-        ({ props }) => useDeploymentLogs(props),
-        {
-          initialProps: { props: defaultProps },
-        },
-      );
+      const { rerender } = renderHook(({ props }) => useDeploymentLogs(props), {
+        initialProps: { props: defaultProps },
+      });
 
       expect(mockSubscribeToMore).toHaveBeenCalledTimes(1);
 

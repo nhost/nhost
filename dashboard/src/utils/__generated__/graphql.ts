@@ -30944,6 +30944,33 @@ export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetCountriesQuery = { __typename?: 'query_root', countries: Array<{ __typename?: 'countries', code: any, name: string }> };
 
+export type DeploymentRowFragment = { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null };
+
+export type DeploymentFragment = { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> };
+
+export type GetDeploymentsQueryVariables = Exact<{
+  id: Scalars['uuid'];
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type GetDeploymentsQuery = { __typename?: 'query_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+
+export type GetLegacyDeploymentQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type GetLegacyDeploymentQuery = { __typename?: 'query_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
+
+export type GetLatestDeployedDeploymentQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetLatestDeployedDeploymentQuery = { __typename?: 'query_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+
 export type PipelineRunRowFragment = { __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any };
 
 export type PipelineRunFragment = { __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, substatus?: any | null, appId?: any | null, createdAt: any };
@@ -31035,7 +31062,7 @@ export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
@@ -31199,7 +31226,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -31211,7 +31238,7 @@ export type GetProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GetProjectStateQueryVariables = Exact<{
   subdomain: Scalars['String'];
@@ -31225,7 +31252,7 @@ export type GetProjectsQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, region: { __typename?: 'regions', id: any, name: string }, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
+export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, region: { __typename?: 'regions', id: any, name: string }, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
 
 export type GetUserProjectMetricsQueryVariables = Exact<{
   startOfMonth: Scalars['timestamptz'];
@@ -31697,6 +31724,44 @@ export const SecretFragmentDoc = gql`
   name
 }
     `;
+export const DeploymentRowFragmentDoc = gql`
+    fragment DeploymentRow on deployments {
+  id
+  commitSHA
+  deploymentStartedAt
+  deploymentEndedAt
+  deploymentStatus
+  commitUserName
+  commitUserAvatarUrl
+  commitMessage
+}
+    `;
+export const DeploymentFragmentDoc = gql`
+    fragment Deployment on deployments {
+  id
+  commitMessage
+  commitSHA
+  commitUserName
+  commitUserAvatarUrl
+  deploymentStartedAt
+  deploymentEndedAt
+  deploymentStatus
+  metadataStartedAt
+  metadataEndedAt
+  metadataStatus
+  migrationsStartedAt
+  migrationsEndedAt
+  migrationsStatus
+  functionsStartedAt
+  functionsEndedAt
+  functionsStatus
+  deploymentLogs(order_by: {createdAt: asc}) {
+    id
+    createdAt
+    message
+  }
+}
+    `;
 export const PipelineRunRowFragmentDoc = gql`
     fragment PipelineRunRow on pipelineRuns {
   id
@@ -31786,6 +31851,16 @@ export const ProjectFragmentDoc = gql`
   }
   githubRepository {
     fullName
+  }
+  deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
+    id
+    commitSHA
+    commitMessage
+    commitUserName
+    deploymentStartedAt
+    deploymentEndedAt
+    commitUserAvatarUrl
+    deploymentStatus
   }
   pipelineRuns(limit: 4, order_by: {startedAt: desc}) {
     id
@@ -34571,6 +34646,131 @@ export type GetCountriesQueryResult = Apollo.QueryResult<GetCountriesQuery, GetC
 export function refetchGetCountriesQuery(variables?: GetCountriesQueryVariables) {
       return { query: GetCountriesDocument, variables: variables }
     }
+export const GetDeploymentsDocument = gql`
+    query getDeployments($id: uuid!, $limit: Int!, $offset: Int!) {
+  deployments(
+    where: {appId: {_eq: $id}}
+    order_by: {deploymentStartedAt: desc}
+    limit: $limit
+    offset: $offset
+  ) {
+    ...DeploymentRow
+  }
+}
+    ${DeploymentRowFragmentDoc}`;
+
+/**
+ * __useGetDeploymentsQuery__
+ *
+ * To run a query within a React component, call `useGetDeploymentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeploymentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeploymentsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetDeploymentsQuery(baseOptions: Apollo.QueryHookOptions<GetDeploymentsQuery, GetDeploymentsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetDeploymentsQuery, GetDeploymentsQueryVariables>(GetDeploymentsDocument, options);
+      }
+export function useGetDeploymentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDeploymentsQuery, GetDeploymentsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetDeploymentsQuery, GetDeploymentsQueryVariables>(GetDeploymentsDocument, options);
+        }
+export type GetDeploymentsQueryHookResult = ReturnType<typeof useGetDeploymentsQuery>;
+export type GetDeploymentsLazyQueryHookResult = ReturnType<typeof useGetDeploymentsLazyQuery>;
+export type GetDeploymentsQueryResult = Apollo.QueryResult<GetDeploymentsQuery, GetDeploymentsQueryVariables>;
+export function refetchGetDeploymentsQuery(variables: GetDeploymentsQueryVariables) {
+      return { query: GetDeploymentsDocument, variables: variables }
+    }
+export const GetLegacyDeploymentDocument = gql`
+    query getLegacyDeployment($id: uuid!) {
+  deployment(id: $id) {
+    ...Deployment
+  }
+}
+    ${DeploymentFragmentDoc}`;
+
+/**
+ * __useGetLegacyDeploymentQuery__
+ *
+ * To run a query within a React component, call `useGetLegacyDeploymentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLegacyDeploymentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLegacyDeploymentQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetLegacyDeploymentQuery(baseOptions: Apollo.QueryHookOptions<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>(GetLegacyDeploymentDocument, options);
+      }
+export function useGetLegacyDeploymentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>(GetLegacyDeploymentDocument, options);
+        }
+export type GetLegacyDeploymentQueryHookResult = ReturnType<typeof useGetLegacyDeploymentQuery>;
+export type GetLegacyDeploymentLazyQueryHookResult = ReturnType<typeof useGetLegacyDeploymentLazyQuery>;
+export type GetLegacyDeploymentQueryResult = Apollo.QueryResult<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>;
+export function refetchGetLegacyDeploymentQuery(variables: GetLegacyDeploymentQueryVariables) {
+      return { query: GetLegacyDeploymentDocument, variables: variables }
+    }
+export const GetLatestDeployedDeploymentDocument = gql`
+    query getLatestDeployedDeployment($appId: uuid!) {
+  deployments(
+    where: {deploymentStatus: {_eq: "DEPLOYED"}, appId: {_eq: $appId}}
+    order_by: {deploymentStartedAt: desc}
+    limit: 1
+  ) {
+    ...DeploymentRow
+  }
+}
+    ${DeploymentRowFragmentDoc}`;
+
+/**
+ * __useGetLatestDeployedDeploymentQuery__
+ *
+ * To run a query within a React component, call `useGetLatestDeployedDeploymentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLatestDeployedDeploymentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLatestDeployedDeploymentQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetLatestDeployedDeploymentQuery(baseOptions: Apollo.QueryHookOptions<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>(GetLatestDeployedDeploymentDocument, options);
+      }
+export function useGetLatestDeployedDeploymentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>(GetLatestDeployedDeploymentDocument, options);
+        }
+export type GetLatestDeployedDeploymentQueryHookResult = ReturnType<typeof useGetLatestDeployedDeploymentQuery>;
+export type GetLatestDeployedDeploymentLazyQueryHookResult = ReturnType<typeof useGetLatestDeployedDeploymentLazyQuery>;
+export type GetLatestDeployedDeploymentQueryResult = Apollo.QueryResult<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>;
+export function refetchGetLatestDeployedDeploymentQuery(variables: GetLatestDeployedDeploymentQueryVariables) {
+      return { query: GetLatestDeployedDeploymentDocument, variables: variables }
+    }
 export const PendingOrRunningPipelineRunsSubDocument = gql`
     subscription PendingOrRunningPipelineRunsSub($appId: uuid!) {
   pipelineRuns(where: {status: {_in: [pending, running]}, appId: {_eq: $appId}}) {
@@ -35926,6 +36126,16 @@ export const GetProjectDocument = gql`
     githubRepository {
       fullName
     }
+    deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
+      id
+      commitSHA
+      commitMessage
+      commitUserName
+      deploymentStartedAt
+      deploymentEndedAt
+      commitUserAvatarUrl
+      deploymentStatus
+    }
     pipelineRuns(limit: 4, order_by: {startedAt: desc}) {
       id
       name
@@ -36042,6 +36252,16 @@ export const GetProjectsDocument = gql`
     region {
       id
       name
+    }
+    deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
+      id
+      commitSHA
+      commitMessage
+      commitUserName
+      deploymentStartedAt
+      deploymentEndedAt
+      commitUserAvatarUrl
+      deploymentStatus
     }
     pipelineRuns(limit: 4, order_by: {startedAt: desc}) {
       id

@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { Fragment } from 'react';
+import { Fragment, useMemo } from 'react';
 import { IconLink } from '@/components/common/IconLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -8,7 +8,9 @@ import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
+import { legacyDeploymentToListItem } from '@/features/orgs/projects/deployments/utils/legacy-deployments';
 import {
+  useGetDeploymentsQuery,
   useGetPipelineRunsSubSubscription,
   useLatestSucceededPipelineRunSubSubscription,
   usePendingOrRunningPipelineRunsSubSubscription,
@@ -97,11 +99,37 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const { data: pendingOrRunningData, loading: pendingOrRunningLoading } =
     usePendingOrRunningPipelineRunsSubSubscription({ variables: { appId } });
 
+  // Legacy deployments (deprecated, read-only)
+  const { data: legacyDeploymentsData, loading: legacyDeploymentsLoading } =
+    useGetDeploymentsQuery({
+      variables: { id: appId, limit, offset },
+    });
+
+  const pipelineRuns = pipelineRunPageData?.pipelineRuns ?? [];
+  const pendingOrRunningRuns = pendingOrRunningData?.pipelineRuns ?? [];
+  const latestRun = latestPipelineRunData?.pipelineRuns[0];
+  const latestSucceededRun = latestSucceededData?.pipelineRuns[0];
+
+  // Convert legacy deployments to the same shape and merge by date
+  const legacyDeployments = legacyDeploymentsData?.deployments ?? [];
+  const convertedLegacy = legacyDeployments.map(legacyDeploymentToListItem);
+
+  const allItems = useMemo(() => {
+    const merged = [...pipelineRuns, ...convertedLegacy];
+    merged.sort((a, b) => {
+      const dateA = new Date(a.startedAt ?? a.createdAt).getTime();
+      const dateB = new Date(b.startedAt ?? b.createdAt).getTime();
+      return dateB - dateA;
+    });
+    return merged;
+  }, [pipelineRuns, convertedLegacy]);
+
   const loading =
     pipelineRunPageLoading ||
     pendingOrRunningLoading ||
     latestPipelineRunLoading ||
-    latestSucceededLoading;
+    latestSucceededLoading ||
+    legacyDeploymentsLoading;
 
   if (loading) {
     return (
@@ -117,42 +145,40 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     throw error;
   }
 
-  const pipelineRuns = pipelineRunPageData?.pipelineRuns ?? [];
-  const pendingOrRunningRuns = pendingOrRunningData?.pipelineRuns ?? [];
   const isInProgress = pipelineRuns.some((run) =>
     ['pending', 'running'].includes(run.status as string),
   );
 
-  const latestRun = latestPipelineRunData?.pipelineRuns[0];
-  const latestSucceededRun = latestSucceededData?.pipelineRuns[0];
-
-  const nrOfRuns = pipelineRuns.length;
-  const nextAllowed = !(nrOfRuns < limit);
+  const nrOfItems = allItems.length;
+  const nextAllowed = !(
+    pipelineRuns.length < limit && legacyDeployments.length < limit
+  );
   const liveRunId = latestSucceededRun?.id || '';
 
   return (
     <div className="mt-6">
-      {nrOfRuns === 0 ? (
+      {nrOfItems === 0 ? (
         <Text variant="subtitle2">No deployments yet.</Text>
       ) : (
         <div>
           <List className="mt-3 border-y" sx={{ borderColor: 'grey.300' }}>
-            {pipelineRuns.map((run, index) => (
-              <Fragment key={run.id}>
-                <DeploymentListItem
-                  pipelineRun={run}
-                  isLive={liveRunId === run.id}
-                  showRedeploy={latestRun?.id === run.id}
-                  disableRedeploy={
-                    pendingOrRunningRuns.length > 0 || isInProgress
-                  }
-                />
+            {allItems.map((item, index) => {
+              const isLegacy = item.name === 'legacy-deployment';
+              return (
+                <Fragment key={item.id}>
+                  <DeploymentListItem
+                    pipelineRun={item}
+                    isLive={liveRunId === item.id}
+                    showRedeploy={!isLegacy && latestRun?.id === item.id}
+                    disableRedeploy={
+                      pendingOrRunningRuns.length > 0 || isInProgress
+                    }
+                  />
 
-                {index !== pipelineRuns.length - 1 && (
-                  <Divider component="li" />
-                )}
-              </Fragment>
-            ))}
+                  {index !== allItems.length - 1 && <Divider component="li" />}
+                </Fragment>
+              );
+            })}
           </List>
           <div className="mt-8 flex w-full justify-center">
             <div className="grid grid-flow-col items-center gap-2">

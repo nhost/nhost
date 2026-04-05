@@ -12,12 +12,12 @@ import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
+import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { ifNullconvertToUndefined } from '@/lib/utils';
-import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
 import type { PipelineRunRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetOrganizationsDocument,

@@ -15,6 +15,17 @@ function ProjectCard({ project }: { project: Project }) {
   const { org } = useCurrentOrg();
 
   const [latestPipelineRun] = project.pipelineRuns;
+  const [latestDeployment] = project.deployments;
+
+  // Show whichever is more recent between pipelinerun and legacy deployment
+  const prDate = latestPipelineRun?.startedAt
+    ? new Date(latestPipelineRun.startedAt).getTime()
+    : 0;
+  const depDate = latestDeployment?.deploymentStartedAt
+    ? new Date(latestDeployment.deploymentStartedAt).getTime()
+    : 0;
+
+  const showPipelineRun = prDate >= depDate && latestPipelineRun;
 
   return (
     <Link
@@ -35,7 +46,11 @@ function ProjectCard({ project }: { project: Project }) {
       </div>
 
       <div className="flex flex-1 flex-row items-start gap-2">
-        <DeploymentStatusMessage pipelineRun={latestPipelineRun} />
+        {showPipelineRun ? (
+          <DeploymentStatusMessage pipelineRun={latestPipelineRun} />
+        ) : (
+          <DeploymentStatusMessage deployment={latestDeployment} />
+        )}
       </div>
 
       <div className="flex w-full justify-end">
