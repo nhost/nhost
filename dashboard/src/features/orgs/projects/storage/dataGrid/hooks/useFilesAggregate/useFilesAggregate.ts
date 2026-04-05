@@ -1,17 +1,15 @@
 import type { QueryHookOptions } from '@apollo/client';
-import { buildFilesWhereClause } from '@/features/orgs/projects/storage/dataGrid/utils/buildFilesWhereClause';
-import type { GetFilesAggregateQuery } from '@/utils/__generated__/graphql';
+import type {
+  Files_Bool_Exp,
+  GetFilesAggregateQuery,
+} from '@/utils/__generated__/graphql';
 import { useGetFilesAggregateQuery } from '@/utils/__generated__/graphql';
 
 export type UseFilesAggregateOptions = {
   /**
-   * Search query to filter files.
+   * Hasura where clause to filter files.
    */
-  searchString?: string;
-  /**
-   * Bucket ID to filter files by.
-   */
-  bucketId?: string;
+  where?: Files_Bool_Exp;
   /**
    * Custom options for the query.
    */
@@ -19,12 +17,9 @@ export type UseFilesAggregateOptions = {
 };
 
 export default function useFilesAggregate({
-  searchString,
-  bucketId,
+  where,
   options = {},
 }: UseFilesAggregateOptions) {
-  const where = buildFilesWhereClause({ searchString, bucketId });
-
   const { data, previousData, ...rest } = useGetFilesAggregateQuery({
     variables: {
       where,

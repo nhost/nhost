@@ -1,10 +1,13 @@
-import { useRouter } from 'next/router';
-import type { DataBrowserGridProps } from './DataBrowserGrid';
+import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import DataBrowserGrid from './DataBrowserGrid';
+import { DataGridQueryParamsProvider } from './DataGridQueryParamsProvider';
 
-export default function DataBrowserGridContainer(props: DataBrowserGridProps) {
-  const { query } = useRouter();
-  const { tableSlug } = query;
+export default function DataBrowserGridContainer() {
+  const tablePath = useTablePath();
 
-  return <DataBrowserGrid key={tableSlug as string} {...props} />;
+  return (
+    <DataGridQueryParamsProvider key={tablePath} storageKey={tablePath}>
+      <DataBrowserGrid />
+    </DataGridQueryParamsProvider>
+  );
 }
