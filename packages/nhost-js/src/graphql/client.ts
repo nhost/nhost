@@ -99,6 +99,63 @@ export interface Client {
 }
 
 /**
+ * Removes duplicate fragment definitions from a GraphQL source string,
+ * keeping the first occurrence of each named fragment.
+ */
+export const deduplicateFragments = (source: string): string => {
+  const seen = new Set<string>();
+  return source
+    .replace(
+      /fragment\s+(\w+)\s+on\s+\w+\s*\{(?:[^{}]*|\{(?:[^{}]*|\{[^{}]*\})*\})*\}/g,
+      (match, name: string) => {
+        if (seen.has(name)) {
+          return '';
+        }
+        seen.add(name);
+        return match;
+      },
+    )
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+
+/**
+ * Extracts a deduplicated query string from a TypedDocumentNode.
+ *
+ * Uses AST definition locations when available (e.g. codegen output),
+ * otherwise falls back to regex-based deduplication on the raw source text
+ * (e.g. graphql-tag runtime documents).
+ */
+export const extractQueryFromDocument = <TResponseData, TVariables>(
+  document: TypedDocumentNode<TResponseData, TVariables>,
+): string => {
+  const source = document.loc?.source.body;
+  if (!source) {
+    return '';
+  }
+
+  const hasDefinitionLocs = document.definitions.every((def) => def.loc);
+  if (!hasDefinitionLocs) {
+    return deduplicateFragments(source);
+  }
+
+  const seen = new Set<string>();
+  return document.definitions
+    .filter((def) => {
+      if (def.kind === 'FragmentDefinition' && 'name' in def) {
+        const name = (def.name as { value: string }).value;
+        if (seen.has(name)) {
+          return false;
+        }
+        seen.add(name);
+      }
+      return true;
+    })
+    .map((def) => source.slice(def.loc?.start, def.loc?.end))
+    .join('\n\n');
+};
+
+/**
  * Creates a GraphQL API client for interacting with a GraphQL endpoint.
  *
  * This client provides methods for executing queries and mutations against
@@ -174,7 +231,7 @@ export const createAPIClient = (
       const definition = requestOrDocument.definitions[0];
 
       const request: GraphQLRequest<TVariables> = {
-        query: requestOrDocument.loc?.source.body || '',
+        query: extractQueryFromDocument(requestOrDocument),
         variables: variablesOrOptions as TVariables,
         operationName:
           definition && 'name' in definition
