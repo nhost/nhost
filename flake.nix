@@ -23,7 +23,10 @@
         };
 
         nix2containerPkgs = nix2container.packages.${system};
-        nixops-lib = (import ./nixops/lib/lib.nix) { inherit pkgs nix2containerPkgs; };
+
+        nixops-lib = (import ./nixops/lib/lib.nix) {
+          inherit self pkgs nix2containerPkgs;
+        };
 
         authf = import ./services/auth/project.nix {
           inherit self pkgs nix-filter nixops-lib;
@@ -34,6 +37,10 @@
         };
 
         codegenf = import ./tools/codegen/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
+        govulncheck-wrapperf = import ./tools/govulncheck-wrapper/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
 
@@ -91,6 +98,7 @@
           auth = authf.check;
           cli = clif.check;
           codegen = codegenf.check;
+          govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
           guides = guidesf.check;
@@ -150,6 +158,7 @@
 
               # internal packages
               self.packages.${system}.codegen
+              self.packages.${system}.govulncheck-wrapper
             ];
 
             shellHook = ''
@@ -188,6 +197,7 @@
           auth = authf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
+          govulncheck-wrapper = govulncheck-wrapperf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
           guides = guidesf.devShell;
@@ -209,6 +219,7 @@
           cli-multiplatform = clif.cli-multiplatform;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
           demos = demosf.package;
