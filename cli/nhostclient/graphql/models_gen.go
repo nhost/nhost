@@ -1529,6 +1529,12 @@ type PiTRBaseBackup struct {
 	Timeline int64  `json:"timeline"`
 }
 
+type PipelineRunLog struct {
+	Log       string `json:"log"`
+	Task      string `json:"task"`
+	Timestamp string `json:"timestamp"`
+}
+
 type PostOrganizationRequestResponse struct {
 	ClientSecret *string        `json:"ClientSecret,omitempty"`
 	Slug         string         `json:"Slug"`
@@ -1891,6 +1897,8 @@ type Apps struct {
 	// An object relationship
 	Organization   *Organizations `json:"organization,omitempty"`
 	OrganizationID *string        `json:"organizationID,omitempty"`
+	// An array relationship
+	PipelineRuns []*PipelineRuns `json:"pipelineRuns"`
 	// An object relationship
 	Region                     *Regions `json:"region"`
 	RepositoryProductionBranch string   `json:"repositoryProductionBranch"`
@@ -1959,6 +1967,7 @@ type AppsBoolExp struct {
 	NhostBaseFolder            *StringComparisonExp        `json:"nhostBaseFolder,omitempty"`
 	Organization               *OrganizationsBoolExp       `json:"organization,omitempty"`
 	OrganizationID             *UUIDComparisonExp          `json:"organizationID,omitempty"`
+	PipelineRuns               *PipelineRunsBoolExp        `json:"pipelineRuns,omitempty"`
 	Region                     *RegionsBoolExp             `json:"region,omitempty"`
 	RepositoryProductionBranch *StringComparisonExp        `json:"repositoryProductionBranch,omitempty"`
 	RunServices                *RunServiceBoolExp          `json:"runServices,omitempty"`
@@ -1981,6 +1990,7 @@ type AppsInsertInput struct {
 	FeatureFlags   *FeatureFlagsArrRelInsertInput `json:"featureFlags,omitempty"`
 	Name           *string                        `json:"name,omitempty"`
 	OrganizationID *string                        `json:"organizationID,omitempty"`
+	PipelineRuns   *PipelineRunsArrRelInsertInput `json:"pipelineRuns,omitempty"`
 	RegionID       *string                        `json:"regionId,omitempty"`
 	Slug           *string                        `json:"slug,omitempty"`
 	Workspace      *WorkspacesObjRelInsertInput   `json:"workspace,omitempty"`
@@ -2066,6 +2076,7 @@ type AppsOrderBy struct {
 	NhostBaseFolder            *OrderBy                         `json:"nhostBaseFolder,omitempty"`
 	Organization               *OrganizationsOrderBy            `json:"organization,omitempty"`
 	OrganizationID             *OrderBy                         `json:"organizationID,omitempty"`
+	PipelineRunsAggregate      *PipelineRunsAggregateOrderBy    `json:"pipelineRuns_aggregate,omitempty"`
 	Region                     *RegionsOrderBy                  `json:"region,omitempty"`
 	RepositoryProductionBranch *OrderBy                         `json:"repositoryProductionBranch,omitempty"`
 	RunServicesAggregate       *RunServiceAggregateOrderBy      `json:"runServices_aggregate,omitempty"`
@@ -4222,6 +4233,147 @@ type PaymentMethodsVarianceOrderBy struct {
 	CardExpYear  *OrderBy `json:"cardExpYear,omitempty"`
 }
 
+// Boolean expression to compare columns of type "pipelineRunStatus_enum". All fields are combined with logical 'AND'.
+type PipelineRunStatusEnumComparisonExp struct {
+	Eq     *PipelineRunStatusEnum  `json:"_eq,omitempty"`
+	In     []PipelineRunStatusEnum `json:"_in,omitempty"`
+	IsNull *bool                   `json:"_is_null,omitempty"`
+	Neq    *PipelineRunStatusEnum  `json:"_neq,omitempty"`
+	Nin    []PipelineRunStatusEnum `json:"_nin,omitempty"`
+}
+
+// columns and relationships of "pipeline_runs"
+type PipelineRuns struct {
+	// An object relationship
+	App       *Apps                 `json:"app,omitempty"`
+	AppID     *string               `json:"appId,omitempty"`
+	CreatedAt time.Time             `json:"createdAt"`
+	EndedAt   *time.Time            `json:"endedAt,omitempty"`
+	ID        string                `json:"id"`
+	Input     map[string]any        `json:"input"`
+	Metadata  map[string]any        `json:"metadata,omitempty"`
+	Name      string                `json:"name"`
+	StartedAt *time.Time            `json:"startedAt,omitempty"`
+	Status    PipelineRunStatusEnum `json:"status"`
+	Substatus map[string]any        `json:"substatus,omitempty"`
+	UpdatedAt time.Time             `json:"updatedAt"`
+}
+
+// order by aggregate values of table "pipeline_runs"
+type PipelineRunsAggregateOrderBy struct {
+	Count *OrderBy                `json:"count,omitempty"`
+	Max   *PipelineRunsMaxOrderBy `json:"max,omitempty"`
+	Min   *PipelineRunsMinOrderBy `json:"min,omitempty"`
+}
+
+// input type for inserting array relation for remote table "pipeline_runs"
+type PipelineRunsArrRelInsertInput struct {
+	Data []*PipelineRunsInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *PipelineRunsOnConflict `json:"on_conflict,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "pipeline_runs". All fields are combined with a logical 'AND'.
+type PipelineRunsBoolExp struct {
+	And       []*PipelineRunsBoolExp              `json:"_and,omitempty"`
+	Not       *PipelineRunsBoolExp                `json:"_not,omitempty"`
+	Or        []*PipelineRunsBoolExp              `json:"_or,omitempty"`
+	App       *AppsBoolExp                        `json:"app,omitempty"`
+	AppID     *UUIDComparisonExp                  `json:"appId,omitempty"`
+	CreatedAt *TimestamptzComparisonExp           `json:"createdAt,omitempty"`
+	EndedAt   *TimestamptzComparisonExp           `json:"endedAt,omitempty"`
+	ID        *UUIDComparisonExp                  `json:"id,omitempty"`
+	Input     *JsonbComparisonExp                 `json:"input,omitempty"`
+	Metadata  *JsonbComparisonExp                 `json:"metadata,omitempty"`
+	Name      *StringComparisonExp                `json:"name,omitempty"`
+	StartedAt *TimestamptzComparisonExp           `json:"startedAt,omitempty"`
+	Status    *PipelineRunStatusEnumComparisonExp `json:"status,omitempty"`
+	Substatus *JsonbComparisonExp                 `json:"substatus,omitempty"`
+	UpdatedAt *TimestamptzComparisonExp           `json:"updatedAt,omitempty"`
+}
+
+// input type for inserting data into table "pipeline_runs"
+type PipelineRunsInsertInput struct {
+	App   *AppsObjRelInsertInput `json:"app,omitempty"`
+	Input map[string]any         `json:"input,omitempty"`
+}
+
+// order by max() on columns of table "pipeline_runs"
+type PipelineRunsMaxOrderBy struct {
+	AppID     *OrderBy `json:"appId,omitempty"`
+	CreatedAt *OrderBy `json:"createdAt,omitempty"`
+	EndedAt   *OrderBy `json:"endedAt,omitempty"`
+	ID        *OrderBy `json:"id,omitempty"`
+	Name      *OrderBy `json:"name,omitempty"`
+	StartedAt *OrderBy `json:"startedAt,omitempty"`
+	UpdatedAt *OrderBy `json:"updatedAt,omitempty"`
+}
+
+// order by min() on columns of table "pipeline_runs"
+type PipelineRunsMinOrderBy struct {
+	AppID     *OrderBy `json:"appId,omitempty"`
+	CreatedAt *OrderBy `json:"createdAt,omitempty"`
+	EndedAt   *OrderBy `json:"endedAt,omitempty"`
+	ID        *OrderBy `json:"id,omitempty"`
+	Name      *OrderBy `json:"name,omitempty"`
+	StartedAt *OrderBy `json:"startedAt,omitempty"`
+	UpdatedAt *OrderBy `json:"updatedAt,omitempty"`
+}
+
+// response of any mutation on the table "pipeline_runs"
+type PipelineRunsMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*PipelineRuns `json:"returning"`
+}
+
+// on_conflict condition type for table "pipeline_runs"
+type PipelineRunsOnConflict struct {
+	Constraint    PipelineRunsConstraint     `json:"constraint"`
+	UpdateColumns []PipelineRunsUpdateColumn `json:"update_columns"`
+	Where         *PipelineRunsBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "pipeline_runs".
+type PipelineRunsOrderBy struct {
+	App       *AppsOrderBy `json:"app,omitempty"`
+	AppID     *OrderBy     `json:"appId,omitempty"`
+	CreatedAt *OrderBy     `json:"createdAt,omitempty"`
+	EndedAt   *OrderBy     `json:"endedAt,omitempty"`
+	ID        *OrderBy     `json:"id,omitempty"`
+	Input     *OrderBy     `json:"input,omitempty"`
+	Metadata  *OrderBy     `json:"metadata,omitempty"`
+	Name      *OrderBy     `json:"name,omitempty"`
+	StartedAt *OrderBy     `json:"startedAt,omitempty"`
+	Status    *OrderBy     `json:"status,omitempty"`
+	Substatus *OrderBy     `json:"substatus,omitempty"`
+	UpdatedAt *OrderBy     `json:"updatedAt,omitempty"`
+}
+
+// Streaming cursor of the table "pipelineRuns"
+type PipelineRunsStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *PipelineRunsStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type PipelineRunsStreamCursorValueInput struct {
+	AppID     *string                `json:"appId,omitempty"`
+	CreatedAt *time.Time             `json:"createdAt,omitempty"`
+	EndedAt   *time.Time             `json:"endedAt,omitempty"`
+	ID        *string                `json:"id,omitempty"`
+	Input     map[string]any         `json:"input,omitempty"`
+	Metadata  map[string]any         `json:"metadata,omitempty"`
+	Name      *string                `json:"name,omitempty"`
+	StartedAt *time.Time             `json:"startedAt,omitempty"`
+	Status    *PipelineRunStatusEnum `json:"status,omitempty"`
+	Substatus map[string]any         `json:"substatus,omitempty"`
+	UpdatedAt *time.Time             `json:"updatedAt,omitempty"`
+}
+
 // columns and relationships of "plans"
 type Plans struct {
 	// An array relationship
@@ -4938,6 +5090,12 @@ type SubscriptionRoot struct {
 	PaymentMethods []*PaymentMethods `json:"paymentMethods"`
 	// fetch data from the table in a streaming manner: "payment_methods"
 	PaymentMethodsStream []*PaymentMethods `json:"paymentMethods_stream"`
+	// fetch data from the table: "pipeline_runs" using primary key columns
+	PipelineRun *PipelineRuns `json:"pipelineRun,omitempty"`
+	// An array relationship
+	PipelineRuns []*PipelineRuns `json:"pipelineRuns"`
+	// fetch data from the table in a streaming manner: "pipeline_runs"
+	PipelineRunsStream []*PipelineRuns `json:"pipelineRuns_stream"`
 	// fetch data from the table: "plans" using primary key columns
 	Plan *Plans `json:"plan,omitempty"`
 	// fetch data from the table: "plans"
@@ -8569,6 +8727,267 @@ func (e *PaymentMethodsUpdateColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e PaymentMethodsUpdateColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type PipelineRunStatusEnum string
+
+const (
+	// Pipeline run was aborted
+	PipelineRunStatusEnumAborted PipelineRunStatusEnum = "aborted"
+	// Pipeline run failed
+	PipelineRunStatusEnumFailed PipelineRunStatusEnum = "failed"
+	// Pipeline run is waiting to be picked up
+	PipelineRunStatusEnumPending PipelineRunStatusEnum = "pending"
+	// Pipeline run is currently executing
+	PipelineRunStatusEnumRunning PipelineRunStatusEnum = "running"
+	// Pipeline run completed successfully
+	PipelineRunStatusEnumSucceeded PipelineRunStatusEnum = "succeeded"
+)
+
+var AllPipelineRunStatusEnum = []PipelineRunStatusEnum{
+	PipelineRunStatusEnumAborted,
+	PipelineRunStatusEnumFailed,
+	PipelineRunStatusEnumPending,
+	PipelineRunStatusEnumRunning,
+	PipelineRunStatusEnumSucceeded,
+}
+
+func (e PipelineRunStatusEnum) IsValid() bool {
+	switch e {
+	case PipelineRunStatusEnumAborted, PipelineRunStatusEnumFailed, PipelineRunStatusEnumPending, PipelineRunStatusEnumRunning, PipelineRunStatusEnumSucceeded:
+		return true
+	}
+	return false
+}
+
+func (e PipelineRunStatusEnum) String() string {
+	return string(e)
+}
+
+func (e *PipelineRunStatusEnum) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PipelineRunStatusEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid pipelineRunStatus_enum", str)
+	}
+	return nil
+}
+
+func (e PipelineRunStatusEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *PipelineRunStatusEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e PipelineRunStatusEnum) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// unique or primary key constraints on table "pipeline_runs"
+type PipelineRunsConstraint string
+
+const (
+	// unique or primary key constraint on columns "id"
+	PipelineRunsConstraintPipelineRunsPkey PipelineRunsConstraint = "pipeline_runs_pkey"
+)
+
+var AllPipelineRunsConstraint = []PipelineRunsConstraint{
+	PipelineRunsConstraintPipelineRunsPkey,
+}
+
+func (e PipelineRunsConstraint) IsValid() bool {
+	switch e {
+	case PipelineRunsConstraintPipelineRunsPkey:
+		return true
+	}
+	return false
+}
+
+func (e PipelineRunsConstraint) String() string {
+	return string(e)
+}
+
+func (e *PipelineRunsConstraint) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PipelineRunsConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid pipelineRuns_constraint", str)
+	}
+	return nil
+}
+
+func (e PipelineRunsConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *PipelineRunsConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e PipelineRunsConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "pipeline_runs"
+type PipelineRunsSelectColumn string
+
+const (
+	// column name
+	PipelineRunsSelectColumnAppID PipelineRunsSelectColumn = "appId"
+	// column name
+	PipelineRunsSelectColumnCreatedAt PipelineRunsSelectColumn = "createdAt"
+	// column name
+	PipelineRunsSelectColumnEndedAt PipelineRunsSelectColumn = "endedAt"
+	// column name
+	PipelineRunsSelectColumnID PipelineRunsSelectColumn = "id"
+	// column name
+	PipelineRunsSelectColumnInput PipelineRunsSelectColumn = "input"
+	// column name
+	PipelineRunsSelectColumnMetadata PipelineRunsSelectColumn = "metadata"
+	// column name
+	PipelineRunsSelectColumnName PipelineRunsSelectColumn = "name"
+	// column name
+	PipelineRunsSelectColumnStartedAt PipelineRunsSelectColumn = "startedAt"
+	// column name
+	PipelineRunsSelectColumnStatus PipelineRunsSelectColumn = "status"
+	// column name
+	PipelineRunsSelectColumnSubstatus PipelineRunsSelectColumn = "substatus"
+	// column name
+	PipelineRunsSelectColumnUpdatedAt PipelineRunsSelectColumn = "updatedAt"
+)
+
+var AllPipelineRunsSelectColumn = []PipelineRunsSelectColumn{
+	PipelineRunsSelectColumnAppID,
+	PipelineRunsSelectColumnCreatedAt,
+	PipelineRunsSelectColumnEndedAt,
+	PipelineRunsSelectColumnID,
+	PipelineRunsSelectColumnInput,
+	PipelineRunsSelectColumnMetadata,
+	PipelineRunsSelectColumnName,
+	PipelineRunsSelectColumnStartedAt,
+	PipelineRunsSelectColumnStatus,
+	PipelineRunsSelectColumnSubstatus,
+	PipelineRunsSelectColumnUpdatedAt,
+}
+
+func (e PipelineRunsSelectColumn) IsValid() bool {
+	switch e {
+	case PipelineRunsSelectColumnAppID, PipelineRunsSelectColumnCreatedAt, PipelineRunsSelectColumnEndedAt, PipelineRunsSelectColumnID, PipelineRunsSelectColumnInput, PipelineRunsSelectColumnMetadata, PipelineRunsSelectColumnName, PipelineRunsSelectColumnStartedAt, PipelineRunsSelectColumnStatus, PipelineRunsSelectColumnSubstatus, PipelineRunsSelectColumnUpdatedAt:
+		return true
+	}
+	return false
+}
+
+func (e PipelineRunsSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *PipelineRunsSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PipelineRunsSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid pipelineRuns_select_column", str)
+	}
+	return nil
+}
+
+func (e PipelineRunsSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *PipelineRunsSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e PipelineRunsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// placeholder for update columns of table "pipeline_runs" (current role has no relevant permissions)
+type PipelineRunsUpdateColumn string
+
+const (
+	// placeholder (do not use)
+	PipelineRunsUpdateColumnPlaceholder PipelineRunsUpdateColumn = "_PLACEHOLDER"
+)
+
+var AllPipelineRunsUpdateColumn = []PipelineRunsUpdateColumn{
+	PipelineRunsUpdateColumnPlaceholder,
+}
+
+func (e PipelineRunsUpdateColumn) IsValid() bool {
+	switch e {
+	case PipelineRunsUpdateColumnPlaceholder:
+		return true
+	}
+	return false
+}
+
+func (e PipelineRunsUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *PipelineRunsUpdateColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PipelineRunsUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid pipelineRuns_update_column", str)
+	}
+	return nil
+}
+
+func (e PipelineRunsUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *PipelineRunsUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e PipelineRunsUpdateColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
