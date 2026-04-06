@@ -109,54 +109,53 @@ export default function EditFunctionGraphQLSettingsForm({
     const action = tracked ? 'track' : 'untrack';
     const shouldTrackTable = tracked && isReturnTableUntracked;
 
-    await execPromiseWithErrorToast(() => toggleTracking(), {
-      loadingMessage: shouldTrackTable
-        ? 'Tracking table and function...'
-        : `${tracked ? 'Tracking' : 'Untracking'} function...`,
-      successMessage: shouldTrackTable
-        ? 'Table and function tracked successfully.'
-        : `Function ${action}ed successfully.`,
-      errorMessage: shouldTrackTable
-        ? 'Failed to track table and function.'
-        : `Failed to ${action} function.`,
-    });
+    const loadingMessage = shouldTrackTable
+      ? 'Tracking table and function...'
+      : `${tracked ? 'Tracking' : 'Untracking'} function...`;
+    const successMessage = shouldTrackTable
+      ? 'Table and function tracked successfully.'
+      : `Function ${action}ed successfully.`;
+    const errorMessage = shouldTrackTable
+      ? 'Failed to track table and function.'
+      : `Failed to ${action} function.`;
+
+    await execPromiseWithErrorToast(
+      () => toggleTracking({ exposed_as: 'query' }),
+      { loadingMessage, successMessage, errorMessage },
+    );
   }
 
   async function handleTrackAsMutation() {
-    const shouldTrackTable = isReturnTableUntracked;
+    const loadingMessage = isReturnTableUntracked
+      ? 'Tracking table and function...'
+      : 'Tracking function...';
+    const successMessage = isReturnTableUntracked
+      ? 'Table and function tracked successfully.'
+      : 'Function tracked successfully.';
+    const errorMessage = isReturnTableUntracked
+      ? 'Failed to track table and function.'
+      : 'Failed to track function.';
 
     await execPromiseWithErrorToast(
       () => toggleTracking({ exposed_as: 'mutation' }),
-      {
-        loadingMessage: shouldTrackTable
-          ? 'Tracking table and function...'
-          : 'Tracking function...',
-        successMessage: shouldTrackTable
-          ? 'Table and function tracked successfully.'
-          : 'Function tracked successfully.',
-        errorMessage: shouldTrackTable
-          ? 'Failed to track table and function.'
-          : 'Failed to track function.',
-      },
+      { loadingMessage, successMessage, errorMessage },
     );
   }
 
   async function handleConfirmTrackAsQuery() {
-    const shouldTrackTable = isReturnTableUntracked;
+    const loadingMessage = isReturnTableUntracked
+      ? 'Tracking table and function...'
+      : 'Tracking function...';
+    const successMessage = isReturnTableUntracked
+      ? 'Table and function tracked successfully.'
+      : 'Function tracked successfully.';
+    const errorMessage = isReturnTableUntracked
+      ? 'Failed to track table and function.'
+      : 'Failed to track function.';
 
     await execPromiseWithErrorToast(
       () => toggleTracking({ exposed_as: 'query' }),
-      {
-        loadingMessage: shouldTrackTable
-          ? 'Tracking table and function...'
-          : 'Tracking function...',
-        successMessage: shouldTrackTable
-          ? 'Table and function tracked successfully.'
-          : 'Function tracked successfully.',
-        errorMessage: shouldTrackTable
-          ? 'Failed to track table and function.'
-          : 'Failed to track function.',
-      },
+      { loadingMessage, successMessage, errorMessage },
     );
     setShowConfirmDialog(false);
   }

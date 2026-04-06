@@ -45,52 +45,34 @@ export default function TrackFunctionButton({
     ? 'Track table and function'
     : 'Track';
 
+  const loadingMessage = isReturnTableUntracked
+    ? 'Tracking table and function...'
+    : 'Tracking function...';
+  const successMessage = isReturnTableUntracked
+    ? 'Table and function tracked successfully.'
+    : 'Function tracked successfully.';
+  const errorMessage = isReturnTableUntracked
+    ? 'Failed to track table and function.'
+    : 'Failed to track function.';
+
   const handleTrackAsMutation = async () => {
     await execPromiseWithErrorToast(
       () => trackFunction({ exposed_as: 'mutation' }),
-      {
-        loadingMessage: isReturnTableUntracked
-          ? 'Tracking table and function...'
-          : 'Tracking function...',
-        successMessage: isReturnTableUntracked
-          ? 'Table and function tracked successfully.'
-          : 'Function tracked successfully.',
-        errorMessage: isReturnTableUntracked
-          ? 'Failed to track table and function.'
-          : 'Failed to track function.',
-      },
+      { loadingMessage, successMessage, errorMessage },
     );
   };
 
   const handleTrackAsQuery = async () => {
-    await execPromiseWithErrorToast(() => trackFunction(), {
-      loadingMessage: isReturnTableUntracked
-        ? 'Tracking table and function...'
-        : 'Tracking function...',
-      successMessage: isReturnTableUntracked
-        ? 'Table and function tracked successfully.'
-        : 'Function tracked successfully.',
-      errorMessage: isReturnTableUntracked
-        ? 'Failed to track table and function.'
-        : 'Failed to track function.',
-    });
-    setShowConfirmDialog(false);
+    await execPromiseWithErrorToast(
+      () => trackFunction({ exposed_as: 'query' }),
+      { loadingMessage, successMessage, errorMessage },
+    );
   };
 
   const handleConfirmTrackAsQuery = async () => {
     await execPromiseWithErrorToast(
       () => trackFunction({ exposed_as: 'query' }),
-      {
-        loadingMessage: isReturnTableUntracked
-          ? 'Tracking table and function...'
-          : 'Tracking function...',
-        successMessage: isReturnTableUntracked
-          ? 'Table and function tracked successfully.'
-          : 'Function tracked successfully.',
-        errorMessage: isReturnTableUntracked
-          ? 'Failed to track table and function.'
-          : 'Failed to track function.',
-      },
+      { loadingMessage, successMessage, errorMessage },
     );
     setShowConfirmDialog(false);
   };
