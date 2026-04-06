@@ -33,7 +33,7 @@ httpPoolSize = 100
 version = 22
 
 [auth]
-version = '1.0.0-dev'
+version = '0.49.0'
 
 [auth.elevatedPrivileges]
 mode = 'disabled'
@@ -49,7 +49,7 @@ disableNewUsers = false
 [auth.user]
 [auth.user.roles]
 default = 'user'
-allowed = ['user', 'me']
+allowed = ['user', 'me', 'user_mcp']
 
 [auth.user.locale]
 default = 'en'

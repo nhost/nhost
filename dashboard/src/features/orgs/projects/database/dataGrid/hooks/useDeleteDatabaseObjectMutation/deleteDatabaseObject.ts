@@ -65,15 +65,11 @@ export default async function deleteDatabaseObject({
       objectName,
       inputArgTypes || [],
     );
-    const preparedQuery = getPreparedHasuraQuery(
+    queryArgs = getPreparedHasuraQuery(
       dataSource,
       `DROP ${queryType} %s`,
       signature,
     );
-    queryArgs = {
-      ...preparedQuery,
-      args: { ...preparedQuery.args, cascade: false },
-    };
   } else {
     queryArgs = getPreparedHasuraQuery(
       dataSource,
