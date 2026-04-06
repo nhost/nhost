@@ -14,7 +14,7 @@ import { TrackUntrackSection } from '@/features/orgs/projects/database/dataGrid/
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 import { useSetFunctionCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionCustomizationMutation';
-import { useTrackFunctionWithTable } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable';
+import { useTrackFunctionWithTableToast } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable';
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
@@ -93,8 +93,9 @@ export default function EditFunctionGraphQLSettingsForm({
     isTracked,
     isReturnTableUntracked,
     isPending: isTrackingPending,
-    toggleTracking,
-  } = useTrackFunctionWithTable({
+    trackFunctionWithToast,
+    toggleTrackingFunctionWithToast,
+  } = useTrackFunctionWithTableToast({
     dataSource,
     schema,
     functionName,
@@ -105,58 +106,15 @@ export default function EditFunctionGraphQLSettingsForm({
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   async function handleTrackToggle() {
-    const tracked = !isTracked;
-    const action = tracked ? 'track' : 'untrack';
-    const shouldTrackTable = tracked && isReturnTableUntracked;
-
-    const loadingMessage = shouldTrackTable
-      ? 'Tracking table and function...'
-      : `${tracked ? 'Tracking' : 'Untracking'} function...`;
-    const successMessage = shouldTrackTable
-      ? 'Table and function tracked successfully.'
-      : `Function ${action}ed successfully.`;
-    const errorMessage = shouldTrackTable
-      ? 'Failed to track table and function.'
-      : `Failed to ${action} function.`;
-
-    await execPromiseWithErrorToast(
-      () => toggleTracking({ exposed_as: 'query' }),
-      { loadingMessage, successMessage, errorMessage },
-    );
+    await toggleTrackingFunctionWithToast({ exposed_as: 'query' });
   }
 
   async function handleTrackAsMutation() {
-    const loadingMessage = isReturnTableUntracked
-      ? 'Tracking table and function...'
-      : 'Tracking function...';
-    const successMessage = isReturnTableUntracked
-      ? 'Table and function tracked successfully.'
-      : 'Function tracked successfully.';
-    const errorMessage = isReturnTableUntracked
-      ? 'Failed to track table and function.'
-      : 'Failed to track function.';
-
-    await execPromiseWithErrorToast(
-      () => toggleTracking({ exposed_as: 'mutation' }),
-      { loadingMessage, successMessage, errorMessage },
-    );
+    await trackFunctionWithToast({ exposed_as: 'mutation' });
   }
 
   async function handleConfirmTrackAsQuery() {
-    const loadingMessage = isReturnTableUntracked
-      ? 'Tracking table and function...'
-      : 'Tracking function...';
-    const successMessage = isReturnTableUntracked
-      ? 'Table and function tracked successfully.'
-      : 'Function tracked successfully.';
-    const errorMessage = isReturnTableUntracked
-      ? 'Failed to track table and function.'
-      : 'Failed to track function.';
-
-    await execPromiseWithErrorToast(
-      () => toggleTracking({ exposed_as: 'query' }),
-      { loadingMessage, successMessage, errorMessage },
-    );
+    await trackFunctionWithToast({ exposed_as: 'query' });
     setShowConfirmDialog(false);
   }
 

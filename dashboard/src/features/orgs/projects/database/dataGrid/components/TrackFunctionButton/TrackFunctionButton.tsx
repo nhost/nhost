@@ -2,8 +2,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { ConfirmTrackAsQueryDialog } from '@/features/orgs/projects/database/dataGrid/components/ConfirmTrackAsQueryDialog';
-import { useTrackFunctionWithTable } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackFunctionWithTableToast } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable';
 
 export interface TrackFunctionButtonProps {
   schema: string;
@@ -31,8 +30,8 @@ export default function TrackFunctionButton({
     isTrackedLoading,
     isReturnTableUntracked,
     isPending,
-    trackFunction,
-  } = useTrackFunctionWithTable({
+    trackFunctionWithToast,
+  } = useTrackFunctionWithTableToast({
     dataSource,
     schema,
     functionName,
@@ -45,35 +44,16 @@ export default function TrackFunctionButton({
     ? 'Track table and function'
     : 'Track';
 
-  const loadingMessage = isReturnTableUntracked
-    ? 'Tracking table and function...'
-    : 'Tracking function...';
-  const successMessage = isReturnTableUntracked
-    ? 'Table and function tracked successfully.'
-    : 'Function tracked successfully.';
-  const errorMessage = isReturnTableUntracked
-    ? 'Failed to track table and function.'
-    : 'Failed to track function.';
-
   const handleTrackAsMutation = async () => {
-    await execPromiseWithErrorToast(
-      () => trackFunction({ exposed_as: 'mutation' }),
-      { loadingMessage, successMessage, errorMessage },
-    );
+    await trackFunctionWithToast({ exposed_as: 'mutation' });
   };
 
   const handleTrackAsQuery = async () => {
-    await execPromiseWithErrorToast(
-      () => trackFunction({ exposed_as: 'query' }),
-      { loadingMessage, successMessage, errorMessage },
-    );
+    await trackFunctionWithToast({ exposed_as: 'query' });
   };
 
   const handleConfirmTrackAsQuery = async () => {
-    await execPromiseWithErrorToast(
-      () => trackFunction({ exposed_as: 'query' }),
-      { loadingMessage, successMessage, errorMessage },
-    );
+    await trackFunctionWithToast({ exposed_as: 'query' });
     setShowConfirmDialog(false);
   };
 
