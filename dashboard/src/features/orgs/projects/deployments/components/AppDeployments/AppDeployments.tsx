@@ -110,19 +110,19 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const latestRun = latestPipelineRunData?.pipelineRuns[0];
   const latestSucceededRun = latestSucceededData?.pipelineRuns[0];
 
-  // Convert legacy deployments to the same shape and merge by date
-  const legacyDeployments = legacyDeploymentsData?.deployments ?? [];
-  const convertedLegacy = legacyDeployments.map(legacyDeploymentToListItem);
-
+  // Merge pipeline runs and legacy deployments into a single sorted list
   const allItems = useMemo(() => {
-    const merged = [...pipelineRuns, ...convertedLegacy];
+    const legacy = (legacyDeploymentsData?.deployments ?? []).map(
+      legacyDeploymentToListItem,
+    );
+    const merged = [...pipelineRuns, ...legacy];
     merged.sort((a, b) => {
       const dateA = new Date(a.startedAt ?? a.createdAt).getTime();
       const dateB = new Date(b.startedAt ?? b.createdAt).getTime();
       return dateB - dateA;
     });
-    return merged;
-  }, [pipelineRuns, convertedLegacy]);
+    return merged.slice(0, limit);
+  }, [pipelineRunPageData, legacyDeploymentsData, pipelineRuns, limit]);
 
   const loading =
     pipelineRunPageLoading ||
@@ -150,9 +150,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   );
 
   const nrOfItems = allItems.length;
-  const nextAllowed = !(
-    pipelineRuns.length < limit && legacyDeployments.length < limit
-  );
+  const nextAllowed = nrOfItems >= limit;
   const liveRunId = latestSucceededRun?.id || '';
 
   return (

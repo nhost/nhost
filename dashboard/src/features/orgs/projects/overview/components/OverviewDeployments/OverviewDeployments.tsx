@@ -78,18 +78,19 @@ function OverviewDeploymentList() {
     });
 
   const pipelineRuns = data?.pipelineRuns ?? [];
-  const legacyDeployments = legacyDeploymentsData?.deployments ?? [];
-  const convertedLegacy = legacyDeployments.map(legacyDeploymentToListItem);
 
   const allItems = useMemo(() => {
-    const merged = [...pipelineRuns, ...convertedLegacy];
+    const legacy = (legacyDeploymentsData?.deployments ?? []).map(
+      legacyDeploymentToListItem,
+    );
+    const merged = [...pipelineRuns, ...legacy];
     merged.sort((a, b) => {
       const dateA = new Date(a.startedAt ?? a.createdAt).getTime();
       const dateB = new Date(b.startedAt ?? b.createdAt).getTime();
       return dateB - dateA;
     });
     return merged.slice(0, 5);
-  }, [pipelineRuns, convertedLegacy]);
+  }, [data, legacyDeploymentsData, pipelineRuns]);
 
   if (loading || pendingOrRunningLoading || legacyDeploymentsLoading) {
     return (

@@ -261,7 +261,7 @@ test('should disable redeployments if a deployment is already in progress', asyn
                       'http://images.example.com/avatar.png',
                     commit_message: 'Test commit message',
                   },
-                  app_id: 'test-app-id',
+                  appId: 'test-app-id',
                   createdAt: '2021-08-02T00:00:00.000Z',
                 },
               ],
