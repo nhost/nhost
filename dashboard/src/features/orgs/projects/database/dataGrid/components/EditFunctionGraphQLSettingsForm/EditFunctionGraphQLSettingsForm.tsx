@@ -312,7 +312,7 @@ export default function EditFunctionGraphQLSettingsForm({
               </div>
               <div className="flex items-center gap-2">
                 <ButtonWithLoading
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={handleTrackAsMutation}
                   loading={isTrackingPending}
@@ -323,7 +323,7 @@ export default function EditFunctionGraphQLSettingsForm({
                     : 'Track as Mutation'}
                 </ButtonWithLoading>
                 <ButtonWithLoading
-                  variant="ghost"
+                  variant="secondary"
                   size="sm"
                   onClick={() => setShowConfirmDialog(true)}
                   disabled={disabled || isTrackingPending}

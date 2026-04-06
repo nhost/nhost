@@ -103,48 +103,45 @@ export default function TrackFunctionButton({
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        <span className="hidden h-2 w-2 shrink-0 rounded-full bg-amber-500 sm:inline-block" />
-        <span className="hidden font-medium text-amber-600 text-sm sm:inline dark:text-amber-400">
-          Not tracked in GraphQL
-        </span>
+      <div className="flex flex-col gap-2 lg:flex-row">
+        <div className="flex flex-row items-center gap-1">
+          <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+          <span className="font-medium text-amber-600 text-sm dark:text-amber-400">
+            Not tracked in GraphQL
+          </span>
+        </div>
         {isVolatile ? (
-          <>
+          <div className="flex flex-col gap-2 lg:flex-row">
             <Button
               onClick={handleTrackAsMutation}
               disabled={isPending}
               loading={isPending}
               size="sm"
-              variant="outline"
-              className="border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
+              variant="default"
+              className="max-w-xs text-sm"
             >
-              <span className="sm:hidden">Mutation</span>
-              <span className="hidden sm:inline">
-                {tablePrefix} as Mutation
-              </span>
+              {tablePrefix} as Mutation
             </Button>
             <Button
               onClick={() => setShowConfirmDialog(true)}
               disabled={isPending}
               size="sm"
-              variant="ghost"
-              className="text-muted-foreground text-sm hover:text-amber-600 dark:hover:text-amber-400"
+              variant="secondary"
+              className="max-w-xs text-sm"
             >
-              <span className="sm:hidden">Query</span>
-              <span className="hidden sm:inline">{tablePrefix} as Query</span>
+              {tablePrefix} as Query
             </Button>
-          </>
+          </div>
         ) : (
           <Button
             onClick={handleTrackAsQuery}
             disabled={isPending}
             loading={isPending}
             size="sm"
-            variant="outline"
-            className="border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
+            variant="default"
+            className="text-sm"
           >
-            <span className="sm:hidden">Track</span>
-            <span className="hidden sm:inline">{tablePrefix} as Query</span>
+            {tablePrefix} as Query
           </Button>
         )}
       </div>

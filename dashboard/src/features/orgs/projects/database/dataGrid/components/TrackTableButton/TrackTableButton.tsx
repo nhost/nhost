@@ -61,8 +61,8 @@ export default function TrackTableButton() {
         disabled={isMutatingTracking}
         loading={isMutatingTracking}
         size="sm"
-        variant="outline"
-        className="border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
+        variant="default"
+        className="text-sm"
       >
         <span className="sm:hidden">Track</span>
         <span className="hidden sm:inline">Track now</span>
