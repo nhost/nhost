@@ -9,13 +9,21 @@ sidebar:
 A cron trigger runs every 5 minutes to find incomplete todos not updated in 7+ days, marks them stale, and notifies their owners.
 
 ```ts title="./functions/events/stale-todos.ts"
+import { createHash, timingSafeEqual } from 'node:crypto'
 import { createClient, withAdminSession } from '@nhost/nhost-js'
 import type { Request, Response } from 'express'
 
+const hash = (value: string) => createHash('sha256').update(value).digest()
+
 export default async (req: Request, res: Response) => {
   // Validate the webhook secret — see the Webhook Security guide
-  const webhookSecret = req.headers['nhost-webhook-secret']
-  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+  const webhookSecret = req.headers['nhost-webhook-secret'] as string | undefined
+  const expected = process.env.NHOST_WEBHOOK_SECRET
+  if (
+    !webhookSecret ||
+    !expected ||
+    !timingSafeEqual(hash(webhookSecret), hash(expected))
+  ) {
     return res.status(401).json({ message: 'Unauthorized' })
   }
 
@@ -62,27 +70,8 @@ export default async (req: Request, res: Response) => {
     return res.status(200).json({ message: 'No stale todos found' })
   }
 
-  // Mark all matching todos as stale in a single mutation
+  // Group by user and build notifications
   const staleIds = staleTodos.map((t) => t.id)
-
-  const markResult = await nhost.graphql.request<{
-    update_todos: { affected_rows: number } | null
-  }>({
-    query: `
-      mutation MarkTodosStale($ids: [uuid!]!) {
-        update_todos(where: { id: { _in: $ids } }, _set: { stale: true }) {
-          affected_rows
-        }
-      }
-    `,
-    variables: { ids: staleIds },
-  })
-
-  if (markResult.body.errors) {
-    return res.status(500).json({ errors: markResult.body.errors })
-  }
-
-  // Group stale todos by user so each user gets one notification
   const byUser = new Map<string, { titles: string[]; count: number }>()
   for (const todo of staleTodos) {
     const entry = byUser.get(todo.user_id) || { titles: [], count: 0 }
@@ -91,7 +80,6 @@ export default async (req: Request, res: Response) => {
     byUser.set(todo.user_id, entry)
   }
 
-  // Create one notification per user listing their stale todos
   const notifications = Array.from(byUser.entries()).map(
     ([userId, { titles, count }]) => ({
       user_id: userId,
@@ -104,21 +92,28 @@ export default async (req: Request, res: Response) => {
     }),
   )
 
-  const insertResult = await nhost.graphql.request<{
+  // Mark todos as stale and insert notifications in a single request.
+  // Hasura runs multiple root-level mutations in one transaction,
+  // so if either fails the whole operation is rolled back.
+  const result = await nhost.graphql.request<{
+    update_todos: { affected_rows: number } | null
     insert_notifications: { affected_rows: number } | null
   }>({
     query: `
-      mutation InsertNotifications($objects: [notifications_insert_input!]!) {
-        insert_notifications(objects: $objects) {
+      mutation MarkStaleAndNotify($ids: [uuid!]!, $notifications: [notifications_insert_input!]!) {
+        update_todos(where: { id: { _in: $ids } }, _set: { stale: true }) {
+          affected_rows
+        }
+        insert_notifications(objects: $notifications) {
           affected_rows
         }
       }
     `,
-    variables: { objects: notifications },
+    variables: { ids: staleIds, notifications },
   })
 
-  if (insertResult.body.errors) {
-    return res.status(500).json({ errors: insertResult.body.errors })
+  if (result.body.errors) {
+    return res.status(500).json({ errors: result.body.errors })
   }
 
   res.status(200).json({
@@ -131,5 +126,5 @@ export default async (req: Request, res: Response) => {
 
 - [Cron trigger configuration](/products/events/cron-triggers) -- how to set up the schedule
 - [Webhook Security](/products/events/guides/webhook-security) -- configuring the shared secret
-- [Full source code](https://github.com/nhost/nhost/tree/main/examples/demos/backend/functions/events/stale-todos.ts) on GitHub
-- [React UI](https://github.com/nhost/nhost/tree/main/examples/demos/react-demo/src/pages/Todos.tsx) -- the Todos page showing stale badges
+- [Full source code](https://github.com/nhost/nhost/blob/main/examples/demos/backend/functions/events/stale-todos.ts) on GitHub
+- [React UI](https://github.com/nhost/nhost/blob/main/examples/demos/react-demo/src/pages/Todos.tsx) -- the Todos page showing stale badges

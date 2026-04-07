@@ -9,13 +9,21 @@ sidebar:
 An event trigger fires when a community's description is updated. The handler notifies all members except the editor.
 
 ```ts title="./functions/events/community-updated.ts"
+import { createHash, timingSafeEqual } from 'node:crypto'
 import { createClient, withAdminSession } from '@nhost/nhost-js'
 import type { Request, Response } from 'express'
 
+const hash = (value: string) => createHash('sha256').update(value).digest()
+
 export default async (req: Request, res: Response) => {
   // Validate the webhook secret — see the Webhook Security guide
-  const webhookSecret = req.headers['nhost-webhook-secret']
-  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+  const webhookSecret = req.headers['nhost-webhook-secret'] as string | undefined
+  const expected = process.env.NHOST_WEBHOOK_SECRET
+  if (
+    !webhookSecret ||
+    !expected ||
+    !timingSafeEqual(hash(webhookSecret), hash(expected))
+  ) {
     return res.status(401).json({ message: 'Unauthorized' })
   }
 
@@ -114,5 +122,5 @@ export default async (req: Request, res: Response) => {
 
 - [Event trigger configuration](/products/events/event-triggers) -- how to set up the trigger that calls this handler
 - [Webhook Security](/products/events/guides/webhook-security) -- configuring the shared secret
-- [Full source code](https://github.com/nhost/nhost/tree/main/examples/demos/backend/functions/events/community-updated.ts) on GitHub
-- [React UI](https://github.com/nhost/nhost/tree/main/examples/demos/react-demo/src/pages/Communities.tsx) -- the Communities page that triggers description updates
+- [Full source code](https://github.com/nhost/nhost/blob/main/examples/demos/backend/functions/events/community-updated.ts) on GitHub
+- [React UI](https://github.com/nhost/nhost/blob/main/examples/demos/react-demo/src/pages/Communities.tsx) -- the Communities page that triggers description updates

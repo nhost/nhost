@@ -1,9 +1,17 @@
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { createClient, withAdminSession } from '@nhost/nhost-js';
 import type { Request, Response } from 'express';
 
+const hash = (value: string) => createHash('sha256').update(value).digest();
+
 export default async (req: Request, res: Response) => {
-  const webhookSecret = req.headers['nhost-webhook-secret'];
-  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+  const webhookSecret = req.headers['nhost-webhook-secret'] as string | undefined;
+  const expected = process.env.NHOST_WEBHOOK_SECRET;
+  if (
+    !webhookSecret ||
+    !expected ||
+    !timingSafeEqual(hash(webhookSecret), hash(expected))
+  ) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 

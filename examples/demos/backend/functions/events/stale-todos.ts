@@ -1,9 +1,19 @@
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { createClient, withAdminSession } from '@nhost/nhost-js';
 import type { Request, Response } from 'express';
 
+const hash = (value: string) => createHash('sha256').update(value).digest();
+
 export default async (req: Request, res: Response) => {
-  const webhookSecret = req.headers['nhost-webhook-secret'];
-  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+  const webhookSecret = req.headers['nhost-webhook-secret'] as
+    | string
+    | undefined;
+  const expected = process.env.NHOST_WEBHOOK_SECRET;
+  if (
+    !webhookSecret ||
+    !expected ||
+    !timingSafeEqual(hash(webhookSecret), hash(expected))
+  ) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
@@ -49,27 +59,8 @@ export default async (req: Request, res: Response) => {
     return res.status(200).json({ message: 'No stale todos found' });
   }
 
-  // Mark todos as stale
+  // Group by user and build notifications
   const staleIds = staleTodos.map((t) => t.id);
-
-  const markResult = await nhost.graphql.request<{
-    update_todos: { affected_rows: number } | null;
-  }>({
-    query: `
-      mutation MarkTodosStale($ids: [uuid!]!) {
-        update_todos(where: { id: { _in: $ids } }, _set: { stale: true }) {
-          affected_rows
-        }
-      }
-    `,
-    variables: { ids: staleIds },
-  });
-
-  if (markResult.body.errors) {
-    return res.status(500).json({ errors: markResult.body.errors });
-  }
-
-  // Group by user and create notifications
   const byUser = new Map<string, { titles: string[]; count: number }>();
   for (const todo of staleTodos) {
     const entry = byUser.get(todo.user_id) || {
@@ -93,21 +84,28 @@ export default async (req: Request, res: Response) => {
     }),
   );
 
-  const insertResult = await nhost.graphql.request<{
+  // Mark todos as stale and insert notifications in a single request.
+  // Hasura runs multiple root-level mutations in one transaction,
+  // so if either fails the whole operation is rolled back.
+  const result = await nhost.graphql.request<{
+    update_todos: { affected_rows: number } | null;
     insert_notifications: { affected_rows: number } | null;
   }>({
     query: `
-      mutation InsertNotifications($objects: [notifications_insert_input!]!) {
-        insert_notifications(objects: $objects) {
+      mutation MarkStaleAndNotify($ids: [uuid!]!, $notifications: [notifications_insert_input!]!) {
+        update_todos(where: { id: { _in: $ids } }, _set: { stale: true }) {
+          affected_rows
+        }
+        insert_notifications(objects: $notifications) {
           affected_rows
         }
       }
     `,
-    variables: { objects: notifications },
+    variables: { ids: staleIds, notifications },
   });
 
-  if (insertResult.body.errors) {
-    return res.status(500).json({ errors: insertResult.body.errors });
+  if (result.body.errors) {
+    return res.status(500).json({ errors: result.body.errors });
   }
 
   res.status(200).json({

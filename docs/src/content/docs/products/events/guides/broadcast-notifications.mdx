@@ -9,13 +9,21 @@ sidebar:
 A one-off scheduled event fires at a specific date and time. The handler sends a broadcast notification to all active users.
 
 ```ts title="./functions/events/broadcast-notification.ts"
+import { createHash, timingSafeEqual } from 'node:crypto'
 import { createClient, withAdminSession } from '@nhost/nhost-js'
 import type { Request, Response } from 'express'
 
+const hash = (value: string) => createHash('sha256').update(value).digest()
+
 export default async (req: Request, res: Response) => {
   // Validate the webhook secret — see the Webhook Security guide
-  const webhookSecret = req.headers['nhost-webhook-secret']
-  if (webhookSecret !== process.env.NHOST_WEBHOOK_SECRET) {
+  const webhookSecret = req.headers['nhost-webhook-secret'] as string | undefined
+  const expected = process.env.NHOST_WEBHOOK_SECRET
+  if (
+    !webhookSecret ||
+    !expected ||
+    !timingSafeEqual(hash(webhookSecret), hash(expected))
+  ) {
     return res.status(401).json({ message: 'Unauthorized' })
   }
 
@@ -105,5 +113,5 @@ export default async (req: Request, res: Response) => {
 
 - [One-off event configuration](/products/events/one-off-scheduled-events) -- how to schedule the event
 - [Webhook Security](/products/events/guides/webhook-security) -- configuring the shared secret
-- [Full source code](https://github.com/nhost/nhost/tree/main/examples/demos/backend/functions/events/broadcast-notification.ts) on GitHub
-- [React UI](https://github.com/nhost/nhost/tree/main/examples/demos/react-demo/src/pages/Notifications.tsx) -- the Notifications page showing broadcasts
+- [Full source code](https://github.com/nhost/nhost/blob/main/examples/demos/backend/functions/events/broadcast-notification.ts) on GitHub
+- [React UI](https://github.com/nhost/nhost/blob/main/examples/demos/react-demo/src/pages/Notifications.tsx) -- the Notifications page showing broadcasts
