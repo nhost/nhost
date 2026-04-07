@@ -79,8 +79,8 @@ export default function TrackFunctionButton({
               disabled={isPending}
               loading={isPending}
               size="sm"
-              variant="default"
-              className="max-w-xs text-sm"
+              variant="outline"
+              className="max-w-xs border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
             >
               {tablePrefix} as Mutation
             </Button>
@@ -88,8 +88,8 @@ export default function TrackFunctionButton({
               onClick={() => setShowConfirmDialog(true)}
               disabled={isPending}
               size="sm"
-              variant="secondary"
-              className="max-w-xs text-sm"
+              variant="outline"
+              className="max-w-xs border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
             >
               {tablePrefix} as Query
             </Button>
@@ -100,8 +100,8 @@ export default function TrackFunctionButton({
             disabled={isPending}
             loading={isPending}
             size="sm"
-            variant="default"
-            className="text-sm"
+            variant="outline"
+            className="border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
           >
             {tablePrefix} as Query
           </Button>
