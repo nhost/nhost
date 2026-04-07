@@ -1,6 +1,2 @@
-export type {
-  FunctionPermission,
-  UseFunctionPermissionQueryOptions,
-  UseFunctionPermissionQueryResult,
-} from './useFunctionPermissionQuery';
+export type { UseFunctionPermissionQueryOptions } from './useFunctionPermissionQuery';
 export { default as useFunctionPermissionQuery } from './useFunctionPermissionQuery';

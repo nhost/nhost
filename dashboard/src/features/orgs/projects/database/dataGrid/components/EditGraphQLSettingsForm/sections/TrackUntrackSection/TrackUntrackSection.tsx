@@ -30,7 +30,7 @@ export default function TrackUntrackSection({
           </span>
         </div>
         <ButtonWithLoading
-          variant="outline"
+          variant={isTracked ? 'outline' : 'default'}
           size="sm"
           onClick={onTrackToggle}
           loading={isPending}

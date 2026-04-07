@@ -8,6 +8,7 @@ let
     golines
     gofumpt
     govulncheck
+    govulncheck-wrapper
   ];
 
   dockerImageFn =
@@ -109,7 +110,7 @@ in
         sha1sum -c $TMPDIR/sum || (echo "❌ ERROR: go generate changed files" && exit 1)
 
         echo "➜ Checking for vulnerabilities"
-        govulncheck -scan=package ./${submodule}/...
+        govulncheck-wrapper -config ${../../../govulncheck.yaml} -- -scan=package ./${submodule}/...
 
         echo "➜ Running golangci-lint"
         golangci-lint run \

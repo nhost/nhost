@@ -11,14 +11,14 @@
     {
       #nixops
       lib = import ./nixops/lib/lib.nix;
-      overlays.default = import ./nixops/overlays/default.nix;
+      overlays.default = import ./nixops/overlays/default.nix { inherit self nix-filter; };
     } // flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
           overlays = [
-            (import ./nixops/overlays/default.nix)
+            (import ./nixops/overlays/default.nix { inherit self nix-filter; })
           ];
         };
 
@@ -37,6 +37,10 @@
           inherit self pkgs nix-filter nixops-lib;
         };
 
+        govulncheck-wrapperf = import ./tools/govulncheck-wrapper/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         dashboardf = import ./dashboard/project.nix {
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
@@ -51,6 +55,10 @@
 
         guidesf = import ./examples/guides/project.nix {
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
+        mcpf = import ./services/mcp/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
         };
 
         nhost-jsf = import ./packages/nhost-js/project.nix {
@@ -87,10 +95,12 @@
           auth = authf.check;
           cli = clif.check;
           codegen = codegenf.check;
+          govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
           guides = guidesf.check;
           docs = docsf.check;
+          mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
@@ -140,12 +150,12 @@
               postgresql_18-client
               bun
 
-
               # docs
               vale
 
               # internal packages
               self.packages.${system}.codegen
+              self.packages.${system}.govulncheck-wrapper
             ];
 
             shellHook = ''
@@ -184,10 +194,12 @@
           auth = authf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
+          govulncheck-wrapper = govulncheck-wrapperf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
+          mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
@@ -204,12 +216,15 @@
           cli-multiplatform = clif.cli-multiplatform;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
           demos = demosf.package;
           guides = guidesf.package;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
+          mcp = mcpf.package;
+          mcp-docker-image = mcpf.dockerImage;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
           postgres-pg16 = postgresf.packages.pg16-package;

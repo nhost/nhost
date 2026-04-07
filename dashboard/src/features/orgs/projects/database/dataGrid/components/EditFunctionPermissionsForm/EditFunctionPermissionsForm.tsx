@@ -13,6 +13,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { FunctionPermissionsDescription } from '@/features/orgs/projects/database/dataGrid/components/EditFunctionPermissionsForm/FunctionPermissionsDescription';
 import { PermissionsLegend } from '@/features/orgs/projects/database/dataGrid/components/PermissionsLegend';
@@ -21,12 +22,14 @@ import { useFunctionPermissionQuery } from '@/features/orgs/projects/database/da
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 import { useManageFunctionPermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManageFunctionPermissionMutation';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import type { PermissionState } from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
+import { getFunctionPermissionState } from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
-import { triggerToast } from '@/utils/toast';
 
 export interface EditFunctionPermissionsFormProps {
   /**
@@ -73,8 +76,9 @@ export default function EditFunctionPermissionsForm({
       skip: !project?.id,
     });
 
-  const inferFunctionPermissions =
-    hasuraSettingsData?.config?.hasura.settings?.inferFunctionPermissions;
+  const inferFunctionPermissions = Boolean(
+    hasuraSettingsData?.config?.hasura.settings?.inferFunctionPermissions,
+  );
 
   const { data: functionConfig, isLoading: isLoadingFunctionConfig } =
     useFunctionCustomizationQuery({
@@ -95,17 +99,16 @@ export default function EditFunctionPermissionsForm({
     );
 
   const {
-    data: functionPermissionData,
+    data: permissions = [],
     status: permissionStatus,
     error: permissionError,
-  } = useFunctionPermissionQuery(
-    [`function-permissions`, `${dataSource}.${schema}.${functionName}`],
-    {
-      schema,
-      functionName,
-      dataSource,
-    },
-  );
+  } = useFunctionPermissionQuery({
+    schema,
+    functionName,
+    dataSource,
+  });
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const {
     data: metadata,
@@ -121,25 +124,16 @@ export default function EditFunctionPermissionsForm({
   const { mutateAsync: manageFunctionPermission, isPending: isMutating } =
     useManageFunctionPermissionMutation();
 
-  // Get the referenced table from function configuration or return type.
-  // The generated FunctionConfiguration type doesn't include `response`, but
-  // Hasura may return it at runtime for functions that reference a table.
-  const responseTable = (
-    functionConfig?.configuration as
-      | { response?: { table?: { name?: string; schema?: string } } }
-      | undefined
-  )?.response?.table;
+  const configuration = functionConfig?.configuration;
 
-  const returnTableName =
-    functionData?.functionMetadata?.returnTableName ||
-    responseTable?.name ||
-    functionData?.functionMetadata?.returnTypeName ||
-    null;
-  const returnTableSchema =
-    functionData?.functionMetadata?.returnTableSchema ||
-    responseTable?.schema ||
-    functionData?.functionMetadata?.returnTypeSchema ||
-    null;
+  const exposedAs = configuration?.exposed_as;
+  const isMutationFunction =
+    exposedAs === 'mutation' ||
+    (exposedAs == null &&
+      functionData?.functionMetadata?.functionType === 'VOLATILE');
+
+  const returnTableName = functionData?.functionMetadata?.returnTableName;
+  const returnTableSchema = functionData?.functionMetadata?.returnTableSchema;
 
   if (
     hasuraSettingsLoading ||
@@ -204,7 +198,7 @@ export default function EditFunctionPermissionsForm({
 
   const roleHasSelectPermission = (role: string): boolean => {
     if (!returnTableMetadata) {
-      return true;
+      return false;
     }
 
     return (
@@ -216,27 +210,8 @@ export default function EditFunctionPermissionsForm({
 
   const availableRoles = allRoles;
 
-  const { permissions, resourceVersion } = functionPermissionData || {
-    permissions: [],
-    resourceVersion: 0,
-  };
-
   const hasFunctionPermission = (role: string) => {
     return permissions.some((perm) => perm.role === role);
-  };
-
-  type PermissionState = 'allowed' | 'partial' | 'not-allowed';
-  const getPermissionState = (role: string): PermissionState => {
-    const hasSelect = roleHasSelectPermission(role);
-    const hasFuncPerm = hasFunctionPermission(role);
-
-    if (hasFuncPerm && hasSelect) {
-      return 'allowed';
-    }
-    if (hasFuncPerm && !hasSelect) {
-      return 'partial';
-    }
-    return 'not-allowed';
   };
 
   const renderPermissionIcon = (state: PermissionState) => {
@@ -254,35 +229,32 @@ export default function EditFunctionPermissionsForm({
     role: string,
     currentlyHasPermission: boolean,
   ) => {
-    try {
-      await manageFunctionPermission({
-        resourceVersion,
-        type: currentlyHasPermission ? 'drop' : 'create',
-        args: {
-          source: dataSource,
-          function: {
-            name: functionName,
-            schema,
+    await execPromiseWithErrorToast(
+      async () => {
+        await manageFunctionPermission({
+          resourceVersion,
+          type: currentlyHasPermission
+            ? 'pg_drop_function_permission'
+            : 'pg_create_function_permission',
+          args: {
+            source: dataSource,
+            function: {
+              name: functionName,
+              schema,
+            },
+            role,
           },
-          role,
-        },
-      });
-
-      setExpandedRole(null);
-
-      triggerToast(
-        currentlyHasPermission
+        });
+        setExpandedRole(null);
+      },
+      {
+        loadingMessage: `${currentlyHasPermission ? 'Removing' : 'Granting'} permission...`,
+        successMessage: currentlyHasPermission
           ? `Permission for role "${role}" has been removed.`
           : `Permission for role "${role}" has been granted.`,
-      );
-    } catch (error) {
-      console.error('Failed to toggle permission:', error);
-      triggerToast(
-        error instanceof Error
-          ? error.message
-          : 'An error occurred while updating permission.',
-      );
-    }
+        errorMessage: 'An error occurred while updating permission.',
+      },
+    );
   };
 
   return (
@@ -298,13 +270,14 @@ export default function EditFunctionPermissionsForm({
           </div>
 
           <div className="box grid grid-flow-row gap-4 border-b pb-4">
-            <div className="max-w-prose space-y-2 text-sm">
+            <div className="max-w-prose space-y-2 text-sm+">
               <FunctionPermissionsDescription
                 schema={schema}
                 dataSource={dataSource}
                 returnTableSchema={returnTableSchema}
                 returnTableName={returnTableName}
                 inferFunctionPermissions={inferFunctionPermissions}
+                isMutationFunction={isMutationFunction}
               />
             </div>
           </div>
@@ -328,7 +301,12 @@ export default function EditFunctionPermissionsForm({
               </div>
 
               {availableRoles.map((currentRole, index) => {
-                const permState = getPermissionState(currentRole);
+                const permState = getFunctionPermissionState({
+                  inferFunctionPermissions,
+                  isMutationFunction,
+                  hasSelectPermission: roleHasSelectPermission(currentRole),
+                  hasFunctionPermission: hasFunctionPermission(currentRole),
+                });
                 const hasFuncPerm = hasFunctionPermission(currentRole);
                 const isExpanded = expandedRole === currentRole;
                 const isLast = index === availableRoles.length - 1;
@@ -354,7 +332,8 @@ export default function EditFunctionPermissionsForm({
                         {currentRole}
                       </span>
                       <span className="inline-grid h-full w-full items-center p-0 text-center">
-                        {disabled ? (
+                        {disabled ||
+                        (inferFunctionPermissions && !isMutationFunction) ? (
                           <span className="inline-grid items-center justify-center">
                             {renderPermissionIcon(permState)}
                           </span>

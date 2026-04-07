@@ -1,18 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormInput } from '@/components/form/FormInput';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { ConfirmTrackAsQueryDialog } from '@/features/orgs/projects/database/dataGrid/components/ConfirmTrackAsQueryDialog';
 import { TrackUntrackSection } from '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/TrackUntrackSection';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 import { useSetFunctionCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionCustomizationMutation';
-import { useTrackFunctionWithTable } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable';
+import { useTrackFunctionWithTableToast } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable';
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
@@ -84,13 +86,16 @@ export default function EditFunctionGraphQLSettingsForm({
   const returnTableName = functionDefinition?.functionMetadata?.returnTableName;
   const returnTableSchema =
     functionDefinition?.functionMetadata?.returnTableSchema;
+  const functionType = functionDefinition?.functionMetadata?.functionType;
+  const isVolatile = functionType === 'VOLATILE';
 
   const {
     isTracked,
     isReturnTableUntracked,
     isPending: isTrackingPending,
-    toggleTracking,
-  } = useTrackFunctionWithTable({
+    trackFunctionWithToast,
+    toggleTrackingFunctionWithToast,
+  } = useTrackFunctionWithTableToast({
     dataSource,
     schema,
     functionName,
@@ -98,22 +103,19 @@ export default function EditFunctionGraphQLSettingsForm({
     returnTableSchema,
   });
 
-  async function handleTrackToggle() {
-    const tracked = !isTracked;
-    const action = tracked ? 'track' : 'untrack';
-    const shouldTrackTable = tracked && isReturnTableUntracked;
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-    await execPromiseWithErrorToast(() => toggleTracking(), {
-      loadingMessage: shouldTrackTable
-        ? 'Tracking table and function...'
-        : `${tracked ? 'Tracking' : 'Untracking'} function...`,
-      successMessage: shouldTrackTable
-        ? 'Table and function tracked successfully.'
-        : `Function ${action}ed successfully.`,
-      errorMessage: shouldTrackTable
-        ? 'Failed to track table and function.'
-        : `Failed to ${action} function.`,
-    });
+  async function handleTrackToggle() {
+    await toggleTrackingFunctionWithToast({ exposed_as: 'query' });
+  }
+
+  async function handleTrackAsMutation() {
+    await trackFunctionWithToast({ exposed_as: 'mutation' });
+  }
+
+  async function handleConfirmTrackAsQuery() {
+    await trackFunctionWithToast({ exposed_as: 'query' });
+    setShowConfirmDialog(false);
   }
 
   const isUntracked = !isTracked;
@@ -134,6 +136,10 @@ export default function EditFunctionGraphQLSettingsForm({
     },
     dataSource,
   });
+
+  const effectiveExposedAs =
+    functionConfig?.configuration?.exposed_as ??
+    (isVolatile ? 'mutation' : 'query');
 
   const form = useForm<FunctionSettingsFormValues>({
     defaultValues,
@@ -252,16 +258,40 @@ export default function EditFunctionGraphQLSettingsForm({
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4">
-        <TrackUntrackSection
-          isTracked={isTracked}
-          isPending={isTrackingPending}
-          onTrackToggle={handleTrackToggle}
-          disabled={disabled}
-          trackLabel={
-            isReturnTableUntracked ? 'Track table and function' : undefined
-          }
-          description={
-            isReturnTableUntracked && !isTracked ? (
+        {isVolatile && isUntracked ? (
+          <div className="flex flex-col gap-2 border-b px-6 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+                <span className="font-medium text-sm">
+                  Not tracked in GraphQL
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <ButtonWithLoading
+                  variant="default"
+                  size="sm"
+                  onClick={handleTrackAsMutation}
+                  loading={isTrackingPending}
+                  disabled={disabled || isTrackingPending}
+                >
+                  {isReturnTableUntracked
+                    ? 'Track table and function as Mutation'
+                    : 'Track as Mutation'}
+                </ButtonWithLoading>
+                <ButtonWithLoading
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowConfirmDialog(true)}
+                  disabled={disabled || isTrackingPending}
+                >
+                  {isReturnTableUntracked
+                    ? 'Track table and function as Query'
+                    : 'Track as Query'}
+                </ButtonWithLoading>
+              </div>
+            </div>
+            {isReturnTableUntracked && (
               <p className="text-muted-foreground text-xs">
                 The return table{' '}
                 <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
@@ -270,8 +300,46 @@ export default function EditFunctionGraphQLSettingsForm({
                 is not tracked in GraphQL and will be tracked along with this
                 function.
               </p>
-            ) : undefined
-          }
+            )}
+          </div>
+        ) : (
+          <TrackUntrackSection
+            isTracked={isTracked}
+            isPending={isTrackingPending}
+            onTrackToggle={handleTrackToggle}
+            disabled={disabled}
+            trackLabel={
+              isReturnTableUntracked
+                ? 'Track table and function as Query'
+                : 'Track as Query'
+            }
+            description={
+              <>
+                {isReturnTableUntracked && isUntracked && (
+                  <p className="text-muted-foreground text-xs">
+                    The return table{' '}
+                    <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+                      {returnTableSchema}.{returnTableName}
+                    </code>{' '}
+                    is not tracked in GraphQL and will be tracked along with
+                    this function.
+                  </p>
+                )}
+                {isTracked && (
+                  <Badge variant="outline" className="w-fit font-medium">
+                    Exposed as:{' '}
+                    {effectiveExposedAs === 'mutation' ? 'Mutation' : 'Query'}
+                  </Badge>
+                )}
+              </>
+            }
+          />
+        )}
+        <ConfirmTrackAsQueryDialog
+          open={showConfirmDialog}
+          onOpenChange={setShowConfirmDialog}
+          onConfirm={handleConfirmTrackAsQuery}
+          isPending={isTrackingPending}
         />
 
         <Form {...form}>

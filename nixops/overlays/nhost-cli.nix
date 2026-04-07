@@ -1,22 +1,22 @@
 { final }:
 let
-  version = "1.38.0";
+  version = "1.42.1";
   dist = {
     aarch64-darwin = {
       url = "https://github.com/nhost/nhost/releases/download/cli%40${version}/cli-${version}-darwin-arm64.tar.gz";
-      sha256 = "1ih8qfxahp68x7cq6h5l3jyj3v0s2xwfh2vyxv0mr4lgg1rjjbyk";
+      sha256 = "1w76j9y2hlpam9sk1sbd7fy1anb4aqzvlypn5j03kwra7r2x3zpp";
     };
     x86_64-darwin = {
       url = "https://github.com/nhost/nhost/releases/download/cli%40${version}/cli-${version}-darwin-amd64.tar.gz";
-      sha256 = "0v7p5bzdi8iiqjn5w5ai1i1a3n6ax3d06j2v4p4q14g1wz1vgnb6";
+      sha256 = "1n34nz1h1n5f935bl533svfng5bh7xk8v9h46pwicvjic3gx4mzf";
     };
     aarch64-linux = {
       url = "https://github.com/nhost/nhost/releases/download/cli%40${version}/cli-${version}-linux-arm64.tar.gz";
-      sha256 = "1gca899203sr0118ha8982iang428g15i8s12z800cc10gsz10c9";
+      sha256 = "0p8wvrgbfpw0brb91m8kxswjp4ja6lgq12a46y5dlg2v09qnil7m";
     };
     x86_64-linux = {
       url = "https://github.com/nhost/nhost/releases/download/cli%40${version}/cli-${version}-linux-amd64.tar.gz";
-      sha256 = "0w3f0b4025qnfagxl50nka47rlky44pz93s19lkffwcr7s4skv8m";
+      sha256 = "0c9y91p33salym2ng3cjbll115x90lvip0mwc63f397866pj54p8";
     };
   };
 

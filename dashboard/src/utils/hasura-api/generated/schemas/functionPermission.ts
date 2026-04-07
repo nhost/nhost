@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type ExportMetadataResponseMetadataSourcesItemFunctionsItemPermissionsItem =
-  {
-    role: string;
-  };
+export interface FunctionPermission {
+  /** Name of the role */
+  role: string;
+}

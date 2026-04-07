@@ -115,7 +115,7 @@ describe('deleteDatabaseObject', () => {
     expect(sql).toContain('DROP FUNCTION');
     expect(sql).toContain('public');
     expect(sql).toContain('get_users');
-    expect(body.args[0].args.cascade).toBe(false);
+    expect(body.args[0].args.cascade).toBe(true);
   });
 
   test('should produce DROP FUNCTION SQL for FUNCTION with parameters', async () => {
@@ -138,7 +138,7 @@ describe('deleteDatabaseObject', () => {
     expect(sql).toContain('search_users');
     expect(sql).toContain('text');
     expect(sql).toContain('int4');
-    expect(body.args[0].args.cascade).toBe(false);
+    expect(body.args[0].args.cascade).toBe(true);
   });
 
   test('should produce DROP FUNCTION SQL with schema-qualified parameter types', async () => {
@@ -164,7 +164,7 @@ describe('deleteDatabaseObject', () => {
     expect(sql).toContain('DROP FUNCTION');
     expect(sql).toContain('custom');
     expect(sql).toContain('my_type');
-    expect(body.args[0].args.cascade).toBe(false);
+    expect(body.args[0].args.cascade).toBe(true);
   });
 
   test('should throw an error for unsupported object type', async () => {
