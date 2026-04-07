@@ -423,6 +423,7 @@ WITH old_token AS (
   WHERE user_id = @user_id AND provider_id = @provider_id
   ORDER BY updated_at DESC
   LIMIT 1
+  FOR UPDATE
 )
 UPDATE auth.user_providers
 SET access_token = ''
