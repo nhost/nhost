@@ -1,7 +1,15 @@
-import { ExternalLink, KeyRound, Link2, ShieldCheck } from 'lucide-react';
+import {
+  ExternalLink,
+  KeyRound,
+  Link2,
+  PlusIcon,
+  ShieldCheck,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import {
   Accordion,
@@ -10,13 +18,13 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Badge } from '@/components/ui/v3/badge';
+import { CreateCheckConstraintForm } from '@/features/orgs/projects/database/dataGrid/components/CreateCheckConstraintForm';
 import { useTableRelatedObjectsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableRelatedObjectsQuery';
 import type {
   TableConstraint,
   TableIndex,
   TableTrigger,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useTableRelatedObjectsQuery/fetchTableRelatedObjects';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export interface TableObjectsSectionProps {
   /**
@@ -62,9 +70,37 @@ function ConstraintTypeBadge({ type }: { type: TableConstraint['type'] }) {
   );
 }
 
-function ConstraintsList({ constraints }: { constraints: TableConstraint[] }) {
+interface ConstraintsListProps {
+  constraints: TableConstraint[];
+  schema: string;
+  table: string;
+  onConstraintCreated: () => void;
+}
+
+function ConstraintsList({
+  constraints,
+  schema,
+  table,
+  onConstraintCreated,
+}: ConstraintsListProps) {
+  const { openDialog } = useDialog();
   const checkConstraints = constraints.filter((c) => c.type === 'CHECK');
   const otherConstraints = constraints.filter((c) => c.type !== 'CHECK');
+
+  function handleAddCheckConstraint() {
+    openDialog({
+      title: 'Add Check Constraint',
+      component: (
+        <CreateCheckConstraintForm
+          schema={schema}
+          table={table}
+          onSubmit={async () => {
+            onConstraintCreated();
+          }}
+        />
+      ),
+    });
+  }
 
   return (
     <div className="space-y-3">
@@ -124,7 +160,6 @@ function ConstraintsList({ constraints }: { constraints: TableConstraint[] }) {
           ))
         )}
 
-        {/* TODO: re-enable when check constraint creation is ready
         <Button
           variant="borderless"
           startIcon={<PlusIcon />}
@@ -134,7 +169,6 @@ function ConstraintsList({ constraints }: { constraints: TableConstraint[] }) {
         >
           Add Check Constraint
         </Button>
-        */}
       </div>
     </div>
   );
@@ -230,10 +264,7 @@ export default function TableObjectsSection({
   schema,
   table,
 }: TableObjectsSectionProps) {
-  const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
-
-  const { data, status } = useTableRelatedObjectsQuery(
+  const { data, status, refetch } = useTableRelatedObjectsQuery(
     ['tableRelatedObjects', schema, table],
     { schema, table },
   );
@@ -275,13 +306,14 @@ export default function TableObjectsSection({
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-4">
-            {isGitHubConnected ? (
-              <Text className="text-muted-foreground text-sm+">
-                Constraints are managed via Git. View them in your repository.
-              </Text>
-            ) : (
-              <ConstraintsList constraints={constraints} />
-            )}
+            <ConstraintsList
+              constraints={constraints}
+              schema={schema}
+              table={table}
+              onConstraintCreated={() => {
+                refetch();
+              }}
+            />
           </AccordionContent>
         </AccordionItem>
 

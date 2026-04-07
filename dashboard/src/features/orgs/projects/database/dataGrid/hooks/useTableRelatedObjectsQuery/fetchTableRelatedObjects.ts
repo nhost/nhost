@@ -187,15 +187,21 @@ export default async function fetchTableRelatedObjects({
 
   // Parse constraints
   const [, ...rawConstraints] = responseData[0].result;
-  const constraints: TableConstraint[] = rawConstraints.map((raw) => {
-    const data = JSON.parse(raw);
-    return {
-      name: data.constraint_name,
-      type: CONSTRAINT_TYPE_MAP[data.constraint_type] || 'UNKNOWN',
-      definition: data.constraint_definition,
-      columns: data.columns || [],
-    } as TableConstraint;
-  });
+  const constraints: TableConstraint[] = rawConstraints
+    .map((raw) => {
+      const data = JSON.parse(raw);
+      const type = CONSTRAINT_TYPE_MAP[data.constraint_type];
+      if (!type) {
+        return null;
+      }
+      return {
+        name: data.constraint_name,
+        type,
+        definition: data.constraint_definition,
+        columns: data.columns || [],
+      };
+    })
+    .filter((c): c is TableConstraint => c !== null);
 
   // Parse triggers
   const [, ...rawTriggers] = responseData[1].result;

@@ -2,6 +2,7 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type { QueryError } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -70,22 +71,21 @@ export default function useCreateCheckConstraintMutation({
       constraintName,
       checkExpression,
     }: CreateCheckConstraintVariables) => {
-      const sql = `ALTER TABLE "${schema}"."${table}" ADD CONSTRAINT "${constraintName}" CHECK (${checkExpression});`;
+      const query = getPreparedHasuraQuery(
+        dataSource,
+        'ALTER TABLE %I.%I ADD CONSTRAINT %I CHECK (%s)',
+        schema,
+        table,
+        constraintName,
+        checkExpression,
+      );
 
       const response = await fetch(`${appUrl}/v2/query`, {
         method: 'POST',
         headers: {
           'x-hasura-admin-secret': adminSecret,
         },
-        body: JSON.stringify({
-          type: 'run_sql',
-          args: {
-            source: dataSource,
-            sql,
-            cascade: false,
-            read_only: false,
-          },
-        }),
+        body: JSON.stringify(query),
       });
 
       const responseData = await response.json();
