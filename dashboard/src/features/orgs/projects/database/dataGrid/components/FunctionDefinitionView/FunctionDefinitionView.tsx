@@ -116,7 +116,8 @@ export default function FunctionDefinitionView() {
               <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
               <span className="font-medium text-sm">Tracked in GraphQL</span>
               <Badge variant="outline" className="font-medium">
-                Exposed as: {effectiveExposedAs === 'mutation' ? 'Mutation' : 'Query'}
+                Exposed as:{' '}
+                {effectiveExposedAs === 'mutation' ? 'Mutation' : 'Query'}
               </Badge>
             </div>
           )}
