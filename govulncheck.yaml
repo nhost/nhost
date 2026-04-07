@@ -1,0 +1,9 @@
+# Govulncheck allowlist configuration.
+# Add vulnerability IDs that should be ignored during scans.
+# Use YAML comments to document why each vulnerability is allowed.
+#
+# Example:
+#   allow_list:
+#     - GO-2023-1901  # Not exploitable in our usage
+#     - GO-2026-4730  # Waiting for upstream fix
+allow_list: []

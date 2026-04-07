@@ -1,7 +1,7 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
-import type { TableLikeObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DatabaseObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import deleteDatabaseObject from './deleteDatabaseObject';
 
 const defaultOptions = {
@@ -31,7 +31,7 @@ describe('deleteDatabaseObject', () => {
     await deleteDatabaseObject({
       ...defaultOptions,
       schema: 'public',
-      table: 'users',
+      objectName: 'users',
       type: 'ORDINARY TABLE',
     });
 
@@ -46,7 +46,7 @@ describe('deleteDatabaseObject', () => {
     await deleteDatabaseObject({
       ...defaultOptions,
       schema: 'public',
-      table: 'active_users',
+      objectName: 'active_users',
       type: 'VIEW',
     });
 
@@ -61,7 +61,7 @@ describe('deleteDatabaseObject', () => {
     await deleteDatabaseObject({
       ...defaultOptions,
       schema: 'analytics',
-      table: 'daily_stats',
+      objectName: 'daily_stats',
       type: 'MATERIALIZED VIEW',
     });
 
@@ -76,7 +76,7 @@ describe('deleteDatabaseObject', () => {
     await deleteDatabaseObject({
       ...defaultOptions,
       schema: 'public',
-      table: 'external_data',
+      objectName: 'external_data',
       type: 'FOREIGN TABLE',
     });
 
@@ -91,7 +91,7 @@ describe('deleteDatabaseObject', () => {
       ...defaultOptions,
       dataSource: 'my_source',
       schema: 'public',
-      table: 'test',
+      objectName: 'test',
       type: 'ORDINARY TABLE',
     });
 
@@ -99,13 +99,81 @@ describe('deleteDatabaseObject', () => {
     expect(body.args[0].args.source).toBe('my_source');
   });
 
+  test('should produce DROP FUNCTION SQL for FUNCTION with no parameters', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'public',
+      objectName: 'get_users',
+      type: 'FUNCTION',
+      inputArgTypes: [],
+    });
+
+    const body = capturedBody as {
+      args: Array<{ args: { sql: string; cascade: boolean } }>;
+    };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP FUNCTION');
+    expect(sql).toContain('public');
+    expect(sql).toContain('get_users');
+    expect(body.args[0].args.cascade).toBe(true);
+  });
+
+  test('should produce DROP FUNCTION SQL for FUNCTION with parameters', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'public',
+      objectName: 'search_users',
+      type: 'FUNCTION',
+      inputArgTypes: [
+        { name: 'query', type: 'text', displayType: 'text', schema: null },
+        { name: 'limit', type: 'int4', displayType: 'integer', schema: null },
+      ],
+    });
+
+    const body = capturedBody as {
+      args: Array<{ args: { sql: string; cascade: boolean } }>;
+    };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP FUNCTION');
+    expect(sql).toContain('search_users');
+    expect(sql).toContain('text');
+    expect(sql).toContain('int4');
+    expect(body.args[0].args.cascade).toBe(true);
+  });
+
+  test('should produce DROP FUNCTION SQL with schema-qualified parameter types', async () => {
+    await deleteDatabaseObject({
+      ...defaultOptions,
+      schema: 'public',
+      objectName: 'process',
+      type: 'FUNCTION',
+      inputArgTypes: [
+        {
+          name: 'input',
+          type: 'my_type',
+          displayType: 'my_type',
+          schema: 'custom',
+        },
+      ],
+    });
+
+    const body = capturedBody as {
+      args: Array<{ args: { sql: string; cascade: boolean } }>;
+    };
+    const sql = body.args[0].args.sql;
+    expect(sql).toContain('DROP FUNCTION');
+    expect(sql).toContain('custom');
+    expect(sql).toContain('my_type');
+    expect(body.args[0].args.cascade).toBe(true);
+  });
+
   test('should throw an error for unsupported object type', async () => {
     await expect(
       deleteDatabaseObject({
         ...defaultOptions,
         schema: 'public',
-        table: 'test',
-        type: 'UNKNOWN_TYPE' as TableLikeObjectType,
+        objectName: 'test',
+        type: 'UNKNOWN_TYPE' as DatabaseObjectType,
       }),
     ).rejects.toThrow('Unsupported database object type: UNKNOWN_TYPE');
   });
@@ -127,7 +195,7 @@ describe('deleteDatabaseObject', () => {
       deleteDatabaseObject({
         ...defaultOptions,
         schema: 'public',
-        table: 'test',
+        objectName: 'test',
         type: 'ORDINARY TABLE',
       }),
     ).rejects.toThrow();

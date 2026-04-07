@@ -19,6 +19,7 @@ const editLabels: Record<DatabaseObjectType, string> = {
   VIEW: 'Edit View',
   'MATERIALIZED VIEW': 'Edit Materialized View',
   'FOREIGN TABLE': 'Edit Table',
+  FUNCTION: 'Edit Function',
 };
 
 const deleteLabels: Record<DatabaseObjectType, string> = {
@@ -26,6 +27,7 @@ const deleteLabels: Record<DatabaseObjectType, string> = {
   VIEW: 'Delete View',
   'MATERIALIZED VIEW': 'Delete View',
   'FOREIGN TABLE': 'Delete Table',
+  FUNCTION: 'Delete Function',
 };
 
 const idPrefixes: Record<DatabaseObjectType, string> = {
@@ -33,10 +35,11 @@ const idPrefixes: Record<DatabaseObjectType, string> = {
   VIEW: 'view',
   'MATERIALIZED VIEW': 'view',
   'FOREIGN TABLE': 'table',
+  FUNCTION: 'function',
 };
 
 type Props = {
-  tableName: string;
+  objectName: string;
   schema: string;
   dataSource: string;
   objectType: DatabaseObjectType;
@@ -49,12 +52,12 @@ type Props = {
   onEdit: () => void;
   onEditPermissions: () => void;
   onEditGraphQLSettings: () => void;
-  onEditRelationships: () => void;
+  onEditRelationships?: () => void;
   onDelete: () => void;
 };
 
 function DatabaseObjectActions({
-  tableName,
+  objectName,
   schema,
   dataSource,
   objectType,
@@ -70,10 +73,15 @@ function DatabaseObjectActions({
   onEditRelationships,
   onDelete,
 }: Props) {
+  const isFunction = objectType === 'FUNCTION';
+  const hasPermissions = !isFunction;
+  const hasRelationships = !isFunction;
+
   const { data: isTracked } = useIsTrackedTable({
     dataSource,
     schema,
-    tableName,
+    tableName: objectName,
+    enabled: !isFunction,
   });
 
   function handleOnOpenChange(newOpenState: boolean) {
@@ -96,7 +104,7 @@ function DatabaseObjectActions({
         asChild
       >
         <Button
-          id={`${idPrefix}-management-menu-${tableName}`}
+          id={`${idPrefix}-management-menu-${objectName}`}
           variant="outline"
           size="icon"
           className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent"
@@ -110,26 +118,30 @@ function DatabaseObjectActions({
             <SquarePen className="h-4 w-4" /> <span>{editLabel}</span>
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem
-          className={cn(menuItemClassName, {
-            'italic opacity-50 hover:cursor-default hover:bg-transparent':
-              !isTracked,
-          })}
-          disabled={!isTracked}
-          onClick={isTracked ? onEditPermissions : undefined}
-        >
-          <Users className="h-4 w-4" /> <span>Edit Permissions</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className={cn(menuItemClassName, {
-            'italic opacity-50 hover:cursor-default hover:bg-transparent':
-              !isTracked,
-          })}
-          disabled={!isTracked}
-          onClick={isTracked ? onEditRelationships : undefined}
-        >
-          <Anchor className="h-4 w-4" /> <span>Edit Relationships</span>
-        </DropdownMenuItem>
+        {hasPermissions && (
+          <DropdownMenuItem
+            className={cn(menuItemClassName, {
+              'italic opacity-50 hover:cursor-default hover:bg-transparent':
+                !isTracked,
+            })}
+            disabled={!isTracked}
+            onClick={isTracked ? onEditPermissions : undefined}
+          >
+            <Users className="h-4 w-4" /> <span>Edit Permissions</span>
+          </DropdownMenuItem>
+        )}
+        {hasRelationships && (
+          <DropdownMenuItem
+            className={cn(menuItemClassName, {
+              'italic opacity-50 hover:cursor-default hover:bg-transparent':
+                !isTracked,
+            })}
+            disabled={!isTracked}
+            onClick={isTracked ? onEditRelationships : undefined}
+          >
+            <Anchor className="h-4 w-4" /> <span>Edit Relationships</span>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           className={menuItemClassName}
           onClick={onEditGraphQLSettings}
