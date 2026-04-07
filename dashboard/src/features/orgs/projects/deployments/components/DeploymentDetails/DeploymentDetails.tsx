@@ -95,16 +95,18 @@ function StatusBadge({ status }: { status: PipelineRunStatusValue }) {
 }
 
 function TaskStatusIndicator({ status }: { status: TaskStatus }) {
-  const baseClasses = 'h-2 w-2 rounded-full';
+  const base = 'h-2 w-2 rounded-full';
   switch (status) {
     case 'running':
-      return <span className={cn(baseClasses, 'animate-pulse bg-blue-500')} />;
+      return <span className={cn(base, 'animate-pulse bg-blue-500')} />;
+    case 'pending':
+      return <span className={cn(base, 'animate-pulse bg-yellow-500')} />;
     case 'succeeded':
-      return <span className={cn(baseClasses, 'bg-green-500')} />;
+      return <span className={cn(base, 'bg-green-500')} />;
     case 'failed':
-      return <span className={cn(baseClasses, 'bg-red-500')} />;
+      return <span className={cn(base, 'bg-red-500')} />;
     default:
-      return <span className={cn(baseClasses, 'bg-gray-400')} />;
+      return <span className={cn(base, 'bg-gray-400')} />;
   }
 }
 

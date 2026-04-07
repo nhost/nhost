@@ -33,7 +33,14 @@ export default function DeploymentDurationLabel({
   }, [endedAt]);
 
   if (!startedAt) {
-    return null;
+    return (
+      <Text
+        style={{ fontVariantNumeric: 'tabular-nums' }}
+        className="self-center font-display text-sm+"
+      >
+        <span>0m 0s</span>
+      </Text>
+    );
   }
 
   const totalDurationInSeconds = differenceInSeconds(

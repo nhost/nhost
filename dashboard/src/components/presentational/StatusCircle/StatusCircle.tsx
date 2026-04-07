@@ -1,5 +1,4 @@
-import { twMerge } from 'tailwind-merge';
-import { Box } from '@/components/ui/v2/Box';
+import { cn } from '@/lib/utils';
 
 export type PipelineRunStatus =
   | 'pending'
@@ -25,40 +24,27 @@ export type StatusCircleProps = {
 };
 
 export default function StatusCircle({ status }: StatusCircleProps) {
-  const baseClasses = 'w-1.5 h-1.5 rounded-full';
+  const base = 'w-1.5 h-1.5 rounded-full';
+
+  if (status === 'running' || status === 'DEPLOYING') {
+    return <span className={cn(base, 'animate-pulse bg-blue-500')} />;
+  }
 
   if (
-    status === 'running' ||
     status === 'pending' ||
-    status === 'DEPLOYING' ||
     status === 'PENDING' ||
     status === 'SCHEDULED'
   ) {
-    return (
-      <Box
-        className={twMerge(baseClasses, 'animate-pulse')}
-        sx={{ backgroundColor: 'warning.main' }}
-      />
-    );
+    return <span className={cn(base, 'animate-pulse bg-yellow-500')} />;
   }
 
   if (status === 'succeeded' || status === 'DEPLOYED') {
-    return (
-      <Box className={baseClasses} sx={{ backgroundColor: 'success.main' }} />
-    );
+    return <span className={cn(base, 'bg-green-500')} />;
   }
 
   if (status === 'failed' || status === 'FAILED') {
-    return (
-      <Box className={baseClasses} sx={{ backgroundColor: 'error.main' }} />
-    );
+    return <span className={cn(base, 'bg-red-500')} />;
   }
 
-  if (status === 'aborted') {
-    return (
-      <Box className={baseClasses} sx={{ backgroundColor: 'grey.500' }} />
-    );
-  }
-
-  return <Box className={baseClasses} sx={{ backgroundColor: 'grey.500' }} />;
+  return <span className={cn(base, 'bg-gray-400')} />;
 }
