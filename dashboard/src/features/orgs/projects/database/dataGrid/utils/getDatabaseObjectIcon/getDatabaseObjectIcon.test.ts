@@ -2,6 +2,7 @@ import {
   BetweenHorizontalEnd,
   List,
   ScanEye,
+  SquareFunction,
   Table2,
   View,
 } from 'lucide-react';
@@ -9,6 +10,10 @@ import { describe, expect, test } from 'vitest';
 import getDatabaseObjectIcon from './getDatabaseObjectIcon';
 
 describe('getDatabaseObjectIcon', () => {
+  test('should return SquareFunction for FUNCTION', () => {
+    expect(getDatabaseObjectIcon('FUNCTION', false)).toBe(SquareFunction);
+  });
+
   test('should return ScanEye for VIEW', () => {
     expect(getDatabaseObjectIcon('VIEW', false)).toBe(ScanEye);
   });

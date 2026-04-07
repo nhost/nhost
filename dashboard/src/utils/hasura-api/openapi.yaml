@@ -94,8 +94,11 @@ components:
         - $ref: "#/components/schemas/ReplaceMetadataOperation"
         - $ref: "#/components/schemas/TrackTableBulkOperation"
         - $ref: "#/components/schemas/UntrackTableBulkOperation"
+        - $ref: "#/components/schemas/TrackFunctionBulkOperation"
+        - $ref: "#/components/schemas/UntrackFunctionBulkOperation"
         - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
         - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
+        - $ref: "#/components/schemas/SetFunctionCustomizationOperation"
         - $ref: "#/components/schemas/SuggestRelationshipsOperation"
         - $ref: "#/components/schemas/DropRelationshipBulkOperation"
         - $ref: "#/components/schemas/DeleteRemoteRelationshipBulkOperation"
@@ -237,6 +240,91 @@ components:
       allOf:
         - $ref: "#/components/schemas/TrackTableArgs"
 
+    TrackFunctionBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          default: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackFunctionStep"
+
+    TrackFunctionStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_track_function]
+        args:
+          $ref: "#/components/schemas/TrackFunctionArgs"
+
+    TrackFunctionArgs:
+      type: object
+      required:
+        - function
+      properties:
+        source:
+          type: string
+          default: default
+        function:
+          $ref: "#/components/schemas/QualifiedFunction"
+        configuration:
+          $ref: "#/components/schemas/FunctionConfiguration"
+
+    UntrackFunctionBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          default: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/UntrackFunctionStep"
+
+    UntrackFunctionStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_untrack_function]
+        args:
+          $ref: "#/components/schemas/UntrackFunctionArgs"
+
+    UntrackFunctionArgs:
+      allOf:
+        - $ref: "#/components/schemas/TrackFunctionArgs"
+
     SetTableCustomizationBulkOperation:
       type: object
       required:
@@ -288,6 +376,73 @@ components:
         configuration:
           description: Configuration for the table/view
           $ref: "#/components/schemas/TableConfig"
+
+    SetFunctionCustomizationOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_set_function_customization]
+        args:
+          $ref: "#/components/schemas/SetFunctionCustomizationArgs"
+
+    SetFunctionCustomizationArgs:
+      type: object
+      required:
+        - function
+      properties:
+        function:
+          $ref: "#/components/schemas/QualifiedFunction"
+        configuration:
+          description: Configuration for the function
+          $ref: "#/components/schemas/FunctionConfiguration"
+        source:
+          type: string
+          description: Name of the source database of the function
+          default: default
+
+    QualifiedFunction:
+      type: object
+      required:
+        - name
+        - schema
+      properties:
+        name:
+          type: string
+          description: Name of the function
+        schema:
+          type: string
+          description: Schema of the function
+
+    FunctionConfiguration:
+      type: object
+      properties:
+        custom_name:
+          type: string
+          description: Customize the <function-name> with the provided custom name value. The GraphQL nodes for the function will be generated according to the custom name.
+        custom_root_fields:
+          $ref: "#/components/schemas/CustomFunctionRootFields"
+          description: Customize the root fields
+        session_argument:
+          type: string
+          description: Function argument which accepts session info JSON
+        exposed_as:
+          type: string
+          description: In which part of the schema to expose this function. Either "mutation" or "query".
+          enum: ["mutation", "query"]
+
+    CustomFunctionRootFields:
+      type: object
+      properties:
+        function:
+          type: string
+          description: Customize the <function-name> root field
+        function_aggregate:
+          type: string
+          description: Customize the <function-name>_aggregate root field
 
     TableConfig:
       type: object
@@ -1026,6 +1181,8 @@ components:
         - $ref: "#/components/schemas/DeleteEventTriggerStep"
         - $ref: "#/components/schemas/TrackTableStep"
         - $ref: "#/components/schemas/UntrackTableStep"
+        - $ref: "#/components/schemas/TrackFunctionStep"
+        - $ref: "#/components/schemas/UntrackFunctionStep"
 
     MigrationRequest:
       type: object
@@ -1190,6 +1347,19 @@ components:
                           description: List of remote relationships for the table
                           items:
                             $ref: "#/components/schemas/RemoteRelationshipItem"
+                  functions:
+                    type: array
+                    description: List of functions in the data source
+                    items:
+                      type: object
+                      required:
+                        - function
+                      properties:
+                        function:
+                          type: object
+                          $ref: "#/components/schemas/QualifiedFunction"
+                        configuration:
+                          $ref: "#/components/schemas/FunctionConfiguration"
                 additionalProperties: true
             remote_schemas:
               type: array

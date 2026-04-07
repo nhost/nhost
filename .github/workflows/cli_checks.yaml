@@ -16,6 +16,7 @@ on:
 
       # common go
       - ".golangci.yaml"
+      - "govulncheck.yaml"
       - "go.mod"
       - "go.sum"
       - "vendor/**"
@@ -49,6 +50,7 @@ jobs:
         nixops/**
         build/**
         .golangci.yaml
+        govulncheck.yaml
         go.mod
         go.sum
         vendor/**

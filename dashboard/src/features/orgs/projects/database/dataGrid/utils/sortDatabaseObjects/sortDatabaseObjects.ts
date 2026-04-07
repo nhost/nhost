@@ -13,6 +13,7 @@ export default function sortDatabaseObjects(
       'FOREIGN TABLE': 2,
       'MATERIALIZED VIEW': 3,
       VIEW: 4,
+      FUNCTION: 5,
     };
 
     const getOrder = (obj: DatabaseObjectViewModel) => {

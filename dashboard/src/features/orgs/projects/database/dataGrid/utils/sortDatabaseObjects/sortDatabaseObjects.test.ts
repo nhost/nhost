@@ -1,21 +1,30 @@
 import { describe, expect, test } from 'vitest';
 import type {
-  DatabaseObjectType,
   DatabaseObjectViewModel,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import sortDatabaseObjects from './sortDatabaseObjects';
 
 function obj(
   name: string,
-  objectType: DatabaseObjectType,
+  objectType: TableLikeObjectType,
   schema = 'public',
 ): DatabaseObjectViewModel {
   return { name, objectType, schema, updatability: 28 };
 }
 
+function fn(
+  name: string,
+  oid: string,
+  schema = 'public',
+): DatabaseObjectViewModel {
+  return { name, objectType: 'FUNCTION', schema, oid };
+}
+
 describe('sortDatabaseObjects', () => {
   test('should sort all object types in the correct group order', () => {
     const input = [
+      fn('e_func', '16384'),
       obj('d_view', 'VIEW'),
       obj('c_mat_view', 'MATERIALIZED VIEW'),
       obj('b_foreign', 'FOREIGN TABLE'),
@@ -29,6 +38,7 @@ describe('sortDatabaseObjects', () => {
       'FOREIGN TABLE',
       'MATERIALIZED VIEW',
       'VIEW',
+      'FUNCTION',
     ]);
   });
 
@@ -86,6 +96,38 @@ describe('sortDatabaseObjects', () => {
     expect(result.map((o) => `${o.schema}.${o.name}`)).toEqual([
       'public.my_table',
       'other_schema.my_table',
+    ]);
+  });
+
+  test('should place functions after all other object types', () => {
+    const input = [
+      fn('search_users', '16384'),
+      obj('my_view', 'VIEW'),
+      obj('users', 'ORDINARY TABLE'),
+    ];
+
+    const result = sortDatabaseObjects(input);
+
+    expect(result.map((o) => o.name)).toEqual([
+      'users',
+      'my_view',
+      'search_users',
+    ]);
+  });
+
+  test('should sort functions alphabetically among themselves', () => {
+    const input = [
+      fn('search_users', '16384'),
+      fn('get_orders', '16385'),
+      fn('list_products', '16386'),
+    ];
+
+    const result = sortDatabaseObjects(input);
+
+    expect(result.map((o) => o.name)).toEqual([
+      'get_orders',
+      'list_products',
+      'search_users',
     ]);
   });
 

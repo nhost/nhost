@@ -1,5 +1,6 @@
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import type {
+  FunctionObject,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
   QueryError,
@@ -19,6 +20,10 @@ export interface FetchDatabaseReturnType {
    * List of available table-like objects in the database: tables, views, enums...
    */
   tableLikeObjects?: TableLikeObject[];
+  /**
+   * List of available table-returning functions in the database.
+   */
+  functions?: FunctionObject[];
   /**
    * Response metadata.
    */
@@ -60,6 +65,24 @@ export default async function fetchDatabase({
             ' AND ',
           ),
         ),
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT row_to_json(func_data) as data FROM (
+            SELECT
+              n.nspname as function_schema,
+              p.proname as function_name,
+              p.oid as function_oid
+            FROM pg_proc p
+            JOIN pg_namespace n ON p.pronamespace = n.oid
+            JOIN pg_type ON p.prorettype = pg_type.oid
+            WHERE n.nspname NOT LIKE 'pg_%'
+              AND n.nspname != 'information_schema'
+              AND pg_type.typtype ='c'
+              AND p.proretset = true
+            ORDER BY p.proname ASC
+          ) func_data`,
+          '',
+        ),
       ],
       type: 'bulk',
       version: 1,
@@ -84,6 +107,7 @@ export default async function fetchDatabase({
         return {
           schemas: [],
           tableLikeObjects: [],
+          functions: [],
           metadata: { dataSource, databaseNotFound: true },
         };
       }
@@ -94,6 +118,7 @@ export default async function fetchDatabase({
 
   const [, ...rawSchemas] = responseData[0].result;
   const [, ...rawTableLikeObjects] = responseData[1].result;
+  const [, ...rawFunctions] = responseData[2].result;
 
   return {
     schemas: rawSchemas.map((rawData) =>
@@ -102,5 +127,8 @@ export default async function fetchDatabase({
     tableLikeObjects: rawTableLikeObjects.map((rawData) =>
       JSON.parse(rawData),
     ) as TableLikeObject[],
+    functions: rawFunctions.map((rawData) =>
+      JSON.parse(rawData),
+    ) satisfies FunctionObject[],
   };
 }
