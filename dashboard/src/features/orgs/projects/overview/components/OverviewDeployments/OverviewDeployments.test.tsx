@@ -86,14 +86,8 @@ test('should render an empty state when GitHub is not connected', async () => {
           });
         }
 
-        if (operationName === 'getDeployments') {
-          return HttpResponse.json({ data: { deployments: [] } });
-        }
-
         return HttpResponse.json({
-          data: {
-            pipelineRuns: [],
-          },
+          data: { unifiedDeployments: [] },
         });
       },
     ),
@@ -130,11 +124,7 @@ test('should render an empty state when GitHub is connected, but there are no de
           });
         }
 
-        if (operationName === 'getDeployments') {
-          return HttpResponse.json({ data: { deployments: [] } });
-        }
-
-        return HttpResponse.json({ data: { pipelineRuns: [] } });
+        return HttpResponse.json({ data: { unifiedDeployments: [] } });
       },
     ),
   );
@@ -163,8 +153,8 @@ test('should render a list of deployments', async () => {
         // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
-        if (operationName === 'PendingOrRunningPipelineRunsSub') {
-          return HttpResponse.json({ data: { pipelineRuns: [] } });
+        if (operationName === 'PendingOrRunningUnifiedDeploymentsSub') {
+          return HttpResponse.json({ data: { unifiedDeployments: [] } });
         }
 
         if (operationName === 'getProject') {
@@ -182,29 +172,21 @@ test('should render a list of deployments', async () => {
           });
         }
 
-        if (operationName === 'getDeployments') {
-          return HttpResponse.json({ data: { deployments: [] } });
-        }
-
         return HttpResponse.json({
           data: {
-            pipelineRuns: [
+            unifiedDeployments: [
               {
                 id: '1',
-                name: 'nhost-backend-build',
+                appId: 'test-app-id',
+                source: 'pipeline_run',
+                commitSHA: 'abc123',
+                commitUserName: 'test.user',
+                commitUserAvatarUrl:
+                  'http://images.example.com/avatar.png',
+                commitMessage: 'Test commit message',
                 startedAt: '2021-08-01T00:00:00.000Z',
                 endedAt: '2021-08-01T00:05:00.000Z',
                 status: 'succeeded',
-                input: {
-                  name: 'nhost-backend-build',
-                  app_id: 'test-app-id',
-                  commit_sha: 'abc123',
-                  commit_user_name: 'test.user',
-                  commit_user_avatar_url:
-                    'http://images.example.com/avatar.png',
-                  commit_message: 'Test commit message',
-                },
-                appId: 'test-app-id',
                 createdAt: '2021-08-01T00:00:00.000Z',
               },
             ],
@@ -242,26 +224,22 @@ test('should disable redeployments if a deployment is already in progress', asyn
         // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
-        if (operationName === 'PendingOrRunningPipelineRunsSub') {
+        if (operationName === 'PendingOrRunningUnifiedDeploymentsSub') {
           return HttpResponse.json({
             data: {
-              pipelineRuns: [
+              unifiedDeployments: [
                 {
                   id: '2',
-                  name: 'nhost-backend-build',
+                  appId: 'test-app-id',
+                  source: 'pipeline_run',
+                  commitSHA: 'abc234',
+                  commitUserName: 'test.user',
+                  commitUserAvatarUrl:
+                    'http://images.example.com/avatar.png',
+                  commitMessage: 'Test commit message',
                   startedAt: '2021-08-02T00:00:00.000Z',
                   endedAt: null,
                   status: 'pending',
-                  input: {
-                    name: 'nhost-backend-build',
-                    app_id: 'test-app-id',
-                    commit_sha: 'abc234',
-                    commit_user_name: 'test.user',
-                    commit_user_avatar_url:
-                      'http://images.example.com/avatar.png',
-                    commit_message: 'Test commit message',
-                  },
-                  appId: 'test-app-id',
                   createdAt: '2021-08-02T00:00:00.000Z',
                 },
               ],
@@ -284,29 +262,21 @@ test('should disable redeployments if a deployment is already in progress', asyn
           });
         }
 
-        if (operationName === 'getDeployments') {
-          return HttpResponse.json({ data: { deployments: [] } });
-        }
-
         return HttpResponse.json({
           data: {
-            pipelineRuns: [
+            unifiedDeployments: [
               {
                 id: '1',
-                name: 'nhost-backend-build',
+                appId: 'test-app-id',
+                source: 'pipeline_run',
+                commitSHA: 'abc123',
+                commitUserName: 'test.user',
+                commitUserAvatarUrl:
+                  'http://images.example.com/avatar.png',
+                commitMessage: 'Test commit message',
                 startedAt: '2021-08-01T00:00:00.000Z',
                 endedAt: '2021-08-01T00:05:00.000Z',
                 status: 'succeeded',
-                input: {
-                  name: 'nhost-backend-build',
-                  app_id: 'test-app-id',
-                  commit_sha: 'abc123',
-                  commit_user_name: 'test.user',
-                  commit_user_avatar_url:
-                    'http://images.example.com/avatar.png',
-                  commit_message: 'Test commit message',
-                },
-                appId: 'test-app-id',
                 createdAt: '2021-08-01T00:00:00.000Z',
               },
             ],

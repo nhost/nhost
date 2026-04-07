@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -11,16 +11,14 @@ import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
-import { legacyDeploymentToListItem } from '@/features/orgs/projects/deployments/utils/legacy-deployments';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  useGetDeploymentsQuery,
-  useGetPipelineRunsSubSubscription,
-  usePendingOrRunningPipelineRunsSubSubscription,
+  useGetUnifiedDeploymentsSubSubscription,
+  useLatestLiveUnifiedDeploymentSubSubscription,
+  usePendingOrRunningUnifiedDeploymentsSubSubscription,
 } from '@/utils/__generated__/graphql';
-import { getLastSucceededPipelineRun } from '@/utils/helpers';
 
 function OverviewDeploymentsTopBar() {
   const { org } = useCurrentOrg();
@@ -52,47 +50,25 @@ function OverviewDeploymentList() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
 
-  const { data, loading } = useGetPipelineRunsSubSubscription({
+  const { data, loading } = useGetUnifiedDeploymentsSubSubscription({
     variables: {
-      id: project?.id,
+      appId: project?.id,
       limit: 5,
       offset: 0,
     },
   });
 
+  const { data: latestLiveData, loading: latestLiveLoading } =
+    useLatestLiveUnifiedDeploymentSubSubscription({
+      variables: { appId: project?.id },
+    });
+
   const { data: pendingOrRunningData, loading: pendingOrRunningLoading } =
-    usePendingOrRunningPipelineRunsSubSubscription({
-      variables: {
-        appId: project?.id,
-      },
+    usePendingOrRunningUnifiedDeploymentsSubSubscription({
+      variables: { appId: project?.id },
     });
 
-  // Legacy deployments (deprecated, read-only)
-  const { data: legacyDeploymentsData, loading: legacyDeploymentsLoading } =
-    useGetDeploymentsQuery({
-      variables: {
-        id: project?.id,
-        limit: 5,
-        offset: 0,
-      },
-    });
-
-  const pipelineRuns = data?.pipelineRuns ?? [];
-
-  const allItems = useMemo(() => {
-    const legacy = (legacyDeploymentsData?.deployments ?? []).map(
-      legacyDeploymentToListItem,
-    );
-    const merged = [...pipelineRuns, ...legacy];
-    merged.sort((a, b) => {
-      const dateA = new Date(a.startedAt ?? a.createdAt).getTime();
-      const dateB = new Date(b.startedAt ?? b.createdAt).getTime();
-      return dateB - dateA;
-    });
-    return merged.slice(0, 5);
-  }, [data, legacyDeploymentsData, pipelineRuns]);
-
-  if (loading || pendingOrRunningLoading || legacyDeploymentsLoading) {
+  if (loading || latestLiveLoading || pendingOrRunningLoading) {
     return (
       <Box className="h-[323px] rounded-lg border-1 p-2">
         <ActivityIndicator label="Loading deployments..." />
@@ -100,7 +76,11 @@ function OverviewDeploymentList() {
     );
   }
 
-  if (!allItems.length) {
+  const deployments = data?.unifiedDeployments ?? [];
+  const pendingOrRunning = pendingOrRunningData?.unifiedDeployments ?? [];
+  const liveId = latestLiveData?.unifiedDeployments[0]?.id ?? '';
+
+  if (!deployments.length) {
     return (
       <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 px-4 py-12 shadow-sm">
         <RocketIcon
@@ -145,32 +125,23 @@ function OverviewDeploymentList() {
     );
   }
 
-  const liveRunId = getLastSucceededPipelineRun(pipelineRuns);
-  const pendingOrRunningRuns = pendingOrRunningData?.pipelineRuns ?? [];
-  const isInProgress = pipelineRuns.some((run) =>
-    ['pending', 'running'].includes(run.status as string),
-  );
-
   return (
     <List
       className="flex flex-col overflow-hidden rounded-lg rounded-x-lg"
       sx={{ borderColor: 'grey.300', borderWidth: 1 }}
     >
-      {allItems.map((item, index) => {
-        const isLegacy = item.name === 'legacy-deployment';
-        return (
-          <Fragment key={item.id}>
-            <DeploymentListItem
-              pipelineRun={item}
-              isLive={item.id === liveRunId}
-              showRedeploy={!isLegacy && index === 0}
-              disableRedeploy={pendingOrRunningRuns.length > 0 || isInProgress}
-            />
+      {deployments.map((item, index) => (
+        <Fragment key={item.id}>
+          <DeploymentListItem
+            deployment={item}
+            isLive={item.id === liveId}
+            showRedeploy={index === 0}
+            disableRedeploy={pendingOrRunning.length > 0}
+          />
 
-            {index !== allItems.length - 1 && <Divider component="li" />}
-          </Fragment>
-        );
-      })}
+          {index !== deployments.length - 1 && <Divider component="li" />}
+        </Fragment>
+      ))}
     </List>
   );
 }

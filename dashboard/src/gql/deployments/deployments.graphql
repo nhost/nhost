@@ -134,3 +134,60 @@ query getPipelineRun($id: uuid!) {
     ...PipelineRun
   }
 }
+
+# --- Unified Deployments (view combining deployments + pipeline runs) ---
+
+fragment UnifiedDeploymentRow on unifiedDeployments {
+  id
+  appId
+  source
+  commitSHA
+  commitUserName
+  commitUserAvatarUrl
+  commitMessage
+  startedAt
+  endedAt
+  status
+  createdAt
+}
+
+subscription getUnifiedDeploymentsSub(
+  $appId: uuid!
+  $limit: Int!
+  $offset: Int!
+) {
+  unifiedDeployments(
+    where: { appId: { _eq: $appId } }
+    order_by: { startedAt: desc }
+    limit: $limit
+    offset: $offset
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+
+subscription PendingOrRunningUnifiedDeploymentsSub($appId: uuid!) {
+  unifiedDeployments(
+    where: {
+      status: {
+        _in: ["pending", "running", "SCHEDULED", "PENDING", "DEPLOYING"]
+      }
+      appId: { _eq: $appId }
+    }
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+
+subscription LatestLiveUnifiedDeploymentSub($appId: uuid!) {
+  unifiedDeployments(
+    where: {
+      status: { _in: ["succeeded", "DEPLOYED"] }
+      appId: { _eq: $appId }
+    }
+    order_by: { startedAt: desc }
+    limit: 1
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}

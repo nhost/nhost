@@ -12,27 +12,26 @@ import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
-import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { ifNullconvertToUndefined } from '@/lib/utils';
-import type { PipelineRunRowFragment } from '@/utils/__generated__/graphql';
+import type { UnifiedDeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetOrganizationsDocument,
   useInsertPipelineRunMutation,
 } from '@/utils/__generated__/graphql';
 
 export interface DeploymentListItemProps {
-  pipelineRun: PipelineRunRowFragment;
+  deployment: UnifiedDeploymentRowFragment;
   isLive?: boolean;
   showRedeploy?: boolean;
   disableRedeploy?: boolean;
 }
 
 export default function DeploymentListItem({
-  pipelineRun,
+  deployment,
   isLive,
   showRedeploy,
   disableRedeploy,
@@ -41,10 +40,8 @@ export default function DeploymentListItem({
   const { org } = useCurrentOrg();
   const userData = useUserData();
 
-  const input = pipelineRun.input as PipelineRunInput;
-
-  const relativeDateOfDeployment = pipelineRun.startedAt
-    ? formatDistanceToNowStrict(parseISO(pipelineRun.startedAt), {
+  const relativeDateOfDeployment = deployment.startedAt
+    ? formatDistanceToNowStrict(parseISO(deployment.startedAt), {
         addSuffix: true,
       })
     : '';
@@ -55,9 +52,7 @@ export default function DeploymentListItem({
     ],
   });
 
-  const commitMessage = input?.commit_message;
-
-  async function redeployPipelineRun(event: MouseEvent<HTMLButtonElement>) {
+  async function redeploy(event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
     event.preventDefault();
 
@@ -67,10 +62,10 @@ export default function DeploymentListItem({
           input: {
             name: 'nhost-backend-build',
             app_id: project?.id,
-            commit_sha: input.commit_sha,
-            commit_user_name: input.commit_user_name,
-            commit_user_avatar_url: input.commit_user_avatar_url,
-            commit_message: input.commit_message,
+            commit_sha: deployment.commitSHA,
+            commit_user_name: deployment.commitUserName,
+            commit_user_avatar_url: deployment.commitUserAvatarUrl,
+            commit_message: deployment.commitMessage,
           },
         },
       },
@@ -93,23 +88,23 @@ export default function DeploymentListItem({
       <ListItem.Button
         className="grid h-fit grid-flow-col items-center justify-between gap-2 rounded-none p-2 hover:no-underline"
         component={NavLink}
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${pipelineRun.id}`}
-        aria-label={commitMessage || 'No commit message'}
+        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
+        aria-label={deployment.commitMessage || 'No commit message'}
       >
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
           <ListItem.Avatar>
             <Avatar
-              alt={ifNullconvertToUndefined(input?.commit_user_name)}
-              src={ifNullconvertToUndefined(input?.commit_user_avatar_url)}
+              alt={ifNullconvertToUndefined(deployment.commitUserName)}
+              src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
               className="h-8 w-8 shrink-0"
             >
-              {input?.commit_user_name ?? ''}
+              {deployment.commitUserName ?? ''}
             </Avatar>
           </ListItem.Avatar>
 
           <ListItem.Text
             primary={
-              commitMessage?.trim() || (
+              deployment.commitMessage?.trim() || (
                 <span className="truncate pr-1 font-normal italic">
                   No commit message
                 </span>
@@ -135,7 +130,7 @@ export default function DeploymentListItem({
                 size="small"
                 color="secondary"
                 variant="outlined"
-                onClick={redeployPipelineRun}
+                onClick={redeploy}
                 startIcon={
                   <ArrowCounterclockwiseIcon className={twMerge('h-4 w-4')} />
                 }
@@ -154,17 +149,17 @@ export default function DeploymentListItem({
           )}
 
           <div className="hidden w-16 text-right font-medium font-mono text-sm- text-white sm:block">
-            {input?.commit_sha?.substring(0, 7)}
+            {deployment.commitSHA?.substring(0, 7)}
           </div>
 
           <div className="text-right font-medium font-mono text-sm- sm:w-20">
             <DeploymentDurationLabel
-              startedAt={pipelineRun.startedAt}
-              endedAt={pipelineRun.endedAt}
+              startedAt={deployment.startedAt}
+              endedAt={deployment.endedAt}
             />
           </div>
 
-          <StatusCircle status={pipelineRun.status as PipelineRunStatus} />
+          <StatusCircle status={deployment.status as PipelineRunStatus} />
 
           <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>

@@ -22291,6 +22291,10 @@ export type Query_Root = {
   systemConfigs: Array<ConfigAppSystemConfig>;
   /** Returns system logs for a given application */
   systemLogs: Array<Log>;
+  /** fetch data from the table: "unified_deployments" */
+  unifiedDeployments: Array<UnifiedDeployments>;
+  /** fetch aggregated fields from the table: "unified_deployments" */
+  unifiedDeploymentsAggregate: UnifiedDeployments_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -23782,6 +23786,24 @@ export type Query_RootSystemLogsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootUnifiedDeploymentsArgs = {
+  distinct_on?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<UnifiedDeployments_Order_By>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+};
+
+
+export type Query_RootUnifiedDeploymentsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<UnifiedDeployments_Order_By>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
 };
 
 
@@ -26241,6 +26263,12 @@ export type Subscription_Root = {
   softwareVersionsAggregate: Software_Versions_Aggregate;
   /** fetch data from the table in a streaming manner: "software_versions" */
   softwareVersionsStream: Array<Software_Versions>;
+  /** fetch data from the table: "unified_deployments" */
+  unifiedDeployments: Array<UnifiedDeployments>;
+  /** fetch aggregated fields from the table: "unified_deployments" */
+  unifiedDeploymentsAggregate: UnifiedDeployments_Aggregate;
+  /** fetch data from the table in a streaming manner: "unified_deployments" */
+  unifiedDeployments_stream: Array<UnifiedDeployments>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -27949,6 +27977,31 @@ export type Subscription_RootSoftwareVersionsStreamArgs = {
 };
 
 
+export type Subscription_RootUnifiedDeploymentsArgs = {
+  distinct_on?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<UnifiedDeployments_Order_By>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+};
+
+
+export type Subscription_RootUnifiedDeploymentsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<UnifiedDeployments_Order_By>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+};
+
+
+export type Subscription_RootUnifiedDeployments_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<UnifiedDeployments_Stream_Cursor_Input>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+};
+
+
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -28109,6 +28162,162 @@ export type Timestamptz_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['timestamptz']>;
   _neq?: InputMaybe<Scalars['timestamptz']>;
   _nin?: InputMaybe<Array<Scalars['timestamptz']>>;
+};
+
+/** columns and relationships of "unified_deployments" */
+export type UnifiedDeployments = {
+  __typename?: 'unifiedDeployments';
+  /** An object relationship */
+  app?: Maybe<Apps>;
+  appId?: Maybe<Scalars['uuid']>;
+  commitMessage?: Maybe<Scalars['String']>;
+  commitSHA?: Maybe<Scalars['String']>;
+  commitUserAvatarUrl?: Maybe<Scalars['String']>;
+  commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  endedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  source?: Maybe<Scalars['String']>;
+  startedAt?: Maybe<Scalars['timestamptz']>;
+  status?: Maybe<Scalars['String']>;
+};
+
+/** aggregated selection of "unified_deployments" */
+export type UnifiedDeployments_Aggregate = {
+  __typename?: 'unifiedDeployments_aggregate';
+  aggregate?: Maybe<UnifiedDeployments_Aggregate_Fields>;
+  nodes: Array<UnifiedDeployments>;
+};
+
+/** aggregate fields of "unified_deployments" */
+export type UnifiedDeployments_Aggregate_Fields = {
+  __typename?: 'unifiedDeployments_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<UnifiedDeployments_Max_Fields>;
+  min?: Maybe<UnifiedDeployments_Min_Fields>;
+};
+
+
+/** aggregate fields of "unified_deployments" */
+export type UnifiedDeployments_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "unified_deployments". All fields are combined with a logical 'AND'. */
+export type UnifiedDeployments_Bool_Exp = {
+  _and?: InputMaybe<Array<UnifiedDeployments_Bool_Exp>>;
+  _not?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+  _or?: InputMaybe<Array<UnifiedDeployments_Bool_Exp>>;
+  app?: InputMaybe<Apps_Bool_Exp>;
+  appId?: InputMaybe<Uuid_Comparison_Exp>;
+  commitMessage?: InputMaybe<String_Comparison_Exp>;
+  commitSHA?: InputMaybe<String_Comparison_Exp>;
+  commitUserAvatarUrl?: InputMaybe<String_Comparison_Exp>;
+  commitUserName?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  endedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  source?: InputMaybe<String_Comparison_Exp>;
+  startedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  status?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** aggregate max on columns */
+export type UnifiedDeployments_Max_Fields = {
+  __typename?: 'unifiedDeployments_max_fields';
+  appId?: Maybe<Scalars['uuid']>;
+  commitMessage?: Maybe<Scalars['String']>;
+  commitSHA?: Maybe<Scalars['String']>;
+  commitUserAvatarUrl?: Maybe<Scalars['String']>;
+  commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  endedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  source?: Maybe<Scalars['String']>;
+  startedAt?: Maybe<Scalars['timestamptz']>;
+  status?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type UnifiedDeployments_Min_Fields = {
+  __typename?: 'unifiedDeployments_min_fields';
+  appId?: Maybe<Scalars['uuid']>;
+  commitMessage?: Maybe<Scalars['String']>;
+  commitSHA?: Maybe<Scalars['String']>;
+  commitUserAvatarUrl?: Maybe<Scalars['String']>;
+  commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  endedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  source?: Maybe<Scalars['String']>;
+  startedAt?: Maybe<Scalars['timestamptz']>;
+  status?: Maybe<Scalars['String']>;
+};
+
+/** Ordering options when selecting data from "unified_deployments". */
+export type UnifiedDeployments_Order_By = {
+  app?: InputMaybe<Apps_Order_By>;
+  appId?: InputMaybe<Order_By>;
+  commitMessage?: InputMaybe<Order_By>;
+  commitSHA?: InputMaybe<Order_By>;
+  commitUserAvatarUrl?: InputMaybe<Order_By>;
+  commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  endedAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  source?: InputMaybe<Order_By>;
+  startedAt?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+};
+
+/** select columns of table "unified_deployments" */
+export enum UnifiedDeployments_Select_Column {
+  /** column name */
+  AppId = 'appId',
+  /** column name */
+  CommitMessage = 'commitMessage',
+  /** column name */
+  CommitSha = 'commitSHA',
+  /** column name */
+  CommitUserAvatarUrl = 'commitUserAvatarUrl',
+  /** column name */
+  CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  EndedAt = 'endedAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Source = 'source',
+  /** column name */
+  StartedAt = 'startedAt',
+  /** column name */
+  Status = 'status'
+}
+
+/** Streaming cursor of the table "unifiedDeployments" */
+export type UnifiedDeployments_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: UnifiedDeployments_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type UnifiedDeployments_Stream_Cursor_Value_Input = {
+  appId?: InputMaybe<Scalars['uuid']>;
+  commitMessage?: InputMaybe<Scalars['String']>;
+  commitSHA?: InputMaybe<Scalars['String']>;
+  commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
+  commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  endedAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  source?: InputMaybe<Scalars['String']>;
+  startedAt?: InputMaybe<Scalars['timestamptz']>;
+  status?: InputMaybe<Scalars['String']>;
 };
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
@@ -31019,6 +31228,31 @@ export type GetPipelineRunQueryVariables = Exact<{
 
 export type GetPipelineRunQuery = { __typename?: 'query_root', pipelineRun?: { __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, substatus?: any | null, appId?: any | null, createdAt: any } | null };
 
+export type UnifiedDeploymentRowFragment = { __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null };
+
+export type GetUnifiedDeploymentsSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type GetUnifiedDeploymentsSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
+
+export type PendingOrRunningUnifiedDeploymentsSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type PendingOrRunningUnifiedDeploymentsSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
+
+export type LatestLiveUnifiedDeploymentSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type LatestLiveUnifiedDeploymentSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
+
 export type GetPipelineRunLogsQueryVariables = Exact<{
   appID: Scalars['String'];
   pipelineRunID: Scalars['String'];
@@ -31784,6 +32018,21 @@ export const PipelineRunFragmentDoc = gql`
   input
   substatus
   appId
+  createdAt
+}
+    `;
+export const UnifiedDeploymentRowFragmentDoc = gql`
+    fragment UnifiedDeploymentRow on unifiedDeployments {
+  id
+  appId
+  source
+  commitSHA
+  commitUserName
+  commitUserAvatarUrl
+  commitMessage
+  startedAt
+  endedAt
+  status
   createdAt
 }
     `;
@@ -34974,6 +35223,109 @@ export type GetPipelineRunQueryResult = Apollo.QueryResult<GetPipelineRunQuery, 
 export function refetchGetPipelineRunQuery(variables: GetPipelineRunQueryVariables) {
       return { query: GetPipelineRunDocument, variables: variables }
     }
+export const GetUnifiedDeploymentsSubDocument = gql`
+    subscription getUnifiedDeploymentsSub($appId: uuid!, $limit: Int!, $offset: Int!) {
+  unifiedDeployments(
+    where: {appId: {_eq: $appId}}
+    order_by: {startedAt: desc}
+    limit: $limit
+    offset: $offset
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+    ${UnifiedDeploymentRowFragmentDoc}`;
+
+/**
+ * __useGetUnifiedDeploymentsSubSubscription__
+ *
+ * To run a query within a React component, call `useGetUnifiedDeploymentsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetUnifiedDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUnifiedDeploymentsSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetUnifiedDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetUnifiedDeploymentsSubSubscription, GetUnifiedDeploymentsSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetUnifiedDeploymentsSubSubscription, GetUnifiedDeploymentsSubSubscriptionVariables>(GetUnifiedDeploymentsSubDocument, options);
+      }
+export type GetUnifiedDeploymentsSubSubscriptionHookResult = ReturnType<typeof useGetUnifiedDeploymentsSubSubscription>;
+export type GetUnifiedDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<GetUnifiedDeploymentsSubSubscription>;
+export const PendingOrRunningUnifiedDeploymentsSubDocument = gql`
+    subscription PendingOrRunningUnifiedDeploymentsSub($appId: uuid!) {
+  unifiedDeployments(
+    where: {status: {_in: ["pending", "running", "SCHEDULED", "PENDING", "DEPLOYING"]}, appId: {_eq: $appId}}
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+    ${UnifiedDeploymentRowFragmentDoc}`;
+
+/**
+ * __usePendingOrRunningUnifiedDeploymentsSubSubscription__
+ *
+ * To run a query within a React component, call `usePendingOrRunningUnifiedDeploymentsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `usePendingOrRunningUnifiedDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePendingOrRunningUnifiedDeploymentsSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function usePendingOrRunningUnifiedDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<PendingOrRunningUnifiedDeploymentsSubSubscription, PendingOrRunningUnifiedDeploymentsSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<PendingOrRunningUnifiedDeploymentsSubSubscription, PendingOrRunningUnifiedDeploymentsSubSubscriptionVariables>(PendingOrRunningUnifiedDeploymentsSubDocument, options);
+      }
+export type PendingOrRunningUnifiedDeploymentsSubSubscriptionHookResult = ReturnType<typeof usePendingOrRunningUnifiedDeploymentsSubSubscription>;
+export type PendingOrRunningUnifiedDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<PendingOrRunningUnifiedDeploymentsSubSubscription>;
+export const LatestLiveUnifiedDeploymentSubDocument = gql`
+    subscription LatestLiveUnifiedDeploymentSub($appId: uuid!) {
+  unifiedDeployments(
+    where: {status: {_in: ["succeeded", "DEPLOYED"]}, appId: {_eq: $appId}}
+    order_by: {startedAt: desc}
+    limit: 1
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+    ${UnifiedDeploymentRowFragmentDoc}`;
+
+/**
+ * __useLatestLiveUnifiedDeploymentSubSubscription__
+ *
+ * To run a query within a React component, call `useLatestLiveUnifiedDeploymentSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useLatestLiveUnifiedDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLatestLiveUnifiedDeploymentSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useLatestLiveUnifiedDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<LatestLiveUnifiedDeploymentSubSubscription, LatestLiveUnifiedDeploymentSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<LatestLiveUnifiedDeploymentSubSubscription, LatestLiveUnifiedDeploymentSubSubscriptionVariables>(LatestLiveUnifiedDeploymentSubDocument, options);
+      }
+export type LatestLiveUnifiedDeploymentSubSubscriptionHookResult = ReturnType<typeof useLatestLiveUnifiedDeploymentSubSubscription>;
+export type LatestLiveUnifiedDeploymentSubSubscriptionResult = Apollo.SubscriptionResult<LatestLiveUnifiedDeploymentSubSubscription>;
 export const GetPipelineRunLogsDocument = gql`
     query getPipelineRunLogs($appID: String!, $pipelineRunID: String!, $from: Timestamp, $to: Timestamp) {
   getPipelineRunLogs(

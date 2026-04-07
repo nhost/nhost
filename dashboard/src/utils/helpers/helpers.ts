@@ -1,19 +1,6 @@
 import slugify from 'slugify';
 import { ApplicationStatus } from '@/types/application';
-import type {
-  ConfigRunServicePort,
-  PipelineRunRowFragment,
-} from '@/utils/__generated__/graphql';
-
-export function getLastSucceededPipelineRun(
-  pipelineRuns?: PipelineRunRowFragment[],
-) {
-  if (!pipelineRuns) {
-    return '';
-  }
-
-  return pipelineRuns.find((run) => run.status === 'succeeded')?.id || '';
-}
+import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
 
 export function slugifyString(s: string) {
   return slugify(s, { lower: true, strict: true });

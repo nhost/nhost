@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { Fragment, useMemo } from 'react';
+import { Fragment } from 'react';
 import { IconLink } from '@/components/common/IconLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -8,12 +8,10 @@ import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
-import { legacyDeploymentToListItem } from '@/features/orgs/projects/deployments/utils/legacy-deployments';
 import {
-  useGetDeploymentsQuery,
-  useGetPipelineRunsSubSubscription,
-  useLatestSucceededPipelineRunSubSubscription,
-  usePendingOrRunningPipelineRunsSubSubscription,
+  useGetUnifiedDeploymentsSubSubscription,
+  useLatestLiveUnifiedDeploymentSubSubscription,
+  usePendingOrRunningUnifiedDeploymentsSubSubscription,
 } from '@/generated/graphql';
 
 export type AppDeploymentsProps = {
@@ -61,7 +59,7 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
       variant="link"
       underline="none"
       className="flex items-center justify-center py-0"
-      href={`${window.location.pathname}?page=${currentPage - 1}`}
+      href={`${window.location.pathname}?page=${currentPage + 1}`}
     >
       <ChevronRightIcon className="h-4 w-4" />
     </IconLink>
@@ -80,58 +78,21 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const limit = 10;
   const offset = (page - 1) * limit;
 
-  const {
-    data: pipelineRunPageData,
-    loading: pipelineRunPageLoading,
-    error,
-  } = useGetPipelineRunsSubSubscription({
-    variables: { id: appId, limit, offset },
+  const { data, loading, error } = useGetUnifiedDeploymentsSubSubscription({
+    variables: { appId, limit, offset },
   });
 
-  const { data: latestPipelineRunData, loading: latestPipelineRunLoading } =
-    useGetPipelineRunsSubSubscription({
-      variables: { id: appId, limit: 1, offset: 0 },
+  const { data: latestLiveData, loading: latestLiveLoading } =
+    useLatestLiveUnifiedDeploymentSubSubscription({
+      variables: { appId },
     });
-
-  const { data: latestSucceededData, loading: latestSucceededLoading } =
-    useLatestSucceededPipelineRunSubSubscription({ variables: { appId } });
 
   const { data: pendingOrRunningData, loading: pendingOrRunningLoading } =
-    usePendingOrRunningPipelineRunsSubSubscription({ variables: { appId } });
-
-  // Legacy deployments (deprecated, read-only)
-  const { data: legacyDeploymentsData, loading: legacyDeploymentsLoading } =
-    useGetDeploymentsQuery({
-      variables: { id: appId, limit, offset },
+    usePendingOrRunningUnifiedDeploymentsSubSubscription({
+      variables: { appId },
     });
 
-  const pipelineRuns = pipelineRunPageData?.pipelineRuns ?? [];
-  const pendingOrRunningRuns = pendingOrRunningData?.pipelineRuns ?? [];
-  const latestRun = latestPipelineRunData?.pipelineRuns[0];
-  const latestSucceededRun = latestSucceededData?.pipelineRuns[0];
-
-  // Merge pipeline runs and legacy deployments into a single sorted list
-  const allItems = useMemo(() => {
-    const legacy = (legacyDeploymentsData?.deployments ?? []).map(
-      legacyDeploymentToListItem,
-    );
-    const merged = [...pipelineRuns, ...legacy];
-    merged.sort((a, b) => {
-      const dateA = new Date(a.startedAt ?? a.createdAt).getTime();
-      const dateB = new Date(b.startedAt ?? b.createdAt).getTime();
-      return dateB - dateA;
-    });
-    return merged.slice(0, limit);
-  }, [pipelineRunPageData, legacyDeploymentsData, pipelineRuns, limit]);
-
-  const loading =
-    pipelineRunPageLoading ||
-    pendingOrRunningLoading ||
-    latestPipelineRunLoading ||
-    latestSucceededLoading ||
-    legacyDeploymentsLoading;
-
-  if (loading) {
+  if (loading || latestLiveLoading || pendingOrRunningLoading) {
     return (
       <ActivityIndicator
         delay={500}
@@ -145,13 +106,12 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     throw error;
   }
 
-  const isInProgress = pipelineRuns.some((run) =>
-    ['pending', 'running'].includes(run.status as string),
-  );
+  const deployments = data?.unifiedDeployments ?? [];
+  const pendingOrRunning = pendingOrRunningData?.unifiedDeployments ?? [];
+  const liveId = latestLiveData?.unifiedDeployments[0]?.id ?? '';
 
-  const nrOfItems = allItems.length;
+  const nrOfItems = deployments.length;
   const nextAllowed = nrOfItems >= limit;
-  const liveRunId = latestSucceededRun?.id || '';
 
   return (
     <div className="mt-6">
@@ -160,23 +120,20 @@ export default function AppDeployments(props: AppDeploymentsProps) {
       ) : (
         <div>
           <List className="mt-3 border-y" sx={{ borderColor: 'grey.300' }}>
-            {allItems.map((item, index) => {
-              const isLegacy = item.name === 'legacy-deployment';
-              return (
-                <Fragment key={item.id}>
-                  <DeploymentListItem
-                    pipelineRun={item}
-                    isLive={liveRunId === item.id}
-                    showRedeploy={!isLegacy && latestRun?.id === item.id}
-                    disableRedeploy={
-                      pendingOrRunningRuns.length > 0 || isInProgress
-                    }
-                  />
+            {deployments.map((item, index) => (
+              <Fragment key={item.id}>
+                <DeploymentListItem
+                  deployment={item}
+                  isLive={liveId === item.id}
+                  showRedeploy={index === 0}
+                  disableRedeploy={pendingOrRunning.length > 0}
+                />
 
-                  {index !== allItems.length - 1 && <Divider component="li" />}
-                </Fragment>
-              );
-            })}
+                {index !== deployments.length - 1 && (
+                  <Divider component="li" />
+                )}
+              </Fragment>
+            ))}
           </List>
           <div className="mt-8 flex w-full justify-center">
             <div className="grid grid-flow-col items-center gap-2">
