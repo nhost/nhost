@@ -27,9 +27,9 @@ import { getFunctionPermissionState } from '@/features/orgs/projects/database/da
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export interface EditFunctionPermissionsFormProps {
   /**
