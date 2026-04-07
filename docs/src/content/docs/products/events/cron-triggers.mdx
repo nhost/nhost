@@ -93,6 +93,26 @@ Cron trigger retry configuration uses `retry_interval_seconds` and `timeout_seco
 
 Cron triggers deliver an HTTP request to any endpoint. The default method is POST, but you can change it using [request transformations](/products/events/transformations). The request body contains a `payload` field with the JSON you configured, not database row data.
 
+### Webhook Payload
+
+Cron triggers deliver schedule metadata and the custom JSON payload you configured in the trigger definition.
+
+```json
+{
+  "scheduled_time": "2024-01-15T12:00:00.000Z",
+  "payload": {},
+  "name": "stale_todos_check",
+  "comment": "Checks for incomplete todos not updated in 7+ days, marks them stale, and notifies owners."
+}
+```
+
+| Field            | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| `scheduled_time` | ISO 8601 timestamp of the scheduled invocation (UTC)         |
+| `payload`        | The JSON object configured in the trigger definition         |
+| `name`           | The cron trigger name                                        |
+| `comment`        | The optional comment/description from the trigger definition |
+
 For working handler examples, see:
 - [Stale Todo Cleanup](/products/events/guides/stale-todo-cleanup) — detect and flag stale todos on a schedule
 - [Webhook Security](/products/events/guides/webhook-security) — validate the shared secret in your handler

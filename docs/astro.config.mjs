@@ -521,7 +521,6 @@ export default defineConfig({
                       slug: 'products/events/one-off-scheduled-events',
                     },
                     { slug: 'products/events/transformations' },
-                    { slug: 'products/events/webhook-payloads' },
                     { slug: 'products/events/retry-configuration' },
                   ],
                 },
