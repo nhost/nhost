@@ -5,9 +5,6 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [tsconfigPaths({ projects: ['./tsconfig.test.json'] }), react()],
   cacheDir: './.vitest',
-  oxc: {
-    exclude: ['**/packages/nhost-js/dist/**'],
-  },
   test: {
     globalSetup: './vitest.global-setup.ts',
     testTimeout: 30000,
