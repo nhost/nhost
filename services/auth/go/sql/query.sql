@@ -418,13 +418,16 @@ WHERE provider_user_id = $1 AND provider_id = $2;
 
 -- name: GetProviderSession :one
 WITH old_token AS (
-  SELECT access_token
+  SELECT id, access_token
   FROM auth.user_providers
   WHERE user_id = @user_id AND provider_id = @provider_id
+  ORDER BY updated_at DESC
+  LIMIT 1
+  FOR UPDATE
 )
 UPDATE auth.user_providers
 SET access_token = ''
-WHERE user_id = @user_id AND provider_id = @provider_id
+WHERE id = (SELECT id FROM old_token)
 RETURNING (SELECT access_token FROM old_token);
 
 -- =============================================================================
