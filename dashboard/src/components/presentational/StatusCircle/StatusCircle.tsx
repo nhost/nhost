@@ -54,5 +54,11 @@ export default function StatusCircle({ status }: StatusCircleProps) {
     );
   }
 
+  if (status === 'aborted') {
+    return (
+      <Box className={baseClasses} sx={{ backgroundColor: 'grey.500' }} />
+    );
+  }
+
   return <Box className={baseClasses} sx={{ backgroundColor: 'grey.500' }} />;
 }
