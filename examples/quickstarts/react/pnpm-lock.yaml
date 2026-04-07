@@ -87,7 +87,7 @@ importers:
         specifier: ^16.3.0
         version: 16.3.0
       vite:
-        specifier: '>=8.0.6'
+        specifier: ^8.0.6
         version: 8.0.6
 
 packages:

@@ -75,7 +75,7 @@ importers:
         specifier: '>=5.53.5'
         version: 5.53.5
       vite:
-        specifier: '>=8.0.6'
+        specifier: ^8.0.6
         version: 8.0.6
 
 packages:
