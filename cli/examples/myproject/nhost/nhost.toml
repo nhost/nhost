@@ -8,6 +8,10 @@ name = 'NODE_ENV'
 value = 'production'
 
 [[global.environment]]
+name = 'BREAK'
+value = '{{ secrets.BREAK }}'
+
+[[global.environment]]
 name = 'STRIPE_SECRET_KEY'
 value = '{{ secrets.STRIPE_SECRET_KEY }}'
 
