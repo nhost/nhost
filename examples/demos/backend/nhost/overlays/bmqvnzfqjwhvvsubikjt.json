@@ -23,5 +23,18 @@
   {
     "op": "remove",
     "path": "/auth/method/oauth/apple/teamId"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/github/clientId"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/github/clientSecret"
+  },
+  {
+    "value": false,
+    "op": "replace",
+    "path": "/auth/method/oauth/github/enabled"
   }
 ]
