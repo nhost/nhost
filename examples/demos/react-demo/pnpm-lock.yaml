@@ -7,7 +7,7 @@ settings:
 overrides:
   esbuild@<=0.24.2: '>=0.25.0'
   vite@<=6.4.1: '>=6.4.2'
-  vite@>=7.0.0 <=7.3.1: '>=7.3.2'
+  vite@>=7.0.0 <=7.3.1: 7.3.2
   express@<4.19.2: '>=4.19.2'
   zod@<=3.22.2: '>=3.22.3'
   body-parser@<1.20.3: '>=1.20.3'
@@ -518,7 +518,7 @@ packages:
     resolution: {integrity: sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: '>=7.3.2'
+      vite: 7.3.2
 
   bcryptjs@2.4.3:
     resolution: {integrity: sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==}
