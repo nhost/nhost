@@ -28,12 +28,12 @@ import {
 } from '@/features/orgs/projects/deployments/hooks/useDeploymentLogs';
 import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
 import {
-  type PipelineRunSubstatus,
-  type TaskGroup,
-  type TaskStatus,
   buildTaskGroups,
   formatTaskDuration,
   formatTaskName,
+  type PipelineRunSubstatus,
+  type TaskGroup,
+  type TaskStatus,
 } from '@/features/orgs/projects/deployments/utils/task-groups';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, ifNullconvertToUndefined } from '@/lib/utils';

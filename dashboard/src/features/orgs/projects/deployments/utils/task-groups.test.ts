@@ -1,9 +1,9 @@
 import type { DeploymentLog } from '@/features/orgs/projects/deployments/hooks/useDeploymentLogs';
 import {
-  type PipelineRunSubstatus,
   buildTaskGroups,
   formatTaskDuration,
   formatTaskName,
+  type PipelineRunSubstatus,
 } from './task-groups';
 
 function makeLog(

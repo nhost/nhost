@@ -181,8 +181,7 @@ test('should render a list of deployments', async () => {
                 source: 'pipeline_run',
                 commitSHA: 'abc123',
                 commitUserName: 'test.user',
-                commitUserAvatarUrl:
-                  'http://images.example.com/avatar.png',
+                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
                 commitMessage: 'Test commit message',
                 startedAt: '2021-08-01T00:00:00.000Z',
                 endedAt: '2021-08-01T00:05:00.000Z',
@@ -234,8 +233,7 @@ test('should disable redeployments if a deployment is already in progress', asyn
                   source: 'pipeline_run',
                   commitSHA: 'abc234',
                   commitUserName: 'test.user',
-                  commitUserAvatarUrl:
-                    'http://images.example.com/avatar.png',
+                  commitUserAvatarUrl: 'http://images.example.com/avatar.png',
                   commitMessage: 'Test commit message',
                   startedAt: '2021-08-02T00:00:00.000Z',
                   endedAt: null,
@@ -271,8 +269,7 @@ test('should disable redeployments if a deployment is already in progress', asyn
                 source: 'pipeline_run',
                 commitSHA: 'abc123',
                 commitUserName: 'test.user',
-                commitUserAvatarUrl:
-                  'http://images.example.com/avatar.png',
+                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
                 commitMessage: 'Test commit message',
                 startedAt: '2021-08-01T00:00:00.000Z',
                 endedAt: '2021-08-01T00:05:00.000Z',

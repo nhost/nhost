@@ -129,9 +129,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
                   disableRedeploy={pendingOrRunning.length > 0}
                 />
 
-                {index !== deployments.length - 1 && (
-                  <Divider component="li" />
-                )}
+                {index !== deployments.length - 1 && <Divider component="li" />}
               </Fragment>
             ))}
           </List>

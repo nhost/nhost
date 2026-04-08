@@ -30,11 +30,7 @@ export default function StatusCircle({ status }: StatusCircleProps) {
     return <span className={cn(base, 'animate-pulse bg-blue-500')} />;
   }
 
-  if (
-    status === 'pending' ||
-    status === 'PENDING' ||
-    status === 'SCHEDULED'
-  ) {
+  if (status === 'pending' || status === 'PENDING' || status === 'SCHEDULED') {
     return <span className={cn(base, 'animate-pulse bg-yellow-500')} />;
   }
 

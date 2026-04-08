@@ -86,9 +86,7 @@ export function buildTaskGroups(
       if (!b.startedAt) {
         return -1;
       }
-      return (
-        new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
-      );
+      return new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime();
     });
 
     return result;
@@ -101,8 +99,7 @@ export function buildTaskGroups(
   return Array.from(logsMap.entries())
     .sort(
       ([, a], [, b]) =>
-        new Date(a[0].timestamp).getTime() -
-        new Date(b[0].timestamp).getTime(),
+        new Date(a[0].timestamp).getTime() - new Date(b[0].timestamp).getTime(),
     )
     .map(([name, taskLogs]) => ({
       name,
