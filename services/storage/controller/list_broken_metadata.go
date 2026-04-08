@@ -15,8 +15,8 @@ type ListBrokenMetadataResponse struct {
 }
 
 func (ctrl *Controller) listBrokenMetadata(ctx context.Context) ([]FileSummary, *APIError) {
-	headers := middleware.SessionHeadersFromContext(ctx)
-	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(ctx, headers)
+	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
+	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(ctx, sessionHeaders)
 	if apiErr != nil {
 		return nil, apiErr
 	}
