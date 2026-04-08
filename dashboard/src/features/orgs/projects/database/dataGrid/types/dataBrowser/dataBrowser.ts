@@ -216,6 +216,8 @@ export type TableLikeObjectType =
 
 export type DatabaseObjectType = TableLikeObjectType | 'FUNCTION';
 
+export type DataBrowserSidebarFilterType = DatabaseObjectType | 'ENUM';
+
 export type DatabaseObjectViewModel =
   | {
       schema: string;

@@ -22,113 +22,36 @@ function fn(
 }
 
 describe('sortDatabaseObjects', () => {
-  test('should sort all object types in the correct group order', () => {
+  test('should sort all objects alphabetically regardless of type', () => {
     const input = [
-      fn('e_func', '16384'),
-      obj('d_view', 'VIEW'),
-      obj('c_mat_view', 'MATERIALIZED VIEW'),
-      obj('b_foreign', 'FOREIGN TABLE'),
-      obj('a_table', 'ORDINARY TABLE'),
+      fn('search_users', '16384'),
+      obj('users', 'ORDINARY TABLE'),
+      obj('activity_log', 'VIEW'),
+      obj('cached_stats', 'MATERIALIZED VIEW'),
+      obj('external_data', 'FOREIGN TABLE'),
     ];
 
     const result = sortDatabaseObjects(input);
 
-    expect(result.map((o) => o.objectType)).toEqual([
-      'ORDINARY TABLE',
-      'FOREIGN TABLE',
-      'MATERIALIZED VIEW',
-      'VIEW',
-      'FUNCTION',
+    expect(result.map((o) => o.name)).toEqual([
+      'activity_log',
+      'cached_stats',
+      'external_data',
+      'search_users',
+      'users',
     ]);
   });
 
-  test('should sort alphabetically within the same type group', () => {
+  test('should sort alphabetically within mixed types', () => {
     const input = [
-      obj('zebra', 'ORDINARY TABLE'),
-      obj('alpha', 'ORDINARY TABLE'),
+      obj('zebra', 'VIEW'),
+      fn('alpha', '1'),
       obj('middle', 'ORDINARY TABLE'),
     ];
 
     const result = sortDatabaseObjects(input);
 
     expect(result.map((o) => o.name)).toEqual(['alpha', 'middle', 'zebra']);
-  });
-
-  test('should place enum tables in their own group after ordinary tables', () => {
-    const enums = new Set(['public.status_enum']);
-    const input = [
-      obj('status_enum', 'ORDINARY TABLE'),
-      obj('users', 'ORDINARY TABLE'),
-      obj('my_view', 'VIEW'),
-    ];
-
-    const result = sortDatabaseObjects(input, enums);
-
-    expect(result.map((o) => o.name)).toEqual([
-      'users',
-      'status_enum',
-      'my_view',
-    ]);
-  });
-
-  test('should sort multiple enum tables alphabetically', () => {
-    const enums = new Set(['public.status', 'public.priority']);
-    const input = [
-      obj('status', 'ORDINARY TABLE'),
-      obj('priority', 'ORDINARY TABLE'),
-      obj('users', 'ORDINARY TABLE'),
-    ];
-
-    const result = sortDatabaseObjects(input, enums);
-
-    expect(result.map((o) => o.name)).toEqual(['users', 'priority', 'status']);
-  });
-
-  test('should use schema-qualified path for enum detection', () => {
-    const enums = new Set(['other_schema.my_table']);
-    const input = [
-      obj('my_table', 'ORDINARY TABLE', 'public'),
-      obj('my_table', 'ORDINARY TABLE', 'other_schema'),
-    ];
-
-    const result = sortDatabaseObjects(input, enums);
-
-    expect(result.map((o) => `${o.schema}.${o.name}`)).toEqual([
-      'public.my_table',
-      'other_schema.my_table',
-    ]);
-  });
-
-  test('should place functions after all other object types', () => {
-    const input = [
-      fn('search_users', '16384'),
-      obj('my_view', 'VIEW'),
-      obj('users', 'ORDINARY TABLE'),
-    ];
-
-    const result = sortDatabaseObjects(input);
-
-    expect(result.map((o) => o.name)).toEqual([
-      'users',
-      'my_view',
-      'search_users',
-    ]);
-  });
-
-  test('should sort functions alphabetically among themselves', () => {
-    const input = [
-      fn('search_users', '16384'),
-      fn('get_orders', '16385'),
-      fn('list_products', '16386'),
-    ];
-
-    const result = sortDatabaseObjects(input);
-
-    expect(result.map((o) => o.name)).toEqual([
-      'get_orders',
-      'list_products',
-      'search_users',
-    ]);
   });
 
   test('should not mutate the original array', () => {
@@ -138,5 +61,9 @@ describe('sortDatabaseObjects', () => {
     sortDatabaseObjects(input);
 
     expect(input).toEqual(original);
+  });
+
+  test('should handle an empty array', () => {
+    expect(sortDatabaseObjects([])).toEqual([]);
   });
 });
