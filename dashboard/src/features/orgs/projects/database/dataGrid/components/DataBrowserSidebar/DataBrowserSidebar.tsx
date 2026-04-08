@@ -158,7 +158,7 @@ function DataBrowserSidebarContent({
       'FUNCTION',
       'FOREIGN TABLE',
     ];
-    return displayOrder.filter((t) => typeSet.has(t));
+    return displayOrder;
   }, [searchFilteredObjects, enumTablePaths]);
 
   const displayedObjects = searchFilteredObjects
@@ -254,7 +254,7 @@ function DataBrowserSidebarContent({
             placeholder="Search objects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 pl-8 text-sm"
+            className="h-10 pl-8 text-sm"
           />
         </div>
         {availableTypes.length > 0 && (
