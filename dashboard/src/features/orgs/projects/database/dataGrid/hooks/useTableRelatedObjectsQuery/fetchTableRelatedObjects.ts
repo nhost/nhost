@@ -26,6 +26,7 @@ export interface TableTrigger {
   events: string[];
   functionName: string;
   functionSchema: string;
+  functionOid: number;
   isEnabled: boolean;
   definition: string;
 }
@@ -110,6 +111,7 @@ export default async function fetchTableRelatedObjects({
               ], NULL) AS events,
               proc.proname AS function_name,
               nsp_func.nspname AS function_schema,
+              proc.oid AS function_oid,
               trg.tgenabled != 'D' AS is_enabled,
               pg_get_triggerdef(trg.oid) AS trigger_definition
             FROM pg_trigger trg
@@ -213,6 +215,7 @@ export default async function fetchTableRelatedObjects({
       events: data.events || [],
       functionName: data.function_name,
       functionSchema: data.function_schema,
+      functionOid: data.function_oid,
       isEnabled: data.is_enabled,
       definition: data.trigger_definition,
     };

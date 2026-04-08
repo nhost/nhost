@@ -189,7 +189,7 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
   return (
     <div className="space-y-3">
       {triggers.map((trigger) => {
-        const functionUrl = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${trigger.functionSchema}/functions/${trigger.functionName}`;
+        const functionUrl = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${trigger.functionSchema}/functions/${trigger.functionOid}`;
 
         return (
           <div
