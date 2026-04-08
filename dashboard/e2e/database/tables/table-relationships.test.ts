@@ -156,6 +156,23 @@ test('should create and delete a remote schema relationship', async ({
     .getByPlaceholder(/graphql-service\.example\.com/i)
     .fill(REMOTE_SCHEMA_TEST_URL);
 
+  await page
+    .getByRole('button', { name: /add graphql customization/i })
+    .click();
+
+  await page.fill(
+    '#definition\\.customization\\.type_prefix',
+    `${schemaName}_`,
+  );
+  await page.fill(
+    '#definition\\.customization\\.query_root\\.prefix',
+    `${schemaName}_`,
+  );
+  await page.fill(
+    '#definition\\.customization\\.mutation_root\\.prefix',
+    `${schemaName}_`,
+  );
+
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForSelector(
@@ -260,6 +277,10 @@ test('should create and delete a remote schema relationship', async ({
 
   await page.getByRole('menuitem', { name: /delete remote schema/i }).click();
   await page.getByRole('button', { name: /^delete$/i }).click();
+
+  await page.waitForSelector(
+    'div:has-text("Remote schema deleted successfully.")',
+  );
 
   await expect(
     page.getByRole('link', { name: schemaName, exact: true }),
