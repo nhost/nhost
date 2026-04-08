@@ -1,7 +1,7 @@
 import { Lock, Plus, Search, Terminal } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
@@ -127,39 +127,11 @@ function DataBrowserSidebarContent({
     allObjects: allObjectsInSelectedSchema,
   });
 
-  const searchFilteredObjects = useMemo(() => {
-    if (!searchQuery) {
-      return allObjectsInSelectedSchema;
-    }
-    const query = searchQuery.toLowerCase();
-    return allObjectsInSelectedSchema.filter((obj) =>
-      obj.name.toLowerCase().includes(query),
-    );
-  }, [allObjectsInSelectedSchema, searchQuery]);
-
-  const availableTypes = useMemo(() => {
-    const typeSet = new Set<DataBrowserSidebarFilterType>();
-    for (const obj of searchFilteredObjects) {
-      const tablePath = `${obj.schema}.${obj.name}`;
-      if (
-        obj.objectType === 'ORDINARY TABLE' &&
-        enumTablePaths?.has(tablePath)
-      ) {
-        typeSet.add('ENUM');
-      } else {
-        typeSet.add(obj.objectType);
-      }
-    }
-    const displayOrder: DataBrowserSidebarFilterType[] = [
-      'ORDINARY TABLE',
-      'ENUM',
-      'VIEW',
-      'MATERIALIZED VIEW',
-      'FUNCTION',
-      'FOREIGN TABLE',
-    ];
-    return displayOrder;
-  }, [searchFilteredObjects, enumTablePaths]);
+  const searchFilteredObjects = searchQuery
+    ? allObjectsInSelectedSchema.filter((obj) =>
+        obj.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    : allObjectsInSelectedSchema;
 
   const displayedObjects = searchFilteredObjects
     .filter((obj) => {
@@ -222,10 +194,10 @@ function DataBrowserSidebarContent({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 flex-col px-2">
+      <div className="flex shrink-0 flex-col gap-4 px-2">
         {schemas && schemas.length > 0 && (
           <Select value={selectedSchema} onValueChange={setSelectedSchema}>
-            <SelectTrigger className="w-full min-w-[initial] max-w-[220px]">
+            <SelectTrigger className="w-full min-w-[initial] max-w-full">
               <SelectValue placeholder="Is null?" />
             </SelectTrigger>
             <SelectContent>
@@ -248,26 +220,26 @@ function DataBrowserSidebarContent({
             </SelectContent>
           </Select>
         )}
-        <div className="relative mt-2">
-          <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search objects..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 pl-8 text-sm"
-          />
-        </div>
-        {availableTypes.length > 0 && (
+        <div>
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search objects..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-10 pl-8 text-sm"
+            />
+          </div>
           <DatabaseObjectTypeFilterBar
-            availableTypes={availableTypes}
             activeFilters={activeFilters}
             onToggleFilter={handleToggleFilter}
+            onClear={() => setActiveFilters(new Set())}
           />
-        )}
+        </div>
         {!isSelectedSchemaLocked && (
           <Button
             variant="link"
-            className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
+            className="!text-sm+ flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
             onClick={() => {
               dataBrowserActions.openCreateTableDrawer();
               onSidebarItemClick?.();

@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -5,6 +6,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import type { DataBrowserSidebarFilterType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getDatabaseObjectColor } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectColor';
 import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
 import { cn } from '@/lib/utils';
 
@@ -17,26 +19,38 @@ const filterLabels: Record<DataBrowserSidebarFilterType, string> = {
   ENUM: 'Enum',
 };
 
+const allFilters: DataBrowserSidebarFilterType[] = [
+  'ORDINARY TABLE',
+  'ENUM',
+  'VIEW',
+  'MATERIALIZED VIEW',
+  'FUNCTION',
+  'FOREIGN TABLE',
+];
+
 interface DatabaseObjectTypeFilterBarProps {
-  availableTypes: DataBrowserSidebarFilterType[];
   activeFilters: Set<DataBrowserSidebarFilterType>;
   onToggleFilter: (type: DataBrowserSidebarFilterType) => void;
+  onClear: () => void;
 }
 
 export default function DatabaseObjectTypeFilterBar({
-  availableTypes,
   activeFilters,
   onToggleFilter,
+  onClear,
 }: DatabaseObjectTypeFilterBarProps) {
+  const hasActiveFilters = activeFilters.size > 0;
+
   return (
-    <div className="flex items-center gap-0.5 px-1">
-      {availableTypes.map((type) => {
+    <div className="flex w-full items-center gap-0.5 px-1">
+      {allFilters.map((type) => {
         const isEnum = type === 'ENUM';
         const Icon = getDatabaseObjectIcon(
           isEnum ? 'ORDINARY TABLE' : type,
           isEnum,
         );
         const isActive = activeFilters.has(type);
+        const typeColor = getDatabaseObjectColor(type);
 
         return (
           <Tooltip key={type}>
@@ -50,15 +64,32 @@ export default function DatabaseObjectTypeFilterBar({
                 })}
                 onClick={() => onToggleFilter(type)}
               >
-                <Icon className="h-3.5 w-3.5 text-blue-500" />
+                <Icon className={cn('h-3.5 w-3.5', typeColor)} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={4}>
+            <TooltipContent side="bottom" sideOffset={0}>
               {filterLabels[type]}
             </TooltipContent>
           </Tooltip>
         );
       })}
+      {hasActiveFilters && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="ml-auto h-7 w-7 text-muted-foreground hover:text-foreground"
+              onClick={onClear}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" sideOffset={4}>
+            Clear filters
+          </TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }
