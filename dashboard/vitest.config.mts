@@ -25,7 +25,7 @@ export default defineConfig({
     deps: {
       optimizer: {
         web: {
-          include: ['clsx'],
+          include: ['clsx', '@nhost/nhost-js'],
         },
       },
     },

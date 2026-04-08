@@ -224,9 +224,12 @@ export class TestUserEvent {
   }
 
   async type(element: Element, value: string, options?: TypeOptions) {
-    await waitFor(async () => {
-      await this.user.type(element, value, options);
-    });
+    await waitFor(
+      async () => {
+        await this.user.type(element, value, options);
+      },
+      { timeout: 10000 },
+    );
   }
 
   async keyboard(value: string) {

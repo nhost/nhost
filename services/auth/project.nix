@@ -13,6 +13,7 @@ let
       "go.sum"
       (inDirectory "vendor")
       ".golangci.yaml"
+      "govulncheck.yaml"
       isDirectory
       (and
         (inDirectory submodule)
