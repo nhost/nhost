@@ -5134,6 +5134,10 @@ type SubscriptionRoot struct {
 	SoftwareVersions []*SoftwareVersions `json:"softwareVersions"`
 	// fetch data from the table in a streaming manner: "software_versions"
 	SoftwareVersionsStream []*SoftwareVersions `json:"softwareVersionsStream"`
+	// fetch data from the table: "unified_deployments"
+	UnifiedDeployments []*UnifiedDeployments `json:"unifiedDeployments"`
+	// fetch data from the table in a streaming manner: "unified_deployments"
+	UnifiedDeploymentsStream []*UnifiedDeployments `json:"unifiedDeployments_stream"`
 	// fetch data from the table: "auth.users" using primary key columns
 	User *Users `json:"user,omitempty"`
 	// fetch data from the table: "auth.users"
@@ -5171,6 +5175,81 @@ type TimestamptzComparisonExp struct {
 	Lte    *time.Time   `json:"_lte,omitempty"`
 	Neq    *time.Time   `json:"_neq,omitempty"`
 	Nin    []*time.Time `json:"_nin,omitempty"`
+}
+
+// columns and relationships of "unified_deployments"
+type UnifiedDeployments struct {
+	// An object relationship
+	App                 *Apps      `json:"app,omitempty"`
+	AppID               *string    `json:"appId,omitempty"`
+	CommitMessage       *string    `json:"commitMessage,omitempty"`
+	CommitSha           *string    `json:"commitSHA,omitempty"`
+	CommitUserAvatarURL *string    `json:"commitUserAvatarUrl,omitempty"`
+	CommitUserName      *string    `json:"commitUserName,omitempty"`
+	CreatedAt           *time.Time `json:"createdAt,omitempty"`
+	EndedAt             *time.Time `json:"endedAt,omitempty"`
+	ID                  *string    `json:"id,omitempty"`
+	Source              *string    `json:"source,omitempty"`
+	StartedAt           *time.Time `json:"startedAt,omitempty"`
+	Status              *string    `json:"status,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "unified_deployments". All fields are combined with a logical 'AND'.
+type UnifiedDeploymentsBoolExp struct {
+	And                 []*UnifiedDeploymentsBoolExp `json:"_and,omitempty"`
+	Not                 *UnifiedDeploymentsBoolExp   `json:"_not,omitempty"`
+	Or                  []*UnifiedDeploymentsBoolExp `json:"_or,omitempty"`
+	App                 *AppsBoolExp                 `json:"app,omitempty"`
+	AppID               *UUIDComparisonExp           `json:"appId,omitempty"`
+	CommitMessage       *StringComparisonExp         `json:"commitMessage,omitempty"`
+	CommitSha           *StringComparisonExp         `json:"commitSHA,omitempty"`
+	CommitUserAvatarURL *StringComparisonExp         `json:"commitUserAvatarUrl,omitempty"`
+	CommitUserName      *StringComparisonExp         `json:"commitUserName,omitempty"`
+	CreatedAt           *TimestamptzComparisonExp    `json:"createdAt,omitempty"`
+	EndedAt             *TimestamptzComparisonExp    `json:"endedAt,omitempty"`
+	ID                  *UUIDComparisonExp           `json:"id,omitempty"`
+	Source              *StringComparisonExp         `json:"source,omitempty"`
+	StartedAt           *TimestamptzComparisonExp    `json:"startedAt,omitempty"`
+	Status              *StringComparisonExp         `json:"status,omitempty"`
+}
+
+// Ordering options when selecting data from "unified_deployments".
+type UnifiedDeploymentsOrderBy struct {
+	App                 *AppsOrderBy `json:"app,omitempty"`
+	AppID               *OrderBy     `json:"appId,omitempty"`
+	CommitMessage       *OrderBy     `json:"commitMessage,omitempty"`
+	CommitSha           *OrderBy     `json:"commitSHA,omitempty"`
+	CommitUserAvatarURL *OrderBy     `json:"commitUserAvatarUrl,omitempty"`
+	CommitUserName      *OrderBy     `json:"commitUserName,omitempty"`
+	CreatedAt           *OrderBy     `json:"createdAt,omitempty"`
+	EndedAt             *OrderBy     `json:"endedAt,omitempty"`
+	ID                  *OrderBy     `json:"id,omitempty"`
+	Source              *OrderBy     `json:"source,omitempty"`
+	StartedAt           *OrderBy     `json:"startedAt,omitempty"`
+	Status              *OrderBy     `json:"status,omitempty"`
+}
+
+// Streaming cursor of the table "unifiedDeployments"
+type UnifiedDeploymentsStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *UnifiedDeploymentsStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type UnifiedDeploymentsStreamCursorValueInput struct {
+	AppID               *string    `json:"appId,omitempty"`
+	CommitMessage       *string    `json:"commitMessage,omitempty"`
+	CommitSha           *string    `json:"commitSHA,omitempty"`
+	CommitUserAvatarURL *string    `json:"commitUserAvatarUrl,omitempty"`
+	CommitUserName      *string    `json:"commitUserName,omitempty"`
+	CreatedAt           *time.Time `json:"createdAt,omitempty"`
+	EndedAt             *time.Time `json:"endedAt,omitempty"`
+	ID                  *string    `json:"id,omitempty"`
+	Source              *string    `json:"source,omitempty"`
+	StartedAt           *time.Time `json:"startedAt,omitempty"`
+	Status              *string    `json:"status,omitempty"`
 }
 
 // User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
@@ -9621,6 +9700,91 @@ func (e *SoftwareVersionsSelectColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e SoftwareVersionsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "unified_deployments"
+type UnifiedDeploymentsSelectColumn string
+
+const (
+	// column name
+	UnifiedDeploymentsSelectColumnAppID UnifiedDeploymentsSelectColumn = "appId"
+	// column name
+	UnifiedDeploymentsSelectColumnCommitMessage UnifiedDeploymentsSelectColumn = "commitMessage"
+	// column name
+	UnifiedDeploymentsSelectColumnCommitSha UnifiedDeploymentsSelectColumn = "commitSHA"
+	// column name
+	UnifiedDeploymentsSelectColumnCommitUserAvatarURL UnifiedDeploymentsSelectColumn = "commitUserAvatarUrl"
+	// column name
+	UnifiedDeploymentsSelectColumnCommitUserName UnifiedDeploymentsSelectColumn = "commitUserName"
+	// column name
+	UnifiedDeploymentsSelectColumnCreatedAt UnifiedDeploymentsSelectColumn = "createdAt"
+	// column name
+	UnifiedDeploymentsSelectColumnEndedAt UnifiedDeploymentsSelectColumn = "endedAt"
+	// column name
+	UnifiedDeploymentsSelectColumnID UnifiedDeploymentsSelectColumn = "id"
+	// column name
+	UnifiedDeploymentsSelectColumnSource UnifiedDeploymentsSelectColumn = "source"
+	// column name
+	UnifiedDeploymentsSelectColumnStartedAt UnifiedDeploymentsSelectColumn = "startedAt"
+	// column name
+	UnifiedDeploymentsSelectColumnStatus UnifiedDeploymentsSelectColumn = "status"
+)
+
+var AllUnifiedDeploymentsSelectColumn = []UnifiedDeploymentsSelectColumn{
+	UnifiedDeploymentsSelectColumnAppID,
+	UnifiedDeploymentsSelectColumnCommitMessage,
+	UnifiedDeploymentsSelectColumnCommitSha,
+	UnifiedDeploymentsSelectColumnCommitUserAvatarURL,
+	UnifiedDeploymentsSelectColumnCommitUserName,
+	UnifiedDeploymentsSelectColumnCreatedAt,
+	UnifiedDeploymentsSelectColumnEndedAt,
+	UnifiedDeploymentsSelectColumnID,
+	UnifiedDeploymentsSelectColumnSource,
+	UnifiedDeploymentsSelectColumnStartedAt,
+	UnifiedDeploymentsSelectColumnStatus,
+}
+
+func (e UnifiedDeploymentsSelectColumn) IsValid() bool {
+	switch e {
+	case UnifiedDeploymentsSelectColumnAppID, UnifiedDeploymentsSelectColumnCommitMessage, UnifiedDeploymentsSelectColumnCommitSha, UnifiedDeploymentsSelectColumnCommitUserAvatarURL, UnifiedDeploymentsSelectColumnCommitUserName, UnifiedDeploymentsSelectColumnCreatedAt, UnifiedDeploymentsSelectColumnEndedAt, UnifiedDeploymentsSelectColumnID, UnifiedDeploymentsSelectColumnSource, UnifiedDeploymentsSelectColumnStartedAt, UnifiedDeploymentsSelectColumnStatus:
+		return true
+	}
+	return false
+}
+
+func (e UnifiedDeploymentsSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *UnifiedDeploymentsSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UnifiedDeploymentsSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid unifiedDeployments_select_column", str)
+	}
+	return nil
+}
+
+func (e UnifiedDeploymentsSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *UnifiedDeploymentsSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e UnifiedDeploymentsSelectColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
