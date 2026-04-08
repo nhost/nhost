@@ -133,27 +133,27 @@ function DataBrowserSidebarContent({
       )
     : allObjectsInSelectedSchema;
 
-  const displayedObjects = searchFilteredObjects
-    .filter((obj) => {
-      if (activeFilters.size === 0) {
-        return true;
-      }
-      const tablePath = `${obj.schema}.${obj.name}`;
-      if (
-        obj.objectType === 'ORDINARY TABLE' &&
-        enumTablePaths?.has(tablePath)
-      ) {
-        return activeFilters.has('ENUM');
-      }
-      return activeFilters.has(obj.objectType);
-    })
-    .filter((obj) => {
-      const isFunc = obj.objectType === 'FUNCTION';
-      const objKey = isFunc
-        ? `FUNCTION.${obj.schema}.${obj.oid}`
-        : `${obj.schema}.${obj.name}`;
-      return objKey !== dataBrowserActions.optimisticlyRemovedObject;
-    });
+  const displayedObjects = searchFilteredObjects.filter((obj) => {
+    const isFunction = obj.objectType === 'FUNCTION';
+    const objKey = isFunction
+      ? `FUNCTION.${obj.schema}.${obj.oid}`
+      : `${obj.schema}.${obj.name}`;
+
+    if (objKey === dataBrowserActions.optimisticlyRemovedObject) {
+      return false;
+    }
+
+    if (activeFilters.size === 0) {
+      return true;
+    }
+
+    const tablePath = `${obj.schema}.${obj.name}`;
+    if (obj.objectType === 'ORDINARY TABLE' && enumTablePaths?.has(tablePath)) {
+      return activeFilters.has('ENUM');
+    }
+
+    return activeFilters.has(obj.objectType);
+  });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset filters when schema changes
   useEffect(() => {

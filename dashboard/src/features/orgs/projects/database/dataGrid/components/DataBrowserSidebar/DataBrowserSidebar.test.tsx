@@ -192,7 +192,6 @@ describe('DataBrowserSidebar', () => {
       expect(screen.getByText('users')).toBeInTheDocument();
     });
 
-    // Click the "Table" filter — should show only ordinary tables (not enums)
     const tableFilter = screen.getByRole('button', { name: 'Table' });
     await user.click(tableFilter);
 
@@ -205,7 +204,6 @@ describe('DataBrowserSidebar', () => {
       expect(names).not.toContain('search_users');
     });
 
-    // Click again to deselect — all objects visible again
     await user.click(tableFilter);
 
     await waitFor(() => {
@@ -247,11 +245,9 @@ describe('DataBrowserSidebar', () => {
       expect(screen.getByText('users')).toBeInTheDocument();
     });
 
-    // Search for "user" first
     const searchInput = screen.getByPlaceholderText('Search objects...');
     await user.type(searchInput, 'user');
 
-    // Then filter by "Table" type
     const tableFilter = screen.getByRole('button', { name: 'Table' });
     await user.click(tableFilter);
 
