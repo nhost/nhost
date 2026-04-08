@@ -83,9 +83,7 @@ export default function DatabaseObjectListItem({
     databaseObject.objectType,
     isEnum,
   );
-  const iconColor = getDatabaseObjectColor(
-    isEnum ? 'ENUM' : databaseObject.objectType,
-  );
+  const iconColor = getDatabaseObjectColor(databaseObject.objectType, isEnum);
 
   return (
     <li className="group pb-1">

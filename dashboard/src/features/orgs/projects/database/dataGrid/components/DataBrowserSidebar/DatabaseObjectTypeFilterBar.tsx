@@ -43,17 +43,15 @@ export default function DatabaseObjectTypeFilterBar({
 
   return (
     <div className="flex w-full items-center gap-0.5 px-1">
-      {allFilters.map((type) => {
-        const isEnum = type === 'ENUM';
-        const Icon = getDatabaseObjectIcon(
-          isEnum ? 'ORDINARY TABLE' : type,
-          isEnum,
-        );
-        const isActive = activeFilters.has(type);
-        const typeColor = getDatabaseObjectColor(type);
+      {allFilters.map((filterType) => {
+        const isEnum = filterType === 'ENUM';
+        const type = isEnum ? 'ORDINARY TABLE' : filterType;
+        const Icon = getDatabaseObjectIcon(type, isEnum);
+        const isActive = activeFilters.has(filterType);
+        const typeColor = getDatabaseObjectColor(type, isEnum);
 
         return (
-          <Tooltip key={type}>
+          <Tooltip key={filterType}>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
@@ -62,13 +60,13 @@ export default function DatabaseObjectTypeFilterBar({
                   'bg-accent': isActive,
                   'opacity-40': !isActive,
                 })}
-                onClick={() => onToggleFilter(type)}
+                onClick={() => onToggleFilter(filterType)}
               >
                 <Icon className={cn('h-3.5 w-3.5', typeColor)} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={0}>
-              {filterLabels[type]}
+              {filterLabels[filterType]}
             </TooltipContent>
           </Tooltip>
         );
