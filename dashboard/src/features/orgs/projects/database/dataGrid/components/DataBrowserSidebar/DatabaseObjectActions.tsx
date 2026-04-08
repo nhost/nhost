@@ -7,8 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
-import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
-import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import type { DatabaseObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 
@@ -41,9 +39,8 @@ const idPrefixes: Record<DatabaseObjectType, string> = {
 
 type Props = {
   objectName: string;
-  schema: string;
-  dataSource: string;
   objectType: DatabaseObjectType;
+  isUntracked: boolean;
   open: boolean;
   className?: string;
   onOpen: () => void;
@@ -51,7 +48,7 @@ type Props = {
   disabled: boolean;
   isSelectedNotSchemaLocked: boolean;
   onEdit: () => void;
-  onEditPermissions: () => void;
+  onEditPermissions?: () => void;
   onEditGraphQLSettings: () => void;
   onEditRelationships?: () => void;
   onDelete: () => void;
@@ -59,9 +56,8 @@ type Props = {
 
 function DatabaseObjectActions({
   objectName,
-  schema,
-  dataSource,
   objectType,
+  isUntracked,
   open,
   className,
   onClose,
@@ -74,24 +70,7 @@ function DatabaseObjectActions({
   onEditRelationships,
   onDelete,
 }: Props) {
-  const isFunction = objectType === 'FUNCTION';
-  const hasRelationships = !isFunction;
-
-  const { data: isTrackedTable } = useIsTrackedTable({
-    dataSource,
-    schema,
-    tableName: objectName,
-    enabled: !isFunction,
-  });
-
-  const { data: isTrackedFunction } = useIsTrackedFunction({
-    dataSource,
-    schema,
-    functionName: objectName,
-    enabled: isFunction,
-  });
-
-  const isTracked = isFunction ? isTrackedFunction : isTrackedTable;
+  const hasRelationships = objectType !== 'FUNCTION';
 
   function handleOnOpenChange(newOpenState: boolean) {
     if (newOpenState) {
@@ -130,10 +109,10 @@ function DatabaseObjectActions({
         <DropdownMenuItem
           className={cn(menuItemClassName, {
             'italic opacity-50 hover:cursor-default hover:bg-transparent':
-              !isTracked,
+              isUntracked,
           })}
-          disabled={!isTracked}
-          onClick={isTracked ? onEditPermissions : undefined}
+          disabled={isUntracked}
+          onClick={onEditPermissions}
         >
           <Users className="h-4 w-4" /> <span>Edit Permissions</span>
         </DropdownMenuItem>
@@ -141,10 +120,10 @@ function DatabaseObjectActions({
           <DropdownMenuItem
             className={cn(menuItemClassName, {
               'italic opacity-50 hover:cursor-default hover:bg-transparent':
-                !isTracked,
+                isUntracked,
             })}
-            disabled={!isTracked}
-            onClick={isTracked ? onEditRelationships : undefined}
+            disabled={isUntracked}
+            onClick={onEditRelationships}
           >
             <Anchor className="h-4 w-4" /> <span>Edit Relationships</span>
           </DropdownMenuItem>
