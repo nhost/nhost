@@ -97,7 +97,9 @@ function useDeploymentLogs({
 
     const unsubscribe = subscribeToMoreLogs();
     return () => {
-      unsubscribe();
+      // Keep the subscription open for a short grace period so delayed
+      // log entries still arrive after the run reaches a terminal status.
+      setTimeout(unsubscribe, 10_000);
     };
   }, [skip, status, subscribeToMoreLogs]);
 

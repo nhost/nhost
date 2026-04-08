@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
+import { DeploymentServiceLogs } from '@/features/orgs/projects/deployments/components/DeploymentServiceLogs';
 import { useDeployment } from '@/features/orgs/projects/deployments/hooks/useDeployment';
 import {
   type DeploymentLog,
@@ -337,6 +338,17 @@ function PipelineRunDetails({
           )}
         </Box>
       </div>
+
+      {taskGroups.some(
+        (g) => g.name === 'project-config' && g.status === 'failed',
+      ) && (
+        <div className="mt-6">
+          <DeploymentServiceLogs
+            from={pipelineRun.startedAt}
+            to={pipelineRun.endedAt}
+          />
+        </div>
+      )}
     </Container>
   );
 }
