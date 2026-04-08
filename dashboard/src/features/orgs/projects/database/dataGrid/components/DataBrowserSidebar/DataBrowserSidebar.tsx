@@ -249,7 +249,7 @@ function DataBrowserSidebarContent({
           </Select>
         )}
         <div className="relative mt-2">
-          <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search objects..."
             value={searchQuery}
