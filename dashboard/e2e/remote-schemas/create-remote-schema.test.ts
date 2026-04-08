@@ -37,18 +37,12 @@ test('should create and delete a remote schema from URL', async ({
     .getByRole('button', { name: /add graphql customization/i })
     .click();
 
-  await page.fill(
-    '#definition\\.customization\\.type_prefix',
-    `${schemaName}_`,
-  );
-  await page.fill(
-    '#definition\\.customization\\.query_root\\.prefix',
-    `${schemaName}_`,
-  );
-  await page.fill(
-    '#definition\\.customization\\.mutation_root\\.prefix',
-    `${schemaName}_`,
-  );
+  await page
+    .locator('[name="definition.customization.root_fields_namespace"]')
+    .fill(`${schemaName}`);
+  await page
+    .locator('[name="definition.customization.type_prefix"]')
+    .fill(`${schemaName}_`);
 
   await page.getByRole('button', { name: /create/i }).click();
 
