@@ -11,7 +11,6 @@ import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks
 import { useGetTrackedFunctionsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedFunctionsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getDatabaseObjectColor } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectColor';
 import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
 import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
@@ -83,9 +82,7 @@ export default function DatabaseObjectListItem({
     databaseObject.objectType,
     isEnum,
   );
-  const iconColor = getDatabaseObjectColor(
-    isEnum ? 'ENUM' : databaseObject.objectType,
-  );
+  const iconColor = 'text-blue-500';
 
   return (
     <li className="group pb-1">

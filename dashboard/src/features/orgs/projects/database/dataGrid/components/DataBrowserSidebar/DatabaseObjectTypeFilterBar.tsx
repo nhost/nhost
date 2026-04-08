@@ -5,7 +5,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import type { DataBrowserSidebarFilterType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getDatabaseObjectColor } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectColor';
 import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
 import { cn } from '@/lib/utils';
 
@@ -38,7 +37,6 @@ export default function DatabaseObjectTypeFilterBar({
           isEnum,
         );
         const isActive = activeFilters.has(type);
-        const typeColor = getDatabaseObjectColor(type);
 
         return (
           <Tooltip key={type}>
@@ -52,7 +50,7 @@ export default function DatabaseObjectTypeFilterBar({
                 })}
                 onClick={() => onToggleFilter(type)}
               >
-                <Icon className={cn('h-3.5 w-3.5', typeColor)} />
+                <Icon className="h-3.5 w-3.5 text-blue-500" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>
