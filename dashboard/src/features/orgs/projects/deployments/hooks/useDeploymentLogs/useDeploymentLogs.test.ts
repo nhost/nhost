@@ -169,12 +169,21 @@ describe('useDeploymentLogs', () => {
   });
 
   describe('subscription cleanup', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should clean up subscription on unmount', () => {
       const { unmount } = renderHook(() => useDeploymentLogs(defaultProps));
 
       expect(mockSubscribeToMore).toHaveBeenCalledTimes(1);
 
       unmount();
+      vi.advanceTimersByTime(10_000);
 
       expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
     });
@@ -193,6 +202,8 @@ describe('useDeploymentLogs', () => {
         },
       });
 
+      vi.advanceTimersByTime(10_000);
+
       expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockSubscribeToMore).toHaveBeenCalledTimes(2);
     });
@@ -207,6 +218,8 @@ describe('useDeploymentLogs', () => {
       rerender({
         props: { ...defaultProps, status: 'succeeded' },
       });
+
+      vi.advanceTimersByTime(10_000);
 
       expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockSubscribeToMore).toHaveBeenCalledTimes(1);
