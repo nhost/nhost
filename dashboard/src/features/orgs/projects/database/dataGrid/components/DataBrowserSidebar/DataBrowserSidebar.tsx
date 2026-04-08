@@ -221,8 +221,8 @@ function DataBrowserSidebarContent({
   }
 
   return (
-    <div className="flex h-full flex-col justify-between">
-      <div className="box flex flex-col px-2">
+    <div className="flex h-full flex-col">
+      <div className="flex shrink-0 flex-col px-2">
         {schemas && schemas.length > 0 && (
           <Select value={selectedSchema} onValueChange={setSelectedSchema}>
             <SelectTrigger className="w-full min-w-[initial] max-w-[220px]">
@@ -276,6 +276,9 @@ function DataBrowserSidebarContent({
             New Table <Plus className="h-4 w-4" />
           </Button>
         )}
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-2">
         {isNotEmptyValue(schemas) && isEmptyValue(displayedObjects) && (
           <p className="px-2 py-1.5 text-disabled text-xs">No objects found.</p>
         )}
@@ -302,7 +305,7 @@ function DataBrowserSidebarContent({
         </nav>
       </div>
 
-      <div className="box border-t">
+      <div className="shrink-0 border-t">
         <Button
           size="sm"
           variant="link"
