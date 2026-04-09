@@ -99,6 +99,8 @@ components:
         - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
         - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
         - $ref: "#/components/schemas/SetFunctionCustomizationOperation"
+        - $ref: "#/components/schemas/CreateFunctionPermissionBulkOperation"
+        - $ref: "#/components/schemas/DropFunctionPermissionBulkOperation"
         - $ref: "#/components/schemas/SuggestRelationshipsOperation"
         - $ref: "#/components/schemas/DropRelationshipBulkOperation"
         - $ref: "#/components/schemas/DeleteRemoteRelationshipBulkOperation"
@@ -434,6 +436,16 @@ components:
           description: In which part of the schema to expose this function. Either "mutation" or "query".
           enum: ["mutation", "query"]
 
+    FunctionPermission:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          description: Name of the role
+          example: "user"
+
     CustomFunctionRootFields:
       type: object
       properties:
@@ -737,6 +749,110 @@ components:
               type: string
               description: Name of the source database of the table
               default: default
+
+    CreateFunctionPermissionBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateFunctionPermissionStep"
+
+    CreateFunctionPermissionStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_function_permission]
+        args:
+          $ref: "#/components/schemas/CreateFunctionPermissionArgs"
+
+    CreateFunctionPermissionArgs:
+      type: object
+      required:
+        - function
+        - role
+      properties:
+        function:
+          $ref: "#/components/schemas/QualifiedFunction"
+        role:
+          type: string
+          description: Name of the role
+        source:
+          type: string
+          description: Name of the source database of the function
+          default: default
+
+    DropFunctionPermissionBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropFunctionPermissionStep"
+
+    DropFunctionPermissionStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_drop_function_permission]
+        args:
+          $ref: "#/components/schemas/DropFunctionPermissionArgs"
+
+    DropFunctionPermissionArgs:
+      type: object
+      required:
+        - function
+        - role
+      properties:
+        function:
+          $ref: "#/components/schemas/QualifiedFunction"
+        role:
+          type: string
+          description: Name of the role
+        source:
+          type: string
+          description: Name of the source database of the function
+          default: default
 
     DeleteRemoteRelationshipBulkOperation:
       type: object
@@ -1183,6 +1299,8 @@ components:
         - $ref: "#/components/schemas/UntrackTableStep"
         - $ref: "#/components/schemas/TrackFunctionStep"
         - $ref: "#/components/schemas/UntrackFunctionStep"
+        - $ref: "#/components/schemas/CreateFunctionPermissionStep"
+        - $ref: "#/components/schemas/DropFunctionPermissionStep"
 
     MigrationRequest:
       type: object
@@ -1360,6 +1478,11 @@ components:
                           $ref: "#/components/schemas/QualifiedFunction"
                         configuration:
                           $ref: "#/components/schemas/FunctionConfiguration"
+                        permissions:
+                          type: array
+                          description: List of permissions for the function
+                          items:
+                            $ref: "#/components/schemas/FunctionPermission"
                 additionalProperties: true
             remote_schemas:
               type: array

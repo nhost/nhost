@@ -105,6 +105,17 @@ const EditPermissionsForm = dynamic(
   },
 );
 
+const EditFunctionPermissionsForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionPermissionsForm/EditFunctionPermissionsForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
 const EditGraphQLSettingsForm = dynamic(
   () =>
     import(
@@ -314,6 +325,38 @@ export function useDataBrowserActions({
     });
   }
 
+  function handleEditFunctionPermission(
+    schema: string,
+    functionName: string,
+    oid?: string,
+    disabled?: boolean,
+  ) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Permissions for
+          <InlineCode className="!text-sm+ font-normal">
+            {functionName}
+          </InlineCode>
+          Function
+        </span>
+      ),
+      component: (
+        <EditFunctionPermissionsForm
+          disabled={disabled}
+          schema={schema}
+          functionName={functionName}
+          functionOID={oid}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'lg:w-[65%] lg:max-w-7xl',
+        },
+      },
+    });
+  }
+
   function handleEditGraphQLSettings(
     schema: string,
     name: string,
@@ -453,6 +496,7 @@ export function useDataBrowserActions({
     setSidebarMenuObject,
     handleDeleteDatabaseObject,
     handleEditPermission,
+    handleEditFunctionPermission,
     handleEditGraphQLSettings,
     handleEditRelationships,
     openEditTableDrawer,

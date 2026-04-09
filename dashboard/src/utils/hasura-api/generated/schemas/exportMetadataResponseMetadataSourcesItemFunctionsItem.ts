@@ -6,9 +6,12 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { FunctionConfiguration } from './functionConfiguration';
+import type { FunctionPermission } from './functionPermission';
 import type { QualifiedFunction } from './qualifiedFunction';
 
 export type ExportMetadataResponseMetadataSourcesItemFunctionsItem = {
   function: QualifiedFunction;
   configuration?: FunctionConfiguration;
+  /** List of permissions for the function */
+  permissions?: FunctionPermission[];
 };

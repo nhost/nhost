@@ -44,6 +44,7 @@ export default function DatabaseObjectListItem({
     sidebarMenuObject,
     setSidebarMenuObject,
     handleEditPermission,
+    handleEditFunctionPermission,
     handleDeleteDatabaseObject,
     handleEditGraphQLSettings,
     handleEditRelationships,
@@ -82,6 +83,20 @@ export default function DatabaseObjectListItem({
     databaseObject.objectType,
     isEnum,
   );
+
+  const handleEditObjectPermission = () =>
+    isFunction
+      ? handleEditFunctionPermission(
+          databaseObject.schema,
+          databaseObject.name,
+          databaseObject.oid,
+        )
+      : handleEditPermission(
+          databaseObject.schema,
+          databaseObject.name,
+          databaseObject.objectType,
+          updatability,
+        );
 
   return (
     <li className="group pb-1">
@@ -124,9 +139,8 @@ export default function DatabaseObjectListItem({
               </NextLink>
               <DatabaseObjectActions
                 objectName={databaseObject.name}
-                schema={databaseObject.schema}
-                dataSource={dataSourceSlug as string}
                 objectType={databaseObject.objectType}
+                isUntracked={isUntracked}
                 disabled={objectKey === removableObject}
                 open={isSidebarMenuOpen}
                 onOpen={() => setSidebarMenuObject(objectKey)}
@@ -138,13 +152,8 @@ export default function DatabaseObjectListItem({
                   },
                 )}
                 isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
-                onEditPermissions={() =>
-                  handleEditPermission(
-                    databaseObject.schema,
-                    databaseObject.name,
-                    databaseObject.objectType,
-                    updatability,
-                  )
+                onEditPermissions={
+                  isUntracked ? undefined : handleEditObjectPermission
                 }
                 onEdit={() => {
                   if (isFunction) {
@@ -178,11 +187,14 @@ export default function DatabaseObjectListItem({
                     isFunction ? databaseObject.oid : undefined,
                   )
                 }
-                onEditRelationships={() =>
-                  handleEditRelationships(
-                    databaseObject.schema,
-                    databaseObject.name,
-                  )
+                onEditRelationships={
+                  isUntracked
+                    ? undefined
+                    : () =>
+                        handleEditRelationships(
+                          databaseObject.schema,
+                          databaseObject.name,
+                        )
                 }
                 onDelete={() =>
                   handleDeleteDatabaseObject(
