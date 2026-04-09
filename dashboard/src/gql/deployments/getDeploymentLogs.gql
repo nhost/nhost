@@ -1,0 +1,33 @@
+query getPipelineRunLogs(
+  $appID: String!
+  $pipelineRunID: String!
+  $from: Timestamp
+  $to: Timestamp
+) {
+  getPipelineRunLogs(
+    appID: $appID
+    pipelineRunID: $pipelineRunID
+    from: $from
+    to: $to
+  ) {
+    timestamp
+    task
+    log
+  }
+}
+
+subscription getPipelineRunLogsSubscription(
+  $appID: String!
+  $pipelineRunID: String!
+  $from: Timestamp
+) {
+  getPipelineRunLogs(
+    appID: $appID
+    pipelineRunID: $pipelineRunID
+    from: $from
+  ) {
+    timestamp
+    task
+    log
+  }
+}

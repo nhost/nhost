@@ -1,4 +1,5 @@
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
@@ -7,59 +8,365 @@ import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/v3/accordion';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
 import { DeploymentServiceLogs } from '@/features/orgs/projects/deployments/components/DeploymentServiceLogs';
 import { useDeployment } from '@/features/orgs/projects/deployments/hooks/useDeployment';
+import {
+  type DeploymentLog,
+  useDeploymentLogs,
+} from '@/features/orgs/projects/deployments/hooks/useDeploymentLogs';
+import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
+import {
+  buildTaskGroups,
+  formatTaskDuration,
+  formatTaskName,
+  type PipelineRunSubstatus,
+  type TaskGroup,
+  type TaskStatus,
+} from '@/features/orgs/projects/deployments/utils/task-groups';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { ifNullconvertToUndefined, isNotEmptyValue } from '@/lib/utils';
+import { cn, ifNullconvertToUndefined } from '@/lib/utils';
+import type {
+  DeploymentFragment,
+  PipelineRunFragment,
+} from '@/utils/__generated__/graphql';
 
-function DeploymentDetails() {
+// --- Pipeline Run Detail Types ---
+
+type PipelineRunStatusValue =
+  | 'pending'
+  | 'running'
+  | 'succeeded'
+  | 'failed'
+  | 'aborted';
+
+function StatusBadge({ status }: { status: PipelineRunStatusValue }) {
+  const base =
+    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium';
+  switch (status) {
+    case 'running':
+      return (
+        <span className={cn(base, 'bg-blue-500/10 text-blue-500')}>
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+          Running
+        </span>
+      );
+    case 'pending':
+      return (
+        <span className={cn(base, 'bg-yellow-500/10 text-yellow-500')}>
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-500" />
+          Pending
+        </span>
+      );
+    case 'succeeded':
+      return (
+        <span className={cn(base, 'bg-green-500/10 text-green-500')}>
+          <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+          Succeeded
+        </span>
+      );
+    case 'failed':
+      return (
+        <span className={cn(base, 'bg-red-500/10 text-red-500')}>
+          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+          Failed
+        </span>
+      );
+    case 'aborted':
+      return (
+        <span className={cn(base, 'bg-gray-500/10 text-gray-400')}>
+          <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+          Aborted
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
+function TaskStatusIndicator({ status }: { status: TaskStatus }) {
+  const base = 'h-2 w-2 rounded-full';
+  switch (status) {
+    case 'running':
+      return <span className={cn(base, 'animate-pulse bg-blue-500')} />;
+    case 'pending':
+      return <span className={cn(base, 'animate-pulse bg-yellow-500')} />;
+    case 'succeeded':
+      return <span className={cn(base, 'bg-green-500')} />;
+    case 'failed':
+      return <span className={cn(base, 'bg-red-500')} />;
+    default:
+      return <span className={cn(base, 'bg-gray-400')} />;
+  }
+}
+
+function TaskLogList({ logs }: { logs: DeploymentLog[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prevLengthRef = useRef(logs.length);
+
+  useEffect(() => {
+    if (logs.length > prevLengthRef.current && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+    prevLengthRef.current = logs.length;
+  }, [logs.length]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="max-h-64 overflow-x-auto overflow-y-scroll"
+    >
+      {logs.map((log, index) => (
+        <div key={`${log.timestamp}-${index}`} className="flex font-mono">
+          <div className="mr-2 flex-shrink-0 text-white/60">
+            {format(parseISO(log.timestamp), 'HH:mm:ss')}
+          </div>
+          <div className="whitespace-pre">{log.log}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function useTaskGroups(
+  logs: DeploymentLog[] | undefined,
+  substatus: PipelineRunSubstatus | undefined,
+): TaskGroup[] {
+  return useMemo(() => buildTaskGroups(logs, substatus), [logs, substatus]);
+}
+
+// --- Pipeline Run Detail View ---
+
+function PipelineRunDetails({
+  pipelineRun,
+}: {
+  pipelineRun: PipelineRunFragment;
+}) {
   const { project } = useProject();
 
-  const { data, error, loading } = useDeployment();
+  const input = pipelineRun.input as PipelineRunInput | undefined;
+  const substatus = pipelineRun.substatus as PipelineRunSubstatus | undefined;
 
-  const deploymentLogsFrom = data?.deployment?.deploymentLogs[0]?.createdAt;
-  const deploymentLogsTo =
-    data?.deployment?.deploymentEndedAt &&
-    isNotEmptyValue(data?.deployment.deploymentLogs)
-      ? data?.deployment.deploymentLogs.slice(-1)[0]?.createdAt
-      : null;
+  const { data: logsData, loading: logsLoading } = useDeploymentLogs({
+    appID: project?.id,
+    pipelineRunID: pipelineRun?.id,
+    status: pipelineRun?.status,
+    startedAt: pipelineRun?.startedAt,
+    endedAt: pipelineRun?.endedAt,
+  });
 
-  if (loading) {
-    return (
-      <Container>
-        <ActivityIndicator delay={500} label="Loading deployment..." />
-      </Container>
-    );
-  }
+  const taskGroups = useTaskGroups(logsData?.getPipelineRunLogs, substatus);
 
-  if (error) {
-    throw error;
-  }
+  const [expandedTasks, setExpandedTasks] = useState<string[]>([]);
+  const seenTasks = useRef(new Set<string>());
 
-  const { deployment } = data || {};
+  useEffect(() => {
+    const newTasks = taskGroups
+      .filter((g) => g.status !== 'pending' && !seenTasks.current.has(g.name))
+      .map((g) => g.name);
 
-  if (!deployment) {
-    return (
-      <Container>
-        <Text variant="h1" className="text font-semibold text-4xl">
-          Not found
-        </Text>
-        <Text className="text-sm" color="disabled">
-          This deployment does not exist.
-        </Text>
-      </Container>
-    );
-  }
+    for (const name of newTasks) {
+      seenTasks.current.add(name);
+    }
+
+    if (newTasks.length > 0) {
+      setExpandedTasks((prev) => [...prev, ...newTasks]);
+    }
+  }, [taskGroups]);
+
+  return (
+    <Container>
+      <div className="flex justify-between">
+        <div>
+          <Text variant="h2" component="h1">
+            Deployment Details
+          </Text>
+        </div>
+      </div>
+
+      <div className="my-8 grid grid-cols-3 gap-x-6 gap-y-4 sm:grid-cols-6">
+        <div>
+          <Text className="text-xs" color="secondary">
+            Status
+          </Text>
+          <div className="mt-1">
+            <StatusBadge
+              status={pipelineRun.status as PipelineRunStatusValue}
+            />
+          </div>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Commit
+          </Text>
+          <div className="mt-0.5">
+            <Link
+              className="font-medium font-mono text-sm"
+              target="_blank"
+              rel="noreferrer"
+              href={`https://github.com/${project?.githubRepository?.fullName}/commit/${input?.commit_sha}`}
+              underline="hover"
+            >
+              {input?.commit_sha?.substring(0, 7)}
+            </Link>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Text
+                  className="line-clamp-1 cursor-default text-sm"
+                  color="secondary"
+                >
+                  {input?.commit_message}
+                </Text>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-sm">
+                {input?.commit_message}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Author
+          </Text>
+          <div className="mt-1 flex items-center gap-1.5">
+            <Avatar
+              alt={ifNullconvertToUndefined(input?.commit_user_name)}
+              src={ifNullconvertToUndefined(input?.commit_user_avatar_url)}
+              className="h-5 w-5"
+            >
+              {input?.commit_user_name ?? ''}
+            </Avatar>
+            <Text className="truncate text-sm">{input?.commit_user_name}</Text>
+          </div>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Started at
+          </Text>
+          <Text className="mt-0.5 text-sm">
+            {pipelineRun.startedAt
+              ? format(parseISO(pipelineRun.startedAt), 'MMM d, HH:mm:ss')
+              : '-'}
+          </Text>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Ended at
+          </Text>
+          <Text className="mt-0.5 text-sm">
+            {pipelineRun.endedAt
+              ? format(parseISO(pipelineRun.endedAt), 'MMM d, HH:mm:ss')
+              : '-'}
+          </Text>
+        </div>
+        <div>
+          <Text className="text-xs" color="secondary">
+            Duration
+          </Text>
+          <Text className="mt-0.5 font-medium text-sm">
+            <DeploymentDurationLabel
+              startedAt={pipelineRun.startedAt}
+              endedAt={pipelineRun.endedAt}
+            />
+          </Text>
+        </div>
+      </div>
+
+      <div>
+        <Box
+          className="rounded-lg p-4 text-sm-"
+          sx={{
+            color: 'common.white',
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark' ? 'grey.100' : 'grey.800',
+          }}
+        >
+          {logsLoading && taskGroups.length === 0 && (
+            <span className="font-mono">Loading logs...</span>
+          )}
+
+          {!logsLoading && taskGroups.length === 0 && (
+            <span className="font-mono">No logs available.</span>
+          )}
+
+          {taskGroups.length > 0 && (
+            <Accordion
+              type="multiple"
+              value={expandedTasks}
+              onValueChange={setExpandedTasks}
+            >
+              {taskGroups.map((group) => (
+                <AccordionItem
+                  key={group.name}
+                  value={group.name}
+                  className="border-white/20"
+                >
+                  <AccordionTrigger className="py-2 text-white hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <TaskStatusIndicator status={group.status} />
+                      <span>{formatTaskName(group.name)}</span>
+                      {group.startedAt && (
+                        <span className="text-white/40 text-xs">
+                          {formatTaskDuration(group.startedAt, group.endedAt)}
+                        </span>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-2">
+                    {group.logs.length === 0 ? (
+                      <span className="font-mono text-white/40">
+                        Waiting...
+                      </span>
+                    ) : (
+                      <TaskLogList logs={group.logs} />
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </Box>
+      </div>
+
+      {taskGroups.some(
+        (g) => g.name === 'project-config' && g.status === 'failed',
+      ) && (
+        <div className="mt-6">
+          <DeploymentServiceLogs
+            from={pipelineRun.startedAt}
+            to={pipelineRun.endedAt}
+          />
+        </div>
+      )}
+    </Container>
+  );
+}
+
+// --- Legacy Deployment Detail View (deprecated) ---
+
+function LegacyDeploymentDetailsView({
+  deployment,
+}: {
+  deployment: DeploymentFragment;
+}) {
+  const { project } = useProject();
 
   const relativeDateOfDeployment = deployment.deploymentStartedAt
     ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
         addSuffix: true,
       })
     : '';
-
-  const showLogs =
-    project?.id && deployment && isNotEmptyValue(deployment.deploymentLogs);
 
   return (
     <Container>
@@ -74,21 +381,18 @@ function DeploymentDetails() {
             <StatusCircle
               status={deployment.migrationsStatus as DeploymentStatus}
             />
-
             <Text>Database Migrations</Text>
           </div>
           <div className="flex items-center space-x-2">
             <StatusCircle
               status={deployment.metadataStatus as DeploymentStatus}
             />
-
             <Text>Hasura Metadata</Text>
           </div>
           <div className="flex items-center space-x-2">
             <StatusCircle
               status={deployment.functionsStatus as DeploymentStatus}
             />
-
             <Text>Serverless Functions</Text>
           </div>
         </div>
@@ -98,9 +402,9 @@ function DeploymentDetails() {
           <Avatar
             alt={ifNullconvertToUndefined(deployment.commitUserName)}
             src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
-            className="say what??? h-8 w-8"
+            className="h-8 w-8"
           >
-            {deployment.commitUserName!}
+            {deployment.commitUserName ?? ''}
           </Avatar>
 
           <div>
@@ -150,12 +454,44 @@ function DeploymentDetails() {
           ))}
         </Box>
       </div>
-      {showLogs && (
-        <DeploymentServiceLogs
-          from={deploymentLogsFrom}
-          to={deploymentLogsTo}
-        />
-      )}
+    </Container>
+  );
+}
+
+// --- Main Component (routes to either view) ---
+
+function DeploymentDetails() {
+  const { data, loading, error, legacyDeployment, legacyLoading, legacyError } =
+    useDeployment();
+
+  if (loading || legacyLoading) {
+    return (
+      <Container>
+        <ActivityIndicator delay={500} label="Loading deployment..." />
+      </Container>
+    );
+  }
+
+  if (data?.pipelineRun) {
+    return <PipelineRunDetails pipelineRun={data.pipelineRun} />;
+  }
+
+  if (legacyDeployment) {
+    return <LegacyDeploymentDetailsView deployment={legacyDeployment} />;
+  }
+
+  if (error || legacyError) {
+    throw error ?? legacyError;
+  }
+
+  return (
+    <Container>
+      <Text variant="h1" className="text font-semibold text-4xl">
+        Not found
+      </Text>
+      <Text className="text-sm" color="disabled">
+        This deployment does not exist.
+      </Text>
     </Container>
   );
 }
