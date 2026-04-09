@@ -1,3 +1,5 @@
+# --- Legacy Deployments (deprecated, read-only queries only) ---
+
 fragment DeploymentRow on deployments {
   id
   commitSHA
@@ -8,6 +10,7 @@ fragment DeploymentRow on deployments {
   commitUserAvatarUrl
   commitMessage
 }
+
 fragment Deployment on deployments {
   id
   commitMessage
@@ -33,32 +36,7 @@ fragment Deployment on deployments {
   }
 }
 
-subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
-  deployments(
-    where: { deploymentStatus: { _in: ["SCHEDULED"] }, appId: { _eq: $appId } }
-  ) {
-    ...DeploymentRow
-  }
-}
-
-subscription LatestLiveDeploymentSub($appId: uuid!) {
-  deployments(
-    where: { deploymentStatus: { _eq: "DEPLOYED" }, appId: { _eq: $appId } }
-    order_by: { deploymentStartedAt: desc }
-    limit: 1
-    offset: 0
-  ) {
-    ...DeploymentRow
-  }
-}
-
-mutation InsertDeployment($object: deployments_insert_input!) {
-  insertDeployment(object: $object) {
-    ...DeploymentRow
-  }
-}
-
-subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
+query getDeployments($id: uuid!, $limit: Int!, $offset: Int!) {
   deployments(
     where: { appId: { _eq: $id } }
     order_by: { deploymentStartedAt: desc }
@@ -69,14 +47,147 @@ subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
   }
 }
 
-subscription deploymentSub($id: uuid!) {
+query getLegacyDeployment($id: uuid!) {
   deployment(id: $id) {
     ...Deployment
   }
 }
 
-query getDeployment($id: uuid!) {
-  deployment(id: $id) {
-    ...Deployment
+query getLatestDeployedDeployment($appId: uuid!) {
+  deployments(
+    where: { deploymentStatus: { _eq: "DEPLOYED" }, appId: { _eq: $appId } }
+    order_by: { deploymentStartedAt: desc }
+    limit: 1
+  ) {
+    ...DeploymentRow
+  }
+}
+
+# --- Pipeline Runs ---
+
+fragment PipelineRunRow on pipelineRuns {
+  id
+  name
+  startedAt
+  endedAt
+  status
+  input
+  appId
+  createdAt
+}
+fragment PipelineRun on pipelineRuns {
+  id
+  name
+  startedAt
+  endedAt
+  status
+  input
+  substatus
+  appId
+  createdAt
+}
+
+subscription PendingOrRunningPipelineRunsSub($appId: uuid!) {
+  pipelineRuns(
+    where: { status: { _in: [pending, running] }, appId: { _eq: $appId } }
+  ) {
+    ...PipelineRunRow
+  }
+}
+
+subscription LatestSucceededPipelineRunSub($appId: uuid!) {
+  pipelineRuns(
+    where: { status: { _eq: succeeded }, appId: { _eq: $appId } }
+    order_by: { startedAt: desc }
+    limit: 1
+    offset: 0
+  ) {
+    ...PipelineRunRow
+  }
+}
+
+mutation InsertPipelineRun($object: pipelineRuns_insert_input!) {
+  insertPipelineRun(object: $object) {
+    ...PipelineRunRow
+  }
+}
+
+subscription getPipelineRunsSub($id: uuid!, $limit: Int!, $offset: Int!) {
+  pipelineRuns(
+    where: { appId: { _eq: $id } }
+    order_by: { startedAt: desc }
+    limit: $limit
+    offset: $offset
+  ) {
+    ...PipelineRunRow
+  }
+}
+
+subscription pipelineRunSub($id: uuid!) {
+  pipelineRun(id: $id) {
+    ...PipelineRun
+  }
+}
+
+query getPipelineRun($id: uuid!) {
+  pipelineRun(id: $id) {
+    ...PipelineRun
+  }
+}
+
+# --- Unified Deployments (view combining deployments + pipeline runs) ---
+
+fragment UnifiedDeploymentRow on unifiedDeployments {
+  id
+  appId
+  source
+  commitSHA
+  commitUserName
+  commitUserAvatarUrl
+  commitMessage
+  startedAt
+  endedAt
+  status
+  createdAt
+}
+
+subscription getUnifiedDeploymentsSub(
+  $appId: uuid!
+  $limit: Int!
+  $offset: Int!
+) {
+  unifiedDeployments(
+    where: { appId: { _eq: $appId } }
+    order_by: { startedAt: desc }
+    limit: $limit
+    offset: $offset
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+
+subscription PendingOrRunningUnifiedDeploymentsSub($appId: uuid!) {
+  unifiedDeployments(
+    where: {
+      status: {
+        _in: ["pending", "running", "SCHEDULED", "PENDING", "DEPLOYING"]
+      }
+      appId: { _eq: $appId }
+    }
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+
+subscription LatestLiveUnifiedDeploymentSub($appId: uuid!) {
+  unifiedDeployments(
+    where: {
+      status: { _in: ["succeeded", "DEPLOYED"] }
+      appId: { _eq: $appId }
+    }
+    order_by: { startedAt: desc }
+    limit: 1
+  ) {
+    ...UnifiedDeploymentRow
   }
 }

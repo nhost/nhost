@@ -87,9 +87,7 @@ test('should render an empty state when GitHub is not connected', async () => {
         }
 
         return HttpResponse.json({
-          data: {
-            deployments: [],
-          },
+          data: { unifiedDeployments: [] },
         });
       },
     ),
@@ -126,7 +124,7 @@ test('should render an empty state when GitHub is connected, but there are no de
           });
         }
 
-        return HttpResponse.json({ data: { deployments: [] } });
+        return HttpResponse.json({ data: { unifiedDeployments: [] } });
       },
     ),
   );
@@ -155,8 +153,8 @@ test('should render a list of deployments', async () => {
         // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
-        if (operationName === 'ScheduledOrPendingDeploymentsSub') {
-          return HttpResponse.json({ data: { deployments: [] } });
+        if (operationName === 'PendingOrRunningUnifiedDeploymentsSub') {
+          return HttpResponse.json({ data: { unifiedDeployments: [] } });
         }
 
         if (operationName === 'getProject') {
@@ -176,16 +174,19 @@ test('should render a list of deployments', async () => {
 
         return HttpResponse.json({
           data: {
-            deployments: [
+            unifiedDeployments: [
               {
                 id: '1',
+                appId: 'test-app-id',
+                source: 'pipeline_run',
                 commitSHA: 'abc123',
-                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-                deploymentStatus: 'DEPLOYED',
                 commitUserName: 'test.user',
                 commitUserAvatarUrl: 'http://images.example.com/avatar.png',
                 commitMessage: 'Test commit message',
+                startedAt: '2021-08-01T00:00:00.000Z',
+                endedAt: '2021-08-01T00:05:00.000Z',
+                status: 'succeeded',
+                createdAt: '2021-08-01T00:00:00.000Z',
               },
             ],
           },
@@ -222,19 +223,22 @@ test('should disable redeployments if a deployment is already in progress', asyn
         // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
-        if (operationName === 'ScheduledOrPendingDeploymentsSub') {
+        if (operationName === 'PendingOrRunningUnifiedDeploymentsSub') {
           return HttpResponse.json({
             data: {
-              deployments: [
+              unifiedDeployments: [
                 {
                   id: '2',
+                  appId: 'test-app-id',
+                  source: 'pipeline_run',
                   commitSHA: 'abc234',
-                  deploymentStartedAt: '2021-08-02T00:00:00.000Z',
-                  deploymentEndedAt: null,
-                  deploymentStatus: 'PENDING',
                   commitUserName: 'test.user',
                   commitUserAvatarUrl: 'http://images.example.com/avatar.png',
                   commitMessage: 'Test commit message',
+                  startedAt: '2021-08-02T00:00:00.000Z',
+                  endedAt: null,
+                  status: 'pending',
+                  createdAt: '2021-08-02T00:00:00.000Z',
                 },
               ],
             },
@@ -258,16 +262,19 @@ test('should disable redeployments if a deployment is already in progress', asyn
 
         return HttpResponse.json({
           data: {
-            deployments: [
+            unifiedDeployments: [
               {
                 id: '1',
+                appId: 'test-app-id',
+                source: 'pipeline_run',
                 commitSHA: 'abc123',
-                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-                deploymentStatus: 'DEPLOYED',
                 commitUserName: 'test.user',
                 commitUserAvatarUrl: 'http://images.example.com/avatar.png',
                 commitMessage: 'Test commit message',
+                startedAt: '2021-08-01T00:00:00.000Z',
+                endedAt: '2021-08-01T00:05:00.000Z',
+                status: 'succeeded',
+                createdAt: '2021-08-01T00:00:00.000Z',
               },
             ],
           },
