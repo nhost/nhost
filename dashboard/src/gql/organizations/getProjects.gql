@@ -19,6 +19,16 @@ query getProjects($orgSlug: String!) {
       commitUserAvatarUrl
       deploymentStatus
     }
+    pipelineRuns(limit: 4, order_by: { startedAt: desc }) {
+      id
+      name
+      startedAt
+      endedAt
+      status
+      input
+      appId
+      createdAt
+    }
     creator {
       id
       email

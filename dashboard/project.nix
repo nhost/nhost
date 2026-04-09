@@ -44,6 +44,7 @@ let
       "turbo.json"
       "biome.json"
       ".gitignore"
+      (inDirectory "build/configs")
       "${submodule}/.env.test"
       "${submodule}/.env.example"
       "${submodule}/.lintstagedrc.json"

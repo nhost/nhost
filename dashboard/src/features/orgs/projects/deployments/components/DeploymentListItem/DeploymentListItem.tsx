@@ -2,7 +2,7 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import type { MouseEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
-import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
+import type { PipelineRunStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Button } from '@/components/ui/v2/Button';
@@ -17,29 +17,16 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { ifNullconvertToUndefined } from '@/lib/utils';
-import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
+import type { UnifiedDeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetOrganizationsDocument,
-  useInsertDeploymentMutation,
+  useInsertPipelineRunMutation,
 } from '@/utils/__generated__/graphql';
 
 export interface DeploymentListItemProps {
-  /**
-   * Deployment data.
-   */
-  deployment: DeploymentRowFragment;
-  /**
-   * Determines whether or not the deployment is live.
-   */
+  deployment: UnifiedDeploymentRowFragment;
   isLive?: boolean;
-  /**
-   * Determines whether or not the redeploy button should be shown for the
-   * deployment.
-   */
   showRedeploy?: boolean;
-  /**
-   * Determines whether or not the redeploy button is disabled.
-   */
   disableRedeploy?: boolean;
 }
 
@@ -53,39 +40,40 @@ export default function DeploymentListItem({
   const { org } = useCurrentOrg();
   const userData = useUserData();
 
-  const relativeDateOfDeployment = deployment.deploymentStartedAt
-    ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
+  const relativeDateOfDeployment = deployment.startedAt
+    ? formatDistanceToNowStrict(parseISO(deployment.startedAt), {
         addSuffix: true,
       })
     : '';
 
-  const [insertDeployment, { loading }] = useInsertDeploymentMutation({
+  const [insertPipelineRun, { loading }] = useInsertPipelineRunMutation({
     refetchQueries: [
       { query: GetOrganizationsDocument, variables: { userId: userData?.id } },
     ],
   });
-  const { commitMessage } = deployment;
 
-  async function redeployDeployment(event: MouseEvent<HTMLButtonElement>) {
+  async function redeploy(event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
     event.preventDefault();
 
-    const insertDeploymentPromise = insertDeployment({
+    const insertPromise = insertPipelineRun({
       variables: {
         object: {
-          appId: project?.id,
-          commitMessage: deployment.commitMessage,
-          commitSHA: deployment.commitSHA,
-          commitUserAvatarUrl: deployment.commitUserAvatarUrl,
-          commitUserName: deployment.commitUserName,
-          deploymentStatus: 'SCHEDULED',
+          input: {
+            name: 'nhost-backend-build',
+            app_id: project?.id,
+            commit_sha: deployment.commitSHA,
+            commit_user_name: deployment.commitUserName,
+            commit_user_avatar_url: deployment.commitUserAvatarUrl,
+            commit_message: deployment.commitMessage,
+          },
         },
       },
     });
 
     await execPromiseWithErrorToast(
       async () => {
-        await insertDeploymentPromise;
+        await insertPromise;
       },
       {
         loadingMessage: 'Scheduling deployment...',
@@ -101,7 +89,7 @@ export default function DeploymentListItem({
         className="grid h-fit grid-flow-col items-center justify-between gap-2 rounded-none p-2 hover:no-underline"
         component={NavLink}
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
-        aria-label={commitMessage || 'No commit message'}
+        aria-label={deployment.commitMessage || 'No commit message'}
       >
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
           <ListItem.Avatar>
@@ -110,13 +98,13 @@ export default function DeploymentListItem({
               src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
               className="h-8 w-8 shrink-0"
             >
-              {deployment.commitUserName!}
+              {deployment.commitUserName ?? ''}
             </Avatar>
           </ListItem.Avatar>
 
           <ListItem.Text
             primary={
-              commitMessage?.trim() || (
+              deployment.commitMessage?.trim() || (
                 <span className="truncate pr-1 font-normal italic">
                   No commit message
                 </span>
@@ -142,7 +130,7 @@ export default function DeploymentListItem({
                 size="small"
                 color="secondary"
                 variant="outlined"
-                onClick={redeployDeployment}
+                onClick={redeploy}
                 startIcon={
                   <ArrowCounterclockwiseIcon className={twMerge('h-4 w-4')} />
                 }
@@ -161,19 +149,17 @@ export default function DeploymentListItem({
           )}
 
           <div className="hidden w-16 text-right font-medium font-mono text-sm- text-white sm:block">
-            {deployment.commitSHA.substring(0, 7)}
+            {deployment.commitSHA?.substring(0, 7)}
           </div>
 
           <div className="text-right font-medium font-mono text-sm- sm:w-20">
             <DeploymentDurationLabel
-              startedAt={deployment.deploymentStartedAt}
-              endedAt={deployment.deploymentEndedAt}
+              startedAt={deployment.startedAt}
+              endedAt={deployment.endedAt}
             />
           </div>
 
-          <StatusCircle
-            status={deployment.deploymentStatus as DeploymentStatus}
-          />
+          <StatusCircle status={deployment.status as PipelineRunStatus} />
 
           <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>

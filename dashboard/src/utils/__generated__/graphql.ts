@@ -3434,6 +3434,13 @@ export type PiTrBaseBackup = {
   timeline: Scalars['Int'];
 };
 
+export type PipelineRunLog = {
+  __typename?: 'PipelineRunLog';
+  log: Scalars['String'];
+  task: Scalars['String'];
+  timestamp: Scalars['Timestamp'];
+};
+
 export type PostOrganizationRequestResponse = {
   __typename?: 'PostOrganizationRequestResponse';
   ClientSecret?: Maybe<Scalars['String']>;
@@ -4602,6 +4609,10 @@ export type Apps = {
   /** An object relationship */
   organization?: Maybe<Organizations>;
   organizationID?: Maybe<Scalars['uuid']>;
+  /** An array relationship */
+  pipelineRuns: Array<PipelineRuns>;
+  /** An aggregate relationship */
+  pipelineRuns_aggregate: PipelineRuns_Aggregate;
   /** An object relationship */
   region: Regions;
   regionId: Scalars['uuid'];
@@ -4710,6 +4721,26 @@ export type AppsFeatureFlags_AggregateArgs = {
 /** columns and relationships of "apps" */
 export type AppsMetadataFunctionsArgs = {
   path?: InputMaybe<Scalars['String']>;
+};
+
+
+/** columns and relationships of "apps" */
+export type AppsPipelineRunsArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRuns_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRuns_Order_By>>;
+  where?: InputMaybe<PipelineRuns_Bool_Exp>;
+};
+
+
+/** columns and relationships of "apps" */
+export type AppsPipelineRuns_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRuns_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRuns_Order_By>>;
+  where?: InputMaybe<PipelineRuns_Bool_Exp>;
 };
 
 
@@ -4867,6 +4898,8 @@ export type Apps_Bool_Exp = {
   nhostBaseFolder?: InputMaybe<String_Comparison_Exp>;
   organization?: InputMaybe<Organizations_Bool_Exp>;
   organizationID?: InputMaybe<Uuid_Comparison_Exp>;
+  pipelineRuns?: InputMaybe<PipelineRuns_Bool_Exp>;
+  pipelineRuns_aggregate?: InputMaybe<PipelineRuns_Aggregate_Bool_Exp>;
   region?: InputMaybe<Regions_Bool_Exp>;
   regionId?: InputMaybe<Uuid_Comparison_Exp>;
   repositoryProductionBranch?: InputMaybe<String_Comparison_Exp>;
@@ -4942,6 +4975,7 @@ export type Apps_Insert_Input = {
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
   organizationID?: InputMaybe<Scalars['uuid']>;
+  pipelineRuns?: InputMaybe<PipelineRuns_Arr_Rel_Insert_Input>;
   region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
@@ -5109,6 +5143,7 @@ export type Apps_Order_By = {
   nhostBaseFolder?: InputMaybe<Order_By>;
   organization?: InputMaybe<Organizations_Order_By>;
   organizationID?: InputMaybe<Order_By>;
+  pipelineRuns_aggregate?: InputMaybe<PipelineRuns_Aggregate_Order_By>;
   region?: InputMaybe<Regions_Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
@@ -14640,6 +14675,10 @@ export type Mutation_Root = {
   deletePaymentMethod?: Maybe<PaymentMethods>;
   /** delete data from the table: "payment_methods" */
   deletePaymentMethods?: Maybe<PaymentMethods_Mutation_Response>;
+  /** delete single row from the table: "pipeline_runs" */
+  deletePipelineRun?: Maybe<PipelineRuns>;
+  /** delete data from the table: "pipeline_runs" */
+  deletePipelineRuns?: Maybe<PipelineRuns_Mutation_Response>;
   /** delete single row from the table: "plans" */
   deletePlan?: Maybe<Plans>;
   /** delete data from the table: "plans" */
@@ -14726,6 +14765,10 @@ export type Mutation_Root = {
   delete_organization_status?: Maybe<Organization_Status_Mutation_Response>;
   /** delete single row from the table: "organization_status" */
   delete_organization_status_by_pk?: Maybe<Organization_Status>;
+  /** delete data from the table: "pipeline_run_status" */
+  delete_pipelineRunStatus?: Maybe<PipelineRunStatus_Mutation_Response>;
+  /** delete single row from the table: "pipeline_run_status" */
+  delete_pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
   /** delete data from the table: "region_type" */
   delete_region_type?: Maybe<Region_Type_Mutation_Response>;
   /** delete single row from the table: "region_type" */
@@ -14875,6 +14918,10 @@ export type Mutation_Root = {
   insertPaymentMethod?: Maybe<PaymentMethods>;
   /** insert data into the table: "payment_methods" */
   insertPaymentMethods?: Maybe<PaymentMethods_Mutation_Response>;
+  /** insert a single row into the table: "pipeline_runs" */
+  insertPipelineRun?: Maybe<PipelineRuns>;
+  /** insert data into the table: "pipeline_runs" */
+  insertPipelineRuns?: Maybe<PipelineRuns_Mutation_Response>;
   /** insert a single row into the table: "plans" */
   insertPlan?: Maybe<Plans>;
   /** insert data into the table: "plans" */
@@ -14961,6 +15008,10 @@ export type Mutation_Root = {
   insert_organization_status?: Maybe<Organization_Status_Mutation_Response>;
   /** insert a single row into the table: "organization_status" */
   insert_organization_status_one?: Maybe<Organization_Status>;
+  /** insert data into the table: "pipeline_run_status" */
+  insert_pipelineRunStatus?: Maybe<PipelineRunStatus_Mutation_Response>;
+  /** insert a single row into the table: "pipeline_run_status" */
+  insert_pipelineRunStatus_one?: Maybe<PipelineRunStatus>;
   /** insert data into the table: "region_type" */
   insert_region_type?: Maybe<Region_Type_Mutation_Response>;
   /** insert a single row into the table: "region_type" */
@@ -15147,6 +15198,10 @@ export type Mutation_Root = {
   updatePaymentMethod?: Maybe<PaymentMethods>;
   /** update data of the table: "payment_methods" */
   updatePaymentMethods?: Maybe<PaymentMethods_Mutation_Response>;
+  /** update single row of the table: "pipeline_runs" */
+  updatePipelineRun?: Maybe<PipelineRuns>;
+  /** update data of the table: "pipeline_runs" */
+  updatePipelineRuns?: Maybe<PipelineRuns_Mutation_Response>;
   /** update single row of the table: "plans" */
   updatePlan?: Maybe<Plans>;
   /** update data of the table: "plans" */
@@ -15310,6 +15365,14 @@ export type Mutation_Root = {
   update_organization_status_many?: Maybe<Array<Maybe<Organization_Status_Mutation_Response>>>;
   /** update multiples rows of table: "payment_methods" */
   update_paymentMethods_many?: Maybe<Array<Maybe<PaymentMethods_Mutation_Response>>>;
+  /** update data of the table: "pipeline_run_status" */
+  update_pipelineRunStatus?: Maybe<PipelineRunStatus_Mutation_Response>;
+  /** update single row of the table: "pipeline_run_status" */
+  update_pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
+  /** update multiples rows of table: "pipeline_run_status" */
+  update_pipelineRunStatus_many?: Maybe<Array<Maybe<PipelineRunStatus_Mutation_Response>>>;
+  /** update multiples rows of table: "pipeline_runs" */
+  update_pipelineRuns_many?: Maybe<Array<Maybe<PipelineRuns_Mutation_Response>>>;
   /** update multiples rows of table: "plans" */
   update_plans_many?: Maybe<Array<Maybe<Plans_Mutation_Response>>>;
   /** update data of the table: "region_type" */
@@ -15898,6 +15961,18 @@ export type Mutation_RootDeletePaymentMethodsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDeletePipelineRunArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeletePipelineRunsArgs = {
+  where: PipelineRuns_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootDeletePlanArgs = {
   id: Scalars['uuid'];
 };
@@ -16159,6 +16234,18 @@ export type Mutation_RootDelete_Organization_StatusArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Organization_Status_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_PipelineRunStatusArgs = {
+  where: PipelineRunStatus_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_PipelineRunStatus_By_PkArgs = {
   value: Scalars['String'];
 };
 
@@ -16685,6 +16772,20 @@ export type Mutation_RootInsertPaymentMethodsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertPipelineRunArgs = {
+  object: PipelineRuns_Insert_Input;
+  on_conflict?: InputMaybe<PipelineRuns_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertPipelineRunsArgs = {
+  objects: Array<PipelineRuns_Insert_Input>;
+  on_conflict?: InputMaybe<PipelineRuns_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertPlanArgs = {
   object: Plans_Insert_Input;
   on_conflict?: InputMaybe<Plans_On_Conflict>;
@@ -16989,6 +17090,20 @@ export type Mutation_RootInsert_Organization_StatusArgs = {
 export type Mutation_RootInsert_Organization_Status_OneArgs = {
   object: Organization_Status_Insert_Input;
   on_conflict?: InputMaybe<Organization_Status_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_PipelineRunStatusArgs = {
+  objects: Array<PipelineRunStatus_Insert_Input>;
+  on_conflict?: InputMaybe<PipelineRunStatus_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_PipelineRunStatus_OneArgs = {
+  object: PipelineRunStatus_Insert_Input;
+  on_conflict?: InputMaybe<PipelineRunStatus_On_Conflict>;
 };
 
 
@@ -17744,6 +17859,30 @@ export type Mutation_RootUpdatePaymentMethodsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdatePipelineRunArgs = {
+  _append?: InputMaybe<PipelineRuns_Append_Input>;
+  _delete_at_path?: InputMaybe<PipelineRuns_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<PipelineRuns_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<PipelineRuns_Delete_Key_Input>;
+  _prepend?: InputMaybe<PipelineRuns_Prepend_Input>;
+  _set?: InputMaybe<PipelineRuns_Set_Input>;
+  pk_columns: PipelineRuns_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdatePipelineRunsArgs = {
+  _append?: InputMaybe<PipelineRuns_Append_Input>;
+  _delete_at_path?: InputMaybe<PipelineRuns_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<PipelineRuns_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<PipelineRuns_Delete_Key_Input>;
+  _prepend?: InputMaybe<PipelineRuns_Prepend_Input>;
+  _set?: InputMaybe<PipelineRuns_Set_Input>;
+  where: PipelineRuns_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdatePlanArgs = {
   _inc?: InputMaybe<Plans_Inc_Input>;
   _set?: InputMaybe<Plans_Set_Input>;
@@ -18310,6 +18449,32 @@ export type Mutation_RootUpdate_Organization_Status_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_PaymentMethods_ManyArgs = {
   updates: Array<PaymentMethods_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_PipelineRunStatusArgs = {
+  _set?: InputMaybe<PipelineRunStatus_Set_Input>;
+  where: PipelineRunStatus_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_PipelineRunStatus_By_PkArgs = {
+  _set?: InputMaybe<PipelineRunStatus_Set_Input>;
+  pk_columns: PipelineRunStatus_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_PipelineRunStatus_ManyArgs = {
+  updates: Array<PipelineRunStatus_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_PipelineRuns_ManyArgs = {
+  updates: Array<PipelineRuns_Updates>;
 };
 
 
@@ -20568,6 +20733,503 @@ export type PaymentMethods_Variance_Order_By = {
   cardExpYear?: InputMaybe<Order_By>;
 };
 
+/** columns and relationships of "pipeline_run_status" */
+export type PipelineRunStatus = {
+  __typename?: 'pipelineRunStatus';
+  comment?: Maybe<Scalars['String']>;
+  value: Scalars['String'];
+};
+
+/** aggregated selection of "pipeline_run_status" */
+export type PipelineRunStatus_Aggregate = {
+  __typename?: 'pipelineRunStatus_aggregate';
+  aggregate?: Maybe<PipelineRunStatus_Aggregate_Fields>;
+  nodes: Array<PipelineRunStatus>;
+};
+
+/** aggregate fields of "pipeline_run_status" */
+export type PipelineRunStatus_Aggregate_Fields = {
+  __typename?: 'pipelineRunStatus_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<PipelineRunStatus_Max_Fields>;
+  min?: Maybe<PipelineRunStatus_Min_Fields>;
+};
+
+
+/** aggregate fields of "pipeline_run_status" */
+export type PipelineRunStatus_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<PipelineRunStatus_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "pipeline_run_status". All fields are combined with a logical 'AND'. */
+export type PipelineRunStatus_Bool_Exp = {
+  _and?: InputMaybe<Array<PipelineRunStatus_Bool_Exp>>;
+  _not?: InputMaybe<PipelineRunStatus_Bool_Exp>;
+  _or?: InputMaybe<Array<PipelineRunStatus_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "pipeline_run_status" */
+export enum PipelineRunStatus_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  PipelineRunStatusPkey = 'pipeline_run_status_pkey'
+}
+
+export enum PipelineRunStatus_Enum {
+  /** Pipeline run was aborted */
+  Aborted = 'aborted',
+  /** Pipeline run failed */
+  Failed = 'failed',
+  /** Pipeline run is waiting to be picked up */
+  Pending = 'pending',
+  /** Pipeline run is currently executing */
+  Running = 'running',
+  /** Pipeline run completed successfully */
+  Succeeded = 'succeeded'
+}
+
+/** Boolean expression to compare columns of type "pipelineRunStatus_enum". All fields are combined with logical 'AND'. */
+export type PipelineRunStatus_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<PipelineRunStatus_Enum>;
+  _in?: InputMaybe<Array<PipelineRunStatus_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<PipelineRunStatus_Enum>;
+  _nin?: InputMaybe<Array<PipelineRunStatus_Enum>>;
+};
+
+/** input type for inserting data into table "pipeline_run_status" */
+export type PipelineRunStatus_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type PipelineRunStatus_Max_Fields = {
+  __typename?: 'pipelineRunStatus_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type PipelineRunStatus_Min_Fields = {
+  __typename?: 'pipelineRunStatus_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "pipeline_run_status" */
+export type PipelineRunStatus_Mutation_Response = {
+  __typename?: 'pipelineRunStatus_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<PipelineRunStatus>;
+};
+
+/** on_conflict condition type for table "pipeline_run_status" */
+export type PipelineRunStatus_On_Conflict = {
+  constraint: PipelineRunStatus_Constraint;
+  update_columns?: Array<PipelineRunStatus_Update_Column>;
+  where?: InputMaybe<PipelineRunStatus_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "pipeline_run_status". */
+export type PipelineRunStatus_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: pipeline_run_status */
+export type PipelineRunStatus_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "pipeline_run_status" */
+export enum PipelineRunStatus_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "pipeline_run_status" */
+export type PipelineRunStatus_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "pipelineRunStatus" */
+export type PipelineRunStatus_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: PipelineRunStatus_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type PipelineRunStatus_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "pipeline_run_status" */
+export enum PipelineRunStatus_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type PipelineRunStatus_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<PipelineRunStatus_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: PipelineRunStatus_Bool_Exp;
+};
+
+/** columns and relationships of "pipeline_runs" */
+export type PipelineRuns = {
+  __typename?: 'pipelineRuns';
+  /** An object relationship */
+  app?: Maybe<Apps>;
+  appId?: Maybe<Scalars['uuid']>;
+  createdAt: Scalars['timestamptz'];
+  endedAt?: Maybe<Scalars['timestamptz']>;
+  id: Scalars['uuid'];
+  input: Scalars['jsonb'];
+  metadata?: Maybe<Scalars['jsonb']>;
+  name: Scalars['String'];
+  startedAt?: Maybe<Scalars['timestamptz']>;
+  status: PipelineRunStatus_Enum;
+  substatus?: Maybe<Scalars['jsonb']>;
+  updatedAt: Scalars['timestamptz'];
+};
+
+
+/** columns and relationships of "pipeline_runs" */
+export type PipelineRunsInputArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+
+/** columns and relationships of "pipeline_runs" */
+export type PipelineRunsMetadataArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+
+/** columns and relationships of "pipeline_runs" */
+export type PipelineRunsSubstatusArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregated selection of "pipeline_runs" */
+export type PipelineRuns_Aggregate = {
+  __typename?: 'pipelineRuns_aggregate';
+  aggregate?: Maybe<PipelineRuns_Aggregate_Fields>;
+  nodes: Array<PipelineRuns>;
+};
+
+export type PipelineRuns_Aggregate_Bool_Exp = {
+  count?: InputMaybe<PipelineRuns_Aggregate_Bool_Exp_Count>;
+};
+
+export type PipelineRuns_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<PipelineRuns_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<PipelineRuns_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "pipeline_runs" */
+export type PipelineRuns_Aggregate_Fields = {
+  __typename?: 'pipelineRuns_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<PipelineRuns_Max_Fields>;
+  min?: Maybe<PipelineRuns_Min_Fields>;
+};
+
+
+/** aggregate fields of "pipeline_runs" */
+export type PipelineRuns_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<PipelineRuns_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "pipeline_runs" */
+export type PipelineRuns_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<PipelineRuns_Max_Order_By>;
+  min?: InputMaybe<PipelineRuns_Min_Order_By>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type PipelineRuns_Append_Input = {
+  input?: InputMaybe<Scalars['jsonb']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  substatus?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** input type for inserting array relation for remote table "pipeline_runs" */
+export type PipelineRuns_Arr_Rel_Insert_Input = {
+  data: Array<PipelineRuns_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<PipelineRuns_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "pipeline_runs". All fields are combined with a logical 'AND'. */
+export type PipelineRuns_Bool_Exp = {
+  _and?: InputMaybe<Array<PipelineRuns_Bool_Exp>>;
+  _not?: InputMaybe<PipelineRuns_Bool_Exp>;
+  _or?: InputMaybe<Array<PipelineRuns_Bool_Exp>>;
+  app?: InputMaybe<Apps_Bool_Exp>;
+  appId?: InputMaybe<Uuid_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  endedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  input?: InputMaybe<Jsonb_Comparison_Exp>;
+  metadata?: InputMaybe<Jsonb_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  startedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  status?: InputMaybe<PipelineRunStatus_Enum_Comparison_Exp>;
+  substatus?: InputMaybe<Jsonb_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "pipeline_runs" */
+export enum PipelineRuns_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  PipelineRunsPkey = 'pipeline_runs_pkey'
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type PipelineRuns_Delete_At_Path_Input = {
+  input?: InputMaybe<Array<Scalars['String']>>;
+  metadata?: InputMaybe<Array<Scalars['String']>>;
+  substatus?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type PipelineRuns_Delete_Elem_Input = {
+  input?: InputMaybe<Scalars['Int']>;
+  metadata?: InputMaybe<Scalars['Int']>;
+  substatus?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type PipelineRuns_Delete_Key_Input = {
+  input?: InputMaybe<Scalars['String']>;
+  metadata?: InputMaybe<Scalars['String']>;
+  substatus?: InputMaybe<Scalars['String']>;
+};
+
+/** input type for inserting data into table "pipeline_runs" */
+export type PipelineRuns_Insert_Input = {
+  app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  endedAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  input?: InputMaybe<Scalars['jsonb']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  startedAt?: InputMaybe<Scalars['timestamptz']>;
+  status?: InputMaybe<PipelineRunStatus_Enum>;
+  substatus?: InputMaybe<Scalars['jsonb']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type PipelineRuns_Max_Fields = {
+  __typename?: 'pipelineRuns_max_fields';
+  appId?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  endedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  startedAt?: Maybe<Scalars['timestamptz']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by max() on columns of table "pipeline_runs" */
+export type PipelineRuns_Max_Order_By = {
+  appId?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  endedAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  startedAt?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type PipelineRuns_Min_Fields = {
+  __typename?: 'pipelineRuns_min_fields';
+  appId?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  endedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  startedAt?: Maybe<Scalars['timestamptz']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by min() on columns of table "pipeline_runs" */
+export type PipelineRuns_Min_Order_By = {
+  appId?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  endedAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  startedAt?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "pipeline_runs" */
+export type PipelineRuns_Mutation_Response = {
+  __typename?: 'pipelineRuns_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<PipelineRuns>;
+};
+
+/** on_conflict condition type for table "pipeline_runs" */
+export type PipelineRuns_On_Conflict = {
+  constraint: PipelineRuns_Constraint;
+  update_columns?: Array<PipelineRuns_Update_Column>;
+  where?: InputMaybe<PipelineRuns_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "pipeline_runs". */
+export type PipelineRuns_Order_By = {
+  app?: InputMaybe<Apps_Order_By>;
+  appId?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  endedAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  input?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  startedAt?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  substatus?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: pipeline_runs */
+export type PipelineRuns_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type PipelineRuns_Prepend_Input = {
+  input?: InputMaybe<Scalars['jsonb']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  substatus?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** select columns of table "pipeline_runs" */
+export enum PipelineRuns_Select_Column {
+  /** column name */
+  AppId = 'appId',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  EndedAt = 'endedAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Input = 'input',
+  /** column name */
+  Metadata = 'metadata',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  StartedAt = 'startedAt',
+  /** column name */
+  Status = 'status',
+  /** column name */
+  Substatus = 'substatus',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "pipeline_runs" */
+export type PipelineRuns_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  endedAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  input?: InputMaybe<Scalars['jsonb']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  startedAt?: InputMaybe<Scalars['timestamptz']>;
+  status?: InputMaybe<PipelineRunStatus_Enum>;
+  substatus?: InputMaybe<Scalars['jsonb']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "pipelineRuns" */
+export type PipelineRuns_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: PipelineRuns_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type PipelineRuns_Stream_Cursor_Value_Input = {
+  appId?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  endedAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  input?: InputMaybe<Scalars['jsonb']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  name?: InputMaybe<Scalars['String']>;
+  startedAt?: InputMaybe<Scalars['timestamptz']>;
+  status?: InputMaybe<PipelineRunStatus_Enum>;
+  substatus?: InputMaybe<Scalars['jsonb']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "pipeline_runs" */
+export enum PipelineRuns_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  EndedAt = 'endedAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Input = 'input',
+  /** column name */
+  Metadata = 'metadata',
+  /** column name */
+  StartedAt = 'startedAt',
+  /** column name */
+  Status = 'status',
+  /** column name */
+  Substatus = 'substatus',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type PipelineRuns_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<PipelineRuns_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<PipelineRuns_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<PipelineRuns_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<PipelineRuns_Delete_Key_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<PipelineRuns_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<PipelineRuns_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: PipelineRuns_Bool_Exp;
+};
+
 /** columns and relationships of "plans" */
 export type Plans = {
   __typename?: 'plans';
@@ -21466,6 +22128,11 @@ export type Query_Root = {
   getFunctionsInvocations: Metrics;
   getLogsVolume: Metrics;
   getPiTRBaseBackups: Array<PiTrBaseBackup>;
+  /**
+   * Returns pipeline run logs for a given application and pipeline run.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   */
+  getPipelineRunLogs: Array<PipelineRunLog>;
   getPostgresVolumeCapacity: Metrics;
   getPostgresVolumeUsage: Metrics;
   getProjectStatus: ProjectStatusResponse;
@@ -21543,6 +22210,18 @@ export type Query_Root = {
   paymentMethods: Array<PaymentMethods>;
   /** fetch aggregated fields from the table: "payment_methods" */
   paymentMethodsAggregate: PaymentMethods_Aggregate;
+  /** fetch data from the table: "pipeline_runs" using primary key columns */
+  pipelineRun?: Maybe<PipelineRuns>;
+  /** fetch data from the table: "pipeline_run_status" */
+  pipelineRunStatus: Array<PipelineRunStatus>;
+  /** fetch aggregated fields from the table: "pipeline_run_status" */
+  pipelineRunStatus_aggregate: PipelineRunStatus_Aggregate;
+  /** fetch data from the table: "pipeline_run_status" using primary key columns */
+  pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
+  /** An array relationship */
+  pipelineRuns: Array<PipelineRuns>;
+  /** fetch aggregated fields from the table: "pipeline_runs" */
+  pipelineRunsAggregate: PipelineRuns_Aggregate;
   /** fetch data from the table: "plans" using primary key columns */
   plan?: Maybe<Plans>;
   /** fetch data from the table: "plans" */
@@ -21612,6 +22291,10 @@ export type Query_Root = {
   systemConfigs: Array<ConfigAppSystemConfig>;
   /** Returns system logs for a given application */
   systemLogs: Array<Log>;
+  /** fetch data from the table: "unified_deployments" */
+  unifiedDeployments: Array<UnifiedDeployments>;
+  /** fetch aggregated fields from the table: "unified_deployments" */
+  unifiedDeploymentsAggregate: UnifiedDeployments_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -22513,6 +23196,14 @@ export type Query_RootGetPiTrBaseBackupsArgs = {
 };
 
 
+export type Query_RootGetPipelineRunLogsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  pipelineRunID: Scalars['String'];
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
 export type Query_RootGetPostgresVolumeCapacityArgs = {
   appID: Scalars['String'];
   t?: InputMaybe<Scalars['Timestamp']>;
@@ -22795,6 +23486,52 @@ export type Query_RootPaymentMethodsAggregateArgs = {
 };
 
 
+export type Query_RootPipelineRunArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootPipelineRunStatusArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRunStatus_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRunStatus_Order_By>>;
+  where?: InputMaybe<PipelineRunStatus_Bool_Exp>;
+};
+
+
+export type Query_RootPipelineRunStatus_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRunStatus_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRunStatus_Order_By>>;
+  where?: InputMaybe<PipelineRunStatus_Bool_Exp>;
+};
+
+
+export type Query_RootPipelineRunStatus_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Query_RootPipelineRunsArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRuns_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRuns_Order_By>>;
+  where?: InputMaybe<PipelineRuns_Bool_Exp>;
+};
+
+
+export type Query_RootPipelineRunsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRuns_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRuns_Order_By>>;
+  where?: InputMaybe<PipelineRuns_Bool_Exp>;
+};
+
+
 export type Query_RootPlanArgs = {
   id: Scalars['uuid'];
 };
@@ -23049,6 +23786,24 @@ export type Query_RootSystemLogsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootUnifiedDeploymentsArgs = {
+  distinct_on?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<UnifiedDeployments_Order_By>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+};
+
+
+export type Query_RootUnifiedDeploymentsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<UnifiedDeployments_Order_By>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
 };
 
 
@@ -25330,6 +26085,11 @@ export type Subscription_Root = {
   filesAggregate: Files_Aggregate;
   /** fetch data from the table in a streaming manner: "storage.files" */
   files_stream: Array<Files>;
+  /**
+   * Returns pipeline run logs for a given application and pipeline run.
+   * If `from` is not provided, it defaults to an hour ago.
+   */
+  getPipelineRunLogs: Array<PipelineRunLog>;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -25415,6 +26175,22 @@ export type Subscription_Root = {
   paymentMethodsAggregate: PaymentMethods_Aggregate;
   /** fetch data from the table in a streaming manner: "payment_methods" */
   paymentMethods_stream: Array<PaymentMethods>;
+  /** fetch data from the table: "pipeline_runs" using primary key columns */
+  pipelineRun?: Maybe<PipelineRuns>;
+  /** fetch data from the table: "pipeline_run_status" */
+  pipelineRunStatus: Array<PipelineRunStatus>;
+  /** fetch aggregated fields from the table: "pipeline_run_status" */
+  pipelineRunStatus_aggregate: PipelineRunStatus_Aggregate;
+  /** fetch data from the table: "pipeline_run_status" using primary key columns */
+  pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
+  /** fetch data from the table in a streaming manner: "pipeline_run_status" */
+  pipelineRunStatus_stream: Array<PipelineRunStatus>;
+  /** An array relationship */
+  pipelineRuns: Array<PipelineRuns>;
+  /** fetch aggregated fields from the table: "pipeline_runs" */
+  pipelineRunsAggregate: PipelineRuns_Aggregate;
+  /** fetch data from the table in a streaming manner: "pipeline_runs" */
+  pipelineRuns_stream: Array<PipelineRuns>;
   /** fetch data from the table: "plans" using primary key columns */
   plan?: Maybe<Plans>;
   /** fetch data from the table: "plans" */
@@ -25487,6 +26263,12 @@ export type Subscription_Root = {
   softwareVersionsAggregate: Software_Versions_Aggregate;
   /** fetch data from the table in a streaming manner: "software_versions" */
   softwareVersionsStream: Array<Software_Versions>;
+  /** fetch data from the table: "unified_deployments" */
+  unifiedDeployments: Array<UnifiedDeployments>;
+  /** fetch aggregated fields from the table: "unified_deployments" */
+  unifiedDeploymentsAggregate: UnifiedDeployments_Aggregate;
+  /** fetch data from the table in a streaming manner: "unified_deployments" */
+  unifiedDeployments_stream: Array<UnifiedDeployments>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -26550,6 +27332,13 @@ export type Subscription_RootFiles_StreamArgs = {
 };
 
 
+export type Subscription_RootGetPipelineRunLogsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  pipelineRunID: Scalars['String'];
+};
+
+
 export type Subscription_RootGithubAppInstallationArgs = {
   id: Scalars['uuid'];
 };
@@ -26858,6 +27647,66 @@ export type Subscription_RootPaymentMethods_StreamArgs = {
 };
 
 
+export type Subscription_RootPipelineRunArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootPipelineRunStatusArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRunStatus_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRunStatus_Order_By>>;
+  where?: InputMaybe<PipelineRunStatus_Bool_Exp>;
+};
+
+
+export type Subscription_RootPipelineRunStatus_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRunStatus_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRunStatus_Order_By>>;
+  where?: InputMaybe<PipelineRunStatus_Bool_Exp>;
+};
+
+
+export type Subscription_RootPipelineRunStatus_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootPipelineRunStatus_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<PipelineRunStatus_Stream_Cursor_Input>>;
+  where?: InputMaybe<PipelineRunStatus_Bool_Exp>;
+};
+
+
+export type Subscription_RootPipelineRunsArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRuns_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRuns_Order_By>>;
+  where?: InputMaybe<PipelineRuns_Bool_Exp>;
+};
+
+
+export type Subscription_RootPipelineRunsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<PipelineRuns_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<PipelineRuns_Order_By>>;
+  where?: InputMaybe<PipelineRuns_Bool_Exp>;
+};
+
+
+export type Subscription_RootPipelineRuns_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<PipelineRuns_Stream_Cursor_Input>>;
+  where?: InputMaybe<PipelineRuns_Bool_Exp>;
+};
+
+
 export type Subscription_RootPlanArgs = {
   id: Scalars['uuid'];
 };
@@ -27128,6 +27977,31 @@ export type Subscription_RootSoftwareVersionsStreamArgs = {
 };
 
 
+export type Subscription_RootUnifiedDeploymentsArgs = {
+  distinct_on?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<UnifiedDeployments_Order_By>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+};
+
+
+export type Subscription_RootUnifiedDeploymentsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<UnifiedDeployments_Order_By>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+};
+
+
+export type Subscription_RootUnifiedDeployments_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<UnifiedDeployments_Stream_Cursor_Input>>;
+  where?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+};
+
+
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -27288,6 +28162,162 @@ export type Timestamptz_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['timestamptz']>;
   _neq?: InputMaybe<Scalars['timestamptz']>;
   _nin?: InputMaybe<Array<Scalars['timestamptz']>>;
+};
+
+/** columns and relationships of "unified_deployments" */
+export type UnifiedDeployments = {
+  __typename?: 'unifiedDeployments';
+  /** An object relationship */
+  app?: Maybe<Apps>;
+  appId?: Maybe<Scalars['uuid']>;
+  commitMessage?: Maybe<Scalars['String']>;
+  commitSHA?: Maybe<Scalars['String']>;
+  commitUserAvatarUrl?: Maybe<Scalars['String']>;
+  commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  endedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  source?: Maybe<Scalars['String']>;
+  startedAt?: Maybe<Scalars['timestamptz']>;
+  status?: Maybe<Scalars['String']>;
+};
+
+/** aggregated selection of "unified_deployments" */
+export type UnifiedDeployments_Aggregate = {
+  __typename?: 'unifiedDeployments_aggregate';
+  aggregate?: Maybe<UnifiedDeployments_Aggregate_Fields>;
+  nodes: Array<UnifiedDeployments>;
+};
+
+/** aggregate fields of "unified_deployments" */
+export type UnifiedDeployments_Aggregate_Fields = {
+  __typename?: 'unifiedDeployments_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<UnifiedDeployments_Max_Fields>;
+  min?: Maybe<UnifiedDeployments_Min_Fields>;
+};
+
+
+/** aggregate fields of "unified_deployments" */
+export type UnifiedDeployments_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<UnifiedDeployments_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "unified_deployments". All fields are combined with a logical 'AND'. */
+export type UnifiedDeployments_Bool_Exp = {
+  _and?: InputMaybe<Array<UnifiedDeployments_Bool_Exp>>;
+  _not?: InputMaybe<UnifiedDeployments_Bool_Exp>;
+  _or?: InputMaybe<Array<UnifiedDeployments_Bool_Exp>>;
+  app?: InputMaybe<Apps_Bool_Exp>;
+  appId?: InputMaybe<Uuid_Comparison_Exp>;
+  commitMessage?: InputMaybe<String_Comparison_Exp>;
+  commitSHA?: InputMaybe<String_Comparison_Exp>;
+  commitUserAvatarUrl?: InputMaybe<String_Comparison_Exp>;
+  commitUserName?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  endedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  source?: InputMaybe<String_Comparison_Exp>;
+  startedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  status?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** aggregate max on columns */
+export type UnifiedDeployments_Max_Fields = {
+  __typename?: 'unifiedDeployments_max_fields';
+  appId?: Maybe<Scalars['uuid']>;
+  commitMessage?: Maybe<Scalars['String']>;
+  commitSHA?: Maybe<Scalars['String']>;
+  commitUserAvatarUrl?: Maybe<Scalars['String']>;
+  commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  endedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  source?: Maybe<Scalars['String']>;
+  startedAt?: Maybe<Scalars['timestamptz']>;
+  status?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type UnifiedDeployments_Min_Fields = {
+  __typename?: 'unifiedDeployments_min_fields';
+  appId?: Maybe<Scalars['uuid']>;
+  commitMessage?: Maybe<Scalars['String']>;
+  commitSHA?: Maybe<Scalars['String']>;
+  commitUserAvatarUrl?: Maybe<Scalars['String']>;
+  commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  endedAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  source?: Maybe<Scalars['String']>;
+  startedAt?: Maybe<Scalars['timestamptz']>;
+  status?: Maybe<Scalars['String']>;
+};
+
+/** Ordering options when selecting data from "unified_deployments". */
+export type UnifiedDeployments_Order_By = {
+  app?: InputMaybe<Apps_Order_By>;
+  appId?: InputMaybe<Order_By>;
+  commitMessage?: InputMaybe<Order_By>;
+  commitSHA?: InputMaybe<Order_By>;
+  commitUserAvatarUrl?: InputMaybe<Order_By>;
+  commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  endedAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  source?: InputMaybe<Order_By>;
+  startedAt?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+};
+
+/** select columns of table "unified_deployments" */
+export enum UnifiedDeployments_Select_Column {
+  /** column name */
+  AppId = 'appId',
+  /** column name */
+  CommitMessage = 'commitMessage',
+  /** column name */
+  CommitSha = 'commitSHA',
+  /** column name */
+  CommitUserAvatarUrl = 'commitUserAvatarUrl',
+  /** column name */
+  CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  EndedAt = 'endedAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Source = 'source',
+  /** column name */
+  StartedAt = 'startedAt',
+  /** column name */
+  Status = 'status'
+}
+
+/** Streaming cursor of the table "unifiedDeployments" */
+export type UnifiedDeployments_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: UnifiedDeployments_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type UnifiedDeployments_Stream_Cursor_Value_Input = {
+  appId?: InputMaybe<Scalars['uuid']>;
+  commitMessage?: InputMaybe<Scalars['String']>;
+  commitSHA?: InputMaybe<Scalars['String']>;
+  commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
+  commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  endedAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  source?: InputMaybe<Scalars['String']>;
+  startedAt?: InputMaybe<Scalars['timestamptz']>;
+  status?: InputMaybe<Scalars['String']>;
 };
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
@@ -30127,49 +31157,120 @@ export type DeploymentRowFragment = { __typename?: 'deployments', id: any, commi
 
 export type DeploymentFragment = { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> };
 
-export type ScheduledOrPendingDeploymentsSubSubscriptionVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type ScheduledOrPendingDeploymentsSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
-
-export type LatestLiveDeploymentSubSubscriptionVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type LatestLiveDeploymentSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
-
-export type InsertDeploymentMutationVariables = Exact<{
-  object: Deployments_Insert_Input;
-}>;
-
-
-export type InsertDeploymentMutation = { __typename?: 'mutation_root', insertDeployment?: { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null } | null };
-
-export type GetDeploymentsSubSubscriptionVariables = Exact<{
+export type GetDeploymentsQueryVariables = Exact<{
   id: Scalars['uuid'];
   limit: Scalars['Int'];
   offset: Scalars['Int'];
 }>;
 
 
-export type GetDeploymentsSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+export type GetDeploymentsQuery = { __typename?: 'query_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
 
-export type DeploymentSubSubscriptionVariables = Exact<{
+export type GetLegacyDeploymentQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type DeploymentSubSubscription = { __typename?: 'subscription_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
+export type GetLegacyDeploymentQuery = { __typename?: 'query_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
 
-export type GetDeploymentQueryVariables = Exact<{
+export type GetLatestDeployedDeploymentQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetLatestDeployedDeploymentQuery = { __typename?: 'query_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+
+export type PipelineRunRowFragment = { __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any };
+
+export type PipelineRunFragment = { __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, substatus?: any | null, appId?: any | null, createdAt: any };
+
+export type PendingOrRunningPipelineRunsSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type PendingOrRunningPipelineRunsSubSubscription = { __typename?: 'subscription_root', pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }> };
+
+export type LatestSucceededPipelineRunSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type LatestSucceededPipelineRunSubSubscription = { __typename?: 'subscription_root', pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }> };
+
+export type InsertPipelineRunMutationVariables = Exact<{
+  object: PipelineRuns_Insert_Input;
+}>;
+
+
+export type InsertPipelineRunMutation = { __typename?: 'mutation_root', insertPipelineRun?: { __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any } | null };
+
+export type GetPipelineRunsSubSubscriptionVariables = Exact<{
+  id: Scalars['uuid'];
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type GetPipelineRunsSubSubscription = { __typename?: 'subscription_root', pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }> };
+
+export type PipelineRunSubSubscriptionVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type GetDeploymentQuery = { __typename?: 'query_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
+export type PipelineRunSubSubscription = { __typename?: 'subscription_root', pipelineRun?: { __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, substatus?: any | null, appId?: any | null, createdAt: any } | null };
+
+export type GetPipelineRunQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type GetPipelineRunQuery = { __typename?: 'query_root', pipelineRun?: { __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, substatus?: any | null, appId?: any | null, createdAt: any } | null };
+
+export type UnifiedDeploymentRowFragment = { __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null };
+
+export type GetUnifiedDeploymentsSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type GetUnifiedDeploymentsSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
+
+export type PendingOrRunningUnifiedDeploymentsSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type PendingOrRunningUnifiedDeploymentsSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
+
+export type LatestLiveUnifiedDeploymentSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type LatestLiveUnifiedDeploymentSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
+
+export type GetPipelineRunLogsQueryVariables = Exact<{
+  appID: Scalars['String'];
+  pipelineRunID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+}>;
+
+
+export type GetPipelineRunLogsQuery = { __typename?: 'query_root', getPipelineRunLogs: Array<{ __typename?: 'PipelineRunLog', timestamp: any, task: string, log: string }> };
+
+export type GetPipelineRunLogsSubscriptionSubscriptionVariables = Exact<{
+  appID: Scalars['String'];
+  pipelineRunID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+}>;
+
+
+export type GetPipelineRunLogsSubscriptionSubscription = { __typename?: 'subscription_root', getPipelineRunLogs: Array<{ __typename?: 'PipelineRunLog', timestamp: any, task: string, log: string }> };
 
 export type GetBucketsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -30195,7 +31296,7 @@ export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
@@ -30359,7 +31460,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -30371,7 +31472,7 @@ export type GetProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GetProjectStateQueryVariables = Exact<{
   subdomain: Scalars['String'];
@@ -30385,7 +31486,7 @@ export type GetProjectsQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, region: { __typename?: 'regions', id: any, name: string }, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
+export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, region: { __typename?: 'regions', id: any, name: string }, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
 
 export type GetUserProjectMetricsQueryVariables = Exact<{
   startOfMonth: Scalars['timestamptz'];
@@ -30895,6 +31996,46 @@ export const DeploymentFragmentDoc = gql`
   }
 }
     `;
+export const PipelineRunRowFragmentDoc = gql`
+    fragment PipelineRunRow on pipelineRuns {
+  id
+  name
+  startedAt
+  endedAt
+  status
+  input
+  appId
+  createdAt
+}
+    `;
+export const PipelineRunFragmentDoc = gql`
+    fragment PipelineRun on pipelineRuns {
+  id
+  name
+  startedAt
+  endedAt
+  status
+  input
+  substatus
+  appId
+  createdAt
+}
+    `;
+export const UnifiedDeploymentRowFragmentDoc = gql`
+    fragment UnifiedDeploymentRow on unifiedDeployments {
+  id
+  appId
+  source
+  commitSHA
+  commitUserName
+  commitUserAvatarUrl
+  commitMessage
+  startedAt
+  endedAt
+  status
+  createdAt
+}
+    `;
 export const AppStateHistoryFragmentDoc = gql`
     fragment AppStateHistory on appStateHistory {
   id
@@ -30969,6 +32110,16 @@ export const ProjectFragmentDoc = gql`
     deploymentEndedAt
     commitUserAvatarUrl
     deploymentStatus
+  }
+  pipelineRuns(limit: 4, order_by: {startedAt: desc}) {
+    id
+    name
+    startedAt
+    endedAt
+    status
+    input
+    appId
+    createdAt
   }
   creator {
     id
@@ -33744,108 +34895,8 @@ export type GetCountriesQueryResult = Apollo.QueryResult<GetCountriesQuery, GetC
 export function refetchGetCountriesQuery(variables?: GetCountriesQueryVariables) {
       return { query: GetCountriesDocument, variables: variables }
     }
-export const ScheduledOrPendingDeploymentsSubDocument = gql`
-    subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
-  deployments(
-    where: {deploymentStatus: {_in: ["SCHEDULED"]}, appId: {_eq: $appId}}
-  ) {
-    ...DeploymentRow
-  }
-}
-    ${DeploymentRowFragmentDoc}`;
-
-/**
- * __useScheduledOrPendingDeploymentsSubSubscription__
- *
- * To run a query within a React component, call `useScheduledOrPendingDeploymentsSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useScheduledOrPendingDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useScheduledOrPendingDeploymentsSubSubscription({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useScheduledOrPendingDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<ScheduledOrPendingDeploymentsSubSubscription, ScheduledOrPendingDeploymentsSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<ScheduledOrPendingDeploymentsSubSubscription, ScheduledOrPendingDeploymentsSubSubscriptionVariables>(ScheduledOrPendingDeploymentsSubDocument, options);
-      }
-export type ScheduledOrPendingDeploymentsSubSubscriptionHookResult = ReturnType<typeof useScheduledOrPendingDeploymentsSubSubscription>;
-export type ScheduledOrPendingDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<ScheduledOrPendingDeploymentsSubSubscription>;
-export const LatestLiveDeploymentSubDocument = gql`
-    subscription LatestLiveDeploymentSub($appId: uuid!) {
-  deployments(
-    where: {deploymentStatus: {_eq: "DEPLOYED"}, appId: {_eq: $appId}}
-    order_by: {deploymentStartedAt: desc}
-    limit: 1
-    offset: 0
-  ) {
-    ...DeploymentRow
-  }
-}
-    ${DeploymentRowFragmentDoc}`;
-
-/**
- * __useLatestLiveDeploymentSubSubscription__
- *
- * To run a query within a React component, call `useLatestLiveDeploymentSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useLatestLiveDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useLatestLiveDeploymentSubSubscription({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useLatestLiveDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>(LatestLiveDeploymentSubDocument, options);
-      }
-export type LatestLiveDeploymentSubSubscriptionHookResult = ReturnType<typeof useLatestLiveDeploymentSubSubscription>;
-export type LatestLiveDeploymentSubSubscriptionResult = Apollo.SubscriptionResult<LatestLiveDeploymentSubSubscription>;
-export const InsertDeploymentDocument = gql`
-    mutation InsertDeployment($object: deployments_insert_input!) {
-  insertDeployment(object: $object) {
-    ...DeploymentRow
-  }
-}
-    ${DeploymentRowFragmentDoc}`;
-export type InsertDeploymentMutationFn = Apollo.MutationFunction<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
-
-/**
- * __useInsertDeploymentMutation__
- *
- * To run a mutation, you first call `useInsertDeploymentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertDeploymentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertDeploymentMutation, { data, loading, error }] = useInsertDeploymentMutation({
- *   variables: {
- *      object: // value for 'object'
- *   },
- * });
- */
-export function useInsertDeploymentMutation(baseOptions?: Apollo.MutationHookOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertDeploymentMutation, InsertDeploymentMutationVariables>(InsertDeploymentDocument, options);
-      }
-export type InsertDeploymentMutationHookResult = ReturnType<typeof useInsertDeploymentMutation>;
-export type InsertDeploymentMutationResult = Apollo.MutationResult<InsertDeploymentMutation>;
-export type InsertDeploymentMutationOptions = Apollo.BaseMutationOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
-export const GetDeploymentsSubDocument = gql`
-    subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
+export const GetDeploymentsDocument = gql`
+    query getDeployments($id: uuid!, $limit: Int!, $offset: Int!) {
   deployments(
     where: {appId: {_eq: $id}}
     order_by: {deploymentStartedAt: desc}
@@ -33858,16 +34909,16 @@ export const GetDeploymentsSubDocument = gql`
     ${DeploymentRowFragmentDoc}`;
 
 /**
- * __useGetDeploymentsSubSubscription__
+ * __useGetDeploymentsQuery__
  *
- * To run a query within a React component, call `useGetDeploymentsSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useGetDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetDeploymentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeploymentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetDeploymentsSubSubscription({
+ * const { data, loading, error } = useGetDeploymentsQuery({
  *   variables: {
  *      id: // value for 'id'
  *      limit: // value for 'limit'
@@ -33875,14 +34926,22 @@ export const GetDeploymentsSubDocument = gql`
  *   },
  * });
  */
-export function useGetDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetDeploymentsSubSubscription, GetDeploymentsSubSubscriptionVariables>) {
+export function useGetDeploymentsQuery(baseOptions: Apollo.QueryHookOptions<GetDeploymentsQuery, GetDeploymentsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<GetDeploymentsSubSubscription, GetDeploymentsSubSubscriptionVariables>(GetDeploymentsSubDocument, options);
+        return Apollo.useQuery<GetDeploymentsQuery, GetDeploymentsQueryVariables>(GetDeploymentsDocument, options);
       }
-export type GetDeploymentsSubSubscriptionHookResult = ReturnType<typeof useGetDeploymentsSubSubscription>;
-export type GetDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<GetDeploymentsSubSubscription>;
-export const DeploymentSubDocument = gql`
-    subscription deploymentSub($id: uuid!) {
+export function useGetDeploymentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDeploymentsQuery, GetDeploymentsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetDeploymentsQuery, GetDeploymentsQueryVariables>(GetDeploymentsDocument, options);
+        }
+export type GetDeploymentsQueryHookResult = ReturnType<typeof useGetDeploymentsQuery>;
+export type GetDeploymentsLazyQueryHookResult = ReturnType<typeof useGetDeploymentsLazyQuery>;
+export type GetDeploymentsQueryResult = Apollo.QueryResult<GetDeploymentsQuery, GetDeploymentsQueryVariables>;
+export function refetchGetDeploymentsQuery(variables: GetDeploymentsQueryVariables) {
+      return { query: GetDeploymentsDocument, variables: variables }
+    }
+export const GetLegacyDeploymentDocument = gql`
+    query getLegacyDeployment($id: uuid!) {
   deployment(id: $id) {
     ...Deployment
   }
@@ -33890,65 +34949,465 @@ export const DeploymentSubDocument = gql`
     ${DeploymentFragmentDoc}`;
 
 /**
- * __useDeploymentSubSubscription__
+ * __useGetLegacyDeploymentQuery__
  *
- * To run a query within a React component, call `useDeploymentSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useDeploymentSubSubscription({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<DeploymentSubSubscription, DeploymentSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<DeploymentSubSubscription, DeploymentSubSubscriptionVariables>(DeploymentSubDocument, options);
-      }
-export type DeploymentSubSubscriptionHookResult = ReturnType<typeof useDeploymentSubSubscription>;
-export type DeploymentSubSubscriptionResult = Apollo.SubscriptionResult<DeploymentSubSubscription>;
-export const GetDeploymentDocument = gql`
-    query getDeployment($id: uuid!) {
-  deployment(id: $id) {
-    ...Deployment
-  }
-}
-    ${DeploymentFragmentDoc}`;
-
-/**
- * __useGetDeploymentQuery__
- *
- * To run a query within a React component, call `useGetDeploymentQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetDeploymentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetLegacyDeploymentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLegacyDeploymentQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetDeploymentQuery({
+ * const { data, loading, error } = useGetLegacyDeploymentQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetDeploymentQuery(baseOptions: Apollo.QueryHookOptions<GetDeploymentQuery, GetDeploymentQueryVariables>) {
+export function useGetLegacyDeploymentQuery(baseOptions: Apollo.QueryHookOptions<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetDeploymentQuery, GetDeploymentQueryVariables>(GetDeploymentDocument, options);
+        return Apollo.useQuery<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>(GetLegacyDeploymentDocument, options);
       }
-export function useGetDeploymentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDeploymentQuery, GetDeploymentQueryVariables>) {
+export function useGetLegacyDeploymentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetDeploymentQuery, GetDeploymentQueryVariables>(GetDeploymentDocument, options);
+          return Apollo.useLazyQuery<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>(GetLegacyDeploymentDocument, options);
         }
-export type GetDeploymentQueryHookResult = ReturnType<typeof useGetDeploymentQuery>;
-export type GetDeploymentLazyQueryHookResult = ReturnType<typeof useGetDeploymentLazyQuery>;
-export type GetDeploymentQueryResult = Apollo.QueryResult<GetDeploymentQuery, GetDeploymentQueryVariables>;
-export function refetchGetDeploymentQuery(variables: GetDeploymentQueryVariables) {
-      return { query: GetDeploymentDocument, variables: variables }
+export type GetLegacyDeploymentQueryHookResult = ReturnType<typeof useGetLegacyDeploymentQuery>;
+export type GetLegacyDeploymentLazyQueryHookResult = ReturnType<typeof useGetLegacyDeploymentLazyQuery>;
+export type GetLegacyDeploymentQueryResult = Apollo.QueryResult<GetLegacyDeploymentQuery, GetLegacyDeploymentQueryVariables>;
+export function refetchGetLegacyDeploymentQuery(variables: GetLegacyDeploymentQueryVariables) {
+      return { query: GetLegacyDeploymentDocument, variables: variables }
     }
+export const GetLatestDeployedDeploymentDocument = gql`
+    query getLatestDeployedDeployment($appId: uuid!) {
+  deployments(
+    where: {deploymentStatus: {_eq: "DEPLOYED"}, appId: {_eq: $appId}}
+    order_by: {deploymentStartedAt: desc}
+    limit: 1
+  ) {
+    ...DeploymentRow
+  }
+}
+    ${DeploymentRowFragmentDoc}`;
+
+/**
+ * __useGetLatestDeployedDeploymentQuery__
+ *
+ * To run a query within a React component, call `useGetLatestDeployedDeploymentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLatestDeployedDeploymentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLatestDeployedDeploymentQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetLatestDeployedDeploymentQuery(baseOptions: Apollo.QueryHookOptions<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>(GetLatestDeployedDeploymentDocument, options);
+      }
+export function useGetLatestDeployedDeploymentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>(GetLatestDeployedDeploymentDocument, options);
+        }
+export type GetLatestDeployedDeploymentQueryHookResult = ReturnType<typeof useGetLatestDeployedDeploymentQuery>;
+export type GetLatestDeployedDeploymentLazyQueryHookResult = ReturnType<typeof useGetLatestDeployedDeploymentLazyQuery>;
+export type GetLatestDeployedDeploymentQueryResult = Apollo.QueryResult<GetLatestDeployedDeploymentQuery, GetLatestDeployedDeploymentQueryVariables>;
+export function refetchGetLatestDeployedDeploymentQuery(variables: GetLatestDeployedDeploymentQueryVariables) {
+      return { query: GetLatestDeployedDeploymentDocument, variables: variables }
+    }
+export const PendingOrRunningPipelineRunsSubDocument = gql`
+    subscription PendingOrRunningPipelineRunsSub($appId: uuid!) {
+  pipelineRuns(where: {status: {_in: [pending, running]}, appId: {_eq: $appId}}) {
+    ...PipelineRunRow
+  }
+}
+    ${PipelineRunRowFragmentDoc}`;
+
+/**
+ * __usePendingOrRunningPipelineRunsSubSubscription__
+ *
+ * To run a query within a React component, call `usePendingOrRunningPipelineRunsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `usePendingOrRunningPipelineRunsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePendingOrRunningPipelineRunsSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function usePendingOrRunningPipelineRunsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<PendingOrRunningPipelineRunsSubSubscription, PendingOrRunningPipelineRunsSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<PendingOrRunningPipelineRunsSubSubscription, PendingOrRunningPipelineRunsSubSubscriptionVariables>(PendingOrRunningPipelineRunsSubDocument, options);
+      }
+export type PendingOrRunningPipelineRunsSubSubscriptionHookResult = ReturnType<typeof usePendingOrRunningPipelineRunsSubSubscription>;
+export type PendingOrRunningPipelineRunsSubSubscriptionResult = Apollo.SubscriptionResult<PendingOrRunningPipelineRunsSubSubscription>;
+export const LatestSucceededPipelineRunSubDocument = gql`
+    subscription LatestSucceededPipelineRunSub($appId: uuid!) {
+  pipelineRuns(
+    where: {status: {_eq: succeeded}, appId: {_eq: $appId}}
+    order_by: {startedAt: desc}
+    limit: 1
+    offset: 0
+  ) {
+    ...PipelineRunRow
+  }
+}
+    ${PipelineRunRowFragmentDoc}`;
+
+/**
+ * __useLatestSucceededPipelineRunSubSubscription__
+ *
+ * To run a query within a React component, call `useLatestSucceededPipelineRunSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useLatestSucceededPipelineRunSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLatestSucceededPipelineRunSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useLatestSucceededPipelineRunSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<LatestSucceededPipelineRunSubSubscription, LatestSucceededPipelineRunSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<LatestSucceededPipelineRunSubSubscription, LatestSucceededPipelineRunSubSubscriptionVariables>(LatestSucceededPipelineRunSubDocument, options);
+      }
+export type LatestSucceededPipelineRunSubSubscriptionHookResult = ReturnType<typeof useLatestSucceededPipelineRunSubSubscription>;
+export type LatestSucceededPipelineRunSubSubscriptionResult = Apollo.SubscriptionResult<LatestSucceededPipelineRunSubSubscription>;
+export const InsertPipelineRunDocument = gql`
+    mutation InsertPipelineRun($object: pipelineRuns_insert_input!) {
+  insertPipelineRun(object: $object) {
+    ...PipelineRunRow
+  }
+}
+    ${PipelineRunRowFragmentDoc}`;
+export type InsertPipelineRunMutationFn = Apollo.MutationFunction<InsertPipelineRunMutation, InsertPipelineRunMutationVariables>;
+
+/**
+ * __useInsertPipelineRunMutation__
+ *
+ * To run a mutation, you first call `useInsertPipelineRunMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertPipelineRunMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertPipelineRunMutation, { data, loading, error }] = useInsertPipelineRunMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertPipelineRunMutation(baseOptions?: Apollo.MutationHookOptions<InsertPipelineRunMutation, InsertPipelineRunMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertPipelineRunMutation, InsertPipelineRunMutationVariables>(InsertPipelineRunDocument, options);
+      }
+export type InsertPipelineRunMutationHookResult = ReturnType<typeof useInsertPipelineRunMutation>;
+export type InsertPipelineRunMutationResult = Apollo.MutationResult<InsertPipelineRunMutation>;
+export type InsertPipelineRunMutationOptions = Apollo.BaseMutationOptions<InsertPipelineRunMutation, InsertPipelineRunMutationVariables>;
+export const GetPipelineRunsSubDocument = gql`
+    subscription getPipelineRunsSub($id: uuid!, $limit: Int!, $offset: Int!) {
+  pipelineRuns(
+    where: {appId: {_eq: $id}}
+    order_by: {startedAt: desc}
+    limit: $limit
+    offset: $offset
+  ) {
+    ...PipelineRunRow
+  }
+}
+    ${PipelineRunRowFragmentDoc}`;
+
+/**
+ * __useGetPipelineRunsSubSubscription__
+ *
+ * To run a query within a React component, call `useGetPipelineRunsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetPipelineRunsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPipelineRunsSubSubscription({
+ *   variables: {
+ *      id: // value for 'id'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetPipelineRunsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetPipelineRunsSubSubscription, GetPipelineRunsSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetPipelineRunsSubSubscription, GetPipelineRunsSubSubscriptionVariables>(GetPipelineRunsSubDocument, options);
+      }
+export type GetPipelineRunsSubSubscriptionHookResult = ReturnType<typeof useGetPipelineRunsSubSubscription>;
+export type GetPipelineRunsSubSubscriptionResult = Apollo.SubscriptionResult<GetPipelineRunsSubSubscription>;
+export const PipelineRunSubDocument = gql`
+    subscription pipelineRunSub($id: uuid!) {
+  pipelineRun(id: $id) {
+    ...PipelineRun
+  }
+}
+    ${PipelineRunFragmentDoc}`;
+
+/**
+ * __usePipelineRunSubSubscription__
+ *
+ * To run a query within a React component, call `usePipelineRunSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `usePipelineRunSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePipelineRunSubSubscription({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function usePipelineRunSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<PipelineRunSubSubscription, PipelineRunSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<PipelineRunSubSubscription, PipelineRunSubSubscriptionVariables>(PipelineRunSubDocument, options);
+      }
+export type PipelineRunSubSubscriptionHookResult = ReturnType<typeof usePipelineRunSubSubscription>;
+export type PipelineRunSubSubscriptionResult = Apollo.SubscriptionResult<PipelineRunSubSubscription>;
+export const GetPipelineRunDocument = gql`
+    query getPipelineRun($id: uuid!) {
+  pipelineRun(id: $id) {
+    ...PipelineRun
+  }
+}
+    ${PipelineRunFragmentDoc}`;
+
+/**
+ * __useGetPipelineRunQuery__
+ *
+ * To run a query within a React component, call `useGetPipelineRunQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPipelineRunQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPipelineRunQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetPipelineRunQuery(baseOptions: Apollo.QueryHookOptions<GetPipelineRunQuery, GetPipelineRunQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPipelineRunQuery, GetPipelineRunQueryVariables>(GetPipelineRunDocument, options);
+      }
+export function useGetPipelineRunLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPipelineRunQuery, GetPipelineRunQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPipelineRunQuery, GetPipelineRunQueryVariables>(GetPipelineRunDocument, options);
+        }
+export type GetPipelineRunQueryHookResult = ReturnType<typeof useGetPipelineRunQuery>;
+export type GetPipelineRunLazyQueryHookResult = ReturnType<typeof useGetPipelineRunLazyQuery>;
+export type GetPipelineRunQueryResult = Apollo.QueryResult<GetPipelineRunQuery, GetPipelineRunQueryVariables>;
+export function refetchGetPipelineRunQuery(variables: GetPipelineRunQueryVariables) {
+      return { query: GetPipelineRunDocument, variables: variables }
+    }
+export const GetUnifiedDeploymentsSubDocument = gql`
+    subscription getUnifiedDeploymentsSub($appId: uuid!, $limit: Int!, $offset: Int!) {
+  unifiedDeployments(
+    where: {appId: {_eq: $appId}}
+    order_by: {startedAt: desc}
+    limit: $limit
+    offset: $offset
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+    ${UnifiedDeploymentRowFragmentDoc}`;
+
+/**
+ * __useGetUnifiedDeploymentsSubSubscription__
+ *
+ * To run a query within a React component, call `useGetUnifiedDeploymentsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetUnifiedDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUnifiedDeploymentsSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetUnifiedDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetUnifiedDeploymentsSubSubscription, GetUnifiedDeploymentsSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetUnifiedDeploymentsSubSubscription, GetUnifiedDeploymentsSubSubscriptionVariables>(GetUnifiedDeploymentsSubDocument, options);
+      }
+export type GetUnifiedDeploymentsSubSubscriptionHookResult = ReturnType<typeof useGetUnifiedDeploymentsSubSubscription>;
+export type GetUnifiedDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<GetUnifiedDeploymentsSubSubscription>;
+export const PendingOrRunningUnifiedDeploymentsSubDocument = gql`
+    subscription PendingOrRunningUnifiedDeploymentsSub($appId: uuid!) {
+  unifiedDeployments(
+    where: {status: {_in: ["pending", "running", "SCHEDULED", "PENDING", "DEPLOYING"]}, appId: {_eq: $appId}}
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+    ${UnifiedDeploymentRowFragmentDoc}`;
+
+/**
+ * __usePendingOrRunningUnifiedDeploymentsSubSubscription__
+ *
+ * To run a query within a React component, call `usePendingOrRunningUnifiedDeploymentsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `usePendingOrRunningUnifiedDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePendingOrRunningUnifiedDeploymentsSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function usePendingOrRunningUnifiedDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<PendingOrRunningUnifiedDeploymentsSubSubscription, PendingOrRunningUnifiedDeploymentsSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<PendingOrRunningUnifiedDeploymentsSubSubscription, PendingOrRunningUnifiedDeploymentsSubSubscriptionVariables>(PendingOrRunningUnifiedDeploymentsSubDocument, options);
+      }
+export type PendingOrRunningUnifiedDeploymentsSubSubscriptionHookResult = ReturnType<typeof usePendingOrRunningUnifiedDeploymentsSubSubscription>;
+export type PendingOrRunningUnifiedDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<PendingOrRunningUnifiedDeploymentsSubSubscription>;
+export const LatestLiveUnifiedDeploymentSubDocument = gql`
+    subscription LatestLiveUnifiedDeploymentSub($appId: uuid!) {
+  unifiedDeployments(
+    where: {status: {_in: ["succeeded", "DEPLOYED"]}, appId: {_eq: $appId}}
+    order_by: {startedAt: desc}
+    limit: 1
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+    ${UnifiedDeploymentRowFragmentDoc}`;
+
+/**
+ * __useLatestLiveUnifiedDeploymentSubSubscription__
+ *
+ * To run a query within a React component, call `useLatestLiveUnifiedDeploymentSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useLatestLiveUnifiedDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLatestLiveUnifiedDeploymentSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useLatestLiveUnifiedDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<LatestLiveUnifiedDeploymentSubSubscription, LatestLiveUnifiedDeploymentSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<LatestLiveUnifiedDeploymentSubSubscription, LatestLiveUnifiedDeploymentSubSubscriptionVariables>(LatestLiveUnifiedDeploymentSubDocument, options);
+      }
+export type LatestLiveUnifiedDeploymentSubSubscriptionHookResult = ReturnType<typeof useLatestLiveUnifiedDeploymentSubSubscription>;
+export type LatestLiveUnifiedDeploymentSubSubscriptionResult = Apollo.SubscriptionResult<LatestLiveUnifiedDeploymentSubSubscription>;
+export const GetPipelineRunLogsDocument = gql`
+    query getPipelineRunLogs($appID: String!, $pipelineRunID: String!, $from: Timestamp, $to: Timestamp) {
+  getPipelineRunLogs(
+    appID: $appID
+    pipelineRunID: $pipelineRunID
+    from: $from
+    to: $to
+  ) {
+    timestamp
+    task
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetPipelineRunLogsQuery__
+ *
+ * To run a query within a React component, call `useGetPipelineRunLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPipelineRunLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPipelineRunLogsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      pipelineRunID: // value for 'pipelineRunID'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetPipelineRunLogsQuery(baseOptions: Apollo.QueryHookOptions<GetPipelineRunLogsQuery, GetPipelineRunLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPipelineRunLogsQuery, GetPipelineRunLogsQueryVariables>(GetPipelineRunLogsDocument, options);
+      }
+export function useGetPipelineRunLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPipelineRunLogsQuery, GetPipelineRunLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPipelineRunLogsQuery, GetPipelineRunLogsQueryVariables>(GetPipelineRunLogsDocument, options);
+        }
+export type GetPipelineRunLogsQueryHookResult = ReturnType<typeof useGetPipelineRunLogsQuery>;
+export type GetPipelineRunLogsLazyQueryHookResult = ReturnType<typeof useGetPipelineRunLogsLazyQuery>;
+export type GetPipelineRunLogsQueryResult = Apollo.QueryResult<GetPipelineRunLogsQuery, GetPipelineRunLogsQueryVariables>;
+export function refetchGetPipelineRunLogsQuery(variables: GetPipelineRunLogsQueryVariables) {
+      return { query: GetPipelineRunLogsDocument, variables: variables }
+    }
+export const GetPipelineRunLogsSubscriptionDocument = gql`
+    subscription getPipelineRunLogsSubscription($appID: String!, $pipelineRunID: String!, $from: Timestamp) {
+  getPipelineRunLogs(appID: $appID, pipelineRunID: $pipelineRunID, from: $from) {
+    timestamp
+    task
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetPipelineRunLogsSubscriptionSubscription__
+ *
+ * To run a query within a React component, call `useGetPipelineRunLogsSubscriptionSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetPipelineRunLogsSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPipelineRunLogsSubscriptionSubscription({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      pipelineRunID: // value for 'pipelineRunID'
+ *      from: // value for 'from'
+ *   },
+ * });
+ */
+export function useGetPipelineRunLogsSubscriptionSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetPipelineRunLogsSubscriptionSubscription, GetPipelineRunLogsSubscriptionSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetPipelineRunLogsSubscriptionSubscription, GetPipelineRunLogsSubscriptionSubscriptionVariables>(GetPipelineRunLogsSubscriptionDocument, options);
+      }
+export type GetPipelineRunLogsSubscriptionSubscriptionHookResult = ReturnType<typeof useGetPipelineRunLogsSubscriptionSubscription>;
+export type GetPipelineRunLogsSubscriptionSubscriptionResult = Apollo.SubscriptionResult<GetPipelineRunLogsSubscriptionSubscription>;
 export const GetBucketsDocument = gql`
     query getBuckets {
   buckets {
@@ -35029,6 +36488,16 @@ export const GetProjectDocument = gql`
       commitUserAvatarUrl
       deploymentStatus
     }
+    pipelineRuns(limit: 4, order_by: {startedAt: desc}) {
+      id
+      name
+      startedAt
+      endedAt
+      status
+      input
+      appId
+      createdAt
+    }
     creator {
       id
       email
@@ -35145,6 +36614,16 @@ export const GetProjectsDocument = gql`
       deploymentEndedAt
       commitUserAvatarUrl
       deploymentStatus
+    }
+    pipelineRuns(limit: 4, order_by: {startedAt: desc}) {
+      id
+      name
+      startedAt
+      endedAt
+      status
+      input
+      appId
+      createdAt
     }
     creator {
       id

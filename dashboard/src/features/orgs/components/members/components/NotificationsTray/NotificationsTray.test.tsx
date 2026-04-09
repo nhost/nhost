@@ -85,6 +85,7 @@ beforeAll(() => {
 afterEach(() => {
   queryClient.clear();
   vi.restoreAllMocks();
+  vi.clearAllMocks();
 });
 
 afterAll(() => {
