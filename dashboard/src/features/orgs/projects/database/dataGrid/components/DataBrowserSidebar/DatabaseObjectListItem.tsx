@@ -11,7 +11,6 @@ import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks
 import { useGetTrackedFunctionsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedFunctionsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getDatabaseObjectColor } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectColor';
 import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
 import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
@@ -83,7 +82,6 @@ export default function DatabaseObjectListItem({
     databaseObject.objectType,
     isEnum,
   );
-  const iconColor = getDatabaseObjectColor(databaseObject.objectType, isEnum);
 
   return (
     <li className="group pb-1">
@@ -114,9 +112,7 @@ export default function DatabaseObjectListItem({
                 }}
                 href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.schema}/${getObjectTypeUrlSegment(databaseObject.objectType)}/${isFunction ? databaseObject.oid : databaseObject.name}`}
               >
-                <DatabaseObjectIcon
-                  className={cn('h-4 w-4 shrink-0', iconColor)}
-                />
+                <DatabaseObjectIcon className="h-4 w-4 shrink-0 text-primary" />
                 <span
                   className={cn('!truncate text-ellipsis', {
                     italic: isUntracked,
