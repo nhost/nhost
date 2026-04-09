@@ -61,6 +61,7 @@ export const mockApplication: Project = {
   },
   createdAt: new Date().toISOString(),
   deployments: [],
+  pipelineRuns: [],
   desiredState: ApplicationStatus.Live,
   featureFlags: [],
   githubRepository: { fullName: 'test/git-project' },

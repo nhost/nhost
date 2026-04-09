@@ -19,6 +19,7 @@ export const localApplication: GetProjectQuery['apps'][0] = {
     },
   ],
   deployments: [],
+  pipelineRuns: [],
   subdomain: 'local',
   region: {
     id: null,

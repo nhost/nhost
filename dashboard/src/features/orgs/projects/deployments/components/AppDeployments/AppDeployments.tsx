@@ -9,9 +9,9 @@ import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import {
-  useGetDeploymentsSubSubscription,
-  useLatestLiveDeploymentSubSubscription,
-  useScheduledOrPendingDeploymentsSubSubscription,
+  useGetUnifiedDeploymentsSubSubscription,
+  useLatestLiveUnifiedDeploymentSubSubscription,
+  usePendingOrRunningUnifiedDeploymentsSubSubscription,
 } from '@/generated/graphql';
 
 export type AppDeploymentsProps = {
@@ -59,7 +59,7 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
       variant="link"
       underline="none"
       className="flex items-center justify-center py-0"
-      href={`${window.location.pathname}?page=${currentPage - 1}`}
+      href={`${window.location.pathname}?page=${currentPage + 1}`}
     >
       <ChevronRightIcon className="h-4 w-4" />
     </IconLink>
@@ -78,36 +78,21 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const limit = 10;
   const offset = (page - 1) * limit;
 
-  const {
-    data: deploymentPageData,
-    loading: deploymentPageLoading,
-    error,
-  } = useGetDeploymentsSubSubscription({
-    variables: { id: appId, limit, offset },
+  const { data, loading, error } = useGetUnifiedDeploymentsSubSubscription({
+    variables: { appId, limit, offset },
   });
 
-  const { data: latestDeploymentData, loading: latestDeploymentLoading } =
-    useGetDeploymentsSubSubscription({
-      variables: { id: appId, limit: 1, offset: 0 },
+  const { data: latestLiveData, loading: latestLiveLoading } =
+    useLatestLiveUnifiedDeploymentSubSubscription({
+      variables: { appId },
     });
 
-  const {
-    data: latestLiveDeploymentData,
-    loading: latestLiveDeploymentLoading,
-  } = useLatestLiveDeploymentSubSubscription({ variables: { appId } });
+  const { data: pendingOrRunningData, loading: pendingOrRunningLoading } =
+    usePendingOrRunningUnifiedDeploymentsSubSubscription({
+      variables: { appId },
+    });
 
-  const {
-    data: scheduledOrPendingDeploymentsData,
-    loading: scheduledOrPendingDeploymentsLoading,
-  } = useScheduledOrPendingDeploymentsSubSubscription({ variables: { appId } });
-
-  const loading =
-    deploymentPageLoading ||
-    scheduledOrPendingDeploymentsLoading ||
-    latestDeploymentLoading ||
-    latestLiveDeploymentLoading;
-
-  if (loading) {
+  if (loading || latestLiveLoading || pendingOrRunningLoading) {
     return (
       <ActivityIndicator
         delay={500}
@@ -121,37 +106,27 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     throw error;
   }
 
-  const { deployments } = deploymentPageData || { deployments: [] };
-  const { deployments: scheduledOrPendingDeployments } =
-    scheduledOrPendingDeploymentsData || { deployments: [] };
-  const isDeploymentInProgress = deployments?.some((deployment) =>
-    ['PENDING', 'SCHEDULED'].includes(deployment?.deploymentStatus as string),
-  );
+  const deployments = data?.unifiedDeployments ?? [];
+  const pendingOrRunning = pendingOrRunningData?.unifiedDeployments ?? [];
+  const liveId = latestLiveData?.unifiedDeployments[0]?.id ?? '';
 
-  const latestDeployment = latestDeploymentData?.deployments[0];
-  const latestLiveDeployment = latestLiveDeploymentData?.deployments[0];
-
-  const nrOfDeployments = deployments?.length || 0;
-  const nextAllowed = !(nrOfDeployments < limit);
-  const liveDeploymentId = latestLiveDeployment?.id || '';
+  const nrOfItems = deployments.length;
+  const nextAllowed = nrOfItems >= limit;
 
   return (
     <div className="mt-6">
-      {nrOfDeployments === 0 ? (
+      {nrOfItems === 0 ? (
         <Text variant="subtitle2">No deployments yet.</Text>
       ) : (
         <div>
           <List className="mt-3 border-y" sx={{ borderColor: 'grey.300' }}>
-            {deployments.map((deployment, index) => (
-              <Fragment key={deployment.id}>
+            {deployments.map((item, index) => (
+              <Fragment key={item.id}>
                 <DeploymentListItem
-                  deployment={deployment}
-                  isLive={liveDeploymentId === deployment.id}
-                  showRedeploy={latestDeployment?.id === deployment.id}
-                  disableRedeploy={
-                    scheduledOrPendingDeployments?.length > 0 ||
-                    isDeploymentInProgress
-                  }
+                  deployment={item}
+                  isLive={liveId === item.id}
+                  showRedeploy={index === 0}
+                  disableRedeploy={pendingOrRunning.length > 0}
                 />
 
                 {index !== deployments.length - 1 && <Divider component="li" />}

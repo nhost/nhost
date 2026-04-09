@@ -6,6 +6,7 @@ import type {
   GetOrganizationQuery,
   GetProjectQuery,
   PermissionVariableFragment,
+  PipelineRunRowFragment,
   SecretFragment,
 } from '@/utils/__generated__/graphql';
 
@@ -38,6 +39,7 @@ export type DesiredState =
 
 export type ApplicationState = AppStateHistoryFragment;
 export type Deployment = DeploymentRowFragment;
+export type PipelineRun = PipelineRunRowFragment;
 export type Organization = GetOrganizationQuery['organizations'][0];
 // export type Project = ProjectFragment;
 export type Project = GetProjectQuery['apps'][0];
