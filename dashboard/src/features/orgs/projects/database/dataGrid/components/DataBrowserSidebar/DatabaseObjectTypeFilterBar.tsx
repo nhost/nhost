@@ -56,7 +56,7 @@ export default function DatabaseObjectTypeFilterBar({
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label={filterLabels[filterType]}
+                aria-label={`Toggle filter by ${filterLabels[filterType]}`}
                 className={cn('h-7 w-7', {
                   'bg-accent': isActive,
                   'opacity-40': !isActive,

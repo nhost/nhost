@@ -192,7 +192,9 @@ describe('DataBrowserSidebar', () => {
       expect(screen.getByText('users')).toBeInTheDocument();
     });
 
-    const tableFilter = screen.getByRole('button', { name: 'Table' });
+    const tableFilter = screen.getByRole('button', {
+      name: 'Toggle filter by Table',
+    });
     await user.click(tableFilter);
 
     await waitFor(() => {
@@ -248,7 +250,9 @@ describe('DataBrowserSidebar', () => {
     const searchInput = screen.getByPlaceholderText('Search objects...');
     await user.type(searchInput, 'user');
 
-    const tableFilter = screen.getByRole('button', { name: 'Table' });
+    const tableFilter = screen.getByRole('button', {
+      name: 'Toggle filter by Table',
+    });
     await user.click(tableFilter);
 
     await waitFor(() => {
