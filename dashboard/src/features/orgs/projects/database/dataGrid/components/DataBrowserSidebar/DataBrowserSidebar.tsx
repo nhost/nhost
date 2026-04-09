@@ -155,11 +155,11 @@ function DataBrowserSidebarContent({
     return activeFilters.has(obj.objectType);
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset filters when schema changes
-  useEffect(() => {
+  function handleSchemaChange(value: string) {
+    setSelectedSchema(value);
     setSearchQuery('');
     setActiveFilters(new Set());
-  }, [selectedSchema]);
+  }
 
   function handleToggleFilter(type: DataBrowserSidebarFilterType) {
     setActiveFilters((prev) => {
@@ -196,7 +196,7 @@ function DataBrowserSidebarContent({
     <div className="flex h-full flex-col">
       <div className="flex shrink-0 flex-col gap-4 px-2">
         {schemas && schemas.length > 0 && (
-          <Select value={selectedSchema} onValueChange={setSelectedSchema}>
+          <Select value={selectedSchema} onValueChange={handleSchemaChange}>
             <SelectTrigger className="w-full min-w-[initial] max-w-full">
               <SelectValue placeholder="Is null?" />
             </SelectTrigger>
