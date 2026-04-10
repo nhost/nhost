@@ -11,8 +11,8 @@ import (
 )
 
 type BackupPresignedURL struct {
-	ExpiresAt string `json:"expires_at"`
-	URL       string `json:"url"`
+	ExpiresAt time.Time `json:"expires_at"`
+	URL       string    `json:"url"`
 }
 
 // Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
@@ -1501,7 +1501,7 @@ type InvoiceItem struct {
 
 type InvoiceSummary struct {
 	AmountDue string         `json:"AmountDue"`
-	PeriodEnd string         `json:"PeriodEnd"`
+	PeriodEnd time.Time      `json:"PeriodEnd"`
 	Items     []*InvoiceItem `json:"items"`
 }
 
@@ -1512,9 +1512,9 @@ type LastError struct {
 }
 
 type Log struct {
-	Log       string `json:"log"`
-	Service   string `json:"service"`
-	Timestamp string `json:"timestamp"`
+	Log       string    `json:"log"`
+	Service   string    `json:"service"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 type Metrics struct {
@@ -1522,17 +1522,17 @@ type Metrics struct {
 }
 
 type PiTRBaseBackup struct {
-	LSNHigh  int64  `json:"LSNHigh"`
-	LSNLow   int64  `json:"LSNLow"`
-	Date     string `json:"date"`
-	Name     string `json:"name"`
-	Timeline int64  `json:"timeline"`
+	LSNHigh  int64     `json:"LSNHigh"`
+	LSNLow   int64     `json:"LSNLow"`
+	Date     time.Time `json:"date"`
+	Name     string    `json:"name"`
+	Timeline int64     `json:"timeline"`
 }
 
 type PipelineRunLog struct {
-	Log       string `json:"log"`
-	Task      string `json:"task"`
-	Timestamp string `json:"timestamp"`
+	Log       string    `json:"log"`
+	Task      string    `json:"task"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 type PostOrganizationRequestResponse struct {
@@ -1546,7 +1546,7 @@ type ProjectStatusResponse struct {
 }
 
 type ReplicaStatus struct {
-	Date   string            `json:"date"`
+	Date   time.Time         `json:"date"`
 	Errors []*ContainerError `json:"errors"`
 	Ready  bool              `json:"ready"`
 }
