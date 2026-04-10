@@ -8,6 +8,6 @@ export default (req: Request, res: Response) => {
     node: process.version,
     arch: process.arch,
     invocationId: req.invocationId, // internal to cloud infrastructure
-    asd: '1',
+    asd: '2',
   });
 };
