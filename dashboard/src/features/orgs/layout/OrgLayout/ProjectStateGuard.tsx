@@ -42,6 +42,8 @@ const overlayPages = new Set(
     'ai/auto-embeddings',
     'ai/assistants',
     'ai/file-stores',
+    'functions',
+    'functions/[functionSlug]',
     'metrics',
   ].map((page) => baseProjectPageRoute.concat(page)),
 );
@@ -56,6 +58,8 @@ const sidebarPages = new Set(
     'ai/auto-embeddings',
     'ai/assistants',
     'ai/file-stores',
+    'functions',
+    'functions/[functionSlug]',
     'storage',
     'graphql/remote-schemas',
     'graphql/remote-schemas/[remoteSchemaSlug]',

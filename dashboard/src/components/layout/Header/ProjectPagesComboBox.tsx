@@ -2,6 +2,7 @@ import {
   Check,
   ChevronsUpDown,
   CloudIcon,
+  Code,
   CogIcon,
   DatabaseIcon,
   FileTextIcon,
@@ -107,6 +108,13 @@ export default function ProjectPagesComboBox() {
         icon: <StorageIcon className="h-4 w-4" />,
         slug: 'storage',
         disabled: false,
+      },
+      {
+        label: 'Functions',
+        value: 'functions',
+        icon: <Code className="h-4 w-4" />,
+        slug: 'functions',
+        disabled: !isPlatform,
       },
       {
         label: 'Run',
