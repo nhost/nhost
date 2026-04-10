@@ -126,7 +126,7 @@ export default function EditRepositorySettingsModal({
               onSubmit={handleSubmit(handleEditGitHubIntegration)}
               autoComplete="off"
             >
-              <div className="mt-4 flex items-center justify-between border-y py-3">
+              <div className="mt-4 flex items-center justify-between border-t py-3">
                 <div className="flex flex-col">
                   <Text className="font-medium text-sm">Automatic Deploys</Text>
                   <Text className="text-xs" color="secondary">
