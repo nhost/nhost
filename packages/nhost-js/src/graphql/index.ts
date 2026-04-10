@@ -62,4 +62,11 @@
  * @packageDocumentation
  */
 
-export * from './client';
+export type {
+  Client,
+  GraphQLError,
+  GraphQLRequest,
+  GraphQLResponse,
+  GraphQLVariables,
+} from './client';
+export { createAPIClient } from './client';

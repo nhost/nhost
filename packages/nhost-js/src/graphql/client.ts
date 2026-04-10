@@ -76,6 +76,9 @@ export interface Client {
   /**
    * Execute a GraphQL query operation using a typed document node
    *
+   * Duplicate fragment definitions are deduplicated on a best-effort basis
+   * when the document's definition nodes include `loc` offsets.
+   *
    * @param document - TypedDocumentNode containing the query and type information
    * @param variables - Variables for the GraphQL operation
    * @param options - Additional fetch options to apply to the request

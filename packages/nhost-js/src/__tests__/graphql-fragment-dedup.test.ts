@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import type { DocumentNode } from 'graphql';
-import { extractQueryFromDocument } from '@nhost/nhost-js/graphql';
+import { extractQueryFromDocument } from '../graphql/client';
 
 /**
  * Helper to create a mock TypedDocumentNode with the given source body and definitions.
@@ -91,12 +91,10 @@ describe('extractQueryFromDocument', () => {
         'query GetUser { user { ...ClientAvatar ...EmployeeAvatar } }';
       const clientFragment =
         'fragment ClientAvatar on Client { avatar { ...Picture } }';
-      const pictureFragment1 =
-        'fragment Picture on Image { url width height }';
+      const pictureFragment1 = 'fragment Picture on Image { url width height }';
       const employeeFragment =
         'fragment EmployeeAvatar on Employee { avatar { ...Picture } }';
-      const pictureFragment2 =
-        'fragment Picture on Image { url width height }';
+      const pictureFragment2 = 'fragment Picture on Image { url width height }';
 
       const source = [
         queryPart,
