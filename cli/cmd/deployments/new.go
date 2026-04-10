@@ -2,6 +2,7 @@ package deployments
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -94,7 +95,8 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	if resp.InsertPipelineRun == nil {
-		return fmt.Errorf("failed to create deployment: server returned no pipeline run") //nolint:err113
+		return errors.New( //nolint:err113
+			"failed to create deployment: server returned no pipeline run")
 	}
 
 	ce.Println("Deployment created: %s", resp.InsertPipelineRun.ID)
@@ -108,12 +110,7 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 		now := time.Now()
 
 		status, err := showPipelineRunLogsFollow(
-			ctxWithTimeout,
-			ce,
-			cl,
-			proj.ID,
-			resp.InsertPipelineRun.ID,
-			&now,
+			ctxWithTimeout, ce, cl, proj.ID, resp.InsertPipelineRun.ID, &now,
 		)
 		if err != nil {
 			if ctxWithTimeout.Err() != nil {
