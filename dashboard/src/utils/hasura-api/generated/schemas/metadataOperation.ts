@@ -10,6 +10,7 @@ import type { ClearMetadataOperation } from './clearMetadataOperation';
 import type { CreateArrayRelationshipBulkOperation } from './createArrayRelationshipBulkOperation';
 import type { CreateCronTriggerBulkOperation } from './createCronTriggerBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
+import type { CreateFunctionPermissionBulkOperation } from './createFunctionPermissionBulkOperation';
 import type { CreateObjectRelationshipBulkOperation } from './createObjectRelationshipBulkOperation';
 import type { CreateRemoteRelationshipBulkOperation } from './createRemoteRelationshipBulkOperation';
 import type { CreateScheduledEventOperation } from './createScheduledEventOperation';
@@ -18,6 +19,7 @@ import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOp
 import type { DeleteRemoteRelationshipBulkOperation } from './deleteRemoteRelationshipBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { DeleteScheduledEventOperation } from './deleteScheduledEventOperation';
+import type { DropFunctionPermissionBulkOperation } from './dropFunctionPermissionBulkOperation';
 import type { DropInconsistentMetadataOperation } from './dropInconsistentMetadataOperation';
 import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
 import type { ExportMetadata } from './exportMetadata';
@@ -37,11 +39,14 @@ import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemo
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
 import type { RenameRelationshipBulkOperation } from './renameRelationshipBulkOperation';
 import type { ReplaceMetadataOperation } from './replaceMetadataOperation';
+import type { SetFunctionCustomizationOperation } from './setFunctionCustomizationOperation';
 import type { SetTableCustomizationBulkOperation } from './setTableCustomizationBulkOperation';
 import type { SetTableIsEnumBulkOperation } from './setTableIsEnumBulkOperation';
 import type { SuggestRelationshipsOperation } from './suggestRelationshipsOperation';
 import type { TestWebhookTransformOperation } from './testWebhookTransformOperation';
+import type { TrackFunctionBulkOperation } from './trackFunctionBulkOperation';
 import type { TrackTableBulkOperation } from './trackTableBulkOperation';
+import type { UntrackFunctionBulkOperation } from './untrackFunctionBulkOperation';
 import type { UntrackTableBulkOperation } from './untrackTableBulkOperation';
 import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOperation';
 
@@ -54,8 +59,13 @@ export type MetadataOperation =
   | ReplaceMetadataOperation
   | TrackTableBulkOperation
   | UntrackTableBulkOperation
+  | TrackFunctionBulkOperation
+  | UntrackFunctionBulkOperation
   | SetTableCustomizationBulkOperation
   | SetTableIsEnumBulkOperation
+  | SetFunctionCustomizationOperation
+  | CreateFunctionPermissionBulkOperation
+  | DropFunctionPermissionBulkOperation
   | SuggestRelationshipsOperation
   | DropRelationshipBulkOperation
   | DeleteRemoteRelationshipBulkOperation

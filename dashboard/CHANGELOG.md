@@ -1,3 +1,24 @@
+## [@nhost/dashboard@2.57.0] - 2026-04-09
+
+### 🚀 Features
+
+- *(dashboard)* Display functions in data browser (#3952)
+- *(dashboard)* New deployments (#4114)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Allow editing primary keys (#4103)
+- *(deps)* Update lodash due to vulnerability (#4108)
+- *(dashboard)* Disable Publish toggle for non-publishable port types in Run service form (#4116)
+- *(deps)* Update vite due to CVE (#4122)
+- *(docs)* Downgrade to vite7 due to incompatibilities (#4134)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added a small wrapper around govulncheck to allow filtering some CVEs (#4112)
+
 ## [@nhost/dashboard@2.56.0] - 2026-03-30
 
 ### 🚀 Features

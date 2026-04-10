@@ -6,6 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function isEmptyValue<T>(value: T) {
+  if (value instanceof Error) {
+    return false;
+  }
+
   return (
     value === undefined ||
     value === 'undefined' ||

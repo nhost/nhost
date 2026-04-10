@@ -29,6 +29,11 @@ test('returns false when the value is has at least one property or the array has
   expect(isEmptyValue(['foo', 'bar'])).toBe(false);
 });
 
+test('returns false when the value is an Error', () => {
+  expect(isEmptyValue(new Error('something went wrong'))).toBe(false);
+  expect(isEmptyValue(new TypeError('fetch failed'))).toBe(false);
+});
+
 test('returns false when the value is either a number or string', () => {
   expect(isEmptyValue(1234)).toBe(false);
   expect(isEmptyValue('Hello there')).toBe(false);
