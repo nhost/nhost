@@ -158,59 +158,6 @@ func (t *GetHasuraAdminSecret_App) GetConfig() *GetHasuraAdminSecret_App_Config 
 	return t.Config
 }
 
-type ListDeployments_Deployments struct {
-	CommitMessage       *string    "json:\"commitMessage,omitempty\" graphql:\"commitMessage\""
-	CommitSha           string     "json:\"commitSHA\" graphql:\"commitSHA\""
-	CommitUserName      *string    "json:\"commitUserName,omitempty\" graphql:\"commitUserName\""
-	DeploymentEndedAt   *time.Time "json:\"deploymentEndedAt,omitempty\" graphql:\"deploymentEndedAt\""
-	DeploymentStartedAt *time.Time "json:\"deploymentStartedAt,omitempty\" graphql:\"deploymentStartedAt\""
-	DeploymentStatus    *string    "json:\"deploymentStatus,omitempty\" graphql:\"deploymentStatus\""
-	ID                  string     "json:\"id\" graphql:\"id\""
-}
-
-func (t *ListDeployments_Deployments) GetCommitMessage() *string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.CommitMessage
-}
-func (t *ListDeployments_Deployments) GetCommitSha() string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.CommitSha
-}
-func (t *ListDeployments_Deployments) GetCommitUserName() *string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.CommitUserName
-}
-func (t *ListDeployments_Deployments) GetDeploymentEndedAt() *time.Time {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.DeploymentEndedAt
-}
-func (t *ListDeployments_Deployments) GetDeploymentStartedAt() *time.Time {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.DeploymentStartedAt
-}
-func (t *ListDeployments_Deployments) GetDeploymentStatus() *string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.DeploymentStatus
-}
-func (t *ListDeployments_Deployments) GetID() string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.ID
-}
-
 type GetDeploymentLogs_DeploymentLogs struct {
 	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	ID        string    "json:\"id\" graphql:\"id\""
@@ -252,17 +199,6 @@ func (t *GetDeploymentLogs_Deployment) GetDeploymentStatus() *string {
 		t = &GetDeploymentLogs_Deployment{}
 	}
 	return t.DeploymentStatus
-}
-
-type InsertDeployment_InsertDeployment struct {
-	ID string "json:\"id\" graphql:\"id\""
-}
-
-func (t *InsertDeployment_InsertDeployment) GetID() string {
-	if t == nil {
-		t = &InsertDeployment_InsertDeployment{}
-	}
-	return t.ID
 }
 
 type ListUnifiedDeployments_UnifiedDeployments struct {
@@ -624,17 +560,6 @@ func (t *ReplaceConfigRawJSON) GetReplaceConfigRawJSON() string {
 	return t.ReplaceConfigRawJSON
 }
 
-type ListDeployments struct {
-	Deployments []*ListDeployments_Deployments "json:\"deployments\" graphql:\"deployments\""
-}
-
-func (t *ListDeployments) GetDeployments() []*ListDeployments_Deployments {
-	if t == nil {
-		t = &ListDeployments{}
-	}
-	return t.Deployments
-}
-
 type GetDeploymentLogs struct {
 	DeploymentLogs []*GetDeploymentLogs_DeploymentLogs "json:\"deploymentLogs\" graphql:\"deploymentLogs\""
 	Deployment     *GetDeploymentLogs_Deployment       "json:\"deployment,omitempty\" graphql:\"deployment\""
@@ -651,17 +576,6 @@ func (t *GetDeploymentLogs) GetDeployment() *GetDeploymentLogs_Deployment {
 		t = &GetDeploymentLogs{}
 	}
 	return t.Deployment
-}
-
-type InsertDeployment struct {
-	InsertDeployment *InsertDeployment_InsertDeployment "json:\"insertDeployment,omitempty\" graphql:\"insertDeployment\""
-}
-
-func (t *InsertDeployment) GetInsertDeployment() *InsertDeployment_InsertDeployment {
-	if t == nil {
-		t = &InsertDeployment{}
-	}
-	return t.InsertDeployment
 }
 
 type ListUnifiedDeployments struct {
@@ -931,36 +845,6 @@ func (c *Client) ReplaceConfigRawJSON(ctx context.Context, appID string, rawJSON
 	return &res, nil
 }
 
-const ListDeploymentsDocument = `query ListDeployments ($appID: uuid!) {
-	deployments(where: {appId:{_eq:$appID}}, order_by: {deploymentStartedAt:desc}, limit: 10) {
-		id
-		deploymentStartedAt
-		deploymentEndedAt
-		deploymentStatus
-		commitSHA
-		commitMessage
-		commitUserName
-	}
-}
-`
-
-func (c *Client) ListDeployments(ctx context.Context, appID string, interceptors ...clientv2.RequestInterceptor) (*ListDeployments, error) {
-	vars := map[string]any{
-		"appID": appID,
-	}
-
-	var res ListDeployments
-	if err := c.Client.Post(ctx, "ListDeployments", ListDeploymentsDocument, &res, vars, interceptors...); err != nil {
-		if c.Client.ParseDataWhenErrors {
-			return &res, err
-		}
-
-		return nil, err
-	}
-
-	return &res, nil
-}
-
 const GetDeploymentLogsDocument = `query GetDeploymentLogs ($deploymentID: uuid!) {
 	deploymentLogs(where: {deploymentId:{_eq:$deploymentID}}, order_by: {createdAt:asc}) {
 		id
@@ -981,30 +865,6 @@ func (c *Client) GetDeploymentLogs(ctx context.Context, deploymentID string, int
 
 	var res GetDeploymentLogs
 	if err := c.Client.Post(ctx, "GetDeploymentLogs", GetDeploymentLogsDocument, &res, vars, interceptors...); err != nil {
-		if c.Client.ParseDataWhenErrors {
-			return &res, err
-		}
-
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-const InsertDeploymentDocument = `mutation InsertDeployment ($object: deployments_insert_input!) {
-	insertDeployment(object: $object) {
-		id
-	}
-}
-`
-
-func (c *Client) InsertDeployment(ctx context.Context, object DeploymentsInsertInput, interceptors ...clientv2.RequestInterceptor) (*InsertDeployment, error) {
-	vars := map[string]any{
-		"object": object,
-	}
-
-	var res InsertDeployment
-	if err := c.Client.Post(ctx, "InsertDeployment", InsertDeploymentDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -1390,9 +1250,7 @@ var DocumentOperationNames = map[string]string{
 	GetHasuraAdminSecretDocument:              "GetHasuraAdminSecret",
 	GetConfigRawJSONDocument:                  "GetConfigRawJSON",
 	ReplaceConfigRawJSONDocument:              "ReplaceConfigRawJSON",
-	ListDeploymentsDocument:                   "ListDeployments",
 	GetDeploymentLogsDocument:                 "GetDeploymentLogs",
-	InsertDeploymentDocument:                  "InsertDeployment",
 	ListUnifiedDeploymentsDocument:            "ListUnifiedDeployments",
 	GetPipelineRunDocument:                    "GetPipelineRun",
 	GetPipelineRunLogsDocument:                "GetPipelineRunLogs",

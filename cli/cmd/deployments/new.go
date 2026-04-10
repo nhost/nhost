@@ -116,6 +116,13 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 			&now,
 		)
 		if err != nil {
+			if ctxWithTimeout.Err() != nil {
+				ce.Println(
+					"Timed out waiting for deployment. It may still be running. " +
+						"Check status with: nhost deployments list",
+				)
+			}
+
 			return fmt.Errorf("error streaming logs: %w", err)
 		}
 

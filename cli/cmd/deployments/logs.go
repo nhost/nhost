@@ -171,7 +171,7 @@ func showPipelineRunLogsFollow(
 	for {
 		select {
 		case <-ctx.Done():
-			return "", nil
+			return "", fmt.Errorf("log following timed out: %w", ctx.Err())
 		case <-ticker.C:
 			logsResp, err := cl.GetPipelineRunLogs(ctx, appID, pipelineRunID, from, nil)
 			if err != nil {

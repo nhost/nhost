@@ -84,7 +84,10 @@ export default function DeploymentBranchSettings() {
           description="All commits pushed to this deployment branch will trigger a deployment. You can switch to a different branch here."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled:
+                !formState.isDirty ||
+                maintenanceActive ||
+                !project?.automaticDeploys,
               loading: formState.isSubmitting,
             },
           }}
@@ -99,6 +102,7 @@ export default function DeploymentBranchSettings() {
               className="col-span-2"
               fullWidth
               hideEmptyHelperText
+              disabled={!project?.automaticDeploys}
             />
           ) : (
             <Alert className="col-span-5 w-full text-left">

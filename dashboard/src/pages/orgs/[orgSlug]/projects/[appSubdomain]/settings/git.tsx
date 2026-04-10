@@ -4,6 +4,7 @@ import { Container } from '@/components/layout/Container';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
+import { AutomaticDeploysSettings } from '@/features/orgs/projects/git/settings/components/AutomaticDeploysSettings';
 import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/components/BaseDirectorySettings';
 import { DeploymentBranchSettings } from '@/features/orgs/projects/git/settings/components/DeploymentBranchSettings';
 import { GitConnectionSettings } from '@/features/orgs/projects/git/settings/components/GitConnectionSettings';
@@ -35,6 +36,7 @@ export default function GitSettingsPage() {
       rootClassName="bg-transparent"
     >
       <GitConnectionSettings />
+      <AutomaticDeploysSettings />
       <DeploymentBranchSettings />
       <BaseDirectorySettings />
     </Container>
