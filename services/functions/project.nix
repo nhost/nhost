@@ -22,7 +22,7 @@ let
       ];
     };
 
-    pnpmOpts = "--filter . --filter './${submodule}/**'";
+    pnpmOpts = "--filter './${submodule}/**'";
   };
 
   src = nix-filter.lib.filter {
@@ -71,7 +71,11 @@ let
     '';
   };
 
+  pnpmWithNode = nodejs: pkgs.pnpm.override { inherit nodejs; };
+
   mkDockerImage = { nodejs }:
+    let pnpm = pnpmWithNode nodejs;
+    in
     pkgs.runCommand "image-as-dir" { } ''
       ${(nix2containerPkgs.nix2container.buildImage {
         inherit name created;
@@ -82,16 +86,11 @@ let
           name = "image";
           paths = [
             serverFiles
-            pkgs.bash
-            pkgs.coreutils
             pkgs.busybox
             nodejs
-            pkgs.pnpm
-            pkgs.git
+            pnpm
+            pkgs.gitMinimal
             pkgs.openssh
-            pkgs.python3
-            pkgs.gnumake
-            pkgs.gcc
             pkgs.cacert
             (pkgs.writeTextFile {
               name = "tmp-file";
@@ -111,14 +110,14 @@ let
             "TMPDIR=/tmp"
             "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
             "NODE_PATH=${node_modules}/${submodule}/node_modules"
-            "PATH=${node_modules}/${submodule}/node_modules/.bin:${nodejs}/bin:${pkgs.pnpm}/bin:${pkgs.git}/bin:${pkgs.bash}/bin:${pkgs.coreutils}/bin:${pkgs.gnumake}/bin:${pkgs.gcc}/bin:${pkgs.openssh}/bin:${pkgs.python3}/bin:/bin:/usr/bin"
+            "PATH=${node_modules}/${submodule}/node_modules/.bin:${nodejs}/bin:${pnpm}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
             "SERVER_PATH=/opt/server"
             "NHOST_PROJECT_PATH=/opt/project"
             "PACKAGE_MANAGER=pnpm"
             "NODE_OPTIONS=--enable-source-maps"
           ];
           WorkingDir = "/opt/project";
-          Entrypoint = [ "${pkgs.bash}/bin/bash" "/opt/server/start.sh" ];
+          Entrypoint = [ "/bin/sh" "/opt/server/start.sh" ];
         };
       }).copyTo}/bin/copy-to dir:$out
     '';
