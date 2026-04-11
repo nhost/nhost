@@ -89,6 +89,7 @@ let
             pkgs.busybox
             nodejs
             pnpm
+            pkgs.yarn
             pkgs.gitMinimal
             pkgs.openssh
             pkgs.cacert

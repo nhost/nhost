@@ -3,9 +3,18 @@ const { describe, it, expect, beforeAll } = require('@jest/globals');
 const PORTS = {
   node22: 3002,
   node20: 3001,
+  npm: 3003,
+  yarn: 3004,
 };
 
-const EXPECTED_ROUTES = ['/', '/hello', '/add', '/sub/', '/sub/hello'];
+const EXPECTED_METADATA = [
+  { path: 'functions/add.js', route: '/add' },
+  { path: 'functions/greet.js', route: '/greet' },
+  { path: 'functions/hello.ts', route: '/hello' },
+  { path: 'functions/index.js', route: '/' },
+  { path: 'functions/sub/hello.ts', route: '/sub/hello' },
+  { path: 'functions/sub/index.ts', route: '/sub/' },
+];
 
 async function waitForHealthy(port, label, maxAttempts = 60) {
   for (let i = 0; i < maxAttempts; i++) {
@@ -19,8 +28,10 @@ async function waitForHealthy(port, label, maxAttempts = 60) {
 }
 
 describe.each([
-  ['node22', PORTS.node22, 'nodejs22.x'],
-  ['node20', PORTS.node20, 'nodejs20.x'],
+  ['node22 (pnpm)', PORTS.node22, 'nodejs22.x'],
+  ['node20 (pnpm)', PORTS.node20, 'nodejs20.x'],
+  ['node22 (npm)', PORTS.npm, 'nodejs22.x'],
+  ['node22 (yarn)', PORTS.yarn, 'nodejs22.x'],
 ])('functions runtime (%s)', (label, port, expectedRuntime) => {
   const base = `http://127.0.0.1:${port}`;
 
@@ -43,7 +54,7 @@ describe.each([
   it('GET /hello?name=World returns greeting', async () => {
     const res = await fetch(`${base}/hello?name=World`);
     expect(res.status).toBe(200);
-    expect(await res.text()).toContain('Hullo, World!');
+    expect(await res.text()).toContain('Hello, World!');
   });
 
   it('GET /sub/ returns sub-directory index', async () => {
@@ -58,48 +69,45 @@ describe.each([
     expect(await res.text()).toContain('Hello from a subdirectory, Test!');
   });
 
+  it('GET /add imports from _utils', async () => {
+    const res = await fetch(`${base}/add?a=3&b=4`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.result).toBe(7);
+  });
+
+  it('GET /greet uses uuid dependency', async () => {
+    const res = await fetch(`${base}/greet?name=test`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.message).toBe('Hello, test!');
+    expect(body.requestId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
+  });
+
   it('GET /nonexistent returns 404', async () => {
     const res = await fetch(`${base}/nonexistent`);
     expect(res.status).toBe(404);
   });
 
-  describe('metadata endpoint', () => {
-    let metadata;
+  it('returns expected function metadata', async () => {
+    const res = await fetch(`${base}/_nhost_functions_metadata`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
 
-    beforeAll(async () => {
-      const res = await fetch(`${base}/_nhost_functions_metadata`);
-      expect(res.status).toBe(200);
-      metadata = await res.json();
-    });
+    const expected = EXPECTED_METADATA.map((entry) => ({
+      ...entry,
+      runtime: expectedRuntime,
+      createdAt: '0001-01-01T00:00:00Z',
+      updatedAt: '0001-01-01T00:00:00Z',
+      functionName: '',
+      createdWithCommitSha: 'localdev',
+    }));
 
-    it('returns an array of functions', () => {
-      expect(Array.isArray(metadata)).toBe(true);
-      expect(metadata.length).toBeGreaterThan(0);
+    expect(body).toEqual({
+      functions: expect.arrayContaining(expected),
     });
-
-    it.each(EXPECTED_ROUTES)('contains route %s', (route) => {
-      const entry = metadata.find((m) => m.route === route);
-      expect(entry).toBeDefined();
-    });
-
-    it('all entries have the correct runtime', () => {
-      for (const entry of metadata) {
-        expect(entry.runtime).toBe(expectedRuntime);
-      }
-    });
-
-    it('all entries have createdWithCommitSha set to localdev', () => {
-      for (const entry of metadata) {
-        expect(entry.createdWithCommitSha).toBe('localdev');
-      }
-    });
-
-    it('all entries have required fields', () => {
-      for (const entry of metadata) {
-        expect(entry).toHaveProperty('path');
-        expect(entry).toHaveProperty('route');
-        expect(entry).toHaveProperty('runtime');
-      }
-    });
+    expect(body.functions).toHaveLength(expected.length);
   });
 });

@@ -213,7 +213,7 @@ const main = async () => {
 
   // Metadata endpoint
   app.get('/_nhost_functions_metadata', (_req, res) => {
-    res.json(Array.from(functionMeta.values()));
+    res.json({ functions: Array.from(functionMeta.values()) });
   });
 
   // Discover and build all functions
@@ -306,7 +306,7 @@ const main = async () => {
   depWatcher.on('change', async (file) => {
     console.log(`Dependency file changed: ${file} — reinstalling...`);
     try {
-      execSync('ni', { cwd: workingDir, stdio: 'inherit' });
+      execSync('nci', { cwd: workingDir, stdio: 'inherit' });
       console.log('Dependencies installed. Rebuilding all functions...');
       await rebuildAll();
     } catch (err) {
