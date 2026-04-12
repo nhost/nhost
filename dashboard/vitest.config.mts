@@ -1,10 +1,12 @@
 import react from '@vitejs/plugin-react';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [tsconfigPaths({ projects: ['./tsconfig.test.json'] }), react()],
+  plugins: [react()],
   cacheDir: './.vitest',
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     globalSetup: './vitest.global-setup.ts',
     testTimeout: 30000,
@@ -25,7 +27,7 @@ export default defineConfig({
     deps: {
       optimizer: {
         web: {
-          include: ['clsx'],
+          include: ['clsx', '@nhost/nhost-js'],
         },
       },
     },

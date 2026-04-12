@@ -145,6 +145,7 @@
               mockgen
               sqlc
               vacuum-go
+              govulncheck
 
               # others
               postgresql_18-client

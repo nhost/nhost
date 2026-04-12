@@ -1,8 +1,9 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef } from 'react';
 import {
-  DeploymentSubDocument,
-  useGetDeploymentQuery,
+  PipelineRunSubDocument,
+  useGetLegacyDeploymentQuery,
+  useGetPipelineRunQuery,
 } from '@/generated/graphql';
 
 function useDeployment() {
@@ -12,17 +13,31 @@ function useDeployment() {
 
   const unsubscribe = useRef<(() => void) | null>(null);
 
-  const { subscribeToMore, ...result } = useGetDeploymentQuery({
+  // Try pipeline run first
+  const { subscribeToMore, ...pipelineRunResult } = useGetPipelineRunQuery({
     variables: {
       id: deploymentId,
     },
   });
-  const { data } = result;
 
-  const subscribeToDeployment = useCallback(
+  // Also try legacy deployment (deprecated, query only, no subscription)
+  const {
+    data: legacyData,
+    loading: legacyLoading,
+    error: legacyError,
+  } = useGetLegacyDeploymentQuery({
+    variables: {
+      id: deploymentId as string,
+    },
+    skip: !!pipelineRunResult.data?.pipelineRun,
+  });
+
+  const { data } = pipelineRunResult;
+
+  const subscribeToPipelineRun = useCallback(
     () =>
       subscribeToMore({
-        document: DeploymentSubDocument,
+        document: PipelineRunSubDocument,
         variables: {
           id: deploymentId,
         },
@@ -32,21 +47,19 @@ function useDeployment() {
 
   useEffect(() => {
     if (
-      ['PENDING', 'SCHEDULED'].includes(
-        data?.deployment?.deploymentStatus as string,
-      ) &&
+      ['pending', 'running'].includes(data?.pipelineRun?.status as string) &&
       unsubscribe.current === null
     ) {
-      unsubscribe.current = subscribeToDeployment();
+      unsubscribe.current = subscribeToPipelineRun();
     } else if (
-      ['DEPLOYED', 'FAILED'].includes(
-        data?.deployment?.deploymentStatus as string,
+      ['succeeded', 'failed', 'aborted'].includes(
+        data?.pipelineRun?.status as string,
       ) &&
       unsubscribe.current !== null
     ) {
       unsubscribe.current();
     }
-  }, [data?.deployment?.deploymentStatus, subscribeToDeployment]);
+  }, [data?.pipelineRun?.status, subscribeToPipelineRun]);
 
   useEffect(
     () => () => {
@@ -57,7 +70,12 @@ function useDeployment() {
     [],
   );
 
-  return result;
+  return {
+    ...pipelineRunResult,
+    legacyDeployment: legacyData?.deployment ?? null,
+    legacyLoading,
+    legacyError,
+  };
 }
 
 export default useDeployment;

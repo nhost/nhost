@@ -354,6 +354,9 @@ request<TResponseData, TVariables>(
 
 Execute a GraphQL query operation using a typed document node
 
+Duplicate fragment definitions are deduplicated on a best-effort basis
+when the document's definition nodes include `loc` offsets.
+
 ##### Type Parameters
 
 | Type Parameter  | Default type                            |
