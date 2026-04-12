@@ -32,23 +32,25 @@ export default function FunctionListItem({
           },
         )}
       >
-        <Link
-          href={href}
-          className={cn(
-            'flex h-full w-full items-center p-[0.625rem] text-left',
-            {
-              'text-primary-main': isSelected,
-            },
-          )}
-        >
-          <TextWithTooltip
-            containerClassName="w-full"
-            className={cn('!truncate text-sm+', {
-              'text-primary-main': isSelected,
-            })}
-            text={nhostFunction.route}
-          />
-        </Link>
+        <div className="flex w-full max-w-full items-center">
+          <Link
+            href={href}
+            className={cn(
+              'flex h-full w-full items-center p-[0.625rem] text-left',
+              {
+                'text-primary-main': isSelected,
+              },
+            )}
+          >
+            <TextWithTooltip
+              containerClassName="w-full"
+              className={cn('!truncate text-sm+', {
+                'text-primary-main': isSelected,
+              })}
+              text={nhostFunction.route}
+            />
+          </Link>
+        </div>
       </Button>
     </div>
   );

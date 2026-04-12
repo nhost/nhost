@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { FunctionsBrowserSidebar } from '@/features/orgs/projects/serverless-functions/components/FunctionsBrowserSidebar';
-import { FunctionView } from '@/features/orgs/projects/serverless-functions/components/FunctionView';
+import { ServerlessFunctionView } from '@/features/orgs/projects/serverless-functions/components/ServerlessFunctionView';
 
 export default function FunctionDetailsPage() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function FunctionDetailsPage() {
 
   return (
     <RetryableErrorBoundary>
-      <FunctionView key={functionSlug as string} />
+      <ServerlessFunctionView key={functionSlug as string} />
     </RetryableErrorBoundary>
   );
 }
