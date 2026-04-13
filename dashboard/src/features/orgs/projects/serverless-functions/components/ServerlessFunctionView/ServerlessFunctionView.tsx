@@ -9,11 +9,12 @@ import {
   Lock,
   Plus,
   Send,
+  Upload,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
@@ -21,7 +22,10 @@ import { Input } from '@/components/ui/v3/input';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
@@ -33,10 +37,14 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { Textarea } from '@/components/ui/v3/textarea';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { FunctionsEmptyState } from '@/features/orgs/projects/serverless-functions/components/FunctionsEmptyState';
 import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functions/hooks/useGetNhostFunctions';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
+import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -44,6 +52,12 @@ type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 interface KeyValuePair {
   key: string;
   value: string;
+}
+
+interface MultipartField {
+  key: string;
+  value: string;
+  file: File | null;
 }
 
 interface ResponseState {
@@ -108,20 +122,38 @@ function MetadataRow({ label, value }: { label: string; value: string }) {
 function OverviewTab({
   fn,
   endpointUrl,
+  defaultEndpointUrl,
 }: {
   fn: NhostFunction;
   endpointUrl: string;
+  defaultEndpointUrl?: string;
 }) {
   const { orgSlug, appSubdomain } = useRouter().query;
   return (
     <div className="space-y-4">
       <MetadataCard title="Endpoint" icon={Globe} className="col-span-2">
-        <div className="flex items-center justify-between gap-2 rounded bg-muted p-2 font-mono text-sm">
-          <span className="break-all">{endpointUrl}</span>
-          <CopyToClipboardButton
-            textToCopy={endpointUrl}
-            title="Copy endpoint URL"
-          />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2 rounded bg-muted p-2 font-mono text-sm">
+            <span className="break-all">{endpointUrl}</span>
+            <CopyToClipboardButton
+              textToCopy={endpointUrl}
+              title="Copy endpoint URL"
+            />
+          </div>
+          {defaultEndpointUrl && (
+            <div>
+              <p className="mb-1 text-muted-foreground text-xs">
+                Default endpoint
+              </p>
+              <div className="flex items-center justify-between gap-2 rounded bg-muted/50 p-2 font-mono text-muted-foreground text-xs">
+                <span className="break-all">{defaultEndpointUrl}</span>
+                <CopyToClipboardButton
+                  textToCopy={defaultEndpointUrl}
+                  title="Copy default endpoint URL"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </MetadataCard>
 
@@ -266,6 +298,110 @@ function KeyValueEditor({
   );
 }
 
+function MultipartEditor({
+  fields,
+  onChange,
+}: {
+  fields: MultipartField[];
+  onChange: (fields: MultipartField[]) => void;
+}) {
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const addRow = () => {
+    onChange([...fields, { key: '', value: '', file: null }]);
+  };
+
+  const removeRow = (index: number) => {
+    onChange(fields.filter((_, i) => i !== index));
+  };
+
+  const updateKey = (index: number, key: string) => {
+    const updated = [...fields];
+    updated[index] = { ...updated[index], key };
+    onChange(updated);
+  };
+
+  const updateValue = (index: number, value: string) => {
+    const updated = [...fields];
+    updated[index] = { ...updated[index], value };
+    onChange(updated);
+  };
+
+  const updateFile = (index: number, file: File | null) => {
+    const updated = [...fields];
+    updated[index] = {
+      ...updated[index],
+      file,
+      value: file ? file.name : '',
+    };
+    onChange(updated);
+  };
+
+  return (
+    <div className="space-y-2">
+      {fields.map((field, index) => (
+        <div
+          key={`multipart-${index.toString()}`}
+          className="flex items-center gap-2"
+        >
+          <Input
+            placeholder="Parameter name"
+            value={field.key}
+            onChange={(e) => updateKey(index, e.target.value)}
+            className="h-8 font-mono text-sm"
+          />
+          <Input
+            placeholder="Value"
+            value={field.file ? field.file.name : field.value}
+            onChange={(e) => updateValue(index, e.target.value)}
+            className="h-8 font-mono text-sm"
+            disabled={!!field.file}
+          />
+          <input
+            ref={(el) => {
+              fileInputRefs.current[index] = el;
+            }}
+            type="file"
+            className="hidden"
+            onChange={(e) => updateFile(index, e.target.files?.[0] ?? null)}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => {
+              if (field.file) {
+                updateFile(index, null);
+              } else {
+                fileInputRefs.current[index]?.click();
+              }
+            }}
+            title={field.file ? 'Remove file' : 'Choose file'}
+          >
+            {field.file ? (
+              <X className="h-4 w-4" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => removeRow(index)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ))}
+      <Button variant="outline" size="sm" className="gap-1" onClick={addRow}>
+        <Plus className="h-3 w-3" />
+        Add row
+      </Button>
+    </div>
+  );
+}
+
 function ResponseArea({ response }: { response: ResponseState }) {
   const [responseTab, setResponseTab] = useState('body');
 
@@ -358,14 +494,19 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
   const [formFields, setFormFields] = useState<KeyValuePair[]>([
     { key: '', value: '' },
   ]);
+  const [multipartFields, setMultipartFields] = useState<MultipartField[]>([
+    { key: '', value: '', file: null },
+  ]);
   const [requestTab, setRequestTab] = useState('headers');
 
   const contentType =
     headers.find((h) => h.key.toLowerCase() === 'content-type')?.value ?? '';
-  const isJson = contentType.includes('application/json');
+  const isJson = contentType.includes('json');
+  const isXml = contentType.includes('xml');
   const isFormEncoded = contentType.includes(
     'application/x-www-form-urlencoded',
   );
+  const isMultipart = contentType.includes('multipart/form-data');
 
   const setContentType = (value: string) => {
     const idx = headers.findIndex(
@@ -404,9 +545,22 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
       }
     }
 
-    let requestBody: string | undefined;
+    let requestBody: BodyInit | undefined;
     if (method !== 'GET') {
-      if (isFormEncoded) {
+      if (isMultipart) {
+        const formData = new FormData();
+        for (const field of multipartFields) {
+          if (field.key) {
+            if (field.file) {
+              formData.append(field.key, field.file);
+            } else {
+              formData.append(field.key, field.value);
+            }
+          }
+        }
+        requestBody = formData;
+        delete headersObj['Content-Type'];
+      } else if (isFormEncoded) {
         const encoded = formFields
           .filter((f) => f.key)
           .map(
@@ -453,7 +607,17 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
         duration,
       });
     }
-  }, [method, url, headers, params, body, formFields, isFormEncoded]);
+  }, [
+    method,
+    url,
+    headers,
+    params,
+    body,
+    formFields,
+    multipartFields,
+    isFormEncoded,
+    isMultipart,
+  ]);
 
   return (
     <div className="space-y-4">
@@ -546,18 +710,47 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
                   setContentType(val === 'none' ? '' : val)
                 }
               >
-                <SelectTrigger className="h-8 w-52 text-sm">
+                <SelectTrigger className="h-8 w-64 text-sm">
                   <SelectValue placeholder="None" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="application/json">
-                    application/json
-                  </SelectItem>
-                  <SelectItem value="text/plain">text/plain</SelectItem>
-                  <SelectItem value="application/x-www-form-urlencoded">
-                    application/x-www-form-urlencoded
-                  </SelectItem>
                   <SelectItem value="none">None</SelectItem>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>Text</SelectLabel>
+                    <SelectItem value="application/json">
+                      application/json
+                    </SelectItem>
+                    <SelectItem value="application/ld+json">
+                      application/ld+json
+                    </SelectItem>
+                    <SelectItem value="application/hal+json">
+                      application/hal+json
+                    </SelectItem>
+                    <SelectItem value="application/vnd.api+json">
+                      application/vnd.api+json
+                    </SelectItem>
+                    <SelectItem value="application/xml">
+                      application/xml
+                    </SelectItem>
+                    <SelectItem value="text/xml">text/xml</SelectItem>
+                  </SelectGroup>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>Structured</SelectLabel>
+                    <SelectItem value="application/x-www-form-urlencoded">
+                      application/x-www-form-urlencoded
+                    </SelectItem>
+                    <SelectItem value="multipart/form-data">
+                      multipart/form-data
+                    </SelectItem>
+                  </SelectGroup>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>Others</SelectLabel>
+                    <SelectItem value="text/html">text/html</SelectItem>
+                    <SelectItem value="text/plain">text/plain</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
@@ -568,12 +761,21 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
                 keyPlaceholder="Field name"
                 valuePlaceholder="Field value"
               />
+            ) : isMultipart ? (
+              <MultipartEditor
+                fields={multipartFields}
+                onChange={setMultipartFields}
+              />
             ) : (
               <Textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder={
-                  isJson ? '{\n  "key": "value"\n}' : 'Request body...'
+                  isJson
+                    ? '{\n  "key": "value"\n}'
+                    : isXml
+                      ? '<?xml version="1.0"?>\n<root />'
+                      : 'Request body...'
                 }
                 className="min-h-32 font-mono text-sm"
               />
@@ -589,8 +791,26 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
 
 function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
   const [tab, setTab] = useState('overview');
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+  const { project } = useProject();
   const appClient = useAppClient();
-  const endpointUrl = `${appClient.functions.baseURL}${fn.route}`;
+  const defaultEndpointUrl = `${appClient.functions.baseURL}${fn.route}`;
+
+  const { data: customDomainData } = useGetServerlessFunctionsSettingsQuery({
+    variables: {
+      appId: project?.id,
+    },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  const customDomainFqdn =
+    customDomainData?.config?.functions?.resources?.networking?.ingresses?.[0]
+      ?.fqdn?.[0];
+
+  const endpointUrl = customDomainFqdn
+    ? `https://${customDomainFqdn}/v1${fn.route}`
+    : defaultEndpointUrl;
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
@@ -615,9 +835,15 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
 
       <div className="flex-1 overflow-auto p-6">
         {tab === 'overview' && (
-          <OverviewTab fn={fn} endpointUrl={endpointUrl} />
+          <OverviewTab
+            fn={fn}
+            endpointUrl={endpointUrl}
+            defaultEndpointUrl={
+              customDomainFqdn ? defaultEndpointUrl : undefined
+            }
+          />
         )}
-        {tab === 'execute' && <ExecuteTab endpointUrl={endpointUrl} />}
+        {tab === 'execute' && <ExecuteTab endpointUrl={defaultEndpointUrl} />}
       </div>
     </div>
   );
