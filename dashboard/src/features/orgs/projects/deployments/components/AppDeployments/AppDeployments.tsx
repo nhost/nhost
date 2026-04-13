@@ -125,7 +125,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
                 <DeploymentListItem
                   deployment={item}
                   isLive={liveId === item.id}
-                  showRedeploy={index === 0}
+                  showRedeploy={page === 1 && index === 0}
                   disableRedeploy={pendingOrRunning.length > 0}
                 />
 
