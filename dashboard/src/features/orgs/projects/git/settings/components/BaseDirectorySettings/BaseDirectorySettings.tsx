@@ -91,7 +91,10 @@ export default function BaseDirectorySettings() {
           }
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled:
+                !formState.isDirty ||
+                maintenanceActive ||
+                !project?.automaticDeploys,
               loading: formState.isSubmitting,
             },
           }}
@@ -106,6 +109,7 @@ export default function BaseDirectorySettings() {
               className="col-span-2"
               fullWidth
               hideEmptyHelperText
+              disabled={!project?.automaticDeploys}
             />
           ) : (
             <Alert className="col-span-5 text-left">

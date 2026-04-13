@@ -127,7 +127,7 @@ export default function DatabaseObjectListItem({
                 }}
                 href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.schema}/${getObjectTypeUrlSegment(databaseObject.objectType)}/${isFunction ? databaseObject.oid : databaseObject.name}`}
               >
-                <DatabaseObjectIcon className="h-4 w-4 shrink-0" />
+                <DatabaseObjectIcon className="h-4 w-4 shrink-0 text-primary" />
                 <span
                   className={cn('!truncate text-ellipsis', {
                     italic: isUntracked,
