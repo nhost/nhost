@@ -1,4 +1,6 @@
 import {
+  Check,
+  ChevronsUpDown,
   Clock,
   Cpu,
   FileCode,
@@ -9,23 +11,35 @@ import {
   Lock,
   Plus,
   Send,
+  Trash,
   Upload,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Command,
+  CommandCreateItem,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/v3/command';
 import { Input } from '@/components/ui/v3/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/v3/popover';
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
@@ -46,12 +60,32 @@ import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functi
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
 import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
+import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'OPTIONS'
+  | 'HEAD';
 
 interface KeyValuePair {
   key: string;
   value: string;
+}
+
+interface EnvVarSuggestion {
+  name: string;
+  value: string;
+  isSystem: boolean;
+}
+
+interface HeaderNameSuggestion {
+  label: string;
+  value: string;
+  envVarName?: string;
 }
 
 interface MultipartField {
@@ -75,6 +109,8 @@ const METHOD_COLORS: Record<HttpMethod, string> = {
   PUT: 'text-orange-600 dark:text-orange-400',
   PATCH: 'text-pink-600 dark:text-pink-400',
   DELETE: 'text-red-600 dark:text-red-400',
+  OPTIONS: 'text-purple-600 dark:text-purple-400',
+  HEAD: 'text-teal-600 dark:text-teal-400',
 };
 
 function formatDate(dateString: string): string {
@@ -227,13 +263,22 @@ function KeyValueEditor({
   lockedKeys = [],
   keyPlaceholder = 'Key',
   valuePlaceholder = 'Value',
+  envVarSuggestions,
+  headerNameSuggestions,
 }: {
   pairs: KeyValuePair[];
   onChange: (pairs: KeyValuePair[]) => void;
   lockedKeys?: string[];
   keyPlaceholder?: string;
   valuePlaceholder?: string;
+  envVarSuggestions?: EnvVarSuggestion[];
+  headerNameSuggestions?: HeaderNameSuggestion[];
 }) {
+  const [focusedValueIndex, setFocusedValueIndex] = useState<number | null>(
+    null,
+  );
+  const [focusedKeyIndex, setFocusedKeyIndex] = useState<number | null>(null);
+
   const addRow = () => {
     onChange([...pairs, { key: '', value: '' }]);
   };
@@ -254,37 +299,169 @@ function KeyValueEditor({
         const isLocked = lockedKeys.some(
           (k) => k.toLowerCase() === pair.key.toLowerCase(),
         );
+
+        const hasValueSuggestions =
+          envVarSuggestions && envVarSuggestions.length > 0 && !isLocked;
+        const normalizedValueSearch = pair.value.toLowerCase();
+        const filteredValueSuggestions = hasValueSuggestions
+          ? normalizedValueSearch === ''
+            ? envVarSuggestions
+            : envVarSuggestions.filter(
+                (s) =>
+                  s.name.toLowerCase().includes(normalizedValueSearch) ||
+                  s.value.toLowerCase().includes(normalizedValueSearch),
+              )
+          : [];
+        const showValueSuggestions =
+          focusedValueIndex === index && filteredValueSuggestions.length > 0;
+
+        const usedHeaderNames = new Set(
+          pairs.filter((_, i) => i !== index).map((p) => p.key.toLowerCase()),
+        );
+        const hasKeySuggestions =
+          headerNameSuggestions &&
+          headerNameSuggestions.length > 0 &&
+          !isLocked;
+        const normalizedKeySearch = pair.key.toLowerCase();
+        const filteredKeySuggestions = hasKeySuggestions
+          ? (normalizedKeySearch === ''
+              ? headerNameSuggestions
+              : headerNameSuggestions.filter((s) =>
+                  s.label.toLowerCase().includes(normalizedKeySearch),
+                )
+            ).filter((s) => !usedHeaderNames.has(s.value.toLowerCase()))
+          : [];
+        const showKeySuggestions =
+          focusedKeyIndex === index && filteredKeySuggestions.length > 0;
+
         return (
           <div
             key={`pair-${index.toString()}`}
             className="flex items-center gap-2"
           >
-            <Input
-              placeholder={keyPlaceholder}
-              value={pair.key}
-              onChange={(e) => updateRow(index, 'key', e.target.value)}
-              className="h-8 font-mono text-sm"
-              disabled={isLocked}
-            />
-            <Input
-              placeholder={valuePlaceholder}
-              value={pair.value}
-              onChange={(e) => updateRow(index, 'value', e.target.value)}
-              className="h-8 font-mono text-sm"
-              disabled={isLocked}
-            />
+            <div className="relative">
+              <Input
+                placeholder={keyPlaceholder}
+                value={pair.key}
+                onChange={(e) => {
+                  setFocusedKeyIndex(index);
+                  updateRow(index, 'key', e.target.value);
+                }}
+                onFocus={() => setFocusedKeyIndex(index)}
+                onBlur={() => setTimeout(() => setFocusedKeyIndex(null), 100)}
+                className="h-8 font-mono text-sm"
+                disabled={isLocked}
+              />
+              {showKeySuggestions && (
+                <div className="absolute top-full right-0 left-0 z-20 mt-1 max-h-48 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
+                  <ul
+                    className="divide-y divide-border text-sm"
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    {filteredKeySuggestions.map((suggestion) => (
+                      <li key={suggestion.value}>
+                        <button
+                          type="button"
+                          tabIndex={-1}
+                          className="w-full cursor-pointer border-none bg-transparent px-3 py-2 text-left hover:bg-accent"
+                          onClick={() => {
+                            const updated = [...pairs];
+                            updated[index] = {
+                              ...updated[index],
+                              key: suggestion.value,
+                            };
+                            if (suggestion.envVarName && envVarSuggestions) {
+                              const envVar = envVarSuggestions.find(
+                                (e) => e.name === suggestion.envVarName,
+                              );
+                              if (envVar) {
+                                updated[index].value = envVar.value;
+                              }
+                            }
+                            onChange(updated);
+                            setFocusedKeyIndex(null);
+                          }}
+                        >
+                          <div className="font-medium font-mono text-xs">
+                            {suggestion.label}
+                          </div>
+                          {suggestion.envVarName && (
+                            <div className="text-muted-foreground text-xs">
+                              from {suggestion.envVarName}
+                            </div>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            <div className="relative max-w-md flex-1">
+              <Input
+                placeholder={valuePlaceholder}
+                value={pair.value}
+                onChange={(e) => {
+                  setFocusedValueIndex(index);
+                  updateRow(index, 'value', e.target.value);
+                }}
+                onFocus={() => setFocusedValueIndex(index)}
+                onBlur={() => setTimeout(() => setFocusedValueIndex(null), 100)}
+                className="h-8 font-mono text-sm"
+                disabled={isLocked}
+              />
+              {showValueSuggestions && (
+                <div className="absolute top-full right-0 left-0 z-20 mt-1 max-h-48 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
+                  <ul
+                    className="divide-y divide-border text-sm"
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    {filteredValueSuggestions.map((suggestion) => (
+                      <li key={suggestion.name}>
+                        <button
+                          type="button"
+                          tabIndex={-1}
+                          className="w-full cursor-pointer border-none bg-transparent px-3 py-2 text-left hover:bg-accent"
+                          onClick={() => {
+                            updateRow(index, 'value', suggestion.value);
+                            setFocusedValueIndex(null);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium font-mono text-xs">
+                              {suggestion.name}
+                            </span>
+                            {suggestion.isSystem && (
+                              <span className="rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">
+                                System
+                              </span>
+                            )}
+                          </div>
+                          <div className="truncate text-muted-foreground text-xs">
+                            {suggestion.value.length > 24
+                              ? `${suggestion.value.slice(0, 24)}...`
+                              : suggestion.value}
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
             {isLocked ? (
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center text-muted-foreground">
-                <Lock className="h-4 w-4" />
+              <div className="flex h-8 shrink-0 items-center justify-center px-4 text-muted-foreground">
+                <Lock className="size-4" />
               </div>
             ) : (
               <Button
+                type="button"
                 variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0"
+                size="sm"
+                className="shrink-0 px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={() => removeRow(index)}
               >
-                <X className="h-4 w-4" />
+                <Trash className="size-4" />
               </Button>
             )}
           </div>
@@ -483,9 +660,22 @@ function ResponseArea({ response }: { response: ResponseState }) {
   );
 }
 
-function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
+const HEADER_NAME_SUGGESTIONS: HeaderNameSuggestion[] = [
+  {
+    label: 'nhost-webhook-secret',
+    value: 'nhost-webhook-secret',
+    envVarName: 'NHOST_WEBHOOK_SECRET',
+  },
+];
+
+function ExecuteTab({
+  endpointUrl,
+  envVarSuggestions = [],
+}: {
+  endpointUrl: string;
+  envVarSuggestions?: EnvVarSuggestion[];
+}) {
   const [method, setMethod] = useState<HttpMethod>('GET');
-  const [url, setUrl] = useState(endpointUrl);
   const [headers, setHeaders] = useState<KeyValuePair[]>([
     { key: 'Content-Type', value: 'application/json' },
   ]);
@@ -498,6 +688,7 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
     { key: '', value: '', file: null },
   ]);
   const [requestTab, setRequestTab] = useState('headers');
+  const [contentTypeOpen, setContentTypeOpen] = useState(false);
 
   const contentType =
     headers.find((h) => h.key.toLowerCase() === 'content-type')?.value ?? '';
@@ -536,7 +727,7 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
       .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
       .join('&');
 
-    const fullUrl = queryString ? `${url}?${queryString}` : url;
+    const fullUrl = queryString ? `${endpointUrl}?${queryString}` : endpointUrl;
 
     const headersObj: Record<string, string> = {};
     for (const h of headers) {
@@ -609,7 +800,7 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
     }
   }, [
     method,
-    url,
+    endpointUrl,
     headers,
     params,
     body,
@@ -635,7 +826,17 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const).map((m) => (
+            {(
+              [
+                'GET',
+                'POST',
+                'PUT',
+                'PATCH',
+                'DELETE',
+                'OPTIONS',
+                'HEAD',
+              ] as const
+            ).map((m) => (
               <SelectItem
                 key={m}
                 value={m}
@@ -647,12 +848,14 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
           </SelectContent>
         </Select>
 
-        <Input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          wrapperClassName="min-w-0 flex-1"
-          className="h-10 font-mono text-sm"
-        />
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-sm">
+          <span className="truncate">{endpointUrl}</span>
+          <CopyToClipboardButton
+            textToCopy={endpointUrl}
+            title="Copy endpoint URL"
+            className="ml-auto shrink-0"
+          />
+        </div>
 
         <Button
           onClick={sendRequest}
@@ -676,8 +879,8 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
           <TabsTrigger value="params" className="text-xs">
             Params
           </TabsTrigger>
-          <TabsTrigger value="body" className="text-xs">
-            Body
+          <TabsTrigger value="request" className="text-xs">
+            Request
           </TabsTrigger>
         </TabsList>
 
@@ -688,6 +891,8 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
             lockedKeys={['Content-Type']}
             keyPlaceholder="Header name"
             valuePlaceholder="Header value"
+            envVarSuggestions={envVarSuggestions}
+            headerNameSuggestions={HEADER_NAME_SUGGESTIONS}
           />
         </TabsContent>
         <TabsContent value="params" className="mt-3">
@@ -698,61 +903,134 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
             valuePlaceholder="Param value"
           />
         </TabsContent>
-        <TabsContent value="body" className="mt-3">
+        <TabsContent value="request" className="mt-3">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">
                 Content-Type
               </span>
-              <Select
-                value={contentType || 'none'}
-                onValueChange={(val) =>
-                  setContentType(val === 'none' ? '' : val)
-                }
-              >
-                <SelectTrigger className="h-8 w-64 text-sm">
-                  <SelectValue placeholder="None" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectSeparator />
-                  <SelectGroup>
-                    <SelectLabel>Text</SelectLabel>
-                    <SelectItem value="application/json">
-                      application/json
-                    </SelectItem>
-                    <SelectItem value="application/ld+json">
-                      application/ld+json
-                    </SelectItem>
-                    <SelectItem value="application/hal+json">
-                      application/hal+json
-                    </SelectItem>
-                    <SelectItem value="application/vnd.api+json">
-                      application/vnd.api+json
-                    </SelectItem>
-                    <SelectItem value="application/xml">
-                      application/xml
-                    </SelectItem>
-                    <SelectItem value="text/xml">text/xml</SelectItem>
-                  </SelectGroup>
-                  <SelectSeparator />
-                  <SelectGroup>
-                    <SelectLabel>Structured</SelectLabel>
-                    <SelectItem value="application/x-www-form-urlencoded">
-                      application/x-www-form-urlencoded
-                    </SelectItem>
-                    <SelectItem value="multipart/form-data">
-                      multipart/form-data
-                    </SelectItem>
-                  </SelectGroup>
-                  <SelectSeparator />
-                  <SelectGroup>
-                    <SelectLabel>Others</SelectLabel>
-                    <SelectItem value="text/html">text/html</SelectItem>
-                    <SelectItem value="text/plain">text/plain</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+              <Popover open={contentTypeOpen} onOpenChange={setContentTypeOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={contentTypeOpen}
+                    className="h-8 w-80 justify-between font-normal text-sm"
+                  >
+                    <span className="truncate">{contentType || 'None'}</span>
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="bottom"
+                  align="start"
+                  className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0"
+                >
+                  <Command>
+                    <CommandInput placeholder="Search or enter custom..." />
+                    <CommandList>
+                      <CommandEmpty>No content type found.</CommandEmpty>
+                      <CommandItem
+                        value="none"
+                        onSelect={() => {
+                          setContentType('');
+                          setContentTypeOpen(false);
+                        }}
+                      >
+                        None
+                        <Check
+                          className={cn(
+                            'ml-auto h-4 w-4',
+                            !contentType ? 'opacity-100' : 'opacity-0',
+                          )}
+                        />
+                      </CommandItem>
+                      <CommandGroup heading="JSON / XML">
+                        {[
+                          'application/json',
+                          'application/ld+json',
+                          'application/hal+json',
+                          'application/vnd.api+json',
+                          'application/xml',
+                          'text/xml',
+                        ].map((ct) => (
+                          <CommandItem
+                            key={ct}
+                            value={ct}
+                            onSelect={() => {
+                              setContentType(ct);
+                              setContentTypeOpen(false);
+                            }}
+                          >
+                            {ct}
+                            <Check
+                              className={cn(
+                                'ml-auto h-4 w-4',
+                                contentType === ct
+                                  ? 'opacity-100'
+                                  : 'opacity-0',
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandGroup heading="Form">
+                        {[
+                          'application/x-www-form-urlencoded',
+                          'multipart/form-data',
+                        ].map((ct) => (
+                          <CommandItem
+                            key={ct}
+                            value={ct}
+                            onSelect={() => {
+                              setContentType(ct);
+                              setContentTypeOpen(false);
+                            }}
+                          >
+                            {ct}
+                            <Check
+                              className={cn(
+                                'ml-auto h-4 w-4',
+                                contentType === ct
+                                  ? 'opacity-100'
+                                  : 'opacity-0',
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandGroup heading="Text">
+                        {['text/html', 'text/plain'].map((ct) => (
+                          <CommandItem
+                            key={ct}
+                            value={ct}
+                            onSelect={() => {
+                              setContentType(ct);
+                              setContentTypeOpen(false);
+                            }}
+                          >
+                            {ct}
+                            <Check
+                              className={cn(
+                                'ml-auto h-4 w-4',
+                                contentType === ct
+                                  ? 'opacity-100'
+                                  : 'opacity-0',
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandCreateItem
+                        onCreate={(value) => {
+                          setContentType(value);
+                          setContentTypeOpen(false);
+                        }}
+                      />
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             {isFormEncoded ? (
               <KeyValueEditor
@@ -804,6 +1082,46 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
+  const { data: envVarData } = useGetEnvironmentVariablesQuery({
+    variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  const envVarSuggestions = useMemo(() => {
+    if (!envVarData?.config) {
+      return [];
+    }
+
+    const suggestions: EnvVarSuggestion[] = [];
+    const { webhookSecret, adminSecret } = envVarData.config.hasura || {};
+
+    if (webhookSecret) {
+      suggestions.push({
+        name: 'NHOST_WEBHOOK_SECRET',
+        value: webhookSecret,
+        isSystem: true,
+      });
+    }
+    if (adminSecret) {
+      suggestions.push({
+        name: 'NHOST_ADMIN_SECRET',
+        value: adminSecret,
+        isSystem: true,
+      });
+    }
+
+    for (const env of envVarData.config.global?.environment ?? []) {
+      suggestions.push({
+        name: env.name,
+        value: env.value,
+        isSystem: false,
+      });
+    }
+
+    return suggestions;
+  }, [envVarData]);
+
   const customDomainFqdn =
     customDomainData?.config?.functions?.resources?.networking?.ingresses?.[0]
       ?.fqdn?.[0];
@@ -843,7 +1161,12 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
             }
           />
         )}
-        {tab === 'execute' && <ExecuteTab endpointUrl={defaultEndpointUrl} />}
+        {tab === 'execute' && (
+          <ExecuteTab
+            endpointUrl={defaultEndpointUrl}
+            envVarSuggestions={envVarSuggestions}
+          />
+        )}
       </div>
     </div>
   );
