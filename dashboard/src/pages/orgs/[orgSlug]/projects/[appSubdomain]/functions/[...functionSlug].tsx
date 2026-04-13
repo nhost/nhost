@@ -8,10 +8,13 @@ import { ServerlessFunctionView } from '@/features/orgs/projects/serverless-func
 export default function FunctionDetailsPage() {
   const router = useRouter();
   const { functionSlug } = router.query;
+  const slug = Array.isArray(functionSlug)
+    ? functionSlug.join('/')
+    : (functionSlug as string);
 
   return (
     <RetryableErrorBoundary>
-      <ServerlessFunctionView key={functionSlug as string} />
+      <ServerlessFunctionView key={slug} />
     </RetryableErrorBoundary>
   );
 }

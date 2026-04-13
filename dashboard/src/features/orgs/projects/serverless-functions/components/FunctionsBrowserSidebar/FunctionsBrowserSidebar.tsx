@@ -25,7 +25,7 @@ function FunctionsBrowserSidebarContent() {
   }
 
   const sortedFunctions = [...functions].sort((a, b) =>
-    a.route.localeCompare(b.route),
+    a.path.localeCompare(b.path),
   );
 
   return (
@@ -33,7 +33,7 @@ function FunctionsBrowserSidebarContent() {
       <div className="w-full">
         <div className="flex flex-col gap-1 py-2">
           {sortedFunctions.map((fn) => (
-            <FunctionListItem key={fn.route} nhostFunction={fn} />
+            <FunctionListItem key={fn.path} nhostFunction={fn} />
           ))}
         </div>
       </div>

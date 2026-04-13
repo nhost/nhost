@@ -43,7 +43,7 @@ const overlayPages = new Set(
     'ai/assistants',
     'ai/file-stores',
     'functions',
-    'functions/[functionSlug]',
+    'functions/[...functionSlug]',
     'metrics',
   ].map((page) => baseProjectPageRoute.concat(page)),
 );
@@ -59,7 +59,7 @@ const sidebarPages = new Set(
     'ai/assistants',
     'ai/file-stores',
     'functions',
-    'functions/[functionSlug]',
+    'functions/[...functionSlug]',
     'storage',
     'graphql/remote-schemas',
     'graphql/remote-schemas/[remoteSchemaSlug]',

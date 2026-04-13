@@ -1175,6 +1175,9 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
 export default function ServerlessFunctionView() {
   const router = useRouter();
   const { functionSlug } = router.query;
+  const slug = Array.isArray(functionSlug)
+    ? functionSlug.join('/')
+    : (functionSlug as string);
 
   const { data: functions, loading, error } = useGetNhostFunctions();
 
@@ -1194,7 +1197,7 @@ export default function ServerlessFunctionView() {
           <span>
             Function{' '}
             <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-medium font-mono text-sm">
-              /{functionSlug}
+              /{slug}
             </code>{' '}
             could not be loaded.
           </span>
@@ -1203,7 +1206,7 @@ export default function ServerlessFunctionView() {
     );
   }
 
-  const fn = functions.find((f) => f.route.replace(/^\//, '') === functionSlug);
+  const fn = functions.find((f) => f.route.replace(/^\//, '') === slug);
 
   if (!fn) {
     return (
@@ -1213,7 +1216,7 @@ export default function ServerlessFunctionView() {
           <span>
             Function{' '}
             <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-medium font-mono text-sm">
-              /{functionSlug}
+              /{slug}
             </code>{' '}
             does not exist.
           </span>

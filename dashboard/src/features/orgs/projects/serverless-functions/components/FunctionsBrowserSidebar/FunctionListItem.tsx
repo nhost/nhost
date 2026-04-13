@@ -16,17 +16,20 @@ export default function FunctionListItem({
   const { orgSlug, appSubdomain, functionSlug } = router.query;
 
   const slug = nhostFunction.route.replace(/^\//, '');
-  const isSelected = slug === functionSlug;
+  const currentSlug = Array.isArray(functionSlug)
+    ? functionSlug.join('/')
+    : functionSlug;
+  const isSelected = slug === currentSlug;
   const href = `/orgs/${orgSlug}/projects/${appSubdomain}/functions/${slug}`;
 
   return (
-    <div className="group pb-1">
+    <div className="group">
       <Button
         asChild
         variant="link"
-        size="sm"
+        size="default"
         className={cn(
-          'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
+          'flex h-auto w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
           {
             'bg-table-selected': isSelected,
           },
@@ -36,7 +39,7 @@ export default function FunctionListItem({
           <Link
             href={href}
             className={cn(
-              'flex h-full w-full items-center p-[0.625rem] text-left',
+              'flex h-full w-full flex-col items-start px-[0.625rem] py-1.5 text-left',
               {
                 'text-primary-main': isSelected,
               },
@@ -48,6 +51,11 @@ export default function FunctionListItem({
                 'text-primary-main': isSelected,
               })}
               text={nhostFunction.route}
+            />
+            <TextWithTooltip
+              containerClassName="w-full"
+              className="!truncate text-muted-foreground text-xs"
+              text={nhostFunction.path}
             />
           </Link>
         </div>
