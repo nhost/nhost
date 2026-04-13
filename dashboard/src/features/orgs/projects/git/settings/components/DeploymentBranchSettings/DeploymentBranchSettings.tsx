@@ -81,7 +81,7 @@ export default function DeploymentBranchSettings() {
       <Form onSubmit={handleDeploymentBranchChange}>
         <SettingsContainer
           title="Deployment Branch"
-          description="All commits pushed to this deployment branch will trigger a deployment. You can switch to a different branch here."
+          description="When automatic deploys are enabled, commits pushed to this branch will trigger a deployment. You can switch to a different branch here."
           slotProps={{
             submitButton: {
               disabled:
