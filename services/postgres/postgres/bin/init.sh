@@ -114,7 +114,18 @@ function pitr_restore() {
     touch $PGDATA/recovery.signal
 }
 
+function wipe_database() {
+    if [ "${PITR_WIPE_DATABASE:-}" != "true" ]; then
+        return
+    fi
+
+    echo "Wiping database using robust wipe script"
+    psql -U postgres -d $POSTGRES_DB -f /bin/wipe-database.sql
+}
+
 function post_restore_sql() {
+    wipe_database
+
     if [ -n "${PITR_POST_RESTORE_SQL_NO_DB:-}" ]; then
         echo "Running post restore SQL without database connection"
         psql -U postgres -c "$PITR_POST_RESTORE_SQL_NO_DB"
