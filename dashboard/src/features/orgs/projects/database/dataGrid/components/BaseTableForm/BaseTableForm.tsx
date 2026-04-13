@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -134,12 +134,21 @@ function NameInput() {
   );
 }
 
+const ACCORDION_SECTION_VALUES = [
+  'columns',
+  'foreignKeys',
+  'constraints',
+  'indexes',
+  'triggers',
+];
+
 function FormFooter({
   onCancel,
   submitButtonText,
   location,
+  onSubmitClick,
 }: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> &
-  Pick<DialogFormProps, 'location'>) {
+  Pick<DialogFormProps, 'location'> & { onSubmitClick?: VoidFunction }) {
   const { onDirtyStateChange } = useDialog();
   const { isSubmitting, dirtyFields } = useFormState();
 
@@ -167,6 +176,7 @@ function FormFooter({
         disabled={isSubmitting}
         type="submit"
         className="justify-self-end"
+        onClick={onSubmitClick}
       >
         {submitButtonText}
       </Button>
@@ -182,6 +192,10 @@ export default function BaseTableForm({
   schema,
   tableName,
 }: BaseTableFormProps) {
+  const [openSections, setOpenSections] = useState<string[]>([
+    ...ACCORDION_SECTION_VALUES,
+  ]);
+
   return (
     <Form
       onSubmit={onSubmit}
@@ -194,20 +208,15 @@ export default function BaseTableForm({
 
         <Accordion
           type="multiple"
-          defaultValue={[
-            'columns',
-            'foreignKeys',
-            'constraints',
-            'indexes',
-            'triggers',
-          ]}
+          value={openSections}
+          onValueChange={setOpenSections}
           className="border-t-1"
         >
           <AccordionItem value="columns">
             <AccordionTrigger className="px-6 py-2 text-lg">
               Columns
             </AccordionTrigger>
-            <AccordionContent className="px-6 pb-3">
+            <AccordionContent className="px-6 pb-3" forceMount>
               <div className="grid grid-cols-8">
                 <ColumnEditorTable />
                 <PrimaryKeySelect />
@@ -220,7 +229,7 @@ export default function BaseTableForm({
             <AccordionTrigger className="px-6 py-2 text-lg">
               Foreign Keys
             </AccordionTrigger>
-            <AccordionContent className="pb-3">
+            <AccordionContent className="pb-3" forceMount>
               <ForeignKeyEditorSection />
             </AccordionContent>
           </AccordionItem>
@@ -235,6 +244,7 @@ export default function BaseTableForm({
         onCancel={onCancel}
         submitButtonText={submitButtonText}
         location={location}
+        onSubmitClick={() => setOpenSections([...ACCORDION_SECTION_VALUES])}
       />
     </Form>
   );
