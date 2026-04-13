@@ -6,10 +6,9 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
-  node_modules = nixops-lib.js.mkNodeModules {
+  mkNodeModules = pnpmOpts: nixops-lib.js.mkNodeModules {
     name = "node-modules-${name}";
     version = "0.0.0-dev";
-
     src = nix-filter.lib.filter {
       root = ../..;
       include = [
@@ -21,9 +20,14 @@ let
         "${submodule}/pnpm-lock.yaml"
       ];
     };
-
-    pnpmOpts = "--filter './${submodule}/**'";
+    inherit pnpmOpts;
   };
+
+  # Full node_modules including root deps (audit-ci, etc.) for check and devShell
+  node_modules = mkNodeModules "--filter . --filter './${submodule}/**'";
+
+  # Slim node_modules with only runtime deps for the Docker image
+  node_modules_runtime = mkNodeModules "--filter './${submodule}/**'";
 
   src = nix-filter.lib.filter {
     root = ../..;
@@ -104,8 +108,8 @@ let
           Env = [
             "TMPDIR=/tmp"
             "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-            "NODE_PATH=${node_modules}/${submodule}/node_modules"
-            "PATH=/tmp/corepack-shims:${node_modules}/${submodule}/node_modules/.bin:${nodejs}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
+            "NODE_PATH=${node_modules_runtime}/${submodule}/node_modules"
+            "PATH=/tmp/corepack-shims:${node_modules_runtime}/${submodule}/node_modules/.bin:${nodejs}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
             "SERVER_PATH=/opt/server"
             "NHOST_PROJECT_PATH=/opt/project"
             "PACKAGE_MANAGER=pnpm"
