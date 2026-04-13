@@ -1,24 +1,14 @@
-import {
-  ExternalLink,
-  KeyRound,
-  Link2,
-  PlusIcon,
-  ShieldCheck,
-} from 'lucide-react';
+import { ExternalLink, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import {
-  Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Badge } from '@/components/ui/v3/badge';
-import { CreateCheckConstraintForm } from '@/features/orgs/projects/database/dataGrid/components/CreateCheckConstraintForm';
 import { useTableRelatedObjectsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableRelatedObjectsQuery';
 import type {
   TableConstraint,
@@ -37,84 +27,27 @@ export interface TableObjectsSectionProps {
   table: string;
 }
 
-function ConstraintIcon({ type }: { type: TableConstraint['type'] }) {
-  switch (type) {
-    case 'PRIMARY KEY':
-      return <KeyRound className="h-4 w-4 text-yellow-600" />;
-    case 'FOREIGN KEY':
-      return <Link2 className="h-4 w-4 text-blue-600" />;
-    case 'CHECK':
-      return <ShieldCheck className="h-4 w-4 text-green-600" />;
-    default:
-      return null;
-  }
-}
-
-function ConstraintTypeBadge({ type }: { type: TableConstraint['type'] }) {
-  const colorMap: Record<TableConstraint['type'], string> = {
-    'PRIMARY KEY':
-      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    'FOREIGN KEY':
-      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    UNIQUE:
-      'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    CHECK: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    EXCLUSION:
-      'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-  };
-
-  return (
-    <Badge variant="outline" className={colorMap[type]}>
-      {type}
-    </Badge>
-  );
-}
-
-interface ConstraintsListProps {
-  constraints: TableConstraint[];
-  schema: string;
-  table: string;
-  onConstraintCreated: () => void;
-}
-
-function ConstraintsList({
+function CheckConstraintsList({
   constraints,
-  schema,
-  table,
-  onConstraintCreated,
-}: ConstraintsListProps) {
-  const { openDialog } = useDialog();
-  const checkConstraints = constraints.filter((c) => c.type === 'CHECK');
-  const otherConstraints = constraints.filter((c) => c.type !== 'CHECK');
-
-  function handleAddCheckConstraint() {
-    openDialog({
-      title: 'Add Check Constraint',
-      component: (
-        <CreateCheckConstraintForm
-          schema={schema}
-          table={table}
-          onSubmit={async () => {
-            onConstraintCreated();
-          }}
-        />
-      ),
-    });
+}: { constraints: TableConstraint[] }) {
+  if (constraints.length === 0) {
+    return (
+      <Text className="text-muted-foreground text-sm+">
+        No check constraints defined on this table.
+      </Text>
+    );
   }
 
   return (
     <div className="space-y-3">
-      {otherConstraints.map((constraint) => (
+      {constraints.map((constraint) => (
         <div
           key={constraint.name}
           className="flex items-start gap-3 rounded-md border border-input bg-background p-3"
         >
-          <ConstraintIcon type={constraint.type} />
+          <ShieldCheck className="h-4 w-4 text-green-600" />
           <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <Text className="font-medium text-sm+">{constraint.name}</Text>
-              <ConstraintTypeBadge type={constraint.type} />
-            </div>
+            <Text className="font-medium text-sm+">{constraint.name}</Text>
             <Text className="font-mono text-muted-foreground text-sm">
               {constraint.definition}
             </Text>
@@ -126,50 +59,6 @@ function ConstraintsList({
           </div>
         </div>
       ))}
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Text className="font-medium text-muted-foreground text-sm uppercase">
-            Check Constraints
-          </Text>
-        </div>
-
-        {checkConstraints.length === 0 ? (
-          <Text className="text-muted-foreground text-sm+">
-            No check constraints defined.
-          </Text>
-        ) : (
-          checkConstraints.map((constraint) => (
-            <div
-              key={constraint.name}
-              className="flex items-start gap-3 rounded-md border border-input bg-background p-3"
-            >
-              <ShieldCheck className="h-4 w-4 text-green-600" />
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <Text className="font-medium text-sm+">
-                    {constraint.name}
-                  </Text>
-                  <ConstraintTypeBadge type="CHECK" />
-                </div>
-                <Text className="font-mono text-muted-foreground text-sm">
-                  {constraint.definition}
-                </Text>
-              </div>
-            </div>
-          ))
-        )}
-
-        <Button
-          variant="borderless"
-          startIcon={<PlusIcon />}
-          size="small"
-          className="mt-1 justify-self-start rounded-sm+ py-2"
-          onClick={handleAddCheckConstraint}
-        >
-          Add Check Constraint
-        </Button>
-      </div>
     </div>
   );
 }
@@ -264,87 +153,79 @@ export default function TableObjectsSection({
   schema,
   table,
 }: TableObjectsSectionProps) {
-  const { data, status, refetch } = useTableRelatedObjectsQuery(
+  const { data, status } = useTableRelatedObjectsQuery(
     ['tableRelatedObjects', schema, table],
     { schema, table },
   );
 
   if (status === 'loading') {
     return (
-      <section className="px-6 py-3">
-        <ActivityIndicator label="Loading table objects..." delay={500} />
-      </section>
+      <AccordionItem value="_loading" disabled className="border-b-0">
+        <div className="px-6 py-3">
+          <ActivityIndicator label="Loading table objects..." delay={500} />
+        </div>
+      </AccordionItem>
     );
   }
 
   if (status === 'error' || data?.error) {
     return (
-      <section className="px-6 py-3">
-        <Text className="text-destructive text-sm+">
-          Failed to load table objects: {data?.error || 'Unknown error'}
-        </Text>
-      </section>
+      <AccordionItem value="_error" disabled className="border-b-0">
+        <div className="px-6 py-3">
+          <Text className="text-destructive text-sm+">
+            Failed to load table objects: {data?.error || 'Unknown error'}
+          </Text>
+        </div>
+      </AccordionItem>
     );
   }
 
   const { constraints = [], triggers = [], indexes = [] } = data || {};
+  const checkConstraints = constraints.filter((c) => c.type === 'CHECK');
 
   return (
-    <section className="border-t-1 px-6 py-3">
-      <Accordion
-        type="multiple"
-        defaultValue={['constraints', 'indexes', 'triggers']}
-        className="w-full"
-      >
-        <AccordionItem value="constraints">
-          <AccordionTrigger className="py-2 text-lg">
-            <div className="flex items-center gap-2">
-              <span>Constraints</span>
-              <Badge variant="secondary" className="text-sm">
-                {constraints.length}
-              </Badge>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pt-2 pb-4">
-            <ConstraintsList
-              constraints={constraints}
-              schema={schema}
-              table={table}
-              onConstraintCreated={() => {
-                refetch();
-              }}
-            />
-          </AccordionContent>
-        </AccordionItem>
+    <>
+      <AccordionItem value="constraints">
+        <AccordionTrigger className="px-6 py-2 text-lg">
+          <div className="flex items-center gap-2">
+            <span>Check Constraints</span>
+            <Badge variant="secondary" className="text-sm">
+              {checkConstraints.length}
+            </Badge>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="px-6 pt-2 pb-4">
+          <CheckConstraintsList constraints={checkConstraints} />
+        </AccordionContent>
+      </AccordionItem>
 
-        <AccordionItem value="indexes">
-          <AccordionTrigger className="py-2 text-lg">
-            <div className="flex items-center gap-2">
-              <span>Indexes</span>
-              <Badge variant="secondary" className="text-sm">
-                {indexes.length}
-              </Badge>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pt-2 pb-4">
-            <IndexesList indexes={indexes} />
-          </AccordionContent>
-        </AccordionItem>
+      <AccordionItem value="indexes">
+        <AccordionTrigger className="px-6 py-2 text-lg">
+          <div className="flex items-center gap-2">
+            <span>Indexes</span>
+            <Badge variant="secondary" className="text-sm">
+              {indexes.length}
+            </Badge>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="px-6 pt-2 pb-4">
+          <IndexesList indexes={indexes} />
+        </AccordionContent>
+      </AccordionItem>
 
-        <AccordionItem value="triggers">
-          <AccordionTrigger className="py-2 text-lg">
-            <div className="flex items-center gap-2">
-              <span>Triggers</span>
-              <Badge variant="secondary" className="text-sm">
-                {triggers.length}
-              </Badge>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pt-2 pb-4">
-            <TriggersList triggers={triggers} />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </section>
+      <AccordionItem value="triggers">
+        <AccordionTrigger className="px-6 py-2 text-lg">
+          <div className="flex items-center gap-2">
+            <span>Triggers</span>
+            <Badge variant="secondary" className="text-sm">
+              {triggers.length}
+            </Badge>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="px-6 pt-2 pb-4">
+          <TriggersList triggers={triggers} />
+        </AccordionContent>
+      </AccordionItem>
+    </>
   );
 }

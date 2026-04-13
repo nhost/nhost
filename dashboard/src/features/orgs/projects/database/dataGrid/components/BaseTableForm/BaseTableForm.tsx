@@ -3,10 +3,15 @@ import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/v3/accordion';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
@@ -187,27 +192,43 @@ export default function BaseTableForm({
           <NameInput />
         </Box>
 
-        <Box
-          component="section"
-          className="grid grid-cols-8 border-t-1 px-6 py-3"
+        <Accordion
+          type="multiple"
+          defaultValue={[
+            'columns',
+            'foreignKeys',
+            'constraints',
+            'indexes',
+            'triggers',
+          ]}
+          className="border-t-1"
         >
-          <Text
-            variant="h2"
-            className="col-span-8 mt-3 mb-1.5 font-bold text-sm+"
-          >
-            Columns
-          </Text>
+          <AccordionItem value="columns">
+            <AccordionTrigger className="px-6 py-2 text-lg">
+              Columns
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-3">
+              <div className="grid grid-cols-8">
+                <ColumnEditorTable />
+                <PrimaryKeySelect />
+                <IdentityColumnSelect />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-          <ColumnEditorTable />
-          <PrimaryKeySelect />
-          <IdentityColumnSelect />
-        </Box>
+          <AccordionItem value="foreignKeys">
+            <AccordionTrigger className="px-6 py-2 text-lg">
+              Foreign Keys
+            </AccordionTrigger>
+            <AccordionContent className="pb-3">
+              <ForeignKeyEditorSection />
+            </AccordionContent>
+          </AccordionItem>
 
-        <ForeignKeyEditorSection />
-
-        {schema && tableName && (
-          <TableObjectsSection schema={schema} table={tableName} />
-        )}
+          {schema && tableName && (
+            <TableObjectsSection schema={schema} table={tableName} />
+          )}
+        </Accordion>
       </div>
 
       <FormFooter
