@@ -71,11 +71,7 @@ let
     '';
   };
 
-  pnpmWithNode = nodejs: pkgs.pnpm.override { inherit nodejs; };
-
   mkDockerImage = { nodejs }:
-    let pnpm = pnpmWithNode nodejs;
-    in
     pkgs.runCommand "image-as-dir" { } ''
       ${(nix2containerPkgs.nix2container.buildImage {
         inherit name created;
@@ -88,8 +84,6 @@ let
             serverFiles
             pkgs.busybox
             nodejs
-            pnpm
-            pkgs.yarn
             pkgs.gitMinimal
             pkgs.openssh
             pkgs.cacert
@@ -111,7 +105,7 @@ let
             "TMPDIR=/tmp"
             "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
             "NODE_PATH=${node_modules}/${submodule}/node_modules"
-            "PATH=${node_modules}/${submodule}/node_modules/.bin:${nodejs}/bin:${pnpm}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
+            "PATH=/tmp/corepack-shims:${node_modules}/${submodule}/node_modules/.bin:${nodejs}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
             "SERVER_PATH=/opt/server"
             "NHOST_PROJECT_PATH=/opt/project"
             "PACKAGE_MANAGER=pnpm"

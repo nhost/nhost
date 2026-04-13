@@ -1,4 +1,8 @@
 #!/bin/sh
+# * Enable corepack so it manages pnpm/yarn versions from the packageManager field
+mkdir -p /tmp/corepack-shims
+corepack enable --install-directory /tmp/corepack-shims
+
 # * Set the default package manager to use if cannot be guessed from lock files
 echo "defaultAgent=$PACKAGE_MANAGER" > ~/.nirc
 
