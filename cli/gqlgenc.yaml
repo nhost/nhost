@@ -23,6 +23,9 @@ models:
   ConfigUint32:
     model:
       - github.com/99designs/gqlgen/graphql.Uint32
+  Timestamp:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
 
 endpoint:
   url: https://mytpiiwxeyrvlqrxuknp.graphql.eu-central-1.nhost.run/v1

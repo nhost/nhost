@@ -6,6 +6,7 @@ import {
 import type {
   AffectedRowsResult,
   ColumnUpdateOptions,
+  DataBrowserColumnMetadata,
   DataBrowserGridRow,
   MutationOrQueryBaseOptions,
   QueryError,
@@ -40,9 +41,10 @@ export default async function updateRecord<
   row,
   columnsToUpdate,
 }: UpdateRecordOptions & UpdateRecordVariables<TData>) {
-  const primaryKeys = row
-    .getAllCells()
-    .filter(({ column }) => column.columnDef.meta?.isPrimary);
+  const allCells = row.getAllCells();
+  const primaryKeys = allCells.filter(
+    ({ column }) => column.columnDef.meta?.isPrimary,
+  );
 
   if (primaryKeys.length === 0) {
     throw new Error('No primary keys found for row.');
@@ -70,6 +72,20 @@ export default async function updateRecord<
         return format('%I = NULL', key);
       }
 
+      const col = allCells.find(
+        ({ column }) =>
+          (column.columnDef.meta as DataBrowserColumnMetadata)?.id === key,
+      )!.column.columnDef.meta as DataBrowserColumnMetadata;
+
+      if (col.specificType.endsWith('[]')) {
+        try {
+          return format('%I = ARRAY[%L]', key, JSON.parse(value));
+        } catch {
+          throw new Error(
+            `Invalid array value for column "${key}". Use JSON array format, e.g. [1, 2, 3].`,
+          );
+        }
+      }
       return format('%I = %L', key, value);
     })
     .join(', ');

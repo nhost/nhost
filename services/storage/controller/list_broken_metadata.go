@@ -7,6 +7,7 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 type ListBrokenMetadataResponse struct {
@@ -14,7 +15,9 @@ type ListBrokenMetadataResponse struct {
 }
 
 func (ctrl *Controller) listBrokenMetadata(ctx context.Context) ([]FileSummary, *APIError) {
-	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(ctx, nil)
+	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
+
+	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(ctx, sessionHeaders)
 	if apiErr != nil {
 		return nil, apiErr
 	}

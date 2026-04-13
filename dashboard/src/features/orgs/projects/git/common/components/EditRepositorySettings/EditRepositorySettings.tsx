@@ -14,6 +14,7 @@ export interface EditRepositorySettingsProps {
 export interface EditRepositorySettingsFormData {
   productionBranch: string;
   repoBaseFolder: string;
+  automaticDeploys: boolean;
 }
 
 export default function EditRepositorySettings({
@@ -27,7 +28,8 @@ export default function EditRepositorySettings({
     reValidateMode: 'onSubmit',
     defaultValues: {
       productionBranch: project?.repositoryProductionBranch || 'main',
-      repoBaseFolder: project?.nhostBaseFolder,
+      repoBaseFolder: project?.nhostBaseFolder || 'nhost',
+      automaticDeploys: project?.automaticDeploys ?? true,
     },
   });
 

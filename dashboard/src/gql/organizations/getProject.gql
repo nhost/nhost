@@ -8,6 +8,7 @@ query getProject($subdomain: String!) {
     createdAt
     desiredState
     nhostBaseFolder
+    automaticDeploys
     config(resolve: true) {
       observability {
         grafana {

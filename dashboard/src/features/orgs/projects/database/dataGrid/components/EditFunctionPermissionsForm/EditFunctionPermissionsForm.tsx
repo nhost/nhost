@@ -27,9 +27,9 @@ import { getFunctionPermissionState } from '@/features/orgs/projects/database/da
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
-import { triggerToast } from '@/utils/toast';
 
 export interface EditFunctionPermissionsFormProps {
   /**
@@ -229,37 +229,32 @@ export default function EditFunctionPermissionsForm({
     role: string,
     currentlyHasPermission: boolean,
   ) => {
-    try {
-      await manageFunctionPermission({
-        resourceVersion,
-        type: currentlyHasPermission
-          ? 'pg_drop_function_permission'
-          : 'pg_create_function_permission',
-        args: {
-          source: dataSource,
-          function: {
-            name: functionName,
-            schema,
+    await execPromiseWithErrorToast(
+      async () => {
+        await manageFunctionPermission({
+          resourceVersion,
+          type: currentlyHasPermission
+            ? 'pg_drop_function_permission'
+            : 'pg_create_function_permission',
+          args: {
+            source: dataSource,
+            function: {
+              name: functionName,
+              schema,
+            },
+            role,
           },
-          role,
-        },
-      });
-
-      setExpandedRole(null);
-
-      triggerToast(
-        currentlyHasPermission
+        });
+        setExpandedRole(null);
+      },
+      {
+        loadingMessage: `${currentlyHasPermission ? 'Removing' : 'Granting'} permission...`,
+        successMessage: currentlyHasPermission
           ? `Permission for role "${role}" has been removed.`
           : `Permission for role "${role}" has been granted.`,
-      );
-    } catch (error) {
-      console.error('Failed to toggle permission:', error);
-      triggerToast(
-        error instanceof Error
-          ? error.message
-          : 'An error occurred while updating permission.',
-      );
-    }
+        errorMessage: 'An error occurred while updating permission.',
+      },
+    );
   };
 
   return (

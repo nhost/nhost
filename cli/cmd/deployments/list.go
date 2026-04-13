@@ -20,7 +20,18 @@ func CommandList() *cli.Command {
 	}
 }
 
-func printDeployments(ce *clienv.CliEnv, deployments []*graphql.ListDeployments_Deployments) {
+func derefStr(s *string) string {
+	if s == nil {
+		return ""
+	}
+
+	return *s
+}
+
+func printDeployments(
+	ce *clienv.CliEnv,
+	deployments []*graphql.ListUnifiedDeployments_UnifiedDeployments,
+) {
 	id := clienv.Column{
 		Header: "ID",
 		Rows:   make([]string, 0),
@@ -52,27 +63,27 @@ func printDeployments(ce *clienv.CliEnv, deployments []*graphql.ListDeployments_
 
 	for _, d := range deployments {
 		var startedAt time.Time
-		if d.DeploymentStartedAt != nil && !d.DeploymentStartedAt.IsZero() {
-			startedAt = *d.DeploymentStartedAt
+		if d.StartedAt != nil && !d.StartedAt.IsZero() {
+			startedAt = *d.StartedAt
 		}
 
 		var (
 			endedAt      time.Time
-			deplPuration time.Duration
+			deplDuration time.Duration
 		)
 
-		if d.DeploymentEndedAt != nil && !d.DeploymentEndedAt.IsZero() {
-			endedAt = *d.DeploymentEndedAt
-			deplPuration = endedAt.Sub(startedAt)
+		if d.EndedAt != nil && !d.EndedAt.IsZero() {
+			endedAt = *d.EndedAt
+			deplDuration = endedAt.Sub(startedAt)
 		}
 
-		id.Rows = append(id.Rows, d.ID)
+		id.Rows = append(id.Rows, derefStr(d.ID))
 		date.Rows = append(date.Rows, startedAt.Format(time.RFC3339))
-		duration.Rows = append(duration.Rows, deplPuration.String())
-		status.Rows = append(status.Rows, *d.DeploymentStatus)
-		user.Rows = append(user.Rows, *d.CommitUserName)
-		ref.Rows = append(ref.Rows, d.CommitSha)
-		message.Rows = append(message.Rows, *d.CommitMessage)
+		duration.Rows = append(duration.Rows, deplDuration.String())
+		status.Rows = append(status.Rows, derefStr(d.Status))
+		user.Rows = append(user.Rows, derefStr(d.CommitUserName))
+		ref.Rows = append(ref.Rows, derefStr(d.CommitSha))
+		message.Rows = append(message.Rows, derefStr(d.CommitMessage))
 	}
 
 	ce.Println("%s", clienv.Table(id, date, duration, status, user, ref, message))
@@ -91,7 +102,7 @@ func commandList(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	deployments, err := cl.ListDeployments(
+	resp, err := cl.ListUnifiedDeployments(
 		ctx,
 		proj.ID,
 	)
@@ -99,7 +110,7 @@ func commandList(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get deployments: %w", err)
 	}
 
-	printDeployments(ce, deployments.GetDeployments())
+	printDeployments(ce, resp.GetUnifiedDeployments())
 
 	return nil
 }
