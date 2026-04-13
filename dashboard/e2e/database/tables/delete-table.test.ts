@@ -94,7 +94,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('option', { name: /public/i }).click();
 
   // select reference table
-  await page.getByLabel('Table').click();
+  await page.getByRole('combobox', { name: 'Table' }).click();
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
   // select reference column

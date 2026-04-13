@@ -2,6 +2,7 @@ package deployments
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -71,28 +72,34 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain)) //nolint:staticcheck
+	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	resp, err := cl.InsertDeployment(
+	resp, err := cl.InsertPipelineRun(
 		ctx,
-		graphql.DeploymentsInsertInput{
-			App:                 nil,
-			AppID:               new(proj.ID),
-			CommitMessage:       new(cmd.String(flagMessage)),
-			CommitSha:           new(cmd.String(flagRef)),
-			CommitUserAvatarURL: new(cmd.String(flagUserAvatarURL)),
-			CommitUserName:      new(cmd.String(flagUser)),
-			DeploymentStatus:    new("SCHEDULED"),
+		graphql.PipelineRunsInsertInput{ //nolint:exhaustruct
+			Input: map[string]any{
+				"name":                   "nhost-backend-build",
+				"app_id":                 proj.ID,
+				"commit_sha":             cmd.String(flagRef),
+				"commit_user_name":       cmd.String(flagUser),
+				"commit_user_avatar_url": cmd.String(flagUserAvatarURL),
+				"commit_message":         cmd.String(flagMessage),
+			},
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("failed to insert deployment: %w", err)
+		return fmt.Errorf("failed to create deployment: %w", err)
 	}
 
-	ce.Println("Deployment created: %s", resp.InsertDeployment.ID)
+	if resp.InsertPipelineRun == nil {
+		return errors.New( //nolint:err113
+			"failed to create deployment: server returned no pipeline run")
+	}
+
+	ce.Println("Deployment created: %s", resp.InsertPipelineRun.ID)
 
 	if cmd.Bool(flagFollow) {
 		ce.Println("")
@@ -100,12 +107,23 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, cmd.Duration(flagTimeout))
 		defer cancel()
 
-		status, err := showLogsFollow(ctxWithTimeout, ce, cl, resp.InsertDeployment.ID)
+		now := time.Now()
+
+		status, err := showPipelineRunLogsFollow(
+			ctxWithTimeout, ce, cl, proj.ID, resp.InsertPipelineRun.ID, &now,
+		)
 		if err != nil {
+			if ctxWithTimeout.Err() != nil {
+				ce.Println(
+					"Timed out waiting for deployment. It may still be running. " +
+						"Check status with: nhost deployments list",
+				)
+			}
+
 			return fmt.Errorf("error streaming logs: %w", err)
 		}
 
-		if status != "DEPLOYED" {
+		if status != string(graphql.PipelineRunStatusEnumSucceeded) {
 			return fmt.Errorf("deployment failed: %s", status) //nolint:err113
 		}
 	}

@@ -148,7 +148,7 @@ export default function DeploymentListItem({
             </div>
           )}
 
-          <div className="hidden w-16 text-right font-medium font-mono text-sm- text-white sm:block">
+          <div className="hidden w-16 text-right font-medium font-mono text-foreground text-sm- sm:block">
             {deployment.commitSHA?.substring(0, 7)}
           </div>
 
