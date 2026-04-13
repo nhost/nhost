@@ -27,7 +27,7 @@ jobs:
           echo "Validating PR title: $PR_TITLE"
 
           VALID_TYPES="feat|fix|chore|release"
-          VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|internal\/lib|mcp|nhost-js|nixops|postgres|storage|observability|stripe-graphql-js"
+          VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|functions|internal\/lib|mcp|nhost-js|nixops|postgres|storage|observability|stripe-graphql-js"
 
           if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\):\ .+ ]]; then
             echo "PR title does not follow the required format!"
@@ -40,7 +40,7 @@ jobs:
             echo "  - chore:  mark this pull request as a maintenance item"
             echo ""
             echo "Valid PKGs:"
-            echo "  - auth, ci, cli, codegen, dashboard, deps, docs, examples,"
+            echo "  - auth, ci, cli, codegen, dashboard, deps, docs, examples, functions,"
             echo "  - mcp, nhost-js, nixops, postgres, storage, observability, internal/lib"
             echo "  - stripe-graphql-js"
             echo ""

@@ -70,18 +70,23 @@ jobs:
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   build_artifacts:
+    strategy:
+      matrix:
+        node: ["20", "22"]
+      fail-fast: true
     uses: ./.github/workflows/wf_build_artifacts.yaml
     needs:
       - detect-changes
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: functions-node22
+      NAME: functions
       PATH: services/functions
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
-      ENV: "NODE_VERSION=22"
+      ENV: "NODE_VERSION=${{ matrix.node }}"
+      ARTIFACT_SUFFIX: "-node${{ matrix.node }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
