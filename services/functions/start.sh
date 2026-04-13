@@ -42,6 +42,5 @@ cp -n $SERVER_PATH/tsconfig.json $FUNCTIONS_WORKING_DIR/tsconfig.json
 # * Install dependencies and start the server from the functions working directory
 # * (cwd must be FUNCTIONS_WORKING_DIR so FUNCTIONS_RELATIVE_PATH resolves correctly)
 cd $FUNCTIONS_WORKING_DIR && nci && \
-FUNCTIONS_WORKING_DIR=$FUNCTIONS_WORKING_DIR \
 FUNCTIONS_RELATIVE_PATH=$FUNCTIONS_RELATIVE_PATH \
 node $SERVER_PATH/server.js

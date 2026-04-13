@@ -294,10 +294,7 @@ const main = async () => {
   });
 
   // Watch for dependency changes (package.json / lockfiles)
-  const workingDir = path.join(
-    process.cwd(),
-    process.env.FUNCTIONS_WORKING_DIR || '.',
-  );
+  const workingDir = process.cwd();
   const depWatcher = chokidar.watch(
     ['package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'],
     { cwd: workingDir, ignoreInitial: true },

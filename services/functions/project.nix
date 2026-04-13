@@ -110,6 +110,7 @@ let
             "NHOST_PROJECT_PATH=/opt/project"
             "PACKAGE_MANAGER=pnpm"
             "NODE_OPTIONS=--enable-source-maps"
+            "NPM_CONFIG_STORE_DIR=/opt/project/node_modules/.pnpm-store"
           ];
           WorkingDir = "/opt/project";
           Entrypoint = [ "/bin/sh" "/opt/server/start.sh" ];
