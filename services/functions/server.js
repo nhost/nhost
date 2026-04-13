@@ -103,9 +103,7 @@ async function buildFunction(functionsPath, file) {
               console.log(`Rebuilt ${route} from ${file}`);
             }
           });
-          // Clean up wrapper file after initial build resolves dependencies
-          build.onStart(() => {});
-        },
+},
       },
     ],
   });

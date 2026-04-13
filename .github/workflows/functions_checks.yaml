@@ -52,23 +52,6 @@ jobs:
         run: |
           exit 1
 
-  tests:
-    uses: ./.github/workflows/wf_check.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: functions
-      PATH: services/functions
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NHOST_PAT: ${{ secrets.NHOST_PAT }}
-
   build_artifacts:
     strategy:
       matrix:
@@ -91,6 +74,24 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+  tests:
+    uses: ./.github/workflows/wf_check.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+      - build_artifacts
+    if: needs.detect-changes.outputs.should_run == 'true'
+    with:
+      NAME: functions
+      PATH: services/functions
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   remove_label:
     runs-on: ubuntu-latest

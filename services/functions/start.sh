@@ -1,4 +1,6 @@
 #!/bin/sh
+set -euo pipefail
+
 # * Enable corepack so it manages pnpm/yarn versions from the packageManager field
 mkdir -p /tmp/corepack-shims
 corepack enable --install-directory /tmp/corepack-shims
@@ -37,10 +39,10 @@ if [ ! -f "$FUNCTIONS_WORKING_DIR/package-lock.json" ] && [ ! -f "$FUNCTIONS_WOR
 fi
 
 # * Create a default tsconfig.json file in the functions' working directory.
-cp -n $SERVER_PATH/tsconfig.json $FUNCTIONS_WORKING_DIR/tsconfig.json
+cp -n "$SERVER_PATH/tsconfig.json" "$FUNCTIONS_WORKING_DIR/tsconfig.json"
 
 # * Install dependencies and start the server from the functions working directory
 # * (cwd must be FUNCTIONS_WORKING_DIR so FUNCTIONS_RELATIVE_PATH resolves correctly)
-cd $FUNCTIONS_WORKING_DIR && nci && \
-FUNCTIONS_RELATIVE_PATH=$FUNCTIONS_RELATIVE_PATH \
-node $SERVER_PATH/server.js
+cd "$FUNCTIONS_WORKING_DIR" && nci && \
+FUNCTIONS_RELATIVE_PATH="$FUNCTIONS_RELATIVE_PATH" \
+node "$SERVER_PATH/server.js"
