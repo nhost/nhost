@@ -11,6 +11,8 @@ import (
 	"github.com/nhost/nhost/services/storage/controller"
 )
 
+var errFileNotInserted = errors.New("file was not inserted")
+
 func parseGraphqlError(err error) *controller.APIError {
 	var ghErr *clientv2.ErrorResponse
 	if errors.As(err, &ghErr) {
@@ -146,7 +148,10 @@ func (h *Hasura) InitializeFile(
 	}
 
 	if resp.InsertFiles == nil || resp.InsertFiles.AffectedRows != 1 {
-		return controller.ForbiddenError(errors.New("file was not inserted"), "file was not inserted")
+		return controller.ForbiddenError(
+			errFileNotInserted,
+			"file was not inserted",
+		)
 	}
 
 	return nil
