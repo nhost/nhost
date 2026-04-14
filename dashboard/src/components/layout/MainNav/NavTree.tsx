@@ -154,7 +154,7 @@ const projectSettingsPages = [
   },
   { name: 'Storage', slug: 'storage', route: 'storage' },
   { name: 'SMTP', slug: 'smtp', route: 'smtp' },
-  { name: 'Git', slug: 'git', route: 'git' },
+  { name: 'Deployments', slug: 'deployments', route: 'deployments' },
   {
     name: 'Environment Variables',
     slug: 'environment-variables',

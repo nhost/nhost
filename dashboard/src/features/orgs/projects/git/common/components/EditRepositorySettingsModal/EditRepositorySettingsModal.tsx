@@ -111,7 +111,7 @@ export default function EditRepositorySettingsModal({
         <Text className="text-center text-xs">
           Connect your GitHub repository to enable deployments.{' '}
           <Link
-            href="https://docs.nhost.io/platform/cloud/git"
+            href="https://docs.nhost.io/platform/cloud/deployments"
             rel="noopener noreferrer"
             target="_blank"
             className="text-xs"
