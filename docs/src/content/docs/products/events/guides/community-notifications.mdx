@@ -6,7 +6,7 @@ sidebar:
   label: Community Notifications (Event Trigger)
 ---
 
-An event trigger fires when a community's description is updated. The handler notifies all members except the editor.
+An event trigger fires when a community's description is updated. The handler notifies all members except the editor. You can see this in action in the [react-demo](https://github.com/nhost/nhost/tree/main/examples/demos/react-demo) example, see [`Communities.tsx`](https://github.com/nhost/nhost/blob/main/examples/demos/react-demo/src/pages/Communities.tsx).
 
 ```ts title="./functions/events/community-updated.ts"
 import { createHash, timingSafeEqual } from 'node:crypto'
@@ -123,4 +123,3 @@ export default async (req: Request, res: Response) => {
 - [Event trigger configuration](/products/events/event-triggers) -- how to set up the trigger that calls this handler
 - [Webhook Security](/products/events/guides/webhook-security) -- configuring the shared secret
 - [Full source code](https://github.com/nhost/nhost/blob/main/examples/demos/backend/functions/events/community-updated.ts) on GitHub
-- [React UI](https://github.com/nhost/nhost/blob/main/examples/demos/react-demo/src/pages/Communities.tsx) -- the Communities page that triggers description updates
