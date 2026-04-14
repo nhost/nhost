@@ -35,18 +35,18 @@ type IDTokenValidatorProviders struct {
 
 func NewIDTokenValidatorProviders(
 	ctx context.Context,
-	appleClientID, googleClientID string, fakeProviderAudience string,
+	appleAudiences, googleAudiences, fakeProviderAudiences []string,
 	parserOptions ...jwt.ParserOption,
 ) (*IDTokenValidatorProviders, error) {
 	var appleID *IDTokenValidator
 
-	if appleClientID != "" {
+	if len(appleAudiences) > 0 {
 		var err error
 
 		appleID, err = NewIDTokenValidator(
 			ctx,
 			api.IdTokenProviderApple,
-			appleClientID,
+			appleAudiences,
 			parserOptions...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Apple ID token validator: %w", err)
@@ -55,13 +55,13 @@ func NewIDTokenValidatorProviders(
 
 	var google *IDTokenValidator
 
-	if googleClientID != "" {
+	if len(googleAudiences) > 0 {
 		var err error
 
 		google, err = NewIDTokenValidator(
 			ctx,
 			api.IdTokenProviderGoogle,
-			googleClientID,
+			googleAudiences,
 			parserOptions...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Google ID token validator: %w", err)
@@ -70,11 +70,11 @@ func NewIDTokenValidatorProviders(
 
 	var fakeProvider *IDTokenValidator
 
-	if fakeProviderAudience != "" {
+	if len(fakeProviderAudiences) > 0 {
 		var err error
 
 		fakeProvider, err = NewIDTokenValidator(
-			ctx, api.IdTokenProviderFake, fakeProviderAudience, parserOptions...,
+			ctx, api.IdTokenProviderFake, fakeProviderAudiences, parserOptions...,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Fake ID token validator: %w", err)
@@ -104,7 +104,7 @@ type IDTokenValidator struct {
 func NewIDTokenValidator(
 	ctx context.Context,
 	providerName api.IdTokenProvider,
-	audience string,
+	audiences []string,
 	options ...jwt.ParserOption,
 ) (*IDTokenValidator, error) {
 	var provider Provider
@@ -130,7 +130,7 @@ func NewIDTokenValidator(
 		jwtKeyFunc: keyFunc,
 		parserOptions: append(
 			[]jwt.ParserOption{
-				jwt.WithAudience(audience),
+				jwt.WithAudience(audiences...),
 				jwt.WithIssuer(provider.GetIssuer()),
 				jwt.WithValidMethods([]string{provider.GetValidMethods()}),
 				jwt.WithIssuedAt(),

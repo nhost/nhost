@@ -48,10 +48,6 @@ const gridColsMap: Record<number, string> = {
 
 export interface EditPermissionsFormProps extends DialogFormProps {
   /**
-   * Determines whether the form is disabled or not.
-   */
-  disabled?: boolean;
-  /**
    * The schema that is being edited.
    */
   schema: string;
@@ -75,7 +71,6 @@ export interface EditPermissionsFormProps extends DialogFormProps {
 }
 
 export default function EditPermissionsForm({
-  disabled,
   schema,
   table,
   objectType,
@@ -211,7 +206,6 @@ export default function EditPermissionsForm({
       <RolePermissionEditorForm
         location={location}
         resourceVersion={metadata?.resourceVersion as number}
-        disabled={disabled}
         schema={schema}
         table={table}
         role={role}

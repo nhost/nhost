@@ -26,13 +26,7 @@ import { RetryConfigurationFormSection } from '@/features/orgs/projects/events/c
 import { ScheduleAtTimePicker } from '@/features/orgs/projects/events/one-offs/components/ScheduleAtTimePicker';
 import { useCreateOneOffForm } from '@/features/orgs/projects/events/one-offs/hooks/useCreateOneOffForm';
 
-interface CreateOneOffFormProps {
-  disabled?: boolean;
-}
-
-export default function CreateOneOffForm({ disabled }: CreateOneOffFormProps) {
-  const showCreateButton = !disabled;
-
+export default function CreateOneOffForm() {
   const {
     form,
     isSheetOpen,
@@ -46,11 +40,9 @@ export default function CreateOneOffForm({ disabled }: CreateOneOffFormProps) {
 
   return (
     <>
-      {showCreateButton && (
-        <Button onClick={openForm} size="sm">
-          <Plus className="size-4" /> New One-off
-        </Button>
-      )}
+      <Button onClick={openForm} size="sm">
+        <Plus className="size-4" /> New One-off
+      </Button>
       <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
         <SheetContent
           showOverlay

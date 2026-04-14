@@ -651,6 +651,21 @@ func (mr *MockDBClientMockRecorder) ConsumeOAuth2CodeAndInsertRefreshToken(ctx, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOAuth2CodeAndInsertRefreshToken", reflect.TypeOf((*MockDBClient)(nil).ConsumeOAuth2CodeAndInsertRefreshToken), ctx, arg)
 }
 
+// ConsumePKCEAuthorizationCode mocks base method.
+func (m *MockDBClient) ConsumePKCEAuthorizationCode(ctx context.Context, codeHash string) (sql.AuthPkceAuthorizationCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumePKCEAuthorizationCode", ctx, codeHash)
+	ret0, _ := ret[0].(sql.AuthPkceAuthorizationCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConsumePKCEAuthorizationCode indicates an expected call of ConsumePKCEAuthorizationCode.
+func (mr *MockDBClientMockRecorder) ConsumePKCEAuthorizationCode(ctx, codeHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumePKCEAuthorizationCode", reflect.TypeOf((*MockDBClient)(nil).ConsumePKCEAuthorizationCode), ctx, codeHash)
+}
+
 // CountSecurityKeysUser mocks base method.
 func (m *MockDBClient) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error) {
 	m.ctrl.T.Helper()
@@ -706,6 +721,20 @@ func (m *MockDBClient) DeleteExpiredOAuth2RefreshTokens(ctx context.Context) err
 func (mr *MockDBClientMockRecorder) DeleteExpiredOAuth2RefreshTokens(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredOAuth2RefreshTokens", reflect.TypeOf((*MockDBClient)(nil).DeleteExpiredOAuth2RefreshTokens), ctx)
+}
+
+// DeleteExpiredPKCEAuthorizationCodes mocks base method.
+func (m *MockDBClient) DeleteExpiredPKCEAuthorizationCodes(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpiredPKCEAuthorizationCodes", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpiredPKCEAuthorizationCodes indicates an expected call of DeleteExpiredPKCEAuthorizationCodes.
+func (mr *MockDBClientMockRecorder) DeleteExpiredPKCEAuthorizationCodes(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredPKCEAuthorizationCodes", reflect.TypeOf((*MockDBClient)(nil).DeleteExpiredPKCEAuthorizationCodes), ctx)
 }
 
 // DeleteExpiredRefreshTokens mocks base method.
@@ -1044,6 +1073,21 @@ func (m *MockDBClient) InsertOAuth2AuthRequest(ctx context.Context, arg sql.Inse
 func (mr *MockDBClientMockRecorder) InsertOAuth2AuthRequest(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertOAuth2AuthRequest", reflect.TypeOf((*MockDBClient)(nil).InsertOAuth2AuthRequest), ctx, arg)
+}
+
+// InsertPKCEAuthorizationCode mocks base method.
+func (m *MockDBClient) InsertPKCEAuthorizationCode(ctx context.Context, arg sql.InsertPKCEAuthorizationCodeParams) (sql.AuthPkceAuthorizationCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertPKCEAuthorizationCode", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthPkceAuthorizationCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InsertPKCEAuthorizationCode indicates an expected call of InsertPKCEAuthorizationCode.
+func (mr *MockDBClientMockRecorder) InsertPKCEAuthorizationCode(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertPKCEAuthorizationCode", reflect.TypeOf((*MockDBClient)(nil).InsertPKCEAuthorizationCode), ctx, arg)
 }
 
 // InsertRefreshtoken mocks base method.

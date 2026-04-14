@@ -280,6 +280,7 @@ export default defineConfig({
                     { slug: 'products/graphql/guides/react-query' },
                     { slug: 'products/graphql/guides/react-urql' },
                     { slug: 'products/graphql/guides/codegen-nhost' },
+                    { slug: 'products/graphql/guides/stripe' },
                   ],
                 },
               ],
@@ -347,31 +348,25 @@ export default defineConfig({
                       ],
                     },
                     { slug: 'products/auth/sign-in-email-password' },
-                    { slug: 'products/auth/sign-in-otp' },
+                    { slug: 'products/auth/mfa' },
+                    {
+                      label: 'One-Time Passwords',
+                      collapsed: true,
+                      items: [
+                        { slug: 'products/auth/otp/email' },
+                        { slug: 'products/auth/otp/sms' },
+                      ],
+                    },
                     { slug: 'products/auth/sign-in-magic-link' },
-                    { slug: 'products/auth/sign-in-sms-otp' },
+                    { slug: 'products/auth/sign-in-anonymous' },
                     { slug: 'products/auth/webauthn' },
-                  ],
-                },
-                {
-                  label: 'Workflows',
-                  collapsed: false,
-                  items: [
-                    { slug: 'products/auth/workflows/email-password' },
-                    { slug: 'products/auth/workflows/passwordless-email' },
-                    { slug: 'products/auth/workflows/passwordless-sms' },
-                    { slug: 'products/auth/workflows/webauthn' },
-                    { slug: 'products/auth/workflows/anonymous-users' },
-                    { slug: 'products/auth/workflows/change-email' },
-                    { slug: 'products/auth/workflows/change-password' },
-                    { slug: 'products/auth/workflows/reset-password' },
-                    { slug: 'products/auth/workflows/refresh-token' },
                   ],
                 },
                 {
                   label: 'Security',
                   collapsed: false,
                   items: [
+                    { slug: 'products/auth/pkce' },
                     { slug: 'products/auth/elevated-permissions' },
                     { slug: 'products/auth/bot-protection' },
                     { slug: 'products/auth/custom-jwts' },
@@ -505,6 +500,44 @@ export default defineConfig({
                     { slug: 'products/functions/guides/error-handling' },
                     { slug: 'products/functions/guides/nhost-sdk' },
                     { slug: 'products/functions/guides/cors' },
+                  ],
+                },
+              ],
+            },
+            {
+              id: 'products-events',
+              label: 'Events',
+              link: '/products/events/',
+              icon: 'seti:lightning',
+              items: [
+                { label: 'Events', slug: 'products/events' },
+                {
+                  label: 'Configuration',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/events/event-triggers' },
+                    { slug: 'products/events/cron-triggers' },
+                    {
+                      slug: 'products/events/one-off-scheduled-events',
+                    },
+                    { slug: 'products/events/transformations' },
+                    { slug: 'products/events/retry-configuration' },
+                  ],
+                },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/events/guides/webhook-security' },
+                    {
+                      slug: 'products/events/guides/community-notifications',
+                    },
+                    {
+                      slug: 'products/events/guides/stale-todo-cleanup',
+                    },
+                    {
+                      slug: 'products/events/guides/broadcast-notifications',
+                    },
                   ],
                 },
               ],
@@ -698,11 +731,6 @@ export default defineConfig({
                   items: [
                     { label: 'Commands', slug: 'reference/cli/commands' },
                   ],
-                },
-                {
-                  label: 'Deprecated Libraries',
-                  collapsed: false,
-                  autogenerate: { directory: 'reference/deprecated' },
                 },
               ],
             },

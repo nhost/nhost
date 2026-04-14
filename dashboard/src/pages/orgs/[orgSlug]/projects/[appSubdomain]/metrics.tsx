@@ -2,6 +2,7 @@ import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -17,8 +18,20 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { copy } from '@/utils/copy';
 
 export default function MetricsPage() {
-  const { org, loading: loadingOrg } = useCurrentOrg();
-  const { project, loading: loadingProject } = useProject();
+  return (
+    <RetryableErrorBoundary>
+      <MetricsPageContent />
+    </RetryableErrorBoundary>
+  );
+}
+
+function MetricsPageContent() {
+  const { org, loading: loadingOrg, error: orgError } = useCurrentOrg();
+  const {
+    project,
+    loading: loadingProject,
+    error: projectError,
+  } = useProject();
 
   const adminPassword = project?.config?.observability?.grafana?.adminPassword;
 
@@ -30,7 +43,7 @@ export default function MetricsPage() {
     );
   }
 
-  if (org.plan.isFree) {
+  if (org?.plan?.isFree) {
     return (
       <Container
         className="grid grid-flow-row gap-6 bg-transparent"
@@ -42,6 +55,14 @@ export default function MetricsPage() {
         />
       </Container>
     );
+  }
+
+  if (orgError) {
+    throw orgError;
+  }
+
+  if (projectError) {
+    throw projectError;
   }
 
   return (

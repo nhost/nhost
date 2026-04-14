@@ -1,0 +1,12 @@
+{
+  "name": "mysvc",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "dev": "npx nodemon index.js"
+  },
+  "dependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

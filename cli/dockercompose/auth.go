@@ -99,8 +99,9 @@ func auth( //nolint:funlen
 				},
 			},
 		}.Labels(),
-		Ports:   ports(exposePort, authPort),
-		Restart: "always",
+		Networks: networkAliases("hasura-auth-service"),
+		Ports:    ports(exposePort, authPort),
+		Restart:  "always",
 		Volumes: []Volume{
 			{
 				Type:     "bind",

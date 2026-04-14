@@ -1,0 +1,74 @@
+name: 'Update Homebrew Formula'
+description: 'Update a Homebrew formula in a tap repo with multi-platform SHA256 hashes'
+inputs:
+  formula-name:
+    description: 'Name of the formula (e.g. lazyreview)'
+    required: true
+  homebrew-tap:
+    description: 'Tap repository (e.g. nhost/homebrew-tap)'
+    required: true
+  version:
+    description: 'Release version (without prefix)'
+    required: true
+  assets-dir:
+    description: 'Directory containing the release tarballs'
+    required: true
+  github-token:
+    description: 'GitHub token with write access to the tap repo'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: "Update formula"
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        set -euo pipefail
+
+        FORMULA_NAME="${{ inputs.formula-name }}"
+        TAP_REPO="${{ inputs.homebrew-tap }}"
+        VERSION="${{ inputs.version }}"
+        ASSETS_DIR="${{ inputs.assets-dir }}"
+        # Compute SHA256 for each platform
+        declare -A SHAS
+        for file in "$ASSETS_DIR"/*.tar.gz; do
+          filename=$(basename "$file")
+          sha=$(sha256sum "$file" | awk '{print $1}')
+          SHAS["$filename"]="$sha"
+          echo "SHA256 $filename: $sha"
+        done
+
+        # Fetch current formula
+        FORMULA_PATH="Formula/${FORMULA_NAME}.rb"
+        API_RESPONSE=$(gh api "repos/${TAP_REPO}/contents/${FORMULA_PATH}")
+        FILE_SHA=$(echo "$API_RESPONSE" | jq -r '.sha')
+        FORMULA=$(echo "$API_RESPONSE" | jq -r '.content' | base64 -d)
+
+        # Update version (URLs use #{version} interpolation so they update automatically)
+        FORMULA=$(echo "$FORMULA" | sed "s/version \".*\"/version \"${VERSION}\"/")
+
+        # Update each SHA256 by matching the platform in the preceding URL line
+        for file in "${!SHAS[@]}"; do
+          sha="${SHAS[$file]}"
+          # Extract the platform identifier from the filename (e.g. darwin-arm64)
+          platform=$(echo "$file" | sed -E "s/.*${VERSION}-(.*)\.tar\.gz/\1/")
+          FORMULA=$(echo "$FORMULA" | awk -v platform="$platform" -v sha="$sha" '
+            prev ~ platform { sub(/sha256 ".*"/, "sha256 \""sha"\"") }
+            { prev=$0; print }
+          ')
+        done
+
+        echo "Updated formula:"
+        echo "$FORMULA"
+
+        # Push updated formula
+        CONTENT=$(echo "$FORMULA" | base64 -w 0)
+        gh api "repos/${TAP_REPO}/contents/${FORMULA_PATH}" \
+          -X PUT \
+          -f message="Update ${FORMULA_NAME} to ${VERSION}" \
+          -f content="$CONTENT" \
+          -f sha="$FILE_SHA"
+
+        echo "Formula updated successfully"

@@ -7,7 +7,9 @@ import { request, resetEnvironment } from '../../../server';
 import {
   deleteAllMailHogEmails,
   expectUrlParameters,
+  generatePKCE,
   mailHogSearch,
+  verifyEmailAndExchangePKCE,
 } from '../../../utils';
 
 describe('passwordless email (magic link)', () => {
@@ -221,5 +223,20 @@ describe('passwordless email (magic link)', () => {
         email: faker.internet.email(),
       })
       .expect(StatusCodes.FORBIDDEN);
+  });
+
+  it('should sign in with PKCE and exchange code for session', async () => {
+    const email = faker.internet.email();
+    const pkce = generatePKCE();
+
+    await request
+      .post('/signin/passwordless/email')
+      .send({
+        email,
+        codeChallenge: pkce.challenge,
+      })
+      .expect(StatusCodes.OK);
+
+    await verifyEmailAndExchangePKCE(email, pkce);
   });
 });

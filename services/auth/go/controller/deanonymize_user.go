@@ -137,6 +137,7 @@ func (ctrl *Controller) DeanonymizeUser( //nolint:funlen
 			*options.DisplayName,
 			string(request.Body.Email),
 			"",
+			deptr(request.Body.CodeChallenge),
 			logger,
 		); apiError != nil {
 			return ctrl.sendError(apiError), nil

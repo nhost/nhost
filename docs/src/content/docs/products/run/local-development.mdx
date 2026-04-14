@@ -31,7 +31,81 @@ You can also use the environment variable `NHOST_RUN_SERVICE` passing comma-sepa
 
 :::caution
 The Nhost CLI doesn't build services so make sure you build any image that might be needed for
-  running `nhost run --run-service...`
+  running `nhost up --run-service...`
+:::
+
+# Live Reload with Volume Mounts
+
+When developing a Run service, you often want changes to your source code to be reflected immediately without rebuilding the Docker image. You can achieve this by combining the `--run-service-volume` flag with a [configuration overlay](/products/run/configuration-overlays) that overrides the start command to use a file watcher like [nodemon](https://nodemon.io/).
+
+The `--run-service-volume` flag mounts a local directory into the running container, and the overlay replaces the start command with one that watches for file changes:
+
+```
+nhost up \
+  --run-service ../mysvc/nhost-run-service.toml:local \
+  --run-service-volume "mysvc=/path/to/mysvc:/app"
+```
+
+The format for `--run-service-volume` is `service-name=/local/path:/container/path`. You can pass this flag multiple times to mount multiple directories or for different services.
+
+For example, given the following service configuration:
+
+<Tabs>
+<TabItem label="nhost-run-service.toml">
+```toml
+name = 'mysvc'
+command = ["node", "index.js"]
+
+[image]
+image = 'mysvc:dev'
+
+[[ports]]
+port = 8000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128
+```
+</TabItem>
+
+<TabItem label="overlay (local)">
+```json
+[
+  {
+    "value": ["npx", "nodemon", "/app/index.js"],
+    "op": "add",
+    "path": "/command"
+  }
+]
+```
+</TabItem>
+</Tabs>
+
+The overlay replaces the start command with `npx nodemon /app/index.js`, which watches for file changes and automatically restarts the process. Combined with the volume mount, any changes you make to your local source code will be picked up immediately:
+
+```
+$ curl http://localhost:8000
+{"message":"Hello from mysvc!","timestamp":"2026-03-25T15:51:54.586Z"}
+
+# Edit index.js locally...
+
+$ docker logs myproject-run-mysvc-1
+[nodemon] restarting due to changes...
+[nodemon] starting `node /app/index.js`
+Server listening on port 8000
+
+$ curl http://localhost:8000
+{"message":"Hello from mysvc (dev)!","timestamp":"2026-03-25T15:52:48.782Z"}
+```
+
+:::note
+You can also use the environment variable `NHOST_RUN_SERVICE_VOLUME` passing comma-separated values.
+  For instance: `NHOST_RUN_SERVICE_VOLUME=mysvc=/path/to/mysvc:/app`
 :::
 
 # Quick Development

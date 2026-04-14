@@ -1,0 +1,32 @@
+table:
+  name: notifications
+  schema: public
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - created_at
+        - updated_at
+        - user_id
+        - title
+        - message
+        - type
+        - read
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - read
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null

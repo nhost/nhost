@@ -130,6 +130,14 @@ type DBClient interface { //nolint:interfacebloat
 
 	GetProviderSession(ctx context.Context, arg sql.GetProviderSessionParams) (string, error)
 	UpdateProviderSession(ctx context.Context, arg sql.UpdateProviderSessionParams) error
+
+	InsertPKCEAuthorizationCode(
+		ctx context.Context, arg sql.InsertPKCEAuthorizationCodeParams,
+	) (sql.AuthPkceAuthorizationCode, error)
+	ConsumePKCEAuthorizationCode(
+		ctx context.Context, codeHash string,
+	) (sql.AuthPkceAuthorizationCode, error)
+	DeleteExpiredPKCEAuthorizationCodes(ctx context.Context) error
 }
 
 type Encrypter interface {

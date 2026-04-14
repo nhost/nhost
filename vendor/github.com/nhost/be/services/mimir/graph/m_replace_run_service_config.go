@@ -14,21 +14,23 @@ func (r *mutationResolver) replaceRunServiceConfig(
 	serviceID string,
 	input model.ConfigRunServiceConfigInsertInput,
 ) (*model.ConfigRunServiceConfig, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	i, err := r.data.IndexApp(appID)
-	if err != nil {
+	if err := r.ensureLoaded(ctx, appID); err != nil {
 		return nil, err
 	}
 
-	app := r.data[i]
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	app, err := r.store.GetApp(appID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get app: %w", err)
+	}
 
 	if err := nameMustBeUnique(app.Services, serviceID, input.Name); err != nil {
 		return nil, err
 	}
 
-	i, err = app.IndexService(serviceID)
+	i, err := app.IndexService(serviceID)
 	if err != nil {
 		return nil, err
 	}

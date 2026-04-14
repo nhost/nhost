@@ -26,15 +26,6 @@ vi.mock(
 );
 
 vi.mock(
-  '@/features/orgs/projects/common/components/ApplicationRestoring',
-  () => ({
-    ApplicationRestoring: () => (
-      <div data-testid="appRestore">Application Restoring</div>
-    ),
-  }),
-);
-
-vi.mock(
   '@/features/orgs/projects/common/components/ApplicationUnknown',
   () => ({
     ApplicationUnknown: () => (
@@ -43,23 +34,21 @@ vi.mock(
   }),
 );
 
-vi.mock(
-  '@/features/orgs/projects/common/components/ApplicationUnpausing',
-  () => ({
-    ApplicationUnpausing: () => (
-      <div data-testid="appUnpausing">Application Unpausing</div>
-    ),
-  }),
-);
-
-vi.mock(
-  '@/features/orgs/projects/common/components/ApplicationPausedBanner',
-  () => ({
-    ApplicationPausedBanner: () => (
-      <div data-testid="appBanner">Application Banner</div>
-    ),
-  }),
-);
+vi.mock('./ProjectStateGuard', () => ({
+  __esModule: true,
+  default: ({
+    variant,
+    children,
+  }: {
+    variant: string;
+    children?: React.ReactNode;
+  }) => (
+    <div data-testid="projectStateGuard">
+      Project State Guard: {variant}
+      {children}
+    </div>
+  ),
+}));
 
 const getUseRouterObject = (
   route: string = '/orgs/[orgSlug]/projects/[appSubdomain]',
@@ -138,35 +127,45 @@ describe('ProjectViewWithState', () => {
     expect(screen.queryByText('Application content')).not.toBeInTheDocument();
   });
 
-  it('should render the application in pausing state', async () => {
-    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+  it('should render the application in pausing state with overlay', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
     server.use(getProjectQuery);
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Pausing }]));
     render(<TestComponent />);
     expect(await screen.findByText('Application content')).toBeInTheDocument();
-    expect(await screen.findByText('Application Banner')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Project State Guard: pausing'),
+    ).toBeInTheDocument();
   });
 
-  it('should render the application Unpausing application state', async () => {
-    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+  it('should render the application in unpausing state with overlay', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
     server.use(getProjectQuery);
     server.use(
       getProjectStateQuery([{ stateId: ApplicationStatus.Unpausing }]),
     );
     render(<TestComponent />);
-    expect(screen.queryByText('Application content')).not.toBeInTheDocument();
+    expect(await screen.findByText('Application content')).toBeInTheDocument();
     expect(
-      await screen.findByText('Application Unpausing'),
+      await screen.findByText('Project State Guard: unpausing'),
     ).toBeInTheDocument();
   });
 
-  it('should render the application paused application state', async () => {
-    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+  it('should render the application in paused state with overlay', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
     server.use(getProjectQuery);
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Paused }]));
     render(<TestComponent />);
     expect(await screen.findByText('Application content')).toBeInTheDocument();
-    expect(await screen.findByText('Application Banner')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Project State Guard: paused'),
+    ).toBeInTheDocument();
   });
 
   it('should render the application when the state is updating', async () => {
@@ -177,10 +176,7 @@ describe('ProjectViewWithState', () => {
 
     expect(await screen.findByText('Application content')).toBeInTheDocument();
 
-    expect(screen.queryByText('Application Restoring')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Unknown')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Unpausing')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Banner')).not.toBeInTheDocument();
   });
 
   it('should render the application when the state is live', async () => {
@@ -191,10 +187,7 @@ describe('ProjectViewWithState', () => {
 
     expect(await screen.findByText('Application content')).toBeInTheDocument();
 
-    expect(screen.queryByText('Application Restoring')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Unknown')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Unpausing')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Banner')).not.toBeInTheDocument();
   });
 
   it('should render the application when the state is migrating', async () => {
@@ -207,10 +200,7 @@ describe('ProjectViewWithState', () => {
 
     expect(await screen.findByText('Application content')).toBeInTheDocument();
 
-    expect(screen.queryByText('Application Restoring')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Unknown')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Unpausing')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Banner')).not.toBeInTheDocument();
   });
 
   it('should render the application in an error state', async () => {
@@ -223,24 +213,23 @@ describe('ProjectViewWithState', () => {
 
     expect(await screen.findByText(/Error deploying/)).toBeInTheDocument();
 
-    expect(screen.queryByText('Application Restoring')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Unknown')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Unpausing')).not.toBeInTheDocument();
-    expect(screen.queryByText('Application Banner')).not.toBeInTheDocument();
   });
 
-  it('should render the application in an error state', async () => {
-    mocks.useRouter.mockImplementation(() => getUseRouterObject());
+  it('should render the application in restoring state with overlay', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
     server.use(getProjectQuery);
     server.use(
       getProjectStateQuery([{ stateId: ApplicationStatus.Restoring }]),
     );
     render(<TestComponent />);
 
+    expect(await screen.findByText('Application content')).toBeInTheDocument();
     expect(
-      await screen.findByText('Application Restoring'),
+      await screen.findByText('Project State Guard: unpausing'),
     ).toBeInTheDocument();
-    expect(screen.queryByText('Application content')).not.toBeInTheDocument();
   });
 
   it('should clear the query cache on unmount', async () => {

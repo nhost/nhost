@@ -23,8 +23,8 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	cases := []testRequest[api.SignInOTPEmailRequestObject, api.SignInOTPEmailResponseObject]{ //nolint:dupl
-		{
+	cases := []testRequest[api.SignInOTPEmailRequestObject, api.SignInOTPEmailResponseObject]{
+		{ //nolint:dupl
 			name:   "signup required",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -448,10 +448,10 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{
+		{ //nolint:dupl
 			name:   "signup not required",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByEmail(

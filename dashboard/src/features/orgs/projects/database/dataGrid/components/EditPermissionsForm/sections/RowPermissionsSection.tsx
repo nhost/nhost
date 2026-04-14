@@ -1,22 +1,20 @@
 import type { FocusEvent, ReactNode } from 'react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { v4 as uuidv4 } from 'uuid';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { Input } from '@/components/ui/v2/Input';
 import { Radio } from '@/components/ui/v2/Radio';
 import { RadioGroup } from '@/components/ui/v2/RadioGroup';
 import { Text } from '@/components/ui/v2/Text';
+import { CustomCheckEditor } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
-import { RuleGroupEditor } from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { isNotEmptyValue } from '@/lib/utils';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
 export interface RowPermissionsSectionProps {
-  /**
-   * Determines whether or not the section is disabled.
-   */
-  disabled?: boolean;
   /**
    * The role that is being edited.
    */
@@ -40,7 +38,6 @@ export default function RowPermissionsSection({
   action,
   schema,
   table,
-  disabled,
 }: RowPermissionsSectionProps) {
   const {
     register,
@@ -50,12 +47,9 @@ export default function RowPermissionsSection({
   } = useFormContext<RolePermissionEditorFormValues>();
   const { filter } = getValues();
 
-  const defaultRowCheckType =
-    isNotEmptyValue(filter?.rules) ||
-    isNotEmptyValue(filter?.groups) ||
-    isNotEmptyValue(filter?.unsupported)
-      ? 'custom'
-      : 'none';
+  const defaultRowCheckType = isNotEmptyValue(filter?.children)
+    ? 'custom'
+    : 'none';
 
   const [rowCheckType, setRowCheckType] = useState<'none' | 'custom'>(
     defaultRowCheckType,
@@ -67,11 +61,13 @@ export default function RowPermissionsSection({
     if (value === 'none') {
       setValue('filter', {});
     } else {
-      setValue('filter', {
-        operator: '_and',
-        rules: [{ column: null, operator: '_eq', value: null }],
-        groups: [],
-      });
+      const emptyCustomCheck: GroupNode = {
+        type: 'group',
+        id: uuidv4(),
+        operator: '_implicit',
+        children: [],
+      };
+      setValue('filter', emptyCustomCheck);
     }
   }
 
@@ -89,28 +85,22 @@ export default function RowPermissionsSection({
           handleCheckTypeChange(value as typeof rowCheckType)
         }
       >
-        <Radio value="none" label="Without any checks" disabled={disabled} />
-        <Radio value="custom" label="With custom check" disabled={disabled} />
+        <Radio value="none" label="Without any checks" />
+        <Radio value="custom" label="With custom check" />
       </RadioGroup>
 
-      {errors?.filter?.message ? (
+      {errors?.filter?.root?.message || errors?.filter?.message ? (
         <Text
           variant="subtitle2"
           className="font-normal"
           sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
         >
-          {errors.filter.message as ReactNode}
+          {(errors.filter.root?.message ?? errors.filter.message) as ReactNode}
         </Text>
       ) : null}
 
       {rowCheckType === 'custom' && (
-        <RuleGroupEditor
-          name="filter"
-          schema={schema}
-          table={table}
-          className="w-full overflow-x-auto"
-          disabled={disabled}
-        />
+        <CustomCheckEditor name="filter" schema={schema} table={table} />
       )}
 
       {action === 'select' && (
@@ -122,7 +112,6 @@ export default function RowPermissionsSection({
               }
             },
           })}
-          disabled={disabled}
           id="limit"
           type="number"
           label="Limit number of rows"

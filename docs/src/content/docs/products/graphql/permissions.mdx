@@ -86,7 +86,7 @@ To use permission variables locally, add your claims to `nhost.toml` as follows:
 
 Add a permission variable `x-hasura-organization-id`:
 
-```toml nhost.toml
+```toml title="nhost.toml"
 [[auth.session.accessToken.customClaims]]
 key = 'organization-id'
 value = 'profile.organization.id'

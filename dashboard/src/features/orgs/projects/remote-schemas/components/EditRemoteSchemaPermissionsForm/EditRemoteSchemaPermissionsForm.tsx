@@ -45,17 +45,12 @@ export interface EditRemoteSchemaPermissionsFormProps extends DialogFormProps {
    * Function to be called when the form is cancelled.
    */
   onCancel?: () => void;
-  /**
-   * Whether the form is disabled.
-   */
-  disabled?: boolean;
 }
 
 export default function EditRemoteSchemaPermissionsForm({
   schema,
   onCancel,
   location,
-  disabled,
 }: EditRemoteSchemaPermissionsFormProps) {
   const [selectedRole, setSelectedRole] = useState<string>();
   const [isEditing, setIsEditing] = useState(false);
@@ -201,7 +196,6 @@ export default function EditRemoteSchemaPermissionsForm({
         remoteSchemaName={schema}
         role={selectedRole}
         permission={existingPermission}
-        disabled={disabled}
         onSubmit={async () => {
           await refetchRemoteSchemas();
           setIsEditing(false);

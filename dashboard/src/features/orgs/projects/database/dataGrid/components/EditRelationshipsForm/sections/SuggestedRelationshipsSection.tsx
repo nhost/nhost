@@ -16,14 +16,12 @@ interface SuggestedRelationshipsSectionProps {
   tableSchema: string;
   tableName: string;
   dataSource: string;
-  disabled?: boolean;
 }
 
 export default function SuggestedRelationshipsSection({
   tableSchema,
   tableName,
   dataSource,
-  disabled,
 }: SuggestedRelationshipsSectionProps) {
   const { suggestedRelationships, isLoading, error } =
     useGetSuggestedRelationships({
@@ -106,7 +104,6 @@ export default function SuggestedRelationshipsSection({
                       tableName={tableName}
                       source={dataSource}
                       defaultRelationshipName={suggestion.name}
-                      disabled={disabled}
                       suggestion={suggestion.rawSuggestion}
                     />
                   </TableCell>

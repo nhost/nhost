@@ -27,12 +27,10 @@ import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 import type { RemoteSchemaRelationshipFormValues } from './RemoteSchemaRelationshipForm';
 
 export interface TargetRemoteSchemaComboboxProps {
-  disabled?: boolean;
   remoteSchemas: RemoteSchemaInfo[];
 }
 
 export default function TargetRemoteSchemaCombobox({
-  disabled,
   remoteSchemas,
 }: TargetRemoteSchemaComboboxProps) {
   const [open, setOpen] = useState(false);
@@ -49,7 +47,6 @@ export default function TargetRemoteSchemaCombobox({
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
-                  disabled={disabled}
                   variant="outline"
                   role="combobox"
                   className={cn(

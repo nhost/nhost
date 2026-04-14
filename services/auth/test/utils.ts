@@ -1,5 +1,6 @@
 import fetch, { Response } from 'node-fetch';
 import { Response as SuperTestResponse } from 'supertest';
+import { createHash, randomBytes } from 'crypto';
 import { ENV } from './src/env';
 import { verifyJwt } from './src/get-claims';
 import { request } from './server';
@@ -177,4 +178,51 @@ export const insertDbUser = async (
 export const getDbUserByEmail = async (client: ClientBase, email: string) => {
   const queryString = `SELECT id FROM auth.users WHERE email = '${email}'`;
   return await client.query(queryString);
+};
+
+export function generatePKCE() {
+  const verifier = randomBytes(32).toString('base64url');
+  const challenge = createHash('sha256').update(verifier).digest('base64url');
+  return { verifier, challenge };
+}
+
+/**
+ * Follow verification link with PKCE codeChallenge, then exchange the
+ * authorization code for a session via /token/exchange.
+ */
+export const verifyEmailAndExchangePKCE = async (
+  email: string,
+  pkce: { verifier: string; challenge: string },
+) => {
+  const [message] = await mailHogSearch(email);
+  expect(message).toBeTruthy();
+
+  const link = message.Content.Headers['X-Link'][0];
+
+  // The link already contains the codeChallenge parameter (embedded by the server)
+  // Follow verification link — should redirect with ?code= instead of ?refreshToken=
+  const res = await request
+    .get(link.replace('http://127.0.0.2:4000', ''))
+    .expect(StatusCodes.MOVED_TEMPORARILY);
+
+  const params = getUrlParameters(res);
+  expect(Array.from(params.keys())).not.toIncludeAnyMembers([
+    'error',
+    'errorDescription',
+  ]);
+  const code = params.get('code');
+  expect(code).toBeTruthy();
+  expect(params.get('refreshToken')).toBeFalsy();
+
+  // Exchange the authorization code for a session
+  const exchangeRes = await request
+    .post('/token/exchange')
+    .send({ code, codeVerifier: pkce.verifier })
+    .expect(StatusCodes.OK);
+
+  expect(exchangeRes.body.session).toBeTruthy();
+  expect(exchangeRes.body.session.accessToken).toBeTruthy();
+  expect(exchangeRes.body.session.refreshToken).toBeTruthy();
+
+  return exchangeRes.body;
 };

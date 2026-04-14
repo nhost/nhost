@@ -1,6 +1,7 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import type { SignInProviderParams } from '@nhost/nhost-js/auth';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { nhost } from '@/utils/nhost';
 
@@ -17,11 +18,16 @@ function GithubAuthButton({
   redirectTo,
   className,
 }: Props) {
-  function signInWithGithub() {
-    let options: SignInProviderParams | undefined;
+  async function signInWithGithub() {
+    const { challenge, id } = await generateAndStorePKCE();
+
+    let options: SignInProviderParams = {
+      codeChallenge: challenge,
+    };
     if (isNotEmptyValue(redirectTo)) {
       options = {
-        redirectTo,
+        ...options,
+        redirectTo: appendPkceId(redirectTo, id),
       };
     }
     if (withAnonId) {

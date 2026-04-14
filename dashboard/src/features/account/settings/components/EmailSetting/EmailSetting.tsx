@@ -6,6 +6,7 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useUserData } from '@/hooks/useUserData';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { useNhostClient } from '@/providers/nhost';
 
 const validationSchema = Yup.object({
@@ -29,10 +30,12 @@ export default function EmailSetting() {
 
   const changeEmail = useActionWithElevatedPermissions({
     actionFn: async (newEmail: string) => {
+      const { challenge, id } = await generateAndStorePKCE();
       const result = await nhost.auth.changeUserEmail({
         newEmail,
+        codeChallenge: challenge,
         options: {
-          redirectTo: `${window.location.origin}/account`,
+          redirectTo: appendPkceId(`${window.location.origin}/account`, id),
         },
       });
       return result;

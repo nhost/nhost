@@ -18,3 +18,9 @@
     timeout_seconds: 60
     customization: {}
   comment: Remote schema example
+- name: stripe
+  definition:
+    url: '{{NHOST_FUNCTIONS_URL}}/graphql/stripe'
+    timeout_seconds: 60
+    customization: {}
+  comment: ""

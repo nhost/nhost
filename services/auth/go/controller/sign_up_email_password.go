@@ -69,6 +69,7 @@ func (ctrl *Controller) SignUpEmailPassword( //nolint:ireturn
 		ctrl.postSignupEmailPasswordWithoutSession(
 			ctx, string(req.Body.Email), hashedPassword, req.Body.Options,
 		),
+		deptr(req.Body.CodeChallenge),
 		logger,
 	)
 	if apiErr != nil {

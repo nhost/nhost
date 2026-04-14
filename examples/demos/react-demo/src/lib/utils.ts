@@ -1,3 +1,5 @@
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
+
 // Format file size in a readable way
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
@@ -6,6 +8,34 @@ export function formatFileSize(bytes: number): string {
   const i: number = Math.floor(Math.log(bytes) / Math.log(1024));
 
   return `${parseFloat((bytes / 1024 ** i).toFixed(2))} ${sizes[i]}`;
+}
+
+const PKCE_VERIFIER_KEY = 'nhost_pkce_verifier';
+
+/**
+ * Generate a PKCE code verifier and S256 challenge pair.
+ * The verifier is stored in localStorage so it survives across browser tabs
+ * (e.g. email link opened in a new tab, or OAuth redirect).
+ */
+export async function generateAndStorePKCE(): Promise<{
+  verifier: string;
+  challenge: string;
+}> {
+  const { verifier, challenge } = await generatePKCEPair();
+  localStorage.setItem(PKCE_VERIFIER_KEY, verifier);
+  return { verifier, challenge };
+}
+
+/**
+ * Retrieve and consume the stored PKCE code verifier.
+ * Returns null if no verifier is stored.
+ */
+export function consumePKCEVerifier(): string | null {
+  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
+  if (verifier) {
+    localStorage.removeItem(PKCE_VERIFIER_KEY);
+  }
+  return verifier;
 }
 
 /**

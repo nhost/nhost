@@ -92,7 +92,7 @@ Replace `<region>` and `<subdomain>` with the actual values from your Nhost proj
 
 Build the core authentication composable that manages user sessions across your Vue application. This composable provides reactive authentication state and handles cross-tab synchronization.
 
-```typescript src/lib/nhost/auth.ts lines
+```typescript title="src/lib/nhost/auth.ts" showLineNumbers
 import { createClient } from "@nhost/nhost-js";
 import type { Session } from "@nhost/nhost-js/auth";
 import { computed, reactive } from "vue";
@@ -232,7 +232,7 @@ if (typeof window !== "undefined") {
 
 Create a page that displays user information. Note that the page itself doesn't need any special authentication logic - the route protection is handled entirely by the Vue Router navigation guard we set up in the previous step.
 
-```vue src/views/ProfileView.vue lines
+```vue title="src/views/ProfileView.vue" showLineNumbers
 <template>
   <div v-if="isLoading" class="loading-container">
     <div class="loading-content">
@@ -292,7 +292,7 @@ const { user, session, isLoading } = useAuth();
 
 Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
 
-```vue src/views/HomeView.vue lines
+```vue title="src/views/HomeView.vue" showLineNumbers
 <template>
   <div class="container">
     <header class="page-header">
@@ -321,7 +321,7 @@ const { isAuthenticated, user } = useAuth();
 
 Create a reusable navigation component that provides consistent navigation across all pages. This component adapts its links based on authentication status - showing different options for signed-in and signed-out users.
 
-```vue src/components/Navigation.vue lines
+```vue title="src/components/Navigation.vue" showLineNumbers
 <template>
   <nav class="navigation">
     <div class="nav-container">
@@ -361,7 +361,7 @@ const { isAuthenticated } = useAuth();
 
 Set up Vue Router to handle route protection using navigation guards. This approach provides centralized route protection and automatic redirects for unauthenticated users.
 
-```typescript src/router/index.ts lines
+```typescript title="src/router/index.ts" showLineNumbers
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 import HomeView from "../views/HomeView.vue";
@@ -415,7 +415,7 @@ export default router;
 
 Configure the application's main component to include the navigation bar and router view. Since we've configured route protection in the router itself, the App component mainly needs to provide the layout structure.
 
-```vue src/App.vue lines
+```vue title="src/App.vue" showLineNumbers
 <template>
   <div id="app">
     <Navigation />
@@ -437,7 +437,7 @@ import Navigation from "./components/Navigation.vue";
 
 Replace the contents of the file `src/assets/main.css` with the following styles to provide a clean and modern look for the application. This file will be used across the rest of series.
 
-```css src/assets/main.css lines
+```css title="src/assets/main.css" showLineNumbers
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

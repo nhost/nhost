@@ -19,7 +19,9 @@ You can find details on how to connect to the database from an [Nhost Run](/prod
 
 # Public Access
 
-For security reasons, by default your database won't be accessible online. If you need to access it directly from the Internet, first you will need to enable public access (enabling public access will also show the connection details):
+For security reasons, by default your database won't be accessible online. If you need to access it directly from the Internet, first you will need to enable public access (enabling public access will also show the connection details).
+
+You can also restrict which IP addresses are allowed to connect by configuring allowed CIDRs. By default, when no CIDRs are configured, all public IPv4 addresses are allowed. Once you add one or more CIDRs, only connections from those IP ranges will be accepted. Addresses must be specified in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) (e.g. `213.80.124.69/32` for a single IP). Only IPv4 addresses are supported — restricting IPv6 addresses is not supported.
 
 <Tabs>
 <TabItem label="Dashboard">
@@ -32,6 +34,7 @@ For security reasons, by default your database won't be accessible online. If yo
 ```toml
 [postgres.resources]
 enablePublicAccess = true
+allowedCIDRs = ["213.80.124.69/32"]
 ```
 </TabItem>
 </Tabs>

@@ -24,9 +24,9 @@ func getTestIDTokenValidatorProviders() func(t *testing.T) *oidc.IDTokenValidato
 
 		idtokenValidators, err := oidc.NewIDTokenValidatorProviders(
 			t.Context(),
-			"appleid",
-			"googleid",
-			"myapp.local",
+			[]string{"appleid"},
+			[]string{"googleid"},
+			[]string{"myapp.local"},
 		)
 		if err != nil {
 			t.Fatal("failed to create id token validator providers")

@@ -150,6 +150,8 @@ export default function OAuth2AuthorizePage() {
               <div className="grid gap-2 text-center">
                 <h3 className="font-semibold text-xl">Authorize Application</h3>
                 <p className="text-[#A2B3BE]">
+                  The application with client ID{' '}
+                  <strong>{authRequest.clientId}</strong> running on{' '}
                   <strong>{clientDisplayName(authRequest)}</strong> is
                   requesting access to your account.
                 </p>
@@ -158,9 +160,9 @@ export default function OAuth2AuthorizePage() {
               <div className="grid gap-3">
                 <div>
                   <p className="font-medium text-[#A2B3BE] text-sm">
-                    Application
+                    Client ID
                   </p>
-                  <p>{clientDisplayName(authRequest)}</p>
+                  <p className="break-all text-sm">{authRequest.clientId}</p>
                 </div>
                 <div>
                   <p className="font-medium text-[#A2B3BE] text-sm">
@@ -179,6 +181,12 @@ export default function OAuth2AuthorizePage() {
                   </div>
                 </div>
               </div>
+
+              <p className="text-center text-amber-500 text-xs">
+                If you didn&apos;t initiate this flow or don&apos;t recognize
+                the client ID or the redirect URI, we recommend you click on
+                Cancel.
+              </p>
 
               {error && <p className="text-center text-red-500">{error}</p>}
 

@@ -8,16 +8,49 @@ import { Card, CardGroup } from '@components';
 
 Nhost Auth is a ready-to-use authentication service seamlessly integrated with the [GraphQL API](/products/graphql) and its [Permission System](/products/graphql/permissions) from Hasura. This allows you to easily add user authentication to your application without having to build and maintain your own authentication system.
 
+## Sign In
+
+Use the Nhost SDK to sign in users. For example, with email and password:
+
+```js
+await nhost.auth.signIn({
+  email: 'user@example.com',
+  password: 's3cr3t',
+});
+```
+
+## Sign Out
+
+To sign out the current user and invalidate their session:
+
+```js
+await nhost.auth.signOut();
+```
+
+## Sessions and Token Refresh
+
+After a successful sign-in, Nhost Auth returns a **session** containing:
+
+- **Access token** - A short-lived JWT (default: 15 minutes) used to authenticate requests to the [GraphQL API](/products/graphql) and [Storage](/products/storage)
+- **Refresh token** - A long-lived token (default: 30 days) used to obtain new access tokens
+
+The session is typically handled by the client middleware or an authentication provider depending on the framework used. Refer to the quickstart guide for your framework for more details.
+However, you can refresh tokens with the SDK:
+
+```js
+await nhost.auth.refreshToken({ refreshToken });
+```
+
 ## Supported Methods
 
 <CardGroup cols={4}>
   <Card title="Email and Password" icon="at" href="/products/auth/sign-in-email-password">
   </Card>
-  <Card title="One-Time Passwords (OTP)" icon="key" href="/products/auth/sign-in-otp">
+  <Card title="One-Time Passwords (OTP)" icon="key" href="/products/auth/otp/email">
   </Card>
   <Card title="Magic Link" icon="bolt" href="/products/auth/sign-in-magic-link">
   </Card>
-  <Card title="Phone Number (SMS)" icon="mobile" href="/products/auth/sign-in-sms-otp">
+  <Card title="Phone Number (SMS)" icon="mobile" href="/products/auth/otp/sms">
   </Card>
   <Card title="Security Keys (WebAuthn)" icon="fingerprint" href="/products/auth/webauthn">
   </Card>

@@ -54,24 +54,31 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuth } from '../lib/nhost/auth';
 
+const PKCE_VERIFIER_KEY = 'nhost_pkce_verifier';
+
+function consumePKCEVerifier(): string | null {
+  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
+  if (verifier) {
+    localStorage.removeItem(PKCE_VERIFIER_KEY);
+  }
+  return verifier;
+}
+
 const route = useRoute();
 const router = useRouter();
 const { nhost } = useAuth();
 
 const status = ref<'verifying' | 'success' | 'error'>('verifying');
-const error = ref<string | null>(null);
+const error = ref<string>('');
 const urlParams = ref<Record<string, string>>({});
 
-// Flag to handle component unmounting during async operations
 let isMounted = true;
 
 onMounted(() => {
-  // Extract the refresh token from the URL
   const params = new URLSearchParams(route.fullPath.split('?')[1] || '');
-  const refreshToken = params.get('refreshToken');
+  const code = params.get('code');
 
-  if (!refreshToken) {
-    // Collect all URL parameters to display for debugging
+  if (!code) {
     const allParams: Record<string, string> = {};
     params.forEach((value, key) => {
       allParams[key] = value;
@@ -79,48 +86,38 @@ onMounted(() => {
     urlParams.value = allParams;
 
     status.value = 'error';
-    error.value = 'No refresh token found in URL';
+    error.value = 'No authorization code found in URL';
     return;
   }
 
-  processToken(refreshToken, params);
+  exchangeCode(code);
 });
 
 onUnmounted(() => {
   isMounted = false;
 });
 
-async function processToken(
-  refreshToken: string,
-  params: URLSearchParams,
-): Promise<void> {
+async function exchangeCode(code: string): Promise<void> {
   try {
-    // First display the verifying message for at least a moment
+    // Small delay to ensure component is fully mounted
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     if (!isMounted) return;
 
-    if (!refreshToken) {
-      // Collect all URL parameters to display
-      const allParams: Record<string, string> = {};
-      params.forEach((value, key) => {
-        allParams[key] = value;
-      });
-      urlParams.value = allParams;
-
+    const codeVerifier = consumePKCEVerifier();
+    if (!codeVerifier) {
       status.value = 'error';
-      error.value = 'No refresh token found in URL';
+      error.value =
+        'No PKCE verifier found. The sign-in must be initiated from the same browser tab.';
       return;
     }
 
-    // Process the token
-    await nhost.auth.refreshToken({ refreshToken });
+    await nhost.auth.tokenExchange({ code, codeVerifier });
 
     if (!isMounted) return;
 
     status.value = 'success';
 
-    // Wait to show success message briefly, then redirect
     setTimeout(() => {
       if (isMounted) router.push('/profile');
     }, 1500);

@@ -1,6 +1,0 @@
-export * from './generateClasses'
-export { default as generateClasses } from './generateClasses'
-export * from './generateFunctions'
-export { default as generateFunctions } from './generateFunctions'
-export * from './generateTypes'
-export { default as generateTypes } from './generateTypes'

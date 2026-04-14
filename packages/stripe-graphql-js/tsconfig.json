@@ -1,0 +1,8 @@
+{
+  "extends": "../../build/configs/tsconfig/library.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": false,
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*"]
+}

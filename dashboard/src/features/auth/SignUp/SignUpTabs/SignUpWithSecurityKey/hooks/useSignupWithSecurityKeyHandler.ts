@@ -1,6 +1,7 @@
 import { startRegistration } from '@simplewebauthn/browser';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -16,11 +17,14 @@ function useOnSignUpWithSecurityKeyHandler() {
     turnstileToken,
   }: SignUpWithSecurityKeyFormValues) {
     try {
+      const { challenge, id } = await generateAndStorePKCE();
+
       const webAuthnResponse = await nhost.auth.signUpWebauthn(
         {
           email,
           options: {
             displayName,
+            redirectTo: appendPkceId(window.location.origin, id),
           },
         },
         {
@@ -37,7 +41,9 @@ function useOnSignUpWithSecurityKeyHandler() {
         credential,
         options: {
           displayName,
+          redirectTo: appendPkceId(window.location.origin, id),
         },
+        codeChallenge: challenge,
       });
       if (verifyResponse.status === 200 && isEmptyValue(verifyResponse.body)) {
         router.push(`/email/verify?email=${encodeURIComponent(email)}`);

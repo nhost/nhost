@@ -7,6 +7,10 @@ value = 'Sayonara'
 name = 'NODE_ENV'
 value = 'production'
 
+[[global.environment]]
+name = 'STRIPE_SECRET_KEY'
+value = '{{ secrets.STRIPE_SECRET_KEY }}'
+
 [hasura]
 version = 'v2.46.0-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'

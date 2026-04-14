@@ -82,7 +82,7 @@ npx expo install @nhost/nhost-js @react-native-async-storage/async-storage@~2 ex
 
 Update your `package.json` to use Expo Router as the main entry point by adding or replacing the `main` field (leave rest of the file unchanged):
 
-```json package.json
+```json title="package.json"
 {
   "main": "expo-router/entry"
 }
@@ -94,7 +94,7 @@ Update your `package.json` to use Expo Router as the main entry point by adding 
 
 Let's configure our app to connect to your Nhost backend. We'll use Expo's `app.json` to store environment variables.
 
-```json app.json lines highlight="29-32"
+```json title="app.json" showLineNumbers {29-32}
 {
   "expo": {
     "name": "nhost-reactnative-tutorial",
@@ -141,7 +141,7 @@ Replace `<region>` and `<subdomain>` with the actual values from your Nhost proj
 
 Build a storage adapter that enables Nhost to persist sessions using React Native's AsyncStorage. This provides session persistence across app restarts and updates.
 
-```tsx app/lib/nhost/AsyncStorage.tsx lines
+```tsx title="app/lib/nhost/AsyncStorage.tsx" showLineNumbers
 import {
   DEFAULT_SESSION_KEY,
   type Session,
@@ -243,7 +243,7 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
 
 Build the core authentication provider that manages user sessions across your application. This component provides authentication state to all child components and handles cross-device synchronization.
 
-```tsx app/lib/nhost/AuthProvider.tsx lines
+```tsx title="app/lib/nhost/AuthProvider.tsx" showLineNumbers
 import { createClient, type NhostClient } from "@nhost/nhost-js";
 import type { Session } from "@nhost/nhost-js/session";
 import Constants from "expo-constants";
@@ -406,7 +406,7 @@ Before building components, let's create shared theme constants and common style
 
 Create the theme constants file:
 
-```tsx app/styles/theme.ts lines
+```tsx title="app/styles/theme.ts" showLineNumbers
 /**
  * Design system constants for consistent theming across the app.
  * These values are used throughout the application for colors, spacing, and typography.
@@ -523,7 +523,7 @@ export const shadows = {
 
 Create the common styles file:
 
-```tsx app/styles/commonStyles.ts lines
+```tsx title="app/styles/commonStyles.ts" showLineNumbers
 import { StyleSheet } from "react-native";
 import { borderRadius, colors, shadows, spacing, typography } from "./theme";
 
@@ -1207,7 +1207,7 @@ export const fileUploadStyles = StyleSheet.create({
 
 Build a reusable component that wraps protected screens and handles authentication checks. This component prevents unauthorized access and provides loading states during authentication verification.
 
-```tsx app/components/ProtectedScreen.tsx lines
+```tsx title="app/components/ProtectedScreen.tsx" showLineNumbers
 import { router } from "expo-router";
 import type React from "react";
 import { useEffect } from "react";
@@ -1263,7 +1263,7 @@ export default function ProtectedScreen({
 
 Create a screen that displays user information. Note that the screen itself doesn't need any special authentication logic - the screen protection is handled entirely by wrapping it with the ProtectedScreen component from the previous step.
 
-```tsx app/profile.tsx lines
+```tsx title="app/profile.tsx" showLineNumbers
 import { ScrollView, Text, View } from "react-native";
 import ProtectedScreen from "./components/ProtectedScreen";
 import { useAuth } from "./lib/nhost/AuthProvider";
@@ -1353,7 +1353,7 @@ export default function Profile() {
 
 Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
 
-```tsx app/index.tsx lines
+```tsx title="app/index.tsx" showLineNumbers
 import { useRouter } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";
@@ -1396,7 +1396,7 @@ export default function Index() {
 
 Configure the application's routing structure with Expo Router. This sets up the route hierarchy, includes the authentication context to the entire app, and configures the navigation.
 
-```tsx app/_layout.tsx lines
+```tsx title="app/_layout.tsx" showLineNumbers
 import { Stack } from "expo-router";
 import { AuthProvider } from "./lib/nhost/AuthProvider";
 import { colors } from "./styles/theme";

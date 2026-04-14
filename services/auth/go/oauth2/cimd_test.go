@@ -453,8 +453,48 @@ func TestFetchCIMDMetadata(t *testing.T) { //nolint:cyclop,gocognit,maintidx
 			t.Fatal("expected error for cross-origin redirect_uri, got nil")
 		}
 
-		if !strings.Contains(oauthErr.Description, "same origin") {
-			t.Errorf("expected same origin error, got %q", oauthErr.Description)
+		if !strings.Contains(oauthErr.Description, "loopback") {
+			t.Errorf("expected loopback error, got %q", oauthErr.Description)
+		}
+	})
+
+	t.Run("localhost redirect_uri accepted", func(t *testing.T) {
+		t.Parallel()
+
+		var serverURL string
+
+		server := httptest.NewTLSServer(
+			http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+
+				meta := map[string]any{
+					"client_id": serverURL + "/client.json",
+					"redirect_uris": []string{
+						"http://localhost:3000/callback",
+						"http://127.0.0.1:3000/callback",
+					},
+				}
+
+				json.NewEncoder(w).Encode(meta) //nolint:errcheck
+			}),
+		)
+		defer server.Close()
+
+		serverURL = server.URL
+
+		metadata, oauthErr := oauth2.FetchCIMDMetadata(
+			context.Background(),
+			server.Client(),
+			serverURL+"/client.json",
+			logger,
+		)
+
+		if oauthErr != nil {
+			t.Fatalf("expected no error for localhost redirect_uri, got %q", oauthErr.Description)
+		}
+
+		if len(metadata.RedirectURIs) != 2 {
+			t.Errorf("expected 2 redirect_uris, got %d", len(metadata.RedirectURIs))
 		}
 	})
 

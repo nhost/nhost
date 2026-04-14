@@ -20935,6 +20935,11 @@ type ConfigPostgresResources struct {
 	Replicas *int `json:"replicas" toml:"replicas"`
 
 	EnablePublicAccess *bool `json:"enablePublicAccess" toml:"enablePublicAccess"`
+	// CIDR prefixes for IP-based access control.
+	// When set, only connections from these CIDRs are allowed.
+	// When unset, all IPs are allowed.
+	// Only effective when enablePublicAccess is true.
+	AllowedCIDRs []string `json:"allowedCIDRs,omitempty" toml:"allowedCIDRs,omitempty"`
 }
 
 func (o *ConfigPostgresResources) MarshalJSON() ([]byte, error) {
@@ -20950,6 +20955,9 @@ func (o *ConfigPostgresResources) MarshalJSON() ([]byte, error) {
 	}
 	if o.EnablePublicAccess != nil {
 		m["enablePublicAccess"] = o.EnablePublicAccess
+	}
+	if o.AllowedCIDRs != nil {
+		m["allowedCIDRs"] = o.AllowedCIDRs
 	}
 	return json.Marshal(m)
 }
@@ -20982,6 +20990,13 @@ func (o *ConfigPostgresResources) GetEnablePublicAccess() *bool {
 	return o.EnablePublicAccess
 }
 
+func (o *ConfigPostgresResources) GetAllowedCIDRs() []string {
+	if o == nil {
+		o = &ConfigPostgresResources{}
+	}
+	return o.AllowedCIDRs
+}
+
 type ConfigPostgresResourcesUpdateInput struct {
 	Compute                 *ConfigResourcesComputeUpdateInput         `json:"compute,omitempty" toml:"compute,omitempty"`
 	IsSetCompute            bool                                       `json:"-"`
@@ -20991,6 +21006,8 @@ type ConfigPostgresResourcesUpdateInput struct {
 	IsSetReplicas           bool                                       `json:"-"`
 	EnablePublicAccess      *bool                                      `json:"enablePublicAccess,omitempty" toml:"enablePublicAccess,omitempty"`
 	IsSetEnablePublicAccess bool                                       `json:"-"`
+	AllowedCIDRs            []string                                   `json:"allowedCIDRs,omitempty" toml:"allowedCIDRs,omitempty"`
+	IsSetAllowedCIDRs       bool                                       `json:"-"`
 }
 
 func (o *ConfigPostgresResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -21052,6 +21069,21 @@ func (o *ConfigPostgresResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetEnablePublicAccess = true
 	}
+	if v, ok := m["allowedCIDRs"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.AllowedCIDRs = l
+		}
+		o.IsSetAllowedCIDRs = true
+	}
 
 	return nil
 }
@@ -21091,6 +21123,13 @@ func (o *ConfigPostgresResourcesUpdateInput) GetEnablePublicAccess() *bool {
 	return o.EnablePublicAccess
 }
 
+func (o *ConfigPostgresResourcesUpdateInput) GetAllowedCIDRs() []string {
+	if o == nil {
+		o = &ConfigPostgresResourcesUpdateInput{}
+	}
+	return o.AllowedCIDRs
+}
+
 func (s *ConfigPostgresResources) Update(v *ConfigPostgresResourcesUpdateInput) {
 	if v == nil {
 		return
@@ -21121,6 +21160,16 @@ func (s *ConfigPostgresResources) Update(v *ConfigPostgresResourcesUpdateInput) 
 	if v.IsSetEnablePublicAccess || v.EnablePublicAccess != nil {
 		s.EnablePublicAccess = v.EnablePublicAccess
 	}
+	if v.IsSetAllowedCIDRs || v.AllowedCIDRs != nil {
+		if v.AllowedCIDRs == nil {
+			s.AllowedCIDRs = nil
+		} else {
+			s.AllowedCIDRs = make([]string, len(v.AllowedCIDRs))
+			for i, e := range v.AllowedCIDRs {
+				s.AllowedCIDRs[i] = e
+			}
+		}
+	}
 }
 
 type ConfigPostgresResourcesInsertInput struct {
@@ -21128,6 +21177,7 @@ type ConfigPostgresResourcesInsertInput struct {
 	Storage            *ConfigPostgresResourcesStorageInsertInput `json:"storage,omitempty" toml:"storage,omitempty"`
 	Replicas           *int                                       `json:"replicas,omitempty" toml:"replicas,omitempty"`
 	EnablePublicAccess *bool                                      `json:"enablePublicAccess,omitempty" toml:"enablePublicAccess,omitempty"`
+	AllowedCIDRs       []string                                   `json:"allowedCIDRs,omitempty" toml:"allowedCIDRs,omitempty"`
 }
 
 func (o *ConfigPostgresResourcesInsertInput) GetCompute() *ConfigResourcesComputeInsertInput {
@@ -21158,6 +21208,13 @@ func (o *ConfigPostgresResourcesInsertInput) GetEnablePublicAccess() *bool {
 	return o.EnablePublicAccess
 }
 
+func (o *ConfigPostgresResourcesInsertInput) GetAllowedCIDRs() []string {
+	if o == nil {
+		o = &ConfigPostgresResourcesInsertInput{}
+	}
+	return o.AllowedCIDRs
+}
+
 func (s *ConfigPostgresResources) Insert(v *ConfigPostgresResourcesInsertInput) {
 	if v.Compute != nil {
 		if s.Compute == nil {
@@ -21173,6 +21230,12 @@ func (s *ConfigPostgresResources) Insert(v *ConfigPostgresResourcesInsertInput) 
 	}
 	s.Replicas = v.Replicas
 	s.EnablePublicAccess = v.EnablePublicAccess
+	if v.AllowedCIDRs != nil {
+		s.AllowedCIDRs = make([]string, len(v.AllowedCIDRs))
+		for i, e := range v.AllowedCIDRs {
+			s.AllowedCIDRs[i] = e
+		}
+	}
 }
 
 func (s *ConfigPostgresResources) Clone() *ConfigPostgresResources {
@@ -21185,6 +21248,10 @@ func (s *ConfigPostgresResources) Clone() *ConfigPostgresResources {
 	v.Storage = s.Storage.Clone()
 	v.Replicas = s.Replicas
 	v.EnablePublicAccess = s.EnablePublicAccess
+	if s.AllowedCIDRs != nil {
+		v.AllowedCIDRs = make([]string, len(s.AllowedCIDRs))
+		copy(v.AllowedCIDRs, s.AllowedCIDRs)
+	}
 	return v
 }
 
@@ -21196,6 +21263,7 @@ type ConfigPostgresResourcesComparisonExp struct {
 	Storage            *ConfigPostgresResourcesStorageComparisonExp `json:"storage,omitempty"`
 	Replicas           *ConfigIntComparisonExp                      `json:"replicas,omitempty"`
 	EnablePublicAccess *ConfigBooleanComparisonExp                  `json:"enablePublicAccess,omitempty"`
+	AllowedCIDRs       *ConfigStringComparisonExp                   `json:"allowedCIDRs,omitempty"`
 }
 
 func (exp *ConfigPostgresResourcesComparisonExp) Matches(o *ConfigPostgresResources) bool {
@@ -21205,8 +21273,9 @@ func (exp *ConfigPostgresResourcesComparisonExp) Matches(o *ConfigPostgresResour
 
 	if o == nil {
 		o = &ConfigPostgresResources{
-			Compute: &ConfigResourcesCompute{},
-			Storage: &ConfigPostgresResourcesStorage{},
+			Compute:      &ConfigResourcesCompute{},
+			Storage:      &ConfigPostgresResourcesStorage{},
+			AllowedCIDRs: []string{},
 		}
 	}
 	if !exp.Compute.Matches(o.Compute) {
@@ -21220,6 +21289,18 @@ func (exp *ConfigPostgresResourcesComparisonExp) Matches(o *ConfigPostgresResour
 	}
 	if o.EnablePublicAccess != nil && !exp.EnablePublicAccess.Matches(*o.EnablePublicAccess) {
 		return false
+	}
+	{
+		found := false
+		for _, o := range o.AllowedCIDRs {
+			if exp.AllowedCIDRs.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.AllowedCIDRs != nil {
+			return false
+		}
 	}
 
 	if exp.And != nil && !all(exp.And, o) {

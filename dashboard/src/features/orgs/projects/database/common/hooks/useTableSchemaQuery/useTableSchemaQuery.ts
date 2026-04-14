@@ -91,7 +91,11 @@ export default function useTableSchemaQuery(
     keepPreviousData: true,
     ...queryOptions,
     enabled:
-      isNotEmptyValue(project) && project?.config?.hasura.adminSecret && isReady
+      isNotEmptyValue(project) &&
+      project?.config?.hasura.adminSecret &&
+      isReady &&
+      isNotEmptyValue(schema) &&
+      isNotEmptyValue(table)
         ? queryOptions?.enabled
         : false,
   });

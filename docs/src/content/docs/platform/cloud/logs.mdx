@@ -1,6 +1,24 @@
 ---
 title: Logs
-description: Monitoring
+description: View and search logs from all your Nhost services in one place
 keywords: ["logs", "monitoring", "debugging", "service logs", "observability", "log streaming"]
 ---
 
+The Logs page provides a centralized view of logs from all services in your Nhost project, including Auth, Storage, Database, GraphQL, Functions, and [Run](/products/run) services.
+
+![Logs](/images/platform/logs.png)
+
+## Filtering Logs
+
+You can narrow down logs using the controls at the top of the page:
+
+- **Service filter** — Select a specific service or choose "All Services" to view logs across your entire project.
+- **Time range** — Adjust the time window to focus on a specific period (e.g. last hour, last day).
+- **Regex search** — Filter logs using a regular expression to find specific patterns, error messages, or request IDs.
+
+## Service Logs
+
+Logs from all managed services are available in this view. This includes core services like Auth, Database, Storage, and GraphQL, as well as your custom workloads:
+
+- **[Functions](/products/functions/logging)** — Logs emitted via `console.log()`, `console.warn()`, and `console.error()` in your serverless functions are captured here. See the [Functions logging guide](/products/functions/logging) for details on log format, execution metrics, and request tracing.
+- **[Run](/products/run)** — Logs from your custom containers deployed with Nhost Run are also available. Anything your container writes to stdout/stderr will appear in this view.

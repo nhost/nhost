@@ -311,7 +311,7 @@ if (session) {
 #### refreshSession()
 
 ```ts
-refreshSession(marginSeconds: number): Promise<Session | null>;
+refreshSession(marginSeconds?: number): Promise<Session | null>;
 ```
 
 Refresh the session using the current refresh token
@@ -357,7 +357,7 @@ Configuration options for creating an Nhost client
 #### authUrl?
 
 ```ts
-optional authUrl: string;
+optional authUrl?: string;
 ```
 
 Complete base URL for the auth service (overrides subdomain/region)
@@ -365,7 +365,7 @@ Complete base URL for the auth service (overrides subdomain/region)
 #### configure?
 
 ```ts
-optional configure: ClientConfigurationFn[];
+optional configure?: ClientConfigurationFn[];
 ```
 
 Configuration functions to be applied to the client after initialization.
@@ -374,7 +374,7 @@ These functions receive all clients and can attach middleware or perform other s
 #### functionsUrl?
 
 ```ts
-optional functionsUrl: string;
+optional functionsUrl?: string;
 ```
 
 Complete base URL for the functions service (overrides subdomain/region)
@@ -382,7 +382,7 @@ Complete base URL for the functions service (overrides subdomain/region)
 #### graphqlUrl?
 
 ```ts
-optional graphqlUrl: string;
+optional graphqlUrl?: string;
 ```
 
 Complete base URL for the GraphQL service (overrides subdomain/region)
@@ -390,7 +390,7 @@ Complete base URL for the GraphQL service (overrides subdomain/region)
 #### region?
 
 ```ts
-optional region: string;
+optional region?: string;
 ```
 
 Nhost region (e.g., 'eu-central-1'). Used to construct the base URL for services for the Nhost cloud.
@@ -398,7 +398,7 @@ Nhost region (e.g., 'eu-central-1'). Used to construct the base URL for services
 #### storage?
 
 ```ts
-optional storage: SessionStorageBackend;
+optional storage?: SessionStorageBackend;
 ```
 
 Storage backend to use for session persistence. If not provided, the SDK will
@@ -407,7 +407,7 @@ default to localStorage in the browser or memory in other environments.
 #### storageUrl?
 
 ```ts
-optional storageUrl: string;
+optional storageUrl?: string;
 ```
 
 Complete base URL for the storage service (overrides subdomain/region)
@@ -415,7 +415,7 @@ Complete base URL for the storage service (overrides subdomain/region)
 #### subdomain?
 
 ```ts
-optional subdomain: string;
+optional subdomain?: string;
 ```
 
 Nhost project subdomain (e.g., 'abcdefgh'). Used to construct the base URL for services for the Nhost cloud.
@@ -435,7 +435,7 @@ Configuration options for creating an Nhost client
 #### authUrl?
 
 ```ts
-optional authUrl: string;
+optional authUrl?: string;
 ```
 
 Complete base URL for the auth service (overrides subdomain/region)
@@ -447,7 +447,7 @@ Complete base URL for the auth service (overrides subdomain/region)
 #### configure?
 
 ```ts
-optional configure: ClientConfigurationFn[];
+optional configure?: ClientConfigurationFn[];
 ```
 
 Configuration functions to be applied to the client after initialization.
@@ -460,7 +460,7 @@ These functions receive all clients and can attach middleware or perform other s
 #### functionsUrl?
 
 ```ts
-optional functionsUrl: string;
+optional functionsUrl?: string;
 ```
 
 Complete base URL for the functions service (overrides subdomain/region)
@@ -472,7 +472,7 @@ Complete base URL for the functions service (overrides subdomain/region)
 #### graphqlUrl?
 
 ```ts
-optional graphqlUrl: string;
+optional graphqlUrl?: string;
 ```
 
 Complete base URL for the GraphQL service (overrides subdomain/region)
@@ -484,7 +484,7 @@ Complete base URL for the GraphQL service (overrides subdomain/region)
 #### region?
 
 ```ts
-optional region: string;
+optional region?: string;
 ```
 
 Nhost region (e.g., 'eu-central-1'). Used to construct the base URL for services for the Nhost cloud.
@@ -510,7 +510,7 @@ as the SDK cannot auto-detect an appropriate storage mechanism.
 #### storageUrl?
 
 ```ts
-optional storageUrl: string;
+optional storageUrl?: string;
 ```
 
 Complete base URL for the storage service (overrides subdomain/region)
@@ -522,7 +522,7 @@ Complete base URL for the storage service (overrides subdomain/region)
 #### subdomain?
 
 ```ts
-optional subdomain: string;
+optional subdomain?: string;
 ```
 
 Nhost project subdomain (e.g., 'abcdefgh'). Used to construct the base URL for services for the Nhost cloud.
@@ -533,7 +533,7 @@ Nhost project subdomain (e.g., 'abcdefgh'). Used to construct the base URL for s
 
 # Type Aliases
 
-## ClientConfigurationFn()
+## ClientConfigurationFn
 
 ```ts
 type ClientConfigurationFn = (clients: object) => void
@@ -585,7 +585,7 @@ to prevent race conditions in server contexts.
 ## createClient()
 
 ```ts
-function createClient(options: NhostClientOptions): NhostClient
+function createClient(options?: NhostClientOptions): NhostClient
 ```
 
 Creates and configures a new Nhost client instance optimized for client-side usage.
@@ -655,7 +655,7 @@ const nhost = createClient({
 ## createNhostClient()
 
 ```ts
-function createNhostClient(options: NhostClientOptions): NhostClient
+function createNhostClient(options?: NhostClientOptions): NhostClient
 ```
 
 Creates and configures a new Nhost client instance with custom configuration.

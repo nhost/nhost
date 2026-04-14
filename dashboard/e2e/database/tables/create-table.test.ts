@@ -196,7 +196,7 @@ test('should create table with foreign key constraint', async ({
   await page.getByRole('option', { name: /public/i }).click();
 
   // select reference table
-  await page.getByLabel('Table').click();
+  await page.getByRole('combobox', { name: 'Table' }).click();
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
   await page.locator('#referencedColumn').click();

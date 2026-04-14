@@ -24,13 +24,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Setup Nix with Cache
-      uses: ./.github/actions/setup-nix
-      with:
-        NAME: ${{ inputs.NAME }}
-        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: "Extract project and version from PR title"
       id: extract
       run: |
@@ -56,6 +49,19 @@ jobs:
         echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "tag=$PROJECT_NAME@$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v6
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - name: Setup Nix with Cache
+      uses: ./.github/actions/setup-nix
+      with:
+        NAME: ${{ steps.extract.outputs.project }}
+        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: "Get unreleased changelog content"
       id: changelog

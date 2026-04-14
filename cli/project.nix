@@ -13,6 +13,7 @@ let
       "go.sum"
       (inDirectory "vendor")
       ".golangci.yaml"
+      "govulncheck.yaml"
       isDirectory
       (and
         (inDirectory submodule)
@@ -27,6 +28,11 @@ let
 
       (and
         (inDirectory "internal/lib/clidocs")
+        (matchExt "go")
+      )
+
+      (and
+        (inDirectory "internal/lib/nhostclient")
         (matchExt "go")
       )
 

@@ -8,15 +8,51 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	"github.com/creack/pty"
+	"golang.org/x/term"
 )
 
 type Docker struct{}
 
 func NewDocker() *Docker {
 	return &Docker{}
+}
+
+// setupInteractiveTerminal configures the terminal for interactive PTY usage:
+// raw mode for escape sequences, initial size inheritance, and resize handling.
+func setupInteractiveTerminal(ptmx *os.File) func() {
+	stdinFd := int(os.Stdin.Fd())
+
+	if !term.IsTerminal(stdinFd) {
+		return func() {}
+	}
+
+	_ = pty.InheritSize(os.Stdin, ptmx)
+
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGWINCH)
+
+	go func() {
+		for range ch {
+			_ = pty.InheritSize(os.Stdin, ptmx)
+		}
+	}()
+
+	oldState, err := term.MakeRaw(stdinFd)
+	if err != nil {
+		signal.Stop(ch)
+
+		return func() {}
+	}
+
+	return func() {
+		term.Restore(stdinFd, oldState) //nolint:errcheck
+		signal.Stop(ch)
+	}
 }
 
 func (d *Docker) HasuraWrapper(
@@ -61,11 +97,17 @@ func (d *Docker) HasuraWrapper(
 	}
 	defer f.Close()
 
+	cleanup := setupInteractiveTerminal(f)
+	defer cleanup()
+
+	go func() {
+		_, _ = io.Copy(f, os.Stdin)
+	}()
+
 	if n, err := io.Copy(os.Stdout, f); err != nil {
 		var pathError *fs.PathError
 		switch {
 		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
-			// linux pty returns an error when the process exits
 			return nil
 		default:
 			return fmt.Errorf("failed to copy pty output: %w", err)

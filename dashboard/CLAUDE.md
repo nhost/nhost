@@ -124,10 +124,13 @@ src/
 - Use React Testing Library for component testing
 - Use MSW (Mock Service Worker) for API mocking
 - Test files: `*.test.tsx` or `*.spec.tsx` alongside source files
+- Do not import `beforeEach`, `describe`, `expect`, `it`, `beforeAll`, `afterEach`, `afterAll` — they are globals provided by Vitest
 - Use `render()` and `screen` from `@/tests/testUtils`
 - Use `waitFor()` for async assertions
 - Mock Next.js router with `vi.mock('next/router', ...)`
 - Set `process.env` values before tests if needed
+- Do not mock components — mock responses (e.g., via MSW) instead. Mocking hooks like `useRouter` is acceptable.
+- See `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` as a reference example for well-structured component tests (MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`).
 
 ### Form Handling
 
@@ -151,7 +154,7 @@ src/
 
 ### Navigation
 
-- When creating a new feature page, think if we have to add it to the blockPausedProjectPages list in `PausedProjectContent.tsx`.
+- When creating a new feature page, think if we have to add it to the `overlayPages` list in `ProjectStateGuard.tsx`.
 - When creating a new feature page, add it accordingly to the ProjectPagesComboBox or ProjectSettingsPagesComboBox components.
 - When creating a new feature page, add it accordingly to the `NavTree.tsx` component.
 

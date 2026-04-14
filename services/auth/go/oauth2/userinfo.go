@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (p *Provider) GetUserinfo( //nolint:cyclop,funlen
@@ -76,23 +77,63 @@ func (p *Provider) GetUserinfo( //nolint:cyclop,funlen
 		AdditionalProperties: nil,
 	}
 
-	if slices.Contains(scopes, "graphql") {
-		roles, err := p.resolveUserGraphQLRoles(ctx, user, userID)
-		if err != nil {
-			logger.ErrorContext(ctx, "error resolving user roles", logError(err))
-			return nil, &Error{Err: "server_error", Description: "Internal server error"}
-		}
-
-		ns, c, err := p.signer.RawGraphQLClaims(
-			ctx, userID, roles.IsAnonymous, roles.AllowedRoles, roles.DefaultRole, nil, logger,
-		)
-		if err != nil {
-			logger.ErrorContext(ctx, "error creating GraphQL claims", logError(err))
-			return nil, &Error{Err: "server_error", Description: "Internal server error"}
-		}
-
-		resp.Set(ns, c)
+	if oauthErr := p.addUserinfoGraphQLClaims(
+		ctx, resp, scopes, user, userID, logger,
+	); oauthErr != nil {
+		return nil, oauthErr
 	}
 
 	return resp, nil
+}
+
+func (p *Provider) addUserinfoGraphQLClaims(
+	ctx context.Context,
+	resp *api.OAuth2UserinfoResponse,
+	scopes []string,
+	user sql.AuthUser,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) *Error {
+	graphqlRoles := extractGraphQLRoles(scopes)
+
+	if len(graphqlRoles) == 0 && !slices.Contains(scopes, "graphql") {
+		return nil
+	}
+
+	roles, err := p.resolveUserGraphQLRoles(ctx, user, userID)
+	if err != nil {
+		logger.ErrorContext(ctx, "error resolving user roles", logError(err))
+
+		return &Error{Err: "server_error", Description: "Internal server error"}
+	}
+
+	allowedRoles := roles.AllowedRoles
+	defaultRole := roles.DefaultRole
+
+	if len(graphqlRoles) > 0 {
+		for _, r := range graphqlRoles {
+			if !slices.Contains(roles.AllowedRoles, r) {
+				return &Error{
+					Err:         "access_denied",
+					Description: "User does not have the requested role",
+				}
+			}
+		}
+
+		allowedRoles = graphqlRoles
+		defaultRole = graphqlRoles[0]
+	}
+
+	ns, c, err := p.signer.RawGraphQLClaims(
+		ctx, userID, roles.IsAnonymous, allowedRoles, defaultRole, nil, logger,
+	)
+	if err != nil {
+		logger.ErrorContext(ctx, "error creating GraphQL claims", logError(err))
+
+		return &Error{Err: "server_error", Description: "Internal server error"}
+	}
+
+	resp.Set(ns, c)
+
+	return nil
 }

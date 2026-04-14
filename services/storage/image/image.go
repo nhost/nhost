@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"runtime"
 	"sync"
 	"sync/atomic"
 
 	"github.com/cshum/vipsgen/vips"
-)
-
-const (
-	maxWorkers = 3
 )
 
 type ImageType int //nolint:revive
@@ -83,7 +80,11 @@ type Transformer struct {
 	pool    sync.Pool
 }
 
-func NewTransformer() *Transformer {
+func NewTransformer(maxWorkers int) *Transformer {
+	if maxWorkers <= 0 {
+		maxWorkers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
+	}
+
 	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
 		vips.Startup(&vips.Config{ //nolint:exhaustruct
 			ConcurrencyLevel: 1,

@@ -2,7 +2,7 @@ import { flexRender, type Header } from '@tanstack/react-table';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { cn } from '@/lib/utils';
 

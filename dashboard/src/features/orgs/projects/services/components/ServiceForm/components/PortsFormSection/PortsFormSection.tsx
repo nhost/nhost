@@ -12,7 +12,10 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
-import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import {
+  isPublishablePortType,
+  type PortTypes,
+} from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
@@ -35,14 +38,17 @@ export default function PortsFormSection() {
 
   const formValues = useWatch<ServiceFormValues & { subdomain: string }>();
 
-  const onChangePortType = (value: string | undefined, index: number) =>
+  const onChangePortType = (value: string | undefined, index: number) => {
     setValue(`ports.${index}.type`, value as PortTypes);
+    if (!isPublishablePortType(value)) {
+      setValue(`ports.${index}.publish`, false);
+    }
+  };
 
   const showURL = (index: number) =>
     isNotEmptyValue(formValues.subdomain) &&
     isNotEmptyValue(project) &&
-    (formValues.ports?.[index]?.type === PortTypes.HTTP ||
-      formValues.ports?.[index]?.type === PortTypes.GRPC) &&
+    isPublishablePortType(formValues.ports?.[index]?.type) &&
     formValues.ports?.[index]?.publish;
 
   return (
@@ -119,7 +125,9 @@ export default function PortsFormSection() {
 
               <ControlledSwitch
                 {...register(`ports.${index}.publish`)}
-                disabled={false} // TODO turn off and disable if the port is not http
+                disabled={
+                  !isPublishablePortType(formValues.ports?.at?.(index)?.type)
+                }
                 label={
                   <Text variant="subtitle1" component="span">
                     Publish

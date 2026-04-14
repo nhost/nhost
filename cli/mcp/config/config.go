@@ -10,7 +10,8 @@ import (
 	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/nhost/nhost/cli/mcp/nhost/auth"
+	"github.com/nhost/nhost/internal/lib/nhostclient"
+	"github.com/nhost/nhost/internal/lib/nhostclient/auth"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v3"
 )
@@ -144,14 +145,17 @@ func (p *Project) GetHasuraURL() string {
 
 func (p *Project) GetAuthInterceptor() (func(ctx context.Context, req *http.Request) error, error) {
 	if p.AdminSecret != nil {
-		return auth.WithAdminSecret(*p.AdminSecret), nil
+		return nhostclient.WithAdminSecret(*p.AdminSecret), nil
 	} else if p.PAT != nil {
-		interceptor, err := auth.WithPAT(p.GetAuthURL(), *p.PAT)
+		cl, err := auth.NewClientWithResponses(
+			p.GetAuthURL(),
+			auth.WithHTTPClient(nhostclient.NewRetryDoer(nil)),
+		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create PAT interceptor: %w", err)
+			return nil, fmt.Errorf("failed to create auth client: %w", err)
 		}
 
-		return interceptor, nil
+		return nhostclient.WithPAT(cl, *p.PAT), nil
 	}
 
 	return func(_ context.Context, _ *http.Request) error {
@@ -168,6 +172,32 @@ func GetConfigPath(cmd *cli.Command) string {
 	ce := clienv.FromCLI(cmd)
 
 	return filepath.Join(ce.Path.DotNhostFolder(), "mcp-nhost.toml")
+}
+
+// DefaultConfig returns a default configuration for local development.
+// It configures a local project with the same defaults the wizard uses.
+// Cloud access is not included as it requires authentication via `nhost login`.
+func DefaultConfig() *Config {
+	adminSecret := "nhost-admin-secret" //nolint:gosec
+
+	return &Config{
+		Cloud: nil,
+		Projects: ProjectList{
+			{
+				Subdomain:      "local",
+				Region:         "local",
+				Description:    "Local development project running via the Nhost CLI",
+				AdminSecret:    &adminSecret,
+				PAT:            nil,
+				ManageMetadata: true,
+				AllowQueries:   []string{"*"},
+				AllowMutations: []string{"*"},
+				GraphqlURL:     "",
+				AuthURL:        "",
+				HasuraURL:      "",
+			},
+		},
+	}
 }
 
 func Load(path string) (*Config, error) {

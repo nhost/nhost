@@ -11,13 +11,14 @@
     {
       #nixops
       lib = import ./nixops/lib/lib.nix;
-      overlays.default = import ./nixops/overlays/default.nix;
+      overlays.default = import ./nixops/overlays/default.nix { inherit self nix-filter; };
     } // flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
+          config.allowUnfree = true;
           overlays = [
-            (import ./nixops/overlays/default.nix)
+            (import ./nixops/overlays/default.nix { inherit self nix-filter; })
           ];
         };
 
@@ -33,6 +34,10 @@
         };
 
         codegenf = import ./tools/codegen/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
+        govulncheck-wrapperf = import ./tools/govulncheck-wrapper/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
 
@@ -52,12 +57,28 @@
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
+        mcpf = import ./services/mcp/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         nhost-jsf = import ./packages/nhost-js/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
+        stripe-graphql-jsf = import ./packages/stripe-graphql-js/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
 
         nixopsf = import ./nixops/project.nix {
           inherit self pkgs nix2containerPkgs nix-filter nixops-lib;
+        };
+
+        postgresf = import ./services/postgres/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
+        nhostclientf = import ./internal/lib/nhostclient/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
         };
 
         storagef = import ./services/storage/project.nix {
@@ -74,12 +95,17 @@
           auth = authf.check;
           cli = clif.check;
           codegen = codegenf.check;
+          govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
           guides = guidesf.check;
           docs = docsf.check;
+          mcp = mcpf.check;
+          nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
+          stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
+          postgres = postgresf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
         };
@@ -116,12 +142,21 @@
               golangci-lint
               gqlgenc
               oapi-codegen
+              mockgen
+              sqlc
+              vacuum-go
+              govulncheck
+
+              # others
+              postgresql_18-client
+              bun
 
               # docs
               vale
 
               # internal packages
               self.packages.${system}.codegen
+              self.packages.${system}.govulncheck-wrapper
             ];
 
             shellHook = ''
@@ -160,12 +195,17 @@
           auth = authf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
+          govulncheck-wrapper = govulncheck-wrapperf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
+          mcp = mcpf.devShell;
+          nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
+          stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
+          postgres = postgresf.devShell;
           storage = storagef.devShell;
           tutorials = tutorialsf.devShell;
         };
@@ -177,13 +217,26 @@
           cli-multiplatform = clif.cli-multiplatform;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
           demos = demosf.package;
           guides = guidesf.package;
           nhost-js = nhost-jsf.package;
+          stripe-graphql-js = stripe-graphql-jsf.package;
+          mcp = mcpf.package;
+          mcp-docker-image = mcpf.dockerImage;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
+          postgres-pg16 = postgresf.packages.pg16-package;
+          postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
+          postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
+          postgres-pg17 = postgresf.packages.pg17-package;
+          postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
+          postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;
+          postgres-pg18 = postgresf.packages.pg18-package;
+          postgres-pg18-docker-image = postgresf.packages.pg18-docker-image;
+          postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
           clamav-docker-image = storagef.clamav-docker-image;

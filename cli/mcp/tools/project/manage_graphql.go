@@ -10,7 +10,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/nhost/nhost/cli/mcp/nhost/auth"
+	"github.com/nhost/nhost/internal/lib/nhostclient"
 )
 
 const (
@@ -167,7 +167,7 @@ func (t *Tool) handleManageGraphql(
 	headers.Add("Accept", "application/json")
 
 	interceptors := []func(ctx context.Context, req *http.Request) error{
-		auth.WithAdminSecret(*project.AdminSecret),
+		nhostclient.WithAdminSecret(*project.AdminSecret),
 	}
 
 	response, err := genericQuery(

@@ -53,7 +53,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -73,6 +73,79 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
 								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordReset%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordReset", //nolint:lll
+								DisplayName: "Jane Doe",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordReset:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "simple with code challenge",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{ //nolint:exhaustruct
+					ID:            userID,
+					Disabled:      false,
+					DisplayName:   "Jane Doe",
+					Locale:        "en",
+					Email:         sql.Text("jane@acme.com"),
+					EmailVerified: false,
+					IsAnonymous:   false,
+				}, nil)
+
+				mock.EXPECT().UpdateUserTicket(
+					gomock.Any(),
+					cmpDBParams(sql.UpdateUserTicketParams{
+						ID:              userID,
+						Ticket:          sql.Text("passwordReset:xxx"),
+						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
+					}),
+				).Return(userID, nil)
+
+				return mock
+			},
+			request: api.SendPasswordResetEmailRequestObject{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{
+					Email:         "jane@acme.com",
+					Options:       nil,
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+			},
+			expectedResponse: api.SendPasswordResetEmail200JSONResponse(api.OK),
+			expectedJWT:      nil,
+			jwtTokenFn:       nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNamePasswordReset,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordReset%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordReset", //nolint:lll
 								DisplayName: "Jane Doe",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -130,7 +203,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp.com"),
@@ -181,7 +254,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp.com"),
@@ -211,7 +284,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -236,7 +309,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -269,7 +342,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -307,7 +380,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{
+				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
 					Email:   "jane@acme.com",
 					Options: nil,
 				},

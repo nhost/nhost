@@ -114,7 +114,7 @@ You can read more about storage permissions [here](/products/storage/#permission
 
 Now let's implement the React component for file upload functionality.
 
-```tsx src/pages/Files.tsx lines
+```tsx title="src/pages/Files.tsx" showLineNumbers
 import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
@@ -527,7 +527,7 @@ export default function Files(): JSX.Element {
 
 Add the uploads page to your application routing.
 
-```tsx src/App.tsx lines highlight={18,43}
+```tsx title="src/App.tsx" showLineNumbers {12,43}
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -594,7 +594,7 @@ export default App;
 
 Add a link to the uploads page in the navigation bar.
 
-```tsx src/components/Navigation.tsx lines highlight={38-40}
+```tsx title="src/components/Navigation.tsx" showLineNumbers {39-41}
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 

@@ -1,3 +1,31 @@
+## [@nhost/nhost-js@4.6.0] - 2026-03-28
+
+### 🚀 Features
+
+- *(auth)* Added pkce (#4038)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Upgrade svelte due to vuln (#3935)
+- *(deps)* Update rollup and minimatch due to vulnerability (#3959)
+- *(deps)* Override tar, svgo and immutable versions to address security audit (#3974)
+- *(deps)* Bump up tar version to address security vulnerability audit (#3991)
+- *(deps)* Bump up undici to address vulnerability audit (#4004)
+- *(deps)* Override various npm packages due to vulns (#4059)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(storage)* Reflect supported formats for quality option correctly (#4014)
+
+
+### Chore
+
+- *(deps)* Bump devalue due to CVE (#4000)
+- *(deps)* Bump go/jsonparser and next due to CVEs (#4019)
+- *(deps)* Update various npm packages due to cves (#4073)
+
 ## [@nhost/nhost-js@4.5.0] - 2026-02-19
 
 ### 🚀 Features

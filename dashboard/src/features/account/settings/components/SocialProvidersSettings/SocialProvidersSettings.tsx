@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -15,6 +14,7 @@ import {
 import { Label } from '@/components/ui/v3/label';
 import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
 import { useAccessToken } from '@/hooks/useAccessToken';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import {
@@ -119,16 +119,18 @@ export default function SocialProvidersSettings() {
     await refetchAuthUserProviders();
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: singInProviderURL does not change
-  const github = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      return nhost.auth.signInProviderURL('github', {
-        connect: token,
-        redirectTo: `${window.location.origin}/account?signinProvider=github`,
-      });
-    }
-    return '';
-  }, [token]);
+  async function handleConnectGithub() {
+    const { challenge, id } = await generateAndStorePKCE();
+    const url = nhost.auth.signInProviderURL('github', {
+      connect: token,
+      redirectTo: appendPkceId(
+        `${window.location.origin}/account?signinProvider=github`,
+        id,
+      ),
+      codeChallenge: challenge,
+    });
+    window.location.href = url;
+  }
 
   if (!data && loadingAuthUserProviders) {
     return (
@@ -156,14 +158,12 @@ export default function SocialProvidersSettings() {
           </div>
         ) : (
           <Button
-            asChild
             variant="outline"
             className="flex w-fit flex-row gap-2 bg-white text-sm+ hover:bg-[#e2e8ef] dark:bg-[#171d26] dark:hover:bg-[#2f363e]"
+            onClick={handleConnectGithub}
           >
-            <Link href={github} target="_blank" rel="noreferrer noopener">
-              <GitHubIcon />
-              Connect with GitHub
-            </Link>
+            <GitHubIcon />
+            Connect with GitHub
           </Button>
         )}
       </div>

@@ -54,7 +54,7 @@ File upload and management
 We'll start by creating a fresh Next.js application with TypeScript support. Next.js provides server-side rendering, file-based routing, and optimized builds for modern React applications.
 
 ```bash
-npx create-next-app@15 nhost-nextjs-tutorial --typescript --eslint --app --no-tailwind --yes
+npx create-next-app@16 nhost-nextjs-tutorial --typescript --eslint --app --no-tailwind --yes
 cd nhost-nextjs-tutorial
 npm install
 ```
@@ -90,9 +90,9 @@ Replace `<region>` and `<subdomain>` with the actual values from your Nhost proj
 
 ### Create Server-Side Nhost Helper
 
-Create server-side utilities for handling authentication in Next.js server components and middleware. This enables server-side session access and token refresh functionality.
+Create server-side utilities for handling authentication in Next.js server components and proxy. This enables server-side session access and token refresh functionality.
 
-```tsx src/lib/nhost/server.tsx lines
+```tsx title="src/lib/nhost/server.tsx" showLineNumbers
 import { createServerClient, type NhostClient } from "@nhost/nhost-js";
 import { DEFAULT_SESSION_KEY, type Session } from "@nhost/nhost-js/session";
 import { cookies } from "next/headers";
@@ -135,16 +135,16 @@ export async function createNhostClient(): Promise<NhostClient> {
 }
 
 /**
- * Middleware function to handle Nhost authentication and session management.
+ * Proxy function to handle Nhost authentication and session management.
  *
- * This function is designed to be used in Next.js middleware to manage user sessions
- * and refresh tokens. Refreshing the session needs to be done in the middleware
- * to ensure that the session is always up-to-date an accessible by both server and client components.
+ * This function is designed to be used in Next.js proxy to manage user sessions
+ * and refresh tokens. Refreshing the session needs to be done in the proxy
+ * to ensure that the session is always up-to-date and accessible by both server and client components.
  *
  * @param {NextRequest} request - The incoming Next.js request object
  * @param {NextResponse} response - The outgoing Next.js response object
  */
-export async function handleNhostMiddleware(
+export async function handleNhostProxy(
   request: NextRequest,
   response: NextResponse<unknown>,
 ): Promise<Session | null> {
@@ -152,7 +152,7 @@ export async function handleNhostMiddleware(
     region: process.env["NHOST_REGION"] || "local",
     subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
     storage: {
-      // storage compatible with Next.js middleware
+      // storage compatible with Next.js proxy
       get: (): Session | null => {
         const raw = request.cookies.get(key)?.value || null;
         if (!raw) {
@@ -186,19 +186,19 @@ export async function handleNhostMiddleware(
 
 
 
-### Create Middleware for Route Protection
+### Create Proxy for Route Protection
 
-Create Next.js middleware to handle route protection at the server level. This middleware runs before any page renders and automatically redirects unauthenticated users from protected routes.
+Create a Next.js proxy to handle route protection at the server level. This proxy runs before any page renders and automatically redirects unauthenticated users from protected routes.
 
-```tsx src/middleware.ts lines
+```tsx title="src/proxy.ts" showLineNumbers
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { handleNhostMiddleware } from "./lib/nhost/server";
+import { handleNhostProxy } from "./lib/nhost/server";
 
 // Define public routes that don't require authentication
 const publicRoutes = ["/"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Create a response that we'll modify as needed
   const response = NextResponse.next();
 
@@ -213,7 +213,7 @@ export async function middleware(request: NextRequest) {
   // Handle Nhost authentication and token refresh
   // Always call this to ensure session is up-to-date
   // even for public routes, so that session changes are detected
-  const session = await handleNhostMiddleware(request, response);
+  const session = await handleNhostProxy(request, response);
 
   // If it's a public route, allow access without checking auth
   if (isPublicRoute) {
@@ -230,7 +230,7 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// Define which routes this middleware should run on
+// Define which routes this proxy should run on
 export const config = {
   matcher: [
     /*
@@ -249,9 +249,9 @@ export const config = {
 
 ### Create the Protected Profile Page
 
-Create a page that displays user information. Note that the page itself doesn't need any special authentication logic - the route protection is handled entirely by the middleware from the previous step.
+Create a page that displays user information. Note that the page itself doesn't need any special authentication logic - the route protection is handled entirely by the proxy from the previous step.
 
-```tsx src/app/profile/page.tsx lines
+```tsx title="src/app/profile/page.tsx" showLineNumbers
 import { createNhostClient } from "../../lib/nhost/server";
 
 export default async function Profile() {
@@ -315,7 +315,7 @@ export default async function Profile() {
 
 Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
 
-```tsx src/app/page.tsx lines
+```tsx title="src/app/page.tsx" showLineNumbers
 import { createNhostClient } from "../lib/nhost/server";
 
 export default async function Home() {
@@ -348,7 +348,7 @@ export default async function Home() {
 
 Create a server-side navigation component that provides consistent navigation across all pages. This component adapts its links based on authentication status - showing different options for signed-in and signed-out users with server-side rendering.
 
-```tsx src/components/Navigation.tsx lines
+```tsx title="src/components/Navigation.tsx" showLineNumbers
 import Link from "next/link";
 import { createNhostClient } from "../lib/nhost/server";
 
@@ -392,7 +392,7 @@ export default async function Navigation() {
 
 Configure the Next.js root layout to include the navigation and page content.
 
-```tsx src/app/layout.tsx lines
+```tsx title="src/app/layout.tsx" showLineNumbers
 import type { Metadata } from "next";
 import "./globals.css";
 import Navigation from "../components/Navigation";
@@ -424,7 +424,7 @@ export default function RootLayout({
 
 Replace the contents of the file `src/app/global.css` with the following styles to provide a clean and modern look for the application. This file will be used across the rest of series.
 
-```css src/app/globals.css lines
+```css title="src/app/globals.css" showLineNumbers
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -1313,19 +1313,19 @@ After we complete the next tutorial on user authentication, you will be able to 
 
 ## How It Works
 
-1. **Server-Side Helpers**: Utilities for handling authentication in Next.js server components and middleware
-2. **Middleware Route Protection**: Next.js middleware runs before any page renders, automatically redirecting unauthenticated users from protected routes and refreshing tokens
-3. **Protected Pages**: Server components can assume authentication since middleware handles protection, focusing purely on rendering authenticated content
+1. **Server-Side Helpers**: Utilities for handling authentication in Next.js server components and proxy
+2. **Proxy Route Protection**: Next.js proxy runs before any page renders, automatically redirecting unauthenticated users from protected routes and refreshing tokens
+3. **Protected Pages**: Server components can assume authentication since the proxy handles protection, focusing purely on rendering authenticated content
 4. **Navigation**: Server-side navigation component that adapts its links based on authentication status
-5. **Automatic Redirects**: All route protection and redirects are handled at the middleware level for optimal performance and security
+5. **Automatic Redirects**: All route protection and redirects are handled at the proxy level for optimal performance and security
 
 ## Key Features Demonstrated
 
 
 <details>
-<summary>Middleware Route Protection</summary>
+<summary>Proxy Route Protection</summary>
 
-Routes are protected at the middleware level, running before any page renders to provide the highest level of security and performance by preventing unauthorized access before components load.
+Routes are protected at the proxy level, running before any page renders to provide the highest level of security and performance by preventing unauthorized access before components load.
 
 </details>
 
@@ -1339,7 +1339,7 @@ Server-side authentication checks eliminate the need for loading spinners during
 <details>
 <summary>Automatic Server Redirects</summary>
 
-Users are automatically redirected based on their authentication status using Next.js server-side redirects, ensuring proper navigation flow before any client-side rendering.
+Users are automatically redirected based on their authentication status using Next.js proxy redirects, ensuring proper navigation flow before any client-side rendering.
 
 </details>
 
@@ -1367,7 +1367,7 @@ Authentication-dependent content is rendered server-side for improved SEO, perfo
 <details>
 <summary>Automatic Token Refresh</summary>
 
-Middleware automatically refreshes authentication tokens before they expire, ensuring seamless user experience without manual token management.
+The proxy automatically refreshes authentication tokens before they expire, ensuring seamless user experience without manual token management.
 
 </details>
 

@@ -76,6 +76,9 @@ export interface Client {
   /**
    * Execute a GraphQL query operation using a typed document node
    *
+   * Duplicate fragment definitions are deduplicated on a best-effort basis
+   * when the document's definition nodes include `loc` offsets.
+   *
    * @param document - TypedDocumentNode containing the query and type information
    * @param variables - Variables for the GraphQL operation
    * @param options - Additional fetch options to apply to the request
@@ -97,6 +100,41 @@ export interface Client {
    */
   pushChainFunction(chainFunction: ChainFunction): void;
 }
+
+/**
+ * Extracts a deduplicated query string from a TypedDocumentNode.
+ *
+ * When definition nodes have loc offsets (e.g. codegen output), deduplicates
+ * fragment definitions by name and reconstructs the query from AST slices.
+ * Falls back to the raw source text when loc is unavailable.
+ */
+export const extractQueryFromDocument = <TResponseData, TVariables>(
+  document: TypedDocumentNode<TResponseData, TVariables>,
+): string => {
+  const source = document.loc?.source.body;
+  if (!source) {
+    return '';
+  }
+
+  if (!document.definitions.every((def) => def.loc)) {
+    return source;
+  }
+
+  const seen = new Set<string>();
+  return document.definitions
+    .filter((def) => {
+      if (def.kind === 'FragmentDefinition' && 'name' in def) {
+        const name = (def.name as { value: string }).value;
+        if (seen.has(name)) {
+          return false;
+        }
+        seen.add(name);
+      }
+      return true;
+    })
+    .map((def) => source.slice(def.loc?.start, def.loc?.end))
+    .join('\n\n');
+};
 
 /**
  * Creates a GraphQL API client for interacting with a GraphQL endpoint.
@@ -174,7 +212,7 @@ export const createAPIClient = (
       const definition = requestOrDocument.definitions[0];
 
       const request: GraphQLRequest<TVariables> = {
-        query: requestOrDocument.loc?.source.body || '',
+        query: extractQueryFromDocument(requestOrDocument),
         variables: variablesOrOptions as TVariables,
         operationName:
           definition && 'name' in definition

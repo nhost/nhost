@@ -414,6 +414,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Memory: 4096,
 				},
 				EnablePublicAccess: new(true),
+				AllowedCIDRs:       []string{},
 				Storage: &model.ConfigPostgresResourcesStorage{
 					Capacity: 20,
 				},

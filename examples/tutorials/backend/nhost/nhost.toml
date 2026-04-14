@@ -6,8 +6,10 @@ adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
 [[hasura.jwtSecrets]]
-type = 'HS256'
-key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
+type = 'RS256'
+key = '{{ secrets.NHOST_JWT_PUBLIC_KEY }}'
+signingKey = '{{ secrets.NHOST_JWT_PRIVATE_KEY }}'
+kid = '{{ secrets.NHOST_JWT_KID }}'
 
 [hasura.settings]
 corsDomain = ['*']
@@ -31,14 +33,19 @@ httpPoolSize = 100
 version = 22
 
 [auth]
-version = '0.43.1'
+version = '0.48.0-beta1'
 
 [auth.elevatedPrivileges]
 mode = 'disabled'
 
 [auth.redirections]
-clientUrl = 'http://localhost:3000'
-allowedUrls = ['http://localhost:5173', 'exp://192.168.1.108:8081']
+clientUrl = 'https://react-tutorial.nhost.run'
+allowedUrls = [
+  'https://react-tutorial.nhost.run',
+  'https://vue-tutorial.nhost.run',
+  'https://svelte.nhost.run',
+  'https://nextjs.nhost.run',
+]
 
 [auth.signUp]
 enabled = true
@@ -90,12 +97,7 @@ enabled = false
 
 [auth.method.oauth]
 [auth.method.oauth.apple]
-enabled = true
-audience = '{{ secrets.APPLE_AUDIENCE }}'
-clientId = '{{ secrets.APPLE_CLIENT_ID }}'
-keyId = '{{ secrets.APPLE_KEY_ID }}'
-teamId = '{{ secrets.APPLE_TEAM_ID }}'
-privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
+enabled = false
 
 [auth.method.oauth.azuread]
 tenant = 'common'
@@ -105,6 +107,10 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.discord]
+enabled = false
+
+[auth.method.oauth.entraid]
+tenant = 'common'
 enabled = false
 
 [auth.method.oauth.facebook]
@@ -149,6 +155,18 @@ timeout = 60000
 [auth.totp]
 enabled = false
 
+[auth.oauth2Provider]
+enabled = false
+
+[auth.oauth2Provider.accessToken]
+expiresIn = 900
+
+[auth.oauth2Provider.refreshToken]
+expiresIn = 2592000
+
+[auth.oauth2Provider.clientIdMetadataDocument]
+enabled = false
+
 [auth.misc]
 concealErrors = false
 
@@ -173,8 +191,12 @@ interval = '5m'
 limit = 100
 interval = '1m'
 
+[auth.rateLimit.oauth2Server]
+limit = 100
+interval = '5m'
+
 [postgres]
-version = '14.18-20250728-1'
+version = '18.3-20260320-1'
 
 [postgres.resources]
 [postgres.resources.storage]
@@ -183,7 +205,7 @@ capacity = 1
 [provider]
 
 [storage]
-version = '0.9.1'
+version = '0.12.1'
 
 [observability]
 [observability.grafana]

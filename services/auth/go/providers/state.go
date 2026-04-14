@@ -9,16 +9,18 @@ import (
 )
 
 type State struct {
-	Connect *string
-	Options *api.SignUpOptions
-	State   *string
+	Connect       *string
+	Options       *api.SignUpOptions
+	State         *string
+	CodeChallenge *string
 }
 
 func (s *State) Encode() jwt.MapClaims {
 	return jwt.MapClaims{
-		"connect": s.Connect,
-		"options": s.Options,
-		"state":   s.State,
+		"connect":       s.Connect,
+		"options":       s.Options,
+		"state":         s.State,
+		"codeChallenge": s.CodeChallenge,
 	}
 }
 

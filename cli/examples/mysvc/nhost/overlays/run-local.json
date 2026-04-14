@@ -1,0 +1,11 @@
+[
+  {
+    "value": [
+      "npx",
+      "nodemon",
+      "/app/index.js"
+    ],
+    "op": "add",
+    "path": "/command"
+  }
+]

@@ -42,6 +42,7 @@ func ai(
 		Environment: env,
 		ExtraHosts:  extraHosts(subdomain),
 		Labels:      nil,
+		Networks:    nil,
 		Ports:       nil,
 		Restart:     "always",
 		HealthCheck: &HealthCheck{

@@ -111,7 +111,7 @@ func TestManipulate(t *testing.T) {
 		},
 	}
 
-	transformer := image.NewTransformer()
+	transformer := image.NewTransformer(0)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -142,7 +142,7 @@ func TestManipulate(t *testing.T) {
 }
 
 func BenchmarkManipulate(b *testing.B) {
-	transformer := image.NewTransformer()
+	transformer := image.NewTransformer(0)
 
 	orig, err := os.Open("testdata/nhost.jpg")
 	if err != nil {

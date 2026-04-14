@@ -1,10 +1,5 @@
-import { Database, InfoIcon } from 'lucide-react';
-import Image from 'next/image';
-import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Backdrop } from '@/components/ui/v2/Backdrop';
-import { IconButton } from '@/components/ui/v2/IconButton';
+import { Database } from 'lucide-react';
+import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import {
   Accordion,
   AccordionContent,
@@ -19,19 +14,12 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import EventTriggerListItem from './EventTriggerListItem';
 import EventTriggersBrowserSidebarSkeleton from './EventTriggersBrowserSidebarSkeleton';
 
-export interface EventTriggersBrowserSidebarProps {
-  className?: string;
-}
-
 function EventTriggersBrowserSidebarContent() {
   const {
     data: eventTriggersData,
     isLoading: isLoadingEventTriggers,
     error: errorEventTriggers,
   } = useGetEventTriggers();
-  const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
-
   if (isLoadingEventTriggers) {
     return <EventTriggersBrowserSidebarSkeleton />;
   }
@@ -71,16 +59,8 @@ function EventTriggersBrowserSidebarContent() {
 
   return (
     <div className="flex h-full flex-col px-2">
-      {isGitHubConnected && (
-        <div className="box mt-1.5 flex items-center gap-2 px-2">
-          <InfoIcon className="size-6" />
-          <p className="text-disabled text-xs">
-            GitHub connected - use the CLI for event trigger changes
-          </p>
-        </div>
-      )}
       <div className="w-full">
-        <CreateEventTriggerForm disabled={isGitHubConnected} />
+        <CreateEventTriggerForm />
         <div className="pb-0">
           <div className="flex flex-row gap-2">
             <Accordion
@@ -106,7 +86,6 @@ function EventTriggersBrowserSidebarContent() {
                         <EventTriggerListItem
                           key={eventTrigger.name}
                           eventTrigger={eventTrigger}
-                          isViewOnly={isGitHubConnected}
                         />
                       ))}
                     </AccordionContent>
@@ -121,79 +100,17 @@ function EventTriggersBrowserSidebarContent() {
   );
 }
 
-export default function EventTriggersBrowserSidebar({
-  className,
-}: EventTriggersBrowserSidebarProps) {
+export default function EventTriggersBrowserSidebar() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
-
-  const [expanded, setExpanded] = useState(false);
-
-  function toggleExpanded() {
-    setExpanded(!expanded);
-  }
-
-  useEffect(() => {
-    function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setExpanded(false);
-      }
-    }
-
-    if (typeof document !== 'undefined') {
-      document.addEventListener('keydown', closeSidebarWhenEscapeIsPressed);
-    }
-
-    return () =>
-      document.removeEventListener('keydown', closeSidebarWhenEscapeIsPressed);
-  }, []);
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return null;
   }
 
   return (
-    <>
-      <Backdrop
-        open={expanded}
-        className="absolute top-0 right-0 bottom-0 left-0 z-[34] sm:hidden"
-        role="button"
-        tabIndex={-1}
-        onClick={() => setExpanded(false)}
-        aria-label="Close sidebar overlay"
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter' && event.key !== ' ') {
-            return;
-          }
-
-          setExpanded(false);
-        }}
-      />
-
-      <aside
-        className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
-          expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
-          className,
-        )}
-      >
-        <RetryableErrorBoundary>
-          <EventTriggersBrowserSidebarContent />
-        </RetryableErrorBoundary>
-      </aside>
-
-      <IconButton
-        className="absolute bottom-4 left-4 z-[38] h-11 w-11 rounded-full md:hidden"
-        onClick={toggleExpanded}
-        aria-label="Toggle sidebar"
-      >
-        <Image
-          width={16}
-          height={16}
-          src="/assets/table.svg"
-          alt="A monochrome table"
-        />
-      </IconButton>
-    </>
+    <FeatureSidebar>
+      <EventTriggersBrowserSidebarContent />
+    </FeatureSidebar>
   );
 }

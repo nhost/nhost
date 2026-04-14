@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"slices"
 	"strings"
 	"time"
 
@@ -26,7 +25,7 @@ func (p *Provider) ValidateAuthorizeRequest(
 		return "", oauthErr
 	}
 
-	if !slices.Contains(client.RedirectUris, params.RedirectUri) {
+	if !matchRedirectURI(params.RedirectUri, client.RedirectUris) {
 		logger.WarnContext(
 			ctx,
 			"redirect URI not registered",
@@ -108,11 +107,18 @@ func (p *Provider) validateAuthorizeParams(
 	}
 
 	for _, s := range requestedScopes {
-		if !slices.Contains(client.Scopes, s) {
+		if !isScopeAllowed(s, client.Scopes) {
 			return nil, &Error{
 				Err:         "invalid_scope",
 				Description: fmt.Sprintf("Scope %q not allowed for this client", s),
 			}
+		}
+	}
+
+	if msg := validateGraphQLScopeCombination(requestedScopes); msg != "" {
+		return nil, &Error{
+			Err:         "invalid_scope",
+			Description: msg,
 		}
 	}
 

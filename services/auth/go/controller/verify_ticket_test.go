@@ -107,7 +107,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{
+				Params: api.VerifyTicketParams{ //nolint:exhaustruct
 					Ticket:     "emailConfirmChange:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -148,7 +148,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{
+				Params: api.VerifyTicketParams{ //nolint:exhaustruct
 					Ticket:     "emailConfirmChange:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -186,7 +186,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{
+				Params: api.VerifyTicketParams{ //nolint:exhaustruct
 					Ticket:     "emailConfirmChange:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -251,7 +251,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{
+				Params: api.VerifyTicketParams{ //nolint:exhaustruct
 					Ticket:     "passwordlessEmail:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -330,7 +330,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{
+				Params: api.VerifyTicketParams{ //nolint:exhaustruct
 					Ticket:     "passwordlessEmail:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -393,7 +393,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{
+				Params: api.VerifyTicketParams{ //nolint:exhaustruct
 					Ticket:     "verifyEmail:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -472,7 +472,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{
+				Params: api.VerifyTicketParams{ //nolint:exhaustruct
 					Ticket:     "verifyEmail:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -513,7 +513,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{
+				Params: api.VerifyTicketParams{ //nolint:exhaustruct
 					Ticket:     "passwordReset:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -524,6 +524,132 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 					Location string
 				}{
 					Location: `http://localhost:3000/redirect?error=unverified-user&errorDescription=User+is+not+verified.`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "pkce - passwordlessEmail - no session created",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByTicket(
+					gomock.Any(),
+					sql.Text("passwordlessEmail:123"),
+				).Return(
+					getSigninUser(userID),
+					nil,
+				)
+
+				// PKCE: no GetUserRoles, no InsertRefreshtoken, no UpdateUserLastSeen
+				mock.EXPECT().InsertPKCEAuthorizationCode(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(sql.AuthPkceAuthorizationCode{}, nil) //nolint:exhaustruct
+
+				return mock
+			},
+			request: api.VerifyTicketRequestObject{
+				Params: api.VerifyTicketParams{
+					Ticket:        "passwordlessEmail:123",
+					RedirectTo:    "http://localhost:3000/redirect",
+					Type:          nil,
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+			},
+			expectedResponse: api.VerifyTicket302Response{
+				Headers: api.VerifyTicket302ResponseHeaders{
+					Location: `http:\/\/localhost:3000\/redirect\?code=[\w-]+&type=passwordlessEmail`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "pkce - emailConfirmChange - no session created",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByTicket(
+					gomock.Any(),
+					sql.Text("emailConfirmChange:123"),
+				).Return(
+					getSigninUser(userID),
+					nil,
+				)
+
+				mock.EXPECT().UpdateUserConfirmChangeEmail(
+					gomock.Any(),
+					userID,
+				).Return(
+					getSigninUser(userID),
+					nil,
+				)
+
+				// PKCE: no GetUserRoles, no InsertRefreshtoken, no UpdateUserLastSeen
+				mock.EXPECT().InsertPKCEAuthorizationCode(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(sql.AuthPkceAuthorizationCode{}, nil) //nolint:exhaustruct
+
+				return mock
+			},
+			request: api.VerifyTicketRequestObject{
+				Params: api.VerifyTicketParams{
+					Ticket:        "emailConfirmChange:123",
+					RedirectTo:    "http://localhost:3000/redirect",
+					Type:          nil,
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+			},
+			expectedResponse: api.VerifyTicket302Response{
+				Headers: api.VerifyTicket302ResponseHeaders{
+					Location: `http:\/\/localhost:3000\/redirect\?code=[\w-]+&type=emailConfirmChange`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "pkce - invalid code challenge format",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByTicket(
+					gomock.Any(),
+					sql.Text("passwordlessEmail:123"),
+				).Return(
+					getSigninUser(userID),
+					nil,
+				)
+
+				// No InsertPKCEAuthorizationCode expected - validation fails before DB call
+
+				return mock
+			},
+			request: api.VerifyTicketRequestObject{
+				Params: api.VerifyTicketParams{
+					Ticket:        "passwordlessEmail:123",
+					RedirectTo:    "http://localhost:3000/redirect",
+					Type:          nil,
+					CodeChallenge: ptr("invalid-challenge"),
+				},
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct {
+					Location string
+				}{
+					Location: `http://localhost:3000/redirect?error=invalid-request&errorDescription=The+request+payload+is+incorrect`,
 				},
 			},
 			expectedJWT:       nil,
@@ -545,7 +671,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{
+				Params: api.VerifyTicketParams{ //nolint:exhaustruct
 					Ticket:     "passwordReset:123",
 					RedirectTo: "http://evil.com:3000/redirect",
 					Type:       nil,

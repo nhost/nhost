@@ -26,10 +26,6 @@ export interface ColumnPermissionsSectionProps {
    * The table that is being edited.
    */
   table: string;
-  /**
-   * Determines whether or not the section is disabled.
-   */
-  disabled?: boolean;
 }
 
 export default function ColumnPermissionsSection({
@@ -37,7 +33,6 @@ export default function ColumnPermissionsSection({
   action,
   schema,
   table,
-  disabled,
 }: ColumnPermissionsSectionProps) {
   const { register, setValue } =
     useFormContext<RolePermissionEditorFormValues>();
@@ -66,7 +61,6 @@ export default function ColumnPermissionsSection({
         <Button
           variant="borderless"
           size="small"
-          disabled={disabled}
           onClick={() => {
             if (isAllSelected) {
               setValue('columns', []);
@@ -92,7 +86,6 @@ export default function ColumnPermissionsSection({
         <div className="flex flex-row flex-wrap items-center justify-start gap-6">
           {tableData?.columns?.map((column) => (
             <Checkbox
-              disabled={disabled}
               value={column.column_name}
               label={column.column_name}
               key={column.column_name}

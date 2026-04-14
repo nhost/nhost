@@ -42,6 +42,7 @@ export default function EventTriggerView() {
     hasNoNextPage,
     data: eventsData,
     isLoading: isEventsLoading,
+    error: eventsError,
   } = useEventPagination({
     initialLimit: 10,
     useQueryHook: useGetEventLogsQuery,
@@ -56,6 +57,10 @@ export default function EventTriggerView() {
     },
     resetKey: `${dataSource}:${triggerName}`,
   });
+
+  if (eventsError) {
+    throw eventsError;
+  }
 
   if (isLoading && eventTriggerSlug) {
     return <EventTriggerViewSkeleton />;

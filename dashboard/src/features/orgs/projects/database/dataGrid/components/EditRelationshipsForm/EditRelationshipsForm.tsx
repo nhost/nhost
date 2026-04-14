@@ -32,23 +32,16 @@ export interface EditRelationshipsFormProps
    * Table name.
    */
   table: string;
-  /**
-   * Whether the form is read-only.
-   */
-  disabled?: boolean;
 }
 
 export default function EditRelationshipsForm({
   schema,
   table,
-  disabled,
   onCancel,
 }: EditRelationshipsFormProps) {
   const router = useRouter();
   const dataSource =
     (router.query.dataSourceSlug as string | undefined) || 'default';
-
-  const canEdit = !disabled;
 
   const {
     relationships: existingRelationshipsViewModel,
@@ -118,13 +111,11 @@ export default function EditRelationshipsForm({
                 </span>
               </p>
             </div>
-            {canEdit && (
-              <CreateRelationshipDialog
-                source={dataSource}
-                schema={schema}
-                tableName={table}
-              />
-            )}
+            <CreateRelationshipDialog
+              source={dataSource}
+              schema={schema}
+              tableName={table}
+            />
           </div>
 
           <div className="mt-4">
@@ -135,7 +126,7 @@ export default function EditRelationshipsForm({
                   <TableHead className="w-[120px]">Source</TableHead>
                   <TableHead className="w-[120px]">Type</TableHead>
                   <TableHead>Relationship</TableHead>
-                  {canEdit && <TableHead>Action</TableHead>}
+                  <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -185,37 +176,35 @@ export default function EditRelationshipsForm({
                           <span>{relationship.toLabel}</span>
                         </div>
                       </TableCell>
-                      {canEdit && (
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <DeleteRelationshipDialog
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <DeleteRelationshipDialog
+                            schema={schema}
+                            tableName={table}
+                            relationshipToDelete={relationship.name}
+                            source={relationship.fromSource}
+                            isRemoteRelationship={
+                              relationship.kind === 'remote'
+                            }
+                          />
+                          {isRemoteRelationshipViewModel(relationship) ? (
+                            <EditRemoteRelationshipButton
                               schema={schema}
                               tableName={table}
-                              relationshipToDelete={relationship.name}
-                              source={relationship.fromSource}
-                              isRemoteRelationship={
-                                relationship.kind === 'remote'
-                              }
+                              source={dataSource}
+                              relationshipName={relationship.name}
+                              relationshipDefinition={relationship.definition}
                             />
-                            {isRemoteRelationshipViewModel(relationship) ? (
-                              <EditRemoteRelationshipButton
-                                schema={schema}
-                                tableName={table}
-                                source={dataSource}
-                                relationshipName={relationship.name}
-                                relationshipDefinition={relationship.definition}
-                              />
-                            ) : (
-                              <RenameRelationshipDialog
-                                schema={schema}
-                                tableName={table}
-                                relationshipToRename={relationship.name}
-                                source={relationship.fromSource}
-                              />
-                            )}
-                          </div>
-                        </TableCell>
-                      )}
+                          ) : (
+                            <RenameRelationshipDialog
+                              schema={schema}
+                              tableName={table}
+                              relationshipToRename={relationship.name}
+                              source={relationship.fromSource}
+                            />
+                          )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -227,7 +216,6 @@ export default function EditRelationshipsForm({
           tableSchema={schema}
           tableName={table}
           dataSource={dataSource}
-          disabled={disabled}
         />
       </div>
 

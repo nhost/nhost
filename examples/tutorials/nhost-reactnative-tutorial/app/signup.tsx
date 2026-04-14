@@ -1,6 +1,8 @@
-import * as Linking from "expo-linking";
-import { Link, router } from "expo-router";
-import { useEffect, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
+import * as Linking from 'expo-linking';
+import { Link, router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -10,18 +12,17 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import AppleSignInButton from "./components/AppleSignInButton";
-import { useAuth } from "./lib/nhost/AuthProvider";
-import { commonStyles } from "./styles/commonStyles";
-import { colors } from "./styles/theme";
+} from 'react-native';
+import { useAuth } from './lib/nhost/AuthProvider';
+import { commonStyles } from './styles/commonStyles';
+import { colors } from './styles/theme';
 
 export default function SignUp() {
   const { nhost, isAuthenticated } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -29,7 +30,7 @@ export default function SignUp() {
   // Redirect authenticated users to profile
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/profile");
+      router.replace('/profile');
     }
   }, [isAuthenticated]);
 
@@ -39,25 +40,29 @@ export default function SignUp() {
     setSuccess(false);
 
     try {
+      // Generate PKCE pair and store verifier for email verification
+      const { verifier, challenge } = await generatePKCEPair();
+      await AsyncStorage.setItem('nhost_pkce_verifier', verifier);
+
       const response = await nhost.auth.signUpEmailPassword({
         email,
         password,
         options: {
           displayName,
-          // Set the redirect URL for email verification
-          redirectTo: Linking.createURL("verify"),
+          redirectTo: Linking.createURL('verify'),
         },
+        codeChallenge: challenge,
       });
 
       if (response.body?.session) {
         // Successfully signed up and automatically signed in
-        router.replace("/profile");
+        router.replace('/profile');
       } else {
         // Verification email sent
         setSuccess(true);
       }
     } catch (err) {
-      const message = (err as Error).message || "Unknown error";
+      const message = (err as Error).message || 'Unknown error';
       setError(`An error occurred during sign up: ${message}`);
     } finally {
       setIsLoading(false);
@@ -70,7 +75,7 @@ export default function SignUp() {
         <Text style={commonStyles.title}>Check Your Email</Text>
         <View style={commonStyles.successContainer}>
           <Text style={commonStyles.successText}>
-            We've sent a verification link to{" "}
+            We've sent a verification link to{' '}
             <Text style={commonStyles.emailText}>{email}</Text>
           </Text>
           <Text style={[commonStyles.bodyText, commonStyles.textCenter]}>
@@ -80,7 +85,7 @@ export default function SignUp() {
         </View>
         <TouchableOpacity
           style={[commonStyles.button, commonStyles.fullWidth]}
-          onPress={() => router.replace("/signin")}
+          onPress={() => router.replace('/signin')}
         >
           <Text style={commonStyles.buttonText}>Back to Sign In</Text>
         </TouchableOpacity>
@@ -90,7 +95,7 @@ export default function SignUp() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={commonStyles.container}
     >
       <ScrollView
@@ -100,19 +105,6 @@ export default function SignUp() {
         <Text style={commonStyles.title}>Sign Up</Text>
 
         <View style={commonStyles.card}>
-          {/* Apple Sign In Button */}
-          <AppleSignInButton
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-          />
-
-          {/* Divider */}
-          <View style={commonStyles.dividerContainer}>
-            <View style={commonStyles.divider} />
-            <Text style={commonStyles.dividerText}>or</Text>
-            <View style={commonStyles.divider} />
-          </View>
-
           <View style={commonStyles.formField}>
             <Text style={commonStyles.labelText}>Display Name</Text>
             <TextInput
@@ -171,7 +163,7 @@ export default function SignUp() {
 
         <View style={commonStyles.linkContainer}>
           <Text style={commonStyles.linkText}>
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link href="/signin" style={commonStyles.link}>
               Sign In
             </Link>

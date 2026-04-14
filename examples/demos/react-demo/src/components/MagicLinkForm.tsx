@@ -2,6 +2,7 @@ import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import React, { type JSX, useId, useState } from 'react';
 import { useAuth } from '../lib/nhost/AuthProvider';
+import { generateAndStorePKCE } from '../lib/utils';
 
 interface MagicLinkFormProps {
   buttonLabel?: string;
@@ -23,11 +24,14 @@ export default function MagicLinkForm({
     setError(null);
 
     try {
+      const { challenge } = await generateAndStorePKCE();
+
       await nhost.auth.signInPasswordlessEmail({
         email,
         options: {
           redirectTo: `${window.location.origin}/verify`,
         },
+        codeChallenge: challenge,
       });
 
       setSuccess(true);

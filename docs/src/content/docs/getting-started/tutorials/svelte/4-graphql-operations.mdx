@@ -161,7 +161,7 @@ For deleting todos, we are allowing users to delete rows only where the `user_id
 
 Now let's implement the SvelteKit page component that uses the database we just configured.
 
-```svelte src/routes/todos/+page.svelte lines
+```svelte title="src/routes/todos/+page.svelte" showLineNumbers
 <script lang="ts">
 import { goto } from "$app/navigation";
 import { auth } from "$lib/nhost/auth";
@@ -648,7 +648,7 @@ $effect(() => {
 
 Add a link to the todos page in the navigation layout. Update your `src/routes/+layout.svelte` file to include the todos link:
 
-```svelte src/routes/+layout.svelte lines highlight={39}
+```svelte title="src/routes/+layout.svelte" showLineNumbers {39}
 <script lang="ts">
 import { onMount } from "svelte";
 import { goto } from "$app/navigation";

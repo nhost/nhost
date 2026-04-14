@@ -39,6 +39,7 @@ fragment ServiceResources on ConfigConfig {
         capacity
       }
       enablePublicAccess
+      allowedCIDRs
       compute {
         cpu
         memory

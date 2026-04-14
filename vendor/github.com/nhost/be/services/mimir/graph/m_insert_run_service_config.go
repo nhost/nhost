@@ -66,15 +66,17 @@ func (r *mutationResolver) insertRunServiceConfig(
 	appID string,
 	configInput model.ConfigRunServiceConfigInsertInput,
 ) (*model.InsertRunServiceConfigResponse, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	i, err := r.data.IndexApp(appID)
-	if err != nil {
+	if err := r.ensureLoaded(ctx, appID); err != nil {
 		return nil, err
 	}
 
-	app := r.data[i]
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	app, err := r.store.GetApp(appID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get app: %w", err)
+	}
 
 	if err := r.checkAppLive(ctx, appID); err != nil {
 		return nil, err

@@ -13,12 +13,10 @@ import FieldToColumnMapSelectorItem from './FieldToColumnMapSelectorItem';
 
 export interface FieldToColumnMapSelectorProps {
   sourceSchema: string;
-  disabled?: boolean;
 }
 
 export default function FieldToColumnMapSelector({
   sourceSchema,
-  disabled,
 }: FieldToColumnMapSelectorProps) {
   const form = useFormContext<DatabaseRelationshipFormValues>();
 
@@ -89,7 +87,6 @@ export default function FieldToColumnMapSelector({
             variant="borderless"
             className="col-span-1"
             onClick={() => append({ sourceField: '', referenceColumn: '' })}
-            disabled={disabled}
           >
             <PlusIcon className="h-5 w-5" />
           </Button>
@@ -101,7 +98,6 @@ export default function FieldToColumnMapSelector({
               columns={columns}
               sourceFields={sourceFields}
               itemIndex={index}
-              disabled={disabled}
             />
 
             <Button
@@ -109,7 +105,6 @@ export default function FieldToColumnMapSelector({
               className="col-span-1"
               color="error"
               onClick={() => remove(index)}
-              disabled={disabled}
             >
               <TrashIcon className="h-4 w-4" />
             </Button>

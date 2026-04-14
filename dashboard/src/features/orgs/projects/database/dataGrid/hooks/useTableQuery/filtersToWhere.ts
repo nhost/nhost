@@ -16,6 +16,13 @@ export function filtersToWhere(filters?: DataGridFilter[]): string {
     if (['IS', 'IS NOT'].includes(op)) {
       return format('%I %s NULL', column, op);
     }
+    if (['@>', '<@'].includes(op)) {
+      return format('%I %s %L::jsonb', column, op, value);
+    }
+    if (['?|', '?&'].includes(op)) {
+      const keys = value.split(',').map((k) => k.trim());
+      return format('%I %s array[%L]', column, op, keys);
+    }
     return format('%I %s %L', column, op, value);
   });
 

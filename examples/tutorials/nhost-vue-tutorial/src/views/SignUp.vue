@@ -73,6 +73,7 @@
 </template>
 
 <script setup lang="ts">
+import { generatePKCEPair } from '@nhost/nhost-js/auth';
 import { onMounted, ref, useId } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '../lib/nhost/auth';
@@ -104,14 +105,18 @@ const handleSubmit = async () => {
   success.value = false;
 
   try {
+    // Generate PKCE pair and store verifier for email verification
+    const { verifier, challenge } = await generatePKCEPair();
+    localStorage.setItem('nhost_pkce_verifier', verifier);
+
     const response = await nhost.auth.signUpEmailPassword({
       email: email.value,
       password: password.value,
       options: {
         displayName: displayName.value,
-        // Set the redirect URL for email verification
         redirectTo: `${window.location.origin}/verify`,
       },
+      codeChallenge: challenge,
     });
 
     if (response.body?.session) {

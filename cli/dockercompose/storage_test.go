@@ -57,6 +57,7 @@ func expectedStorage() *Service {
 			"traefik.http.routers.storage.tls":                       "false",
 			"traefik.http.services.storage.loadbalancer.server.port": "5000",
 		},
+		Networks:   networkAliases("hasura-storage-service"),
 		Ports:      nil,
 		Restart:    "always",
 		Volumes:    nil,

@@ -33,7 +33,6 @@ export interface RemoteSchemaRelationshipFormProps {
   onCancel?: () => void;
   submitButtonText?: string;
   defaultValues?: RemoteSchemaRelationshipFormValues;
-  disabled?: boolean;
   /**
    * Whether the name input should be disabled.
    */
@@ -68,7 +67,6 @@ export default function RemoteSchemaRelationshipForm({
   submitButtonText,
   onCancel,
   defaultValues,
-  disabled,
   nameInputDisabled,
 }: RemoteSchemaRelationshipFormProps) {
   const form = useForm<RemoteSchemaRelationshipFormValues>({
@@ -156,7 +154,7 @@ export default function RemoteSchemaRelationshipForm({
                       'border-destructive': form.formState.errors.name,
                     })}
                     {...field}
-                    disabled={disabled || nameInputDisabled}
+                    disabled={nameInputDisabled}
                   />
                 </FormControl>
                 <FormMessage />
@@ -192,7 +190,7 @@ export default function RemoteSchemaRelationshipForm({
                 </FormItem>
               )}
             />
-            <SourceTypeCombobox sourceTypes={sourceTypes} disabled={disabled} />
+            <SourceTypeCombobox sourceTypes={sourceTypes} />
           </div>
         </div>
         <div className="flex flex-row items-center justify-center gap-2 border-muted-foreground/20 border-t-1 border-b-1 py-4">
@@ -201,19 +199,10 @@ export default function RemoteSchemaRelationshipForm({
         </div>
         <div className="flex flex-col gap-4 px-6">
           <div className="flex flex-row gap-4">
-            <TargetRemoteSchemaCombobox
-              disabled={disabled}
-              remoteSchemas={remoteSchemas}
-            />
-            <TargetRemoteSchemaFieldCombobox
-              disabled={disabled}
-              targetFields={targetFields}
-            />
+            <TargetRemoteSchemaCombobox remoteSchemas={remoteSchemas} />
+            <TargetRemoteSchemaFieldCombobox targetFields={targetFields} />
           </div>
-          <SchemaToArgumentMapSelector
-            sourceSchema={sourceSchema}
-            disabled={disabled}
-          />
+          <SchemaToArgumentMapSelector sourceSchema={sourceSchema} />
         </div>
         <div className="mt-auto flex justify-between gap-2 border-foreground/20 border-t-1 px-6 pt-4">
           <Button
@@ -224,7 +213,7 @@ export default function RemoteSchemaRelationshipForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting || disabled}>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? <Spinner /> : submitButtonText}
           </Button>
         </div>

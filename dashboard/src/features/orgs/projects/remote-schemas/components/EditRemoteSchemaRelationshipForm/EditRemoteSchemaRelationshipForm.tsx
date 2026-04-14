@@ -26,7 +26,6 @@ export interface EditRemoteSchemaRelationshipFormProps {
   typeName: string;
   onSubmit?: () => void;
   onCancel?: () => void;
-  disabled?: boolean;
   /**
    * Whether the name input is disabled.
    */
@@ -39,7 +38,6 @@ export default function EditRemoteSchemaRelationshipForm({
   typeName,
   onSubmit,
   onCancel,
-  disabled,
   nameInputDisabled,
 }: EditRemoteSchemaRelationshipFormProps) {
   const { mutateAsync: updateRemoteSchemaRelationship } =
@@ -102,7 +100,6 @@ export default function EditRemoteSchemaRelationshipForm({
       onSubmit={handleSubmit}
       submitButtonText="Save"
       onCancel={onCancel}
-      disabled={disabled}
       nameInputDisabled={nameInputDisabled}
     />
   );

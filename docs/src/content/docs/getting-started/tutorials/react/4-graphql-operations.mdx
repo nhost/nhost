@@ -161,7 +161,7 @@ For deleting todos, we are allowing users to delete rows only where the `user_id
 
 Now let's implement the React component that uses the database we just configured.
 
-```tsx src/pages/Todos.tsx lines
+```tsx title="src/pages/Todos.tsx" showLineNumbers
 import type { JSX } from "react";
 import { useCallback, useEffect, useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
@@ -674,7 +674,7 @@ export default function Todos(): JSX.Element {
 
 Add the todos page to your application routing.
 
-```tsx src/App.tsx lines highlight={17,41}
+```tsx title="src/App.tsx" showLineNumbers {16,41}
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -739,7 +739,7 @@ export default App;
 
 Add a link to the todos page in the navigation bar.
 
-```tsx src/components/Navigation.tsx lines highlight={35-37}
+```tsx title="src/components/Navigation.tsx" showLineNumbers {36-38}
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 

@@ -51,6 +51,12 @@ func CommandPull() *cli.Command {
 func commandPull(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
+	if !clienv.PathExists(ce.Path.NhostFolder()) {
+		return errors.New( //nolint:err113
+			"nhost folder not found. Please run `nhost init --remote` first to initialize your project",
+		)
+	}
+
 	skipConfirmation := cmd.Bool(flagYes)
 
 	if !skipConfirmation {

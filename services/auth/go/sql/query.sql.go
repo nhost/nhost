@@ -96,6 +96,27 @@ func (q *Queries) ConsumeOAuth2CodeAndInsertRefreshToken(ctx context.Context, ar
 	return i, err
 }
 
+const consumePKCEAuthorizationCode = `-- name: ConsumePKCEAuthorizationCode :one
+DELETE FROM auth.pkce_authorization_codes
+WHERE code_hash = $1 AND expires_at > now()
+RETURNING id, user_id, code_hash, code_challenge, redirect_to, expires_at, created_at
+`
+
+func (q *Queries) ConsumePKCEAuthorizationCode(ctx context.Context, codeHash string) (AuthPkceAuthorizationCode, error) {
+	row := q.db.QueryRow(ctx, consumePKCEAuthorizationCode, codeHash)
+	var i AuthPkceAuthorizationCode
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.CodeHash,
+		&i.CodeChallenge,
+		&i.RedirectTo,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const countSecurityKeysUser = `-- name: CountSecurityKeysUser :one
 SELECT COUNT(*) FROM auth.user_security_keys
 WHERE user_id = $1
@@ -135,6 +156,16 @@ WHERE expires_at < now()
 
 func (q *Queries) DeleteExpiredOAuth2RefreshTokens(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, deleteExpiredOAuth2RefreshTokens)
+	return err
+}
+
+const deleteExpiredPKCEAuthorizationCodes = `-- name: DeleteExpiredPKCEAuthorizationCodes :exec
+DELETE FROM auth.pkce_authorization_codes
+WHERE expires_at < now()
+`
+
+func (q *Queries) DeleteExpiredPKCEAuthorizationCodes(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredPKCEAuthorizationCodes)
 	return err
 }
 
@@ -358,13 +389,16 @@ func (q *Queries) GetOAuth2RefreshTokenByHash(ctx context.Context, tokenHash str
 
 const getProviderSession = `-- name: GetProviderSession :one
 WITH old_token AS (
-  SELECT access_token
+  SELECT id, access_token
   FROM auth.user_providers
   WHERE user_id = $1 AND provider_id = $2
+  ORDER BY updated_at DESC
+  LIMIT 1
+  FOR UPDATE
 )
 UPDATE auth.user_providers
 SET access_token = ''
-WHERE user_id = $1 AND provider_id = $2
+WHERE id = (SELECT id FROM old_token)
 RETURNING (SELECT access_token FROM old_token)
 `
 
@@ -905,6 +939,46 @@ func (q *Queries) InsertOAuth2AuthRequest(ctx context.Context, arg InsertOAuth2A
 		&i.AuthTime,
 		&i.CreatedAt,
 		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const insertPKCEAuthorizationCode = `-- name: InsertPKCEAuthorizationCode :one
+
+INSERT INTO auth.pkce_authorization_codes (
+    user_id, code_hash, code_challenge, redirect_to, expires_at
+) VALUES ($1, $2, $3, $4, $5)
+RETURNING id, user_id, code_hash, code_challenge, redirect_to, expires_at, created_at
+`
+
+type InsertPKCEAuthorizationCodeParams struct {
+	UserID        uuid.UUID
+	CodeHash      string
+	CodeChallenge string
+	RedirectTo    pgtype.Text
+	ExpiresAt     pgtype.Timestamptz
+}
+
+// =============================================================================
+// PKCE Authorization Codes
+// =============================================================================
+func (q *Queries) InsertPKCEAuthorizationCode(ctx context.Context, arg InsertPKCEAuthorizationCodeParams) (AuthPkceAuthorizationCode, error) {
+	row := q.db.QueryRow(ctx, insertPKCEAuthorizationCode,
+		arg.UserID,
+		arg.CodeHash,
+		arg.CodeChallenge,
+		arg.RedirectTo,
+		arg.ExpiresAt,
+	)
+	var i AuthPkceAuthorizationCode
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.CodeHash,
+		&i.CodeChallenge,
+		&i.RedirectTo,
+		&i.ExpiresAt,
+		&i.CreatedAt,
 	)
 	return i, err
 }

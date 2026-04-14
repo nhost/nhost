@@ -2,7 +2,7 @@ import type { VisibilityState } from '@tanstack/react-table';
 import { Button } from '@/components/ui/v3/button';
 import { ButtonGroup } from '@/components/ui/v3/button-group';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import {
   saveColumnOrder,

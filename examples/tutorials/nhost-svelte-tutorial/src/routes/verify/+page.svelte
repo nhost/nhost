@@ -1,22 +1,28 @@
 <script lang="ts">
-import type { ErrorResponse } from '@nhost/nhost-js/auth';
-import type { FetchError } from '@nhost/nhost-js/fetch';
 import { onMount } from 'svelte';
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { nhost } from '$lib/nhost/auth';
+
+const PKCE_VERIFIER_KEY = 'nhost_pkce_verifier';
+
+function consumePKCEVerifier(): string | null {
+  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
+  if (verifier) {
+    localStorage.removeItem(PKCE_VERIFIER_KEY);
+  }
+  return verifier;
+}
 
 let status: 'verifying' | 'success' | 'error' = 'verifying';
 let error = '';
 let urlParams: Record<string, string> = {};
 
 onMount(() => {
-  // Extract the refresh token from the URL
   const params = new URLSearchParams($page.url.search);
-  const refreshToken = params.get('refreshToken');
+  const code = params.get('code');
 
-  if (!refreshToken) {
-    // Collect all URL parameters to display for debugging
+  if (!code) {
     const allParams: Record<string, string> = {};
     params.forEach((value, key) => {
       allParams[key] = value;
@@ -24,56 +30,48 @@ onMount(() => {
     urlParams = allParams;
 
     status = 'error';
-    error = 'No refresh token found in URL';
+    error = 'No authorization code found in URL';
     return;
   }
 
-  // Flag to handle component unmounting during async operations
+  const authCode = code;
   let isMounted = true;
 
-  async function processToken() {
+  async function exchangeCode() {
     try {
-      // First display the verifying message for at least a moment
+      // Small delay to ensure component is fully mounted
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (!isMounted) return;
 
-      if (!refreshToken) {
-        // Collect all URL parameters to display
-        const allParams: Record<string, string> = {};
-        params.forEach((value, key) => {
-          allParams[key] = value;
-        });
-        urlParams = allParams;
-
+      const codeVerifier = consumePKCEVerifier();
+      if (!codeVerifier) {
         status = 'error';
-        error = 'No refresh token found in URL';
+        error =
+          'No PKCE verifier found. The sign-in must be initiated from the same browser tab.';
         return;
       }
 
-      // Process the token
-      await nhost.auth.refreshToken({ refreshToken });
+      await nhost.auth.tokenExchange({ code: authCode, codeVerifier });
 
       if (!isMounted) return;
 
       status = 'success';
 
-      // Wait to show success message briefly, then redirect
       setTimeout(() => {
         if (isMounted) void goto('/profile');
       }, 1500);
     } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
+      const message = (err as Error).message || 'Unknown error';
       if (!isMounted) return;
 
       status = 'error';
-      error = `An error occurred during verification: ${fetchError.message}`;
+      error = `An error occurred during verification: ${message}`;
     }
   }
 
-  void processToken();
+  void exchangeCode();
 
-  // Cleanup function
   return () => {
     isMounted = false;
   };

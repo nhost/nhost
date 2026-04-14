@@ -60,22 +60,33 @@ type ComposeFile struct {
 
 //nolint:tagliatelle
 type Service struct {
-	Image       string               `yaml:"image"`
-	DependsOn   map[string]DependsOn `yaml:"depends_on,omitempty"`
-	EntryPoint  []string             `yaml:"entrypoint,omitempty"`
-	Command     []string             `yaml:"command,omitempty"`
-	Environment map[string]string    `yaml:"environment,omitempty"`
-	ExtraHosts  []string             `yaml:"extra_hosts"`
-	HealthCheck *HealthCheck         `yaml:"healthcheck,omitempty"`
-	Labels      map[string]string    `yaml:"labels,omitempty"`
-	Ports       []Port               `yaml:"ports,omitempty"`
-	Restart     string               `yaml:"restart"`
-	Volumes     []Volume             `yaml:"volumes,omitempty"`
-	WorkingDir  *string              `yaml:"working_dir,omitempty"`
+	Image       string                    `yaml:"image"`
+	DependsOn   map[string]DependsOn      `yaml:"depends_on,omitempty"`
+	EntryPoint  []string                  `yaml:"entrypoint,omitempty"`
+	Command     []string                  `yaml:"command,omitempty"`
+	Environment map[string]string         `yaml:"environment,omitempty"`
+	ExtraHosts  []string                  `yaml:"extra_hosts"`
+	HealthCheck *HealthCheck              `yaml:"healthcheck,omitempty"`
+	Labels      map[string]string         `yaml:"labels,omitempty"`
+	Networks    map[string]*NetworkConfig `yaml:"networks,omitempty"`
+	Ports       []Port                    `yaml:"ports,omitempty"`
+	Restart     string                    `yaml:"restart"`
+	Volumes     []Volume                  `yaml:"volumes,omitempty"`
+	WorkingDir  *string                   `yaml:"working_dir,omitempty"`
 }
 
 type DependsOn struct {
 	Condition string `yaml:"condition"`
+}
+
+type NetworkConfig struct {
+	Aliases []string `yaml:"aliases,omitempty"`
+}
+
+func networkAliases(aliases ...string) map[string]*NetworkConfig {
+	return map[string]*NetworkConfig{
+		"default": {Aliases: aliases},
+	}
 }
 
 //nolint:tagliatelle
@@ -270,6 +281,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,
 		Labels:      nil,
+		Networks:    nil,
 		Ports: []Port{
 			{
 				Mode:      "ingress",
@@ -301,6 +313,7 @@ func minio(subdomain, volumeName string) *Service {
 		Restart:     "always",
 		HealthCheck: nil,
 		Labels:      nil,
+		Networks:    nil,
 		Volumes: []Volume{
 			{
 				Type:     "volume",
@@ -359,6 +372,7 @@ func dashboard(
 				Rewrite: nil,
 			},
 		}.Labels(),
+		Networks:   nil,
 		Ports:      []Port{},
 		Restart:    "",
 		Volumes:    []Volume{},
@@ -450,8 +464,9 @@ func functions( //nolint:funlen
 				},
 			},
 		}.Labels(),
-		Ports:   ports(port, functionsPort),
-		Restart: "always",
+		Networks: networkAliases("functions-service"),
+		Ports:    ports(port, functionsPort),
+		Restart:  "always",
 		Volumes: []Volume{
 			{
 				Type:     "bind",
@@ -501,8 +516,9 @@ func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 				Rewrite: nil,
 			},
 		}.Labels(),
-		Ports:   nil,
-		Restart: "always",
+		Networks: nil,
+		Ports:    nil,
+		Restart:  "always",
 		Volumes: []Volume{
 			{
 				Type:     "volume",
@@ -643,15 +659,22 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	for _, runService := range runServices {
-		services["run-"+runService.Config.Name] = run(runService.Config, subdomain, branch)
+		svc := run(runService.Config, subdomain, branch)
+
+		if len(runService.BindMounts) > 0 {
+			svc.Volumes = append(svc.Volumes, runService.BindMounts...)
+		}
+
+		services["run-"+runService.Config.Name] = svc
 	}
 
 	return services, nil
 }
 
 type RunService struct {
-	Config *model.ConfigRunServiceConfig
-	Path   string
+	Config     *model.ConfigRunServiceConfig
+	Path       string
+	BindMounts []Volume
 }
 
 func mountCACertificates(

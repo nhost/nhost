@@ -63,6 +63,16 @@ type AuthOauth2RefreshToken struct {
 	ExpiresAt     pgtype.Timestamptz
 }
 
+type AuthPkceAuthorizationCode struct {
+	ID            uuid.UUID
+	UserID        uuid.UUID
+	CodeHash      string
+	CodeChallenge string
+	RedirectTo    pgtype.Text
+	ExpiresAt     pgtype.Timestamptz
+	CreatedAt     pgtype.Timestamptz
+}
+
 // List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthProvider struct {
 	ID string

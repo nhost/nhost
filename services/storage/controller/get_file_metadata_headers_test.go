@@ -241,7 +241,7 @@ func TestGetFileInfo(t *testing.T) {
 				"asdasd",
 				metadataStorage,
 				contentStorage,
-				image.NewTransformer(),
+				image.NewTransformer(0),
 				nil,
 				logger,
 			)

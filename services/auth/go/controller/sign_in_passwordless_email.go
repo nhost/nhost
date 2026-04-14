@@ -44,6 +44,7 @@ func (ctrl *Controller) SignInPasswordlessEmail( //nolint:ireturn
 		ticketExpiresAt,
 		notifications.TemplateNameSigninPasswordless,
 		LinkTypePasswordlessEmail,
+		deptr(request.Body.CodeChallenge),
 		logger,
 	); apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
@@ -79,6 +80,7 @@ func (ctrl *Controller) signinWithTicket(
 	ticketExpiresAt time.Time,
 	template notifications.TemplateName,
 	linkType LinkType,
+	codeChallenge string,
 	logger *slog.Logger,
 ) *APIError {
 	user, apiErr := ctrl.wf.GetUserByEmail(ctx, email, logger)
@@ -88,7 +90,7 @@ func (ctrl *Controller) signinWithTicket(
 		logger.InfoContext(ctx, "user does not exist, creating user")
 
 		user, apiErr = ctrl.signinWithTicketSignUp(
-			ctx, email, options, ticket, ticketExpiresAt, logger,
+			ctx, email, options, ticket, ticketExpiresAt, codeChallenge, logger,
 		)
 		if apiErr != nil {
 			return apiErr
@@ -129,6 +131,7 @@ func (ctrl *Controller) signinWithTicket(
 		user.DisplayName,
 		email,
 		"",
+		codeChallenge,
 		logger,
 	); apiErr != nil {
 		return apiErr
@@ -143,6 +146,7 @@ func (ctrl *Controller) signinWithTicketSignUp(
 	options *api.SignUpOptions,
 	ticket string,
 	ticketExpiresAt time.Time,
+	codeChallenge string,
 	logger *slog.Logger,
 ) (sql.AuthUser, *APIError) {
 	var user sql.AuthUser
@@ -189,6 +193,7 @@ func (ctrl *Controller) signinWithTicketSignUp(
 
 			return nil
 		},
+		codeChallenge,
 		logger,
 	)
 

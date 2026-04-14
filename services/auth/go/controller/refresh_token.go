@@ -46,6 +46,14 @@ func (ctrl *Controller) RefreshToken( //nolint:ireturn
 		if err := ctrl.wf.db.DeleteExpiredRefreshTokens(ctx); err != nil {
 			logger.ErrorContext(ctx, "error deleting expired refresh tokens", logError(err))
 		}
+
+		if err := ctrl.wf.db.DeleteExpiredPKCEAuthorizationCodes(ctx); err != nil {
+			logger.ErrorContext(
+				ctx,
+				"error deleting expired PKCE authorization codes",
+				logError(err),
+			)
+		}
 	}
 
 	return api.RefreshToken200JSONResponse(*session), nil

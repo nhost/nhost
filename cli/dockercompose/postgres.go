@@ -68,7 +68,8 @@ func postgres( //nolint:funlen
 			Interval:    "5s",
 			StartPeriod: "60s",
 		},
-		Labels: nil,
+		Labels:   nil,
+		Networks: networkAliases("postgres-service"),
 		Ports: []Port{
 			{
 				Mode:      "ingress",

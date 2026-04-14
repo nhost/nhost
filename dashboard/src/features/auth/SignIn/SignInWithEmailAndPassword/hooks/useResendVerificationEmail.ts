@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
@@ -11,7 +12,15 @@ export default function useResendVerificationEmail() {
     setLoading(true);
 
     try {
-      await nhost.auth.sendVerificationEmail({ email });
+      const { challenge, id } = await generateAndStorePKCE();
+
+      await nhost.auth.sendVerificationEmail({
+        email,
+        codeChallenge: challenge,
+        options: {
+          redirectTo: appendPkceId(window.location.origin, id),
+        },
+      });
 
       toast.success(
         `A new email has been sent to ${email}. Please follow the link to verify your email address and to

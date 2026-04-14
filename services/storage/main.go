@@ -8,6 +8,7 @@ import (
 	"github.com/nhost/nhost/services/storage/cmd"
 	docs "github.com/urfave/cli-docs/v3"
 	"github.com/urfave/cli/v3"
+	_ "go.uber.org/automaxprocs" // automatically set GOMAXPROCS to match Linux container CPU quota
 )
 
 const (

@@ -161,7 +161,7 @@ For deleting todos, we are allowing users to delete rows only where the `user_id
 
 Now let's implement the Vue component that uses the database we just configured.
 
-```vue src/views/Todos.vue lines
+```vue title="src/views/Todos.vue" showLineNumbers
 <template>
   <div v-if="!session" class="auth-message">
     <p>Please sign in to view your todos.</p>
@@ -636,7 +636,7 @@ onMounted(() => {
 
 Add the todos page to your application routing.
 
-```ts src/router/index.ts lines highlight={7,39-44}
+```ts title="src/router/index.ts" showLineNumbers {7,39-44}
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 import HomeView from "../views/HomeView.vue";
@@ -715,7 +715,7 @@ export default router;
 
 Add a link to the todos page in the navigation bar.
 
-```vue src/components/Navigation.vue lines highlight={14-16}
+```vue title="src/components/Navigation.vue" showLineNumbers {14-16}
 <template>
   <nav class="navigation">
     <div class="nav-container">

@@ -31,6 +31,18 @@ sequenceDiagram
   end
 ```
 
+Below you can find some useful examples for the cache control header:
+
+
+| Header value | Behavior |
+| --- | --- |
+| `max-age=3600` | CDN and browsers cache the file for 1 hour. |
+| `max-age=86400` | CDN and browsers cache the file for 24 hours. |
+| `max-age=31536000, immutable` | CDN and browsers cache the file for 1 year and never revalidate. Good for content-addressed assets (e.g., hashed filenames). |
+| `no-cache, must-revalidate` | CDN and browsers must revalidate with the backend on every request. |
+| `no-store` | CDN and browsers never cache the file. |
+
+
 ### Authenticated Files
 
 For files that require authentication, the CDN caches the file content but re-validates every request by forwarding the client's `Authorization` header to the backend. The backend checks permissions and responds with a `304 Not Modified` if access is allowed and the file hasn't changed -- the CDN then serves the cached content without re-downloading the file from S3.
@@ -77,13 +89,6 @@ sequenceDiagram
 
 This happens automatically -- no action is needed from your application.
 
-## Large File Support
-
-The CDN uses **segmented caching** for large files, breaking them into segments that can be cached and streamed independently. This means:
-
-- Large files don't need to be fully downloaded before the CDN starts serving them
-- [Range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range) are supported, allowing partial downloads of cached files
-
 ## Maximizing Cache HITs
 
 A **HIT** occurs when a file is found in the cache and served directly. A **MISS** requires a round trip to the backend. To maximize HITs:
@@ -95,5 +100,3 @@ A **HIT** occurs when a file is found in the cache and served directly. A **MISS
 3. **Prefer public files when possible.** Public files get full CDN caching with no revalidation overhead.
 
 4. **Authenticated files are the next best option.** They benefit from CDN caching with lightweight conditional revalidation. Use [`nhost.storage.getFile`](/reference/javascript/nhost-js/storage#getfile) to download private files with proper auth headers.
-
-5. **Use range requests for large files.** The CDN caches and serves partial content, so range requests avoid re-downloading the entire file.

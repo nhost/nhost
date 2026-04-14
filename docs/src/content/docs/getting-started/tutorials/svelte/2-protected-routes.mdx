@@ -92,7 +92,7 @@ Replace `<region>` and `<subdomain>` with the actual values from your Nhost proj
 
 Build the core authentication store that manages user sessions across your SvelteKit application. This store provides authentication state through Svelte stores and handles cross-tab synchronization.
 
-```ts src/lib/nhost/auth.ts lines
+```ts title="src/lib/nhost/auth.ts" showLineNumbers
 import { createClient, type NhostClient } from "@nhost/nhost-js";
 import type { Session } from "@nhost/nhost-js/auth";
 import { derived, type Readable, writable } from "svelte/store";
@@ -222,7 +222,7 @@ In SvelteKit, route protection is handled using hooks and load functions rather 
 
 For this tutorial, we'll use client-side protection with automatic redirects. Create the main layout file that will initialize authentication and handle navigation:
 
-```svelte src/routes/+layout.svelte lines
+```svelte title="src/routes/+layout.svelte" showLineNumbers
 <script lang="ts">
 import { onMount } from "svelte";
 import { goto } from "$app/navigation";
@@ -275,7 +275,7 @@ function isActive(path: string): string {
 
 Create a protected profile page that displays user information. In SvelteKit, we implement route protection using reactive statements that automatically redirect unauthorized users.
 
-```svelte src/routes/profile/+page.svelte lines
+```svelte title="src/routes/profile/+page.svelte" showLineNumbers
 <script lang="ts">
 import { goto } from "$app/navigation";
 import { auth } from "$lib/nhost/auth";
@@ -348,7 +348,7 @@ $effect(() => {
 
 Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
 
-```svelte src/routes/+page.svelte lines
+```svelte title="src/routes/+page.svelte" showLineNumbers
 <script lang="ts">
 import { auth } from "$lib/nhost/auth";
 </script>
@@ -378,7 +378,7 @@ Create or replace the contents of the file `src/app.css` with the following styl
 
 Note: We've integrated the navigation directly into our `+layout.svelte` file, as SvelteKit handles routing automatically without requiring separate routing configuration.
 
-```css src/app.css lines
+```css title="src/app.css" showLineNumbers
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

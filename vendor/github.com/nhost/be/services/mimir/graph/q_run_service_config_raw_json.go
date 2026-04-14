@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -12,10 +13,18 @@ func (r *queryResolver) runServiceConfigRawJSON(
 	serviceID string,
 	resolve bool,
 ) (string, error) {
+	if err := r.ensureLoaded(ctx, appID); err != nil {
+		if errors.Is(err, ErrAppNotFound) {
+			return "{}", nil
+		}
+
+		return "{}", err
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	cfg, err := r.runServiceConfig(ctx, appID, serviceID, resolve)
+	cfg, err := r.runServiceConfigLocked(appID, serviceID, resolve)
 	if err != nil {
 		return "", err
 	}

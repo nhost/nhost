@@ -56,6 +56,7 @@ func (ctrl *Controller) SendPasswordResetEmail( //nolint:ireturn
 		user.DisplayName,
 		string(request.Body.Email),
 		"",
+		deptr(request.Body.CodeChallenge),
 		logger,
 	); err != nil {
 		return ctrl.sendError(err), nil

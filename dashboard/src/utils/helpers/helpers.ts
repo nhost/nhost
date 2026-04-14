@@ -1,20 +1,6 @@
 import slugify from 'slugify';
 import { ApplicationStatus } from '@/types/application';
-import type {
-  ConfigRunServicePort,
-  DeploymentRowFragment,
-} from '@/utils/__generated__/graphql';
-
-export function getLastLiveDeployment(deployments?: DeploymentRowFragment[]) {
-  if (!deployments) {
-    return '';
-  }
-
-  return (
-    deployments.find((deployment) => deployment.deploymentStatus === 'DEPLOYED')
-      ?.id || ''
-  );
-}
+import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
 
 export function slugifyString(s: string) {
   return slugify(s, { lower: true, strict: true });

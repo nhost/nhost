@@ -11,10 +11,6 @@ import { useCreateEventTriggerMutation } from '@/features/orgs/projects/events/e
 import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildEventTriggerDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
-interface CreateEventTriggerFormProps {
-  disabled: boolean;
-}
-
 const renderCreateEventTriggerButton = ({
   open,
 }: BaseEventTriggerFormTriggerProps) => (
@@ -28,9 +24,7 @@ const renderCreateEventTriggerButton = ({
   </Button>
 );
 
-export default function CreateEventTriggerForm({
-  disabled,
-}: CreateEventTriggerFormProps) {
+export default function CreateEventTriggerForm() {
   const { mutateAsync: createEventTrigger } = useCreateEventTriggerMutation();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const router = useRouter();
@@ -59,7 +53,7 @@ export default function CreateEventTriggerForm({
 
   return (
     <BaseEventTriggerForm
-      trigger={disabled ? undefined : renderCreateEventTriggerButton}
+      trigger={renderCreateEventTriggerButton}
       onSubmit={handleSubmit}
       titleText="Create a New Event Trigger"
       descriptionText="Enter the details to create your event trigger. Click Create when you're done."

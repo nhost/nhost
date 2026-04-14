@@ -15,7 +15,7 @@ npm install cors
 npm install -D @types/cors
 ```
 
-```ts ./functions/api.ts
+```ts title="./functions/api.ts"
 import type { Request, Response } from 'express'
 import cors from 'cors'
 
@@ -41,7 +41,7 @@ const corsMiddleware = cors({
 
 If you prefer not to add a dependency, set the headers manually:
 
-```ts ./functions/api.ts
+```ts title="./functions/api.ts"
 import type { Request, Response } from 'express'
 
 export default (req: Request, res: Response) => {

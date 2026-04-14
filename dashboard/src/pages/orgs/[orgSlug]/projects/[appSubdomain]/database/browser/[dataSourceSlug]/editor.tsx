@@ -23,7 +23,7 @@ Editor.getLayout = function getLayout(page: ReactElement) {
     <OrgLayout
       mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
     >
-      <DataBrowserSidebar className="w-full max-w-sidebar" />
+      <DataBrowserSidebar />
       <RetryableErrorBoundary>
         <div className="flex w-full flex-col">{page}</div>
       </RetryableErrorBoundary>

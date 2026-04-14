@@ -160,9 +160,15 @@ func NewProvider(
 // recognised, or "" if all scopes are valid.
 func (p *Provider) validateScopes(scopes []string) string {
 	for _, s := range scopes {
-		if _, ok := p.validScopes[s]; !ok {
-			return "invalid scope: " + s
+		if _, ok := p.validScopes[s]; ok {
+			continue
 		}
+
+		if isGraphQLRoleScope(s) {
+			continue
+		}
+
+		return "invalid scope: " + s
 	}
 
 	return ""

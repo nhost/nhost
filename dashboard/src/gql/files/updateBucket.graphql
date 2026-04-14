@@ -1,0 +1,5 @@
+mutation updateBucket($id: String!, $bucket: buckets_set_input!) {
+  updateBucket(pk_columns: { id: $id }, _set: $bucket) {
+    id
+  }
+}

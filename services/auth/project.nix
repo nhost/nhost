@@ -13,6 +13,7 @@ let
       "go.sum"
       (inDirectory "vendor")
       ".golangci.yaml"
+      "govulncheck.yaml"
       isDirectory
       (and
         (inDirectory submodule)
@@ -61,7 +62,7 @@ let
     mockgen
     oapi-codegen
     sqlc
-    postgresql_18_1-client
+    postgresql_18-client
     vacuum-go
     bun
   ];

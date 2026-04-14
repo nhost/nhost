@@ -2,7 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
-const FALLBACK_SCOPES = ['openid', 'profile', 'email', 'offline_access'];
+const FALLBACK_SCOPES = [
+  'openid',
+  'profile',
+  'email',
+  'phone',
+  'offline_access',
+  'graphql',
+];
 
 export default function useAvailableScopes() {
   const { project } = useProject();

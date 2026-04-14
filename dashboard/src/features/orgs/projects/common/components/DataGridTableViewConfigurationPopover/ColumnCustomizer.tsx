@@ -3,7 +3,7 @@ import type { Column } from '@tanstack/react-table';
 import { DragAndDropList } from '@/components/common/DragAndDropList';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { saveColumnOrder } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 import { isEmptyValue } from '@/lib/utils';

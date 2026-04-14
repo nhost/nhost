@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: nhost/postgres:14.6-20231018-1
+    image: nhost/postgres:14.20-20251217-1
     command:
       - postgres
       - -c
@@ -33,7 +33,7 @@ services:
         read_only: true
 
   graphql:
-    image: nhost/graphql-engine:v2.33.4-ce
+    image: nhost/graphql-engine:v2.48.10-ce
     depends_on:
       postgres:
         condition: service_healthy

@@ -105,7 +105,8 @@ func TestRun(t *testing.T) {
 						"local.hasura.nhost.run:host-gateway",
 						"local.storage.nhost.run:host-gateway",
 					},
-					Labels: map[string]string{},
+					Labels:   map[string]string{},
+					Networks: nil,
 					Ports: []Port{
 						{Mode: "ingress", Target: 80, Published: "80", Protocol: "tcp"},
 					},

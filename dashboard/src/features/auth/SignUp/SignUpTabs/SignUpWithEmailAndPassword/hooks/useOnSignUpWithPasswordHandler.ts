@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
+import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -16,12 +17,16 @@ function useOnSignUpWithPasswordHandler() {
     turnstileToken,
   }: SignUpWithEmailAndPasswordFormValues) {
     try {
+      const { challenge, id } = await generateAndStorePKCE();
+
       const response = await nhost.auth.signUpEmailPassword(
         {
           email,
           password,
+          codeChallenge: challenge,
           options: {
             displayName,
+            redirectTo: appendPkceId(window.location.origin, id),
           },
         },
         {

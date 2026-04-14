@@ -92,6 +92,20 @@ object_relationships:
     using:
       foreign_key_constraint_on: default_role
 array_relationships:
+  - name: oauth2AuthRequests
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: oauth2_auth_requests
+          schema: auth
+  - name: oauth2RefreshTokens
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: oauth2_refresh_tokens
+          schema: auth
   - name: refreshTokens
     using:
       foreign_key_constraint_on:

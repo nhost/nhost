@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -151,6 +152,7 @@ func (ctrl *Controller) providerFlowSignUp(
 		profile.Email != "" && !profile.EmailVerified,
 		ctrl.providerFlowSignupWithSession(ctx, profile, provider, options),
 		ctrl.providerFlowSignupWithoutSession(ctx, profile, provider, options),
+		"",
 		logger,
 	)
 	if apiErr != nil {
@@ -291,4 +293,124 @@ func (ctrl *Controller) providerFlowSignIn(
 	}
 
 	return session, nil
+}
+
+// providerResolveUser resolves or creates a user from an OAuth provider profile
+// without creating a session. Used in the PKCE flow where session creation is
+// deferred to the token exchange endpoint.
+// Returns uuid.Nil when the user cannot sign in yet (e.g. email verification required).
+func (ctrl *Controller) providerResolveUser(
+	ctx context.Context,
+	profile oidc.Profile,
+	provider string,
+	options *api.SignUpOptions,
+	logger *slog.Logger,
+) (uuid.UUID, *APIError) {
+	user, userFound, providerFound, apiError := ctrl.postSigninIdtokenCheckUserExists(
+		ctx, profile.Email, provider, profile.ProviderUserID, logger,
+	)
+	if apiError != nil {
+		return uuid.Nil, apiError
+	}
+
+	if userFound {
+		logger.InfoContext(ctx, "user found, resolving for PKCE")
+
+		if !providerFound {
+			if _, apiErr := ctrl.wf.InsertUserProvider(
+				ctx,
+				user.ID,
+				provider,
+				profile.ProviderUserID,
+				logger,
+			); apiErr != nil {
+				return uuid.Nil, apiErr
+			}
+		}
+
+		return user.ID, nil
+	}
+
+	return ctrl.providerSignUpResolveOnly(ctx, provider, profile, options, logger)
+}
+
+// providerSignUpResolveOnly creates a new user from an OAuth provider profile
+// without creating a session. Returns uuid.Nil when the user needs email
+// verification before they can sign in.
+func (ctrl *Controller) providerSignUpResolveOnly( //nolint:cyclop,funlen
+	ctx context.Context,
+	provider string,
+	profile oidc.Profile,
+	options *api.SignUpOptions,
+	logger *slog.Logger,
+) (uuid.UUID, *APIError) {
+	logger.InfoContext(ctx, "user doesn't exist, signing up (PKCE)")
+
+	options, apiError := ctrl.providerFlowSignUpValidateOptions(ctx, options, profile, logger)
+	if apiError != nil {
+		return uuid.Nil, apiError
+	}
+
+	sendConfirmationEmail := profile.Email != "" && !profile.EmailVerified
+
+	// If email verification is needed or new users are disabled,
+	// use the existing sign-up-without-session flow and signal that
+	// PKCE cannot proceed yet by returning uuid.Nil.
+	if (sendConfirmationEmail && ctrl.config.RequireEmailVerification) ||
+		ctrl.config.DisableNewUsers {
+		apiErr := ctrl.wf.SignupUserWithouthSession(
+			ctx, profile.Email, options, sendConfirmationEmail,
+			ctrl.providerFlowSignupWithoutSession(ctx, profile, provider, options),
+			"",
+			logger,
+		)
+		if apiErr != nil {
+			return uuid.Nil, apiErr
+		}
+
+		return uuid.Nil, nil
+	}
+
+	// Create user with provider but without a session/refresh token.
+	metadata, err := json.Marshal(options.Metadata)
+	if err != nil {
+		logger.ErrorContext(ctx, "error marshaling metadata", logError(err))
+		return uuid.Nil, ErrInternalServerError
+	}
+
+	avatarURL := ctrl.wf.gravatarURL(profile.Email)
+	if profile.Picture != "" {
+		avatarURL = profile.Picture
+	}
+
+	var email pgtype.Text
+	if profile.Email != "" {
+		email = sql.Text(profile.Email)
+	}
+
+	userID := uuid.New()
+
+	if _, err := ctrl.wf.db.InsertUserWithUserProvider(
+		ctx,
+		sql.InsertUserWithUserProviderParams{
+			ID:              userID,
+			Disabled:        false,
+			DisplayName:     deptr(options.DisplayName),
+			AvatarUrl:       avatarURL,
+			Email:           email,
+			Ticket:          pgtype.Text{}, //nolint:exhaustruct
+			TicketExpiresAt: sql.TimestampTz(time.Now()),
+			EmailVerified:   profile.EmailVerified,
+			Locale:          deptr(options.Locale),
+			DefaultRole:     deptr(options.DefaultRole),
+			Metadata:        metadata,
+			Roles:           deptr(options.AllowedRoles),
+			ProviderID:      provider,
+			ProviderUserID:  profile.ProviderUserID,
+		},
+	); err != nil {
+		return uuid.Nil, sqlErrIsDuplicatedEmail(ctx, err, logger)
+	}
+
+	return userID, nil
 }

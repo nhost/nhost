@@ -8,7 +8,7 @@ keywords: ["error handling", "try-catch", "unhandled errors", "debugging", "serv
 
 Use standard `try`/`catch` blocks to handle errors and return meaningful responses:
 
-```ts ./functions/error.ts
+```ts title="./functions/error.ts"
 import type { Request, Response } from 'express'
 
 export default (_: Request, res: Response) => {
@@ -29,7 +29,7 @@ The `console.log(error)` call ensures the error appears in your [function logs](
 
 If an error is thrown without being caught, the function crashes and the client receives a generic error response:
 
-```ts ./functions/crash.ts
+```ts title="./functions/crash.ts"
 import type { Request, Response } from 'express'
 
 export default (_: Request, _res: Response) => {

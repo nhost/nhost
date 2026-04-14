@@ -1,0 +1,68 @@
+---
+name: Detect Changes
+
+on:
+  workflow_call:
+    inputs:
+      patterns:
+        type: string
+        required: true
+        description: >
+          Newline-separated list of path patterns to check.
+          Supports exact file paths and directory globs (e.g., "services/auth/**").
+          Lines starting with # are ignored.
+    outputs:
+      should_run:
+        description: "'true' if relevant files changed or event is not merge_group"
+        value: ${{ jobs.detect.outputs.should_run }}
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ github.event_name != 'merge_group' && 'true' || steps.check-patterns.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v6
+        if: github.event_name == 'merge_group'
+        with:
+          fetch-depth: 1
+
+      - name: Fetch base commit
+        if: github.event_name == 'merge_group'
+        run: git fetch origin ${{ github.event.merge_group.base_sha }} --depth=1
+
+      - name: Check changed files against patterns
+        id: check-patterns
+        if: github.event_name == 'merge_group'
+        env:
+          PATTERNS: ${{ inputs.patterns }}
+          BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+        run: |
+          CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          echo "Changed files:"
+          echo "$CHANGED"
+          echo ""
+
+          while IFS= read -r pattern; do
+            pattern=$(echo "$pattern" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            [[ -z "$pattern" || "$pattern" == \#* ]] && continue
+
+            if [[ "$pattern" == *"/**" ]]; then
+              prefix="${pattern%/**}"
+              if echo "$CHANGED" | grep -q "^${prefix}/"; then
+                echo "Matched directory pattern: $pattern"
+                echo "should_run=true" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+            else
+              if echo "$CHANGED" | grep -qxF "$pattern"; then
+                echo "Matched file pattern: $pattern"
+                echo "should_run=true" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+            fi
+          done <<< "$PATTERNS"
+
+          echo "No matching patterns found — skipping workflow"
+          echo "should_run=false" >> "$GITHUB_OUTPUT"

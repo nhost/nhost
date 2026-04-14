@@ -6,16 +6,7 @@ import { Text } from '@/components/ui/v2/Text';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
-export interface RootFieldPermissionsSectionProps {
-  /**
-   * Determines whether or not the section is disabled.
-   */
-  disabled?: boolean;
-}
-
-export default function RootFieldPermissionsSection({
-  disabled,
-}: RootFieldPermissionsSectionProps) {
+export default function RootFieldPermissionsSection() {
   const { register, setValue } =
     useFormContext<RolePermissionEditorFormValues>();
   const allowAggregations = useWatch({
@@ -90,7 +81,6 @@ export default function RootFieldPermissionsSection({
       </Text>
 
       <ControlledSwitch
-        disabled={disabled}
         name="enableRootFieldCustomization"
         label={
           <Text variant="subtitle1" component="span">
@@ -135,7 +125,6 @@ export default function RootFieldPermissionsSection({
               </Text>
 
               <Button
-                disabled={disabled}
                 variant="borderless"
                 size="small"
                 onClick={toggleQueryRootFields}
@@ -149,21 +138,19 @@ export default function RootFieldPermissionsSection({
 
             <div className="flex flex-row flex-wrap justify-start gap-6">
               <Checkbox
-                disabled={disabled}
                 value="select"
                 label="select"
                 checked={availableQueryRootFields.includes('select')}
                 {...register('queryRootFields')}
               />
               <Checkbox
-                disabled={disabled}
                 value="select_by_pk"
                 label="select_by_pk"
                 checked={availableQueryRootFields.includes('select_by_pk')}
                 {...register('queryRootFields')}
               />
               <Checkbox
-                disabled={!allowAggregations || disabled}
+                disabled={!allowAggregations}
                 value="select_aggregate"
                 label="select_aggregate"
                 checked={
@@ -184,7 +171,6 @@ export default function RootFieldPermissionsSection({
               </Text>
 
               <Button
-                disabled={disabled}
                 variant="borderless"
                 size="small"
                 onClick={toggleSubscriptionRootFields}
@@ -198,14 +184,12 @@ export default function RootFieldPermissionsSection({
 
             <div className="flex flex-row flex-wrap justify-start gap-6">
               <Checkbox
-                disabled={disabled}
                 value="select"
                 label="select"
                 checked={availableSubscriptionRootFields.includes('select')}
                 {...register('subscriptionRootFields')}
               />
               <Checkbox
-                disabled={disabled}
                 value="select_by_pk"
                 label="select_by_pk"
                 checked={availableSubscriptionRootFields.includes(
@@ -214,7 +198,7 @@ export default function RootFieldPermissionsSection({
                 {...register('subscriptionRootFields')}
               />
               <Checkbox
-                disabled={!allowAggregations || disabled}
+                disabled={!allowAggregations}
                 value="select_aggregate"
                 label="select_aggregate"
                 checked={

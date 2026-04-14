@@ -1,10 +1,9 @@
 package oauth2
 
 import (
-	"crypto/sha256"
-	"crypto/subtle"
-	"encoding/base64"
+	"errors"
 
+	"github.com/nhost/nhost/services/auth/go/pkce"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -40,10 +39,13 @@ func ValidatePKCE(
 		}
 	}
 
-	h := sha256.Sum256([]byte(*codeVerifier))
-	encoded := base64.RawURLEncoding.EncodeToString(h[:])
+	if err := pkce.ValidateS256NoLengthCheck(
+		authReq.CodeChallenge.String, *codeVerifier,
+	); err != nil {
+		if errors.Is(err, pkce.ErrInvalidCodeVerifierLength) {
+			return &Error{Err: "invalid_grant", Description: err.Error()}
+		}
 
-	if subtle.ConstantTimeCompare([]byte(encoded), []byte(authReq.CodeChallenge.String)) != 1 {
 		return &Error{Err: "invalid_grant", Description: "Invalid code_verifier"}
 	}
 

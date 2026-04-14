@@ -25,12 +25,10 @@ import SchemaToArgumentMapSelectorValue from './SchemaToArgumentMapSelectorValue
 
 export interface SchemaToArgumentMapSelectorProps {
   sourceSchema: string;
-  disabled?: boolean;
 }
 
 export default function SchemaToArgumentMapSelector({
   sourceSchema,
-  disabled,
 }: SchemaToArgumentMapSelectorProps) {
   const form = useFormContext<RemoteSchemaRelationshipFormValues>();
 
@@ -182,7 +180,6 @@ export default function SchemaToArgumentMapSelector({
                       onCheckedChange={(checked) =>
                         handleArgumentToggle(argument.value, checked as boolean)
                       }
-                      disabled={disabled}
                     />
                     <label
                       htmlFor={`arg-${argument.value}`}
@@ -209,7 +206,6 @@ export default function SchemaToArgumentMapSelector({
                             <Select
                               onValueChange={typeField.onChange}
                               defaultValue={typeField.value}
-                              disabled={disabled}
                             >
                               <FormControl>
                                 <SelectTrigger
@@ -244,7 +240,6 @@ export default function SchemaToArgumentMapSelector({
                         mappingIndex={mappingIndex}
                         currentType={currentType}
                         sourceFields={sourceFields}
-                        disabled={disabled}
                       />
                     </div>
                   )}

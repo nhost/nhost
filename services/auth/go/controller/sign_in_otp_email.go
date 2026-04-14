@@ -56,6 +56,7 @@ func (ctrl *Controller) SignInOTPEmail( //nolint:ireturn
 		ticketExpiresAt,
 		notifications.TemplateNameSigninOTP,
 		LinkTypeNone,
+		"",
 		logger,
 	); apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil

@@ -605,6 +605,15 @@ paths:
           explode: true
           schema:
             $ref: "#/components/schemas/ProviderSpecificParams"
+        - name: codeChallenge
+          in: query
+          required: false
+          description: PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+          schema:
+            type: string
+            minLength: 43
+            maxLength: 43
+            pattern: "^[A-Za-z0-9_-]{43}$"
 
       responses:
         "302":
@@ -1315,6 +1324,34 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: An error occurred while processing the request
 
+  /token/exchange:
+    post:
+      summary: Exchange authorization code for session
+      description: Exchange an authorization code (obtained via PKCE flow) together with the original code_verifier for a session containing access and refresh tokens.
+      operationId: tokenExchange
+      tags:
+        - session
+      requestBody:
+        description: Authorization code and code verifier for PKCE exchange
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenExchangeRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: "Session successfully created"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
   /verify:
     get:
       summary: Verify email and authentication tickets
@@ -1326,6 +1363,15 @@ paths:
         - $ref: "#/components/parameters/TicketQuery"
         - $ref: "#/components/parameters/TicketTypeQuery"
         - $ref: "#/components/parameters/RedirectToQuery"
+        - name: codeChallenge
+          in: query
+          required: false
+          description: PKCE code challenge (S256). When present, the redirect will contain an authorization code instead of a refresh token.
+          schema:
+            type: string
+            minLength: 43
+            maxLength: 43
+            pattern: "^[A-Za-z0-9_-]{43}$"
       responses:
         "302":
           description: Redirect response
@@ -2565,6 +2611,12 @@ components:
           type: string
         options:
           $ref: "#/components/schemas/SignUpOptions"
+        codeChallenge:
+          description: PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
       required:
         - email
 
@@ -2659,6 +2711,12 @@ components:
           type: string
         options:
           $ref: "#/components/schemas/SignUpOptions"
+        codeChallenge:
+          description: PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
       required:
         - email
         - password
@@ -2727,8 +2785,31 @@ components:
         nickname:
           description: Nickname for the security key
           type: string
+        codeChallenge:
+          description: PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
       required:
         - credential
+
+    TokenExchangeRequest:
+      type: object
+      description: "Request to exchange an authorization code for a session using PKCE"
+      additionalProperties: false
+      properties:
+        code:
+          description: The authorization code received from the redirect
+          type: string
+        codeVerifier:
+          description: The original PKCE code verifier (43-128 characters)
+          type: string
+          minLength: 43
+          maxLength: 128
+      required:
+        - code
+        - codeVerifier
 
     TotpGenerateResponse:
       type: object
@@ -2866,6 +2947,12 @@ components:
           type: string
         options:
           $ref: "#/components/schemas/SignUpOptions"
+        codeChallenge:
+          description: PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
       required:
         - signInMethod
         - email
@@ -2881,6 +2968,12 @@ components:
           type: string
         options:
           $ref: "#/components/schemas/OptionsRedirectTo"
+        codeChallenge:
+          description: PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
       required:
         - newEmail
 
@@ -2895,6 +2988,12 @@ components:
           type: string
         options:
           $ref: "#/components/schemas/OptionsRedirectTo"
+        codeChallenge:
+          description: PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
       required:
         - email
 
@@ -2961,6 +3060,12 @@ components:
           type: string
         options:
           $ref: "#/components/schemas/OptionsRedirectTo"
+        codeChallenge:
+          description: PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
       required:
         - email
 

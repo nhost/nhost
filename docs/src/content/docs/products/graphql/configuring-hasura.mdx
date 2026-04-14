@@ -10,7 +10,7 @@ Below, you will find the official `CUE` schema and an example on how to configur
 
 ## Available Settings
 
-```cue Schema
+```cue title="Schema"
 // Configuration for hasura service
 #Hasura: {
 	// Version of hasura, you can see available versions in the URL below:
@@ -79,7 +79,7 @@ Below, you will find the official `CUE` schema and an example on how to configur
 
 To configure your GraphQL instance, simply set the relevant settings under `[hasura]` in your project's configuration file.
 
-```toml nhost.toml
+```toml title="nhost.toml"
 [hasura]
 version = ''
 adminSecret = 'adminsecret'
@@ -117,7 +117,7 @@ memory = 1024
 
 Zooming in on `JWTSecret`.
 
-```cue Schema
+```cue title="Schema"
 #JWTSecret:
 	({
 		type: "HS384" | "HS512" | "RS256" | "RS384" | "RS512" | "Ed25519" | *"HS256"
@@ -157,7 +157,7 @@ Zooming in on `JWTSecret`.
 
 ## Example Configuration
 
-```toml nhost.toml
+```toml title="nhost.toml"
 # example 1
 [[hasura.jwtSecrets]]
 type = 'HS256'

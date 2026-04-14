@@ -43,10 +43,15 @@ export default function EditEventTriggerForm({
       formValues: data,
       isEdit: true,
     });
+    const originalEventTriggerDTO = buildEventTriggerDTO({
+      formValues: initialData,
+      isEdit: true,
+    });
     await execPromiseWithErrorToast(
       async () => {
         await createEventTrigger({
           args: eventTriggerDTO,
+          originalEventTrigger: originalEventTriggerDTO,
           resourceVersion: resourceVersion ?? undefined,
         });
         setInitialData(data);

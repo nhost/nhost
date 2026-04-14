@@ -1,3 +1,109 @@
+## [cli@1.43.0] - 2026-04-14
+
+### 🚀 Features
+
+- *(cli)* Allow deploying using the cli/github actions (#4139)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added a small wrapper around govulncheck to allow filtering some CVEs (#4112)
+- *(nixops)* Bump go due to cves (#4124)
+- *(cli)* Bump nhost/dashboard to 2.59.0 (#4135)
+
+## [cli@1.42.1] - 2026-03-31
+
+### 🐛 Bug Fixes
+
+- *(cli)* Restore PAT login by separating refresh token mechanisms (#4098)
+
+## [cli@1.42.0] - 2026-03-30
+
+### 🚀 Features
+
+- *(cli)* Login via oauth2 (#4089)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema and certs (#4097)
+- *(cli)* Bump nhost/dashboard to 2.55.0 (#4090)
+
+## [cli@1.41.1] - 2026-03-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* Add aliases matching internal cloud services (#4076)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump schema (#4084)
+
+## [cli@1.41.0] - 2026-03-26
+
+### 🚀 Features
+
+- *(cli)* Add run service volume overrides for local dev (#4047)
+- *(stripe-graphql-js)* Update dependencies and modernize build (#3664)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Forward stdin to Hasura CLI wrapper for interactive navigation (#4046)
+- *(cli)* Require initialized project before running config pull (#4045)
+- *(cli)* Remove possibility to bind mcp server to a port for security reasons (#4060)
+
+## [cli@1.40.0] - 2026-03-25
+
+### 🚀 Features
+
+- *(cli)* Add default MCP config for local development (#4036)
+
+## [cli@1.39.0] - 2026-03-20
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring allowedCIDRs (#4029)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Conditionally enable storage URL based on port exposure (#4033)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.54.0 (#4031)
+
+## [cli@1.38.4] - 2026-03-18
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump schema (#4020)
+- *(cli)* Bump nhost/dashboard to 2.53.0 (#4009)
+- *(cli)* Bump schema (#4023)
+
+## [cli@1.38.3] - 2026-03-13
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema (#3999)
+
+## [cli@1.38.2] - 2026-03-11
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.52.0 (#3945)
+
+## [cli@1.38.1] - 2026-03-08
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added brew and nix installation methods for the cli (#3975)
+- *(cli)* Fix formula name for brew (#3977)
+- *(cli)* Update certs (#3979)
+
 ## [cli@1.38.0] - 2026-02-19
 
 ### 🚀 Features

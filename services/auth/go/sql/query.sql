@@ -418,13 +418,16 @@ WHERE provider_user_id = $1 AND provider_id = $2;
 
 -- name: GetProviderSession :one
 WITH old_token AS (
-  SELECT access_token
+  SELECT id, access_token
   FROM auth.user_providers
   WHERE user_id = @user_id AND provider_id = @provider_id
+  ORDER BY updated_at DESC
+  LIMIT 1
+  FOR UPDATE
 )
 UPDATE auth.user_providers
 SET access_token = ''
-WHERE user_id = @user_id AND provider_id = @provider_id
+WHERE id = (SELECT id FROM old_token)
 RETURNING (SELECT access_token FROM old_token);
 
 -- =============================================================================
@@ -529,6 +532,25 @@ WHERE user_id = $1;
 
 -- name: DeleteExpiredOAuth2RefreshTokens :exec
 DELETE FROM auth.oauth2_refresh_tokens
+WHERE expires_at < now();
+
+-- =============================================================================
+-- PKCE Authorization Codes
+-- =============================================================================
+
+-- name: InsertPKCEAuthorizationCode :one
+INSERT INTO auth.pkce_authorization_codes (
+    user_id, code_hash, code_challenge, redirect_to, expires_at
+) VALUES ($1, $2, $3, $4, $5)
+RETURNING *;
+
+-- name: ConsumePKCEAuthorizationCode :one
+DELETE FROM auth.pkce_authorization_codes
+WHERE code_hash = $1 AND expires_at > now()
+RETURNING *;
+
+-- name: DeleteExpiredPKCEAuthorizationCodes :exec
+DELETE FROM auth.pkce_authorization_codes
 WHERE expires_at < now();
 
 -- name: UpsertOAuth2CIMDClient :one

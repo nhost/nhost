@@ -50,7 +50,7 @@ File upload and management
 
 Build a comprehensive sign-in form with proper error handling and loading states. This page handles user authentication and includes special logic for post-verification sign-in.
 
-```tsx src/pages/SignIn.tsx lines
+```tsx title="src/pages/SignIn.tsx" showLineNumbers
 import { useEffect, useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
@@ -156,7 +156,8 @@ export default function SignIn() {
 
 Implement user registration with email verification flow. This page collects user information, creates accounts, and guides users through the email verification process.
 
-```tsx src/pages/SignUp.tsx lines
+```tsx title="src/pages/SignUp.tsx" showLineNumbers
+import { generatePKCEPair } from "@nhost/nhost-js/auth";
 import { useEffect, useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
@@ -190,14 +191,18 @@ export default function SignUp() {
     setSuccess(false);
 
     try {
+      // Generate PKCE pair and store verifier for email verification
+      const { verifier, challenge } = await generatePKCEPair();
+      localStorage.setItem("nhost_pkce_verifier", verifier);
+
       const response = await nhost.auth.signUpEmailPassword({
         email,
         password,
         options: {
           displayName,
-          // Set the redirect URL for email verification
           redirectTo: `${window.location.origin}/verify`,
         },
+        codeChallenge: challenge,
       });
 
       if (response.body?.session) {
@@ -303,12 +308,22 @@ export default function SignUp() {
 
 ### Create the Email Verification Page
 
-Build a dedicated verification page that processes email verification tokens. This page handles the verification flow when users click the email verification link.
+Build a dedicated verification page that exchanges authorization codes for sessions using PKCE. This page handles the verification flow when users click the email verification link.
 
-```tsx src/pages/Verify.tsx lines
+```tsx title="src/pages/Verify.tsx" showLineNumbers
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
+
+const PKCE_VERIFIER_KEY = "nhost_pkce_verifier";
+
+function consumePKCEVerifier(): string | null {
+  const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
+  if (verifier) {
+    localStorage.removeItem(PKCE_VERIFIER_KEY);
+  }
+  return verifier;
+}
 
 export default function Verify() {
   const location = useLocation();
@@ -317,18 +332,16 @@ export default function Verify() {
   const [status, setStatus] = useState<"verifying" | "success" | "error">(
     "verifying",
   );
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>("");
   const [urlParams, setUrlParams] = useState<Record<string, string>>({});
 
   const { nhost } = useAuth();
 
   useEffect(() => {
-    // Extract the refresh token from the URL
     const params = new URLSearchParams(location.search);
-    const refreshToken = params.get("refreshToken");
+    const code = params.get("code");
 
-    if (!refreshToken) {
-      // Collect all URL parameters to display for debugging
+    if (!code) {
       const allParams: Record<string, string> = {};
       params.forEach((value, key) => {
         allParams[key] = value;
@@ -336,41 +349,35 @@ export default function Verify() {
       setUrlParams(allParams);
 
       setStatus("error");
-      setError("No refresh token found in URL");
+      setError("No authorization code found in URL");
       return;
     }
 
-    // Flag to handle component unmounting during async operations
+    const authCode = code;
     let isMounted = true;
 
-    async function processToken(): Promise<void> {
+    async function exchangeCode(): Promise<void> {
       try {
-        // First display the verifying message for at least a moment
+        // Small delay to ensure component is fully mounted
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         if (!isMounted) return;
 
-        if (!refreshToken) {
-          // Collect all URL parameters to display
-          const allParams: Record<string, string> = {};
-          params.forEach((value, key) => {
-            allParams[key] = value;
-          });
-          setUrlParams(allParams);
-
+        const codeVerifier = consumePKCEVerifier();
+        if (!codeVerifier) {
           setStatus("error");
-          setError("No refresh token found in URL");
+          setError(
+            "No PKCE verifier found. The sign-in must be initiated from the same browser tab.",
+          );
           return;
         }
 
-        // Process the token
-        await nhost.auth.refreshToken({ refreshToken });
+        await nhost.auth.tokenExchange({ code: authCode, codeVerifier });
 
         if (!isMounted) return;
 
         setStatus("success");
 
-        // Wait to show success message briefly, then redirect
         setTimeout(() => {
           if (isMounted) navigate("/profile");
         }, 1500);
@@ -383,9 +390,8 @@ export default function Verify() {
       }
     }
 
-    processToken();
+    exchangeCode();
 
-    // Cleanup function
     return () => {
       isMounted = false;
     };
@@ -465,7 +471,7 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 Configure your application's routing structure to include the new authentication pages. This integrates all the authentication flows into your app's navigation.
 
-```tsx src/App.tsx lines highlight={14-16,35-37}
+```tsx title="src/App.tsx" showLineNumbers {14-16,35-37}
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -528,7 +534,7 @@ export default App;
 
 Update the navigation component to include links to the sign-in and sign-up pages, and implement the sign-out.
 
-```tsx src/components/Navigation.tsx lines highlight={1,5-19,38-43,47-52}
+```tsx title="src/components/Navigation.tsx" showLineNumbers {1,5-20,39-45,48-55}
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 

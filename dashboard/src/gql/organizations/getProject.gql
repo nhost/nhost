@@ -8,6 +8,7 @@ query getProject($subdomain: String!) {
     createdAt
     desiredState
     nhostBaseFolder
+    automaticDeploys
     config(resolve: true) {
       observability {
         grafana {
@@ -63,6 +64,16 @@ query getProject($subdomain: String!) {
       deploymentEndedAt
       commitUserAvatarUrl
       deploymentStatus
+    }
+    pipelineRuns(limit: 4, order_by: { startedAt: desc }) {
+      id
+      name
+      startedAt
+      endedAt
+      status
+      input
+      appId
+      createdAt
     }
     creator {
       id

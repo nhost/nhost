@@ -52,3 +52,11 @@ test('should truncate at the first dynamic segment for remote schemas', () => {
     ),
   ).toBe('/graphql/remote-schemas');
 });
+
+test('should return /storage when on a bucket detail page', () => {
+  expect(
+    getProjectFeaturePagePath(
+      '/orgs/[orgSlug]/projects/[appSubdomain]/storage/bucket/[bucketId]',
+    ),
+  ).toBe('/storage');
+});

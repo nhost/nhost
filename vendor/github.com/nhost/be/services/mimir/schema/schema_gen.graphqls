@@ -3270,6 +3270,13 @@ type ConfigPostgresResources {
 
     """
     enablePublicAccess: Boolean
+    """
+    CIDR prefixes for IP-based access control.
+    When set, only connections from these CIDRs are allowed.
+    When unset, all IPs are allowed.
+    Only effective when enablePublicAccess is true.
+    """
+    allowedCIDRs: [String!]
 }
 
 input ConfigPostgresResourcesUpdateInput {
@@ -3277,6 +3284,7 @@ input ConfigPostgresResourcesUpdateInput {
     storage: ConfigPostgresResourcesStorageUpdateInput
     replicas: Int
     enablePublicAccess: Boolean
+        allowedCIDRs: [String!]
 }
 
 input ConfigPostgresResourcesInsertInput {
@@ -3284,6 +3292,7 @@ input ConfigPostgresResourcesInsertInput {
     storage: ConfigPostgresResourcesStorageInsertInput!
     replicas: Int
     enablePublicAccess: Boolean
+        allowedCIDRs: [String!]
 }
 
 input ConfigPostgresResourcesComparisonExp {
@@ -3294,6 +3303,7 @@ input ConfigPostgresResourcesComparisonExp {
     storage: ConfigPostgresResourcesStorageComparisonExp
     replicas: ConfigIntComparisonExp
     enablePublicAccess: ConfigBooleanComparisonExp
+    allowedCIDRs: ConfigStringComparisonExp
 }
 
 """

@@ -1,1 +1,0 @@
-INSERT INTO customers (name) VALUES ('Tesla'), ('SpaceX'), ('Neuralink'), ('Boring Company');

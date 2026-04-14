@@ -1,3 +1,158 @@
+## [@nhost/dashboard@2.59.0] - 2026-04-14
+
+### 🚀 Features
+
+- *(dashboard)* Display buckets in storage (#3985)
+- *(dashboard)* Add/edit buckets (#3986)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Conditionally fill in address in onboarding test (#4147)
+
+## [@nhost/dashboard@2.58.0] - 2026-04-13
+
+### 🚀 Features
+
+- *(dashboard)* Add function permissions settings (#3995)
+- *(dashboard)* Track volatile functions as GraphQL mutation (#4115)
+- *(cli)* Allow deploying using the cli/github actions (#4139)
+- *(dashboard)* Improve database sidebar with search and filters by object type (#4127)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Prevent remote schema type collisions in e2e tests (#4132)
+- *(dashboard)* Allow updating arrays in database (#4109)
+- *(dashboard)* Remove tsconfig-paths-webpack-plugin and vite-tsconfig-paths (#4128)
+- *(dashboard)* Fix redeploy button and commit SHA visibility in deployments list (#4145)
+
+
+### Chore
+
+- *(deps)* Bump next.js and sveltekit due to CVEs (#4143)
+
+## [@nhost/dashboard@2.57.0] - 2026-04-09
+
+### 🚀 Features
+
+- *(dashboard)* Display functions in data browser (#3952)
+- *(dashboard)* New deployments (#4114)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Allow editing primary keys (#4103)
+- *(deps)* Update lodash due to vulnerability (#4108)
+- *(dashboard)* Disable Publish toggle for non-publishable port types in Run service form (#4116)
+- *(deps)* Update vite due to CVE (#4122)
+- *(docs)* Downgrade to vite7 due to incompatibilities (#4134)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added a small wrapper around govulncheck to allow filtering some CVEs (#4112)
+
+## [@nhost/dashboard@2.56.0] - 2026-03-30
+
+### 🚀 Features
+
+- *(auth)* Allow scoping oauth2 clients by role (#4075)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Show page content during unpausing and surface query errors (#4016)
+
+
+### Chore
+
+- *(deps)* Update deps due to cve (#4091)
+
+## [@nhost/dashboard@2.55.0] - 2026-03-30
+
+### 🚀 Features
+
+- *(dashboard)* Add jsonb filters to database page (#3998)
+- *(auth)* Added pkce (#4038)
+- *(auth)* Added support for multiple audiences in idtokens (#3819)
+- *(dashboard)* Add common FeatureSidebar (#3984)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove action restrictions when project connected to GitHub repository (#4013)
+- *(dashboard)* Keep column order from older configuration (#4039)
+- *(ci)* Parallelize dashboard e2e tests (#4056)
+- *(deps)* Override various npm packages due to vulns (#4059)
+- *(dashboard)* Editing event triggers in local dashboard failed because replace was disabled (#4071)
+- *(auth)* Allow localhost redirects for CIMD client (#4072)
+
+
+### Chore
+
+- *(deps)* Update various npm packages due to cves (#4073)
+
+## [@nhost/dashboard@2.54.0] - 2026-03-20
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring allowedCIDRs (#4029)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Filter by project name in the header's projects combobox (#4010)
+
+
+### Chore
+
+- *(deps)* Bump go/jsonparser and next due to CVEs (#4019)
+
+## [@nhost/dashboard@2.53.0] - 2026-03-16
+
+### 🚀 Features
+
+- *(dashboard)* Improve custom check editor (#3931)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up tar version to address security vulnerability audit (#3991)
+- *(dashboard)* Fix select all row button in database page (#3994)
+- *(deps)* Bump up undici to address vulnerability audit (#4004)
+- *(dashboard)* Don't redirect to onboarding or 404 on GraphQL errors (#4005)
+
+
+### Chore
+
+- *(deps)* Bump devalue due to CVE (#4000)
+
+## [@nhost/dashboard@2.52.0] - 2026-03-08
+
+### 🚀 Features
+
+- *(dashboard)* Track/untrack tables in database page (#3923)
+- *(dashboard)* Display views, materialized views, and enums in database page (#3949)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Clear query cache on project switch (#3954)
+- *(dashboard)* Refactor data browser sidebar and routing to support non-table objects (#3943)
+- *(deps)* Update rollup and minimatch due to vulnerability (#3959)
+- *(dashboard)* Optimize query cache in database and event features (#3938)
+- *(dashboard)* Invalid permissions SDL composition in remote schemas if using local dashboard (#3928)
+- *(dashboard)* Maintain same feature page after changing project on top bar (#3964)
+- *(dashboard)* Invalidate stale metadata cache after table rename, enum, and graphql customization mutations (#3966)
+- *(deps)* Override tar, svgo and immutable versions to address security audit (#3974)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update CLAUDE.md (#3948)
+- *(dashboard)* Remove unused workspace redirects from next.config.js (#3965)
+
 ## [@nhost/dashboard@2.51.0] - 2026-02-21
 
 ### 🚀 Features

@@ -1,11 +1,11 @@
-final: prev: rec {
+{ self, nix-filter }: final: prev: rec {
   go = prev.go_1_26.overrideAttrs
     (finalAttrs: previousAttrs: rec {
-      version = "1.26.0";
+      version = "1.26.2";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-yRMqih9r0qpKrR10uCMdlSdJUEg6SVBlfubFbm6Bd5A=";
+        sha256 = "sha256-LpHrtpR6lulDb7KzkmqIAu/mOm03Xf/sT4Kqnb1v1Ds=";
       };
 
     });
@@ -51,17 +51,19 @@ final: prev: rec {
     };
   };
 
-  govulncheck = prev.govulncheck.overrideAttrs (oldAttrs: rec {
-    version = "v1.1.4";
+  govulncheck = final.buildGoModule rec {
+    pname = "govulncheck";
+    version = "1.1.4";
     src = final.fetchFromGitHub {
       owner = "golang";
       repo = "vuln";
-      rev = "${version}";
+      rev = "v${version}";
       sha256 = "sha256-d1JWh/K+65p0TP5vAQbSyoatjN4L5nm3VEA+qBSrkAA=";
     };
     vendorHash = "sha256-MSTKDeWVxD2Fa6fNoku4EwFwC90XZ5acnM67crcgXDg=";
+    subPackages = [ "cmd/govulncheck" ];
     doCheck = false;
-  });
+  };
 
   gqlgen = prev.gqlgen.overrideAttrs (oldAttrs: rec {
     version = "0.17.86";
@@ -93,6 +95,27 @@ final: prev: rec {
       license = licenses.mit;
       maintainers = [ "@nhost" ];
     };
+  };
+
+  govulncheck-wrapper = final.buildGoModule {
+    pname = "govulncheck-wrapper";
+    version = "0.0.0-dev";
+    src = nix-filter.lib.filter {
+      root = self;
+      include = with nix-filter.lib;[
+        "go.mod"
+        "go.sum"
+        (inDirectory "vendor")
+        isDirectory
+        (and
+          (inDirectory "tools/govulncheck-wrapper")
+          (matchExt "go")
+        )
+      ];
+    };
+    vendorHash = null;
+    subPackages = [ "tools/govulncheck-wrapper" ];
+    doCheck = false;
   };
 
   oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: {

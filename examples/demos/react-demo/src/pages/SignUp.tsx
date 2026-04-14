@@ -6,6 +6,7 @@ import MagicLinkForm from '../components/MagicLinkForm';
 import TabForm from '../components/TabForm';
 import WebAuthnSignUpForm from '../components/WebAuthnSignUpForm';
 import { useAuth } from '../lib/nhost/AuthProvider';
+import { generateAndStorePKCE } from '../lib/utils';
 
 export default function SignUp(): JSX.Element {
   const { nhost, isAuthenticated } = useAuth();
@@ -35,6 +36,8 @@ export default function SignUp(): JSX.Element {
     setSuccess(false);
 
     try {
+      const { challenge } = await generateAndStorePKCE();
+
       const response = await nhost.auth.signUpEmailPassword({
         email,
         password,
@@ -42,6 +45,7 @@ export default function SignUp(): JSX.Element {
           displayName,
           redirectTo: `${window.location.origin}/verify`,
         },
+        codeChallenge: challenge,
       });
 
       if (response.body?.session) {
@@ -59,14 +63,15 @@ export default function SignUp(): JSX.Element {
     }
   };
 
-  const handleSocialSignIn = (provider: 'github') => {
-    // Get the current origin (to build the redirect URL)
+  const handleSocialSignIn = async (provider: 'github') => {
     const origin = window.location.origin;
     const redirectUrl = `${origin}/verify`;
 
-    // Sign in with the specified provider
+    const { challenge } = await generateAndStorePKCE();
+
     const url = nhost.auth.signInProviderURL(provider, {
       redirectTo: redirectUrl,
+      codeChallenge: challenge,
     });
 
     window.location.href = url;

@@ -8,6 +8,8 @@ import {
   mailHogSearch,
   deleteAllMailHogEmails,
   expectUrlParameters,
+  generatePKCE,
+  verifyEmailAndExchangePKCE,
 } from '../../utils';
 
 // TODO: test options
@@ -194,6 +196,87 @@ describe('email-password', () => {
         password: '1234567',
       })
       .expect(StatusCodes.BAD_REQUEST);
+  });
+
+  it('should deanonymize user with email-password using PKCE', async () => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
+    const { body }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    const { accessToken } = body.session;
+
+    const email = 'pkce-deanon@example.com';
+    const password = '123123123';
+    const pkce = generatePKCE();
+
+    await request
+      .post('/user/deanonymize')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        signInMethod: 'email-password',
+        email,
+        password,
+        codeChallenge: pkce.challenge,
+      })
+      .expect(StatusCodes.OK);
+
+    await verifyEmailAndExchangePKCE(email, pkce);
+
+    // should be able to sign in after verification
+    await request
+      .post('/signin/email-password')
+      .send({ email, password })
+      .expect(StatusCodes.OK);
+  });
+
+  it('should deanonymize user with magic-link using PKCE', async () => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
+    const { body }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    const { accessToken } = body.session;
+
+    const email = 'pkce-deanon-magic@example.com';
+    const pkce = generatePKCE();
+
+    await request
+      .post('/user/deanonymize')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        signInMethod: 'passwordless',
+        connection: 'email',
+        email,
+        password: '1234567',
+        codeChallenge: pkce.challenge,
+      })
+      .expect(StatusCodes.OK);
+
+    await verifyEmailAndExchangePKCE(email, pkce);
   });
 
   it('should fail to deanonymize user with already existing email', async () => {

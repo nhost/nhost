@@ -354,6 +354,9 @@ request<TResponseData, TVariables>(
 
 Execute a GraphQL query operation using a typed document node
 
+Duplicate fragment definitions are deduplicated on a best-effort basis
+when the document's definition nodes include `loc` offsets.
+
 ##### Type Parameters
 
 | Type Parameter  | Default type                            |
@@ -386,7 +389,7 @@ Represents a GraphQL error returned from the server.
 #### extensions?
 
 ```ts
-optional extensions: object;
+optional extensions?: object;
 ```
 
 Additional error information specific to the GraphQL implementation
@@ -399,7 +402,7 @@ Additional error information specific to the GraphQL implementation
 #### locations?
 
 ```ts
-optional locations: object[];
+optional locations?: object[];
 ```
 
 Source locations in the GraphQL document where the error occurred
@@ -420,7 +423,7 @@ Error message
 #### path?
 
 ```ts
-optional path: string[];
+optional path?: string[];
 ```
 
 Path in the query where the error occurred
@@ -442,7 +445,7 @@ GraphQL request object used for queries and mutations.
 #### operationName?
 
 ```ts
-optional operationName: string;
+optional operationName?: string;
 ```
 
 Optional name of the operation to execute
@@ -458,7 +461,7 @@ The GraphQL query or mutation string
 #### variables?
 
 ```ts
-optional variables: TVariables;
+optional variables?: TVariables;
 ```
 
 Optional variables for parameterized queries
@@ -480,7 +483,7 @@ Standard GraphQL response format as defined by the GraphQL specification.
 #### data?
 
 ```ts
-optional data: TResponseData;
+optional data?: TResponseData;
 ```
 
 The data returned from successful execution
@@ -488,7 +491,7 @@ The data returned from successful execution
 #### errors?
 
 ```ts
-optional errors: GraphQLError[];
+optional errors?: GraphQLError[];
 ```
 
 Array of errors if execution was unsuccessful or partially successful
@@ -509,7 +512,7 @@ Key-value pairs of variable names and their values.
 ## createAPIClient()
 
 ```ts
-function createAPIClient(url: string, chainFunctions: ChainFunction[]): Client
+function createAPIClient(url: string, chainFunctions?: ChainFunction[]): Client
 ```
 
 Creates a GraphQL API client for interacting with a GraphQL endpoint.
