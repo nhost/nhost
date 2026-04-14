@@ -14,6 +14,7 @@ import Communities from './pages/Communities';
 import Consent from './pages/Consent';
 import Functions from './pages/Functions';
 import Home from './pages/Home';
+import Notifications from './pages/Notifications';
 import OAuth2Providers from './pages/OAuth2Providers';
 import Profile from './pages/Profile';
 import SignIn from './pages/SignIn';
@@ -68,6 +69,7 @@ const router = createBrowserRouter(
         <Route path="todos" element={<Todos />} />
         <Route path="upload" element={<Upload />} />
         <Route path="communities" element={<Communities />} />
+        <Route path="notifications" element={<Notifications />} />
         <Route path="functions" element={<Functions />} />
         <Route path="oauth2-providers" element={<OAuth2Providers />} />
       </Route>
