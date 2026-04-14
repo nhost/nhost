@@ -8,7 +8,3 @@ export interface NhostFunction {
   functionName: string;
   createdWithCommitSha: string;
 }
-
-export interface NhostFunctionsMetadata {
-  functions: NhostFunction[];
-}

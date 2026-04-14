@@ -31018,6 +31018,7 @@ export type JwtSecretFragment = { __typename?: 'ConfigJWTSecret', issuer?: strin
 
 export type GetEnvironmentVariablesQueryVariables = Exact<{
   appId: Scalars['uuid'];
+  resolve?: InputMaybe<Scalars['Boolean']>;
 }>;
 
 
@@ -33946,8 +33947,8 @@ export function refetchDnsLookupCnameQuery(variables: DnsLookupCnameQueryVariabl
       return { query: DnsLookupCnameDocument, variables: variables }
     }
 export const GetEnvironmentVariablesDocument = gql`
-    query GetEnvironmentVariables($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+    query GetEnvironmentVariables($appId: uuid!, $resolve: Boolean = false) {
+  config(appID: $appId, resolve: $resolve) {
     id: __typename
     __typename
     global {
@@ -33980,6 +33981,7 @@ ${JwtSecretFragmentDoc}`;
  * const { data, loading, error } = useGetEnvironmentVariablesQuery({
  *   variables: {
  *      appId: // value for 'appId'
+ *      resolve: // value for 'resolve'
  *   },
  * });
  */

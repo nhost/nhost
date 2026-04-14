@@ -1,8 +1,5 @@
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type {
-  NhostFunction,
-  NhostFunctionsMetadata,
-} from '@/features/orgs/projects/serverless-functions/types';
+import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
 import { useGetAppFunctionsMetadataQuery } from '@/utils/__generated__/graphql';
 
 export default function useGetNhostFunctions() {
@@ -13,11 +10,8 @@ export default function useGetNhostFunctions() {
     skip: !project?.id,
   });
 
-  const metadata = data?.app?.metadataFunctions as
-    | NhostFunctionsMetadata
-    | undefined;
-
-  const functions: NhostFunction[] = metadata?.functions ?? [];
+  const functions: NhostFunction[] =
+    (data?.app?.metadataFunctions as NhostFunction[] | undefined) ?? [];
 
   return {
     data: functions,

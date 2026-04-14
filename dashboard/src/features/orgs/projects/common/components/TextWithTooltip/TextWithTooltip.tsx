@@ -10,6 +10,8 @@ interface TextWithTooltipProps {
   text: string | number | ReactNode;
   className?: string;
   containerClassName?: string;
+  truncateMode?: 'end' | 'middle';
+  tailLength?: number;
   slotProps?: {
     container?: React.HTMLAttributes<HTMLDivElement>;
   };
@@ -19,6 +21,8 @@ export default function TextWithTooltip({
   text,
   containerClassName,
   className,
+  truncateMode = 'end',
+  tailLength = 4,
   slotProps,
 }: TextWithTooltipProps) {
   const [isTruncated, setIsTruncated] = useState<boolean>(false);
@@ -46,6 +50,37 @@ export default function TextWithTooltip({
       resizeObserver.disconnect();
     };
   }, []);
+
+  const textString =
+    typeof text === 'string' || typeof text === 'number' ? String(text) : '';
+  const isMiddle = truncateMode === 'middle' && textString.length > tailLength;
+
+  if (isMiddle) {
+    const startPart = textString.slice(0, -tailLength);
+    const endPart = textString.slice(-tailLength);
+
+    return (
+      <div className={containerClassName} {...slotProps?.container}>
+        <Tooltip>
+          <TooltipTrigger disabled={!isTruncated} asChild>
+            <div
+              className={cn(
+                'flex min-w-0 overflow-x-auto',
+                !isTruncated && 'pointer-events-none',
+                className,
+              )}
+            >
+              <div ref={textRef} className="truncate">
+                {startPart}
+              </div>
+              <div className="shrink-0">{endPart}</div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>{text}</TooltipContent>
+        </Tooltip>
+      </div>
+    );
+  }
 
   return (
     <div className={containerClassName} {...slotProps?.container}>

@@ -25,8 +25,8 @@ fragment JWTSecret on ConfigJWTSecret {
   allowed_skew
 }
 
-query GetEnvironmentVariables($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+query GetEnvironmentVariables($appId: uuid!, $resolve: Boolean = false) {
+  config(appID: $appId, resolve: $resolve) {
     id: __typename
     __typename
     global {

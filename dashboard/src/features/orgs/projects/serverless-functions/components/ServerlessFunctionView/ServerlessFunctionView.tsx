@@ -51,6 +51,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { Textarea } from '@/components/ui/v3/textarea';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -146,7 +147,7 @@ function MetadataCard({
 
 function MetadataRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between text-sm">
+    <div className="flex justify-between gap-2 text-sm">
       <span className="text-gray-600 dark:text-gray-400">{label}</span>
       <span className="font-mono text-gray-900 dark:text-gray-100">
         {value}
@@ -197,8 +198,26 @@ function OverviewTab({
         <MetadataCard title="Runtime" icon={Cpu}>
           <div className="space-y-2">
             <MetadataRow label="Runtime" value={fn.runtime} />
-            <MetadataRow label="Route" value={fn.route} />
-            <MetadataRow label="File" value={fn.path} />
+            <div className="flex justify-between gap-2 text-sm">
+              <span className="text-gray-600 dark:text-gray-400">Route</span>
+              <TextWithTooltip
+                containerClassName="min-w-0"
+                className="font-mono text-gray-900 dark:text-gray-100"
+                truncateMode="middle"
+                tailLength={12}
+                text={fn.route}
+              />
+            </div>
+            <div className="flex justify-between gap-2 text-sm">
+              <span className="text-gray-600 dark:text-gray-400">File</span>
+              <TextWithTooltip
+                containerClassName="min-w-0"
+                className="font-mono text-gray-900 dark:text-gray-100"
+                truncateMode="middle"
+                tailLength={12}
+                text={fn.path}
+              />
+            </div>
           </div>
         </MetadataCard>
 
@@ -221,12 +240,17 @@ function OverviewTab({
                 />
               </div>
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Checksum</span>
-              <div className="flex items-center gap-1">
-                <span className="max-w-32 truncate font-mono text-gray-900 text-xs dark:text-gray-100">
-                  {fn.checksum}
-                </span>
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="shrink-0 text-gray-600 dark:text-gray-400">
+                Checksum
+              </span>
+              <div className="flex min-w-0 items-center gap-1">
+                <TextWithTooltip
+                  containerClassName="min-w-0"
+                  className="font-mono text-gray-900 text-xs dark:text-gray-100"
+                  truncateMode="middle"
+                  text={fn.checksum}
+                />
                 <CopyToClipboardButton
                   textToCopy={fn.checksum}
                   title="Copy checksum"
@@ -450,7 +474,7 @@ function KeyValueEditor({
               )}
             </div>
             {isLocked ? (
-              <div className="flex h-8 shrink-0 items-center justify-center px-4 text-muted-foreground">
+              <div className="flex h-9 shrink-0 items-center justify-center px-4 text-muted-foreground">
                 <Lock className="size-4" />
               </div>
             ) : (
@@ -671,9 +695,11 @@ const HEADER_NAME_SUGGESTIONS: HeaderNameSuggestion[] = [
 function ExecuteTab({
   endpointUrl,
   envVarSuggestions = [],
+  resolvedSecrets = {},
 }: {
   endpointUrl: string;
   envVarSuggestions?: EnvVarSuggestion[];
+  resolvedSecrets?: Record<string, string>;
 }) {
   const [method, setMethod] = useState<HttpMethod>('GET');
   const [headers, setHeaders] = useState<KeyValuePair[]>([
@@ -732,7 +758,7 @@ function ExecuteTab({
     const headersObj: Record<string, string> = {};
     for (const h of headers) {
       if (h.key) {
-        headersObj[h.key] = h.value;
+        headersObj[h.key] = resolvedSecrets[h.value] ?? h.value;
       }
     }
 
@@ -780,6 +806,13 @@ function ExecuteTab({
         responseHeaders[key] = value;
       });
 
+      console.error(
+        '[Execute]',
+        res.status,
+        res.statusText,
+        responseHeaders,
+        responseBody,
+      );
       setResponse({
         status: res.ok ? 'success' : 'error',
         statusCode: res.status,
@@ -790,6 +823,7 @@ function ExecuteTab({
       });
     } catch (err) {
       const duration = Math.round(performance.now() - start);
+      console.error('[Execute] Network error:', err);
       setResponse({
         status: 'error',
         statusCode: 0,
@@ -808,6 +842,7 @@ function ExecuteTab({
     multipartFields,
     isFormEncoded,
     isMultipart,
+    resolvedSecrets,
   ]);
 
   return (
@@ -849,7 +884,16 @@ function ExecuteTab({
         </Select>
 
         <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-sm">
-          <span className="truncate">{endpointUrl}</span>
+          <TextWithTooltip
+            containerClassName="min-w-0"
+            truncateMode="middle"
+            tailLength={
+              endpointUrl.includes('nhost.run')
+                ? endpointUrl.length - endpointUrl.indexOf('nhost.run')
+                : 12
+            }
+            text={endpointUrl}
+          />
           <CopyToClipboardButton
             textToCopy={endpointUrl}
             title="Copy endpoint URL"
@@ -1088,6 +1132,12 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
+  const { data: resolvedEnvVarData } = useGetEnvironmentVariablesQuery({
+    variables: { appId: project?.id, resolve: true },
+    fetchPolicy: 'cache-and-network',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
   const envVarSuggestions = useMemo(() => {
     if (!envVarData?.config) {
       return [];
@@ -1121,6 +1171,35 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
 
     return suggestions;
   }, [envVarData]);
+
+  const resolvedSecrets = useMemo(() => {
+    if (!envVarData?.config || !resolvedEnvVarData?.config) {
+      return {};
+    }
+
+    const map: Record<string, string> = {};
+    const unresolved = envVarData.config.hasura || {};
+    const resolved = resolvedEnvVarData.config.hasura || {};
+
+    if (unresolved.webhookSecret && resolved.webhookSecret) {
+      map[unresolved.webhookSecret] = resolved.webhookSecret;
+    }
+    if (unresolved.adminSecret && resolved.adminSecret) {
+      map[unresolved.adminSecret] = resolved.adminSecret;
+    }
+
+    const unresolvedEnvs = envVarData.config.global?.environment ?? [];
+    const resolvedEnvs = resolvedEnvVarData.config.global?.environment ?? [];
+
+    for (const env of unresolvedEnvs) {
+      const resolvedEnv = resolvedEnvs.find((r) => r.name === env.name);
+      if (resolvedEnv && env.value !== resolvedEnv.value) {
+        map[env.value] = resolvedEnv.value;
+      }
+    }
+
+    return map;
+  }, [envVarData, resolvedEnvVarData]);
 
   const customDomainFqdn =
     customDomainData?.config?.functions?.resources?.networking?.ingresses?.[0]
@@ -1165,6 +1244,7 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
           <ExecuteTab
             endpointUrl={defaultEndpointUrl}
             envVarSuggestions={envVarSuggestions}
+            resolvedSecrets={resolvedSecrets}
           />
         )}
       </div>

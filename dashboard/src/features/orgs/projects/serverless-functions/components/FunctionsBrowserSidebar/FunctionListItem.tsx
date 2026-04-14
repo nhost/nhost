@@ -50,11 +50,15 @@ export default function FunctionListItem({
               className={cn('!truncate text-sm+', {
                 'text-primary-main': isSelected,
               })}
+              truncateMode="middle"
+              tailLength={12}
               text={nhostFunction.route}
             />
             <TextWithTooltip
               containerClassName="w-full"
               className="!truncate text-muted-foreground text-xs"
+              truncateMode="middle"
+              tailLength={12}
               text={nhostFunction.path}
             />
           </Link>
