@@ -22,7 +22,6 @@ const allFilters: DataBrowserSidebarFilterType[] = [
   'ORDINARY TABLE',
   'ENUM',
   'VIEW',
-  'MATERIALIZED VIEW',
   'FUNCTION',
   'FOREIGN TABLE',
 ];
@@ -41,7 +40,9 @@ export default function DatabaseObjectTypeFilterBar({
   const hasActiveFilters = activeFilters.size > 0;
 
   return (
-    <div className="flex w-full items-center gap-0.5 px-1">
+    <div className="flex w-full flex-col gap-1 px-1">
+      <span className="text-muted-foreground text-xs">Filter by:</span>
+      <div className="flex items-center gap-0.5">
       {allFilters.map((filterType) => {
         const isEnum = filterType === 'ENUM';
         const type = isEnum ? 'ORDINARY TABLE' : filterType;
@@ -79,7 +80,7 @@ export default function DatabaseObjectTypeFilterBar({
               className="ml-auto h-7 w-7 text-muted-foreground hover:text-foreground"
               onClick={onClear}
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="size-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom" sideOffset={4}>
@@ -87,6 +88,7 @@ export default function DatabaseObjectTypeFilterBar({
           </TooltipContent>
         </Tooltip>
       )}
+      </div>
     </div>
   );
 }

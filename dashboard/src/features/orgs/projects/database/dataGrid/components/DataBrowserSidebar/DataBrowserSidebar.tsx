@@ -166,8 +166,14 @@ function DataBrowserSidebarContent({
       const next = new Set(prev);
       if (next.has(type)) {
         next.delete(type);
+        if (type === 'VIEW') {
+          next.delete('MATERIALIZED VIEW');
+        }
       } else {
         next.add(type);
+        if (type === 'VIEW') {
+          next.add('MATERIALIZED VIEW');
+        }
       }
       return next;
     });
