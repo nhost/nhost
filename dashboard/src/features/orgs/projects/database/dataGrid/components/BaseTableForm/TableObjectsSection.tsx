@@ -29,7 +29,9 @@ export interface TableObjectsSectionProps {
 
 function CheckConstraintsList({
   constraints,
-}: { constraints: TableConstraint[] }) {
+}: {
+  constraints: TableConstraint[];
+}) {
   if (constraints.length === 0) {
     return (
       <Text className="text-muted-foreground text-sm+">
