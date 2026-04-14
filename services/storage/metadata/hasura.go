@@ -129,7 +129,7 @@ func (h *Hasura) InitializeFile(
 	fileID, name string, size int64, bucketID, mimeType string,
 	headers http.Header,
 ) *controller.APIError {
-	_, err := h.cl.InsertFile(
+	resp, err := h.cl.InsertFile(
 		ctx,
 		FilesInsertInput{ //nolint:exhaustruct
 			BucketID: new(bucketID),
@@ -143,6 +143,10 @@ func (h *Hasura) InitializeFile(
 	if err != nil {
 		aerr := parseGraphqlError(err)
 		return aerr.ExtendError("problem initializing file metadata")
+	}
+
+	if resp.InsertFiles == nil || resp.InsertFiles.AffectedRows != 1 {
+		return controller.ForbiddenError(nil, "file was not inserted")
 	}
 
 	return nil
