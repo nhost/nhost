@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
@@ -61,7 +61,6 @@ import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functi
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
 import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 
 type HttpMethod =
   | 'GET'
@@ -75,18 +74,6 @@ type HttpMethod =
 interface KeyValuePair {
   key: string;
   value: string;
-}
-
-interface EnvVarSuggestion {
-  name: string;
-  value: string;
-  isSystem: boolean;
-}
-
-interface HeaderNameSuggestion {
-  label: string;
-  value: string;
-  envVarName?: string;
 }
 
 interface MultipartField {
@@ -287,22 +274,13 @@ function KeyValueEditor({
   lockedKeys = [],
   keyPlaceholder = 'Key',
   valuePlaceholder = 'Value',
-  envVarSuggestions,
-  headerNameSuggestions,
 }: {
   pairs: KeyValuePair[];
   onChange: (pairs: KeyValuePair[]) => void;
   lockedKeys?: string[];
   keyPlaceholder?: string;
   valuePlaceholder?: string;
-  envVarSuggestions?: EnvVarSuggestion[];
-  headerNameSuggestions?: HeaderNameSuggestion[];
 }) {
-  const [focusedValueIndex, setFocusedValueIndex] = useState<number | null>(
-    null,
-  );
-  const [focusedKeyIndex, setFocusedKeyIndex] = useState<number | null>(null);
-
   const addRow = () => {
     onChange([...pairs, { key: '', value: '' }]);
   };
@@ -324,155 +302,25 @@ function KeyValueEditor({
           (k) => k.toLowerCase() === pair.key.toLowerCase(),
         );
 
-        const hasValueSuggestions =
-          envVarSuggestions && envVarSuggestions.length > 0 && !isLocked;
-        const normalizedValueSearch = pair.value.toLowerCase();
-        const filteredValueSuggestions = hasValueSuggestions
-          ? normalizedValueSearch === ''
-            ? envVarSuggestions
-            : envVarSuggestions.filter(
-                (s) =>
-                  s.name.toLowerCase().includes(normalizedValueSearch) ||
-                  s.value.toLowerCase().includes(normalizedValueSearch),
-              )
-          : [];
-        const showValueSuggestions =
-          focusedValueIndex === index && filteredValueSuggestions.length > 0;
-
-        const usedHeaderNames = new Set(
-          pairs.filter((_, i) => i !== index).map((p) => p.key.toLowerCase()),
-        );
-        const hasKeySuggestions =
-          headerNameSuggestions &&
-          headerNameSuggestions.length > 0 &&
-          !isLocked;
-        const normalizedKeySearch = pair.key.toLowerCase();
-        const filteredKeySuggestions = hasKeySuggestions
-          ? (normalizedKeySearch === ''
-              ? headerNameSuggestions
-              : headerNameSuggestions.filter((s) =>
-                  s.label.toLowerCase().includes(normalizedKeySearch),
-                )
-            ).filter((s) => !usedHeaderNames.has(s.value.toLowerCase()))
-          : [];
-        const showKeySuggestions =
-          focusedKeyIndex === index && filteredKeySuggestions.length > 0;
-
         return (
           <div
             key={`pair-${index.toString()}`}
             className="flex items-center gap-2"
           >
-            <div className="relative">
-              <Input
-                placeholder={keyPlaceholder}
-                value={pair.key}
-                onChange={(e) => {
-                  setFocusedKeyIndex(index);
-                  updateRow(index, 'key', e.target.value);
-                }}
-                onFocus={() => setFocusedKeyIndex(index)}
-                onBlur={() => setTimeout(() => setFocusedKeyIndex(null), 100)}
-                className="h-8 font-mono text-sm"
-                disabled={isLocked}
-              />
-              {showKeySuggestions && (
-                <div className="absolute top-full right-0 left-0 z-20 mt-1 max-h-48 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
-                  <ul
-                    className="divide-y divide-border text-sm"
-                    onMouseDown={(e) => e.preventDefault()}
-                  >
-                    {filteredKeySuggestions.map((suggestion) => (
-                      <li key={suggestion.value}>
-                        <button
-                          type="button"
-                          tabIndex={-1}
-                          className="w-full cursor-pointer border-none bg-transparent px-3 py-2 text-left hover:bg-accent"
-                          onClick={() => {
-                            const updated = [...pairs];
-                            updated[index] = {
-                              ...updated[index],
-                              key: suggestion.value,
-                            };
-                            if (suggestion.envVarName && envVarSuggestions) {
-                              const envVar = envVarSuggestions.find(
-                                (e) => e.name === suggestion.envVarName,
-                              );
-                              if (envVar) {
-                                updated[index].value = envVar.value;
-                              }
-                            }
-                            onChange(updated);
-                            setFocusedKeyIndex(null);
-                          }}
-                        >
-                          <div className="font-medium font-mono text-xs">
-                            {suggestion.label}
-                          </div>
-                          {suggestion.envVarName && (
-                            <div className="text-muted-foreground text-xs">
-                              from {suggestion.envVarName}
-                            </div>
-                          )}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-            <div className="relative max-w-md flex-1">
-              <Input
-                placeholder={valuePlaceholder}
-                value={pair.value}
-                onChange={(e) => {
-                  setFocusedValueIndex(index);
-                  updateRow(index, 'value', e.target.value);
-                }}
-                onFocus={() => setFocusedValueIndex(index)}
-                onBlur={() => setTimeout(() => setFocusedValueIndex(null), 100)}
-                className="h-8 font-mono text-sm"
-                disabled={isLocked}
-              />
-              {showValueSuggestions && (
-                <div className="absolute top-full right-0 left-0 z-20 mt-1 max-h-48 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
-                  <ul
-                    className="divide-y divide-border text-sm"
-                    onMouseDown={(e) => e.preventDefault()}
-                  >
-                    {filteredValueSuggestions.map((suggestion) => (
-                      <li key={suggestion.name}>
-                        <button
-                          type="button"
-                          tabIndex={-1}
-                          className="w-full cursor-pointer border-none bg-transparent px-3 py-2 text-left hover:bg-accent"
-                          onClick={() => {
-                            updateRow(index, 'value', suggestion.value);
-                            setFocusedValueIndex(null);
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium font-mono text-xs">
-                              {suggestion.name}
-                            </span>
-                            {suggestion.isSystem && (
-                              <span className="rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">
-                                System
-                              </span>
-                            )}
-                          </div>
-                          <div className="truncate text-muted-foreground text-xs">
-                            {suggestion.value.length > 24
-                              ? `${suggestion.value.slice(0, 24)}...`
-                              : suggestion.value}
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+            <Input
+              placeholder={keyPlaceholder}
+              value={pair.key}
+              onChange={(e) => updateRow(index, 'key', e.target.value)}
+              className="h-8 font-mono text-sm"
+              disabled={isLocked}
+            />
+            <Input
+              placeholder={valuePlaceholder}
+              value={pair.value}
+              onChange={(e) => updateRow(index, 'value', e.target.value)}
+              className="h-8 max-w-md flex-1 font-mono text-sm"
+              disabled={isLocked}
+            />
             {isLocked ? (
               <div className="flex h-9 shrink-0 items-center justify-center px-4 text-muted-foreground">
                 <Lock className="size-4" />
@@ -684,23 +532,7 @@ function ResponseArea({ response }: { response: ResponseState }) {
   );
 }
 
-const HEADER_NAME_SUGGESTIONS: HeaderNameSuggestion[] = [
-  {
-    label: 'nhost-webhook-secret',
-    value: 'nhost-webhook-secret',
-    envVarName: 'NHOST_WEBHOOK_SECRET',
-  },
-];
-
-function ExecuteTab({
-  endpointUrl,
-  envVarSuggestions = [],
-  resolvedSecrets = {},
-}: {
-  endpointUrl: string;
-  envVarSuggestions?: EnvVarSuggestion[];
-  resolvedSecrets?: Record<string, string>;
-}) {
+function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
   const [method, setMethod] = useState<HttpMethod>('GET');
   const [headers, setHeaders] = useState<KeyValuePair[]>([
     { key: 'Content-Type', value: 'application/json' },
@@ -758,7 +590,7 @@ function ExecuteTab({
     const headersObj: Record<string, string> = {};
     for (const h of headers) {
       if (h.key) {
-        headersObj[h.key] = resolvedSecrets[h.value] ?? h.value;
+        headersObj[h.key] = h.value;
       }
     }
 
@@ -842,7 +674,6 @@ function ExecuteTab({
     multipartFields,
     isFormEncoded,
     isMultipart,
-    resolvedSecrets,
   ]);
 
   return (
@@ -935,8 +766,6 @@ function ExecuteTab({
             lockedKeys={['Content-Type']}
             keyPlaceholder="Header name"
             valuePlaceholder="Header value"
-            envVarSuggestions={envVarSuggestions}
-            headerNameSuggestions={HEADER_NAME_SUGGESTIONS}
           />
         </TabsContent>
         <TabsContent value="params" className="mt-3">
@@ -1126,81 +955,6 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { data: envVarData } = useGetEnvironmentVariablesQuery({
-    variables: { appId: project?.id },
-    fetchPolicy: 'cache-and-network',
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-
-  const { data: resolvedEnvVarData } = useGetEnvironmentVariablesQuery({
-    variables: { appId: project?.id, resolve: true },
-    fetchPolicy: 'cache-and-network',
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-
-  const envVarSuggestions = useMemo(() => {
-    if (!envVarData?.config) {
-      return [];
-    }
-
-    const suggestions: EnvVarSuggestion[] = [];
-    const { webhookSecret, adminSecret } = envVarData.config.hasura || {};
-
-    if (webhookSecret) {
-      suggestions.push({
-        name: 'NHOST_WEBHOOK_SECRET',
-        value: webhookSecret,
-        isSystem: true,
-      });
-    }
-    if (adminSecret) {
-      suggestions.push({
-        name: 'NHOST_ADMIN_SECRET',
-        value: adminSecret,
-        isSystem: true,
-      });
-    }
-
-    for (const env of envVarData.config.global?.environment ?? []) {
-      suggestions.push({
-        name: env.name,
-        value: env.value,
-        isSystem: false,
-      });
-    }
-
-    return suggestions;
-  }, [envVarData]);
-
-  const resolvedSecrets = useMemo(() => {
-    if (!envVarData?.config || !resolvedEnvVarData?.config) {
-      return {};
-    }
-
-    const map: Record<string, string> = {};
-    const unresolved = envVarData.config.hasura || {};
-    const resolved = resolvedEnvVarData.config.hasura || {};
-
-    if (unresolved.webhookSecret && resolved.webhookSecret) {
-      map[unresolved.webhookSecret] = resolved.webhookSecret;
-    }
-    if (unresolved.adminSecret && resolved.adminSecret) {
-      map[unresolved.adminSecret] = resolved.adminSecret;
-    }
-
-    const unresolvedEnvs = envVarData.config.global?.environment ?? [];
-    const resolvedEnvs = resolvedEnvVarData.config.global?.environment ?? [];
-
-    for (const env of unresolvedEnvs) {
-      const resolvedEnv = resolvedEnvs.find((r) => r.name === env.name);
-      if (resolvedEnv && env.value !== resolvedEnv.value) {
-        map[env.value] = resolvedEnv.value;
-      }
-    }
-
-    return map;
-  }, [envVarData, resolvedEnvVarData]);
-
   const customDomainFqdn =
     customDomainData?.config?.functions?.resources?.networking?.ingresses?.[0]
       ?.fqdn?.[0];
@@ -1240,13 +994,7 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
             }
           />
         )}
-        {tab === 'execute' && (
-          <ExecuteTab
-            endpointUrl={defaultEndpointUrl}
-            envVarSuggestions={envVarSuggestions}
-            resolvedSecrets={resolvedSecrets}
-          />
-        )}
+        {tab === 'execute' && <ExecuteTab endpointUrl={defaultEndpointUrl} />}
       </div>
     </div>
   );
