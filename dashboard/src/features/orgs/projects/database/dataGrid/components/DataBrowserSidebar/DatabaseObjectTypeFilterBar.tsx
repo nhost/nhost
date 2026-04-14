@@ -63,7 +63,7 @@ function FilterButton({
           <Icon className="h-3.5 w-3.5 text-primary" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom" sideOffset={0}>
+      <TooltipContent side="bottom" sideOffset={4}>
         {filterLabels[filterType]}
       </TooltipContent>
     </Tooltip>
