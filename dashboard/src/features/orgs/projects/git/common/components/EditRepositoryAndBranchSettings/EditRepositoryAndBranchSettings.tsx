@@ -6,7 +6,13 @@ import { QuestionMarkCircleIcon } from '@/components/ui/v2/icons/QuestionMarkCir
 import { Link } from '@/components/ui/v2/Link';
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 
-export default function EditRepositoryAndBranchSettings() {
+export interface EditRepositoryAndBranchSettingsProps {
+  disabled?: boolean;
+}
+
+export default function EditRepositoryAndBranchSettings({
+  disabled,
+}: EditRepositoryAndBranchSettingsProps) {
   const { register, formState } =
     useFormContext<EditRepositorySettingsFormData>();
 
@@ -16,7 +22,7 @@ export default function EditRepositoryAndBranchSettings() {
         <Box className="border-y py-3">
           <Input
             {...register('productionBranch', {
-              required: true,
+              required: !disabled,
               pattern: {
                 value: /^[a-zA-Z0-9-_/.]+$/,
                 message: 'Must contain only letters, hyphens, and numbers.',
@@ -24,9 +30,10 @@ export default function EditRepositoryAndBranchSettings() {
             })}
             id="productionBranch"
             label="Deployment Branch"
-            required
+            required={!disabled}
             variant="inline"
             fullWidth
+            disabled={disabled}
             error={Boolean(formState.errors?.productionBranch?.message)}
             helperText={formState.errors?.productionBranch?.message}
           />
@@ -34,7 +41,7 @@ export default function EditRepositoryAndBranchSettings() {
         <Box className="border-b py-3">
           <Input
             {...register('repoBaseFolder', {
-              required: true,
+              required: !disabled,
               pattern: {
                 value: /^[a-zA-Z0-9-_/.]+$/,
                 message: 'Must contain only letters, hyphens, and numbers.',
@@ -58,9 +65,10 @@ export default function EditRepositoryAndBranchSettings() {
                 </Link>
               </InputLabel>
             }
-            required
+            required={!disabled}
             variant="inline"
             fullWidth
+            disabled={disabled}
             error={Boolean(formState.errors?.repoBaseFolder?.message)}
             helperText={formState.errors?.repoBaseFolder?.message}
           />

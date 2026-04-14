@@ -1,10 +1,10 @@
 ---
 title: Connecting to GitHub
-description: Set up automatic deployments by connecting your Nhost project to GitHub
-keywords: ["GitHub", "CI/CD", "automatic deployment", "Git integration", "deployment branch", "migrations"]
+description: Set up deployments by connecting your Nhost project to GitHub
+keywords: ["GitHub", "CI/CD", "automatic deployment", "manual deployment", "Git integration", "deployment branch", "migrations", "CLI", "GitHub Actions"]
 ---
 
-By connecting your Nhost project to GitHub, you can set up a seamless CI/CD workflow that takes care of deploying your database migrations, GraphQL metadata, and serverless functions.
+By connecting your Nhost project to GitHub, you can deploy your database migrations, GraphQL metadata, and serverless functions — either automatically on every push or manually via the CLI or GitHub Actions.
 
 ## Getting Started
 
@@ -27,6 +27,15 @@ Don't worry - Nhost only requests the permissions it needs to deploy your projec
 
 After authorizing the GitHub integration, you'll need to tell Nhost a couple of important details:
 
+### Automatic vs Manual Deploys
+
+When connecting your repository you can choose between **automatic** and **manual** deployments:
+
+- **Automatic deploys** — every push to the deployment branch triggers a deployment automatically. This is the default.
+- **Manual deploys** — deployments are only triggered when you explicitly request them via the CLI or a GitHub Action. This gives you full control over when changes go live.
+
+You can change this setting at any time under **Settings** → **Git**.
+
 ### Base Directory
 
 This is the folder in your repository where your Nhost folder lives. If your Nhost folder is in the root of your repository, you can leave this as `/`. If it is in a subfolder (like `/backend`), specify that path here.
@@ -41,7 +50,7 @@ Choose which branch should trigger deployments when pushed to. This is typically
 
 Once everything is set up, here's what happens:
 
-1. You push code to your deployment branch
+1. You push code to your deployment branch (or trigger a deployment manually)
 2. We do the rest. We:
    1. Checkout your commit
    2. Deploy your `nhost.toml`
@@ -50,3 +59,67 @@ Once everything is set up, here's what happens:
    5. Deploy new or modified serverless functions
 
 You can head to your project's deployment tab to see your deployments and their logs.
+
+## Manual Deployments
+
+If you have automatic deploys disabled — or simply want to trigger a deployment on demand — you can use the Nhost CLI or a GitHub Action.
+
+### Using the CLI
+
+Use the `nhost deployments new` command to create a deployment for a specific git ref:
+
+```bash
+nhost deployments new \
+  --subdomain <your-subdomain> \
+  --ref <commit-sha> \
+  --message "your deploy message" \
+  --user <username> \
+  --follow
+```
+
+The `--follow` flag streams the deployment logs and waits for it to finish. If the deployment fails the command returns an error.
+
+Run `nhost deployments new --help` for the full list of options.
+
+### Using GitHub Actions
+
+You can use the `nhost-actions/deploy` action to trigger deployments from your CI/CD pipeline. Here's an example workflow:
+
+```yaml
+name: Deploy to Nhost
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: nhost-actions/install-nhost-cli@v1
+
+      - uses: nhost-actions/authenticate@v1
+        with:
+          pat: ${{ secrets.NHOST_PAT }}
+
+      - uses: nhost-actions/deploy@v1
+        with:
+          subdomain: <your-subdomain>
+```
+
+The action accepts the following inputs:
+
+| Input | Description | Required |
+|---|---|---|
+| `subdomain` | Your Nhost project subdomain | Yes |
+| `git_ref` | Git ref to deploy (defaults to the current commit SHA) | No |
+| `message` | Deploy message (defaults to the commit message) | No |
+| `user` | User that triggered the deploy (defaults to the GitHub actor) | No |
+| `user_avatar_url` | User avatar URL | No |
+| `timeout` | Timeout in seconds (default: `300`) | No |

@@ -151,7 +151,7 @@ describe('ProjectLayoutContent', () => {
   it('should not redirect to 404 when the query returns a GraphQL error', async () => {
     mocks.useRouter.mockImplementation(() => getUseRouterObject());
     server.use(
-      nhostGraphQLLink.query('getProjectState', () =>
+      nhostGraphQLLink.query('getProject', () =>
         HttpResponse.json({
           errors: [
             {

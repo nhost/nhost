@@ -61,11 +61,13 @@ export const mockApplication: Project = {
   },
   createdAt: new Date().toISOString(),
   deployments: [],
+  pipelineRuns: [],
   desiredState: ApplicationStatus.Live,
   featureFlags: [],
   githubRepository: { fullName: 'test/git-project' },
   repositoryProductionBranch: '',
   nhostBaseFolder: '',
+  automaticDeploys: true,
   legacyPlan: {
     id: '1',
     name: 'Starter',

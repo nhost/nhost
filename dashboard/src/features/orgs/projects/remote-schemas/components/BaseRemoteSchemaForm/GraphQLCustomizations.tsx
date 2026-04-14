@@ -90,7 +90,7 @@ export default function GraphQLCustomizations() {
         <Box className="space-y-2">
           <Box className="flex flex-row items-center space-x-2">
             <Text className="font-medium">Root Field Namespace</Text>
-            <Tooltip title="Root field type names will be prefixed by this name.">
+            <Tooltip title="Root field type names will be under this namespace.">
               <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
             </Tooltip>
           </Box>

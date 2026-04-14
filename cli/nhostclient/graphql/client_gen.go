@@ -158,59 +158,6 @@ func (t *GetHasuraAdminSecret_App) GetConfig() *GetHasuraAdminSecret_App_Config 
 	return t.Config
 }
 
-type ListDeployments_Deployments struct {
-	CommitMessage       *string    "json:\"commitMessage,omitempty\" graphql:\"commitMessage\""
-	CommitSha           string     "json:\"commitSHA\" graphql:\"commitSHA\""
-	CommitUserName      *string    "json:\"commitUserName,omitempty\" graphql:\"commitUserName\""
-	DeploymentEndedAt   *time.Time "json:\"deploymentEndedAt,omitempty\" graphql:\"deploymentEndedAt\""
-	DeploymentStartedAt *time.Time "json:\"deploymentStartedAt,omitempty\" graphql:\"deploymentStartedAt\""
-	DeploymentStatus    *string    "json:\"deploymentStatus,omitempty\" graphql:\"deploymentStatus\""
-	ID                  string     "json:\"id\" graphql:\"id\""
-}
-
-func (t *ListDeployments_Deployments) GetCommitMessage() *string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.CommitMessage
-}
-func (t *ListDeployments_Deployments) GetCommitSha() string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.CommitSha
-}
-func (t *ListDeployments_Deployments) GetCommitUserName() *string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.CommitUserName
-}
-func (t *ListDeployments_Deployments) GetDeploymentEndedAt() *time.Time {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.DeploymentEndedAt
-}
-func (t *ListDeployments_Deployments) GetDeploymentStartedAt() *time.Time {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.DeploymentStartedAt
-}
-func (t *ListDeployments_Deployments) GetDeploymentStatus() *string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.DeploymentStatus
-}
-func (t *ListDeployments_Deployments) GetID() string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.ID
-}
-
 type GetDeploymentLogs_DeploymentLogs struct {
 	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	ID        string    "json:\"id\" graphql:\"id\""
@@ -254,15 +201,167 @@ func (t *GetDeploymentLogs_Deployment) GetDeploymentStatus() *string {
 	return t.DeploymentStatus
 }
 
-type InsertDeployment_InsertDeployment struct {
-	ID string "json:\"id\" graphql:\"id\""
+type ListUnifiedDeployments_UnifiedDeployments struct {
+	AppID          *string    "json:\"appId,omitempty\" graphql:\"appId\""
+	CommitMessage  *string    "json:\"commitMessage,omitempty\" graphql:\"commitMessage\""
+	CommitSha      *string    "json:\"commitSHA,omitempty\" graphql:\"commitSHA\""
+	CommitUserName *string    "json:\"commitUserName,omitempty\" graphql:\"commitUserName\""
+	EndedAt        *time.Time "json:\"endedAt,omitempty\" graphql:\"endedAt\""
+	ID             *string    "json:\"id,omitempty\" graphql:\"id\""
+	Source         *string    "json:\"source,omitempty\" graphql:\"source\""
+	StartedAt      *time.Time "json:\"startedAt,omitempty\" graphql:\"startedAt\""
+	Status         *string    "json:\"status,omitempty\" graphql:\"status\""
 }
 
-func (t *InsertDeployment_InsertDeployment) GetID() string {
+func (t *ListUnifiedDeployments_UnifiedDeployments) GetAppID() *string {
 	if t == nil {
-		t = &InsertDeployment_InsertDeployment{}
+		t = &ListUnifiedDeployments_UnifiedDeployments{}
+	}
+	return t.AppID
+}
+func (t *ListUnifiedDeployments_UnifiedDeployments) GetCommitMessage() *string {
+	if t == nil {
+		t = &ListUnifiedDeployments_UnifiedDeployments{}
+	}
+	return t.CommitMessage
+}
+func (t *ListUnifiedDeployments_UnifiedDeployments) GetCommitSha() *string {
+	if t == nil {
+		t = &ListUnifiedDeployments_UnifiedDeployments{}
+	}
+	return t.CommitSha
+}
+func (t *ListUnifiedDeployments_UnifiedDeployments) GetCommitUserName() *string {
+	if t == nil {
+		t = &ListUnifiedDeployments_UnifiedDeployments{}
+	}
+	return t.CommitUserName
+}
+func (t *ListUnifiedDeployments_UnifiedDeployments) GetEndedAt() *time.Time {
+	if t == nil {
+		t = &ListUnifiedDeployments_UnifiedDeployments{}
+	}
+	return t.EndedAt
+}
+func (t *ListUnifiedDeployments_UnifiedDeployments) GetID() *string {
+	if t == nil {
+		t = &ListUnifiedDeployments_UnifiedDeployments{}
 	}
 	return t.ID
+}
+func (t *ListUnifiedDeployments_UnifiedDeployments) GetSource() *string {
+	if t == nil {
+		t = &ListUnifiedDeployments_UnifiedDeployments{}
+	}
+	return t.Source
+}
+func (t *ListUnifiedDeployments_UnifiedDeployments) GetStartedAt() *time.Time {
+	if t == nil {
+		t = &ListUnifiedDeployments_UnifiedDeployments{}
+	}
+	return t.StartedAt
+}
+func (t *ListUnifiedDeployments_UnifiedDeployments) GetStatus() *string {
+	if t == nil {
+		t = &ListUnifiedDeployments_UnifiedDeployments{}
+	}
+	return t.Status
+}
+
+type GetPipelineRun_PipelineRun struct {
+	AppID     *string               "json:\"appId,omitempty\" graphql:\"appId\""
+	CreatedAt time.Time             "json:\"createdAt\" graphql:\"createdAt\""
+	EndedAt   *time.Time            "json:\"endedAt,omitempty\" graphql:\"endedAt\""
+	ID        string                "json:\"id\" graphql:\"id\""
+	StartedAt *time.Time            "json:\"startedAt,omitempty\" graphql:\"startedAt\""
+	Status    PipelineRunStatusEnum "json:\"status\" graphql:\"status\""
+}
+
+func (t *GetPipelineRun_PipelineRun) GetAppID() *string {
+	if t == nil {
+		t = &GetPipelineRun_PipelineRun{}
+	}
+	return t.AppID
+}
+func (t *GetPipelineRun_PipelineRun) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetPipelineRun_PipelineRun{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetPipelineRun_PipelineRun) GetEndedAt() *time.Time {
+	if t == nil {
+		t = &GetPipelineRun_PipelineRun{}
+	}
+	return t.EndedAt
+}
+func (t *GetPipelineRun_PipelineRun) GetID() string {
+	if t == nil {
+		t = &GetPipelineRun_PipelineRun{}
+	}
+	return t.ID
+}
+func (t *GetPipelineRun_PipelineRun) GetStartedAt() *time.Time {
+	if t == nil {
+		t = &GetPipelineRun_PipelineRun{}
+	}
+	return t.StartedAt
+}
+func (t *GetPipelineRun_PipelineRun) GetStatus() *PipelineRunStatusEnum {
+	if t == nil {
+		t = &GetPipelineRun_PipelineRun{}
+	}
+	return &t.Status
+}
+
+type GetPipelineRunLogs_GetPipelineRunLogs struct {
+	Log       string    "json:\"log\" graphql:\"log\""
+	Task      string    "json:\"task\" graphql:\"task\""
+	Timestamp time.Time "json:\"timestamp\" graphql:\"timestamp\""
+}
+
+func (t *GetPipelineRunLogs_GetPipelineRunLogs) GetLog() string {
+	if t == nil {
+		t = &GetPipelineRunLogs_GetPipelineRunLogs{}
+	}
+	return t.Log
+}
+func (t *GetPipelineRunLogs_GetPipelineRunLogs) GetTask() string {
+	if t == nil {
+		t = &GetPipelineRunLogs_GetPipelineRunLogs{}
+	}
+	return t.Task
+}
+func (t *GetPipelineRunLogs_GetPipelineRunLogs) GetTimestamp() *time.Time {
+	if t == nil {
+		t = &GetPipelineRunLogs_GetPipelineRunLogs{}
+	}
+	return &t.Timestamp
+}
+
+type InsertPipelineRun_InsertPipelineRun struct {
+	AppID  *string               "json:\"appId,omitempty\" graphql:\"appId\""
+	ID     string                "json:\"id\" graphql:\"id\""
+	Status PipelineRunStatusEnum "json:\"status\" graphql:\"status\""
+}
+
+func (t *InsertPipelineRun_InsertPipelineRun) GetAppID() *string {
+	if t == nil {
+		t = &InsertPipelineRun_InsertPipelineRun{}
+	}
+	return t.AppID
+}
+func (t *InsertPipelineRun_InsertPipelineRun) GetID() string {
+	if t == nil {
+		t = &InsertPipelineRun_InsertPipelineRun{}
+	}
+	return t.ID
+}
+func (t *InsertPipelineRun_InsertPipelineRun) GetStatus() *PipelineRunStatusEnum {
+	if t == nil {
+		t = &InsertPipelineRun_InsertPipelineRun{}
+	}
+	return &t.Status
 }
 
 type DeleteRefreshToken_DeleteAuthRefreshTokens_Returning struct {
@@ -461,17 +560,6 @@ func (t *ReplaceConfigRawJSON) GetReplaceConfigRawJSON() string {
 	return t.ReplaceConfigRawJSON
 }
 
-type ListDeployments struct {
-	Deployments []*ListDeployments_Deployments "json:\"deployments\" graphql:\"deployments\""
-}
-
-func (t *ListDeployments) GetDeployments() []*ListDeployments_Deployments {
-	if t == nil {
-		t = &ListDeployments{}
-	}
-	return t.Deployments
-}
-
 type GetDeploymentLogs struct {
 	DeploymentLogs []*GetDeploymentLogs_DeploymentLogs "json:\"deploymentLogs\" graphql:\"deploymentLogs\""
 	Deployment     *GetDeploymentLogs_Deployment       "json:\"deployment,omitempty\" graphql:\"deployment\""
@@ -490,15 +578,48 @@ func (t *GetDeploymentLogs) GetDeployment() *GetDeploymentLogs_Deployment {
 	return t.Deployment
 }
 
-type InsertDeployment struct {
-	InsertDeployment *InsertDeployment_InsertDeployment "json:\"insertDeployment,omitempty\" graphql:\"insertDeployment\""
+type ListUnifiedDeployments struct {
+	UnifiedDeployments []*ListUnifiedDeployments_UnifiedDeployments "json:\"unifiedDeployments\" graphql:\"unifiedDeployments\""
 }
 
-func (t *InsertDeployment) GetInsertDeployment() *InsertDeployment_InsertDeployment {
+func (t *ListUnifiedDeployments) GetUnifiedDeployments() []*ListUnifiedDeployments_UnifiedDeployments {
 	if t == nil {
-		t = &InsertDeployment{}
+		t = &ListUnifiedDeployments{}
 	}
-	return t.InsertDeployment
+	return t.UnifiedDeployments
+}
+
+type GetPipelineRun struct {
+	PipelineRun *GetPipelineRun_PipelineRun "json:\"pipelineRun,omitempty\" graphql:\"pipelineRun\""
+}
+
+func (t *GetPipelineRun) GetPipelineRun() *GetPipelineRun_PipelineRun {
+	if t == nil {
+		t = &GetPipelineRun{}
+	}
+	return t.PipelineRun
+}
+
+type GetPipelineRunLogs struct {
+	GetPipelineRunLogs []*GetPipelineRunLogs_GetPipelineRunLogs "json:\"getPipelineRunLogs\" graphql:\"getPipelineRunLogs\""
+}
+
+func (t *GetPipelineRunLogs) GetGetPipelineRunLogs() []*GetPipelineRunLogs_GetPipelineRunLogs {
+	if t == nil {
+		t = &GetPipelineRunLogs{}
+	}
+	return t.GetPipelineRunLogs
+}
+
+type InsertPipelineRun struct {
+	InsertPipelineRun *InsertPipelineRun_InsertPipelineRun "json:\"insertPipelineRun,omitempty\" graphql:\"insertPipelineRun\""
+}
+
+func (t *InsertPipelineRun) GetInsertPipelineRun() *InsertPipelineRun_InsertPipelineRun {
+	if t == nil {
+		t = &InsertPipelineRun{}
+	}
+	return t.InsertPipelineRun
 }
 
 type DeleteRefreshToken struct {
@@ -724,36 +845,6 @@ func (c *Client) ReplaceConfigRawJSON(ctx context.Context, appID string, rawJSON
 	return &res, nil
 }
 
-const ListDeploymentsDocument = `query ListDeployments ($appID: uuid!) {
-	deployments(where: {appId:{_eq:$appID}}, order_by: {deploymentStartedAt:desc}, limit: 10) {
-		id
-		deploymentStartedAt
-		deploymentEndedAt
-		deploymentStatus
-		commitSHA
-		commitMessage
-		commitUserName
-	}
-}
-`
-
-func (c *Client) ListDeployments(ctx context.Context, appID string, interceptors ...clientv2.RequestInterceptor) (*ListDeployments, error) {
-	vars := map[string]any{
-		"appID": appID,
-	}
-
-	var res ListDeployments
-	if err := c.Client.Post(ctx, "ListDeployments", ListDeploymentsDocument, &res, vars, interceptors...); err != nil {
-		if c.Client.ParseDataWhenErrors {
-			return &res, err
-		}
-
-		return nil, err
-	}
-
-	return &res, nil
-}
-
 const GetDeploymentLogsDocument = `query GetDeploymentLogs ($deploymentID: uuid!) {
 	deploymentLogs(where: {deploymentId:{_eq:$deploymentID}}, order_by: {createdAt:asc}) {
 		id
@@ -784,20 +875,112 @@ func (c *Client) GetDeploymentLogs(ctx context.Context, deploymentID string, int
 	return &res, nil
 }
 
-const InsertDeploymentDocument = `mutation InsertDeployment ($object: deployments_insert_input!) {
-	insertDeployment(object: $object) {
+const ListUnifiedDeploymentsDocument = `query ListUnifiedDeployments ($appID: uuid!) {
+	unifiedDeployments(where: {appId:{_eq:$appID}}, order_by: {startedAt:desc}, limit: 10) {
 		id
+		appId
+		source
+		commitSHA
+		commitUserName
+		commitMessage
+		startedAt
+		endedAt
+		status
 	}
 }
 `
 
-func (c *Client) InsertDeployment(ctx context.Context, object DeploymentsInsertInput, interceptors ...clientv2.RequestInterceptor) (*InsertDeployment, error) {
+func (c *Client) ListUnifiedDeployments(ctx context.Context, appID string, interceptors ...clientv2.RequestInterceptor) (*ListUnifiedDeployments, error) {
+	vars := map[string]any{
+		"appID": appID,
+	}
+
+	var res ListUnifiedDeployments
+	if err := c.Client.Post(ctx, "ListUnifiedDeployments", ListUnifiedDeploymentsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetPipelineRunDocument = `query GetPipelineRun ($id: uuid!) {
+	pipelineRun(id: $id) {
+		id
+		status
+		startedAt
+		endedAt
+		appId
+		createdAt
+	}
+}
+`
+
+func (c *Client) GetPipelineRun(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetPipelineRun, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetPipelineRun
+	if err := c.Client.Post(ctx, "GetPipelineRun", GetPipelineRunDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetPipelineRunLogsDocument = `query GetPipelineRunLogs ($appID: String!, $pipelineRunID: String!, $from: Timestamp, $to: Timestamp) {
+	getPipelineRunLogs(appID: $appID, pipelineRunID: $pipelineRunID, from: $from, to: $to) {
+		timestamp
+		task
+		log
+	}
+}
+`
+
+func (c *Client) GetPipelineRunLogs(ctx context.Context, appID string, pipelineRunID string, from *time.Time, to *time.Time, interceptors ...clientv2.RequestInterceptor) (*GetPipelineRunLogs, error) {
+	vars := map[string]any{
+		"appID":         appID,
+		"pipelineRunID": pipelineRunID,
+		"from":          from,
+		"to":            to,
+	}
+
+	var res GetPipelineRunLogs
+	if err := c.Client.Post(ctx, "GetPipelineRunLogs", GetPipelineRunLogsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const InsertPipelineRunDocument = `mutation InsertPipelineRun ($object: pipelineRuns_insert_input!) {
+	insertPipelineRun(object: $object) {
+		id
+		status
+		appId
+	}
+}
+`
+
+func (c *Client) InsertPipelineRun(ctx context.Context, object PipelineRunsInsertInput, interceptors ...clientv2.RequestInterceptor) (*InsertPipelineRun, error) {
 	vars := map[string]any{
 		"object": object,
 	}
 
-	var res InsertDeployment
-	if err := c.Client.Post(ctx, "InsertDeployment", InsertDeploymentDocument, &res, vars, interceptors...); err != nil {
+	var res InsertPipelineRun
+	if err := c.Client.Post(ctx, "InsertPipelineRun", InsertPipelineRunDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -1067,9 +1250,11 @@ var DocumentOperationNames = map[string]string{
 	GetHasuraAdminSecretDocument:              "GetHasuraAdminSecret",
 	GetConfigRawJSONDocument:                  "GetConfigRawJSON",
 	ReplaceConfigRawJSONDocument:              "ReplaceConfigRawJSON",
-	ListDeploymentsDocument:                   "ListDeployments",
 	GetDeploymentLogsDocument:                 "GetDeploymentLogs",
-	InsertDeploymentDocument:                  "InsertDeployment",
+	ListUnifiedDeploymentsDocument:            "ListUnifiedDeployments",
+	GetPipelineRunDocument:                    "GetPipelineRun",
+	GetPipelineRunLogsDocument:                "GetPipelineRunLogs",
+	InsertPipelineRunDocument:                 "InsertPipelineRun",
 	DeleteRefreshTokenDocument:                "DeleteRefreshToken",
 	GetSecretsDocument:                        "GetSecrets",
 	CreateSecretDocument:                      "CreateSecret",

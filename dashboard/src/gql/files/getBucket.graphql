@@ -1,0 +1,12 @@
+query getBucket($id: String!) {
+  bucket(id: $id) {
+    id
+    minUploadFileSize
+    maxUploadFileSize
+    presignedUrlsEnabled
+    downloadExpiration
+    cacheControl
+    createdAt
+    updatedAt
+  }
+}

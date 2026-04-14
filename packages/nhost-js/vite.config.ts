@@ -1,5 +1,4 @@
 import { resolve } from 'node:path';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
 import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import { defineConfig } from 'vite';
 
@@ -37,11 +36,5 @@ export default defineConfig({
     minify: 'terser',
     cssCodeSplit: true,
   },
-  plugins: [
-    peerDepsExternal(),
-    nodeResolve({
-      browser: true,
-      preferBuiltins: true,
-    }),
-  ],
+  plugins: [peerDepsExternal()],
 });

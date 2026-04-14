@@ -6,6 +6,7 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 func (ctrl *Controller) deleteBrokenMetadata(
@@ -16,8 +17,10 @@ func (ctrl *Controller) deleteBrokenMetadata(
 		return nil, apiErr
 	}
 
+	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
+
 	for _, m := range missing {
-		if apiErr := ctrl.metadataStorage.DeleteFileByID(ctx, m.ID, nil); apiErr != nil {
+		if apiErr := ctrl.metadataStorage.DeleteFileByID(ctx, m.ID, sessionHeaders); apiErr != nil {
 			return nil, apiErr
 		}
 	}

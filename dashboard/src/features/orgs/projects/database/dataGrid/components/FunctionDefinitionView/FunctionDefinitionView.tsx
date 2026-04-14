@@ -4,7 +4,9 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { TrackFunctionButton } from '@/features/orgs/projects/database/dataGrid/components/TrackFunctionButton';
+import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
+import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
 
 export default function FunctionDefinitionView() {
   const router = useRouter();
@@ -36,6 +38,22 @@ export default function FunctionDefinitionView() {
   };
 
   const functionName = functionMetadata?.functionName;
+
+  const { data: isTracked } = useIsTrackedFunction({
+    dataSource,
+    schema,
+    functionName: functionName || '',
+    enabled: !!functionName,
+  });
+
+  const { data: functionConfig } = useFunctionCustomizationQuery({
+    function: { name: functionName || '', schema },
+    dataSource,
+  });
+
+  const effectiveExposedAs =
+    functionConfig?.configuration?.exposed_as ??
+    (functionMetadata?.functionType === 'VOLATILE' ? 'mutation' : 'query');
 
   if (status === 'loading') {
     return (
@@ -85,19 +103,32 @@ export default function FunctionDefinitionView() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="border-b p-4">
-        <div className="mb-4">
+        <div className="mb-8 flex flex-col gap-4">
           <TrackFunctionButton
             schema={schema}
             functionName={functionMetadata.functionName}
             returnTableName={functionMetadata.returnTableName}
             returnTableSchema={functionMetadata.returnTableSchema}
+            functionType={functionMetadata.functionType}
           />
-          <h2 className="font-semibold text-lg">Function Definition</h2>
-          <p className="text-muted-foreground text-sm">
-            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
-              {schema}.{functionName}
-            </InlineCode>
-          </p>
+          {isTracked && (
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
+              <span className="font-medium text-sm">Tracked in GraphQL</span>
+              <Badge variant="outline" className="font-medium">
+                Exposed as:{' '}
+                {effectiveExposedAs === 'mutation' ? 'Mutation' : 'Query'}
+              </Badge>
+            </div>
+          )}
+          <div>
+            <h2 className="font-semibold text-lg">Function Definition</h2>
+            <p className="text-muted-foreground text-sm">
+              <InlineCode className="bg-opacity-80 px-1.5 text-sm">
+                {schema}.{functionName}
+              </InlineCode>
+            </p>
+          </div>
         </div>
         <div className="rounded-md border bg-muted/30 p-4">
           <div className="mb-3">

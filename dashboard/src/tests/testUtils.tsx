@@ -210,8 +210,8 @@ export const mockPointerEvent = () => {
 export class TestUserEvent {
   private user: UserEvent;
 
-  constructor() {
-    this.user = userEvent.setup();
+  constructor(options?: Options) {
+    this.user = userEvent.setup(options);
   }
 
   async click(element: Element) {
@@ -224,9 +224,12 @@ export class TestUserEvent {
   }
 
   async type(element: Element, value: string, options?: TypeOptions) {
-    await waitFor(async () => {
-      await this.user.type(element, value, options);
-    });
+    await waitFor(
+      async () => {
+        await this.user.type(element, value, options);
+      },
+      { timeout: 10000 },
+    );
   }
 
   async keyboard(value: string) {

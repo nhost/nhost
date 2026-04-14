@@ -15,10 +15,10 @@ import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGit
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  useGetDeploymentsSubSubscription,
-  useScheduledOrPendingDeploymentsSubSubscription,
+  useGetUnifiedDeploymentsSubSubscription,
+  useLatestLiveUnifiedDeploymentSubSubscription,
+  usePendingOrRunningUnifiedDeploymentsSubSubscription,
 } from '@/utils/__generated__/graphql';
-import { getLastLiveDeployment } from '@/utils/helpers';
 
 function OverviewDeploymentsTopBar() {
   const { org } = useCurrentOrg();
@@ -50,24 +50,25 @@ function OverviewDeploymentList() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
 
-  const { data, loading } = useGetDeploymentsSubSubscription({
+  const { data, loading } = useGetUnifiedDeploymentsSubSubscription({
     variables: {
-      id: project?.id,
+      appId: project?.id,
       limit: 5,
       offset: 0,
     },
   });
 
-  const {
-    data: scheduledOrPendingDeploymentsData,
-    loading: scheduledOrPendingDeploymentsLoading,
-  } = useScheduledOrPendingDeploymentsSubSubscription({
-    variables: {
-      appId: project?.id,
-    },
-  });
+  const { data: latestLiveData, loading: latestLiveLoading } =
+    useLatestLiveUnifiedDeploymentSubSubscription({
+      variables: { appId: project?.id },
+    });
 
-  if (loading || scheduledOrPendingDeploymentsLoading) {
+  const { data: pendingOrRunningData, loading: pendingOrRunningLoading } =
+    usePendingOrRunningUnifiedDeploymentsSubSubscription({
+      variables: { appId: project?.id },
+    });
+
+  if (loading || latestLiveLoading || pendingOrRunningLoading) {
     return (
       <Box className="h-[323px] rounded-lg border-1 p-2">
         <ActivityIndicator label="Loading deployments..." />
@@ -75,9 +76,11 @@ function OverviewDeploymentList() {
     );
   }
 
-  const { deployments } = data || { deployments: [] };
+  const deployments = data?.unifiedDeployments ?? [];
+  const pendingOrRunning = pendingOrRunningData?.unifiedDeployments ?? [];
+  const liveId = latestLiveData?.unifiedDeployments[0]?.id ?? '';
 
-  if (!deployments?.length) {
+  if (!deployments.length) {
     return (
       <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 px-4 py-12 shadow-sm">
         <RocketIcon
@@ -122,28 +125,18 @@ function OverviewDeploymentList() {
     );
   }
 
-  const liveDeploymentId = getLastLiveDeployment(deployments);
-  const { deployments: scheduledOrPendingDeployments } =
-    scheduledOrPendingDeploymentsData || { deployments: [] };
-  const isDeploymentInProgress = deployments?.some((deployment) =>
-    ['PENDING', 'SCHEDULED'].includes(deployment.deploymentStatus as string),
-  );
-
   return (
     <List
       className="flex flex-col overflow-hidden rounded-lg rounded-x-lg"
       sx={{ borderColor: 'grey.300', borderWidth: 1 }}
     >
-      {deployments?.map((deployment, index) => (
-        <Fragment key={deployment.id}>
+      {deployments.map((item, index) => (
+        <Fragment key={item.id}>
           <DeploymentListItem
-            deployment={deployment}
-            isLive={deployment.id === liveDeploymentId}
+            deployment={item}
+            isLive={item.id === liveId}
             showRedeploy={index === 0}
-            disableRedeploy={
-              scheduledOrPendingDeployments?.length > 0 ||
-              isDeploymentInProgress
-            }
+            disableRedeploy={pendingOrRunning.length > 0}
           />
 
           {index !== deployments.length - 1 && <Divider component="li" />}

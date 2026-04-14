@@ -92,7 +92,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
-  await page.getByLabel('Table').click();
+  await page.getByRole('combobox', { name: 'Table' }).click();
   await page
     .getByRole('option', { name: firstRefTableName, exact: true })
     .click();
@@ -119,7 +119,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
-  await page.getByLabel('Table').click();
+  await page.getByRole('combobox', { name: 'Table' }).click();
   await page
     .getByRole('option', { name: secondRefTableName, exact: true })
     .click();
@@ -182,7 +182,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
-  await page.getByLabel('Table').click();
+  await page.getByRole('combobox', { name: 'Table' }).click();
   await page
     .getByRole('option', { name: thirdRefTableName, exact: true })
     .click();
@@ -269,7 +269,7 @@ test('should create table with multiple foreign keys pointing to the same column
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
-  await page.getByLabel('Table').click();
+  await page.getByRole('combobox', { name: 'Table' }).click();
   await page
     .getByRole('option', { name: addressTableName, exact: true })
     .click();
@@ -295,7 +295,7 @@ test('should create table with multiple foreign keys pointing to the same column
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
-  await page.getByLabel('Table').click();
+  await page.getByRole('combobox', { name: 'Table' }).click();
   await page
     .getByRole('option', { name: addressTableName, exact: true })
     .click();
