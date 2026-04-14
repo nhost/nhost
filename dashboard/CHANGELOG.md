@@ -1,3 +1,25 @@
+## [@nhost/dashboard@2.58.0] - 2026-04-13
+
+### 🚀 Features
+
+- *(dashboard)* Add function permissions settings (#3995)
+- *(dashboard)* Track volatile functions as GraphQL mutation (#4115)
+- *(cli)* Allow deploying using the cli/github actions (#4139)
+- *(dashboard)* Improve database sidebar with search and filters by object type (#4127)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Prevent remote schema type collisions in e2e tests (#4132)
+- *(dashboard)* Allow updating arrays in database (#4109)
+- *(dashboard)* Remove tsconfig-paths-webpack-plugin and vite-tsconfig-paths (#4128)
+- *(dashboard)* Fix redeploy button and commit SHA visibility in deployments list (#4145)
+
+
+### Chore
+
+- *(deps)* Bump next.js and sveltekit due to CVEs (#4143)
+
 ## [@nhost/dashboard@2.57.0] - 2026-04-09
 
 ### 🚀 Features
