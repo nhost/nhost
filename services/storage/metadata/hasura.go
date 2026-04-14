@@ -146,7 +146,7 @@ func (h *Hasura) InitializeFile(
 	}
 
 	if resp.InsertFiles == nil || resp.InsertFiles.AffectedRows != 1 {
-		return controller.ForbiddenError(nil, "file was not inserted")
+		return controller.ForbiddenError(errors.New("file was not inserted"), "file was not inserted")
 	}
 
 	return nil
