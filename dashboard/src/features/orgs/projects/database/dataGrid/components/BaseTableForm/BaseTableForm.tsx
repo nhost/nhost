@@ -193,7 +193,8 @@ export default function BaseTableForm({
   tableName,
 }: BaseTableFormProps) {
   const [openSections, setOpenSections] = useState<string[]>([
-    ...ACCORDION_SECTION_VALUES,
+    'columns',
+    'foreignKeys',
   ]);
 
   return (

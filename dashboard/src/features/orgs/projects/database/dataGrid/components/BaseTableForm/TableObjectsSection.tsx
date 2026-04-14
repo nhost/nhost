@@ -185,47 +185,38 @@ export default function TableObjectsSection({
 
   return (
     <>
-      <AccordionItem value="constraints">
-        <AccordionTrigger className="px-6 py-2 text-lg">
-          <div className="flex items-center gap-2">
-            <span>Check Constraints</span>
-            <Badge variant="secondary" className="text-sm">
-              {checkConstraints.length}
-            </Badge>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent className="px-6 pt-2 pb-4">
-          <CheckConstraintsList constraints={checkConstraints} />
-        </AccordionContent>
-      </AccordionItem>
+      {checkConstraints.length > 0 && (
+        <AccordionItem value="constraints">
+          <AccordionTrigger className="px-6 py-2 text-lg">
+            Check Constraints ({checkConstraints.length})
+          </AccordionTrigger>
+          <AccordionContent className="px-6 pt-2 pb-4">
+            <CheckConstraintsList constraints={checkConstraints} />
+          </AccordionContent>
+        </AccordionItem>
+      )}
 
-      <AccordionItem value="indexes">
-        <AccordionTrigger className="px-6 py-2 text-lg">
-          <div className="flex items-center gap-2">
-            <span>Indexes</span>
-            <Badge variant="secondary" className="text-sm">
-              {indexes.length}
-            </Badge>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent className="px-6 pt-2 pb-4">
-          <IndexesList indexes={indexes} />
-        </AccordionContent>
-      </AccordionItem>
+      {indexes.length > 0 && (
+        <AccordionItem value="indexes">
+          <AccordionTrigger className="px-6 py-2 text-lg">
+            Indexes ({indexes.length})
+          </AccordionTrigger>
+          <AccordionContent className="px-6 pt-2 pb-4">
+            <IndexesList indexes={indexes} />
+          </AccordionContent>
+        </AccordionItem>
+      )}
 
-      <AccordionItem value="triggers">
-        <AccordionTrigger className="px-6 py-2 text-lg">
-          <div className="flex items-center gap-2">
-            <span>Triggers</span>
-            <Badge variant="secondary" className="text-sm">
-              {triggers.length}
-            </Badge>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent className="px-6 pt-2 pb-4">
-          <TriggersList triggers={triggers} />
-        </AccordionContent>
-      </AccordionItem>
+      {triggers.length > 0 && (
+        <AccordionItem value="triggers">
+          <AccordionTrigger className="px-6 py-2 text-lg">
+            Triggers ({triggers.length})
+          </AccordionTrigger>
+          <AccordionContent className="px-6 pt-2 pb-4">
+            <TriggersList triggers={triggers} />
+          </AccordionContent>
+        </AccordionItem>
+      )}
     </>
   );
 }
