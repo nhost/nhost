@@ -41,7 +41,9 @@ export default function DatabaseObjectTypeFilterBar({
 
   return (
     <div className="flex w-full flex-col gap-1 px-1">
-      <span className="text-muted-foreground text-xs">Filter by:</span>
+      <span className="text-muted-foreground text-xs">
+        {hasActiveFilters ? 'Filter by:' : 'Showing all types'}
+      </span>
       <div className="flex items-center gap-0.5">
       {allFilters.map((filterType) => {
         const isEnum = filterType === 'ENUM';
@@ -57,8 +59,8 @@ export default function DatabaseObjectTypeFilterBar({
                 size="icon"
                 aria-label={`Toggle filter by ${filterLabels[filterType]}`}
                 className={cn('h-7 w-7', {
-                  'bg-accent': isActive,
-                  'opacity-40': !isActive,
+                  'bg-accent ring-1 ring-ring/50': isActive,
+                  'opacity-30': !isActive && hasActiveFilters,
                 })}
                 onClick={() => onToggleFilter(filterType)}
               >
