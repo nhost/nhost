@@ -21106,8 +21106,11 @@ export type PipelineRuns_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   endedAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  input?: Maybe<Scalars['jsonb']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   name?: Maybe<Scalars['String']>;
   startedAt?: Maybe<Scalars['timestamptz']>;
+  substatus?: Maybe<Scalars['jsonb']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -21117,8 +21120,11 @@ export type PipelineRuns_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   endedAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  input?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   startedAt?: InputMaybe<Order_By>;
+  substatus?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -21129,8 +21135,11 @@ export type PipelineRuns_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   endedAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  input?: Maybe<Scalars['jsonb']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   name?: Maybe<Scalars['String']>;
   startedAt?: Maybe<Scalars['timestamptz']>;
+  substatus?: Maybe<Scalars['jsonb']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -21140,8 +21149,11 @@ export type PipelineRuns_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   endedAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  input?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   startedAt?: InputMaybe<Order_By>;
+  substatus?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -22216,6 +22228,11 @@ export type Query_Root = {
   getEgressVolume: Metrics;
   getFunctionsDuration: Metrics;
   getFunctionsInvocations: Metrics;
+  /**
+   * Returns functions logs for a given application, filtered by function path.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   */
+  getFunctionsLogs: Array<Log>;
   getLogsVolume: Metrics;
   getPiTRBaseBackups: Array<PiTrBaseBackup>;
   /**
@@ -22308,7 +22325,7 @@ export type Query_Root = {
   pipelineRunStatus_aggregate: PipelineRunStatus_Aggregate;
   /** fetch data from the table: "pipeline_run_status" using primary key columns */
   pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
-  /** An array relationship */
+  /** fetch data from the table: "pipeline_runs" */
   pipelineRuns: Array<PipelineRuns>;
   /** fetch aggregated fields from the table: "pipeline_runs" */
   pipelineRunsAggregate: PipelineRuns_Aggregate;
@@ -23270,6 +23287,14 @@ export type Query_RootGetFunctionsDurationArgs = {
 export type Query_RootGetFunctionsInvocationsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetFunctionsLogsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  path: Scalars['String'];
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
@@ -26283,7 +26308,7 @@ export type Subscription_Root = {
   pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
   /** fetch data from the table in a streaming manner: "pipeline_run_status" */
   pipelineRunStatus_stream: Array<PipelineRunStatus>;
-  /** An array relationship */
+  /** fetch data from the table: "pipeline_runs" */
   pipelineRuns: Array<PipelineRuns>;
   /** fetch aggregated fields from the table: "pipeline_runs" */
   pipelineRunsAggregate: PipelineRuns_Aggregate;
