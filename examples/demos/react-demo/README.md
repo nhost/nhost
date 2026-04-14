@@ -8,16 +8,20 @@ This demo application showcases how to use the Nhost SDK with React.
 - **Multi-factor Authentication** — TOTP-based MFA and WebAuthn security keys
 - **Protected routes** — Centralized authentication checks using layout routes
 - **User profile management** — Display name, email, roles, session info, password change
-- **Todo management** — Full CRUD with GraphQL backend
+- **Todo management** — Full CRUD with GraphQL backend, stale todo detection (visual indicators and "mark as active" action)
 - **File uploads** — Upload, view, replace, delete files with presigned URL support and image transformations
-- **Communities** — Join communities, share and manage files within them
+- **Communities** — Join communities, share and manage files within them, inline-edit community descriptions
+- **Notifications** — Notification bell with unread count badge, notifications page with mark-as-read and mark-all-as-read, type badges (Community, Todos, Announcement)
+- **Event triggers** — Editing a community description triggers a notification to all community members (via Hasura event trigger + serverless function)
+- **Cron triggers** — Hourly cron job marks todos older than 7 days as stale and notifies affected users (via Hasura cron trigger + serverless function)
+- **One-off scheduled events** — Broadcast notifications to all users, created from the Hasura console (via one-off scheduled event + serverless function)
 - **Serverless functions** — Testing interface for various function patterns (echo, error handling, JWT verification, CORS, SDK queries)
 - **OAuth2 client management** — Create, edit, and delete OAuth2 clients with redirect URIs, scopes, and secret management
 - **OAuth2 consent page** — Authorization consent flow for third-party applications
 
 ## Project Structure
 
-- `/src/components` — Reusable UI components (navigation, auth forms, MFA settings, WebAuthn, etc.)
+- `/src/components` — Reusable UI components (navigation, notification bell, auth forms, MFA settings, WebAuthn, etc.)
 - `/src/lib/nhost` — Nhost SDK configuration and hooks
 - `/src/pages` — Application pages/routes
 - `/src/utils` — Utility functions
@@ -40,9 +44,10 @@ This demo application showcases how to use the Nhost SDK with React.
 | Path | Description |
 |------|-------------|
 | `/profile` | User profile, session info, MFA settings, security keys, password change |
-| `/todos` | Todo list management (CRUD) |
+| `/todos` | Todo list management (CRUD), stale todo indicators |
 | `/upload` | File upload and management |
-| `/communities` | Community management with file sharing |
+| `/communities` | Community management with file sharing, inline description editing |
+| `/notifications` | Notification center with type badges, mark-as-read |
 | `/functions` | Serverless functions testing interface |
 | `/oauth2-providers` | OAuth2 client administration |
 
@@ -81,6 +86,38 @@ Admin interface for managing OAuth2 clients:
 - Delete clients
 - Regenerate client secrets (displayed once upon creation)
 - Scopes are dynamically fetched from the OpenID configuration
+
+## Events & Notifications
+
+This demo showcases Hasura's three event trigger types, all feeding into a shared notifications system.
+
+### Notifications Infrastructure
+
+- `notifications` table stores per-user notifications with a type (`community_update`, `stale_todos`, `announcement`)
+- `NotificationBell` component in the nav bar polls for unread count every 30 seconds and on window focus
+- `/notifications` page lists all notifications with mark-as-read functionality
+
+### Event Trigger — Community Description Update
+
+When a user edits a community description, a Hasura event trigger fires the `functions/events/community-updated.ts` serverless function. It compares old/new values and inserts a notification for every community member (excluding the editor).
+
+### Cron Trigger — Stale Todo Nudge
+
+A Hasura cron trigger calls `functions/events/stale-todos.ts` on a schedule. The function finds incomplete todos not updated in 7+ days, marks them as `stale`, and creates one grouped notification per affected user. Stale todos display with a visual indicator in the UI and can be marked as active again.
+
+### One-off Scheduled Event — Broadcast Notification
+
+An admin can create a one-off scheduled event from the Hasura console pointing to `functions/events/broadcast-notification.ts`. The function receives a `{ title, message }` payload and inserts a notification for every active user in the system.
+
+### Backend Functions
+
+The serverless functions live in `examples/demos/backend/functions/events/`:
+
+| Function | Trigger Type | Purpose |
+|----------|-------------|---------|
+| `community-updated.ts` | Event trigger | Notify community members on description change |
+| `stale-todos.ts` | Cron trigger | Mark stale todos and notify users |
+| `broadcast-notification.ts` | One-off scheduled event | Send announcement to all users |
 
 ## Getting Started
 

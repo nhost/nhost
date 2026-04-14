@@ -7,6 +7,7 @@ interface Todo {
   title: string;
   details: string | null;
   completed: boolean;
+  stale: boolean;
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -49,6 +50,7 @@ export default function Todos(): JSX.Element {
               title
               details
               completed
+              stale
               created_at
               updated_at
               user_id
@@ -85,6 +87,7 @@ export default function Todos(): JSX.Element {
               title
               details
               completed
+              stale
               created_at
               updated_at
               user_id
@@ -118,7 +121,7 @@ export default function Todos(): JSX.Element {
 
   const updateTodo = async (
     id: string,
-    updates: Partial<Pick<Todo, 'title' | 'details' | 'completed'>>,
+    updates: Partial<Pick<Todo, 'title' | 'details' | 'completed' | 'stale'>>,
   ) => {
     try {
       const response = await nhost.graphql.request<UpdateTodo>({
@@ -129,6 +132,7 @@ export default function Todos(): JSX.Element {
               title
               details
               completed
+              stale
               created_at
               updated_at
               user_id
@@ -202,6 +206,10 @@ export default function Todos(): JSX.Element {
       title: editingTodo.title,
       details: editingTodo.details,
     });
+  };
+
+  const markAsActive = async (todo: Todo) => {
+    await updateTodo(todo.id, { stale: false });
   };
 
   const toggleTodoExpansion = (todoId: string) => {
@@ -393,7 +401,7 @@ export default function Todos(): JSX.Element {
                   key={todo.id}
                   className={`glass-card transition-all duration-200 ${
                     todo.completed ? 'opacity-75' : 'hover:shadow-lg'
-                  }`}
+                  } ${todo.stale && !todo.completed ? 'todo-stale' : ''}`}
                 >
                   {editingTodo?.id === todo.id ? (
                     /* Edit mode */
@@ -481,23 +489,53 @@ export default function Todos(): JSX.Element {
                     /* View mode */
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-2">
-                        <button
-                          type="button"
-                          className={`text-xl font-medium transition-all cursor-pointer hover:text-primary-hover text-left ${
-                            todo.completed
-                              ? 'line-through text-muted'
-                              : 'text-primary'
-                          }`}
-                          onClick={() => toggleTodoExpansion(todo.id)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                          }}
+                        <div
+                          className="flex items-center"
+                          style={{ gap: '8px' }}
                         >
-                          {todo.title}
-                        </button>
+                          <button
+                            type="button"
+                            className={`text-xl font-medium transition-all cursor-pointer hover:text-primary-hover text-left ${
+                              todo.completed
+                                ? 'line-through text-muted'
+                                : 'text-primary'
+                            }`}
+                            onClick={() => toggleTodoExpansion(todo.id)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: 0,
+                            }}
+                          >
+                            {todo.title}
+                          </button>
+                          {todo.stale && !todo.completed && (
+                            <span className="stale-badge">Stale</span>
+                          )}
+                        </div>
                         <div className="table-actions">
+                          {todo.stale && !todo.completed && (
+                            <button
+                              type="button"
+                              onClick={() => markAsActive(todo)}
+                              className="action-icon action-icon-warning"
+                              title="Mark as active"
+                            >
+                              <svg
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                />
+                              </svg>
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => toggleComplete(todo)}

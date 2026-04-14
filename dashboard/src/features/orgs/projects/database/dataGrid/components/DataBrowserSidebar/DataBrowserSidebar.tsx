@@ -1,9 +1,10 @@
-import { Lock, Plus, Terminal } from 'lucide-react';
+import { Lock, Plus, Search, Terminal } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import {
   Select,
   SelectContent,
@@ -16,12 +17,16 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
-import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  DataBrowserSidebarFilterType,
+  DatabaseObjectViewModel,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import DatabaseObjectListItem from './DatabaseObjectListItem';
+import DatabaseObjectTypeFilterBar from './DatabaseObjectTypeFilterBar';
 
 export interface DataBrowserSidebarContentProps {
   onSidebarItemClick?: (tablePath?: string) => void;
@@ -60,6 +65,10 @@ function DataBrowserSidebarContent({
   };
 
   const [selectedSchema, setSelectedSchema] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState<
+    Set<DataBrowserSidebarFilterType>
+  >(new Set());
   const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);
 
   const sqlEditorHref = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/editor`;
@@ -84,33 +93,29 @@ function DataBrowserSidebarContent({
   }, [schemaSlug, schemas, selectedSchema]);
 
   const allObjectsInSelectedSchema: DatabaseObjectViewModel[] =
-    sortDatabaseObjects(
-      [
-        ...(tableLikeObjects || [])
-          .filter(
-            (tableLikeObject) =>
-              tableLikeObject.table_schema === selectedSchema,
-          )
-          .map((tableLikeObject) => ({
-            schema: tableLikeObject.table_schema,
-            name: tableLikeObject.table_name,
-            objectType: tableLikeObject.table_type || 'ORDINARY TABLE',
-            updatability: tableLikeObject.updatability,
-          })),
-        ...(functions || [])
-          .filter(
-            (databaseFunction) =>
-              databaseFunction.function_schema === selectedSchema,
-          )
-          .map((databaseFunction) => ({
-            schema: databaseFunction.function_schema,
-            name: databaseFunction.function_name,
-            objectType: 'FUNCTION' as const,
-            oid: databaseFunction.function_oid,
-          })),
-      ],
-      enumTablePaths,
-    );
+    sortDatabaseObjects([
+      ...(tableLikeObjects || [])
+        .filter(
+          (tableLikeObject) => tableLikeObject.table_schema === selectedSchema,
+        )
+        .map((tableLikeObject) => ({
+          schema: tableLikeObject.table_schema,
+          name: tableLikeObject.table_name,
+          objectType: tableLikeObject.table_type || 'ORDINARY TABLE',
+          updatability: tableLikeObject.updatability,
+        })),
+      ...(functions || [])
+        .filter(
+          (databaseFunction) =>
+            databaseFunction.function_schema === selectedSchema,
+        )
+        .map((databaseFunction) => ({
+          schema: databaseFunction.function_schema,
+          name: databaseFunction.function_name,
+          objectType: 'FUNCTION' as const,
+          oid: databaseFunction.function_oid,
+        })),
+    ]);
 
   const dataBrowserActions = useDataBrowserActions({
     dataSourceSlug: dataSourceSlug as string,
@@ -122,13 +127,51 @@ function DataBrowserSidebarContent({
     allObjects: allObjectsInSelectedSchema,
   });
 
-  const displayedObjects = allObjectsInSelectedSchema.filter((obj) => {
-    const isFunc = obj.objectType === 'FUNCTION';
-    const objKey = isFunc
+  const searchFilteredObjects = searchQuery
+    ? allObjectsInSelectedSchema.filter((obj) =>
+        obj.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    : allObjectsInSelectedSchema;
+
+  const displayedObjects = searchFilteredObjects.filter((obj) => {
+    const isFunction = obj.objectType === 'FUNCTION';
+    const objKey = isFunction
       ? `FUNCTION.${obj.schema}.${obj.oid}`
       : `${obj.schema}.${obj.name}`;
-    return objKey !== dataBrowserActions.optimisticlyRemovedObject;
+
+    if (objKey === dataBrowserActions.optimisticlyRemovedObject) {
+      return false;
+    }
+
+    if (activeFilters.size === 0) {
+      return true;
+    }
+
+    const tablePath = `${obj.schema}.${obj.name}`;
+    if (obj.objectType === 'ORDINARY TABLE' && enumTablePaths?.has(tablePath)) {
+      return activeFilters.has('ENUM');
+    }
+
+    return activeFilters.has(obj.objectType);
   });
+
+  function handleSchemaChange(value: string) {
+    setSelectedSchema(value);
+    setSearchQuery('');
+    setActiveFilters(new Set());
+  }
+
+  function handleToggleFilter(type: DataBrowserSidebarFilterType) {
+    setActiveFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  }
 
   if (status === 'loading') {
     return (
@@ -150,11 +193,11 @@ function DataBrowserSidebarContent({
   }
 
   return (
-    <div className="flex h-full flex-col justify-between">
-      <div className="box flex flex-col px-2">
+    <div className="flex h-full flex-col">
+      <div className="flex shrink-0 flex-col gap-4 px-2">
         {schemas && schemas.length > 0 && (
-          <Select value={selectedSchema} onValueChange={setSelectedSchema}>
-            <SelectTrigger className="w-full min-w-[initial] max-w-[220px]">
+          <Select value={selectedSchema} onValueChange={handleSchemaChange}>
+            <SelectTrigger className="w-full min-w-[initial] max-w-full">
               <SelectValue placeholder="Is null?" />
             </SelectTrigger>
             <SelectContent>
@@ -177,10 +220,26 @@ function DataBrowserSidebarContent({
             </SelectContent>
           </Select>
         )}
+        <div>
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search objects..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-10 pl-8 text-sm"
+            />
+          </div>
+          <DatabaseObjectTypeFilterBar
+            activeFilters={activeFilters}
+            onToggleFilter={handleToggleFilter}
+            onClear={() => setActiveFilters(new Set())}
+          />
+        </div>
         {!isSelectedSchemaLocked && (
           <Button
             variant="link"
-            className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
+            className="!text-sm+ flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
             onClick={() => {
               dataBrowserActions.openCreateTableDrawer();
               onSidebarItemClick?.();
@@ -189,10 +248,13 @@ function DataBrowserSidebarContent({
             New Table <Plus className="h-4 w-4" />
           </Button>
         )}
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-2">
         {isNotEmptyValue(schemas) && isEmptyValue(displayedObjects) && (
           <p className="px-2 py-1.5 text-disabled text-xs">No objects found.</p>
         )}
-        <nav aria-label="Database navigation">
+        <nav className="mt-2" aria-label="Database navigation">
           {isNotEmptyValue(displayedObjects) && (
             <ul className="w-full max-w-full pb-6">
               {displayedObjects.map((databaseObject) => {
@@ -215,7 +277,7 @@ function DataBrowserSidebarContent({
         </nav>
       </div>
 
-      <div className="box border-t">
+      <div className="shrink-0 border-t">
         <Button
           size="sm"
           variant="link"

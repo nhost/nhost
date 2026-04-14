@@ -24,4 +24,40 @@ select_permissions:
         - name
         - description
         - created_at
+        - updated_at
       filter: {}
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - description
+      filter:
+        members:
+          user_id:
+            _eq: X-Hasura-User-Id
+      check:
+        members:
+          user_id:
+            _eq: X-Hasura-User-Id
+event_triggers:
+  - name: community_description_updated
+    definition:
+      enable_manual: true
+      update:
+        columns:
+          - description
+    retry_conf:
+      interval_sec: 10
+      num_retries: 3
+      timeout_sec: 60
+    webhook: '{{NHOST_FUNCTIONS_URL}}/events/community-updated'
+    headers:
+      - name: nhost-webhook-secret
+        value_from_env: NHOST_WEBHOOK_SECRET
+    cleanup_config:
+      batch_size: 10000
+      clean_invocation_logs: true
+      clear_older_than: 168
+      paused: false
+      schedule: 0 0 * * *
+      timeout: 60

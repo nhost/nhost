@@ -1,6 +1,10 @@
 query getBuckets {
-  buckets {
+  buckets(order_by: [{ id: asc }]) {
     id
+    minUploadFileSize
     maxUploadFileSize
+    presignedUrlsEnabled
+    downloadExpiration
+    cacheControl
   }
 }

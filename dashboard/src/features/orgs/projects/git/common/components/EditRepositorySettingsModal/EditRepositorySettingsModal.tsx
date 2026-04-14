@@ -3,11 +3,16 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
+import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { Switch } from '@/components/ui/v3/switch';
 import { EditRepositoryAndBranchSettings } from '@/features/orgs/projects/git/common/components/EditRepositoryAndBranchSettings';
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useConnectGithubRepoMutation } from '@/generated/graphql';
+import {
+  useConnectGithubRepoMutation,
+  useUpdateApplicationMutation,
+} from '@/generated/graphql';
 import { analytics } from '@/lib/segment';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
@@ -26,14 +31,19 @@ export default function EditRepositorySettingsModal({
   const {
     handleSubmit,
     watch,
+    setValue,
     formState: { isSubmitting },
   } = useFormContext<EditRepositorySettingsFormData>();
-  const isNotCompleted = !watch('productionBranch') || !watch('repoBaseFolder');
+  const automaticDeploys = watch('automaticDeploys');
+  const isNotCompleted =
+    automaticDeploys &&
+    (!watch('productionBranch') || !watch('repoBaseFolder'));
   const { closeAlertDialog } = useDialog();
 
   const { project, refetch: refetchProject } = useProject();
 
   const [connectGithubRepo, { loading }] = useConnectGithubRepoMutation();
+  const [updateApp] = useUpdateApplicationMutation();
 
   const handleEditGitHubIntegration = async (
     data: EditRepositorySettingsFormData,
@@ -43,8 +53,21 @@ export default function EditRepositorySettingsModal({
         variables: {
           appID: project?.id,
           githubNodeID: selectedRepoId,
-          productionBranch: data.productionBranch,
-          baseFolder: data.repoBaseFolder,
+          productionBranch: data.automaticDeploys
+            ? data.productionBranch
+            : data.productionBranch || 'main',
+          baseFolder: data.automaticDeploys
+            ? data.repoBaseFolder
+            : data.repoBaseFolder || 'nhost',
+        },
+      });
+
+      await updateApp({
+        variables: {
+          appId: project?.id,
+          app: {
+            automaticDeploys: data.automaticDeploys,
+          },
         },
       });
 
@@ -55,6 +78,7 @@ export default function EditRepositorySettingsModal({
         repositoryId: selectedRepoId,
         productionBranch: data.productionBranch,
         baseFolder: data.repoBaseFolder,
+        automaticDeploys: data.automaticDeploys,
       });
 
       await refetchProject();
@@ -85,8 +109,16 @@ export default function EditRepositorySettingsModal({
             : 'Edit your GitHub integration'}
         </Text>
         <Text className="text-center text-xs">
-          We&apos;ll deploy changes automatically when you push to the
-          deployment branch.
+          Connect your GitHub repository to enable deployments.{' '}
+          <Link
+            href="https://docs.nhost.io/platform/cloud/git"
+            rel="noopener noreferrer"
+            target="_blank"
+            className="text-xs"
+            underline="hover"
+          >
+            Learn more
+          </Link>
         </Text>
         <div>
           <RetryableErrorBoundary>
@@ -94,7 +126,22 @@ export default function EditRepositorySettingsModal({
               onSubmit={handleSubmit(handleEditGitHubIntegration)}
               autoComplete="off"
             >
-              <EditRepositoryAndBranchSettings />
+              <div className="mt-4 flex items-center justify-between border-t py-3">
+                <div className="flex flex-col">
+                  <Text className="font-medium text-sm">Automatic Deploys</Text>
+                  <Text className="text-xs" color="secondary">
+                    Automatically deploy when you push to the deployment branch
+                  </Text>
+                </div>
+                <Switch
+                  checked={automaticDeploys}
+                  onCheckedChange={(checked) =>
+                    setValue('automaticDeploys', checked)
+                  }
+                />
+              </div>
+
+              <EditRepositoryAndBranchSettings disabled={!automaticDeploys} />
 
               <div className="mt-2 flex flex-col">
                 <Button
