@@ -121,3 +121,31 @@ delete_permissions:
       filter:
         uploaded_by_user_id:
           _eq: X-Hasura-User-Id
+event_triggers:
+  - name: graphite_files_events
+    definition:
+      delete:
+        columns: '*'
+        payload: '*'
+      enable_manual: false
+      insert:
+        columns: '*'
+        payload: '*'
+      update:
+        columns: '*'
+        payload: '*'
+    retry_conf:
+      interval_sec: 30
+      num_retries: 3
+      timeout_sec: 30
+    webhook: http://host.docker.internal:8090/v1/webhooks/storage-files
+    headers:
+      - name: X-Graphite-Webhook-Secret
+        value_from_env: GRAPHITE_WEBHOOK_SECRET
+    cleanup_config:
+      batch_size: 10000
+      clean_invocation_logs: true
+      clear_older_than: 168
+      paused: false
+      schedule: 0 0 * * *
+      timeout: 60

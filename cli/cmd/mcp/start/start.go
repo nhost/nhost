@@ -3,6 +3,7 @@ package start
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/nhost/nhost/cli/clienv"
@@ -190,8 +191,13 @@ func start(
 	bind string,
 ) error {
 	if bind != "" {
+		host, err := url.Parse(bind)
+		if err != nil {
+			return cli.Exit(fmt.Sprintf("invalid bind address: %v", err), 1)
+		}
+
 		sseServer := server.NewSSEServer(mcpServer, server.WithBaseURL(bind))
-		if err := sseServer.Start(bind); err != nil {
+		if err := sseServer.Start(host.Host); err != nil {
 			return cli.Exit(fmt.Sprintf("failed to serve tcp: %v", err), 1)
 		}
 	} else {

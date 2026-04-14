@@ -52,6 +52,12 @@ export default function Navigation(): JSX.Element {
                 >
                   OAuth2
                 </Link>
+                <Link
+                  to="/agents"
+                  className={`nav-link ${isActive('/agents')}`}
+                >
+                  Agents
+                </Link>
               </>
             ) : (
               <>

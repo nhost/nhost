@@ -527,6 +527,16 @@ export default defineConfig({
                     { slug: 'products/ai/dev-assistant' },
                   ],
                 },
+                {
+                  label: 'Agents',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/ai/agents' },
+                    { slug: 'products/ai/agents/managing-agents' },
+                    { slug: 'products/ai/agents/sessions-and-streaming' },
+                    { slug: 'products/ai/agents/tools' },
+                  ],
+                },
               ],
             },
             // Platform

@@ -64,19 +64,6 @@ rating = 'g'
 
 [auth.user.emailDomains]
 
-[auth.oauth2Provider]
-enabled = true
-loginURL = 'http://localhost:5173/oauth2/consent'
-
-[auth.oauth2Provider.accessToken]
-expiresIn = 900
-
-[auth.oauth2Provider.refreshToken]
-expiresIn = 2592000
-
-[auth.oauth2Provider.clientIdMetadataDocument]
-enabled = true
-
 [auth.session]
 [auth.session.accessToken]
 expiresIn = 900
@@ -106,10 +93,10 @@ enabled = false
 [auth.method.oauth]
 [auth.method.oauth.apple]
 enabled = true
-teamId = '{{ secrets.APPLE_TEAM_ID }}'
-clientId = '{{ secrets.APPLE_CLIENT_ID }}'
 audience = '{{ secrets.APPLE_AUDIENCE }}'
+clientId = '{{ secrets.APPLE_CLIENT_ID }}'
 keyId = '{{ secrets.APPLE_KEY_ID }}'
+teamId = '{{ secrets.APPLE_TEAM_ID }}'
 privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
 
 [auth.method.oauth.azuread]
@@ -171,6 +158,19 @@ timeout = 60000
 [auth.totp]
 enabled = true
 issuer = 'new-sdk'
+
+[auth.oauth2Provider]
+enabled = true
+loginURL = 'http://localhost:5173/oauth2/consent'
+
+[auth.oauth2Provider.accessToken]
+expiresIn = 900
+
+[auth.oauth2Provider.refreshToken]
+expiresIn = 2592000
+
+[auth.oauth2Provider.clientIdMetadataDocument]
+enabled = true
 
 [auth.misc]
 concealErrors = false

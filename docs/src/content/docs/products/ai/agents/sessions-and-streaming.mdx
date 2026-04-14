@@ -1,0 +1,307 @@
+---
+title: Sessions & Streaming
+description: Start agent sessions and send messages with real-time SSE streaming
+keywords: ["AI agents", "sessions", "streaming", "SSE", "Server-Sent Events", "real-time", "chat", "Graphite"]
+---
+
+Conversations with agents are organized into sessions. Each session maintains the full message history, giving the agent context across multiple messages. Responses are streamed in real time via Server-Sent Events (SSE).
+
+Users need `select` and `insert` permissions on `graphite.agent_sessions` and `select` permissions on `graphite.agent_messages` in Hasura. See [Permissions](/products/ai/agents#permissions) for the full requirements.
+
+## Sessions
+
+Sessions are managed directly through Hasura's auto-generated GraphQL API.
+
+### Starting a Session
+
+Any authenticated user can start a session with an agent:
+
+```graphql
+mutation {
+  insertGraphiteAgentSession(
+    object: {
+      agentID: "agent-uuid"
+    }
+  ) {
+    id
+    agentID
+    createdAt
+  }
+}
+```
+
+:::note
+The `userID` field should be configured as a column preset in Hasura permissions, automatically set to `X-Hasura-User-Id`.
+:::
+
+### Listing Sessions
+
+```graphql
+query {
+  graphiteAgentSessions(where: { agentID: { _eq: "agent-uuid" } }) {
+    id
+    agentID
+    userID
+    createdAt
+  }
+}
+```
+
+### Retrieving Session Messages
+
+```graphql
+query {
+  graphiteAgentMessages(
+    where: { sessionID: { _eq: "session-uuid" } }
+    order_by: { createdAt: asc }
+  ) {
+    id
+    role
+    content
+    createdAt
+  }
+}
+```
+
+### Deleting a Session
+
+Deleting a session also deletes all associated messages:
+
+```graphql
+mutation {
+  deleteGraphiteAgentSession(id: "session-uuid") {
+    id
+  }
+}
+```
+
+## Sending Messages
+
+Messages are sent via a REST endpoint that streams the response using Server-Sent Events (SSE). This allows your application to display the agent's response in real time, token by token.
+
+### Endpoint
+
+```
+POST /v1/agents/sessions/{sessionID}/messages
+```
+
+### Authentication
+
+Every request to the streaming endpoint must include one of the following:
+
+- **User JWT** — Pass `Authorization: Bearer <token>` header. The service verifies that the authenticated user has access to the session by querying Hasura with the user's credentials. Hasura's permission rules on `graphite.agent_sessions` control access (see [Permissions](/products/ai/agents#permissions)). Successful checks are cached in memory so subsequent messages in the same session skip the Hasura round-trip.
+- **Admin secret** — Pass `X-Hasura-Admin-Secret: <secret>` header to access any session without ownership checks.
+
+Requests without valid credentials receive a `401 Unauthorized` response. Requests where the user does not have access to the session receive a `403 Forbidden` response.
+
+### Request
+
+```bash
+curl -N -X POST \
+  https://your-project.nhost.run/v1/agents/sessions/{sessionID}/messages \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <user-access-token>" \
+  -d '{"message": "What can you help me with?"}'
+```
+
+### SSE Events
+
+The response is a stream of Server-Sent Events. Each event has a type and data field:
+
+| Event | Description |
+|---|---|
+| `content_delta` | A chunk of the agent's text response |
+| `tool_use_start` | The agent has started using a tool (data contains the tool name) |
+| `tool_use_done` | The agent has finished preparing a tool call (data contains the tool name) |
+| `tool_result` | A tool has returned a result (data contains the tool name) |
+| `tool_approval_required` | Tool calls need human approval before execution (data contains JSON with tool call details). Stream ends without a `done` event. See [Tool Approval](#tool-approval). |
+| `tool_denied` | A tool call was denied by the user (data contains the tool name). Sent during the approval response stream. |
+| `error` | An error occurred |
+| `done` | The response is complete |
+
+### Example: Simple Response
+
+```
+event: content_delta
+data: Hello
+
+event: content_delta
+data: ! How
+
+event: content_delta
+data:  can I help
+
+event: content_delta
+data:  you today?
+
+event: done
+data:
+```
+
+### Example: Response with Tool Use
+
+When the agent decides to use a [tool](/products/ai/agents/tools), you'll see additional events in the stream. The agent can chain multiple tool calls before producing a final response:
+
+```
+event: content_delta
+data: Let me search for that information.
+
+event: tool_use_start
+data: web_search
+
+event: tool_use_done
+data: web_search
+
+event: tool_result
+data: web_search
+
+event: content_delta
+data: Based on my search results,
+
+event: content_delta
+data:  here is what I found...
+
+event: done
+data:
+```
+
+### JavaScript Example
+
+```javascript
+const response = await fetch(
+  `https://your-project.nhost.run/v1/agents/sessions/${sessionId}/messages`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ message: 'Hello!' })
+  }
+);
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+
+  const text = decoder.decode(value);
+  const lines = text.split('\n');
+  for (const line of lines) {
+    if (line.startsWith('event: ')) {
+      const eventType = line.slice(7);
+      // handle event type
+    }
+    if (line.startsWith('data: ')) {
+      const data = line.slice(6);
+      // handle event data, e.g. append to UI
+    }
+  }
+}
+```
+
+## Tool Approval
+
+When tools are configured with `require_approval: true` (see [Tools](/products/ai/agents/tools)), the agent pauses before executing those tool calls and waits for explicit human approval. This is useful for tools that have side effects, like GraphQL mutations or MCP tools that modify external systems.
+
+### How It Works
+
+When the agent requests tool calls and **any** of them requires approval, **all** tool calls in the batch are paused (none execute immediately). The flow works as follows:
+
+1. The agent stream sends the usual `tool_use_start` and `tool_use_done` events
+2. Instead of executing the tools, the stream sends a `tool_approval_required` event and ends (no `done` event)
+3. While paused, sending new messages to the session returns `409 Conflict`
+4. The client sends approvals/denials via the approve-tools endpoint
+5. The approve-tools endpoint returns a new SSE stream: approved tools execute, denied tools get a "denied by user" message sent to the LLM, and the agent loop resumes
+
+### The `tool_approval_required` Event
+
+The event data contains JSON with an array of pending tool calls:
+
+```
+event: tool_approval_required
+data: {"tool_calls":[{"id":"tc_123","name":"web_search","arguments":"{\"query\":\"latest news\"}","requires_approval":true},{"id":"tc_456","name":"web_fetch","arguments":"{\"url\":\"https://example.com\"}","requires_approval":false}]}
+```
+
+Each tool call includes:
+
+| Field | Description |
+|---|---|
+| `id` | Unique identifier for this tool call |
+| `name` | Name of the tool |
+| `arguments` | JSON string of the tool call arguments |
+| `requires_approval` | Whether this specific tool requires approval (some tools in the batch may not require it, but all are paused when any one does) |
+
+### Approving or Denying Tools
+
+Send decisions for all pending tool calls:
+
+```
+POST /v1/agents/sessions/{sessionID}/approve-tools
+```
+
+```bash
+curl -N -X POST \
+  https://your-project.nhost.run/v1/agents/sessions/{sessionID}/approve-tools \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <user-access-token>" \
+  -d '{
+    "decisions": [
+      {"tool_call_id": "tc_123", "approved": true},
+      {"tool_call_id": "tc_456", "approved": true}
+    ]
+  }'
+```
+
+Every pending tool call must have a matching decision. The response is an SSE stream — approved tools execute and produce `tool_result` events, denied tools produce `tool_denied` events, and then the agent continues its response.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `tool_call_id` | String | Yes | The `id` from the `tool_approval_required` event |
+| `approved` | Boolean | Yes | `true` to execute the tool, `false` to deny it |
+
+### Example: Approval Flow
+
+**Stream 1** — Initial message (POST /messages):
+```
+event: content_delta
+data: Let me search for that information.
+
+event: tool_use_start
+data: web_search
+
+event: tool_use_done
+data: web_search
+
+event: tool_approval_required
+data: {"tool_calls":[{"id":"tc_123","name":"web_search","arguments":"{\"query\":\"cats\"}","requires_approval":true}]}
+```
+
+**Stream 2** — Approval (POST /approve-tools):
+```
+event: tool_result
+data: web_search
+
+event: content_delta
+data: Based on my search results, here is what I found...
+
+event: done
+data:
+```
+
+### Example: Denial
+
+If a tool call is denied, the LLM receives a "Tool call denied by user" message and can adapt its response:
+
+```
+event: tool_denied
+data: web_search
+
+event: content_delta
+data: I wasn't able to search the web, but I can try to help based on what I already know.
+
+event: done
+data:
+```

@@ -10,6 +10,8 @@ import {
 import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './lib/nhost/AuthProvider';
+import AgentChat from './pages/AgentChat';
+import Agents from './pages/Agents';
 import Communities from './pages/Communities';
 import Consent from './pages/Consent';
 import Functions from './pages/Functions';
@@ -44,35 +46,62 @@ const RootLayout = (): JSX.Element => {
   );
 };
 
+// Wide layout for chat pages
+const WideLayout = (): JSX.Element => {
+  return (
+    <div className="flex-col min-h-screen">
+      <Navigation />
+      <main
+        style={{
+          maxWidth: '64rem',
+          margin: '0 auto',
+          padding: '1.5rem',
+          width: '100%',
+        }}
+      >
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
 // Create router with routes
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route element={<RootLayout />}>
-      <Route index element={<Home />} />
-      <Route path="signin" element={<SignIn />} />
-      <Route
-        path="signin/mfa"
-        element={
-          <Suspense
-            fallback={<div className="loading-container">Loading...</div>}
-          >
-            <MfaVerification />
-          </Suspense>
-        }
-      />
-      <Route path="signup" element={<SignUp />} />
-      <Route path="verify" element={<Verify />} />
-      <Route path="oauth2/consent" element={<Consent />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="profile" element={<Profile />} />
-        <Route path="todos" element={<Todos />} />
-        <Route path="upload" element={<Upload />} />
-        <Route path="communities" element={<Communities />} />
-        <Route path="functions" element={<Functions />} />
-        <Route path="oauth2-providers" element={<OAuth2Providers />} />
+    <>
+      <Route element={<RootLayout />}>
+        <Route index element={<Home />} />
+        <Route path="signin" element={<SignIn />} />
+        <Route
+          path="signin/mfa"
+          element={
+            <Suspense
+              fallback={<div className="loading-container">Loading...</div>}
+            >
+              <MfaVerification />
+            </Suspense>
+          }
+        />
+        <Route path="signup" element={<SignUp />} />
+        <Route path="verify" element={<Verify />} />
+        <Route path="oauth2/consent" element={<Consent />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="profile" element={<Profile />} />
+          <Route path="todos" element={<Todos />} />
+          <Route path="upload" element={<Upload />} />
+          <Route path="communities" element={<Communities />} />
+          <Route path="functions" element={<Functions />} />
+          <Route path="oauth2-providers" element={<OAuth2Providers />} />
+          <Route path="agents" element={<Agents />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" />} />
       </Route>
-      <Route path="*" element={<Navigate to="/" />} />
-    </Route>,
+      <Route element={<WideLayout />}>
+        <Route element={<ProtectedRoute />}>
+          <Route path="agents/:agentId/chat" element={<AgentChat />} />
+        </Route>
+      </Route>
+    </>,
   ),
 );
 
