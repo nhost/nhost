@@ -32,6 +32,44 @@ interface DatabaseObjectTypeFilterBarProps {
   onClear: () => void;
 }
 
+function FilterButton({
+  filterType,
+  isActive,
+  hasActiveFilters,
+  onToggle,
+}: {
+  filterType: DataBrowserSidebarFilterType;
+  isActive: boolean;
+  hasActiveFilters: boolean;
+  onToggle: () => void;
+}) {
+  const isEnum = filterType === 'ENUM';
+  const type = isEnum ? 'ORDINARY TABLE' : filterType;
+  const Icon = getDatabaseObjectIcon(type, isEnum);
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={`Toggle filter by ${filterLabels[filterType]}`}
+          className={cn('h-7 w-7', {
+            'bg-accent ring-1 ring-ring/50': isActive,
+            'opacity-30': !isActive && hasActiveFilters,
+          })}
+          onClick={onToggle}
+        >
+          <Icon className="h-3.5 w-3.5 text-primary" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={0}>
+        {filterLabels[filterType]}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export default function DatabaseObjectTypeFilterBar({
   activeFilters,
   onToggleFilter,
@@ -45,34 +83,15 @@ export default function DatabaseObjectTypeFilterBar({
         {hasActiveFilters ? 'Filter by:' : 'Showing all types'}
       </span>
       <div className="flex items-center gap-0.5">
-        {allFilters.map((filterType) => {
-          const isEnum = filterType === 'ENUM';
-          const type = isEnum ? 'ORDINARY TABLE' : filterType;
-          const Icon = getDatabaseObjectIcon(type, isEnum);
-          const isActive = activeFilters.has(filterType);
-
-          return (
-            <Tooltip key={filterType}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Toggle filter by ${filterLabels[filterType]}`}
-                  className={cn('h-7 w-7', {
-                    'bg-accent ring-1 ring-ring/50': isActive,
-                    'opacity-30': !isActive && hasActiveFilters,
-                  })}
-                  onClick={() => onToggleFilter(filterType)}
-                >
-                  <Icon className="h-3.5 w-3.5 text-primary" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={0}>
-                {filterLabels[filterType]}
-              </TooltipContent>
-            </Tooltip>
-          );
-        })}
+        {allFilters.map((filterType) => (
+          <FilterButton
+            key={filterType}
+            filterType={filterType}
+            isActive={activeFilters.has(filterType)}
+            hasActiveFilters={hasActiveFilters}
+            onToggle={() => onToggleFilter(filterType)}
+          />
+        ))}
         {hasActiveFilters && (
           <Tooltip>
             <TooltipTrigger asChild>
