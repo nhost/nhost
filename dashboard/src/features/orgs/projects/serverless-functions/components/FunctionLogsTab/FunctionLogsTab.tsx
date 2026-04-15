@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Form } from '@/components/form/Form';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -11,20 +11,60 @@ import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { isNotEmptyValue } from '@/lib/utils';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
-import type { GetProjectLogsQuery } from '@/utils/__generated__/graphql';
-import { useGetFunctionsLogsQuery } from '@/utils/__generated__/graphql';
+import type {
+  GetFunctionsLogsQuery,
+  GetProjectLogsQuery,
+} from '@/utils/__generated__/graphql';
+import {
+  GetFunctionsLogsSubscriptionDocument,
+  useGetFunctionsLogsQuery,
+} from '@/utils/__generated__/graphql';
 import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
 import { subMinutes } from 'date-fns';
 
 const DEFAULT_INTERVAL = 15;
 
+function updateQuery(
+  prev: GetFunctionsLogsQuery,
+  {
+    subscriptionData,
+  }: { subscriptionData: { data: GetFunctionsLogsQuery } },
+): GetFunctionsLogsQuery {
+  if (!subscriptionData.data) {
+    return prev;
+  }
+
+  const prevLogs = prev.getFunctionsLogs;
+
+  if (!prevLogs || prevLogs.length === 0) {
+    return subscriptionData.data;
+  }
+
+  const newLogs = subscriptionData.data.getFunctionsLogs;
+
+  const latestPrevTimestamp = Math.max(
+    ...prevLogs.map((log) => new Date(log.timestamp).getTime()),
+  );
+
+  const newLogsToAdd = newLogs.filter(
+    (log) => new Date(log.timestamp).getTime() > latestPrevTimestamp,
+  );
+
+  return {
+    ...prev,
+    getFunctionsLogs: [...prevLogs, ...newLogsToAdd],
+  };
+}
+
 export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
+  const subscriptionReturn = useRef<(() => void) | null>(null);
 
   const [filters, setFilters] = useState(() => ({
     from: subMinutes(new Date(), DEFAULT_INTERVAL).toISOString(),
-    to: new Date().toISOString(),
+    to: new Date().toISOString() as string | null,
     regexFilter: '',
   }));
 
@@ -38,7 +78,12 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
     },
   });
 
-  const { data, loading, error } = useGetFunctionsLogsQuery({
+  const {
+    data,
+    loading: loadingLogs,
+    error,
+    subscribeToMore,
+  } = useGetFunctionsLogsQuery({
     variables: {
       appID: project?.id,
       from: filters.from,
@@ -46,8 +91,53 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
       path: fn.route,
     },
     client: splitGraphqlClient,
+    fetchPolicy: 'cache-and-network',
+    notifyOnNetworkStatusChange: true,
     skip: !project?.id,
   });
+
+  const subscribeToMoreLogs = useCallback(
+    () =>
+      subscribeToMore({
+        document: GetFunctionsLogsSubscriptionDocument,
+        variables: {
+          appID: project?.id,
+          from: filters.from,
+          path: fn.route,
+        },
+        updateQuery,
+      }),
+    [subscribeToMore, project?.id, filters.from, fn.route],
+  );
+
+  // Cleanup subscription on unmount
+  useEffect(
+    () => () => {
+      if (isNotEmptyValue(subscriptionReturn.current)) {
+        subscriptionReturn.current();
+      }
+    },
+    [],
+  );
+
+  // Toggle subscription based on live mode (to === null)
+  useEffect(() => {
+    if (!project?.id || loadingProject) {
+      return;
+    }
+
+    if (filters.to !== null && subscriptionReturn.current !== null) {
+      subscriptionReturn.current();
+      subscriptionReturn.current = null;
+    }
+
+    if (filters.to === null) {
+      subscriptionReturn.current?.();
+      subscriptionReturn.current = subscribeToMoreLogs();
+    }
+  }, [filters.to, subscribeToMoreLogs, project?.id, loadingProject]);
+
+  const loading = loadingProject || loadingLogs;
 
   const logsData = useMemo(() => {
     if (!data) {
@@ -83,7 +173,7 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
 
     setFilters({
       from: values.from ?? filters.from,
-      to: values.to ?? new Date().toISOString(),
+      to: values.to ?? null,
       regexFilter: values.regexFilter ?? '',
     });
   };

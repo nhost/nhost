@@ -26099,6 +26099,11 @@ export type Subscription_Root = {
   /** fetch data from the table in a streaming manner: "storage.files" */
   files_stream: Array<Files>;
   /**
+   * Returns functions logs for a given application, filtered by function path.
+   * If `from` is not provided, it defaults to an hour ago.
+   */
+  getFunctionsLogs: Array<Log>;
+  /**
    * Returns pipeline run logs for a given application and pipeline run.
    * If `from` is not provided, it defaults to an hour ago.
    */
@@ -27342,6 +27347,13 @@ export type Subscription_RootFiles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Files_Stream_Cursor_Input>>;
   where?: InputMaybe<Files_Bool_Exp>;
+};
+
+
+export type Subscription_RootGetFunctionsLogsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  path: Scalars['String'];
 };
 
 
@@ -31356,6 +31368,15 @@ export type GetFunctionsLogsQueryVariables = Exact<{
 
 
 export type GetFunctionsLogsQuery = { __typename?: 'query_root', getFunctionsLogs: Array<{ __typename?: 'Log', timestamp: any, service: string, log: string }> };
+
+export type GetFunctionsLogsSubscriptionSubscriptionVariables = Exact<{
+  appID: Scalars['String'];
+  from: Scalars['Timestamp'];
+  path: Scalars['String'];
+}>;
+
+
+export type GetFunctionsLogsSubscriptionSubscription = { __typename?: 'subscription_root', getFunctionsLogs: Array<{ __typename?: 'Log', timestamp: any, service: string, log: string }> };
 
 export type GetProjectLogsQueryVariables = Exact<{
   appID: Scalars['String'];
@@ -35824,6 +35845,40 @@ export type GetFunctionsLogsQueryResult = Apollo.QueryResult<GetFunctionsLogsQue
 export function refetchGetFunctionsLogsQuery(variables: GetFunctionsLogsQueryVariables) {
       return { query: GetFunctionsLogsDocument, variables: variables }
     }
+export const GetFunctionsLogsSubscriptionDocument = gql`
+    subscription getFunctionsLogsSubscription($appID: String!, $from: Timestamp!, $path: String!) {
+  getFunctionsLogs(appID: $appID, from: $from, path: $path) {
+    timestamp
+    service
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetFunctionsLogsSubscriptionSubscription__
+ *
+ * To run a query within a React component, call `useGetFunctionsLogsSubscriptionSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetFunctionsLogsSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFunctionsLogsSubscriptionSubscription({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      from: // value for 'from'
+ *      path: // value for 'path'
+ *   },
+ * });
+ */
+export function useGetFunctionsLogsSubscriptionSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetFunctionsLogsSubscriptionSubscription, GetFunctionsLogsSubscriptionSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetFunctionsLogsSubscriptionSubscription, GetFunctionsLogsSubscriptionSubscriptionVariables>(GetFunctionsLogsSubscriptionDocument, options);
+      }
+export type GetFunctionsLogsSubscriptionSubscriptionHookResult = ReturnType<typeof useGetFunctionsLogsSubscriptionSubscription>;
+export type GetFunctionsLogsSubscriptionSubscriptionResult = Apollo.SubscriptionResult<GetFunctionsLogsSubscriptionSubscription>;
 export const GetProjectLogsDocument = gql`
     query getProjectLogs($appID: String!, $service: String, $from: Timestamp, $to: Timestamp, $regexFilter: String) {
   logs(
