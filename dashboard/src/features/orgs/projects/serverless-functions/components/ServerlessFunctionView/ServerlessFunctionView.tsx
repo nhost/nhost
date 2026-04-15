@@ -1,5 +1,7 @@
+import { subMinutes } from 'date-fns';
 import {
   Check,
+  ChevronRight,
   ChevronsUpDown,
   Clock,
   Cpu,
@@ -10,6 +12,7 @@ import {
   Loader2,
   Lock,
   Plus,
+  ScrollText,
   Send,
   Trash,
   Upload,
@@ -17,7 +20,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
@@ -56,12 +59,18 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import { FunctionLogsTab } from '@/features/orgs/projects/serverless-functions/components/FunctionLogsTab';
 import { FunctionsEmptyState } from '@/features/orgs/projects/serverless-functions/components/FunctionsEmptyState';
 import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functions/hooks/useGetNhostFunctions';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
 import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
+import {
+  type GetProjectLogsQuery,
+  useGetFunctionsLogsQuery,
+} from '@/utils/__generated__/graphql';
+import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
 
 type HttpMethod =
   | 'GET'
@@ -144,14 +153,81 @@ function MetadataRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function RecentLogsCard({
+  fn,
+  onViewAll,
+}: {
+  fn: NhostFunction;
+  onViewAll: () => void;
+}) {
+  const { project } = useProject();
+
+  const { from, to } = useMemo(() => {
+    const now = new Date();
+    return {
+      from: subMinutes(now, 15).toISOString(),
+      to: now.toISOString(),
+    };
+  }, []);
+
+  const { data, loading, error } = useGetFunctionsLogsQuery({
+    variables: {
+      appID: project?.id,
+      from,
+      to,
+      path: fn.route,
+    },
+    client: splitGraphqlClient,
+    skip: !project?.id,
+  });
+
+  const logsData = useMemo(() => {
+    if (!data) {
+      return undefined;
+    }
+    return { logs: data.getFunctionsLogs } as unknown as GetProjectLogsQuery;
+  }, [data]);
+
+  return (
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between px-4 pt-4">
+        <h3 className="flex items-center gap-2 text-muted-foreground text-sm">
+          <ScrollText className="h-4 w-4" />
+          Recent Logs
+          <span className="text-xs">(15m)</span>
+        </h3>
+        <button
+          type="button"
+          onClick={onViewAll}
+          className="flex items-center gap-0.5 text-primary text-xs hover:underline"
+        >
+          View all
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="max-h-72">
+        <LogsBody
+          logsData={logsData}
+          loading={loading}
+          error={error}
+          hideServiceColumn
+        />
+      </div>
+    </div>
+  );
+}
+
 function OverviewTab({
   fn,
   endpointUrl,
   defaultEndpointUrl,
+  onViewAllLogs,
 }: {
   fn: NhostFunction;
   endpointUrl: string;
   defaultEndpointUrl?: string;
+  onViewAllLogs: () => void;
 }) {
   const { orgSlug, appSubdomain } = useRouter().query;
   return (
@@ -265,6 +341,8 @@ function OverviewTab({
           </div>
         </div>
       </MetadataCard>
+
+      <RecentLogsCard fn={fn} onViewAll={onViewAllLogs} />
     </div>
   );
 }
@@ -999,11 +1077,10 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
               defaultEndpointUrl={
                 customDomainFqdn ? defaultEndpointUrl : undefined
               }
+              onViewAllLogs={() => setTab('logs')}
             />
           )}
-          {tab === 'execute' && (
-            <ExecuteTab endpointUrl={defaultEndpointUrl} />
-          )}
+          {tab === 'execute' && <ExecuteTab endpointUrl={defaultEndpointUrl} />}
         </div>
       )}
     </div>

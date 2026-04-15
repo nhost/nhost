@@ -39,6 +39,7 @@ export interface LogsBodyProps {
    */
   error?: Error;
   tableContainerClasses?: string;
+  hideServiceColumn?: boolean;
 }
 
 export function LogsBodyCustomMessage({
@@ -114,6 +115,7 @@ export default function LogsBody({
   error,
   loading,
   tableContainerClasses,
+  hideServiceColumn,
 }: LogsBodyProps) {
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -128,9 +130,13 @@ export default function LogsBody({
     [logsData],
   );
 
+  const visibleColumns = hideServiceColumn
+    ? columns.filter((c) => c.id !== 'service')
+    : columns;
+
   const table = useReactTable({
     data,
-    columns,
+    columns: visibleColumns,
     defaultColumn: {
       size: 0,
     },

@@ -120,7 +120,7 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
         </FormProvider>
       </Box>
       <div className="min-h-0 flex-1">
-        <LogsBody logsData={logsData} loading={loading} error={error} />
+        <LogsBody logsData={logsData} loading={loading} error={error} hideServiceColumn />
       </div>
     </div>
   );
