@@ -1001,7 +1001,9 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
               }
             />
           )}
-          {tab === 'execute' && <ExecuteTab endpointUrl={defaultEndpointUrl} />}
+          {tab === 'execute' && (
+            <ExecuteTab endpointUrl={defaultEndpointUrl} />
+          )}
         </div>
       )}
     </div>

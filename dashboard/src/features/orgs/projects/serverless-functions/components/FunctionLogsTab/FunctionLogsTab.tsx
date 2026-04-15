@@ -1,4 +1,3 @@
-import { subMinutes } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Form } from '@/components/form/Form';
@@ -16,6 +15,7 @@ import type { NhostFunction } from '@/features/orgs/projects/serverless-function
 import type { GetProjectLogsQuery } from '@/utils/__generated__/graphql';
 import { useGetFunctionsLogsQuery } from '@/utils/__generated__/graphql';
 import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
+import { subMinutes } from 'date-fns';
 
 const DEFAULT_INTERVAL = 15;
 
@@ -97,7 +97,7 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
             className="grid w-full grid-flow-row items-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-end"
           >
             <div className="w-full min-w-fit">
-              <LogsRangeSelector onSubmitFilterValues={handleSubmit} hideLive />
+              <LogsRangeSelector onSubmitFilterValues={handleSubmit} />
             </div>
             <LogsRegexFilter {...form.register('regexFilter')} />
             <Button

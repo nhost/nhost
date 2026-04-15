@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
-function LogsToDatePickerLiveButton({ hideLive }: { hideLive?: boolean }) {
+function LogsToDatePickerLiveButton() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const { setValue } = useFormContext<LogsFilterFormValues>();
@@ -63,34 +63,30 @@ function LogsToDatePickerLiveButton({ hideLive }: { hideLive?: boolean }) {
         />
       )}
 
-      {!hideLive && (
-        <Button
-          variant="outlined"
-          color={isLive ? 'primary' : 'secondary'}
-          sx={{
-            backgroundColor: (theme) =>
-              !isLive ? `${theme.palette.grey[200]} !important` : 'transparent',
-            color: !isLive ? 'text.secondary' : undefined,
-          }}
-          className={twMerge(!isLive ? 'z-0 mt-4' : 'z-10')}
-          startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
-          onClick={handleLiveButtonClick}
-        >
-          Live
-        </Button>
-      )}
+      <Button
+        variant="outlined"
+        color={isLive ? 'primary' : 'secondary'}
+        sx={{
+          backgroundColor: (theme) =>
+            !isLive ? `${theme.palette.grey[200]} !important` : 'transparent',
+          color: !isLive ? 'text.secondary' : undefined,
+        }}
+        className={twMerge(!isLive ? 'z-0 mt-4' : 'z-10')}
+        startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
+        onClick={handleLiveButtonClick}
+      >
+        Live
+      </Button>
     </div>
   );
 }
 
 interface LogsRangeSelectorProps {
   onSubmitFilterValues: (value: LogsFilterFormValues) => void;
-  hideLive?: boolean;
 }
 
 function LogsRangeSelectorIntervalPickers({
   onSubmitFilterValues,
-  hideLive,
 }: LogsRangeSelectorProps) {
   const { project } = useProject();
   const applicationCreationDate = new Date(project?.createdAt);
@@ -135,7 +131,7 @@ function LogsRangeSelectorIntervalPickers({
           maxDate={new Date()}
         />
 
-        <LogsToDatePickerLiveButton hideLive={hideLive} />
+        <LogsToDatePickerLiveButton />
       </div>
 
       <Box className="grid grid-cols-2 gap-2">
@@ -165,7 +161,6 @@ function LogsRangeSelectorIntervalPickers({
 
 export default function LogsRangeSelector({
   onSubmitFilterValues,
-  hideLive,
 }: LogsRangeSelectorProps) {
   const { from, to } = useWatch() as LogsFilterFormValues;
 
@@ -189,7 +184,6 @@ export default function LogsRangeSelector({
       <Dropdown.Content PaperProps={{ className: 'mt-1 max-w-xs w-full p-3' }}>
         <LogsRangeSelectorIntervalPickers
           onSubmitFilterValues={onSubmitFilterValues}
-          hideLive={hideLive}
         />
       </Dropdown.Content>
     </Dropdown.Root>
