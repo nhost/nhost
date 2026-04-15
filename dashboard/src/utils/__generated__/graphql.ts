@@ -22126,6 +22126,11 @@ export type Query_Root = {
   getEgressVolume: Metrics;
   getFunctionsDuration: Metrics;
   getFunctionsInvocations: Metrics;
+  /**
+   * Returns functions logs for a given application, filtered by function path.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   */
+  getFunctionsLogs: Array<Log>;
   getLogsVolume: Metrics;
   getPiTRBaseBackups: Array<PiTrBaseBackup>;
   /**
@@ -23180,6 +23185,14 @@ export type Query_RootGetFunctionsDurationArgs = {
 export type Query_RootGetFunctionsInvocationsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetFunctionsLogsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  path: Scalars['String'];
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
@@ -31334,6 +31347,15 @@ export type GetGithubRepositoriesQueryVariables = Exact<{ [key: string]: never; 
 
 export type GetGithubRepositoriesQuery = { __typename?: 'query_root', githubRepositories: Array<{ __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } }>, githubAppInstallations: Array<{ __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null }> };
 
+export type GetFunctionsLogsQueryVariables = Exact<{
+  appID: Scalars['String'];
+  from: Scalars['Timestamp'];
+  path: Scalars['String'];
+}>;
+
+
+export type GetFunctionsLogsQuery = { __typename?: 'query_root', getFunctionsLogs: Array<{ __typename?: 'Log', timestamp: any, log: string }> };
+
 export type GetProjectLogsQueryVariables = Exact<{
   appID: Scalars['String'];
   service?: InputMaybe<Scalars['String']>;
@@ -35757,6 +35779,47 @@ export type GetGithubRepositoriesLazyQueryHookResult = ReturnType<typeof useGetG
 export type GetGithubRepositoriesQueryResult = Apollo.QueryResult<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>;
 export function refetchGetGithubRepositoriesQuery(variables?: GetGithubRepositoriesQueryVariables) {
       return { query: GetGithubRepositoriesDocument, variables: variables }
+    }
+export const GetFunctionsLogsDocument = gql`
+    query getFunctionsLogs($appID: String!, $from: Timestamp!, $path: String!) {
+  getFunctionsLogs(appID: $appID, from: $from, path: $path) {
+    timestamp
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetFunctionsLogsQuery__
+ *
+ * To run a query within a React component, call `useGetFunctionsLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFunctionsLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFunctionsLogsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      from: // value for 'from'
+ *      path: // value for 'path'
+ *   },
+ * });
+ */
+export function useGetFunctionsLogsQuery(baseOptions: Apollo.QueryHookOptions<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>(GetFunctionsLogsDocument, options);
+      }
+export function useGetFunctionsLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>(GetFunctionsLogsDocument, options);
+        }
+export type GetFunctionsLogsQueryHookResult = ReturnType<typeof useGetFunctionsLogsQuery>;
+export type GetFunctionsLogsLazyQueryHookResult = ReturnType<typeof useGetFunctionsLogsLazyQuery>;
+export type GetFunctionsLogsQueryResult = Apollo.QueryResult<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>;
+export function refetchGetFunctionsLogsQuery(variables: GetFunctionsLogsQueryVariables) {
+      return { query: GetFunctionsLogsDocument, variables: variables }
     }
 export const GetProjectLogsDocument = gql`
     query getProjectLogs($appID: String!, $service: String, $from: Timestamp, $to: Timestamp, $regexFilter: String) {

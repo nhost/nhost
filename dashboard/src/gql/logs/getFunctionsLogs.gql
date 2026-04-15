@@ -1,0 +1,6 @@
+query getFunctionsLogs($appID: String!, $from: Timestamp!, $path: String!) {
+  getFunctionsLogs(appID: $appID, from: $from, path: $path) {
+    timestamp
+    log
+  }
+}
