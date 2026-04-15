@@ -2,6 +2,7 @@ import { FolderX } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { FilesDataGrid } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGrid';
 import { useGetBucketQuery } from '@/utils/__generated__/graphql';
 
@@ -51,5 +52,12 @@ export default function Bucket() {
     );
   }
 
-  return <FilesDataGrid bucket={data.bucket} />;
+  return (
+    <DataGridQueryParamsProvider
+      key={data.bucket.id}
+      storageKey={`storage:${data.bucket.id}`}
+    >
+      <FilesDataGrid bucket={data.bucket} />
+    </DataGridQueryParamsProvider>
+  );
 }

@@ -13,13 +13,12 @@ type FilterValueProps = {
 
 function DataGridFilterValue({ value, index, disabled }: FilterValueProps) {
   const { setValue, filters } = useDataGridFilters();
-  const { setAppliedFilters, setCurrentOffset } = useDataGridQueryParams();
+  const { setAppliedFilters } = useDataGridQueryParams();
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   function handleKeyUp(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       removeQueryParamsFromUrl('page');
-      setCurrentOffset(0);
       setAppliedFilters(filters);
     }
   }
