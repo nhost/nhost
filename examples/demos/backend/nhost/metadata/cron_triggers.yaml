@@ -1,1 +1,14 @@
-[]
+- name: stale_todos_check
+  webhook: '{{NHOST_FUNCTIONS_URL}}/events/stale-todos'
+  schedule: '*/5 * * * *'
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 3
+    retry_interval_seconds: 10
+    timeout_seconds: 60
+    tolerance_seconds: 21600
+  headers:
+    - name: nhost-webhook-secret
+      value_from_env: NHOST_WEBHOOK_SECRET
+  comment: Checks for incomplete todos not updated in 7+ days, marks them stale, and notifies owners.

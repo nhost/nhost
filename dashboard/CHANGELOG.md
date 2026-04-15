@@ -1,3 +1,15 @@
+## [@nhost/dashboard@2.59.0] - 2026-04-14
+
+### 🚀 Features
+
+- *(dashboard)* Display buckets in storage (#3985)
+- *(dashboard)* Add/edit buckets (#3986)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Conditionally fill in address in onboarding test (#4147)
+
 ## [@nhost/dashboard@2.58.0] - 2026-04-13
 
 ### 🚀 Features

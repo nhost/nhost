@@ -1,3 +1,16 @@
+## [cli@1.43.0] - 2026-04-14
+
+### 🚀 Features
+
+- *(cli)* Allow deploying using the cli/github actions (#4139)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added a small wrapper around govulncheck to allow filtering some CVEs (#4112)
+- *(nixops)* Bump go due to cves (#4124)
+- *(cli)* Bump nhost/dashboard to 2.59.0 (#4135)
+
 ## [cli@1.42.1] - 2026-03-31
 
 ### 🐛 Bug Fixes

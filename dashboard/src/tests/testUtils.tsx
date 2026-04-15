@@ -210,8 +210,8 @@ export const mockPointerEvent = () => {
 export class TestUserEvent {
   private user: UserEvent;
 
-  constructor() {
-    this.user = userEvent.setup();
+  constructor(options?: Options) {
+    this.user = userEvent.setup(options);
   }
 
   async click(element: Element) {

@@ -217,11 +217,11 @@ TMP_NIX_FILE=$(mktemp)
 trap 'rm -f "$TMP_NIX_FILE" "$TMP_NIX_FILE.tmp"' EXIT SIGINT SIGTERM
 cp "$NIX_FILE" "$TMP_NIX_FILE"
 
-sed -E "s/(version\s*=\s*\")[^\"]+(\";)/\1$LATEST_VERSION\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
-sed -E "/aarch64-darwin\s*=\s*\{/,/sha256\s*=/s/(sha256\s*=\s*\")[a-z0-9]+(\";)/\1$NEW_SHA_AARCH64_DARWIN\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
-sed -E "/x86_64-darwin\s*=\s*\{/,/sha256\s*=/s/(sha256\s*=\s*\")[a-z0-9]+(\";)/\1$NEW_SHA_X86_64_DARWIN\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
-sed -E "/aarch64-linux\s*=\s*\{/,/sha256\s*=/s/(sha256\s*=\s*\")[a-z0-9]+(\";)/\1$NEW_SHA_AARCH64_LINUX\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
-sed -E "/x86_64-linux\s*=\s*\{/,/sha256\s*=/s/(sha256\s*=\s*\")[a-z0-9]+(\";)/\1$NEW_SHA_X86_64_LINUX\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
+sed -E "s/(version[[:space:]]*=[[:space:]]*\")[^\"]+(\";)/\1$LATEST_VERSION\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
+sed -E "/aarch64-darwin[[:space:]]*=[[:space:]]*\{/,/sha256[[:space:]]*=/s/(sha256[[:space:]]*=[[:space:]]*\")[a-z0-9]+(\";)/\1$NEW_SHA_AARCH64_DARWIN\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
+sed -E "/x86_64-darwin[[:space:]]*=[[:space:]]*\{/,/sha256[[:space:]]*=/s/(sha256[[:space:]]*=[[:space:]]*\")[a-z0-9]+(\";)/\1$NEW_SHA_X86_64_DARWIN\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
+sed -E "/aarch64-linux[[:space:]]*=[[:space:]]*\{/,/sha256[[:space:]]*=/s/(sha256[[:space:]]*=[[:space:]]*\")[a-z0-9]+(\";)/\1$NEW_SHA_AARCH64_LINUX\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
+sed -E "/x86_64-linux[[:space:]]*=[[:space:]]*\{/,/sha256[[:space:]]*=/s/(sha256[[:space:]]*=[[:space:]]*\")[a-z0-9]+(\";)/\1$NEW_SHA_X86_64_LINUX\2/" "$TMP_NIX_FILE" > "$TMP_NIX_FILE.tmp" && mv "$TMP_NIX_FILE.tmp" "$TMP_NIX_FILE"
 
 mv "$TMP_NIX_FILE" "$NIX_FILE"
 # Trap for $TMP_NIX_FILE will clean up after successful mv, or if mv fails.
