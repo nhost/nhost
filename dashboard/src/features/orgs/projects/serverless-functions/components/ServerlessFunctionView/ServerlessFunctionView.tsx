@@ -635,6 +635,7 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
     'application/x-www-form-urlencoded',
   );
   const isMultipart = contentType.includes('multipart/form-data');
+  const hasBody = method !== 'GET' && method !== 'HEAD';
 
   const setContentType = (value: string) => {
     const idx = headers.findIndex(
@@ -674,7 +675,7 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
     }
 
     let requestBody: BodyInit | undefined;
-    if (method !== 'GET') {
+    if (hasBody) {
       if (isMultipart) {
         const formData = new FormData();
         for (const field of multipartFields) {
@@ -717,13 +718,6 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
         responseHeaders[key] = value;
       });
 
-      console.error(
-        '[Execute]',
-        res.status,
-        res.statusText,
-        responseHeaders,
-        responseBody,
-      );
       setResponse({
         status: res.ok ? 'success' : 'error',
         statusCode: res.status,
@@ -751,6 +745,7 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
     body,
     formFields,
     multipartFields,
+    hasBody,
     isFormEncoded,
     isMultipart,
   ]);
@@ -856,161 +851,170 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
           />
         </TabsContent>
         <TabsContent value="request" className="mt-3">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">
-                Content-Type
-              </span>
-              <Popover open={contentTypeOpen} onOpenChange={setContentTypeOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={contentTypeOpen}
-                    className="h-8 w-80 justify-between font-normal text-sm"
-                  >
-                    <span className="truncate">{contentType || 'None'}</span>
-                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  side="bottom"
-                  align="start"
-                  className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0"
+          {!hasBody ? (
+            <p className="py-4 text-center text-muted-foreground text-sm">
+              {method} requests do not have a body.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm">
+                  Content-Type
+                </span>
+                <Popover
+                  open={contentTypeOpen}
+                  onOpenChange={setContentTypeOpen}
                 >
-                  <Command>
-                    <CommandInput placeholder="Search or enter custom..." />
-                    <CommandList>
-                      <CommandEmpty>No content type found.</CommandEmpty>
-                      <CommandItem
-                        value="none"
-                        onSelect={() => {
-                          setContentType('');
-                          setContentTypeOpen(false);
-                        }}
-                      >
-                        None
-                        <Check
-                          className={cn(
-                            'ml-auto h-4 w-4',
-                            !contentType ? 'opacity-100' : 'opacity-0',
-                          )}
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={contentTypeOpen}
+                      className="h-8 w-80 justify-between font-normal text-sm"
+                    >
+                      <span className="truncate">{contentType || 'None'}</span>
+                      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="bottom"
+                    align="start"
+                    className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0"
+                  >
+                    <Command>
+                      <CommandInput placeholder="Search or enter custom..." />
+                      <CommandList>
+                        <CommandEmpty>No content type found.</CommandEmpty>
+                        <CommandItem
+                          value="none"
+                          onSelect={() => {
+                            setContentType('');
+                            setContentTypeOpen(false);
+                          }}
+                        >
+                          None
+                          <Check
+                            className={cn(
+                              'ml-auto h-4 w-4',
+                              !contentType ? 'opacity-100' : 'opacity-0',
+                            )}
+                          />
+                        </CommandItem>
+                        <CommandGroup heading="JSON / XML">
+                          {[
+                            'application/json',
+                            'application/ld+json',
+                            'application/hal+json',
+                            'application/vnd.api+json',
+                            'application/xml',
+                            'text/xml',
+                          ].map((ct) => (
+                            <CommandItem
+                              key={ct}
+                              value={ct}
+                              onSelect={() => {
+                                setContentType(ct);
+                                setContentTypeOpen(false);
+                              }}
+                            >
+                              {ct}
+                              <Check
+                                className={cn(
+                                  'ml-auto h-4 w-4',
+                                  contentType === ct
+                                    ? 'opacity-100'
+                                    : 'opacity-0',
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                        <CommandGroup heading="Form">
+                          {[
+                            'application/x-www-form-urlencoded',
+                            'multipart/form-data',
+                          ].map((ct) => (
+                            <CommandItem
+                              key={ct}
+                              value={ct}
+                              onSelect={() => {
+                                setContentType(ct);
+                                setContentTypeOpen(false);
+                              }}
+                            >
+                              {ct}
+                              <Check
+                                className={cn(
+                                  'ml-auto h-4 w-4',
+                                  contentType === ct
+                                    ? 'opacity-100'
+                                    : 'opacity-0',
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                        <CommandGroup heading="Text">
+                          {['text/html', 'text/plain'].map((ct) => (
+                            <CommandItem
+                              key={ct}
+                              value={ct}
+                              onSelect={() => {
+                                setContentType(ct);
+                                setContentTypeOpen(false);
+                              }}
+                            >
+                              {ct}
+                              <Check
+                                className={cn(
+                                  'ml-auto h-4 w-4',
+                                  contentType === ct
+                                    ? 'opacity-100'
+                                    : 'opacity-0',
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                        <CommandCreateItem
+                          onCreate={(value) => {
+                            setContentType(value);
+                            setContentTypeOpen(false);
+                          }}
                         />
-                      </CommandItem>
-                      <CommandGroup heading="JSON / XML">
-                        {[
-                          'application/json',
-                          'application/ld+json',
-                          'application/hal+json',
-                          'application/vnd.api+json',
-                          'application/xml',
-                          'text/xml',
-                        ].map((ct) => (
-                          <CommandItem
-                            key={ct}
-                            value={ct}
-                            onSelect={() => {
-                              setContentType(ct);
-                              setContentTypeOpen(false);
-                            }}
-                          >
-                            {ct}
-                            <Check
-                              className={cn(
-                                'ml-auto h-4 w-4',
-                                contentType === ct
-                                  ? 'opacity-100'
-                                  : 'opacity-0',
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                      <CommandGroup heading="Form">
-                        {[
-                          'application/x-www-form-urlencoded',
-                          'multipart/form-data',
-                        ].map((ct) => (
-                          <CommandItem
-                            key={ct}
-                            value={ct}
-                            onSelect={() => {
-                              setContentType(ct);
-                              setContentTypeOpen(false);
-                            }}
-                          >
-                            {ct}
-                            <Check
-                              className={cn(
-                                'ml-auto h-4 w-4',
-                                contentType === ct
-                                  ? 'opacity-100'
-                                  : 'opacity-0',
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                      <CommandGroup heading="Text">
-                        {['text/html', 'text/plain'].map((ct) => (
-                          <CommandItem
-                            key={ct}
-                            value={ct}
-                            onSelect={() => {
-                              setContentType(ct);
-                              setContentTypeOpen(false);
-                            }}
-                          >
-                            {ct}
-                            <Check
-                              className={cn(
-                                'ml-auto h-4 w-4',
-                                contentType === ct
-                                  ? 'opacity-100'
-                                  : 'opacity-0',
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                      <CommandCreateItem
-                        onCreate={(value) => {
-                          setContentType(value);
-                          setContentTypeOpen(false);
-                        }}
-                      />
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              {isFormEncoded ? (
+                <KeyValueEditor
+                  pairs={formFields}
+                  onChange={setFormFields}
+                  keyPlaceholder="Field name"
+                  valuePlaceholder="Field value"
+                />
+              ) : isMultipart ? (
+                <MultipartEditor
+                  fields={multipartFields}
+                  onChange={setMultipartFields}
+                />
+              ) : (
+                <Textarea
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder={
+                    isJson
+                      ? '{\n  "key": "value"\n}'
+                      : isXml
+                        ? '<?xml version="1.0"?>\n<root />'
+                        : 'Request body...'
+                  }
+                  className="min-h-32 font-mono text-sm"
+                />
+              )}
             </div>
-            {isFormEncoded ? (
-              <KeyValueEditor
-                pairs={formFields}
-                onChange={setFormFields}
-                keyPlaceholder="Field name"
-                valuePlaceholder="Field value"
-              />
-            ) : isMultipart ? (
-              <MultipartEditor
-                fields={multipartFields}
-                onChange={setMultipartFields}
-              />
-            ) : (
-              <Textarea
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder={
-                  isJson
-                    ? '{\n  "key": "value"\n}'
-                    : isXml
-                      ? '<?xml version="1.0"?>\n<root />'
-                      : 'Request body...'
-                }
-                className="min-h-32 font-mono text-sm"
-              />
-            )}
-          </div>
+          )}
         </TabsContent>
       </Tabs>
 
