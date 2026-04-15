@@ -31350,11 +31350,12 @@ export type GetGithubRepositoriesQuery = { __typename?: 'query_root', githubRepo
 export type GetFunctionsLogsQueryVariables = Exact<{
   appID: Scalars['String'];
   from: Scalars['Timestamp'];
+  to?: InputMaybe<Scalars['Timestamp']>;
   path: Scalars['String'];
 }>;
 
 
-export type GetFunctionsLogsQuery = { __typename?: 'query_root', getFunctionsLogs: Array<{ __typename?: 'Log', timestamp: any, log: string }> };
+export type GetFunctionsLogsQuery = { __typename?: 'query_root', getFunctionsLogs: Array<{ __typename?: 'Log', timestamp: any, service: string, log: string }> };
 
 export type GetProjectLogsQueryVariables = Exact<{
   appID: Scalars['String'];
@@ -35781,9 +35782,10 @@ export function refetchGetGithubRepositoriesQuery(variables?: GetGithubRepositor
       return { query: GetGithubRepositoriesDocument, variables: variables }
     }
 export const GetFunctionsLogsDocument = gql`
-    query getFunctionsLogs($appID: String!, $from: Timestamp!, $path: String!) {
-  getFunctionsLogs(appID: $appID, from: $from, path: $path) {
+    query getFunctionsLogs($appID: String!, $from: Timestamp!, $to: Timestamp, $path: String!) {
+  getFunctionsLogs(appID: $appID, from: $from, to: $to, path: $path) {
     timestamp
+    service
     log
   }
 }
@@ -35803,6 +35805,7 @@ export const GetFunctionsLogsDocument = gql`
  *   variables: {
  *      appID: // value for 'appID'
  *      from: // value for 'from'
+ *      to: // value for 'to'
  *      path: // value for 'path'
  *   },
  * });

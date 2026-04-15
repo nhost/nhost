@@ -56,6 +56,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { FunctionLogsTab } from '@/features/orgs/projects/serverless-functions/components/FunctionLogsTab';
 import { FunctionsEmptyState } from '@/features/orgs/projects/serverless-functions/components/FunctionsEmptyState';
 import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functions/hooks/useGetNhostFunctions';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
@@ -980,22 +981,29 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="execute">Execute</TabsTrigger>
+            <TabsTrigger value="logs">Logs</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
-        {tab === 'overview' && (
-          <OverviewTab
-            fn={fn}
-            endpointUrl={endpointUrl}
-            defaultEndpointUrl={
-              customDomainFqdn ? defaultEndpointUrl : undefined
-            }
-          />
-        )}
-        {tab === 'execute' && <ExecuteTab endpointUrl={defaultEndpointUrl} />}
-      </div>
+      {tab === 'logs' ? (
+        <div className="flex-1 overflow-hidden">
+          <FunctionLogsTab fn={fn} />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-auto p-6">
+          {tab === 'overview' && (
+            <OverviewTab
+              fn={fn}
+              endpointUrl={endpointUrl}
+              defaultEndpointUrl={
+                customDomainFqdn ? defaultEndpointUrl : undefined
+              }
+            />
+          )}
+          {tab === 'execute' && <ExecuteTab endpointUrl={defaultEndpointUrl} />}
+        </div>
+      )}
     </div>
   );
 }
