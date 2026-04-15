@@ -20,7 +20,7 @@ export default function FunctionListItem({
     ? functionSlug.join('/')
     : functionSlug;
   const isSelected = slug === currentSlug;
-  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/functions/${slug}`;
+  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/functions/${encodeURIComponent(slug)}`;
 
   return (
     <div className="group">

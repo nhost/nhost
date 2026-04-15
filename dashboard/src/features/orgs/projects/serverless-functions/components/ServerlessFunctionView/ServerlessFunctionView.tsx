@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
+import { ReadOnlyInput } from '@/components/presentational/ReadOnlyInput';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -386,22 +387,34 @@ function KeyValueEditor({
             key={`pair-${index.toString()}`}
             className="flex items-center gap-2"
           >
-            <Input
-              placeholder={keyPlaceholder}
-              value={pair.key}
-              onChange={(e) => updateRow(index, 'key', e.target.value)}
-              className="h-8 font-mono text-sm"
-              disabled={isLocked}
-            />
-            <Input
-              placeholder={valuePlaceholder}
-              value={pair.value}
-              onChange={(e) => updateRow(index, 'value', e.target.value)}
-              className="h-8 max-w-md flex-1 font-mono text-sm"
-              disabled={isLocked}
-            />
             {isLocked ? (
-              <div className="flex h-9 shrink-0 items-center justify-center px-4 text-muted-foreground">
+              <ReadOnlyInput
+                value={pair.key}
+                className="h-8 font-mono text-sm"
+              />
+            ) : (
+              <Input
+                placeholder={keyPlaceholder}
+                value={pair.key}
+                onChange={(e) => updateRow(index, 'key', e.target.value)}
+                className="h-8 font-mono text-sm"
+              />
+            )}
+            {isLocked ? (
+              <ReadOnlyInput
+                value={pair.value}
+                className="h-8 max-w-md flex-1 font-mono text-sm"
+              />
+            ) : (
+              <Input
+                placeholder={valuePlaceholder}
+                value={pair.value}
+                onChange={(e) => updateRow(index, 'value', e.target.value)}
+                className="h-8 max-w-md flex-1 font-mono text-sm"
+              />
+            )}
+            {isLocked ? (
+              <div className="flex h-9 shrink-0 cursor-not-allowed items-center justify-center px-4 text-muted-foreground">
                 <Lock className="size-4" />
               </div>
             ) : (
@@ -751,274 +764,280 @@ function ExecuteTab({ endpointUrl }: { endpointUrl: string }) {
   ]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Select
-          value={method}
-          onValueChange={(val) => setMethod(val as HttpMethod)}
-        >
-          <SelectTrigger
-            className={cn(
-              'h-10 w-24 font-mono font-semibold text-sm',
-              METHOD_COLORS[method],
-            )}
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="shrink-0 space-y-4 overflow-auto p-6">
+        <div className="flex items-center gap-2">
+          <Select
+            value={method}
+            onValueChange={(val) => setMethod(val as HttpMethod)}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(
-              [
-                'GET',
-                'POST',
-                'PUT',
-                'PATCH',
-                'DELETE',
-                'OPTIONS',
-                'HEAD',
-              ] as const
-            ).map((m) => (
-              <SelectItem
-                key={m}
-                value={m}
-                className={cn('font-mono font-semibold', METHOD_COLORS[m])}
-              >
-                {m}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              className={cn(
+                'h-10 w-24 font-mono font-semibold text-sm',
+                METHOD_COLORS[method],
+              )}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(
+                [
+                  'GET',
+                  'POST',
+                  'PUT',
+                  'PATCH',
+                  'DELETE',
+                  'OPTIONS',
+                  'HEAD',
+                ] as const
+              ).map((m) => (
+                <SelectItem
+                  key={m}
+                  value={m}
+                  className={cn('font-mono font-semibold', METHOD_COLORS[m])}
+                >
+                  {m}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-sm">
-          <TextWithTooltip
-            containerClassName="min-w-0"
-            truncateMode="middle"
-            tailLength={
-              endpointUrl.includes('nhost.run')
-                ? endpointUrl.length - endpointUrl.indexOf('nhost.run')
-                : 12
-            }
-            text={endpointUrl}
-          />
-          <CopyToClipboardButton
-            textToCopy={endpointUrl}
-            title="Copy endpoint URL"
-            className="ml-auto shrink-0"
-          />
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-sm">
+            <TextWithTooltip
+              containerClassName="min-w-0"
+              truncateMode="middle"
+              tailLength={
+                endpointUrl.includes('nhost.run')
+                  ? endpointUrl.length - endpointUrl.indexOf('nhost.run')
+                  : 12
+              }
+              text={endpointUrl}
+            />
+            <CopyToClipboardButton
+              textToCopy={endpointUrl}
+              title="Copy endpoint URL"
+              className="ml-auto shrink-0"
+            />
+          </div>
+
+          <Button
+            onClick={sendRequest}
+            disabled={response.status === 'loading'}
+            className="h-10 gap-2"
+          >
+            {response.status === 'loading' ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+            Send
+          </Button>
         </div>
 
-        <Button
-          onClick={sendRequest}
-          disabled={response.status === 'loading'}
-          className="h-10 gap-2"
-        >
-          {response.status === 'loading' ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
-          Send
-        </Button>
+        <Tabs value={requestTab} onValueChange={setRequestTab}>
+          <TabsList className="h-8">
+            <TabsTrigger value="headers" className="text-xs">
+              Headers
+            </TabsTrigger>
+            <TabsTrigger value="params" className="text-xs">
+              Params
+            </TabsTrigger>
+            <TabsTrigger value="request" className="text-xs">
+              Request
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="headers" className="mt-3">
+            <KeyValueEditor
+              pairs={headers}
+              onChange={setHeaders}
+              lockedKeys={['Content-Type']}
+              keyPlaceholder="Header name"
+              valuePlaceholder="Header value"
+            />
+          </TabsContent>
+          <TabsContent value="params" className="mt-3">
+            <KeyValueEditor
+              pairs={params}
+              onChange={setParams}
+              keyPlaceholder="Param name"
+              valuePlaceholder="Param value"
+            />
+          </TabsContent>
+          <TabsContent value="request" className="mt-3">
+            {!hasBody ? (
+              <p className="py-4 text-center text-muted-foreground text-sm">
+                {method} requests do not have a body.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-sm">
+                    Content-Type
+                  </span>
+                  <Popover
+                    open={contentTypeOpen}
+                    onOpenChange={setContentTypeOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={contentTypeOpen}
+                        className="h-8 w-80 justify-between font-normal text-sm"
+                      >
+                        <span className="truncate">
+                          {contentType || 'None'}
+                        </span>
+                        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side="bottom"
+                      align="start"
+                      className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0"
+                    >
+                      <Command>
+                        <CommandInput placeholder="Search or enter custom..." />
+                        <CommandList>
+                          <CommandEmpty>No content type found.</CommandEmpty>
+                          <CommandItem
+                            value="none"
+                            onSelect={() => {
+                              setContentType('');
+                              setContentTypeOpen(false);
+                            }}
+                          >
+                            None
+                            <Check
+                              className={cn(
+                                'ml-auto h-4 w-4',
+                                !contentType ? 'opacity-100' : 'opacity-0',
+                              )}
+                            />
+                          </CommandItem>
+                          <CommandGroup heading="JSON / XML">
+                            {[
+                              'application/json',
+                              'application/ld+json',
+                              'application/hal+json',
+                              'application/vnd.api+json',
+                              'application/xml',
+                              'text/xml',
+                            ].map((ct) => (
+                              <CommandItem
+                                key={ct}
+                                value={ct}
+                                onSelect={() => {
+                                  setContentType(ct);
+                                  setContentTypeOpen(false);
+                                }}
+                              >
+                                {ct}
+                                <Check
+                                  className={cn(
+                                    'ml-auto h-4 w-4',
+                                    contentType === ct
+                                      ? 'opacity-100'
+                                      : 'opacity-0',
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                          <CommandGroup heading="Form">
+                            {[
+                              'application/x-www-form-urlencoded',
+                              'multipart/form-data',
+                            ].map((ct) => (
+                              <CommandItem
+                                key={ct}
+                                value={ct}
+                                onSelect={() => {
+                                  setContentType(ct);
+                                  setContentTypeOpen(false);
+                                }}
+                              >
+                                {ct}
+                                <Check
+                                  className={cn(
+                                    'ml-auto h-4 w-4',
+                                    contentType === ct
+                                      ? 'opacity-100'
+                                      : 'opacity-0',
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                          <CommandGroup heading="Text">
+                            {['text/html', 'text/plain'].map((ct) => (
+                              <CommandItem
+                                key={ct}
+                                value={ct}
+                                onSelect={() => {
+                                  setContentType(ct);
+                                  setContentTypeOpen(false);
+                                }}
+                              >
+                                {ct}
+                                <Check
+                                  className={cn(
+                                    'ml-auto h-4 w-4',
+                                    contentType === ct
+                                      ? 'opacity-100'
+                                      : 'opacity-0',
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                          <CommandCreateItem
+                            onCreate={(value) => {
+                              setContentType(value);
+                              setContentTypeOpen(false);
+                            }}
+                          />
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                {isFormEncoded ? (
+                  <KeyValueEditor
+                    pairs={formFields}
+                    onChange={setFormFields}
+                    keyPlaceholder="Field name"
+                    valuePlaceholder="Field value"
+                  />
+                ) : isMultipart ? (
+                  <MultipartEditor
+                    fields={multipartFields}
+                    onChange={setMultipartFields}
+                  />
+                ) : (
+                  <Textarea
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    placeholder={
+                      isJson
+                        ? '{\n  "key": "value"\n}'
+                        : isXml
+                          ? '<?xml version="1.0"?>\n<root />'
+                          : 'Request body...'
+                    }
+                    className="min-h-32 font-mono text-sm"
+                  />
+                )}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
-      <Tabs value={requestTab} onValueChange={setRequestTab}>
-        <TabsList className="h-8">
-          <TabsTrigger value="headers" className="text-xs">
-            Headers
-          </TabsTrigger>
-          <TabsTrigger value="params" className="text-xs">
-            Params
-          </TabsTrigger>
-          <TabsTrigger value="request" className="text-xs">
-            Request
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="headers" className="mt-3">
-          <KeyValueEditor
-            pairs={headers}
-            onChange={setHeaders}
-            lockedKeys={['Content-Type']}
-            keyPlaceholder="Header name"
-            valuePlaceholder="Header value"
-          />
-        </TabsContent>
-        <TabsContent value="params" className="mt-3">
-          <KeyValueEditor
-            pairs={params}
-            onChange={setParams}
-            keyPlaceholder="Param name"
-            valuePlaceholder="Param value"
-          />
-        </TabsContent>
-        <TabsContent value="request" className="mt-3">
-          {!hasBody ? (
-            <p className="py-4 text-center text-muted-foreground text-sm">
-              {method} requests do not have a body.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm">
-                  Content-Type
-                </span>
-                <Popover
-                  open={contentTypeOpen}
-                  onOpenChange={setContentTypeOpen}
-                >
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={contentTypeOpen}
-                      className="h-8 w-80 justify-between font-normal text-sm"
-                    >
-                      <span className="truncate">{contentType || 'None'}</span>
-                      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="bottom"
-                    align="start"
-                    className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0"
-                  >
-                    <Command>
-                      <CommandInput placeholder="Search or enter custom..." />
-                      <CommandList>
-                        <CommandEmpty>No content type found.</CommandEmpty>
-                        <CommandItem
-                          value="none"
-                          onSelect={() => {
-                            setContentType('');
-                            setContentTypeOpen(false);
-                          }}
-                        >
-                          None
-                          <Check
-                            className={cn(
-                              'ml-auto h-4 w-4',
-                              !contentType ? 'opacity-100' : 'opacity-0',
-                            )}
-                          />
-                        </CommandItem>
-                        <CommandGroup heading="JSON / XML">
-                          {[
-                            'application/json',
-                            'application/ld+json',
-                            'application/hal+json',
-                            'application/vnd.api+json',
-                            'application/xml',
-                            'text/xml',
-                          ].map((ct) => (
-                            <CommandItem
-                              key={ct}
-                              value={ct}
-                              onSelect={() => {
-                                setContentType(ct);
-                                setContentTypeOpen(false);
-                              }}
-                            >
-                              {ct}
-                              <Check
-                                className={cn(
-                                  'ml-auto h-4 w-4',
-                                  contentType === ct
-                                    ? 'opacity-100'
-                                    : 'opacity-0',
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                        <CommandGroup heading="Form">
-                          {[
-                            'application/x-www-form-urlencoded',
-                            'multipart/form-data',
-                          ].map((ct) => (
-                            <CommandItem
-                              key={ct}
-                              value={ct}
-                              onSelect={() => {
-                                setContentType(ct);
-                                setContentTypeOpen(false);
-                              }}
-                            >
-                              {ct}
-                              <Check
-                                className={cn(
-                                  'ml-auto h-4 w-4',
-                                  contentType === ct
-                                    ? 'opacity-100'
-                                    : 'opacity-0',
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                        <CommandGroup heading="Text">
-                          {['text/html', 'text/plain'].map((ct) => (
-                            <CommandItem
-                              key={ct}
-                              value={ct}
-                              onSelect={() => {
-                                setContentType(ct);
-                                setContentTypeOpen(false);
-                              }}
-                            >
-                              {ct}
-                              <Check
-                                className={cn(
-                                  'ml-auto h-4 w-4',
-                                  contentType === ct
-                                    ? 'opacity-100'
-                                    : 'opacity-0',
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                        <CommandCreateItem
-                          onCreate={(value) => {
-                            setContentType(value);
-                            setContentTypeOpen(false);
-                          }}
-                        />
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              {isFormEncoded ? (
-                <KeyValueEditor
-                  pairs={formFields}
-                  onChange={setFormFields}
-                  keyPlaceholder="Field name"
-                  valuePlaceholder="Field value"
-                />
-              ) : isMultipart ? (
-                <MultipartEditor
-                  fields={multipartFields}
-                  onChange={setMultipartFields}
-                />
-              ) : (
-                <Textarea
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  placeholder={
-                    isJson
-                      ? '{\n  "key": "value"\n}'
-                      : isXml
-                        ? '<?xml version="1.0"?>\n<root />'
-                        : 'Request body...'
-                  }
-                  className="min-h-32 font-mono text-sm"
-                />
-              )}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      <ResponseArea response={response} />
+      <div className="mt-auto h-[40%] shrink-0 overflow-auto border-t px-6 py-4">
+        <ResponseArea response={response} />
+      </div>
     </div>
   );
 }
@@ -1072,6 +1091,10 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
         <div className="flex-1 overflow-hidden">
           <FunctionLogsTab fn={fn} />
         </div>
+      ) : tab === 'execute' ? (
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <ExecuteTab endpointUrl={defaultEndpointUrl} />
+        </div>
       ) : (
         <div className="flex-1 overflow-auto p-6">
           {tab === 'overview' && (
@@ -1084,7 +1107,6 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
               onViewAllLogs={() => setTab('logs')}
             />
           )}
-          {tab === 'execute' && <ExecuteTab endpointUrl={defaultEndpointUrl} />}
         </div>
       )}
     </div>

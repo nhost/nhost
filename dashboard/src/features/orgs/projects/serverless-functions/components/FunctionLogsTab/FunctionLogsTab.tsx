@@ -1,3 +1,4 @@
+import { subMinutes } from 'date-fns';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Form } from '@/components/form/Form';
@@ -11,8 +12,8 @@ import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
-import { isNotEmptyValue } from '@/lib/utils';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
+import { isNotEmptyValue } from '@/lib/utils';
 import type {
   GetFunctionsLogsQuery,
   GetProjectLogsQuery,
@@ -22,15 +23,12 @@ import {
   useGetFunctionsLogsQuery,
 } from '@/utils/__generated__/graphql';
 import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
-import { subMinutes } from 'date-fns';
 
 const DEFAULT_INTERVAL = 15;
 
 function updateQuery(
   prev: GetFunctionsLogsQuery,
-  {
-    subscriptionData,
-  }: { subscriptionData: { data: GetFunctionsLogsQuery } },
+  { subscriptionData }: { subscriptionData: { data: GetFunctionsLogsQuery } },
 ): GetFunctionsLogsQuery {
   if (!subscriptionData.data) {
     return prev;
@@ -210,7 +208,12 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
         </FormProvider>
       </Box>
       <div className="min-h-0 flex-1">
-        <LogsBody logsData={logsData} loading={loading} error={error} hideServiceColumn />
+        <LogsBody
+          logsData={logsData}
+          loading={loading}
+          error={error}
+          hideServiceColumn
+        />
       </div>
     </div>
   );
