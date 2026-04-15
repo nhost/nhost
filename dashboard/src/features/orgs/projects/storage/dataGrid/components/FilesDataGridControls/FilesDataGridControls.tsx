@@ -1,11 +1,10 @@
 import type { Row } from '@tanstack/react-table';
-import type { PropsWithoutRef } from 'react';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Badge } from '@/components/ui/v3/badge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import { Input, type InputProps } from '@/components/ui/v3/input';
+import { DataGridFiltersPopover } from '@/features/orgs/projects/common/components/DataGridFiltersPopover';
 import { DataGridTableViewConfigurationPopover } from '@/features/orgs/projects/common/components/DataGridTableViewConfigurationPopover';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -19,12 +18,11 @@ import type { Files } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
 
-export type FilterProps = PropsWithoutRef<InputProps>;
-
 export interface FilesDataGridControlsProps {
   paginationProps?: DataGridPaginationProps;
   fileUploadProps?: FileUploadButtonProps;
-  filterProps?: FilterProps;
+  storageKey: string;
+  isFetching: boolean;
   refetchData?: () => Promise<unknown>;
   className?: string;
 }
@@ -33,7 +31,8 @@ export default function FilesDataGridControls({
   className,
   paginationProps,
   fileUploadProps,
-  filterProps,
+  storageKey,
+  isFetching,
   refetchData,
   ...props
 }: FilesDataGridControlsProps) {
@@ -46,8 +45,6 @@ export default function FilesDataGridControls({
     paginationProps || ({} as DataGridPaginationProps);
   const { className: fileUploadClassName, ...restFileUploadProps } =
     fileUploadProps || ({} as FileUploadButtonProps);
-  const { className: filterClassName, ...restFilterProps } =
-    filterProps || ({} as FilterProps);
 
   const table = useDataGridConfig<Files>();
   const { toggleAllRowsSelected } = table;
@@ -150,16 +147,15 @@ export default function FilesDataGridControls({
           </Button>
         </div>
       ) : (
-        <div className="flex w-full flex-grow gap-3">
-          <Input
-            wrapperClassName={cn('w-full', filterClassName)}
-            {...restFilterProps}
-          />
-
+        <div className="flex w-full flex-grow justify-end gap-3">
           <div className="flex flex-shrink-0 gap-3">
             <DataGridPagination
               className={twMerge('col-span-6', paginationClassName)}
               {...restPaginationProps}
+            />
+            <DataGridFiltersPopover
+              storageKey={storageKey}
+              isFetching={isFetching}
             />
             <DataGridTableViewConfigurationPopover />
             <FileUploadButton

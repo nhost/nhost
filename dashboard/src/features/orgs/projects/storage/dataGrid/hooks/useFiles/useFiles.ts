@@ -1,8 +1,8 @@
 import type { QueryHookOptions } from '@apollo/client';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { buildFilesWhereClause } from '@/features/orgs/projects/storage/dataGrid/utils/buildFilesWhereClause';
 import type {
+  Files_Bool_Exp,
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,
 } from '@/utils/__generated__/graphql';
@@ -11,13 +11,9 @@ import { getHasuraAdminSecret } from '@/utils/env';
 
 export type UseFilesOptions = {
   /**
-   * Search query to filter files.
+   * Hasura where clause to filter files.
    */
-  searchString: string;
-  /**
-   * Bucket ID to filter files by.
-   */
-  bucketId?: string;
+  where?: Files_Bool_Exp;
   /**
    * Number of files to fetch.
    */
@@ -37,16 +33,13 @@ export type UseFilesOptions = {
 };
 
 export default function useFiles({
-  searchString,
-  bucketId,
+  where,
   limit,
   offset,
   orderBy,
   options = {},
 }: UseFilesOptions) {
   const { project } = useProject();
-
-  const where = buildFilesWhereClause({ searchString, bucketId });
 
   const { data, previousData, ...rest } = useGetFilesQuery({
     variables: {
