@@ -26,7 +26,6 @@
   "homepage": "https://github.com/nhost/nhost/tree/main/services/functions#readme",
   "devDependencies": {
     "@antfu/ni": "^0.17.2",
-    "chokidar": "^4.0.0",
     "esbuild": "^0.24.0",
     "express": "^5.2.1",
     "glob": "^8.1.0",

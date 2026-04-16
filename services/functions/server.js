@@ -4,7 +4,6 @@ const { execSync } = require('node:child_process');
 const express = require('express');
 const glob = require('glob');
 const esbuild = require('esbuild');
-const chokidar = require('chokidar');
 
 const util = require('node:util');
 
@@ -107,10 +106,10 @@ async function buildFunction(functionsPath, file) {
         name: 'reload-notifier',
         setup(build) {
           build.onEnd((result) => {
-            if (result.errors.length === 0) {
-              loadBundle(route, outfile, safeName);
-              serverLog('INFO', route, `Rebuilt from ${file}`);
-            }
+            if (result.errors.length > 0) return;
+            if (!fs.existsSync(path.join(functionsPath, file))) return;
+            loadBundle(route, outfile, safeName);
+            serverLog('INFO', route, `Rebuilt from ${file}`);
           });
         },
       },
@@ -274,51 +273,76 @@ const main = async () => {
     }
   }
 
-  // Watch for new/deleted function files
-  const functionWatcher = chokidar.watch('**/*.{js,ts}', {
-    cwd: functionsPath,
-    ignored: [
-      '**/node_modules/**',
-      '**/_*/**',
-      '**/_*',
-      '**/.wrapper-*',
-      `**/${BUILD_DIR}/**`,
-    ],
-    ignoreInitial: true,
-  });
+  // Poll for new/deleted function files. Filesystem events (chokidar/inotify)
+  // are unreliable over Docker volume mounts — add/unlink all arrive as
+  // "change", so we periodically re-discover and diff instead.
+  setInterval(async () => {
+    const currentFiles = new Set(discoverFunctions(functionsPath));
+    const knownFiles = new Set(esbuildContexts.keys());
 
-  functionWatcher.on('add', async (file) => {
-    if (esbuildContexts.has(file)) return;
-    serverLog('INFO', fileToRoute(file), `New function detected: ${file}`);
-    try {
-      await buildFunction(functionsPath, file);
-    } catch (err) {
-      serverLog('ERROR', fileToRoute(file), `Failed to build ${file}:`, err);
+    for (const file of currentFiles) {
+      if (!knownFiles.has(file)) {
+        serverLog('INFO', fileToRoute(file), `New function detected: ${file}`);
+        try {
+          await buildFunction(functionsPath, file);
+        } catch (err) {
+          serverLog(
+            'ERROR',
+            fileToRoute(file),
+            `Failed to build ${file}:`,
+            err,
+          );
+        }
+      }
     }
-  });
 
-  functionWatcher.on('unlink', async (file) => {
-    if (!esbuildContexts.has(file)) return;
-    await removeFunction(functionsPath, file);
-  });
+    for (const file of knownFiles) {
+      if (!currentFiles.has(file)) {
+        await removeFunction(functionsPath, file);
+      }
+    }
+  }, 1000);
 
-  // Watch for dependency changes (package.json / lockfiles)
+  // Watch for dependency changes (package.json / lockfiles) via mtime polling.
   const workingDir = process.cwd();
-  const depWatcher = chokidar.watch(
-    ['package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'],
-    { cwd: workingDir, ignoreInitial: true },
-  );
-
-  depWatcher.on('change', async (file) => {
-    console.log(`Dependency file changed: ${file} — reinstalling...`);
+  const depFiles = [
+    'package.json',
+    'package-lock.json',
+    'yarn.lock',
+    'pnpm-lock.yaml',
+  ];
+  const depMtimes = new Map();
+  for (const f of depFiles) {
     try {
-      execSync('nci', { cwd: workingDir, stdio: 'inherit' });
-      console.log('Dependencies installed. Rebuilding all functions...');
-      await rebuildAll();
-    } catch (err) {
-      console.error('Failed to reinstall dependencies:', err);
+      depMtimes.set(f, fs.statSync(path.join(workingDir, f)).mtimeMs);
+    } catch {}
+  }
+  setInterval(async () => {
+    for (const file of depFiles) {
+      const filePath = path.join(workingDir, file);
+      let mtimeMs;
+      try {
+        mtimeMs = fs.statSync(filePath).mtimeMs;
+      } catch {
+        if (depMtimes.has(file)) depMtimes.delete(file);
+        continue;
+      }
+      const prev = depMtimes.get(file);
+      if (prev !== undefined && prev !== mtimeMs) {
+        depMtimes.set(file, mtimeMs);
+        console.log(`Dependency file changed: ${file} — reinstalling...`);
+        try {
+          execSync('nci', { cwd: workingDir, stdio: 'inherit' });
+          console.log('Dependencies installed. Rebuilding all functions...');
+          await rebuildAll();
+        } catch (err) {
+          console.error('Failed to reinstall dependencies:', err);
+        }
+        return; // rebuildAll already covers everything
+      }
+      depMtimes.set(file, mtimeMs);
     }
-  });
+  }, 1000);
 
   app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
