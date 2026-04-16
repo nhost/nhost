@@ -3,29 +3,32 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
-import { useGetAppFunctionsMetadataQuery } from '@/utils/__generated__/graphql';
+import { useNhostClient } from '@/providers/nhost';
+import {
+  GetAppFunctionsMetadataDocument,
+  type GetAppFunctionsMetadataQuery,
+} from '@/utils/__generated__/graphql';
 
 export default function useGetNhostFunctions() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
   const appClient = useAppClient();
+  const nhost = useNhostClient();
 
-  const {
-    data: platformData,
-    loading: platformLoading,
-    error: platformError,
-  } = useGetAppFunctionsMetadataQuery({
-    variables: { id: project?.id },
-    skip: !project?.id || !isPlatform,
-  });
-
-  const {
-    data: localData,
-    isLoading: localLoading,
-    error: localError,
-  } = useQuery<NhostFunction[]>({
-    queryKey: ['localFunctionsMetadata'],
+  const { data, isLoading, error } = useQuery<NhostFunction[]>({
+    queryKey: ['nhostFunctions', project?.id, isPlatform],
     queryFn: async () => {
+      if (isPlatform) {
+        const response =
+          await nhost.graphql.request<GetAppFunctionsMetadataQuery>(
+            GetAppFunctionsMetadataDocument,
+            { id: project?.id },
+          );
+        return (
+          (response?.body.data?.app?.metadataFunctions as NhostFunction[]) ?? []
+        );
+      }
+
       const res = await fetch(
         `${appClient.functions.baseURL}/_nhost_functions_metadata`,
       );
@@ -36,19 +39,8 @@ export default function useGetNhostFunctions() {
       }
       return res.json();
     },
-    enabled: !isPlatform,
+    enabled: !!project?.id,
   });
 
-  if (isPlatform) {
-    const functions: NhostFunction[] =
-      (platformData?.app?.metadataFunctions as NhostFunction[] | undefined) ??
-      [];
-    return { data: functions, loading: platformLoading, error: platformError };
-  }
-
-  return {
-    data: localData ?? [],
-    loading: localLoading,
-    error: localError,
-  };
+  return { data: data ?? [], loading: isLoading, error };
 }

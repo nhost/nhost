@@ -1,4 +1,9 @@
-query getFunctionsLogs($appID: String!, $from: Timestamp!, $to: Timestamp, $path: String!) {
+query getFunctionsLogs(
+  $appID: String!
+  $from: Timestamp!
+  $to: Timestamp
+  $path: String!
+) {
   getFunctionsLogs(appID: $appID, from: $from, to: $to, path: $path) {
     timestamp
     service
@@ -6,10 +11,15 @@ query getFunctionsLogs($appID: String!, $from: Timestamp!, $to: Timestamp, $path
   }
 }
 
-subscription getFunctionsLogsSubscription($appID: String!, $from: Timestamp!, $path: String!) {
+subscription getFunctionsLogsSubscription(
+  $appID: String!
+  $from: Timestamp!
+  $path: String!
+) {
   getFunctionsLogs(appID: $appID, from: $from, path: $path) {
     timestamp
     service
     log
   }
 }
+

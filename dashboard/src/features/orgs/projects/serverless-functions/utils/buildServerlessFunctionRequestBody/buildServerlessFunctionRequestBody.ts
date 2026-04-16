@@ -4,37 +4,7 @@ import type {
   MultipartField,
 } from '@/features/orgs/projects/serverless-functions/types';
 
-export function buildRequestUrl(
-  endpointUrl: string,
-  params: KeyValuePair[],
-): string {
-  const queryString = params
-    .filter((p) => p.key)
-    .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
-    .join('&');
-
-  return queryString ? `${endpointUrl}?${queryString}` : endpointUrl;
-}
-
-export function buildRequestHeaders(
-  headerPairs: KeyValuePair[],
-  isMultipart: boolean,
-): Record<string, string> {
-  const headersObj: Record<string, string> = {};
-  for (const h of headerPairs) {
-    if (h.key) {
-      headersObj[h.key] = h.value;
-    }
-  }
-
-  if (isMultipart) {
-    delete headersObj['Content-Type'];
-  }
-
-  return headersObj;
-}
-
-export function buildRequestBody(
+export function buildServerlessFunctionRequestBody(
   method: HttpMethod,
   opts: {
     isMultipart: boolean;

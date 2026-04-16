@@ -1,9 +1,10 @@
 import { Loader2, Lock, Send } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { ReadOnlyInput } from '@/components/presentational/ReadOnlyInput';
 import { Button } from '@/components/ui/v3/button';
+import { Form } from '@/components/ui/v3/form';
 import {
   Select,
   SelectContent,
@@ -17,22 +18,20 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
-import { Textarea } from '@/components/ui/v3/textarea';
 import { TruncatedText } from '@/features/orgs/projects/common/components/TruncatedText';
 import { ContentTypeCombobox } from '@/features/orgs/projects/serverless-functions/components/ContentTypeCombobox';
+import { ExecuteRequestBodyEditor } from '@/features/orgs/projects/serverless-functions/components/ExecuteRequestBodyEditor';
 import { KeyValueEditor } from '@/features/orgs/projects/serverless-functions/components/KeyValueEditor';
-import { MultipartEditor } from '@/features/orgs/projects/serverless-functions/components/MultipartEditor';
 import { ResponseArea } from '@/features/orgs/projects/serverless-functions/components/ResponseArea';
-import type {
-  ExecuteFormValues,
-  HttpMethod,
-  ResponseState,
-} from '@/features/orgs/projects/serverless-functions/types';
 import {
-  buildRequestBody,
-  buildRequestHeaders,
-  buildRequestUrl,
-} from '@/features/orgs/projects/serverless-functions/utils';
+  type ExecuteFormValues,
+  HTTP_METHODS,
+  type HttpMethod,
+  type ResponseState,
+} from '@/features/orgs/projects/serverless-functions/types';
+import { buildServerlessFunctionRequestBody } from '@/features/orgs/projects/serverless-functions/utils/buildServerlessFunctionRequestBody';
+import { buildServerlessFunctionRequestHeaders } from '@/features/orgs/projects/serverless-functions/utils/buildServerlessFunctionRequestHeaders';
+import { buildServerlessFunctionRequestUrl } from '@/features/orgs/projects/serverless-functions/utils/buildServerlessFunctionRequestUrl';
 import { cn } from '@/lib/utils';
 
 const METHOD_COLORS: Record<HttpMethod, string> = {
@@ -67,18 +66,15 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
 
   const method = form.watch('method');
   const contentType = form.watch('contentType');
-  const isJson = contentType.includes('json');
-  const isXml = contentType.includes('xml');
   const isFormEncoded = contentType.includes(
     'application/x-www-form-urlencoded',
   );
   const isMultipart = contentType.includes('multipart/form-data');
   const hasBody = method !== 'GET' && method !== 'HEAD';
 
-  const sendRequest = useCallback(async () => {
+  const handleSubmit = form.handleSubmit(async (values) => {
     setResponse({ status: 'loading' });
 
-    const values = form.getValues();
     const methodHasBody = values.method !== 'GET' && values.method !== 'HEAD';
     const allHeaders =
       methodHasBody && values.contentType
@@ -88,9 +84,15 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
           ]
         : values.headers;
 
-    const fullUrl = buildRequestUrl(endpointUrl, values.params);
-    const headersObj = buildRequestHeaders(allHeaders, isMultipart);
-    const requestBody = buildRequestBody(values.method, {
+    const fullUrl = buildServerlessFunctionRequestUrl(
+      endpointUrl,
+      values.params,
+    );
+    const headersObj = buildServerlessFunctionRequestHeaders(
+      allHeaders,
+      isMultipart,
+    );
+    const requestBody = buildServerlessFunctionRequestBody(values.method, {
       isMultipart,
       isFormEncoded,
       body: values.body,
@@ -123,7 +125,6 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
       });
     } catch (err) {
       const duration = Math.round(performance.now() - start);
-      console.error('[Execute] Network error:', err);
       setResponse({
         status: 'error',
         statusCode: 0,
@@ -132,11 +133,14 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
         duration,
       });
     }
-  }, [form, endpointUrl, isFormEncoded, isMultipart]);
+  });
 
   return (
-    <FormProvider {...form}>
-      <div className="flex h-full flex-col overflow-hidden">
+    <Form {...form}>
+      <form
+        onSubmit={handleSubmit}
+        className="flex h-full flex-col overflow-hidden"
+      >
         <div className="shrink-0 space-y-4 overflow-auto p-6">
           <div className="flex items-center gap-2">
             <Select
@@ -154,17 +158,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(
-                  [
-                    'GET',
-                    'POST',
-                    'PUT',
-                    'PATCH',
-                    'DELETE',
-                    'OPTIONS',
-                    'HEAD',
-                  ] as const
-                ).map((m) => (
+                {HTTP_METHODS.map((m) => (
                   <SelectItem
                     key={m}
                     value={m}
@@ -186,8 +180,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             </div>
 
             <Button
-              type="button"
-              onClick={sendRequest}
+              type="submit"
               disabled={response.status === 'loading'}
               className="h-10 gap-2"
             >
@@ -255,27 +248,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
                     </span>
                     <ContentTypeCombobox />
                   </div>
-                  {isFormEncoded ? (
-                    <KeyValueEditor
-                      name="formFields"
-                      keyPlaceholder="Field name"
-                      valuePlaceholder="Field value"
-                    />
-                  ) : isMultipart ? (
-                    <MultipartEditor name="multipartFields" />
-                  ) : (
-                    <Textarea
-                      {...form.register('body')}
-                      placeholder={
-                        isJson
-                          ? '{\n  "key": "value"\n}'
-                          : isXml
-                            ? '<?xml version="1.0"?>\n<root />'
-                            : 'Request body...'
-                      }
-                      className="min-h-32 font-mono text-sm"
-                    />
-                  )}
+                  <ExecuteRequestBodyEditor />
                 </div>
               )}
             </TabsContent>
@@ -285,7 +258,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
         <div className="mt-auto h-[40%] shrink-0 overflow-auto border-t px-6 py-4">
           <ResponseArea response={response} />
         </div>
-      </div>
-    </FormProvider>
+      </form>
+    </Form>
   );
 }

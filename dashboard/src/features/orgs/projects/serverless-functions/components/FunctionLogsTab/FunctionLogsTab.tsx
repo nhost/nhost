@@ -1,5 +1,5 @@
 import { subMinutes } from 'date-fns';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Form } from '@/components/form/Form';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -7,56 +7,16 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { useFunctionLogs } from '@/features/orgs/projects/serverless-functions/hooks/useFunctionLogs';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
-import { isNotEmptyValue } from '@/lib/utils';
-import type { GetFunctionsLogsQuery } from '@/utils/__generated__/graphql';
-import {
-  GetFunctionsLogsSubscriptionDocument,
-  useGetFunctionsLogsQuery,
-} from '@/utils/__generated__/graphql';
-import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
 
 const DEFAULT_INTERVAL = 15;
 
-function updateQuery(
-  prev: GetFunctionsLogsQuery,
-  { subscriptionData }: { subscriptionData: { data: GetFunctionsLogsQuery } },
-): GetFunctionsLogsQuery {
-  if (!subscriptionData.data) {
-    return prev;
-  }
-
-  const prevLogs = prev.getFunctionsLogs;
-
-  if (!prevLogs || prevLogs.length === 0) {
-    return subscriptionData.data;
-  }
-
-  const newLogs = subscriptionData.data.getFunctionsLogs;
-
-  const latestPrevTimestamp = Math.max(
-    ...prevLogs.map((log) => new Date(log.timestamp).getTime()),
-  );
-
-  const newLogsToAdd = newLogs.filter(
-    (log) => new Date(log.timestamp).getTime() > latestPrevTimestamp,
-  );
-
-  return {
-    ...prev,
-    getFunctionsLogs: [...prevLogs, ...newLogsToAdd],
-  };
-}
-
 export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
-  const { project, loading: loadingProject } = useProject();
-  const subscriptionReturn = useRef<(() => void) | null>(null);
-
   const [filters, setFilters] = useState(() => ({
     from: subMinutes(new Date(), DEFAULT_INTERVAL).toISOString(),
     to: new Date().toISOString() as string | null,
@@ -73,66 +33,11 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
     },
   });
 
-  const {
-    data,
-    loading: loadingLogs,
-    error,
-    subscribeToMore,
-  } = useGetFunctionsLogsQuery({
-    variables: {
-      appID: project?.id,
-      from: filters.from,
-      to: filters.to,
-      path: fn.route,
-    },
-    client: splitGraphqlClient,
-    fetchPolicy: 'cache-and-network',
-    notifyOnNetworkStatusChange: true,
-    skip: !project?.id,
+  const { data, loading, error } = useFunctionLogs({
+    from: filters.from,
+    to: filters.to,
+    path: fn.route,
   });
-
-  const subscribeToMoreLogs = useCallback(
-    () =>
-      subscribeToMore({
-        document: GetFunctionsLogsSubscriptionDocument,
-        variables: {
-          appID: project?.id,
-          from: filters.from,
-          path: fn.route,
-        },
-        updateQuery,
-      }),
-    [subscribeToMore, project?.id, filters.from, fn.route],
-  );
-
-  // Cleanup subscription on unmount
-  useEffect(
-    () => () => {
-      if (isNotEmptyValue(subscriptionReturn.current)) {
-        subscriptionReturn.current();
-      }
-    },
-    [],
-  );
-
-  // Toggle subscription based on live mode (to === null)
-  useEffect(() => {
-    if (!project?.id || loadingProject) {
-      return;
-    }
-
-    if (filters.to !== null && subscriptionReturn.current !== null) {
-      subscriptionReturn.current();
-      subscriptionReturn.current = null;
-    }
-
-    if (filters.to === null) {
-      subscriptionReturn.current?.();
-      subscriptionReturn.current = subscribeToMoreLogs();
-    }
-  }, [filters.to, subscribeToMoreLogs, project?.id, loadingProject]);
-
-  const loading = loadingProject || loadingLogs;
 
   const logsData = useMemo(() => {
     if (!data) {

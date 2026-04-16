@@ -9,14 +9,17 @@ export interface NhostFunction {
   createdWithCommitSha: string;
 }
 
-export type HttpMethod =
-  | 'GET'
-  | 'POST'
-  | 'PUT'
-  | 'PATCH'
-  | 'DELETE'
-  | 'OPTIONS'
-  | 'HEAD';
+export const HTTP_METHODS = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'OPTIONS',
+  'HEAD',
+] as const;
+
+export type HttpMethod = (typeof HTTP_METHODS)[number];
 
 export interface KeyValuePair {
   key: string;

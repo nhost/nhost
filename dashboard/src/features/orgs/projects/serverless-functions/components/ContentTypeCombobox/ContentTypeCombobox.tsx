@@ -85,13 +85,17 @@ export default function ContentTypeCombobox() {
             </CommandItem>
             {CONTENT_TYPE_GROUPS.map((group) => (
               <CommandGroup key={group.heading} heading={group.heading}>
-                {group.options.map((ct) => (
-                  <CommandItem key={ct} value={ct} onSelect={() => select(ct)}>
-                    {ct}
+                {group.options.map((contentType) => (
+                  <CommandItem
+                    key={contentType}
+                    value={contentType}
+                    onSelect={() => select(contentType)}
+                  >
+                    {contentType}
                     <Check
                       className={cn(
                         'ml-auto h-4 w-4',
-                        value === ct ? 'opacity-100' : 'opacity-0',
+                        value === contentType ? 'opacity-100' : 'opacity-0',
                       )}
                     />
                   </CommandItem>
