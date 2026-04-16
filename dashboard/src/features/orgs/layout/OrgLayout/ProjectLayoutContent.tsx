@@ -19,8 +19,6 @@ const platFormOnlyPages = [
   '/orgs/[orgSlug]/projects/[appSubdomain]/logs',
   '/orgs/[orgSlug]/projects/[appSubdomain]/metrics',
   '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/[deploymentId]',
-  '/orgs/[orgSlug]/projects/[appSubdomain]/functions',
-  '/orgs/[orgSlug]/projects/[appSubdomain]/functions/[...functionSlug]',
 ];
 
 function isSelfHostedAndGraphitePage(route: string) {

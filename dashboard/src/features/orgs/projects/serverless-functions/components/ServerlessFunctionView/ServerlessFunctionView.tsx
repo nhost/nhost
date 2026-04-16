@@ -224,13 +224,17 @@ function OverviewTab({
   endpointUrl,
   defaultEndpointUrl,
   onViewAllLogs,
+  isPlatform,
 }: {
   fn: NhostFunction;
   endpointUrl: string;
   defaultEndpointUrl?: string;
   onViewAllLogs: () => void;
+  isPlatform: boolean;
 }) {
   const { orgSlug, appSubdomain } = useRouter().query;
+  const isPlaceholderDate = (date: string) => date.startsWith('0001-01-01');
+
   return (
     <div className="space-y-4">
       <MetadataCard title="Endpoint" icon={Globe} className="col-span-2">
@@ -291,59 +295,72 @@ function OverviewTab({
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">Commit</span>
               <div className="flex items-center gap-1">
-                <Link
-                  href={`/orgs/${orgSlug}/projects/${appSubdomain}/deployments`}
-                  className="hover:underline"
-                >
+                {isPlatform ? (
+                  <Link
+                    href={`/orgs/${orgSlug}/projects/${appSubdomain}/deployments`}
+                    className="hover:underline"
+                  >
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {fn.createdWithCommitSha.slice(0, 7)}
+                    </Badge>
+                  </Link>
+                ) : (
                   <Badge variant="outline" className="font-mono text-xs">
-                    {fn.createdWithCommitSha.slice(0, 7)}
+                    {fn.createdWithCommitSha}
                   </Badge>
-                </Link>
-                <CopyToClipboardButton
-                  textToCopy={fn.createdWithCommitSha}
-                  title="Copy commit SHA"
-                />
+                )}
+                {isPlatform && (
+                  <CopyToClipboardButton
+                    textToCopy={fn.createdWithCommitSha}
+                    title="Copy commit SHA"
+                  />
+                )}
               </div>
             </div>
-            <div className="flex items-center justify-between gap-2 text-sm">
-              <span className="shrink-0 text-gray-600 dark:text-gray-400">
-                Checksum
-              </span>
-              <div className="flex min-w-0 items-center gap-1">
-                <TextWithTooltip
-                  containerClassName="min-w-0"
-                  className="font-mono text-gray-900 text-xs dark:text-gray-100"
-                  truncateMode="middle"
-                  text={fn.checksum}
-                />
-                <CopyToClipboardButton
-                  textToCopy={fn.checksum}
-                  title="Copy checksum"
-                />
+            {fn.checksum && (
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="shrink-0 text-gray-600 dark:text-gray-400">
+                  Checksum
+                </span>
+                <div className="flex min-w-0 items-center gap-1">
+                  <TextWithTooltip
+                    containerClassName="min-w-0"
+                    className="font-mono text-gray-900 text-xs dark:text-gray-100"
+                    truncateMode="middle"
+                    text={fn.checksum}
+                  />
+                  <CopyToClipboardButton
+                    textToCopy={fn.checksum}
+                    title="Copy checksum"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </MetadataCard>
       </div>
 
-      <MetadataCard title="Timestamps" icon={Clock}>
-        <div className="grid grid-cols-1 gap-4 text-sm lg:grid-cols-2">
-          <div>
-            <span className="text-gray-600 dark:text-gray-400">Created</span>
-            <div className="font-medium text-gray-900 dark:text-gray-100">
-              {formatDate(fn.createdAt)}
+      {(!isPlaceholderDate(fn.createdAt) ||
+        !isPlaceholderDate(fn.updatedAt)) && (
+        <MetadataCard title="Timestamps" icon={Clock}>
+          <div className="grid grid-cols-1 gap-4 text-sm lg:grid-cols-2">
+            <div>
+              <span className="text-gray-600 dark:text-gray-400">Created</span>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
+                {formatDate(fn.createdAt)}
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-600 dark:text-gray-400">Updated</span>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
+                {formatDate(fn.updatedAt)}
+              </div>
             </div>
           </div>
-          <div>
-            <span className="text-gray-600 dark:text-gray-400">Updated</span>
-            <div className="font-medium text-gray-900 dark:text-gray-100">
-              {formatDate(fn.updatedAt)}
-            </div>
-          </div>
-        </div>
-      </MetadataCard>
+        </MetadataCard>
+      )}
 
-      <RecentLogsCard fn={fn} onViewAll={onViewAllLogs} />
+      {isPlatform && <RecentLogsCard fn={fn} onViewAll={onViewAllLogs} />}
     </div>
   );
 }
@@ -1082,12 +1099,12 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="execute">Execute</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
+            {isPlatform && <TabsTrigger value="logs">Logs</TabsTrigger>}
           </TabsList>
         </Tabs>
       </div>
 
-      {tab === 'logs' ? (
+      {tab === 'logs' && isPlatform ? (
         <div className="flex-1 overflow-hidden">
           <FunctionLogsTab fn={fn} />
         </div>
@@ -1105,6 +1122,7 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
                 customDomainFqdn ? defaultEndpointUrl : undefined
               }
               onViewAllLogs={() => setTab('logs')}
+              isPlatform={isPlatform}
             />
           )}
         </div>

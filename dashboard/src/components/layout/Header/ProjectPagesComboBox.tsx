@@ -114,7 +114,7 @@ export default function ProjectPagesComboBox() {
         value: 'functions',
         icon: <Code className="h-4 w-4" />,
         slug: 'functions',
-        disabled: !isPlatform,
+        disabled: false,
       },
       {
         label: 'Run',
