@@ -12,6 +12,7 @@ const EXPECTED_METADATA = [
   { path: 'functions/greet.js', route: '/greet' },
   { path: 'functions/hello.ts', route: '/hello' },
   { path: 'functions/index.js', route: '/' },
+  { path: 'functions/sharp.ts', route: '/sharp' },
   { path: 'functions/sub/hello.ts', route: '/sub/hello' },
   { path: 'functions/sub/index.ts', route: '/sub/' },
 ];
@@ -84,6 +85,11 @@ describe.each([
     expect(body.requestId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     );
+  });
+
+  it('GET /sharp returns 500 (native dependency fails at runtime)', async () => {
+    const res = await fetch(`${base}/sharp`);
+    expect(res.status).toBe(500);
   });
 
   it('GET /nonexistent returns 404', async () => {

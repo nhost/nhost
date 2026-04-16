@@ -8,7 +8,7 @@ const esbuild = require('esbuild');
 const util = require('node:util');
 
 const PORT = 3000;
-const BUILD_DIR = '.nhost-build';
+const BUILD_DIR = '/tmp/nhost-build';
 
 function logJSON(obj) {
   process.stdout.write(`${JSON.stringify(obj)}\n`);
@@ -45,13 +45,7 @@ function getRuntime() {
 function discoverFunctions(functionsPath) {
   return glob.sync('**/*.@(js|ts)', {
     cwd: functionsPath,
-    ignore: [
-      '**/node_modules/**',
-      '**/_*/**',
-      '**/_*',
-      '**/.wrapper-*',
-      `**/${BUILD_DIR}/**`,
-    ],
+    ignore: ['**/node_modules/**', '**/_*/**', '**/_*', '**/.wrapper-*'],
   });
 }
 
@@ -80,7 +74,7 @@ async function buildFunction(functionsPath, file) {
   const wrapperContent = generateWrapper(`./${funcBasename}`);
   fs.writeFileSync(wrapperPath, wrapperContent);
 
-  const distDir = path.join(functionsPath, BUILD_DIR, 'dist', safeName);
+  const distDir = path.join(BUILD_DIR, 'dist', safeName);
   fs.mkdirSync(distDir, { recursive: true });
 
   const outfile = path.join(distDir, 'bundle.js');
@@ -154,7 +148,7 @@ function loadBundle(route, bundlePath, _safeName) {
   }
 }
 
-async function removeFunction(functionsPath, file) {
+async function removeFunction(_functionsPath, file) {
   const entry = esbuildContexts.get(file);
   if (entry) {
     await entry.ctx.dispose();
@@ -171,7 +165,7 @@ async function removeFunction(functionsPath, file) {
 
   // Clean up build artifacts
   const safeName = fileToSafeName(file);
-  const distDir = path.join(functionsPath, BUILD_DIR, 'dist', safeName);
+  const distDir = path.join(BUILD_DIR, 'dist', safeName);
   fs.rmSync(distDir, { recursive: true, force: true });
 
   serverLog('INFO', route, `Removed (${file} deleted)`);
@@ -228,9 +222,7 @@ const main = async () => {
   const files = discoverFunctions(functionsPath);
 
   // Ensure build directory exists
-  fs.mkdirSync(path.join(functionsPath, BUILD_DIR, 'dist'), {
-    recursive: true,
-  });
+  fs.mkdirSync(path.join(BUILD_DIR, 'dist'), { recursive: true });
 
   for (const file of files) {
     try {

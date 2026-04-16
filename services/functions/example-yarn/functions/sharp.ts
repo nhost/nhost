@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 
-const sharp = require('sharp');
+const _sharp = require('sharp');
 
-export default (req: Request, res: Response) => {
+export default (_req: Request, res: Response) => {
   res.status(200).send(`ok`);
 };
