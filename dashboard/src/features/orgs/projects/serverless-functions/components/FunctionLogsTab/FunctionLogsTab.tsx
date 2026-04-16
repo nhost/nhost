@@ -14,10 +14,7 @@ import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/Logs
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
 import { isNotEmptyValue } from '@/lib/utils';
-import type {
-  GetFunctionsLogsQuery,
-  GetProjectLogsQuery,
-} from '@/utils/__generated__/graphql';
+import type { GetFunctionsLogsQuery } from '@/utils/__generated__/graphql';
 import {
   GetFunctionsLogsSubscriptionDocument,
   useGetFunctionsLogsQuery,
@@ -153,7 +150,7 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
       }
     }
 
-    return { logs } as unknown as GetProjectLogsQuery;
+    return { logs };
   }, [data, filters.regexFilter]);
 
   const handleSubmit = (values: LogsFilterFormValues) => {

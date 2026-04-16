@@ -2,8 +2,8 @@ import { Loader2, Lock, Send } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
+import { ReadOnlyInput } from '@/components/presentational/ReadOnlyInput';
 import { Button } from '@/components/ui/v3/button';
-import { Input } from '@/components/ui/v3/input';
 import {
   Select,
   SelectContent,
@@ -79,9 +79,14 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
     setResponse({ status: 'loading' });
 
     const values = form.getValues();
-    const allHeaders = values.contentType
-      ? [{ key: 'Content-Type', value: values.contentType }, ...values.headers]
-      : values.headers;
+    const methodHasBody = values.method !== 'GET' && values.method !== 'HEAD';
+    const allHeaders =
+      methodHasBody && values.contentType
+        ? [
+            { key: 'Content-Type', value: values.contentType },
+            ...values.headers,
+          ]
+        : values.headers;
 
     const fullUrl = buildRequestUrl(endpointUrl, values.params);
     const headersObj = buildRequestHeaders(allHeaders, isMultipart);
@@ -172,10 +177,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             </Select>
 
             <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-sm">
-              <TruncatedText
-                text={endpointUrl}
-                tailLength={12}
-              />
+              <TruncatedText text={endpointUrl} tailLength={12} />
               <CopyToClipboardButton
                 textToCopy={endpointUrl}
                 title="Copy endpoint URL"
@@ -212,21 +214,21 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             </TabsList>
 
             <TabsContent value="headers" className="mt-3">
-              <div className="mb-2 flex cursor-not-allowed items-center gap-2">
-                <Input
-                  value="Content-Type"
-                  disabled
-                  className="h-8 cursor-not-allowed font-mono text-sm"
-                />
-                <Input
-                  value={contentType || 'None'}
-                  disabled
-                  className="h-8 max-w-md flex-1 cursor-not-allowed font-mono text-sm"
-                />
-                <div className="flex h-9 shrink-0 cursor-not-allowed items-center justify-center px-4 text-muted-foreground">
-                  <Lock className="size-4" />
+              {hasBody && (
+                <div className="mb-2 flex items-center gap-2">
+                  <ReadOnlyInput
+                    value="Content-Type"
+                    className="h-8 font-mono text-sm"
+                  />
+                  <ReadOnlyInput
+                    value={contentType || 'None'}
+                    className="h-8 max-w-md flex-1 font-mono text-sm"
+                  />
+                  <div className="flex h-9 shrink-0 cursor-not-allowed items-center justify-center px-4 text-muted-foreground">
+                    <Lock className="size-4" />
+                  </div>
                 </div>
-              </div>
+              )}
               <KeyValueEditor
                 name="headers"
                 keyPlaceholder="Header name"
