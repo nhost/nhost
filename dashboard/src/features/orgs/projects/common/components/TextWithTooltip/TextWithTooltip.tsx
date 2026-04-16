@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Tooltip,
   TooltipContent,
@@ -7,7 +7,7 @@ import {
 import { cn } from '@/lib/utils';
 
 interface TextWithTooltipProps {
-  text: string | number | ReactNode;
+  text: string;
   className?: string;
   containerClassName?: string;
   truncateMode?: 'end' | 'middle';
@@ -51,13 +51,11 @@ export default function TextWithTooltip({
     };
   }, []);
 
-  const textString =
-    typeof text === 'string' || typeof text === 'number' ? String(text) : '';
-  const isMiddle = truncateMode === 'middle' && textString.length > tailLength;
+  const isMiddle = truncateMode === 'middle' && text.length > tailLength;
 
   if (isMiddle) {
-    const startPart = textString.slice(0, -tailLength);
-    const endPart = textString.slice(-tailLength);
+    const startPart = text.slice(0, -tailLength);
+    const endPart = text.slice(-tailLength);
 
     return (
       <div className={containerClassName} {...slotProps?.container}>

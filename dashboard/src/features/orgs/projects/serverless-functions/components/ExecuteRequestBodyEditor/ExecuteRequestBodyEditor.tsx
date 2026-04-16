@@ -22,19 +22,17 @@ export default function ExecuteRequestBodyEditor() {
     return <MultipartEditor name="multipartFields" />;
   }
 
-  const isJson = contentType.includes('json');
-  const isXml = contentType.includes('xml');
+  let placeholder = 'Request body...';
+  if (contentType.includes('json')) {
+    placeholder = '{\n  "key": "value"\n}';
+  } else if (contentType.includes('xml')) {
+    placeholder = '<?xml version="1.0"?>\n<root />';
+  }
 
   return (
     <Textarea
       {...register('body')}
-      placeholder={
-        isJson
-          ? '{\n  "key": "value"\n}'
-          : isXml
-            ? '<?xml version="1.0"?>\n<root />'
-            : 'Request body...'
-      }
+      placeholder={placeholder}
       className="min-h-32 font-mono text-sm"
     />
   );

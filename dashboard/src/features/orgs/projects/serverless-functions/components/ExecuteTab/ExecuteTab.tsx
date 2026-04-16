@@ -145,8 +145,8 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
           <div className="flex items-center gap-2">
             <Select
               value={method}
-              onValueChange={(val) =>
-                form.setValue('method', val as HttpMethod)
+              onValueChange={(newMethod) =>
+                form.setValue('method', newMethod as HttpMethod)
               }
             >
               <SelectTrigger
@@ -158,13 +158,16 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {HTTP_METHODS.map((m) => (
+                {HTTP_METHODS.map((httpMethod) => (
                   <SelectItem
-                    key={m}
-                    value={m}
-                    className={cn('font-mono font-semibold', METHOD_COLORS[m])}
+                    key={httpMethod}
+                    value={httpMethod}
+                    className={cn(
+                      'font-mono font-semibold',
+                      METHOD_COLORS[httpMethod],
+                    )}
                   >
-                    {m}
+                    {httpMethod}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -236,11 +239,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
               />
             </TabsContent>
             <TabsContent value="request" className="mt-3">
-              {!hasBody ? (
-                <p className="py-4 text-center text-muted-foreground text-sm">
-                  {method} requests do not have a body.
-                </p>
-              ) : (
+              {hasBody ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground text-sm">
@@ -250,6 +249,10 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
                   </div>
                   <ExecuteRequestBodyEditor />
                 </div>
+              ) : (
+                <p className="py-4 text-center text-muted-foreground text-sm">
+                  {method} requests do not have a body.
+                </p>
               )}
             </TabsContent>
           </Tabs>

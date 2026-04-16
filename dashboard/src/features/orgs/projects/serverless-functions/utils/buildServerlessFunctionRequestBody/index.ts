@@ -1,1 +1,1 @@
-export { buildServerlessFunctionRequestBody } from './buildServerlessFunctionRequestBody';
+export { default as buildServerlessFunctionRequestBody } from './buildServerlessFunctionRequestBody';

@@ -1,6 +1,6 @@
 import type { KeyValuePair } from '@/features/orgs/projects/serverless-functions/types';
 
-export function buildServerlessFunctionRequestUrl(
+export default function buildServerlessFunctionRequestUrl(
   endpointUrl: string,
   params: KeyValuePair[],
 ): string {

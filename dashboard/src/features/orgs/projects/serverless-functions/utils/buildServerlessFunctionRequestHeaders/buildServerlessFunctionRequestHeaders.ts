@@ -1,6 +1,6 @@
 import type { KeyValuePair } from '@/features/orgs/projects/serverless-functions/types';
 
-export function buildServerlessFunctionRequestHeaders(
+export default function buildServerlessFunctionRequestHeaders(
   headerPairs: KeyValuePair[],
   isMultipart: boolean,
 ): Record<string, string> {

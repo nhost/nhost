@@ -134,7 +134,7 @@ export default function LogsBody({
   );
 
   const visibleColumns = hideServiceColumn
-    ? columns.filter((c) => c.id !== 'service')
+    ? columns.filter((column) => column.id !== 'service')
     : columns;
 
   const table = useReactTable({

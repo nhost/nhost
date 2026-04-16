@@ -1,11 +1,9 @@
 import { subMinutes } from 'date-fns';
+import { Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Form } from '@/components/form/Form';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
@@ -80,7 +78,7 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
 
   return (
     <div className="flex h-full flex-col">
-      <Box className="grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-4 py-2.5 lg:grid-flow-col">
+      <div className="grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-4 py-2.5 lg:grid-flow-col">
         <FormProvider {...form}>
           <Form
             onSubmit={handleSubmit}
@@ -90,25 +88,13 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
               <LogsRangeSelector onSubmitFilterValues={handleSubmit} />
             </div>
             <LogsRegexFilter {...form.register('regexFilter')} />
-            <Button
-              type="submit"
-              className="h-10"
-              startIcon={
-                <div className="flex h-5 w-5 items-center justify-center">
-                  {loading ? (
-                    <ActivityIndicator className="h-5 w-5" />
-                  ) : (
-                    <SearchIcon className="h-5 w-5" />
-                  )}
-                </div>
-              }
-              disabled={loading}
-            >
+            <ButtonWithLoading type="submit" loading={loading} className="gap-2">
+              <Search className="h-4 w-4" />
               Search
-            </Button>
+            </ButtonWithLoading>
           </Form>
         </FormProvider>
-      </Box>
+      </div>
       <div className="min-h-0 flex-1">
         <LogsBody
           logsData={logsData}

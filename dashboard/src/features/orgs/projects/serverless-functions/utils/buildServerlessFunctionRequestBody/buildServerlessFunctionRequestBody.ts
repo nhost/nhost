@@ -4,7 +4,7 @@ import type {
   MultipartField,
 } from '@/features/orgs/projects/serverless-functions/types';
 
-export function buildServerlessFunctionRequestBody(
+export default function buildServerlessFunctionRequestBody(
   method: HttpMethod,
   opts: {
     isMultipart: boolean;

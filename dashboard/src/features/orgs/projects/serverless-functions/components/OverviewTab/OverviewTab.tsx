@@ -6,49 +6,14 @@ import { Badge } from '@/components/ui/v3/badge';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { TruncatedText } from '@/features/orgs/projects/common/components/TruncatedText';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import {
+  MetadataCard,
+  MetadataRow,
+} from '@/features/orgs/projects/serverless-functions/components/MetadataCard';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
-import { cn } from '@/lib/utils';
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleString();
-}
-
-function MetadataCard({
-  title,
-  icon: Icon,
-  children,
-  className,
-}: {
-  title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        'rounded-lg border border-gray-200 p-4 dark:border-gray-700',
-        className,
-      )}
-    >
-      <h3 className="mb-3 flex items-center gap-2 text-muted-foreground text-sm">
-        <Icon className="h-4 w-4" />
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-}
-
-function MetadataRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-2 text-sm">
-      <span className="text-gray-600 dark:text-gray-400">{label}</span>
-      <span className="font-mono text-gray-900 dark:text-gray-100">
-        {value}
-      </span>
-    </div>
-  );
 }
 
 export interface OverviewTabProps {

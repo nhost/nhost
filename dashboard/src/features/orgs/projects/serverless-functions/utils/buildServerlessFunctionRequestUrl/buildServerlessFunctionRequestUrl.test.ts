@@ -1,4 +1,4 @@
-import { buildServerlessFunctionRequestUrl } from './buildServerlessFunctionRequestUrl';
+import buildServerlessFunctionRequestUrl from './buildServerlessFunctionRequestUrl';
 
 describe('buildServerlessFunctionRequestUrl', () => {
   it('should return the base URL when there are no params', () => {

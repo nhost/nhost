@@ -1,4 +1,4 @@
-import { buildServerlessFunctionRequestBody } from './buildServerlessFunctionRequestBody';
+import buildServerlessFunctionRequestBody from './buildServerlessFunctionRequestBody';
 
 describe('buildServerlessFunctionRequestBody', () => {
   it('should return undefined for GET requests', () => {

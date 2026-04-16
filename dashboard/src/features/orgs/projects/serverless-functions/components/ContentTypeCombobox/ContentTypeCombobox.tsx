@@ -46,8 +46,8 @@ export default function ContentTypeCombobox() {
   const value = watch('contentType');
   const [open, setOpen] = useState(false);
 
-  const select = (ct: string) => {
-    setValue('contentType', ct);
+  const handleSelect = (contentType: string) => {
+    setValue('contentType', contentType);
     setOpen(false);
   };
 
@@ -74,7 +74,7 @@ export default function ContentTypeCombobox() {
           <CommandInput placeholder="Search or enter custom..." />
           <CommandList>
             <CommandEmpty>No content type found.</CommandEmpty>
-            <CommandItem value="none" onSelect={() => select('')}>
+            <CommandItem value="none" onSelect={() => handleSelect('')}>
               None
               <Check
                 className={cn(
@@ -89,7 +89,7 @@ export default function ContentTypeCombobox() {
                   <CommandItem
                     key={contentType}
                     value={contentType}
-                    onSelect={() => select(contentType)}
+                    onSelect={() => handleSelect(contentType)}
                   >
                     {contentType}
                     <Check
@@ -102,7 +102,7 @@ export default function ContentTypeCombobox() {
                 ))}
               </CommandGroup>
             ))}
-            <CommandCreateItem onCreate={select} />
+            <CommandCreateItem onCreate={handleSelect} />
           </CommandList>
         </Command>
       </PopoverContent>

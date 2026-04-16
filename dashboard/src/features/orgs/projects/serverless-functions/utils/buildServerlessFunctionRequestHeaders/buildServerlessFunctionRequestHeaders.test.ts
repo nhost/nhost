@@ -1,4 +1,4 @@
-import { buildServerlessFunctionRequestHeaders } from './buildServerlessFunctionRequestHeaders';
+import buildServerlessFunctionRequestHeaders from './buildServerlessFunctionRequestHeaders';
 
 describe('buildServerlessFunctionRequestHeaders', () => {
   it('should convert header pairs to an object', () => {
