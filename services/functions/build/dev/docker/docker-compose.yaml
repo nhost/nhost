@@ -1,6 +1,6 @@
 services:
   functions-node20:
-    image: functions-node20:0.0.0-dev
+    image: functions:20-0.0.0-dev
     container_name: functions-node20
     ports:
       - "3001:3000"
@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
   functions-node22:
-    image: functions-node22:0.0.0-dev
+    image: functions:22-0.0.0-dev
     container_name: functions-node22
     ports:
       - "3002:3000"
@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
 
   functions-npm:
-    image: functions-node22:0.0.0-dev
+    image: functions:22-0.0.0-dev
     container_name: functions-npm
     ports:
       - "3003:3000"
@@ -48,7 +48,7 @@ services:
     restart: unless-stopped
 
   functions-yarn:
-    image: functions-node22:0.0.0-dev
+    image: functions:22-0.0.0-dev
     container_name: functions-yarn
     ports:
       - "3004:3000"

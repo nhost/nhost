@@ -16,7 +16,7 @@ build-docker-image:  ## Build docker container for native architecture
 		.\#packages.$(ARCH)-linux.$(NAME)-node$(NODE_VERSION)-docker-image \
 		--print-build-logs
 	nix develop \#skopeo -c \
-		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME)-node$(NODE_VERSION):$(VERSION)
+		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
 
 
 .PHONY: _dev-env-build
