@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/ui/v3/inline-code';
+import { usePageBoundsRedirect } from '@/features/orgs/projects/common/hooks/usePageBoundsRedirect';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
@@ -51,7 +52,7 @@ const CreateRecordForm = dynamic(
   { ssr: false, loading: () => <FormActivityIndicator /> },
 );
 
-export interface DataBrowserGridProps extends Partial<DataGridProps> {}
+interface DataBrowserGridProps extends Partial<DataGridProps> {}
 
 export function extractColumnMetadata(
   column: NormalizedQueryDataRow,
@@ -186,14 +187,8 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
 
   const { openDrawer } = useDialog();
 
-  const {
-    isFiltersLoadedFromStorage,
-    appliedFilters,
-    sortBy,
-    setSortBy,
-    currentOffset,
-    setCurrentOffset,
-  } = useDataGridQueryParams();
+  const { appliedFilters, sortBy, setSortBy, currentOffset } =
+    useDataGridQueryParams();
 
   const { mutateAsync: updateRow } = useUpdateRecordWithToastMutation();
 
@@ -225,9 +220,6 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
           mode: desc ? 'DESC' : 'ASC',
         })) || [],
       filters: appliedFilters,
-      queryOptions: {
-        enabled: isFiltersLoadedFromStorage.current,
-      },
     },
   );
 
@@ -259,6 +251,8 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     : 0;
   const currentPage = Math.min(currentOffset + 1, numberOfPages);
 
+  usePageBoundsRedirect(numberOfPages, status === 'loading');
+
   async function handleOpenPrevPage() {
     const nextOffset = Math.max(currentOffset - 1, 0);
 
@@ -272,8 +266,6 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
         page: nextOffset + 1,
       },
     });
-
-    setCurrentOffset(nextOffset);
   }
 
   async function handleOpenNextPage() {
@@ -289,27 +281,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
         page: nextOffset + 1,
       },
     });
-
-    setCurrentOffset(nextOffset);
   }
-
-  useEffect(() => {
-    if (status === 'success' && page && typeof page === 'string') {
-      const pageNumber = parseInt(page, 10);
-      const newOffset = Math.max(
-        Math.min(pageNumber - 1, numberOfPages - 1),
-        0,
-      );
-
-      if (currentOffset !== newOffset) {
-        setCurrentOffset(newOffset);
-      }
-    }
-
-    if (status === 'success' && !page && currentOffset !== 0) {
-      setCurrentOffset(0);
-    }
-  }, [page, status, numberOfPages, currentOffset, setCurrentOffset]);
 
   const memoizedColumns = useMemo(
     () =>

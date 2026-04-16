@@ -113,6 +113,12 @@ const mockDatabaseData = {
       table_type: 'VIEW',
       updatability: 0,
     },
+    {
+      table_schema: 'public',
+      table_name: 'user_summary',
+      table_type: 'MATERIALIZED VIEW',
+      updatability: 0,
+    },
   ],
   functions: [
     {
@@ -129,6 +135,7 @@ const allTrackedPaths = new Set([
   'public.posts',
   'public.status_enum',
   'public.user_activity',
+  'public.user_summary',
   'public.search_users',
 ]);
 
@@ -203,6 +210,7 @@ describe('DataBrowserSidebar', () => {
       expect(names).toContain('posts');
       expect(names).not.toContain('status_enum');
       expect(names).not.toContain('user_activity');
+      expect(names).not.toContain('user_summary');
       expect(names).not.toContain('search_users');
     });
 
@@ -214,6 +222,7 @@ describe('DataBrowserSidebar', () => {
       expect(names).toContain('posts');
       expect(names).toContain('status_enum');
       expect(names).toContain('user_activity');
+      expect(names).toContain('user_summary');
       expect(names).toContain('search_users');
     });
   });
@@ -258,6 +267,35 @@ describe('DataBrowserSidebar', () => {
     await waitFor(() => {
       const names = getVisibleObjectNames();
       expect(names).toEqual(['users']);
+    });
+  });
+
+  it('should filter both views and materialized views with a single View filter', async () => {
+    const user = new TestUserEvent();
+    render(<DataBrowserSidebar />);
+
+    await waitFor(() => {
+      expect(screen.getByText('users')).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByRole('button', {
+        name: 'Toggle filter by Materialized View',
+      }),
+    ).not.toBeInTheDocument();
+
+    const viewFilter = screen.getByRole('button', {
+      name: 'Toggle filter by View',
+    });
+    await user.click(viewFilter);
+
+    await waitFor(() => {
+      const names = getVisibleObjectNames();
+      expect(names).toContain('user_activity');
+      expect(names).toContain('user_summary');
+      expect(names).not.toContain('users');
+      expect(names).not.toContain('posts');
+      expect(names).not.toContain('search_users');
     });
   });
 });

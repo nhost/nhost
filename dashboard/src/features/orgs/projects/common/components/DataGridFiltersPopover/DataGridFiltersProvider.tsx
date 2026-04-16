@@ -2,11 +2,9 @@ import {
   createContext,
   type PropsWithChildren,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
-import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import type {
   DataGridFilter,
   DataGridFilterOperator,
@@ -55,16 +53,17 @@ const DataGridFiltersContext = createContext<DataGridFiltersContextProps>({
   setOp: () => {},
 });
 
-function DataGridFiltersProvider({ children }: PropsWithChildren) {
-  const tablePath = useTablePath();
-  const [filters, setFilters] = useState<DataGridFilter[]>(() =>
-    getDataGridFilters(tablePath),
-  );
+type DataGridFiltersProviderProps = PropsWithChildren<{
+  storageKey: string;
+}>;
 
-  useEffect(() => {
-    const filtersForTheTable = getDataGridFilters(tablePath);
-    setFilters(filtersForTheTable);
-  }, [tablePath]);
+function DataGridFiltersProvider({
+  children,
+  storageKey,
+}: DataGridFiltersProviderProps) {
+  const [filters, setFilters] = useState<DataGridFilter[]>(() =>
+    getDataGridFilters(storageKey),
+  );
 
   const contextValue: DataGridFiltersContextProps = useMemo(
     () => ({

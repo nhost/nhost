@@ -7,7 +7,7 @@ export function useGetDataColumns<
 >() {
   const { getAllColumns } = useDataGridConfig<T>();
   const columns = getAllColumns().filter(
-    ({ id }) => id !== SELECTION_COLUMN_ID,
+    (col) => col.id !== SELECTION_COLUMN_ID && col.getCanFilter(),
   );
 
   return columns;
