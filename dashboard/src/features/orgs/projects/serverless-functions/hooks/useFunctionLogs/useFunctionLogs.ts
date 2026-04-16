@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalLogsClient } from '@/features/orgs/projects/hooks/useLocalLogsClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { GetFunctionsLogsQuery } from '@/utils/__generated__/graphql';
@@ -49,6 +51,8 @@ export default function useFunctionLogs({
   to,
   path,
 }: UseFunctionLogsProps) {
+  const isPlatform = useIsPlatform();
+  const localLogsClient = useLocalLogsClient();
   const { project, loading: loadingProject } = useProject();
   const subscriptionReturn = useRef<(() => void) | null>(null);
 
@@ -64,7 +68,7 @@ export default function useFunctionLogs({
       to,
       path,
     },
-    client: splitGraphqlClient,
+    client: isPlatform ? splitGraphqlClient : localLogsClient,
     fetchPolicy: 'cache-and-network',
     notifyOnNetworkStatusChange: true,
     skip: !project?.id,

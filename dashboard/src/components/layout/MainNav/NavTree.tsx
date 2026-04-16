@@ -341,9 +341,7 @@ const createOrganization = (org: Org) => {
           isProjectPage: true,
           targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${_page.route}`,
           disabled:
-            (['deployments', 'backups', 'logs', 'metrics'].includes(
-              _page.slug,
-            ) &&
+            (['deployments', 'backups', 'metrics'].includes(_page.slug) &&
               isNotPlatform) ||
             (_page.name === 'Settings' && shouldDisableSettings) ||
             (_page.name === 'AI' && shouldDisableGraphite),

@@ -60,7 +60,11 @@ export default function OverviewTab({
       </MetadataCard>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <MetadataCard title="Runtime" icon={Cpu}>
+        <MetadataCard
+          title="Runtime"
+          icon={Cpu}
+          className={!isPlatform ? 'col-span-2' : undefined}
+        >
           <div className="space-y-2">
             <MetadataRow label="Runtime" value={fn.runtime} />
             <div className="flex justify-between gap-2 text-sm">
@@ -86,12 +90,12 @@ export default function OverviewTab({
           </div>
         </MetadataCard>
 
-        <MetadataCard title="Deployment" icon={GitCommit}>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Commit</span>
-              <div className="flex items-center gap-1">
-                {isPlatform ? (
+        {isPlatform && (
+          <MetadataCard title="Deployment" icon={GitCommit}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Commit</span>
+                <div className="flex items-center gap-1">
                   <Link
                     href={`/orgs/${orgSlug}/projects/${appSubdomain}/deployments`}
                     className="hover:underline"
@@ -100,40 +104,34 @@ export default function OverviewTab({
                       {fn.createdWithCommitSha.slice(0, 7)}
                     </Badge>
                   </Link>
-                ) : (
-                  <Badge variant="outline" className="font-mono text-xs">
-                    {fn.createdWithCommitSha}
-                  </Badge>
-                )}
-                {isPlatform && (
                   <CopyToClipboardButton
                     textToCopy={fn.createdWithCommitSha}
                     title="Copy commit SHA"
                   />
-                )}
-              </div>
-            </div>
-            {fn.checksum && (
-              <div className="flex items-center justify-between gap-2 text-sm">
-                <span className="shrink-0 text-gray-600 dark:text-gray-400">
-                  Checksum
-                </span>
-                <div className="flex min-w-0 items-center gap-1">
-                  <Badge
-                    variant="outline"
-                    className="max-w-24 font-mono font-normal text-xs"
-                  >
-                    <TruncatedText text={fn.checksum} tailLength={4} />
-                  </Badge>
-                  <CopyToClipboardButton
-                    textToCopy={fn.checksum}
-                    title="Copy checksum"
-                  />
                 </div>
               </div>
-            )}
-          </div>
-        </MetadataCard>
+              {fn.checksum && (
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="shrink-0 text-gray-600 dark:text-gray-400">
+                    Checksum
+                  </span>
+                  <div className="flex min-w-0 items-center gap-1">
+                    <Badge
+                      variant="outline"
+                      className="max-w-24 font-mono font-normal text-xs"
+                    >
+                      <TruncatedText text={fn.checksum} tailLength={4} />
+                    </Badge>
+                    <CopyToClipboardButton
+                      textToCopy={fn.checksum}
+                      title="Copy checksum"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </MetadataCard>
+        )}
       </div>
 
       {(!isPlaceholderDate(fn.createdAt) ||

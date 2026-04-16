@@ -88,7 +88,11 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
               <LogsRangeSelector onSubmitFilterValues={handleSubmit} />
             </div>
             <LogsRegexFilter {...form.register('regexFilter')} />
-            <ButtonWithLoading type="submit" loading={loading} className="gap-2">
+            <ButtonWithLoading
+              type="submit"
+              loading={loading}
+              className="gap-2"
+            >
               <Search className="h-4 w-4" />
               Search
             </ButtonWithLoading>

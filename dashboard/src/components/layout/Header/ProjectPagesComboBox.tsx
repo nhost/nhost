@@ -149,7 +149,7 @@ export default function ProjectPagesComboBox() {
         value: 'logs',
         icon: <FileTextIcon className="h-4 w-4" />,
         slug: 'logs',
-        disabled: !isPlatform,
+        disabled: false,
       },
       {
         label: 'Metrics',

@@ -37,7 +37,8 @@ export default function useGetNhostFunctions() {
           `Failed to fetch functions metadata: ${res.statusText}`,
         );
       }
-      return res.json();
+      const json = await res.json();
+      return json.functions ?? [];
     },
     enabled: !!project?.id,
   });

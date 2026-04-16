@@ -99,6 +99,16 @@ export function getConfigServerUrl() {
 }
 
 /**
+ * Custom URL of the Logs service.
+ */
+export function getLogsServiceUrl() {
+  return (
+    process.env.NEXT_PUBLIC_NHOST_LOGS_URL ||
+    'https://local.dashboard.local.nhost.run/v1/logs/graphql'
+  );
+}
+
+/**
  * Returns the current version of the dashboard.
  */
 export function getDashboardVersion() {
