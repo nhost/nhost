@@ -85,6 +85,8 @@ rec {
       certbot-full
       python312Packages.certbot-dns-route53
 
+      gqlgen
+
       # javascript
       nodejs
       pnpm

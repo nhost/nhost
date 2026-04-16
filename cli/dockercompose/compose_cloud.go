@@ -123,6 +123,17 @@ func getServicesCloud(
 		return nil, fmt.Errorf("failed to create console service: %w", err)
 	}
 
+	cs, err := configserver(
+		configserviceImage,
+		rootFolder,
+		nhostFolder,
+		projectName,
+		useTLS,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	services := map[string]*Service{
 		"console": console,
 		"dashboard": dashboardCloud(
@@ -135,13 +146,8 @@ func getServicesCloud(
 			useTLS,
 			dashboardVersion,
 		),
-		"traefik": traefik,
-		"configserver": configserver(
-			configserviceImage,
-			rootFolder,
-			nhostFolder,
-			useTLS,
-		),
+		"traefik":      traefik,
+		"configserver": cs,
 	}
 
 	return services, nil

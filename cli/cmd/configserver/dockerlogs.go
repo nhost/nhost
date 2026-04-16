@@ -1,0 +1,425 @@
+package configserver
+
+import (
+	"bufio"
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"regexp"
+	"sort"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/nhost/nhost/cli/cmd/configserver/logsapi/model"
+)
+
+const (
+	composeProjectLabel = "com.docker.compose.project"
+	composeServiceLabel = "com.docker.compose.service"
+)
+
+// DockerLogGatherer implements the logs.LogGatherer interface
+// by reading Docker container logs via the Docker API.
+type DockerLogGatherer struct {
+	client      client.ContainerAPIClient
+	projectName string
+}
+
+func NewDockerLogGatherer(
+	dockerClient client.ContainerAPIClient,
+	projectName string,
+) *DockerLogGatherer {
+	return &DockerLogGatherer{
+		client:      dockerClient,
+		projectName: projectName,
+	}
+}
+
+func (d *DockerLogGatherer) listContainers(
+	ctx context.Context,
+	service string,
+) ([]container.Summary, error) {
+	f := filters.NewArgs()
+	f.Add("label", composeProjectLabel+"="+d.projectName)
+
+	if service != "" {
+		f.Add("label", composeServiceLabel+"="+service)
+	}
+
+	containers, err := d.client.ContainerList(ctx, container.ListOptions{
+		Filters: f,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list containers: %w", err)
+	}
+
+	return containers, nil
+}
+
+func (d *DockerLogGatherer) GetLogs( //nolint:cyclop
+	ctx context.Context,
+	service, regexFilter string,
+	from, to time.Time,
+) ([]model.Log, error) {
+	containers, err := d.listContainers(ctx, service)
+	if err != nil {
+		return nil, err
+	}
+
+	var allLogs []model.Log
+
+	for _, c := range containers {
+		svcName := c.Labels[composeServiceLabel]
+
+		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Timestamps: true,
+			Since:      from.Format(time.RFC3339Nano),
+			Until:      to.Format(time.RFC3339Nano),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get logs for container %s: %w", svcName, err)
+		}
+
+		logs, err := parseLogs(reader, svcName)
+		reader.Close()
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse logs for container %s: %w", svcName, err)
+		}
+
+		allLogs = append(allLogs, logs...)
+	}
+
+	sort.Slice(allLogs, func(i, j int) bool {
+		return allLogs[i].Timestamp.Before(allLogs[j].Timestamp)
+	})
+
+	if regexFilter != "" {
+		re, err := regexp.Compile(regexFilter)
+		if err != nil {
+			return nil, fmt.Errorf("failed to compile regex filter: %w", err)
+		}
+
+		filtered := make([]model.Log, 0, len(allLogs))
+		for _, l := range allLogs {
+			if re.MatchString(l.Log) {
+				filtered = append(filtered, l)
+			}
+		}
+
+		allLogs = filtered
+	}
+
+	return allLogs, nil
+}
+
+func (d *DockerLogGatherer) TailLogs( //nolint:cyclop
+	ctx context.Context,
+	service, regexFilter string,
+	from time.Time,
+	logsCh chan<- []model.Log,
+) error {
+	containers, err := d.listContainers(ctx, service)
+	if err != nil {
+		return err
+	}
+
+	var re *regexp.Regexp
+	if regexFilter != "" {
+		re, err = regexp.Compile(regexFilter)
+		if err != nil {
+			return fmt.Errorf("failed to compile regex filter: %w", err)
+		}
+	}
+
+	var wg sync.WaitGroup
+
+	for _, c := range containers {
+		svcName := c.Labels[composeServiceLabel]
+
+		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Timestamps: true,
+			Follow:     true,
+			Since:      from.Format(time.RFC3339Nano),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to tail logs for container %s: %w", svcName, err)
+		}
+
+		wg.Add(1)
+
+		go func(reader io.ReadCloser, svcName string) {
+			defer wg.Done()
+			defer reader.Close()
+
+			tailContainerLogs(reader, svcName, re, logsCh)
+		}(reader, svcName)
+	}
+
+	go func() {
+		wg.Wait()
+		close(logsCh)
+	}()
+
+	return nil
+}
+
+func (d *DockerLogGatherer) GetServiceLabelValues(
+	ctx context.Context,
+) ([]string, error) {
+	containers, err := d.listContainers(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+
+	seen := make(map[string]struct{})
+
+	for _, c := range containers {
+		if svc, ok := c.Labels[composeServiceLabel]; ok {
+			seen[svc] = struct{}{}
+		}
+	}
+
+	labels := make([]string, 0, len(seen))
+	for svc := range seen {
+		labels = append(labels, svc)
+	}
+
+	sort.Strings(labels)
+
+	return labels, nil
+}
+
+const functionsService = "functions"
+
+func (d *DockerLogGatherer) GetFunctionsLogs(
+	ctx context.Context,
+	path string,
+	from, to time.Time,
+) ([]model.Log, error) {
+	containers, err := d.listContainers(ctx, functionsService)
+	if err != nil {
+		return nil, err
+	}
+
+	var allLogs []model.Log
+
+	for _, c := range containers {
+		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Timestamps: true,
+			Since:      from.Format(time.RFC3339Nano),
+			Until:      to.Format(time.RFC3339Nano),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get functions logs: %w", err)
+		}
+
+		logs, err := parseLogs(reader, functionsService)
+		reader.Close()
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse functions logs: %w", err)
+		}
+
+		allLogs = append(allLogs, logs...)
+	}
+
+	sort.Slice(allLogs, func(i, j int) bool {
+		return allLogs[i].Timestamp.Before(allLogs[j].Timestamp)
+	})
+
+	allLogs = filterByJSONPath(allLogs, path)
+
+	return allLogs, nil
+}
+
+func (d *DockerLogGatherer) TailFunctionsLogs(
+	ctx context.Context,
+	path string,
+	from time.Time,
+	logsCh chan<- []model.Log,
+) error {
+	containers, err := d.listContainers(ctx, functionsService)
+	if err != nil {
+		return err
+	}
+
+	var wg sync.WaitGroup
+
+	for _, c := range containers {
+		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Timestamps: true,
+			Follow:     true,
+			Since:      from.Format(time.RFC3339Nano),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to tail functions logs: %w", err)
+		}
+
+		wg.Add(1)
+
+		go func(reader io.ReadCloser) {
+			defer wg.Done()
+			defer reader.Close()
+
+			tailFunctionsContainerLogs(reader, path, logsCh)
+		}(reader)
+	}
+
+	go func() {
+		wg.Wait()
+		close(logsCh)
+	}()
+
+	return nil
+}
+
+// filterByJSONPath filters log entries whose message contains a JSON object
+// with a "path" field matching the given path.
+func filterByJSONPath(logs []model.Log, path string) []model.Log {
+	filtered := make([]model.Log, 0, len(logs))
+
+	for _, l := range logs {
+		if matchesJSONPath(l.Log, path) {
+			filtered = append(filtered, l)
+		}
+	}
+
+	return filtered
+}
+
+func matchesJSONPath(logLine, path string) bool {
+	var obj struct {
+		Path string `json:"path"`
+	}
+
+	if err := json.Unmarshal([]byte(logLine), &obj); err != nil {
+		return false
+	}
+
+	return obj.Path == path
+}
+
+// tailFunctionsContainerLogs reads a Docker log stream and sends entries matching the path.
+func tailFunctionsContainerLogs(
+	reader io.Reader,
+	path string,
+	logsCh chan<- []model.Log,
+) {
+	pr, pw := io.Pipe()
+
+	go func() {
+		_, err := stdcopy.StdCopy(pw, pw, reader)
+		pw.CloseWithError(err) //nolint:errcheck
+	}()
+
+	scanner := bufio.NewScanner(pr)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		logEntry, err := parseLogLine(line, functionsService)
+		if err != nil {
+			continue
+		}
+
+		if !matchesJSONPath(logEntry.Log, path) {
+			continue
+		}
+
+		logsCh <- []model.Log{logEntry}
+	}
+}
+
+// parseLogs demuxes a Docker log stream and parses timestamped log lines.
+func parseLogs(reader io.Reader, serviceName string) ([]model.Log, error) {
+	var stdout, stderr bytes.Buffer
+	if _, err := stdcopy.StdCopy(&stdout, &stderr, reader); err != nil {
+		return nil, fmt.Errorf("failed to demux docker log stream: %w", err)
+	}
+
+	var logs []model.Log
+
+	for _, buf := range []*bytes.Buffer{&stdout, &stderr} {
+		scanner := bufio.NewScanner(buf)
+		for scanner.Scan() {
+			line := scanner.Text()
+
+			logEntry, err := parseLogLine(line, serviceName)
+			if err != nil {
+				continue
+			}
+
+			logs = append(logs, logEntry)
+		}
+	}
+
+	return logs, nil
+}
+
+// parseLogLine parses a single Docker log line with timestamp prefix.
+// Format: "2006-01-02T15:04:05.999999999Z message text"
+func parseLogLine(line, serviceName string) (model.Log, error) {
+	spaceIdx := strings.IndexByte(line, ' ')
+	if spaceIdx == -1 {
+		return model.Log{}, fmt.Errorf("invalid log line format: %s", line) //nolint:err113
+	}
+
+	ts, err := time.Parse(time.RFC3339Nano, line[:spaceIdx])
+	if err != nil {
+		return model.Log{}, fmt.Errorf("failed to parse timestamp: %w", err)
+	}
+
+	return model.Log{
+		Timestamp: ts,
+		Service:   serviceName,
+		Log:       line[spaceIdx+1:],
+	}, nil
+}
+
+// tailContainerLogs reads a Docker log stream and sends parsed log entries to the channel.
+func tailContainerLogs(
+	reader io.Reader,
+	serviceName string,
+	re *regexp.Regexp,
+	logsCh chan<- []model.Log,
+) {
+	// For Follow mode, stdcopy.StdCopy blocks until the stream ends.
+	// We use a pipe to demux and scan concurrently.
+	pr, pw := io.Pipe()
+
+	go func() {
+		_, err := stdcopy.StdCopy(pw, pw, reader)
+		pw.CloseWithError(err) //nolint:errcheck
+	}()
+
+	scanner := bufio.NewScanner(pr)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		logEntry, err := parseLogLine(line, serviceName)
+		if err != nil {
+			continue
+		}
+
+		if re != nil && !re.MatchString(logEntry.Log) {
+			continue
+		}
+
+		logsCh <- []model.Log{logEntry}
+	}
+}

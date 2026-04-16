@@ -140,6 +140,7 @@
               golines
               gofumpt
               golangci-lint
+              gqlgen
               gqlgenc
               oapi-codegen
               mockgen
