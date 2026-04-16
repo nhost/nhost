@@ -2,13 +2,22 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { execSync } = require('node:child_process');
 const express = require('express');
-const morgan = require('morgan');
 const glob = require('glob');
 const esbuild = require('esbuild');
 const chokidar = require('chokidar');
 
+const util = require('node:util');
+
 const PORT = 3000;
 const BUILD_DIR = '.nhost-build';
+
+function logJSON(obj) {
+  process.stdout.write(`${JSON.stringify(obj)}\n`);
+}
+
+function serverLog(level, route, ...args) {
+  logJSON({ log: util.format(...args), path: route, level });
+}
 
 // Map of route -> Express app (loaded from esbuild bundles)
 const functionHandlers = new Map();
@@ -100,10 +109,10 @@ async function buildFunction(functionsPath, file) {
           build.onEnd((result) => {
             if (result.errors.length === 0) {
               loadBundle(route, outfile, safeName);
-              console.log(`Rebuilt ${route} from ${file}`);
+              serverLog('INFO', route, `Rebuilt from ${file}`);
             }
           });
-},
+        },
       },
     ],
   });
@@ -127,7 +136,7 @@ async function buildFunction(functionsPath, file) {
     createdWithCommitSha: 'localdev',
   });
 
-  console.log(`Loaded route ${route} from ${file}`);
+  serverLog('INFO', route, `Loaded from ${file}`);
 }
 
 function loadBundle(route, bundlePath, _safeName) {
@@ -141,7 +150,7 @@ function loadBundle(route, bundlePath, _safeName) {
     const app = bundled.default || bundled;
     functionHandlers.set(route, app);
   } catch (err) {
-    console.error(`Failed to load bundle for ${route}:`, err);
+    serverLog('ERROR', route, `Failed to load bundle:`, err);
     functionHandlers.delete(route);
   }
 }
@@ -166,7 +175,7 @@ async function removeFunction(functionsPath, file) {
   const distDir = path.join(functionsPath, BUILD_DIR, 'dist', safeName);
   fs.rmSync(distDir, { recursive: true, force: true });
 
-  console.log(`Removed route ${route} (${file} deleted)`);
+  serverLog('INFO', route, `Removed (${file} deleted)`);
 }
 
 function findRoute(reqPath) {
@@ -193,13 +202,6 @@ function findRoute(reqPath) {
 const main = async () => {
   const app = express();
 
-  // Log middleware — skip /healthz (docker health checks)
-  app.use(
-    morgan('tiny', {
-      skip: (req) => req.url === '/healthz',
-    }),
-  );
-
   app.get('/healthz', (_req, res) => {
     res.status(200).send('ok');
   });
@@ -210,7 +212,16 @@ const main = async () => {
   );
 
   // Metadata endpoint
+  app.options('/_nhost_functions_metadata', (_req, res) => {
+    res.set({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': '*',
+      'Access-Control-Allow-Headers': '*',
+    });
+    res.sendStatus(204);
+  });
   app.get('/_nhost_functions_metadata', (_req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
     res.json({ functions: Array.from(functionMeta.values()) });
   });
 
@@ -226,7 +237,7 @@ const main = async () => {
     try {
       await buildFunction(functionsPath, file);
     } catch (err) {
-      console.error(`Failed to build function ${file}:`, err);
+      serverLog('ERROR', fileToRoute(file), `Failed to build ${file}:`, err);
     }
   }
 
@@ -258,7 +269,7 @@ const main = async () => {
       try {
         await buildFunction(functionsPath, file);
       } catch (err) {
-        console.error(`Failed to build function ${file}:`, err);
+        serverLog('ERROR', fileToRoute(file), `Failed to build ${file}:`, err);
       }
     }
   }
@@ -278,11 +289,11 @@ const main = async () => {
 
   functionWatcher.on('add', async (file) => {
     if (esbuildContexts.has(file)) return;
-    console.log(`New function detected: ${file}`);
+    serverLog('INFO', fileToRoute(file), `New function detected: ${file}`);
     try {
       await buildFunction(functionsPath, file);
     } catch (err) {
-      console.error(`Failed to build new function ${file}:`, err);
+      serverLog('ERROR', fileToRoute(file), `Failed to build ${file}:`, err);
     }
   });
 
