@@ -1,23 +1,9 @@
-import { Check, ChevronsUpDown, Loader2, Send } from 'lucide-react';
+import { Loader2, Lock, Send } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandCreateItem,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
 import { Input } from '@/components/ui/v3/input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
 import {
   Select,
   SelectContent,
@@ -32,7 +18,8 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { Textarea } from '@/components/ui/v3/textarea';
-import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import { TruncatedText } from '@/features/orgs/projects/common/components/TruncatedText';
+import { ContentTypeCombobox } from '@/features/orgs/projects/serverless-functions/components/ContentTypeCombobox';
 import { KeyValueEditor } from '@/features/orgs/projects/serverless-functions/components/KeyValueEditor';
 import { MultipartEditor } from '@/features/orgs/projects/serverless-functions/components/MultipartEditor';
 import { ResponseArea } from '@/features/orgs/projects/serverless-functions/components/ResponseArea';
@@ -76,7 +63,6 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
   });
 
   const [requestTab, setRequestTab] = useState('headers');
-  const [contentTypeOpen, setContentTypeOpen] = useState(false);
   const [response, setResponse] = useState<ResponseState>({ status: 'idle' });
 
   const method = form.watch('method');
@@ -186,15 +172,9 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             </Select>
 
             <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-sm">
-              <TextWithTooltip
-                containerClassName="min-w-0"
-                truncateMode="middle"
-                tailLength={
-                  endpointUrl.includes('nhost.run')
-                    ? endpointUrl.length - endpointUrl.indexOf('nhost.run')
-                    : 12
-                }
+              <TruncatedText
                 text={endpointUrl}
+                tailLength={12}
               />
               <CopyToClipboardButton
                 textToCopy={endpointUrl}
@@ -232,18 +212,20 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             </TabsList>
 
             <TabsContent value="headers" className="mt-3">
-              <div className="mb-2 flex items-center gap-2">
+              <div className="mb-2 flex cursor-not-allowed items-center gap-2">
                 <Input
                   value="Content-Type"
                   disabled
-                  className="h-8 font-mono text-sm"
+                  className="h-8 cursor-not-allowed font-mono text-sm"
                 />
                 <Input
                   value={contentType || 'None'}
                   disabled
-                  className="h-8 max-w-md flex-1 font-mono text-sm"
+                  className="h-8 max-w-md flex-1 cursor-not-allowed font-mono text-sm"
                 />
-                <div className="w-[52px] shrink-0" />
+                <div className="flex h-9 shrink-0 cursor-not-allowed items-center justify-center px-4 text-muted-foreground">
+                  <Lock className="size-4" />
+                </div>
               </div>
               <KeyValueEditor
                 name="headers"
@@ -269,134 +251,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
                     <span className="text-muted-foreground text-sm">
                       Content-Type
                     </span>
-                    <Popover
-                      open={contentTypeOpen}
-                      onOpenChange={setContentTypeOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={contentTypeOpen}
-                          className="h-8 w-80 justify-between font-normal text-sm"
-                        >
-                          <span className="truncate">
-                            {contentType || 'None'}
-                          </span>
-                          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        side="bottom"
-                        align="start"
-                        className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0"
-                      >
-                        <Command>
-                          <CommandInput placeholder="Search or enter custom..." />
-                          <CommandList>
-                            <CommandEmpty>No content type found.</CommandEmpty>
-                            <CommandItem
-                              value="none"
-                              onSelect={() => {
-                                form.setValue('contentType', '');
-                                setContentTypeOpen(false);
-                              }}
-                            >
-                              None
-                              <Check
-                                className={cn(
-                                  'ml-auto h-4 w-4',
-                                  !contentType ? 'opacity-100' : 'opacity-0',
-                                )}
-                              />
-                            </CommandItem>
-                            <CommandGroup heading="JSON / XML">
-                              {[
-                                'application/json',
-                                'application/ld+json',
-                                'application/hal+json',
-                                'application/vnd.api+json',
-                                'application/xml',
-                                'text/xml',
-                              ].map((ct) => (
-                                <CommandItem
-                                  key={ct}
-                                  value={ct}
-                                  onSelect={() => {
-                                    form.setValue('contentType', ct);
-                                    setContentTypeOpen(false);
-                                  }}
-                                >
-                                  {ct}
-                                  <Check
-                                    className={cn(
-                                      'ml-auto h-4 w-4',
-                                      contentType === ct
-                                        ? 'opacity-100'
-                                        : 'opacity-0',
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                            <CommandGroup heading="Form">
-                              {[
-                                'application/x-www-form-urlencoded',
-                                'multipart/form-data',
-                              ].map((ct) => (
-                                <CommandItem
-                                  key={ct}
-                                  value={ct}
-                                  onSelect={() => {
-                                    form.setValue('contentType', ct);
-                                    setContentTypeOpen(false);
-                                  }}
-                                >
-                                  {ct}
-                                  <Check
-                                    className={cn(
-                                      'ml-auto h-4 w-4',
-                                      contentType === ct
-                                        ? 'opacity-100'
-                                        : 'opacity-0',
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                            <CommandGroup heading="Text">
-                              {['text/html', 'text/plain'].map((ct) => (
-                                <CommandItem
-                                  key={ct}
-                                  value={ct}
-                                  onSelect={() => {
-                                    form.setValue('contentType', ct);
-                                    setContentTypeOpen(false);
-                                  }}
-                                >
-                                  {ct}
-                                  <Check
-                                    className={cn(
-                                      'ml-auto h-4 w-4',
-                                      contentType === ct
-                                        ? 'opacity-100'
-                                        : 'opacity-0',
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                            <CommandCreateItem
-                              onCreate={(value) => {
-                                form.setValue('contentType', value);
-                                setContentTypeOpen(false);
-                              }}
-                            />
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <ContentTypeCombobox />
                   </div>
                   {isFormEncoded ? (
                     <KeyValueEditor

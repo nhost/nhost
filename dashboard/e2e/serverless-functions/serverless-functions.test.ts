@@ -91,12 +91,6 @@ test.describe('serverless functions', () => {
       await expect(page.getByText('Created')).toBeVisible();
       await expect(page.getByText('Updated')).toBeVisible();
     });
-
-    test('should show recent logs card', async ({
-      authenticatedNhostPage: page,
-    }) => {
-      await expect(page.getByText('Recent Logs')).toBeVisible();
-    });
   });
 
   test.describe('execute tab', () => {

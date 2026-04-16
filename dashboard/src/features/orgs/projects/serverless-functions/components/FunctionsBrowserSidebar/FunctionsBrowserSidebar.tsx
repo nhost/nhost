@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functions/hooks/useGetNhostFunctions';
@@ -5,6 +6,11 @@ import FunctionListItem from './FunctionListItem';
 
 function FunctionsBrowserSidebarContent() {
   const { data: functions, loading, error } = useGetNhostFunctions();
+
+  const sortedFunctions = useMemo(
+    () => [...functions].sort((a, b) => a.path.localeCompare(b.path)),
+    [functions],
+  );
 
   if (loading) {
     return (
@@ -23,10 +29,6 @@ function FunctionsBrowserSidebarContent() {
       </div>
     );
   }
-
-  const sortedFunctions = [...functions].sort((a, b) =>
-    a.path.localeCompare(b.path),
-  );
 
   return (
     <div className="flex h-full flex-col px-2">

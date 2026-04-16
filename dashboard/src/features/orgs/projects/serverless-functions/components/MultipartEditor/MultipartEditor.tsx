@@ -1,4 +1,4 @@
-import { Plus, Upload, X } from 'lucide-react';
+import { Plus, Trash, Upload, X } from 'lucide-react';
 import { useRef } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
@@ -70,11 +70,11 @@ export default function MultipartEditor({ name }: MultipartEditorProps) {
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
+              size="sm"
+              className="shrink-0 px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => remove(index)}
             >
-              <X className="h-4 w-4" />
+              <Trash className="size-4" />
             </Button>
           </div>
         );

@@ -1,27 +1,12 @@
-import { subMinutes } from 'date-fns';
-import {
-  ChevronRight,
-  Clock,
-  Cpu,
-  GitCommit,
-  Globe,
-  ScrollText,
-} from 'lucide-react';
+import { Clock, Cpu, GitCommit, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Badge } from '@/components/ui/v3/badge';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
+import { TruncatedText } from '@/features/orgs/projects/common/components/TruncatedText';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
 import { cn } from '@/lib/utils';
-import {
-  type GetProjectLogsQuery,
-  useGetFunctionsLogsQuery,
-} from '@/utils/__generated__/graphql';
-import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleString();
@@ -65,76 +50,10 @@ function MetadataRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function RecentLogsCard({
-  fn,
-  onViewAll,
-}: {
-  fn: NhostFunction;
-  onViewAll: () => void;
-}) {
-  const { project } = useProject();
-
-  const { from, to } = useMemo(() => {
-    const now = new Date();
-    return {
-      from: subMinutes(now, 15).toISOString(),
-      to: now.toISOString(),
-    };
-  }, []);
-
-  const { data, loading, error } = useGetFunctionsLogsQuery({
-    variables: {
-      appID: project?.id,
-      from,
-      to,
-      path: fn.route,
-    },
-    client: splitGraphqlClient,
-    skip: !project?.id,
-  });
-
-  const logsData = useMemo(() => {
-    if (!data) {
-      return undefined;
-    }
-    return { logs: data.getFunctionsLogs } as unknown as GetProjectLogsQuery;
-  }, [data]);
-
-  return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between px-4 pt-4">
-        <h3 className="flex items-center gap-2 text-muted-foreground text-sm">
-          <ScrollText className="h-4 w-4" />
-          Recent Logs
-          <span className="text-xs">(15m)</span>
-        </h3>
-        <button
-          type="button"
-          onClick={onViewAll}
-          className="flex items-center gap-0.5 text-primary text-xs hover:underline"
-        >
-          View all
-          <ChevronRight className="h-3.5 w-3.5" />
-        </button>
-      </div>
-
-      <div className="max-h-72">
-        <LogsBody
-          logsData={logsData}
-          loading={loading}
-          error={error}
-          hideServiceColumn
-        />
-      </div>
-    </div>
-  );
-}
-
 export interface OverviewTabProps {
   fn: NhostFunction;
   endpointUrl: string;
   defaultEndpointUrl?: string;
-  onViewAllLogs: () => void;
   isPlatform: boolean;
 }
 
@@ -142,7 +61,6 @@ export default function OverviewTab({
   fn,
   endpointUrl,
   defaultEndpointUrl,
-  onViewAllLogs,
   isPlatform,
 }: OverviewTabProps) {
   const { orgSlug, appSubdomain } = useRouter().query;
@@ -153,7 +71,7 @@ export default function OverviewTab({
       <MetadataCard title="Endpoint" icon={Globe} className="col-span-2">
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2 rounded bg-muted p-2 font-mono text-sm">
-            <span className="break-all">{endpointUrl}</span>
+            <TruncatedText text={endpointUrl} tailLength={12} />
             <CopyToClipboardButton
               textToCopy={endpointUrl}
               title="Copy endpoint URL"
@@ -165,7 +83,7 @@ export default function OverviewTab({
                 Default endpoint
               </p>
               <div className="flex items-center justify-between gap-2 rounded bg-muted/50 p-2 font-mono text-muted-foreground text-xs">
-                <span className="break-all">{defaultEndpointUrl}</span>
+                <TruncatedText text={defaultEndpointUrl} tailLength={12} />
                 <CopyToClipboardButton
                   textToCopy={defaultEndpointUrl}
                   title="Copy default endpoint URL"
@@ -236,12 +154,12 @@ export default function OverviewTab({
                   Checksum
                 </span>
                 <div className="flex min-w-0 items-center gap-1">
-                  <TextWithTooltip
-                    containerClassName="min-w-0"
-                    className="font-mono text-gray-900 text-xs dark:text-gray-100"
-                    truncateMode="middle"
-                    text={fn.checksum}
-                  />
+                  <Badge
+                    variant="outline"
+                    className="max-w-24 font-mono font-normal text-xs"
+                  >
+                    <TruncatedText text={fn.checksum} tailLength={4} />
+                  </Badge>
                   <CopyToClipboardButton
                     textToCopy={fn.checksum}
                     title="Copy checksum"
@@ -272,8 +190,6 @@ export default function OverviewTab({
           </div>
         </MetadataCard>
       )}
-
-      {isPlatform && <RecentLogsCard fn={fn} onViewAll={onViewAllLogs} />}
     </div>
   );
 }

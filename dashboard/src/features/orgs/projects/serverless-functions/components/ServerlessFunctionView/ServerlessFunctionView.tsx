@@ -77,7 +77,6 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
               defaultEndpointUrl={
                 customDomainFqdn ? defaultEndpointUrl : undefined
               }
-              onViewAllLogs={() => setTab('logs')}
               isPlatform={isPlatform}
             />
           )}
