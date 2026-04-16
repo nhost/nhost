@@ -14,7 +14,6 @@ import {
   waitFor,
 } from '@/tests/testUtils';
 import DataBrowserGridContainer from './DataBrowserGridContainer';
-import { DataGridQueryParamsProvider } from './DataGridQueryParamsProvider';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -99,11 +98,7 @@ describe('DataBrowserGridContainer', () => {
 
     mocks.useRouter.mockReturnValue(createRouterValue('authors'));
 
-    const { rerender } = render(
-      <DataGridQueryParamsProvider>
-        <DataBrowserGridContainer />
-      </DataGridQueryParamsProvider>,
-    );
+    const { rerender } = render(<DataBrowserGridContainer />);
 
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument();
@@ -115,11 +110,7 @@ describe('DataBrowserGridContainer', () => {
 
     mocks.useRouter.mockReturnValue(createRouterValue('town'));
 
-    rerender(
-      <DataGridQueryParamsProvider>
-        <DataBrowserGridContainer />
-      </DataGridQueryParamsProvider>,
-    );
+    rerender(<DataBrowserGridContainer />);
 
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument();

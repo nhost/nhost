@@ -14,22 +14,22 @@ function getAllStoredData(): Record<string, DataGridFilter[]> {
   return allStoredData;
 }
 
-export function getDataGridFilters(tablePath: string): DataGridFilter[] {
+export function getDataGridFilters(storageKey: string): DataGridFilter[] {
   const allStoredData = getAllStoredData();
-  const filters = allStoredData[tablePath] ?? [];
+  const filters = allStoredData[storageKey] ?? [];
 
   return filters.filter((filter) => validOperators.has(filter.op));
 }
 
 export function saveDataGridFilters(
-  tablePath: string,
+  storageKey: string,
   filters: DataGridFilter[],
 ) {
   const allStoredData = getAllStoredData();
 
   const updatedAllStoredData: Record<string, DataGridFilter[]> = {
     ...allStoredData,
-    [tablePath]: filters,
+    [storageKey]: filters,
   };
 
   localStorage.setItem(

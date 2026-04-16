@@ -1,36 +1,20 @@
-import { useIsFetching } from '@tanstack/react-query';
 import { v4 as uuidV4 } from 'uuid';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { ButtonGroup } from '@/components/ui/v3/button-group';
-import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
-import { createTableQueryKey } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { useDataGridFilters } from './DataGridFiltersProvider';
 import { useGetDataColumns } from './useGetDataColumns';
 
-function DataGridFilterActions() {
-  const {
-    appliedFilters,
-    setAppliedFilters,
-    currentOffset,
-    sortBy,
-    setCurrentOffset,
-  } = useDataGridQueryParams();
+type DataGridFilterActionsProps = {
+  isFetching: boolean;
+};
+
+function DataGridFilterActions({ isFetching }: DataGridFilterActionsProps) {
+  const { setAppliedFilters } = useDataGridQueryParams();
 
   const { addFilter, setFilters, filters } = useDataGridFilters();
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
-
-  const tablePath = useTablePath();
-
-  const isFetching = useIsFetching({
-    queryKey: createTableQueryKey(
-      tablePath,
-      currentOffset,
-      sortBy,
-      appliedFilters,
-    ),
-  });
 
   const columns = useGetDataColumns();
 
@@ -40,14 +24,12 @@ function DataGridFilterActions() {
 
   function handleClearAllFilters() {
     removeQueryParamsFromUrl('page');
-    setCurrentOffset(0);
     setFilters([]);
     setAppliedFilters([]);
   }
 
   function handleApplyFilters() {
     removeQueryParamsFromUrl('page');
-    setCurrentOffset(0);
     setAppliedFilters(filters);
   }
 
@@ -63,7 +45,7 @@ function DataGridFilterActions() {
       </ButtonGroup>
       <ButtonWithLoading
         size="sm"
-        loading={isFetching > 0}
+        loading={isFetching}
         onClick={handleApplyFilters}
       >
         Apply filter
