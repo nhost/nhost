@@ -107,6 +107,36 @@ func runServicesFiles(runServices ...string) map[string]string {
 	return m
 }
 
+func setupLogsAPI(
+	ctx context.Context,
+	r *gin.Engine,
+	enablePlayground bool,
+	version string,
+) error {
+	dockerClient, err := client.NewClientWithOpts(
+		client.FromEnv,
+		client.WithAPIVersionNegotiation(),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create docker client: %w", err)
+	}
+
+	projectName := os.Getenv(dockerComposeProjectEnv)
+	logGatherer := NewDockerLogGatherer(dockerClient, projectName)
+
+	subsMgr := logsapi.NewSubscriptionsManager()
+	go subsMgr.Start(ctx)
+
+	logsResolver := &logsapi.Resolver{
+		LogGatherer:          logGatherer,
+		SubscriptionsManager: subsMgr,
+	}
+
+	logsapi.AddRoutes(r, "/v1/logs", logsResolver, enablePlayground, version)
+
+	return nil
+}
+
 func serve(ctx context.Context, cmd *cli.Command) error {
 	logger := getLogger(cmd.Bool(debugFlag), cmd.Bool(logFormatJSONFlag))
 	logger.Info(cmd.Root().Name + " v" + cmd.Root().Version)
@@ -142,34 +172,9 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		cors.Default(),
 	)
 
-	// Set up Docker-based logs endpoint
-	dockerClient, err := client.NewClientWithOpts(
-		client.FromEnv,
-		client.WithAPIVersionNegotiation(),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create docker client: %w", err)
+	if err := setupLogsAPI(ctx, r, cmd.Bool(enablePlaygroundFlag), cmd.Root().Version); err != nil {
+		return err
 	}
-	defer dockerClient.Close()
-
-	projectName := os.Getenv(dockerComposeProjectEnv)
-	logGatherer := NewDockerLogGatherer(dockerClient, projectName)
-
-	subsMgr := logsapi.NewSubscriptionsManager()
-	go subsMgr.Start(ctx)
-
-	logsResolver := &logsapi.Resolver{
-		LogGatherer:          logGatherer,
-		SubscriptionsManager: subsMgr,
-	}
-
-	logsapi.AddRoutes(
-		r,
-		"/v1/logs",
-		logsResolver,
-		cmd.Bool(enablePlaygroundFlag),
-		cmd.Root().Version,
-	)
 
 	if err := r.Run(cmd.String(bindFlag)); err != nil {
 		return fmt.Errorf("failed to run gin: %w", err)

@@ -9,11 +9,11 @@ var ErrInvalidTimestampRange = errors.New("invalid time range, from must be befo
 
 func TimeRangeCheck(from, to *time.Time) (*time.Time, *time.Time, error) {
 	if from == nil {
-		from = ptr(time.Now().Add(-time.Hour))
+		from = new(time.Now().Add(-time.Hour))
 	}
 
 	if to == nil {
-		to = ptr(time.Now())
+		to = new(time.Now())
 	}
 
 	if to.Before(*from) {
@@ -21,8 +21,4 @@ func TimeRangeCheck(from, to *time.Time) (*time.Time, *time.Time, error) {
 	}
 
 	return from, to, nil
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }

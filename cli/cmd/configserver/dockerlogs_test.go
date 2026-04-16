@@ -146,7 +146,10 @@ func TestGetLogsFiltering(t *testing.T) {
 
 			mock := &mockContainerClient{ //nolint:exhaustruct
 				containers: []container.Summary{
-					{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}}, //nolint:exhaustruct
+					{ //nolint:exhaustruct
+						ID:     "c1",
+						Labels: map[string]string{composeServiceLabel: "svc"},
+					},
 				},
 				logData: map[string]*bytes.Buffer{"c1": logBuf},
 			}
@@ -212,10 +215,22 @@ func TestGetServiceLabelValues(t *testing.T) {
 
 	mock := &mockContainerClient{ //nolint:exhaustruct
 		containers: []container.Summary{
-			{ID: "c1", Labels: map[string]string{composeServiceLabel: "postgres"}}, //nolint:exhaustruct
-			{ID: "c2", Labels: map[string]string{composeServiceLabel: "auth"}},     //nolint:exhaustruct
-			{ID: "c3", Labels: map[string]string{composeServiceLabel: "postgres"}}, //nolint:exhaustruct
-			{ID: "c4", Labels: map[string]string{composeServiceLabel: "storage"}},  //nolint:exhaustruct
+			{ //nolint:exhaustruct
+				ID:     "c1",
+				Labels: map[string]string{composeServiceLabel: "postgres"},
+			},
+			{ //nolint:exhaustruct
+				ID:     "c2",
+				Labels: map[string]string{composeServiceLabel: "auth"},
+			},
+			{ //nolint:exhaustruct
+				ID:     "c3",
+				Labels: map[string]string{composeServiceLabel: "postgres"},
+			},
+			{ //nolint:exhaustruct
+				ID:     "c4",
+				Labels: map[string]string{composeServiceLabel: "storage"},
+			},
 		},
 	}
 
@@ -242,13 +257,23 @@ func TestGetFunctionsLogs(t *testing.T) {
 	t.Parallel()
 
 	logBuf := &bytes.Buffer{}
-	logBuf.Write(stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:00Z {"path":"/api/hello","msg":"ok"}`+"\n"))
-	logBuf.Write(stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:01Z {"path":"/api/other","msg":"nope"}`+"\n"))
+	logBuf.Write(
+		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:00Z {"path":"/api/hello","msg":"ok"}`+"\n"),
+	)
+	logBuf.Write(
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:01Z {"path":"/api/other","msg":"nope"}`+"\n",
+		),
+	)
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:02Z plain text\n"))
 
 	mock := &mockContainerClient{ //nolint:exhaustruct
 		containers: []container.Summary{
-			{ID: "fn1", Labels: map[string]string{composeServiceLabel: "functions"}}, //nolint:exhaustruct
+			{ //nolint:exhaustruct
+				ID:     "fn1",
+				Labels: map[string]string{composeServiceLabel: "functions"},
+			},
 		},
 		logData: map[string]*bytes.Buffer{"fn1": logBuf},
 	}

@@ -22,7 +22,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func deptr[T any](t *T) T { //nolint:ireturn
+func deptr[T any](t *T) T {
 	if t == nil {
 		return *new(T)
 	}

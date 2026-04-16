@@ -31,7 +31,7 @@ func AddRoutes(
 			Resolvers: resolver,
 		}),
 	)
-	srv.AddTransport(transport.POST{})   //nolint:exhaustruct
+	srv.AddTransport(transport.POST{})    //nolint:exhaustruct
 	srv.AddTransport(transport.Websocket{ //nolint:exhaustruct
 		KeepAlivePingInterval: wsKeepAlivePingPeriod,
 		Upgrader: websocket.Upgrader{ //nolint:exhaustruct

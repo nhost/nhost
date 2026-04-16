@@ -53,7 +53,7 @@ func (d *DockerLogGatherer) listContainers(
 		f.Add("label", composeServiceLabel+"="+service)
 	}
 
-	containers, err := d.client.ContainerList(ctx, container.ListOptions{
+	containers, err := d.client.ContainerList(ctx, container.ListOptions{ //nolint:exhaustruct
 		Filters: f,
 	})
 	if err != nil {
@@ -63,7 +63,7 @@ func (d *DockerLogGatherer) listContainers(
 	return containers, nil
 }
 
-func (d *DockerLogGatherer) GetLogs( //nolint:cyclop
+func (d *DockerLogGatherer) GetLogs(
 	ctx context.Context,
 	service, regexFilter string,
 	from, to time.Time,
@@ -78,7 +78,7 @@ func (d *DockerLogGatherer) GetLogs( //nolint:cyclop
 	for _, c := range containers {
 		svcName := c.Labels[composeServiceLabel]
 
-		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{
+		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{ //nolint:exhaustruct
 			ShowStdout: true,
 			ShowStderr: true,
 			Timestamps: true,
@@ -122,7 +122,7 @@ func (d *DockerLogGatherer) GetLogs( //nolint:cyclop
 	return allLogs, nil
 }
 
-func (d *DockerLogGatherer) TailLogs( //nolint:cyclop
+func (d *DockerLogGatherer) TailLogs(
 	ctx context.Context,
 	service, regexFilter string,
 	from time.Time,
@@ -146,7 +146,7 @@ func (d *DockerLogGatherer) TailLogs( //nolint:cyclop
 	for _, c := range containers {
 		svcName := c.Labels[composeServiceLabel]
 
-		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{
+		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{ //nolint:exhaustruct
 			ShowStdout: true,
 			ShowStderr: true,
 			Timestamps: true,
@@ -216,7 +216,7 @@ func (d *DockerLogGatherer) GetFunctionsLogs(
 	var allLogs []model.Log
 
 	for _, c := range containers {
-		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{
+		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{ //nolint:exhaustruct
 			ShowStdout: true,
 			ShowStderr: true,
 			Timestamps: true,
@@ -260,7 +260,7 @@ func (d *DockerLogGatherer) TailFunctionsLogs(
 	var wg sync.WaitGroup
 
 	for _, c := range containers {
-		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{
+		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{ //nolint:exhaustruct
 			ShowStdout: true,
 			ShowStderr: true,
 			Timestamps: true,
@@ -325,7 +325,7 @@ func tailFunctionsContainerLogs(
 
 	go func() {
 		_, err := stdcopy.StdCopy(pw, pw, reader)
-		pw.CloseWithError(err) //nolint:errcheck
+		pw.CloseWithError(err)
 	}()
 
 	scanner := bufio.NewScanner(pr)
@@ -372,14 +372,14 @@ func parseLogs(reader io.Reader, serviceName string) ([]model.Log, error) {
 }
 
 // parseLogLine parses a single Docker log line with timestamp prefix.
-// Format: "2006-01-02T15:04:05.999999999Z message text"
+// Format: "2006-01-02T15:04:05.999999999Z message text".
 func parseLogLine(line, serviceName string) (model.Log, error) {
-	spaceIdx := strings.IndexByte(line, ' ')
-	if spaceIdx == -1 {
+	before, after, ok := strings.Cut(line, " ")
+	if !ok {
 		return model.Log{}, fmt.Errorf("invalid log line format: %s", line) //nolint:err113
 	}
 
-	ts, err := time.Parse(time.RFC3339Nano, line[:spaceIdx])
+	ts, err := time.Parse(time.RFC3339Nano, before)
 	if err != nil {
 		return model.Log{}, fmt.Errorf("failed to parse timestamp: %w", err)
 	}
@@ -387,7 +387,7 @@ func parseLogLine(line, serviceName string) (model.Log, error) {
 	return model.Log{
 		Timestamp: ts,
 		Service:   serviceName,
-		Log:       line[spaceIdx+1:],
+		Log:       after,
 	}, nil
 }
 
@@ -404,7 +404,7 @@ func tailContainerLogs(
 
 	go func() {
 		_, err := stdcopy.StdCopy(pw, pw, reader)
-		pw.CloseWithError(err) //nolint:errcheck
+		pw.CloseWithError(err)
 	}()
 
 	scanner := bufio.NewScanner(pr)

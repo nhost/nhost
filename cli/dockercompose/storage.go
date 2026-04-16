@@ -7,7 +7,7 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
-func deptr[T any](t *T) T { //nolint:ireturn
+func deptr[T any](t *T) T {
 	if t == nil {
 		return *new(T)
 	}

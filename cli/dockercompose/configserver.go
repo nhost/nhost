@@ -83,8 +83,8 @@ func configserver( //nolint: funlen
 			"--debug",
 		}, extraArgs...),
 		Environment: map[string]string{
-			"DOCKER_HOST":              dockerEndpoint,
-			"DOCKER_COMPOSE_PROJECT":   projectName,
+			"DOCKER_HOST":            dockerEndpoint,
+			"DOCKER_COMPOSE_PROJECT": projectName,
 		},
 		ExtraHosts:  []string{},
 		HealthCheck: nil,
@@ -104,10 +104,10 @@ func configserver( //nolint: funlen
 				Rewrite: nil,
 			},
 		}.Labels(),
-		Networks: nil,
-		Ports:    []Port{},
-		Restart:  "always",
-		Volumes:  volumes,
+		Networks:   nil,
+		Ports:      []Port{},
+		Restart:    "always",
+		Volumes:    volumes,
 		WorkingDir: nil,
 	}, nil
 }
