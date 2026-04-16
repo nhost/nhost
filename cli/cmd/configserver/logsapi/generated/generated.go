@@ -298,9 +298,7 @@ type Query {
     ): [Log!]!
 
     """
-    Returns list of label values for a given label within a range of time.
-
-    If ` + "`" + `from` + "`" + ` and ` + "`" + `to` + "`" + ` are not provided, they default to 6 hour ago and now, respectively.
+    Returns the list of service names for running containers in the local Docker Compose project.
     """
     getServiceLabelValues(
         appID: String!,

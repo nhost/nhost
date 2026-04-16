@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
@@ -141,8 +140,6 @@ func (d *DockerLogGatherer) TailLogs(
 		}
 	}
 
-	var wg sync.WaitGroup
-
 	for _, c := range containers {
 		svcName := c.Labels[composeServiceLabel]
 
@@ -157,20 +154,12 @@ func (d *DockerLogGatherer) TailLogs(
 			return fmt.Errorf("failed to tail logs for container %s: %w", svcName, err)
 		}
 
-		wg.Add(1)
-
 		go func(reader io.ReadCloser, svcName string) {
-			defer wg.Done()
 			defer reader.Close()
 
-			tailContainerLogs(reader, svcName, re, logsCh)
+			tailContainerLogs(ctx, reader, svcName, re, logsCh)
 		}(reader, svcName)
 	}
-
-	go func() {
-		wg.Wait()
-		close(logsCh)
-	}()
 
 	return nil
 }
@@ -257,8 +246,6 @@ func (d *DockerLogGatherer) TailFunctionsLogs(
 		return err
 	}
 
-	var wg sync.WaitGroup
-
 	for _, c := range containers {
 		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{ //nolint:exhaustruct
 			ShowStdout: true,
@@ -271,20 +258,12 @@ func (d *DockerLogGatherer) TailFunctionsLogs(
 			return fmt.Errorf("failed to tail functions logs: %w", err)
 		}
 
-		wg.Add(1)
-
 		go func(reader io.ReadCloser) {
-			defer wg.Done()
 			defer reader.Close()
 
-			tailFunctionsContainerLogs(reader, path, logsCh)
+			tailFunctionsContainerLogs(ctx, reader, path, logsCh)
 		}(reader)
 	}
-
-	go func() {
-		wg.Wait()
-		close(logsCh)
-	}()
 
 	return nil
 }
@@ -317,6 +296,7 @@ func matchesJSONPath(logLine, path string) bool {
 
 // tailFunctionsContainerLogs reads a Docker log stream and sends entries matching the path.
 func tailFunctionsContainerLogs(
+	ctx context.Context,
 	reader io.Reader,
 	path string,
 	logsCh chan<- []model.Log,
@@ -341,7 +321,11 @@ func tailFunctionsContainerLogs(
 			continue
 		}
 
-		logsCh <- []model.Log{logEntry}
+		select {
+		case logsCh <- []model.Log{logEntry}:
+		case <-ctx.Done():
+			return
+		}
 	}
 }
 
@@ -393,6 +377,7 @@ func parseLogLine(line, serviceName string) (model.Log, error) {
 
 // tailContainerLogs reads a Docker log stream and sends parsed log entries to the channel.
 func tailContainerLogs(
+	ctx context.Context,
 	reader io.Reader,
 	serviceName string,
 	re *regexp.Regexp,
@@ -420,6 +405,10 @@ func tailContainerLogs(
 			continue
 		}
 
-		logsCh <- []model.Log{logEntry}
+		select {
+		case logsCh <- []model.Log{logEntry}:
+		case <-ctx.Done():
+			return
+		}
 	}
 }
