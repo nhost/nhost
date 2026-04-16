@@ -92,7 +92,7 @@ func (ctrl *Controller) providerSignInFlow(
 
 	if userFound {
 		return ctrl.providerFlowSignIn(
-			ctx, user, providerFound, provider, profile.ProviderUserID, logger,
+			ctx, user, providerFound, provider, profile, logger,
 		)
 	}
 
@@ -269,17 +269,31 @@ func (ctrl *Controller) providerFlowSignIn(
 	user sql.AuthUser,
 	providerFound bool,
 	provider string,
-	providerUserID string,
+	profile oidc.Profile,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
 	logger.InfoContext(ctx, "user found, signing in")
 
 	if !providerFound {
+		// Linking a new provider identity to an existing account requires the
+		// provider to have verified ownership of the email. Without this guard,
+		// an attacker could claim an unverified email on the OAuth provider
+		// (e.g. by changing their email to the victim's address and skipping
+		// confirmation) and take over the matching Nhost account.
+		if !profile.EmailVerified {
+			logger.WarnContext(ctx,
+				"refusing to link provider to existing account: email not verified by provider",
+				slog.String("provider", provider),
+			)
+
+			return nil, ErrUnverifiedUser
+		}
+
 		if _, apiErr := ctrl.wf.InsertUserProvider(
 			ctx,
 			user.ID,
 			provider,
-			providerUserID,
+			profile.ProviderUserID,
 			logger,
 		); apiErr != nil {
 			return nil, apiErr
@@ -317,6 +331,17 @@ func (ctrl *Controller) providerResolveUser(
 		logger.InfoContext(ctx, "user found, resolving for PKCE")
 
 		if !providerFound {
+			// See providerFlowSignIn: never link a provider identity to an
+			// existing account without verified email ownership.
+			if !profile.EmailVerified {
+				logger.WarnContext(ctx,
+					"refusing to link provider to existing account: email not verified by provider",
+					slog.String("provider", provider),
+				)
+
+				return uuid.Nil, ErrUnverifiedUser
+			}
+
 			if _, apiErr := ctrl.wf.InsertUserProvider(
 				ctx,
 				user.ID,

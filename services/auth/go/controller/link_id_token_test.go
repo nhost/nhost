@@ -22,12 +22,18 @@ import (
 func testToken(t *testing.T, nonce string) string {
 	t.Helper()
 
+	return testTokenWithEmailVerified(t, nonce, true)
+}
+
+func testTokenWithEmailVerified(t *testing.T, nonce string, emailVerified bool) string {
+	t.Helper()
+
 	claims := jwt.MapClaims{
 		"iss":            "fake.issuer",
 		"aud":            "myapp.local",
 		"sub":            "106964149809169421082",
 		"email":          "jane@myapp.local",
-		"email_verified": true,
+		"email_verified": emailVerified,
 		"name":           "Jane",
 		"picture":        "https://myapp.local/jane.jpg",
 		"iat":            time.Now().Unix(),
