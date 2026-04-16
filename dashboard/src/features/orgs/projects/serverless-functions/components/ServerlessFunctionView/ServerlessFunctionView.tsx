@@ -55,31 +55,30 @@ function FunctionDetailsPanel({ fn }: { fn: NhostFunction }) {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="execute">Execute</TabsTrigger>
-            {isPlatform && <TabsTrigger value="logs">Logs</TabsTrigger>}
+            <TabsTrigger value="logs">Logs</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      {tab === 'logs' && isPlatform ? (
+      {tab === 'logs' && (
         <div className="flex-1 overflow-hidden">
           <FunctionLogsTab fn={fn} />
         </div>
-      ) : tab === 'execute' ? (
+      )}
+      {tab === 'execute' && (
         <div className="flex flex-1 flex-col overflow-hidden">
           <ExecuteTab endpointUrl={defaultEndpointUrl} />
         </div>
-      ) : (
+      )}
+      {tab === 'overview' && (
         <div className="flex-1 overflow-auto p-6">
-          {tab === 'overview' && (
-            <OverviewTab
-              fn={fn}
-              endpointUrl={endpointUrl}
-              defaultEndpointUrl={
-                customDomainFqdn ? defaultEndpointUrl : undefined
-              }
-              isPlatform={isPlatform}
-            />
-          )}
+          <OverviewTab
+            fn={fn}
+            endpointUrl={endpointUrl}
+            defaultEndpointUrl={
+              customDomainFqdn ? defaultEndpointUrl : undefined
+            }
+          />
         </div>
       )}
     </div>
@@ -120,7 +119,7 @@ export default function ServerlessFunctionView() {
     );
   }
 
-  const fn = functions.find((f) => f.route.replace(/^\//, '') === slug);
+  const fn = functions.find((func) => func.route.replace(/^\//, '') === slug);
 
   if (!fn) {
     return (

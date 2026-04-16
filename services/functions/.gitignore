@@ -1,0 +1,6 @@
+data
+.env
+.nhost
+.nhost-build
+.wrapper-*
+node_modules

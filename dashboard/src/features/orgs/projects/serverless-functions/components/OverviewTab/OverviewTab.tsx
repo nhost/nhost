@@ -5,6 +5,7 @@ import CopyToClipboardButton from '@/components/presentational/CopyToClipboardBu
 import { Badge } from '@/components/ui/v3/badge';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { TruncatedText } from '@/features/orgs/projects/common/components/TruncatedText';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
 import { cn } from '@/lib/utils';
 
@@ -54,15 +55,14 @@ export interface OverviewTabProps {
   fn: NhostFunction;
   endpointUrl: string;
   defaultEndpointUrl?: string;
-  isPlatform: boolean;
 }
 
 export default function OverviewTab({
   fn,
   endpointUrl,
   defaultEndpointUrl,
-  isPlatform,
 }: OverviewTabProps) {
+  const isPlatform = useIsPlatform();
   const { orgSlug, appSubdomain } = useRouter().query;
   const isPlaceholderDate = (date: string) => date.startsWith('0001-01-01');
 

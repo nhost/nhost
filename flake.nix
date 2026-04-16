@@ -49,6 +49,10 @@
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
+        functionsf = import ./services/functions/project.nix {
+          inherit self pkgs nix2containerPkgs nix-filter nixops-lib;
+        };
+
         docsf = import ./docs/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
@@ -98,6 +102,7 @@
           govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
+          functions = functionsf.check;
           guides = guidesf.check;
           docs = docsf.check;
           mcp = mcpf.check;
@@ -200,6 +205,7 @@
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
+          functions = functionsf.devShell;
           mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
@@ -221,6 +227,9 @@
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
           demos = demosf.package;
+          functions = functionsf.package;
+          functions-node22-docker-image = functionsf.dockerImage;
+          functions-node20-docker-image = functionsf.node20DockerImage;
           guides = guidesf.package;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
