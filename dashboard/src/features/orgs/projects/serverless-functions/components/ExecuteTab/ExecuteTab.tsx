@@ -142,36 +142,51 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
         className="flex h-full flex-col overflow-hidden"
       >
         <div className="shrink-0 space-y-4 overflow-auto p-6">
-          <div className="flex items-center gap-2">
-            <Select
-              value={method}
-              onValueChange={(newMethod) =>
-                form.setValue('method', newMethod as HttpMethod)
-              }
-            >
-              <SelectTrigger
-                className={cn(
-                  'h-10 w-24 font-mono font-semibold text-sm',
-                  METHOD_COLORS[method],
-                )}
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+            <div className="flex items-center justify-between gap-2">
+              <Select
+                value={method}
+                onValueChange={(newMethod) =>
+                  form.setValue('method', newMethod as HttpMethod)
+                }
               >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {HTTP_METHODS.map((httpMethod) => (
-                  <SelectItem
-                    key={httpMethod}
-                    value={httpMethod}
-                    className={cn(
-                      'font-mono font-semibold',
-                      METHOD_COLORS[httpMethod],
-                    )}
-                  >
-                    {httpMethod}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  className={cn(
+                    'h-10 w-24 font-mono font-semibold text-sm',
+                    METHOD_COLORS[method],
+                  )}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {HTTP_METHODS.map((httpMethod) => (
+                    <SelectItem
+                      key={httpMethod}
+                      value={httpMethod}
+                      className={cn(
+                        'font-mono font-semibold',
+                        METHOD_COLORS[httpMethod],
+                      )}
+                    >
+                      {httpMethod}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                type="submit"
+                disabled={response.status === 'loading'}
+                className="h-10 gap-2 lg:hidden"
+              >
+                {response.status === 'loading' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                Send
+              </Button>
+            </div>
 
             <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-sm">
               <TruncatedText text={endpointUrl} tailLength={12} />
@@ -185,7 +200,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             <Button
               type="submit"
               disabled={response.status === 'loading'}
-              className="h-10 gap-2"
+              className="hidden h-10 gap-2 lg:inline-flex"
             >
               {response.status === 'loading' ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

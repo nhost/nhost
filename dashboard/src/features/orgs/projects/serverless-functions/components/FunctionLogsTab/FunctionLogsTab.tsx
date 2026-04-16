@@ -82,7 +82,7 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
         <FormProvider {...form}>
           <Form
             onSubmit={handleSubmit}
-            className="grid w-full grid-flow-row items-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-end"
+            className="grid w-full grid-flow-row items-center gap-2 lg:w-[initial] lg:grid-flow-col lg:justify-end lg:gap-3"
           >
             <div className="w-full min-w-fit">
               <LogsRangeSelector onSubmitFilterValues={handleSubmit} />
