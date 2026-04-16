@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import type { Row } from '@tanstack/react-table';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -9,9 +9,12 @@ import { Badge } from '@/components/ui/v3/badge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DataGridFiltersPopover } from '@/features/orgs/projects/common/components/DataGridFiltersPopover';
 import { DataGridTableViewConfigurationPopover } from '@/features/orgs/projects/common/components/DataGridTableViewConfigurationPopover';
+import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
+import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { InvokeEventTriggerButton } from '@/features/orgs/projects/database/dataGrid/components/InvokeEventTriggerButton';
 import { TrackTableButton } from '@/features/orgs/projects/database/dataGrid/components/TrackTableButton';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
+import { createTableQueryKey } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
@@ -41,6 +44,17 @@ export default function DataBrowserGridControls({
   refetchData,
   onInsertRowClick,
 }: DataBrowserGridControlsProps) {
+  const tablePath = useTablePath();
+  const { appliedFilters, currentOffset, sortBy } = useDataGridQueryParams();
+  const isFetching =
+    useIsFetching({
+      queryKey: createTableQueryKey(
+        tablePath,
+        currentOffset,
+        sortBy,
+        appliedFilters,
+      ),
+    }) > 0;
   const queryClient = useQueryClient();
   const { openAlertDialog } = useDialog();
 
@@ -181,7 +195,10 @@ export default function DataBrowserGridControls({
                   {...restPaginationProps}
                 />
               )}
-              <DataGridFiltersPopover />
+              <DataGridFiltersPopover
+                storageKey={tablePath}
+                isFetching={isFetching}
+              />
               <DataGridTableViewConfigurationPopover />
               {onInsertRowClick && (
                 <Button onClick={onInsertRowClick} size="sm">
