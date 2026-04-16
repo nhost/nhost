@@ -1,6 +1,6 @@
 import { Code } from 'lucide-react';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 
 export interface FunctionsEmptyStateProps
   extends Omit<
@@ -20,7 +20,7 @@ export default function FunctionsEmptyState({
   return (
     <div className="h-full w-full bg-background">
       <div
-        className={twMerge(
+        className={cn(
           'grid w-full place-content-center gap-2 px-4 py-16 text-center',
           className,
         )}
