@@ -58,21 +58,3 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  push-docker-ecr:
-    strategy:
-      matrix:
-        node: ["20", "22"]
-      fail-fast: true
-    uses: ./.github/workflows/wf_docker_push_image_ecr.yaml
-    needs:
-      - build_artifacts
-    with:
-      NAME: functions
-      PATH: services/functions
-      VERSION: ${{ inputs.VERSION }}
-      ENV: "NODE_VERSION=${{ matrix.node }}"
-      ARTIFACT_SUFFIX: "-node${{ matrix.node }}"
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      CONTAINER_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
