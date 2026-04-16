@@ -1,0 +1,56 @@
+---
+title: Permissions
+description: Learn how permissions work
+keywords: ["permissions", "authorization", "access control", "roles", "row-level security", "RLS", "Hasura permissions", "ACL"]
+sidebar:
+  label: Overview
+---
+import { Card, CardGroup } from '@components';
+
+**Permissions** or authorization rules are used to control access to data and are set per role and table for each of the **select**, **insert**, **update**, and **delete** database operations.
+
+Permissions follow a **Zero Trust** model, meaning that by default, no role, with the exception of **admin**, has any access. Access has to be explicitly granted.
+
+![Permission Variables](/images/graphql/dashboard-permissions.png)
+
+Imagine a table `todos` with `id`, `created_at`, `completed_at`, `title`, `completed`, `user_id`, and `file_id` columns. We want users to only have access to their own todos. This is how we would do it:
+
+![Permission Variables](/images/graphql/dashboard-permissions-select.png)
+
+The permission above makes sure users can only select their own todos, because the value of `user_id` must be equal (`_eq`) to the authenticated user's ID (`x-hasura-user-id`).
+
+## Explore
+
+The rest of this section covers each piece of the permission system in detail:
+
+<CardGroup cols={3}>
+  <Card title="Rule Editor" icon="pencil-square" href="/products/graphql/permissions/rule-editor">
+    Build permission rules visually — conditions, groups, relationships, exists blocks.
+  </Card>
+  <Card title="Permission Variables" icon="key" href="/products/graphql/permissions/permission-variables">
+    Session variables, custom claims, and roles used inside permission rules.
+  </Card>
+  <Card title="Examples" icon="list-check" href="/products/graphql/permissions/examples">
+    Common insert/select/update/delete patterns for the `user` role.
+  </Card>
+</CardGroup>
+
+## Known issues
+
+### Permissions are slow
+
+In certain situations, permission checks can cause significant delays. One way to identify this issue is by comparing the execution time of a GraphQL query when performed as an admin versus as a regular user. To resolve such cases, disabling the Just-in-Time (JIT) compilation in [Postgres](/products/database/configuring-postgres) can be beneficial.
+
+[Github issue](https://github.com/hasura/graphql-engine/issues/3672)
+
+## Further Reading
+
+For deeper background, Hasura's own docs cover permissions in detail:
+
+- [Authorization / Access control](https://hasura.io/docs/latest/graphql/core/auth/authorization/index/)
+- [Access control basics](https://hasura.io/docs/latest/graphql/core/auth/authorization/basics/)
+- [Roles & Session variables](https://hasura.io/docs/latest/graphql/core/auth/authorization/roles-variables/)
+- [Inherited roles](https://hasura.io/docs/latest/graphql/core/auth/authorization/inherited-roles/)
+- [Configuring permission rules](https://hasura.io/docs/latest/graphql/core/auth/authorization/permission-rules/)
+- [Access control examples](https://hasura.io/docs/latest/graphql/core/auth/authorization/common-roles-auth-examples/)
+- [Multiple column + row permissions for the same role](https://hasura.io/docs/latest/graphql/core/auth/authorization/role-multiple-rules/)
