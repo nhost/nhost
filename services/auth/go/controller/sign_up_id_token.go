@@ -141,7 +141,7 @@ func (ctrl *Controller) providerFlowSignUp(
 		ctx,
 		profile.Email,
 		options,
-		profile.Email != "" && !profile.EmailVerified,
+		profile.Email != "" && !profile.EmailVerified.IsVerified(),
 		ctrl.providerFlowSignupWithSession(ctx, profile, provider, options),
 		ctrl.providerFlowSignupWithoutSession(ctx, profile, provider, options),
 		"",
@@ -153,7 +153,7 @@ func (ctrl *Controller) providerFlowSignUp(
 
 	if session != nil {
 		session.User.AvatarUrl = profile.Picture
-		session.User.EmailVerified = profile.EmailVerified
+		session.User.EmailVerified = profile.EmailVerified.IsVerified()
 	}
 
 	return session, nil
@@ -190,7 +190,7 @@ func (ctrl *Controller) providerFlowSignupWithSession(
 				Email:                 email,
 				Ticket:                pgtype.Text{}, //nolint:exhaustruct
 				TicketExpiresAt:       sql.TimestampTz(time.Now()),
-				EmailVerified:         profile.EmailVerified,
+				EmailVerified:         profile.EmailVerified.IsVerified(),
 				Locale:                deptr(options.Locale),
 				DefaultRole:           deptr(options.DefaultRole),
 				Metadata:              metadata,
@@ -240,7 +240,7 @@ func (ctrl *Controller) providerFlowSignupWithoutSession(
 			Email:           email,
 			Ticket:          ticket,
 			TicketExpiresAt: ticketExpiresAt,
-			EmailVerified:   profile.EmailVerified,
+			EmailVerified:   profile.EmailVerified.IsVerified(),
 			Locale:          deptr(options.Locale),
 			DefaultRole:     deptr(options.DefaultRole),
 			Metadata:        metadata,

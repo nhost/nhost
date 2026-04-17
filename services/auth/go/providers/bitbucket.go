@@ -99,34 +99,30 @@ func (b *Bitbucket) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("Bitbucket email decode error: %w", err)
 	}
 
-	// Pick the first verified email
-	var (
-		primaryEmail  string
-		fallbackEmail string
-	)
+	// Pick the first confirmed email. Bitbucket lets users add any email to
+	// their account without proof of ownership until they click the
+	// confirmation link, so unconfirmed addresses must never be reported as
+	// verified.
+	var primaryEmail string
 
 	for _, e := range emailResp.Values {
 		if e.IsConfirmed {
 			primaryEmail = e.Email
 			break
-		} else if fallbackEmail == "" {
-			fallbackEmail = e.Email
 		}
 	}
 
 	if primaryEmail == "" {
-		if fallbackEmail == "" {
-			return oidc.Profile{}, ErrNoConfirmedBitbucketEmail
-		}
-
-		primaryEmail = fallbackEmail
+		return oidc.Profile{}, ErrNoConfirmedBitbucketEmail
 	}
 
-	// Step 3: Return profile
+	// Step 3: Return profile. We only reach this point after selecting a
+	// confirmed email, so the status reflects Bitbucket's explicit
+	// `is_confirmed` signal.
 	return oidc.Profile{
 		ProviderUserID: user.UUID,
 		Email:          primaryEmail,
-		EmailVerified:  primaryEmail != "",
+		EmailVerified:  oidc.EmailVerificationStatusVerified,
 		Name:           user.DisplayName,
 		Picture:        user.Links.Avatar.Href,
 	}, nil

@@ -60,10 +60,12 @@ func (t *Twitter) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("Twitter API error: %w", err)
 	}
 
+	// Twitter's verify_credentials endpoint does not return an explicit
+	// verification flag, so there is no signal to report.
 	return oidc.Profile{
 		ProviderUserID: user.ID,
 		Email:          user.Email,
-		EmailVerified:  user.Email != "",
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 		Name:           user.Name,
 		Picture:        user.ProfileImageURL,
 	}, nil

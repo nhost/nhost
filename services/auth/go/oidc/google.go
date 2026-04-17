@@ -49,9 +49,15 @@ func getProfile(token *jwt.Token) (Profile, error) {
 		return Profile{}, fmt.Errorf("failed to get email claim from token: %w", err)
 	}
 
+	emailVerifiedStatus := EmailVerificationStatusUnknown
+
 	emailVerified, err := GetClaim[bool](token, "email_verified")
 	if err != nil && !errors.Is(err, ErrClaimNotFound) {
 		return Profile{}, fmt.Errorf("failed to get email_verified claim from token: %w", err)
+	}
+
+	if err == nil {
+		emailVerifiedStatus = EmailVerificationFromBool(emailVerified)
 	}
 
 	name, err := GetClaim[string](token, "name")
@@ -67,7 +73,7 @@ func getProfile(token *jwt.Token) (Profile, error) {
 	return Profile{
 		ProviderUserID: sub,
 		Email:          email,
-		EmailVerified:  emailVerified,
+		EmailVerified:  emailVerifiedStatus,
 		Name:           name,
 		Picture:        picture,
 	}, nil
