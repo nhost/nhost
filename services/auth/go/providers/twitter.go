@@ -61,15 +61,11 @@ func (t *Twitter) GetProfile(
 	}
 
 	// Twitter's verify_credentials endpoint does not return an explicit
-	// verification flag. Twitter requires a working email address on the
-	// account and only surfaces it via `include_email=true` when verified, so
-	// the presence of an email is treated as proof of verification. This
-	// relies on Twitter's platform behavior; if that ever changes, this
-	// adapter must be updated to use an explicit signal.
+	// verification flag, so there is no signal to report.
 	return oidc.Profile{
 		ProviderUserID: user.ID,
 		Email:          user.Email,
-		EmailVerified:  user.Email != "",
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 		Name:           user.Name,
 		Picture:        user.ProfileImageURL,
 	}, nil

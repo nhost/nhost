@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -55,20 +56,20 @@ func bitbucketGetProfileWithBase(
 		nil,
 	)
 	if err != nil {
-		return "", false, err
+		return "", false, fmt.Errorf("new request: %w", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", false, err
+		return "", false, fmt.Errorf("do request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	var emailResp bitbucketEmailsResponse
 	if err := json.NewDecoder(resp.Body).Decode(&emailResp); err != nil {
-		return "", false, err
+		return "", false, fmt.Errorf("decode response: %w", err)
 	}
 
 	var primaryEmail string

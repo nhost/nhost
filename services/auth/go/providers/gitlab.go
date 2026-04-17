@@ -67,8 +67,10 @@ func (g *Gitlab) GetProfile(
 		ProviderUserID: strconv.Itoa(userProfile.ID),
 		Name:           userProfile.Name,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "" && userProfile.ConfirmedAt != "",
-		Picture:        userProfile.AvatarURL,
+		EmailVerified: oidc.EmailVerificationFromBool(
+			userProfile.Email != "" && userProfile.ConfirmedAt != "",
+		),
+		Picture: userProfile.AvatarURL,
 	}, nil
 }
 

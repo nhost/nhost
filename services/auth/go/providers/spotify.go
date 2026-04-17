@@ -76,16 +76,13 @@ func (s *Spotify) GetProfile(
 		avatarURL = userProfile.Images[0].URL
 	}
 
-	// Spotify's /v1/me endpoint does not return an explicit verification flag.
-	// Spotify enforces email verification before account activation, so the
-	// presence of an email is treated as proof of verification. This relies
-	// on Spotify's platform behavior; if that ever changes, this adapter must
-	// be updated to use an explicit signal.
+	// Spotify's /v1/me endpoint does not return an explicit verification
+	// flag, so there is no signal to report.
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Name:           userProfile.DisplayName,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "",
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 		Picture:        avatarURL,
 	}, nil
 }

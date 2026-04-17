@@ -76,7 +76,7 @@ func (l *LinkedIn) GetProfile(
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.EmailVerified,
+		EmailVerified:  oidc.EmailVerificationFromBool(userProfile.EmailVerified),
 		Name:           name,
 		Picture:        userProfile.Picture,
 	}, nil

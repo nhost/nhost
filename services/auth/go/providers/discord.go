@@ -63,7 +63,7 @@ func (d *Discord) GetProfile(
 		ProviderUserID: userProfile.ID,
 		Name:           fmt.Sprintf("%s#%s", userProfile.Username, userProfile.Discriminator),
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Verified,
+		EmailVerified:  oidc.EmailVerificationFromBool(userProfile.Verified),
 		Picture: fmt.Sprintf(
 			"https://cdn.discordapp.com/avatars/%s/%s.png",
 			userProfile.ID,

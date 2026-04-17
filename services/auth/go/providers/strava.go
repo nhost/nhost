@@ -67,12 +67,12 @@ func (s *Strava) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("Strava API error: %w", err)
 	}
 
-	// Email intentionally left out, and not marked verified
+	// Strava does not expose email at all, so there is nothing to verify.
 	return oidc.Profile{
 		ProviderUserID: strconv.Itoa(athlete.ID),
 		Name:           athlete.Firstname + " " + athlete.Lastname,
 		Picture:        athlete.ProfileMedium,
 		Email:          "",
-		EmailVerified:  false,
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 	}, nil
 }

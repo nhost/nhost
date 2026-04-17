@@ -182,10 +182,46 @@ func validateNonce(token *jwt.Token, nonce string) error {
 	return nil
 }
 
+// EmailVerificationStatus expresses whether the upstream OAuth/OIDC provider
+// has attested that the user owns the email address returned on the profile.
+//
+// The zero value is EmailVerificationStatusUnknown, which means the adapter
+// had no explicit signal from the provider. Unknown is treated as unverified
+// for security-sensitive decisions (account linking, session issuance); use
+// IsVerified to branch on it.
+//
+// Adapters MUST NOT infer verification from the presence of an email. Only
+// set Verified when the provider exposes an explicit signal (an
+// email_verified claim, a confirmed_at timestamp, or equivalent).
+type EmailVerificationStatus int
+
+const (
+	EmailVerificationStatusUnknown EmailVerificationStatus = iota
+	EmailVerificationStatusVerified
+	EmailVerificationStatusUnverified
+)
+
+// IsVerified returns true only when the provider explicitly attested that the
+// email is verified. Unknown and Unverified both return false.
+func (s EmailVerificationStatus) IsVerified() bool {
+	return s == EmailVerificationStatusVerified
+}
+
+// EmailVerificationFromBool maps a provider-supplied boolean to the matching
+// verification status. Use it when the adapter has an explicit signal and
+// just needs to translate its shape.
+func EmailVerificationFromBool(verified bool) EmailVerificationStatus {
+	if verified {
+		return EmailVerificationStatusVerified
+	}
+
+	return EmailVerificationStatusUnverified
+}
+
 type Profile struct {
 	ProviderUserID string
 	Email          string
-	EmailVerified  bool
+	EmailVerified  EmailVerificationStatus
 	Name           string
 	Picture        string
 }

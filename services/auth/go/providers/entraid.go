@@ -65,7 +65,7 @@ func (a *EntraID) GetProfile(
 	return oidc.Profile{
 		ProviderUserID: userProfile.Sub,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.EmailVerified,
+		EmailVerified:  oidc.EmailVerificationFromBool(userProfile.EmailVerified),
 		Name:           userProfile.GivenName + " " + userProfile.FamilyName,
 		Picture:        "",
 	}, nil

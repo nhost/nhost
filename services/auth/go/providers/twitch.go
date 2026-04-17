@@ -74,17 +74,13 @@ func (t *Twitch) GetProfile(
 
 	userProfile := response.Data[0]
 
-	// Twitch's /helix/users endpoint does not return an explicit verification
-	// flag. Twitch requires email verification at account creation and the API
-	// does not surface the address until it has been confirmed, so the
-	// presence of an email is treated as proof of verification. This relies on
-	// Twitch's platform behavior; if that ever changes, this adapter must be
-	// updated to use an explicit signal.
+	// Twitch's /helix/users endpoint does not return an explicit
+	// verification flag, so there is no signal to report.
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Name:           userProfile.DisplayName,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "",
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 		Picture:        userProfile.ProfileImageURL,
 	}, nil
 }
