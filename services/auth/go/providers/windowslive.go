@@ -73,6 +73,11 @@ func (w *WindowsLive) GetProfile(
 		email = profile.Emails.Account
 	}
 
+	// Microsoft's Live v5.0/me endpoint does not return an explicit
+	// verification flag. Microsoft only surfaces confirmed addresses in the
+	// `emails` block, so the presence of an email is treated as proof of
+	// verification. This relies on Microsoft's platform behavior; if that
+	// ever changes, this adapter must be updated to use an explicit signal.
 	return oidc.Profile{
 		ProviderUserID: profile.ID,
 		Name:           profile.Name + " " + profile.LastName,

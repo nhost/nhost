@@ -60,6 +60,12 @@ func (t *Twitter) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("Twitter API error: %w", err)
 	}
 
+	// Twitter's verify_credentials endpoint does not return an explicit
+	// verification flag. Twitter requires a working email address on the
+	// account and only surfaces it via `include_email=true` when verified, so
+	// the presence of an email is treated as proof of verification. This
+	// relies on Twitter's platform behavior; if that ever changes, this
+	// adapter must be updated to use an explicit signal.
 	return oidc.Profile{
 		ProviderUserID: user.ID,
 		Email:          user.Email,

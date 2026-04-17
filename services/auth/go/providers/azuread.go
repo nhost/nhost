@@ -67,6 +67,14 @@ func (a *AzureAD) GetProfile(
 	// directory identifiers that can be set to arbitrary values (e.g. a custom
 	// UPN like `ceo@target-company.com`) and do not prove email ownership, so
 	// using them for account linking would enable account takeover.
+	//
+	// The legacy v1 `/openid/userinfo` endpoint does not expose an
+	// `email_verified` claim, so we cannot independently verify the address
+	// here. The claim is trusted because it comes from the directory record
+	// the tenant administrator configured, not from user-controlled input; in
+	// a standard enterprise tenant this is the user's work email. For stricter
+	// verification, prefer the Entra ID provider, which does return
+	// `email_verified` via Microsoft Graph's OIDC userinfo endpoint.
 	return oidc.Profile{
 		ProviderUserID: userProfile.OID,
 		Email:          userProfile.Email,

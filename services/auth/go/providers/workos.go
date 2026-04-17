@@ -115,6 +115,13 @@ func (w *WorkOS) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("WorkOS API Error: %w", err)
 	}
 
+	// WorkOS's /sso/profile endpoint does not surface an explicit
+	// verification flag. The profile is produced by the enterprise identity
+	// provider configured by the customer (SAML, OIDC, Google Workspace,
+	// etc.) which is expected to have already verified the email before
+	// asserting it, so the presence of an email is treated as proof of
+	// verification. This relies on the upstream IdP's behavior; a
+	// misconfigured or malicious IdP could assert arbitrary emails.
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Email:          userProfile.Email,

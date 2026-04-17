@@ -60,6 +60,12 @@ func (t *Facebook) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("Facebook API error: %w", err)
 	}
 
+	// Facebook's Graph API does not return an explicit verification flag. Per
+	// Facebook's documented behavior, the `email` field is only populated
+	// when the user has confirmed the address on their Facebook account, so
+	// the presence of an email is treated as proof of verification. This
+	// relies on Facebook's platform behavior; if that ever changes, this
+	// adapter must be updated to use an explicit signal.
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Name:           userProfile.Name,
