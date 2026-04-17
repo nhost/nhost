@@ -194,7 +194,8 @@ optional authenticatorData?: string;
 ```
 
 Base64url-encoded binary data
-Format - byte
+
+- Format - byte
 
 #### clientDataJSON
 
@@ -213,7 +214,8 @@ optional publicKey?: string;
 ```
 
 Base64url-encoded binary data
-Format - byte
+
+- Format - byte
 
 #### publicKeyAlgorithm?
 
@@ -222,7 +224,8 @@ optional publicKeyAlgorithm?: number;
 ```
 
 The public key algorithm identifier
-Format - int64
+
+- Format - int64
 
 #### transports?
 
@@ -1064,7 +1067,9 @@ signInIdToken(body: SignInIdTokenRequest, options?: RequestInit): Promise<FetchR
 ```
 
 Summary: Sign in with an ID token
-Authenticate using an ID token from a supported OAuth provider (Apple or Google). Creates a new user account if one doesn't exist.
+Authenticate using an ID token from a supported OAuth provider (Apple or Google).
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken` endpoint to register first.
 
 This method may return different T based on the response code:
 
@@ -1088,7 +1093,9 @@ signInOTPEmail(body: SignInOTPEmailRequest, options?: RequestInit): Promise<Fetc
 ```
 
 Summary: Sign in with email OTP
-Initiate email-based one-time password authentication. Sends an OTP to the specified email address. If the user doesn't exist, a new account will be created with the provided options.
+Initiate email-based one-time password authentication. Sends an OTP to the specified email address.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/otp/email` endpoint to register first.
 
 This method may return different T based on the response code:
 
@@ -1112,7 +1119,9 @@ signInPasswordlessEmail(body: SignInPasswordlessEmailRequest, options?: RequestI
 ```
 
 Summary: Sign in with magic link email
-Initiate passwordless authentication by sending a magic link to the user's email. If the user doesn't exist, a new account will be created with the provided options.
+Initiate passwordless authentication by sending a magic link to the user's email.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/email` endpoint to register first.
 
 This method may return different T based on the response code:
 
@@ -1136,7 +1145,9 @@ signInPasswordlessSms(body: SignInPasswordlessSmsRequest, options?: RequestInit)
 ```
 
 Summary: Sign in with SMS OTP
-Initiate passwordless authentication by sending a one-time password to the user's phone number. If the user doesn't exist, a new account will be created with the provided options.
+Initiate passwordless authentication by sending a one-time password to the user's phone number.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/sms` endpoint to register first.
 
 This method may return different T based on the response code:
 
@@ -1188,6 +1199,8 @@ signInProviderURL(
 
 Summary: Sign in with an OAuth2 provider
 Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created upon callback.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider/{provider}` endpoint to register first.
 
 As this method is a redirect, it returns a URL string instead of a Promise
 
@@ -1274,6 +1287,137 @@ This method may return different T based on the response code:
 ##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+#### signUpIdToken()
+
+```ts
+signUpIdToken(body: SignUpIdTokenRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Sign up with ID token
+Register a new user account using an ID token from Apple or Google.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+##### Parameters
+
+| Parameter  | Type                                            |
+| ---------- | ----------------------------------------------- |
+| `body`     | [`SignUpIdTokenRequest`](#signupidtokenrequest) |
+| `options?` | `RequestInit`                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+#### signUpOTPEmail()
+
+```ts
+signUpOTPEmail(body: SignUpOTPEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign up with email OTP
+Register a new user account using email OTP authentication.
+Sends a one-time password to the specified email address.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                              |
+| ---------- | ------------------------------------------------- |
+| `body`     | [`SignUpOTPEmailRequest`](#signupotpemailrequest) |
+| `options?` | `RequestInit`                                     |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### signUpPasswordlessEmail()
+
+```ts
+signUpPasswordlessEmail(body: SignUpPasswordlessEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign up with magic link email
+Register a new user account using passwordless email authentication.
+Sends a magic link to the specified email address for verification.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                                |
+| ---------- | ------------------------------------------------------------------- |
+| `body`     | [`SignUpPasswordlessEmailRequest`](#signuppasswordlessemailrequest) |
+| `options?` | `RequestInit`                                                       |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### signUpPasswordlessSms()
+
+```ts
+signUpPasswordlessSms(body: SignUpPasswordlessSmsRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign up with SMS OTP
+Register a new user account using SMS OTP authentication.
+Sends a one-time password to the specified phone number.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                            |
+| ---------- | --------------------------------------------------------------- |
+| `body`     | [`SignUpPasswordlessSmsRequest`](#signuppasswordlesssmsrequest) |
+| `options?` | `RequestInit`                                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### signUpProviderURL()
+
+```ts
+signUpProviderURL(
+   provider: SignInProvider,
+   params?: SignUpProviderParams,
+   options?: RequestInit): string;
+```
+
+Summary: Sign up with OAuth provider
+Initiate OAuth signup flow with the specified provider.
+Redirects to the provider's authorization page.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+As this method is a redirect, it returns a URL string instead of a Promise
+
+##### Parameters
+
+| Parameter  | Type                                            |
+| ---------- | ----------------------------------------------- |
+| `provider` | [`SignInProvider`](#signinprovider)             |
+| `params?`  | [`SignUpProviderParams`](#signupproviderparams) |
+| `options?` | `RequestInit`                                   |
+
+##### Returns
+
+`string`
 
 #### signUpWebauthn()
 
@@ -1583,7 +1727,7 @@ expiresAt: string
 optional metadata?: Record<string, unknown>;
 ```
 
-Example - `{"name":"my-pat","used-by":"my-app-cli"}`
+- Example - `{"name":"my-pat","used-by":"my-app-cli"}`
 
 ---
 
@@ -2649,8 +2793,8 @@ sub: string
 optional redirectTo?: string;
 ```
 
-Example - `"https://my-app.com/catch-redirection"`
-Format - uri
+- Example - `"https://my-app.com/catch-redirection"`
+- Format - uri
 
 ---
 
@@ -2698,7 +2842,8 @@ optional refreshToken?: string;
 ```
 
 OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
-Example - `"1//0gK8..."`
+
+- Example - `"1//0gK8..."`
 
 ---
 
@@ -3062,7 +3207,7 @@ User authentication session containing tokens and user information
 optional displayName?: string;
 ```
 
-Example - `"John Smith"`
+- Example - `"John Smith"`
 
 #### locale?
 
@@ -3071,9 +3216,10 @@ optional locale?: string;
 ```
 
 A two or three characters locale
-Example - `"en"`
-MinLength - 2
-MaxLength - 3
+
+- Example - `"en"`
+- MinLength - 2
+- MaxLength - 3
 
 #### metadata?
 
@@ -3081,7 +3227,7 @@ MaxLength - 3
 optional metadata?: Record<string, unknown>;
 ```
 
-Example - `{"firstName":"John","lastName":"Smith"}`
+- Example - `{"firstName":"John","lastName":"Smith"}`
 
 ---
 
@@ -3273,9 +3419,10 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-Pattern - ^[A-Za-z0-9_-]{43}$
-MinLength - 43
-MaxLength - 43
+
+- Pattern - ^[A-Za-z0-9_-]{43}$
+- MinLength - 43
+- MaxLength - 43
 
 #### email
 
@@ -3480,8 +3627,9 @@ optional email?: string;
 ```
 
 A valid email
-Example - `"john.smith@nhost.io"`
-Format - email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
 
 ---
 
@@ -3504,8 +3652,9 @@ optional email?: string;
 ```
 
 A valid email. Deprecated, no longer used
-Example - `"john.smith@nhost.io"`
-Format - email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
 
 ---
 
@@ -3544,9 +3693,10 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
-Pattern - ^[A-Za-z0-9_-]{43}$
-MinLength - 43
-MaxLength - 43
+
+- Pattern - ^[A-Za-z0-9_-]{43}$
+- MinLength - 43
+- MaxLength - 43
 
 #### email
 
@@ -3579,6 +3729,42 @@ password: string
 
 ---
 
+## SignUpIdTokenRequest
+
+### Properties
+
+#### idToken
+
+```ts
+idToken: string
+```
+
+(`string`) - Apple or Google ID token
+
+#### nonce?
+
+```ts
+optional nonce?: string;
+```
+
+Nonce used during sign in process
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+#### provider
+
+```ts
+provider: IdTokenProvider
+```
+
+(`IdTokenProvider`) -
+
+---
+
 ## SignUpOptions
 
 ### Properties
@@ -3589,7 +3775,7 @@ password: string
 optional allowedRoles?: string[];
 ```
 
-Example - `["me","user"]`
+- Example - `["me","user"]`
 
 #### defaultRole?
 
@@ -3597,7 +3783,7 @@ Example - `["me","user"]`
 optional defaultRole?: string;
 ```
 
-Example - `"user"`
+- Example - `"user"`
 
 #### displayName?
 
@@ -3605,9 +3791,9 @@ Example - `"user"`
 optional displayName?: string;
 ```
 
-Example - `"John Smith"`
-Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
-MaxLength - 32
+- Example - `"John Smith"`
+- Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
+- MaxLength - 32
 
 #### locale?
 
@@ -3616,9 +3802,10 @@ optional locale?: string;
 ```
 
 A two or three characters locale
-Example - `"en"`
-MinLength - 2
-MaxLength - 3
+
+- Example - `"en"`
+- MinLength - 2
+- MaxLength - 3
 
 #### metadata?
 
@@ -3626,7 +3813,7 @@ MaxLength - 3
 optional metadata?: Record<string, unknown>;
 ```
 
-Example - `{"firstName":"John","lastName":"Smith"}`
+- Example - `{"firstName":"John","lastName":"Smith"}`
 
 #### redirectTo?
 
@@ -3634,8 +3821,168 @@ Example - `{"firstName":"John","lastName":"Smith"}`
 optional redirectTo?: string;
 ```
 
-Example - `"https://my-app.com/catch-redirection"`
-Format - uri
+- Example - `"https://my-app.com/catch-redirection"`
+- Format - uri
+
+---
+
+## SignUpOTPEmailRequest
+
+### Properties
+
+#### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+---
+
+## SignUpPasswordlessEmailRequest
+
+### Properties
+
+#### codeChallenge?
+
+```ts
+optional codeChallenge?: string;
+```
+
+PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+
+- Pattern - ^[A-Za-z0-9_-]{43}$
+- MinLength - 43
+- MaxLength - 43
+
+#### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+---
+
+## SignUpPasswordlessSmsRequest
+
+### Properties
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+#### phoneNumber
+
+```ts
+phoneNumber: string
+```
+
+(`string`) - Phone number of the user
+
+- Example - `"+123456789"`
+
+---
+
+## SignUpProviderParams
+
+Parameters for the signUpProvider method.
+
+### Properties
+
+#### allowedRoles?
+
+```ts
+optional allowedRoles?: string[];
+```
+
+Array of allowed roles for the user
+
+#### codeChallenge?
+
+```ts
+optional codeChallenge?: string;
+```
+
+PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+
+#### defaultRole?
+
+```ts
+optional defaultRole?: string;
+```
+
+Default role for the user
+
+#### displayName?
+
+```ts
+optional displayName?: string;
+```
+
+Display name for the user
+
+#### locale?
+
+```ts
+optional locale?: string;
+```
+
+A two or three characters locale
+
+#### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+Additional metadata for the user (JSON encoded string)
+
+#### providerSpecificParams?
+
+```ts
+optional providerSpecificParams?: ProviderSpecificParams;
+```
+
+Additional provider-specific parameters
+
+#### redirectTo?
+
+```ts
+optional redirectTo?: string;
+```
+
+URI to redirect to
+
+#### state?
+
+```ts
+optional state?: string;
+```
+
+Opaque state value to be returned by the provider
 
 ---
 
@@ -3673,9 +4020,10 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
-Pattern - ^[A-Za-z0-9_-]{43}$
-MinLength - 43
-MaxLength - 43
+
+- Pattern - ^[A-Za-z0-9_-]{43}$
+- MinLength - 43
+- MaxLength - 43
 
 #### credential
 
@@ -3818,8 +4166,9 @@ optional email?: string;
 ```
 
 User's email address
-Example - `"john.smith@nhost.io"`
-Format - email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
 
 #### emailVerified
 
@@ -3881,7 +4230,8 @@ optional phoneNumber?: string;
 ```
 
 User's phone number
-Example - `"+12025550123"`
+
+- Example - `"+12025550123"`
 
 #### phoneNumberVerified
 
@@ -3916,9 +4266,10 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-Pattern - ^[A-Za-z0-9_-]{43}$
-MinLength - 43
-MaxLength - 43
+
+- Pattern - ^[A-Za-z0-9_-]{43}$
+- MinLength - 43
+- MaxLength - 43
 
 #### connection?
 
@@ -3952,9 +4303,10 @@ optional password?: string;
 ```
 
 A password of minimum 3 characters
-Example - `"Str0ngPassw#ord-94|%"`
-MinLength - 3
-MaxLength - 50
+
+- Example - `"Str0ngPassw#ord-94|%"`
+- MinLength - 3
+- MaxLength - 50
 
 #### signInMethod
 
@@ -3977,9 +4329,10 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-Pattern - ^[A-Za-z0-9_-]{43}$
-MinLength - 43
-MaxLength - 43
+
+- Pattern - ^[A-Za-z0-9_-]{43}$
+- MinLength - 43
+- MaxLength - 43
 
 #### newEmail
 
@@ -4011,9 +4364,10 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-Pattern - ^[A-Za-z0-9_-]{43}$
-MinLength - 43
-MaxLength - 43
+
+- Pattern - ^[A-Za-z0-9_-]{43}$
+- MinLength - 43
+- MaxLength - 43
 
 #### email
 
@@ -4077,7 +4431,8 @@ optional activeMfaType?: UserMfaRequestActiveMfaType;
 ```
 
 Type of MFA to activate. Use empty string to disable MFA.
-Example - `"totp"`
+
+- Example - `"totp"`
 
 #### code
 
@@ -4114,7 +4469,8 @@ optional ticket?: string;
 ```
 
 Ticket to reset the password, required if the user is not authenticated
-Pattern - ^passwordReset\:.\*$
+
+- Pattern - ^passwordReset\:.\*$
 
 ---
 
@@ -4129,9 +4485,10 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-Pattern - ^[A-Za-z0-9_-]{43}$
-MinLength - 43
-MaxLength - 43
+
+- Pattern - ^[A-Za-z0-9_-]{43}$
+- MinLength - 43
+- MaxLength - 43
 
 #### email
 
@@ -4322,7 +4679,7 @@ type ErrorResponseError =
   | 'default-role-must-be-in-allowed-roles'
   | 'disabled-endpoint'
   | 'disabled-user'
-  | 'email-already-in-use'
+  | 'user-already-exists'
   | 'email-already-verified'
   | 'forbidden-anonymous'
   | 'internal-server-error'
