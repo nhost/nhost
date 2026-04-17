@@ -1,3 +1,9 @@
+## [cli@1.43.1] - 2026-04-17
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump versions (#4165)
+
 ## [cli@1.43.0] - 2026-04-14
 
 ### 🚀 Features
