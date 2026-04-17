@@ -45,7 +45,7 @@ function getRuntime() {
 function discoverFunctions(functionsPath) {
   return glob.sync('**/*.@(js|ts)', {
     cwd: functionsPath,
-    ignore: ['**/node_modules/**', '**/_*/**', '**/_*', '**/.wrapper-*'],
+    ignore: ['**/node_modules/**', '**/_*/**', '**/_*'],
   });
 }
 
@@ -66,12 +66,14 @@ function generateWrapper(relativeFunctionPath) {
 
 async function buildFunction(functionsPath, file) {
   const safeName = fileToSafeName(file);
-  const funcDir = path.dirname(path.join(functionsPath, file));
-  const funcBasename = path.basename(file);
 
-  // Write wrapper in the same directory as the function for correct require() resolution
-  const wrapperPath = path.join(funcDir, `.wrapper-${safeName}.js`);
-  const wrapperContent = generateWrapper(`./${funcBasename}`);
+  // Write wrapper under BUILD_DIR to avoid polluting the user's functions directory.
+  // Use the absolute path to the function so require() resolution still works.
+  const wrapperDir = path.join(BUILD_DIR, 'wrappers');
+  fs.mkdirSync(wrapperDir, { recursive: true });
+  const wrapperPath = path.join(wrapperDir, `.wrapper-${safeName}.js`);
+  const absoluteFuncPath = path.join(functionsPath, file);
+  const wrapperContent = generateWrapper(absoluteFuncPath);
   fs.writeFileSync(wrapperPath, wrapperContent);
 
   const distDir = path.join(BUILD_DIR, 'dist', safeName);

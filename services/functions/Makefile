@@ -4,6 +4,11 @@ include $(ROOT_DIR)/build/makefiles/general.makefile
 NODE_VERSION?=22
 DOCKER_DEV_ENV_PATH=build/dev/docker
 
+# Prepend Node version to VERSION if not already prefixed
+ifneq ($(NODE_VERSION)-,$(firstword $(subst -, ,$(VERSION)))-)
+VERSION:=$(NODE_VERSION)-$(VERSION)
+endif
+
 
 .PHONY: build-docker-image
 build-docker-image:  ## Build docker container for native architecture
@@ -11,7 +16,7 @@ build-docker-image:  ## Build docker container for native architecture
 		.\#packages.$(ARCH)-linux.$(NAME)-node$(NODE_VERSION)-docker-image \
 		--print-build-logs
 	nix develop \#skopeo -c \
-		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME)-node$(NODE_VERSION):$(VERSION)
+		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
 
 
 .PHONY: _dev-env-build

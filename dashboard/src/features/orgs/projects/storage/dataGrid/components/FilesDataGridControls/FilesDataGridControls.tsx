@@ -8,6 +8,7 @@ import { DataGridFiltersPopover } from '@/features/orgs/projects/common/componen
 import { DataGridTableViewConfigurationPopover } from '@/features/orgs/projects/common/components/DataGridTableViewConfigurationPopover';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { StorageMaintenanceButton } from '@/features/orgs/projects/storage/components/StorageMaintenanceButton';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
@@ -157,6 +158,7 @@ export default function FilesDataGridControls({
               storageKey={storageKey}
               isFetching={isFetching}
             />
+            <StorageMaintenanceButton />
             <DataGridTableViewConfigurationPopover />
             <FileUploadButton
               className={twMerge(
