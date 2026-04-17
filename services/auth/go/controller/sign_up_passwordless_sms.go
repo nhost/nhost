@@ -37,12 +37,14 @@ func (ctrl *Controller) SignUpPasswordlessSms( //nolint:ireturn
 		return ctrl.respondWithError(apiErr), nil
 	}
 
-	// Check if user already exists
+	// Check if user already exists. To prevent account enumeration we return
+	// the same 200 OK (with no SMS sent) whether the user exists or not —
+	// mirroring the signin endpoints' behaviour under AUTH_DISABLE_AUTO_SIGNUP.
 	_, apiErr = ctrl.wf.GetUserByPhoneNumber(ctx, request.Body.PhoneNumber, logger)
 	switch {
 	case apiErr == nil:
-		logger.WarnContext(ctx, "user already exists")
-		return ctrl.respondWithError(ErrUserAlreadyExists), nil
+		logger.InfoContext(ctx, "user already exists, returning OK without sending SMS")
+		return api.SignUpPasswordlessSms200JSONResponse(api.OK), nil
 	case errors.Is(apiErr, ErrUserPhoneNumberNotFound):
 		// User does not exist, proceed with signup
 	default:

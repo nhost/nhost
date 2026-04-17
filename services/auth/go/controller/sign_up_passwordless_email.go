@@ -38,17 +38,16 @@ func (ctrl *Controller) SignUpPasswordlessEmail( //nolint:ireturn
 		return ctrl.respondWithError(apiErr), nil
 	}
 
-	// Check if user already exists
+	// Check if user already exists. To prevent account enumeration we return
+	// the same 200 OK (with no email sent) whether the user exists or not —
+	// mirroring the signin endpoints' behaviour under AUTH_DISABLE_AUTO_SIGNUP.
 	_, apiErr = ctrl.wf.GetUserByEmail(ctx, string(request.Body.Email), logger)
 	switch {
-	case apiErr == nil:
-		logger.WarnContext(ctx, "user already exists")
-		return ctrl.respondWithError(ErrUserAlreadyExists), nil
+	case apiErr == nil, errors.Is(apiErr, ErrUnverifiedUser):
+		logger.InfoContext(ctx, "user already exists, returning OK without sending email")
+		return api.SignUpPasswordlessEmail200JSONResponse(api.OK), nil
 	case errors.Is(apiErr, ErrUserEmailNotFound):
 		// User does not exist, proceed with signup
-	case errors.Is(apiErr, ErrUnverifiedUser):
-		logger.WarnContext(ctx, "user already exists but is unverified")
-		return ctrl.respondWithError(ErrUserAlreadyExists), nil
 	default:
 		logger.ErrorContext(ctx, "error getting user by email", logError(apiErr))
 		return ctrl.respondWithError(apiErr), nil

@@ -257,7 +257,11 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "error - user already exists",
+			// When the user already exists we return 200 OK with no side effect
+			// (no email sent, no mutation) to keep the signup surface
+			// indistinguishable from the signin one — protecting against
+			// account enumeration.
+			name:   "user already exists - returns OK without sending email",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
@@ -280,11 +284,38 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					CodeChallenge: nil,
 				},
 			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "user-already-exists",
-				Message: "User already exists",
-				Status:  409,
+			expectedResponse:  api.SignUpPasswordlessEmail200JSONResponse(api.OK),
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			// Same anti-enumeration behaviour when the user is unverified.
+			name:   "user already exists but unverified - returns OK without sending email",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{ //nolint:exhaustruct
+					ID:            userID,
+					Email:         sql.Text("jane@acme.com"),
+					EmailVerified: false,
+				}, nil)
+
+				return mock
 			},
+			request: api.SignUpPasswordlessEmailRequestObject{
+				Body: &api.SignUpPasswordlessEmailRequest{
+					Email:         "jane@acme.com",
+					Options:       nil,
+					CodeChallenge: nil,
+				},
+			},
+			expectedResponse:  api.SignUpPasswordlessEmail200JSONResponse(api.OK),
 			jwtTokenFn:        nil,
 			expectedJWT:       nil,
 			getControllerOpts: []getControllerOptsFunc{},

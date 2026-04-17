@@ -164,7 +164,10 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 		},
 
 		{
-			name:   "error - user already exists",
+			// Signup returns the same 200 OK whether the phone number is
+			// registered or not so that the endpoint cannot be used to
+			// enumerate accounts.
+			name:   "user already exists - returns OK without sending SMS",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
@@ -185,11 +188,7 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 					Options:     nil,
 				},
 			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "user-already-exists",
-				Message: "User already exists",
-				Status:  409,
-			},
+			expectedResponse:  api.SignUpPasswordlessSms200JSONResponse(api.OK),
 			jwtTokenFn:        nil,
 			expectedJWT:       nil,
 			getControllerOpts: []getControllerOptsFunc{},
