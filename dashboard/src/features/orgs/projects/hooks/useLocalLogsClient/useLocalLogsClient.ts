@@ -8,18 +8,15 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 import { useMemo } from 'react';
-import { getLogsServiceUrl } from '@/utils/env';
+import { getGraphqlLogsServiceUrl, getLogsWebsocketUrl } from '@/utils/env';
 
 export default function useLocalLogsClient() {
   return useMemo(() => {
-    const url = getLogsServiceUrl();
-    const wsUrl = url.replace(/^https:\/\//, 'wss://');
-
-    const httpLink = createHttpLink({ uri: url });
+    const httpLink = createHttpLink({ uri: getGraphqlLogsServiceUrl() });
 
     const wsLink = new GraphQLWsLink(
       createClient({
-        url: wsUrl,
+        url: getLogsWebsocketUrl(),
         webSocketImpl: WebSocket,
       }),
     );

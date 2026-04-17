@@ -53,7 +53,6 @@ function useProjectLogs(props: UseProjectLogsProps) {
   const isPlatform = useIsPlatform();
   const localLogsClient = useLocalLogsClient();
   const { project, loading: loadingProject } = useProject();
-  // create a client that sends http requests to Hasura but websocket requests to Bragi
   const subscriptionReturn = useRef<(() => void) | null>(null);
 
   const {
