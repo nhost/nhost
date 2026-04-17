@@ -83,8 +83,6 @@ func (r *subscriptionResolver) Logs(ctx context.Context, appID string, service *
 	ch := make(chan []model.Log)
 
 	r.SubscriptionsManager.Add(func() {
-		defer close(ch)
-
 		if err := r.LogGatherer.TailLogs(
 			ctx,
 			svc,
@@ -92,7 +90,7 @@ func (r *subscriptionResolver) Logs(ctx context.Context, appID string, service *
 			*from,
 			ch,
 		); err != nil {
-			fmt.Printf("failed to tail logs: %s\n", err) //nolint:forbidigo
+			r.Logger.Errorf("failed to tail logs: %s", err)
 		}
 	})
 
@@ -108,15 +106,13 @@ func (r *subscriptionResolver) GetFunctionsLogs(ctx context.Context, appID strin
 	ch := make(chan []model.Log)
 
 	r.SubscriptionsManager.Add(func() {
-		defer close(ch)
-
 		if err := r.LogGatherer.TailFunctionsLogs(
 			ctx,
 			path,
 			*from,
 			ch,
 		); err != nil {
-			fmt.Printf("failed to tail functions logs: %s\n", err) //nolint:forbidigo
+			r.Logger.Errorf("failed to tail functions logs: %s", err)
 		}
 	})
 

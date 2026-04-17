@@ -12,6 +12,7 @@ import (
 	"github.com/nhost/be/services/mimir/graph"
 	"github.com/nhost/nhost/cli/cmd/configserver/logsapi"
 	cors "github.com/rs/cors/wrapper/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v3"
 )
 
@@ -110,6 +111,7 @@ func runServicesFiles(runServices ...string) map[string]string {
 func setupLogsAPI(
 	ctx context.Context,
 	r *gin.Engine,
+	logger logrus.FieldLogger,
 	enablePlayground bool,
 	version string,
 ) error {
@@ -130,6 +132,7 @@ func setupLogsAPI(
 	logsResolver := &logsapi.Resolver{
 		LogGatherer:          logGatherer,
 		SubscriptionsManager: subsMgr,
+		Logger:               logger,
 	}
 
 	logsapi.AddRoutes(r, "/v1/logs", logsResolver, enablePlayground, version)
@@ -172,7 +175,9 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		cors.Default(),
 	)
 
-	if err := setupLogsAPI(ctx, r, cmd.Bool(enablePlaygroundFlag), cmd.Root().Version); err != nil {
+	if err := setupLogsAPI(
+		ctx, r, logger, cmd.Bool(enablePlaygroundFlag), cmd.Root().Version,
+	); err != nil {
 		return err
 	}
 

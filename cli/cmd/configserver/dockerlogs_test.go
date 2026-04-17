@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/nhost/nhost/cli/cmd/configserver"
+	"github.com/nhost/nhost/cli/cmd/configserver/logsapi/model"
 )
 
 const composeServiceLabel = "com.docker.compose.service"
@@ -293,6 +294,156 @@ func TestGetFunctionsLogs(t *testing.T) {
 
 	if logs[0].Service != "functions" {
 		t.Errorf("service = %q, want %q", logs[0].Service, "functions")
+	}
+}
+
+func collectLogs(ch <-chan []model.Log) []model.Log {
+	var got []model.Log
+
+	for batch := range ch {
+		got = append(got, batch...)
+	}
+
+	return got
+}
+
+func TestTailLogsClosesChannelAndDeliversBacklog(t *testing.T) {
+	t.Parallel()
+
+	logBuf := &bytes.Buffer{}
+	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:00Z line one\n"))
+	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:01Z line two\n"))
+	logBuf.Write(stdcopyFrame(stdcopy.Stderr, "2024-01-15T10:00:02Z line three\n"))
+
+	mock := &mockContainerClient{ //nolint:exhaustruct
+		containers: []container.Summary{
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}}, //nolint:exhaustruct
+		},
+		logData: map[string]*bytes.Buffer{"c1": logBuf},
+	}
+
+	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
+
+	ch := make(chan []model.Log, 10)
+
+	err := gatherer.TailLogs(t.Context(), "", "", time.Time{}, ch)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	logs := collectLogs(ch)
+
+	if len(logs) != 3 {
+		t.Fatalf("got %d logs, want 3", len(logs))
+	}
+
+	if logs[0].Log != "line one" {
+		t.Errorf("logs[0].Log = %q, want %q", logs[0].Log, "line one")
+	}
+}
+
+func TestTailLogsRegexFilter(t *testing.T) {
+	t.Parallel()
+
+	logBuf := &bytes.Buffer{}
+	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:00Z ERROR boom\n"))
+	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:01Z INFO nope\n"))
+	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:02Z ERROR again\n"))
+
+	mock := &mockContainerClient{ //nolint:exhaustruct
+		containers: []container.Summary{
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}}, //nolint:exhaustruct
+		},
+		logData: map[string]*bytes.Buffer{"c1": logBuf},
+	}
+
+	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
+
+	ch := make(chan []model.Log, 10)
+
+	if err := gatherer.TailLogs(t.Context(), "", "^ERROR", time.Time{}, ch); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	logs := collectLogs(ch)
+	if len(logs) != 2 {
+		t.Fatalf("got %d logs, want 2", len(logs))
+	}
+}
+
+func TestTailLogsCtxCancel(t *testing.T) {
+	t.Parallel()
+
+	logBuf := &bytes.Buffer{}
+	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:00Z one\n"))
+
+	mock := &mockContainerClient{ //nolint:exhaustruct
+		containers: []container.Summary{
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}}, //nolint:exhaustruct
+		},
+		logData: map[string]*bytes.Buffer{"c1": logBuf},
+	}
+
+	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	ch := make(chan []model.Log, 10)
+
+	if err := gatherer.TailLogs(ctx, "", "", time.Time{}, ch); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Channel must be closed even with canceled ctx.
+	if _, ok := <-ch; ok {
+		// drain in case a racing send happened
+		for range ch { //nolint:revive
+		}
+	}
+}
+
+func TestTailFunctionsLogsFiltersByPath(t *testing.T) {
+	t.Parallel()
+
+	logBuf := &bytes.Buffer{}
+	logBuf.Write(
+		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:00Z {"path":"/api/hello","msg":"ok"}`+"\n"),
+	)
+	logBuf.Write(
+		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:01Z {"path":"/api/other","msg":"nope"}`+"\n"),
+	)
+	logBuf.Write(
+		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:02Z {"path":"/api/hello","msg":"two"}`+"\n"),
+	)
+
+	mock := &mockContainerClient{ //nolint:exhaustruct
+		containers: []container.Summary{
+			{ //nolint:exhaustruct
+				ID:     "fn1",
+				Labels: map[string]string{composeServiceLabel: "functions"},
+			},
+		},
+		logData: map[string]*bytes.Buffer{"fn1": logBuf},
+	}
+
+	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
+
+	ch := make(chan []model.Log, 10)
+
+	if err := gatherer.TailFunctionsLogs(t.Context(), "/api/hello", time.Time{}, ch); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	logs := collectLogs(ch)
+	if len(logs) != 2 {
+		t.Fatalf("got %d logs, want 2", len(logs))
+	}
+
+	for _, l := range logs {
+		if l.Service != "functions" {
+			t.Errorf("service = %q, want functions", l.Service)
+		}
 	}
 }
 

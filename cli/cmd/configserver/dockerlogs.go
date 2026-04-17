@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
@@ -127,6 +128,8 @@ func (d *DockerLogGatherer) TailLogs(
 	from time.Time,
 	logsCh chan<- []model.Log,
 ) error {
+	defer close(logsCh)
+
 	containers, err := d.listContainers(ctx, service)
 	if err != nil {
 		return err
@@ -139,6 +142,8 @@ func (d *DockerLogGatherer) TailLogs(
 			return fmt.Errorf("failed to compile regex filter: %w", err)
 		}
 	}
+
+	var wg sync.WaitGroup
 
 	for _, c := range containers {
 		svcName := c.Labels[composeServiceLabel]
@@ -154,12 +159,29 @@ func (d *DockerLogGatherer) TailLogs(
 			return fmt.Errorf("failed to tail logs for container %s: %w", svcName, err)
 		}
 
+		wg.Add(1)
+
 		go func(reader io.ReadCloser, svcName string) {
+			defer wg.Done()
 			defer reader.Close()
+
+			// Close reader on ctx cancel so scanner.Scan() unblocks.
+			done := make(chan struct{})
+			defer close(done)
+
+			go func() {
+				select {
+				case <-ctx.Done():
+					reader.Close()
+				case <-done:
+				}
+			}()
 
 			tailContainerLogs(ctx, reader, svcName, re, logsCh)
 		}(reader, svcName)
 	}
+
+	wg.Wait()
 
 	return nil
 }
@@ -241,10 +263,14 @@ func (d *DockerLogGatherer) TailFunctionsLogs(
 	from time.Time,
 	logsCh chan<- []model.Log,
 ) error {
+	defer close(logsCh)
+
 	containers, err := d.listContainers(ctx, functionsService)
 	if err != nil {
 		return err
 	}
+
+	var wg sync.WaitGroup
 
 	for _, c := range containers {
 		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{ //nolint:exhaustruct
@@ -258,12 +284,28 @@ func (d *DockerLogGatherer) TailFunctionsLogs(
 			return fmt.Errorf("failed to tail functions logs: %w", err)
 		}
 
+		wg.Add(1)
+
 		go func(reader io.ReadCloser) {
+			defer wg.Done()
 			defer reader.Close()
+
+			done := make(chan struct{})
+			defer close(done)
+
+			go func() {
+				select {
+				case <-ctx.Done():
+					reader.Close()
+				case <-done:
+				}
+			}()
 
 			tailFunctionsContainerLogs(ctx, reader, path, logsCh)
 		}(reader)
 	}
+
+	wg.Wait()
 
 	return nil
 }
