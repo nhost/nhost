@@ -11,6 +11,8 @@ import (
 	"github.com/nhost/nhost/services/storage/controller"
 )
 
+var errFileNotInserted = errors.New("file was not inserted")
+
 func parseGraphqlError(err error) *controller.APIError {
 	var ghErr *clientv2.ErrorResponse
 	if errors.As(err, &ghErr) {
@@ -129,7 +131,7 @@ func (h *Hasura) InitializeFile(
 	fileID, name string, size int64, bucketID, mimeType string,
 	headers http.Header,
 ) *controller.APIError {
-	_, err := h.cl.InsertFile(
+	resp, err := h.cl.InsertFile(
 		ctx,
 		FilesInsertInput{ //nolint:exhaustruct
 			BucketID: new(bucketID),
@@ -143,6 +145,13 @@ func (h *Hasura) InitializeFile(
 	if err != nil {
 		aerr := parseGraphqlError(err)
 		return aerr.ExtendError("problem initializing file metadata")
+	}
+
+	if resp.InsertFiles == nil || resp.InsertFiles.AffectedRows != 1 {
+		return controller.ForbiddenError(
+			errFileNotInserted,
+			"file was not inserted",
+		)
 	}
 
 	return nil

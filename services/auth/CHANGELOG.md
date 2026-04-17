@@ -1,3 +1,15 @@
+## [auth@0.49.1] - 2026-04-17
+
+### 🐛 Bug Fixes
+
+- *(auth)* Limit returned rows to the most recent in case users have multiple linked accounts (#4118)
+- *(auth)* Strict use of email verified with oauth2 providers (#4162)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump go due to cves (#4124)
+
 ## [auth@0.49.0] - 2026-03-30
 
 ### 🚀 Features

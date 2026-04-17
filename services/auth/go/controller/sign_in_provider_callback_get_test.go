@@ -602,6 +602,56 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name:   "signin - simple - email found - email not verified - refuses to link",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("user1@fake.com"),
+				).Return(
+					//nolint:exhaustruct
+					sql.AuthUser{
+						ID: userID,
+						CreatedAt: pgtype.Timestamptz{
+							Time: time.Now(),
+						},
+						Disabled:      false,
+						DisplayName:   "Jane",
+						Email:         sql.Text("jane@myapp.local"),
+						EmailVerified: true,
+						DefaultRole:   "user",
+					}, nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code:  new("valid-code-unverified-email"),
+					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=unverified-user&errorDescription=User\+is\+not\+verified.&state=some-random-state$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
 			name:   "signin - user disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -845,6 +895,100 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
 					Code: new("valid-code-1"),
+					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
+						RedirectTo: new("http://localhost:3000/connect-success"),
+					}),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignInProviderCallbackGet302Response{
+				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
+					Location: `^http://localhost:3000/connect-success\?state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			// Locks in that the OAuth callback's connect branch ignores the
+			// provider's email verification status: the Nhost account is
+			// identified by the connect JWT embedded in the state, not by the
+			// OAuth email, so an unverified (or unknown) email from the
+			// provider must not block linking.
+			name:   "connect - success - unverified provider email still links",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				//nolint:exhaustruct
+				mock.EXPECT().GetUser( //nolint:dupl
+					gomock.Any(),
+					userIDConnect,
+				).Return(sql.AuthUser{
+					ID: userID,
+					CreatedAt: pgtype.Timestamptz{
+						Time: time.Now(),
+					},
+					UpdatedAt:   pgtype.Timestamptz{},
+					LastSeen:    pgtype.Timestamptz{},
+					Disabled:    false,
+					DisplayName: "John",
+					AvatarUrl:   "",
+					Locale:      "en",
+					Email:       sql.Text("fake@gmail.com"),
+					PhoneNumber: pgtype.Text{},
+					PasswordHash: sql.Text(
+						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
+					),
+					EmailVerified:            true,
+					PhoneNumberVerified:      false,
+					NewEmail:                 pgtype.Text{},
+					OtpMethodLastUsed:        pgtype.Text{},
+					OtpHash:                  pgtype.Text{},
+					OtpHashExpiresAt:         pgtype.Timestamptz{},
+					DefaultRole:              "user",
+					IsAnonymous:              false,
+					TotpSecret:               pgtype.Text{},
+					ActiveMfaType:            pgtype.Text{},
+					Ticket:                   pgtype.Text{},
+					TicketExpiresAt:          sql.TimestampTz(time.Now()),
+					Metadata:                 []byte{},
+					WebauthnCurrentChallenge: pgtype.Text{},
+				}, nil)
+
+				mock.EXPECT().InsertUserProvider(
+					gomock.Any(),
+					sql.InsertUserProviderParams{
+						UserID:         userIDConnect,
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(
+					//nolint:exhaustruct
+					sql.AuthUserProvider{
+						ID:             userIDConnect,
+						CreatedAt:      pgtype.Timestamptz{},
+						UpdatedAt:      pgtype.Timestamptz{},
+						UserID:         userID,
+						AccessToken:    "unset",
+						RefreshToken:   pgtype.Text{},
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					}, nil,
+				)
+
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-unverified-email"),
 					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
 						RedirectTo: new("http://localhost:3000/connect-success"),
 					}),
@@ -1493,6 +1637,59 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
 					Location: `^http://localhost:3000\?code=[\w-]+&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "pkce - signin - email found - email not verified - refuses to link",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("user1@fake.com"),
+				).Return(
+					//nolint:exhaustruct
+					sql.AuthUser{
+						ID: userID,
+						CreatedAt: pgtype.Timestamptz{
+							Time: time.Now(),
+						},
+						Disabled:      false,
+						DisplayName:   "Jane",
+						Email:         sql.Text("jane@myapp.local"),
+						EmailVerified: true,
+						DefaultRole:   "user",
+					}, nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-unverified-email"),
+					State: getStateWithPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=unverified-user&errorDescription=User\+is\+not\+verified.&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,

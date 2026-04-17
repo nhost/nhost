@@ -58,7 +58,7 @@ func (g *Google) GetProfile(
 	return oidc.Profile{
 		ProviderUserID: user.ID,
 		Email:          user.Email,
-		EmailVerified:  user.VerifiedEmail,
+		EmailVerified:  oidc.EmailVerificationFromBool(user.VerifiedEmail),
 		Name:           user.Name,
 		Picture:        user.Picture,
 	}, nil

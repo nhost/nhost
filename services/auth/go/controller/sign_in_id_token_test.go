@@ -785,6 +785,59 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
 		},
+
+		{
+			name:   "signin - existing account - email not verified - refuses to link",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "106964149809169421082",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@myapp.local"),
+				).Return(
+					//nolint:exhaustruct
+					sql.AuthUser{
+						ID: userID,
+						CreatedAt: pgtype.Timestamptz{
+							Time: time.Now(),
+						},
+						Disabled:      false,
+						DisplayName:   "Jane",
+						Email:         sql.Text("jane@myapp.local"),
+						EmailVerified: true,
+						DefaultRole:   "user",
+					}, nil)
+
+				return mock
+			},
+			getControllerOpts: []getControllerOptsFunc{
+				withIDTokenValidatorProviders(getTestIDTokenValidatorProviders()),
+			},
+			request: api.SignInIdTokenRequestObject{
+				Body: &api.SignInIdTokenRequest{
+					IdToken:  testTokenWithEmailVerified(t, nonce, false),
+					Nonce:    new(nonce),
+					Options:  nil,
+					Provider: "fake",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "unverified-user",
+				Message: "User is not verified.",
+				Status:  401,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+		},
 	}
 
 	for _, tc := range cases {

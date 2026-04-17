@@ -60,11 +60,13 @@ func (t *Facebook) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("Facebook API error: %w", err)
 	}
 
+	// Facebook's Graph API does not return an explicit verification flag, so
+	// we have no signal to trust.
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Name:           userProfile.Name,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "",
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 		Picture:        userProfile.Picture.Data.URL,
 	}, nil
 }
