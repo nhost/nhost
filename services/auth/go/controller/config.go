@@ -71,6 +71,7 @@ type Config struct {
 	SMSModicaUsername                        string        `json:"AUTH_SMS_MODICA_USERNAME"`
 	SMSModicaPassword                        string        `json:"AUTH_SMS_MODICA_PASSWORD"`
 	ServerPrefix                             string        `json:"AUTH_SERVER_PREFIX"`
+	DisableAutoSignup                        bool          `json:"AUTH_DISABLE_AUTO_SIGNUP"`
 	OAuth2ProviderEnabled                    bool          `json:"AUTH_OAUTH2_PROVIDER_ENABLED"`
 	OAuth2ProviderLoginURL                   string        `json:"AUTH_OAUTH2_PROVIDER_LOGIN_URL"`
 	OAuth2ProviderAccessTokenTTL             int           `json:"AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL"`

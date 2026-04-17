@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/sql"
-	"github.com/oapi-codegen/runtime/types"
 )
 
 func (ctrl *Controller) postSigninIdtokenCheckUserExists(
@@ -96,172 +94,13 @@ func (ctrl *Controller) providerSignInFlow(
 		)
 	}
 
+	if ctrl.config.DisableAutoSignup {
+		// Return generic error to prevent account enumeration
+		logger.InfoContext(ctx, "auto-signup disabled, user not found")
+		return nil, ErrInvalidEmailPassword
+	}
+
 	return ctrl.providerFlowSignUp(ctx, provider, profile, options, logger)
-}
-
-func (ctrl *Controller) providerFlowSignUpValidateOptions(
-	ctx context.Context, options *api.SignUpOptions, profile oidc.Profile, logger *slog.Logger,
-) (*api.SignUpOptions, *APIError) {
-	if ctrl.config.DisableSignup {
-		logger.WarnContext(ctx, "signup disabled")
-		return nil, ErrSignupDisabled
-	}
-
-	if profile.Email != "" {
-		if err := ctrl.wf.ValidateSignupEmail(ctx, types.Email(profile.Email), logger); err != nil {
-			return nil, err
-		}
-	}
-
-	if options == nil {
-		options = &api.SignUpOptions{} //nolint:exhaustruct
-	}
-
-	if options.DisplayName == nil && profile.Name != "" {
-		options.DisplayName = &profile.Name
-	}
-
-	options, err := ctrl.wf.ValidateSignUpOptions(
-		ctx, options, profile.ProviderUserID, logger,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return options, nil
-}
-
-func (ctrl *Controller) providerFlowSignUp(
-	ctx context.Context,
-	provider string,
-	profile oidc.Profile,
-	options *api.SignUpOptions,
-	logger *slog.Logger,
-) (*api.Session, *APIError) {
-	logger.InfoContext(ctx, "user doesn't exist, signing up")
-
-	options, apiError := ctrl.providerFlowSignUpValidateOptions(ctx, options, profile, logger)
-	if apiError != nil {
-		return nil, apiError
-	}
-
-	session, apiErr := ctrl.wf.SignupUserWithFn(
-		ctx,
-		profile.Email,
-		options,
-		profile.Email != "" && !profile.EmailVerified,
-		ctrl.providerFlowSignupWithSession(ctx, profile, provider, options),
-		ctrl.providerFlowSignupWithoutSession(ctx, profile, provider, options),
-		"",
-		logger,
-	)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	if session != nil {
-		session.User.AvatarUrl = profile.Picture
-		session.User.EmailVerified = profile.EmailVerified
-	}
-
-	return session, nil
-}
-
-func (ctrl *Controller) providerFlowSignupWithSession(
-	ctx context.Context,
-	profile oidc.Profile,
-	providerID string,
-	options *api.SignUpOptions,
-) databaseWithSessionFn {
-	return func(
-		refreshTokenHash pgtype.Text,
-		refreshTokenExpiresAt pgtype.Timestamptz,
-		metadata []byte,
-		gravatarURL string,
-	) (uuid.UUID, uuid.UUID, error) {
-		avatarURL := gravatarURL
-		if profile.Picture != "" {
-			avatarURL = profile.Picture
-		}
-
-		var email pgtype.Text
-		if profile.Email != "" {
-			email = sql.Text(profile.Email)
-		}
-
-		resp, err := ctrl.wf.db.InsertUserWithUserProviderAndRefreshToken(
-			ctx, sql.InsertUserWithUserProviderAndRefreshTokenParams{
-				ID:                    uuid.New(),
-				Disabled:              ctrl.config.DisableNewUsers,
-				DisplayName:           deptr(options.DisplayName),
-				AvatarUrl:             avatarURL,
-				Email:                 email,
-				Ticket:                pgtype.Text{}, //nolint:exhaustruct
-				TicketExpiresAt:       sql.TimestampTz(time.Now()),
-				EmailVerified:         profile.EmailVerified,
-				Locale:                deptr(options.Locale),
-				DefaultRole:           deptr(options.DefaultRole),
-				Metadata:              metadata,
-				Roles:                 deptr(options.AllowedRoles),
-				RefreshTokenHash:      refreshTokenHash,
-				RefreshTokenExpiresAt: refreshTokenExpiresAt,
-				ProviderID:            providerID,
-				ProviderUserID:        profile.ProviderUserID,
-			},
-		)
-		if err != nil {
-			return uuid.Nil, uuid.Nil,
-				fmt.Errorf("error inserting user with refresh token: %w", err)
-		}
-
-		return resp.ID, resp.RefreshTokenID, nil
-	}
-}
-
-func (ctrl *Controller) providerFlowSignupWithoutSession(
-	ctx context.Context,
-	profile oidc.Profile,
-	providerID string,
-	options *api.SignUpOptions,
-) databaseWithoutSessionFn {
-	return func(
-		ticket pgtype.Text,
-		ticketExpiresAt pgtype.Timestamptz,
-		metadata []byte,
-		gravatarURL string,
-	) error {
-		avatarURL := gravatarURL
-		if profile.Picture != "" {
-			avatarURL = profile.Picture
-		}
-
-		var email pgtype.Text
-		if profile.Email != "" {
-			email = sql.Text(profile.Email)
-		}
-
-		_, err := ctrl.wf.db.InsertUserWithUserProvider(ctx, sql.InsertUserWithUserProviderParams{
-			ID:              uuid.New(),
-			Disabled:        ctrl.config.DisableNewUsers,
-			DisplayName:     deptr(options.DisplayName),
-			AvatarUrl:       avatarURL,
-			Email:           email,
-			Ticket:          ticket,
-			TicketExpiresAt: ticketExpiresAt,
-			EmailVerified:   profile.EmailVerified,
-			Locale:          deptr(options.Locale),
-			DefaultRole:     deptr(options.DefaultRole),
-			Metadata:        metadata,
-			Roles:           deptr(options.AllowedRoles),
-			ProviderID:      providerID,
-			ProviderUserID:  profile.ProviderUserID,
-		})
-		if err != nil {
-			return fmt.Errorf("error inserting user: %w", err)
-		}
-
-		return nil
-	}
 }
 
 func (ctrl *Controller) providerFlowSignIn(

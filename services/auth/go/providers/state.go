@@ -12,6 +12,7 @@ type State struct {
 	Connect       *string
 	Options       *api.SignUpOptions
 	State         *string
+	SignupIntent  bool
 	CodeChallenge *string
 }
 
@@ -20,6 +21,7 @@ func (s *State) Encode() jwt.MapClaims {
 		"connect":       s.Connect,
 		"options":       s.Options,
 		"state":         s.State,
+		"signupIntent":  s.SignupIntent,
 		"codeChallenge": s.CodeChallenge,
 	}
 }

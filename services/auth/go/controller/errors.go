@@ -241,6 +241,30 @@ func (response ErrorResponse) VisitVerifySignInPasswordlessSmsResponse(
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitSignUpPasswordlessEmailResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitSignUpOTPEmailResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitSignUpPasswordlessSmsResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitSignUpIdTokenResponse( //nolint:revive
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitSignUpProviderResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitTokenExchangeResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
@@ -636,6 +660,12 @@ func (response ErrorRedirectResponse) VisitSignInProviderCallbackGetResponse(
 }
 
 func (response ErrorRedirectResponse) VisitSignInProviderCallbackPostResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
+func (response ErrorRedirectResponse) VisitSignUpProviderResponse(
 	w http.ResponseWriter,
 ) error {
 	return response.visit(w)

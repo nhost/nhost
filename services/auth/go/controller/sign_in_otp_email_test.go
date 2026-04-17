@@ -23,7 +23,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	cases := []testRequest[api.SignInOTPEmailRequestObject, api.SignInOTPEmailResponseObject]{
+	cases := []testRequest[api.SignInOTPEmailRequestObject, api.SignInOTPEmailResponseObject]{ //nolint:dupl
 		{ //nolint:dupl
 			name:   "signup required",
 			config: getConfig,
@@ -443,6 +443,37 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 				Message: "Sign up is disabled.",
 				Status:  403,
 			},
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name: "signup required - auto-signup disabled",
+			config: func() *controller.Config {
+				config := getConfig()
+				config.DisableAutoSignup = true
+
+				return config
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				return mock
+			},
+			request: api.SignInOTPEmailRequestObject{
+				Body: &api.SignInOTPEmailJSONRequestBody{
+					Email:   "jane@acme.com",
+					Options: nil,
+				},
+			},
+			// Returns OK to prevent account enumeration (no email sent)
+			expectedResponse:  api.SignInOTPEmail200JSONResponse(api.OK),
 			jwtTokenFn:        nil,
 			expectedJWT:       nil,
 			getControllerOpts: []getControllerOptsFunc{},

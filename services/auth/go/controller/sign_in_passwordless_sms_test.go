@@ -31,7 +31,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
 	cases := []testRequest[api.SignInPasswordlessSmsRequestObject, api.SignInPasswordlessSmsResponseObject]{
-		{
+		{ //nolint:dupl
 			name:   "signup required",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -411,6 +411,37 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					return mock
 				}),
 			},
+		},
+
+		{
+			name: "signup required - auto-signup disabled",
+			config: func() *controller.Config {
+				config := getConfig()
+				config.DisableAutoSignup = true
+
+				return config
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByPhoneNumber(
+					gomock.Any(),
+					sql.Text("+1234567890"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				return mock
+			},
+			request: api.SignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsRequest{
+					PhoneNumber: "+1234567890",
+					Options:     nil,
+				},
+			},
+			// Returns OK to prevent account enumeration (no SMS sent)
+			expectedResponse:  api.SignInPasswordlessSms200JSONResponse(api.OK),
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
