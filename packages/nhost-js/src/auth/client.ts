@@ -310,7 +310,7 @@ export type ErrorResponseError =
   | 'default-role-must-be-in-allowed-roles'
   | 'disabled-endpoint'
   | 'disabled-user'
-  | 'email-already-in-use'
+  | 'user-already-exists'
   | 'email-already-verified'
   | 'forbidden-anonymous'
   | 'internal-server-error'

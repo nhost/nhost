@@ -186,8 +186,8 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "email-already-in-use",
-				Message: "Email already in use",
+				Error:   "user-already-exists",
+				Message: "User already exists",
 				Status:  409,
 			},
 			jwtTokenFn:        nil,

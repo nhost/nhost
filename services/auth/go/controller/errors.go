@@ -36,7 +36,7 @@ var (
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrSecurityKeyNotFound             = &APIError{api.InvalidRequest}
 	ErrProviderAccountAlreadyLinked    = &APIError{api.ProviderAccountAlreadyLinked}
-	ErrEmailAlreadyInUse               = &APIError{api.EmailAlreadyInUse}
+	ErrUserAlreadyExists               = &APIError{api.UserAlreadyExists}
 	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
 	ErrInternalServerError             = &APIError{api.InternalServerError}
 	ErrInvalidEmailPassword            = &APIError{api.InvalidEmailPassword}
@@ -379,7 +379,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 	switch err {
 	case
 		api.DisabledUser,
-		api.EmailAlreadyInUse,
+		api.UserAlreadyExists,
 		api.EmailAlreadyVerified,
 		api.ForbiddenAnonymous,
 		api.InvalidEmailPassword,
@@ -450,11 +450,11 @@ func (ctrl *Controller) getError( //nolint:gocyclo,cyclop,funlen,maintidx
 			Error:   err.t,
 			Message: "This endpoint is disabled",
 		}
-	case api.EmailAlreadyInUse:
+	case api.UserAlreadyExists:
 		return ErrorResponse{
 			Status:  http.StatusConflict,
 			Error:   err.t,
-			Message: "Email already in use",
+			Message: "User already exists",
 		}
 	case api.EmailAlreadyVerified:
 		return ErrorResponse{
@@ -703,7 +703,7 @@ func sqlErrIsDuplicatedEmail(ctx context.Context, err error, logger *slog.Logger
 	if strings.Contains(err.Error(), "SQLSTATE 23505") &&
 		strings.Contains(err.Error(), "\"users_email_key\"") {
 		logger.ErrorContext(ctx, "email already in use", logError(err))
-		return ErrEmailAlreadyInUse
+		return ErrUserAlreadyExists
 	}
 
 	logger.ErrorContext(ctx, "error inserting user", logError(err))

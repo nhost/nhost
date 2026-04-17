@@ -137,8 +137,8 @@ describe('user email', () => {
       .expect(StatusCodes.CONFLICT);
     expect(res.body).toEqual({
       status: StatusCodes.CONFLICT,
-      message: 'Email already in use',
-      error: 'email-already-in-use',
+      message: 'User already exists',
+      error: 'user-already-exists',
     });
   });
 
@@ -171,9 +171,9 @@ describe('user email', () => {
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     const urlParams = getUrlParameters(res);
-    expect(urlParams.get('error')).toEqual('email-already-in-use');
+    expect(urlParams.get('error')).toEqual('user-already-exists');
     expect(urlParams.get('errorDescription')).toEqual(
-      ERRORS['email-already-in-use'].message
+      ERRORS['user-already-exists'].message
     );
   });
 

@@ -30,7 +30,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	cases := []testRequest[api.SignInPasswordlessEmailRequestObject, api.SignInPasswordlessEmailResponseObject]{ //nolint:dupl,lll
+	cases := []testRequest[api.SignInPasswordlessEmailRequestObject, api.SignInPasswordlessEmailResponseObject]{ //nolint:lll
 		{ //nolint:dupl
 			name:   "signup required",
 			config: getConfig,
@@ -500,7 +500,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{
+		{ //nolint:dupl
 			name: "signup required - options",
 			config: func() *controller.Config {
 				config := getConfig()
@@ -650,8 +650,9 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInPasswordlessEmailRequestObject{
 				Body: &api.SignInPasswordlessEmailRequest{
-					Email:   "jane@acme.com",
-					Options: nil,
+					Email:         "jane@acme.com",
+					Options:       nil,
+					CodeChallenge: nil,
 				},
 			},
 			// Returns OK to prevent account enumeration (no email sent)

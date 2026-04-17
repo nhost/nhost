@@ -64,7 +64,6 @@ const (
 	DisabledEndpoint                ErrorResponseError = "disabled-endpoint"
 	DisabledMfaTotp                 ErrorResponseError = "disabled-mfa-totp"
 	DisabledUser                    ErrorResponseError = "disabled-user"
-	EmailAlreadyInUse               ErrorResponseError = "email-already-in-use"
 	EmailAlreadyVerified            ErrorResponseError = "email-already-verified"
 	ForbiddenAnonymous              ErrorResponseError = "forbidden-anonymous"
 	InternalServerError             ErrorResponseError = "internal-server-error"
@@ -90,6 +89,7 @@ const (
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
 	TotpAlreadyActive               ErrorResponseError = "totp-already-active"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
+	UserAlreadyExists               ErrorResponseError = "user-already-exists"
 	UserNotAnonymous                ErrorResponseError = "user-not-anonymous"
 )
 

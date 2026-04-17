@@ -23,7 +23,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	cases := []testRequest[api.SignInOTPEmailRequestObject, api.SignInOTPEmailResponseObject]{ //nolint:dupl
+	cases := []testRequest[api.SignInOTPEmailRequestObject, api.SignInOTPEmailResponseObject]{
 		{ //nolint:dupl
 			name:   "signup required",
 			config: getConfig,
@@ -318,7 +318,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{
+		{ //nolint:dupl
 			name: "signup required - options",
 			config: func() *controller.Config {
 				config := getConfig()

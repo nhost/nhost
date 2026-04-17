@@ -51,7 +51,7 @@ func (ctrl *Controller) SignUpIdToken( //nolint:ireturn,revive
 
 	if userFound {
 		logger.WarnContext(ctx, "user already exists")
-		return ctrl.respondWithError(ErrEmailAlreadyInUse), nil
+		return ctrl.respondWithError(ErrUserAlreadyExists), nil
 	}
 
 	// Call providerFlowSignUp directly since we've already verified user doesn't exist
@@ -85,7 +85,7 @@ func (ctrl *Controller) providerSignUpFlow(
 
 	if userFound {
 		logger.WarnContext(ctx, "user already exists")
-		return nil, ErrEmailAlreadyInUse
+		return nil, ErrUserAlreadyExists
 	}
 
 	return ctrl.providerFlowSignUp(ctx, provider, profile, options, logger)

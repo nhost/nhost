@@ -43,12 +43,12 @@ func (ctrl *Controller) SignUpPasswordlessEmail( //nolint:ireturn
 	switch {
 	case apiErr == nil:
 		logger.WarnContext(ctx, "user already exists")
-		return ctrl.respondWithError(ErrEmailAlreadyInUse), nil
+		return ctrl.respondWithError(ErrUserAlreadyExists), nil
 	case errors.Is(apiErr, ErrUserEmailNotFound):
 		// User does not exist, proceed with signup
 	case errors.Is(apiErr, ErrUnverifiedUser):
 		logger.WarnContext(ctx, "user already exists but is unverified")
-		return ctrl.respondWithError(ErrEmailAlreadyInUse), nil
+		return ctrl.respondWithError(ErrUserAlreadyExists), nil
 	default:
 		logger.ErrorContext(ctx, "error getting user by email", logError(apiErr))
 		return ctrl.respondWithError(apiErr), nil

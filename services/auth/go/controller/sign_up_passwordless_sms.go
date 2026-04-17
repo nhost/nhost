@@ -42,7 +42,7 @@ func (ctrl *Controller) SignUpPasswordlessSms( //nolint:ireturn
 	switch {
 	case apiErr == nil:
 		logger.WarnContext(ctx, "user already exists")
-		return ctrl.respondWithError(ErrEmailAlreadyInUse), nil
+		return ctrl.respondWithError(ErrUserAlreadyExists), nil
 	case errors.Is(apiErr, ErrUserPhoneNumberNotFound):
 		// User does not exist, proceed with signup
 	default:

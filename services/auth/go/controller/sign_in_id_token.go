@@ -170,6 +170,11 @@ func (ctrl *Controller) providerResolveUser(
 		return user.ID, nil
 	}
 
+	if ctrl.config.DisableAutoSignup {
+		logger.InfoContext(ctx, "auto-signup disabled, user not found")
+		return uuid.Nil, ErrInvalidEmailPassword
+	}
+
 	return ctrl.providerSignUpResolveOnly(ctx, provider, profile, options, logger)
 }
 
