@@ -103,7 +103,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 		{
 			name:   "success",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser( //nolint:dupl
@@ -185,7 +185,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			// (or unknown) email from the provider must not block linking.
 			name:   "success - unverified provider email still links",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser( //nolint:dupl
