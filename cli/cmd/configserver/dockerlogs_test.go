@@ -420,7 +420,10 @@ func TestTailFunctionsLogsFiltersByPath(t *testing.T) {
 		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:00Z {"path":"/api/hello","msg":"ok"}`+"\n"),
 	)
 	logBuf.Write(
-		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:01Z {"path":"/api/other","msg":"nope"}`+"\n"),
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:01Z {"path":"/api/other","msg":"nope"}`+"\n",
+		),
 	)
 	logBuf.Write(
 		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:02Z {"path":"/api/hello","msg":"two"}`+"\n"),
