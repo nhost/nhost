@@ -57,7 +57,7 @@ describe('signup passwordless email', () => {
     await verfiyUserTicket(email);
   });
 
-  it('returns user-already-exists when the email is already registered', async () => {
+  it('silently succeeds for already-registered emails (no enumeration)', async () => {
     const email = faker.internet.email();
 
     await request
@@ -65,14 +65,24 @@ describe('signup passwordless email', () => {
       .send({ email })
       .expect(StatusCodes.OK);
 
+    // The first signup sent one email. Clear the mailbox before the second
+    // call so we can assert no additional email is sent.
+    await deleteAllMailHogEmails();
+
+    // Same endpoint, same email — must still return 200 OK and must not send
+    // a second magic link. This matches the signin side of the house, so
+    // attackers cannot distinguish "registered" from "not registered".
     await request
       .post('/signup/passwordless/email')
       .send({ email })
-      .expect(StatusCodes.CONFLICT, {
-        status: StatusCodes.CONFLICT,
-        message: 'User already exists',
-        error: 'user-already-exists',
-      });
+      .expect(StatusCodes.OK);
+
+    const messages = await mailHogSearch(email);
+    expect(messages.length).toBe(0);
+
+    // Sanity check: only one user row for this email after two signup calls.
+    const result = await getDbUserByEmail(client, email);
+    expect(result.rowCount).toBe(1);
   });
 
   it('completes a PKCE round-trip end-to-end', async () => {
