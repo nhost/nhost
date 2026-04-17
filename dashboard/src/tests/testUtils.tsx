@@ -245,6 +245,12 @@ export class TestUserEvent {
     });
   }
 
+  async paste(value: string) {
+    await waitFor(async () => {
+      await this.user.paste(value);
+    });
+  }
+
   static async fireClickEvent(element: Document | Element | Window | Node) {
     await waitFor(() => {
       fireEvent(

@@ -47,28 +47,34 @@ export function FancyMultiSelect({
     setSelected(value);
   }, [value]);
 
-  const handleUnselect = useCallback((option: Option) => {
-    setSelected((prev) => prev.filter((s) => s.value !== option.value));
-  }, []);
+  const handleUnselect = useCallback(
+    (option: Option) => {
+      const next = selected.filter((s) => s.value !== option.value);
+      setSelected(next);
+      onChange?.(next);
+    },
+    [selected, onChange],
+  );
 
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
-    const input = inputRef.current;
-    if (input) {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (input.value === '') {
-          setSelected((prev) => {
-            const newSelected = [...prev];
-            newSelected.pop();
-            return newSelected;
-          });
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      const input = inputRef.current;
+      if (input) {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          if (input.value === '') {
+            const next = selected.slice(0, -1);
+            setSelected(next);
+            onChange?.(next);
+          }
+        }
+        // This is not a default behaviour of the <input /> field
+        if (e.key === 'Escape') {
+          input.blur();
         }
       }
-      // This is not a default behaviour of the <input /> field
-      if (e.key === 'Escape') {
-        input.blur();
-      }
-    }
-  }, []);
+    },
+    [selected, onChange],
+  );
 
   function handleSelect(option: Option) {
     setInputValue('');
@@ -84,7 +90,11 @@ export function FancyMultiSelect({
         option.label.toLowerCase().includes(inputValue.toLowerCase()),
     );
 
-    if (creatable && inputValue) {
+    if (
+      creatable &&
+      inputValue &&
+      !selected.some((s) => s.value === inputValue)
+    ) {
       return [
         ...filtered,
         {

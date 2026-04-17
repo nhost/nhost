@@ -16,7 +16,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import {
-  unWrapRuleNodes,
+  serializeNode,
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -270,7 +270,7 @@ export default function RolePermissionEditorForm({
   async function handleSubmit(values: RolePermissionEditorFormValues) {
     const permissionFilter =
       values.rowCheckType === 'custom'
-        ? unWrapRuleNodes(values.filter as GroupNode)
+        ? serializeNode(values.filter as GroupNode)
         : (values.filter ?? {});
 
     const managePermissionPromise = managePermission({
