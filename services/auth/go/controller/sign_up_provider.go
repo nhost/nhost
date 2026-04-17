@@ -78,7 +78,7 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn,funlen
 				DisplayName:  req.Params.DisplayName,
 				Locale:       req.Params.Locale,
 				Metadata:     req.Params.Metadata,
-				RedirectTo:   req.Params.RedirectTo,
+				RedirectTo:   new(redirectTo.String()),
 			},
 			"state":         req.Params.State,
 			"signupIntent":  true, // Mark this as explicit signup intent

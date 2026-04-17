@@ -73,7 +73,7 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 				DisplayName:  req.Params.DisplayName,
 				Locale:       req.Params.Locale,
 				Metadata:     req.Params.Metadata,
-				RedirectTo:   req.Params.RedirectTo,
+				RedirectTo:   new(redirectTo.String()),
 			},
 			"state":         req.Params.State,
 			"codeChallenge": req.Params.CodeChallenge,
