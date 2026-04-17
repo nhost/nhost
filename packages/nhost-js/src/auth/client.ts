@@ -1016,6 +1016,86 @@ export interface SignInPasswordlessSmsRequest {
 
 /**
  * 
+ @property email (`string`) - A valid email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
+ @property options? (`SignUpOptions`) - */
+export interface SignUpPasswordlessEmailRequest {
+  /**
+   * A valid email
+   *    Example - `"john.smith@nhost.io"`
+   *    Format - email
+   */
+  email: string;
+  /**
+   *
+   */
+  options?: SignUpOptions;
+}
+
+/**
+ * 
+ @property email (`string`) - A valid email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
+ @property options? (`SignUpOptions`) - */
+export interface SignUpOTPEmailRequest {
+  /**
+   * A valid email
+   *    Example - `"john.smith@nhost.io"`
+   *    Format - email
+   */
+  email: string;
+  /**
+   *
+   */
+  options?: SignUpOptions;
+}
+
+/**
+ * 
+ @property phoneNumber (`string`) - Phone number of the user
+    *    Example - `"+123456789"`
+ @property options? (`SignUpOptions`) - */
+export interface SignUpPasswordlessSmsRequest {
+  /**
+   * Phone number of the user
+   *    Example - `"+123456789"`
+   */
+  phoneNumber: string;
+  /**
+   *
+   */
+  options?: SignUpOptions;
+}
+
+/**
+ * 
+ @property provider (`IdTokenProvider`) - 
+ @property idToken (`string`) - Apple or Google ID token
+ @property nonce? (`string`) - Nonce used during sign in process
+ @property options? (`SignUpOptions`) - */
+export interface SignUpIdTokenRequest {
+  /**
+   *
+   */
+  provider: IdTokenProvider;
+  /**
+   * Apple or Google ID token
+   */
+  idToken: string;
+  /**
+   * Nonce used during sign in process
+   */
+  nonce?: string;
+  /**
+   *
+   */
+  options?: SignUpOptions;
+}
+
+/**
+ * 
  @property email? (`string`) - A valid email
     *    Example - `"john.smith@nhost.io"`
     *    Format - email*/
@@ -2228,6 +2308,66 @@ export interface SignInProviderParams {
   codeChallenge?: string;
 }
 /**
+ * Parameters for the signUpProvider method.
+    @property allowedRoles? (string[]) - Array of allowed roles for the user
+  
+    @property defaultRole? (string) - Default role for the user
+  
+    @property displayName? (string) - Display name for the user
+  
+    @property locale? (string) - A two or three characters locale
+  
+    @property metadata? (Record<string, unknown>) - Additional metadata for the user (JSON encoded string)
+  
+    @property redirectTo? (string) - URI to redirect to
+  
+    @property state? (string) - Opaque state value to be returned by the provider
+  
+    @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
+  */
+export interface SignUpProviderParams {
+  /**
+   * Array of allowed roles for the user
+  
+   */
+  allowedRoles?: string[];
+  /**
+   * Default role for the user
+  
+   */
+  defaultRole?: string;
+  /**
+   * Display name for the user
+  
+   */
+  displayName?: string;
+  /**
+   * A two or three characters locale
+  
+   */
+  locale?: string;
+  /**
+   * Additional metadata for the user (JSON encoded string)
+  
+   */
+  metadata?: Record<string, unknown>;
+  /**
+   * URI to redirect to
+  
+   */
+  redirectTo?: string;
+  /**
+   * Opaque state value to be returned by the provider
+  
+   */
+  state?: string;
+  /**
+   * Additional provider-specific parameters
+  
+   */
+  providerSpecificParams?: ProviderSpecificParams;
+}
+/**
  * Parameters for the verifyTicket method.
     @property ticket (TicketQuery) - Ticket
   
@@ -2469,7 +2609,10 @@ export interface Client {
 
   /**
      Summary: Sign in with an ID token
-     Authenticate using an ID token from a supported OAuth provider (Apple or Google). Creates a new user account if one doesn't exist.
+     Authenticate using an ID token from a supported OAuth provider (Apple or Google).
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken` endpoint to register first.
+
 
      This method may return different T based on the response code:
      - 200: SessionPayload
@@ -2493,7 +2636,10 @@ export interface Client {
 
   /**
      Summary: Sign in with email OTP
-     Initiate email-based one-time password authentication. Sends an OTP to the specified email address. If the user doesn't exist, a new account will be created with the provided options.
+     Initiate email-based one-time password authentication. Sends an OTP to the specified email address.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/otp/email` endpoint to register first.
+
 
      This method may return different T based on the response code:
      - 200: OKResponse
@@ -2517,7 +2663,10 @@ export interface Client {
 
   /**
      Summary: Sign in with magic link email
-     Initiate passwordless authentication by sending a magic link to the user's email. If the user doesn't exist, a new account will be created with the provided options.
+     Initiate passwordless authentication by sending a magic link to the user's email.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/email` endpoint to register first.
+
 
      This method may return different T based on the response code:
      - 200: OKResponse
@@ -2529,7 +2678,10 @@ export interface Client {
 
   /**
      Summary: Sign in with SMS OTP
-     Initiate passwordless authentication by sending a one-time password to the user's phone number. If the user doesn't exist, a new account will be created with the provided options.
+     Initiate passwordless authentication by sending a one-time password to the user's phone number.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/sms` endpoint to register first.
+
 
      This method may return different T based on the response code:
      - 200: OKResponse
@@ -2566,6 +2718,9 @@ export interface Client {
   /**
      Summary: Sign in with an OAuth2 provider
      Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created upon callback.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider/{provider}` endpoint to register first.
+
 
      As this method is a redirect, it returns a URL string instead of a Promise
      */
@@ -2658,6 +2813,80 @@ export interface Client {
     body: SignUpWebauthnVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
+
+  /**
+     Summary: Sign up with magic link email
+     Register a new user account using passwordless email authentication.
+Sends a magic link to the specified email address for verification.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  signUpPasswordlessEmail(
+    body: SignUpPasswordlessEmailRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Sign up with email OTP
+     Register a new user account using email OTP authentication.
+Sends a one-time password to the specified email address.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  signUpOTPEmail(
+    body: SignUpOTPEmailRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Sign up with SMS OTP
+     Register a new user account using SMS OTP authentication.
+Sends a one-time password to the specified phone number.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  signUpPasswordlessSms(
+    body: SignUpPasswordlessSmsRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Sign up with ID token
+     Register a new user account using an ID token from Apple or Google.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+
+     This method may return different T based on the response code:
+     - 200: SessionPayload
+     */
+  signUpIdToken(
+    body: SignUpIdTokenRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>>;
+
+  /**
+     Summary: Sign up with OAuth provider
+     Initiate OAuth signup flow with the specified provider.
+Redirects to the provider's authorization page.
+Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+
+
+     As this method is a redirect, it returns a URL string instead of a Promise
+     */
+  signUpProviderURL(
+    provider: SignInProvider,
+    params?: SignUpProviderParams,
+    options?: RequestInit,
+  ): string;
 
   /**
      Summary: Refresh access token
@@ -3853,6 +4082,177 @@ export const createAPIClient = (
     } as FetchResponse<SessionPayload>;
   };
 
+  const signUpPasswordlessEmail = async (
+    body: SignUpPasswordlessEmailRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/signup/passwordless/email`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const signUpOTPEmail = async (
+    body: SignUpOTPEmailRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/signup/otp/email`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const signUpPasswordlessSms = async (
+    body: SignUpPasswordlessSmsRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/signup/passwordless/sms`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const signUpIdToken = async (
+    body: SignUpIdTokenRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>> => {
+    const url = `${baseURL}/signup/idtoken`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: SessionPayload = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<SessionPayload>;
+  };
+
+  const signUpProviderURL = (
+    provider: SignInProvider,
+    params?: SignUpProviderParams,
+  ): string => {
+    const encodedParameters =
+      params &&
+      Object.entries(params)
+        .flatMap(([key, value]) => {
+          if (key === 'providerSpecificParams') {
+            // Object with explode: true - each property as separate parameter
+            if (
+              typeof value === 'object' &&
+              value !== null &&
+              !Array.isArray(value)
+            ) {
+              return Object.entries(value).map(
+                ([k, v]) => `${k}=${encodeURIComponent(String(v))}`,
+              );
+            }
+            return [`${key}=${encodeURIComponent(String(value))}`];
+          }
+          // Default handling (scalars or explode: false)
+          const stringValue = Array.isArray(value)
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
+              ? JSON.stringify(value)
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
+        })
+        .join('&');
+
+    const url = encodedParameters
+      ? `${baseURL}/signup/provider/${provider}?${encodedParameters}`
+      : `${baseURL}/signup/provider/${provider}`;
+    return url;
+  };
+
   const refreshToken = async (
     body: RefreshTokenRequest,
     options?: RequestInit,
@@ -4791,6 +5191,11 @@ export const createAPIClient = (
     signUpEmailPassword,
     signUpWebauthn,
     verifySignUpWebauthn,
+    signUpPasswordlessEmail,
+    signUpOTPEmail,
+    signUpPasswordlessSms,
+    signUpIdToken,
+    signUpProviderURL,
     refreshToken,
     refreshProviderToken,
     verifyToken,
