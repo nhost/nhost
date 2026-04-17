@@ -14,6 +14,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"go.uber.org/mock/gomock"
 )
@@ -51,6 +52,24 @@ func getStateWithSignupAndPKCE(
 ) string {
 	t.Helper()
 
+	flow := providers.FlowSignin
+	if signupIntent {
+		flow = providers.FlowSignup
+	}
+
+	return getStateWithFlowAndPKCE(t, jwtGetter, connect, options, flow, codeChallenge)
+}
+
+func getStateWithFlowAndPKCE(
+	t *testing.T,
+	jwtGetter *controller.JWTGetter,
+	connect *string,
+	options api.SignUpOptions,
+	flow string,
+	codeChallenge *string,
+) string {
+	t.Helper()
+
 	state, err := jwtGetter.SignTokenWithClaims(
 		jwt.MapClaims{
 			"connect": connect,
@@ -63,7 +82,7 @@ func getStateWithSignupAndPKCE(
 				RedirectTo:   options.RedirectTo,
 			},
 			"state":         "some-random-state",
-			"signupIntent":  signupIntent,
+			"flow":          flow,
 			"codeChallenge": codeChallenge,
 		},
 		time.Now().Add(time.Minute),
@@ -748,6 +767,38 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
 					Location: `^http://localhost:3000\?error=invalid-state&errorDescription=Invalid\+state&provider_state=wrong-state$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			// A signed state JWT carrying an unknown `flow` claim must be
+			// rejected. This guards against future code minting state with a
+			// new flow value that the callback isn't ready to handle, and
+			// against a tampered claim being treated as the safe default.
+			name:   "invalid flow claim",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-1"),
+					State: getStateWithFlowAndPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						"junk", nil,
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=invalid-state&errorDescription=Invalid\+state&provider_state=[\w.-]+$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,

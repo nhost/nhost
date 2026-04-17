@@ -10,6 +10,7 @@ import (
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/pkce"
+	"github.com/nhost/nhost/services/auth/go/providers"
 )
 
 func (ctrl *Controller) getSigninProviderValidateRequest(
@@ -76,6 +77,7 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 				RedirectTo:   new(redirectTo.String()),
 			},
 			"state":         req.Params.State,
+			"flow":          providers.FlowSignin,
 			"codeChallenge": req.Params.CodeChallenge,
 		},
 		time.Now().Add(time.Minute),

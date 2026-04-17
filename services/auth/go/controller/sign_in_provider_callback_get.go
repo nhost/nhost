@@ -121,7 +121,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 
 	return stateData.Options,
 		stateData.Connect,
-		stateData.SignupIntent,
+		stateData.Flow == providers.FlowSignup,
 		stateData.CodeChallenge,
 		optionsRedirectTo,
 		nil
