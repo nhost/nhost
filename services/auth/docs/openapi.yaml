@@ -1195,6 +1195,15 @@ paths:
           explode: true
           schema:
             $ref: "#/components/schemas/ProviderSpecificParams"
+        - name: codeChallenge
+          in: query
+          required: false
+          description: PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+          schema:
+            type: string
+            minLength: 43
+            maxLength: 43
+            pattern: "^[A-Za-z0-9_-]{43}$"
       responses:
         "302":
           description: Redirect to social provider
@@ -2904,6 +2913,12 @@ components:
           type: string
         options:
           $ref: "#/components/schemas/SignUpOptions"
+        codeChallenge:
+          description: PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
       required:
         - email
 

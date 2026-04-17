@@ -114,7 +114,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			},
 		},
 
-		{
+		{ //nolint:dupl
 			name:   "signup required - with code challenge",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl

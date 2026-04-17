@@ -903,6 +903,9 @@ type SignUpOptions struct {
 
 // SignUpPasswordlessEmailRequest defines model for SignUpPasswordlessEmailRequest.
 type SignUpPasswordlessEmailRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *SignUpOptions      `json:"options,omitempty"`
@@ -1304,6 +1307,9 @@ type SignUpProviderParams struct {
 
 	// ProviderSpecificParams Additional provider-specific parameters
 	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
+
+	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
 
 // SignUpProviderParamsProvider defines parameters for SignUpProvider.

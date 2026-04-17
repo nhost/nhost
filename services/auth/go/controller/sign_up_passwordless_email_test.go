@@ -18,7 +18,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestSignUpPasswordlessEmail(t *testing.T) {
+func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	getConfig := func() *controller.Config {
@@ -31,7 +31,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) {
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
 	cases := []testRequest[api.SignUpPasswordlessEmailRequestObject, api.SignUpPasswordlessEmailResponseObject]{ //nolint:lll
-		{ //nolint:dupl
+		{
 			name:   "success - new user signup",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -75,8 +75,9 @@ func TestSignUpPasswordlessEmail(t *testing.T) {
 			},
 			request: api.SignUpPasswordlessEmailRequestObject{
 				Body: &api.SignUpPasswordlessEmailRequest{
-					Email:   "jane@acme.com",
-					Options: nil,
+					Email:         "jane@acme.com",
+					Options:       nil,
+					CodeChallenge: nil,
 				},
 			},
 			expectedResponse: api.SignUpPasswordlessEmail200JSONResponse(api.OK),
@@ -114,6 +115,89 @@ func TestSignUpPasswordlessEmail(t *testing.T) {
 			},
 		},
 
+		{ //nolint:dupl
+			name:   "success - new user signup with PKCE",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().InsertUser(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserParams{
+						ID:                uuid.UUID{},
+						Disabled:          false,
+						DisplayName:       "jane@acme.com",
+						AvatarUrl:         "",
+						Email:             sql.Text("jane@acme.com"),
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            sql.Text("passwordlessEmail:xxx"),
+						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
+						EmailVerified:     false,
+						Locale:            "en",
+						DefaultRole:       "user",
+						Metadata:          []byte("null"),
+						Roles:             []string{"user", "me"},
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						Otp:               "",
+						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
+						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					),
+				).Return(sql.InsertUserRow{
+					UserID:    userID,
+					CreatedAt: sql.TimestampTz(time.Now()),
+				}, nil)
+
+				return mock
+			},
+			request: api.SignUpPasswordlessEmailRequestObject{
+				Body: &api.SignUpPasswordlessEmailRequest{
+					Email:         "jane@acme.com",
+					Options:       nil,
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+			},
+			expectedResponse: api.SignUpPasswordlessEmail200JSONResponse(api.OK),
+			jwtTokenFn:       nil,
+			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameSigninPasswordless,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordlessEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
+		},
+
 		{
 			name: "error - passwordless disabled",
 			config: func() *controller.Config {
@@ -128,8 +212,9 @@ func TestSignUpPasswordlessEmail(t *testing.T) {
 			},
 			request: api.SignUpPasswordlessEmailRequestObject{
 				Body: &api.SignUpPasswordlessEmailRequest{
-					Email:   "jane@acme.com",
-					Options: nil,
+					Email:         "jane@acme.com",
+					Options:       nil,
+					CodeChallenge: nil,
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -156,8 +241,9 @@ func TestSignUpPasswordlessEmail(t *testing.T) {
 			},
 			request: api.SignUpPasswordlessEmailRequestObject{
 				Body: &api.SignUpPasswordlessEmailRequest{
-					Email:   "jane@acme.com",
-					Options: nil,
+					Email:         "jane@acme.com",
+					Options:       nil,
+					CodeChallenge: nil,
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -189,8 +275,9 @@ func TestSignUpPasswordlessEmail(t *testing.T) {
 			},
 			request: api.SignUpPasswordlessEmailRequestObject{
 				Body: &api.SignUpPasswordlessEmailRequest{
-					Email:   "jane@acme.com",
-					Options: nil,
+					Email:         "jane@acme.com",
+					Options:       nil,
+					CodeChallenge: nil,
 				},
 			},
 			expectedResponse: controller.ErrorResponse{

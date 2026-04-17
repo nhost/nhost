@@ -2,20 +2,14 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import type { ChainFunction, FetchResponse } from '../fetch';
-import { createEnhancedFetch, FetchError } from '../fetch';
+import type { ChainFunction, FetchResponse } from "../fetch";
+import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
  * The attestation statement format
  */
-export type AttestationFormat =
-  | 'packed'
-  | 'tpm'
-  | 'android-key'
-  | 'android-safetynet'
-  | 'fido-u2f'
-  | 'apple'
-  | 'none';
+export type AttestationFormat = "packed" | "tpm" | "android-key" | "android-safetynet" | "fido-u2f" | "apple" | "none";
+
 
 /**
  * Map of extension outputs from the client
@@ -26,16 +20,17 @@ export interface AuthenticationExtensionsClientOutputs {
   /**
    * Application identifier extension output
    */
-  appid?: boolean;
+  appid?: boolean,
   /**
    * Credential properties extension output
    */
-  credProps?: CredentialPropertiesOutput;
+  credProps?: CredentialPropertiesOutput,
   /**
    * HMAC secret extension output
    */
-  hmacCreateSecret?: boolean;
-}
+  hmacCreateSecret?: boolean,
+};
+
 
 /**
  * 
@@ -47,25 +42,27 @@ export interface AuthenticatorAssertionResponse {
   /**
    * Base64url encoded client data JSON
    */
-  clientDataJSON: string;
+  clientDataJSON: string,
   /**
    * Base64url encoded authenticator data
    */
-  authenticatorData: string;
+  authenticatorData: string,
   /**
    * Base64url encoded assertion signature
    */
-  signature: string;
+  signature: string,
   /**
    * Base64url encoded user handle
    */
-  userHandle?: string;
-}
+  userHandle?: string,
+};
+
 
 /**
  * The authenticator attachment modality
  */
-export type AuthenticatorAttachment = 'platform' | 'cross-platform';
+export type AuthenticatorAttachment = "platform" | "cross-platform";
+
 
 /**
  * 
@@ -83,34 +80,35 @@ export type AuthenticatorAttachment = 'platform' | 'cross-platform';
 export interface AuthenticatorAttestationResponse {
   /**
    * Base64url-encoded binary data
-   *    Format - byte
+    *    Format - byte
    */
-  clientDataJSON: string;
+  clientDataJSON: string,
   /**
    * The authenticator transports
    */
-  transports?: string[];
+  transports?: string[],
   /**
    * Base64url-encoded binary data
-   *    Format - byte
+    *    Format - byte
    */
-  authenticatorData?: string;
+  authenticatorData?: string,
   /**
    * Base64url-encoded binary data
-   *    Format - byte
+    *    Format - byte
    */
-  publicKey?: string;
+  publicKey?: string,
   /**
    * The public key algorithm identifier
-   *    Format - int64
+    *    Format - int64
    */
-  publicKeyAlgorithm?: number;
+  publicKeyAlgorithm?: number,
   /**
    * Base64url-encoded binary data
-   *    Format - byte
+    *    Format - byte
    */
-  attestationObject: string;
-}
+  attestationObject: string,
+};
+
 
 /**
  * 
@@ -122,40 +120,33 @@ export interface AuthenticatorSelection {
   /**
    * The authenticator attachment modality
    */
-  authenticatorAttachment?: AuthenticatorAttachment;
+  authenticatorAttachment?: AuthenticatorAttachment,
   /**
    * Whether the authenticator must create a client-side-resident public key credential source
    */
-  requireResidentKey?: boolean;
+  requireResidentKey?: boolean,
   /**
    * The resident key requirement
    */
-  residentKey?: ResidentKeyRequirement;
+  residentKey?: ResidentKeyRequirement,
   /**
    * A requirement for user verification for the operation
    */
-  userVerification?: UserVerificationRequirement;
-}
+  userVerification?: UserVerificationRequirement,
+};
+
 
 /**
  * The authenticator transports that can be used
  */
-export type AuthenticatorTransport =
-  | 'usb'
-  | 'nfc'
-  | 'ble'
-  | 'smart-card'
-  | 'hybrid'
-  | 'internal';
+export type AuthenticatorTransport = "usb" | "nfc" | "ble" | "smart-card" | "hybrid" | "internal";
+
 
 /**
  * The attestation conveyance preference
  */
-export type ConveyancePreference =
-  | 'none'
-  | 'indirect'
-  | 'direct'
-  | 'enterprise';
+export type ConveyancePreference = "none" | "indirect" | "direct" | "enterprise";
+
 
 /**
  * 
@@ -166,15 +157,16 @@ export type ConveyancePreference =
 export interface CreatePATRequest {
   /**
    * Expiration date of the PAT
-   *    Format - date-time
+    *    Format - date-time
    */
-  expiresAt: string;
+  expiresAt: string,
   /**
-   *
-   *    Example - `{"name":"my-pat","used-by":"my-app-cli"}`
+   * 
+    *    Example - `{"name":"my-pat","used-by":"my-app-cli"}`
    */
-  metadata?: Record<string, unknown>;
-}
+  metadata?: Record<string, unknown>,
+};
+
 
 /**
  * 
@@ -187,17 +179,18 @@ export interface CreatePATRequest {
 export interface CreatePATResponse {
   /**
    * ID of the PAT
-   *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-   *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  id: string;
+  id: string,
   /**
    * PAT
-   *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-   *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  personalAccessToken: string;
-}
+  personalAccessToken: string,
+};
+
 
 /**
  * 
@@ -212,29 +205,30 @@ export interface CredentialAssertionResponse {
   /**
    * The credential's identifier
    */
-  id: string;
+  id: string,
   /**
    * The credential type represented by this object
    */
-  type: string;
+  type: string,
   /**
    * Base64url-encoded binary data
-   *    Format - byte
+    *    Format - byte
    */
-  rawId: string;
+  rawId: string,
   /**
    * Map of extension outputs from the client
    */
-  clientExtensionResults?: AuthenticationExtensionsClientOutputs;
+  clientExtensionResults?: AuthenticationExtensionsClientOutputs,
   /**
    * The authenticator attachment
    */
-  authenticatorAttachment?: string;
+  authenticatorAttachment?: string,
   /**
-   *
+   * 
    */
-  response: AuthenticatorAssertionResponse;
-}
+  response: AuthenticatorAssertionResponse,
+};
+
 
 /**
  * 
@@ -249,29 +243,30 @@ export interface CredentialCreationResponse {
   /**
    * The credential's identifier
    */
-  id: string;
+  id: string,
   /**
    * The credential type represented by this object
    */
-  type: string;
+  type: string,
   /**
    * Base64url-encoded binary data
-   *    Format - byte
+    *    Format - byte
    */
-  rawId: string;
+  rawId: string,
   /**
    * Map of extension outputs from the client
    */
-  clientExtensionResults?: AuthenticationExtensionsClientOutputs;
+  clientExtensionResults?: AuthenticationExtensionsClientOutputs,
   /**
    * The authenticator attachment
    */
-  authenticatorAttachment?: string;
+  authenticatorAttachment?: string,
   /**
-   *
+   * 
    */
-  response: AuthenticatorAttestationResponse;
-}
+  response: AuthenticatorAttestationResponse,
+};
+
 
 /**
  * 
@@ -281,12 +276,13 @@ export interface CredentialParameter {
   /**
    * The valid credential types
    */
-  type: CredentialType;
+  type: CredentialType,
   /**
    * The cryptographic algorithm identifier
    */
-  alg: number;
-}
+  alg: number,
+};
+
 
 /**
  * Credential properties extension output
@@ -295,50 +291,21 @@ export interface CredentialPropertiesOutput {
   /**
    * Indicates if the credential is a resident key
    */
-  rk?: boolean;
-}
+  rk?: boolean,
+};
+
 
 /**
  * The valid credential types
  */
-export type CredentialType = 'public-key';
+export type CredentialType = "public-key";
+
 
 /**
  * Error code identifying the specific application error
  */
-export type ErrorResponseError =
-  | 'default-role-must-be-in-allowed-roles'
-  | 'disabled-endpoint'
-  | 'disabled-user'
-  | 'user-already-exists'
-  | 'email-already-verified'
-  | 'forbidden-anonymous'
-  | 'internal-server-error'
-  | 'invalid-email-password'
-  | 'invalid-request'
-  | 'locale-not-allowed'
-  | 'password-too-short'
-  | 'password-in-hibp-database'
-  | 'redirectTo-not-allowed'
-  | 'role-not-allowed'
-  | 'signup-disabled'
-  | 'unverified-user'
-  | 'user-not-anonymous'
-  | 'invalid-pat'
-  | 'invalid-refresh-token'
-  | 'invalid-ticket'
-  | 'disabled-mfa-totp'
-  | 'no-totp-secret'
-  | 'invalid-totp'
-  | 'mfa-type-not-found'
-  | 'totp-already-active'
-  | 'invalid-state'
-  | 'oauth-token-echange-failed'
-  | 'oauth-profile-fetch-failed'
-  | 'oauth-provider-error'
-  | 'invalid-otp'
-  | 'cannot-send-sms'
-  | 'provider-account-already-linked';
+export type ErrorResponseError = "default-role-must-be-in-allowed-roles" | "disabled-endpoint" | "disabled-user" | "user-already-exists" | "email-already-verified" | "forbidden-anonymous" | "internal-server-error" | "invalid-email-password" | "invalid-request" | "locale-not-allowed" | "password-too-short" | "password-in-hibp-database" | "redirectTo-not-allowed" | "role-not-allowed" | "signup-disabled" | "unverified-user" | "user-not-anonymous" | "invalid-pat" | "invalid-refresh-token" | "invalid-ticket" | "disabled-mfa-totp" | "no-totp-secret" | "invalid-totp" | "mfa-type-not-found" | "totp-already-active" | "invalid-state" | "oauth-token-echange-failed" | "oauth-profile-fetch-failed" | "oauth-provider-error" | "invalid-otp" | "cannot-send-sms" | "provider-account-already-linked";
+
 
 /**
  * Standardized error response
@@ -350,24 +317,26 @@ export type ErrorResponseError =
 export interface ErrorResponse {
   /**
    * HTTP status error code
-   *    Example - `400`
+    *    Example - `400`
    */
-  status: number;
+  status: number,
   /**
    * Human-friendly error message
-   *    Example - `"Invalid email format"`
+    *    Example - `"Invalid email format"`
    */
-  message: string;
+  message: string,
   /**
    * Error code identifying the specific application error
    */
-  error: ErrorResponseError;
-}
+  error: ErrorResponseError,
+};
+
 
 /**
- *
+ * 
  */
-export type IdTokenProvider = 'apple' | 'google';
+export type IdTokenProvider = "apple" | "google";
+
 
 /**
  * JSON Web Key for JWT verification
@@ -386,35 +355,36 @@ export type IdTokenProvider = 'apple' | 'google';
 export interface JWK {
   /**
    * Algorithm used with this key
-   *    Example - `"RS256"`
+    *    Example - `"RS256"`
    */
-  alg: string;
+  alg: string,
   /**
    * RSA public exponent
-   *    Example - `"AQAB"`
+    *    Example - `"AQAB"`
    */
-  e: string;
+  e: string,
   /**
    * Key ID
-   *    Example - `"key-id-1"`
+    *    Example - `"key-id-1"`
    */
-  kid: string;
+  kid: string,
   /**
    * Key type
-   *    Example - `"RSA"`
+    *    Example - `"RSA"`
    */
-  kty: string;
+  kty: string,
   /**
    * RSA modulus
-   *    Example - `"abcd1234..."`
+    *    Example - `"abcd1234..."`
    */
-  n: string;
+  n: string,
   /**
    * Key usage
-   *    Example - `"sig"`
+    *    Example - `"sig"`
    */
-  use: string;
-}
+  use: string,
+};
+
 
 /**
  * JSON Web Key Set for verifying JWT signatures
@@ -423,8 +393,9 @@ export interface JWKSet {
   /**
    * Array of public keys
    */
-  keys: JWK[];
-}
+  keys: JWK[],
+};
+
 
 /**
  * 
@@ -433,18 +404,19 @@ export interface JWKSet {
  @property nonce? (`string`) - Nonce used during sign in process*/
 export interface LinkIdTokenRequest {
   /**
-   *
+   * 
    */
-  provider: IdTokenProvider;
+  provider: IdTokenProvider,
   /**
    * Apple ID token
    */
-  idToken: string;
+  idToken: string,
   /**
    * Nonce used during sign in process
    */
-  nonce?: string;
-}
+  nonce?: string,
+};
+
 
 /**
  * Challenge payload for multi-factor authentication
@@ -453,15 +425,17 @@ export interface LinkIdTokenRequest {
 export interface MFAChallengePayload {
   /**
    * Ticket to use when completing the MFA challenge
-   *    Example - `"mfaTotp:abc123def456"`
+    *    Example - `"mfaTotp:abc123def456"`
    */
-  ticket: string;
-}
+  ticket: string,
+};
+
 
 /**
- *
+ * 
  */
-export type OKResponse = 'OK';
+export type OKResponse = "OK";
+
 
 /**
  * 
@@ -470,12 +444,13 @@ export type OKResponse = 'OK';
     *    Format - uri*/
 export interface OptionsRedirectTo {
   /**
-   *
-   *    Example - `"https://my-app.com/catch-redirection"`
-   *    Format - uri
+   * 
+    *    Example - `"https://my-app.com/catch-redirection"`
+    *    Format - uri
    */
-  redirectTo?: string;
-}
+  redirectTo?: string,
+};
+
 
 /**
  * 
@@ -493,51 +468,52 @@ export interface OptionsRedirectTo {
  @property extensions? (`Record<string, unknown>`) - Additional parameters requesting additional processing by the client and authenticator*/
 export interface PublicKeyCredentialCreationOptions {
   /**
-   *
+   * 
    */
-  rp: RelyingPartyEntity;
+  rp: RelyingPartyEntity,
   /**
-   *
+   * 
    */
-  user: UserEntity;
+  user: UserEntity,
   /**
    * Base64url-encoded binary data
-   *    Format - byte
+    *    Format - byte
    */
-  challenge: string;
+  challenge: string,
   /**
    * The desired credential types and their respective cryptographic parameters
    */
-  pubKeyCredParams: CredentialParameter[];
+  pubKeyCredParams: CredentialParameter[],
   /**
    * A time, in milliseconds, that the caller is willing to wait for the call to complete
    */
-  timeout?: number;
+  timeout?: number,
   /**
    * A list of PublicKeyCredentialDescriptor objects representing public key credentials that are not acceptable to the caller
    */
-  excludeCredentials?: PublicKeyCredentialDescriptor[];
+  excludeCredentials?: PublicKeyCredentialDescriptor[],
   /**
-   *
+   * 
    */
-  authenticatorSelection?: AuthenticatorSelection;
+  authenticatorSelection?: AuthenticatorSelection,
   /**
    * Hints to help guide the user through the experience
    */
-  hints?: PublicKeyCredentialHints[];
+  hints?: PublicKeyCredentialHints[],
   /**
    * The attestation conveyance preference
    */
-  attestation?: ConveyancePreference;
+  attestation?: ConveyancePreference,
   /**
    * The preferred attestation statement formats
    */
-  attestationFormats?: AttestationFormat[];
+  attestationFormats?: AttestationFormat[],
   /**
    * Additional parameters requesting additional processing by the client and authenticator
    */
-  extensions?: Record<string, unknown>;
-}
+  extensions?: Record<string, unknown>,
+};
+
 
 /**
  * 
@@ -549,25 +525,24 @@ export interface PublicKeyCredentialDescriptor {
   /**
    * The valid credential types
    */
-  type: CredentialType;
+  type: CredentialType,
   /**
    * Base64url-encoded binary data
-   *    Format - byte
+    *    Format - byte
    */
-  id: string;
+  id: string,
   /**
    * The authenticator transports that can be used
    */
-  transports?: AuthenticatorTransport[];
-}
+  transports?: AuthenticatorTransport[],
+};
+
 
 /**
  * Hints to help guide the user through the experience
  */
-export type PublicKeyCredentialHints =
-  | 'security-key'
-  | 'client-device'
-  | 'hybrid';
+export type PublicKeyCredentialHints = "security-key" | "client-device" | "hybrid";
+
 
 /**
  * 
@@ -582,34 +557,35 @@ export type PublicKeyCredentialHints =
 export interface PublicKeyCredentialRequestOptions {
   /**
    * Base64url-encoded binary data
-   *    Format - byte
+    *    Format - byte
    */
-  challenge: string;
+  challenge: string,
   /**
    * A time, in milliseconds, that the caller is willing to wait for the call to complete
    */
-  timeout?: number;
+  timeout?: number,
   /**
    * The RP ID the credential should be scoped to
    */
-  rpId?: string;
+  rpId?: string,
   /**
    * A list of CredentialDescriptor objects representing public key credentials acceptable to the caller
    */
-  allowCredentials?: PublicKeyCredentialDescriptor[];
+  allowCredentials?: PublicKeyCredentialDescriptor[],
   /**
    * A requirement for user verification for the operation
    */
-  userVerification?: UserVerificationRequirement;
+  userVerification?: UserVerificationRequirement,
   /**
    * Hints to help guide the user through the experience
    */
-  hints?: PublicKeyCredentialHints[];
+  hints?: PublicKeyCredentialHints[],
   /**
    * Additional parameters requesting additional processing by the client and authenticator
    */
-  extensions?: Record<string, unknown>;
-}
+  extensions?: Record<string, unknown>,
+};
+
 
 /**
  * OAuth2 provider session containing access and refresh tokens
@@ -625,26 +601,27 @@ export interface PublicKeyCredentialRequestOptions {
 export interface ProviderSession {
   /**
    * OAuth2 provider access token for API calls
-   *    Example - `"ya29.a0AfH6SMBx..."`
+    *    Example - `"ya29.a0AfH6SMBx..."`
    */
-  accessToken: string;
+  accessToken: string,
   /**
    * Number of seconds until the access token expires
-   *    Example - `3599`
+    *    Example - `3599`
    */
-  expiresIn: number;
+  expiresIn: number,
   /**
    * Timestamp when the access token expires
-   *    Example - `"2024-12-31T23:59:59Z"`
-   *    Format - date-time
+    *    Example - `"2024-12-31T23:59:59Z"`
+    *    Format - date-time
    */
-  expiresAt: string;
+  expiresAt: string,
   /**
    * OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
-   *    Example - `"1//0gK8..."`
+    *    Example - `"1//0gK8..."`
    */
-  refreshToken?: string;
-}
+  refreshToken?: string,
+};
+
 
 /**
  * 
@@ -654,12 +631,13 @@ export interface ProviderSpecificParams {
   /**
    * (workos) Specifies the connection to use for authentication
    */
-  connection?: string;
+  connection?: string,
   /**
    * (workos) Specifies the organization to use for authentication
    */
-  organization?: string;
-}
+  organization?: string,
+};
+
 
 /**
  * Request to refresh OAuth2 provider tokens
@@ -668,10 +646,11 @@ export interface ProviderSpecificParams {
 export interface RefreshProviderTokenRequest {
   /**
    * OAuth2 provider refresh token obtained from previous authentication
-   *    Example - `"1//0gK8..."`
+    *    Example - `"1//0gK8..."`
    */
-  refreshToken: string;
-}
+  refreshToken: string,
+};
+
 
 /**
  * Request to refresh an access token
@@ -681,11 +660,12 @@ export interface RefreshProviderTokenRequest {
 export interface RefreshTokenRequest {
   /**
    * Refresh token used to generate a new access token
-   *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-   *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  refreshToken: string;
-}
+  refreshToken: string,
+};
+
 
 /**
  * 
@@ -695,17 +675,19 @@ export interface RelyingPartyEntity {
   /**
    * A human-palatable name for the entity
    */
-  name: string;
+  name: string,
   /**
    * A unique identifier for the Relying Party entity, which sets the RP ID
    */
-  id: string;
-}
+  id: string,
+};
+
 
 /**
  * The resident key requirement
  */
-export type ResidentKeyRequirement = 'discouraged' | 'preferred' | 'required';
+export type ResidentKeyRequirement = "discouraged" | "preferred" | "required";
+
 
 /**
  * User authentication session containing tokens and user information
@@ -724,32 +706,33 @@ export type ResidentKeyRequirement = 'discouraged' | 'preferred' | 'required';
 export interface Session {
   /**
    * JWT token for authenticating API requests
-   *    Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+    *    Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
    */
-  accessToken: string;
+  accessToken: string,
   /**
    * Expiration time of the access token in seconds
-   *    Example - `900`
-   *    Format - int64
+    *    Example - `900`
+    *    Format - int64
    */
-  accessTokenExpiresIn: number;
+  accessTokenExpiresIn: number,
   /**
    * Identifier for the refresh token
-   *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-   *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  refreshTokenId: string;
+  refreshTokenId: string,
   /**
    * Token used to refresh the access token
-   *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-   *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  refreshToken: string;
+  refreshToken: string,
   /**
    * User profile and account information
    */
-  user?: User;
-}
+  user?: User,
+};
+
 
 /**
  * Container for session information
@@ -758,8 +741,9 @@ export interface SessionPayload {
   /**
    * User authentication session containing tokens and user information
    */
-  session?: Session;
-}
+  session?: Session,
+};
+
 
 /**
  * 
@@ -773,23 +757,24 @@ export interface SessionPayload {
     *    Example - `{"firstName":"John","lastName":"Smith"}`*/
 export interface SignInAnonymousRequest {
   /**
-   *
-   *    Example - `"John Smith"`
+   * 
+    *    Example - `"John Smith"`
    */
-  displayName?: string;
+  displayName?: string,
   /**
    * A two or three characters locale
-   *    Example - `"en"`
-   *    MinLength - 2
-   *    MaxLength - 3
+    *    Example - `"en"`
+    *    MinLength - 2
+    *    MaxLength - 3
    */
-  locale?: string;
+  locale?: string,
   /**
-   *
-   *    Example - `{"firstName":"John","lastName":"Smith"}`
+   * 
+    *    Example - `{"firstName":"John","lastName":"Smith"}`
    */
-  metadata?: Record<string, unknown>;
-}
+  metadata?: Record<string, unknown>,
+};
+
 
 /**
  * Request to authenticate using email and password
@@ -803,18 +788,19 @@ export interface SignInAnonymousRequest {
 export interface SignInEmailPasswordRequest {
   /**
    * User's email address
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
    * User's password
-   *    Example - `"Str0ngPassw#ord-94|%"`
-   *    MinLength - 3
-   *    MaxLength - 50
+    *    Example - `"Str0ngPassw#ord-94|%"`
+    *    MinLength - 3
+    *    MaxLength - 50
    */
-  password: string;
-}
+  password: string,
+};
+
 
 /**
  * Response for email-password authentication that may include a session or MFA challenge
@@ -824,12 +810,13 @@ export interface SignInEmailPasswordResponse {
   /**
    * User authentication session containing tokens and user information
    */
-  session?: Session;
+  session?: Session,
   /**
    * Challenge payload for multi-factor authentication
    */
-  mfa?: MFAChallengePayload;
-}
+  mfa?: MFAChallengePayload,
+};
+
 
 /**
  * 
@@ -839,22 +826,23 @@ export interface SignInEmailPasswordResponse {
  @property options? (`SignUpOptions`) - */
 export interface SignInIdTokenRequest {
   /**
-   *
+   * 
    */
-  provider: IdTokenProvider;
+  provider: IdTokenProvider,
   /**
    * Apple ID token
    */
-  idToken: string;
+  idToken: string,
   /**
    * Nonce used during sign in process
    */
-  nonce?: string;
+  nonce?: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
-}
+  options?: SignUpOptions,
+};
+
 
 /**
  * 
@@ -864,14 +852,15 @@ export interface SignInIdTokenRequest {
 export interface SignInMfaTotpRequest {
   /**
    * Ticket
-   *    Pattern - ^mfaTotp:.*$
+    *    Pattern - ^mfaTotp:.*$
    */
-  ticket: string;
+  ticket: string,
   /**
    * One time password
    */
-  otp: string;
-}
+  otp: string,
+};
+
 
 /**
  * 
@@ -882,15 +871,16 @@ export interface SignInMfaTotpRequest {
 export interface SignInOTPEmailRequest {
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
-}
+  options?: SignUpOptions,
+};
+
 
 /**
  * 
@@ -902,14 +892,15 @@ export interface SignInOTPEmailVerifyRequest {
   /**
    * One time password
    */
-  otp: string;
+  otp: string,
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
-}
+  email: string,
+};
+
 
 /**
  * 
@@ -918,8 +909,9 @@ export interface SignInOTPEmailVerifyResponse {
   /**
    * User authentication session containing tokens and user information
    */
-  session?: Session;
-}
+  session?: Session,
+};
+
 
 /**
  * 
@@ -929,11 +921,12 @@ export interface SignInOTPEmailVerifyResponse {
 export interface SignInPATRequest {
   /**
    * PAT
-   *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-   *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  personalAccessToken: string;
-}
+  personalAccessToken: string,
+};
+
 
 /**
  * 
@@ -948,22 +941,23 @@ export interface SignInPATRequest {
 export interface SignInPasswordlessEmailRequest {
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions,
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-   *    Pattern - ^[A-Za-z0-9_-]{43}$
-   *    MinLength - 43
-   *    MaxLength - 43
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43
    */
-  codeChallenge?: string;
-}
+  codeChallenge?: string,
+};
+
 
 /**
  * 
@@ -973,14 +967,15 @@ export interface SignInPasswordlessEmailRequest {
 export interface SignInPasswordlessSmsOtpRequest {
   /**
    * Phone number of the user
-   *    Example - `"+123456789"`
+    *    Example - `"+123456789"`
    */
-  phoneNumber: string;
+  phoneNumber: string,
   /**
    * One-time password received by SMS
    */
-  otp: string;
-}
+  otp: string,
+};
+
 
 /**
  * 
@@ -990,12 +985,13 @@ export interface SignInPasswordlessSmsOtpResponse {
   /**
    * User authentication session containing tokens and user information
    */
-  session?: Session;
+  session?: Session,
   /**
    * Challenge payload for multi-factor authentication
    */
-  mfa?: MFAChallengePayload;
-}
+  mfa?: MFAChallengePayload,
+};
+
 
 /**
  * 
@@ -1005,33 +1001,46 @@ export interface SignInPasswordlessSmsOtpResponse {
 export interface SignInPasswordlessSmsRequest {
   /**
    * Phone number of the user
-   *    Example - `"+123456789"`
+    *    Example - `"+123456789"`
    */
-  phoneNumber: string;
+  phoneNumber: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
-}
+  options?: SignUpOptions,
+};
+
 
 /**
  * 
  @property email (`string`) - A valid email
     *    Example - `"john.smith@nhost.io"`
     *    Format - email
- @property options? (`SignUpOptions`) - */
+ @property options? (`SignUpOptions`) - 
+ @property codeChallenge? (`string`) - PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43*/
 export interface SignUpPasswordlessEmailRequest {
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
-}
+  options?: SignUpOptions,
+  /**
+   * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43
+   */
+  codeChallenge?: string,
+};
+
 
 /**
  * 
@@ -1042,15 +1051,16 @@ export interface SignUpPasswordlessEmailRequest {
 export interface SignUpOTPEmailRequest {
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
-}
+  options?: SignUpOptions,
+};
+
 
 /**
  * 
@@ -1060,14 +1070,15 @@ export interface SignUpOTPEmailRequest {
 export interface SignUpPasswordlessSmsRequest {
   /**
    * Phone number of the user
-   *    Example - `"+123456789"`
+    *    Example - `"+123456789"`
    */
-  phoneNumber: string;
+  phoneNumber: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
-}
+  options?: SignUpOptions,
+};
+
 
 /**
  * 
@@ -1077,22 +1088,23 @@ export interface SignUpPasswordlessSmsRequest {
  @property options? (`SignUpOptions`) - */
 export interface SignUpIdTokenRequest {
   /**
-   *
+   * 
    */
-  provider: IdTokenProvider;
+  provider: IdTokenProvider,
   /**
    * Apple or Google ID token
    */
-  idToken: string;
+  idToken: string,
   /**
    * Nonce used during sign in process
    */
-  nonce?: string;
+  nonce?: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
-}
+  options?: SignUpOptions,
+};
+
 
 /**
  * 
@@ -1102,11 +1114,12 @@ export interface SignUpIdTokenRequest {
 export interface SignInWebauthnRequest {
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email?: string;
-}
+  email?: string,
+};
+
 
 /**
  * 
@@ -1117,15 +1130,16 @@ export interface SignInWebauthnRequest {
 export interface SignInWebauthnVerifyRequest {
   /**
    * A valid email. Deprecated, no longer used
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email?: string;
+  email?: string,
   /**
-   *
+   * 
    */
-  credential: CredentialAssertionResponse;
-}
+  credential: CredentialAssertionResponse,
+};
+
 
 /**
  * 
@@ -1135,12 +1149,13 @@ export interface SignOutRequest {
   /**
    * Refresh token for the current session
    */
-  refreshToken?: string;
+  refreshToken?: string,
   /**
    * Sign out from all connected devices
    */
-  all?: boolean;
-}
+  all?: boolean,
+};
+
 
 /**
  * Request to register a new user with email and password
@@ -1159,29 +1174,30 @@ export interface SignOutRequest {
 export interface SignUpEmailPasswordRequest {
   /**
    * Email address for the new user account
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
    * Password for the new user account
-   *    Example - `"Str0ngPassw#ord-94|%"`
-   *    MinLength - 3
-   *    MaxLength - 50
+    *    Example - `"Str0ngPassw#ord-94|%"`
+    *    MinLength - 3
+    *    MaxLength - 50
    */
-  password: string;
+  password: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions,
   /**
    * PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
-   *    Pattern - ^[A-Za-z0-9_-]{43}$
-   *    MinLength - 43
-   *    MaxLength - 43
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43
    */
-  codeChallenge?: string;
-}
+  codeChallenge?: string,
+};
+
 
 /**
  * 
@@ -1204,41 +1220,42 @@ export interface SignUpEmailPasswordRequest {
     *    Format - uri*/
 export interface SignUpOptions {
   /**
-   *
-   *    Example - `["me","user"]`
+   * 
+    *    Example - `["me","user"]`
    */
-  allowedRoles?: string[];
+  allowedRoles?: string[],
   /**
-   *
-   *    Example - `"user"`
+   * 
+    *    Example - `"user"`
    */
-  defaultRole?: string;
+  defaultRole?: string,
   /**
-   *
-   *    Example - `"John Smith"`
-   *    Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
-   *    MaxLength - 32
+   * 
+    *    Example - `"John Smith"`
+    *    Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
+    *    MaxLength - 32
    */
-  displayName?: string;
+  displayName?: string,
   /**
    * A two or three characters locale
-   *    Example - `"en"`
-   *    MinLength - 2
-   *    MaxLength - 3
+    *    Example - `"en"`
+    *    MinLength - 2
+    *    MaxLength - 3
    */
-  locale?: string;
+  locale?: string,
   /**
-   *
-   *    Example - `{"firstName":"John","lastName":"Smith"}`
+   * 
+    *    Example - `{"firstName":"John","lastName":"Smith"}`
    */
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown>,
   /**
-   *
-   *    Example - `"https://my-app.com/catch-redirection"`
-   *    Format - uri
+   * 
+    *    Example - `"https://my-app.com/catch-redirection"`
+    *    Format - uri
    */
-  redirectTo?: string;
-}
+  redirectTo?: string,
+};
+
 
 /**
  * 
@@ -1249,15 +1266,16 @@ export interface SignUpOptions {
 export interface SignUpWebauthnRequest {
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
-}
+  options?: SignUpOptions,
+};
+
 
 /**
  * 
@@ -1270,25 +1288,26 @@ export interface SignUpWebauthnRequest {
     *    MaxLength - 43*/
 export interface SignUpWebauthnVerifyRequest {
   /**
-   *
+   * 
    */
-  credential: CredentialCreationResponse;
+  credential: CredentialCreationResponse,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions,
   /**
    * Nickname for the security key
    */
-  nickname?: string;
+  nickname?: string,
   /**
    * PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
-   *    Pattern - ^[A-Za-z0-9_-]{43}$
-   *    MinLength - 43
-   *    MaxLength - 43
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43
    */
-  codeChallenge?: string;
-}
+  codeChallenge?: string,
+};
+
 
 /**
  * Request to exchange an authorization code for a session using PKCE
@@ -1300,14 +1319,15 @@ export interface TokenExchangeRequest {
   /**
    * The authorization code received from the redirect
    */
-  code: string;
+  code: string,
   /**
    * The original PKCE code verifier (43-128 characters)
-   *    MinLength - 43
-   *    MaxLength - 128
+    *    MinLength - 43
+    *    MaxLength - 128
    */
-  codeVerifier: string;
-}
+  codeVerifier: string,
+};
+
 
 /**
  * Response containing TOTP setup information for MFA
@@ -1318,20 +1338,22 @@ export interface TokenExchangeRequest {
 export interface TotpGenerateResponse {
   /**
    * URL to QR code image for scanning with an authenticator app
-   *    Example - `"data:image/png;base64,iVBORw0KGg..."`
+    *    Example - `"data:image/png;base64,iVBORw0KGg..."`
    */
-  imageUrl: string;
+  imageUrl: string,
   /**
    * TOTP secret key for manual setup with an authenticator app
-   *    Example - `"ABCDEFGHIJK23456"`
+    *    Example - `"ABCDEFGHIJK23456"`
    */
-  totpSecret: string;
-}
+  totpSecret: string,
+};
+
 
 /**
  * Base64url-encoded binary data
  */
 export type URLEncodedBase64 = string;
+
 
 /**
  * User profile and account information
@@ -1370,86 +1392,86 @@ export type URLEncodedBase64 = string;
 export interface User {
   /**
    * URL to the user's profile picture
-   *    Example - `"https://myapp.com/avatars/user123.jpg"`
+    *    Example - `"https://myapp.com/avatars/user123.jpg"`
    */
-  avatarUrl: string;
+  avatarUrl: string,
   /**
    * Timestamp when the user account was created
-   *    Example - `"2023-01-15T12:34:56Z"`
-   *    Format - date-time
+    *    Example - `"2023-01-15T12:34:56Z"`
+    *    Format - date-time
    */
-  createdAt: string;
+  createdAt: string,
   /**
    * Default authorization role for the user
-   *    Example - `"user"`
+    *    Example - `"user"`
    */
-  defaultRole: string;
+  defaultRole: string,
   /**
    * User's display name
-   *    Example - `"John Smith"`
+    *    Example - `"John Smith"`
    */
-  displayName: string;
+  displayName: string,
   /**
    * User's email address
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email?: string;
+  email?: string,
   /**
    * Whether the user's email has been verified
-   *    Example - `true`
+    *    Example - `true`
    */
-  emailVerified: boolean;
+  emailVerified: boolean,
   /**
    * Unique identifier for the user
-   *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-   *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  id: string;
+  id: string,
   /**
    * Whether this is an anonymous user account
-   *    Example - `false`
+    *    Example - `false`
    */
-  isAnonymous: boolean;
+  isAnonymous: boolean,
   /**
    * User's preferred locale (language code)
-   *    Example - `"en"`
-   *    MinLength - 2
-   *    MaxLength - 3
+    *    Example - `"en"`
+    *    MinLength - 2
+    *    MaxLength - 3
    */
-  locale: string;
+  locale: string,
   /**
    * Custom metadata associated with the user
-   *    Example - `{"firstName":"John","lastName":"Smith"}`
+    *    Example - `{"firstName":"John","lastName":"Smith"}`
    */
-  metadata: Record<string, unknown>;
+  metadata: Record<string, unknown>,
   /**
    * User's phone number
-   *    Example - `"+12025550123"`
+    *    Example - `"+12025550123"`
    */
-  phoneNumber?: string;
+  phoneNumber?: string,
   /**
    * Whether the user's phone number has been verified
-   *    Example - `false`
+    *    Example - `false`
    */
-  phoneNumberVerified: boolean;
+  phoneNumberVerified: boolean,
   /**
    * List of roles assigned to the user
-   *    Example - `["user","customer"]`
+    *    Example - `["user","customer"]`
    */
-  roles: string[];
+  roles: string[],
   /**
    * Active MFA type for the user
    */
-  activeMfaType?: string;
-}
+  activeMfaType?: string,
+};
+
 
 /**
  * Which sign-in method to use
  */
-export type UserDeanonymizeRequestSignInMethod =
-  | 'email-password'
-  | 'passwordless';
+export type UserDeanonymizeRequestSignInMethod = "email-password" | "passwordless";
+
 
 /**
  * 
@@ -1471,36 +1493,37 @@ export interface UserDeanonymizeRequest {
   /**
    * Which sign-in method to use
    */
-  signInMethod: UserDeanonymizeRequestSignInMethod;
+  signInMethod: UserDeanonymizeRequestSignInMethod,
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
    * A password of minimum 3 characters
-   *    Example - `"Str0ngPassw#ord-94|%"`
-   *    MinLength - 3
-   *    MaxLength - 50
+    *    Example - `"Str0ngPassw#ord-94|%"`
+    *    MinLength - 3
+    *    MaxLength - 50
    */
-  password?: string;
+  password?: string,
   /**
    * Deprecated, will be ignored
    */
-  connection?: string;
+  connection?: string,
   /**
-   *
+   * 
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions,
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-   *    Pattern - ^[A-Za-z0-9_-]{43}$
-   *    MinLength - 43
-   *    MaxLength - 43
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43
    */
-  codeChallenge?: string;
-}
+  codeChallenge?: string,
+};
+
 
 /**
  * 
@@ -1515,22 +1538,23 @@ export interface UserDeanonymizeRequest {
 export interface UserEmailChangeRequest {
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  newEmail: string;
+  newEmail: string,
   /**
-   *
+   * 
    */
-  options?: OptionsRedirectTo;
+  options?: OptionsRedirectTo,
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-   *    Pattern - ^[A-Za-z0-9_-]{43}$
-   *    MinLength - 43
-   *    MaxLength - 43
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43
    */
-  codeChallenge?: string;
-}
+  codeChallenge?: string,
+};
+
 
 /**
  * 
@@ -1545,22 +1569,23 @@ export interface UserEmailChangeRequest {
 export interface UserEmailSendVerificationEmailRequest {
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
-   *
+   * 
    */
-  options?: OptionsRedirectTo;
+  options?: OptionsRedirectTo,
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-   *    Pattern - ^[A-Za-z0-9_-]{43}$
-   *    MinLength - 43
-   *    MaxLength - 43
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43
    */
-  codeChallenge?: string;
-}
+  codeChallenge?: string,
+};
+
 
 /**
  * 
@@ -1571,21 +1596,23 @@ export interface UserEntity {
   /**
    * A human-palatable name for the entity
    */
-  name: string;
+  name: string,
   /**
    * A human-palatable name for the user account, intended only for display
    */
-  displayName: string;
+  displayName: string,
   /**
    * The user handle of the user account entity
    */
-  id: string;
-}
+  id: string,
+};
+
 
 /**
  * Type of MFA to activate. Use empty string to disable MFA.
  */
-export type UserMfaRequestActiveMfaType = 'totp' | '';
+export type UserMfaRequestActiveMfaType = "totp" | "";
+
 
 /**
  * Request to activate or deactivate multi-factor authentication
@@ -1596,15 +1623,16 @@ export type UserMfaRequestActiveMfaType = 'totp' | '';
 export interface UserMfaRequest {
   /**
    * Verification code from the authenticator app when activating MFA
-   *    Example - `"123456"`
+    *    Example - `"123456"`
    */
-  code: string;
+  code: string,
   /**
    * Type of MFA to activate. Use empty string to disable MFA.
-   *    Example - `"totp"`
+    *    Example - `"totp"`
    */
-  activeMfaType?: UserMfaRequestActiveMfaType;
-}
+  activeMfaType?: UserMfaRequestActiveMfaType,
+};
+
 
 /**
  * 
@@ -1617,17 +1645,18 @@ export interface UserMfaRequest {
 export interface UserPasswordRequest {
   /**
    * A password of minimum 3 characters
-   *    Example - `"Str0ngPassw#ord-94|%"`
-   *    MinLength - 3
-   *    MaxLength - 50
+    *    Example - `"Str0ngPassw#ord-94|%"`
+    *    MinLength - 3
+    *    MaxLength - 50
    */
-  newPassword: string;
+  newPassword: string,
   /**
    * Ticket to reset the password, required if the user is not authenticated
-   *    Pattern - ^passwordReset\:.*$
+    *    Pattern - ^passwordReset\:.*$
    */
-  ticket?: string;
-}
+  ticket?: string,
+};
+
 
 /**
  * 
@@ -1642,30 +1671,29 @@ export interface UserPasswordRequest {
 export interface UserPasswordResetRequest {
   /**
    * A valid email
-   *    Example - `"john.smith@nhost.io"`
-   *    Format - email
+    *    Example - `"john.smith@nhost.io"`
+    *    Format - email
    */
-  email: string;
+  email: string,
   /**
-   *
+   * 
    */
-  options?: OptionsRedirectTo;
+  options?: OptionsRedirectTo,
   /**
    * PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-   *    Pattern - ^[A-Za-z0-9_-]{43}$
-   *    MinLength - 43
-   *    MaxLength - 43
+    *    Pattern - ^[A-Za-z0-9_-]{43}$
+    *    MinLength - 43
+    *    MaxLength - 43
    */
-  codeChallenge?: string;
-}
+  codeChallenge?: string,
+};
+
 
 /**
  * A requirement for user verification for the operation
  */
-export type UserVerificationRequirement =
-  | 'required'
-  | 'preferred'
-  | 'discouraged';
+export type UserVerificationRequirement = "required" | "preferred" | "discouraged";
+
 
 /**
  * 
@@ -1673,14 +1701,15 @@ export type UserVerificationRequirement =
  @property nickname? (`string`) - Optional nickname for the security key*/
 export interface VerifyAddSecurityKeyRequest {
   /**
-   *
+   * 
    */
-  credential: CredentialCreationResponse;
+  credential: CredentialCreationResponse,
   /**
    * Optional nickname for the security key
    */
-  nickname?: string;
-}
+  nickname?: string,
+};
+
 
 /**
  * 
@@ -1690,14 +1719,15 @@ export interface VerifyAddSecurityKeyRequest {
 export interface VerifyAddSecurityKeyResponse {
   /**
    * The ID of the newly added security key
-   *    Example - `"123e4567-e89b-12d3-a456-426614174000"`
+    *    Example - `"123e4567-e89b-12d3-a456-426614174000"`
    */
-  id: string;
+  id: string,
   /**
    * The nickname of the security key if provided
    */
-  nickname?: string;
-}
+  nickname?: string,
+};
+
 
 /**
  * 
@@ -1706,8 +1736,9 @@ export interface VerifyTokenRequest {
   /**
    * JWT token to verify
    */
-  token?: string;
-}
+  token?: string,
+};
+
 
 /**
  * 
@@ -1717,12 +1748,13 @@ export interface OAuth2ErrorResponse {
   /**
    * OAuth2 error code
    */
-  error: string;
+  error: string,
   /**
    * Human-readable error description
    */
-  error_description?: string;
-}
+  error_description?: string,
+};
+
 
 /**
  * 
@@ -1746,85 +1778,85 @@ export interface OAuth2ErrorResponse {
  @property client_id_metadata_document_supported? (`boolean`) - */
 export interface OAuth2DiscoveryResponse {
   /**
-   *
+   * 
    */
-  issuer: string;
+  issuer: string,
   /**
-   *
+   * 
    */
-  authorization_endpoint: string;
+  authorization_endpoint: string,
   /**
-   *
+   * 
    */
-  token_endpoint: string;
+  token_endpoint: string,
   /**
-   *
+   * 
    */
-  userinfo_endpoint?: string;
+  userinfo_endpoint?: string,
   /**
-   *
+   * 
    */
-  jwks_uri: string;
+  jwks_uri: string,
   /**
-   *
+   * 
    */
-  revocation_endpoint?: string;
+  revocation_endpoint?: string,
   /**
-   *
+   * 
    */
-  introspection_endpoint?: string;
+  introspection_endpoint?: string,
   /**
-   *
+   * 
    */
-  scopes_supported?: string[];
+  scopes_supported?: string[],
   /**
-   *
+   * 
    */
-  response_types_supported: string[];
+  response_types_supported: string[],
   /**
-   *
+   * 
    */
-  grant_types_supported?: string[];
+  grant_types_supported?: string[],
   /**
-   *
+   * 
    */
-  subject_types_supported?: string[];
+  subject_types_supported?: string[],
   /**
-   *
+   * 
    */
-  id_token_signing_alg_values_supported?: string[];
+  id_token_signing_alg_values_supported?: string[],
   /**
-   *
+   * 
    */
-  token_endpoint_auth_methods_supported?: string[];
+  token_endpoint_auth_methods_supported?: string[],
   /**
-   *
+   * 
    */
-  code_challenge_methods_supported?: string[];
+  code_challenge_methods_supported?: string[],
   /**
-   *
+   * 
    */
-  claims_supported?: string[];
+  claims_supported?: string[],
   /**
-   *
+   * 
    */
-  request_parameter_supported?: boolean;
+  request_parameter_supported?: boolean,
   /**
-   *
+   * 
    */
-  authorization_response_iss_parameter_supported?: boolean;
+  authorization_response_iss_parameter_supported?: boolean,
   /**
-   *
+   * 
    */
-  client_id_metadata_document_supported?: boolean;
-}
+  client_id_metadata_document_supported?: boolean,
+};
+
 
 /**
- *
+ * 
  */
-export type OAuth2TokenRequestGrant_type =
-  | 'authorization_code'
-  | 'refresh_token';
+export type OAuth2TokenRequestGrant_type = "authorization_code" | "refresh_token";
+
 
 /**
  * 
@@ -1838,38 +1870,39 @@ export type OAuth2TokenRequestGrant_type =
  @property resource? (`string`) - */
 export interface OAuth2TokenRequest {
   /**
-   *
+   * 
    */
-  grant_type: OAuth2TokenRequestGrant_type;
+  grant_type: OAuth2TokenRequestGrant_type,
   /**
-   *
+   * 
    */
-  code?: string;
+  code?: string,
   /**
-   *
+   * 
    */
-  redirect_uri?: string;
+  redirect_uri?: string,
   /**
-   *
+   * 
    */
-  client_id?: string;
+  client_id?: string,
   /**
-   *
+   * 
    */
-  client_secret?: string;
+  client_secret?: string,
   /**
-   *
+   * 
    */
-  code_verifier?: string;
+  code_verifier?: string,
   /**
-   *
+   * 
    */
-  refresh_token?: string;
+  refresh_token?: string,
   /**
-   *
+   * 
    */
-  resource?: string;
-}
+  resource?: string,
+};
+
 
 /**
  * 
@@ -1881,30 +1914,31 @@ export interface OAuth2TokenRequest {
  @property scope? (`string`) - */
 export interface OAuth2TokenResponse {
   /**
-   *
+   * 
    */
-  access_token: string;
+  access_token: string,
   /**
-   *
+   * 
    */
-  token_type: string;
+  token_type: string,
   /**
-   *
+   * 
    */
-  expires_in: number;
+  expires_in: number,
   /**
-   *
+   * 
    */
-  refresh_token?: string;
+  refresh_token?: string,
   /**
-   *
+   * 
    */
-  id_token?: string;
+  id_token?: string,
   /**
-   *
+   * 
    */
-  scope?: string;
-}
+  scope?: string,
+};
+
 
 /**
  * 
@@ -1918,55 +1952,56 @@ export interface OAuth2TokenResponse {
  @property phone_number_verified? (`boolean`) - */
 export interface OAuth2UserinfoResponse {
   /**
-   *
+   * 
    */
-  sub: string;
+  sub: string,
   /**
-   *
+   * 
    */
-  name?: string;
+  name?: string,
   /**
-   *
+   * 
    */
-  email?: string;
+  email?: string,
   /**
-   *
+   * 
    */
-  email_verified?: boolean;
+  email_verified?: boolean,
   /**
-   *
+   * 
    */
-  picture?: string;
+  picture?: string,
   /**
-   *
+   * 
    */
-  locale?: string;
+  locale?: string,
   /**
-   *
+   * 
    */
-  phone_number?: string;
+  phone_number?: string,
   /**
-   *
+   * 
    */
-  phone_number_verified?: boolean;
-}
+  phone_number_verified?: boolean,
+};
+
 
 /**
  * 
  @property keys (`JWK[]`) - */
 export interface OAuth2JWKSResponse {
   /**
-   *
+   * 
    */
-  keys: JWK[];
-}
+  keys: JWK[],
+};
+
 
 /**
- *
+ * 
  */
-export type OAuth2RevokeRequestToken_type_hint =
-  | 'access_token'
-  | 'refresh_token';
+export type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token";
+
 
 /**
  * 
@@ -1976,29 +2011,29 @@ export type OAuth2RevokeRequestToken_type_hint =
  @property client_secret? (`string`) - */
 export interface OAuth2RevokeRequest {
   /**
-   *
+   * 
    */
-  token: string;
+  token: string,
   /**
-   *
+   * 
    */
-  token_type_hint?: OAuth2RevokeRequestToken_type_hint;
+  token_type_hint?: OAuth2RevokeRequestToken_type_hint,
   /**
-   *
+   * 
    */
-  client_id?: string;
+  client_id?: string,
   /**
-   *
+   * 
    */
-  client_secret?: string;
-}
+  client_secret?: string,
+};
+
 
 /**
- *
+ * 
  */
-export type OAuth2IntrospectRequestToken_type_hint =
-  | 'access_token'
-  | 'refresh_token';
+export type OAuth2IntrospectRequestToken_type_hint = "access_token" | "refresh_token";
+
 
 /**
  * 
@@ -2008,22 +2043,23 @@ export type OAuth2IntrospectRequestToken_type_hint =
  @property client_secret? (`string`) - */
 export interface OAuth2IntrospectRequest {
   /**
-   *
+   * 
    */
-  token: string;
+  token: string,
   /**
-   *
+   * 
    */
-  token_type_hint?: OAuth2IntrospectRequestToken_type_hint;
+  token_type_hint?: OAuth2IntrospectRequestToken_type_hint,
   /**
-   *
+   * 
    */
-  client_id?: string;
+  client_id?: string,
   /**
-   *
+   * 
    */
-  client_secret?: string;
-}
+  client_secret?: string,
+};
+
 
 /**
  * 
@@ -2037,38 +2073,39 @@ export interface OAuth2IntrospectRequest {
  @property token_type? (`string`) - */
 export interface OAuth2IntrospectResponse {
   /**
-   *
+   * 
    */
-  active: boolean;
+  active: boolean,
   /**
-   *
+   * 
    */
-  scope?: string;
+  scope?: string,
   /**
-   *
+   * 
    */
-  client_id?: string;
+  client_id?: string,
   /**
-   *
+   * 
    */
-  sub?: string;
+  sub?: string,
   /**
-   *
+   * 
    */
-  exp?: number;
+  exp?: number,
   /**
-   *
+   * 
    */
-  iat?: number;
+  iat?: number,
   /**
-   *
+   * 
    */
-  iss?: string;
+  iss?: string,
   /**
-   *
+   * 
    */
-  token_type?: string;
-}
+  token_type?: string,
+};
+
 
 /**
  * 
@@ -2079,23 +2116,24 @@ export interface OAuth2IntrospectResponse {
  @property redirectUri (`string`) - */
 export interface OAuth2LoginResponse {
   /**
-   *
-   *    Format - uuid
+   * 
+    *    Format - uuid
    */
-  requestId: string;
+  requestId: string,
   /**
-   *
+   * 
    */
-  clientId: string;
+  clientId: string,
   /**
-   *
+   * 
    */
-  scopes: string[];
+  scopes: string[],
   /**
-   *
+   * 
    */
-  redirectUri: string;
-}
+  redirectUri: string,
+};
+
 
 /**
  * 
@@ -2103,11 +2141,12 @@ export interface OAuth2LoginResponse {
     *    Format - uuid*/
 export interface OAuth2LoginRequest {
   /**
-   *
-   *    Format - uuid
+   * 
+    *    Format - uuid
    */
-  requestId: string;
-}
+  requestId: string,
+};
+
 
 /**
  * 
@@ -2115,51 +2154,36 @@ export interface OAuth2LoginRequest {
     *    Format - uri*/
 export interface OAuth2LoginCompleteResponse {
   /**
-   *
-   *    Format - uri
+   * 
+    *    Format - uri
    */
-  redirectUri: string;
-}
+  redirectUri: string,
+};
+
 
 /**
  * Target URL for the redirect
  */
 export type RedirectToQuery = string;
 
+
 /**
- *
+ * 
  */
-export type SignInProvider =
-  | 'apple'
-  | 'github'
-  | 'google'
-  | 'linkedin'
-  | 'discord'
-  | 'spotify'
-  | 'twitch'
-  | 'gitlab'
-  | 'bitbucket'
-  | 'workos'
-  | 'azuread'
-  | 'entraid'
-  | 'strava'
-  | 'facebook'
-  | 'windowslive'
-  | 'twitter';
+export type SignInProvider = "apple" | "github" | "google" | "linkedin" | "discord" | "spotify" | "twitch" | "gitlab" | "bitbucket" | "workos" | "azuread" | "entraid" | "strava" | "facebook" | "windowslive" | "twitter";
+
 
 /**
  * Ticket
  */
 export type TicketQuery = string;
 
+
 /**
  * Type of the ticket
  */
-export type TicketTypeQuery =
-  | 'emailVerify'
-  | 'emailConfirmChange'
-  | 'signinPasswordless'
-  | 'passwordReset';
+export type TicketTypeQuery = "emailVerify" | "emailConfirmChange" | "signinPasswordless" | "passwordReset";
+
 
 /**
  * 
@@ -2168,15 +2192,17 @@ export type TicketTypeQuery =
 export interface GetVersionResponse200 {
   /**
    * The version of the authentication service
-   *    Example - `"1.2.3"`
+    *    Example - `"1.2.3"`
    */
-  version: string;
-}
+  version: string,
+};
+
 
 /**
- *
+ * 
  */
-export type GetCode_challenge_method = 'S256';
+export type GetCode_challenge_method = "S256";
+
 
 /**
  * 
@@ -2192,46 +2218,46 @@ export type GetCode_challenge_method = 'S256';
  @property prompt? (`string`) - */
 export interface Oauth2AuthorizePostBody {
   /**
-   *
+   * 
    */
-  client_id: string;
+  client_id: string,
   /**
-   *
+   * 
    */
-  redirect_uri: string;
+  redirect_uri: string,
   /**
-   *
+   * 
    */
-  response_type: string;
+  response_type: string,
   /**
-   *
+   * 
    */
-  scope?: string;
+  scope?: string,
   /**
-   *
+   * 
    */
-  state?: string;
+  state?: string,
   /**
-   *
+   * 
    */
-  nonce?: string;
+  nonce?: string,
   /**
-   *
+   * 
    */
-  code_challenge?: string;
+  code_challenge?: string,
   /**
    * Only S256 is supported. The plain method is not allowed.
    */
-  code_challenge_method?: string;
+  code_challenge_method?: string,
   /**
-   *
+   * 
    */
-  resource?: string;
+  resource?: string,
   /**
-   *
+   * 
    */
-  prompt?: string;
-}
+  prompt?: string,
+};
 
 /**
  * Parameters for the signInProvider method.
@@ -2324,6 +2350,8 @@ export interface SignInProviderParams {
     @property state? (string) - Opaque state value to be returned by the provider
   
     @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
+  
+    @property codeChallenge? (string) - PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
   */
 export interface SignUpProviderParams {
   /**
@@ -2366,6 +2394,11 @@ export interface SignUpProviderParams {
   
    */
   providerSpecificParams?: ProviderSpecificParams;
+  /**
+   * PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+  
+   */
+  codeChallenge?: string;
 }
 /**
  * Parameters for the verifyTicket method.
@@ -2491,6 +2524,7 @@ export interface Oauth2LoginGetParams {
   request_id: string;
 }
 
+
 export interface Client {
   baseURL: string;
 
@@ -2498,16 +2532,18 @@ export interface Client {
    * @param chainFunction - The middleware function to add
    */
   pushChainFunction(chainFunction: ChainFunction): void;
-  /**
+    /**
      Summary: Get public keys for JWT verification in JWK Set format
      Retrieve the JSON Web Key Set (JWKS) containing public keys used to verify JWT signatures. This endpoint is used by clients to validate access tokens.
 
      This method may return different T based on the response code:
      - 200: JWKSet
      */
-  getJWKs(options?: RequestInit): Promise<FetchResponse<JWKSet>>;
+  getJWKs(
+    options?: RequestInit,
+  ): Promise<FetchResponse<JWKSet>>;
 
-  /**
+    /**
      Summary: Elevate access for an already signed in user using FIDO2 Webauthn
      Generate a Webauthn challenge for elevating user permissions
 
@@ -2518,7 +2554,7 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>;
 
-  /**
+    /**
      Summary: Verify FIDO2 Webauthn authentication using public-key cryptography for elevation
      Complete Webauthn elevation by verifying the authentication response
 
@@ -2530,25 +2566,29 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Health check (GET)
      Verify if the authentication service is operational using GET method
 
      This method may return different T based on the response code:
      - 200: OKResponse
      */
-  healthCheckGet(options?: RequestInit): Promise<FetchResponse<OKResponse>>;
+  healthCheckGet(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Health check (HEAD)
      Verify if the authentication service is operational using HEAD method
 
      This method may return different T based on the response code:
      - 200: void
      */
-  healthCheckHead(options?: RequestInit): Promise<FetchResponse<void>>;
+  healthCheckHead(
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>>;
 
-  /**
+    /**
      Summary: Link a user account with the provider's account using an id token
      Link the authenticated user's account with an external OAuth provider account using an ID token. Requires elevated permissions.
 
@@ -2560,7 +2600,7 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Generate TOTP secret
      Generate a Time-based One-Time Password (TOTP) secret for setting up multi-factor authentication
 
@@ -2571,7 +2611,7 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<TotpGenerateResponse>>;
 
-  /**
+    /**
      Summary: Create a Personal Access Token (PAT)
      Generate a new Personal Access Token for programmatic API access. PATs are long-lived tokens that can be used instead of regular authentication for automated systems. Requires elevated permissions.
 
@@ -2583,7 +2623,7 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<CreatePATResponse>>;
 
-  /**
+    /**
      Summary: Sign in anonymously
      Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
 
@@ -2595,7 +2635,7 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Sign in with email and password
      Authenticate a user with their email and password. Returns a session object or MFA challenge if two-factor authentication is enabled.
 
@@ -2607,7 +2647,7 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<SignInEmailPasswordResponse>>;
 
-  /**
+    /**
      Summary: Sign in with an ID token
      Authenticate using an ID token from a supported OAuth provider (Apple or Google).
 If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created.
@@ -2622,7 +2662,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken`
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Verify TOTP for MFA
      Complete the multi-factor authentication by verifying a Time-based One-Time Password (TOTP). Returns a session if validation is successful.
 
@@ -2634,7 +2674,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken`
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Sign in with email OTP
      Initiate email-based one-time password authentication. Sends an OTP to the specified email address.
 If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
@@ -2649,7 +2689,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/otp/emai
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Verify email OTP
      Complete email OTP authentication by verifying the one-time password. Returns a session if validation is successful.
 
@@ -2661,7 +2701,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/otp/emai
     options?: RequestInit,
   ): Promise<FetchResponse<SignInOTPEmailVerifyResponse>>;
 
-  /**
+    /**
      Summary: Sign in with magic link email
      Initiate passwordless authentication by sending a magic link to the user's email.
 If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
@@ -2676,7 +2716,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/password
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Sign in with SMS OTP
      Initiate passwordless authentication by sending a one-time password to the user's phone number.
 If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
@@ -2691,7 +2731,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/password
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Verify SMS OTP
      Complete passwordless SMS authentication by verifying the one-time password. Returns a session if validation is successful.
 
@@ -2703,7 +2743,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/password
     options?: RequestInit,
   ): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>>;
 
-  /**
+    /**
      Summary: Sign in with Personal Access Token (PAT)
      Authenticate using a Personal Access Token. PATs are long-lived tokens that can be used for programmatic access to the API.
 
@@ -2715,7 +2755,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/password
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Sign in with an OAuth2 provider
      Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
 If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created upon callback.
@@ -2730,7 +2770,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider
     options?: RequestInit,
   ): string;
 
-  /**
+    /**
      Summary: Retrieve OAuth2 provider tokens from callback
      After successful OAuth2 authentication, retrieve the provider session containing access token, refresh token, and expiration information for the specified provider. To ensure the data isn't stale this endpoint must be called immediately after the OAuth callback to obtain the tokens. The session is cleared from the database during this call, so subsequent calls will fail without going through the sign-in flow again. It is the user's responsibility to store the session safely (e.g., in browser local storage).
 
@@ -2742,7 +2782,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider
     options?: RequestInit,
   ): Promise<FetchResponse<ProviderSession>>;
 
-  /**
+    /**
      Summary: Sign in with Webauthn
      Initiate a Webauthn sign-in process by sending a challenge to the user's device. The user must have previously registered a Webauthn credential.
 
@@ -2754,7 +2794,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>;
 
-  /**
+    /**
      Summary: Verify Webauthn sign-in
      Complete the Webauthn sign-in process by verifying the response from the user's device. Returns a session if validation is successful.
 
@@ -2766,7 +2806,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Sign out
      End the current user session by invalidating refresh tokens. Optionally sign out from all devices.
 
@@ -2778,7 +2818,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Sign up with email and password
      Register a new user account with email and password. Returns a session if email verification is not required, otherwise returns null session.
 
@@ -2790,7 +2830,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Sign up with Webauthn
      Initiate a Webauthn sign-up process by sending a challenge to the user's device. The user must not have an existing account.
 
@@ -2802,7 +2842,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>;
 
-  /**
+    /**
      Summary: Verify Webauthn sign-up
      Complete the Webauthn sign-up process by verifying the response from the user's device. Returns a session if validation is successful.
 
@@ -2814,7 +2854,7 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Sign up with magic link email
      Register a new user account using passwordless email authentication.
 Sends a magic link to the specified email address for verification.
@@ -2829,7 +2869,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Sign up with email OTP
      Register a new user account using email OTP authentication.
 Sends a one-time password to the specified email address.
@@ -2844,7 +2884,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Sign up with SMS OTP
      Register a new user account using SMS OTP authentication.
 Sends a one-time password to the specified phone number.
@@ -2859,7 +2899,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Sign up with ID token
      Register a new user account using an ID token from Apple or Google.
 Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
@@ -2873,7 +2913,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Sign up with OAuth provider
      Initiate OAuth signup flow with the specified provider.
 Redirects to the provider's authorization page.
@@ -2888,7 +2928,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): string;
 
-  /**
+    /**
      Summary: Refresh access token
      Generate a new JWT access token using a valid refresh token. The refresh token used will be revoked and a new one will be issued.
 
@@ -2900,7 +2940,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<Session>>;
 
-  /**
+    /**
      Summary: Refresh OAuth2 provider tokens
      Refresh the OAuth2 provider access token using a valid refresh token. Returns a new provider session with updated access token, refresh token (if rotated by provider), and expiration information. This endpoint allows maintaining long-lived access to provider APIs without requiring the user to re-authenticate.
 
@@ -2913,7 +2953,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<ProviderSession>>;
 
-  /**
+    /**
      Summary: Verify JWT token
      Verify the validity of a JWT access token. If no request body is provided, the Authorization header will be used for verification.
 
@@ -2925,16 +2965,18 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<string>>;
 
-  /**
+    /**
      Summary: Get user information
      Retrieve the authenticated user's profile information including roles, metadata, and account status.
 
      This method may return different T based on the response code:
      - 200: User
      */
-  getUser(options?: RequestInit): Promise<FetchResponse<User>>;
+  getUser(
+    options?: RequestInit,
+  ): Promise<FetchResponse<User>>;
 
-  /**
+    /**
      Summary: Deanonymize an anonymous user
      Convert an anonymous user to a regular user by adding email and optionally password credentials. A confirmation email will be sent if the server is configured to do so.
 
@@ -2946,7 +2988,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Change user email
      Request to change the authenticated user's email address. A verification email will be sent to the new address to confirm the change. Requires elevated permissions.
 
@@ -2958,7 +3000,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Send verification email
      Send an email verification link to the specified email address. Used to verify email addresses for new accounts or email changes.
 
@@ -2970,7 +3012,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Manage multi-factor authentication
      Activate or deactivate multi-factor authentication for the authenticated user
 
@@ -2982,7 +3024,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Change user password
      Change the user's password. The user must be authenticated with elevated permissions or provide a valid password reset ticket.
 
@@ -2994,7 +3036,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Request password reset
      Request a password reset for a user account. An email with a verification link will be sent to the user's email address to complete the password reset process.
 
@@ -3006,7 +3048,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
-  /**
+    /**
      Summary: Initialize adding of a new webauthn security key
      Start the process of adding a new WebAuthn security key to the user's account. Returns a challenge that must be completed by the user's authenticator device. Requires elevated permissions.
 
@@ -3017,7 +3059,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>;
 
-  /**
+    /**
      Summary: Verify adding of a new webauthn security key
      Complete the process of adding a new WebAuthn security key by verifying the authenticator response. Requires elevated permissions.
 
@@ -3029,7 +3071,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<VerifyAddSecurityKeyResponse>>;
 
-  /**
+    /**
      Summary: Exchange authorization code for session
      Exchange an authorization code (obtained via PKCE flow) together with the original code_verifier for a session containing access and refresh tokens.
 
@@ -3041,15 +3083,18 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
-  /**
+    /**
      Summary: Verify email and authentication tickets
      Verify tickets created by email verification, magic link authentication, or password reset processes. Redirects the user to the appropriate destination upon successful verification.
 
      As this method is a redirect, it returns a URL string instead of a Promise
      */
-  verifyTicketURL(params?: VerifyTicketParams, options?: RequestInit): string;
+  verifyTicketURL(
+    params?: VerifyTicketParams,
+    options?: RequestInit,
+  ): string;
 
-  /**
+    /**
      Summary: Get service version
      Retrieve version information about the authentication service
 
@@ -3060,7 +3105,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<GetVersionResponse200>>;
 
-  /**
+    /**
      Summary: OpenID Connect Discovery
      Returns the OpenID Provider Metadata (RFC 8414)
 
@@ -3071,7 +3116,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2DiscoveryResponse>>;
 
-  /**
+    /**
      Summary: OAuth2 Authorization Server Metadata
      Returns the Authorization Server Metadata (RFC 8414). Same content as OpenID Discovery.
 
@@ -3082,7 +3127,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2DiscoveryResponse>>;
 
-  /**
+    /**
      Summary: OAuth2 Authorization Endpoint
      Initiates an OAuth2 authorization code flow. Validates the request and redirects to the login UI for user authentication and consent.
 
@@ -3093,7 +3138,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): string;
 
-  /**
+    /**
      Summary: OAuth2 Authorization Endpoint (POST)
      Initiates an OAuth2 authorization code flow via POST. Validates the request and redirects to the login UI for user authentication and consent.
 
@@ -3104,7 +3149,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): string;
 
-  /**
+    /**
      Summary: OAuth2 Token Endpoint
      Exchange an authorization code for tokens, or refresh an existing token. Supports grant_type authorization_code and refresh_token.
 
@@ -3116,7 +3161,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2TokenResponse>>;
 
-  /**
+    /**
      Summary: OpenID Connect UserInfo Endpoint (GET)
      Returns claims about the authenticated user based on the access token scopes.
 
@@ -3127,7 +3172,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2UserinfoResponse>>;
 
-  /**
+    /**
      Summary: OpenID Connect UserInfo Endpoint (POST)
      Returns claims about the authenticated user based on the access token scopes.
 
@@ -3138,16 +3183,18 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2UserinfoResponse>>;
 
-  /**
+    /**
      Summary: OAuth2 Provider JWKS Endpoint
      Returns the JSON Web Key Set containing public keys used for OAuth2/OIDC token signing.
 
      This method may return different T based on the response code:
      - 200: OAuth2JWKSResponse
      */
-  oauth2Jwks(options?: RequestInit): Promise<FetchResponse<OAuth2JWKSResponse>>;
+  oauth2Jwks(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2JWKSResponse>>;
 
-  /**
+    /**
      Summary: OAuth2 Token Revocation (RFC 7009)
      Revoke an access token or refresh token.
 
@@ -3159,7 +3206,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<void>>;
 
-  /**
+    /**
      Summary: OAuth2 Token Introspection (RFC 7662)
      Introspect a token to determine its current state and metadata.
 
@@ -3171,7 +3218,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2IntrospectResponse>>;
 
-  /**
+    /**
      Summary: Get authorization request details for consent screen
      Called by the consent UI to get details about the pending authorization request.
 
@@ -3183,7 +3230,7 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2LoginResponse>>;
 
-  /**
+    /**
      Summary: Complete login/consent for an authorization request
      Called by the consent UI after user authenticates and consents. Sets the user on the auth request and redirects back to the client with an authorization code.
 
@@ -3194,7 +3241,8 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
     body: OAuth2LoginRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2LoginCompleteResponse>>;
-}
+};
+
 
 export const createAPIClient = (
   baseURL: string,
@@ -3206,13 +3254,13 @@ export const createAPIClient = (
     chainFunctions.push(chainFunction);
     fetch = createEnhancedFetch(chainFunctions);
   };
-  const getJWKs = async (
+    const  getJWKs = async (
     options?: RequestInit,
   ): Promise<FetchResponse<JWKSet>> => {
-    const url = `${baseURL}/.well-known/jwks.json`;
+    const url = `${ baseURL }/.well-known/jwks.json`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -3223,26 +3271,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: JWKSet = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<JWKSet>;
+
   };
 
-  const elevateWebauthn = async (
+    const  elevateWebauthn = async (
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>> => {
-    const url = `${baseURL}/elevate/webauthn`;
+    const url = `${ baseURL }/elevate/webauthn`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
         ...options?.headers,
       },
@@ -3253,31 +3301,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: PublicKeyCredentialRequestOptions = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: PublicKeyCredentialRequestOptions = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<PublicKeyCredentialRequestOptions>;
+
   };
 
-  const verifyElevateWebauthn = async (
+    const  verifyElevateWebauthn = async (
     body: SignInWebauthnVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/elevate/webauthn/verify`;
+    const url = `${ baseURL }/elevate/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3288,28 +3334,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const healthCheckGet = async (
+    const  healthCheckGet = async (
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/healthz`;
+    const url = `${ baseURL }/healthz`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -3320,26 +3364,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const healthCheckHead = async (
+    const  healthCheckHead = async (
     options?: RequestInit,
   ): Promise<FetchResponse<void>> => {
-    const url = `${baseURL}/healthz`;
+    const url = `${ baseURL }/healthz`;
     const res = await fetch(url, {
       ...options,
-      method: 'HEAD',
+      method: "HEAD",
       headers: {
         ...options?.headers,
       },
@@ -3350,26 +3394,28 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
+    
     const payload: undefined = undefined;
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<void>;
+
   };
 
-  const linkIdToken = async (
+    const  linkIdToken = async (
     body: LinkIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/link/idtoken`;
+    const url = `${ baseURL }/link/idtoken`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3380,26 +3426,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const changeUserMfa = async (
+    const  changeUserMfa = async (
     options?: RequestInit,
   ): Promise<FetchResponse<TotpGenerateResponse>> => {
-    const url = `${baseURL}/mfa/totp/generate`;
+    const url = `${ baseURL }/mfa/totp/generate`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -3410,31 +3456,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: TotpGenerateResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: TotpGenerateResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<TotpGenerateResponse>;
+
   };
 
-  const createPAT = async (
+    const  createPAT = async (
     body: CreatePATRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<CreatePATResponse>> => {
-    const url = `${baseURL}/pat`;
+    const url = `${ baseURL }/pat`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3445,31 +3489,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: CreatePATResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: CreatePATResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<CreatePATResponse>;
+
   };
 
-  const signInAnonymous = async (
+    const  signInAnonymous = async (
     body?: SignInAnonymousRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/signin/anonymous`;
+    const url = `${ baseURL }/signin/anonymous`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3480,31 +3522,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const signInEmailPassword = async (
+    const  signInEmailPassword = async (
     body: SignInEmailPasswordRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SignInEmailPasswordResponse>> => {
-    const url = `${baseURL}/signin/email-password`;
+    const url = `${ baseURL }/signin/email-password`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3515,31 +3555,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SignInEmailPasswordResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SignInEmailPasswordResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SignInEmailPasswordResponse>;
+
   };
 
-  const signInIdToken = async (
+    const  signInIdToken = async (
     body: SignInIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/signin/idtoken`;
+    const url = `${ baseURL }/signin/idtoken`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3550,31 +3588,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const verifySignInMfaTotp = async (
+    const  verifySignInMfaTotp = async (
     body: SignInMfaTotpRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/signin/mfa/totp`;
+    const url = `${ baseURL }/signin/mfa/totp`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3585,31 +3621,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const signInOTPEmail = async (
+    const  signInOTPEmail = async (
     body: SignInOTPEmailRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/signin/otp/email`;
+    const url = `${ baseURL }/signin/otp/email`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3620,29 +3654,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const verifySignInOTPEmail = async (
+    const  verifySignInOTPEmail = async (
     body: SignInOTPEmailVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SignInOTPEmailVerifyResponse>> => {
-    const url = `${baseURL}/signin/otp/email/verify`;
+    const url = `${ baseURL }/signin/otp/email/verify`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3653,31 +3687,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SignInOTPEmailVerifyResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SignInOTPEmailVerifyResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SignInOTPEmailVerifyResponse>;
+
   };
 
-  const signInPasswordlessEmail = async (
+    const  signInPasswordlessEmail = async (
     body: SignInPasswordlessEmailRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/signin/passwordless/email`;
+    const url = `${ baseURL }/signin/passwordless/email`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3688,29 +3720,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const signInPasswordlessSms = async (
+    const  signInPasswordlessSms = async (
     body: SignInPasswordlessSmsRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/signin/passwordless/sms`;
+    const url = `${ baseURL }/signin/passwordless/sms`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3721,29 +3753,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const verifySignInPasswordlessSms = async (
+    const  verifySignInPasswordlessSms = async (
     body: SignInPasswordlessSmsOtpRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>> => {
-    const url = `${baseURL}/signin/passwordless/sms/otp`;
+    const url = `${ baseURL }/signin/passwordless/sms/otp`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3754,31 +3786,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SignInPasswordlessSmsOtpResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SignInPasswordlessSmsOtpResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SignInPasswordlessSmsOtpResponse>;
+
   };
 
-  const signInPAT = async (
+    const  signInPAT = async (
     body: SignInPATRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/signin/pat`;
+    const url = `${ baseURL }/signin/pat`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3789,66 +3819,60 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const signInProviderURL = (
+    const  signInProviderURL = (
     provider: SignInProvider,
     params?: SignInProviderParams,
   ): string => {
-    const encodedParameters =
-      params &&
-      Object.entries(params)
-        .flatMap(([key, value]) => {
-          if (key === 'providerSpecificParams') {
-            // Object with explode: true - each property as separate parameter
-            if (
-              typeof value === 'object' &&
-              value !== null &&
-              !Array.isArray(value)
-            ) {
-              return Object.entries(value).map(
-                ([k, v]) => `${k}=${encodeURIComponent(String(v))}`,
-              );
-            }
-            return [`${key}=${encodeURIComponent(String(value))}`];
+  const encodedParameters =
+    params &&
+    Object.entries(params)
+      .flatMap(([key, value]) => {
+        if (key === "providerSpecificParams") {
+          // Object with explode: true - each property as separate parameter
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            return Object.entries(value)
+              .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
           }
-          // Default handling (scalars or explode: false)
-          const stringValue = Array.isArray(value)
-            ? value.join(',')
-            : typeof value === 'object' && value !== null
-              ? JSON.stringify(value)
-              : String(value);
-          return [`${key}=${encodeURIComponent(stringValue)}`];
-        })
-        .join('&');
+          return [`${key}=${encodeURIComponent(String(value))}`]
+        }
+        // Default handling (scalars or explode: false)
+        const stringValue = Array.isArray(value)
+          ? value.join(',')
+          : typeof value === 'object' && value !== null
+          ? JSON.stringify(value)
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
+      })
+      .join('&')
 
-    const url = encodedParameters
-      ? `${baseURL}/signin/provider/${provider}?${encodedParameters}`
-      : `${baseURL}/signin/provider/${provider}`;
+    const url =
+     encodedParameters
+        ? `${ baseURL }/signin/provider/${provider}?${encodedParameters}`
+        : `${ baseURL }/signin/provider/${provider}`;
     return url;
   };
 
-  const getProviderTokens = async (
+    const  getProviderTokens = async (
     provider: SignInProvider,
     options?: RequestInit,
   ): Promise<FetchResponse<ProviderSession>> => {
-    const url = `${baseURL}/signin/provider/${provider}/callback/tokens`;
+    const url = `${ baseURL }/signin/provider/${provider}/callback/tokens`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -3859,31 +3883,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: ProviderSession = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: ProviderSession = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<ProviderSession>;
+
   };
 
-  const signInWebauthn = async (
+    const  signInWebauthn = async (
     body?: SignInWebauthnRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>> => {
-    const url = `${baseURL}/signin/webauthn`;
+    const url = `${ baseURL }/signin/webauthn`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3894,31 +3916,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: PublicKeyCredentialRequestOptions = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: PublicKeyCredentialRequestOptions = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<PublicKeyCredentialRequestOptions>;
+
   };
 
-  const verifySignInWebauthn = async (
+    const  verifySignInWebauthn = async (
     body: SignInWebauthnVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/signin/webauthn/verify`;
+    const url = `${ baseURL }/signin/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3929,31 +3949,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const signOut = async (
+    const  signOut = async (
     body: SignOutRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/signout`;
+    const url = `${ baseURL }/signout`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3964,29 +3982,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const signUpEmailPassword = async (
+    const  signUpEmailPassword = async (
     body: SignUpEmailPasswordRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/signup/email-password`;
+    const url = `${ baseURL }/signup/email-password`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3997,31 +4015,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const signUpWebauthn = async (
+    const  signUpWebauthn = async (
     body: SignUpWebauthnRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>> => {
-    const url = `${baseURL}/signup/webauthn`;
+    const url = `${ baseURL }/signup/webauthn`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4032,31 +4048,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: PublicKeyCredentialCreationOptions = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: PublicKeyCredentialCreationOptions = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<PublicKeyCredentialCreationOptions>;
+
   };
 
-  const verifySignUpWebauthn = async (
+    const  verifySignUpWebauthn = async (
     body: SignUpWebauthnVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/signup/webauthn/verify`;
+    const url = `${ baseURL }/signup/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4067,31 +4081,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const signUpPasswordlessEmail = async (
+    const  signUpPasswordlessEmail = async (
     body: SignUpPasswordlessEmailRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/signup/passwordless/email`;
+    const url = `${ baseURL }/signup/passwordless/email`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4102,29 +4114,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const signUpOTPEmail = async (
+    const  signUpOTPEmail = async (
     body: SignUpOTPEmailRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/signup/otp/email`;
+    const url = `${ baseURL }/signup/otp/email`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4135,29 +4147,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const signUpPasswordlessSms = async (
+    const  signUpPasswordlessSms = async (
     body: SignUpPasswordlessSmsRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/signup/passwordless/sms`;
+    const url = `${ baseURL }/signup/passwordless/sms`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4168,29 +4180,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const signUpIdToken = async (
+    const  signUpIdToken = async (
     body: SignUpIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/signup/idtoken`;
+    const url = `${ baseURL }/signup/idtoken`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4201,68 +4213,62 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const signUpProviderURL = (
+    const  signUpProviderURL = (
     provider: SignInProvider,
     params?: SignUpProviderParams,
   ): string => {
-    const encodedParameters =
-      params &&
-      Object.entries(params)
-        .flatMap(([key, value]) => {
-          if (key === 'providerSpecificParams') {
-            // Object with explode: true - each property as separate parameter
-            if (
-              typeof value === 'object' &&
-              value !== null &&
-              !Array.isArray(value)
-            ) {
-              return Object.entries(value).map(
-                ([k, v]) => `${k}=${encodeURIComponent(String(v))}`,
-              );
-            }
-            return [`${key}=${encodeURIComponent(String(value))}`];
+  const encodedParameters =
+    params &&
+    Object.entries(params)
+      .flatMap(([key, value]) => {
+        if (key === "providerSpecificParams") {
+          // Object with explode: true - each property as separate parameter
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            return Object.entries(value)
+              .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
           }
-          // Default handling (scalars or explode: false)
-          const stringValue = Array.isArray(value)
-            ? value.join(',')
-            : typeof value === 'object' && value !== null
-              ? JSON.stringify(value)
-              : String(value);
-          return [`${key}=${encodeURIComponent(stringValue)}`];
-        })
-        .join('&');
+          return [`${key}=${encodeURIComponent(String(value))}`]
+        }
+        // Default handling (scalars or explode: false)
+        const stringValue = Array.isArray(value)
+          ? value.join(',')
+          : typeof value === 'object' && value !== null
+          ? JSON.stringify(value)
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
+      })
+      .join('&')
 
-    const url = encodedParameters
-      ? `${baseURL}/signup/provider/${provider}?${encodedParameters}`
-      : `${baseURL}/signup/provider/${provider}`;
+    const url =
+     encodedParameters
+        ? `${ baseURL }/signup/provider/${provider}?${encodedParameters}`
+        : `${ baseURL }/signup/provider/${provider}`;
     return url;
   };
 
-  const refreshToken = async (
+    const  refreshToken = async (
     body: RefreshTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<Session>> => {
-    const url = `${baseURL}/token`;
+    const url = `${ baseURL }/token`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4273,30 +4279,30 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: Session = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<Session>;
+
   };
 
-  const refreshProviderToken = async (
+    const  refreshProviderToken = async (
     provider: SignInProvider,
     body: RefreshProviderTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<ProviderSession>> => {
-    const url = `${baseURL}/token/provider/${provider}`;
+    const url = `${ baseURL }/token/provider/${provider}`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4307,31 +4313,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: ProviderSession = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: ProviderSession = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<ProviderSession>;
+
   };
 
-  const verifyToken = async (
+    const  verifyToken = async (
     body?: VerifyTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<string>> => {
-    const url = `${baseURL}/token/verify`;
+    const url = `${ baseURL }/token/verify`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4342,26 +4346,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: string = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<string>;
+
   };
 
-  const getUser = async (
+    const  getUser = async (
     options?: RequestInit,
   ): Promise<FetchResponse<User>> => {
-    const url = `${baseURL}/user`;
+    const url = `${ baseURL }/user`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -4372,29 +4376,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: User = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<User>;
+
   };
 
-  const deanonymizeUser = async (
+    const  deanonymizeUser = async (
     body: UserDeanonymizeRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/user/deanonymize`;
+    const url = `${ baseURL }/user/deanonymize`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4405,29 +4409,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const changeUserEmail = async (
+    const  changeUserEmail = async (
     body: UserEmailChangeRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/user/email/change`;
+    const url = `${ baseURL }/user/email/change`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4438,29 +4442,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const sendVerificationEmail = async (
+    const  sendVerificationEmail = async (
     body: UserEmailSendVerificationEmailRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/user/email/send-verification-email`;
+    const url = `${ baseURL }/user/email/send-verification-email`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4471,29 +4475,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const verifyChangeUserMfa = async (
+    const  verifyChangeUserMfa = async (
     body: UserMfaRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/user/mfa`;
+    const url = `${ baseURL }/user/mfa`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4504,29 +4508,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const changeUserPassword = async (
+    const  changeUserPassword = async (
     body: UserPasswordRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/user/password`;
+    const url = `${ baseURL }/user/password`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4537,29 +4541,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const sendPasswordResetEmail = async (
+    const  sendPasswordResetEmail = async (
     body: UserPasswordResetRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = `${baseURL}/user/password/reset`;
+    const url = `${ baseURL }/user/password/reset`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4570,26 +4574,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+
   };
 
-  const addSecurityKey = async (
+    const  addSecurityKey = async (
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>> => {
-    const url = `${baseURL}/user/webauthn/add`;
+    const url = `${ baseURL }/user/webauthn/add`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
         ...options?.headers,
       },
@@ -4600,31 +4604,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: PublicKeyCredentialCreationOptions = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: PublicKeyCredentialCreationOptions = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<PublicKeyCredentialCreationOptions>;
+
   };
 
-  const verifyAddSecurityKey = async (
+    const  verifyAddSecurityKey = async (
     body: VerifyAddSecurityKeyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<VerifyAddSecurityKeyResponse>> => {
-    const url = `${baseURL}/user/webauthn/verify`;
+    const url = `${ baseURL }/user/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4635,31 +4637,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: VerifyAddSecurityKeyResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: VerifyAddSecurityKeyResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<VerifyAddSecurityKeyResponse>;
+
   };
 
-  const tokenExchange = async (
+    const  tokenExchange = async (
     body: TokenExchangeRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = `${baseURL}/token/exchange`;
+    const url = `${ baseURL }/token/exchange`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -4670,49 +4670,50 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<SessionPayload>;
+
   };
 
-  const verifyTicketURL = (params?: VerifyTicketParams): string => {
-    const encodedParameters =
-      params &&
-      Object.entries(params)
-        .flatMap(([key, value]) => {
-          // Default handling (scalars or explode: false)
-          const stringValue = Array.isArray(value)
-            ? value.join(',')
-            : typeof value === 'object' && value !== null
-              ? JSON.stringify(value)
-              : String(value);
-          return [`${key}=${encodeURIComponent(stringValue)}`];
-        })
-        .join('&');
+    const  verifyTicketURL = (
+    params?: VerifyTicketParams,
+  ): string => {
+  const encodedParameters =
+    params &&
+    Object.entries(params)
+      .flatMap(([key, value]) => {
+        // Default handling (scalars or explode: false)
+        const stringValue = Array.isArray(value)
+          ? value.join(',')
+          : typeof value === 'object' && value !== null
+          ? JSON.stringify(value)
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
+      })
+      .join('&')
 
-    const url = encodedParameters
-      ? `${baseURL}/verify?${encodedParameters}`
-      : `${baseURL}/verify`;
+    const url =
+     encodedParameters
+        ? `${ baseURL }/verify?${encodedParameters}`
+        : `${ baseURL }/verify`;
     return url;
   };
 
-  const getVersion = async (
+    const  getVersion = async (
     options?: RequestInit,
   ): Promise<FetchResponse<GetVersionResponse200>> => {
-    const url = `${baseURL}/version`;
+    const url = `${ baseURL }/version`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -4723,28 +4724,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: GetVersionResponse200 = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: GetVersionResponse200 = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<GetVersionResponse200>;
+
   };
 
-  const getOpenIDConfiguration = async (
+    const  getOpenIDConfiguration = async (
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2DiscoveryResponse>> => {
-    const url = `${baseURL}/.well-known/openid-configuration`;
+    const url = `${ baseURL }/.well-known/openid-configuration`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -4755,28 +4754,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OAuth2DiscoveryResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: OAuth2DiscoveryResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OAuth2DiscoveryResponse>;
+
   };
 
-  const getOAuthAuthorizationServer = async (
+    const  getOAuthAuthorizationServer = async (
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2DiscoveryResponse>> => {
-    const url = `${baseURL}/.well-known/oauth-authorization-server`;
+    const url = `${ baseURL }/.well-known/oauth-authorization-server`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -4787,83 +4784,85 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OAuth2DiscoveryResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: OAuth2DiscoveryResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OAuth2DiscoveryResponse>;
+
   };
 
-  const oauth2AuthorizeURL = (params?: Oauth2AuthorizeParams): string => {
-    const encodedParameters =
-      params &&
-      Object.entries(params)
-        .flatMap(([key, value]) => {
-          // Default handling (scalars or explode: false)
-          const stringValue = Array.isArray(value)
-            ? value.join(',')
-            : typeof value === 'object' && value !== null
-              ? JSON.stringify(value)
-              : String(value);
-          return [`${key}=${encodeURIComponent(stringValue)}`];
-        })
-        .join('&');
+    const  oauth2AuthorizeURL = (
+    params?: Oauth2AuthorizeParams,
+  ): string => {
+  const encodedParameters =
+    params &&
+    Object.entries(params)
+      .flatMap(([key, value]) => {
+        // Default handling (scalars or explode: false)
+        const stringValue = Array.isArray(value)
+          ? value.join(',')
+          : typeof value === 'object' && value !== null
+          ? JSON.stringify(value)
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
+      })
+      .join('&')
 
-    const url = encodedParameters
-      ? `${baseURL}/oauth2/authorize?${encodedParameters}`
-      : `${baseURL}/oauth2/authorize`;
+    const url =
+     encodedParameters
+        ? `${ baseURL }/oauth2/authorize?${encodedParameters}`
+        : `${ baseURL }/oauth2/authorize`;
     return url;
   };
 
-  const oauth2AuthorizePostURL = (): string => {
-    const url = `${baseURL}/oauth2/authorize`;
+    const  oauth2AuthorizePostURL = (
+  ): string => {
+    const url = `${ baseURL }/oauth2/authorize`;
     return url;
   };
 
-  const oauth2Token = async (
+    const  oauth2Token = async (
     body: OAuth2TokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2TokenResponse>> => {
-    const url = `${baseURL}/oauth2/token`;
+    const url = `${ baseURL }/oauth2/token`;
     const params = new URLSearchParams();
-    if (body['grant_type'] !== undefined) {
-      params.append('grant_type', String(body['grant_type']));
+    if (body["grant_type"] !== undefined) {
+      params.append("grant_type", String(body["grant_type"]));
     }
-    if (body['code'] !== undefined) {
-      params.append('code', String(body['code']));
+    if (body["code"] !== undefined) {
+      params.append("code", String(body["code"]));
     }
-    if (body['redirect_uri'] !== undefined) {
-      params.append('redirect_uri', String(body['redirect_uri']));
+    if (body["redirect_uri"] !== undefined) {
+      params.append("redirect_uri", String(body["redirect_uri"]));
     }
-    if (body['client_id'] !== undefined) {
-      params.append('client_id', String(body['client_id']));
+    if (body["client_id"] !== undefined) {
+      params.append("client_id", String(body["client_id"]));
     }
-    if (body['client_secret'] !== undefined) {
-      params.append('client_secret', String(body['client_secret']));
+    if (body["client_secret"] !== undefined) {
+      params.append("client_secret", String(body["client_secret"]));
     }
-    if (body['code_verifier'] !== undefined) {
-      params.append('code_verifier', String(body['code_verifier']));
+    if (body["code_verifier"] !== undefined) {
+      params.append("code_verifier", String(body["code_verifier"]));
     }
-    if (body['refresh_token'] !== undefined) {
-      params.append('refresh_token', String(body['refresh_token']));
+    if (body["refresh_token"] !== undefined) {
+      params.append("refresh_token", String(body["refresh_token"]));
     }
-    if (body['resource'] !== undefined) {
-      params.append('resource', String(body['resource']));
+    if (body["resource"] !== undefined) {
+      params.append("resource", String(body["resource"]));
     }
 
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
         ...options?.headers,
       },
       body: params.toString(),
@@ -4874,28 +4873,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OAuth2TokenResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: OAuth2TokenResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OAuth2TokenResponse>;
+
   };
 
-  const oauth2UserinfoGet = async (
+    const  oauth2UserinfoGet = async (
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2UserinfoResponse>> => {
-    const url = `${baseURL}/oauth2/userinfo`;
+    const url = `${ baseURL }/oauth2/userinfo`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -4906,28 +4903,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OAuth2UserinfoResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: OAuth2UserinfoResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OAuth2UserinfoResponse>;
+
   };
 
-  const oauth2UserinfoPost = async (
+    const  oauth2UserinfoPost = async (
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2UserinfoResponse>> => {
-    const url = `${baseURL}/oauth2/userinfo`;
+    const url = `${ baseURL }/oauth2/userinfo`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
         ...options?.headers,
       },
@@ -4938,28 +4933,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OAuth2UserinfoResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: OAuth2UserinfoResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OAuth2UserinfoResponse>;
+
   };
 
-  const oauth2Jwks = async (
+    const  oauth2Jwks = async (
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2JWKSResponse>> => {
-    const url = `${baseURL}/oauth2/jwks`;
+    const url = `${ baseURL }/oauth2/jwks`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -4970,45 +4963,43 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OAuth2JWKSResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: OAuth2JWKSResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OAuth2JWKSResponse>;
+
   };
 
-  const oauth2Revoke = async (
+    const  oauth2Revoke = async (
     body: OAuth2RevokeRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<void>> => {
-    const url = `${baseURL}/oauth2/revoke`;
+    const url = `${ baseURL }/oauth2/revoke`;
     const params = new URLSearchParams();
-    if (body['token'] !== undefined) {
-      params.append('token', String(body['token']));
+    if (body["token"] !== undefined) {
+      params.append("token", String(body["token"]));
     }
-    if (body['token_type_hint'] !== undefined) {
-      params.append('token_type_hint', String(body['token_type_hint']));
+    if (body["token_type_hint"] !== undefined) {
+      params.append("token_type_hint", String(body["token_type_hint"]));
     }
-    if (body['client_id'] !== undefined) {
-      params.append('client_id', String(body['client_id']));
+    if (body["client_id"] !== undefined) {
+      params.append("client_id", String(body["client_id"]));
     }
-    if (body['client_secret'] !== undefined) {
-      params.append('client_secret', String(body['client_secret']));
+    if (body["client_secret"] !== undefined) {
+      params.append("client_secret", String(body["client_secret"]));
     }
 
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
         ...options?.headers,
       },
       body: params.toString(),
@@ -5019,40 +5010,42 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
+    
     const payload: undefined = undefined;
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<void>;
+
   };
 
-  const oauth2Introspect = async (
+    const  oauth2Introspect = async (
     body: OAuth2IntrospectRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2IntrospectResponse>> => {
-    const url = `${baseURL}/oauth2/introspect`;
+    const url = `${ baseURL }/oauth2/introspect`;
     const params = new URLSearchParams();
-    if (body['token'] !== undefined) {
-      params.append('token', String(body['token']));
+    if (body["token"] !== undefined) {
+      params.append("token", String(body["token"]));
     }
-    if (body['token_type_hint'] !== undefined) {
-      params.append('token_type_hint', String(body['token_type_hint']));
+    if (body["token_type_hint"] !== undefined) {
+      params.append("token_type_hint", String(body["token_type_hint"]));
     }
-    if (body['client_id'] !== undefined) {
-      params.append('client_id', String(body['client_id']));
+    if (body["client_id"] !== undefined) {
+      params.append("client_id", String(body["client_id"]));
     }
-    if (body['client_secret'] !== undefined) {
-      params.append('client_secret', String(body['client_secret']));
+    if (body["client_secret"] !== undefined) {
+      params.append("client_secret", String(body["client_secret"]));
     }
 
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
         ...options?.headers,
       },
       body: params.toString(),
@@ -5063,45 +5056,44 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OAuth2IntrospectResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: OAuth2IntrospectResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OAuth2IntrospectResponse>;
+
   };
 
-  const oauth2LoginGet = async (
+    const  oauth2LoginGet = async (
     params?: Oauth2LoginGetParams,
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2LoginResponse>> => {
-    const encodedParameters =
-      params &&
-      Object.entries(params)
-        .flatMap(([key, value]) => {
-          // Default handling (scalars or explode: false)
-          const stringValue = Array.isArray(value)
-            ? value.join(',')
-            : typeof value === 'object' && value !== null
-              ? JSON.stringify(value)
-              : String(value);
-          return [`${key}=${encodeURIComponent(stringValue)}`];
-        })
-        .join('&');
+  const encodedParameters =
+    params &&
+    Object.entries(params)
+      .flatMap(([key, value]) => {
+        // Default handling (scalars or explode: false)
+        const stringValue = Array.isArray(value)
+          ? value.join(',')
+          : typeof value === 'object' && value !== null
+          ? JSON.stringify(value)
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
+      })
+      .join('&')
 
-    const url = encodedParameters
-      ? `${baseURL}/oauth2/login?${encodedParameters}`
-      : `${baseURL}/oauth2/login`;
+    const url =
+     encodedParameters
+        ? `${ baseURL }/oauth2/login?${encodedParameters}`
+        : `${ baseURL }/oauth2/login`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -5112,31 +5104,29 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OAuth2LoginResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: OAuth2LoginResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OAuth2LoginResponse>;
+
   };
 
-  const oauth2LoginPost = async (
+    const  oauth2LoginPost = async (
     body: OAuth2LoginRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2LoginCompleteResponse>> => {
-    const url = `${baseURL}/oauth2/login`;
+    const url = `${ baseURL }/oauth2/login`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -5147,81 +5137,80 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OAuth2LoginCompleteResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: OAuth2LoginCompleteResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OAuth2LoginCompleteResponse>;
+
   };
+
 
   return {
     baseURL,
     pushChainFunction,
-    getJWKs,
-    elevateWebauthn,
-    verifyElevateWebauthn,
-    healthCheckGet,
-    healthCheckHead,
-    linkIdToken,
-    changeUserMfa,
-    createPAT,
-    signInAnonymous,
-    signInEmailPassword,
-    signInIdToken,
-    verifySignInMfaTotp,
-    signInOTPEmail,
-    verifySignInOTPEmail,
-    signInPasswordlessEmail,
-    signInPasswordlessSms,
-    verifySignInPasswordlessSms,
-    signInPAT,
-    signInProviderURL,
-    getProviderTokens,
-    signInWebauthn,
-    verifySignInWebauthn,
-    signOut,
-    signUpEmailPassword,
-    signUpWebauthn,
-    verifySignUpWebauthn,
-    signUpPasswordlessEmail,
-    signUpOTPEmail,
-    signUpPasswordlessSms,
-    signUpIdToken,
-    signUpProviderURL,
-    refreshToken,
-    refreshProviderToken,
-    verifyToken,
-    getUser,
-    deanonymizeUser,
-    changeUserEmail,
-    sendVerificationEmail,
-    verifyChangeUserMfa,
-    changeUserPassword,
-    sendPasswordResetEmail,
-    addSecurityKey,
-    verifyAddSecurityKey,
-    tokenExchange,
-    verifyTicketURL,
-    getVersion,
-    getOpenIDConfiguration,
-    getOAuthAuthorizationServer,
-    oauth2AuthorizeURL,
-    oauth2AuthorizePostURL,
-    oauth2Token,
-    oauth2UserinfoGet,
-    oauth2UserinfoPost,
-    oauth2Jwks,
-    oauth2Revoke,
-    oauth2Introspect,
-    oauth2LoginGet,
-    oauth2LoginPost,
+      getJWKs,
+      elevateWebauthn,
+      verifyElevateWebauthn,
+      healthCheckGet,
+      healthCheckHead,
+      linkIdToken,
+      changeUserMfa,
+      createPAT,
+      signInAnonymous,
+      signInEmailPassword,
+      signInIdToken,
+      verifySignInMfaTotp,
+      signInOTPEmail,
+      verifySignInOTPEmail,
+      signInPasswordlessEmail,
+      signInPasswordlessSms,
+      verifySignInPasswordlessSms,
+      signInPAT,
+      signInProviderURL,
+      getProviderTokens,
+      signInWebauthn,
+      verifySignInWebauthn,
+      signOut,
+      signUpEmailPassword,
+      signUpWebauthn,
+      verifySignUpWebauthn,
+      signUpPasswordlessEmail,
+      signUpOTPEmail,
+      signUpPasswordlessSms,
+      signUpIdToken,
+      signUpProviderURL,
+      refreshToken,
+      refreshProviderToken,
+      verifyToken,
+      getUser,
+      deanonymizeUser,
+      changeUserEmail,
+      sendVerificationEmail,
+      verifyChangeUserMfa,
+      changeUserPassword,
+      sendPasswordResetEmail,
+      addSecurityKey,
+      verifyAddSecurityKey,
+      tokenExchange,
+      verifyTicketURL,
+      getVersion,
+      getOpenIDConfiguration,
+      getOAuthAuthorizationServer,
+      oauth2AuthorizeURL,
+      oauth2AuthorizePostURL,
+      oauth2Token,
+      oauth2UserinfoGet,
+      oauth2UserinfoPost,
+      oauth2Jwks,
+      oauth2Revoke,
+      oauth2Introspect,
+      oauth2LoginGet,
+      oauth2LoginPost,
   };
 };

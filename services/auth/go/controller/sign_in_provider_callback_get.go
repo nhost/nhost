@@ -242,7 +242,7 @@ func (ctrl *Controller) signinProviderProviderCallbackSession(
 
 	if codeChallenge != nil && *codeChallenge != "" {
 		userID, apiErr := ctrl.providerResolveUser(
-			ctx, profile, req.Provider, options, logger,
+			ctx, profile, req.Provider, options, signupIntent, logger,
 		)
 		if apiErr != nil {
 			return redirectTo, apiErr

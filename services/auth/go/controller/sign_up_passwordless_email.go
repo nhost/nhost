@@ -66,6 +66,7 @@ func (ctrl *Controller) SignUpPasswordlessEmail( //nolint:ireturn
 		ticketExpiresAt,
 		notifications.TemplateNameSigninPasswordless,
 		LinkTypePasswordlessEmail,
+		deptr(request.Body.CodeChallenge),
 		logger,
 	); apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
@@ -84,10 +85,11 @@ func (ctrl *Controller) signupWithTicket(
 	ticketExpiresAt time.Time,
 	template notifications.TemplateName,
 	linkType LinkType,
+	codeChallenge string,
 	logger *slog.Logger,
 ) *APIError {
 	user, apiErr := ctrl.signinWithTicketSignUp(
-		ctx, email, options, ticket, ticketExpiresAt, "", logger,
+		ctx, email, options, ticket, ticketExpiresAt, codeChallenge, logger,
 	)
 	if apiErr != nil {
 		return apiErr
@@ -104,7 +106,7 @@ func (ctrl *Controller) signupWithTicket(
 		user.DisplayName,
 		email,
 		"",
-		"",
+		codeChallenge,
 		logger,
 	); apiErr != nil {
 		return apiErr

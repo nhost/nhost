@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/pkce"
 )
 
 func (ctrl *Controller) getSignupProviderValidateRequest(
@@ -33,6 +34,13 @@ func (ctrl *Controller) getSignupProviderValidateRequest(
 			slog.String("redirectTo", *options.RedirectTo), logError(err))
 
 		return nil, ErrInvalidRequest
+	}
+
+	if cc := deptr(req.Params.CodeChallenge); cc != "" {
+		if err := pkce.ValidateCodeChallengeFormat(cc); err != nil {
+			logger.WarnContext(ctx, "invalid code challenge format", logError(err))
+			return nil, ErrInvalidRequest
+		}
 	}
 
 	return redirectTo, nil
@@ -72,8 +80,9 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn,funlen
 				Metadata:     req.Params.Metadata,
 				RedirectTo:   req.Params.RedirectTo,
 			},
-			"state":        req.Params.State,
-			"signupIntent": true, // Mark this as explicit signup intent
+			"state":         req.Params.State,
+			"signupIntent":  true, // Mark this as explicit signup intent
+			"codeChallenge": req.Params.CodeChallenge,
 		},
 		time.Now().Add(time.Minute),
 	)

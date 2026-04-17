@@ -2,13 +2,14 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import type { ChainFunction, FetchResponse } from '../fetch';
-import { createEnhancedFetch, FetchError } from '../fetch';
+import type { ChainFunction, FetchResponse } from "../fetch";
+import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
  * Date in RFC 2822 format
  */
 export type RFC2822Date = string;
+
 
 /**
  * Error details.
@@ -18,14 +19,15 @@ export type RFC2822Date = string;
 export interface ErrorResponseError {
   /**
    * Human-readable error message.
-   *    Example - `"File not found"`
+    *    Example - `"File not found"`
    */
-  message: string;
+  message: string,
   /**
    * Additional data related to the error, if any.
    */
-  data?: Record<string, unknown>;
-}
+  data?: Record<string, unknown>,
+};
+
 
 /**
  * Error information returned by the API.
@@ -34,8 +36,9 @@ export interface ErrorResponse {
   /**
    * Error details.
    */
-  error?: ErrorResponseError;
-}
+  error?: ErrorResponseError,
+};
+
 
 /**
  * Error details.
@@ -45,14 +48,15 @@ export interface ErrorResponse {
 export interface ErrorResponseWithProcessedFilesError {
   /**
    * Human-readable error message.
-   *    Example - `"File not found"`
+    *    Example - `"File not found"`
    */
-  message: string;
+  message: string,
   /**
    * Additional data related to the error, if any.
    */
-  data?: Record<string, unknown>;
-}
+  data?: Record<string, unknown>,
+};
+
 
 /**
  * Error information returned by the API.
@@ -62,12 +66,13 @@ export interface ErrorResponseWithProcessedFiles {
   /**
    * List of files that were successfully processed before the error occurred.
    */
-  processedFiles?: FileMetadata[];
+  processedFiles?: FileMetadata[],
   /**
    * Error details.
    */
-  error?: ErrorResponseWithProcessedFilesError;
-}
+  error?: ErrorResponseWithProcessedFilesError,
+};
+
 
 /**
  * Comprehensive metadata information about a file in storage.
@@ -99,63 +104,64 @@ export interface ErrorResponseWithProcessedFiles {
 export interface FileMetadata {
   /**
    * Unique identifier for the file.
-   *    Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
+    *    Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
    */
-  id: string;
+  id: string,
   /**
    * Name of the file including extension.
-   *    Example - `"profile-picture.jpg"`
+    *    Example - `"profile-picture.jpg"`
    */
-  name: string;
+  name: string,
   /**
    * Size of the file in bytes.
-   *    Example - `245678`
-   *    Format - int64
+    *    Example - `245678`
+    *    Format - int64
    */
-  size: number;
+  size: number,
   /**
    * ID of the bucket containing the file.
-   *    Example - `"users-bucket"`
+    *    Example - `"users-bucket"`
    */
-  bucketId: string;
+  bucketId: string,
   /**
    * Entity tag for cache validation.
-   *    Example - `"\"a1b2c3d4e5f6\""`
+    *    Example - `"\"a1b2c3d4e5f6\""`
    */
-  etag: string;
+  etag: string,
   /**
    * Timestamp when the file was created.
-   *    Example - `"2023-01-15T12:34:56Z"`
-   *    Format - date-time
+    *    Example - `"2023-01-15T12:34:56Z"`
+    *    Format - date-time
    */
-  createdAt: string;
+  createdAt: string,
   /**
    * Timestamp when the file was last updated.
-   *    Example - `"2023-01-16T09:45:32Z"`
-   *    Format - date-time
+    *    Example - `"2023-01-16T09:45:32Z"`
+    *    Format - date-time
    */
-  updatedAt: string;
+  updatedAt: string,
   /**
    * Whether the file has been successfully uploaded.
-   *    Example - `true`
+    *    Example - `true`
    */
-  isUploaded: boolean;
+  isUploaded: boolean,
   /**
    * MIME type of the file.
-   *    Example - `"image/jpeg"`
+    *    Example - `"image/jpeg"`
    */
-  mimeType: string;
+  mimeType: string,
   /**
    * ID of the user who uploaded the file.
-   *    Example - `"abc123def456"`
+    *    Example - `"abc123def456"`
    */
-  uploadedByUserId?: string;
+  uploadedByUserId?: string,
   /**
    * Custom metadata associated with the file.
-   *    Example - `{"alt":"Profile picture","category":"avatar"}`
+    *    Example - `{"alt":"Profile picture","category":"avatar"}`
    */
-  metadata?: Record<string, unknown>;
-}
+  metadata?: Record<string, unknown>,
+};
+
 
 /**
  * Basic information about a file in storage.
@@ -170,25 +176,26 @@ export interface FileMetadata {
 export interface FileSummary {
   /**
    * Unique identifier for the file.
-   *    Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
+    *    Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
    */
-  id: string;
+  id: string,
   /**
    * Name of the file including extension.
-   *    Example - `"profile-picture.jpg"`
+    *    Example - `"profile-picture.jpg"`
    */
-  name: string;
+  name: string,
   /**
    * ID of the bucket containing the file.
-   *    Example - `"users-bucket"`
+    *    Example - `"users-bucket"`
    */
-  bucketId: string;
+  bucketId: string,
   /**
    * Whether the file has been successfully uploaded.
-   *    Example - `true`
+    *    Example - `true`
    */
-  isUploaded: boolean;
-}
+  isUploaded: boolean,
+};
+
 
 /**
  * Contains a presigned URL for direct file operations.
@@ -199,15 +206,16 @@ export interface FileSummary {
 export interface PresignedURLResponse {
   /**
    * The presigned URL for file operations.
-   *    Example - `"https://storage.example.com/files/abc123?signature=xyz"`
+    *    Example - `"https://storage.example.com/files/abc123?signature=xyz"`
    */
-  url: string;
+  url: string,
   /**
    * The time in seconds until the URL expires.
-   *    Example - `3600`
+    *    Example - `3600`
    */
-  expiration: number;
-}
+  expiration: number,
+};
+
 
 /**
  * Metadata that can be updated for an existing file.
@@ -218,15 +226,16 @@ export interface PresignedURLResponse {
 export interface UpdateFileMetadata {
   /**
    * New name to assign to the file.
-   *    Example - `"renamed-file.jpg"`
+    *    Example - `"renamed-file.jpg"`
    */
-  name?: string;
+  name?: string,
   /**
    * Updated custom metadata to associate with the file.
-   *    Example - `{"alt":"Updated image description","category":"profile"}`
+    *    Example - `{"alt":"Updated image description","category":"profile"}`
    */
-  metadata?: Record<string, unknown>;
-}
+  metadata?: Record<string, unknown>,
+};
+
 
 /**
  * Metadata provided when uploading a new file.
@@ -239,20 +248,21 @@ export interface UpdateFileMetadata {
 export interface UploadFileMetadata {
   /**
    * Optional custom ID for the file. If not provided, a UUID will be generated.
-   *    Example - `"custom-id-123"`
+    *    Example - `"custom-id-123"`
    */
-  id?: string;
+  id?: string,
   /**
    * Name to assign to the file. If not provided, the original filename will be used.
-   *    Example - `"custom-filename.png"`
+    *    Example - `"custom-filename.png"`
    */
-  name?: string;
+  name?: string,
   /**
    * Custom metadata to associate with the file.
-   *    Example - `{"alt":"Custom image","category":"document"}`
+    *    Example - `{"alt":"Custom image","category":"document"}`
    */
-  metadata?: Record<string, unknown>;
-}
+  metadata?: Record<string, unknown>,
+};
+
 
 /**
  * Contains version information about the storage service.
@@ -261,22 +271,17 @@ export interface UploadFileMetadata {
 export interface VersionInformation {
   /**
    * The version number of the storage service build.
-   *    Example - `"1.2.3"`
+    *    Example - `"1.2.3"`
    */
-  buildVersion: string;
-}
+  buildVersion: string,
+};
+
 
 /**
  * Output format for image files. Use 'auto' for content negotiation based on Accept header
  */
-export type OutputImageFormat =
-  | 'auto'
-  | 'same'
-  | 'jpeg'
-  | 'webp'
-  | 'png'
-  | 'avif'
-  | 'heic';
+export type OutputImageFormat = "auto" | "same" | "jpeg" | "webp" | "png" | "avif" | "heic";
+
 
 /**
  * 
@@ -287,18 +292,19 @@ export type OutputImageFormat =
 export interface UploadFilesBody {
   /**
    * Target bucket identifier where files will be stored.
-   *    Example - `"user-uploads"`
+    *    Example - `"user-uploads"`
    */
-  'bucket-id'?: string;
+  "bucket-id"?: string,
   /**
    * Optional custom metadata for each uploaded file. Must match the order of the file[] array.
    */
-  'metadata[]'?: UploadFileMetadata[];
+  "metadata[]"?: UploadFileMetadata[],
   /**
    * Array of files to upload.
    */
-  'file[]': Blob[];
-}
+  "file[]": Blob[],
+};
+
 
 /**
  * 
@@ -307,8 +313,9 @@ export interface UploadFilesResponse201 {
   /**
    * List of successfully processed files with their metadata.
    */
-  processedFiles: FileMetadata[];
-}
+  processedFiles: FileMetadata[],
+};
+
 
 /**
  * 
@@ -319,63 +326,68 @@ export interface ReplaceFileBody {
   /**
    * Metadata that can be updated for an existing file.
    */
-  metadata?: UpdateFileMetadata;
+  metadata?: UpdateFileMetadata,
   /**
    * New file content to replace the existing file
-   *    Format - binary
+    *    Format - binary
    */
-  file?: Blob;
-}
+  file?: Blob,
+};
+
 
 /**
  * 
  @property metadata? (`FileSummary[]`) - */
 export interface DeleteBrokenMetadataResponse200 {
   /**
-   *
+   * 
    */
-  metadata?: FileSummary[];
-}
+  metadata?: FileSummary[],
+};
+
 
 /**
  * 
  @property files? (`string[]`) - */
 export interface DeleteOrphanedFilesResponse200 {
   /**
-   *
+   * 
    */
-  files?: string[];
-}
+  files?: string[],
+};
+
 
 /**
  * 
  @property metadata? (`FileSummary[]`) - */
 export interface ListBrokenMetadataResponse200 {
   /**
-   *
+   * 
    */
-  metadata?: FileSummary[];
-}
+  metadata?: FileSummary[],
+};
+
 
 /**
  * 
  @property metadata? (`FileSummary[]`) - */
 export interface ListFilesNotUploadedResponse200 {
   /**
-   *
+   * 
    */
-  metadata?: FileSummary[];
-}
+  metadata?: FileSummary[],
+};
+
 
 /**
  * 
  @property files? (`string[]`) - */
 export interface ListOrphanedFilesResponse200 {
   /**
-   *
+   * 
    */
-  files?: string[];
-}
+  files?: string[],
+};
 
 /**
  * Parameters for the getFile method.
@@ -460,6 +472,7 @@ export interface GetFileMetadataHeadersParams {
   f?: OutputImageFormat;
 }
 
+
 export interface Client {
   baseURL: string;
 
@@ -467,7 +480,7 @@ export interface Client {
    * @param chainFunction - The middleware function to add
    */
   pushChainFunction(chainFunction: ChainFunction): void;
-  /**
+    /**
      Summary: Upload files
      Upload one or more files to a specified bucket. Supports batch uploading with optional custom metadata for each file. If uploading multiple files, either provide metadata for all files or none.
 
@@ -479,16 +492,19 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<UploadFilesResponse201>>;
 
-  /**
+    /**
      Summary: Delete file
      Permanently delete a file from storage. This removes both the file content and its associated metadata.
 
      This method may return different T based on the response code:
      - 204: void
      */
-  deleteFile(id: string, options?: RequestInit): Promise<FetchResponse<void>>;
+  deleteFile(
+    id: string,
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>>;
 
-  /**
+    /**
      Summary: Download file
      Retrieve and download the complete file content. Supports conditional requests, image transformations, and range requests for partial downloads.
 
@@ -504,7 +520,7 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<Blob>>;
 
-  /**
+    /**
      Summary: Check file information
      Retrieve file metadata headers without downloading the file content. Supports conditional requests and provides caching information.
 
@@ -519,7 +535,7 @@ export interface Client {
     options?: RequestInit,
   ): Promise<FetchResponse<void>>;
 
-  /**
+    /**
      Summary: Replace file
      Replace an existing file with new content while preserving the file ID. The operation follows these steps:
 1. The isUploaded flag is set to false to mark the file as being updated
@@ -538,7 +554,7 @@ Each step is atomic, but if a step fails, previous steps will not be automatical
     options?: RequestInit,
   ): Promise<FetchResponse<FileMetadata>>;
 
-  /**
+    /**
      Summary: Retrieve presigned URL to retrieve the file
      Retrieve presigned URL to retrieve the file. Expiration of the URL is
 determined by bucket configuration
@@ -552,7 +568,7 @@ determined by bucket configuration
     options?: RequestInit,
   ): Promise<FetchResponse<PresignedURLResponse>>;
 
-  /**
+    /**
      Summary: Delete broken metadata
      Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it. This is an admin operation that requires the Hasura admin secret.
 
@@ -563,7 +579,7 @@ determined by bucket configuration
     options?: RequestInit,
   ): Promise<FetchResponse<DeleteBrokenMetadataResponse200>>;
 
-  /**
+    /**
      Summary: Deletes orphaned files
      Orphaned files are files that are present in the storage but have no associated metadata. This is an admin operation that requires the Hasura admin secret.
 
@@ -574,7 +590,7 @@ determined by bucket configuration
     options?: RequestInit,
   ): Promise<FetchResponse<DeleteOrphanedFilesResponse200>>;
 
-  /**
+    /**
      Summary: Lists broken metadata
      Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it. This is an admin operation that requires the Hasura admin secret.
 
@@ -585,7 +601,7 @@ determined by bucket configuration
     options?: RequestInit,
   ): Promise<FetchResponse<ListBrokenMetadataResponse200>>;
 
-  /**
+    /**
      Summary: Lists files that haven't been uploaded
      That is, metadata that has isUploaded = false. This is an admin operation that requires the Hasura admin secret.
 
@@ -596,7 +612,7 @@ determined by bucket configuration
     options?: RequestInit,
   ): Promise<FetchResponse<ListFilesNotUploadedResponse200>>;
 
-  /**
+    /**
      Summary: Lists orphaned files
      Orphaned files are files that are present in the storage but have no associated metadata. This is an admin operation that requires the Hasura admin secret.
 
@@ -607,15 +623,18 @@ determined by bucket configuration
     options?: RequestInit,
   ): Promise<FetchResponse<ListOrphanedFilesResponse200>>;
 
-  /**
+    /**
      Summary: Get service version information
      Retrieves build and version information about the storage service. Useful for monitoring and debugging.
 
      This method may return different T based on the response code:
      - 200: VersionInformation
      */
-  getVersion(options?: RequestInit): Promise<FetchResponse<VersionInformation>>;
-}
+  getVersion(
+    options?: RequestInit,
+  ): Promise<FetchResponse<VersionInformation>>;
+};
+
 
 export const createAPIClient = (
   baseURL: string,
@@ -627,44 +646,49 @@ export const createAPIClient = (
     chainFunctions.push(chainFunction);
     fetch = createEnhancedFetch(chainFunctions);
   };
-  const uploadFiles = async (
+    const  uploadFiles = async (
     body: UploadFilesBody,
     options?: RequestInit,
   ): Promise<FetchResponse<UploadFilesResponse201>> => {
-    const url = `${baseURL}/files`;
+    const url = `${ baseURL }/files`;
     const formData = new FormData();
     const isReactNative =
-      typeof navigator !== 'undefined' &&
-      (navigator as { product?: string }).product === 'ReactNative';
-    if (body['bucket-id'] !== undefined) {
-      formData.append('bucket-id', body['bucket-id']);
+      typeof navigator !== "undefined" &&
+      (navigator as { product?: string }).product === "ReactNative";
+    if (body["bucket-id"] !== undefined) {
+      formData.append("bucket-id", body["bucket-id"]);
     }
-    if (body['metadata[]'] !== undefined) {
-      body['metadata[]'].forEach((value) => {
-        if (isReactNative) {
-          formData.append('metadata[]', {
-            string: JSON.stringify(value),
-            type: 'application/json',
-            name: '',
-          } as unknown as Blob);
-        } else {
-          formData.append(
-            'metadata[]',
-            new Blob([JSON.stringify(value)], { type: 'application/json' }),
-            '',
-          );
+    if (body["metadata[]"] !== undefined) {
+      body["metadata[]"].forEach((value) => {
+          if (isReactNative) {
+            formData.append(
+              "metadata[]",
+              {
+                string: JSON.stringify(value),
+                type: "application/json",
+                name: "",
+              } as unknown as Blob,
+            );
+          } else {
+            formData.append(
+            "metadata[]",
+              new Blob([JSON.stringify(value)], { type: "application/json" }),
+              "",
+            );
+          }
         }
-      });
+      );
     }
-    if (body['file[]'] !== undefined) {
-      body['file[]'].forEach((value) => {
-        formData.append('file[]', value);
-      });
+    if (body["file[]"] !== undefined) {
+      body["file[]"].forEach((value) => {
+          formData.append("file[]", value)
+        }
+      );
     }
 
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       body: formData,
     });
 
@@ -673,29 +697,27 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: UploadFilesResponse201 = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: UploadFilesResponse201 = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<UploadFilesResponse201>;
+
   };
 
-  const deleteFile = async (
+    const  deleteFile = async (
     id: string,
     options?: RequestInit,
   ): Promise<FetchResponse<void>> => {
-    const url = `${baseURL}/files/${id}`;
+    const url = `${ baseURL }/files/${id}`;
     const res = await fetch(url, {
       ...options,
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
         ...options?.headers,
       },
@@ -706,41 +728,44 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
+    
     const payload: undefined = undefined;
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<void>;
+
   };
 
-  const getFile = async (
+    const  getFile = async (
     id: string,
     params?: GetFileParams,
     options?: RequestInit,
   ): Promise<FetchResponse<Blob>> => {
-    const encodedParameters =
-      params &&
-      Object.entries(params)
-        .flatMap(([key, value]) => {
-          // Default handling (scalars or explode: false)
-          const stringValue = Array.isArray(value)
-            ? value.join(',')
-            : typeof value === 'object' && value !== null
-              ? JSON.stringify(value)
-              : String(value);
-          return [`${key}=${encodeURIComponent(stringValue)}`];
-        })
-        .join('&');
+  const encodedParameters =
+    params &&
+    Object.entries(params)
+      .flatMap(([key, value]) => {
+        // Default handling (scalars or explode: false)
+        const stringValue = Array.isArray(value)
+          ? value.join(',')
+          : typeof value === 'object' && value !== null
+          ? JSON.stringify(value)
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
+      })
+      .join('&')
 
-    const url = encodedParameters
-      ? `${baseURL}/files/${id}?${encodedParameters}`
-      : `${baseURL}/files/${id}`;
+    const url =
+     encodedParameters
+        ? `${ baseURL }/files/${id}?${encodedParameters}`
+        : `${ baseURL }/files/${id}`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -751,41 +776,44 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
+    
     const payload: Blob = await res.blob();
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<Blob>;
+
   };
 
-  const getFileMetadataHeaders = async (
+    const  getFileMetadataHeaders = async (
     id: string,
     params?: GetFileMetadataHeadersParams,
     options?: RequestInit,
   ): Promise<FetchResponse<void>> => {
-    const encodedParameters =
-      params &&
-      Object.entries(params)
-        .flatMap(([key, value]) => {
-          // Default handling (scalars or explode: false)
-          const stringValue = Array.isArray(value)
-            ? value.join(',')
-            : typeof value === 'object' && value !== null
-              ? JSON.stringify(value)
-              : String(value);
-          return [`${key}=${encodeURIComponent(stringValue)}`];
-        })
-        .join('&');
+  const encodedParameters =
+    params &&
+    Object.entries(params)
+      .flatMap(([key, value]) => {
+        // Default handling (scalars or explode: false)
+        const stringValue = Array.isArray(value)
+          ? value.join(',')
+          : typeof value === 'object' && value !== null
+          ? JSON.stringify(value)
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
+      })
+      .join('&')
 
-    const url = encodedParameters
-      ? `${baseURL}/files/${id}?${encodedParameters}`
-      : `${baseURL}/files/${id}`;
+    const url =
+     encodedParameters
+        ? `${ baseURL }/files/${id}?${encodedParameters}`
+        : `${ baseURL }/files/${id}`;
     const res = await fetch(url, {
       ...options,
-      method: 'HEAD',
+      method: "HEAD",
       headers: {
         ...options?.headers,
       },
@@ -796,50 +824,53 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
+    
     const payload: undefined = undefined;
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<void>;
+
   };
 
-  const replaceFile = async (
+    const  replaceFile = async (
     id: string,
     body: ReplaceFileBody,
     options?: RequestInit,
   ): Promise<FetchResponse<FileMetadata>> => {
-    const url = `${baseURL}/files/${id}`;
+    const url = `${ baseURL }/files/${id}`;
     const formData = new FormData();
     const isReactNative =
-      typeof navigator !== 'undefined' &&
-      (navigator as { product?: string }).product === 'ReactNative';
-    if (body['metadata'] !== undefined) {
+      typeof navigator !== "undefined" &&
+      (navigator as { product?: string }).product === "ReactNative";
+    if (body["metadata"] !== undefined) {
       if (isReactNative) {
-        formData.append('metadata', {
-          string: JSON.stringify(body['metadata']),
-          type: 'application/json',
-          name: '',
-        } as unknown as Blob);
+        formData.append(
+          "metadata",
+          {
+            string: JSON.stringify(body["metadata"]),
+            type: "application/json",
+            name: "",
+          } as unknown as Blob,
+        );
       } else {
         formData.append(
-          'metadata',
-          new Blob([JSON.stringify(body['metadata'])], {
-            type: 'application/json',
-          }),
-          '',
+        "metadata",
+          new Blob([JSON.stringify(body["metadata"])], { type: "application/json" }),
+          "",
         );
       }
     }
-    if (body['file'] !== undefined) {
-      formData.append('file', body['file']);
+    if (body["file"] !== undefined) {
+      formData.append("file", body["file"]);
     }
 
     const res = await fetch(url, {
       ...options,
-      method: 'PUT',
+      method: "PUT",
       body: formData,
     });
 
@@ -848,27 +879,27 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
     const payload: FileMetadata = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<FileMetadata>;
+
   };
 
-  const getFilePresignedURL = async (
+    const  getFilePresignedURL = async (
     id: string,
     options?: RequestInit,
   ): Promise<FetchResponse<PresignedURLResponse>> => {
-    const url = `${baseURL}/files/${id}/presignedurl`;
+    const url = `${ baseURL }/files/${id}/presignedurl`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -879,28 +910,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: PresignedURLResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: PresignedURLResponse = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<PresignedURLResponse>;
+
   };
 
-  const deleteBrokenMetadata = async (
+    const  deleteBrokenMetadata = async (
     options?: RequestInit,
   ): Promise<FetchResponse<DeleteBrokenMetadataResponse200>> => {
-    const url = `${baseURL}/ops/delete-broken-metadata`;
+    const url = `${ baseURL }/ops/delete-broken-metadata`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
         ...options?.headers,
       },
@@ -911,28 +940,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: DeleteBrokenMetadataResponse200 = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: DeleteBrokenMetadataResponse200 = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<DeleteBrokenMetadataResponse200>;
+
   };
 
-  const deleteOrphanedFiles = async (
+    const  deleteOrphanedFiles = async (
     options?: RequestInit,
   ): Promise<FetchResponse<DeleteOrphanedFilesResponse200>> => {
-    const url = `${baseURL}/ops/delete-orphans`;
+    const url = `${ baseURL }/ops/delete-orphans`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
         ...options?.headers,
       },
@@ -943,28 +970,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: DeleteOrphanedFilesResponse200 = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: DeleteOrphanedFilesResponse200 = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<DeleteOrphanedFilesResponse200>;
+
   };
 
-  const listBrokenMetadata = async (
+    const  listBrokenMetadata = async (
     options?: RequestInit,
   ): Promise<FetchResponse<ListBrokenMetadataResponse200>> => {
-    const url = `${baseURL}/ops/list-broken-metadata`;
+    const url = `${ baseURL }/ops/list-broken-metadata`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
         ...options?.headers,
       },
@@ -975,28 +1000,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: ListBrokenMetadataResponse200 = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: ListBrokenMetadataResponse200 = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<ListBrokenMetadataResponse200>;
+
   };
 
-  const listFilesNotUploaded = async (
+    const  listFilesNotUploaded = async (
     options?: RequestInit,
   ): Promise<FetchResponse<ListFilesNotUploadedResponse200>> => {
-    const url = `${baseURL}/ops/list-not-uploaded`;
+    const url = `${ baseURL }/ops/list-not-uploaded`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
         ...options?.headers,
       },
@@ -1007,28 +1030,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: ListFilesNotUploadedResponse200 = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: ListFilesNotUploadedResponse200 = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<ListFilesNotUploadedResponse200>;
+
   };
 
-  const listOrphanedFiles = async (
+    const  listOrphanedFiles = async (
     options?: RequestInit,
   ): Promise<FetchResponse<ListOrphanedFilesResponse200>> => {
-    const url = `${baseURL}/ops/list-orphans`;
+    const url = `${ baseURL }/ops/list-orphans`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
         ...options?.headers,
       },
@@ -1039,28 +1060,26 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: ListOrphanedFilesResponse200 = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: ListOrphanedFilesResponse200 = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<ListOrphanedFilesResponse200>;
+
   };
 
-  const getVersion = async (
+    const  getVersion = async (
     options?: RequestInit,
   ): Promise<FetchResponse<VersionInformation>> => {
-    const url = `${baseURL}/version`;
+    const url = `${ baseURL }/version`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
         ...options?.headers,
       },
@@ -1071,35 +1090,34 @@ export const createAPIClient = (
       const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
       throw new FetchError(payload, res.status, res.headers);
     }
-
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: VersionInformation = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: VersionInformation = responseBody ? JSON.parse(responseBody) : {};
+    
 
     return {
       body: payload,
       status: res.status,
       headers: res.headers,
     } as FetchResponse<VersionInformation>;
+
   };
+
 
   return {
     baseURL,
     pushChainFunction,
-    uploadFiles,
-    deleteFile,
-    getFile,
-    getFileMetadataHeaders,
-    replaceFile,
-    getFilePresignedURL,
-    deleteBrokenMetadata,
-    deleteOrphanedFiles,
-    listBrokenMetadata,
-    listFilesNotUploaded,
-    listOrphanedFiles,
-    getVersion,
+      uploadFiles,
+      deleteFile,
+      getFile,
+      getFileMetadataHeaders,
+      replaceFile,
+      getFilePresignedURL,
+      deleteBrokenMetadata,
+      deleteOrphanedFiles,
+      listBrokenMetadata,
+      listFilesNotUploaded,
+      listOrphanedFiles,
+      getVersion,
   };
 };

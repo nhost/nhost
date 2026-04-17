@@ -137,12 +137,16 @@ func (ctrl *Controller) providerFlowSignIn(
 // providerResolveUser resolves or creates a user from an OAuth provider profile
 // without creating a session. Used in the PKCE flow where session creation is
 // deferred to the token exchange endpoint.
+// When signupIntent is true the caller used the explicit /signup/provider endpoint:
+// an existing user is reported as ErrUserAlreadyExists, and DisableAutoSignup is
+// bypassed so the new account is created.
 // Returns uuid.Nil when the user cannot sign in yet (e.g. email verification required).
 func (ctrl *Controller) providerResolveUser(
 	ctx context.Context,
 	profile oidc.Profile,
 	provider string,
 	options *api.SignUpOptions,
+	signupIntent bool,
 	logger *slog.Logger,
 ) (uuid.UUID, *APIError) {
 	user, userFound, providerFound, apiError := ctrl.postSigninIdtokenCheckUserExists(
@@ -153,6 +157,11 @@ func (ctrl *Controller) providerResolveUser(
 	}
 
 	if userFound {
+		if signupIntent {
+			logger.WarnContext(ctx, "user already exists")
+			return uuid.Nil, ErrUserAlreadyExists
+		}
+
 		logger.InfoContext(ctx, "user found, resolving for PKCE")
 
 		if !providerFound {
@@ -170,7 +179,7 @@ func (ctrl *Controller) providerResolveUser(
 		return user.ID, nil
 	}
 
-	if ctrl.config.DisableAutoSignup {
+	if !signupIntent && ctrl.config.DisableAutoSignup {
 		logger.InfoContext(ctx, "auto-signup disabled, user not found")
 		return uuid.Nil, ErrInvalidEmailPassword
 	}

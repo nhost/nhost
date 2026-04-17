@@ -58,7 +58,8 @@ func (ctrl *Controller) SignUpOTPEmail( //nolint:ireturn
 
 	ticketExpiresAt := time.Now().Add(time.Hour)
 
-	// Call signupWithTicket directly since we've already verified user doesn't exist
+	// Call signupWithTicket directly since we've already verified user doesn't exist.
+	// OTP email is not a magic-link flow so PKCE does not apply.
 	if apiErr := ctrl.signupWithTicket(
 		ctx,
 		string(request.Body.Email),
@@ -67,6 +68,7 @@ func (ctrl *Controller) SignUpOTPEmail( //nolint:ireturn
 		ticketExpiresAt,
 		notifications.TemplateNameSigninOTP,
 		LinkTypeNone,
+		"",
 		logger,
 	); apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
