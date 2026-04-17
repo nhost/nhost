@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/creack/pty"
 	"gopkg.in/yaml.v3"
@@ -29,12 +30,24 @@ func New(workingDir, filepath, projectName string) *DockerCompose {
 	}
 }
 
+func escapeComposeEnvValues(composeFile *ComposeFile) {
+	for _, svc := range composeFile.Services {
+		for k, v := range svc.Environment {
+			if strings.Contains(v, "$") {
+				svc.Environment[k] = strings.ReplaceAll(v, "$", "$$")
+			}
+		}
+	}
+}
+
 func (dc *DockerCompose) WriteComposeFile(composeFile *ComposeFile) error {
 	f, err := os.Create(dc.filepath)
 	if err != nil {
 		return fmt.Errorf("failed to create docker-compose file: %w", err)
 	}
 	defer f.Close()
+
+	escapeComposeEnvValues(composeFile)
 
 	b, err := yaml.Marshal(composeFile)
 	if err != nil {
