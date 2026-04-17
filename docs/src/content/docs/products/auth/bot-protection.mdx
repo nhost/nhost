@@ -15,10 +15,13 @@ To safeguard your Auth API against automated attacks from scripts and bots, you 
 ## Integration Benefits
 
 1. **Selective Protection**: Auth integrates Turnstile specifically for:
-  a. Signup requests
+  a. Signup requests via email/password, passwordless email, email OTP, passwordless SMS, ID token, and WebAuthn
   b. Password reset requests
-  c. Passwordless signin requests (OTP, SMS and magic links)
-2. **API Accessibility**: Other API endpoints remain accessible for legitimate programmatic use.
+  c. Signin requests that trigger an email or SMS: magic-link email, email OTP, and SMS OTP
+2. **API Accessibility**: Other API endpoints remain accessible for legitimate programmatic use. The following are explicitly excluded, so clients don't need to deliver a Turnstile token on them:
+  a. Verification endpoints (for example `/signin/otp/email/verify`, `/signup/webauthn/verify`, `/signin/passwordless/sms/otp`)
+  b. OAuth2 callback endpoints (`/signin/provider/{provider}/callback`)
+  c. OAuth2 redirect initiators (`/signin/provider/{provider}` and `/signup/provider/{provider}`) — these are GET redirects that the browser navigates to via `window.location`, which cannot carry custom headers
 3. **Bot Deterrence**: Manual verification during signup discourages unwanted bot activity.
 
 This approach balances security with usability, ensuring robust protection where it matters most.
@@ -58,7 +61,7 @@ Start by adding the following configuration to your Nhost project:
 
 To integrate turnstile into your sign up form you can refer to [Cloudfare's documentation](https://developers.cloudflare.com/turnstile/tutorials/login-pages). Just keep in mind a few things:
 
-    - You don't need to do any verification of the response, just pass it to the Auth service on the `/signup/...` request in the header `x-cf-turnstile-response`.
+    - You don't need to do any verification of the response, just pass it to the Auth service on any protected `/signup/...`, passwordless `/signin/...`, or `/user/password/reset` request in the header `x-cf-turnstile-response`.
     - The "server side verification" is done by the auth service and will return a forbidden status error if the header is not present or if the check didn't pass.
     - You will need to use the site key from step 1 to configure turnstile in your form
 

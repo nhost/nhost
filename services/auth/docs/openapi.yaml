@@ -234,7 +234,9 @@ paths:
   /signin/anonymous:
     post:
       summary: Sign in anonymously
-      description: Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+      description: |
+        Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+        This endpoint always creates a new user and is **not** gated by `AUTH_DISABLE_AUTO_SIGNUP`; it is controlled by `AUTH_DISABLE_SIGNUP` and `AUTH_ANONYMOUS_USERS_ENABLED`.
       operationId: signInAnonymous
       tags:
         - authentication
@@ -367,8 +369,8 @@ paths:
         required: true
       responses:
         "200":
-          description: >-
-            OTP sent to user's email successfully
+          description: |
+            OTP sent to the user's email. To prevent account enumeration, this response is also returned without side effects when the email is not registered and `AUTH_DISABLE_AUTO_SIGNUP` is enabled.
           content:
             application/json:
               schema:
@@ -428,7 +430,8 @@ paths:
         required: true
       responses:
         "200":
-          description: "Magic link email sent successfully"
+          description: |
+            Magic link sent to the user's email. To prevent account enumeration, this response is also returned without side effects when the email is not registered and `AUTH_DISABLE_AUTO_SIGNUP` is enabled.
           content:
             application/json:
               schema:
@@ -459,8 +462,8 @@ paths:
         required: true
       responses:
         "200":
-          description: >-
-            OTP sent to user's phone number successfully
+          description: |
+            OTP sent to the user's phone number. To prevent account enumeration, this response is also returned without side effects when the phone number is not registered and `AUTH_DISABLE_AUTO_SIGNUP` is enabled.
           content:
             application/json:
               schema:
@@ -647,7 +650,9 @@ paths:
   /signin/provider/{provider}/callback:
     get:
       summary: OAuth2 provider callback endpoint
-      description: Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session.
+      description: |
+        Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session.
+        This endpoint is where the signin-vs-signup decision (from the signed `flow` state claim) and the `AUTH_DISABLE_AUTO_SIGNUP` gate are actually enforced: on a `flow=signin` state with an unknown user and the flag enabled, the user is redirected with `error=invalid-email-password`; on a `flow=signup` state with an existing user, the user is redirected with `error=user-already-exists`.
       operationId: signInProviderCallbackGet
       tags:
         - authentication
@@ -716,7 +721,9 @@ paths:
 
     post:
       summary: OAuth2 provider callback endpoint (form_post)
-      description: Handles OAuth2 provider callbacks using form_post response mode. Used by providers like Apple that send data via POST instead of query parameters.
+      description: |
+        Handles OAuth2 provider callbacks using form_post response mode. Used by providers like Apple that send data via POST instead of query parameters.
+        Like the GET variant, this endpoint enforces the signin-vs-signup decision carried by the signed `flow` state claim and the `AUTH_DISABLE_AUTO_SIGNUP` gate.
       operationId: signInProviderCallbackPost
       tags:
         - authentication
@@ -992,9 +999,8 @@ paths:
     post:
       summary: Sign up with magic link email
       description: |
-        Register a new user account using passwordless email authentication.
-        Sends a magic link to the specified email address for verification.
-        Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+        Register a new user account using passwordless email authentication. Sends a magic link to the specified email address for verification.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
       operationId: signUpPasswordlessEmail
       tags:
         - authentication
@@ -1007,7 +1013,8 @@ paths:
         required: true
       responses:
         "200":
-          description: "Magic link email sent successfully"
+          description: |
+            Magic link sent to the user's email. To prevent account enumeration, this response is also returned without side effects when the email is already registered.
           content:
             application/json:
               schema:
@@ -1023,9 +1030,8 @@ paths:
     post:
       summary: Sign up with email OTP
       description: |
-        Register a new user account using email OTP authentication.
-        Sends a one-time password to the specified email address.
-        Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+        Register a new user account using email OTP authentication. Sends a one-time password to the specified email address.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
       operationId: signUpOTPEmail
       tags:
         - authentication
@@ -1038,7 +1044,8 @@ paths:
         required: true
       responses:
         "200":
-          description: "OTP sent to user's email successfully"
+          description: |
+            OTP sent to the user's email. To prevent account enumeration, this response is also returned without side effects when the email is already registered.
           content:
             application/json:
               schema:
@@ -1054,9 +1061,8 @@ paths:
     post:
       summary: Sign up with SMS OTP
       description: |
-        Register a new user account using SMS OTP authentication.
-        Sends a one-time password to the specified phone number.
-        Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+        Register a new user account using SMS OTP authentication. Sends a one-time password to the specified phone number.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
       operationId: signUpPasswordlessSms
       tags:
         - authentication
@@ -1069,7 +1075,8 @@ paths:
         required: true
       responses:
         "200":
-          description: "OTP sent to user's phone number successfully"
+          description: |
+            OTP sent to the user's phone number. To prevent account enumeration, this response is also returned without side effects when the phone number is already registered.
           content:
             application/json:
               schema:
@@ -1086,7 +1093,8 @@ paths:
       summary: Sign up with ID token
       description: |
         Register a new user account using an ID token from Apple or Google.
-        Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+        If the user already exists, a `user-already-exists` error is returned.
       operationId: signUpIdToken
       tags:
         - authentication
@@ -1115,9 +1123,9 @@ paths:
     get:
       summary: Sign up with OAuth provider
       description: |
-        Initiate OAuth signup flow with the specified provider.
-        Redirects to the provider's authorization page.
-        Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+        Initiate OAuth signup flow with the specified provider. Redirects to the provider's authorization page.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+        If the user already exists at callback time, they are redirected with `error=user-already-exists`.
       operationId: signUpProvider
       tags:
         - authentication
