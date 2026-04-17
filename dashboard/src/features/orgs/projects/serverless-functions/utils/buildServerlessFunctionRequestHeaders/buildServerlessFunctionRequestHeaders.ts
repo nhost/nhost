@@ -6,13 +6,13 @@ export default function buildServerlessFunctionRequestHeaders(
 ): Record<string, string> {
   const headersObj: Record<string, string> = {};
   for (const h of headerPairs) {
-    if (h.key) {
-      headersObj[h.key] = h.value;
+    if (!h.key) {
+      continue;
     }
-  }
-
-  if (isMultipart) {
-    delete headersObj['Content-Type'];
+    if (isMultipart && h.key.trim().toLowerCase() === 'content-type') {
+      continue;
+    }
+    headersObj[h.key] = h.value;
   }
 
   return headersObj;

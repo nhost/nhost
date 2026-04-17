@@ -39,6 +39,34 @@ describe('buildServerlessFunctionRequestHeaders', () => {
     });
   });
 
+  it('should remove lowercase content-type header when isMultipart is true', () => {
+    const pairs = [
+      { key: 'content-type', value: 'multipart/form-data' },
+      { key: 'Authorization', value: 'Bearer token' },
+    ];
+    expect(buildServerlessFunctionRequestHeaders(pairs, true)).toEqual({
+      Authorization: 'Bearer token',
+    });
+  });
+
+  it('should remove mixed-case CONTENT-TYPE header when isMultipart is true', () => {
+    const pairs = [
+      { key: 'CONTENT-TYPE', value: 'multipart/form-data' },
+      { key: '  Content-type  ', value: 'multipart/form-data' },
+      { key: 'Authorization', value: 'Bearer token' },
+    ];
+    expect(buildServerlessFunctionRequestHeaders(pairs, true)).toEqual({
+      Authorization: 'Bearer token',
+    });
+  });
+
+  it('should preserve user-supplied content-type when isMultipart is false', () => {
+    const pairs = [{ key: 'content-type', value: 'application/json' }];
+    expect(buildServerlessFunctionRequestHeaders(pairs, false)).toEqual({
+      'content-type': 'application/json',
+    });
+  });
+
   it('should return an empty object for empty pairs', () => {
     expect(buildServerlessFunctionRequestHeaders([], false)).toEqual({});
   });
