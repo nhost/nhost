@@ -343,32 +343,13 @@ func tailFunctionsContainerLogs(
 	path string,
 	logsCh chan<- []model.Log,
 ) {
-	pr, pw := io.Pipe()
+	lineCh := make(chan model.Log)
 
-	go func() {
-		_, err := stdcopy.StdCopy(pw, pw, reader)
-		pw.CloseWithError(err)
-	}()
+	go scanLines(ctx, reader, functionsService, func(l model.Log) bool {
+		return matchesJSONPath(l.Log, path)
+	}, lineCh)
 
-	scanner := bufio.NewScanner(pr)
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		logEntry, err := parseLogLine(line, functionsService)
-		if err != nil {
-			continue
-		}
-
-		if !matchesJSONPath(logEntry.Log, path) {
-			continue
-		}
-
-		select {
-		case logsCh <- []model.Log{logEntry}:
-		case <-ctx.Done():
-			return
-		}
-	}
+	sendBacklogThenTail(ctx, lineCh, logsCh)
 }
 
 // parseLogs demuxes a Docker log stream and parses timestamped log lines.
@@ -425,6 +406,26 @@ func tailContainerLogs(
 	re *regexp.Regexp,
 	logsCh chan<- []model.Log,
 ) {
+	lineCh := make(chan model.Log)
+
+	go scanLines(ctx, reader, serviceName, func(l model.Log) bool {
+		return re == nil || re.MatchString(l.Log)
+	}, lineCh)
+
+	sendBacklogThenTail(ctx, lineCh, logsCh)
+}
+
+// scanLines demuxes a Docker log stream, parses timestamped lines, applies the
+// filter, and forwards matching entries to lineCh. Closes lineCh on exit.
+func scanLines(
+	ctx context.Context,
+	reader io.Reader,
+	serviceName string,
+	keep func(model.Log) bool,
+	lineCh chan<- model.Log,
+) {
+	defer close(lineCh)
+
 	// For Follow mode, stdcopy.StdCopy blocks until the stream ends.
 	// We use a pipe to demux and scan concurrently.
 	pr, pw := io.Pipe()
@@ -443,14 +444,115 @@ func tailContainerLogs(
 			continue
 		}
 
-		if re != nil && !re.MatchString(logEntry.Log) {
+		if keep != nil && !keep(logEntry) {
 			continue
 		}
 
 		select {
-		case logsCh <- []model.Log{logEntry}:
+		case lineCh <- logEntry:
 		case <-ctx.Done():
 			return
 		}
+	}
+}
+
+// backlogIdleTimeout is how long sendBacklogThenTail waits for another entry
+// before flushing the initial backlog as a single batch and switching to
+// one-entry-per-payload live tailing.
+const backlogIdleTimeout = 200 * time.Millisecond
+
+// sendBacklogThenTail batches the first wave of entries (the replay of logs
+// since `from`) into a single []model.Log payload, flushing once the stream
+// idles. After that, every subsequent entry is sent as its own payload so live
+// logs arrive without added latency.
+func sendBacklogThenTail(
+	ctx context.Context,
+	lineCh <-chan model.Log,
+	logsCh chan<- []model.Log,
+) {
+	if !drainBacklog(ctx, lineCh, logsCh) {
+		return
+	}
+
+	tailLive(ctx, lineCh, logsCh)
+}
+
+// drainBacklog collects entries from lineCh until the stream idles for
+// backlogIdleTimeout, then flushes them as a single payload. Returns false if
+// the stream or context ended (caller should stop).
+func drainBacklog(
+	ctx context.Context,
+	lineCh <-chan model.Log,
+	logsCh chan<- []model.Log,
+) bool {
+	var pending []model.Log
+
+	select {
+	case <-ctx.Done():
+		return false
+	case entry, ok := <-lineCh:
+		if !ok {
+			return false
+		}
+
+		pending = append(pending, entry)
+	}
+
+	idle := time.NewTimer(backlogIdleTimeout)
+	defer idle.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return false
+		case entry, ok := <-lineCh:
+			if !ok {
+				flushBatch(ctx, pending, logsCh)
+				return false
+			}
+
+			pending = append(pending, entry)
+
+			idle.Reset(backlogIdleTimeout)
+		case <-idle.C:
+			return flushBatch(ctx, pending, logsCh)
+		}
+	}
+}
+
+// tailLive forwards entries one-per-payload until the stream or context ends.
+func tailLive(
+	ctx context.Context,
+	lineCh <-chan model.Log,
+	logsCh chan<- []model.Log,
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case entry, ok := <-lineCh:
+			if !ok {
+				return
+			}
+
+			select {
+			case logsCh <- []model.Log{entry}:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}
+}
+
+func flushBatch(ctx context.Context, batch []model.Log, logsCh chan<- []model.Log) bool {
+	if len(batch) == 0 {
+		return true
+	}
+
+	select {
+	case logsCh <- batch:
+		return true
+	case <-ctx.Done():
+		return false
 	}
 }

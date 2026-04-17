@@ -331,8 +331,17 @@ func TestTailLogsClosesChannelAndDeliversBacklog(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	logs := collectLogs(ch)
+	var batches [][]model.Log
+	for batch := range ch {
+		batches = append(batches, batch)
+	}
 
+	// All three entries should arrive in the initial backlog batch.
+	if len(batches) != 1 {
+		t.Fatalf("got %d batches, want 1 (backlog should be a single payload)", len(batches))
+	}
+
+	logs := batches[0]
 	if len(logs) != 3 {
 		t.Fatalf("got %d logs, want 3", len(logs))
 	}
