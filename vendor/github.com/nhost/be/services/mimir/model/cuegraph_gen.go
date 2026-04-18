@@ -8778,6 +8778,8 @@ type ConfigAuthSignUp struct {
 	Enabled *bool `json:"enabled" toml:"enabled"`
 	// AUTH_DISABLE_NEW_USERS
 	DisableNewUsers *bool `json:"disableNewUsers" toml:"disableNewUsers"`
+	// AUTH_DISABLE_AUTO_SIGNUP
+	DisableAutoSignup *bool `json:"disableAutoSignup" toml:"disableAutoSignup"`
 
 	Turnstile *ConfigAuthSignUpTurnstile `json:"turnstile,omitempty" toml:"turnstile,omitempty"`
 }
@@ -8789,6 +8791,9 @@ func (o *ConfigAuthSignUp) MarshalJSON() ([]byte, error) {
 	}
 	if o.DisableNewUsers != nil {
 		m["disableNewUsers"] = o.DisableNewUsers
+	}
+	if o.DisableAutoSignup != nil {
+		m["disableAutoSignup"] = o.DisableAutoSignup
 	}
 	if o.Turnstile != nil {
 		m["turnstile"] = o.Turnstile
@@ -8810,6 +8815,13 @@ func (o *ConfigAuthSignUp) GetDisableNewUsers() *bool {
 	return o.DisableNewUsers
 }
 
+func (o *ConfigAuthSignUp) GetDisableAutoSignup() *bool {
+	if o == nil {
+		o = &ConfigAuthSignUp{}
+	}
+	return o.DisableAutoSignup
+}
+
 func (o *ConfigAuthSignUp) GetTurnstile() *ConfigAuthSignUpTurnstile {
 	if o == nil {
 		return nil
@@ -8818,12 +8830,14 @@ func (o *ConfigAuthSignUp) GetTurnstile() *ConfigAuthSignUpTurnstile {
 }
 
 type ConfigAuthSignUpUpdateInput struct {
-	Enabled              *bool                                 `json:"enabled,omitempty" toml:"enabled,omitempty"`
-	IsSetEnabled         bool                                  `json:"-"`
-	DisableNewUsers      *bool                                 `json:"disableNewUsers,omitempty" toml:"disableNewUsers,omitempty"`
-	IsSetDisableNewUsers bool                                  `json:"-"`
-	Turnstile            *ConfigAuthSignUpTurnstileUpdateInput `json:"turnstile,omitempty" toml:"turnstile,omitempty"`
-	IsSetTurnstile       bool                                  `json:"-"`
+	Enabled                *bool                                 `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled           bool                                  `json:"-"`
+	DisableNewUsers        *bool                                 `json:"disableNewUsers,omitempty" toml:"disableNewUsers,omitempty"`
+	IsSetDisableNewUsers   bool                                  `json:"-"`
+	DisableAutoSignup      *bool                                 `json:"disableAutoSignup,omitempty" toml:"disableAutoSignup,omitempty"`
+	IsSetDisableAutoSignup bool                                  `json:"-"`
+	Turnstile              *ConfigAuthSignUpTurnstileUpdateInput `json:"turnstile,omitempty" toml:"turnstile,omitempty"`
+	IsSetTurnstile         bool                                  `json:"-"`
 }
 
 func (o *ConfigAuthSignUpUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -8865,6 +8879,23 @@ func (o *ConfigAuthSignUpUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetDisableNewUsers = true
 	}
+	if v, ok := m["disableAutoSignup"]; ok {
+		if v == nil {
+			o.DisableAutoSignup = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DisableAutoSignup = &x
+		}
+		o.IsSetDisableAutoSignup = true
+	}
 	if x, ok := m["turnstile"]; ok {
 		if x != nil {
 			t := &ConfigAuthSignUpTurnstileUpdateInput{}
@@ -8900,6 +8931,13 @@ func (o *ConfigAuthSignUpUpdateInput) GetDisableNewUsers() *bool {
 	return o.DisableNewUsers
 }
 
+func (o *ConfigAuthSignUpUpdateInput) GetDisableAutoSignup() *bool {
+	if o == nil {
+		o = &ConfigAuthSignUpUpdateInput{}
+	}
+	return o.DisableAutoSignup
+}
+
 func (o *ConfigAuthSignUpUpdateInput) GetTurnstile() *ConfigAuthSignUpTurnstileUpdateInput {
 	if o == nil {
 		return nil
@@ -8917,6 +8955,9 @@ func (s *ConfigAuthSignUp) Update(v *ConfigAuthSignUpUpdateInput) {
 	if v.IsSetDisableNewUsers || v.DisableNewUsers != nil {
 		s.DisableNewUsers = v.DisableNewUsers
 	}
+	if v.IsSetDisableAutoSignup || v.DisableAutoSignup != nil {
+		s.DisableAutoSignup = v.DisableAutoSignup
+	}
 	if v.IsSetTurnstile || v.Turnstile != nil {
 		if v.Turnstile == nil {
 			s.Turnstile = nil
@@ -8930,9 +8971,10 @@ func (s *ConfigAuthSignUp) Update(v *ConfigAuthSignUpUpdateInput) {
 }
 
 type ConfigAuthSignUpInsertInput struct {
-	Enabled         *bool                                 `json:"enabled,omitempty" toml:"enabled,omitempty"`
-	DisableNewUsers *bool                                 `json:"disableNewUsers,omitempty" toml:"disableNewUsers,omitempty"`
-	Turnstile       *ConfigAuthSignUpTurnstileInsertInput `json:"turnstile,omitempty" toml:"turnstile,omitempty"`
+	Enabled           *bool                                 `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	DisableNewUsers   *bool                                 `json:"disableNewUsers,omitempty" toml:"disableNewUsers,omitempty"`
+	DisableAutoSignup *bool                                 `json:"disableAutoSignup,omitempty" toml:"disableAutoSignup,omitempty"`
+	Turnstile         *ConfigAuthSignUpTurnstileInsertInput `json:"turnstile,omitempty" toml:"turnstile,omitempty"`
 }
 
 func (o *ConfigAuthSignUpInsertInput) GetEnabled() *bool {
@@ -8949,6 +8991,13 @@ func (o *ConfigAuthSignUpInsertInput) GetDisableNewUsers() *bool {
 	return o.DisableNewUsers
 }
 
+func (o *ConfigAuthSignUpInsertInput) GetDisableAutoSignup() *bool {
+	if o == nil {
+		o = &ConfigAuthSignUpInsertInput{}
+	}
+	return o.DisableAutoSignup
+}
+
 func (o *ConfigAuthSignUpInsertInput) GetTurnstile() *ConfigAuthSignUpTurnstileInsertInput {
 	if o == nil {
 		return nil
@@ -8959,6 +9008,7 @@ func (o *ConfigAuthSignUpInsertInput) GetTurnstile() *ConfigAuthSignUpTurnstileI
 func (s *ConfigAuthSignUp) Insert(v *ConfigAuthSignUpInsertInput) {
 	s.Enabled = v.Enabled
 	s.DisableNewUsers = v.DisableNewUsers
+	s.DisableAutoSignup = v.DisableAutoSignup
 	if v.Turnstile != nil {
 		if s.Turnstile == nil {
 			s.Turnstile = &ConfigAuthSignUpTurnstile{}
@@ -8975,17 +9025,19 @@ func (s *ConfigAuthSignUp) Clone() *ConfigAuthSignUp {
 	v := &ConfigAuthSignUp{}
 	v.Enabled = s.Enabled
 	v.DisableNewUsers = s.DisableNewUsers
+	v.DisableAutoSignup = s.DisableAutoSignup
 	v.Turnstile = s.Turnstile.Clone()
 	return v
 }
 
 type ConfigAuthSignUpComparisonExp struct {
-	And             []*ConfigAuthSignUpComparisonExp        `json:"_and,omitempty"`
-	Not             *ConfigAuthSignUpComparisonExp          `json:"_not,omitempty"`
-	Or              []*ConfigAuthSignUpComparisonExp        `json:"_or,omitempty"`
-	Enabled         *ConfigBooleanComparisonExp             `json:"enabled,omitempty"`
-	DisableNewUsers *ConfigBooleanComparisonExp             `json:"disableNewUsers,omitempty"`
-	Turnstile       *ConfigAuthSignUpTurnstileComparisonExp `json:"turnstile,omitempty"`
+	And               []*ConfigAuthSignUpComparisonExp        `json:"_and,omitempty"`
+	Not               *ConfigAuthSignUpComparisonExp          `json:"_not,omitempty"`
+	Or                []*ConfigAuthSignUpComparisonExp        `json:"_or,omitempty"`
+	Enabled           *ConfigBooleanComparisonExp             `json:"enabled,omitempty"`
+	DisableNewUsers   *ConfigBooleanComparisonExp             `json:"disableNewUsers,omitempty"`
+	DisableAutoSignup *ConfigBooleanComparisonExp             `json:"disableAutoSignup,omitempty"`
+	Turnstile         *ConfigAuthSignUpTurnstileComparisonExp `json:"turnstile,omitempty"`
 }
 
 func (exp *ConfigAuthSignUpComparisonExp) Matches(o *ConfigAuthSignUp) bool {
@@ -9002,6 +9054,9 @@ func (exp *ConfigAuthSignUpComparisonExp) Matches(o *ConfigAuthSignUp) bool {
 		return false
 	}
 	if o.DisableNewUsers != nil && !exp.DisableNewUsers.Matches(*o.DisableNewUsers) {
+		return false
+	}
+	if o.DisableAutoSignup != nil && !exp.DisableAutoSignup.Matches(*o.DisableAutoSignup) {
 		return false
 	}
 	if !exp.Turnstile.Matches(o.Turnstile) {
