@@ -9,6 +9,7 @@ import { AuthServiceVersionSettings } from '@/features/orgs/projects/authenticat
 import { BlockedEmailSettings } from '@/features/orgs/projects/authentication/settings/components/BlockedEmailSettings';
 import { ClientURLSettings } from '@/features/orgs/projects/authentication/settings/components/ClientURLSettings';
 import { ConcealErrorsSettings } from '@/features/orgs/projects/authentication/settings/components/ConcealErrorsSettings';
+import { DisableAutoSignupSettings } from '@/features/orgs/projects/authentication/settings/components/DisableAutoSignupSettings';
 import { DisableNewUsersSettings } from '@/features/orgs/projects/authentication/settings/components/DisableNewUsersSettings';
 import { DisableSignUpsSettings } from '@/features/orgs/projects/authentication/settings/components/DisableSignUpsSettings';
 import { GravatarSettings } from '@/features/orgs/projects/authentication/settings/components/GravatarSettings';
@@ -60,6 +61,7 @@ export default function SettingsAuthenticationPage() {
       <GravatarSettings />
       <DisableNewUsersSettings />
       <DisableSignUpsSettings />
+      <DisableAutoSignupSettings />
       <ConcealErrorsSettings />
     </Container>
   );
