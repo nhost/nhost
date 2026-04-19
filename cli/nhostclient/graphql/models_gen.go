@@ -433,6 +433,8 @@ type ConfigAuthSessionUpdateInput struct {
 }
 
 type ConfigAuthSignUp struct {
+	// AUTH_DISABLE_AUTO_SIGNUP
+	DisableAutoSignup *bool `json:"disableAutoSignup,omitempty"`
 	// AUTH_DISABLE_NEW_USERS
 	DisableNewUsers *bool `json:"disableNewUsers,omitempty"`
 	// Inverse of AUTH_DISABLE_SIGNUP
@@ -449,9 +451,10 @@ type ConfigAuthSignUpTurnstileUpdateInput struct {
 }
 
 type ConfigAuthSignUpUpdateInput struct {
-	DisableNewUsers *bool                                 `json:"disableNewUsers,omitempty"`
-	Enabled         *bool                                 `json:"enabled,omitempty"`
-	Turnstile       *ConfigAuthSignUpTurnstileUpdateInput `json:"turnstile,omitempty"`
+	DisableAutoSignup *bool                                 `json:"disableAutoSignup,omitempty"`
+	DisableNewUsers   *bool                                 `json:"disableNewUsers,omitempty"`
+	Enabled           *bool                                 `json:"enabled,omitempty"`
+	Turnstile         *ConfigAuthSignUpTurnstileUpdateInput `json:"turnstile,omitempty"`
 }
 
 type ConfigAuthTotp struct {

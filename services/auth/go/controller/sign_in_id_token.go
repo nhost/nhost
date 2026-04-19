@@ -187,7 +187,7 @@ func (ctrl *Controller) providerResolveUser(
 		return uuid.Nil, apiError
 	}
 
-	if userFound {
+	if userFound { //nolint:nestif
 		if signupIntent {
 			logger.WarnContext(ctx, "user already exists")
 			return uuid.Nil, ErrUserAlreadyExists
@@ -196,7 +196,9 @@ func (ctrl *Controller) providerResolveUser(
 		logger.InfoContext(ctx, "user found, resolving for PKCE")
 
 		if !providerFound {
-			if apiErr := ctrl.ensureProviderLinkAllowed(ctx, profile, provider, logger); apiErr != nil {
+			if apiErr := ctrl.ensureProviderLinkAllowed(
+				ctx, profile, provider, logger,
+			); apiErr != nil {
 				return uuid.Nil, apiErr
 			}
 
