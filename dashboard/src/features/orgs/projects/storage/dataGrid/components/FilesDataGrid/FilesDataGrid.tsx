@@ -4,7 +4,6 @@ import type { ChangeEvent } from 'react';
 import { useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
-import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
 import { Button } from '@/components/ui/v3/button';
 import { usePageBoundsRedirect } from '@/features/orgs/projects/common/hooks/usePageBoundsRedirect';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
@@ -15,6 +14,7 @@ import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/D
 import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import type { PreviewProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { DataGridPreviewCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
+import { FileIcon } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/icons';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { FilesDataGridControls } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGridControls';
 import { PreviewHeader } from '@/features/orgs/projects/storage/dataGrid/components/PreviewHeader';
@@ -37,104 +37,114 @@ export type FilesDataGridProps = {
   bucket: Bucket;
 } & Partial<DataGridProps<StoredFile>>;
 
-const columns: ColumnDef<StoredFile>[] = [
-  {
-    id: 'preview-column',
-    header: PreviewHeader,
-    accessorKey: 'preview',
-    cell: (props) => {
-      const { getValue, row } = props as CellContext<StoredFile, PreviewProps>;
-
-      return (
-        <DataGridPreviewCell
-          isDisabled={!row.original.isUploaded}
-          fallbackPreview={<FilePreviewIcon className="h-5 w-5 fill-current" />}
-          getValue={getValue}
-        />
-      );
-    },
-    minSize: 120,
-    size: 120,
-    enableSorting: false,
-    enableResizing: false,
-    enableColumnFilter: false,
-  },
-  {
-    header: 'id',
-    accessorKey: 'id',
-    meta: { dataType: 'uuid' },
-    cell: (props) => (
-      <DataGridTextCell {...(props as CellContext<StoredFile, string>)} />
-    ),
-    size: 318,
-  },
-  {
-    header: 'name',
-    accessorKey: 'name',
-    meta: { dataType: 'text' },
-    size: 200,
-  },
-  {
-    header: 'size',
-    accessorKey: 'size',
-    meta: { dataType: 'integer' },
-    size: 80,
-  },
-  {
-    header: 'mimeType',
-    accessorKey: 'mimeType',
-    meta: { dataType: 'text' },
-    size: 120,
-  },
-  {
-    header: 'createdAt',
-    accessorKey: 'createdAt',
-    meta: { dataType: 'timestamptz' },
-    size: 120,
-    cell: (props) => (
-      <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
-    ),
-  },
-  {
-    header: 'updatedAt',
-    accessorKey: 'updatedAt',
-    meta: { dataType: 'timestamptz' },
-    size: 120,
-    cell: (props) => (
-      <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
-    ),
-  },
-  {
-    header: 'bucketId',
-    accessorKey: 'bucketId',
-    size: 200,
-    enableColumnFilter: false,
-  },
-  {
-    header: 'etag',
-    accessorKey: 'etag',
-    meta: { dataType: 'text' },
-    size: 280,
-  },
-  {
-    header: 'isUploaded',
-    accessorKey: 'isUploaded',
-    meta: { dataType: 'boolean' },
-    size: 100,
-    cell: ({ getValue }) => <ReadOnlyToggle checked={getValue<boolean>()} />,
-  },
-  {
-    header: 'uploadedByUserId',
-    accessorKey: 'uploadedByUserId',
-    meta: { dataType: 'uuid' },
-    size: 318,
-  },
-];
-
 export default function FilesDataGrid({
   bucket,
-  ...props
+  ...dataGridProps
 }: FilesDataGridProps) {
+  const columns = useMemo<ColumnDef<StoredFile>[]>(
+    () => [
+      {
+        id: 'preview-column',
+        header: PreviewHeader,
+        accessorKey: 'preview',
+        cell: (props) => {
+          const { getValue, row } = props as CellContext<
+            StoredFile,
+            PreviewProps
+          >;
+          const value = getValue();
+
+          return (
+            <DataGridPreviewCell
+              key={row.original.id}
+              {...value}
+              isDisabled={!row.original.isUploaded}
+              fallbackPreview={<FileIcon className="h-5 w-5" />}
+              downloadExpiration={bucket.downloadExpiration}
+            />
+          );
+        },
+        minSize: 120,
+        size: 120,
+        enableSorting: false,
+        enableResizing: false,
+        enableColumnFilter: false,
+      },
+      {
+        header: 'id',
+        accessorKey: 'id',
+        meta: { dataType: 'uuid' },
+        cell: (props) => (
+          <DataGridTextCell {...(props as CellContext<StoredFile, string>)} />
+        ),
+        size: 318,
+      },
+      {
+        header: 'name',
+        accessorKey: 'name',
+        meta: { dataType: 'text' },
+        size: 200,
+      },
+      {
+        header: 'size',
+        accessorKey: 'size',
+        meta: { dataType: 'integer' },
+        size: 80,
+      },
+      {
+        header: 'mimeType',
+        accessorKey: 'mimeType',
+        meta: { dataType: 'text' },
+        size: 120,
+      },
+      {
+        header: 'createdAt',
+        accessorKey: 'createdAt',
+        meta: { dataType: 'timestamptz' },
+        size: 120,
+        cell: (props) => (
+          <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+        ),
+      },
+      {
+        header: 'updatedAt',
+        accessorKey: 'updatedAt',
+        meta: { dataType: 'timestamptz' },
+        size: 120,
+        cell: (props) => (
+          <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+        ),
+      },
+      {
+        header: 'bucketId',
+        accessorKey: 'bucketId',
+        size: 200,
+        enableColumnFilter: false,
+      },
+      {
+        header: 'etag',
+        accessorKey: 'etag',
+        meta: { dataType: 'text' },
+        size: 280,
+      },
+      {
+        header: 'isUploaded',
+        accessorKey: 'isUploaded',
+        meta: { dataType: 'boolean' },
+        size: 100,
+        cell: ({ getValue }) => (
+          <ReadOnlyToggle checked={getValue<boolean>()} />
+        ),
+      },
+      {
+        header: 'uploadedByUserId',
+        accessorKey: 'uploadedByUserId',
+        meta: { dataType: 'uuid' },
+        size: 318,
+      },
+    ],
+    [bucket.downloadExpiration],
+  );
   const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();
@@ -354,7 +364,7 @@ export default function FilesDataGrid({
         />
       }
       isRowDisabled={(row) => !row.original.isUploaded}
-      {...props}
+      {...dataGridProps}
     />
   );
 }

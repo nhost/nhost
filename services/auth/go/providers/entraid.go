@@ -39,10 +39,11 @@ func NewEntraIDProvider(
 }
 
 type entraidUser struct {
-	Sub        string `json:"sub"`
-	GivenName  string `json:"givenname"`
-	FamilyName string `json:"familyname"`
-	Email      string `json:"email"`
+	Sub           string `json:"sub"`
+	GivenName     string `json:"givenname"`
+	FamilyName    string `json:"familyname"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
 }
 
 func (a *EntraID) GetProfile(
@@ -64,7 +65,7 @@ func (a *EntraID) GetProfile(
 	return oidc.Profile{
 		ProviderUserID: userProfile.Sub,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "",
+		EmailVerified:  oidc.EmailVerificationFromBool(userProfile.EmailVerified),
 		Name:           userProfile.GivenName + " " + userProfile.FamilyName,
 		Picture:        "",
 	}, nil

@@ -74,11 +74,13 @@ func (t *Twitch) GetProfile(
 
 	userProfile := response.Data[0]
 
+	// Twitch's /helix/users endpoint does not return an explicit
+	// verification flag, so there is no signal to report.
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Name:           userProfile.DisplayName,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "",
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 		Picture:        userProfile.ProfileImageURL,
 	}, nil
 }

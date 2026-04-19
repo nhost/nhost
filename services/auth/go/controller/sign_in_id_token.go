@@ -92,7 +92,7 @@ func (ctrl *Controller) providerSignInFlow(
 
 	if userFound {
 		return ctrl.providerFlowSignIn(
-			ctx, user, providerFound, provider, profile.ProviderUserID, logger,
+			ctx, user, providerFound, provider, profile, logger,
 		)
 	}
 
@@ -149,7 +149,7 @@ func (ctrl *Controller) providerFlowSignUp(
 		ctx,
 		profile.Email,
 		options,
-		profile.Email != "" && !profile.EmailVerified,
+		profile.Email != "" && !profile.EmailVerified.IsVerified(),
 		ctrl.providerFlowSignupWithSession(ctx, profile, provider, options),
 		ctrl.providerFlowSignupWithoutSession(ctx, profile, provider, options),
 		"",
@@ -161,7 +161,7 @@ func (ctrl *Controller) providerFlowSignUp(
 
 	if session != nil {
 		session.User.AvatarUrl = profile.Picture
-		session.User.EmailVerified = profile.EmailVerified
+		session.User.EmailVerified = profile.EmailVerified.IsVerified()
 	}
 
 	return session, nil
@@ -198,7 +198,7 @@ func (ctrl *Controller) providerFlowSignupWithSession(
 				Email:                 email,
 				Ticket:                pgtype.Text{}, //nolint:exhaustruct
 				TicketExpiresAt:       sql.TimestampTz(time.Now()),
-				EmailVerified:         profile.EmailVerified,
+				EmailVerified:         profile.EmailVerified.IsVerified(),
 				Locale:                deptr(options.Locale),
 				DefaultRole:           deptr(options.DefaultRole),
 				Metadata:              metadata,
@@ -248,7 +248,7 @@ func (ctrl *Controller) providerFlowSignupWithoutSession(
 			Email:           email,
 			Ticket:          ticket,
 			TicketExpiresAt: ticketExpiresAt,
-			EmailVerified:   profile.EmailVerified,
+			EmailVerified:   profile.EmailVerified.IsVerified(),
 			Locale:          deptr(options.Locale),
 			DefaultRole:     deptr(options.DefaultRole),
 			Metadata:        metadata,
@@ -264,22 +264,53 @@ func (ctrl *Controller) providerFlowSignupWithoutSession(
 	}
 }
 
+// ensureProviderLinkAllowed rejects an attempt to link a new OAuth provider
+// identity to an existing Nhost account when the provider has not explicitly
+// attested that the caller owns the email address. EmailVerificationStatus
+// values of Unknown (no signal) and Unverified are both rejected; only the
+// explicit Verified status allows linking.
+//
+// Without this guard, an attacker could claim an unverified email on the
+// OAuth provider (e.g. by changing their email to the victim's address and
+// skipping confirmation) and take over the matching Nhost account.
+func (ctrl *Controller) ensureProviderLinkAllowed(
+	ctx context.Context,
+	profile oidc.Profile,
+	provider string,
+	logger *slog.Logger,
+) *APIError {
+	if profile.EmailVerified.IsVerified() {
+		return nil
+	}
+
+	logger.WarnContext(ctx,
+		"refusing to link provider to existing account: email not verified by provider",
+		slog.String("provider", provider),
+	)
+
+	return ErrUnverifiedUser
+}
+
 func (ctrl *Controller) providerFlowSignIn(
 	ctx context.Context,
 	user sql.AuthUser,
 	providerFound bool,
 	provider string,
-	providerUserID string,
+	profile oidc.Profile,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
 	logger.InfoContext(ctx, "user found, signing in")
 
 	if !providerFound {
+		if apiErr := ctrl.ensureProviderLinkAllowed(ctx, profile, provider, logger); apiErr != nil {
+			return nil, apiErr
+		}
+
 		if _, apiErr := ctrl.wf.InsertUserProvider(
 			ctx,
 			user.ID,
 			provider,
-			providerUserID,
+			profile.ProviderUserID,
 			logger,
 		); apiErr != nil {
 			return nil, apiErr
@@ -313,25 +344,29 @@ func (ctrl *Controller) providerResolveUser(
 		return uuid.Nil, apiError
 	}
 
-	if userFound {
-		logger.InfoContext(ctx, "user found, resolving for PKCE")
-
-		if !providerFound {
-			if _, apiErr := ctrl.wf.InsertUserProvider(
-				ctx,
-				user.ID,
-				provider,
-				profile.ProviderUserID,
-				logger,
-			); apiErr != nil {
-				return uuid.Nil, apiErr
-			}
-		}
-
-		return user.ID, nil
+	if !userFound {
+		return ctrl.providerSignUpResolveOnly(ctx, provider, profile, options, logger)
 	}
 
-	return ctrl.providerSignUpResolveOnly(ctx, provider, profile, options, logger)
+	logger.InfoContext(ctx, "user found, resolving for PKCE")
+
+	if !providerFound {
+		if apiErr := ctrl.ensureProviderLinkAllowed(ctx, profile, provider, logger); apiErr != nil {
+			return uuid.Nil, apiErr
+		}
+
+		if _, apiErr := ctrl.wf.InsertUserProvider(
+			ctx,
+			user.ID,
+			provider,
+			profile.ProviderUserID,
+			logger,
+		); apiErr != nil {
+			return uuid.Nil, apiErr
+		}
+	}
+
+	return user.ID, nil
 }
 
 // providerSignUpResolveOnly creates a new user from an OAuth provider profile
@@ -351,7 +386,7 @@ func (ctrl *Controller) providerSignUpResolveOnly( //nolint:cyclop,funlen
 		return uuid.Nil, apiError
 	}
 
-	sendConfirmationEmail := profile.Email != "" && !profile.EmailVerified
+	sendConfirmationEmail := profile.Email != "" && !profile.EmailVerified.IsVerified()
 
 	// If email verification is needed or new users are disabled,
 	// use the existing sign-up-without-session flow and signal that
@@ -400,7 +435,7 @@ func (ctrl *Controller) providerSignUpResolveOnly( //nolint:cyclop,funlen
 			Email:           email,
 			Ticket:          pgtype.Text{}, //nolint:exhaustruct
 			TicketExpiresAt: sql.TimestampTz(time.Now()),
-			EmailVerified:   profile.EmailVerified,
+			EmailVerified:   profile.EmailVerified.IsVerified(),
 			Locale:          deptr(options.Locale),
 			DefaultRole:     deptr(options.DefaultRole),
 			Metadata:        metadata,

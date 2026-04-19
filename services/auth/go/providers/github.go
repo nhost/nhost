@@ -118,7 +118,7 @@ func (g *Github) GetProfile(
 	return oidc.Profile{
 		ProviderUserID: strconv.Itoa(user.ID),
 		Email:          selected.Email,
-		EmailVerified:  selected.Verified,
+		EmailVerified:  oidc.EmailVerificationFromBool(selected.Verified),
 		Name:           user.Name,
 		Picture:        user.AvatarURL,
 	}, nil
