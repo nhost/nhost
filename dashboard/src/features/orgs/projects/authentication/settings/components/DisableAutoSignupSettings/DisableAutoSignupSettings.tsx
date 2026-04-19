@@ -20,7 +20,9 @@ const validationSchema = Yup.object({
   disabled: Yup.boolean(),
 });
 
-export type DisableAutoSignupFormValues = Yup.InferType<typeof validationSchema>;
+export type DisableAutoSignupFormValues = Yup.InferType<
+  typeof validationSchema
+>;
 
 export default function DisableAutoSignupSettings() {
   const { project } = useProject();
