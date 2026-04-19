@@ -130,7 +130,7 @@ type Mutation {
     updateSystemConfig(
         appID: uuid! @hasAppVisibility,
         systemConfig: ConfigSystemConfigUpdateInput!,
-    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:watchtower"])
+    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:watchtower", "sa:cd"])
 
     insertRunServiceConfig(
         appID: uuid! @hasAppVisibility,
