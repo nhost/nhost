@@ -122,6 +122,42 @@ func (d *DockerLogGatherer) GetLogs(
 	return allLogs, nil
 }
 
+type tailReader struct {
+	r       io.ReadCloser
+	svcName string
+}
+
+func (d *DockerLogGatherer) openTailReaders(
+	ctx context.Context,
+	containers []container.Summary,
+	from time.Time,
+) ([]tailReader, error) {
+	readers := make([]tailReader, 0, len(containers))
+
+	for _, c := range containers {
+		svcName := c.Labels[composeServiceLabel]
+
+		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{ //nolint:exhaustruct
+			ShowStdout: true,
+			ShowStderr: true,
+			Timestamps: true,
+			Follow:     true,
+			Since:      from.Format(time.RFC3339Nano),
+		})
+		if err != nil {
+			for _, rd := range readers {
+				rd.r.Close()
+			}
+
+			return nil, fmt.Errorf("failed to tail logs for container %s: %w", svcName, err)
+		}
+
+		readers = append(readers, tailReader{r: reader, svcName: svcName})
+	}
+
+	return readers, nil
+}
+
 func (d *DockerLogGatherer) TailLogs(
 	ctx context.Context,
 	service, regexFilter string,
@@ -143,22 +179,18 @@ func (d *DockerLogGatherer) TailLogs(
 		}
 	}
 
+	// Open every reader before starting any writer goroutine. If ContainerLogs
+	// fails partway, earlier readers are closed and we return without having
+	// launched anything — otherwise `defer close(logsCh)` could fire while an
+	// already-started goroutine was still sending, panicking on a closed chan.
+	readers, err := d.openTailReaders(ctx, containers, from)
+	if err != nil {
+		return err
+	}
+
 	var wg sync.WaitGroup
 
-	for _, c := range containers {
-		svcName := c.Labels[composeServiceLabel]
-
-		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{ //nolint:exhaustruct
-			ShowStdout: true,
-			ShowStderr: true,
-			Timestamps: true,
-			Follow:     true,
-			Since:      from.Format(time.RFC3339Nano),
-		})
-		if err != nil {
-			return fmt.Errorf("failed to tail logs for container %s: %w", svcName, err)
-		}
-
+	for _, rd := range readers {
 		wg.Add(1)
 
 		go func(reader io.ReadCloser, svcName string) {
@@ -178,7 +210,7 @@ func (d *DockerLogGatherer) TailLogs(
 			}()
 
 			tailContainerLogs(ctx, reader, svcName, re, logsCh)
-		}(reader, svcName)
+		}(rd.r, rd.svcName)
 	}
 
 	wg.Wait()
@@ -270,20 +302,17 @@ func (d *DockerLogGatherer) TailFunctionsLogs(
 		return err
 	}
 
+	// See TailLogs: open every reader before launching any goroutine so a
+	// mid-way ContainerLogs failure can't leave writers sending on a channel
+	// we're about to close.
+	readers, err := d.openTailReaders(ctx, containers, from)
+	if err != nil {
+		return err
+	}
+
 	var wg sync.WaitGroup
 
-	for _, c := range containers {
-		reader, err := d.client.ContainerLogs(ctx, c.ID, container.LogsOptions{ //nolint:exhaustruct
-			ShowStdout: true,
-			ShowStderr: true,
-			Timestamps: true,
-			Follow:     true,
-			Since:      from.Format(time.RFC3339Nano),
-		})
-		if err != nil {
-			return fmt.Errorf("failed to tail functions logs: %w", err)
-		}
-
+	for _, rd := range readers {
 		wg.Add(1)
 
 		go func(reader io.ReadCloser) {
@@ -302,7 +331,7 @@ func (d *DockerLogGatherer) TailFunctionsLogs(
 			}()
 
 			tailFunctionsContainerLogs(ctx, reader, path, logsCh)
-		}(reader)
+		}(rd.r)
 	}
 
 	wg.Wait()

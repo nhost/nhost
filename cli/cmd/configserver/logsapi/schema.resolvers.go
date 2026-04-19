@@ -101,17 +101,11 @@ func (r *subscriptionResolver) Logs(
 
 	ch := make(chan []model.Log)
 
-	r.SubscriptionsManager.Add(func() {
-		if err := r.LogGatherer.TailLogs(
-			ctx,
-			svc,
-			filter,
-			*from,
-			ch,
-		); err != nil {
+	go func() {
+		if err := r.LogGatherer.TailLogs(ctx, svc, filter, *from, ch); err != nil {
 			r.Logger.Errorf("failed to tail logs: %s", err)
 		}
-	})
+	}()
 
 	return ch, nil
 }
@@ -129,16 +123,11 @@ func (r *subscriptionResolver) GetFunctionsLogs(
 
 	ch := make(chan []model.Log)
 
-	r.SubscriptionsManager.Add(func() {
-		if err := r.LogGatherer.TailFunctionsLogs(
-			ctx,
-			path,
-			*from,
-			ch,
-		); err != nil {
+	go func() {
+		if err := r.LogGatherer.TailFunctionsLogs(ctx, path, *from, ch); err != nil {
 			r.Logger.Errorf("failed to tail functions logs: %s", err)
 		}
-	})
+	}()
 
 	return ch, nil
 }

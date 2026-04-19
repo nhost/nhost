@@ -109,7 +109,6 @@ func runServicesFiles(runServices ...string) map[string]string {
 }
 
 func setupLogsAPI(
-	ctx context.Context,
 	r *gin.Engine,
 	logger logrus.FieldLogger,
 	enablePlayground bool,
@@ -126,13 +125,9 @@ func setupLogsAPI(
 	projectName := os.Getenv(dockerComposeProjectEnv)
 	logGatherer := NewDockerLogGatherer(dockerClient, projectName)
 
-	subsMgr := logsapi.NewSubscriptionsManager()
-	go subsMgr.Start(ctx)
-
 	logsResolver := &logsapi.Resolver{
-		LogGatherer:          logGatherer,
-		SubscriptionsManager: subsMgr,
-		Logger:               logger,
+		LogGatherer: logGatherer,
+		Logger:      logger,
 	}
 
 	logsapi.AddRoutes(r, "/v1/logs", logsResolver, enablePlayground, version)
@@ -140,7 +135,7 @@ func setupLogsAPI(
 	return nil
 }
 
-func serve(ctx context.Context, cmd *cli.Command) error {
+func serve(_ context.Context, cmd *cli.Command) error {
 	logger := getLogger(cmd.Bool(debugFlag), cmd.Bool(logFormatJSONFlag))
 	logger.Info(cmd.Root().Name + " v" + cmd.Root().Version)
 	logFlags(logger, cmd)
@@ -176,7 +171,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	)
 
 	if err := setupLogsAPI(
-		ctx, r, logger, cmd.Bool(enablePlaygroundFlag), cmd.Root().Version,
+		r, logger, cmd.Bool(enablePlaygroundFlag), cmd.Root().Version,
 	); err != nil {
 		return err
 	}

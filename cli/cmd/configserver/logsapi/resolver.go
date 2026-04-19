@@ -38,7 +38,6 @@ type LogGatherer interface {
 }
 
 type Resolver struct {
-	LogGatherer          LogGatherer
-	SubscriptionsManager *SubscriptionsManager
-	Logger               logrus.FieldLogger
+	LogGatherer LogGatherer
+	Logger      logrus.FieldLogger
 }

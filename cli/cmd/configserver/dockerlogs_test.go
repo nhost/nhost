@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"errors"
 	"io"
 	"testing"
 	"time"
@@ -482,5 +483,73 @@ func TestGetLogsStderrAndStdout(t *testing.T) {
 
 	if len(logs) != 2 {
 		t.Fatalf("got %d logs, want 2", len(logs))
+	}
+}
+
+// flakyContainerClient returns an error for one specific container ID, to
+// exercise the mid-loop ContainerLogs failure path.
+type flakyContainerClient struct {
+	client.ContainerAPIClient
+
+	containers []container.Summary
+	logData    map[string]*bytes.Buffer
+	failOnID   string
+}
+
+func (m *flakyContainerClient) ContainerList(
+	_ context.Context,
+	_ container.ListOptions,
+) ([]container.Summary, error) {
+	return m.containers, nil
+}
+
+var errBoom = errors.New("boom")
+
+func (m *flakyContainerClient) ContainerLogs(
+	_ context.Context,
+	containerID string,
+	_ container.LogsOptions,
+) (io.ReadCloser, error) {
+	if containerID == m.failOnID {
+		return nil, errBoom
+	}
+
+	if buf, ok := m.logData[containerID]; ok {
+		return io.NopCloser(bytes.NewReader(buf.Bytes())), nil
+	}
+
+	return io.NopCloser(&bytes.Buffer{}), nil
+}
+
+// TestTailLogsPartialContainerLogsFailure guards against a regression where a
+// mid-loop ContainerLogs failure returned early while goroutines were still
+// sending to logsCh, panicking when the deferred close fired.
+func TestTailLogsPartialContainerLogsFailure(t *testing.T) {
+	t.Parallel()
+
+	logBuf := &bytes.Buffer{}
+	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:00Z ok\n"))
+
+	mock := &flakyContainerClient{ //nolint:exhaustruct
+		containers: []container.Summary{
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "a"}}, //nolint:exhaustruct
+			{ID: "c2", Labels: map[string]string{composeServiceLabel: "b"}}, //nolint:exhaustruct
+		},
+		logData:  map[string]*bytes.Buffer{"c1": logBuf},
+		failOnID: "c2",
+	}
+
+	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
+
+	ch := make(chan []model.Log, 10)
+
+	err := gatherer.TailLogs(t.Context(), "", "", time.Time{}, ch)
+	if !errors.Is(err, errBoom) {
+		t.Fatalf("err = %v, want to wrap errBoom", err)
+	}
+
+	// Channel must be closed; no panic. Drain in case c1 delivered anything
+	// before we bailed out (should be nothing, since we open readers first).
+	for range ch { //nolint:revive
 	}
 }
