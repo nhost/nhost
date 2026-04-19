@@ -80,6 +80,7 @@ jobs:
 
           Changes:
           - Updated CHANGELOG.md
+          - Bumped version references (`make changelog-bump-refs`) in dependent files
         branch: release/${{ matrix.project }}
         delete-branch: true
         labels: |
