@@ -9,12 +9,10 @@ import { AuthServiceVersionSettings } from '@/features/orgs/projects/authenticat
 import { BlockedEmailSettings } from '@/features/orgs/projects/authentication/settings/components/BlockedEmailSettings';
 import { ClientURLSettings } from '@/features/orgs/projects/authentication/settings/components/ClientURLSettings';
 import { ConcealErrorsSettings } from '@/features/orgs/projects/authentication/settings/components/ConcealErrorsSettings';
-import { DisableAutoSignupSettings } from '@/features/orgs/projects/authentication/settings/components/DisableAutoSignupSettings';
-import { DisableNewUsersSettings } from '@/features/orgs/projects/authentication/settings/components/DisableNewUsersSettings';
-import { DisableSignUpsSettings } from '@/features/orgs/projects/authentication/settings/components/DisableSignUpsSettings';
 import { GravatarSettings } from '@/features/orgs/projects/authentication/settings/components/GravatarSettings';
 import { MFASettings } from '@/features/orgs/projects/authentication/settings/components/MFASettings';
 import { SessionSettings } from '@/features/orgs/projects/authentication/settings/components/SessionSettings';
+import { UserCreationSettings } from '@/features/orgs/projects/authentication/settings/components/UserCreationSettings';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -59,9 +57,7 @@ export default function SettingsAuthenticationPage() {
       <MFASettings />
       <SessionSettings />
       <GravatarSettings />
-      <DisableNewUsersSettings />
-      <DisableSignUpsSettings />
-      <DisableAutoSignupSettings />
+      <UserCreationSettings />
       <ConcealErrorsSettings />
     </Container>
   );
