@@ -1,3 +1,20 @@
+## [storage@0.13.0] - 2026-04-17
+
+### 🚀 Features
+
+- *(storage)* Do not require SELECT permissions to upload (#4151)
+
+
+### 🐛 Bug Fixes
+
+- *(storage)* Forward session headers on /ops/list-broken-metadata (#4131)
+- *(storage)* Pass session headers to DeleteFileByID (#4144)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump go due to cves (#4124)
+
 ## [storage@0.12.1] - 2026-03-18
 
 ### 🐛 Bug Fixes
