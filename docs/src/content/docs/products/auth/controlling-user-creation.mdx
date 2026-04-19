@@ -74,3 +74,35 @@ Turning `auth.signUp.disableAutoSignup` on separates the two flows. Sign-in endp
 ### Explicit sign-up endpoints
 
 With auto sign-up off, clients register users by calling one of the dedicated sign-up endpoints. These are always available, but they are the **only** way to register new users when auto sign-up is disabled.
+F
+| Sign-up endpoint | Use for |
+| --- | --- |
+| `POST /signup/email-password` | Email + password registration |
+| `POST /signup/passwordless/email` | Magic-link registration |
+| `POST /signup/otp/email` | Email OTP registration |
+| `POST /signup/passwordless/sms` | SMS OTP registration |
+| `POST /signup/idtoken` | Apple / Google ID-token registration |
+| `GET /signup/provider/{provider}` | OAuth provider registration |
+| `POST /signup/webauthn` | WebAuthn / passkey registration |
+
+
+You can find more information about the sign-up endpoints in the [API reference](/reference/auth/) documentation.
+
+#### JavaScript SDK
+
+The SDK exposes each sign-up endpoint as its own method:
+
+```js
+await nhost.auth.signUpPasswordlessEmail({ email: 'user@example.com' });
+await nhost.auth.signUpOTPEmail({ email: 'user@example.com' });
+await nhost.auth.signUpPasswordlessSms({ phoneNumber: '+12025550123' });
+await nhost.auth.signUpIdToken({
+  provider: 'google',
+  idToken: '<id-token>',
+});
+
+const url = nhost.auth.signUpProviderURL('google');
+window.location.href = url;
+```
+
+You can find more information about the sign-up endpoints in the [SDK reference](/reference/javascript/nhost-js/auth/) documentation.
