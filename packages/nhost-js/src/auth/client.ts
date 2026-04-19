@@ -2604,6 +2604,8 @@ export interface Client {
   /**
      Summary: Sign in anonymously
      Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+This endpoint always creates a new user and is **not** gated by `AUTH_DISABLE_AUTO_SIGNUP`; it is controlled by `AUTH_DISABLE_SIGNUP` and `AUTH_ANONYMOUS_USERS_ENABLED`.
+
 
      This method may return different T based on the response code:
      - 200: SessionPayload
@@ -2834,9 +2836,8 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider
 
   /**
      Summary: Sign up with magic link email
-     Register a new user account using passwordless email authentication.
-Sends a magic link to the specified email address for verification.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+     Register a new user account using passwordless email authentication. Sends a magic link to the specified email address for verification.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
 
 
      This method may return different T based on the response code:
@@ -2849,9 +2850,8 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
 
   /**
      Summary: Sign up with email OTP
-     Register a new user account using email OTP authentication.
-Sends a one-time password to the specified email address.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+     Register a new user account using email OTP authentication. Sends a one-time password to the specified email address.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
 
 
      This method may return different T based on the response code:
@@ -2864,9 +2864,8 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
 
   /**
      Summary: Sign up with SMS OTP
-     Register a new user account using SMS OTP authentication.
-Sends a one-time password to the specified phone number.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+     Register a new user account using SMS OTP authentication. Sends a one-time password to the specified phone number.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
 
 
      This method may return different T based on the response code:
@@ -2880,7 +2879,8 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
   /**
      Summary: Sign up with ID token
      Register a new user account using an ID token from Apple or Google.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+If the user already exists, a `user-already-exists` error is returned.
 
 
      This method may return different T based on the response code:
@@ -2893,9 +2893,9 @@ Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to e
 
   /**
      Summary: Sign up with OAuth provider
-     Initiate OAuth signup flow with the specified provider.
-Redirects to the provider's authorization page.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+     Initiate OAuth signup flow with the specified provider. Redirects to the provider's authorization page.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+If the user already exists at callback time, they are redirected with `error=user-already-exists`.
 
 
      As this method is a redirect, it returns a URL string instead of a Promise
