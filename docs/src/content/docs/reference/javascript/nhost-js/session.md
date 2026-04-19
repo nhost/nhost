@@ -448,8 +448,7 @@ accessToken: string
 ```
 
 JWT token for authenticating API requests
-
-- Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 
 ##### Inherited from
 
@@ -462,9 +461,8 @@ accessTokenExpiresIn: number
 ```
 
 Expiration time of the access token in seconds
-
-- Example - `900`
-- Format - int64
+Example - `900`
+Format - int64
 
 ##### Inherited from
 
@@ -485,9 +483,8 @@ refreshToken: string
 ```
 
 Token used to refresh the access token
-
-- Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-- Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 
 ##### Inherited from
 
@@ -500,9 +497,8 @@ refreshTokenId: string
 ```
 
 Identifier for the refresh token
-
-- Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-- Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 
 ##### Inherited from
 

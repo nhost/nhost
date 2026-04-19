@@ -194,8 +194,7 @@ optional authenticatorData?: string;
 ```
 
 Base64url-encoded binary data
-
-- Format - byte
+Format - byte
 
 #### clientDataJSON
 
@@ -214,8 +213,7 @@ optional publicKey?: string;
 ```
 
 Base64url-encoded binary data
-
-- Format - byte
+Format - byte
 
 #### publicKeyAlgorithm?
 
@@ -224,8 +222,7 @@ optional publicKeyAlgorithm?: number;
 ```
 
 The public key algorithm identifier
-
-- Format - int64
+Format - int64
 
 #### transports?
 
@@ -1020,6 +1017,7 @@ signInAnonymous(body?: SignInAnonymousRequest, options?: RequestInit): Promise<F
 
 Summary: Sign in anonymously
 Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+This endpoint always creates a new user and is **not** gated by `AUTH_DISABLE_AUTO_SIGNUP`; it is controlled by `AUTH_DISABLE_SIGNUP` and `AUTH_ANONYMOUS_USERS_ENABLED`.
 
 This method may return different T based on the response code:
 
@@ -1296,7 +1294,8 @@ signUpIdToken(body: SignUpIdTokenRequest, options?: RequestInit): Promise<FetchR
 
 Summary: Sign up with ID token
 Register a new user account using an ID token from Apple or Google.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+If the user already exists, a `user-already-exists` error is returned.
 
 This method may return different T based on the response code:
 
@@ -1320,9 +1319,8 @@ signUpOTPEmail(body: SignUpOTPEmailRequest, options?: RequestInit): Promise<Fetc
 ```
 
 Summary: Sign up with email OTP
-Register a new user account using email OTP authentication.
-Sends a one-time password to the specified email address.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+Register a new user account using email OTP authentication. Sends a one-time password to the specified email address.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
 
 This method may return different T based on the response code:
 
@@ -1346,9 +1344,8 @@ signUpPasswordlessEmail(body: SignUpPasswordlessEmailRequest, options?: RequestI
 ```
 
 Summary: Sign up with magic link email
-Register a new user account using passwordless email authentication.
-Sends a magic link to the specified email address for verification.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+Register a new user account using passwordless email authentication. Sends a magic link to the specified email address for verification.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
 
 This method may return different T based on the response code:
 
@@ -1372,9 +1369,8 @@ signUpPasswordlessSms(body: SignUpPasswordlessSmsRequest, options?: RequestInit)
 ```
 
 Summary: Sign up with SMS OTP
-Register a new user account using SMS OTP authentication.
-Sends a one-time password to the specified phone number.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+Register a new user account using SMS OTP authentication. Sends a one-time password to the specified phone number.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
 
 This method may return different T based on the response code:
 
@@ -1401,9 +1397,9 @@ signUpProviderURL(
 ```
 
 Summary: Sign up with OAuth provider
-Initiate OAuth signup flow with the specified provider.
-Redirects to the provider's authorization page.
-Use this endpoint when `AUTH_DISABLE_AUTO_SIGNUP` is enabled and users need to explicitly register.
+Initiate OAuth signup flow with the specified provider. Redirects to the provider's authorization page.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+If the user already exists at callback time, they are redirected with `error=user-already-exists`.
 
 As this method is a redirect, it returns a URL string instead of a Promise
 
@@ -1727,7 +1723,7 @@ expiresAt: string
 optional metadata?: Record<string, unknown>;
 ```
 
-- Example - `{"name":"my-pat","used-by":"my-app-cli"}`
+Example - `{"name":"my-pat","used-by":"my-app-cli"}`
 
 ---
 
@@ -2793,8 +2789,8 @@ sub: string
 optional redirectTo?: string;
 ```
 
-- Example - `"https://my-app.com/catch-redirection"`
-- Format - uri
+Example - `"https://my-app.com/catch-redirection"`
+Format - uri
 
 ---
 
@@ -2842,8 +2838,7 @@ optional refreshToken?: string;
 ```
 
 OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
-
-- Example - `"1//0gK8..."`
+Example - `"1//0gK8..."`
 
 ---
 
@@ -3207,7 +3202,7 @@ User authentication session containing tokens and user information
 optional displayName?: string;
 ```
 
-- Example - `"John Smith"`
+Example - `"John Smith"`
 
 #### locale?
 
@@ -3216,10 +3211,9 @@ optional locale?: string;
 ```
 
 A two or three characters locale
-
-- Example - `"en"`
-- MinLength - 2
-- MaxLength - 3
+Example - `"en"`
+MinLength - 2
+MaxLength - 3
 
 #### metadata?
 
@@ -3227,7 +3221,7 @@ A two or three characters locale
 optional metadata?: Record<string, unknown>;
 ```
 
-- Example - `{"firstName":"John","lastName":"Smith"}`
+Example - `{"firstName":"John","lastName":"Smith"}`
 
 ---
 
@@ -3419,10 +3413,9 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-
-- Pattern - ^[A-Za-z0-9_-]{43}$
-- MinLength - 43
-- MaxLength - 43
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### email
 
@@ -3627,9 +3620,8 @@ optional email?: string;
 ```
 
 A valid email
-
-- Example - `"john.smith@nhost.io"`
-- Format - email
+Example - `"john.smith@nhost.io"`
+Format - email
 
 ---
 
@@ -3652,9 +3644,8 @@ optional email?: string;
 ```
 
 A valid email. Deprecated, no longer used
-
-- Example - `"john.smith@nhost.io"`
-- Format - email
+Example - `"john.smith@nhost.io"`
+Format - email
 
 ---
 
@@ -3693,10 +3684,9 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
-
-- Pattern - ^[A-Za-z0-9_-]{43}$
-- MinLength - 43
-- MaxLength - 43
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### email
 
@@ -3775,7 +3765,7 @@ provider: IdTokenProvider
 optional allowedRoles?: string[];
 ```
 
-- Example - `["me","user"]`
+Example - `["me","user"]`
 
 #### defaultRole?
 
@@ -3783,7 +3773,7 @@ optional allowedRoles?: string[];
 optional defaultRole?: string;
 ```
 
-- Example - `"user"`
+Example - `"user"`
 
 #### displayName?
 
@@ -3791,9 +3781,9 @@ optional defaultRole?: string;
 optional displayName?: string;
 ```
 
-- Example - `"John Smith"`
-- Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
-- MaxLength - 32
+Example - `"John Smith"`
+Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
+MaxLength - 32
 
 #### locale?
 
@@ -3802,10 +3792,9 @@ optional locale?: string;
 ```
 
 A two or three characters locale
-
-- Example - `"en"`
-- MinLength - 2
-- MaxLength - 3
+Example - `"en"`
+MinLength - 2
+MaxLength - 3
 
 #### metadata?
 
@@ -3813,7 +3802,7 @@ A two or three characters locale
 optional metadata?: Record<string, unknown>;
 ```
 
-- Example - `{"firstName":"John","lastName":"Smith"}`
+Example - `{"firstName":"John","lastName":"Smith"}`
 
 #### redirectTo?
 
@@ -3821,8 +3810,8 @@ optional metadata?: Record<string, unknown>;
 optional redirectTo?: string;
 ```
 
-- Example - `"https://my-app.com/catch-redirection"`
-- Format - uri
+Example - `"https://my-app.com/catch-redirection"`
+Format - uri
 
 ---
 
@@ -3860,10 +3849,9 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-
-- Pattern - ^[A-Za-z0-9_-]{43}$
-- MinLength - 43
-- MaxLength - 43
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### email
 
@@ -4020,10 +4008,9 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
-
-- Pattern - ^[A-Za-z0-9_-]{43}$
-- MinLength - 43
-- MaxLength - 43
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### credential
 
@@ -4166,9 +4153,8 @@ optional email?: string;
 ```
 
 User's email address
-
-- Example - `"john.smith@nhost.io"`
-- Format - email
+Example - `"john.smith@nhost.io"`
+Format - email
 
 #### emailVerified
 
@@ -4230,8 +4216,7 @@ optional phoneNumber?: string;
 ```
 
 User's phone number
-
-- Example - `"+12025550123"`
+Example - `"+12025550123"`
 
 #### phoneNumberVerified
 
@@ -4266,10 +4251,9 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-
-- Pattern - ^[A-Za-z0-9_-]{43}$
-- MinLength - 43
-- MaxLength - 43
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### connection?
 
@@ -4303,10 +4287,9 @@ optional password?: string;
 ```
 
 A password of minimum 3 characters
-
-- Example - `"Str0ngPassw#ord-94|%"`
-- MinLength - 3
-- MaxLength - 50
+Example - `"Str0ngPassw#ord-94|%"`
+MinLength - 3
+MaxLength - 50
 
 #### signInMethod
 
@@ -4329,10 +4312,9 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-
-- Pattern - ^[A-Za-z0-9_-]{43}$
-- MinLength - 43
-- MaxLength - 43
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### newEmail
 
@@ -4364,10 +4346,9 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-
-- Pattern - ^[A-Za-z0-9_-]{43}$
-- MinLength - 43
-- MaxLength - 43
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### email
 
@@ -4431,8 +4412,7 @@ optional activeMfaType?: UserMfaRequestActiveMfaType;
 ```
 
 Type of MFA to activate. Use empty string to disable MFA.
-
-- Example - `"totp"`
+Example - `"totp"`
 
 #### code
 
@@ -4469,8 +4449,7 @@ optional ticket?: string;
 ```
 
 Ticket to reset the password, required if the user is not authenticated
-
-- Pattern - ^passwordReset\:.\*$
+Pattern - ^passwordReset\:.\*$
 
 ---
 
@@ -4485,10 +4464,9 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
-
-- Pattern - ^[A-Za-z0-9_-]{43}$
-- MinLength - 43
-- MaxLength - 43
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
 
 #### email
 

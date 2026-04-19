@@ -655,8 +655,7 @@ optional metadata?: Record<string, unknown>;
 ```
 
 Custom metadata associated with the file.
-
-- Example - `{"alt":"Profile picture","category":"avatar"}`
+Example - `{"alt":"Profile picture","category":"avatar"}`
 
 #### mimeType
 
@@ -707,8 +706,7 @@ optional uploadedByUserId?: string;
 ```
 
 ID of the user who uploaded the file.
-
-- Example - `"abc123def456"`
+Example - `"abc123def456"`
 
 ---
 
@@ -935,8 +933,7 @@ optional file?: Blob;
 ```
 
 New file content to replace the existing file
-
-- Format - binary
+Format - binary
 
 #### metadata?
 
@@ -961,8 +958,7 @@ optional metadata?: Record<string, unknown>;
 ```
 
 Updated custom metadata to associate with the file.
-
-- Example - `{"alt":"Updated image description","category":"profile"}`
+Example - `{"alt":"Updated image description","category":"profile"}`
 
 #### name?
 
@@ -971,8 +967,7 @@ optional name?: string;
 ```
 
 New name to assign to the file.
-
-- Example - `"renamed-file.jpg"`
+Example - `"renamed-file.jpg"`
 
 ---
 
@@ -989,8 +984,7 @@ optional id?: string;
 ```
 
 Optional custom ID for the file. If not provided, a UUID will be generated.
-
-- Example - `"custom-id-123"`
+Example - `"custom-id-123"`
 
 #### metadata?
 
@@ -999,8 +993,7 @@ optional metadata?: Record<string, unknown>;
 ```
 
 Custom metadata to associate with the file.
-
-- Example - `{"alt":"Custom image","category":"document"}`
+Example - `{"alt":"Custom image","category":"document"}`
 
 #### name?
 
@@ -1009,8 +1002,7 @@ optional name?: string;
 ```
 
 Name to assign to the file. If not provided, the original filename will be used.
-
-- Example - `"custom-filename.png"`
+Example - `"custom-filename.png"`
 
 ---
 
@@ -1025,8 +1017,7 @@ optional bucket-id?: string;
 ```
 
 Target bucket identifier where files will be stored.
-
-- Example - `"user-uploads"`
+Example - `"user-uploads"`
 
 #### file\[\]
 
