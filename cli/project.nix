@@ -62,6 +62,7 @@ let
     jq
     curl
     cacert
+    gqlgen
     gqlgenc
     oapi-codegen
   ];
