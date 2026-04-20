@@ -64,7 +64,6 @@ const (
 	DisabledEndpoint                ErrorResponseError = "disabled-endpoint"
 	DisabledMfaTotp                 ErrorResponseError = "disabled-mfa-totp"
 	DisabledUser                    ErrorResponseError = "disabled-user"
-	EmailAlreadyInUse               ErrorResponseError = "email-already-in-use"
 	EmailAlreadyVerified            ErrorResponseError = "email-already-verified"
 	ForbiddenAnonymous              ErrorResponseError = "forbidden-anonymous"
 	InternalServerError             ErrorResponseError = "internal-server-error"
@@ -90,6 +89,7 @@ const (
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
 	TotpAlreadyActive               ErrorResponseError = "totp-already-active"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
+	UserAlreadyExists               ErrorResponseError = "user-already-exists"
 	UserNotAnonymous                ErrorResponseError = "user-not-anonymous"
 )
 
@@ -268,24 +268,44 @@ const (
 	GetProviderTokensParamsProviderWorkos      GetProviderTokensParamsProvider = "workos"
 )
 
+// Defines values for SignUpProviderParamsProvider.
+const (
+	SignUpProviderParamsProviderApple       SignUpProviderParamsProvider = "apple"
+	SignUpProviderParamsProviderAzuread     SignUpProviderParamsProvider = "azuread"
+	SignUpProviderParamsProviderBitbucket   SignUpProviderParamsProvider = "bitbucket"
+	SignUpProviderParamsProviderDiscord     SignUpProviderParamsProvider = "discord"
+	SignUpProviderParamsProviderEntraid     SignUpProviderParamsProvider = "entraid"
+	SignUpProviderParamsProviderFacebook    SignUpProviderParamsProvider = "facebook"
+	SignUpProviderParamsProviderGithub      SignUpProviderParamsProvider = "github"
+	SignUpProviderParamsProviderGitlab      SignUpProviderParamsProvider = "gitlab"
+	SignUpProviderParamsProviderGoogle      SignUpProviderParamsProvider = "google"
+	SignUpProviderParamsProviderLinkedin    SignUpProviderParamsProvider = "linkedin"
+	SignUpProviderParamsProviderSpotify     SignUpProviderParamsProvider = "spotify"
+	SignUpProviderParamsProviderStrava      SignUpProviderParamsProvider = "strava"
+	SignUpProviderParamsProviderTwitch      SignUpProviderParamsProvider = "twitch"
+	SignUpProviderParamsProviderTwitter     SignUpProviderParamsProvider = "twitter"
+	SignUpProviderParamsProviderWindowslive SignUpProviderParamsProvider = "windowslive"
+	SignUpProviderParamsProviderWorkos      SignUpProviderParamsProvider = "workos"
+)
+
 // Defines values for RefreshProviderTokenParamsProvider.
 const (
-	Apple       RefreshProviderTokenParamsProvider = "apple"
-	Azuread     RefreshProviderTokenParamsProvider = "azuread"
-	Bitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
-	Discord     RefreshProviderTokenParamsProvider = "discord"
-	Entraid     RefreshProviderTokenParamsProvider = "entraid"
-	Facebook    RefreshProviderTokenParamsProvider = "facebook"
-	Github      RefreshProviderTokenParamsProvider = "github"
-	Gitlab      RefreshProviderTokenParamsProvider = "gitlab"
-	Google      RefreshProviderTokenParamsProvider = "google"
-	Linkedin    RefreshProviderTokenParamsProvider = "linkedin"
-	Spotify     RefreshProviderTokenParamsProvider = "spotify"
-	Strava      RefreshProviderTokenParamsProvider = "strava"
-	Twitch      RefreshProviderTokenParamsProvider = "twitch"
-	Twitter     RefreshProviderTokenParamsProvider = "twitter"
-	Windowslive RefreshProviderTokenParamsProvider = "windowslive"
-	Workos      RefreshProviderTokenParamsProvider = "workos"
+	RefreshProviderTokenParamsProviderApple       RefreshProviderTokenParamsProvider = "apple"
+	RefreshProviderTokenParamsProviderAzuread     RefreshProviderTokenParamsProvider = "azuread"
+	RefreshProviderTokenParamsProviderBitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
+	RefreshProviderTokenParamsProviderDiscord     RefreshProviderTokenParamsProvider = "discord"
+	RefreshProviderTokenParamsProviderEntraid     RefreshProviderTokenParamsProvider = "entraid"
+	RefreshProviderTokenParamsProviderFacebook    RefreshProviderTokenParamsProvider = "facebook"
+	RefreshProviderTokenParamsProviderGithub      RefreshProviderTokenParamsProvider = "github"
+	RefreshProviderTokenParamsProviderGitlab      RefreshProviderTokenParamsProvider = "gitlab"
+	RefreshProviderTokenParamsProviderGoogle      RefreshProviderTokenParamsProvider = "google"
+	RefreshProviderTokenParamsProviderLinkedin    RefreshProviderTokenParamsProvider = "linkedin"
+	RefreshProviderTokenParamsProviderSpotify     RefreshProviderTokenParamsProvider = "spotify"
+	RefreshProviderTokenParamsProviderStrava      RefreshProviderTokenParamsProvider = "strava"
+	RefreshProviderTokenParamsProviderTwitch      RefreshProviderTokenParamsProvider = "twitch"
+	RefreshProviderTokenParamsProviderTwitter     RefreshProviderTokenParamsProvider = "twitter"
+	RefreshProviderTokenParamsProviderWindowslive RefreshProviderTokenParamsProvider = "windowslive"
+	RefreshProviderTokenParamsProviderWorkos      RefreshProviderTokenParamsProvider = "workos"
 )
 
 // Defines values for VerifyTicketParamsType.
@@ -851,6 +871,24 @@ type SignUpEmailPasswordRequest struct {
 	Password string `json:"password"`
 }
 
+// SignUpIdTokenRequest defines model for SignUpIdTokenRequest.
+type SignUpIdTokenRequest struct {
+	// IdToken Apple or Google ID token
+	IdToken string `json:"idToken"`
+
+	// Nonce Nonce used during sign in process
+	Nonce    *string         `json:"nonce,omitempty"`
+	Options  *SignUpOptions  `json:"options,omitempty"`
+	Provider IdTokenProvider `json:"provider"`
+}
+
+// SignUpOTPEmailRequest defines model for SignUpOTPEmailRequest.
+type SignUpOTPEmailRequest struct {
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *SignUpOptions      `json:"options,omitempty"`
+}
+
 // SignUpOptions defines model for SignUpOptions.
 type SignUpOptions struct {
 	AllowedRoles *[]string `json:"allowedRoles,omitempty"`
@@ -861,6 +899,24 @@ type SignUpOptions struct {
 	Locale     *string                 `json:"locale,omitempty"`
 	Metadata   *map[string]interface{} `json:"metadata,omitempty"`
 	RedirectTo *string                 `json:"redirectTo,omitempty"`
+}
+
+// SignUpPasswordlessEmailRequest defines model for SignUpPasswordlessEmailRequest.
+type SignUpPasswordlessEmailRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *SignUpOptions      `json:"options,omitempty"`
+}
+
+// SignUpPasswordlessSmsRequest defines model for SignUpPasswordlessSmsRequest.
+type SignUpPasswordlessSmsRequest struct {
+	Options *SignUpOptions `json:"options,omitempty"`
+
+	// PhoneNumber Phone number of the user
+	PhoneNumber string `json:"phoneNumber"`
 }
 
 // SignUpWebauthnRequest defines model for SignUpWebauthnRequest.
@@ -1226,6 +1282,39 @@ type SignInProviderCallbackPostParamsProvider string
 // GetProviderTokensParamsProvider defines parameters for GetProviderTokens.
 type GetProviderTokensParamsProvider string
 
+// SignUpProviderParams defines parameters for SignUpProvider.
+type SignUpProviderParams struct {
+	// AllowedRoles Array of allowed roles for the user
+	AllowedRoles *[]string `form:"allowedRoles,omitempty" json:"allowedRoles,omitempty"`
+
+	// DefaultRole Default role for the user
+	DefaultRole *string `form:"defaultRole,omitempty" json:"defaultRole,omitempty"`
+
+	// DisplayName Display name for the user
+	DisplayName *string `form:"displayName,omitempty" json:"displayName,omitempty"`
+
+	// Locale A two or three characters locale
+	Locale *string `form:"locale,omitempty" json:"locale,omitempty"`
+
+	// Metadata Additional metadata for the user (JSON encoded string)
+	Metadata *map[string]interface{} `form:"metadata,omitempty" json:"metadata,omitempty"`
+
+	// RedirectTo URI to redirect to
+	RedirectTo *string `form:"redirectTo,omitempty" json:"redirectTo,omitempty"`
+
+	// State Opaque state value to be returned by the provider
+	State *string `form:"state,omitempty" json:"state,omitempty"`
+
+	// ProviderSpecificParams Additional provider-specific parameters
+	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
+
+	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
+}
+
+// SignUpProviderParamsProvider defines parameters for SignUpProvider.
+type SignUpProviderParamsProvider string
+
 // RefreshProviderTokenParamsProvider defines parameters for RefreshProviderToken.
 type RefreshProviderTokenParamsProvider string
 
@@ -1315,6 +1404,18 @@ type SignOutJSONRequestBody = SignOutRequest
 
 // SignUpEmailPasswordJSONRequestBody defines body for SignUpEmailPassword for application/json ContentType.
 type SignUpEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
+
+// SignUpIdTokenJSONRequestBody defines body for SignUpIdToken for application/json ContentType.
+type SignUpIdTokenJSONRequestBody = SignUpIdTokenRequest
+
+// SignUpOTPEmailJSONRequestBody defines body for SignUpOTPEmail for application/json ContentType.
+type SignUpOTPEmailJSONRequestBody = SignUpOTPEmailRequest
+
+// SignUpPasswordlessEmailJSONRequestBody defines body for SignUpPasswordlessEmail for application/json ContentType.
+type SignUpPasswordlessEmailJSONRequestBody = SignUpPasswordlessEmailRequest
+
+// SignUpPasswordlessSmsJSONRequestBody defines body for SignUpPasswordlessSms for application/json ContentType.
+type SignUpPasswordlessSmsJSONRequestBody = SignUpPasswordlessSmsRequest
 
 // SignUpWebauthnJSONRequestBody defines body for SignUpWebauthn for application/json ContentType.
 type SignUpWebauthnJSONRequestBody = SignUpWebauthnRequest

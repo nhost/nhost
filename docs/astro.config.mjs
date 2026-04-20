@@ -301,6 +301,7 @@ export default defineConfig({
                     { slug: 'products/auth/jwt' },
                     { slug: 'products/auth/email-templates' },
                     { slug: 'products/auth/gravatar' },
+                    { slug: 'products/auth/controlling-user-creation' },
                   ],
                 },
                 {

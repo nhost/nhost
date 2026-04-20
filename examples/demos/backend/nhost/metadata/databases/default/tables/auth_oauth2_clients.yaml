@@ -45,3 +45,22 @@ configuration:
     select_by_pk: authOauth2Client
     update: updateAuthOauth2Clients
     update_by_pk: updateAuthOauth2Client
+object_relationships:
+  - name: createdByUser
+    using:
+      foreign_key_constraint_on: created_by
+array_relationships:
+  - name: authRequests
+    using:
+      foreign_key_constraint_on:
+        column: client_id
+        table:
+          name: oauth2_auth_requests
+          schema: auth
+  - name: oauth2RefreshTokens
+    using:
+      foreign_key_constraint_on:
+        column: client_id
+        table:
+          name: oauth2_refresh_tokens
+          schema: auth

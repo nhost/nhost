@@ -67,7 +67,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	ctx context.Context,
 	req providerCallbackData,
 	logger *slog.Logger,
-) (*api.SignUpOptions, *string, *string, *url.URL, *APIError) {
+) (*api.SignUpOptions, *string, bool, *string, *url.URL, *APIError) {
 	redirectTo := ctrl.config.ClientURL
 
 	stateData, apiErr := ctrl.getStateData(ctx, req.State, logger)
@@ -76,7 +76,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 			"provider_state": req.State,
 		})
 
-		return nil, nil, nil, redirectTo, apiErr
+		return nil, nil, false, nil, redirectTo, apiErr
 	}
 
 	// we just care about the redirect URL for now, the rest is handled by the signin flow
@@ -88,7 +88,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 		logger,
 	)
 	if apiErr != nil {
-		return nil, nil, nil, redirectTo, apiErr
+		return nil, nil, false, nil, redirectTo, apiErr
 	}
 
 	if req.Error != nil && *req.Error != "" {
@@ -104,13 +104,13 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 
 		redirectTo = appendURLValues(redirectTo, values)
 
-		return nil, nil, nil, redirectTo, ErrOauthProviderError
+		return nil, nil, false, nil, redirectTo, ErrOauthProviderError
 	}
 
 	optionsRedirectTo, err := url.Parse(*options.RedirectTo)
 	if err != nil {
 		logger.ErrorContext(ctx, "error parsing redirect URL", logError(err))
-		return nil, nil, nil, redirectTo, ErrInvalidRequest
+		return nil, nil, false, nil, redirectTo, ErrInvalidRequest
 	}
 
 	if stateData.State != nil && *stateData.State != "" {
@@ -119,7 +119,12 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 		})
 	}
 
-	return stateData.Options, stateData.Connect, stateData.CodeChallenge, optionsRedirectTo, nil
+	return stateData.Options,
+		stateData.Connect,
+		stateData.Flow == providers.FlowSignup,
+		stateData.CodeChallenge,
+		optionsRedirectTo,
+		nil
 }
 
 func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
@@ -218,18 +223,26 @@ func encryptProviderSession(
 	return string(providerSessionEnc), nil
 }
 
-func (ctrl *Controller) signinProviderProviderCallbackSignIn(
+func (ctrl *Controller) signinProviderProviderCallbackSession(
 	ctx context.Context,
 	req providerCallbackData,
+	connnect *string,
+	signupIntent bool,
+	codeChallenge *string,
 	profile oidc.Profile,
 	options *api.SignUpOptions,
-	codeChallenge *string,
 	redirectTo *url.URL,
 	logger *slog.Logger,
 ) (*url.URL, *APIError) {
+	if connnect != nil {
+		return redirectTo, ctrl.signinProviderProviderCallbackConnect(
+			ctx, *connnect, req.Provider, profile, logger,
+		)
+	}
+
 	if codeChallenge != nil && *codeChallenge != "" {
 		userID, apiErr := ctrl.providerResolveUser(
-			ctx, profile, req.Provider, options, logger,
+			ctx, profile, req.Provider, options, signupIntent, logger,
 		)
 		if apiErr != nil {
 			return redirectTo, apiErr
@@ -244,9 +257,17 @@ func (ctrl *Controller) signinProviderProviderCallbackSignIn(
 		)
 	}
 
-	session, apiErr := ctrl.providerSignInFlow(
-		ctx, profile, req.Provider, options, logger,
+	var (
+		session *api.Session
+		apiErr  *APIError
 	)
+
+	if signupIntent {
+		session, apiErr = ctrl.providerSignUpFlow(ctx, profile, req.Provider, options, logger)
+	} else {
+		session, apiErr = ctrl.providerSignInFlow(ctx, profile, req.Provider, options, logger)
+	}
+
 	if apiErr != nil {
 		return redirectTo, apiErr
 	}
@@ -268,7 +289,7 @@ func (ctrl *Controller) signinProviderProviderCallback(
 ) (*url.URL, *APIError) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	options, connnect, codeChallenge, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate(
+	options, connnect, signupIntent, codeChallenge, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate( //nolint:lll
 		ctx,
 		req,
 		logger,
@@ -286,19 +307,11 @@ func (ctrl *Controller) signinProviderProviderCallback(
 		return redirectTo, apiErr
 	}
 
-	if connnect != nil {
-		if apiErr := ctrl.signinProviderProviderCallbackConnect(
-			ctx, *connnect, req.Provider, profile, logger,
-		); apiErr != nil {
-			return redirectTo, apiErr
-		}
-	} else {
-		redirectTo, apiErr = ctrl.signinProviderProviderCallbackSignIn(
-			ctx, req, profile, options, codeChallenge, redirectTo, logger,
-		)
-		if apiErr != nil {
-			return redirectTo, apiErr
-		}
+	redirectTo, apiErr = ctrl.signinProviderProviderCallbackSession(
+		ctx, req, connnect, signupIntent, codeChallenge, profile, options, redirectTo, logger,
+	)
+	if apiErr != nil {
+		return redirectTo, apiErr
 	}
 
 	providerSessionEnc, apiErr := encryptProviderSession(

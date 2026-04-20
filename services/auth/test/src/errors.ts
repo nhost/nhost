@@ -82,9 +82,9 @@ export const ERRORS = asErrors({
     status: StatusCodes.UNAUTHORIZED,
     message: 'Email is not verified',
   },
-  'email-already-in-use': {
+  'user-already-exists': {
     status: StatusCodes.CONFLICT,
-    message: 'Email already in use',
+    message: 'User already exists',
     sensitive: true,
   },
   'mfa-type-not-found': {

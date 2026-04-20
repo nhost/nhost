@@ -351,7 +351,10 @@ describe('BaseTableForm', () => {
     await TestUserEvent.fireClickEvent(
       screen.getByPlaceholderText('Select type'),
     );
-    await user.type(screen.getByPlaceholderText('Select type'), 'text');
+    await TestUserEvent.fireTypeEvent(
+      screen.getByPlaceholderText('Select type'),
+      'text',
+    );
     await TestUserEvent.fireClickEvent(
       screen.getByRole('option', { name: /^text.*text/ }),
     );

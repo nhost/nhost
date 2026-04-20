@@ -1219,7 +1219,7 @@ func (wf *Workflows) UpdateUserConfirmChangeEmail(
 	if err != nil {
 		if sqlIsDuplcateError(err, "users_email_key") {
 			logger.ErrorContext(ctx, "user email id already in use", logError(err))
-			return sql.AuthUser{}, ErrEmailAlreadyInUse
+			return sql.AuthUser{}, ErrUserAlreadyExists
 		}
 
 		logger.ErrorContext(ctx, "error updating user", logError(err))

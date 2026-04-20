@@ -3,16 +3,12 @@ package controller
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/notifications"
-	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) SignInPasswordlessEmail( //nolint:ireturn
@@ -87,6 +83,12 @@ func (ctrl *Controller) signinWithTicket(
 
 	switch {
 	case errors.Is(apiErr, ErrUserEmailNotFound):
+		if ctrl.config.DisableAutoSignup {
+			// Return nil to prevent account enumeration - caller will return OK
+			logger.InfoContext(ctx, "auto-signup disabled, returning OK without sending email")
+			return nil
+		}
+
 		logger.InfoContext(ctx, "user does not exist, creating user")
 
 		user, apiErr = ctrl.signinWithTicketSignUp(
@@ -95,17 +97,7 @@ func (ctrl *Controller) signinWithTicket(
 		if apiErr != nil {
 			return apiErr
 		}
-	case errors.Is(apiErr, ErrUnverifiedUser):
-		if apiErr = ctrl.wf.SetTicket(
-			ctx,
-			user.ID,
-			ticket,
-			ticketExpiresAt,
-			logger,
-		); apiErr != nil {
-			return apiErr
-		}
-	case apiErr != nil:
+	case apiErr != nil && !errors.Is(apiErr, ErrUnverifiedUser):
 		logger.ErrorContext(ctx, "error getting user by email", logError(apiErr))
 		return apiErr
 	default:
@@ -138,64 +130,4 @@ func (ctrl *Controller) signinWithTicket(
 	}
 
 	return nil
-}
-
-func (ctrl *Controller) signinWithTicketSignUp(
-	ctx context.Context,
-	email string,
-	options *api.SignUpOptions,
-	ticket string,
-	ticketExpiresAt time.Time,
-	codeChallenge string,
-	logger *slog.Logger,
-) (sql.AuthUser, *APIError) {
-	var user sql.AuthUser
-
-	apiErr := ctrl.wf.SignupUserWithouthSession(
-		ctx,
-		email,
-		options,
-		false,
-		func(
-			_ pgtype.Text,
-			_ pgtype.Timestamptz,
-			metadata []byte,
-			gravatarURL string,
-		) error {
-			resp, err := ctrl.wf.db.InsertUser(ctx, sql.InsertUserParams{
-				ID:                uuid.New(),
-				Disabled:          ctrl.config.DisableNewUsers,
-				DisplayName:       deptr(options.DisplayName),
-				AvatarUrl:         gravatarURL,
-				Email:             sql.Text(email),
-				PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-				Ticket:            sql.Text(ticket),
-				TicketExpiresAt:   sql.TimestampTz(ticketExpiresAt),
-				EmailVerified:     false,
-				Locale:            deptr(options.Locale),
-				DefaultRole:       deptr(options.DefaultRole),
-				Metadata:          metadata,
-				Roles:             deptr(options.AllowedRoles),
-				PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
-				Otp:               "",
-				OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-				OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
-			})
-			if err != nil {
-				return fmt.Errorf("error inserting user: %w", err)
-			}
-
-			user = sql.AuthUser{ //nolint:exhaustruct
-				ID:          resp.UserID,
-				Locale:      deptr(options.Locale),
-				DisplayName: deptr(options.DisplayName),
-			}
-
-			return nil
-		},
-		codeChallenge,
-		logger,
-	)
-
-	return user, apiErr
 }

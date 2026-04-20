@@ -1,0 +1,218 @@
+package controller_test
+
+import (
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	"go.uber.org/mock/gomock"
+)
+
+func TestSignUpProvider(t *testing.T) {
+	t.Parallel()
+
+	cases := []testRequest[api.SignUpProviderRequestObject, api.SignUpProviderResponseObject]{
+		{
+			name:   "success",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignUpProviderRequestObject{
+				Params:   api.SignUpProviderParams{}, //nolint:exhaustruct
+				Provider: "fake",
+			},
+			expectedResponse: api.SignUpProvider302Response{
+				Headers: api.SignUpProvider302ResponseHeaders{
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "success with options and state",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignUpProviderRequestObject{
+				Params: api.SignUpProviderParams{ //nolint:exhaustruct
+					AllowedRoles:           &[]string{"admin", "user"},
+					DefaultRole:            new("admin"),
+					DisplayName:            new("Test User"),
+					Locale:                 new("es"),
+					Metadata:               new(map[string]any{"key": "value"}),
+					RedirectTo:             new("http://localhost:3000/redirect"),
+					State:                  new("custom-state"),
+					ProviderSpecificParams: nil,
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignUpProvider302Response{
+				Headers: api.SignUpProvider302ResponseHeaders{
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "success with code challenge",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignUpProviderRequestObject{
+				Params: api.SignUpProviderParams{ //nolint:exhaustruct
+					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignUpProvider302Response{
+				Headers: api.SignUpProvider302ResponseHeaders{
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "invalid code challenge format",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignUpProviderRequestObject{
+				Params: api.SignUpProviderParams{ //nolint:exhaustruct
+					CodeChallenge: ptr("too-short"),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-request",
+				Message: "The request payload is incorrect",
+				Status:  400,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "redirectTo not allowed",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignUpProviderRequestObject{
+				Params: api.SignUpProviderParams{ //nolint:exhaustruct
+					RedirectTo: new("http://not.allowed.com"),
+				},
+				Provider: "not-enabled",
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "redirectTo-not-allowed",
+				Message: `The value of "options.redirectTo" is not allowed.`,
+				Status:  400,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "provider not enabled",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignUpProviderRequestObject{
+				Params:   api.SignUpProviderParams{}, //nolint:exhaustruct
+				Provider: "not-enabled",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct {
+					Location string
+				}{
+					Location: `http://localhost:3000?error=disabled-endpoint&errorDescription=This+endpoint+is+disabled`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name: "signup disabled",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.DisableSignup = true
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignUpProviderRequestObject{
+				Params:   api.SignUpProviderParams{}, //nolint:exhaustruct
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "signup-disabled",
+				Message: "Sign up is disabled.",
+				Status:  403,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
+
+			assertRequest(
+				t.Context(),
+				t,
+				c.SignUpProvider,
+				tc.request,
+				tc.expectedResponse,
+				cmp.FilterPath(func(p cmp.Path) bool {
+					if last := p.Last(); last != nil {
+						return last.String() == ".Location" || last.String() == ".SetCookie"
+					}
+
+					return false
+				}, RegexpComparer()),
+			)
+		})
+	}
+}

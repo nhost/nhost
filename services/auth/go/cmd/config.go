@@ -120,6 +120,7 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		SMSModicaPassword:             cmd.String(flagSMSModicaPassword),
 		MfaEnabled:                    cmd.Bool(flagMfaEnabled),
 		ServerPrefix:                  cmd.String(flagAPIPrefix),
+		DisableAutoSignup:             cmd.Bool(flagDisableAutoSignup),
 		OAuth2ProviderEnabled:         cmd.Bool(flagOAuth2ProviderEnabled),
 		OAuth2ProviderLoginURL:        cmd.String(flagOAuth2ProviderLoginURL),
 		OAuth2ProviderAccessTokenTTL:  cmd.Int(flagOAuth2ProviderAccessTokenTTL),

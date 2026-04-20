@@ -63,13 +63,13 @@ export default function SignUp(): JSX.Element {
     }
   };
 
-  const handleSocialSignIn = async (provider: 'github') => {
+  const handleSocialSignUp = async (provider: 'github') => {
     const origin = window.location.origin;
     const redirectUrl = `${origin}/verify`;
 
     const { challenge } = await generateAndStorePKCE();
 
-    const url = nhost.auth.signInProviderURL(provider, {
+    const url = nhost.auth.signUpProviderURL(provider, {
       redirectTo: redirectUrl,
       codeChallenge: challenge,
     });
@@ -167,7 +167,10 @@ export default function SignUp(): JSX.Element {
           }
           magicTabContent={
             <div>
-              <MagicLinkForm buttonLabel="Sign up with Magic Link" />
+              <MagicLinkForm
+                mode="signUp"
+                buttonLabel="Sign up with Magic Link"
+              />
             </div>
           }
           socialTabContent={
@@ -175,7 +178,7 @@ export default function SignUp(): JSX.Element {
               <p className="mb-6">Sign up using your Social account</p>
               <button
                 type="button"
-                onClick={() => handleSocialSignIn('github')}
+                onClick={() => handleSocialSignUp('github')}
                 className="btn btn-secondary w-full flex items-center justify-center gap-2"
                 disabled={isLoading}
               >

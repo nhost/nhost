@@ -32,7 +32,7 @@ func (ctrl *Controller) ChangeUserEmail( //nolint:ireturn
 
 	if exists {
 		logger.WarnContext(ctx, "email already exists")
-		return ctrl.sendError(ErrEmailAlreadyInUse), nil
+		return ctrl.sendError(ErrUserAlreadyExists), nil
 	}
 
 	updatedUser, apiErr := ctrl.wf.ChangeEmail(ctx, user.ID, string(request.Body.NewEmail), logger)
