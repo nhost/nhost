@@ -42,6 +42,11 @@ function TestWrapper({
 }) {
   const methods = useForm<RolePermissionEditorFormValues>({
     defaultValues: {
+      rowCheckType:
+        defaultValues?.rowCheckType ??
+        (defaultValues?.filter && Object.keys(defaultValues.filter).length > 0
+          ? 'custom'
+          : 'none'),
       filter: {},
       limit: null,
       ...defaultValues,

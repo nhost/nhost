@@ -28,8 +28,8 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       },
       error: {
         light: 'rgba(241, 49, 84, 0.2)',
-        main: '#f13154',
-        dark: '#c91737',
+        main: '#B83B5E',
+        dark: '#B83B5E',
       },
       warning: {
         light: 'rgba(255, 154, 35, 0.2)',
@@ -98,8 +98,8 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
     },
     error: {
       light: '#ffe4de',
-      main: '#f13154',
-      dark: '#c91737',
+      main: '#B83B5E',
+      dark: '#B83B5E',
     },
     warning: {
       light: 'rgba(255, 154, 35, 0.2)',
