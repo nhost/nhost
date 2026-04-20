@@ -11,6 +11,7 @@ let
     root = ../..;
     include = with nix-filter.lib;[
       ".golangci.yaml"
+      "govulncheck.yaml"
       "go.mod"
       "go.sum"
       (and

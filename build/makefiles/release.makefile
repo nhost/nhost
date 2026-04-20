@@ -28,3 +28,7 @@ changelog-update:  ## Update changelog using git-cliff
 .PHONY: release-tag-name
 release-tag-name:  ## Get the tag name for the current version
 	@echo "$(TAG_NAME)"
+
+
+.PHONY: changelog-bump-refs
+changelog-bump-refs:  ## Bump version refs in dependent files (override per-project)

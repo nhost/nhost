@@ -3858,7 +3858,7 @@ type Mutation {
     updateSystemConfig(
         appID: uuid! @hasAppVisibility,
         systemConfig: ConfigSystemConfigUpdateInput!,
-    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:watchtower"])
+    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:watchtower", "sa:cd"])
 
     insertRunServiceConfig(
         appID: uuid! @hasAppVisibility,
@@ -22008,7 +22008,7 @@ func (ec *executionContext) _Mutation_updateSystemConfig(ctx context.Context, fi
 			directive0 := next
 
 			directive1 := func(ctx context.Context) (any, error) {
-				role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin", "sa:factorio", "sa:watchtower"})
+				role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin", "sa:factorio", "sa:watchtower", "sa:cd"})
 				if err != nil {
 					var zeroVal *model.ConfigSystemConfig
 					return zeroVal, err

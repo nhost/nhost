@@ -120,6 +120,16 @@ type AuthOauth2RefreshToken struct {
 	ExpiresAt     pgtype.Timestamptz
 }
 
+type AuthPkceAuthorizationCode struct {
+	ID            uuid.UUID
+	UserID        uuid.UUID
+	CodeHash      string
+	CodeChallenge string
+	RedirectTo    pgtype.Text
+	ExpiresAt     pgtype.Timestamptz
+	CreatedAt     pgtype.Timestamptz
+}
+
 // List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthProvider struct {
 	ID string
@@ -594,6 +604,25 @@ type PaymentMethod struct {
 	IsDefault             bool
 }
 
+type PipelineRun struct {
+	ID        uuid.UUID
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	Name      string
+	StartedAt pgtype.Timestamptz
+	EndedAt   pgtype.Timestamptz
+	Status    string
+	Input     []byte
+	Substatus []byte
+	Metadata  []byte
+	AppID     pgtype.UUID
+}
+
+type PipelineRunStatus struct {
+	Value   string
+	Comment pgtype.Text
+}
+
 type Plan struct {
 	ID                                 uuid.UUID
 	CreatedAt                          pgtype.Timestamptz
@@ -733,6 +762,20 @@ type StorageVirus struct {
 	Filename    string
 	Virus       string
 	UserSession []byte
+}
+
+type UnifiedDeployment struct {
+	ID                  uuid.UUID
+	AppID               uuid.UUID
+	Source              string
+	CommitSha           string
+	CommitUserName      pgtype.Text
+	CommitUserAvatarUrl pgtype.Text
+	CommitMessage       pgtype.Text
+	StartedAt           pgtype.Timestamptz
+	EndedAt             pgtype.Timestamptz
+	Status              pgtype.Text
+	CreatedAt           pgtype.Timestamptz
 }
 
 type Workspace struct {
