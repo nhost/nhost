@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalLogsClient } from '@/features/orgs/projects/hooks/useLocalLogsClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -9,6 +8,7 @@ import {
   type GetProjectLogsQuery,
   useGetProjectLogsQuery,
 } from '@/utils/__generated__/graphql';
+import { localLogsClient } from '@/utils/localLogsClient';
 import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
 
 export interface UseProjectLogsProps {
@@ -51,7 +51,6 @@ export function updateQuery(
 
 function useProjectLogs(props: UseProjectLogsProps) {
   const isPlatform = useIsPlatform();
-  const localLogsClient = useLocalLogsClient();
   const { project, loading: loadingProject } = useProject();
   const subscriptionReturn = useRef<(() => void) | null>(null);
 

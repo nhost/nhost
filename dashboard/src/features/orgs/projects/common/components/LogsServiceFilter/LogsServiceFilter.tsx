@@ -3,7 +3,6 @@ import type { UseFormRegisterReturn } from 'react-hook-form';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalLogsClient } from '@/features/orgs/projects/hooks/useLocalLogsClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   CORE_LOG_SERVICE_TO_LABEL,
@@ -11,6 +10,7 @@ import {
 } from '@/features/orgs/projects/logs/utils/constants/services';
 import { isEmptyValue } from '@/lib/utils';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
+import { localLogsClient } from '@/utils/localLogsClient';
 
 type LogsServiceFilterProps = UseFormRegisterReturn<
   keyof {
@@ -21,7 +21,6 @@ type LogsServiceFilterProps = UseFormRegisterReturn<
 const LogsServiceFilter = forwardRef<HTMLButtonElement, LogsServiceFilterProps>(
   (props, ref) => {
     const isPlatform = useIsPlatform();
-    const localLogsClient = useLocalLogsClient();
     const { project } = useProject();
     const { data } = useGetServiceLabelValuesQuery({
       variables: { appID: project?.id },
