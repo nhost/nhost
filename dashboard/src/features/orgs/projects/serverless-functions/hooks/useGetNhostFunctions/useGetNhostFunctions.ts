@@ -24,9 +24,11 @@ export default function useGetNhostFunctions() {
             GetAppFunctionsMetadataDocument,
             { id: project?.id },
           );
-        return (
-          (response?.body.data?.app?.metadataFunctions as NhostFunction[]) ?? []
-        );
+        const app = response?.body.data?.app;
+        if (!app) {
+          throw new Error('Failed to load function metadata');
+        }
+        return (app.metadataFunctions ?? []) as NhostFunction[];
       }
 
       const res = await fetch(

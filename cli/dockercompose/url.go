@@ -1,10 +1,8 @@
 package dockercompose
 
-import "fmt"
-
-const (
-	schemeWS  = "ws"
-	schemeWSS = "wss"
+import (
+	"fmt"
+	"strings"
 )
 
 func URL(host, service string, port uint, useTLS bool) string {
@@ -22,17 +20,7 @@ func URL(host, service string, port uint, useTLS bool) string {
 	return fmt.Sprintf("%s://%s.%s.local.nhost.run:%d", protocol, host, service, port)
 }
 
+// WebsocketURL returns the ws(s):// variant of URL(host, service, port, useTLS).
 func WebsocketURL(host, service string, port uint, useTLS bool) string {
-	if useTLS && port == 443 {
-		return fmt.Sprintf("wss://%s.%s.local.nhost.run", host, service)
-	} else if !useTLS && port == 80 {
-		return fmt.Sprintf("ws://%s.%s.local.nhost.run", host, service)
-	}
-
-	protocol := schemeWS
-	if useTLS {
-		protocol = schemeWSS
-	}
-
-	return fmt.Sprintf("%s://%s.%s.local.nhost.run:%d", protocol, host, service, port)
+	return strings.Replace(URL(host, service, port, useTLS), "http", "ws", 1)
 }
