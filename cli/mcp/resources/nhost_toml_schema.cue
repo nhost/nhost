@@ -346,6 +346,9 @@ import (
 		// AUTH_DISABLE_NEW_USERS
 		disableNewUsers: bool | *false
 
+		// AUTH_DISABLE_AUTO_SIGNUP
+		disableAutoSignup: bool | *false
+
 		turnstile?: {
 			secretKey: string
 		}
