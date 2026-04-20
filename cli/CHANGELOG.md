@@ -1,3 +1,34 @@
+## [cli@1.44.0] - 2026-04-20
+
+### 🚀 Features
+
+- *(auth)* Allow disabling auto-signup (#4168)
+- *(cli)* Add support for logs and update functions to new v2 (#4159)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Bump version references as part of the changelog (#4169)
+
+## [cli@1.43.1] - 2026-04-17
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump versions (#4165)
+
+## [cli@1.43.0] - 2026-04-14
+
+### 🚀 Features
+
+- *(cli)* Allow deploying using the cli/github actions (#4139)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added a small wrapper around govulncheck to allow filtering some CVEs (#4112)
+- *(nixops)* Bump go due to cves (#4124)
+- *(cli)* Bump nhost/dashboard to 2.59.0 (#4135)
+
 ## [cli@1.42.1] - 2026-03-31
 
 ### 🐛 Bug Fixes

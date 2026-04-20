@@ -1441,6 +1441,10 @@ type ConfigAuthSignUp {
     """
     disableNewUsers: Boolean
     """
+    AUTH_DISABLE_AUTO_SIGNUP
+    """
+    disableAutoSignup: Boolean
+    """
 
     """
     turnstile: ConfigAuthSignUpTurnstile
@@ -1449,12 +1453,14 @@ type ConfigAuthSignUp {
 input ConfigAuthSignUpUpdateInput {
     enabled: Boolean
     disableNewUsers: Boolean
+    disableAutoSignup: Boolean
     turnstile: ConfigAuthSignUpTurnstileUpdateInput
 }
 
 input ConfigAuthSignUpInsertInput {
     enabled: Boolean
     disableNewUsers: Boolean
+    disableAutoSignup: Boolean
     turnstile: ConfigAuthSignUpTurnstileInsertInput
 }
 
@@ -1464,6 +1470,7 @@ input ConfigAuthSignUpComparisonExp {
     _or: [ConfigAuthSignUpComparisonExp!]
     enabled: ConfigBooleanComparisonExp
     disableNewUsers: ConfigBooleanComparisonExp
+    disableAutoSignup: ConfigBooleanComparisonExp
     turnstile: ConfigAuthSignUpTurnstileComparisonExp
 }
 

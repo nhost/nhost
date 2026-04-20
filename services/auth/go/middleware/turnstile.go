@@ -65,23 +65,42 @@ func makeTurnstileRequest(
 	return &turnstileResponse, nil
 }
 
+// requiresTurnstile reports whether the Turnstile check should be applied to
+// the given request path. Apply to:
+//   - Signup (any method)
+//   - Passwordless signin (magic-link email, email OTP, SMS)
+//   - Password reset
+//
+// Do not apply to:
+//   - Verification endpoints (/verify suffix, or the SMS OTP verify endpoint
+//     which ends in /otp)
+//   - OAuth callback endpoints (/callback suffix)
+//   - OAuth GET redirect initiators (/signin/provider/* and /signup/provider/*):
+//     the browser cannot attach custom headers to a window.location redirect,
+//     so a Turnstile token cannot be delivered on these paths.
+func requiresTurnstile(path, prefix string) bool {
+	if strings.HasSuffix(path, "/verify") ||
+		strings.HasSuffix(path, "/callback") ||
+		path == prefix+"/signin/passwordless/sms/otp" {
+		return false
+	}
+
+	if strings.HasPrefix(path, prefix+"/signin/provider/") ||
+		strings.HasPrefix(path, prefix+"/signup/provider/") {
+		return false
+	}
+
+	return strings.HasPrefix(path, prefix+"/signup/") ||
+		strings.HasPrefix(path, prefix+"/signin/passwordless/") ||
+		strings.HasPrefix(path, prefix+"/signin/otp/") ||
+		path == prefix+"/user/password/reset"
+}
+
 func Turnstile(secret string, prefix string) gin.HandlerFunc {
 	cl := http.Client{} //nolint:exhaustruct
 
 	return func(ctx *gin.Context) {
-		// Apply to:
-		// - Signup
-		// - Passwordless Signin
-		// - Password Reset
-		//
-		// Do not apply to:
-		// - verification endpoints
-		// - callback endpoints
-		if (!strings.HasPrefix(ctx.Request.URL.Path, prefix+"/signup/") &&
-			!strings.HasPrefix(ctx.Request.URL.Path, prefix+"/signin/passwordless") &&
-			ctx.Request.URL.Path != prefix+"/user/password/reset") ||
-			strings.HasSuffix(ctx.Request.URL.Path, "/verify") ||
-			strings.HasSuffix(ctx.Request.URL.Path, "/callback") {
+		if !requiresTurnstile(ctx.Request.URL.Path, prefix) {
 			ctx.Next()
 			return
 		}

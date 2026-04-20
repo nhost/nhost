@@ -246,7 +246,7 @@ body {
     --accent: 216 100% 40.2% / 8%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --accent-background: 204 29% 97%;
-    --destructive: 349 87% 57%;
+    --destructive: 340 52% 48%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
@@ -298,7 +298,7 @@ body {
     --accent: 215.88 100% 60.98% / 16%;
     --accent-foreground: 210 40% 98%;
     --accent-background: 217 24% 11%;
-    --destructive: 349 87% 57%;
+    --destructive: 340 52% 48%;
     --destructive-foreground: 210 40% 98%;
     --border: 210 13% 21%;
     --input: 217.2 32.6% 17.5%;

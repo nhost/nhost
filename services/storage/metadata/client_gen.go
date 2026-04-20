@@ -190,15 +190,15 @@ func (t *BucketMetadataFragment) GetCacheControl() *string {
 	return t.CacheControl
 }
 
-type InsertFile_InsertFile struct {
-	ID string "json:\"id\" graphql:\"id\""
+type InsertFile_InsertFiles struct {
+	AffectedRows int64 "json:\"affected_rows\" graphql:\"affected_rows\""
 }
 
-func (t *InsertFile_InsertFile) GetID() string {
+func (t *InsertFile_InsertFiles) GetAffectedRows() int64 {
 	if t == nil {
-		t = &InsertFile_InsertFile{}
+		t = &InsertFile_InsertFiles{}
 	}
-	return t.ID
+	return t.AffectedRows
 }
 
 type DeleteFile_DeleteFile struct {
@@ -257,14 +257,14 @@ func (t *ListFilesSummary) GetFiles() []*FileMetadataSummaryFragment {
 }
 
 type InsertFile struct {
-	InsertFile *InsertFile_InsertFile "json:\"insertFile,omitempty\" graphql:\"insertFile\""
+	InsertFiles *InsertFile_InsertFiles "json:\"insertFiles,omitempty\" graphql:\"insertFiles\""
 }
 
-func (t *InsertFile) GetInsertFile() *InsertFile_InsertFile {
+func (t *InsertFile) GetInsertFiles() *InsertFile_InsertFiles {
 	if t == nil {
 		t = &InsertFile{}
 	}
-	return t.InsertFile
+	return t.InsertFiles
 }
 
 type UpdateFile struct {
@@ -400,8 +400,8 @@ func (c *Client) ListFilesSummary(ctx context.Context, interceptors ...clientv2.
 }
 
 const InsertFileDocument = `mutation InsertFile ($object: files_insert_input!) {
-	insertFile(object: $object) {
-		id
+	insertFiles(objects: [$object]) {
+		affected_rows
 	}
 }
 `

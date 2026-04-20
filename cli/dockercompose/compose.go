@@ -440,7 +440,10 @@ func functions( //nolint:funlen
 	}
 
 	return &Service{
-		Image:       fmt.Sprintf("nhost/functions:%d-1.5.0", *cfg.GetFunctions().GetNode().Version),
+		Image: fmt.Sprintf(
+			"nhost/functions:%d-2.0.0-rc2",
+			*cfg.GetFunctions().GetNode().Version,
+		),
 		DependsOn:   nil,
 		EntryPoint:  nil,
 		Command:     nil,
@@ -610,21 +613,28 @@ func getServices( //nolint: funlen,cyclop
 	mailhogVolumeName := "mailhog_" + sanitizeBranch(branch)
 	mailhog := mailhog(subdomain, mailhogVolumeName, useTLS)
 
+	cs, err := configserver(
+		configserviceImage,
+		rootFolder,
+		nhostFolder,
+		projectName,
+		useTLS,
+		runServices...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	services := map[string]*Service{
-		"console":   console,
-		"dashboard": dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS),
-		"graphql":   graphql,
-		"minio":     minio,
-		"postgres":  postgres,
-		"storage":   storage,
-		"mailhog":   mailhog,
-		"traefik":   traefik,
-		"configserver": configserver(
-			configserviceImage,
-			rootFolder,
-			nhostFolder,
-			useTLS,
-			runServices...),
+		"console":      console,
+		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS),
+		"graphql":      graphql,
+		"minio":        minio,
+		"postgres":     postgres,
+		"storage":      storage,
+		"mailhog":      mailhog,
+		"traefik":      traefik,
+		"configserver": cs,
 	}
 
 	if startFunctions {

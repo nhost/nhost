@@ -397,6 +397,15 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			SecretName: "",
 		},
 		{
+			Name: "AUTH_DISABLE_AUTO_SIGNUP",
+			Value: Stringify(
+				!unptr(config.GetAuth().GetSignUp().GetEnabled()) ||
+					unptr(config.GetAuth().GetSignUp().GetDisableAutoSignup()),
+			),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
 			Name: "AUTH_REQUIRE_ELEVATED_CLAIM",
 			Value: Stringify(
 				unptr(config.GetAuth().GetElevatedPrivileges().GetMode()),

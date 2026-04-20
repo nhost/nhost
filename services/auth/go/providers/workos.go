@@ -115,11 +115,16 @@ func (w *WorkOS) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("WorkOS API Error: %w", err)
 	}
 
+	// WorkOS's /sso/profile endpoint does not surface an explicit
+	// verification flag. The profile is produced by the enterprise identity
+	// provider configured by the customer (SAML, OIDC, Google Workspace,
+	// etc.) and carries no verification signal to this layer, so the status
+	// is Unknown.
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Email:          userProfile.Email,
 		Name:           userProfile.FirstName + " " + userProfile.LastName,
 		Picture:        "",
-		EmailVerified:  userProfile.Email != "",
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 	}, nil
 }

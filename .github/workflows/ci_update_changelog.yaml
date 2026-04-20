@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        project: [cli, dashboard, packages/nhost-js, packages/stripe-graphql-js, services/auth, services/mcp, services/storage]
+        project: [cli, dashboard, packages/nhost-js, packages/stripe-graphql-js, services/auth, services/functions, services/mcp, services/storage]
 
     permissions:
       id-token: write
@@ -60,6 +60,12 @@ jobs:
         cd ${{ matrix.project }}
         nix develop .\#cliff -c make changelog-update
 
+    - name: "Bump version references"
+      if: steps.version.outputs.version != ''
+      run: |
+        cd ${{ matrix.project }}
+        make changelog-bump-refs VER=${{ steps.version.outputs.version }}
+
     - name: "Create Pull Request"
       if: steps.version.outputs.version != ''
       uses: peter-evans/create-pull-request@v8
@@ -74,6 +80,7 @@ jobs:
 
           Changes:
           - Updated CHANGELOG.md
+          - Bumped version references (`make changelog-bump-refs`) in dependent files
         branch: release/${{ matrix.project }}
         delete-branch: true
         labels: |

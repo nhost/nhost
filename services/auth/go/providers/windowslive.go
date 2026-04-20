@@ -73,11 +73,13 @@ func (w *WindowsLive) GetProfile(
 		email = profile.Emails.Account
 	}
 
+	// Microsoft's Live v5.0/me endpoint does not return an explicit
+	// verification flag, so there is no signal to report.
 	return oidc.Profile{
 		ProviderUserID: profile.ID,
 		Name:           profile.Name + " " + profile.LastName,
 		Email:          email,
-		EmailVerified:  email != "",
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 		Picture:        profile.ProfileImageURL,
 	}, nil
 }

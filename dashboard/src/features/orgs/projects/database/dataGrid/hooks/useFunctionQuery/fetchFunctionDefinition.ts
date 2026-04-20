@@ -36,6 +36,12 @@ export interface FetchFunctionDefinitionReturnType {
     functionType: 'IMMUTABLE' | 'STABLE' | 'VOLATILE' | null;
     returnTypeName: string;
     returnTypeSchema: string;
+    /** Return type kind from pg_type.typtype: 'c' composite, 'b' base/scalar, 'd' domain, 'e' enum, 'p' pseudo, 'r' range */
+    returnTypeKind: string;
+    /** Whether the function returns a set (SETOF). */
+    returnsSet: boolean;
+    /** Whether the function has any variadic argument. */
+    hasVariadic: boolean;
     language: string;
     parameters: FunctionParameter[];
     defaultArgsCount: number;
@@ -85,6 +91,9 @@ export default async function fetchFunctionDefinition({
               END AS function_type,
               rt.typname as return_type_name,
               rtn.nspname as return_type_schema,
+              rt.typtype as return_type_kind,
+              p.proretset as returns_set,
+              (p.provariadic <> 0) as has_variadic,
               l.lanname as language,
               (SELECT COALESCE(json_agg(json_build_object(
                 'name', pt.typname,
@@ -188,6 +197,9 @@ export default async function fetchFunctionDefinition({
           | null,
         returnTypeName: result.return_type_name,
         returnTypeSchema: result.return_type_schema,
+        returnTypeKind: result.return_type_kind,
+        returnsSet: Boolean(result.returns_set),
+        hasVariadic: Boolean(result.has_variadic),
         language: result.language,
         parameters,
         defaultArgsCount,

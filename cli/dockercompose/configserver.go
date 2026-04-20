@@ -1,6 +1,7 @@
 package dockercompose
 
 import (
+	"fmt"
 	"path/filepath"
 	"slices"
 )
@@ -8,10 +9,11 @@ import (
 func configserver( //nolint: funlen
 	image,
 	rootPath,
-	nhostPath string,
+	nhostPath,
+	projectName string,
 	useTLS bool,
 	runServices ...*RunService,
-) *Service {
+) (*Service, error) {
 	bindings := make([]Volume, 0, len(runServices))
 	extraArgs := make([]string, len(runServices))
 
@@ -37,6 +39,40 @@ func configserver( //nolint: funlen
 		})
 	}
 
+	dockerURL, err := getDockerHost()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get docker host: %w", err)
+	}
+
+	volumes := append(
+		[]Volume{
+			{
+				Type:     "bind",
+				Source:   nhostPath,
+				Target:   "/tmp/root/nhost",
+				ReadOnly: new(false),
+			},
+			{
+				Type:     "bind",
+				Source:   rootPath,
+				Target:   "/tmp/root",
+				ReadOnly: new(false),
+			},
+		},
+		bindings...,
+	)
+
+	dockerEndpoint := dockerURL.String()
+	if dockerURL.Scheme == "unix" {
+		volumes = append(volumes, Volume{
+			Type:     "bind",
+			Source:   dockerURL.Path,
+			Target:   "/var/run/docker.sock",
+			ReadOnly: new(true),
+		})
+		dockerEndpoint = "unix:///var/run/docker.sock"
+	}
+
 	return &Service{
 		Image:      image,
 		DependsOn:  map[string]DependsOn{},
@@ -46,7 +82,10 @@ func configserver( //nolint: funlen
 			"--enable-playground",
 			"--debug",
 		}, extraArgs...),
-		Environment: map[string]string{},
+		Environment: map[string]string{
+			"DOCKER_HOST":            dockerEndpoint,
+			"DOCKER_COMPOSE_PROJECT": projectName,
+		},
 		ExtraHosts:  []string{},
 		HealthCheck: nil,
 		Labels: Ingresses{
@@ -57,27 +96,18 @@ func configserver( //nolint: funlen
 				Port:    configserverPort,
 				Rewrite: nil,
 			},
-		}.Labels(),
-		Networks: nil,
-		Ports:    []Port{},
-		Restart:  "always",
-		Volumes: append(
-			[]Volume{
-				{
-					Type:     "bind",
-					Source:   nhostPath,
-					Target:   "/tmp/root/nhost",
-					ReadOnly: new(false),
-				},
-				{
-					Type:     "bind",
-					Source:   rootPath,
-					Target:   "/tmp/root",
-					ReadOnly: new(false),
-				},
+			{
+				Name:    "logs",
+				TLS:     useTLS,
+				Rule:    traefikHostMatch("dashboard") + "&& PathPrefix(`/v1/logs`)",
+				Port:    configserverPort,
+				Rewrite: nil,
 			},
-			bindings...,
-		),
+		}.Labels(),
+		Networks:   nil,
+		Ports:      []Port{},
+		Restart:    "always",
+		Volumes:    volumes,
 		WorkingDir: nil,
-	}
+	}, nil
 }

@@ -1,0 +1,23 @@
+schema:
+  - "schema.graphqls"
+
+exec:
+  filename: generated/generated.go
+  package: generated
+
+model:
+  filename: model/models_gen.go
+  package: model
+
+resolver:
+  layout: follow-schema
+  dir: .
+  package: logsapi
+
+skip_mod_tidy: true
+omit_slice_element_pointers: true
+
+models:
+  Timestamp:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time

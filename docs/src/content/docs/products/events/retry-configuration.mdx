@@ -1,0 +1,52 @@
+---
+title: Retry Configuration
+description: Configure retry behavior for event triggers, cron triggers, and one-off scheduled events
+keywords: ['retry', 'retries', 'timeout', 'tolerance', 'error handling', 'webhook']
+sidebar:
+  label: Retry Configuration
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+All event types retry on non-2xx responses and network errors. Configure the retry count, interval, and timeout when creating a trigger.
+
+<Tabs>
+<TabItem label="Dashboard">
+
+The retry settings are found inside the **Retry and Headers Settings** accordion when creating or editing an event.
+
+![Retry Configuration](/images/events/retry-configuration.png)
+
+| Field              | Default           | Description                                                               |
+| ------------------ | ----------------- | ------------------------------------------------------------------------- |
+| **Num Retries**    | `0`               | Number of retry attempts on failure                                       |
+| **Retry Interval** | `10`              | Seconds between retry attempts                                            |
+| **Timeout**        | `60`              | Seconds before a request times out                                        |
+| **Tolerance**      | `21600` (6 hours) | Maximum delay for a late invocation to still execute (cron triggers only) |
+
+</TabItem>
+<TabItem label="Metadata">
+
+Retry configuration is defined under the `retry_conf` key in the trigger's metadata.
+
+**Event triggers** use shorter field names (`interval_sec` and `timeout_sec`):
+
+```yaml
+retry_conf:
+  interval_sec: 10
+  num_retries: 3
+  timeout_sec: 60
+```
+
+**Cron triggers** use `retry_interval_seconds`, `timeout_seconds`, and support an additional `tolerance_seconds` field:
+
+```yaml
+retry_conf:
+  num_retries: 3
+  retry_interval_seconds: 10
+  timeout_seconds: 60
+  tolerance_seconds: 21600
+```
+
+</TabItem>
+</Tabs>

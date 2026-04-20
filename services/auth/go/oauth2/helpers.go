@@ -39,7 +39,7 @@ func computeAtHash(accessToken string) string {
 	return base64.RawURLEncoding.EncodeToString(h[:sha256.Size/2])
 }
 
-func deptr[T any](x *T) T { //nolint:ireturn
+func deptr[T any](x *T) T { //nolint:ireturn,nolintlint
 	if x == nil {
 		return *new(T)
 	}

@@ -301,6 +301,7 @@ export default defineConfig({
                     { slug: 'products/auth/jwt' },
                     { slug: 'products/auth/email-templates' },
                     { slug: 'products/auth/gravatar' },
+                    { slug: 'products/auth/controlling-user-creation' },
                   ],
                 },
                 {
@@ -500,6 +501,44 @@ export default defineConfig({
                     { slug: 'products/functions/guides/error-handling' },
                     { slug: 'products/functions/guides/nhost-sdk' },
                     { slug: 'products/functions/guides/cors' },
+                  ],
+                },
+              ],
+            },
+            {
+              id: 'products-events',
+              label: 'Events',
+              link: '/products/events/',
+              icon: 'seti:lightning',
+              items: [
+                { label: 'Events', slug: 'products/events' },
+                {
+                  label: 'Configuration',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/events/event-triggers' },
+                    { slug: 'products/events/cron-triggers' },
+                    {
+                      slug: 'products/events/one-off-scheduled-events',
+                    },
+                    { slug: 'products/events/transformations' },
+                    { slug: 'products/events/retry-configuration' },
+                  ],
+                },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/events/guides/webhook-security' },
+                    {
+                      slug: 'products/events/guides/community-notifications',
+                    },
+                    {
+                      slug: 'products/events/guides/stale-todo-cleanup',
+                    },
+                    {
+                      slug: 'products/events/guides/broadcast-notifications',
+                    },
                   ],
                 },
               ],

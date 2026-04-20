@@ -13,7 +13,13 @@ import DataGridFiltersProvider, {
 } from './DataGridFiltersProvider';
 import DataGridFiltersTrigger from './DataGridFiltersTrigger';
 
-function DataGridFiltersPopoverImpl() {
+type DataGridFiltersPopoverImplProps = {
+  isFetching: boolean;
+};
+
+function DataGridFiltersPopoverImpl({
+  isFetching,
+}: DataGridFiltersPopoverImplProps) {
   const { setFilters, filters } = useDataGridFilters();
   const { appliedFilters } = useDataGridQueryParams();
 
@@ -40,16 +46,28 @@ function DataGridFiltersPopoverImpl() {
         onAnimationEnd={restoreFiltersOnAnimationEndIfNeeded}
       >
         <DataGridFilters />
-        <DataGridFilterActions />
+        <DataGridFilterActions isFetching={isFetching} />
       </PopoverContent>
     </Popover>
   );
 }
 
-function DataGridFiltersPopover() {
+type DataGridFiltersPopoverProps = {
+  storageKey: string;
+  isFetching: boolean;
+};
+
+function DataGridFiltersPopover({
+  storageKey,
+  isFetching,
+}: DataGridFiltersPopoverProps) {
+  const { appliedFilters } = useDataGridQueryParams();
+  const providerKey =
+    appliedFilters.length === 0 ? `${storageKey}:empty` : storageKey;
+
   return (
-    <DataGridFiltersProvider>
-      <DataGridFiltersPopoverImpl />
+    <DataGridFiltersProvider key={providerKey} storageKey={storageKey}>
+      <DataGridFiltersPopoverImpl isFetching={isFetching} />
     </DataGridFiltersProvider>
   );
 }

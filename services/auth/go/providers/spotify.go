@@ -76,11 +76,13 @@ func (s *Spotify) GetProfile(
 		avatarURL = userProfile.Images[0].URL
 	}
 
+	// Spotify's /v1/me endpoint does not return an explicit verification
+	// flag, so there is no signal to report.
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Name:           userProfile.DisplayName,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "",
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 		Picture:        avatarURL,
 	}, nil
 }

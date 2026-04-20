@@ -41,11 +41,9 @@ func NewAzureadProvider(
 }
 
 type azureUser struct {
-	OID    string `json:"oid"`
-	Email  string `json:"email"`
-	Name   string `json:"name"`
-	UPN    string `json:"upn"`
-	Prefer string `json:"preferred_username"`
+	OID   string `json:"oid"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 func (a *AzureAD) GetProfile(
@@ -64,19 +62,20 @@ func (a *AzureAD) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("AzureAD API error: %w", err)
 	}
 
-	email := userProfile.Email
-	if email == "" {
-		email = userProfile.Prefer
-	}
-
-	if email == "" {
-		email = userProfile.UPN
-	}
-
+	// Only the `email` claim represents a real external email Azure AD has
+	// associated with the account. `preferred_username` and `upn` are internal
+	// directory identifiers that can be set to arbitrary values (e.g. a custom
+	// UPN like `ceo@target-company.com`) and do not prove email ownership.
+	//
+	// The legacy v1 `/openid/userinfo` endpoint does not expose an
+	// `email_verified` claim, so there is no explicit signal to report and
+	// the status is Unknown. For stricter verification, use the Entra ID
+	// provider, which returns `email_verified` via Microsoft Graph's OIDC
+	// userinfo endpoint.
 	return oidc.Profile{
 		ProviderUserID: userProfile.OID,
-		Email:          email,
-		EmailVerified:  email != "",
+		Email:          userProfile.Email,
+		EmailVerified:  oidc.EmailVerificationStatusUnknown,
 		Name:           userProfile.Name,
 		Picture:        "",
 	}, nil

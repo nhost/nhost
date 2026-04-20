@@ -58,7 +58,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 	}
 
 	cases := []testRequest[api.SignInIdTokenRequestObject, api.SignInIdTokenResponseObject]{
-		{
+		{ //nolint:dupl
 			name:   "signup - simple",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -283,7 +283,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: nil,
 		},
 
-		{
+		{ //nolint:dupl
 			name: "signup - disabled",
 			config: func() *controller.Config {
 				c := getConfig()
@@ -321,6 +321,53 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 				Error:   "signup-disabled",
 				Message: "Sign up is disabled.",
 				Status:  403,
+			},
+			jwtTokenFn:  nil,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withIDTokenValidatorProviders(getTestIDTokenValidatorProviders()),
+			},
+		},
+
+		{ //nolint:dupl
+			name: "signup - auto-signup disabled",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.DisableAutoSignup = true
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "106964149809169421082",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@myapp.local"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				return mock
+			},
+			request: api.SignInIdTokenRequestObject{
+				Body: &api.SignInIdTokenRequest{
+					IdToken:  token,
+					Nonce:    ptr(nonce),
+					Options:  nil,
+					Provider: "fake",
+				},
+			},
+			// Returns generic error to prevent account enumeration
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-email-password",
+				Message: "Incorrect email or password",
+				Status:  401,
 			},
 			jwtTokenFn:  nil,
 			expectedJWT: nil,
@@ -780,6 +827,59 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorResponse{
 				Error:   "disabled-user",
 				Message: "User is disabled",
+				Status:  401,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+		},
+
+		{
+			name:   "signin - existing account - email not verified - refuses to link",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "106964149809169421082",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@myapp.local"),
+				).Return(
+					//nolint:exhaustruct
+					sql.AuthUser{
+						ID: userID,
+						CreatedAt: pgtype.Timestamptz{
+							Time: time.Now(),
+						},
+						Disabled:      false,
+						DisplayName:   "Jane",
+						Email:         sql.Text("jane@myapp.local"),
+						EmailVerified: true,
+						DefaultRole:   "user",
+					}, nil)
+
+				return mock
+			},
+			getControllerOpts: []getControllerOptsFunc{
+				withIDTokenValidatorProviders(getTestIDTokenValidatorProviders()),
+			},
+			request: api.SignInIdTokenRequestObject{
+				Body: &api.SignInIdTokenRequest{
+					IdToken:  testTokenWithEmailVerified(t, nonce, false),
+					Nonce:    new(nonce),
+					Options:  nil,
+					Provider: "fake",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "unverified-user",
+				Message: "User is not verified.",
 				Status:  401,
 			},
 			expectedJWT: nil,

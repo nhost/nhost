@@ -36,6 +36,9 @@ let
         (matchExt "go")
       )
 
+      "${submodule}/cmd/configserver/logsapi/gqlgen.yml"
+      "${submodule}/cmd/configserver/logsapi/schema.graphqls"
+
       "${submodule}/mcp/nhost/auth/openapi.yaml"
       "${submodule}/mcp/nhost/graphql/openapi.yaml"
       "${submodule}/mcp/resources/cloud_schema.graphql"
@@ -62,6 +65,7 @@ let
     jq
     curl
     cacert
+    gqlgen
     gqlgenc
     oapi-codegen
   ];
@@ -84,6 +88,8 @@ rec {
     buildInputs = with pkgs; [
       certbot-full
       python312Packages.certbot-dns-route53
+
+      gqlgen
 
       # javascript
       nodejs

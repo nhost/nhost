@@ -31,3 +31,9 @@ _dev-env-down:
 .PHONY: _dev-env-build
 _dev-env-build:
 	@echo "Nothing to do"
+
+
+.PHONY: changelog-bump-refs
+changelog-bump-refs:  ## Bump nhost/dashboard image refs in CLI source and docs
+	@find $(ROOT_DIR)/cli -type f -exec sed -i 's|"nhost/dashboard:[^"]*"|"nhost/dashboard:$(VERSION)"|g' {} +
+	@sed -i 's|"nhost/dashboard:[^"]*"|"nhost/dashboard:$(VERSION)"|g' $(ROOT_DIR)/docs/src/content/docs/reference/cli/commands.mdx

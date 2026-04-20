@@ -22,12 +22,18 @@ import (
 func testToken(t *testing.T, nonce string) string {
 	t.Helper()
 
+	return testTokenWithEmailVerified(t, nonce, true)
+}
+
+func testTokenWithEmailVerified(t *testing.T, nonce string, emailVerified bool) string {
+	t.Helper()
+
 	claims := jwt.MapClaims{
 		"iss":            "fake.issuer",
 		"aud":            "myapp.local",
 		"sub":            "106964149809169421082",
 		"email":          "jane@myapp.local",
-		"email_verified": true,
+		"email_verified": emailVerified,
 		"name":           "Jane",
 		"picture":        "https://myapp.local/jane.jpg",
 		"iat":            time.Now().Unix(),
@@ -97,7 +103,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 		{
 			name:   "success",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser( //nolint:dupl
@@ -163,6 +169,88 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 			request: api.LinkIdTokenRequestObject{
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
+					Nonce:    new(nonce),
+					Provider: "fake",
+				},
+			},
+			expectedResponse: api.LinkIdToken200JSONResponse("OK"),
+			expectedJWT:      nil,
+			jwtTokenFn:       jwtTokenFn,
+		},
+
+		{
+			// Locks in that /link/idtoken ignores the OAuth provider's email
+			// verification status: the Nhost account is identified by the
+			// authenticated JWT, not by the OAuth email, so an unverified
+			// (or unknown) email from the provider must not block linking.
+			name:   "success - unverified provider email still links",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser( //nolint:dupl
+					gomock.Any(),
+					userID,
+				).Return(sql.AuthUser{
+					ID: userID,
+					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+						Time: time.Now(),
+					},
+					UpdatedAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
+					LastSeen:    pgtype.Timestamptz{}, //nolint:exhaustruct
+					Disabled:    false,
+					DisplayName: "John",
+					AvatarUrl:   "",
+					Locale:      "en",
+					Email:       sql.Text("fake@gmail.com"),
+					PhoneNumber: pgtype.Text{}, //nolint:exhaustruct
+					PasswordHash: sql.Text(
+						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
+					),
+					EmailVerified:            true,
+					PhoneNumberVerified:      false,
+					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
+					OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
+					OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
+					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+					DefaultRole:              "user",
+					IsAnonymous:              false,
+					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
+					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
+					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
+					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					Metadata:                 []byte{},
+					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+				}, nil)
+
+				mock.EXPECT().InsertUserProvider(
+					gomock.Any(),
+					sql.InsertUserProviderParams{
+						UserID:         userID,
+						ProviderID:     "fake",
+						ProviderUserID: "106964149809169421082",
+					},
+				).Return(
+					sql.AuthUserProvider{
+						ID:             userID,
+						CreatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
+						UpdatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
+						UserID:         userID,
+						AccessToken:    "unset",
+						RefreshToken:   pgtype.Text{}, //nolint:exhaustruct
+						ProviderID:     "fake",
+						ProviderUserID: "106964149809169421082",
+					}, nil,
+				)
+
+				return mock
+			},
+			getControllerOpts: []getControllerOptsFunc{
+				withIDTokenValidatorProviders(getTestIDTokenValidatorProviders()),
+			},
+			request: api.LinkIdTokenRequestObject{
+				Body: &api.LinkIdTokenRequest{
+					IdToken:  testTokenWithEmailVerified(t, nonce, false),
 					Nonce:    new(nonce),
 					Provider: "fake",
 				},

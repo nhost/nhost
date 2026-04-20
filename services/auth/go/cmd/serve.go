@@ -180,6 +180,7 @@ const (
 	flagTwitterEnabled                           = "twitter-enabled"
 	flagTwitterConsumerKey                       = "twitter-consumer-key"
 	flagTwitterConsumerSecret                    = "twitter-consumer-secret"
+	flagDisableAutoSignup                        = "disable-auto-signup"
 	flagOAuth2ProviderEnabled                    = "oauth2-provider-enabled"
 	flagOAuth2ProviderLoginURL                   = "oauth2-provider-login-url"
 	flagOAuth2ProviderAccessTokenTTL             = "oauth2-provider-access-token-ttl"  //nolint:gosec
@@ -1244,6 +1245,13 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Twitter OAuth consumer secret",
 				Category: "oauth-twitter",
 				Sources:  cli.EnvVars("AUTH_PROVIDER_TWITTER_CONSUMER_SECRET"),
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagDisableAutoSignup,
+				Usage:    "Disable automatic user creation in signin methods. When enabled, users must use explicit signup endpoints.",
+				Value:    false,
+				Category: "signup",
+				Sources:  cli.EnvVars("AUTH_DISABLE_AUTO_SIGNUP"),
 			},
 			// OAuth2 Identity Provider flags
 			&cli.BoolFlag{ //nolint: exhaustruct

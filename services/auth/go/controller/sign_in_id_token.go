@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/sql"
-	"github.com/oapi-codegen/runtime/types"
 )
 
 func (ctrl *Controller) postSigninIdtokenCheckUserExists(
@@ -92,176 +90,44 @@ func (ctrl *Controller) providerSignInFlow(
 
 	if userFound {
 		return ctrl.providerFlowSignIn(
-			ctx, user, providerFound, provider, profile.ProviderUserID, logger,
+			ctx, user, providerFound, provider, profile, logger,
 		)
+	}
+
+	if ctrl.config.DisableAutoSignup {
+		// Return generic error to prevent account enumeration
+		logger.InfoContext(ctx, "auto-signup disabled, user not found")
+		return nil, ErrInvalidEmailPassword
 	}
 
 	return ctrl.providerFlowSignUp(ctx, provider, profile, options, logger)
 }
 
-func (ctrl *Controller) providerFlowSignUpValidateOptions(
-	ctx context.Context, options *api.SignUpOptions, profile oidc.Profile, logger *slog.Logger,
-) (*api.SignUpOptions, *APIError) {
-	if ctrl.config.DisableSignup {
-		logger.WarnContext(ctx, "signup disabled")
-		return nil, ErrSignupDisabled
-	}
-
-	if profile.Email != "" {
-		if err := ctrl.wf.ValidateSignupEmail(ctx, types.Email(profile.Email), logger); err != nil {
-			return nil, err
-		}
-	}
-
-	if options == nil {
-		options = &api.SignUpOptions{} //nolint:exhaustruct
-	}
-
-	if options.DisplayName == nil && profile.Name != "" {
-		options.DisplayName = &profile.Name
-	}
-
-	options, err := ctrl.wf.ValidateSignUpOptions(
-		ctx, options, profile.ProviderUserID, logger,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return options, nil
-}
-
-func (ctrl *Controller) providerFlowSignUp(
+// ensureProviderLinkAllowed rejects an attempt to link a new OAuth provider
+// identity to an existing Nhost account when the provider has not explicitly
+// attested that the caller owns the email address. EmailVerificationStatus
+// values of Unknown (no signal) and Unverified are both rejected; only the
+// explicit Verified status allows linking.
+//
+// Without this guard, an attacker could claim an unverified email on the
+// OAuth provider (e.g. by changing their email to the victim's address and
+// skipping confirmation) and take over the matching Nhost account.
+func (ctrl *Controller) ensureProviderLinkAllowed(
 	ctx context.Context,
+	profile oidc.Profile,
 	provider string,
-	profile oidc.Profile,
-	options *api.SignUpOptions,
 	logger *slog.Logger,
-) (*api.Session, *APIError) {
-	logger.InfoContext(ctx, "user doesn't exist, signing up")
-
-	options, apiError := ctrl.providerFlowSignUpValidateOptions(ctx, options, profile, logger)
-	if apiError != nil {
-		return nil, apiError
-	}
-
-	session, apiErr := ctrl.wf.SignupUserWithFn(
-		ctx,
-		profile.Email,
-		options,
-		profile.Email != "" && !profile.EmailVerified,
-		ctrl.providerFlowSignupWithSession(ctx, profile, provider, options),
-		ctrl.providerFlowSignupWithoutSession(ctx, profile, provider, options),
-		"",
-		logger,
-	)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	if session != nil {
-		session.User.AvatarUrl = profile.Picture
-		session.User.EmailVerified = profile.EmailVerified
-	}
-
-	return session, nil
-}
-
-func (ctrl *Controller) providerFlowSignupWithSession(
-	ctx context.Context,
-	profile oidc.Profile,
-	providerID string,
-	options *api.SignUpOptions,
-) databaseWithSessionFn {
-	return func(
-		refreshTokenHash pgtype.Text,
-		refreshTokenExpiresAt pgtype.Timestamptz,
-		metadata []byte,
-		gravatarURL string,
-	) (uuid.UUID, uuid.UUID, error) {
-		avatarURL := gravatarURL
-		if profile.Picture != "" {
-			avatarURL = profile.Picture
-		}
-
-		var email pgtype.Text
-		if profile.Email != "" {
-			email = sql.Text(profile.Email)
-		}
-
-		resp, err := ctrl.wf.db.InsertUserWithUserProviderAndRefreshToken(
-			ctx, sql.InsertUserWithUserProviderAndRefreshTokenParams{
-				ID:                    uuid.New(),
-				Disabled:              ctrl.config.DisableNewUsers,
-				DisplayName:           deptr(options.DisplayName),
-				AvatarUrl:             avatarURL,
-				Email:                 email,
-				Ticket:                pgtype.Text{}, //nolint:exhaustruct
-				TicketExpiresAt:       sql.TimestampTz(time.Now()),
-				EmailVerified:         profile.EmailVerified,
-				Locale:                deptr(options.Locale),
-				DefaultRole:           deptr(options.DefaultRole),
-				Metadata:              metadata,
-				Roles:                 deptr(options.AllowedRoles),
-				RefreshTokenHash:      refreshTokenHash,
-				RefreshTokenExpiresAt: refreshTokenExpiresAt,
-				ProviderID:            providerID,
-				ProviderUserID:        profile.ProviderUserID,
-			},
-		)
-		if err != nil {
-			return uuid.Nil, uuid.Nil,
-				fmt.Errorf("error inserting user with refresh token: %w", err)
-		}
-
-		return resp.ID, resp.RefreshTokenID, nil
-	}
-}
-
-func (ctrl *Controller) providerFlowSignupWithoutSession(
-	ctx context.Context,
-	profile oidc.Profile,
-	providerID string,
-	options *api.SignUpOptions,
-) databaseWithoutSessionFn {
-	return func(
-		ticket pgtype.Text,
-		ticketExpiresAt pgtype.Timestamptz,
-		metadata []byte,
-		gravatarURL string,
-	) error {
-		avatarURL := gravatarURL
-		if profile.Picture != "" {
-			avatarURL = profile.Picture
-		}
-
-		var email pgtype.Text
-		if profile.Email != "" {
-			email = sql.Text(profile.Email)
-		}
-
-		_, err := ctrl.wf.db.InsertUserWithUserProvider(ctx, sql.InsertUserWithUserProviderParams{
-			ID:              uuid.New(),
-			Disabled:        ctrl.config.DisableNewUsers,
-			DisplayName:     deptr(options.DisplayName),
-			AvatarUrl:       avatarURL,
-			Email:           email,
-			Ticket:          ticket,
-			TicketExpiresAt: ticketExpiresAt,
-			EmailVerified:   profile.EmailVerified,
-			Locale:          deptr(options.Locale),
-			DefaultRole:     deptr(options.DefaultRole),
-			Metadata:        metadata,
-			Roles:           deptr(options.AllowedRoles),
-			ProviderID:      providerID,
-			ProviderUserID:  profile.ProviderUserID,
-		})
-		if err != nil {
-			return fmt.Errorf("error inserting user: %w", err)
-		}
-
+) *APIError {
+	if profile.EmailVerified.IsVerified() {
 		return nil
 	}
+
+	logger.WarnContext(ctx,
+		"refusing to link provider to existing account: email not verified by provider",
+		slog.String("provider", provider),
+	)
+
+	return ErrUnverifiedUser
 }
 
 func (ctrl *Controller) providerFlowSignIn(
@@ -269,17 +135,21 @@ func (ctrl *Controller) providerFlowSignIn(
 	user sql.AuthUser,
 	providerFound bool,
 	provider string,
-	providerUserID string,
+	profile oidc.Profile,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
 	logger.InfoContext(ctx, "user found, signing in")
 
 	if !providerFound {
+		if apiErr := ctrl.ensureProviderLinkAllowed(ctx, profile, provider, logger); apiErr != nil {
+			return nil, apiErr
+		}
+
 		if _, apiErr := ctrl.wf.InsertUserProvider(
 			ctx,
 			user.ID,
 			provider,
-			providerUserID,
+			profile.ProviderUserID,
 			logger,
 		); apiErr != nil {
 			return nil, apiErr
@@ -298,12 +168,16 @@ func (ctrl *Controller) providerFlowSignIn(
 // providerResolveUser resolves or creates a user from an OAuth provider profile
 // without creating a session. Used in the PKCE flow where session creation is
 // deferred to the token exchange endpoint.
+// When signupIntent is true the caller used the explicit /signup/provider endpoint:
+// an existing user is reported as ErrUserAlreadyExists, and DisableAutoSignup is
+// bypassed so the new account is created.
 // Returns uuid.Nil when the user cannot sign in yet (e.g. email verification required).
 func (ctrl *Controller) providerResolveUser(
 	ctx context.Context,
 	profile oidc.Profile,
 	provider string,
 	options *api.SignUpOptions,
+	signupIntent bool,
 	logger *slog.Logger,
 ) (uuid.UUID, *APIError) {
 	user, userFound, providerFound, apiError := ctrl.postSigninIdtokenCheckUserExists(
@@ -313,10 +187,21 @@ func (ctrl *Controller) providerResolveUser(
 		return uuid.Nil, apiError
 	}
 
-	if userFound {
+	if userFound { //nolint:nestif
+		if signupIntent {
+			logger.WarnContext(ctx, "user already exists")
+			return uuid.Nil, ErrUserAlreadyExists
+		}
+
 		logger.InfoContext(ctx, "user found, resolving for PKCE")
 
 		if !providerFound {
+			if apiErr := ctrl.ensureProviderLinkAllowed(
+				ctx, profile, provider, logger,
+			); apiErr != nil {
+				return uuid.Nil, apiErr
+			}
+
 			if _, apiErr := ctrl.wf.InsertUserProvider(
 				ctx,
 				user.ID,
@@ -329,6 +214,11 @@ func (ctrl *Controller) providerResolveUser(
 		}
 
 		return user.ID, nil
+	}
+
+	if !signupIntent && ctrl.config.DisableAutoSignup {
+		logger.InfoContext(ctx, "auto-signup disabled, user not found")
+		return uuid.Nil, ErrInvalidEmailPassword
 	}
 
 	return ctrl.providerSignUpResolveOnly(ctx, provider, profile, options, logger)
@@ -351,7 +241,7 @@ func (ctrl *Controller) providerSignUpResolveOnly( //nolint:cyclop,funlen
 		return uuid.Nil, apiError
 	}
 
-	sendConfirmationEmail := profile.Email != "" && !profile.EmailVerified
+	sendConfirmationEmail := profile.Email != "" && !profile.EmailVerified.IsVerified()
 
 	// If email verification is needed or new users are disabled,
 	// use the existing sign-up-without-session flow and signal that
@@ -400,7 +290,7 @@ func (ctrl *Controller) providerSignUpResolveOnly( //nolint:cyclop,funlen
 			Email:           email,
 			Ticket:          pgtype.Text{}, //nolint:exhaustruct
 			TicketExpiresAt: sql.TimestampTz(time.Now()),
-			EmailVerified:   profile.EmailVerified,
+			EmailVerified:   profile.EmailVerified.IsVerified(),
 			Locale:          deptr(options.Locale),
 			DefaultRole:     deptr(options.DefaultRole),
 			Metadata:        metadata,

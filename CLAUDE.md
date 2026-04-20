@@ -9,6 +9,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ### Go Services (`services/`)
 
 - `services/auth` - JWT-based authentication service with OAuth2/OIDC support, email/SMS verification, WebAuthn. Uses OpenAPI (oapi-codegen), sqlc for DB queries, and gomock for testing
+- `services/functions` - Node.js development runtime for serverless functions with Express, esbuild bundling, and hot-reload. Local dev simulation only, not a production service
 - `services/storage` - S3-compatible file storage with virus scanning (ClamAV), metadata management, and image transformation
 
 ### CLI (`cli/`)

@@ -80,7 +80,6 @@ jobs:
         run: |
           export NHOST_CLI_AUTH_URL="https://mytpiiwxeyrvlqrxuknp.auth.eu-central-1.nhost.run/v1"
           export NHOST_CLI_GRAPHQL_URL="https://mytpiiwxeyrvlqrxuknp.graphql.eu-central-1.nhost.run/v1"
-          export NHOST_CONFIGSERVER_IMAGE=cli:0.0.0-dev
 
           unzip /home/runner/artifacts/cli-artifact-x86_64-0.0.0-dev/result.zip
 
@@ -88,6 +87,16 @@ jobs:
           cd new-project
           /home/runner/_work/nhost/nhost/cli/result/bin/cli login --pat ${{ secrets.NHOST_PAT }}
           /home/runner/_work/nhost/nhost/cli/result/bin/cli init
+
+      # Skipped on `release/dashboard` PRs because the release PR bumps the
+      # `nhost/dashboard:<tag>` ref in `cli/cmd/dev/` to a version that isn't
+      # published until the PR merges, which makes `cli up` fail to pull it.
+      - name: "Start the project"
+        if: ${{ !startsWith(github.head_ref, 'release/dashboard') }}
+        run: |
+          export NHOST_CONFIGSERVER_IMAGE=cli:0.0.0-dev
+
+          cd new-project
           /home/runner/_work/nhost/nhost/cli/result/bin/cli up --down-on-error
           /home/runner/_work/nhost/nhost/cli/result/bin/cli down --volumes
 

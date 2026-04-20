@@ -114,7 +114,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			},
 		},
 
-		{
+		{ //nolint:dupl
 			name:   "signup required - with code challenge",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -500,7 +500,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{
+		{ //nolint:dupl
 			name: "signup required - options",
 			config: func() *controller.Config {
 				config := getConfig()
@@ -625,6 +625,38 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: "Sign up is disabled.",
 				Status:  403,
 			},
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name: "signup required - auto-signup disabled",
+			config: func() *controller.Config {
+				config := getConfig()
+				config.DisableAutoSignup = true
+
+				return config
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				return mock
+			},
+			request: api.SignInPasswordlessEmailRequestObject{
+				Body: &api.SignInPasswordlessEmailRequest{
+					Email:         "jane@acme.com",
+					Options:       nil,
+					CodeChallenge: nil,
+				},
+			},
+			// Returns OK to prevent account enumeration (no email sent)
+			expectedResponse:  api.SignInPasswordlessEmail200JSONResponse(api.OK),
 			jwtTokenFn:        nil,
 			expectedJWT:       nil,
 			getControllerOpts: []getControllerOptsFunc{},

@@ -68,7 +68,7 @@ func (ctrl *Controller) postUserDeanonymizeValidateRequest( //nolint:cyclop
 
 	if exists {
 		logger.WarnContext(ctx, "email already exists")
-		return uuid.UUID{}, "", nil, ErrEmailAlreadyInUse
+		return uuid.UUID{}, "", nil, ErrUserAlreadyExists
 	}
 
 	return userID, password, options, nil

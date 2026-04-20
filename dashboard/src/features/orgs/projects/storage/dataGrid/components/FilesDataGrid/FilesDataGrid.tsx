@@ -1,15 +1,12 @@
-import type {
-  CellContext,
-  ColumnDef,
-  SortingState,
-} from '@tanstack/react-table';
-import debounce from 'lodash.debounce';
+import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
-import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
+import { Button } from '@/components/ui/v3/button';
+import { usePageBoundsRedirect } from '@/features/orgs/projects/common/hooks/usePageBoundsRedirect';
+import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
@@ -17,11 +14,13 @@ import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/D
 import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import type { PreviewProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { DataGridPreviewCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
+import { FileIcon } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/icons';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { FilesDataGridControls } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGridControls';
 import { PreviewHeader } from '@/features/orgs/projects/storage/dataGrid/components/PreviewHeader';
 import { useFiles } from '@/features/orgs/projects/storage/dataGrid/hooks/useFiles';
 import { useFilesAggregate } from '@/features/orgs/projects/storage/dataGrid/hooks/useFilesAggregate';
+import { filtersToFilesWhere } from '@/features/orgs/projects/storage/dataGrid/utils/filtersToFilesWhere';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { Files, GetBucketQuery } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
@@ -38,101 +37,126 @@ export type FilesDataGridProps = {
   bucket: Bucket;
 } & Partial<DataGridProps<StoredFile>>;
 
-const columns: ColumnDef<StoredFile>[] = [
-  {
-    id: 'preview-column',
-    header: PreviewHeader,
-    accessorKey: 'preview',
-    cell: (props) => {
-      const { getValue, row } = props as CellContext<StoredFile, PreviewProps>;
-
-      return (
-        <DataGridPreviewCell
-          isDisabled={!row.original.isUploaded}
-          fallbackPreview={<FilePreviewIcon className="h-5 w-5 fill-current" />}
-          getValue={getValue}
-        />
-      );
-    },
-    minSize: 120,
-    size: 120,
-    enableSorting: false,
-    enableResizing: false,
-  },
-  {
-    header: 'id',
-    accessorKey: 'id',
-    cell: (props) => (
-      <DataGridTextCell {...(props as CellContext<StoredFile, string>)} />
-    ),
-    size: 318,
-  },
-  {
-    header: 'name',
-    accessorKey: 'name',
-    size: 200,
-  },
-  {
-    header: 'size',
-    accessorKey: 'size',
-    size: 80,
-  },
-  {
-    header: 'mimeType',
-    accessorKey: 'mimeType',
-    size: 120,
-  },
-  {
-    header: 'createdAt',
-    accessorKey: 'createdAt',
-    size: 120,
-    cell: (props) => (
-      <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
-    ),
-  },
-  {
-    header: 'updatedAt',
-    accessorKey: 'updatedAt',
-    size: 120,
-    cell: (props) => (
-      <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
-    ),
-  },
-  {
-    header: 'bucketId',
-    accessorKey: 'bucketId',
-    size: 200,
-  },
-  { header: 'etag', accessorKey: 'etag', size: 280 },
-  {
-    header: 'isUploaded',
-    accessorKey: 'isUploaded',
-    size: 100,
-    cell: ({ getValue }) => <ReadOnlyToggle checked={getValue<boolean>()} />,
-  },
-  {
-    header: 'uploadedByUserId',
-    accessorKey: 'uploadedByUserId',
-    size: 318,
-  },
-];
-
 export default function FilesDataGrid({
   bucket,
-  ...props
+  ...dataGridProps
 }: FilesDataGridProps) {
+  const columns = useMemo<ColumnDef<StoredFile>[]>(
+    () => [
+      {
+        id: 'preview-column',
+        header: PreviewHeader,
+        accessorKey: 'preview',
+        cell: (props) => {
+          const { getValue, row } = props as CellContext<
+            StoredFile,
+            PreviewProps
+          >;
+          const value = getValue();
+
+          return (
+            <DataGridPreviewCell
+              key={row.original.id}
+              {...value}
+              isDisabled={!row.original.isUploaded}
+              fallbackPreview={<FileIcon className="h-5 w-5" />}
+              downloadExpiration={bucket.downloadExpiration}
+            />
+          );
+        },
+        minSize: 120,
+        size: 120,
+        enableSorting: false,
+        enableResizing: false,
+        enableColumnFilter: false,
+      },
+      {
+        header: 'id',
+        accessorKey: 'id',
+        meta: { dataType: 'uuid' },
+        cell: (props) => (
+          <DataGridTextCell {...(props as CellContext<StoredFile, string>)} />
+        ),
+        size: 318,
+      },
+      {
+        header: 'name',
+        accessorKey: 'name',
+        meta: { dataType: 'text' },
+        size: 200,
+      },
+      {
+        header: 'size',
+        accessorKey: 'size',
+        meta: { dataType: 'integer' },
+        size: 80,
+      },
+      {
+        header: 'mimeType',
+        accessorKey: 'mimeType',
+        meta: { dataType: 'text' },
+        size: 120,
+      },
+      {
+        header: 'createdAt',
+        accessorKey: 'createdAt',
+        meta: { dataType: 'timestamptz' },
+        size: 120,
+        cell: (props) => (
+          <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+        ),
+      },
+      {
+        header: 'updatedAt',
+        accessorKey: 'updatedAt',
+        meta: { dataType: 'timestamptz' },
+        size: 120,
+        cell: (props) => (
+          <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+        ),
+      },
+      {
+        header: 'bucketId',
+        accessorKey: 'bucketId',
+        size: 200,
+        enableColumnFilter: false,
+      },
+      {
+        header: 'etag',
+        accessorKey: 'etag',
+        meta: { dataType: 'text' },
+        size: 280,
+      },
+      {
+        header: 'isUploaded',
+        accessorKey: 'isUploaded',
+        meta: { dataType: 'boolean' },
+        size: 100,
+        cell: ({ getValue }) => (
+          <ReadOnlyToggle checked={getValue<boolean>()} />
+        ),
+      },
+      {
+        header: 'uploadedByUserId',
+        accessorKey: 'uploadedByUserId',
+        meta: { dataType: 'uuid' },
+        size: 318,
+      },
+    ],
+    [bucket.downloadExpiration],
+  );
   const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();
-  const [searchString, setSearchString] = useState('');
-  const [currentOffset, setCurrentOffset] = useState<number>(
-    parseInt(router.query.page as string, 10) - 1 || 0,
-  );
-  const [sortBy, setSortBy] = useState<SortingState>([]);
+  const {
+    appliedFilters,
+    sortBy,
+    setSortBy,
+    currentOffset,
+    setAppliedFilters,
+  } = useDataGridQueryParams();
   const limit = 10;
-  const emptyStateMessage = searchString
-    ? 'No search results found.'
-    : 'No files are uploaded yet.';
+  const where = filtersToFilesWhere(appliedFilters, bucket.id);
 
   const {
     files,
@@ -140,8 +164,7 @@ export default function FilesDataGrid({
     error,
     refetch: refetchFiles,
   } = useFiles({
-    searchString,
-    bucketId: bucket.id,
+    where,
     limit,
     offset: currentOffset * limit,
     orderBy:
@@ -159,47 +182,19 @@ export default function FilesDataGrid({
   });
 
   const { numberOfFiles, refetch: refetchFilesAggregate } = useFilesAggregate({
-    searchString,
-    bucketId: bucket.id,
+    where,
   });
 
   const numberOfPages = numberOfFiles ? Math.ceil(numberOfFiles / limit) : 0;
   const currentPage = Math.min(currentOffset + 1, numberOfPages);
 
-  const handleSearchStringChange = useMemo(
-    () =>
-      debounce((event: ChangeEvent<HTMLInputElement>) => {
-        setCurrentOffset(0);
-        setSearchString(event.target.value);
-      }, 500),
-    [],
+  usePageBoundsRedirect(numberOfPages, loading);
+
+  const hasFilterError = !!error && appliedFilters.length > 0;
+  const memoizedData = useMemo(
+    () => (hasFilterError ? [] : (files as StoredFile[])),
+    [hasFilterError, files],
   );
-
-  useEffect(
-    () => () => handleSearchStringChange.cancel(),
-    [handleSearchStringChange],
-  );
-
-  useEffect(() => {
-    if (
-      !loading &&
-      router.query.page &&
-      typeof router.query.page === 'string'
-    ) {
-      const { page } = router.query;
-      const pageNumber = parseInt(page, 10);
-      const newOffset = Math.max(
-        Math.min(pageNumber - 1, numberOfPages - 1),
-        0,
-      );
-
-      if (currentOffset !== newOffset) {
-        setCurrentOffset(newOffset);
-      }
-    }
-  }, [router.query, loading, numberOfPages, currentOffset]);
-
-  const memoizedData = useMemo(() => files as StoredFile[], [files]);
 
   async function refetchFilesAndAggregate() {
     await refetchFiles();
@@ -213,8 +208,6 @@ export default function FilesDataGrid({
       pathname: router.pathname,
       query: { ...router.query, page: nextOffset + 1 },
     });
-
-    setCurrentOffset(nextOffset);
   }
 
   async function handleOpenNextPage() {
@@ -224,8 +217,6 @@ export default function FilesDataGrid({
       pathname: router.pathname,
       query: { ...router.query, page: nextOffset + 1 },
     });
-
-    setCurrentOffset(nextOffset);
   }
 
   async function handleFileUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -246,7 +237,6 @@ export default function FilesDataGrid({
 
       return;
     }
-
     if (file.size > bucket.maxUploadFileSize) {
       // biome-ignore lint/style/noParameterAssign: reset file input's value
       event.target.value = '';
@@ -310,9 +300,35 @@ export default function FilesDataGrid({
     event.target.value = '';
   }
 
-  if (error) {
+  if (error && !hasFilterError) {
     throw error;
   }
+
+  const emptyStateMessage = hasFilterError ? (
+    <p className="text-destructive text-xs">
+      Error: {error.message} -{' '}
+      <Button
+        variant="link"
+        className="pl-0 text-destructive text-xs hover:no-underline"
+        onClick={() => setAppliedFilters([])}
+      >
+        Click here to reset your filters
+      </Button>
+    </p>
+  ) : appliedFilters.length > 0 ? (
+    <p className="text-xs">
+      No matches found -{' '}
+      <Button
+        variant="link"
+        className="pl-0 text-xs hover:no-underline"
+        onClick={() => setAppliedFilters([])}
+      >
+        Click here to reset your filters
+      </Button>
+    </p>
+  ) : (
+    'No files are uploaded yet.'
+  );
 
   return (
     <DataGrid
@@ -342,16 +358,13 @@ export default function FilesDataGrid({
           fileUploadProps={{
             onChange: handleFileUpload,
           }}
-          filterProps={{
-            defaultValue: searchString,
-            onChange: handleSearchStringChange,
-            placeholder: 'Filter and search...',
-          }}
+          storageKey={`storage:${bucket.id}`}
+          isFetching={loading}
           refetchData={refetchFilesAndAggregate}
         />
       }
       isRowDisabled={(row) => !row.original.isUploaded}
-      {...props}
+      {...dataGridProps}
     />
   );
 }

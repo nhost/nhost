@@ -1,3 +1,36 @@
+## [@nhost/dashboard@2.60.0] - 2026-04-20
+
+### 🚀 Features
+
+- *(dashboard)* Delete buckets (#3987)
+- *(dashboard)* Add filters to storage page (#4125)
+- *(dashboard)* Storage maintenance (#4126)
+- *(dashboard)* Add permission handling to storage (#4049)
+- *(auth)* Allow disabling auto-signup (#4168)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Combine View and Materialized View database sidebar filters, and improve filter bar UX (#4152)
+- *(dashboard)* Show the correct preview (#4157)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Bump version references as part of the changelog (#4169)
+
+## [@nhost/dashboard@2.59.0] - 2026-04-14
+
+### 🚀 Features
+
+- *(dashboard)* Display buckets in storage (#3985)
+- *(dashboard)* Add/edit buckets (#3986)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Conditionally fill in address in onboarding test (#4147)
+
 ## [@nhost/dashboard@2.58.0] - 2026-04-13
 
 ### 🚀 Features
