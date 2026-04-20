@@ -14,6 +14,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"go.uber.org/mock/gomock"
 )
@@ -38,6 +39,37 @@ func getStateWithPKCE(
 ) string {
 	t.Helper()
 
+	return getStateWithSignupAndPKCE(t, jwtGetter, connect, options, false, codeChallenge)
+}
+
+func getStateWithSignupAndPKCE(
+	t *testing.T,
+	jwtGetter *controller.JWTGetter,
+	connect *string,
+	options api.SignUpOptions,
+	signupIntent bool,
+	codeChallenge *string,
+) string {
+	t.Helper()
+
+	flow := providers.FlowSignin
+	if signupIntent {
+		flow = providers.FlowSignup
+	}
+
+	return getStateWithFlowAndPKCE(t, jwtGetter, connect, options, flow, codeChallenge)
+}
+
+func getStateWithFlowAndPKCE(
+	t *testing.T,
+	jwtGetter *controller.JWTGetter,
+	connect *string,
+	options api.SignUpOptions,
+	flow string,
+	codeChallenge *string,
+) string {
+	t.Helper()
+
 	state, err := jwtGetter.SignTokenWithClaims(
 		jwt.MapClaims{
 			"connect": connect,
@@ -50,6 +82,7 @@ func getStateWithPKCE(
 				RedirectTo:   options.RedirectTo,
 			},
 			"state":         "some-random-state",
+			"flow":          flow,
 			"codeChallenge": codeChallenge,
 		},
 		time.Now().Add(time.Minute),
@@ -734,6 +767,38 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
 					Location: `^http://localhost:3000\?error=invalid-state&errorDescription=Invalid\+state&provider_state=wrong-state$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			// A signed state JWT carrying an unknown `flow` claim must be
+			// rejected. This guards against future code minting state with a
+			// new flow value that the callback isn't ready to handle, and
+			// against a tampered claim being treated as the safe default.
+			name:   "invalid flow claim",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-1"),
+					State: getStateWithFlowAndPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						"junk", nil,
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=invalid-state&errorDescription=Invalid\+state&provider_state=[\w.-]+$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -1465,7 +1530,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{
 			name:   "pkce - signup - new user - no session created",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -1533,6 +1598,173 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
 					Location: `^http://localhost:3000\?code=[\w-]+&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name: "pkce - signin - auto-signup disabled - user not found",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.DisableAutoSignup = true
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("user1@fake.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-1"),
+					State: getStateWithPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=invalid-email-password&errorDescription=Incorrect\+email\+or\+password&state=some-random-state$`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name: "pkce - signup - auto-signup disabled - new user",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.DisableAutoSignup = true
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("user1@fake.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				mock.EXPECT().InsertUserWithUserProvider(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserWithUserProviderParams{
+						ID:              userID,
+						Disabled:        false,
+						DisplayName:     "User One",
+						AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
+						Email:           sql.Text("user1@fake.com"),
+						Ticket:          pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt: sql.TimestampTz(time.Now()),
+						EmailVerified:   true,
+						Locale:          "en",
+						DefaultRole:     "user",
+						Metadata:        []byte("null"),
+						Roles:           []string{"user", "me"},
+						ProviderID:      "fake",
+						ProviderUserID:  "1234567890",
+					},
+						cmpopts.IgnoreFields(
+							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
+							"ID",
+						),
+					),
+				).Return(userID, nil)
+
+				mock.EXPECT().InsertPKCEAuthorizationCode(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(sql.AuthPkceAuthorizationCode{}, nil) //nolint:exhaustruct
+
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-1"),
+					State: getStateWithSignupAndPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						true, ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignInProviderCallbackGet302Response{
+				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
+					Location: `^http://localhost:3000\?code=[\w-]+&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "pkce - signup - existing user - user-already-exists",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{ //nolint:exhaustruct
+					ID:          userID,
+					DisplayName: "Jane",
+					Email:       sql.Text("user1@fake.com"),
+				}, nil)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
+					Code: new("valid-code-1"),
+					State: getStateWithSignupAndPKCE(
+						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
+						true, ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=user-already-exists&errorDescription=User\+already\+exists&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,

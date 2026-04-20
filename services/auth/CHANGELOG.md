@@ -1,3 +1,9 @@
+## [auth@0.50.0] - 2026-04-20
+
+### 🚀 Features
+
+- *(auth)* Allow disabling auto-signup (#4168)
+
 ## [auth@0.49.1] - 2026-04-17
 
 ### 🐛 Bug Fixes

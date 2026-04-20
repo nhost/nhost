@@ -266,9 +266,10 @@ type ComplexityRoot struct {
 	}
 
 	ConfigAuthSignUp struct {
-		DisableNewUsers func(childComplexity int) int
-		Enabled         func(childComplexity int) int
-		Turnstile       func(childComplexity int) int
+		DisableAutoSignup func(childComplexity int) int
+		DisableNewUsers   func(childComplexity int) int
+		Enabled           func(childComplexity int) int
+		Turnstile         func(childComplexity int) int
 	}
 
 	ConfigAuthSignUpTurnstile struct {
@@ -1519,6 +1520,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ConfigAuthSessionRefreshToken.ExpiresIn(childComplexity), true
 
+	case "ConfigAuthSignUp.disableAutoSignup":
+		if e.complexity.ConfigAuthSignUp.DisableAutoSignup == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthSignUp.DisableAutoSignup(childComplexity), true
 	case "ConfigAuthSignUp.disableNewUsers":
 		if e.complexity.ConfigAuthSignUp.DisableNewUsers == nil {
 			break
@@ -5323,6 +5330,10 @@ type ConfigAuthSignUp {
     """
     disableNewUsers: Boolean
     """
+    AUTH_DISABLE_AUTO_SIGNUP
+    """
+    disableAutoSignup: Boolean
+    """
 
     """
     turnstile: ConfigAuthSignUpTurnstile
@@ -5331,12 +5342,14 @@ type ConfigAuthSignUp {
 input ConfigAuthSignUpUpdateInput {
     enabled: Boolean
     disableNewUsers: Boolean
+    disableAutoSignup: Boolean
     turnstile: ConfigAuthSignUpTurnstileUpdateInput
 }
 
 input ConfigAuthSignUpInsertInput {
     enabled: Boolean
     disableNewUsers: Boolean
+    disableAutoSignup: Boolean
     turnstile: ConfigAuthSignUpTurnstileInsertInput
 }
 
@@ -5346,6 +5359,7 @@ input ConfigAuthSignUpComparisonExp {
     _or: [ConfigAuthSignUpComparisonExp!]
     enabled: ConfigBooleanComparisonExp
     disableNewUsers: ConfigBooleanComparisonExp
+    disableAutoSignup: ConfigBooleanComparisonExp
     turnstile: ConfigAuthSignUpTurnstileComparisonExp
 }
 
@@ -10369,6 +10383,8 @@ func (ec *executionContext) fieldContext_ConfigAuth_signUp(_ context.Context, fi
 				return ec.fieldContext_ConfigAuthSignUp_enabled(ctx, field)
 			case "disableNewUsers":
 				return ec.fieldContext_ConfigAuthSignUp_disableNewUsers(ctx, field)
+			case "disableAutoSignup":
+				return ec.fieldContext_ConfigAuthSignUp_disableAutoSignup(ctx, field)
 			case "turnstile":
 				return ec.fieldContext_ConfigAuthSignUp_turnstile(ctx, field)
 			}
@@ -13465,6 +13481,35 @@ func (ec *executionContext) _ConfigAuthSignUp_disableNewUsers(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_ConfigAuthSignUp_disableNewUsers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthSignUp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthSignUp_disableAutoSignup(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthSignUp) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthSignUp_disableAutoSignup,
+		func(ctx context.Context) (any, error) {
+			return obj.DisableAutoSignup, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthSignUp_disableAutoSignup(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigAuthSignUp",
 		Field:      field,
@@ -27841,7 +27886,7 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpComparisonExp(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "disableNewUsers", "turnstile"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "disableNewUsers", "disableAutoSignup", "turnstile"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27883,6 +27928,13 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpComparisonExp(ctx cont
 				return it, err
 			}
 			it.DisableNewUsers = data
+		case "disableAutoSignup":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disableAutoSignup"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DisableAutoSignup = data
 		case "turnstile":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("turnstile"))
 			data, err := ec.unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx, v)
@@ -27903,7 +27955,7 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpInsertInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"enabled", "disableNewUsers", "turnstile"}
+	fieldsInOrder := [...]string{"enabled", "disableNewUsers", "disableAutoSignup", "turnstile"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27924,6 +27976,13 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpInsertInput(ctx contex
 				return it, err
 			}
 			it.DisableNewUsers = data
+		case "disableAutoSignup":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disableAutoSignup"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DisableAutoSignup = data
 		case "turnstile":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("turnstile"))
 			data, err := ec.unmarshalOConfigAuthSignUpTurnstileInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileInsertInput(ctx, v)
@@ -37957,6 +38016,8 @@ func (ec *executionContext) _ConfigAuthSignUp(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._ConfigAuthSignUp_enabled(ctx, field, obj)
 		case "disableNewUsers":
 			out.Values[i] = ec._ConfigAuthSignUp_disableNewUsers(ctx, field, obj)
+		case "disableAutoSignup":
+			out.Values[i] = ec._ConfigAuthSignUp_disableAutoSignup(ctx, field, obj)
 		case "turnstile":
 			out.Values[i] = ec._ConfigAuthSignUp_turnstile(ctx, field, obj)
 		default:

@@ -227,8 +227,9 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				},
 			},
 			SignUp: &model.ConfigAuthSignUp{
-				Enabled:         new(true),
-				DisableNewUsers: new(false),
+				Enabled:           new(true),
+				DisableNewUsers:   new(false),
+				DisableAutoSignup: new(false),
 				Turnstile: &model.ConfigAuthSignUpTurnstile{
 					SecretKey: "turnstileSecretKey",
 				},

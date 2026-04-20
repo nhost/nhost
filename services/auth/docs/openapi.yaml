@@ -234,7 +234,9 @@ paths:
   /signin/anonymous:
     post:
       summary: Sign in anonymously
-      description: Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+      description: |
+        Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+        This endpoint always creates a new user and is **not** gated by `AUTH_DISABLE_AUTO_SIGNUP`; it is controlled by `AUTH_DISABLE_SIGNUP` and `AUTH_ANONYMOUS_USERS_ENABLED`.
       operationId: signInAnonymous
       tags:
         - authentication
@@ -291,7 +293,10 @@ paths:
   /signin/idtoken:
     post:
       summary: Sign in with an ID token
-      description: Authenticate using an ID token from a supported OAuth provider (Apple or Google). Creates a new user account if one doesn't exist.
+      description: |
+        Authenticate using an ID token from a supported OAuth provider (Apple or Google).
+        If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created.
+        When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken` endpoint to register first.
       operationId: signInIdToken
       tags:
         - authentication
@@ -348,7 +353,10 @@ paths:
   /signin/otp/email:
     post:
       summary: Sign in with email OTP
-      description: Initiate email-based one-time password authentication. Sends an OTP to the specified email address. If the user doesn't exist, a new account will be created with the provided options.
+      description: |
+        Initiate email-based one-time password authentication. Sends an OTP to the specified email address.
+        If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+        When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/otp/email` endpoint to register first.
       operationId: signInOTPEmail
       tags:
         - authentication
@@ -361,8 +369,8 @@ paths:
         required: true
       responses:
         "200":
-          description: >-
-            OTP sent to user's email successfully
+          description: |
+            OTP sent to the user's email. To prevent account enumeration, this response is also returned without side effects when the email is not registered and `AUTH_DISABLE_AUTO_SIGNUP` is enabled.
           content:
             application/json:
               schema:
@@ -406,7 +414,10 @@ paths:
   /signin/passwordless/email:
     post:
       summary: Sign in with magic link email
-      description: Initiate passwordless authentication by sending a magic link to the user's email. If the user doesn't exist, a new account will be created with the provided options.
+      description: |
+        Initiate passwordless authentication by sending a magic link to the user's email.
+        If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+        When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/email` endpoint to register first.
       operationId: signInPasswordlessEmail
       tags:
         - authentication
@@ -419,7 +430,8 @@ paths:
         required: true
       responses:
         "200":
-          description: "Magic link email sent successfully"
+          description: |
+            Magic link sent to the user's email. To prevent account enumeration, this response is also returned without side effects when the email is not registered and `AUTH_DISABLE_AUTO_SIGNUP` is enabled.
           content:
             application/json:
               schema:
@@ -435,7 +447,10 @@ paths:
     post:
       operationId: signInPasswordlessSms
       summary: Sign in with SMS OTP
-      description: Initiate passwordless authentication by sending a one-time password to the user's phone number. If the user doesn't exist, a new account will be created with the provided options.
+      description: |
+        Initiate passwordless authentication by sending a one-time password to the user's phone number.
+        If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+        When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/sms` endpoint to register first.
       tags:
         - authentication
       requestBody:
@@ -447,8 +462,8 @@ paths:
         required: true
       responses:
         "200":
-          description: >-
-            OTP sent to user's phone number successfully
+          description: |
+            OTP sent to the user's phone number. To prevent account enumeration, this response is also returned without side effects when the phone number is not registered and `AUTH_DISABLE_AUTO_SIGNUP` is enabled.
           content:
             application/json:
               schema:
@@ -520,7 +535,10 @@ paths:
   /signin/provider/{provider}:
     get:
       summary: Sign in with an OAuth2 provider
-      description: Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
+      description: |
+        Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
+        If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created upon callback.
+        When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider/{provider}` endpoint to register first.
       operationId: signInProvider
       tags:
         - authentication
@@ -632,7 +650,9 @@ paths:
   /signin/provider/{provider}/callback:
     get:
       summary: OAuth2 provider callback endpoint
-      description: Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session.
+      description: |
+        Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session.
+        This endpoint is where the signin-vs-signup decision (from the signed `flow` state claim) and the `AUTH_DISABLE_AUTO_SIGNUP` gate are actually enforced: on a `flow=signin` state with an unknown user and the flag enabled, the user is redirected with `error=invalid-email-password`; on a `flow=signup` state with an existing user, the user is redirected with `error=user-already-exists`.
       operationId: signInProviderCallbackGet
       tags:
         - authentication
@@ -701,7 +721,9 @@ paths:
 
     post:
       summary: OAuth2 provider callback endpoint (form_post)
-      description: Handles OAuth2 provider callbacks using form_post response mode. Used by providers like Apple that send data via POST instead of query parameters.
+      description: |
+        Handles OAuth2 provider callbacks using form_post response mode. Used by providers like Apple that send data via POST instead of query parameters.
+        Like the GET variant, this endpoint enforces the signin-vs-signup decision carried by the signed `flow` state claim and the `AUTH_DISABLE_AUTO_SIGNUP` gate.
       operationId: signInProviderCallbackPost
       tags:
         - authentication
@@ -972,6 +994,237 @@ paths:
       tags:
         - authentication
         - verification
+
+  /signup/passwordless/email:
+    post:
+      summary: Sign up with magic link email
+      description: |
+        Register a new user account using passwordless email authentication. Sends a magic link to the specified email address for verification.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+      operationId: signUpPasswordlessEmail
+      tags:
+        - authentication
+      requestBody:
+        description: Email address and optional user options for magic link registration
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpPasswordlessEmailRequest"
+        required: true
+      responses:
+        "200":
+          description: |
+            Magic link sent to the user's email. To prevent account enumeration, this response is also returned without side effects when the email is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signup/otp/email:
+    post:
+      summary: Sign up with email OTP
+      description: |
+        Register a new user account using email OTP authentication. Sends a one-time password to the specified email address.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+      operationId: signUpOTPEmail
+      tags:
+        - authentication
+      requestBody:
+        description: Email address and optional user options for OTP registration
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpOTPEmailRequest"
+        required: true
+      responses:
+        "200":
+          description: |
+            OTP sent to the user's email. To prevent account enumeration, this response is also returned without side effects when the email is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signup/passwordless/sms:
+    post:
+      summary: Sign up with SMS OTP
+      description: |
+        Register a new user account using SMS OTP authentication. Sends a one-time password to the specified phone number.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+      operationId: signUpPasswordlessSms
+      tags:
+        - authentication
+      requestBody:
+        description: Phone number and optional user options for SMS OTP registration
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpPasswordlessSmsRequest"
+        required: true
+      responses:
+        "200":
+          description: |
+            OTP sent to the user's phone number. To prevent account enumeration, this response is also returned without side effects when the phone number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signup/idtoken:
+    post:
+      summary: Sign up with ID token
+      description: |
+        Register a new user account using an ID token from Apple or Google.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+        If the user already exists, a `user-already-exists` error is returned.
+      operationId: signUpIdToken
+      tags:
+        - authentication
+      requestBody:
+        description: ID token and provider information for registration
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpIdTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: "Successfully signed up"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signup/provider/{provider}:
+    get:
+      summary: Sign up with OAuth provider
+      description: |
+        Initiate OAuth signup flow with the specified provider. Redirects to the provider's authorization page.
+        Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+        If the user already exists at callback time, they are redirected with `error=user-already-exists`.
+      operationId: signUpProvider
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+        - name: allowedRoles
+          in: query
+          required: false
+          description: Array of allowed roles for the user
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              - me
+              - user
+        - name: defaultRole
+          in: query
+          required: false
+          description: Default role for the user
+          schema:
+            type: string
+            example: user
+        - name: displayName
+          in: query
+          required: false
+          description: Display name for the user
+          schema:
+            type: string
+            pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
+            maxLength: 32
+            example: John Smith
+        - name: locale
+          in: query
+          required: false
+          description: A two or three characters locale
+          schema:
+            type: string
+            maxLength: 3
+            minLength: 2
+            example: en
+        - name: metadata
+          in: query
+          required: false
+          description: Additional metadata for the user (JSON encoded string)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  firstName: John
+                  lastName: Smith
+        - name: redirectTo
+          in: query
+          required: false
+          description: URI to redirect to
+          schema:
+            type: string
+            format: uri
+            example: https://my-app.com/catch-redirection
+        - name: state
+          in: query
+          required: false
+          description: Opaque state value to be returned by the provider
+          schema:
+            type: string
+        - name: providerSpecificParams
+          in: query
+          required: false
+          description: Additional provider-specific parameters
+          style: form
+          explode: true
+          schema:
+            $ref: "#/components/schemas/ProviderSpecificParams"
+        - name: codeChallenge
+          in: query
+          required: false
+          description: PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+          schema:
+            type: string
+            minLength: 43
+            maxLength: 43
+            pattern: "^[A-Za-z0-9_-]{43}$"
+      responses:
+        "302":
+          description: Redirect to social provider
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /token:
     post:
@@ -2100,7 +2353,7 @@ components:
             - default-role-must-be-in-allowed-roles
             - disabled-endpoint
             - disabled-user
-            - email-already-in-use
+            - user-already-exists
             - email-already-verified
             - forbidden-anonymous
             - internal-server-error
@@ -2656,6 +2909,71 @@ components:
           $ref: "#/components/schemas/SignUpOptions"
       required:
         - phoneNumber
+
+    SignUpPasswordlessEmailRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+        codeChallenge:
+          description: PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
+      required:
+        - email
+
+    SignUpOTPEmailRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+
+    SignUpPasswordlessSmsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        phoneNumber:
+          description: Phone number of the user
+          example: '+123456789'
+          type: string
+        options:
+          $ref: '#/components/schemas/SignUpOptions'
+      required:
+        - phoneNumber
+
+    SignUpIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        provider:
+          $ref: "#/components/schemas/IdTokenProvider"
+        idToken:
+          type: string
+          description: Apple or Google ID token
+        nonce:
+          type: string
+          description: Nonce used during sign in process
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - provider
+        - idToken
 
     SignInWebauthnRequest:
       type: object

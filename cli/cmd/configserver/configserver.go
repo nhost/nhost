@@ -3,12 +3,16 @@ package configserver
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/docker/docker/client"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/nhost/be/services/mimir/graph"
+	"github.com/nhost/nhost/cli/cmd/configserver/logsapi"
 	cors "github.com/rs/cors/wrapper/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v3"
 )
 
@@ -20,6 +24,7 @@ const (
 	storageLocalConfigPath      = "storage-local-config-path"
 	storageLocalSecretsPath     = "storage-local-secrets-path"
 	storageLocalRunServicesPath = "storage-local-run-services-path"
+	dockerComposeProjectEnv     = "DOCKER_COMPOSE_PROJECT"
 )
 
 func Command() *cli.Command {
@@ -103,6 +108,33 @@ func runServicesFiles(runServices ...string) map[string]string {
 	return m
 }
 
+func setupLogsAPI(
+	r *gin.Engine,
+	logger logrus.FieldLogger,
+	enablePlayground bool,
+	version string,
+) error {
+	dockerClient, err := client.NewClientWithOpts(
+		client.FromEnv,
+		client.WithAPIVersionNegotiation(),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create docker client: %w", err)
+	}
+
+	projectName := os.Getenv(dockerComposeProjectEnv)
+	logGatherer := NewDockerLogGatherer(dockerClient, projectName)
+
+	logsResolver := &logsapi.Resolver{
+		LogGatherer: logGatherer,
+		Logger:      logger,
+	}
+
+	logsapi.AddRoutes(r, "/v1/logs", logsResolver, enablePlayground, version)
+
+	return nil
+}
+
 func serve(_ context.Context, cmd *cli.Command) error {
 	logger := getLogger(cmd.Bool(debugFlag), cmd.Bool(logFormatJSONFlag))
 	logger.Info(cmd.Root().Name + " v" + cmd.Root().Version)
@@ -137,6 +169,13 @@ func serve(_ context.Context, cmd *cli.Command) error {
 		gin.Recovery(),
 		cors.Default(),
 	)
+
+	if err := setupLogsAPI(
+		r, logger, cmd.Bool(enablePlaygroundFlag), cmd.Root().Version,
+	); err != nil {
+		return err
+	}
+
 	if err := r.Run(cmd.String(bindFlag)); err != nil {
 		return fmt.Errorf("failed to run gin: %w", err)
 	}

@@ -66,8 +66,9 @@ func expectedConfig() *model.ConfigConfig {
 				AllowedUrls: []string{},
 			},
 			SignUp: &model.ConfigAuthSignUp{
-				Enabled:         new(true),
-				DisableNewUsers: new(false),
+				Enabled:           new(true),
+				DisableNewUsers:   new(false),
+				DisableAutoSignup: new(false),
 			},
 			User: &model.ConfigAuthUser{
 				Roles: &model.ConfigAuthUserRoles{

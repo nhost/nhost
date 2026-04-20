@@ -1017,6 +1017,7 @@ signInAnonymous(body?: SignInAnonymousRequest, options?: RequestInit): Promise<F
 
 Summary: Sign in anonymously
 Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+This endpoint always creates a new user and is **not** gated by `AUTH_DISABLE_AUTO_SIGNUP`; it is controlled by `AUTH_DISABLE_SIGNUP` and `AUTH_ANONYMOUS_USERS_ENABLED`.
 
 This method may return different T based on the response code:
 
@@ -1064,7 +1065,9 @@ signInIdToken(body: SignInIdTokenRequest, options?: RequestInit): Promise<FetchR
 ```
 
 Summary: Sign in with an ID token
-Authenticate using an ID token from a supported OAuth provider (Apple or Google). Creates a new user account if one doesn't exist.
+Authenticate using an ID token from a supported OAuth provider (Apple or Google).
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken` endpoint to register first.
 
 This method may return different T based on the response code:
 
@@ -1088,7 +1091,9 @@ signInOTPEmail(body: SignInOTPEmailRequest, options?: RequestInit): Promise<Fetc
 ```
 
 Summary: Sign in with email OTP
-Initiate email-based one-time password authentication. Sends an OTP to the specified email address. If the user doesn't exist, a new account will be created with the provided options.
+Initiate email-based one-time password authentication. Sends an OTP to the specified email address.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/otp/email` endpoint to register first.
 
 This method may return different T based on the response code:
 
@@ -1112,7 +1117,9 @@ signInPasswordlessEmail(body: SignInPasswordlessEmailRequest, options?: RequestI
 ```
 
 Summary: Sign in with magic link email
-Initiate passwordless authentication by sending a magic link to the user's email. If the user doesn't exist, a new account will be created with the provided options.
+Initiate passwordless authentication by sending a magic link to the user's email.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/email` endpoint to register first.
 
 This method may return different T based on the response code:
 
@@ -1136,7 +1143,9 @@ signInPasswordlessSms(body: SignInPasswordlessSmsRequest, options?: RequestInit)
 ```
 
 Summary: Sign in with SMS OTP
-Initiate passwordless authentication by sending a one-time password to the user's phone number. If the user doesn't exist, a new account will be created with the provided options.
+Initiate passwordless authentication by sending a one-time password to the user's phone number.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/sms` endpoint to register first.
 
 This method may return different T based on the response code:
 
@@ -1188,6 +1197,8 @@ signInProviderURL(
 
 Summary: Sign in with an OAuth2 provider
 Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created upon callback.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider/{provider}` endpoint to register first.
 
 As this method is a redirect, it returns a URL string instead of a Promise
 
@@ -1274,6 +1285,135 @@ This method may return different T based on the response code:
 ##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+#### signUpIdToken()
+
+```ts
+signUpIdToken(body: SignUpIdTokenRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Sign up with ID token
+Register a new user account using an ID token from Apple or Google.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+If the user already exists, a `user-already-exists` error is returned.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+##### Parameters
+
+| Parameter  | Type                                            |
+| ---------- | ----------------------------------------------- |
+| `body`     | [`SignUpIdTokenRequest`](#signupidtokenrequest) |
+| `options?` | `RequestInit`                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+#### signUpOTPEmail()
+
+```ts
+signUpOTPEmail(body: SignUpOTPEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign up with email OTP
+Register a new user account using email OTP authentication. Sends a one-time password to the specified email address.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                              |
+| ---------- | ------------------------------------------------- |
+| `body`     | [`SignUpOTPEmailRequest`](#signupotpemailrequest) |
+| `options?` | `RequestInit`                                     |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### signUpPasswordlessEmail()
+
+```ts
+signUpPasswordlessEmail(body: SignUpPasswordlessEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign up with magic link email
+Register a new user account using passwordless email authentication. Sends a magic link to the specified email address for verification.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                                |
+| ---------- | ------------------------------------------------------------------- |
+| `body`     | [`SignUpPasswordlessEmailRequest`](#signuppasswordlessemailrequest) |
+| `options?` | `RequestInit`                                                       |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### signUpPasswordlessSms()
+
+```ts
+signUpPasswordlessSms(body: SignUpPasswordlessSmsRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign up with SMS OTP
+Register a new user account using SMS OTP authentication. Sends a one-time password to the specified phone number.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                            |
+| ---------- | --------------------------------------------------------------- |
+| `body`     | [`SignUpPasswordlessSmsRequest`](#signuppasswordlesssmsrequest) |
+| `options?` | `RequestInit`                                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### signUpProviderURL()
+
+```ts
+signUpProviderURL(
+   provider: SignInProvider,
+   params?: SignUpProviderParams,
+   options?: RequestInit): string;
+```
+
+Summary: Sign up with OAuth provider
+Initiate OAuth signup flow with the specified provider. Redirects to the provider's authorization page.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+If the user already exists at callback time, they are redirected with `error=user-already-exists`.
+
+As this method is a redirect, it returns a URL string instead of a Promise
+
+##### Parameters
+
+| Parameter  | Type                                            |
+| ---------- | ----------------------------------------------- |
+| `provider` | [`SignInProvider`](#signinprovider)             |
+| `params?`  | [`SignUpProviderParams`](#signupproviderparams) |
+| `options?` | `RequestInit`                                   |
+
+##### Returns
+
+`string`
 
 #### signUpWebauthn()
 
@@ -3579,6 +3719,42 @@ password: string
 
 ---
 
+## SignUpIdTokenRequest
+
+### Properties
+
+#### idToken
+
+```ts
+idToken: string
+```
+
+(`string`) - Apple or Google ID token
+
+#### nonce?
+
+```ts
+optional nonce?: string;
+```
+
+Nonce used during sign in process
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+#### provider
+
+```ts
+provider: IdTokenProvider
+```
+
+(`IdTokenProvider`) -
+
+---
+
 ## SignUpOptions
 
 ### Properties
@@ -3636,6 +3812,165 @@ optional redirectTo?: string;
 
 Example - `"https://my-app.com/catch-redirection"`
 Format - uri
+
+---
+
+## SignUpOTPEmailRequest
+
+### Properties
+
+#### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+---
+
+## SignUpPasswordlessEmailRequest
+
+### Properties
+
+#### codeChallenge?
+
+```ts
+optional codeChallenge?: string;
+```
+
+PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+Pattern - ^[A-Za-z0-9_-]{43}$
+MinLength - 43
+MaxLength - 43
+
+#### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+---
+
+## SignUpPasswordlessSmsRequest
+
+### Properties
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+#### phoneNumber
+
+```ts
+phoneNumber: string
+```
+
+(`string`) - Phone number of the user
+
+- Example - `"+123456789"`
+
+---
+
+## SignUpProviderParams
+
+Parameters for the signUpProvider method.
+
+### Properties
+
+#### allowedRoles?
+
+```ts
+optional allowedRoles?: string[];
+```
+
+Array of allowed roles for the user
+
+#### codeChallenge?
+
+```ts
+optional codeChallenge?: string;
+```
+
+PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+
+#### defaultRole?
+
+```ts
+optional defaultRole?: string;
+```
+
+Default role for the user
+
+#### displayName?
+
+```ts
+optional displayName?: string;
+```
+
+Display name for the user
+
+#### locale?
+
+```ts
+optional locale?: string;
+```
+
+A two or three characters locale
+
+#### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+Additional metadata for the user (JSON encoded string)
+
+#### providerSpecificParams?
+
+```ts
+optional providerSpecificParams?: ProviderSpecificParams;
+```
+
+Additional provider-specific parameters
+
+#### redirectTo?
+
+```ts
+optional redirectTo?: string;
+```
+
+URI to redirect to
+
+#### state?
+
+```ts
+optional state?: string;
+```
+
+Opaque state value to be returned by the provider
 
 ---
 
@@ -4322,7 +4657,7 @@ type ErrorResponseError =
   | 'default-role-must-be-in-allowed-roles'
   | 'disabled-endpoint'
   | 'disabled-user'
-  | 'email-already-in-use'
+  | 'user-already-exists'
   | 'email-already-verified'
   | 'forbidden-anonymous'
   | 'internal-server-error'

@@ -1,3 +1,27 @@
+## [@nhost/nhost-js@4.7.0] - 2026-04-20
+
+### 🚀 Features
+
+- *(auth)* Allow disabling auto-signup (#4168)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update lodash due to vulnerability (#4108)
+- *(deps)* Update vite due to CVE (#4122)
+- *(docs)* Downgrade to vite7 due to incompatibilities (#4134)
+- *(nhost-js)* Deduplicate fragment definitions in GraphQL client (#4113)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added a small wrapper around govulncheck to allow filtering some CVEs (#4112)
+
+
+### Chore
+
+- *(deps)* Update deps due to cve (#4091)
+
 ## [@nhost/nhost-js@4.6.0] - 2026-03-28
 
 ### 🚀 Features

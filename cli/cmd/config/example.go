@@ -174,8 +174,9 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				},
 			},
 			SignUp: &model.ConfigAuthSignUp{
-				Enabled:         new(true),
-				DisableNewUsers: new(false),
+				Enabled:           new(true),
+				DisableNewUsers:   new(false),
+				DisableAutoSignup: new(false),
 				Turnstile: &model.ConfigAuthSignUpTurnstile{
 					SecretKey: "turnstileSecretKey",
 				},

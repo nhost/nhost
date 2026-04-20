@@ -1,0 +1,108 @@
+---
+title: Controlling User Creation
+description: Configure whether, when, and how users can register for your Nhost app — from blocking sign-up entirely to requiring explicit registration endpoints.
+keywords: ["signup", "registration", "disable signup", "disable new users", "disable auto signup", "invite only", "account enumeration", "admin approval"]
+sidebar:
+  label: Controlling User Creation
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Nhost Auth exposes three independent settings under `auth.signUp` that together control whether, when, and how users get created. They address different concerns and can be combined:
+
+| Setting | Effect |
+| --- | --- |
+| `auth.signUp.enabled` | Master switch. When `false`, all sign-up endpoints return `signup-disabled`. |
+| `auth.signUp.disableNewUsers` | Newly created users are marked disabled and can't sign in until an admin enables them. |
+| `auth.signUp.disableAutoSignup` | Sign-in endpoints stop auto-creating users; clients must call an explicit sign-up endpoint. |
+
+All three default to allowing sign-up (`enabled = true`, the two `disable*` flags `false`). Each one can be toggled independently from **Settings → Authentication** in the dashboard.
+
+## Block sign-up entirely
+
+Turning `auth.signUp.enabled` off blocks every sign-up endpoint. Existing users can still sign in; no new user records can be created through the API.
+
+<Tabs>
+  <TabItem label="nhost.toml">
+  ```toml
+  [auth.signUp]
+  enabled = false
+  ```
+  </TabItem>
+  <TabItem label="Dashboard">
+  Settings → Authentication → **Disable Sign Ups**.
+  </TabItem>
+</Tabs>
+
+Use this when users are provisioned exclusively through an admin workflow (seed script, GraphQL mutation, migration) and the public auth API should never mint a user.
+
+## Require admin approval of new users
+
+Turning `auth.signUp.disableNewUsers` on lets users register as usual, but every new record is created with `disabled = true`. A disabled user cannot sign in until an admin flips the flag on that row.
+
+<Tabs>
+  <TabItem label="nhost.toml">
+  ```toml
+  [auth.signUp]
+  disableNewUsers = true
+  ```
+  </TabItem>
+  <TabItem label="Dashboard">
+  Settings → Authentication → **Disable New Users**.
+  </TabItem>
+</Tabs>
+
+Use this when you want to review or vet new accounts before they can access the app, while still letting users go through the sign-up flow themselves.
+
+## Decouple sign-in from sign-up
+
+By default, several sign-in endpoints will auto-create a user if the supplied identifier doesn't match an existing account — convenient for single-flow "sign in or sign up" UIs, but not a fit for invite-only products, B2B apps with pre-provisioned users, or apps with multi-step registration.
+
+Turning `auth.signUp.disableAutoSignup` on separates the two flows. Sign-in endpoints will no longer create accounts, and clients must call a dedicated sign-up endpoint to register.
+
+<Tabs>
+  <TabItem label="nhost.toml">
+  ```toml
+  [auth.signUp]
+  disableAutoSignup = true
+  ```
+  </TabItem>
+  <TabItem label="Dashboard">
+  Settings → Authentication → **Disable Auto Sign Up**.
+  </TabItem>
+</Tabs>
+
+### Explicit sign-up endpoints
+
+With auto sign-up off, clients register users by calling one of the dedicated sign-up endpoints. These are always available, but they are the **only** way to register new users when auto sign-up is disabled.
+F
+| Sign-up endpoint | Use for |
+| --- | --- |
+| `POST /signup/email-password` | Email + password registration |
+| `POST /signup/passwordless/email` | Magic-link registration |
+| `POST /signup/otp/email` | Email OTP registration |
+| `POST /signup/passwordless/sms` | SMS OTP registration |
+| `POST /signup/idtoken` | Apple / Google ID-token registration |
+| `GET /signup/provider/{provider}` | OAuth provider registration |
+| `POST /signup/webauthn` | WebAuthn / passkey registration |
+
+
+You can find more information about the sign-up endpoints in the [API reference](/reference/auth/) documentation.
+
+#### JavaScript SDK
+
+The SDK exposes each sign-up endpoint as its own method:
+
+```js
+await nhost.auth.signUpPasswordlessEmail({ email: 'user@example.com' });
+await nhost.auth.signUpOTPEmail({ email: 'user@example.com' });
+await nhost.auth.signUpPasswordlessSms({ phoneNumber: '+12025550123' });
+await nhost.auth.signUpIdToken({
+  provider: 'google',
+  idToken: '<id-token>',
+});
+
+const url = nhost.auth.signUpProviderURL('google');
+window.location.href = url;
+```
+
+You can find more information about the sign-up endpoints in the [SDK reference](/reference/javascript/nhost-js/auth/) documentation.

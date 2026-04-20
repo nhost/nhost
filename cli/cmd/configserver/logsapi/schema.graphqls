@@ -1,0 +1,62 @@
+scalar Timestamp
+
+type Log {
+  timestamp: Timestamp!
+  service: String!
+  log: String!
+}
+
+type Query {
+    """
+    Returns logs for a given application. If `service` is not provided all services are returned.
+    If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+    """
+    logs(
+        appID: String!,
+        service: String,
+        regexFilter: String,
+        from: Timestamp,
+        to: Timestamp,
+    ): [Log!]!
+
+    """
+    Returns the list of service names for running containers in the local Docker Compose project.
+    """
+    getServiceLabelValues(
+        appID: String!,
+    ): [String!]!
+
+    """
+    Returns functions logs for a given application and function path.
+    If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+    """
+    getFunctionsLogs(
+        appID: String!,
+        path: String!,
+        from: Timestamp,
+        to: Timestamp,
+    ): [Log!]!
+}
+
+type Subscription {
+    """
+    Returns logs for a given application. If `service` is not provided all services are returned.
+    If `from` is not provided, it defaults to an hour ago.
+    """
+    logs(
+        appID: String!,
+        service: String,
+        regexFilter: String,
+        from: Timestamp,
+    ): [Log!]!
+
+    """
+    Returns functions logs for a given application and function path.
+    If `from` is not provided, it defaults to an hour ago.
+    """
+    getFunctionsLogs(
+        appID: String!,
+        path: String!,
+        from: Timestamp,
+    ): [Log!]!
+}

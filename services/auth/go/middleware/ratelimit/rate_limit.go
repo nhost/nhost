@@ -11,28 +11,30 @@ import (
 
 // endpints that send emails.
 func sendsEmail(path string, verifyEmailEnabled bool) bool {
-	if verifyEmailEnabled {
-		return slices.Contains([]string{
-			"/signin/passwordless/email",
-			"/user/email/change",
-			"/user/email/send-verification-email",
-			"/user/password/reset",
-			"/signup/email-password",
-			"/user/deanonymize",
-		}, path)
-	}
-
-	return slices.Contains([]string{
+	base := []string{
 		"/signin/passwordless/email",
+		"/signin/otp/email",
+		"/signup/passwordless/email",
+		"/signup/otp/email",
 		"/user/email/change",
 		"/user/password/reset",
-	}, path)
+	}
+	if verifyEmailEnabled {
+		base = append(base,
+			"/user/email/send-verification-email",
+			"/signup/email-password",
+			"/user/deanonymize",
+		)
+	}
+
+	return slices.Contains(base, path)
 }
 
 // endpoints that send SMS.
 func sendsSMS(path string) bool {
 	return slices.Contains([]string{
 		"/signin/passwordless/sms",
+		"/signup/passwordless/sms",
 	}, path)
 }
 
