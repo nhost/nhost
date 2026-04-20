@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# This pinned version is bumped automatically by the changelog workflow.
+VERSION="1.43.1"
+
 # helper functions
 yell() { echo -e "${RED}FAILED> $* ${NC}" >&2; }
 die() { yell "$*"; exit 1; }
@@ -37,33 +40,10 @@ if [ "$?" = "1" ]; then
     die "You need to install curl to use this script."
 fi
 
-# get release version
-version=${1:-latest}
-log "Getting $version version..."
-if [[ "$version" == "latest" ]]; then
-    release=$(curl --silent https://api.github.com/repos/nhost/nhost/releases\?per_page=100 | grep tag_name | grep \"cli\@ | head -n 1 | sed 's/.*"tag_name": "\([^"]*\)".*/\1/')
-    version=$( echo $release | sed 's/.*@//')
-else
-    release="cli@$version"
-fi
-
-# check version exists
-if [ ! $version ]; then
-    log "${YELLOW}"
-    log "Failed while attempting to install Nhost CLI. Please manually install:"
-    log ""
-    log "1. Open your web browser and go to https://github.com/$REPO/releases/latest"
-    log "2. Download the CLI from latest release for your platform. Name it 'nhost'."
-    log "3. chmod +x ./cli"
-    log "4. mv ./cli /usr/local/bin/nhost"
-    log "${NC}"
-    die "exiting..."
-fi
-
-# show latest version
-if [[ "$release" == "latest" ]]; then
-    log "Latest version is $version"
-fi
+# resolve version (allow override via first argument)
+version=${1:-$VERSION}
+release="cli@$version"
+log "Installing Nhost CLI version $version..."
 
 # get platform
 platform='unknown'

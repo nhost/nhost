@@ -27,3 +27,8 @@ build-multiplatform:  ## Build cli for all supported platforms
 	nix build \
 		--print-build-logs \
 		.\#packages.$(ARCH)-$(OS).cli-multiplatform
+
+
+.PHONY: changelog-bump-refs
+changelog-bump-refs:  ## Bump pinned CLI version in get.sh
+	@sed -i 's/^VERSION=".*"/VERSION="$(VERSION)"/' get.sh
