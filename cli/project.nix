@@ -36,6 +36,9 @@ let
         (matchExt "go")
       )
 
+      "${submodule}/cmd/configserver/logsapi/gqlgen.yml"
+      "${submodule}/cmd/configserver/logsapi/schema.graphqls"
+
       "${submodule}/mcp/nhost/auth/openapi.yaml"
       "${submodule}/mcp/nhost/graphql/openapi.yaml"
       "${submodule}/mcp/resources/cloud_schema.graphql"
