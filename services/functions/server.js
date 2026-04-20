@@ -197,6 +197,15 @@ function findRoute(reqPath) {
 const main = async () => {
   const app = express();
 
+  app.use((_req, res, next) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set(
+      'Access-Control-Allow-Headers',
+      'origin,Accept,Authorization,Content-Type',
+    );
+    next();
+  });
+
   app.get('/healthz', (_req, res) => {
     res.status(200).send('ok');
   });
