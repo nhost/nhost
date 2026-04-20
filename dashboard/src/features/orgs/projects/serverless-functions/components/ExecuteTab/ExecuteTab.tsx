@@ -141,8 +141,8 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
         onSubmit={handleSubmit}
         className="flex h-full flex-col overflow-hidden"
       >
-        <div className="shrink-0 space-y-4 overflow-auto p-6">
-          <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 p-6">
+          <div className="flex shrink-0 flex-col gap-2 lg:flex-row lg:items-center">
             <div className="flex items-center justify-between gap-2">
               <Select
                 value={method}
@@ -211,8 +211,12 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             </Button>
           </div>
 
-          <Tabs value={requestTab} onValueChange={setRequestTab}>
-            <TabsList className="h-8">
+          <Tabs
+            value={requestTab}
+            onValueChange={setRequestTab}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <TabsList className="h-8 shrink-0 self-start">
               <TabsTrigger value="headers" className="text-xs">
                 Headers
               </TabsTrigger>
@@ -224,7 +228,10 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="headers" className="mt-3">
+            <TabsContent
+              value="headers"
+              className="mt-3 min-h-0 flex-1 overflow-auto"
+            >
               {hasBody && (
                 <div className="mb-2 flex items-center gap-2">
                   <ReadOnlyInput
@@ -246,14 +253,20 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
                 valuePlaceholder="Header value"
               />
             </TabsContent>
-            <TabsContent value="params" className="mt-3">
+            <TabsContent
+              value="params"
+              className="mt-3 min-h-0 flex-1 overflow-auto"
+            >
               <KeyValueEditor
                 name="params"
                 keyPlaceholder="Param name"
                 valuePlaceholder="Param value"
               />
             </TabsContent>
-            <TabsContent value="request" className="mt-3">
+            <TabsContent
+              value="request"
+              className="mt-3 min-h-0 flex-1 overflow-auto"
+            >
               {hasBody ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -273,7 +286,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
           </Tabs>
         </div>
 
-        <div className="mt-auto h-[40%] shrink-0 overflow-auto border-t px-6 py-4">
+        <div className="h-[50%] shrink-0 overflow-auto border-t px-6 py-4">
           <ResponseArea response={response} />
         </div>
       </form>
