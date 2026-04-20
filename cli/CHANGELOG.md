@@ -1,3 +1,15 @@
+## [cli@1.44.0] - 2026-04-20
+
+### 🚀 Features
+
+- *(auth)* Allow disabling auto-signup (#4168)
+- *(cli)* Add support for logs and update functions to new v2 (#4159)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Bump version references as part of the changelog (#4169)
+
 ## [cli@1.43.1] - 2026-04-17
 
 ### ⚙️ Miscellaneous Tasks
