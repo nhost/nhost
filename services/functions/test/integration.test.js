@@ -58,6 +58,15 @@ describe.each([
     expect(await res.text()).toContain('Hello, World!');
   });
 
+  it('default CORS headers are present on user function responses', async () => {
+    const res = await fetch(`${base}/hello?name=World`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(res.headers.get('access-control-allow-headers')).toBe(
+      'origin,Accept,Authorization,Content-Type',
+    );
+  });
+
   it('GET /sub/ returns sub-directory index', async () => {
     const res = await fetch(`${base}/sub/`);
     expect(res.status).toBe(200);
