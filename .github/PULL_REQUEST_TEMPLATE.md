@@ -32,6 +32,7 @@ Where `PKG` is:
 - `deps`: For changes to dependencies
 - `docs`: For changes to the documentation
 - `examples`: For changes to the examples
+- `functions`: For changes to the Nhost Functions service
 - `internal/lib`: For changes to Nhost's common libraries (internal)
 - `nhost-js`: For changes to the Nhost JavaScript SDK
 - `nixops`: For changes to the NixOps
