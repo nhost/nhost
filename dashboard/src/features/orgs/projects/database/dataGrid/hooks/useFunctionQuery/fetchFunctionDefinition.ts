@@ -22,6 +22,18 @@ export interface FunctionParameter {
   schema: string | null;
 }
 
+/**
+ * Return type kind from `pg_type.typtype`:
+ * - `b` base/scalar
+ * - `c` composite
+ * - `d` domain
+ * - `e` enum
+ * - `p` pseudo
+ * - `r` range
+ * - `m` multirange
+ */
+export type PostgresTypeKind = 'b' | 'c' | 'd' | 'e' | 'p' | 'r' | 'm';
+
 export interface FetchFunctionDefinitionReturnType {
   /**
    * The CREATE FUNCTION SQL definition.
@@ -36,8 +48,7 @@ export interface FetchFunctionDefinitionReturnType {
     functionType: 'IMMUTABLE' | 'STABLE' | 'VOLATILE' | null;
     returnTypeName: string;
     returnTypeSchema: string;
-    /** Return type kind from pg_type.typtype: 'c' composite, 'b' base/scalar, 'd' domain, 'e' enum, 'p' pseudo, 'r' range */
-    returnTypeKind: string;
+    returnTypeKind: PostgresTypeKind;
     /** Whether the function returns a set (SETOF). */
     returnsSet: boolean;
     /** Whether the function has any variadic argument. */
@@ -197,7 +208,7 @@ export default async function fetchFunctionDefinition({
           | null,
         returnTypeName: result.return_type_name,
         returnTypeSchema: result.return_type_schema,
-        returnTypeKind: result.return_type_kind,
+        returnTypeKind: result.return_type_kind as PostgresTypeKind,
         returnsSet: Boolean(result.returns_set),
         hasVariadic: Boolean(result.has_variadic),
         language: result.language,
