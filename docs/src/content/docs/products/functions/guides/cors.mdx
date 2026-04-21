@@ -4,7 +4,7 @@ description: Handle Cross-Origin Resource Sharing in Nhost Functions
 keywords: ["CORS", "cross-origin", "serverless functions", "Access-Control", "preflight", "OPTIONS"]
 ---
 
-Nhost Functions inject a permissive set of CORS headers by default, so calls from a browser on a different origin (for example, a frontend on `localhost:5173` calling functions at `local.functions.local.nhost.run`) work out of the box. The defaults apply identically in local development (`nhost up`) and in production.
+Nhost Functions set a small set of default CORS headers so simple cross-origin `GET` and `POST` requests work without extra code. Other methods, custom headers, or credentials are your responsibility.
 
 ## Default Headers
 
@@ -15,7 +15,7 @@ Every function response includes:
 | `Access-Control-Allow-Origin`   | `*`                                            |
 | `Access-Control-Allow-Headers`  | `origin,Accept,Authorization,Content-Type`     |
 
-`Access-Control-Allow-Methods` and `Access-Control-Allow-Credentials` are **not** set by default. If you need them, set them yourself (see below).
+`Access-Control-Allow-Methods` and `Access-Control-Allow-Credentials` are not set. Requests that need them won't work until you set them yourself.
 
 :::caution
 `*` allows any website to call your function. In production, restrict the origin to your actual frontend(s).
@@ -57,7 +57,7 @@ export default (req: Request, res: Response) => {
 }
 ```
 
-Any header you set yourself overwrites the default for that header. Headers you don't set keep their default values.
+Headers you set replace the default; headers you don't keep it. The snippet above covers simple requests only — see [Preflight Requests](#preflight-requests) for anything else.
 
 ## Credentials
 
@@ -76,4 +76,17 @@ Browsers send a preflight `OPTIONS` request before the actual request when:
 - The request includes custom headers beyond the defaults above
 - The request uses `Content-Type` other than `application/x-www-form-urlencoded`, `multipart/form-data`, or `text/plain`
 
-Your function receives all HTTP methods on the same handler, including `OPTIONS`. For non-trivial cases (custom methods, dynamic origins, credentials), the `cors` package handles preflight automatically.
+The runtime does not respond to `OPTIONS` on your behalf — the request reaches your function. Either use the `cors` package (it handles preflight automatically) or handle `OPTIONS` manually:
+
+```ts title="./functions/api.ts"
+import type { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+    return res.status(204).end()
+  }
+
+  res.status(200).json({ message: 'Hello!' })
+}
+```
