@@ -143,7 +143,7 @@ export default function FunctionDefinitionView() {
   const returnPrefix = functionMetadata.returnsSet ? 'SETOF ' : '';
 
   const nonTrackableReason = !isCompositeReturn
-    ? `This function returns the scalar type "${functionMetadata.returnTypeName}", so it can't be exposed in GraphQL.`
+    ? `This function returns the type "${functionMetadata.returnTypeName}", so it can't be exposed in GraphQL.`
     : "This function uses VARIADIC arguments, so it can't be exposed in GraphQL.";
 
   return (
