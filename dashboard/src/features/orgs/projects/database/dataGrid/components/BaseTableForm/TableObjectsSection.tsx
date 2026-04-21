@@ -1,14 +1,13 @@
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Text } from '@/components/ui/v2/Text';
 import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Badge } from '@/components/ui/v3/badge';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useTableRelatedObjectsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableRelatedObjectsQuery';
 import type {
   TableConstraint,
@@ -34,9 +33,9 @@ function CheckConstraintsList({
 }) {
   if (constraints.length === 0) {
     return (
-      <Text className="text-muted-foreground text-sm+">
+      <p className="text-muted-foreground text-sm+">
         No check constraints defined on this table.
-      </Text>
+      </p>
     );
   }
 
@@ -49,14 +48,14 @@ function CheckConstraintsList({
         >
           <ShieldCheck className="h-4 w-4 text-green-600" />
           <div className="flex-1 space-y-1">
-            <Text className="font-medium text-sm+">{constraint.name}</Text>
-            <Text className="font-mono text-muted-foreground text-sm">
+            <p className="font-medium text-sm+">{constraint.name}</p>
+            <p className="font-mono text-muted-foreground text-sm">
               {constraint.definition}
-            </Text>
+            </p>
             {constraint.columns.length > 0 && (
-              <Text className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm">
                 Columns: {constraint.columns.join(', ')}
-              </Text>
+              </p>
             )}
           </div>
         </div>
@@ -71,9 +70,9 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
 
   if (triggers.length === 0) {
     return (
-      <Text className="text-muted-foreground text-sm+">
+      <p className="text-muted-foreground text-sm+">
         No triggers defined on this table.
-      </Text>
+      </p>
     );
   }
 
@@ -89,16 +88,16 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
           >
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <Text className="font-medium text-sm+">{trigger.name}</Text>
+                <p className="font-medium text-sm+">{trigger.name}</p>
                 <Badge variant={trigger.isEnabled ? 'default' : 'secondary'}>
                   {trigger.isEnabled ? 'Enabled' : 'Disabled'}
                 </Badge>
               </div>
-              <Text className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm">
                 {trigger.timing} {trigger.events.join(' OR ')}
-              </Text>
+              </p>
               <div className="flex items-center gap-1">
-                <Text className="text-muted-foreground text-sm">Function:</Text>
+                <span className="text-muted-foreground text-sm">Function:</span>
                 <Link
                   href={functionUrl}
                   className="inline-flex items-center gap-1 text-primary text-sm hover:underline"
@@ -118,9 +117,9 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
 function IndexesList({ indexes }: { indexes: TableIndex[] }) {
   if (indexes.length === 0) {
     return (
-      <Text className="text-muted-foreground text-sm+">
+      <p className="text-muted-foreground text-sm+">
         No additional indexes on this table.
-      </Text>
+      </p>
     );
   }
 
@@ -133,16 +132,16 @@ function IndexesList({ indexes }: { indexes: TableIndex[] }) {
         >
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
-              <Text className="font-medium text-sm+">{index.name}</Text>
+              <p className="font-medium text-sm+">{index.name}</p>
               {index.isUnique && <Badge variant="secondary">Unique</Badge>}
             </div>
-            <Text className="font-mono text-muted-foreground text-sm">
+            <p className="font-mono text-muted-foreground text-sm">
               {index.definition}
-            </Text>
+            </p>
             {index.columns.length > 0 && (
-              <Text className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm">
                 Columns: {index.columns.join(', ')}
-              </Text>
+              </p>
             )}
           </div>
         </div>
@@ -164,7 +163,9 @@ export default function TableObjectsSection({
     return (
       <AccordionItem value="_loading" disabled className="border-b-0">
         <div className="px-6 py-3">
-          <ActivityIndicator label="Loading table objects..." delay={500} />
+          <Spinner className="h-4 w-4" wrapperClassName="flex-row gap-1">
+            Loading table objects...
+          </Spinner>
         </div>
       </AccordionItem>
     );
@@ -174,9 +175,9 @@ export default function TableObjectsSection({
     return (
       <AccordionItem value="_error" disabled className="border-b-0">
         <div className="px-6 py-3">
-          <Text className="text-destructive text-sm+">
+          <p className="text-destructive text-sm+">
             Failed to load table objects: {data?.error || 'Unknown error'}
-          </Text>
+          </p>
         </div>
       </AccordionItem>
     );
