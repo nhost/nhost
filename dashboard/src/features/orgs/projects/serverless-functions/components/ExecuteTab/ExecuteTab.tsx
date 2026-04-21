@@ -2,9 +2,9 @@ import { Loader2, Lock, Send } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
-import { ReadOnlyInput } from '@/components/presentational/ReadOnlyInput';
 import { Button } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
+import { Input } from '@/components/ui/v3/input';
 import {
   Select,
   SelectContent,
@@ -61,18 +61,20 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
     },
   });
 
+  const { register, watch, setValue, handleSubmit: handleFormSubmit } = form;
+
   const [requestTab, setRequestTab] = useState('headers');
   const [response, setResponse] = useState<ResponseState>({ status: 'idle' });
 
-  const method = form.watch('method');
-  const contentType = form.watch('contentType');
+  const method = watch('method');
+  const contentType = watch('contentType');
   const isFormEncoded = contentType.includes(
     'application/x-www-form-urlencoded',
   );
   const isMultipart = contentType.includes('multipart/form-data');
   const hasBody = method !== 'GET' && method !== 'HEAD';
 
-  const handleSubmit = form.handleSubmit(async (values) => {
+  const handleSubmit = handleFormSubmit(async (values) => {
     setResponse({ status: 'loading' });
 
     const methodHasBody = values.method !== 'GET' && values.method !== 'HEAD';
@@ -147,7 +149,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
               <Select
                 value={method}
                 onValueChange={(newMethod) =>
-                  form.setValue('method', newMethod as HttpMethod)
+                  setValue('method', newMethod as HttpMethod)
                 }
               >
                 <SelectTrigger
@@ -230,16 +232,18 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
 
             <TabsContent
               value="headers"
-              className="mt-3 min-h-0 flex-1 overflow-auto"
+              className="mt-3 min-h-0 flex-1 overflow-auto py-1"
             >
               {hasBody && (
                 <div className="mb-2 flex items-center gap-2">
-                  <ReadOnlyInput
+                  <Input
                     value="Content-Type"
+                    disabled
                     className="h-8 font-mono text-sm"
                   />
-                  <ReadOnlyInput
-                    value={contentType || 'None'}
+                  <Input
+                    {...register('contentType')}
+                    placeholder="Content-Type"
                     className="h-8 max-w-md flex-1 font-mono text-sm"
                   />
                   <div className="flex h-9 shrink-0 cursor-not-allowed items-center justify-center px-4 text-muted-foreground">
@@ -255,7 +259,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             </TabsContent>
             <TabsContent
               value="params"
-              className="mt-3 min-h-0 flex-1 overflow-auto"
+              className="mt-3 min-h-0 flex-1 overflow-auto py-1"
             >
               <KeyValueEditor
                 name="params"
@@ -265,7 +269,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             </TabsContent>
             <TabsContent
               value="request"
-              className="mt-3 min-h-0 flex-1 overflow-auto"
+              className="mt-3 min-h-0 flex-1 overflow-auto py-1"
             >
               {hasBody ? (
                 <div className="space-y-3">
@@ -286,7 +290,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
           </Tabs>
         </div>
 
-        <div className="h-[50%] shrink-0 overflow-auto border-t px-6 py-4">
+        <div className="shrink-0 overflow-auto border-t px-6 py-4 lg:h-[50%]">
           <ResponseArea response={response} />
         </div>
       </form>
