@@ -34,6 +34,34 @@ export interface FunctionParameter {
  */
 export type PostgresTypeKind = 'b' | 'c' | 'd' | 'e' | 'p' | 'r' | 'm';
 
+/**
+ * Shape of a single row returned by the SQL query in
+ * `fetchFunctionDefinition`. Keys are snake_case to mirror the Postgres
+ * columns; the function maps them to the camelCase `FunctionMetadata`.
+ */
+export interface FunctionDefinitionRow {
+  function_definition: string;
+  function_name: string;
+  function_schema: string;
+  function_type: 'IMMUTABLE' | 'STABLE' | 'VOLATILE' | null;
+  return_type_name: string;
+  return_type_schema: string;
+  return_type_kind: PostgresTypeKind;
+  returns_set: boolean;
+  has_variadic: boolean;
+  language: string;
+  input_arg_types: Array<{
+    name: string;
+    schema: string;
+    display_type: string;
+    arg_name: string | null;
+  }>;
+  default_args_count: number;
+  return_table_name: string | null;
+  return_table_schema: string | null;
+  comment: string | null;
+}
+
 export interface FetchFunctionDefinitionReturnType {
   /**
    * The CREATE FUNCTION SQL definition.
@@ -179,16 +207,11 @@ export default async function fetchFunctionDefinition({
     };
   }
 
-  const result = JSON.parse(rawResults[0]);
+  const result: FunctionDefinitionRow = JSON.parse(rawResults[0]);
   const functionDefinition = result.function_definition || '';
 
-  const inputArgTypes: Array<{
-    name: string;
-    schema: string;
-    display_type: string;
-    arg_name: string | null;
-  }> = result.input_arg_types || [];
-  const defaultArgsCount: number = result.default_args_count || 0;
+  const inputArgTypes = result.input_arg_types || [];
+  const defaultArgsCount = result.default_args_count || 0;
 
   const parameters: FunctionParameter[] = inputArgTypes.map((argType) => ({
     name: argType.arg_name || null,
@@ -201,14 +224,10 @@ export default async function fetchFunctionDefinition({
     ? {
         functionName: result.function_name,
         functionSchema: result.function_schema,
-        functionType: result.function_type as
-          | 'IMMUTABLE'
-          | 'STABLE'
-          | 'VOLATILE'
-          | null,
+        functionType: result.function_type,
         returnTypeName: result.return_type_name,
         returnTypeSchema: result.return_type_schema,
-        returnTypeKind: result.return_type_kind as PostgresTypeKind,
+        returnTypeKind: result.return_type_kind,
         returnsSet: Boolean(result.returns_set),
         hasVariadic: Boolean(result.has_variadic),
         language: result.language,
