@@ -21,9 +21,9 @@ Unless your function sets them itself, every response includes:
 `*` allows any website to call your function. In production, restrict the origin to your actual frontend(s).
 :::
 
-## Opting Out
+## Disabling Default CORS
 
-If you don't want to have any default CORS header you can return an empty `Access-Control-Allow-Origin` and/or `Access-Control-Allow-Headers`:
+If you want to block cross-origin access, return an empty `Access-Control-Allow-Origin` and/or `Access-Control-Allow-Headers`:
 
 ```ts title="./functions/api.ts"
 res.setHeader('Access-Control-Allow-Origin', '')
