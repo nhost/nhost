@@ -100,6 +100,8 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
                 <span className="text-muted-foreground text-sm">Function:</span>
                 <Link
                   href={functionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-primary text-sm hover:underline"
                 >
                   {trigger.functionSchema}.{trigger.functionName}
