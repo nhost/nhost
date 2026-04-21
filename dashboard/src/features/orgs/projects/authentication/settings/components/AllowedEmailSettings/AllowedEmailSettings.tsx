@@ -5,7 +5,6 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -33,7 +32,6 @@ export default function AllowedEmailDomainsSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
 
   const [updateConfig] = useUpdateConfigMutation({
@@ -160,7 +158,7 @@ export default function AllowedEmailDomainsSettings() {
           description="Allow specific email addresses and domains to sign up."
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive,
+              disabled: !isDirty,
               loading: formState.isSubmitting,
             },
           }}

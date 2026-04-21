@@ -4,7 +4,6 @@ import type { Optional } from 'utility-types';
 import * as yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -39,7 +38,6 @@ export default function SMTPSettings() {
   const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
 
   const { data, refetch } = useGetSmtpSettingsQuery({
@@ -136,7 +134,7 @@ export default function SMTPSettings() {
           className="grid grid-cols-9 gap-4"
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive,
+              disabled: !isDirty,
               loading: isSubmitting,
             },
           }}

@@ -5,7 +5,6 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
@@ -286,7 +285,6 @@ export default function CreateOrgDialog({
 }: CreateOrgDialogProps) {
   const router = useRouter();
   const currentUser = useUserData();
-  const { maintenanceActive } = useUI();
   const user = useUserData();
   const isPlatform = useIsPlatform();
   const [open, setOpen] = useState(false);
@@ -377,7 +375,6 @@ export default function CreateOrgDialog({
       {!hideNewOrgButton && (
         <DialogTrigger asChild>
           <Button
-            disabled={maintenanceActive}
             className={cn(
               'flex h-8 w-full flex-row justify-start gap-3 px-2',
               'bg-background text-foreground hover:bg-accent dark:hover:bg-muted',

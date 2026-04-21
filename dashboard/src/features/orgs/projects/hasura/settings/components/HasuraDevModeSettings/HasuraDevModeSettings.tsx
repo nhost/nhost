@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -26,7 +25,6 @@ export type HasuraDevModeFormValues = Yup.InferType<typeof validationSchema>;
 export default function HasuraDevModeSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
 
@@ -120,7 +118,7 @@ export default function HasuraDevModeSettings() {
           description="Enable or disable Dev Mode."
           slotProps={{
             submitButton: {
-              disabled: !form.formState.isDirty || maintenanceActive,
+              disabled: !form.formState.isDirty,
               loading: form.formState.isSubmitting,
             },
           }}

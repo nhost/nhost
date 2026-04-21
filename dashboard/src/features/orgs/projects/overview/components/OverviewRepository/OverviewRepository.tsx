@@ -1,5 +1,4 @@
 import { NavLink } from '@/components/common/NavLink';
-import { useUI } from '@/components/common/UIProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
@@ -9,7 +8,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export default function OverviewRepository() {
   const { project } = useProject();
   const { org } = useCurrentOrg();
-  const { maintenanceActive } = useUI();
 
   return (
     <div>
@@ -51,7 +49,6 @@ export default function OverviewRepository() {
             variant="ghost"
             underline="none"
             size="sm"
-            disabled={maintenanceActive}
           >
             Edit
           </NavLink>

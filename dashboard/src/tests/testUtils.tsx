@@ -32,7 +32,6 @@ import { useMemo } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { vi } from 'vitest';
 import { DialogProvider } from '@/components/common/DialogProvider';
-import { UIProvider } from '@/components/common/UIProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { createTheme } from '@/components/ui/v2/createTheme';
 import { AuthProvider } from '@/providers/Auth';
@@ -119,12 +118,10 @@ function Providers({ children }: PropsWithChildren) {
             <NhostProvider nhost={nhost}>
               <ApolloProvider client={mockClient}>
                 <AuthProvider>
-                  <UIProvider>
-                    <Toaster position="bottom-center" />
-                    <ThemeProvider theme={theme}>
-                      <DialogProvider>{children}</DialogProvider>
-                    </ThemeProvider>
-                  </UIProvider>
+                  <Toaster position="bottom-center" />
+                  <ThemeProvider theme={theme}>
+                    <DialogProvider>{children}</DialogProvider>
+                  </ThemeProvider>
                 </AuthProvider>
               </ApolloProvider>
             </NhostProvider>

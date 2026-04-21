@@ -1,6 +1,5 @@
 import { Fragment } from 'react';
 import { NavLink } from '@/components/common/NavLink';
-import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -149,7 +148,6 @@ function OverviewDeploymentList() {
 export default function OverviewDeployments() {
   const { project, loading } = useProject();
   const { openGitHubModal } = useGitHubModal();
-  const { maintenanceActive } = useUI();
   const isGitHubConnected = !!project?.githubRepository;
 
   if (loading) {
@@ -190,7 +188,6 @@ export default function OverviewDeployments() {
             color="primary"
             className="w-full"
             onClick={openGitHubModal}
-            disabled={maintenanceActive}
           >
             <GitHubIcon className="mr-1.5 h-4 w-4 self-center" />
             Connect to GitHub
