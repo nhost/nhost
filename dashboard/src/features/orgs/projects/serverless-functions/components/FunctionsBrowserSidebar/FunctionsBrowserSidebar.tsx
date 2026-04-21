@@ -45,7 +45,7 @@ function FunctionsBrowserSidebarContent() {
 
 export default function FunctionsBrowserSidebar() {
   return (
-    <FeatureSidebar>
+    <FeatureSidebar className="bg-background">
       <FunctionsBrowserSidebarContent />
     </FeatureSidebar>
   );
