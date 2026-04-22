@@ -75,7 +75,7 @@ export default function EditFunctionForm({
             <InlineCode className="bg-opacity-80 px-1.5 text-sm">
               {schema}.{functionName}
             </InlineCode>{' '}
-            does not exist or is not a table-returning function.
+            does not exist.
           </span>
         }
       />

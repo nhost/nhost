@@ -78,7 +78,7 @@ export default async function fetchDatabase({
             WHERE n.nspname NOT LIKE 'pg_%'
               AND n.nspname != 'information_schema'
               AND pg_type.typtype ='c'
-              AND p.proretset = true
+              AND p.provariadic = 0
             ORDER BY p.proname ASC
           ) func_data`,
           '',
