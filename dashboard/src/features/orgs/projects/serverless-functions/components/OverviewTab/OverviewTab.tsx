@@ -39,7 +39,7 @@ export default function OverviewTab({
             <TruncatedText text={endpointUrl} tailLength={12} />
             <CopyToClipboardButton
               textToCopy={endpointUrl}
-              title="Copy endpoint URL"
+              title="Endpoint URL"
             />
           </div>
           {defaultEndpointUrl && (
@@ -51,7 +51,7 @@ export default function OverviewTab({
                 <TruncatedText text={defaultEndpointUrl} tailLength={12} />
                 <CopyToClipboardButton
                   textToCopy={defaultEndpointUrl}
-                  title="Copy default endpoint URL"
+                  title="Default endpoint URL"
                 />
               </div>
             </div>
@@ -106,7 +106,7 @@ export default function OverviewTab({
                   </Link>
                   <CopyToClipboardButton
                     textToCopy={fn.createdWithCommitSha}
-                    title="Copy commit SHA"
+                    title="Commit SHA"
                   />
                 </div>
               </div>
@@ -124,7 +124,7 @@ export default function OverviewTab({
                     </Badge>
                     <CopyToClipboardButton
                       textToCopy={fn.checksum}
-                      title="Copy checksum"
+                      title="Checksum"
                     />
                   </div>
                 </div>

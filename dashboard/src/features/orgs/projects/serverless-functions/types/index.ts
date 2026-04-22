@@ -50,3 +50,14 @@ export interface ExecuteFormValues {
   formFields: KeyValuePair[];
   multipartFields: MultipartField[];
 }
+
+export const FUNCTION_TABS = ['overview', 'execute', 'logs'] as const;
+
+export type FunctionTab = (typeof FUNCTION_TABS)[number];
+
+export function isFunctionTab(value: unknown): value is FunctionTab {
+  return (
+    typeof value === 'string' &&
+    (FUNCTION_TABS as readonly string[]).includes(value)
+  );
+}

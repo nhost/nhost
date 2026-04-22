@@ -2,7 +2,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
+import {
+  isFunctionTab,
+  type NhostFunction,
+} from '@/features/orgs/projects/serverless-functions/types';
 import { cn } from '@/lib/utils';
 
 export interface FunctionListItemProps {
@@ -13,14 +16,24 @@ export default function FunctionListItem({
   nhostFunction,
 }: FunctionListItemProps) {
   const router = useRouter();
-  const { orgSlug, appSubdomain, functionSlug } = router.query;
+  const { orgSlug, appSubdomain, functionSlug, tab } = router.query;
 
   const slug = nhostFunction.route.replace(/^\//, '');
   const currentSlug = Array.isArray(functionSlug)
     ? functionSlug.join('/')
     : functionSlug;
   const isSelected = slug === currentSlug;
-  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/functions/${encodeURIComponent(slug)}`;
+  const preservedTab = isFunctionTab(tab) ? tab : undefined;
+  const href = {
+    pathname:
+      '/orgs/[orgSlug]/projects/[appSubdomain]/functions/[...functionSlug]',
+    query: {
+      orgSlug,
+      appSubdomain,
+      functionSlug: slug,
+      ...(preservedTab ? { tab: preservedTab } : {}),
+    },
+  };
 
   return (
     <div className="group">
