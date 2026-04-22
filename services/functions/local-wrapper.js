@@ -45,9 +45,6 @@ const rawBodySaver = (req, _res, buf) => {
   req.rawBody = buf.toString();
 };
 
-app.set('trust proxy', true);
-app.disable('x-powered-by');
-
 // Default CORS headers. We wrap res.writeHead so the check runs once headers
 // are about to be flushed — at that point any res.setHeader / res.set call
 // from user code (or middleware like the `cors` package) has already landed,
@@ -73,6 +70,9 @@ app.use(express.json({ limit: '6MB', verify: rawBodySaver }));
 app.use(
   express.urlencoded({ extended: true, limit: '6MB', verify: rawBodySaver }),
 );
+
+app.set('trust proxy', true);
+app.disable('x-powered-by');
 
 app.use((req, res, next) => {
   res.header('Server', 'Nhost');
