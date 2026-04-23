@@ -24,7 +24,7 @@
     "@expressive-code/plugin-line-numbers": "^0.41.7",
     "@readme/openapi-parser": "^6.0.0",
     "@resvg/resvg-js": "^2.6.2",
-    "astro": "^6.1.0",
+    "astro": "^6.1.6",
     "github-slugger": "^2.0.0",
     "glob": "^13.0.6",
     "gray-matter": "^4.0.3",

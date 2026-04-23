@@ -56,7 +56,9 @@ overrides:
   flatted@<=3.4.1: '>=3.4.2'
   node-forge@<=1.3.3: '>=1.4.0'
   node-forge@<1.4.0: '>=1.4.0'
-  '@xmldom/xmldom@<0.8.12': '>=0.8.12'
+  '@xmldom/xmldom@<0.8.13': '>=0.8.13 <0.9.0'
+  '@xmldom/xmldom@>=0.9.0 <0.9.10': '>=0.9.10'
+  uuid@<14.0.0: '>=14.0.0'
   defu@<=6.1.4: '>=6.1.5'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
@@ -1255,9 +1257,9 @@ packages:
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
 
-  '@xmldom/xmldom@0.9.9':
-    resolution: {integrity: sha512-qycIHAucxy/LXAYIjmLmtQ8q9GPnMbnjG1KXhWm9o5sCr6pOYDATkMPiTNa6/v8eELyqOQ2FsEqeoFYmgv/gJg==}
-    engines: {node: '>=14.6'}
+  '@xmldom/xmldom@0.8.13':
+    resolution: {integrity: sha512-KRYzxepc14G/CEpEGc3Yn+JKaAeT63smlDr+vjB8jRfgTBBI9wRj/nkQEO+ucV8p8I9bfKLWp37uHgFrbntPvw==}
+    engines: {node: '>=10.0.0'}
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -3019,8 +3021,8 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
 
-  uuid@7.0.3:
-    resolution: {integrity: sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==}
+  uuid@14.0.0:
+    resolution: {integrity: sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg==}
     hasBin: true
 
   validate-npm-package-name@5.0.1:
@@ -4059,13 +4061,13 @@ snapshots:
 
   '@expo/plist@0.4.8':
     dependencies:
-      '@xmldom/xmldom': 0.9.9
+      '@xmldom/xmldom': 0.8.13
       base64-js: 1.5.1
       xmlbuilder: 15.1.1
 
   '@expo/plist@0.5.2':
     dependencies:
-      '@xmldom/xmldom': 0.9.9
+      '@xmldom/xmldom': 0.8.13
       base64-js: 1.5.1
       xmlbuilder: 15.1.1
 
@@ -4705,7 +4707,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@xmldom/xmldom@0.9.9': {}
+  '@xmldom/xmldom@0.8.13': {}
 
   abort-controller@3.0.0:
     dependencies:
@@ -6207,7 +6209,7 @@ snapshots:
 
   plist@3.1.0:
     dependencies:
-      '@xmldom/xmldom': 0.9.9
+      '@xmldom/xmldom': 0.8.13
       base64-js: 1.5.1
       xmlbuilder: 15.1.1
 
@@ -6670,7 +6672,7 @@ snapshots:
 
   utils-merge@1.0.1: {}
 
-  uuid@7.0.3: {}
+  uuid@14.0.0: {}
 
   validate-npm-package-name@5.0.1: {}
 
@@ -6729,7 +6731,7 @@ snapshots:
   xcode@3.0.1:
     dependencies:
       simple-plist: 1.3.1
-      uuid: 7.0.3
+      uuid: 14.0.0
 
   xml2js@0.6.0:
     dependencies:
