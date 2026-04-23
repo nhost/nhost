@@ -116,6 +116,41 @@ test('should set identity to true if the column is an identity column', () => {
   });
 });
 
+test('should set isGenerated to true and map generationExpression for generated columns', () => {
+  const rawGeneratedColumn: typeof rawColumn = {
+    ...rawColumn,
+    column_name: 'total',
+    udt_name: 'numeric',
+    data_type: 'numeric',
+    full_data_type: 'numeric',
+    column_default: null,
+    is_generated: 'ALWAYS',
+    generation_expression: 'price * quantity',
+    is_primary: false,
+    is_unique: false,
+    primary_constraints: [],
+  };
+
+  const column = normalizeDatabaseColumn(rawGeneratedColumn);
+
+  expect(column).toMatchObject<DatabaseColumn>({
+    id: 'total',
+    name: 'total',
+    isIdentity: false,
+    isGenerated: true,
+    generationExpression: 'price * quantity',
+    isNullable: false,
+    isUnique: false,
+    isPrimary: false,
+    type: { value: 'numeric', label: 'numeric' },
+    defaultValue: null,
+    comment: null,
+    primaryConstraints: [],
+    uniqueConstraints: [],
+    foreignKeyRelation: null,
+  });
+});
+
 test('should set nullable to true if the column is nullable', () => {
   const rawNullableColumn: typeof rawColumn = {
     ...rawColumn,

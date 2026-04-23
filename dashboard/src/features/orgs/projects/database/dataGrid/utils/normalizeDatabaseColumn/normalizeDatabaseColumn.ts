@@ -22,6 +22,8 @@ export default function normalizeDatabaseColumn(
     type: normalizeColumnType(rawColumn),
     isPrimary: rawColumn.is_primary,
     isIdentity: rawColumn.is_identity === 'YES',
+    isGenerated: rawColumn.is_generated === 'ALWAYS',
+    generationExpression: rawColumn.generation_expression ?? null,
     isNullable: rawColumn.is_nullable === 'YES',
     isUnique: rawColumn.is_unique,
     comment: rawColumn.column_comment || null,
