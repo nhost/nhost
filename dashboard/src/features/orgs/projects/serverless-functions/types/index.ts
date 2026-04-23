@@ -51,7 +51,12 @@ export interface ExecuteFormValues {
   multipartFields: MultipartField[];
 }
 
-export const FUNCTION_TABS = ['overview', 'execute', 'logs'] as const;
+export const FUNCTION_TABS = [
+  'overview',
+  'execute',
+  'logs',
+  'metrics',
+] as const;
 
 export type FunctionTab = (typeof FUNCTION_TABS)[number];
 
@@ -60,4 +65,51 @@ export function isFunctionTab(value: unknown): value is FunctionTab {
     typeof value === 'string' &&
     (FUNCTION_TABS as readonly string[]).includes(value)
   );
+}
+
+export interface MetricSeries {
+  labels: Record<string, string>;
+  timestamps: string[];
+  datapoints: number[];
+}
+
+export type MetricPanelResponse = MetricSeries[];
+
+export interface RequestsTableRow {
+  timestamp: string;
+  method: string;
+  value: number;
+}
+
+export interface ErrorsTableRow {
+  timestamp: string;
+  method: string;
+  status: string;
+  value: number;
+}
+
+export interface FunctionMetricsSummary {
+  totalInvocations: number;
+  totalBytesSent: number;
+  totalDurationSeconds: number;
+}
+
+export interface FunctionMetricsResponse {
+  summary: FunctionMetricsSummary;
+  general: {
+    invocationsByMethod: MetricPanelResponse;
+    responseStatus: MetricPanelResponse;
+    averageResponseSize: MetricPanelResponse;
+    totalRequests: RequestsTableRow[];
+  };
+  responseTimes: {
+    max: MetricPanelResponse;
+    p95: MetricPanelResponse;
+    p75: MetricPanelResponse;
+    avg: MetricPanelResponse;
+  };
+  errors: {
+    errorRate: MetricPanelResponse;
+    totalErrors: ErrorsTableRow[];
+  };
 }

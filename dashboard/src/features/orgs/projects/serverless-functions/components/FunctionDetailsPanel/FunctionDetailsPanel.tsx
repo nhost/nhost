@@ -7,6 +7,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ExecuteTab } from '@/features/orgs/projects/serverless-functions/components/ExecuteTab';
 import { FunctionLogsTab } from '@/features/orgs/projects/serverless-functions/components/FunctionLogsTab';
+import { MetricsTab } from '@/features/orgs/projects/serverless-functions/components/MetricsTab';
 import { OverviewTab } from '@/features/orgs/projects/serverless-functions/components/OverviewTab';
 import {
   type FunctionTab,
@@ -84,6 +85,7 @@ export default function FunctionDetailsPanel({
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="execute">Execute</TabsTrigger>
             <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="metrics">Metrics</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -107,6 +109,11 @@ export default function FunctionDetailsPanel({
               customDomainFqdn ? defaultEndpointUrl : undefined
             }
           />
+        </div>
+      )}
+      {activeTab === 'metrics' && (
+        <div className="flex-1 overflow-auto">
+          <MetricsTab fn={fn} />
         </div>
       )}
     </div>

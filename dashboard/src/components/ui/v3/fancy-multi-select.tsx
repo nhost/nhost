@@ -47,28 +47,38 @@ export function FancyMultiSelect({
     setSelected(value);
   }, [value]);
 
-  const handleUnselect = useCallback((option: Option) => {
-    setSelected((prev) => prev.filter((s) => s.value !== option.value));
-  }, []);
+  const handleUnselect = useCallback(
+    (option: Option) => {
+      setSelected((prev) => {
+        const next = prev.filter((s) => s.value !== option.value);
+        onChange?.(next);
+        return next;
+      });
+    },
+    [onChange],
+  );
 
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
-    const input = inputRef.current;
-    if (input) {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (input.value === '') {
-          setSelected((prev) => {
-            const newSelected = [...prev];
-            newSelected.pop();
-            return newSelected;
-          });
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      const input = inputRef.current;
+      if (input) {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          if (input.value === '') {
+            setSelected((prev) => {
+              const next = prev.slice(0, -1);
+              onChange?.(next);
+              return next;
+            });
+          }
+        }
+        // This is not a default behaviour of the <input /> field
+        if (e.key === 'Escape') {
+          input.blur();
         }
       }
-      // This is not a default behaviour of the <input /> field
-      if (e.key === 'Escape') {
-        input.blur();
-      }
-    }
-  }, []);
+    },
+    [onChange],
+  );
 
   function handleSelect(option: Option) {
     setInputValue('');

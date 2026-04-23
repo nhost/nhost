@@ -24,6 +24,17 @@ export default function FunctionListItem({
     : functionSlug;
   const isSelected = slug === currentSlug;
   const preservedTab = isFunctionTab(tab) ? tab : undefined;
+
+  const preservedMetricParams: Record<string, string | string[]> = {};
+  Object.entries(router.query).forEach(([key, value]) => {
+    if (value == null) {
+      return;
+    }
+    if (key === 'metricPanel' || key.startsWith('metricFilter.')) {
+      preservedMetricParams[key] = value;
+    }
+  });
+
   const href = {
     pathname:
       '/orgs/[orgSlug]/projects/[appSubdomain]/functions/[...functionSlug]',
@@ -32,6 +43,7 @@ export default function FunctionListItem({
       appSubdomain,
       functionSlug: slug,
       ...(preservedTab ? { tab: preservedTab } : {}),
+      ...preservedMetricParams,
     },
   };
 
