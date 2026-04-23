@@ -16,9 +16,10 @@
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",
     "@simplewebauthn/browser": "^13.1.0",
+    "bcryptjs": "^2.4.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "bcryptjs": "^2.4.3",
+    "react-markdown": "^9.1.0",
     "react-router-dom": "^7.6.0"
   },
   "devDependencies": {

@@ -1,0 +1,107 @@
+---
+title: Managing Agents
+description: Create, update, delete, and list AI agents via Hasura GraphQL
+keywords: ["AI agents", "Graphite", "GraphQL", "Hasura", "create agent", "manage agents", "Anthropic", "OpenAI", "Google Gemini"]
+---
+
+Agents are managed directly through Hasura's auto-generated GraphQL API. Any authenticated user can create, update, delete, and list agents, subject to the Hasura permissions configured on the underlying tables.
+
+Users need `select`, `insert`, `update`, and `delete` permissions on the `graphite.agents` table in Hasura. See [Permissions](/products/ai/agents#permissions) for the full requirements.
+
+## Creating an Agent
+
+Use the `insertGraphiteAgent` mutation to create a new agent:
+
+```graphql
+mutation {
+  insertGraphiteAgent(
+    object: {
+      name: "customer-support"
+      description: "A helpful customer support agent"
+      instructions: "You are a helpful customer support agent. Be concise and friendly."
+      provider: anthropic
+      model: "claude-sonnet-4-20250514"
+    }
+  ) {
+    id
+    name
+  }
+}
+```
+
+### Agent Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | String | Yes | Name of the agent |
+| `description` | String | No | Description of what the agent does |
+| `instructions` | String | No | System prompt that guides the agent's behavior |
+| `provider` | Enum | Yes | LLM provider: `anthropic`, `openai`, or `google` |
+| `model` | String | Yes | Model identifier (e.g. `claude-sonnet-4-20250514`, `gpt-4o`, `gemini-2.0-flash`) |
+| `toolsConfig` | JSON | No | Configuration for tools the agent can use (see [Tools](/products/ai/agents/tools)) |
+
+## Updating an Agent
+
+Use the `updateGraphiteAgent` mutation:
+
+```graphql
+mutation {
+  updateGraphiteAgent(
+    pk_columns: { id: "agent-uuid" }
+    _set: {
+      name: "customer-support-v2"
+      description: "Updated customer support agent"
+      instructions: "You are a helpful customer support agent. Be concise, friendly, and always ask if there's anything else you can help with."
+    }
+  ) {
+    id
+    name
+    updatedAt
+  }
+}
+```
+
+## Deleting an Agent
+
+Deleting an agent also deletes all its sessions and messages:
+
+```graphql
+mutation {
+  deleteGraphiteAgent(id: "agent-uuid") {
+    id
+  }
+}
+```
+
+## Listing Agents
+
+```graphql
+query {
+  graphiteAgents {
+    id
+    name
+    description
+    provider
+    model
+    createdAt
+  }
+}
+```
+
+## Retrieving a Specific Agent
+
+```graphql
+query {
+  graphiteAgent(id: "agent-uuid") {
+    id
+    name
+    description
+    instructions
+    provider
+    model
+    toolsConfig
+    createdAt
+    updatedAt
+  }
+}
+```

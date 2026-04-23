@@ -1,0 +1,242 @@
+---
+title: Tools
+description: Configure web search, web fetch, GraphQL, and other tools for your AI agents
+keywords: ["AI agents", "tools", "web search", "web fetch", "GraphQL", "Brave", "Tavily", "MCP", "tool use", "Graphite"]
+---
+
+Tools extend your agent's capabilities beyond text generation. When configured, the agent autonomously decides when and how to use tools based on the conversation context. It can chain multiple tool calls in a single response, iterating up to 25 times before returning its final answer.
+
+Tools are configured via the `toolsConfig` JSON field when [creating or updating an agent](/products/ai/agents/managing-agents). The `toolsConfig` schema is validated at the database level, so invalid configurations will be rejected on insert or update.
+
+## Web Search
+
+The web search tool allows the agent to search the internet for current information. It supports two search providers:
+
+- **Brave Search** — requires a [Brave Search API key](https://brave.com/search/api/)
+- **Tavily** — requires a [Tavily API key](https://tavily.com/)
+
+### Configuration
+
+```graphql
+mutation {
+  insertGraphiteAgent(
+    object: {
+      name: "research-agent"
+      description: "An agent that can search the web"
+      instructions: "You are a research assistant. Use web search to find current information."
+      provider: openai
+      model: "gpt-4o"
+      toolsConfig: {
+        web_search: {
+          provider: "brave"
+          api_key: "your-brave-api-key"
+        }
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `provider` | Yes | Search provider: `"brave"` or `"tavily"` |
+| `api_key` | Yes | API key for the chosen search provider |
+| `require_approval` | No | If `true`, tool calls require [human approval](/products/ai/agents/sessions-and-streaming#tool-approval) before execution |
+
+## Web Fetch
+
+The web fetch tool allows the agent to fetch and read the content of web pages. HTML pages are automatically converted to markdown for the agent to process.
+
+For security, the tool blocks access to private and internal IP addresses.
+
+### Configuration
+
+```graphql
+mutation {
+  insertGraphiteAgent(
+    object: {
+      name: "reader-agent"
+      description: "An agent that can read web pages"
+      instructions: "You can fetch and read web pages when users provide URLs."
+      provider: anthropic
+      model: "claude-sonnet-4-20250514"
+      toolsConfig: {
+        web_fetch: {}
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+Web fetch accepts an optional `require_approval` field. If set to `true`, tool calls require [human approval](/products/ai/agents/sessions-and-streaming#tool-approval) before execution. Otherwise, just pass an empty object `{}`.
+
+## GraphQL
+
+The GraphQL tools allow the agent to introspect and query your project's Hasura GraphQL endpoint. This gives the agent the ability to explore your database schema and read or write data on behalf of the user.
+
+The agent gets three tools:
+
+- **`graphql_get_schema`** — Retrieves the GraphQL schema via introspection. Supports a summary mode (returns query and mutation names as JSON) and a full mode (returns the complete SDL schema). Never requires approval (read-only introspection).
+- **`graphql_query`** — Executes a read-only GraphQL query and returns the raw JSON response. Rejects mutations and subscriptions.
+- **`graphql_mutation`** — Executes a GraphQL mutation and returns the raw JSON response. Rejects queries and subscriptions.
+
+Auth headers from the SSE request (`Authorization`, `X-Hasura-Admin-Secret`, `X-Hasura-Role`) are automatically forwarded, so Hasura enforces the same permissions as the calling user.
+
+### Configuration
+
+```graphql
+mutation {
+  insertGraphiteAgent(
+    object: {
+      name: "data-agent"
+      description: "An agent that can query your database"
+      instructions: "You are a data assistant. Use graphql_get_schema to discover available tables and fields, then use graphql_query to fetch data and graphql_mutation to write data."
+      provider: anthropic
+      model: "claude-sonnet-4-20250514"
+      toolsConfig: {
+        graphql: {
+          require_approval_mutations: true
+        }
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `require_approval_queries` | No | If `true`, `graphql_query` calls require [human approval](/products/ai/agents/sessions-and-streaming#tool-approval) before execution |
+| `require_approval_mutations` | No | If `true`, `graphql_mutation` calls require [human approval](/products/ai/agents/sessions-and-streaming#tool-approval) before execution |
+
+Pass an empty object `{}` to enable GraphQL tools without any approval requirements. The endpoint URL is automatically set to your project's Hasura GraphQL URL.
+
+## MCP Servers
+
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) lets you connect your agent to external tool servers over the network. The agent automatically discovers all tools exposed by each MCP server and can call them during conversations.
+
+Graphite connects to MCP servers using the [SSE transport](https://modelcontextprotocol.io/specification/2024-11-05/basic/transports#http-with-sse). You provide the server URL and optional headers for authentication. Connections are established at the start of every request and closed when the response is complete.
+
+### Configuration
+
+```graphql
+mutation {
+  insertGraphiteAgent(
+    object: {
+      name: "dev-agent"
+      description: "An agent with access to external tools"
+      instructions: "You are a developer assistant with access to external tools."
+      provider: anthropic
+      model: "claude-sonnet-4-20250514"
+      toolsConfig: {
+        mcp_servers: [
+          {
+            url: "https://mcp.example.com"
+            headers: {
+              Authorization: "Bearer your-api-token"
+            }
+          }
+        ]
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+Each entry in `mcp_servers` is an object with:
+
+| Field | Required | Description |
+|---|---|---|
+| `url` | Yes | The base URL of the MCP server (the `/sse` path is appended automatically) |
+| `headers` | No | Object of HTTP headers to send with every request (e.g. for authentication) |
+| `require_approval` | No | If `true`, all tools from this server require [human approval](/products/ai/agents/sessions-and-streaming#tool-approval) by default |
+| `tool_overrides` | No | Per-tool overrides. An object mapping tool names to `{ "require_approval": true/false }` to override the server default |
+
+### Server-Level Approval with Overrides
+
+You can require approval for all tools from an MCP server, then selectively exempt specific tools:
+
+```graphql
+toolsConfig: {
+  mcp_servers: [
+    {
+      url: "https://mcp.example.com"
+      headers: { Authorization: "Bearer your-token" }
+      require_approval: true
+      tool_overrides: {
+        read_data: { require_approval: false }
+      }
+    }
+  ]
+}
+```
+
+In this example, all tools from `mcp.example.com` require approval **except** `read_data`, which executes immediately.
+
+You can configure multiple MCP servers — tools from all servers are merged into a single set available to the agent:
+
+```graphql
+toolsConfig: {
+  mcp_servers: [
+    {
+      url: "https://mcp-github.example.com"
+      headers: { Authorization: "Bearer github-token" }
+    }
+    {
+      url: "https://mcp-db.example.com"
+    }
+  ]
+}
+```
+
+## Combining Tools
+
+You can enable multiple tools on the same agent, including a mix of built-in tools and MCP servers:
+
+```graphql
+mutation {
+  insertGraphiteAgent(
+    object: {
+      name: "full-featured-agent"
+      description: "An agent with web search, fetch, GraphQL, and MCP tools"
+      instructions: "You are a research assistant. Search the web, read pages, query the database, and use external tools to answer questions thoroughly."
+      provider: google
+      model: "gemini-2.0-flash"
+      toolsConfig: {
+        web_search: {
+          provider: "tavily"
+          api_key: "your-tavily-api-key"
+        }
+        web_fetch: {}
+        graphql: {}
+        mcp_servers: [
+          {
+            url: "https://mcp.example.com"
+            headers: { Authorization: "Bearer your-token" }
+          }
+        ]
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+## Reference
+
+| Tool | Config Key | Description | Required Config |
+|---|---|---|---|
+| Web Search | `web_search` | Search the web for current information | `provider` (`"brave"` or `"tavily"`), `api_key` |
+| Web Fetch | `web_fetch` | Fetch and read web page content (HTML to markdown) | None (empty object `{}`) |
+| GraphQL | `graphql` | Introspect, query, and mutate the project's Hasura GraphQL endpoint | None (empty object `{}`) |
+| MCP Servers | `mcp_servers` | Connect to remote MCP tool servers via SSE | Array of server objects with `url` (required), `headers` |
+
+Most tools support an optional `require_approval` boolean. GraphQL uses separate flags: `require_approval_queries` and `require_approval_mutations` to control approval independently for reads and writes. When approval is enabled, tool calls pause the agent and require explicit approval before execution. See [Tool Approval](/products/ai/agents/sessions-and-streaming#tool-approval) for the full flow.
