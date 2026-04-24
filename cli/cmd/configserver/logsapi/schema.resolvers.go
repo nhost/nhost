@@ -15,14 +15,7 @@ import (
 )
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(
-	ctx context.Context,
-	appID string,
-	service *string,
-	regexFilter *string,
-	from *time.Time,
-	to *time.Time,
-) ([]model.Log, error) {
+func (r *queryResolver) Logs(ctx context.Context, appID string, service *string, regexFilter *string, from *time.Time, to *time.Time) ([]model.Log, error) {
 	svc := ""
 	if service != nil {
 		svc = *service
@@ -57,19 +50,18 @@ func (r *queryResolver) GetServiceLabelValues(ctx context.Context, appID string)
 }
 
 // GetFunctionsLogs is the resolver for the getFunctionsLogs field.
-func (r *queryResolver) GetFunctionsLogs(
-	ctx context.Context,
-	appID string,
-	path string,
-	from *time.Time,
-	to *time.Time,
-) ([]model.Log, error) {
+func (r *queryResolver) GetFunctionsLogs(ctx context.Context, appID string, path string, regexFilter *string, from *time.Time, to *time.Time) ([]model.Log, error) {
+	filter := ""
+	if regexFilter != nil {
+		filter = *regexFilter
+	}
+
 	from, to, err := TimeRangeCheck(from, to)
 	if err != nil {
 		return nil, err
 	}
 
-	logs, err := r.LogGatherer.GetFunctionsLogs(ctx, path, *from, *to)
+	logs, err := r.LogGatherer.GetFunctionsLogs(ctx, path, filter, *from, *to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get functions logs: %w", err)
 	}
@@ -78,13 +70,7 @@ func (r *queryResolver) GetFunctionsLogs(
 }
 
 // Logs is the resolver for the logs field.
-func (r *subscriptionResolver) Logs(
-	ctx context.Context,
-	appID string,
-	service *string,
-	regexFilter *string,
-	from *time.Time,
-) (<-chan []model.Log, error) {
+func (r *subscriptionResolver) Logs(ctx context.Context, appID string, service *string, regexFilter *string, from *time.Time) (<-chan []model.Log, error) {
 	svc := ""
 	if service != nil {
 		svc = *service
@@ -111,12 +97,12 @@ func (r *subscriptionResolver) Logs(
 }
 
 // GetFunctionsLogs is the resolver for the getFunctionsLogs field.
-func (r *subscriptionResolver) GetFunctionsLogs(
-	ctx context.Context,
-	appID string,
-	path string,
-	from *time.Time,
-) (<-chan []model.Log, error) {
+func (r *subscriptionResolver) GetFunctionsLogs(ctx context.Context, appID string, path string, regexFilter *string, from *time.Time) (<-chan []model.Log, error) {
+	filter := ""
+	if regexFilter != nil {
+		filter = *regexFilter
+	}
+
 	if from == nil {
 		from = new(time.Now().Add(-time.Hour))
 	}
@@ -124,7 +110,7 @@ func (r *subscriptionResolver) GetFunctionsLogs(
 	ch := make(chan []model.Log)
 
 	go func() {
-		if err := r.LogGatherer.TailFunctionsLogs(ctx, path, *from, ch); err != nil {
+		if err := r.LogGatherer.TailFunctionsLogs(ctx, path, filter, *from, ch); err != nil {
 			r.Logger.Errorf("failed to tail functions logs: %s", err)
 		}
 	}()
@@ -138,7 +124,5 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
-type (
-	queryResolver        struct{ *Resolver }
-	subscriptionResolver struct{ *Resolver }
-)
+type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }
