@@ -35,7 +35,10 @@ export interface CommonDataGridCellProps<
   /**
    * Function that is called when the cell is saved.
    */
-  onSave?: (value: TValue, options?: { reset: boolean }) => Promise<void>;
+  onSave?: (
+    value: TValue,
+    options?: { reset?: 'null' | 'default' },
+  ) => Promise<void>;
   /**
    * Optimistic value for the cell.
    */
@@ -131,27 +134,33 @@ function DataGridCellContent<
 
   async function handleSave(
     value: DataGridCellValue,
-    options: { reset: boolean } = { reset: false },
+    options: { reset?: 'null' | 'default' } = {},
   ) {
     if (!onCellEdit) {
       return;
     }
 
-    const normalizedValue =
-      value !== null && typeof value === 'object'
-        ? JSON.stringify(value)
-        : String(value);
+    function normalize(v: DataGridCellValue) {
+      if (v === null || v === undefined) {
+        return null;
+      }
+      if (typeof v === 'object') {
+        return JSON.stringify(v);
+      }
+      return String(v);
+    }
 
-    const normalizedOptimisticValue =
-      optimisticValue !== null && typeof optimisticValue === 'object'
-        ? JSON.stringify(optimisticValue)
-        : String(optimisticValue);
+    const normalizedValue = normalize(value);
+    const normalizedOptimisticValue = normalize(optimisticValue);
 
     // We are making sure that optimistic value is not equal to the current
     // value. If it is, we are not going to save the value.
+    const escapeNewlines = (v: string | null) =>
+      v === null ? null : v.replace(/\n/gi, '\\n');
+
     if (
-      normalizedValue.replace(/\n/gi, '\\n') ===
-        normalizedOptimisticValue.replace(/\n/gi, '\\n') &&
+      escapeNewlines(normalizedValue) ===
+        escapeNewlines(normalizedOptimisticValue) &&
       !options.reset
     ) {
       return;
@@ -167,7 +176,7 @@ function DataGridCellContent<
         row,
         columnsToUpdate: {
           [id]: {
-            value: !options.reset ? value : undefined,
+            value: options.reset ? undefined : value,
             reset: options.reset,
           },
         },
@@ -224,7 +233,7 @@ function DataGridCellContent<
         primaryButtonText: 'Set to null',
         primaryButtonColor: 'error',
         onPrimaryAction: async () => {
-          await handleSave(null, { reset: true });
+          await handleSave(null, { reset: 'null' });
           focusCell();
         },
       },

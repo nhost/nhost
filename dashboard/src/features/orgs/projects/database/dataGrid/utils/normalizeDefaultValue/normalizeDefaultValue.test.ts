@@ -1,65 +1,58 @@
-import { expect, test } from 'vitest';
 import normalizeDefaultValue from './normalizeDefaultValue';
 
-test('should return empty string if no default value', () => {
-  expect(normalizeDefaultValue(null)).toMatchObject({
-    normalizedDefaultValue: '',
-    custom: false,
-  });
-  expect(normalizeDefaultValue('')).toMatchObject({
-    normalizedDefaultValue: '',
-    custom: false,
-  });
+it('should return null if no default value', () => {
+  expect(normalizeDefaultValue(null)).toBeNull();
+  expect(normalizeDefaultValue('')).toBeNull();
 });
 
-test('should not change default value that is a plain string', () => {
-  expect(normalizeDefaultValue('test')).toMatchObject({
-    normalizedDefaultValue: 'test',
+it('should not change default value that is a plain string', () => {
+  expect(normalizeDefaultValue('test')).toEqual({
+    value: 'test',
     custom: false,
   });
 });
 
-test('should remove apostrophes and type definition from default value', () => {
-  expect(normalizeDefaultValue("''::text")).toMatchObject({
-    normalizedDefaultValue: '',
+it('should preserve empty-string casts so the form can pre-select them', () => {
+  expect(normalizeDefaultValue("''::text")).toEqual({
+    value: "''::text",
+    custom: false,
+  });
+
+  expect(normalizeDefaultValue("''::character varying")).toEqual({
+    value: "''::character varying",
+    custom: false,
+  });
+});
+
+it('should remove apostrophes and type definition from default value', () => {
+  expect(normalizeDefaultValue("'Test Value'::text")).toEqual({
+    value: 'Test Value',
     custom: true,
   });
 
-  expect(normalizeDefaultValue("''::character varying")).toMatchObject({
-    normalizedDefaultValue: '',
+  expect(normalizeDefaultValue("'Test Value'::character varying")).toEqual({
+    value: 'Test Value',
     custom: true,
   });
 
-  expect(normalizeDefaultValue("'Test Value'::text")).toMatchObject({
-    normalizedDefaultValue: 'Test Value',
-    custom: true,
-  });
-
-  expect(
-    normalizeDefaultValue("'Test Value'::character varying"),
-  ).toMatchObject({
-    normalizedDefaultValue: 'Test Value',
-    custom: true,
-  });
-
-  expect(normalizeDefaultValue("'3'::int4")).toMatchObject({
-    normalizedDefaultValue: '3',
+  expect(normalizeDefaultValue("'3'::int4")).toEqual({
+    value: '3',
     custom: true,
   });
 });
 
-test('should remove arguments from default value function string if enabled', () => {
+it('should remove arguments from default value function string if enabled', () => {
   expect(
     normalizeDefaultValue("nextval('test_table_seq')", { removeArgs: true }),
-  ).toMatchObject({
-    normalizedDefaultValue: 'nextval()',
+  ).toEqual({
+    value: 'nextval()',
     custom: false,
   });
 
   expect(
     normalizeDefaultValue("function('args', 'args')", { removeArgs: true }),
-  ).toMatchObject({
-    normalizedDefaultValue: 'function()',
+  ).toEqual({
+    value: 'function()',
     custom: false,
   });
 });

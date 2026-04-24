@@ -58,7 +58,7 @@ const rawColumn: NormalizedQueryDataRow = {
   foreign_key_relation: null,
 };
 
-test('should normalize a raw database column', () => {
+it('should normalize a raw database column', () => {
   const column = normalizeDatabaseColumn(rawColumn);
 
   expect(column).toMatchObject<DatabaseColumn>({
@@ -77,7 +77,7 @@ test('should normalize a raw database column', () => {
   });
 });
 
-test('should set identity to true if the column is an identity column', () => {
+it('should set identity to true if the column is an identity column', () => {
   const rawIdentityColumn: typeof rawColumn = {
     ...rawColumn,
     udt_name: 'int4',
@@ -105,7 +105,7 @@ test('should set identity to true if the column is an identity column', () => {
   });
 });
 
-test('should set isGenerated to true and map generationExpression for generated columns', () => {
+it('should set isGenerated to true and map generationExpression for generated columns', () => {
   const rawGeneratedColumn: typeof rawColumn = {
     ...rawColumn,
     column_name: 'total',
@@ -140,7 +140,23 @@ test('should set isGenerated to true and map generationExpression for generated 
   });
 });
 
-test('should set nullable to true if the column is nullable', () => {
+it('should preserve an empty-string cast default and label it from POSTGRESQL_FUNCTION_LABELS', () => {
+  const rawEmptyStringDefaultColumn: typeof rawColumn = {
+    ...rawColumn,
+    udt_name: 'text',
+    data_type: 'text',
+    full_data_type: 'text',
+    column_default: "''::text",
+  };
+
+  const column = normalizeDatabaseColumn(rawEmptyStringDefaultColumn);
+
+  expect(column.defaultValue).toEqual({
+    value: "''::text",
+    custom: false,
+  });
+});
+it('should set nullable to true if the column is nullable', () => {
   const rawNullableColumn: typeof rawColumn = {
     ...rawColumn,
     is_nullable: 'YES',
@@ -164,7 +180,7 @@ test('should set nullable to true if the column is nullable', () => {
   });
 });
 
-test('should preserve the literal flag when the stored default is a quoted literal that collides with a function name', () => {
+it('should preserve the literal flag when the stored default is a quoted literal that collides with a function name', () => {
   const rawLiteralColumn: typeof rawColumn = {
     ...rawColumn,
     udt_name: 'text',
@@ -178,7 +194,7 @@ test('should preserve the literal flag when the stored default is a quoted liter
   expect(column.defaultValue).toEqual({ value: 'version()', custom: true });
 });
 
-test('should mark a bare function default as non-custom', () => {
+it('should mark a bare function default as non-custom', () => {
   const rawFunctionColumn: typeof rawColumn = {
     ...rawColumn,
     udt_name: 'text',

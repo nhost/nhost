@@ -68,7 +68,11 @@ export default async function updateRecord<
     .map((key) => {
       const { value, reset } = columnsToUpdate[key];
 
-      if (reset) {
+      if (reset === 'default') {
+        return format('%I = DEFAULT', key);
+      }
+
+      if (reset === 'null') {
         return format('%I = NULL', key);
       }
 
