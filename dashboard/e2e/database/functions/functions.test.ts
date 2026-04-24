@@ -43,13 +43,15 @@ test.describe
       await expect(
         page.getByRole('heading', { name: /function definition/i }),
       ).toBeVisible();
-      await expect(page.getByText(`public.${functionName}`)).toBeVisible();
+      await expect(
+        page.getByText(`public.${functionName}`, { exact: true }),
+      ).toBeVisible();
       await expect(page.getByText('STABLE').first()).toBeVisible();
       await expect(page.getByText('SQL function')).toBeVisible();
       await expect(page.getByText('Query-only')).toBeVisible();
 
       await expect(page.getByText('Parameters')).toBeVisible();
-      await expect(page.getByText('filter_title')).toBeVisible();
+      await expect(page.getByText('filter_title').first()).toBeVisible();
 
       await page
         .locator(
@@ -59,9 +61,10 @@ test.describe
 
       await page.getByRole('menuitem', { name: /edit function/i }).click();
 
-      await expect(page.locator('.cm-content')).toBeVisible();
+      const editor = page.locator('.cm-content[contenteditable="true"]');
+      await expect(editor).toBeVisible();
       await expect(
-        page.locator('.cm-content').getByText('CREATE OR REPLACE FUNCTION'),
+        editor.getByText('CREATE OR REPLACE FUNCTION'),
       ).toBeVisible();
     });
 

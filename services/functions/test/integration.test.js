@@ -9,6 +9,8 @@ const PORTS = {
 
 const EXPECTED_METADATA = [
   { path: 'functions/add.js', route: '/add' },
+  { path: 'functions/cors-custom.js', route: '/cors-custom' },
+  { path: 'functions/cors-disabled.js', route: '/cors-disabled' },
   { path: 'functions/greet.js', route: '/greet' },
   { path: 'functions/hello.ts', route: '/hello' },
   { path: 'functions/index.js', route: '/' },
@@ -56,6 +58,33 @@ describe.each([
     const res = await fetch(`${base}/hello?name=World`);
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('Hello, World!');
+  });
+
+  it('default CORS headers are present on user function responses', async () => {
+    const res = await fetch(`${base}/hello?name=World`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(res.headers.get('access-control-allow-headers')).toBe(
+      'origin,Accept,Authorization,Content-Type',
+    );
+  });
+
+  it('function can disable default CORS headers by setting them empty', async () => {
+    const res = await fetch(`${base}/cors-disabled`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('');
+    expect(res.headers.get('access-control-allow-headers')).toBe('');
+  });
+
+  it('function can override default CORS headers', async () => {
+    const res = await fetch(`${base}/cors-custom`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe(
+      'https://example.com',
+    );
+    expect(res.headers.get('access-control-allow-headers')).toBe(
+      'X-Custom-Header',
+    );
   });
 
   it('GET /sub/ returns sub-directory index', async () => {

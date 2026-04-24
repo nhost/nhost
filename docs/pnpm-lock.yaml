@@ -56,7 +56,9 @@ overrides:
   flatted@<=3.4.1: '>=3.4.2'
   node-forge@<=1.3.3: '>=1.4.0'
   node-forge@<1.4.0: '>=1.4.0'
-  '@xmldom/xmldom@<0.8.12': '>=0.8.12'
+  '@xmldom/xmldom@<0.8.13': '>=0.8.13 <0.9.0'
+  '@xmldom/xmldom@>=0.9.0 <0.9.10': '>=0.9.10'
+  uuid@<14.0.0: '>=14.0.0'
   defu@<=6.1.4: '>=6.1.5'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
@@ -70,10 +72,10 @@ importers:
         version: 7.1.0
       '@astrojs/starlight':
         specifier: ^0.38.2
-        version: 0.38.3(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
+        version: 0.38.3(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
       '@astrojs/vercel':
         specifier: ^10.0.0
-        version: 10.0.4(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))(rollup@4.60.1)
+        version: 10.0.4(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))(rollup@4.60.1)
       '@babel/parser':
         specifier: ^7.29.2
         version: 7.29.2
@@ -87,8 +89,8 @@ importers:
         specifier: ^2.6.2
         version: 2.6.2
       astro:
-        specifier: ^6.1.0
-        version: 6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
+        specifier: ^6.1.6
+        version: 6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0
@@ -112,7 +114,7 @@ importers:
         version: 0.34.5
       starlight-sidebar-topics:
         specifier: ^0.7.1
-        version: 0.7.1(@astrojs/starlight@0.38.3(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)))
+        version: 0.7.1(@astrojs/starlight@0.38.3(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)))
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
@@ -1025,8 +1027,8 @@ packages:
     peerDependencies:
       astro: ^4.0.0-beta || ^5.0.0-beta || ^3.3.0 || ^6.0.0-beta
 
-  astro@6.1.5:
-    resolution: {integrity: sha512-AJVw/JlssxUCBFi3Hp4djL8Pt7wUQqStBBawCd8cNGBBM2lBzp/rXGguzt4OcMfW+86fs0hpFwMyopHM2r6d3g==}
+  astro@6.1.6:
+    resolution: {integrity: sha512-pRsz+kYriwCV/AUcY/I9OVKtVHuYFs2DtCszAxprXded/kTE53nMwxfnK0Nf6FPfaX9vcUiLnigcSIhuFoKntA==}
     engines: {node: '>=22.12.0', npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
 
@@ -2451,12 +2453,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@5.0.3(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))':
+  '@astrojs/mdx@5.0.3(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))':
     dependencies:
       '@astrojs/markdown-remark': 7.1.0
       '@mdx-js/mdx': 3.1.1
       acorn: 8.16.0
-      astro: 6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
+      astro: 6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
       es-module-lexer: 2.0.0
       estree-util-visit: 2.0.0
       hast-util-to-html: 9.0.5
@@ -2480,17 +2482,17 @@ snapshots:
       stream-replace-string: 2.0.0
       zod: 4.3.6
 
-  '@astrojs/starlight@0.38.3(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))':
+  '@astrojs/starlight@0.38.3(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))':
     dependencies:
       '@astrojs/markdown-remark': 7.1.0
-      '@astrojs/mdx': 5.0.3(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
+      '@astrojs/mdx': 5.0.3(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
       '@astrojs/sitemap': 3.7.2
       '@pagefind/default-ui': 1.5.0
       '@types/hast': 3.0.4
       '@types/js-yaml': 4.0.9
       '@types/mdast': 4.0.4
-      astro: 6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
-      astro-expressive-code: 0.41.7(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
+      astro: 6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
+      astro-expressive-code: 0.41.7(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
       bcp-47: 2.1.0
       hast-util-from-html: 2.0.3
       hast-util-select: 6.0.4
@@ -2526,14 +2528,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/vercel@10.0.4(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))(rollup@4.60.1)':
+  '@astrojs/vercel@10.0.4(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))(rollup@4.60.1)':
     dependencies:
       '@astrojs/internal-helpers': 0.8.0
       '@vercel/analytics': 1.6.1
       '@vercel/functions': 3.4.3
       '@vercel/nft': 1.5.0(rollup@4.60.1)
       '@vercel/routing-utils': 5.3.3
-      astro: 6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
+      astro: 6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
       esbuild: 0.27.7
       tinyglobby: 0.2.16
     transitivePeerDependencies:
@@ -3234,12 +3236,12 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro-expressive-code@0.41.7(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)):
+  astro-expressive-code@0.41.7(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)):
     dependencies:
-      astro: 6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
+      astro: 6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
       rehype-expressive-code: 0.41.7
 
-  astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3):
+  astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3):
     dependencies:
       '@astrojs/compiler': 3.0.1
       '@astrojs/internal-helpers': 0.8.0
@@ -4920,9 +4922,9 @@ snapshots:
 
   srcset@5.0.3: {}
 
-  starlight-sidebar-topics@0.7.1(@astrojs/starlight@0.38.3(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))):
+  starlight-sidebar-topics@0.7.1(@astrojs/starlight@0.38.3(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))):
     dependencies:
-      '@astrojs/starlight': 0.38.3(astro@6.1.5(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
+      '@astrojs/starlight': 0.38.3(astro@6.1.6(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
       picomatch: 4.0.4
 
   stream-replace-string@2.0.0: {}

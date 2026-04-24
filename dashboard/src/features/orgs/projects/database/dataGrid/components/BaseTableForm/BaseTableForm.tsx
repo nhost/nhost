@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -6,7 +6,12 @@ import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/v3/accordion';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
@@ -16,6 +21,7 @@ import ColumnEditorTable from './ColumnEditorTable';
 import ForeignKeyEditorSection from './ForeignKeyEditorSection';
 import IdentityColumnSelect from './IdentityColumnSelect';
 import PrimaryKeySelect from './PrimaryKeySelect';
+import TableObjectsSection from './TableObjectsSection';
 
 export interface BaseTableFormValues
   extends Omit<DatabaseTable, 'primaryKey' | 'identityColumn'> {
@@ -48,6 +54,16 @@ export interface BaseTableFormProps extends DialogFormProps {
    * @default 'Save'
    */
   submitButtonText?: string;
+  /**
+   * Schema where the table is located. When provided together with
+   * `tableName`, the table objects section (constraints, indexes, triggers)
+   * is rendered.
+   */
+  schema?: string;
+  /**
+   * Name of the table being edited.
+   */
+  tableName?: string;
 }
 
 export const baseColumnValidationSchema = Yup.object().shape({
@@ -119,12 +135,21 @@ function NameInput() {
   );
 }
 
+const ACCORDION_SECTION_VALUES = [
+  'columns',
+  'foreignKeys',
+  'constraints',
+  'indexes',
+  'triggers',
+];
+
 function FormFooter({
   onCancel,
   submitButtonText,
   location,
+  onSubmitClick,
 }: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> &
-  Pick<DialogFormProps, 'location'>) {
+  Pick<DialogFormProps, 'location'> & { onSubmitClick?: VoidFunction }) {
   const { onDirtyStateChange } = useDialog();
   const { isSubmitting, dirtyFields } = useFormState();
 
@@ -152,6 +177,7 @@ function FormFooter({
         disabled={isSubmitting}
         type="submit"
         className="justify-self-end"
+        onClick={onSubmitClick}
       >
         {submitButtonText}
       </Button>
@@ -164,7 +190,14 @@ export default function BaseTableForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
+  schema,
+  tableName,
 }: BaseTableFormProps) {
+  const [openSections, setOpenSections] = useState<string[]>([
+    'columns',
+    'foreignKeys',
+  ]);
+
   return (
     <Form
       onSubmit={onSubmit}
@@ -175,29 +208,45 @@ export default function BaseTableForm({
           <NameInput />
         </Box>
 
-        <Box
-          component="section"
-          className="grid grid-cols-8 border-t-1 px-6 py-3"
+        <Accordion
+          type="multiple"
+          value={openSections}
+          onValueChange={setOpenSections}
+          className="border-t-1"
         >
-          <Text
-            variant="h2"
-            className="col-span-8 mt-3 mb-1.5 font-bold text-sm+"
-          >
-            Columns
-          </Text>
+          <AccordionItem value="columns">
+            <AccordionTrigger className="px-6 py-2 text-lg">
+              Columns
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-3" forceMount>
+              <div className="grid grid-cols-8">
+                <ColumnEditorTable />
+                <PrimaryKeySelect />
+                <IdentityColumnSelect />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-          <ColumnEditorTable />
-          <PrimaryKeySelect />
-          <IdentityColumnSelect />
-        </Box>
+          <AccordionItem value="foreignKeys">
+            <AccordionTrigger className="px-6 py-2 text-lg">
+              Foreign Keys
+            </AccordionTrigger>
+            <AccordionContent className="pb-3" forceMount>
+              <ForeignKeyEditorSection />
+            </AccordionContent>
+          </AccordionItem>
 
-        <ForeignKeyEditorSection />
+          {schema && tableName && (
+            <TableObjectsSection schema={schema} table={tableName} />
+          )}
+        </Accordion>
       </div>
 
       <FormFooter
         onCancel={onCancel}
         submitButtonText={submitButtonText}
         location={location}
+        onSubmitClick={() => setOpenSections([...ACCORDION_SECTION_VALUES])}
       />
     </Form>
   );

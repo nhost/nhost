@@ -1,5 +1,21 @@
+import { PostgreSQL, sql } from '@codemirror/lang-sql';
+import { useTheme } from '@mui/material';
+import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
+import CodeMirror from '@uiw/react-codemirror';
+import { ChevronDown, ChevronRight, Info, Pencil } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
+import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Badge } from '@/components/ui/v3/badge';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/v3/collapsible';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
@@ -8,7 +24,19 @@ import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
 
+const EditFunctionForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionForm/EditFunctionForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
 export default function FunctionDefinitionView() {
+  const theme = useTheme();
   const router = useRouter();
   const {
     query: { schemaSlug, functionOID: routerFunctionOID, dataSourceSlug },
@@ -32,8 +60,13 @@ export default function FunctionDefinitionView() {
     },
   );
 
-  const { functionMetadata, error: functionError } = data || {
+  const {
+    functionMetadata,
+    functionDefinition,
+    error: functionError,
+  } = data || {
     functionMetadata: null,
+    functionDefinition: '',
     error: null,
   };
 
@@ -50,6 +83,10 @@ export default function FunctionDefinitionView() {
     function: { name: functionName || '', schema },
     dataSource,
   });
+
+  const { openDrawer } = useDialog();
+
+  const [isSourceOpen, setIsSourceOpen] = useState(true);
 
   const effectiveExposedAs =
     functionConfig?.configuration?.exposed_as ??
@@ -88,11 +125,7 @@ export default function FunctionDefinitionView() {
     return (
       <DataBrowserEmptyState
         title="Function not found"
-        description={
-          <span>
-            The function does not exist or is not a table-returning function.
-          </span>
-        }
+        description={<span>The function does not exist.</span>}
       />
     );
   }
@@ -100,18 +133,33 @@ export default function FunctionDefinitionView() {
   const requiredParamsCount =
     functionMetadata.parameters.length - functionMetadata.defaultArgsCount;
 
+  const isCompositeReturn = functionMetadata.returnTypeKind === 'c';
+  const isTrackable = isCompositeReturn && !functionMetadata.hasVariadic;
+
+  const returnTypeDisplay = functionMetadata.returnTableName
+    ? `${functionMetadata.returnTableSchema}.${functionMetadata.returnTableName}`
+    : functionMetadata.returnTypeName;
+
+  const returnPrefix = functionMetadata.returnsSet ? 'SETOF ' : '';
+
+  const nonTrackableReason = !isCompositeReturn
+    ? `This function returns the type "${functionMetadata.returnTypeName}", so it can't be exposed in GraphQL.`
+    : "This function uses VARIADIC arguments, so it can't be exposed in GraphQL.";
+
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-y-auto">
       <div className="border-b p-4">
         <div className="mb-8 flex flex-col gap-4">
-          <TrackFunctionButton
-            schema={schema}
-            functionName={functionMetadata.functionName}
-            returnTableName={functionMetadata.returnTableName}
-            returnTableSchema={functionMetadata.returnTableSchema}
-            functionType={functionMetadata.functionType}
-          />
-          {isTracked && (
+          {isTrackable && (
+            <TrackFunctionButton
+              schema={schema}
+              functionName={functionMetadata.functionName}
+              returnTableName={functionMetadata.returnTableName}
+              returnTableSchema={functionMetadata.returnTableSchema}
+              functionType={functionMetadata.functionType}
+            />
+          )}
+          {isTrackable && isTracked && (
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
               <span className="font-medium text-sm">Tracked in GraphQL</span>
@@ -120,6 +168,13 @@ export default function FunctionDefinitionView() {
                 {effectiveExposedAs === 'mutation' ? 'Mutation' : 'Query'}
               </Badge>
             </div>
+          )}
+          {!isTrackable && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Not exposable in GraphQL</AlertTitle>
+              <AlertDescription>{nonTrackableReason}</AlertDescription>
+            </Alert>
           )}
           <div>
             <h2 className="font-semibold text-lg">Function Definition</h2>
@@ -152,11 +207,10 @@ export default function FunctionDefinitionView() {
                   </span>
                 </>
               )}{' '}
-              · Returns SETOF{' '}
+              · Returns{' '}
               <InlineCode className="bg-opacity-80 px-1 text-xs">
-                {functionMetadata.returnTableName
-                  ? `${functionMetadata.returnTableSchema}.${functionMetadata.returnTableName}`
-                  : functionMetadata.returnTypeName}
+                {returnPrefix}
+                {returnTypeDisplay}
               </InlineCode>
             </p>
           </div>
@@ -167,12 +221,18 @@ export default function FunctionDefinitionView() {
               </Badge>
             )}
             <Badge variant="outline" className="font-medium">
-              SETOF {functionMetadata.returnTypeName}
+              {returnPrefix}
+              {functionMetadata.returnTypeName}
             </Badge>
             {functionMetadata.returnTableName && (
               <Badge variant="outline" className="font-medium">
                 Returns table: {functionMetadata.returnTableSchema}.
                 {functionMetadata.returnTableName}
+              </Badge>
+            )}
+            {functionMetadata.hasVariadic && (
+              <Badge variant="outline" className="font-medium">
+                VARIADIC
               </Badge>
             )}
             {functionMetadata.functionType === 'STABLE' ||
@@ -207,6 +267,60 @@ export default function FunctionDefinitionView() {
               ))}
             </div>
           </div>
+        )}
+        {functionDefinition && (
+          <Collapsible
+            open={isSourceOpen}
+            onOpenChange={setIsSourceOpen}
+            className="mt-4 rounded-md border"
+          >
+            <div className="flex items-center justify-between gap-2 p-3">
+              <CollapsibleTrigger className="flex flex-1 items-center gap-2 text-left">
+                {isSourceOpen ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )}
+                <h4 className="font-medium text-sm">Source Definition</h4>
+              </CollapsibleTrigger>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  openDrawer({
+                    title: 'Function Definition',
+                    component: (
+                      <EditFunctionForm
+                        schema={schema}
+                        functionName={functionMetadata.functionName}
+                        functionOID={functionOID}
+                        dataSource={dataSource}
+                      />
+                    ),
+                  })
+                }
+              >
+                <Pencil className="mr-2 h-3.5 w-3.5" />
+                Edit
+              </Button>
+            </div>
+            <CollapsibleContent>
+              <div className="overflow-hidden border-t">
+                <CodeMirror
+                  value={functionDefinition}
+                  theme={
+                    theme.palette.mode === 'light' ? githubLight : githubDark
+                  }
+                  extensions={[sql({ dialect: PostgreSQL })]}
+                  editable={false}
+                  basicSetup={{
+                    lineNumbers: true,
+                    highlightActiveLine: false,
+                  }}
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </div>
     </div>

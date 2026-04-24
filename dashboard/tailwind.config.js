@@ -254,7 +254,7 @@ module.exports = {
         toastleave: 'leave 150ms ease-in forwards',
         progress: 'progress 1s infinite linear',
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out forwards',
       },
     },
   },
