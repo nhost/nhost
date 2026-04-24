@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### 🐛 Bug Fixes
+
+- *(auth)* Revoke all sessions on password change to prevent token reuse after credential theft
+
 ## [auth@0.50.0] - 2026-04-20
 
 ### 🚀 Features
