@@ -80,81 +80,81 @@ Navigate to the application and install `@nhost/nhost-js`.
 
     <TabItem label="./src/lib/nhost.js">
 ```js
-    import { NhostClient } from "@nhost/nhost-js";
+import { createClient } from "@nhost/nhost-js";
 
-    // Replace <subdomain> and <region> with your project's values
-    export const nhost = new NhostClient({
-      subdomain: "<subdomain>",
-      region: "<region>",
-    })
-    ```
+// Replace <subdomain> and <region> with your project's values
+export const nhost = createClient({
+  subdomain: "<subdomain>",
+  region: "<region>",
+})
+```
 </TabItem>
 
     <TabItem label="./src/App.vue">
 ```vue
-    <script setup>
-    import { ref, onMounted } from 'vue'
-    import { nhost } from './lib/nhost'
+<script setup>
+import { ref, onMounted } from 'vue'
+import { nhost } from './lib/nhost'
 
-    const movies = ref([])
-    const loading = ref(true)
-    const error = ref(null)
+const movies = ref([])
+const loading = ref(true)
+const error = ref(null)
 
-    const fetchMovies = async () => {
-      try {
-        const resp = await nhost.graphql.request({
-          query: `query GetMovies {
-            movies {
-              title
-              director
-              release_year
-              genre
-              rating
-            }
-          }`,
-        })
-
-        movies.value = resp.body.data.movies || []
-      } catch (err) {
-        error.value = 'Failed to fetch movies'
-      } finally {
-        loading.value = false
-      }
-    }
-
-    onMounted(() => {
-      fetchMovies()
+const fetchMovies = async () => {
+  try {
+    const resp = await nhost.graphql.request({
+      query: `query GetMovies {
+        movies {
+          title
+          director
+          release_year
+          genre
+          rating
+        }
+      }`,
     })
-    </script>
 
-    <template>
-      <div v-if="loading">Loading...</div>
-      <div v-else-if="error">Error: {{ error }}</div>
-      <div v-else>
-        <h1>Movies</h1>
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Director</th>
-              <th>Release Year</th>
-              <th>Genre</th>
-              <th>Rating</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(movie, index) in movies" :key="index">
-              <td>{{ movie.title }}</td>
-              <td>{{ movie.director }}</td>
-              <td>{{ movie.release_year }}</td>
-              <td>{{ movie.genre }}</td>
-              <td>{{ movie.rating }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </template>
-    ```
+    movies.value = resp.body.data.movies || []
+  } catch (err) {
+    error.value = 'Failed to fetch movies'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchMovies()
+})
+</script>
+
+<template>
+  <div v-if="loading">Loading...</div>
+  <div v-else-if="error">Error: {{ error }}</div>
+  <div v-else>
+    <h1>Movies</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Director</th>
+          <th>Release Year</th>
+          <th>Genre</th>
+          <th>Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(movie, index) in movies" :key="index">
+          <td>{{ movie.title }}</td>
+          <td>{{ movie.director }}</td>
+          <td>{{ movie.release_year }}</td>
+          <td>{{ movie.genre }}</td>
+          <td>{{ movie.rating }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+```
 </TabItem>
 
     
@@ -165,6 +165,10 @@ Navigate to the application and install `@nhost/nhost-js`.
   ### The end
 
 Run your project with `npm run dev` and navigate to `http://localhost:5173` in your browser.
+
+## Related resources
+
+- [Full source code](https://github.com/nhost/nhost/tree/main/examples/quickstarts/vue) on GitHub — a complete example configured for a local Nhost project
 
 
 

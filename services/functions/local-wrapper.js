@@ -45,6 +45,27 @@ const rawBodySaver = (req, _res, buf) => {
   req.rawBody = buf.toString();
 };
 
+// Default CORS headers. We wrap res.writeHead so the check runs once headers
+// are about to be flushed — at that point any res.setHeader / res.set call
+// from user code (or middleware like the `cors` package) has already landed,
+// so we only add a default for headers the user didn't set themselves.
+app.use((_req, res, next) => {
+  const originalWriteHead = res.writeHead;
+  res.writeHead = function (...args) {
+    if (!res.hasHeader('Access-Control-Allow-Origin')) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    if (!res.hasHeader('Access-Control-Allow-Headers')) {
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'origin,Accept,Authorization,Content-Type',
+      );
+    }
+    return originalWriteHead.apply(this, args);
+  };
+  next();
+});
+
 app.use(express.json({ limit: '6MB', verify: rawBodySaver }));
 app.use(
   express.urlencoded({ extended: true, limit: '6MB', verify: rawBodySaver }),
