@@ -1,8 +1,7 @@
-import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import {
-  Dialog,
+import { import { Trash2 } from 'lucide-react';
+Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,

@@ -2,20 +2,19 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import {
-  MAX_STORAGE_CAPACITY,
+import { Plus, Trash2
+
+import {  Info  } from 'lucide-react';
+MAX_STORAGE_CAPACITY,
   MIN_STORAGE_CAPACITY,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 
 export default function StorageFormSection() {
   const {
-    register,
+register,
     setValue,
     formState: { errors },
   } = useFormContext<ServiceFormValues>();
@@ -67,7 +66,7 @@ export default function StorageFormSection() {
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <Info aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
 
@@ -75,7 +74,7 @@ export default function StorageFormSection() {
           variant="borderless"
           onClick={() => append({ name: '', capacity: 1, path: '' })}
         >
-          <PlusIcon className="h-5 w-5" />
+          <Plus className="h-5 w-5" />
         </Button>
       </Box>
 
@@ -138,7 +137,7 @@ export default function StorageFormSection() {
               color="error"
               onClick={() => remove(index)}
             >
-              <TrashIcon className="h-4 w-4" />
+              <Trash2 className="h-4 w-4" />
             </Button>
           </Box>
         ))}

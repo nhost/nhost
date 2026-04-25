@@ -15,14 +15,13 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  useGetSignInMethodsQuery,
+import { import { Copy } from 'lucide-react';
+useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { copy } from '@/utils/copy';
@@ -285,7 +284,7 @@ export default function AppleProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <Copy className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

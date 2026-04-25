@@ -1,14 +1,6 @@
-import type { LucideIcon } from 'lucide-react';
-import {
-  BetweenHorizontalEnd,
-  List,
-  ScanEye,
-  SquareFunction,
-  Table2,
-  View,
-} from 'lucide-react';
 import type { DatabaseObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-
+import type { LucideIcon } from 'lucide-react';
+import { BetweenHorizontalEnd, List, ScanEye, SquareFunction, Table2, View } from 'lucide-react';
 const iconByType: Record<DatabaseObjectType, LucideIcon> = {
   FUNCTION: SquareFunction,
   VIEW: ScanEye,

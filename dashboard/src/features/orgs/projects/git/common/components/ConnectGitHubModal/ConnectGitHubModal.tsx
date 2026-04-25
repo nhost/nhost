@@ -10,9 +10,7 @@ import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
-import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
@@ -20,8 +18,10 @@ import { Text } from '@/components/ui/v2/Text';
 import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/GithubAuthButton';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { EditRepositorySettings } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
-import {
-  getGitHubToken,
+import { PlusCircle
+
+import {  ExternalLink  } from 'lucide-react';
+getGitHubToken,
   saveGitHubToken,
 } from '@/features/orgs/projects/git/common/utils';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -35,7 +35,7 @@ import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
 
 export type ConnectGitHubModalState =
-  | 'CONNECTING'
+| 'CONNECTING'
   | 'EDITING'
   | 'EXPIRED_GITHUB_SESSION'
   | 'GITHUB_CONNECTION_REQUIRED';
@@ -354,7 +354,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           <Button
             href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
             rel="noreferrer noopener"
-            endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
+            endIcon={<ExternalLink className="h-4 w-4" />}
           >
             Configure the Nhost application on GitHub
           </Button>
@@ -417,7 +417,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                 underline="hover"
                 className="grid grid-flow-col items-center justify-start gap-1"
               >
-                <PlusCircleIcon className="h-4 w-4" />
+                <PlusCircle className="h-4 w-4" />
                 Configure the Nhost application on GitHub.
               </Link>
             </div>

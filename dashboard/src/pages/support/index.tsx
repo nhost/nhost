@@ -1,16 +1,13 @@
-import { UsersRoundIcon } from 'lucide-react';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-
+import { ArrowRight, FileText, UsersRoundIcon } from 'lucide-react';
 function SupportPage() {
   return (
-    <Box className="h-full overflow-auto pb-4">
+<Box className="h-full overflow-auto pb-4">
       <Box className="flex w-full justify-start border-b-1 px-4 py-3">
         <Link href="https://app.nhost.io" rel="noopener noreferrer">
           <Logo className="w-6" />
@@ -29,7 +26,7 @@ function SupportPage() {
           <Button
             onClick={() => window.open('https://docs.nhost.io')}
             className="h-10 w-full xs+:w-98"
-            startIcon={<FileTextIcon className="h-4 w-4 self-center" />}
+            startIcon={<FileText className="h-4 w-4 self-center" />}
           >
             Read our docs
           </Button>
@@ -63,7 +60,7 @@ function SupportPage() {
                   className="grid grid-flow-col items-center justify-start gap-1 font-medium"
                 >
                   Open new Issue / Feature request
-                  <ArrowRightIcon className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </Box>
               <Box
@@ -91,7 +88,7 @@ function SupportPage() {
                   className="grid grid-flow-col items-center justify-start gap-1 font-medium"
                 >
                   Join our Discord
-                  <ArrowRightIcon className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </Box>
             </div>
@@ -116,7 +113,7 @@ function SupportPage() {
                   className="grid grid-flow-col items-center justify-start gap-1 font-medium"
                 >
                   Create ticket
-                  <ArrowRightIcon className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </Box>

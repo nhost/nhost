@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PlusIcon, TrashIcon } from 'lucide-react';
 import { type ReactNode, useCallback, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
-import {
-  Accordion,
+import { import { Plus
+
+import {  Trash2, type BaseCronTriggerFormInitialData  } from 'lucide-react';
+Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
@@ -31,9 +32,7 @@ import { RetryConfigurationFormSection } from '@/features/orgs/projects/events/c
 import { CronScheduleInput } from '@/features/orgs/projects/events/cron-triggers/components/CronScheduleInput';
 import { getCronTriggerSampleInputPayload } from '@/features/orgs/projects/events/cron-triggers/utils/getCronTriggerSampleInputPayload';
 import { cn } from '@/lib/utils';
-import {
-  type BaseCronTriggerFormInitialData,
-  type BaseCronTriggerFormValues,
+type BaseCronTriggerFormValues,
   defaultFormValues,
   defaultPayloadTransformValues,
   defaultRequestOptionsTransformValues,

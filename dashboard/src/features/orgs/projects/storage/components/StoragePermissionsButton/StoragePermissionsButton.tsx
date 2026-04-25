@@ -1,8 +1,7 @@
-import { Shield } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import { StoragePermissionsForm } from '@/features/orgs/projects/storage/dataGrid/components/EditStoragePermissions';
-
+import { Shield } from 'lucide-react';
 export default function StoragePermissionsButton() {
   const { openDrawer, closeDrawerWithDirtyGuard } = useDialog();
 

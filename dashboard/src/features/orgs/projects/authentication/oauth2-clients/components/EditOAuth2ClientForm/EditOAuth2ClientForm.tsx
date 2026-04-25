@@ -12,15 +12,14 @@ import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import ScopePicker from '@/features/orgs/projects/authentication/oauth2/ScopePicker';
 import { generateClientSecret } from '@/features/orgs/projects/authentication/oauth2/utils';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { GetOAuth2ClientsQuery } from '@/generated/graphql';
-import {
-  GetOAuth2ClientsDocument,
+import { import { Copy } from 'lucide-react';
+GetOAuth2ClientsDocument,
   useUpdateOAuth2ClientMutation,
 } from '@/generated/graphql';
 import type { DialogFormProps } from '@/types/common';
@@ -206,7 +205,7 @@ export default function EditOAuth2ClientForm({
               aria-label="Copy Client ID"
               onClick={() => copy(oauth2Client.clientId, 'Client ID')}
             >
-              <CopyIcon className="h-4 w-4" />
+              <Copy className="h-4 w-4" />
             </IconButton>
           </div>
 
@@ -335,7 +334,7 @@ export default function EditOAuth2ClientForm({
                   aria-label="Copy secret"
                   type="button"
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <Copy className="h-4 w-4" />
                 </Button>
               </InputAdornment>
             }

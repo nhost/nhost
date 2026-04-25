@@ -1,5 +1,4 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { SearchIcon } from 'lucide-react';
 import { memo, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -11,7 +10,7 @@ import { LogsRegexFilter } from '@/features/orgs/projects/common/components/Logs
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import DeploymentInfo from './DeploymentInfo';
-
+import { Search } from 'lucide-react';
 export const validationSchema = Yup.object({
   service: Yup.string(),
   regexFilter: Yup.string().required(),

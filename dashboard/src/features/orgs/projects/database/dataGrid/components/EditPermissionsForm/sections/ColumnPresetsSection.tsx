@@ -7,8 +7,6 @@ import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
@@ -18,9 +16,9 @@ import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/
 import { isNotEmptyValue } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import PermissionSettingsSection from './PermissionSettingsSection';
-
+import { Plus, X } from 'lucide-react';
 export interface ColumnPreset {
-  column: string;
+column: string;
   value: string;
 }
 
@@ -199,7 +197,7 @@ export default function ColumnPresetsSection({
                     remove(index);
                   }}
                 >
-                  <XIcon className="h-4 w-4" />
+                  <X className="h-4 w-4" />
                 </IconButton>
               </div>
             ))}
@@ -207,7 +205,7 @@ export default function ColumnPresetsSection({
 
         <Button
           variant="borderless"
-          startIcon={<PlusIcon />}
+          startIcon={<Plus />}
           size="small"
           onClick={() => append({ column: '', value: '' })}
           disabled={selectedColumns.length === allColumnNames.length}

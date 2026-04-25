@@ -1,6 +1,5 @@
-import { Anchor, PlusIcon } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
-
+import { Anchor, Plus } from 'lucide-react';
 export interface EmptyRemoteSchemaRelationshipsProps {
   onAddRelationship: () => void;
 }

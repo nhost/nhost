@@ -1,8 +1,7 @@
-import { Archive } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { StorageLayout } from '@/features/orgs/projects/storage/components/StorageLayout';
-
+import { Archive } from 'lucide-react';
 export default function StorageIndexPage() {
   return (
     <div className="grid w-full place-content-center gap-2 px-4 py-16 text-center">

@@ -13,12 +13,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
-import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UsersIcon } from '@/components/ui/v2/icons/UsersIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -29,13 +23,13 @@ import { useRemoveRemoteSchemaMutation } from '@/features/orgs/projects/remote-s
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
-
+import { Edit, Link, MoreHorizontal, Plus, Trash2, Users } from 'lucide-react';
 const CreateRemoteSchemaForm = dynamic(
   () =>
     import(
       '@/features/orgs/projects/remote-schemas/components/CreateRemoteSchemaForm/CreateRemoteSchemaForm'
     ),
-  {
+{
     ssr: false,
     loading: () => <FormActivityIndicator />,
   },
@@ -185,7 +179,7 @@ function RemoteSchemaBrowserSidebarContent({
     <Box className="flex h-full flex-col px-2">
       <Button
         variant="borderless"
-        endIcon={<PlusIcon />}
+        endIcon={<Plus />}
         className="mt-1 w-full justify-between px-2"
         onClick={() => {
           openDrawer({
@@ -230,7 +224,7 @@ function RemoteSchemaBrowserSidebarContent({
                               'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
                           )}
                         >
-                          <DotsHorizontalIcon />
+                          <MoreHorizontal />
                         </IconButton>
                       </Dropdown.Trigger>
                       <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>

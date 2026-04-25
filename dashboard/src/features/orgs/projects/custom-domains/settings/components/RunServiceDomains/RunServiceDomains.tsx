@@ -1,14 +1,13 @@
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { RunServicePortDomain } from '@/features/orgs/projects/custom-domains/settings/components/RunServicePortDomain';
-
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
+import { ExternalLink } from 'lucide-react';
 export default function RunServiceDomains() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
@@ -43,7 +42,7 @@ export default function RunServiceDomains() {
                   underline="hover"
                   className="font-medium"
                 >
-                  <ArrowSquareOutIcon className="mb-1 ml-1 h-4 w-4" />
+                  <ExternalLink className="mb-1 ml-1 h-4 w-4" />
                 </Link>
               </div>
             }

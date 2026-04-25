@@ -4,16 +4,13 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
-
+import { Info, Plus, Trash2 } from 'lucide-react';
 function CommandTooltip() {
   return (
-    <Tooltip
+<Tooltip
       title={
         <div className="flex flex-col gap-2">
           <p>Specify the command and its arguments to run the service.</p>
@@ -30,7 +27,7 @@ function CommandTooltip() {
         </div>
       }
     >
-      <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+      <Info aria-label="Info" className="h-4 w-4" color="primary" />
     </Tooltip>
   );
 }
@@ -72,7 +69,7 @@ export default function CommandFormSection() {
           <CommandTooltip />
         </Box>
         <Button variant="borderless" onClick={() => append({ argument: '' })}>
-          <PlusIcon className="h-5 w-5" />
+          <Plus className="h-5 w-5" />
         </Button>
       </Box>
 
@@ -98,7 +95,7 @@ export default function CommandFormSection() {
               color="error"
               onClick={() => remove(index)}
             >
-              <TrashIcon className="h-6 w-4" />
+              <Trash2 className="h-6 w-4" />
             </Button>
           </Box>
         ))}

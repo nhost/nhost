@@ -14,8 +14,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -28,9 +26,9 @@ import { CreateSecretForm } from '@/features/orgs/projects/secrets/settings/comp
 import { EditSecretForm } from '@/features/orgs/projects/secrets/settings/components/EditSecretForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { Secret } from '@/types/application';
-import {
-  useDeleteSecretMutation,
-  useGetSecretsQuery,
+import { Plus
+
+import {  MoreVertical, useDeleteSecretMutation, useGetSecretsQuery  } from 'lucide-react';
 } from '@/utils/__generated__/graphql';
 
 export default function SecretsPage() {
@@ -181,7 +179,7 @@ export default function SecretsPage() {
                             color="secondary"
                             disabled={maintenanceActive}
                           >
-                            <DotsVerticalIcon />
+                            <MoreVertical />
                           </IconButton>
                         </Dropdown.Trigger>
 
@@ -240,7 +238,7 @@ export default function SecretsPage() {
           <Button
             className="mx-4 justify-self-start"
             variant="borderless"
-            startIcon={<PlusIcon />}
+            startIcon={<Plus />}
             onClick={handleOpenCreator}
             disabled={maintenanceActive}
           >

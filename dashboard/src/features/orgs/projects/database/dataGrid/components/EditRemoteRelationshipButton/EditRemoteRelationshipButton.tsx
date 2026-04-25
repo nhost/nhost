@@ -1,4 +1,3 @@
-import { SquarePen } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -11,7 +10,7 @@ import { prepareRemoteSchemaRelationshipDTO } from '@/features/orgs/projects/dat
 import { prepareRemoteSourceRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSourceRelationshipDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { RemoteRelationshipDefinition } from '@/utils/hasura-api/generated/schemas';
-
+import { SquarePen } from 'lucide-react';
 export interface EditRemoteRelationshipButtonProps {
   source: string;
   schema: string;

@@ -1,10 +1,9 @@
-import { RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
-import {
-  Tooltip,
+import { import { RefreshCw } from 'lucide-react';
+Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';

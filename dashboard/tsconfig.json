@@ -31,7 +31,9 @@
       "@/styles/*": ["styles/*"],
       "@/data/*": ["data/*"],
       "@/generated/*": ["utils/__generated__/*"],
-      "@/features/*": ["features/*"]
+      "@/features/*": ["features/*"],
+      "@nhost/nhost-js": ["../../packages/nhost-js/src/index.ts"],
+      "@nhost/nhost-js/*": ["../../packages/nhost-js/src/*"]
     },
     "incremental": true
   },

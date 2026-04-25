@@ -1,8 +1,8 @@
-import { Info } from 'lucide-react';
 import type { ReactNode } from 'react';
-import {
-  Tooltip,
-  TooltipContent,
+import { Tooltip
+
+import {  Info  } from 'lucide-react';
+TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 

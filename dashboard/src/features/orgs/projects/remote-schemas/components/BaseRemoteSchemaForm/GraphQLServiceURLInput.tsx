@@ -1,11 +1,10 @@
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
-
+import { Info } from 'lucide-react';
 export default function GraphQLServiceURLInput() {
   const {
     register,
@@ -17,7 +16,7 @@ export default function GraphQLServiceURLInput() {
       <Box className="flex flex-row items-center space-x-2">
         <Text>GraphQL Service URL</Text>
         <Tooltip title="The URL of the GraphQL service to be used as a remote schema. Environment variables and secrets are available using the {{VARIABLE}} tag. Example: https://{{ENV_VAR}}/endpoint_url.">
-          <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+          <Info aria-label="Info" className="h-4 w-4" color="primary" />
         </Tooltip>
       </Box>
       <Input

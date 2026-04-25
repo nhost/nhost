@@ -1,4 +1,3 @@
-import { X } from 'lucide-react';
 import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
@@ -8,7 +7,8 @@ import { cn } from '@/lib/utils';
 import GroupNodeRenderer from './GroupNodeRenderer';
 import RelationshipComboBox from './RelationshipComboBox';
 import useCustomCheckEditor, {
-  CustomCheckEditorContext,
+import { X } from 'lucide-react';
+CustomCheckEditorContext,
 } from './useCustomCheckEditor';
 
 interface RelationshipNodeRendererProps {

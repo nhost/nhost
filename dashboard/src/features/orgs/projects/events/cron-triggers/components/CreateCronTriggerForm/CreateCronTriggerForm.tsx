@@ -1,8 +1,7 @@
-import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
-import {
-  BaseCronTriggerForm,
+import { import { Plus } from 'lucide-react';
+BaseCronTriggerForm,
   type BaseCronTriggerFormTriggerProps,
 } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';

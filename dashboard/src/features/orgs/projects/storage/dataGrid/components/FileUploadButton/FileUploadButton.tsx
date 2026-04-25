@@ -3,8 +3,7 @@ import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useRef } from 'react';
 import type { ButtonProps } from '@/components/ui/v2/Button';
 import { Button } from '@/components/ui/v2/Button';
-import { UploadIcon } from '@/components/ui/v2/icons/UploadIcon';
-
+import { Upload } from 'lucide-react';
 export type FileUploadButtonProps = Omit<
   ButtonProps,
   'onChange' | 'onChangeCapture'
@@ -52,7 +51,7 @@ export default function FileUploadButton({
 
       <Button
         onClick={handleClick}
-        startIcon={<UploadIcon className="h-4 w-4" />}
+        startIcon={<Upload className="h-4 w-4" />}
         size="small"
         className={clsx(
           'grid h-full w-full grid-flow-col gap-1',

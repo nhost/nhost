@@ -1,10 +1,9 @@
 import { twMerge } from 'tailwind-merge';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-
+import { Info } from 'lucide-react';
 export interface MetricsCardProps extends BoxProps {
   /**
    * Label of the card.
@@ -43,7 +42,7 @@ export default function MetricsCard({
 
         {tooltip && (
           <Tooltip title={tooltip}>
-            <InfoIcon className="h-4 w-4" />
+            <Info className="h-4 w-4" />
           </Tooltip>
         )}
       </div>

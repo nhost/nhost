@@ -1,27 +1,46 @@
-import type { IconProps } from '@/components/ui/v2/icons';
-import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
+import { ArrowDown } from 'lucide-react'
+import type { IconProps } from '@/components/ui/v2/icons'
 
-function ArrowDownIcon(props: IconProps) {
+function ArrowDownIcon({ className, ...props }: IconProps) {
   return (
-    <SvgIcon
-      width="16"
-      height="16"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 16 16"
+    <ArrowDown
       aria-label="An arrow pointing downwards"
+      width={16}
+      height={16}
+      className={className}
       {...props}
-    >
-      <path
-        d="M8 2.5v11M3.5 9 8 13.5 12.5 9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    </SvgIcon>
-  );
+    />
+  )
 }
 
-ArrowDownIcon.displayName = 'NhostArrowDownIcon';
+ArrowDownIcon.displayName = 'NhostArrowDownIcon'
 
-export default ArrowDownIcon;
+export default ArrowDownIcon
+
+// import type { IconProps } from '@/components/ui/v2/icons';
+// import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
+
+// function ArrowDownIcon(props: IconProps) {
+//   return (
+//     <SvgIcon
+//       width="16"
+//       height="16"
+//       xmlns="http://www.w3.org/2000/svg"
+//       viewBox="0 0 16 16"
+//       aria-label="An arrow pointing downwards"
+//       {...props}
+//     >
+//       <path
+//         d="M8 2.5v11M3.5 9 8 13.5 12.5 9"
+//         fill="none"
+//         stroke="currentColor"
+//         strokeWidth="1.5"
+//         strokeLinejoin="round"
+//       />
+//     </SvgIcon>
+//   );
+// }
+
+// ArrowDownIcon.displayName = 'NhostArrowDownIcon';
+
+// export default ArrowDownIcon;

@@ -2,8 +2,6 @@ import { useFormState, useWatch } from 'react-hook-form';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -11,9 +9,9 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useProPlan } from '@/features/orgs/projects/common/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/orgs/projects/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import {
-  RESOURCE_VCPU_MULTIPLIER,
-  RESOURCE_VCPU_PRICE,
+import { Info, RESOURCE_VCPU_MULTIPLIER, RESOURCE_VCPU_PRICE
+
+import {  ExternalLink  } from 'lucide-react';
 } from '@/utils/constants/common';
 
 export default function ResourcesFormFooter() {
@@ -97,7 +95,7 @@ export default function ResourcesFormFooter() {
           className="font-medium"
         >
           Compute Resources
-          <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+          <ExternalLink className="ml-1 h-4 w-4" />
         </Link>
       </Text>
 

@@ -2,16 +2,13 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
-
+import { Info, Plus, Trash2 } from 'lucide-react';
 export default function EmailsFormSection() {
   const {
-    register,
+register,
     formState: { errors },
     control,
   } = useFormContext<ContactPointsFormValues>();
@@ -35,11 +32,11 @@ export default function EmailsFormSection() {
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <Info aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
         <Button variant="borderless" onClick={() => append({ email: '' })}>
-          <PlusIcon className="h-5 w-5" />
+          <Plus className="h-5 w-5" />
         </Button>
       </Box>
 
@@ -65,7 +62,7 @@ export default function EmailsFormSection() {
                 color="error"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="h-6 w-4" />
+                <Trash2 className="h-6 w-4" />
               </Button>
             </Box>
           ))}

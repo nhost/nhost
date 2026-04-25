@@ -1,14 +1,9 @@
 import { formatDistanceToNow } from 'date-fns';
-import { BoxIcon } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DeleteServiceModal } from '@/features/orgs/projects/common/components/DeleteServiceModal';
@@ -16,8 +11,10 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import type { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import {
-  defaultServiceFormValues,
+import { Copy, MoreHorizontal, Trash2, User
+
+import {  BoxIcon  } from 'lucide-react';
+defaultServiceFormValues,
   type ServiceFormInitialData,
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { copy } from '@/utils/copy';
@@ -26,7 +23,7 @@ interface ServicesListProps {
   /**
    * The run services fetched from entering the users page.
    */
-  services: RunService[];
+services: RunService[];
 
   /**
    * Function to be called after a submitting the form for either creating or updating a service.
@@ -153,7 +150,7 @@ export default function ServicesList({
                 }}
                 aria-label="Service Id"
               >
-                <CopyIcon className="h-4 w-4" />
+                <Copy className="h-4 w-4" />
               </IconButton>
             </div>
           </Box>
@@ -170,7 +167,7 @@ export default function ServicesList({
                 aria-label="More options"
                 onClick={(event) => event.stopPropagation()}
               >
-                <DotsHorizontalIcon />
+                <MoreHorizontal />
               </IconButton>
             </Dropdown.Trigger>
             <Dropdown.Content
@@ -183,7 +180,7 @@ export default function ServicesList({
                 onClick={() => viewService(service)}
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
               >
-                <UserIcon className="h-4 w-4" />
+                <User className="h-4 w-4" />
                 <Text className="font-medium">View Service</Text>
               </Dropdown.Item>
               <Divider component="li" />
@@ -196,7 +193,7 @@ export default function ServicesList({
                 }}
                 disabled={!isPlatform}
               >
-                <TrashIcon className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
                 <Text className="font-medium" color="error">
                   Delete Service
                 </Text>

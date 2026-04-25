@@ -1,12 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Anchor, ChevronsUpDown } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Form,
+import { ChevronsUpDown, Info
+
+import {  Anchor  } from 'lucide-react';
+Form,
   FormControl,
   FormField,
   FormItem,
@@ -31,7 +31,7 @@ import SourceTypeCombobox from './SourceTypeCombobox';
 import TargetTableCombobox from './TargetTableCombobox';
 
 export interface DatabaseRelationshipFormProps {
-  sourceSchema: string;
+sourceSchema: string;
   onSubmit: (values: DatabaseRelationshipFormValues) => void;
   submitButtonText?: string;
   onCancel?: () => void;

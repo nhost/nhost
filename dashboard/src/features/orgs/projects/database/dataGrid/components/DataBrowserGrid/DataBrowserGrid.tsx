@@ -1,6 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { CellContext } from '@tanstack/react-table';
-import { KeyRound } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useRef } from 'react';
@@ -13,8 +12,8 @@ import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGri
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import { useIsReadOnlyDatabaseObject } from '@/features/orgs/projects/database/dataGrid/hooks/useIsReadOnlyDatabaseObject';
-import {
-  createTableQueryKey,
+import { import { KeyRound } from 'lucide-react';
+createTableQueryKey,
   useTableQuery,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';

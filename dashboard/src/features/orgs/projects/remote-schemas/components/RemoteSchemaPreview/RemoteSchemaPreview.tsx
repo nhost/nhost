@@ -1,6 +1,5 @@
-import { SearchIcon, XIcon } from 'lucide-react';
-import {
-  type FormEvent,
+type FormEvent,
+import {  Search  } from 'lucide-react';
   type KeyboardEvent as ReactKeyboardEvent,
   useCallback,
   useEffect,
@@ -16,6 +15,8 @@ import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schema
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
+import { X
+
 
 export interface RemoteSchemaPreviewProps {
   name: string;

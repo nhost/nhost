@@ -1,4 +1,3 @@
-import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
@@ -8,7 +7,7 @@ import { cn, isNotEmptyValue } from '@/lib/utils';
 import ConditionValue from './ConditionValue';
 import OperatorComboBox from './OperatorComboBox';
 import useCustomCheckEditor from './useCustomCheckEditor';
-
+import { Trash2 } from 'lucide-react';
 type ConditionRowProps = {
   name: string;
   onRemove?: VoidFunction;

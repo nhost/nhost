@@ -1,21 +1,18 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
-import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useServiceStatus } from '@/features/orgs/projects/common/hooks/useServiceStatus';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-
 import { OverviewProjectHealthModal } from '@/features/orgs/projects/overview/components/OverviewProjectHealthModal';
 import { ProjectHealthCard } from '@/features/orgs/projects/overview/components/ProjectHealthCard';
 import { RunStatusTooltip } from '@/features/orgs/projects/overview/components/RunStatusTooltip';
 import { ServiceVersionTooltip } from '@/features/orgs/projects/overview/components/ServiceVersionTooltip';
 
 import {
+import { Database, HardDrive, User } from 'lucide-react';
   baseServices,
   findHighestImportanceState,
   type ServiceHealthInfo,
@@ -24,8 +21,7 @@ import { isNotEmptyValue } from '@/lib/utils';
 
 export default function OverviewProjectHealth() {
   const { project } = useProject();
-
-  const { openDialog, closeDialog } = useDialog();
+const { openDialog, closeDialog } = useDialog();
 
   const {
     loading: loadingVersions,
@@ -56,15 +52,15 @@ export default function OverviewProjectHealth() {
         <div className="flex flex-row flex-wrap items-center justify-start gap-2 lg:gap-2">
           <ProjectHealthCard
             isLoading
-            icon={<UserIcon className="m-1 h-6 w-6" />}
+            icon={<User className="m-1 h-6 w-6" />}
           />
           <ProjectHealthCard
             isLoading
-            icon={<DatabaseIcon className="m-1 h-6 w-6" />}
+            icon={<Database className="m-1 h-6 w-6" />}
           />
           <ProjectHealthCard
             isLoading
-            icon={<StorageIcon className="m-1 h-6 w-6" />}
+            icon={<HardDrive className="m-1 h-6 w-6" />}
           />
           <ProjectHealthCard
             isLoading
@@ -170,19 +166,19 @@ export default function OverviewProjectHealth() {
       {project && (
         <div className="flex flex-row flex-wrap items-center justify-start gap-2 lg:gap-2">
           <ProjectHealthCard
-            icon={<UserIcon className="m-1 h-6 w-6" />}
+            icon={<User className="m-1 h-6 w-6" />}
             tooltip={authTooltipElem}
             isVersionMismatch={authVersionInfo?.isVersionMismatch}
             state={authStatus?.state}
           />
           <ProjectHealthCard
-            icon={<DatabaseIcon className="m-1 h-6 w-6" />}
+            icon={<Database className="m-1 h-6 w-6" />}
             tooltip={postgresTooltipElem}
             isVersionMismatch={postgresVersionInfo?.isVersionMismatch}
             state={postgresStatus?.state}
           />
           <ProjectHealthCard
-            icon={<StorageIcon className="m-1 h-6 w-6" />}
+            icon={<HardDrive className="m-1 h-6 w-6" />}
             tooltip={storageTooltipElem}
             isVersionMismatch={storageVersionInfo?.isVersionMismatch}
             state={storageStatus?.state}

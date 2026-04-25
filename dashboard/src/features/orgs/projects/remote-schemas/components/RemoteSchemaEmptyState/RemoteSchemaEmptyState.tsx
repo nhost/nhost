@@ -1,8 +1,7 @@
-import { Anchor } from 'lucide-react';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Text } from '@/components/ui/v2/Text';
-
+import { Anchor } from 'lucide-react';
 export interface RemoteSchemaEmptyStateProps
   extends Omit<
     DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,

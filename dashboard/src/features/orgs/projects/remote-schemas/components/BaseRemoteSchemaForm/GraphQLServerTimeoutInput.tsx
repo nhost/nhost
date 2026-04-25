@@ -1,12 +1,11 @@
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/remote-schemas/utils/constants';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
-
+import { Info } from 'lucide-react';
 export default function GraphQLServerTimeoutInput() {
   const {
     register,
@@ -18,7 +17,7 @@ export default function GraphQLServerTimeoutInput() {
       <Box className="flex flex-row items-center space-x-2">
         <Text>GraphQL Server Timeout</Text>
         <Tooltip title="Configure timeout for your remote GraphQL server.">
-          <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+          <Info aria-label="Info" className="h-4 w-4" color="primary" />
         </Tooltip>
       </Box>
       <Input

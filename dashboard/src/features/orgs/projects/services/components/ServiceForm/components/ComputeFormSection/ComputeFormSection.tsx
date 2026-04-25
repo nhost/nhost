@@ -1,14 +1,13 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowLeftIcon } from '@/components/ui/v2/icons/ArrowLeftIcon';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import {
-  MAX_SERVICES_MEM,
+import { ArrowRight, Info
+
+import {  ArrowLeft  } from 'lucide-react';
+MAX_SERVICES_MEM,
   MEM_CPU_RATIO,
   MIN_SERVICES_MEM,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
@@ -86,7 +85,7 @@ export default function ComputeFormSection({
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <Info aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         )}
       </Box>
@@ -100,7 +99,7 @@ export default function ComputeFormSection({
           variant="outlined"
           onClick={decrementCompute}
         >
-          <ArrowLeftIcon className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
         </Button>
 
         <Slider
@@ -120,7 +119,7 @@ export default function ComputeFormSection({
           variant="outlined"
           onClick={incrementCompute}
         >
-          <ArrowRightIcon className="h-4 w-4" />
+          <ArrowRight className="h-4 w-4" />
         </Button>
       </Box>
     </Box>

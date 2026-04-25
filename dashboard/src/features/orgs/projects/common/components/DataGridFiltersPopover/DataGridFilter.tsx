@@ -1,4 +1,3 @@
-import { X } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import type { DataGridFilterOperator } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import DataGridFilterColumn from './DataGridFilterColumn';
@@ -6,7 +5,7 @@ import DataGridFilterOperators from './DataGridFilterOperators';
 import { useDataGridFilters } from './DataGridFiltersProvider';
 import { DataGridFilterValue } from './DataGridFilterValue';
 import { useGetDataColumns } from './useGetDataColumns';
-
+import { X } from 'lucide-react';
 type FilterProps = {
   column: string;
   op: DataGridFilterOperator;

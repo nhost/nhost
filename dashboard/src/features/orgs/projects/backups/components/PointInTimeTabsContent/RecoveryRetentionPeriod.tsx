@@ -1,6 +1,5 @@
-import { CalendarClock } from 'lucide-react';
 import { InfoAlert } from '@/features/orgs/components/InfoAlert';
-
+import { CalendarClock } from 'lucide-react';
 function RecoveryRetentionPeriod() {
   return (
     <InfoAlert

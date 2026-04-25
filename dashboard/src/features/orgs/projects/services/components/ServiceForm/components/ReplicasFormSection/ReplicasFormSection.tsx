@@ -2,15 +2,13 @@ import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
-
+import { Info } from 'lucide-react';
 export default function ReplicasFormSection() {
-  const {
+const {
     register,
     setValue,
     trigger: triggerValidation,
@@ -65,7 +63,7 @@ export default function ReplicasFormSection() {
             </Text>
           }
         >
-          <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+          <Info aria-label="Info" className="h-4 w-4" color="primary" />
         </Tooltip>
       </Box>
 
@@ -121,7 +119,7 @@ export default function ReplicasFormSection() {
           />
           <Text>Autoscaler</Text>
           <Tooltip title="Enable autoscaler to automatically provision extra run service replicas when needed.">
-            <InfoOutlinedIcon className="h-4 w-4" />
+            <Info className="h-4 w-4" />
           </Tooltip>
         </Box>
       </Box>

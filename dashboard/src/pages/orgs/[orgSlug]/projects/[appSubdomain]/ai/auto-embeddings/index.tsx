@@ -9,7 +9,6 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
@@ -21,9 +20,8 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  type GetGraphiteAutoEmbeddingsConfigurationsQuery,
-  useGetGraphiteAutoEmbeddingsConfigurationsQuery,
+import { import { Plus, type GetGraphiteAutoEmbeddingsConfigurationsQuery } from 'lucide-react';
+useGetGraphiteAutoEmbeddingsConfigurationsQuery,
 } from '@/utils/__generated__/graphite.graphql';
 
 export type AutoEmbeddingsConfiguration = Omit<
@@ -156,7 +154,7 @@ export default function AutoEmbeddingsPage() {
               color="primary"
               className="w-full"
               onClick={openCreateAutoEmbeddingsConfiguration}
-              startIcon={<PlusIcon className="h-4 w-4" />}
+              startIcon={<Plus className="h-4 w-4" />}
             >
               Add a new Auto-Embeddings Configuration
             </Button>
@@ -173,7 +171,7 @@ export default function AutoEmbeddingsPage() {
           variant="contained"
           color="primary"
           onClick={openCreateAutoEmbeddingsConfiguration}
-          startIcon={<PlusIcon className="h-4 w-4" />}
+          startIcon={<Plus className="h-4 w-4" />}
         >
           New
         </Button>

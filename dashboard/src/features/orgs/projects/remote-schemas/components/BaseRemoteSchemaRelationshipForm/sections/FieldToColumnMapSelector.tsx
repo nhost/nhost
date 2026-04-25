@@ -2,17 +2,15 @@ import { isObjectType } from 'graphql';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
 import FieldToColumnMapSelectorItem from './FieldToColumnMapSelectorItem';
-
+import { Plus, Trash2 } from 'lucide-react';
 export interface FieldToColumnMapSelectorProps {
-  sourceSchema: string;
+sourceSchema: string;
 }
 
 export default function FieldToColumnMapSelector({
@@ -88,7 +86,7 @@ export default function FieldToColumnMapSelector({
             className="col-span-1"
             onClick={() => append({ sourceField: '', referenceColumn: '' })}
           >
-            <PlusIcon className="h-5 w-5" />
+            <Plus className="h-5 w-5" />
           </Button>
         </Box>
 
@@ -106,7 +104,7 @@ export default function FieldToColumnMapSelector({
               color="error"
               onClick={() => remove(index)}
             >
-              <TrashIcon className="h-4 w-4" />
+              <Trash2 className="h-4 w-4" />
             </Button>
           </Box>
         ))}

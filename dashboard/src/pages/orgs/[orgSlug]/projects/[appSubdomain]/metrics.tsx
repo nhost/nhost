@@ -8,17 +8,15 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { copy } from '@/utils/copy';
-
+import { Copy, ExternalLink } from 'lucide-react';
 export default function MetricsPage() {
-  return (
+return (
     <RetryableErrorBoundary>
       <MetricsPageContent />
     </RetryableErrorBoundary>
@@ -124,7 +122,7 @@ function MetricsPageContent() {
                     className="min-w-0 p-1"
                     aria-label="Copy password"
                   >
-                    <CopyIcon className="h-4 w-4" />
+                    <Copy className="h-4 w-4" />
                   </IconButton>
                 )}
               </div>
@@ -143,7 +141,7 @@ function MetricsPageContent() {
               // @ts-expect-error
               target="_blank"
               rel="noreferrer noopener"
-              endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
+              endIcon={<ExternalLink className="h-4 w-4" />}
             >
               Open Grafana
             </Button>

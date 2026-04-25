@@ -1,8 +1,7 @@
-import { Plus, Trash } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
-
+import { Plus, Trash } from 'lucide-react';
 export default function KeyValueQueryParams() {
   const form = useFormContext();
 

@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
-import { Mail } from 'lucide-react';
 import { type ReactElement, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -17,9 +16,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { useUserData } from '@/hooks/useUserData';
-import {
-  type GetOrganizationsQuery,
-  useGetOrganizationsQuery,
+import { import { Mail, type GetOrganizationsQuery } from 'lucide-react';
+useGetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
 
 type Organization = Omit<

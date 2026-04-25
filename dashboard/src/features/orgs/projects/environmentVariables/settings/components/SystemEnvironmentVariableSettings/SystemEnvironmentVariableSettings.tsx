@@ -7,14 +7,14 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { EyeIcon } from '@/components/ui/v2/icons/EyeIcon';
-import { EyeOffIcon } from '@/components/ui/v2/icons/EyeOffIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import {
-  defaultRemoteBackendSlugs,
+import { EyeOff
+
+import {  Eye  } from 'lucide-react';
+defaultRemoteBackendSlugs,
   generateAppServiceUrl,
 } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { EditJwtSecretForm } from '@/features/orgs/projects/environmentVariables/settings/components/EditJwtSecretForm';
@@ -26,7 +26,7 @@ import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function SystemEnvironmentVariableSettings() {
-  const appClient = useAppClient();
+const appClient = useAppClient();
   const { project, loading: isProjectLoading } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
@@ -142,9 +142,9 @@ export default function SystemEnvironmentVariableSettings() {
               onClick={() => setShowAdminSecret((show) => !show)}
             >
               {showAdminSecret ? (
-                <EyeOffIcon className="h-5 w-5" />
+                <EyeOff className="h-5 w-5" />
               ) : (
-                <EyeIcon className="h-5 w-5" />
+                <Eye className="h-5 w-5" />
               )}
             </IconButton>
           </div>
@@ -177,9 +177,9 @@ export default function SystemEnvironmentVariableSettings() {
               onClick={() => setShowWebhookSecret((show) => !show)}
             >
               {showWebhookSecret ? (
-                <EyeOffIcon className="h-5 w-5" />
+                <EyeOff className="h-5 w-5" />
               ) : (
-                <EyeIcon className="h-5 w-5" />
+                <Eye className="h-5 w-5" />
               )}
             </IconButton>
           </div>

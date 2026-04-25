@@ -1,6 +1,5 @@
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import {
-  isToRemoteSchemaRelationshipDefinition,
+isToRemoteSchemaRelationshipDefinition,
+import { import { ArrowRight } from 'lucide-react';
   isToSourceRelationshipDefinition,
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import getRemoteFieldPath from '@/features/orgs/projects/remote-schemas/utils/getRemoteFieldPath';
@@ -92,7 +91,7 @@ export default function RelationshipTableCell({
           </span>
         ))}
       </span>
-      <ArrowRightIcon className="h-4 w-4 text-muted-foreground" />
+      <ArrowRight className="h-4 w-4 text-muted-foreground" />
       {renderRightSide()}
     </div>
   );

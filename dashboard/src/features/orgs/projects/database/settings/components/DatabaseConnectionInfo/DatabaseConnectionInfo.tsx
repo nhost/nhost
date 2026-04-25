@@ -12,14 +12,13 @@ import { Button } from '@/components/ui/v2/Button';
 import type { InputProps } from '@/components/ui/v2/Input';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  useGetPostgresSettingsQuery,
+import { import { Copy } from 'lucide-react';
+useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
@@ -206,7 +205,7 @@ export default function DatabaseConnectionInfo() {
                             copy(inputValue as string, `${label}`);
                           }}
                         >
-                          <CopyIcon className="h-4 w-4" />
+                          <Copy className="h-4 w-4" />
                         </Button>
                       </InputAdornment>
                     }

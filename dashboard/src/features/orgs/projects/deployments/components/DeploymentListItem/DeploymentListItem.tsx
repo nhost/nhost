@@ -7,8 +7,6 @@ import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
-import { ArrowCounterclockwiseIcon } from '@/components/ui/v2/icons/ArrowCounterclockwiseIcon';
-import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
@@ -18,9 +16,9 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { useUserData } from '@/hooks/useUserData';
 import { ifNullconvertToUndefined } from '@/lib/utils';
 import type { UnifiedDeploymentRowFragment } from '@/utils/__generated__/graphql';
-import {
-  GetOrganizationsDocument,
-  useInsertPipelineRunMutation,
+import { GetOrganizationsDocument, RotateCcw
+
+import {  ChevronRight, useInsertPipelineRunMutation  } from 'lucide-react';
 } from '@/utils/__generated__/graphql';
 
 export interface DeploymentListItemProps {
@@ -132,7 +130,7 @@ export default function DeploymentListItem({
                 variant="outlined"
                 onClick={redeploy}
                 startIcon={
-                  <ArrowCounterclockwiseIcon className={twMerge('h-4 w-4')} />
+                  <RotateCcw className={twMerge('h-4 w-4')} />
                 }
                 className="rounded-full px-2 py-1 text-xs"
                 aria-label="Redeploy"
@@ -161,7 +159,7 @@ export default function DeploymentListItem({
 
           <StatusCircle status={deployment.status as PipelineRunStatus} />
 
-          <ChevronRightIcon className="h-4 w-4 text-white" />
+          <ChevronRight className="h-4 w-4 text-white" />
         </div>
       </ListItem.Button>
     </ListItem.Root>

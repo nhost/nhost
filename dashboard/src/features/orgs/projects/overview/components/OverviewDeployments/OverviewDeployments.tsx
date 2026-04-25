@@ -5,19 +5,17 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
-import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
-import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  useGetUnifiedDeploymentsSubSubscription,
-  useLatestLiveUnifiedDeploymentSubSubscription,
-  usePendingOrRunningUnifiedDeploymentsSubSubscription,
+import { Rocket
+
+import {  ChevronRight, useGetUnifiedDeploymentsSubSubscription, useLatestLiveUnifiedDeploymentSubSubscription  } from 'lucide-react';
+usePendingOrRunningUnifiedDeploymentsSubSubscription,
 } from '@/utils/__generated__/graphql';
 
 function OverviewDeploymentsTopBar() {
@@ -40,7 +38,7 @@ function OverviewDeploymentsTopBar() {
         underline="none"
       >
         View all
-        <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
+        <ChevronRight className="ml-1 inline-block h-4 w-4" />
       </NavLink>
     </div>
   );
@@ -172,7 +170,7 @@ export default function OverviewDeployments() {
       <OverviewDeploymentsTopBar />
 
       <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 px-4 py-12 shadow-sm">
-        <RocketIcon strokeWidth={1} className="h-10 w-10" />
+        <Rocket strokeWidth={1} className="h-10 w-10" />
 
         <div className="grid grid-flow-row gap-1">
           <Text className="text-center font-medium" variant="h3">

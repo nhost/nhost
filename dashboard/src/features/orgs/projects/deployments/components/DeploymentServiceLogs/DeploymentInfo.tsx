@@ -1,6 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import { CalendarClock, PlayIcon } from 'lucide-react';
-
+import { CalendarClock, Play } from 'lucide-react';
 interface DeploymentInfoProps {
   from: string;
   to: string | null;

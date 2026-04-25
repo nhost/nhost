@@ -1,6 +1,5 @@
-import { DatabaseZap } from 'lucide-react';
 import { InfoAlert } from '@/features/orgs/components/InfoAlert';
-
+import { DatabaseZap } from 'lucide-react';
 function PiTRNotEnabledOnSourceProject() {
   return (
     <InfoAlert

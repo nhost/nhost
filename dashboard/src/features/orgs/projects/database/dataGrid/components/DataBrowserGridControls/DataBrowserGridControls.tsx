@@ -1,6 +1,5 @@
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import type { Row } from '@tanstack/react-table';
-import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -21,7 +20,7 @@ import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/com
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { triggerToast } from '@/utils/toast';
-
+import { Plus } from 'lucide-react';
 export interface DataBrowserGridControlsProps {
   /**
    * Props passed to the pagination component.

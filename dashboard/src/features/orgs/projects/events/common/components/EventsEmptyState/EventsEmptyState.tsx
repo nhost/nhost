@@ -1,7 +1,6 @@
-import { CalendarDays } from 'lucide-react';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
-
+import { CalendarDays } from 'lucide-react';
 export interface EventsEmptyStateProps
   extends Omit<
     DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,

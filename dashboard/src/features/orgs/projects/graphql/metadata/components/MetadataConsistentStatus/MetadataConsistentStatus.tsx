@@ -1,6 +1,5 @@
-import { CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/v3/badge';
-
+import { CheckCircle2 } from 'lucide-react';
 export default function MetadataConsistentStatus() {
   return (
     <div className="flex items-center justify-between">

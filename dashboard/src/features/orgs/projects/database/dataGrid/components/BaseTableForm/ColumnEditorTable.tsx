@@ -2,10 +2,9 @@ import { useFieldArray, useFormState } from 'react-hook-form';
 import { Button } from '@/components/ui/v2/Button';
 import { HelperText } from '@/components/ui/v2/HelperText';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { ColumnEditorRow } from './ColumnEditorRow';
-
+import { Plus } from 'lucide-react';
 function ColumnErrorMessage() {
   const { errors } = useFormState({ name: 'columns' });
 
@@ -91,7 +90,7 @@ export default function ColumnEditorTable() {
               comment: null,
             })
           }
-          startIcon={<PlusIcon />}
+          startIcon={<Plus />}
           size="small"
         >
           Add Column

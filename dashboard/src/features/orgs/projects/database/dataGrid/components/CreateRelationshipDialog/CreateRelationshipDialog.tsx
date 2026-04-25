@@ -1,4 +1,3 @@
-import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -11,7 +10,7 @@ import { prepareLocalRelationshipDTO } from '@/features/orgs/projects/database/d
 import { prepareRemoteSchemaRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSchemaRelationshipDTO';
 import { prepareRemoteSourceRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSourceRelationshipDTO';
 import { triggerToast } from '@/utils/toast';
-
+import { Plus } from 'lucide-react';
 interface CreateRelationshipDialogProps {
   source: string;
   schema: string;

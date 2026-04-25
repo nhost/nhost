@@ -1,9 +1,8 @@
 import { Alert } from '@/components/ui/v2/Alert';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { ApplicationStatus } from '@/types/application';
-
+import { X } from 'lucide-react';
 export default function DatabaseMigrateWarning() {
   const { state } = useAppState();
 
@@ -22,7 +21,7 @@ export default function DatabaseMigrateWarning() {
           color: 'error.main',
         }}
       >
-        <XIcon className="h-4 w-4" /> Error: Database major version upgrade not
+        <X className="h-4 w-4" /> Error: Database major version upgrade not
         possible
       </Text>
       <Text

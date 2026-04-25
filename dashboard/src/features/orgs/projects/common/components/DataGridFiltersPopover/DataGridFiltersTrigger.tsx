@@ -1,9 +1,8 @@
-import { Funnel } from 'lucide-react';
 import { type ForwardedRef, forwardRef } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/v3/button';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { cn } from '@/lib/utils';
-
+import { Funnel } from 'lucide-react';
 export default forwardRef(
   (props: ButtonProps, ref: ForwardedRef<HTMLButtonElement>) => {
     const { appliedFilters } = useDataGridQueryParams();

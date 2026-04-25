@@ -2,10 +2,9 @@ import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { QuestionMarkCircleIcon } from '@/components/ui/v2/icons/QuestionMarkCircleIcon';
 import { Link } from '@/components/ui/v2/Link';
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
-
+import { HelpCircle } from 'lucide-react';
 export interface EditRepositoryAndBranchSettingsProps {
   disabled?: boolean;
 }
@@ -61,7 +60,7 @@ export default function EditRepositoryAndBranchSettings({
                   underline="none"
                   aria-label="Base Directory Documentation"
                 >
-                  <QuestionMarkCircleIcon />
+                  <HelpCircle />
                 </Link>
               </InputLabel>
             }

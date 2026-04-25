@@ -1,8 +1,9 @@
-import { ChevronDown, ChevronRight, Info, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
-import {
-  Collapsible,
+import { ChevronRight, Info, TriangleAlert
+
+import {  ChevronDown  } from 'lucide-react';
+Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';

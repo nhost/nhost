@@ -3,8 +3,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { DatePicker } from '@/components/ui/v2/DatePicker';
 import type { DatePickerProps } from '@/components/ui/v2/DatePicker/DatePicker';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { CalendarIcon } from '@/components/ui/v2/icons/CalendarIcon';
-import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { Text } from '@/components/ui/v2/Text';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { LogsTimePicker } from '@/features/orgs/projects/logs/components/LogsTimePicker';
@@ -14,9 +12,9 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
-
+import { Calendar, ChevronDown } from 'lucide-react';
 export interface LogsDatePickerProps extends DatePickerProps {
-  /**
+/**
    * Props to be passed to internal components.
    */
   componentsProps?: {
@@ -70,8 +68,8 @@ function LogsDatePicker({
         <Dropdown.Trigger asChild hideChevron id={label}>
           <Button
             variant="outlined"
-            startIcon={<CalendarIcon className="h-4 w-4 self-center" />}
-            endIcon={<ChevronDownIcon className="h-4 w-4 self-center" />}
+            startIcon={<Calendar className="h-4 w-4 self-center" />}
+            endIcon={<ChevronDown className="h-4 w-4 self-center" />}
             {...buttonSlotProps}
             sx={[
               ...(Array.isArray(buttonSlotProps?.sx)

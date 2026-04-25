@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { Box } from '@/components/ui/v2/Box';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -11,7 +10,7 @@ import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/setting
 import { RunServiceLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RunServiceLimitingForm';
 import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useGetRunServiceRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
-
+import { ExternalLink } from 'lucide-react';
 export default function RateLimiting() {
   const { services, loading } = useGetRunServiceRateLimits();
 
@@ -41,7 +40,7 @@ export default function RateLimiting() {
               className="ml-1 font-medium"
             >
               Rate Limiting
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+              <ExternalLink className="ml-1 h-4 w-4" />
             </Link>
           </Text>
         </div>

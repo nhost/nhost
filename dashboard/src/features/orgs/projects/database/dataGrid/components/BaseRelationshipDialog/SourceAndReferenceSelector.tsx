@@ -1,12 +1,13 @@
-import { Database, Plug } from 'lucide-react';
 import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormCombobox } from '@/components/form/FormCombobox';
 import { FormSelect } from '@/components/form/FormSelect';
 import { ReadOnlyCombobox } from '@/components/presentational/ReadOnlyCombobox';
 import { ReadOnlySelect } from '@/components/presentational/ReadOnlySelect';
-import {
-  SelectGroup,
+import { import { Database
+
+import {  Plug, type BaseRelationshipFormValues  } from 'lucide-react';
+SelectGroup,
   SelectItem,
   SelectLabel,
   SelectSeparator,
@@ -15,9 +16,7 @@ import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetD
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import { cn, isEmptyValue } from '@/lib/utils';
-import {
-  type BaseRelationshipFormValues,
-  ReferenceSource,
+ReferenceSource,
   type ToReferenceSourceValue,
 } from './BaseRelationshipFormTypes';
 

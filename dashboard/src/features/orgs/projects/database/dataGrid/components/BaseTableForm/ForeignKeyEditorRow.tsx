@@ -1,13 +1,11 @@
 import { useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
 import { Text } from '@/components/ui/v2/Text';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-
+import { ArrowRight, Link } from 'lucide-react';
 export interface ForeignKeyEditorRowProps {
-  /**
+/**
    * Index of the current foreign key relation.
    */
   index: number;
@@ -33,11 +31,11 @@ export default function ForeignKeyEditorRow({
   return (
     <Box className="grid grid-flow-col items-center justify-between gap-2 rounded-sm+ border-1 px-3 py-1">
       <div className="grid grid-flow-col items-center gap-2">
-        <LinkIcon className="h-4 w-4" />
+        <Link className="h-4 w-4" />
 
         <Text className="grid grid-flow-col items-center gap-1.5 truncate font-medium">
           <span className="truncate">{foreignKeyRelation.columnName}</span>{' '}
-          <ArrowRightIcon />
+          <ArrowRight />
           <span className="truncate">
             {foreignKeyRelation.referencedSchema}.
             {foreignKeyRelation.referencedTable}.

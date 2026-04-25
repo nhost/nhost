@@ -3,18 +3,14 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
 import { ArgumentsFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/ArgumentsFormSection';
-
+import { Info, Plus, Trash2 } from 'lucide-react';
 export default function GraphqlDataSourcesFormSection() {
   const form = useFormContext<AssistantFormValues>();
-
-  const {
+const {
     register,
     formState: { errors },
   } = form;
@@ -31,7 +27,7 @@ export default function GraphqlDataSourcesFormSection() {
             GraphQL
           </Text>
           <Tooltip title="GraphQL data sources and tools. Run against the project's GraphQL API">
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <Info aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
         <Button
@@ -45,7 +41,7 @@ export default function GraphqlDataSourcesFormSection() {
             })
           }
         >
-          <PlusIcon className="h-5 w-5" />
+          <Plus className="h-5 w-5" />
         </Button>
       </Box>
 
@@ -108,7 +104,7 @@ export default function GraphqlDataSourcesFormSection() {
                 color="error"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
               </Button>
             </Box>
 

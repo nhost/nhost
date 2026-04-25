@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react';
+import type { SVGProps } from 'react'
 
 export default function GitHubIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -18,5 +18,5 @@ export default function GitHubIcon(props: SVGProps<SVGSVGElement>) {
         fill="currentColor"
       />
     </svg>
-  );
+  )
 }

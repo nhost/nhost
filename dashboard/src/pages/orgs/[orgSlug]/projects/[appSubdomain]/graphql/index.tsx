@@ -1,5 +1,5 @@
-import {
-  DOC_EXPLORER_PLUGIN,
+DOC_EXPLORER_PLUGIN,
+import { import { Play } from 'lucide-react';
   GraphiQLProvider,
   useCopyQuery,
   useExecutionContext,
@@ -10,7 +10,6 @@ import {
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
-import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
@@ -174,7 +173,7 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
           <Button
             onClick={executeQuery}
             aria-label="Execute GraphQL query"
-            startIcon={<PlayIcon />}
+            startIcon={<Play />}
             className="col-span-1 py-2 md:col-auto"
           >
             Run

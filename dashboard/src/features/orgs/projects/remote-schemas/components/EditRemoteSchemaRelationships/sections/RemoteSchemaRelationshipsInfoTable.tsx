@@ -2,13 +2,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Table,
+import { MoreHorizontal, Plus, Trash2
+
+import {  Edit  } from 'lucide-react';
+Table,
   TableBody,
   TableCell,
   TableFooter,
@@ -31,7 +29,7 @@ import RelationshipTableCell from './RelationshipTableCell';
 export interface RemoteSchemaRelationshipsInfoTableProps {
   sourceRemoteSchema: string;
   remoteRelationships: RemoteSchemaInfoRemoteRelationshipsItem[];
-  onSelectRelationship?: (
+onSelectRelationship?: (
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
   ) => void;
   onDeleteRelationship?: () => void;
@@ -156,7 +154,7 @@ export default function RemoteSchemaRelationshipsInfoTable({
                   <Dropdown.Root id={`relationship-menu-${relationship.name}`}>
                     <Dropdown.Trigger asChild hideChevron>
                       <IconButton variant="borderless" color="secondary">
-                        <DotsHorizontalIcon />
+                        <MoreHorizontal />
                       </IconButton>
                     </Dropdown.Trigger>
                     <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
@@ -205,7 +203,7 @@ export default function RemoteSchemaRelationshipsInfoTable({
                 color="secondary"
                 onClick={onAddRelationship}
               >
-                <PlusIcon />
+                <Plus />
                 Add Relationship
               </Button>
             </TableCell>

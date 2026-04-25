@@ -1,27 +1,46 @@
-import type { IconProps } from '@/components/ui/v2/icons';
-import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
+import { ChevronLeft } from 'lucide-react'
+import type { IconProps } from '@/components/ui/v2/icons'
 
-function ChevronLeftIcon(props: IconProps) {
+function ChevronLeftIcon({ className, ...props }: IconProps) {
   return (
-    <SvgIcon
-      width="16"
-      height="16"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 16 16"
+    <ChevronLeft
       aria-label="Chevron left"
+      width={16}
+      height={16}
+      className={className}
       {...props}
-    >
-      <path
-        d="M10 13 5 8l5-5"
-        stroke="currentColor"
-        fill="none"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    </SvgIcon>
-  );
+    />
+  )
 }
 
-ChevronLeftIcon.displayName = 'NhostChevronLeftIcon';
+ChevronLeftIcon.displayName = 'NhostChevronLeftIcon'
 
-export default ChevronLeftIcon;
+export default ChevronLeftIcon
+
+// import type { IconProps } from '@/components/ui/v2/icons';
+// import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
+
+// function ChevronLeftIcon(props: IconProps) {
+//   return (
+//     <SvgIcon
+//       width="16"
+//       height="16"
+//       xmlns="http://www.w3.org/2000/svg"
+//       viewBox="0 0 16 16"
+//       aria-label="Chevron left"
+//       {...props}
+//     >
+//       <path
+//         d="M10 13 5 8l5-5"
+//         stroke="currentColor"
+//         fill="none"
+//         strokeWidth="1.5"
+//         strokeLinejoin="round"
+//       />
+//     </SvgIcon>
+//   );
+// }
+
+// ChevronLeftIcon.displayName = 'NhostChevronLeftIcon';
+
+// export default ChevronLeftIcon;

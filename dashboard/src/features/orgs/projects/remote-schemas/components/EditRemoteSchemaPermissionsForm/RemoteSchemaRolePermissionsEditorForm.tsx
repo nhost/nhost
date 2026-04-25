@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
-import {
-  buildClientSchema,
+import { import { Check } from 'lucide-react';
+buildClientSchema,
   type GraphQLArgument,
   type GraphQLSchema,
 } from 'graphql';
-import { Check } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';

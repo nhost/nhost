@@ -1,8 +1,9 @@
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
-import {
-  Collapsible,
+import { ChevronRight
+
+import {  ChevronDown  } from 'lucide-react';
+Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';

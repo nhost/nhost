@@ -1,11 +1,10 @@
-import { FileJson } from 'lucide-react';
 import type { ChangeEvent, DragEvent } from 'react';
 import { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
-import {
-  Dialog,
+import { import { FileJson } from 'lucide-react';
+Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,

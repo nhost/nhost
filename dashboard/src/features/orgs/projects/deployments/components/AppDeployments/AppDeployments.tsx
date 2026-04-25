@@ -3,15 +3,13 @@ import { Fragment } from 'react';
 import { IconLink } from '@/components/common/IconLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Divider } from '@/components/ui/v2/Divider';
-import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
-import {
-  useGetUnifiedDeploymentsSubSubscription,
-  useLatestLiveUnifiedDeploymentSubSubscription,
-  usePendingOrRunningUnifiedDeploymentsSubSubscription,
+import { ChevronRight
+
+import {  ChevronLeft, useGetUnifiedDeploymentsSubSubscription, useLatestLiveUnifiedDeploymentSubSubscription  } from 'lucide-react';
+usePendingOrRunningUnifiedDeploymentsSubSubscription,
 } from '@/generated/graphql';
 
 export type AppDeploymentsProps = {
@@ -32,7 +30,7 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
     if (!prevAllowed) {
       return (
         <div className="flex h-8 items-center justify-center">
-          <ChevronLeftIcon className="h-4 w-4 cursor-not-allowed" />
+          <ChevronLeft className="h-4 w-4 cursor-not-allowed" />
         </div>
       );
     }
@@ -43,14 +41,14 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
         className="flex items-center justify-center py-0"
         href={`${window.location.pathname}?page=${currentPage - 1}`}
       >
-        <ChevronLeftIcon className="h-4 w-4" />
+        <ChevronLeft className="h-4 w-4" />
       </IconLink>
     );
   }
   if (!nextAllowed) {
     return (
       <div className="flex h-8 items-center justify-center">
-        <ChevronRightIcon className="h-4 w-4 cursor-not-allowed" />
+        <ChevronRight className="h-4 w-4 cursor-not-allowed" />
       </div>
     );
   }
@@ -61,7 +59,7 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
       className="flex items-center justify-center py-0"
       href={`${window.location.pathname}?page=${currentPage + 1}`}
     >
-      <ChevronRightIcon className="h-4 w-4" />
+      <ChevronRight className="h-4 w-4" />
     </IconLink>
   );
 }

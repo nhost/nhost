@@ -8,13 +8,12 @@ import { twMerge } from 'tailwind-merge';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { Text } from '@/components/ui/v2/Text';
 import type { Message } from '@/features/orgs/projects/ai/DevAssistant';
 import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';
-
+import { Copy } from 'lucide-react';
 function PreComponent(
   props: ClassAttributes<HTMLElement> &
     HTMLAttributes<HTMLElement> &
@@ -39,7 +38,7 @@ function PreComponent(
           copy(onlyText(children), 'Snippet');
         }}
       >
-        <CopyIcon className="h-5 w-5" />
+        <Copy className="h-5 w-5" />
       </IconButton>
     </div>
   );

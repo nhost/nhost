@@ -1,5 +1,4 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { RefreshCwIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
@@ -9,9 +8,6 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
@@ -24,8 +20,10 @@ import { EnvironmentFormSection } from '@/features/orgs/projects/services/compon
 import { PortsFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection';
 import { ReplicasFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/StorageFormSection';
-import {
-  defaultServiceFormValues,
+import { Info, Plus, RefreshCwIcon
+
+import {  Copy  } from 'lucide-react';
+defaultServiceFormValues,
   type ServiceFormProps,
   type ServiceFormValues,
   validationSchema,
@@ -46,7 +44,7 @@ import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialo
 export default function ServiceForm({
   serviceID,
   initialData,
-  onSubmit,
+onSubmit,
   onCancel,
   location,
 }: ServiceFormProps) {
@@ -336,7 +334,7 @@ export default function ServiceForm({
                 serviceID ? (
                   <RefreshCwIcon width={16} height={16} />
                 ) : (
-                  <PlusIcon />
+                  <Plus />
                 )
               }
             >
@@ -347,7 +345,7 @@ export default function ServiceForm({
               variant="outlined"
               disabled={isSubmitting}
               onClick={copyConfig}
-              startIcon={<CopyIcon />}
+              startIcon={<Copy />}
             >
               Copy one-click install link
             </Button>

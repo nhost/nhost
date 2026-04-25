@@ -2,15 +2,14 @@ import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
-import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { useServiceStatus } from '@/features/orgs/projects/common/hooks/useServiceStatus';
 import { ServiceAccordion } from '@/features/orgs/projects/overview/components/ServiceAccordion';
-import {
-  type baseServices,
+import { HardDrive, User
+
+import {  Database  } from 'lucide-react';
+type baseServices,
   findHighestImportanceState,
   type ServiceHealthInfo,
 } from '@/features/orgs/projects/overview/health';
@@ -90,7 +89,7 @@ export default function OverviewProjectHealthModal({
         <Divider />
         {isNotEmptyValue(auth) && isNotEmptyValue(serviceInfo.auth) && (
           <ServiceAccordion
-            icon={<UserIcon className="h-4 w-4" />}
+            icon={<User className="h-4 w-4" />}
             serviceName="Auth"
             serviceInfo={serviceInfo.auth}
             replicaCount={auth?.replicas?.length}
@@ -101,7 +100,7 @@ export default function OverviewProjectHealthModal({
         <Divider />
         {isNotEmptyValue(postgres) && isNotEmptyValue(serviceInfo.postgres) && (
           <ServiceAccordion
-            icon={<DatabaseIcon className="h-4 w-4" />}
+            icon={<Database className="h-4 w-4" />}
             serviceName="Postgres"
             serviceInfo={serviceInfo.postgres}
             replicaCount={postgres?.replicas?.length}
@@ -112,7 +111,7 @@ export default function OverviewProjectHealthModal({
         <Divider />
         {isNotEmptyValue(storage) && isNotEmptyValue(serviceInfo.storage) && (
           <ServiceAccordion
-            icon={<StorageIcon className="h-4 w-4" />}
+            icon={<HardDrive className="h-4 w-4" />}
             serviceName="Storage"
             serviceInfo={serviceInfo.storage}
             replicaCount={storage?.replicas?.length}

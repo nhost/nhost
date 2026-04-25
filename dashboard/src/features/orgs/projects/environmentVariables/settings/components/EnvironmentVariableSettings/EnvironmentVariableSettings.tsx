@@ -9,8 +9,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -21,9 +19,9 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { EnvironmentVariable } from '@/types/application';
-import {
-  useGetEnvironmentVariablesQuery,
-  useUpdateConfigMutation,
+import { Plus
+
+import {  MoreVertical, useGetEnvironmentVariablesQuery, useUpdateConfigMutation  } from 'lucide-react';
 } from '@/utils/__generated__/graphql';
 
 export interface EnvironmentVariableSettingsFormValues {
@@ -192,7 +190,7 @@ export default function EnvironmentVariableSettings() {
                           color="secondary"
                           disabled={maintenanceActive}
                         >
-                          <DotsVerticalIcon />
+                          <MoreVertical />
                         </IconButton>
                       </Dropdown.Trigger>
 
@@ -250,7 +248,7 @@ export default function EnvironmentVariableSettings() {
         <Button
           className="mx-4 justify-self-start"
           variant="borderless"
-          startIcon={<PlusIcon />}
+          startIcon={<Plus />}
           onClick={handleOpenCreator}
           disabled={maintenanceActive}
         >

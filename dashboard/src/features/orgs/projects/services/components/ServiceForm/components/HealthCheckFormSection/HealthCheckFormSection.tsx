@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
-
+import { Info } from 'lucide-react';
 export default function HealthCheckFormSection() {
   const {
     watch,
@@ -51,7 +50,7 @@ export default function HealthCheckFormSection() {
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <Info aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
 

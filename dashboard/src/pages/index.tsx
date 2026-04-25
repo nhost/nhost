@@ -1,4 +1,3 @@
-import { TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useState } from 'react';
@@ -12,7 +11,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { useAuth } from '@/providers/Auth';
-
+import { TriangleAlert } from 'lucide-react';
 export default function IndexPage() {
   const { push } = useRouter();
   const isPlatform = useIsPlatform();

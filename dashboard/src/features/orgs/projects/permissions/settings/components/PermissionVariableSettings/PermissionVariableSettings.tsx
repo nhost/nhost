@@ -9,9 +9,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
-import { LockIcon } from '@/components/ui/v2/icons/LockIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -24,11 +21,12 @@ import { EditPermissionVariableForm } from '@/features/orgs/projects/permissions
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { PermissionVariable } from '@/types/application';
-import {
-  useGetRolesPermissionsQuery,
+import { MoreVertical, Plus
+
+import {  Lock  } from 'lucide-react';
+useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-
 export default function PermissionVariableSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
@@ -195,7 +193,7 @@ export default function PermissionVariableSettings() {
                             maintenanceActive
                           }
                         >
-                          <DotsVerticalIcon />
+                          <MoreVertical />
                         </IconButton>
                       </Dropdown.Trigger>
                     </Tooltip>
@@ -241,7 +239,7 @@ export default function PermissionVariableSettings() {
                     <>
                       X-Hasura-{permissionVariable.key}{' '}
                       {permissionVariable.isSystemVariable && (
-                        <LockIcon className="h-4 w-4" />
+                        <Lock className="h-4 w-4" />
                       )}
                     </>
                   }
@@ -267,7 +265,7 @@ export default function PermissionVariableSettings() {
         <Button
           className="mx-4 justify-self-start"
           variant="borderless"
-          startIcon={<PlusIcon />}
+          startIcon={<Plus />}
           onClick={handleOpenCreator}
           disabled={maintenanceActive}
         >

@@ -1,5 +1,4 @@
 import { useApolloClient } from '@apollo/client';
-import { Archive, Plus } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -19,7 +18,7 @@ import { useDeleteOrphanedFiles } from '@/features/orgs/projects/storage/hooks/u
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { useDeleteBucketMutation } from '@/utils/__generated__/graphql';
-
+import { Archive, Plus } from 'lucide-react';
 interface BucketNavItemProps {
   bucketId: string;
   isSelected: boolean;

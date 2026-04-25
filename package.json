@@ -24,9 +24,13 @@
     "clean:install": "pnpm clean:all && pnpm install",
     "clean:build": "pnpm clean:install && pnpm build:nhost-js",
     "dev:dashboard": "turbo run dev --filter=@nhost/dashboard"
+    
   },
   "devDependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@types/node": "^22.15.17",
     "audit-ci": "^6.6.1",
+    "cross-env": "^7.0.3",
     "turbo": "2.3.3",
     "typescript": "5.8.3",
     "vite": "^8.0.6",

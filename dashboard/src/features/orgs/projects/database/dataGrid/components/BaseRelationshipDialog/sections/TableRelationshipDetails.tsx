@@ -1,4 +1,3 @@
-import { ArrowRight, PlusIcon, Trash2Icon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -7,7 +6,7 @@ import { FormField, FormItem, FormMessage } from '@/components/ui/v3/form';
 import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { BaseRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-
+import { ArrowRight, Plus, Trash2Icon } from 'lucide-react';
 export default function TableRelationshipDetails() {
   const form = useFormContext<BaseRelationshipFormValues>();
 

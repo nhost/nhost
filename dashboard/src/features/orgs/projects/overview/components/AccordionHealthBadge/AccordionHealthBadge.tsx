@@ -1,11 +1,9 @@
 import { Box } from '@/components/ui/v2/Box';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { QuestionMarkIcon } from '@/components/ui/v2/icons/QuestionMarkIcon';
 import { serviceStateToThemeColor } from '@/features/orgs/projects/overview/health';
 import { ServiceState } from '@/utils/__generated__/graphql';
-
+import { Check, Help } from 'lucide-react';
 interface AccordionHealthBadgeProps {
-  serviceState?: ServiceState;
+serviceState?: ServiceState;
   unknownState?: boolean;
   /*
    * Blinking animation to indicate that the service is updating.

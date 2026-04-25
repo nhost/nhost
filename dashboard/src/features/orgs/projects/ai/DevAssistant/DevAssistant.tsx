@@ -8,12 +8,11 @@ import { Box } from '@/components/ui/v2/Box';
 import { ErrorToast } from '@/components/ui/v2/ErrorToast';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
-import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { MessagesList } from '@/features/orgs/projects/ai/DevAssistant/components/MessagesList';
-import {
-  messagesState,
+import { import { import { ArrowUp, type SendDevMessageMutation } from 'lucide-react';
+messagesState,
   projectMessagesState,
   sessionIDState,
 } from '@/features/orgs/projects/ai/DevAssistant/state';
@@ -23,9 +22,7 @@ import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApo
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import {
-  type SendDevMessageMutation,
-  useSendDevMessageMutation,
+useSendDevMessageMutation,
   useStartDevSessionMutation,
 } from '@/utils/__generated__/graphite.graphql';
 
@@ -223,7 +220,7 @@ export default function DevAssistant() {
             type="submit"
             className="absolute right-2 h-10 w-12 self-end rounded-xl"
           >
-            {loading ? <ActivityIndicator /> : <ArrowUpIcon />}
+            {loading ? <ActivityIndicator /> : <ArrowUp />}
           </IconButton>
         </Box>
       </form>

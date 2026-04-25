@@ -8,10 +8,9 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import type { BaseProviderSettingsFormValues } from '@/features/orgs/projects/authentication/settings/components/BaseProviderSettings';
-import {
-  BaseProviderSettings,
+import { import { Copy } from 'lucide-react';
+BaseProviderSettings,
   baseProviderValidationSchema,
 } from '@/features/orgs/projects/authentication/settings/components/BaseProviderSettings';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
@@ -151,7 +150,7 @@ export default function StravaProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <Copy className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

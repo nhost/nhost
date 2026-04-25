@@ -4,15 +4,13 @@ import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
-
+import { ExternalLink, Info } from 'lucide-react';
 interface ImageFieldProps {
-  privateRegistryImage: string;
+privateRegistryImage: string;
   imageType: 'private' | 'nhost' | 'public';
   initialImageTag?: string;
 }
@@ -93,7 +91,7 @@ export default function ImageField({
               className="font-medium"
             >
               using Nhost registry for images
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+              <ExternalLink className="ml-1 h-4 w-4" />
             </Link>
           </Text>
         </div>
@@ -163,7 +161,7 @@ export default function ImageField({
               className="font-medium"
             >
               using your own private registry for images
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+              <ExternalLink className="ml-1 h-4 w-4" />
             </Link>
           </Text>
         </div>

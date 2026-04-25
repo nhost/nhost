@@ -2,10 +2,9 @@ import { forwardRef } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-
+import { Info } from 'lucide-react';
 type LogsRegexFilterProps = UseFormRegisterReturn<
   keyof {
     regexFilter: string;
@@ -76,7 +75,7 @@ const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
           }
         >
           <Box className="ml-2 cursor-pointer rounded-full">
-            <InfoIcon aria-label="Info" className="h-5 w-5" color="info" />
+            <Info aria-label="Info" className="h-5 w-5" color="info" />
           </Box>
         </Tooltip>
       }

@@ -1,8 +1,7 @@
-import { ExpandIcon } from 'lucide-react';
 import type { ChangeEventHandler, KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Popover,
+import { import { ExpandIcon } from 'lucide-react';
+Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';

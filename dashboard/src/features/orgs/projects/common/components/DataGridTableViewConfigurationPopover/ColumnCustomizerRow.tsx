@@ -1,7 +1,6 @@
 import type { Column } from '@tanstack/react-table';
-import { GripVertical } from 'lucide-react';
-import {
-  DraggableItem,
+import { import { GripVertical } from 'lucide-react';
+DraggableItem,
   type DraggableItemProps,
 } from '@/components/common/DragAndDropList';
 import { Checkbox } from '@/components/ui/v3/checkbox';

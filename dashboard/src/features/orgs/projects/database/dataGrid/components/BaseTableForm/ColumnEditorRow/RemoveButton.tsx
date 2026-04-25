@@ -1,10 +1,9 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import type { ButtonProps } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
-
+import { X } from 'lucide-react';
 export function RemoveButton({
   index,
   onClick,
@@ -57,7 +56,7 @@ export function RemoveButton({
         }
       }}
     >
-      <XIcon className="h-4 w-4" />
+      <X className="h-4 w-4" />
     </IconButton>
   );
 }

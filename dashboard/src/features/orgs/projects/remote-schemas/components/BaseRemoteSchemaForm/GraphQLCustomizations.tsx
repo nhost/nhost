@@ -3,14 +3,12 @@ import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
-
+import { Info, Plus } from 'lucide-react';
 export default function GraphQLCustomizations() {
-  const [isOpen, setIsOpen] = useState(false);
+const [isOpen, setIsOpen] = useState(false);
   const { register, getFieldState, formState } =
     useFormContext<BaseRemoteSchemaFormValues>();
 
@@ -47,7 +45,7 @@ export default function GraphQLCustomizations() {
           variant="outlined"
           color="primary"
           size="small"
-          startIcon={<PlusIcon />}
+          startIcon={<Plus />}
           onClick={() => setIsOpen(true)}
           className="mt-2 px-2"
         >
@@ -91,7 +89,7 @@ export default function GraphQLCustomizations() {
           <Box className="flex flex-row items-center space-x-2">
             <Text className="font-medium">Root Field Namespace</Text>
             <Tooltip title="Root field type names will be under this namespace.">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <Info aria-label="Info" className="h-4 w-4" color="primary" />
             </Tooltip>
           </Box>
           <Input
@@ -115,7 +113,7 @@ export default function GraphQLCustomizations() {
               Types
             </Text>
             <Tooltip title="Add a prefix / suffix to all types of the remote schema">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <Info aria-label="Info" className="h-4 w-4" color="primary" />
             </Tooltip>
           </Box>
 
@@ -154,7 +152,7 @@ export default function GraphQLCustomizations() {
               Fields
             </Text>
             <Tooltip title="Add a prefix / suffix to the fields of the query / mutation root fields">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <Info aria-label="Info" className="h-4 w-4" color="primary" />
             </Tooltip>
           </Box>
 

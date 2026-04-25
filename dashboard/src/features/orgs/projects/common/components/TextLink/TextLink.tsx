@@ -1,7 +1,6 @@
-import { SquareArrowUpRightIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { PropsWithChildren } from 'react';
-
+import { SquareArrowUpRightIcon } from 'lucide-react';
 function TextLink({
   href,
   children,

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "dev": "RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED=false next dev",
+    "dev": "cross-env RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED=false next dev",
     "build": "next build",
     "analyze": "ANALYZE=true pnpm build",
     "start": "next start",
@@ -155,6 +155,7 @@
     "@vitest/coverage-v8": "^4.1.3",
     "audit-ci": "^6.6.1",
     "autoprefixer": "^10.4.19",
+    "cross-env": "^7.0.3",
     "csstype": "^3.1.3",
     "dotenv": "^16.4.5",
     "encoding": "^0.1.13",

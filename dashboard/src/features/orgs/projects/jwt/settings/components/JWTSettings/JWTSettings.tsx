@@ -8,7 +8,6 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
@@ -17,7 +16,8 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { JWTSecretField } from '@/features/orgs/projects/jwt/settings/components/JWTSecretField';
 import type {
-  ExternalSigningType,
+import { Info } from 'lucide-react';
+ExternalSigningType,
   JWTSecretType,
   JWTSettingsFormValues,
 } from '@/features/orgs/projects/jwt/settings/types';

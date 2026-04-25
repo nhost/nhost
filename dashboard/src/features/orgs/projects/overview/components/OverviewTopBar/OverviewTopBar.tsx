@@ -2,14 +2,13 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import { NavLink } from '@/components/common/NavLink';
 import { useUI } from '@/components/common/UIProvider';
-import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import UpgradeToProButton from './UpgradeToProButton';
-
+import { Settings } from 'lucide-react';
 export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
@@ -98,7 +97,7 @@ export default function OverviewTopBar() {
           disabled={maintenanceActive}
         >
           Settings
-          <CogIcon className="h-4 w-4" />
+          <Settings className="h-4 w-4" />
         </NavLink>
       </div>
     </div>

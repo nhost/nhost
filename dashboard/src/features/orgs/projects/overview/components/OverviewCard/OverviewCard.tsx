@@ -3,11 +3,10 @@ import Image from 'next/image';
 import { twMerge } from 'tailwind-merge';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
-
+import { ArrowRight } from 'lucide-react';
 export interface OverviewCardProps extends CardProps {
   /**
    * Props to be passed to the internal components.
@@ -75,7 +74,7 @@ export default function OverviewCard({
         className="grid grid-flow-col items-center justify-start gap-1 font-medium"
       >
         Learn more
-        <ArrowRightIcon className="h-4 w-4" />
+        <ArrowRight className="h-4 w-4" />
       </Link>
     </Box>
   );

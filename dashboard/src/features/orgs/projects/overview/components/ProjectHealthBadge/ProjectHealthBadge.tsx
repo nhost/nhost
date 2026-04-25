@@ -1,12 +1,9 @@
 import type { ReactNode } from 'react';
 import { Badge, type BadgeProps } from '@/components/ui/v2/Badge';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { ExclamationFilledIcon } from '@/components/ui/v2/icons/ExclamationFilledIcon';
-import { QuestionMarkIcon } from '@/components/ui/v2/icons/QuestionMarkIcon';
-
+import { AlertCircle, Check, Help } from 'lucide-react';
 export interface ProjectHealthBadgeProps extends BadgeProps {
   badgeVariant?: 'standard' | 'dot';
-  badgeColor?: 'success' | 'error' | 'warning' | 'secondary';
+badgeColor?: 'success' | 'error' | 'warning' | 'secondary';
   unknownState?: boolean;
   showExclamation?: boolean;
   showCheckIcon?: boolean;

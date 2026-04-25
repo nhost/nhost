@@ -1,8 +1,7 @@
-import { Eye } from 'lucide-react';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Dialog,
+import { import { Eye } from 'lucide-react';
+Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,

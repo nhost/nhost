@@ -1,7 +1,6 @@
 import type { GraphQLObjectType, GraphQLSchema } from 'graphql';
-import { HelpCircle } from 'lucide-react';
-import {
-  Children,
+import { import { HelpCircle } from 'lucide-react';
+Children,
   cloneElement,
   createElement,
   isValidElement,

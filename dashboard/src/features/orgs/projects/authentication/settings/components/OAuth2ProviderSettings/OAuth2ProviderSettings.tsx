@@ -10,15 +10,14 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  useGetOAuth2ProviderSettingsQuery,
+import { import { ExternalLink } from 'lucide-react';
+useGetOAuth2ProviderSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
@@ -207,7 +206,7 @@ export default function OAuth2ProviderSettings() {
                     className="font-medium"
                   >
                     building the consent page
-                    <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+                    <ExternalLink className="ml-1 h-4 w-4" />
                   </Link>
                 </>
               )

@@ -10,9 +10,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -23,10 +20,10 @@ import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl
 import { isNotEmptyValue } from '@/lib/utils';
 import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
-
+import { Plus, Search, User } from 'lucide-react';
 export type RemoteAppUser = Exclude<
   RemoteAppGetUsersAndAuthRolesQuery['users'][0],
-  '__typename'
+'__typename'
 >;
 
 export default function UsersPage() {
@@ -230,7 +227,7 @@ function UsersPageContent() {
           />
           <Button
             onClick={openCreateUserDialog}
-            startIcon={<PlusIcon className="h-4 w-4" />}
+            startIcon={<Plus className="h-4 w-4" />}
             size="small"
           >
             Create User
@@ -278,7 +275,7 @@ function UsersPageContent() {
         />
         <Button
           onClick={openCreateUserDialog}
-          startIcon={<PlusIcon className="h-4 w-4" />}
+          startIcon={<Plus className="h-4 w-4" />}
           size="small"
         >
           Create User
@@ -305,7 +302,7 @@ function UsersPageContent() {
               color="primary"
               className="w-full"
               onClick={openCreateUserDialog}
-              startIcon={<PlusIcon className="h-4 w-4" />}
+              startIcon={<Plus className="h-4 w-4" />}
             >
               Create User
             </Button>

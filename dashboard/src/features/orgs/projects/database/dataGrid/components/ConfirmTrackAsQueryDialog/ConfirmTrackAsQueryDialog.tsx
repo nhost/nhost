@@ -1,8 +1,8 @@
-import { TriangleAlert } from 'lucide-react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import {
-  Dialog,
-  DialogContent,
+import { Dialog
+
+import {  TriangleAlert  } from 'lucide-react';
+DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,

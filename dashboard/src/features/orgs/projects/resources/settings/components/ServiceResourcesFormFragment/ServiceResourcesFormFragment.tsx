@@ -4,9 +4,6 @@ import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
-import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
@@ -14,16 +11,14 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/orgs/projects/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import {
-  MAX_SERVICE_MEMORY,
+import { Info, RESOURCE_MEMORY_LOCKED_STEP, RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP
+
+import {  AlertTriangle, import { ExternalLink  } from 'lucide-react';
+MAX_SERVICE_MEMORY,
   MAX_SERVICE_VCPU,
   MIN_SERVICE_MEMORY,
   MIN_SERVICE_VCPU,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import {
-  RESOURCE_MEMORY_LOCKED_STEP,
-  RESOURCE_MEMORY_STEP,
-  RESOURCE_VCPU_STEP,
 } from '@/utils/constants/common';
 
 export interface ServiceResourcesFormFragmentProps {
@@ -341,7 +336,7 @@ export default function ServiceResourcesFormFragment({
             <Tooltip
               title={`Enable autoscaler to automatically provision extra ${title} replicas when needed.`}
             >
-              <InfoOutlinedIcon className="h-4 w-4" />
+              <Info className="h-4 w-4" />
             </Tooltip>
           </Box>
         </Box>
@@ -358,7 +353,7 @@ export default function ServiceResourcesFormFragment({
             className="font-medium"
           >
             Service Replicas
-            <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+            <ExternalLink className="ml-1 h-4 w-4" />
           </Link>
         </Text>
       )}

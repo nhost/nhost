@@ -1,7 +1,7 @@
 import { flexRender } from '@tanstack/react-table';
-import { Copy } from 'lucide-react';
 import type {
-  FocusEvent,
+import { Copy } from 'lucide-react';
+FocusEvent,
   KeyboardEvent,
   MouseEvent,
   PropsWithChildren,

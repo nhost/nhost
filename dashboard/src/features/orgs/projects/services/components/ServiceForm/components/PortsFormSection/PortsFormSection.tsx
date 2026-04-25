@@ -3,17 +3,16 @@ import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
-import {
-  isPublishablePortType,
+import { Plus, Trash2
+
+import {  Info  } from 'lucide-react';
+isPublishablePortType,
   type PortTypes,
 } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
@@ -23,8 +22,7 @@ import { getRunServicePortURL } from '@/utils/helpers';
 
 export default function PortsFormSection() {
   const form = useFormContext<ServiceFormValues>();
-
-  const { project } = useProject();
+const { project } = useProject();
 
   const {
     register,
@@ -74,14 +72,14 @@ export default function PortsFormSection() {
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <Info aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
         <Button
           variant="borderless"
           onClick={() => append({ port: null, type: null, publish: false })}
         >
-          <PlusIcon className="h-5 w-5" />
+          <Plus className="h-5 w-5" />
         </Button>
       </Box>
 
@@ -140,7 +138,7 @@ export default function PortsFormSection() {
                 color="error"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
               </Button>
             </Box>
 

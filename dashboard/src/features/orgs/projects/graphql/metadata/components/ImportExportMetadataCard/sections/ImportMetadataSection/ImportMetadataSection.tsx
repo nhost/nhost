@@ -1,6 +1,5 @@
-import { TriangleAlert, Upload } from 'lucide-react';
 import ImportMetadataDialog from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard/sections/ImportMetadataSection/ImportMetadataDialog';
-
+import { TriangleAlert, Upload } from 'lucide-react';
 export default function ImportMetadataSection() {
   return (
     <div className="flex flex-col gap-4 rounded-lg p-4">

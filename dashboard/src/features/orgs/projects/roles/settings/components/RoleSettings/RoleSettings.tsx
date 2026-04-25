@@ -10,9 +10,6 @@ import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
-import { LockIcon } from '@/components/ui/v2/icons/LockIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -24,11 +21,12 @@ import { EditRoleForm } from '@/features/orgs/projects/roles/settings/components
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { Role } from '@/types/application';
-import {
-  useGetRolesPermissionsQuery,
+import { MoreVertical, Plus
+
+import {  Lock  } from 'lucide-react';
+useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-
 export interface RoleSettingsFormValues {
   /**
    * Default role.
@@ -221,7 +219,7 @@ export default function RoleSettings() {
                           color="secondary"
                           disabled={maintenanceActive}
                         >
-                          <DotsVerticalIcon />
+                          <MoreVertical />
                         </IconButton>
                       </Dropdown.Trigger>
 
@@ -273,7 +271,7 @@ export default function RoleSettings() {
                       <>
                         {role.name}
 
-                        {role.isSystemRole && <LockIcon className="h-4 w-4" />}
+                        {role.isSystemRole && <Lock className="h-4 w-4" />}
 
                         {defaultRole === role.name && (
                           <Chip
@@ -304,7 +302,7 @@ export default function RoleSettings() {
         <Button
           className="mx-4 justify-self-start"
           variant="borderless"
-          startIcon={<PlusIcon />}
+          startIcon={<Plus />}
           onClick={handleOpenCreator}
           disabled={maintenanceActive}
         >

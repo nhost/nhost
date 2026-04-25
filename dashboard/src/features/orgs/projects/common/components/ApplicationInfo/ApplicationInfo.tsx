@@ -1,14 +1,13 @@
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  GetOrganizationsDocument,
+import { import { ArrowRight } from 'lucide-react';
+GetOrganizationsDocument,
   useBillingDeleteAppMutation,
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
@@ -103,7 +102,7 @@ export default function ApplicationInfo() {
           className="grid grid-flow-col items-center justify-center gap-1 p-2"
           underline="hover"
         >
-          App State History <ArrowRightIcon />
+          App State History <ArrowRight />
         </Link>
 
         <Button color="error" variant="outlined" onClick={handleClickRemove}>

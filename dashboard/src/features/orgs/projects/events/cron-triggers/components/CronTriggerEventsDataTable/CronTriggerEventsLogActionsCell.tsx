@@ -1,9 +1,10 @@
 import type { Row } from '@tanstack/react-table';
-import { Maximize, Minimize, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import {
-  Tooltip,
+import { Minimize, X
+
+import {  Maximize  } from 'lucide-react';
+Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';

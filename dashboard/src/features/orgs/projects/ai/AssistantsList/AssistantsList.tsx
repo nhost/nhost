@@ -3,13 +3,11 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
-import {
-  AssistantForm,
+import { MoreHorizontal, Trash2, User
+
+import {  Copy  } from 'lucide-react';
+AssistantForm,
   type AssistantFormInitialData,
 } from '@/features/orgs/projects/ai/AssistantForm';
 import { DeleteAssistantModal } from '@/features/orgs/projects/ai/DeleteAssistantModal';
@@ -20,7 +18,7 @@ import { copy } from '@/utils/copy';
 interface AssistantsListProps {
   /**
    * The list of assistants
-   */
+*/
   assistants: Assistant[];
 
   /**
@@ -112,7 +110,7 @@ export default function AssistantsList({
                     }}
                     aria-label="Service Id"
                   >
-                    <CopyIcon className="h-4 w-4" />
+                    <Copy className="h-4 w-4" />
                   </IconButton>
                 </div>
               </div>
@@ -131,7 +129,7 @@ export default function AssistantsList({
                 aria-label="More options"
                 onClick={(event) => event.stopPropagation()}
               >
-                <DotsHorizontalIcon />
+                <MoreHorizontal />
               </IconButton>
             </Dropdown.Trigger>
             <Dropdown.Content
@@ -144,7 +142,7 @@ export default function AssistantsList({
                 onClick={() => viewAssistant(assistant)}
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
               >
-                <UserIcon className="h-4 w-4" />
+                <User className="h-4 w-4" />
                 <Text className="font-medium">View {assistant?.name}</Text>
               </Dropdown.Item>
               <Divider component="li" />
@@ -153,7 +151,7 @@ export default function AssistantsList({
                 sx={{ color: 'error.main' }}
                 onClick={() => deleteAssistant(assistant)}
               >
-                <TrashIcon className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
                 <Text className="font-medium" color="error">
                   Delete {assistant?.name}
                 </Text>

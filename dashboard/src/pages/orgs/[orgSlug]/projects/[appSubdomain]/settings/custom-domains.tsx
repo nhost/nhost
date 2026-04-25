@@ -3,7 +3,6 @@ import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -14,7 +13,7 @@ import { HasuraDomain } from '@/features/orgs/projects/custom-domains/settings/c
 import { RunServiceDomains } from '@/features/orgs/projects/custom-domains/settings/components/RunServiceDomains';
 import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-
+import { ExternalLink } from 'lucide-react';
 export default function CustomDomains() {
   const { org, loading: loadingOrg } = useCurrentOrg();
 
@@ -56,7 +55,7 @@ export default function CustomDomains() {
               className="ml-1 font-medium"
             >
               Custom Domains
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+              <ExternalLink className="ml-1 h-4 w-4" />
             </Link>
           </Text>
         </div>

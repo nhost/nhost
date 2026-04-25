@@ -1,4 +1,3 @@
-import { BoxIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -8,7 +7,6 @@ import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -19,9 +17,9 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
 import { parseConfigFromInstallLink } from '@/features/orgs/projects/services/utils/parseConfigFromInstallLink';
-
+import { BoxIcon, Plus } from 'lucide-react';
 export default function RunPage() {
-  const router = useRouter();
+const router = useRouter();
   const isPlatform = useIsPlatform();
   const { openDrawer, openAlertDialog } = useDialog();
   const { org } = useCurrentOrg();
@@ -125,7 +123,7 @@ export default function RunPage() {
             variant="contained"
             color="primary"
             onClick={openCreateServiceDialog}
-            startIcon={<PlusIcon className="h-4 w-4" />}
+            startIcon={<Plus className="h-4 w-4" />}
             disabled={!isPlatform}
           >
             Add service
@@ -149,7 +147,7 @@ export default function RunPage() {
                 color="primary"
                 className="w-full"
                 onClick={openCreateServiceDialog}
-                startIcon={<PlusIcon className="h-4 w-4" />}
+                startIcon={<Plus className="h-4 w-4" />}
               >
                 Add service
               </Button>
@@ -167,7 +165,7 @@ export default function RunPage() {
           variant="contained"
           color="primary"
           onClick={openCreateServiceDialog}
-          startIcon={<PlusIcon className="h-4 w-4" />}
+          startIcon={<Plus className="h-4 w-4" />}
           disabled={!isPlatform}
         >
           Add service

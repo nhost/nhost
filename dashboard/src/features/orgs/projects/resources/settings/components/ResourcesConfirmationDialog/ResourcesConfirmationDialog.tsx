@@ -2,7 +2,6 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProPlan } from '@/features/orgs/projects/common/hooks/useProPlan';
@@ -10,9 +9,10 @@ import { calculateBillableResources } from '@/features/orgs/projects/resources/s
 import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/orgs/projects/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import {
-  RESOURCE_VCPU_MULTIPLIER,
-  RESOURCE_VCPU_PRICE,
+import { RESOURCE_VCPU_MULTIPLIER
+
+import {  Info  } from 'lucide-react';
+RESOURCE_VCPU_PRICE,
   RESOURCE_VCPU_PRICE_PER_MINUTE,
 } from '@/utils/constants/common';
 
@@ -205,7 +205,7 @@ export default function ResourcesConfirmationDialog({
             <Text className="font-medium">Approximate Cost</Text>
 
             <Tooltip title="$0.0012/minute for every 1 vCPU and 2 GiB of RAM">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <Info aria-label="Info" className="h-4 w-4" color="primary" />
             </Tooltip>
           </Box>
 

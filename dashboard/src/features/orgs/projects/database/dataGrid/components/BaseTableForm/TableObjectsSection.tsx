@@ -1,8 +1,9 @@
-import { ExternalLink, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import {
-  AccordionContent,
+import { ShieldCheck
+
+import {  ExternalLink  } from 'lucide-react';
+AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
@@ -11,7 +12,7 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { useTableRelatedObjectsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableRelatedObjectsQuery';
 import type {
   TableConstraint,
-  TableIndex,
+TableIndex,
   TableTrigger,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useTableRelatedObjectsQuery/fetchTableRelatedObjects';
 

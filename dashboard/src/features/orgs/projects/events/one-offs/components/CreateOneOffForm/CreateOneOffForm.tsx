@@ -1,9 +1,8 @@
-import { Plus } from 'lucide-react';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
-import {
-  Accordion,
+import { import { Plus } from 'lucide-react';
+Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,

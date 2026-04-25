@@ -1,4 +1,3 @@
-import { KeyRound } from 'lucide-react';
 import { type ChangeEvent, useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
@@ -11,7 +10,7 @@ import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/databas
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import { cn } from '@/lib/utils';
-
+import { KeyRound } from 'lucide-react';
 export interface DatabaseRecordInputGroupProps {
   /**
    * List of columns for which input fields should be generated.

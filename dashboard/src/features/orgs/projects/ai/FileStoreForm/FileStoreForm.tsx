@@ -1,5 +1,4 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { RefreshCwIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -9,16 +8,16 @@ import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
-import {
-  useInsertFileStoreMutation,
+import { Plus, RefreshCwIcon
+
+import {  Info  } from 'lucide-react';
+useInsertFileStoreMutation,
   useUpdateFileStoreMutation,
 } from '@/utils/__generated__/graphite.graphql';
 import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
@@ -26,7 +25,7 @@ import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required'),
-  buckets: Yup.array()
+buckets: Yup.array()
     .of(
       Yup.object({
         label: Yup.string(),
@@ -210,7 +209,7 @@ export default function FileStoreForm({
             type="submit"
             disabled={isSubmitting}
             startIcon={
-              id ? <RefreshCwIcon width={16} height={16} /> : <PlusIcon />
+              id ? <RefreshCwIcon width={16} height={16} /> : <Plus />
             }
           >
             {id ? 'Update' : 'Create'}

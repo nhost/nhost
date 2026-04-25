@@ -1,7 +1,6 @@
-import { X } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Tooltip,
+import { import { X } from 'lucide-react';
+Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';

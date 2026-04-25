@@ -19,7 +19,6 @@ import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -31,8 +30,8 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
 import type { DialogFormProps } from '@/types/common';
-import {
-  RemoteAppGetUsersAndAuthRolesDocument,
+import { import { Copy } from 'lucide-react';
+RemoteAppGetUsersAndAuthRolesDocument,
   useGetProjectLocalesQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
@@ -316,7 +315,7 @@ export default function EditUserForm({
                   copy(user.id, 'User ID');
                 }}
               >
-                <CopyIcon className="h-4 w-4" />
+                <Copy className="h-4 w-4" />
               </IconButton>
             </div>
 

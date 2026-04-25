@@ -10,8 +10,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -22,14 +20,15 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  useGetOAuth2ClientsQuery,
+import { Search
+
+import {  Plus  } from 'lucide-react';
+useGetOAuth2ClientsQuery,
   useGetOAuth2ProviderSettingsQuery,
 } from '@/generated/graphql';
 import { isVersionGte } from '@/utils/compareVersions';
 
 const ELEMENTS_PER_PAGE = 25;
-
 export default function OAuth2ClientsPage() {
   return (
     <RetryableErrorBoundary>
@@ -255,7 +254,7 @@ function OAuth2ClientsPageContent() {
           />
           <Button
             onClick={openCreateClientDrawer}
-            startIcon={<PlusIcon className="h-4 w-4" />}
+            startIcon={<Plus className="h-4 w-4" />}
             size="small"
           >
             Create Client
@@ -291,7 +290,7 @@ function OAuth2ClientsPageContent() {
         />
         <Button
           onClick={openCreateClientDrawer}
-          startIcon={<PlusIcon className="h-4 w-4" />}
+          startIcon={<Plus className="h-4 w-4" />}
           size="small"
         >
           Create Client
@@ -311,7 +310,7 @@ function OAuth2ClientsPageContent() {
             variant="contained"
             color="primary"
             onClick={openCreateClientDrawer}
-            startIcon={<PlusIcon className="h-4 w-4" />}
+            startIcon={<Plus className="h-4 w-4" />}
           >
             Create Client
           </Button>

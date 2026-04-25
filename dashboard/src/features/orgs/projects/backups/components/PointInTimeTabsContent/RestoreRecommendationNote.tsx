@@ -1,6 +1,5 @@
-import { ShieldAlertIcon } from 'lucide-react';
 import { InfoAlert } from '@/features/orgs/components/InfoAlert';
-
+import { ShieldAlertIcon } from 'lucide-react';
 function RestoreRecommendationNote() {
   return (
     <InfoAlert icon={<ShieldAlertIcon className="h-[38px] w-[38px]" />}>

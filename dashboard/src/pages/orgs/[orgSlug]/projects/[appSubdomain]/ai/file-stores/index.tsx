@@ -7,7 +7,6 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
@@ -20,9 +19,8 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  type GetGraphiteFileStoresQuery,
-  useGetGraphiteFileStoresQuery,
+import { import { Plus, type GetGraphiteFileStoresQuery } from 'lucide-react';
+useGetGraphiteFileStoresQuery,
 } from '@/utils/__generated__/graphite.graphql';
 
 export type GraphiteFileStore = Omit<
@@ -148,7 +146,7 @@ export default function FileStoresPage() {
               color="primary"
               className="w-full"
               onClick={openCreateFileStoreForm}
-              startIcon={<PlusIcon className="h-4 w-4" />}
+              startIcon={<Plus className="h-4 w-4" />}
               disabled={!isFileStoreSupported}
             >
               Add a new File Store
@@ -166,7 +164,7 @@ export default function FileStoresPage() {
           variant="contained"
           color="primary"
           onClick={openCreateFileStoreForm}
-          startIcon={<PlusIcon className="h-4 w-4" />}
+          startIcon={<Plus className="h-4 w-4" />}
         >
           New
         </Button>

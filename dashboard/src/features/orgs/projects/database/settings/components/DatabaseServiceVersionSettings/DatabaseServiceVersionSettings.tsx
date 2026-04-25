@@ -4,8 +4,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import {
-  ControlledAutocomplete,
+import { import { RotateCw } from 'lucide-react';
+ControlledAutocomplete,
   defaultFilterOptions,
 } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
@@ -13,7 +13,6 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useGetPostgresVersion } from '@/features/orgs/projects/database/common/hooks/useGetPostgresVersion';
@@ -332,7 +331,7 @@ export default function DatabaseServiceVersionSettings() {
                 size="medium"
                 className="self-center"
                 onClick={openLatestUpgradeLogsModal}
-                startIcon={<RepeatIcon className="h-4 w-4" />}
+                startIcon={<RotateCw className="h-4 w-4" />}
               >
                 View latest upgrade logs
               </Button>

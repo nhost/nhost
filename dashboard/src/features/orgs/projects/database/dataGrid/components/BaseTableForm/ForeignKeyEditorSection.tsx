@@ -2,13 +2,13 @@ import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v2/Button';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import type { BaseForeignKeyFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import { CreateForeignKeyForm } from '@/features/orgs/projects/database/dataGrid/components/CreateForeignKeyForm';
 import { EditForeignKeyForm } from '@/features/orgs/projects/database/dataGrid/components/EditForeignKeyForm';
 import type {
-  DatabaseColumn,
+import { Plus } from 'lucide-react';
+DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import ForeignKeyEditorRow from './ForeignKeyEditorRow';
@@ -89,7 +89,7 @@ export default function ForeignKeyEditorSection() {
 
       <Button
         variant="borderless"
-        startIcon={<PlusIcon />}
+        startIcon={<Plus />}
         size="small"
         className={twMerge(
           'mt-1 rounded-sm+ py-2',

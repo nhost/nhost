@@ -11,8 +11,6 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Table } from '@/components/ui/v2/Table';
 import { TableBody } from '@/components/ui/v2/TableBody';
@@ -23,9 +21,9 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
-
+import { Info, Play } from 'lucide-react';
 interface SQLEditorProps {
-  initialSQL?: string;
+initialSQL?: string;
 }
 
 export default function SQLEditor({ initialSQL }: SQLEditorProps) {
@@ -161,7 +159,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
             disabled={loading || !sqlCode.trim()}
             variant="contained"
             className="self-start"
-            startIcon={<PlayIcon />}
+            startIcon={<Play />}
             onClick={runSQL}
           >
             Run

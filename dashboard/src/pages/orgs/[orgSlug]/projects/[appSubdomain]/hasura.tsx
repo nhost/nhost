@@ -6,13 +6,13 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import {
-  defaultRemoteBackendSlugs,
+import { ExternalLink
+
+import {  Copy  } from 'lucide-react';
+defaultRemoteBackendSlugs,
   generateAppServiceUrl,
 } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -20,7 +20,7 @@ import { copy } from '@/utils/copy';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function HasuraPage() {
-  return (
+return (
     <RetryableErrorBoundary>
       <HasuraPageContent />
     </RetryableErrorBoundary>
@@ -93,7 +93,7 @@ function HasuraPageContent() {
                   className="min-w-0 p-1"
                   aria-label="Copy admin secret"
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <Copy className="h-4 w-4" />
                 </IconButton>
               </div>
             </div>
@@ -107,7 +107,7 @@ function HasuraPageContent() {
               // @ts-expect-error
               target="_blank"
               rel="noreferrer noopener"
-              endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
+              endIcon={<ExternalLink className="h-4 w-4" />}
               disabled={!settings?.enableConsole}
               variant={settings?.enableConsole ? 'contained' : 'outlined'}
               color={settings?.enableConsole ? 'primary' : 'secondary'}

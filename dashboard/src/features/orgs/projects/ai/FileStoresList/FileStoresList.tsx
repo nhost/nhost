@@ -3,21 +3,17 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { DeleteFileStoreModal } from '@/features/orgs/projects/ai/DeleteFileStoreModal';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
 import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import { copy } from '@/utils/copy';
-
+import { Copy, MoreHorizontal, Trash2, User } from 'lucide-react';
 interface FileStoresListProps {
   /**
    * List of File Stores to be displayed.
-   */
+*/
   fileStores: GraphiteFileStore[];
 
   /**
@@ -102,7 +98,7 @@ export default function FileStoresList({
                     }}
                     aria-label="Service Id"
                   >
-                    <CopyIcon className="h-4 w-4" />
+                    <Copy className="h-4 w-4" />
                   </IconButton>
                 </div>
               </div>
@@ -121,7 +117,7 @@ export default function FileStoresList({
                 aria-label="More options"
                 onClick={(event) => event.stopPropagation()}
               >
-                <DotsHorizontalIcon />
+                <MoreHorizontal />
               </IconButton>
             </Dropdown.Trigger>
             <Dropdown.Content
@@ -134,7 +130,7 @@ export default function FileStoresList({
                 onClick={() => viewFileStore(fileStore)}
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
               >
-                <UserIcon className="h-4 w-4" />
+                <User className="h-4 w-4" />
                 <Text className="font-medium">View {fileStore?.name}</Text>
               </Dropdown.Item>
               <Divider component="li" />
@@ -143,7 +139,7 @@ export default function FileStoresList({
                 sx={{ color: 'error.main' }}
                 onClick={() => deleteFileStore(fileStore)}
               >
-                <TrashIcon className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
                 <Text className="font-medium" color="error">
                   Delete {fileStore?.name}
                 </Text>

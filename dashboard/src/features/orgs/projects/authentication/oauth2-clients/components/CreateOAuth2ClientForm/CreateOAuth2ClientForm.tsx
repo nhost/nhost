@@ -10,14 +10,13 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import ScopePicker from '@/features/orgs/projects/authentication/oauth2/ScopePicker';
 import { generateClientSecret } from '@/features/orgs/projects/authentication/oauth2/utils';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  GetOAuth2ClientsDocument,
+import { import { Copy } from 'lucide-react';
+GetOAuth2ClientsDocument,
   useInsertOAuth2ClientMutation,
 } from '@/generated/graphql';
 import type { DialogFormProps } from '@/types/common';
@@ -236,7 +235,7 @@ export default function CreateOAuth2ClientForm({
                   aria-label="Copy secret"
                   type="button"
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <Copy className="h-4 w-4" />
                 </Button>
               </InputAdornment>
             }

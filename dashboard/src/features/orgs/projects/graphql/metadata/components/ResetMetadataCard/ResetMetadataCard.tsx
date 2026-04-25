@@ -1,6 +1,5 @@
-import { TriangleAlert } from 'lucide-react';
 import { ResetMetadataDialog } from '@/features/orgs/projects/graphql/metadata/components/ResetMetadataDialog';
-
+import { TriangleAlert } from 'lucide-react';
 export default function ResetMetadataCard() {
   return (
     <div className="flex flex-col gap-1 rounded-lg border bg-paper p-4">

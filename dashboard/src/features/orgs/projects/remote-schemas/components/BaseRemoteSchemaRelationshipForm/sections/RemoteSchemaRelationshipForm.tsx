@@ -1,13 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Anchor, ChevronsUpDown } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Form,
+import { ChevronsUpDown, Info
+
+import {  Anchor  } from 'lucide-react';
+Form,
   FormControl,
   FormField,
   FormItem,
@@ -28,7 +28,7 @@ import TargetRemoteSchemaCombobox from './TargetRemoteSchemaCombobox';
 import TargetRemoteSchemaFieldCombobox from './TargetRemoteSchemaFieldCombobox';
 
 export interface RemoteSchemaRelationshipFormProps {
-  sourceSchema: string;
+sourceSchema: string;
   onSubmit: (values: RemoteSchemaRelationshipFormValues) => void;
   onCancel?: () => void;
   submitButtonText?: string;

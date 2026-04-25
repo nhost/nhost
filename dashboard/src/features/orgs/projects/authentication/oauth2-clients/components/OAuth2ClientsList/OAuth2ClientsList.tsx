@@ -4,9 +4,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -15,11 +12,12 @@ import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteAp
 import { EditOAuth2ClientForm } from '@/features/orgs/projects/authentication/oauth2-clients/components/EditOAuth2ClientForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { GetOAuth2ClientsQuery } from '@/generated/graphql';
-import {
-  GetOAuth2ClientsDocument,
+import { Trash2, User
+
+import {  MoreHorizontal  } from 'lucide-react';
+GetOAuth2ClientsDocument,
   useDeleteOAuth2ClientMutation,
 } from '@/generated/graphql';
-
 type OAuth2Client = GetOAuth2ClientsQuery['authOauth2Clients'][number];
 
 interface OAuth2ClientsListProps {
@@ -99,7 +97,7 @@ export default function OAuth2ClientsList({
                       color="secondary"
                       aria-label={`More options for ${client.clientId}`}
                     >
-                      <DotsHorizontalIcon />
+                      <MoreHorizontal />
                     </IconButton>
                   </Dropdown.Trigger>
 
@@ -119,7 +117,7 @@ export default function OAuth2ClientsList({
                       onClick={() => handleEdit(client)}
                       className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                     >
-                      <UserIcon className="h-4 w-4" />
+                      <User className="h-4 w-4" />
                       <Text className="font-medium">Edit Client</Text>
                     </Dropdown.Item>
 
@@ -130,7 +128,7 @@ export default function OAuth2ClientsList({
                       className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                       sx={{ color: 'error.main' }}
                     >
-                      <TrashIcon className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                       <Text className="font-medium" color="error">
                         Delete Client
                       </Text>

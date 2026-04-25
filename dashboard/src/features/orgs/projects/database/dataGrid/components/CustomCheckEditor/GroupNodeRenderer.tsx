@@ -1,4 +1,3 @@
-import { X } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import type { RuleNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { cn } from '@/lib/utils';
@@ -8,7 +7,7 @@ import ExistsNodeRenderer from './ExistsNodeRenderer';
 import LogicalOperatorBadge from './LogicalOperatorBadge';
 import RelationshipNodeRenderer from './RelationshipNodeRenderer';
 import useCustomCheckEditor from './useCustomCheckEditor';
-
+import { X } from 'lucide-react';
 const depthBackgrounds = [
   'bg-secondary-100',
   'bg-secondary-200',

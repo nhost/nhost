@@ -1,11 +1,11 @@
-import { X } from 'lucide-react';
 import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { cn } from '@/lib/utils';
 import GroupNodeRenderer from './GroupNodeRenderer';
 import TableComboBox from './TableComboBox';
 import useCustomCheckEditor, {
-  CustomCheckEditorContext,
+import { X } from 'lucide-react';
+CustomCheckEditorContext,
 } from './useCustomCheckEditor';
 
 interface ExistsNodeRendererProps {

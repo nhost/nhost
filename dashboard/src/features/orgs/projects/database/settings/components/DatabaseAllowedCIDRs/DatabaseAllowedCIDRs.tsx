@@ -1,5 +1,4 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Plus, Trash } from 'lucide-react';
 import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
@@ -13,9 +12,10 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  useGetPostgresSettingsQuery,
-  useUpdateConfigMutation,
+import { Trash
+
+import {  Plus, useGetPostgresSettingsQuery  } from 'lucide-react';
+useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 
 const MAX_CIDRS = 3;

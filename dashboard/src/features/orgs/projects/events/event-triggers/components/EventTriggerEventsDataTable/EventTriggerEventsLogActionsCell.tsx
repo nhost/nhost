@@ -1,8 +1,7 @@
 import type { Row } from '@tanstack/react-table';
-import { Maximize, Minimize } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas';
-
+import { Maximize, Minimize } from 'lucide-react';
 interface EventTriggerEventsLogActionsCellProps {
   row: Row<EventLogEntry>;
 }

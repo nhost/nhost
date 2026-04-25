@@ -1,11 +1,9 @@
 import type { DefaultToastOptions } from 'react-hot-toast';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { getDesignTokens } from '@/components/ui/v2/theme/getDesignTokens';
 import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
-
+import { Check, X } from 'lucide-react';
 export function getToastBackgroundColor() {
-  const lightTokens = getDesignTokens('light');
+const lightTokens = getDesignTokens('light');
   const darkTokens = getDesignTokens('dark');
 
   if (typeof window === 'undefined') {
@@ -33,11 +31,11 @@ export const getToastStyleProps: () => DefaultToastOptions = () => ({
   },
   success: {
     duration: 5000,
-    icon: <CheckIcon className="h-4 w-4" />,
+    icon: <Check className="h-4 w-4" />,
   },
   error: {
     duration: 5000,
-    icon: <XIcon className="h-4 w-4" />,
+    icon: <X className="h-4 w-4" />,
   },
 });
 

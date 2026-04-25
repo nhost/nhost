@@ -9,7 +9,6 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { generateRandomDatabasePassword } from '@/features/orgs/projects/database/common/utils/generateRandomDatabasePassword';
 import type { ResetDatabasePasswordFormValues } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { resetDatabasePasswordValidationSchema } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
@@ -20,7 +19,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
-
+import { Copy } from 'lucide-react';
 export default function ResetDatabasePasswordSettings() {
   const [resetPassword, { loading: resetPasswordLoading }] =
     useResetDatabasePasswordMutation();
@@ -180,7 +179,7 @@ export default function ResetDatabasePasswordSettings() {
                   variant="borderless"
                   aria-label="Copy password"
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <Copy className="h-4 w-4" />
                 </Button>
               </InputAdornment>
             }

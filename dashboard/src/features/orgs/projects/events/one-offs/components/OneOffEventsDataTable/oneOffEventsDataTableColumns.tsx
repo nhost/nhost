@@ -1,5 +1,4 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Copy } from 'lucide-react';
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
@@ -10,7 +9,7 @@ import type { EventsSection } from '@/features/orgs/projects/events/common/types
 import copy from '@/utils/copy/copy';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import OneOffEventsLogActionsCell from './OneOffEventsLogActionsCell';
-
+import { Copy } from 'lucide-react';
 interface CreateOneOffEventsDataTableColumnsOptions {
   eventLogsSection: EventsSection;
   onEventLogsSectionChange: (value: EventsSection) => void;

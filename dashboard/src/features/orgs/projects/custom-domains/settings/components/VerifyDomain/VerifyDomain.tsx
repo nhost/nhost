@@ -2,14 +2,13 @@ import { useEffect, useState } from 'react';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
-
+import { Copy } from 'lucide-react';
 interface VerifyDomainProps {
   recordType: string;
   hostname?: string;
@@ -136,7 +135,7 @@ export default function VerifyDomain({
                 color="secondary"
                 onClick={() => copy(value, 'CNAME Value')}
               >
-                <CopyIcon className="h-4 w-4" />
+                <Copy className="h-4 w-4" />
               </IconButton>
             </>
           ) : null}

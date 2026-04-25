@@ -3,7 +3,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
@@ -14,7 +13,7 @@ import { subMinutes } from 'date-fns';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-
+import { Search } from 'lucide-react';
 export const validationSchema = Yup.object({
   from: Yup.string().required(),
   to: Yup.string().nullable(),
@@ -126,7 +125,7 @@ export default function LogsHeader({
                 {loading ? (
                   <ActivityIndicator className="h-5 w-5" />
                 ) : (
-                  <SearchIcon className="h-5 w-5" />
+                  <Search className="h-5 w-5" />
                 )}
               </div>
             }

@@ -1,12 +1,11 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
-import { ClockIcon } from '@/components/ui/v2/icons/ClockIcon';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { LogsDatePicker } from '@/features/orgs/projects/logs/components/LogsDatePicker';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
-import {
-  LOGS_AVAILABLE_INTERVALS,
+import { import { Clock } from 'lucide-react';
+LOGS_AVAILABLE_INTERVALS,
   type LogsCustomInterval,
 } from '@/features/orgs/projects/logs/utils/constants/intervals';
 import { useInterval } from '@/hooks/useInterval';
@@ -72,7 +71,7 @@ function LogsToDatePickerLiveButton() {
           color: !isLive ? 'text.secondary' : undefined,
         }}
         className={twMerge(!isLive ? 'z-0 mt-4' : 'z-10')}
-        startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
+        startIcon={<Clock className="h-4 w-4 self-center align-middle" />}
         onClick={handleLiveButtonClick}
       >
         Live

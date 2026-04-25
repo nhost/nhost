@@ -1,7 +1,6 @@
-import { Database } from 'lucide-react';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
-import {
-  Accordion,
+import { import { Database } from 'lucide-react';
+Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,

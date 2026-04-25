@@ -1,11 +1,10 @@
-import { Loader2, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
 import { MetadataConsistentStatus } from '@/features/orgs/projects/graphql/metadata/components/MetadataConsistentStatus';
 import { MetadataInconsistentStatus } from '@/features/orgs/projects/graphql/metadata/components/MetadataInconsistentStatus';
 import { useGetInconsistentMetadata } from '@/features/orgs/projects/graphql/metadata/hooks/useGetInconsistentMetadata';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-
+import { Loader2, TriangleAlert } from 'lucide-react';
 export default function MetadataStatusCard() {
   const { org } = useCurrentOrg();
   const { project } = useProject();

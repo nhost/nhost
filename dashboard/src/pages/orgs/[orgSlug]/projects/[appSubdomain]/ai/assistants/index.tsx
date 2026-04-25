@@ -7,7 +7,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
@@ -20,9 +19,8 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  type GetAssistantsQuery,
-  useGetAssistantsQuery,
+import { import { Plus, type GetAssistantsQuery } from 'lucide-react';
+useGetAssistantsQuery,
   useGetGraphiteFileStoresQuery,
 } from '@/utils/__generated__/graphite.graphql';
 
@@ -164,7 +162,7 @@ export default function AssistantsPage() {
               color="primary"
               className="w-full"
               onClick={openCreateAssistantForm}
-              startIcon={<PlusIcon className="h-4 w-4" />}
+              startIcon={<Plus className="h-4 w-4" />}
             >
               Create a new assistant
             </Button>
@@ -181,7 +179,7 @@ export default function AssistantsPage() {
           variant="contained"
           color="primary"
           onClick={openCreateAssistantForm}
-          startIcon={<PlusIcon className="h-4 w-4" />}
+          startIcon={<Plus className="h-4 w-4" />}
         >
           New
         </Button>
