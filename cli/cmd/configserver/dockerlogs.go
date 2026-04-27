@@ -256,6 +256,14 @@ func (d *DockerLogGatherer) GetFunctionsLogs(
 		return nil, err
 	}
 
+	var re *regexp.Regexp
+	if regexFilter != "" {
+		re, err = regexp.Compile(regexFilter)
+		if err != nil {
+			return nil, fmt.Errorf("failed to compile regex filter: %w", err)
+		}
+	}
+
 	var allLogs []model.Log
 
 	for _, c := range containers {
@@ -286,12 +294,7 @@ func (d *DockerLogGatherer) GetFunctionsLogs(
 
 	allLogs = filterByJSONPath(allLogs, path)
 
-	if regexFilter != "" {
-		re, err := regexp.Compile(regexFilter)
-		if err != nil {
-			return nil, fmt.Errorf("failed to compile regex filter: %w", err)
-		}
-
+	if re != nil {
 		filtered := make([]model.Log, 0, len(allLogs))
 
 		for _, l := range allLogs {
