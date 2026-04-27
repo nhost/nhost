@@ -31,6 +31,6 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^6.0.1",
-    "vite": "^8.0.6"
+    "vite": "^8.0.10"
   }
 }
