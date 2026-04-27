@@ -23198,6 +23198,7 @@ export type Query_RootGetFunctionsLogsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   path: Scalars['String'];
+  regexFilter?: InputMaybe<Scalars['String']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
@@ -27359,6 +27360,7 @@ export type Subscription_RootGetFunctionsLogsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   path: Scalars['String'];
+  regexFilter?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -31369,6 +31371,7 @@ export type GetFunctionsLogsQueryVariables = Exact<{
   from: Scalars['Timestamp'];
   to?: InputMaybe<Scalars['Timestamp']>;
   path: Scalars['String'];
+  regexFilter?: InputMaybe<Scalars['String']>;
 }>;
 
 
@@ -31378,6 +31381,7 @@ export type GetFunctionsLogsSubscriptionSubscriptionVariables = Exact<{
   appID: Scalars['String'];
   from: Scalars['Timestamp'];
   path: Scalars['String'];
+  regexFilter?: InputMaybe<Scalars['String']>;
 }>;
 
 
@@ -35809,8 +35813,14 @@ export function refetchGetGithubRepositoriesQuery(variables?: GetGithubRepositor
       return { query: GetGithubRepositoriesDocument, variables: variables }
     }
 export const GetFunctionsLogsDocument = gql`
-    query getFunctionsLogs($appID: String!, $from: Timestamp!, $to: Timestamp, $path: String!) {
-  getFunctionsLogs(appID: $appID, from: $from, to: $to, path: $path) {
+    query getFunctionsLogs($appID: String!, $from: Timestamp!, $to: Timestamp, $path: String!, $regexFilter: String) {
+  getFunctionsLogs(
+    appID: $appID
+    from: $from
+    to: $to
+    path: $path
+    regexFilter: $regexFilter
+  ) {
     timestamp
     service
     log
@@ -35834,6 +35844,7 @@ export const GetFunctionsLogsDocument = gql`
  *      from: // value for 'from'
  *      to: // value for 'to'
  *      path: // value for 'path'
+ *      regexFilter: // value for 'regexFilter'
  *   },
  * });
  */
@@ -35852,8 +35863,13 @@ export function refetchGetFunctionsLogsQuery(variables: GetFunctionsLogsQueryVar
       return { query: GetFunctionsLogsDocument, variables: variables }
     }
 export const GetFunctionsLogsSubscriptionDocument = gql`
-    subscription getFunctionsLogsSubscription($appID: String!, $from: Timestamp!, $path: String!) {
-  getFunctionsLogs(appID: $appID, from: $from, path: $path) {
+    subscription getFunctionsLogsSubscription($appID: String!, $from: Timestamp!, $path: String!, $regexFilter: String) {
+  getFunctionsLogs(
+    appID: $appID
+    from: $from
+    path: $path
+    regexFilter: $regexFilter
+  ) {
     timestamp
     service
     log
@@ -35876,6 +35892,7 @@ export const GetFunctionsLogsSubscriptionDocument = gql`
  *      appID: // value for 'appID'
  *      from: // value for 'from'
  *      path: // value for 'path'
+ *      regexFilter: // value for 'regexFilter'
  *   },
  * });
  */
