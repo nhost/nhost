@@ -19,7 +19,7 @@
     "noImplicitAny": false,
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
-    "types": ["@types/ace"],
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./*"],
       "@/tests/*": ["tests/*"],

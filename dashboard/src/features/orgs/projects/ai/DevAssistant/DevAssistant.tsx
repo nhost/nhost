@@ -1,72 +1,71 @@
-import { useState } from 'react';
-import { type Toast, toast } from 'react-hot-toast';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { ErrorToast } from '@/components/ui/v2/ErrorToast';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Input } from '@/components/ui/v2/Input';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
-import { MessagesList } from '@/features/orgs/projects/ai/DevAssistant/components/MessagesList';
-import { import { import { ArrowUp, type SendDevMessageMutation } from 'lucide-react';
-messagesState,
+import { useState } from 'react'
+import { type Toast, toast } from 'react-hot-toast'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner'
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator'
+import { Alert } from '@/components/ui/v2/Alert'
+import { Box } from '@/components/ui/v2/Box'
+import { ErrorToast } from '@/components/ui/v2/ErrorToast'
+import { IconButton } from '@/components/ui/v2/IconButton'
+import { Input } from '@/components/ui/v2/Input'
+import { Link } from '@/components/ui/v2/Link'
+import { Text } from '@/components/ui/v2/Text'
+import { MessagesList } from '@/features/orgs/projects/ai/DevAssistant/components/MessagesList'
+import { ArrowUp } from 'lucide-react'
+import {
+  messagesState,
   projectMessagesState,
-  sessionIDState,
-} from '@/features/orgs/projects/ai/DevAssistant/state';
-import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { isNotEmptyValue } from '@/lib/utils';
-useSendDevMessageMutation,
-  useStartDevSessionMutation,
-} from '@/utils/__generated__/graphite.graphql';
+  sessionIDState
+} from '@/features/orgs/projects/ai/DevAssistant/state'
+import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled'
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform'
+import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient'
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs'
+import { useProject } from '@/features/orgs/projects/hooks/useProject'
+import { isNotEmptyValue } from '@/lib/utils'
+import {
+  useSendDevMessageMutation,
+  useStartDevSessionMutation
+} from '@/utils/__generated__/graphite.graphql'
 
-const MAX_THREAD_LENGTH = 50;
+const MAX_THREAD_LENGTH = 50
 
 export type Message = Omit<
-  NonNullable<
-    SendDevMessageMutation['graphite']
-  >['sendDevMessage']['messages'][number],
+  NonNullable<SendDevMessageMutation['graphite']>['sendDevMessage']['messages'][number],
   '__typename'
->;
+>
 
 export default function DevAssistant() {
-  const isPlatform = useIsPlatform();
-  const { project } = useProject();
-  const { currentOrg } = useOrgs();
+  const isPlatform = useIsPlatform()
+  const { project } = useProject()
+  const { currentOrg } = useOrgs()
 
-  const [loading, setLoading] = useState(false);
-  const [userInput, setUserInput] = useState('');
-  const setMessages = useSetRecoilState(messagesState);
-  const messages = useRecoilValue(projectMessagesState(project?.id));
-  const [storedSessionID, setStoredSessionID] = useRecoilState(sessionIDState);
+  const [loading, setLoading] = useState(false)
+  const [userInput, setUserInput] = useState('')
+  const setMessages = useSetRecoilState(messagesState)
+  const messages = useRecoilValue(projectMessagesState(project?.id))
+  const [storedSessionID, setStoredSessionID] = useRecoilState(sessionIDState)
 
-  const { adminClient } = useAdminApolloClient();
-  const [startDevSession] = useStartDevSessionMutation({ client: adminClient });
-  const [sendDevMessage] = useSendDevMessageMutation({ client: adminClient });
+  const { adminClient } = useAdminApolloClient()
+  const [startDevSession] = useStartDevSessionMutation({ client: adminClient })
+  const [sendDevMessage] = useSendDevMessageMutation({ client: adminClient })
 
-  const { isGraphiteEnabled } = useIsGraphiteEnabled();
+  const { isGraphiteEnabled } = useIsGraphiteEnabled()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+    event.preventDefault()
 
     try {
-      setLoading(true);
-      setUserInput('');
+      setLoading(true)
+      setUserInput('')
 
-      let sessionID = storedSessionID;
-      const lastMessage = messages.slice(1).pop(); // The first message is a welcome message, so we exclude it
+      let sessionID = storedSessionID
+      const lastMessage = messages.slice(1).pop() // The first message is a welcome message, so we exclude it
 
-      let hasBeenAnHourSinceLastMessage = false;
+      let hasBeenAnHourSinceLastMessage = false
       if (lastMessage) {
         hasBeenAnHourSinceLastMessage =
-          Date.now() - new Date(lastMessage.createdAt).getTime() >
-          60 * 60 * 1000;
+          Date.now() - new Date(lastMessage.createdAt).getTime() > 60 * 60 * 1000
       }
 
       const $messages = [
@@ -76,33 +75,30 @@ export default function DevAssistant() {
           message: userInput,
           createdAt: null,
           role: 'user',
-          projectId: project?.id,
-        },
-      ];
+          projectId: project?.id
+        }
+      ]
 
-      setMessages($messages);
+      setMessages($messages)
 
       if (!sessionID || hasBeenAnHourSinceLastMessage) {
-        const sessionRes = await startDevSession({ client: adminClient });
-        sessionID =
-          sessionRes?.data?.graphite?.startDevSession?.sessionID || '';
-        setStoredSessionID(sessionID);
+        const sessionRes = await startDevSession({ client: adminClient })
+        sessionID = sessionRes?.data?.graphite?.startDevSession?.sessionID || ''
+        setStoredSessionID(sessionID)
       }
 
       if (!sessionID) {
-        throw new Error('Failed to start a new session');
+        throw new Error('Failed to start a new session')
       }
 
       const result = await sendDevMessage({
         variables: {
           message: userInput,
           sessionId: sessionID,
-          prevMessageID: !hasBeenAnHourSinceLastMessage
-            ? lastMessage?.id || ''
-            : '',
-        },
-      });
-      const newMessages = result.data?.graphite?.sendDevMessage.messages;
+          prevMessageID: !hasBeenAnHourSinceLastMessage ? lastMessage?.id || '' : ''
+        }
+      })
+      const newMessages = result.data?.graphite?.sendDevMessage.messages
       if (isNotEmptyValue(newMessages)) {
         let thread = [
           // remove the temp messages of the user input while we wait for the dev assistant to respond
@@ -112,13 +108,13 @@ export default function DevAssistant() {
             .filter((item) => item.message)
 
             // add the currentProject.id to the new messages
-            .map((item) => ({ ...item, projectId: project?.id })),
-        ];
+            .map((item) => ({ ...item, projectId: project?.id }))
+        ]
 
         if (thread.length > MAX_THREAD_LENGTH) {
-          thread = thread.slice(thread.length - MAX_THREAD_LENGTH); // keep the thread at a max length of MAX_THREAD_LENGTH
+          thread = thread.slice(thread.length - MAX_THREAD_LENGTH) // keep the thread at a max length of MAX_THREAD_LENGTH
         }
-        setMessages(thread);
+        setMessages(thread)
       }
     } catch (error) {
       toast(
@@ -131,25 +127,23 @@ export default function DevAssistant() {
         ),
         {
           className: 'error-toast',
-          duration: Number.POSITIVE_INFINITY,
-        },
-      );
+          duration: Number.POSITIVE_INFINITY
+        }
+      )
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      const form = event.currentTarget.closest('form');
+      event.preventDefault()
+      const form = event.currentTarget.closest('form')
       if (form) {
-        form.dispatchEvent(
-          new Event('submit', { bubbles: true, cancelable: true }),
-        );
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
       }
     }
-  };
+  }
 
   if (isPlatform && currentOrg?.plan?.isFree) {
     return (
@@ -159,15 +153,12 @@ export default function DevAssistant() {
           description=""
         />
       </Box>
-    );
+    )
   }
 
-  const slug = isPlatform ? currentOrg?.slug : 'local';
+  const slug = isPlatform ? currentOrg?.slug : 'local'
 
-  if (
-    (isPlatform && !currentOrg?.plan?.isFree && !project?.config?.ai) ||
-    !isGraphiteEnabled
-  ) {
+  if ((isPlatform && !currentOrg?.plan?.isFree && !project?.config?.ai) || !isGraphiteEnabled) {
     return (
       <Box className="p-4">
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
@@ -187,7 +178,7 @@ export default function DevAssistant() {
           </Text>
         </Alert>
       </Box>
-    );
+    )
   }
 
   return (
@@ -199,15 +190,15 @@ export default function DevAssistant() {
           <Input
             value={userInput}
             onChange={(event) => {
-              const { value } = event.target;
-              setUserInput(value);
+              const { value } = event.target
+              setUserInput(value)
             }}
             onKeyDown={handleKeyDown}
             placeholder="Ask graphite anything!"
             className="w-full"
             required
             slotProps={{
-              input: { className: 'w-full rounded-none border-none' },
+              input: { className: 'w-full rounded-none border-none' }
             }}
             multiline
             maxRows={7}
@@ -225,5 +216,5 @@ export default function DevAssistant() {
         </Box>
       </form>
     </div>
-  );
+  )
 }
