@@ -14,6 +14,7 @@ export interface UseFunctionLogsProps {
   from: string;
   to: string | null;
   path: string;
+  regexFilter: string;
 }
 
 export function updateQuery(
@@ -50,6 +51,7 @@ export default function useFunctionLogs({
   from,
   to,
   path,
+  regexFilter,
 }: UseFunctionLogsProps) {
   const isPlatform = useIsPlatform();
   const { project, loading: loadingProject } = useProject();
@@ -66,6 +68,7 @@ export default function useFunctionLogs({
       from,
       to,
       path,
+      regexFilter,
     },
     client: isPlatform ? splitGraphqlClient : localLogsClient,
     fetchPolicy: 'cache-and-network',
@@ -81,10 +84,11 @@ export default function useFunctionLogs({
           appID: project?.id,
           from,
           path,
+          regexFilter,
         },
         updateQuery,
       }),
-    [subscribeToMore, project?.id, from, path],
+    [subscribeToMore, project?.id, from, path, regexFilter],
   );
 
   useEffect(
