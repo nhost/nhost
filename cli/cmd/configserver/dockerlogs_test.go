@@ -303,16 +303,28 @@ func TestGetFunctionsLogsRegexFilter(t *testing.T) {
 
 	logBuf := &bytes.Buffer{}
 	logBuf.Write(
-		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:00Z {"path":"/api/hello","level":"error","msg":"boom"}`+"\n"),
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:00Z {"path":"/api/hello","level":"error","msg":"boom"}`+"\n",
+		),
 	)
 	logBuf.Write(
-		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:01Z {"path":"/api/hello","level":"info","msg":"ok"}`+"\n"),
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:01Z {"path":"/api/hello","level":"info","msg":"ok"}`+"\n",
+		),
 	)
 	logBuf.Write(
-		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:02Z {"path":"/api/other","level":"error","msg":"nope"}`+"\n"),
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:02Z {"path":"/api/other","level":"error","msg":"nope"}`+"\n",
+		),
 	)
 	logBuf.Write(
-		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:03Z {"path":"/api/hello","level":"error","msg":"another"}`+"\n"),
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:03Z {"path":"/api/hello","level":"error","msg":"another"}`+"\n",
+		),
 	)
 
 	mock := &mockContainerClient{ //nolint:exhaustruct
@@ -516,7 +528,13 @@ func TestTailFunctionsLogsFiltersByPath(t *testing.T) {
 
 	ch := make(chan []model.Log, 10)
 
-	if err := gatherer.TailFunctionsLogs(t.Context(), "/api/hello", "", time.Time{}, ch); err != nil {
+	if err := gatherer.TailFunctionsLogs(
+		t.Context(),
+		"/api/hello",
+		"",
+		time.Time{},
+		ch,
+	); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -537,16 +555,28 @@ func TestTailFunctionsLogsRegexFilter(t *testing.T) {
 
 	logBuf := &bytes.Buffer{}
 	logBuf.Write(
-		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:00Z {"path":"/api/hello","level":"error","msg":"one"}`+"\n"),
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:00Z {"path":"/api/hello","level":"error","msg":"one"}`+"\n",
+		),
 	)
 	logBuf.Write(
-		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:01Z {"path":"/api/hello","level":"info","msg":"nope"}`+"\n"),
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:01Z {"path":"/api/hello","level":"info","msg":"nope"}`+"\n",
+		),
 	)
 	logBuf.Write(
-		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:02Z {"path":"/api/other","level":"error","msg":"wrong-path"}`+"\n"),
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:02Z {"path":"/api/other","level":"error","msg":"wrong-path"}`+"\n",
+		),
 	)
 	logBuf.Write(
-		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:03Z {"path":"/api/hello","level":"error","msg":"two"}`+"\n"),
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:03Z {"path":"/api/hello","level":"error","msg":"two"}`+"\n",
+		),
 	)
 
 	mock := &mockContainerClient{ //nolint:exhaustruct
