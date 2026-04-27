@@ -30,6 +30,7 @@ import {
   POSTGRESQL_DATE_TIME_TYPES,
   POSTGRESQL_JSON_TYPES,
   POSTGRESQL_NUMERIC_TYPES,
+  POSTGRESQL_UNSORTABLE_TYPES,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import {
   DataGrid,
@@ -98,6 +99,10 @@ export function createDataGridColumn(
 ): DataBrowserGridColumnDef {
   const meta = extractColumnMetadata(column, isEditable);
 
+  const isSortable =
+    !POSTGRESQL_UNSORTABLE_TYPES.includes(column.udt_name) &&
+    !POSTGRESQL_UNSORTABLE_TYPES.includes(column.data_type);
+
   const defaultColumnConfiguration = {
     header: () => (
       <div className="grid grid-flow-col items-center justify-start gap-1 font-normal">
@@ -114,6 +119,7 @@ export function createDataGridColumn(
     accessorKey: column.column_name as string,
     size: 250,
     meta,
+    enableSorting: isSortable,
     cell: (props: CellContext<UnknownDataGridRow, string>) => (
       <DataGridTextCell {...props} />
     ),
