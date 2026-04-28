@@ -41,6 +41,9 @@ export default function AuthenticatedLayout({
   );
   const { mainNavPinned } = useTreeNavState();
 
+  const hasProject = Boolean(router.query.appSubdomain);
+  const showSidebar = withMainNav && hasProject;
+
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
       return;
@@ -126,17 +129,23 @@ export default function AuthenticatedLayout({
         className="relative flex h-full flex-row overflow-hidden"
         ref={setMainNavContainer}
       >
-        {withMainNav && mainNavPinned && isMdOrLarger && <PinnedMainNav />}
+        {showSidebar && mainNavPinned && isMdOrLarger && <PinnedMainNav />}
+        {!showSidebar && isMdOrLarger && (
+          <div
+            aria-hidden="true"
+            className="h-full w-full flex-shrink-0 border-r sm:max-w-[310px]"
+          />
+        )}
 
         <div
           className={cn(
             'relative flex h-full w-full flex-row bg-accent-background',
             {
-              'overflow-x-auto': mainNavPinned && isMdOrLarger && withMainNav,
+              'overflow-x-auto': showSidebar && mainNavPinned && isMdOrLarger,
             },
           )}
         >
-          {withMainNav && (!mainNavPinned || !isMdOrLarger) && (
+          {showSidebar && (!mainNavPinned || !isMdOrLarger) && (
             <div className="flex h-full w-6 justify-center">
               <MainNav container={mainNavContainer} />
             </div>

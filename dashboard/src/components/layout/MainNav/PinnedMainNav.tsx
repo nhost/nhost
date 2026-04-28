@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import NavTree from '@/components/layout/MainNav/NavTree';
 import { Button } from '@/components/ui/v3/button';
-import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useTreeNavState } from './TreeNavStateContext';
 
 export default function PinnedMainNav() {
@@ -69,9 +68,8 @@ export default function PinnedMainNav() {
         ref={scrollContainerRef}
         className="h-[calc(100vh-7rem)] overflow-auto pt-2 pb-12 lg:h-[calc(100vh-6rem)]"
       >
-        <div className="flex flex-col gap-1 px-2">
+        <div className="flex flex-col gap-1 px-4">
           <NavTree />
-          <CreateOrgDialog />
         </div>
       </div>
     </div>

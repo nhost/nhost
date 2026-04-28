@@ -1,5 +1,6 @@
-import { Box, ChevronDown, ChevronRight, Code, Plus, Zap } from 'lucide-react';
+import { ChevronDown, ChevronRight, Code, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import {
   ControlledTreeEnvironment,
@@ -19,14 +20,21 @@ import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useProjectColor } from '@/features/orgs/projects/common/hooks/useProjectColor';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
 import { useTreeNavState } from './TreeNavStateContext';
 
-const projectPages = [
+type ProjectPage = {
+  name: string;
+  icon?: ReactElement;
+  route: string;
+  slug: string;
+};
+
+const projectPages: ProjectPage[] = [
   {
     name: 'Overview',
     icon: <HomeIcon className="h-4 w-4" />,
@@ -225,468 +233,351 @@ const projectAuthPages = [
   },
 ];
 
-const createOrganization = (org: Org) => {
-  const isNotPlatform = !getIsPlatform();
-  const configServerVariableNotSet = getConfigServerUrl() === '';
-  const shouldDisableSettings = isNotPlatform && configServerVariableNotSet;
-  const shouldDisableGraphite = shouldDisableSettings;
-  const result = {};
-
-  result[org.slug] = {
-    index: org.slug,
-    canMove: false,
-    isFolder: true,
-    children: [
-      `${org.slug}-projects`,
-      `${org.slug}-settings`,
-      `${org.slug}-members`,
-      `${org.slug}-billing`,
-    ],
-    data: {
-      name: org.name,
-      slug: org.slug,
-      type: 'org',
-      isFree: org.plan.isFree,
-      plan: org.plan.name,
-      targetUrl: `/orgs/${org.slug}/projects`, // default to projects
-      disabled: false,
-    },
-    canRename: false,
-  };
-
-  result[`${org.slug}-projects`] = {
-    index: `${org.slug}-projects`,
-    canMove: false,
-    isFolder: true,
-    children: [
-      ...org.apps.map((app) => `${org.slug}-${app.subdomain}`),
-      `${org.slug}-new-project`,
-    ],
-    data: {
-      name: 'Projects',
-      targetUrl: `/orgs/${org.slug}/projects`,
-      disabled: false,
-    },
-    canRename: false,
-  };
-
-  result[`${org.slug}-new-project`] = {
-    index: `${org.slug}-new-project`,
-    isFolder: false,
-    canMove: false,
-    canRename: false,
-    data: {
-      name: 'New project',
-      slug: 'new',
-      icon: <Plus className="mr-1 h-4 w-4 font-bold" strokeWidth={3} />,
-      targetUrl: `/orgs/${org.slug}/projects/new`,
-      disabled: isNotPlatform,
-    },
-  };
-
-  org.apps.forEach((app) => {
-    result[`${org.slug}-${app.subdomain}`] = {
-      index: `${org.slug}-${app.subdomain}`,
-      isFolder: true,
-      canMove: false,
-      canRename: false,
-      data: {
-        name: app.name,
-        slug: app.subdomain,
-        icon: <Box className="h-4 w-4" />,
-        targetUrl: `/orgs/${org.slug}/projects/${app.subdomain}`,
-      },
-      children: projectPages.map(
-        (page) => `${org.slug}-${app.subdomain}-${page.slug}`,
-      ),
-    };
-  });
-
-  org.apps.forEach((_app) => {
-    projectPages.forEach((_page) => {
-      result[`${org.slug}-${_app.subdomain}-${_page.slug}`] = {
-        index: `${org.slug}-${_app.subdomain}-${_page.slug}`,
-        canMove: false,
-        isFolder:
-          (_page.name === 'Settings' && !shouldDisableSettings) ||
-          _page.name === 'GraphQL' ||
-          _page.name === 'Events' ||
-          _page.name === 'Auth',
-        children: (() => {
-          if (_page.name === 'Settings' && !shouldDisableSettings) {
-            return projectSettingsPages.map(
-              (p) => `${org.slug}-${_app.subdomain}-settings-${p.slug}`,
-            );
-          }
-          if (_page.name === 'GraphQL') {
-            return projectGraphQLPages.map(
-              (p) => `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
-            );
-          }
-          if (_page.name === 'Events') {
-            return projectEventsPages.map(
-              (p) => `${org.slug}-${_app.subdomain}-events-${p.slug}`,
-            );
-          }
-          if (_page.name === 'Auth') {
-            return projectAuthPages.map(
-              (p) => `${org.slug}-${_app.subdomain}-auth-${p.slug}`,
-            );
-          }
-          return undefined;
-        })(),
-        data: {
-          name: _page.name,
-          icon: _page.icon,
-          isProjectPage: true,
-          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${_page.route}`,
-          disabled:
-            (['deployments', 'backups', 'metrics'].includes(_page.slug) &&
-              isNotPlatform) ||
-            (_page.name === 'Settings' && shouldDisableSettings) ||
-            (_page.name === 'AI' && shouldDisableGraphite),
-        },
-        canRename: false,
-      };
-    });
-
-    // add the settings pages
-    projectSettingsPages.forEach((p) => {
-      result[`${org.slug}-${_app.subdomain}-settings-${p.slug}`] = {
-        index: `${org.slug}-${_app.subdomain}-settings-${p.slug}`,
-        canMove: false,
-        isFolder: false,
-        children: undefined,
-        data: {
-          name: p.name,
-          targetUrl:
-            p.slug === 'general'
-              ? `/orgs/${org.slug}/projects/${_app.subdomain}/settings`
-              : `/orgs/${org.slug}/projects/${_app.subdomain}/settings/${p.route}`,
-          disabled: shouldDisableSettings,
-        },
-        canRename: false,
-      };
-    });
-
-    projectGraphQLPages.forEach((p) => {
-      result[`${org.slug}-${_app.subdomain}-graphql-${p.slug}`] = {
-        index: `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
-        canMove: false,
-        isFolder: false,
-        children: undefined,
-        data: {
-          name: p.name,
-          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
-        },
-        canRename: false,
-      };
-    });
-
-    projectEventsPages.forEach((p) => {
-      result[`${org.slug}-${_app.subdomain}-events-${p.slug}`] = {
-        index: `${org.slug}-${_app.subdomain}-events-${p.slug}`,
-        canMove: false,
-        isFolder: false,
-        children: undefined,
-        data: {
-          name: p.name,
-          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
-        },
-        canRename: false,
-      };
-    });
-
-    projectAuthPages.forEach((p) => {
-      result[`${org.slug}-${_app.subdomain}-auth-${p.slug}`] = {
-        index: `${org.slug}-${_app.subdomain}-auth-${p.slug}`,
-        canMove: false,
-        isFolder: false,
-        children: undefined,
-        data: {
-          name: p.name,
-          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
-        },
-        canRename: false,
-      };
-    });
-  });
-
-  result[`${org.slug}-settings`] = {
-    index: `${org.slug}-settings`,
-    canMove: false,
-    isFolder: false,
-    children: [],
-    data: {
-      name: 'Settings',
-      targetUrl: `/orgs/${org.slug}/settings`,
-      disabled: isNotPlatform,
-    },
-    canRename: false,
-  };
-
-  result[`${org.slug}-members`] = {
-    index: `${org.slug}-members`,
-    canMove: false,
-    isFolder: false,
-    children: [],
-    data: {
-      name: 'Members',
-      targetUrl: `/orgs/${org.slug}/members`,
-      disabled: isNotPlatform,
-    },
-    canRename: false,
-  };
-
-  result[`${org.slug}-billing`] = {
-    index: `${org.slug}-billing`,
-    canMove: false,
-    isFolder: false,
-    children: [],
-    data: {
-      name: 'Billing',
-      targetUrl: `/orgs/${org.slug}/billing`,
-      disabled: isNotPlatform,
-    },
-    canRename: false,
-  };
-
-  return result;
-};
-
 type NavItem = {
   name: string;
-  slug?: string;
-  type?: string;
-  isFree?: boolean;
-  plan?: string;
   icon?: ReactElement;
   targetUrl?: string;
   disabled?: boolean;
 };
 
-const buildNavTreeData = (
-  org?: Org,
-): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
-  if (!org) {
-    return {
-      items: {
-        root: {
-          index: 'root',
-          canMove: false,
-          isFolder: true,
-          children: [],
-          data: { name: 'root' },
-          canRename: false,
-        },
-      },
-    };
-  }
+type BuildOptions = {
+  orgSlug: string;
+  appSubdomain: string;
+  shouldDisableSettings: boolean;
+  shouldDisableGraphite: boolean;
+  isNotPlatform: boolean;
+};
 
-  const navTree = {
-    items: {
-      root: {
-        index: 'root',
-        canMove: false,
-        isFolder: true,
-        children: [
-          `${org.slug}-projects`,
-          `${org.slug}-settings`,
-          `${org.slug}-members`,
-          `${org.slug}-billing`,
-        ],
-        data: { name: 'root' },
-        canRename: false,
-      },
-      ...createOrganization(org),
-    },
+const FOLDER_PAGES = new Set(['settings', 'graphql', 'events', 'auth']);
+
+const buildProjectTree = ({
+  orgSlug,
+  appSubdomain,
+  shouldDisableSettings,
+  shouldDisableGraphite,
+  isNotPlatform,
+}: BuildOptions): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
+  const items: Record<TreeItemIndex, TreeItem<NavItem>> = {};
+
+  items.root = {
+    index: 'root',
+    canMove: false,
+    isFolder: true,
+    children: projectPages.map((page) => page.slug),
+    data: { name: 'root' },
+    canRename: false,
   };
 
-  return navTree;
+  projectPages.forEach((page) => {
+    const isSettingsFolder = page.slug === 'settings' && !shouldDisableSettings;
+    const isFolder = isSettingsFolder || FOLDER_PAGES.has(page.slug);
+
+    let children: string[] | undefined;
+    if (isSettingsFolder) {
+      children = projectSettingsPages.map((p) => `settings-${p.slug}`);
+    } else if (page.slug === 'graphql') {
+      children = projectGraphQLPages.map((p) => `graphql-${p.slug}`);
+    } else if (page.slug === 'events') {
+      children = projectEventsPages.map((p) => `events-${p.slug}`);
+    } else if (page.slug === 'auth') {
+      children = projectAuthPages.map((p) => `auth-${p.slug}`);
+    }
+
+    items[page.slug] = {
+      index: page.slug,
+      canMove: false,
+      isFolder,
+      children,
+      data: {
+        name: page.name,
+        icon: page.icon,
+        targetUrl: `/orgs/${orgSlug}/projects/${appSubdomain}/${page.route}`,
+        disabled:
+          (['deployments', 'backups', 'logs', 'metrics'].includes(page.slug) &&
+            isNotPlatform) ||
+          (page.slug === 'settings' && shouldDisableSettings) ||
+          (page.slug === 'ai' && shouldDisableGraphite),
+      },
+      canRename: false,
+    };
+  });
+
+  projectSettingsPages.forEach((p) => {
+    items[`settings-${p.slug}`] = {
+      index: `settings-${p.slug}`,
+      canMove: false,
+      isFolder: false,
+      children: undefined,
+      data: {
+        name: p.name,
+        targetUrl:
+          p.slug === 'general'
+            ? `/orgs/${orgSlug}/projects/${appSubdomain}/settings`
+            : `/orgs/${orgSlug}/projects/${appSubdomain}/settings/${p.route}`,
+        disabled: shouldDisableSettings,
+      },
+      canRename: false,
+    };
+  });
+
+  projectGraphQLPages.forEach((p) => {
+    items[`graphql-${p.slug}`] = {
+      index: `graphql-${p.slug}`,
+      canMove: false,
+      isFolder: false,
+      children: undefined,
+      data: {
+        name: p.name,
+        targetUrl: `/orgs/${orgSlug}/projects/${appSubdomain}/${p.route}`,
+      },
+      canRename: false,
+    };
+  });
+
+  projectEventsPages.forEach((p) => {
+    items[`events-${p.slug}`] = {
+      index: `events-${p.slug}`,
+      canMove: false,
+      isFolder: false,
+      children: undefined,
+      data: {
+        name: p.name,
+        targetUrl: `/orgs/${orgSlug}/projects/${appSubdomain}/${p.route}`,
+      },
+      canRename: false,
+    };
+  });
+
+  projectAuthPages.forEach((p) => {
+    items[`auth-${p.slug}`] = {
+      index: `auth-${p.slug}`,
+      canMove: false,
+      isFolder: false,
+      children: undefined,
+      data: {
+        name: p.name,
+        targetUrl: `/orgs/${orgSlug}/projects/${appSubdomain}/${p.route}`,
+      },
+      canRename: false,
+    };
+  });
+
+  return { items };
+};
+
+const emptyTree: { items: Record<TreeItemIndex, TreeItem<NavItem>> } = {
+  items: {
+    root: {
+      index: 'root',
+      canMove: false,
+      isFolder: true,
+      children: [],
+      data: { name: 'root' },
+      canRename: false,
+    },
+  },
 };
 
 export default function NavTree() {
-  const { currentOrg: org } = useOrgs();
+  const router = useRouter();
+  const { project } = useProject();
+  const { entry: colorEntry } = useProjectColor(project?.id);
 
-  const navTree = buildNavTreeData(org);
+  const orgSlug = router.query.orgSlug as string | undefined;
+  const appSubdomain = router.query.appSubdomain as string | undefined;
+
+  const isNotPlatform = !getIsPlatform();
+  const configServerVariableNotSet = getConfigServerUrl() === '';
+  const shouldDisableSettings = isNotPlatform && configServerVariableNotSet;
+  const shouldDisableGraphite = shouldDisableSettings;
+
+  const navTree =
+    orgSlug && appSubdomain
+      ? buildProjectTree({
+          orgSlug,
+          appSubdomain,
+          shouldDisableSettings,
+          shouldDisableGraphite,
+          isNotPlatform,
+        })
+      : emptyTree;
 
   const { orgsTreeViewState, setOrgsTreeViewState, setOpen } =
     useTreeNavState();
 
   return (
-    <ControlledTreeEnvironment
-      items={navTree.items}
-      getItemTitle={(item) => item.data.name}
-      viewState={{
-        'nav-tree': orgsTreeViewState,
-      }}
-      renderItemTitle={({ title }) => <span>{title}</span>}
-      renderItemArrow={({ item, context }) => {
-        if (!item.isFolder) {
-          return null;
-        }
-
-        return (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => context.toggleExpandedState()}
-            className="h-8 px-1"
-          >
-            {context.isExpanded ? (
-              <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
-            ) : (
-              <ChevronRight className="h-4 w-4" strokeWidth={3} />
-            )}
-          </Button>
-        );
-      }}
-      renderItem={({ arrow, context, item, children }) => (
-        <li
-          {...context.itemContainerWithChildrenProps}
-          className="flex flex-col gap-1"
-        >
-          <div className="flex flex-row items-center">
-            {arrow}
-            <Button
-              asChild
-              onClick={() => {
-                // do not focus an item if we already there
-                // this will prevent the case where clicking on the project name
-                // would focus on the project name instead of the overview page
-                if (
-                  navTree.items[item.index].data.targetUrl ===
-                  item.data.targetUrl
-                ) {
-                  return;
-                }
-
-                if (
-                  ['GraphQL', 'Events', 'Auth'].includes(item.data.name) &&
-                  item.isFolder
-                ) {
-                  if (!context.isExpanded) {
-                    context.toggleExpandedState();
-                  }
-                }
-
-                if (item.data.type !== 'org') {
-                  context.focusItem();
-                }
-              }}
-              className={cn(
-                'flex h-8 w-full flex-row justify-start gap-1 bg-background px-1 text-foreground hover:bg-accent',
-                {
-                  'bg-[#ebf3ff] hover:bg-accent dark:bg-muted':
-                    context.isFocused,
-                },
-                item.data.disabled && 'pointer-events-none opacity-50',
-              )}
-            >
-              <Link
-                href={item.data.targetUrl || '/'}
-                shallow
-                onClick={() => setOpen(false)}
-              >
-                {item.data.icon && (
-                  <span
-                    className={cn(
-                      'flex items-start',
-                      context.isFocused ? 'text-primary' : '',
-                    )}
-                  >
-                    {item.data.icon}
-                  </span>
-                )}
-                <span
-                  className={cn(
-                    item?.index === 'organizations' && 'font-bold',
-                    context.isFocused ? 'font-bold text-primary' : '',
-                    'max-w-52 truncate',
-                  )}
-                >
-                  {item.data.name}
-                </span>
-                {item.data?.plan && (
-                  <Badge
-                    variant={item.data.isFree ? 'outline' : 'default'}
-                    className={cn(
-                      'h-5 px-[6px] text-[10px]',
-                      item.data.isFree ? 'bg-muted' : '',
-                    )}
-                  >
-                    {item.data.plan}
-                  </Badge>
-                )}
-              </Link>
-            </Button>
-          </div>
-          <div>{children}</div>
-        </li>
-      )}
-      renderTreeContainer={({ children, containerProps }) => (
-        <div {...containerProps} className="w-full">
-          {children}
+    <div className="flex flex-col gap-2">
+      {project && (
+        <div className="flex items-center gap-2 px-2 pb-1">
+          {colorEntry && (
+            <span
+              aria-hidden="true"
+              className={cn('h-3 w-3 shrink-0 rounded-full', colorEntry.dot)}
+            />
+          )}
+          <span className="truncate font-semibold text-foreground text-sm">
+            {project.name}
+          </span>
         </div>
       )}
-      renderItemsContainer={({ children, containerProps, depth }) => {
-        if (depth === 0) {
+
+      <ControlledTreeEnvironment
+        items={navTree.items}
+        getItemTitle={(item) => item.data.name}
+        viewState={{
+          'nav-tree': orgsTreeViewState,
+        }}
+        renderItemTitle={({ title }) => <span>{title}</span>}
+        renderItemArrow={({ item, context }) => {
+          if (!item.isFolder) {
+            return null;
+          }
+
           return (
-            <ul {...containerProps} className="w-full">
-              {children}
-            </ul>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => context.toggleExpandedState()}
+              className="h-8 px-1"
+            >
+              {context.isExpanded ? (
+                <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
+              ) : (
+                <ChevronRight className="h-4 w-4" strokeWidth={3} />
+              )}
+            </Button>
           );
-        }
+        }}
+        renderItem={({ arrow, context, item, children }) => (
+          <li
+            {...context.itemContainerWithChildrenProps}
+            className="flex flex-col gap-1"
+          >
+            <div className="flex flex-row items-center">
+              {arrow}
+              <Button
+                asChild
+                onClick={() => {
+                  if (
+                    navTree.items[item.index].data.targetUrl ===
+                    item.data.targetUrl
+                  ) {
+                    return;
+                  }
 
-        return (
-          <div className="flex w-full flex-row">
-            <div className="flex justify-center px-[12px] pb-3">
-              <div className="h-full w-0 border-r border-dashed" />
+                  if (
+                    item.isFolder &&
+                    FOLDER_PAGES.has(item.index as string) &&
+                    !context.isExpanded
+                  ) {
+                    context.toggleExpandedState();
+                  }
+
+                  context.focusItem();
+                }}
+                className={cn(
+                  'flex h-8 w-full flex-row justify-start gap-1 bg-background px-1 text-foreground hover:bg-accent',
+                  {
+                    'bg-[#ebf3ff] hover:bg-accent dark:bg-muted':
+                      context.isFocused,
+                  },
+                  item.data.disabled && 'pointer-events-none opacity-50',
+                )}
+              >
+                <Link
+                  href={item.data.targetUrl || '/'}
+                  shallow
+                  onClick={() => setOpen(false)}
+                >
+                  {item.data.icon && (
+                    <span
+                      className={cn(
+                        'flex items-start',
+                        context.isFocused ? 'text-primary' : '',
+                      )}
+                    >
+                      {item.data.icon}
+                    </span>
+                  )}
+                  <span
+                    className={cn(
+                      context.isFocused ? 'font-bold text-primary' : '',
+                      'max-w-52 truncate',
+                    )}
+                  >
+                    {item.data.name}
+                  </span>
+                </Link>
+              </Button>
             </div>
-            <ul {...containerProps} className="w-full">
-              {children}
-            </ul>
+            <div>{children}</div>
+          </li>
+        )}
+        renderTreeContainer={({ children, containerProps }) => (
+          <div {...containerProps} className="w-full">
+            {children}
           </div>
-        );
-      }}
-      canSearch={false}
-      onExpandItem={(item) => {
-        setOrgsTreeViewState(
-          ({ expandedItems: prevExpandedItems, ...rest }) => {
-            const newExpandedItems = isNotEmptyValue(prevExpandedItems)
-              ? [...prevExpandedItems]
-              : [];
+        )}
+        renderItemsContainer={({ children, containerProps, depth }) => {
+          if (depth === 0) {
+            return (
+              <ul {...containerProps} className="w-full">
+                {children}
+              </ul>
+            );
+          }
 
-            return {
+          return (
+            <div className="flex w-full flex-row">
+              <div className="flex justify-center px-[12px] pb-3">
+                <div className="h-full w-0 border-r border-dashed" />
+              </div>
+              <ul {...containerProps} className="w-full">
+                {children}
+              </ul>
+            </div>
+          );
+        }}
+        canSearch={false}
+        onExpandItem={(item) => {
+          setOrgsTreeViewState(
+            ({ expandedItems: prevExpandedItems, ...rest }) => {
+              const newExpandedItems = isNotEmptyValue(prevExpandedItems)
+                ? [...prevExpandedItems]
+                : [];
+
+              return {
+                ...rest,
+                expandedItems: newExpandedItems?.includes(item.index)
+                  ? prevExpandedItems
+                  : [...newExpandedItems, item.index],
+              };
+            },
+          );
+        }}
+        onCollapseItem={(item) => {
+          setOrgsTreeViewState(
+            ({ expandedItems: prevExpandedItems, ...rest }) => ({
               ...rest,
-              // Add item index to expandedItems only if it's not already present
-              expandedItems: newExpandedItems?.includes(item.index)
-                ? prevExpandedItems
-                : [...newExpandedItems, item.index],
-            };
-          },
-        );
-      }}
-      onCollapseItem={(item) => {
-        setOrgsTreeViewState(
-          ({ expandedItems: prevExpandedItems, ...rest }) => ({
-            ...rest,
-            // Remove the item index from expandedItems
-            expandedItems: (prevExpandedItems ?? []).filter(
-              (index) => index !== item.index,
-            ),
-          }),
-        );
-      }}
-      onFocusItem={(item) => {
-        setOrgsTreeViewState((prevViewState) => ({
-          ...prevViewState,
-          // Set the focused item
-          focusedItem: item.index,
-        }));
-      }}
-    >
-      <Tree treeId="nav-tree" rootItem="root" treeLabel="Navigation Tree" />
-    </ControlledTreeEnvironment>
+              expandedItems: (prevExpandedItems ?? []).filter(
+                (index) => index !== item.index,
+              ),
+            }),
+          );
+        }}
+        onFocusItem={(item) => {
+          setOrgsTreeViewState((prevViewState) => ({
+            ...prevViewState,
+            focusedItem: item.index,
+          }));
+        }}
+      >
+        <Tree
+          treeId="nav-tree"
+          rootItem="root"
+          treeLabel="Project navigation"
+        />
+      </ControlledTreeEnvironment>
+    </div>
   );
 }

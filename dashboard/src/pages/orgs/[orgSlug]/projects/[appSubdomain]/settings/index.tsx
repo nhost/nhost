@@ -15,6 +15,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { ProjectColorPicker } from '@/features/orgs/projects/common/components/ProjectColorPicker';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
@@ -247,6 +248,8 @@ export default function SettingsGeneralPage() {
           </SettingsContainer>
         </Form>
       </FormProvider>
+
+      <ProjectColorPicker />
 
       {isPaused || isPausing ? (
         <SettingsContainer

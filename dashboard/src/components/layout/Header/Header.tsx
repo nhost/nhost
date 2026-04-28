@@ -14,6 +14,7 @@ import { AnnouncementsTray } from '@/features/orgs/components/members/components
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
 import { DevAssistant } from '@/features/orgs/projects/ai/DevAssistant';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useProjectColor } from '@/features/orgs/projects/common/hooks/useProjectColor';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import BreadcrumbNav from './BreadcrumbNav';
@@ -27,6 +28,7 @@ export default function Header({ className, ...props }: HeaderProps) {
   const isPlatform = useIsPlatform();
   const { openDrawer } = useDialog();
   const { project } = useProject();
+  const { entry: colorEntry } = useProjectColor(project?.id);
 
   const openDevAssistant = () => {
     // The dev assistant can be only answer questions related to a particular project
@@ -50,6 +52,7 @@ export default function Header({ className, ...props }: HeaderProps) {
       component="header"
       className={twMerge(
         'relative z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b px-4',
+        colorEntry && `border-b-2 ${colorEntry.border}`,
         className,
       )}
       sx={{ backgroundColor: 'background.paper' }}
