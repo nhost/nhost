@@ -3,12 +3,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
+import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
 import { Form } from '@/components/form/Form';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
 import { useManagePermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManagePermissionMutation';
 import type {
   DatabaseAction,
@@ -104,6 +104,26 @@ export interface RolePermissionEditorFormProps extends DialogFormProps {
    */
   action: DatabaseAction;
   /**
+   * All roles selectable in the role dropdown.
+   */
+  availableRoles: string[];
+  /**
+   * All actions selectable in the action dropdown.
+   */
+  allowedActions: DatabaseAction[];
+  /**
+   * Human-readable labels for each action.
+   */
+  actionLabels: Record<DatabaseAction, string>;
+  /**
+   * Called when the user picks a different role from the dropdown.
+   */
+  onRoleChange: (role: string) => void;
+  /**
+   * Called when the user picks a different action from the dropdown.
+   */
+  onActionChange: (action: DatabaseAction) => void;
+  /**
    * Function to be called when the form is submitted.
    */
   onSubmit: VoidFunction;
@@ -186,6 +206,11 @@ export default function RolePermissionEditorForm({
   role,
   resourceVersion,
   action,
+  availableRoles,
+  allowedActions,
+  actionLabels,
+  onRoleChange,
+  onActionChange,
   onSubmit,
   onCancel,
   permission,
@@ -377,21 +402,19 @@ export default function RolePermissionEditorForm({
         <div className="grid flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection
             title="Selected role & action"
-            className="grid-flow-col justify-between"
+            className="grid-flow-col justify-start gap-6"
           >
-            <div className="grid grid-flow-col gap-4">
-              <Text>
-                Role: <HighlightedText>{role}</HighlightedText>
-              </Text>
-
-              <Text>
-                Action: <HighlightedText>{action}</HighlightedText>
-              </Text>
-            </div>
-
-            <Button variant="borderless" onClick={handleCancelClick}>
-              Change
-            </Button>
+            <RoleActionSwitcher
+              role={role}
+              action={action}
+              availableRoles={availableRoles}
+              availableActions={allowedActions}
+              actionLabels={actionLabels}
+              isDirty={isDirty}
+              location={location}
+              onRoleChange={onRoleChange}
+              onActionChange={onActionChange}
+            />
           </PermissionSettingsSection>
 
           <RowPermissionsSection
