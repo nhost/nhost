@@ -1,4 +1,4 @@
-export function MetadataRow({
+export default function MetadataRow({
   label,
   value,
 }: {
