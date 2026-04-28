@@ -39,9 +39,7 @@ export default function prepareCreateColumnQuery({
   const uniqueClause = column.isUnique ? format('UNIQUE') : '';
   let defaultClause = '';
 
-  if (typeof column.defaultValue === 'string') {
-    defaultClause = format('DEFAULT %L', column.defaultValue);
-  } else if (column.defaultValue?.value && !column.isIdentity) {
+  if (column.defaultValue && !column.isIdentity) {
     defaultClause = format(
       column.defaultValue.custom ? 'DEFAULT %L' : 'DEFAULT %s',
       column.defaultValue.value,
@@ -55,7 +53,7 @@ export default function prepareCreateColumnQuery({
       schema,
       table,
       column.name,
-      column.type.value,
+      column.type,
       defaultClause,
       notNullClause,
       uniqueClause,
@@ -75,7 +73,11 @@ export default function prepareCreateColumnQuery({
     );
   }
 
-  if (identityTypes.includes(column.type.value) && column.isIdentity) {
+  if (
+    !!column.type &&
+    (identityTypes as readonly string[]).includes(column.type) &&
+    column.isIdentity
+  ) {
     args = args.concat(
       getPreparedHasuraQuery(
         dataSource,

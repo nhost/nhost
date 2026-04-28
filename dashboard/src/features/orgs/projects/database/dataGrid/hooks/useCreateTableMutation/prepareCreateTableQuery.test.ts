@@ -9,11 +9,11 @@ describe('prepareCreateTableQuery', () => {
       columns: [
         {
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
         },
         {
           name: 'name',
-          type: { value: 'text', label: 'Text' },
+          type: 'text',
         },
       ],
       primaryKey: ['id'],
@@ -37,15 +37,15 @@ describe('prepareCreateTableQuery', () => {
       columns: [
         {
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
         },
         {
           name: 'name',
-          type: { value: 'text', label: 'Text' },
+          type: 'text',
         },
         {
           name: 'author_id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
         },
       ],
       foreignKeyRelations: [
@@ -79,11 +79,11 @@ describe('prepareCreateTableQuery', () => {
       columns: [
         {
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
         },
         {
           name: 'name',
-          type: { value: 'text', label: 'Text' },
+          type: 'text',
           isUnique: true,
         },
       ],
@@ -108,16 +108,16 @@ describe('prepareCreateTableQuery', () => {
       columns: [
         {
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
         },
         {
           name: 'name',
-          type: { value: 'text', label: 'Text' },
+          type: 'text',
           isNullable: true,
         },
         {
           name: 'is_active',
-          type: { value: 'bool', label: 'Boolean' },
+          type: 'bool',
           isNullable: true,
         },
       ],
@@ -142,24 +142,19 @@ describe('prepareCreateTableQuery', () => {
       columns: [
         {
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
-          // this is a default value preset
-          defaultValue: {
-            value: 'gen_random_uuid()',
-            label: 'gen_random_uuid()',
-          },
+          type: 'uuid',
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
         },
         {
           name: 'name',
-          type: { value: 'text', label: 'Text' },
+          type: 'text',
           isNullable: true,
         },
         {
           name: 'is_active',
-          type: { value: 'bool', label: 'Boolean' },
+          type: 'bool',
           isNullable: true,
-          // this is a custom default value
-          defaultValue: { value: 'true', label: 'true', custom: true },
+          defaultValue: { value: 'true', custom: true },
         },
       ],
       primaryKey: ['id'],
@@ -177,24 +172,55 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
+  test('should escape a literal default whose value collides with a function name', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      columns: [
+        {
+          name: 'as_literal',
+          type: 'text',
+          isNullable: true,
+          defaultValue: { value: 'version()', custom: true },
+        },
+        {
+          name: 'as_function',
+          type: 'text',
+          isNullable: true,
+          defaultValue: { value: 'version()', custom: false },
+        },
+      ],
+      primaryKey: [],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+
+    expect(transaction[0].args.sql).toBe(
+      "CREATE TABLE public.test_table (as_literal text DEFAULT 'version()', as_function text DEFAULT version());",
+    );
+  });
+
   test('should prepare a query with an identity column', () => {
     const table: DatabaseTable = {
       name: 'test_table',
       columns: [
         {
           name: 'id',
-          type: { value: 'int4', label: 'Integer' },
+          type: 'int4',
         },
         {
           name: 'name',
-          type: { value: 'text', label: 'Text' },
+          type: 'text',
           isNullable: true,
         },
         {
           name: 'is_active',
-          type: { value: 'bool', label: 'Boolean' },
+          type: 'bool',
           isNullable: true,
-          defaultValue: { value: 'true', label: 'true' },
+          defaultValue: { value: 'true', custom: true },
         },
       ],
       primaryKey: ['id'],
@@ -209,7 +235,7 @@ describe('prepareCreateTableQuery', () => {
 
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
-      'CREATE TABLE public.test_table (id int4 GENERATED ALWAYS AS IDENTITY, name text, is_active bool DEFAULT true, PRIMARY KEY (id));',
+      "CREATE TABLE public.test_table (id int4 GENERATED ALWAYS AS IDENTITY, name text, is_active bool DEFAULT 'true', PRIMARY KEY (id));",
     );
   });
   test('should prepare a query with no primary key', () => {
@@ -219,15 +245,11 @@ describe('prepareCreateTableQuery', () => {
       columns: [
         {
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
         },
         {
           name: 'name',
-          type: {
-            // biome-ignore lint/suspicious/noExplicitAny: test file
-            value: 'character varying(10)' as any,
-            label: 'character varying(10)',
-          },
+          type: 'character varying(10)',
         },
       ],
       // No primaryKey property set
@@ -251,12 +273,12 @@ describe('prepareCreateTableQuery', () => {
       columns: [
         {
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
           comment: 'Primary key comment',
         },
         {
           name: 'name',
-          type: { value: 'text', label: 'Text' },
+          type: 'text',
           comment: 'Text comment',
         },
       ],

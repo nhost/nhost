@@ -80,21 +80,23 @@ function FormSelectImpl<
         return (
           <FormItem
             className={cn(
-              { 'flex w-full items-center gap-4 py-3': inline },
+              {
+                'sm:flex sm:w-full sm:items-center sm:gap-4 sm:py-3': inline,
+              },
               containerClassName,
             )}
           >
             <FormLabel
               className={cn({
-                'w-52 max-w-52 flex-shrink-0': inline,
-                'mt-2 self-start': inline && !!helperText,
+                'sm:w-52 sm:max-w-52 sm:flex-shrink-0': inline,
+                'sm:mt-2 sm:self-start': inline && !!helperText,
               })}
             >
               {label}
             </FormLabel>
             <div
               className={cn({
-                'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
+                'sm:flex sm:w-[calc(100%-13.5rem)] sm:max-w-[calc(100%-13.5rem)] sm:flex-col sm:gap-2':
                   inline,
               })}
             >
