@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(npm *)",
+      "Bash(yarn *)"
+    ]
+  }
+}

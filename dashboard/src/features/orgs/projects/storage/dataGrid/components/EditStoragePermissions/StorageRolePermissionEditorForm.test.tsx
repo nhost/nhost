@@ -63,6 +63,10 @@ function renderEditor(
     role: 'user',
     resourceVersion: 1,
     storageAction: 'upload',
+    availableRoles: ['public', 'user'],
+    availableStorageActions: ['upload', 'download', 'replace', 'delete'],
+    onRoleChange: vi.fn(),
+    onStorageActionChange: vi.fn(),
     onSubmit: vi.fn(),
     onCancel: vi.fn(),
     ...props,
@@ -156,20 +160,18 @@ describe('StorageRolePermissionEditorForm', () => {
 
   describe('UI rendering', () => {
     it('displays role name and action label in header', () => {
-      renderEditor({ role: 'editor', storageAction: 'download' });
+      renderEditor({
+        role: 'editor',
+        storageAction: 'download',
+        availableRoles: ['public', 'user', 'editor'],
+      });
 
+      expect(screen.getByRole('combobox', { name: /role/i })).toHaveTextContent(
+        'editor',
+      );
       expect(
-        screen.getByText(
-          (_, el) =>
-            el?.tagName === 'SPAN' && el.textContent === 'Role: editor',
-        ),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          (_, el) =>
-            el?.tagName === 'SPAN' && el.textContent === 'Action: Download',
-        ),
-      ).toBeInTheDocument();
+        screen.getByRole('combobox', { name: /action/i }),
+      ).toHaveTextContent('Download');
     });
 
     it('shows upload preset section for upload action', () => {
