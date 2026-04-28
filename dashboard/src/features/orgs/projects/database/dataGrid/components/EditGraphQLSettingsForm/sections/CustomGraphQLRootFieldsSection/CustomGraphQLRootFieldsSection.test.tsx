@@ -36,9 +36,9 @@ vi.mock(
   }),
 );
 
-function renderSection(tableName = 'user_profile') {
+function renderSection(tableName = 'user_profile', schema = 'public') {
   return render(
-    <CustomGraphQLRootFieldsSection schema="public" tableName={tableName} />,
+    <CustomGraphQLRootFieldsSection schema={schema} tableName={tableName} />,
   );
 }
 
@@ -148,6 +148,37 @@ describe('CustomGraphQLRootFieldsSection', () => {
     expect(customTableInput).toHaveDisplayValue('userProfileCustom');
     expect(selectAggregateField).toHaveDisplayValue('customSelectField');
     expect(insertOneField).toHaveDisplayValue('insertUserProfileCustomOne');
+  });
+
+  it('prefixes the default placeholders with the schema name for non-public schemas', async () => {
+    const user = new TestUserEvent();
+    renderSection('roles', 'auth');
+    await openAllSections(user);
+
+    const [customTableInput, selectField] = screen.getAllByPlaceholderText(
+      'auth_roles (default)',
+    );
+    const selectAggregateField = screen.getByPlaceholderText(
+      'auth_roles_aggregate (default)',
+    );
+    const insertField = screen.getByPlaceholderText(
+      'insert_auth_roles (default)',
+    );
+    const insertOneField = screen.getByPlaceholderText(
+      'insert_auth_roles_one (default)',
+    );
+
+    expect(customTableInput).toHaveDisplayValue('');
+    expect(selectField).toHaveDisplayValue('');
+    expect(selectAggregateField).toHaveDisplayValue('');
+    expect(insertField).toHaveDisplayValue('');
+    expect(insertOneField).toHaveDisplayValue('');
+
+    await user.click(screen.getByRole('button', { name: 'Make camelCase' }));
+
+    expect(customTableInput).toHaveDisplayValue('authRoles');
+    expect(selectField).toHaveDisplayValue('authRoles');
+    expect(insertField).toHaveDisplayValue('insertAuthRoles');
   });
 
   it('resets every field back to defaults when Reset to default is clicked', async () => {

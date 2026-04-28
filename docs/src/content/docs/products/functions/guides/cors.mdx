@@ -4,11 +4,35 @@ description: Handle Cross-Origin Resource Sharing in Nhost Functions
 keywords: ["CORS", "cross-origin", "serverless functions", "Access-Control", "preflight", "OPTIONS"]
 ---
 
-Nhost Functions do not set any CORS headers automatically. If your function is called from a browser on a different origin (for example, a frontend app on `localhost:5173` calling functions at `local.functions.local.nhost.run`), you need to handle CORS yourself.
+Nhost Functions inject a small set of default CORS headers so simple cross-origin `GET` and `POST` requests work without extra code. The defaults only fill in headers your function doesn't set. Anything you set yourself (directly or via middleware like [`cors`](https://www.npmjs.com/package/cors)) is preserved as-is. Other methods, custom headers, or credentials are your responsibility.
 
-## Using the `cors` Package
+## Default Headers
 
-The simplest approach is to use the [`cors`](https://www.npmjs.com/package/cors) npm package:
+Unless your function sets them itself, every response includes:
+
+| Header                          | Value                                          |
+| ------------------------------- | ---------------------------------------------- |
+| `Access-Control-Allow-Origin`   | `*`                                            |
+| `Access-Control-Allow-Headers`  | `origin,Accept,Authorization,Content-Type`     |
+
+`Access-Control-Allow-Methods` and `Access-Control-Allow-Credentials` are not set. Requests that need them won't work until you set them yourself.
+
+:::caution
+`*` allows any website to call your function. In production, restrict the origin to your actual frontend(s).
+:::
+
+## Disabling Default CORS
+
+If you want to block cross-origin access, return an empty `Access-Control-Allow-Origin` and/or `Access-Control-Allow-Headers`:
+
+```ts title="./functions/api.ts"
+res.setHeader('Access-Control-Allow-Origin', '')
+res.setHeader('Access-Control-Allow-Headers', '')
+```
+
+## Customizing
+
+Use the [`cors`](https://www.npmjs.com/package/cors) npm package for the cleanest setup:
 
 ```shell
 npm install cors
@@ -19,7 +43,10 @@ npm install -D @types/cors
 import type { Request, Response } from 'express'
 import cors from 'cors'
 
-const corsMiddleware = cors()
+const corsMiddleware = cors({
+  origin: ['https://myapp.com', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+})
 
 export default (req: Request, res: Response) => {
   corsMiddleware(req, res, () => {
@@ -28,47 +55,47 @@ export default (req: Request, res: Response) => {
 }
 ```
 
-This allows requests from any origin. To restrict to specific origins:
-
-```ts
-const corsMiddleware = cors({
-  origin: ['https://myapp.com', 'http://localhost:5173'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-})
-```
-
-## Manual CORS Headers
-
-If you prefer not to add a dependency, set the headers manually:
+Or set headers manually:
 
 ```ts title="./functions/api.ts"
 import type { Request, Response } from 'express'
 
 export default (req: Request, res: Response) => {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end()
-  }
-
-  res.status(200).json({ message: 'Hello from a CORS-enabled function!' })
+  res.setHeader('Access-Control-Allow-Origin', 'https://myapp.com')
+  res.status(200).json({ message: 'Hello!' })
 }
 ```
 
-:::caution
-Using `*` for `Access-Control-Allow-Origin` allows any website to call your function. In production, restrict this to your actual frontend origin(s).
-:::
+Any CORS header you set takes precedence over the default; headers you leave untouched keep the default value. The snippet above covers simple requests only — see [Preflight Requests](#preflight-requests) for anything else.
+
+## Credentials
+
+If your frontend sends cookies or authorization headers with `credentials: 'include'`, you need `Access-Control-Allow-Credentials: true`. The CORS spec forbids combining that with `Access-Control-Allow-Origin: *`, so you must also override the origin to a specific value:
+
+```ts
+res.setHeader('Access-Control-Allow-Origin', 'https://myapp.com')
+res.setHeader('Access-Control-Allow-Credentials', 'true')
+```
 
 ## Preflight Requests
 
 Browsers send a preflight `OPTIONS` request before the actual request when:
 
 - The request uses a method other than GET, HEAD, or POST
-- The request includes custom headers (like `Authorization`)
+- The request includes custom headers beyond the defaults above
 - The request uses `Content-Type` other than `application/x-www-form-urlencoded`, `multipart/form-data`, or `text/plain`
 
-Your function receives all HTTP methods on the same handler, so you must check for `OPTIONS` and respond appropriately. The `cors` package handles this automatically.
+The runtime does not respond to `OPTIONS` on your behalf — the request reaches your function. Either use the `cors` package (it handles preflight automatically) or handle `OPTIONS` manually:
 
+```ts title="./functions/api.ts"
+import type { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+    return res.status(204).end()
+  }
+
+  res.status(200).json({ message: 'Hello!' })
+}
+```

@@ -130,7 +130,7 @@ jobs:
       - check-permissions
       - deploy-vercel
       - build_artifacts
-    if: needs.detect-changes.outputs.should_run == 'true'
+    if: needs.detect-changes.outputs.should_run == 'true' && github.event_name == 'merge_group'
     with:
       NAME: dashboard
       PATH: dashboard

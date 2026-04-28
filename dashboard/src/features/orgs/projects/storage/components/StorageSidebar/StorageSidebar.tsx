@@ -169,8 +169,8 @@ function StorageSidebarContent({
   }
 
   return (
-    <div className="flex h-full flex-col justify-between">
-      <div className="flex flex-col px-2">
+    <div className="flex h-full flex-col">
+      <div className="flex shrink-0 flex-col px-2">
         <Button
           variant="link"
           className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
@@ -178,6 +178,8 @@ function StorageSidebarContent({
         >
           New Bucket <Plus className="h-4 w-4" />
         </Button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2">
         {buckets.length === 0 && (
           <p className="px-2 py-1.5 text-disabled text-xs">No buckets found.</p>
         )}
@@ -212,7 +214,7 @@ function StorageSidebarContent({
           />
         )}
       </div>
-      <div className="box border-t">
+      <div className="shrink-0 border-t">
         <StoragePermissionsButton />
       </div>
     </div>

@@ -22,6 +22,46 @@ export interface FunctionParameter {
   schema: string | null;
 }
 
+/**
+ * Return type kind from `pg_type.typtype`:
+ * - `b` base/scalar
+ * - `c` composite
+ * - `d` domain
+ * - `e` enum
+ * - `p` pseudo
+ * - `r` range
+ * - `m` multirange
+ */
+export type PostgresTypeKind = 'b' | 'c' | 'd' | 'e' | 'p' | 'r' | 'm';
+
+/**
+ * Shape of a single row returned by the SQL query in
+ * `fetchFunctionDefinition`. Keys are snake_case to mirror the Postgres
+ * columns; the function maps them to the camelCase `FunctionMetadata`.
+ */
+export interface FunctionDefinitionRow {
+  function_definition: string;
+  function_name: string;
+  function_schema: string;
+  function_type: 'IMMUTABLE' | 'STABLE' | 'VOLATILE' | null;
+  return_type_name: string;
+  return_type_schema: string;
+  return_type_kind: PostgresTypeKind;
+  returns_set: boolean;
+  has_variadic: boolean;
+  language: string;
+  input_arg_types: Array<{
+    name: string;
+    schema: string;
+    display_type: string;
+    arg_name: string | null;
+  }>;
+  default_args_count: number;
+  return_table_name: string | null;
+  return_table_schema: string | null;
+  comment: string | null;
+}
+
 export interface FetchFunctionDefinitionReturnType {
   /**
    * The CREATE FUNCTION SQL definition.
@@ -36,6 +76,11 @@ export interface FetchFunctionDefinitionReturnType {
     functionType: 'IMMUTABLE' | 'STABLE' | 'VOLATILE' | null;
     returnTypeName: string;
     returnTypeSchema: string;
+    returnTypeKind: PostgresTypeKind;
+    /** Whether the function returns a set (SETOF). */
+    returnsSet: boolean;
+    /** Whether the function has any variadic argument. */
+    hasVariadic: boolean;
     language: string;
     parameters: FunctionParameter[];
     defaultArgsCount: number;
@@ -85,6 +130,9 @@ export default async function fetchFunctionDefinition({
               END AS function_type,
               rt.typname as return_type_name,
               rtn.nspname as return_type_schema,
+              rt.typtype as return_type_kind,
+              p.proretset as returns_set,
+              (p.provariadic <> 0) as has_variadic,
               l.lanname as language,
               (SELECT COALESCE(json_agg(json_build_object(
                 'name', pt.typname,
@@ -159,16 +207,11 @@ export default async function fetchFunctionDefinition({
     };
   }
 
-  const result = JSON.parse(rawResults[0]);
+  const result: FunctionDefinitionRow = JSON.parse(rawResults[0]);
   const functionDefinition = result.function_definition || '';
 
-  const inputArgTypes: Array<{
-    name: string;
-    schema: string;
-    display_type: string;
-    arg_name: string | null;
-  }> = result.input_arg_types || [];
-  const defaultArgsCount: number = result.default_args_count || 0;
+  const inputArgTypes = result.input_arg_types || [];
+  const defaultArgsCount = result.default_args_count || 0;
 
   const parameters: FunctionParameter[] = inputArgTypes.map((argType) => ({
     name: argType.arg_name || null,
@@ -181,13 +224,12 @@ export default async function fetchFunctionDefinition({
     ? {
         functionName: result.function_name,
         functionSchema: result.function_schema,
-        functionType: result.function_type as
-          | 'IMMUTABLE'
-          | 'STABLE'
-          | 'VOLATILE'
-          | null,
+        functionType: result.function_type,
         returnTypeName: result.return_type_name,
         returnTypeSchema: result.return_type_schema,
+        returnTypeKind: result.return_type_kind,
+        returnsSet: Boolean(result.returns_set),
+        hasVariadic: Boolean(result.has_variadic),
         language: result.language,
         parameters,
         defaultArgsCount,

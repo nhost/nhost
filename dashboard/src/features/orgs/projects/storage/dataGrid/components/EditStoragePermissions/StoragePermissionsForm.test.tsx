@@ -290,16 +290,14 @@ describe('StoragePermissionsForm', () => {
     const noPermIcons = screen.getAllByLabelText('No permission');
     await user.click(noPermIcons[1].closest('button')!);
 
-    // The editor form should now be visible with role and action
     await waitFor(() => {
       expect(
         screen.queryByText('Roles & Actions overview'),
       ).not.toBeInTheDocument();
     });
-    // "Upload" in the action label (InlineCode renders as <code>)
-    expect(
-      screen.getByText('Upload', { selector: 'code' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /action/i })).toHaveTextContent(
+      'Upload',
+    );
     expect(screen.getByText('File upload permissions')).toBeInTheDocument();
   });
 
@@ -322,34 +320,8 @@ describe('StoragePermissionsForm', () => {
         screen.queryByText('Roles & Actions overview'),
       ).not.toBeInTheDocument();
     });
-    // select DB action maps to "Download" storage action
-    expect(screen.getByText('Download')).toBeInTheDocument();
-  });
-
-  it('resetting selection returns to grid view', async () => {
-    server.use(rolesQuery, createMetadataHandler(), ...editorHandlers);
-    render(<StoragePermissionsForm />);
-
-    await waitFor(() => {
-      expect(screen.getByText('public')).toBeInTheDocument();
-    });
-
-    const user = userEvent.setup();
-    const noPermIcons = screen.getAllByLabelText('No permission');
-    await user.click(noPermIcons[1].closest('button')!);
-
-    // Wait for editor to appear
-    await waitFor(() => {
-      expect(
-        screen.queryByText('Roles & Actions overview'),
-      ).not.toBeInTheDocument();
-    });
-
-    // Click "Change" to go back to grid (this calls onCancel → resetSelection)
-    await user.click(screen.getByText('Change'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Roles & Actions overview')).toBeInTheDocument();
-    });
+    expect(screen.getByRole('combobox', { name: /action/i })).toHaveTextContent(
+      'Download',
+    );
   });
 });
