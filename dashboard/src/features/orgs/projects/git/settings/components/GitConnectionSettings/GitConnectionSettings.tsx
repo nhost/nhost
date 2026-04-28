@@ -1,5 +1,4 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -11,7 +10,6 @@ import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export default function GitConnectionSettings() {
-  const { maintenanceActive } = useUI();
   const { project, refetch } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
   const { openAlertDialog } = useDialog();
@@ -60,7 +58,6 @@ export default function GitConnectionSettings() {
           onClick={openGitHubModal}
           className="col-span-5 xs:col-span-3 grid grid-flow-col gap-1.5 lg:col-span-2"
           startIcon={<GitHubIcon className="h-4 w-4 self-center" />}
-          disabled={maintenanceActive}
         >
           Connect to GitHub
         </Button>
@@ -72,11 +69,7 @@ export default function GitConnectionSettings() {
               {project?.githubRepository.fullName}
             </Text>
           </div>
-          <Button
-            disabled={maintenanceActive}
-            variant="borderless"
-            onClick={handleConnect}
-          >
+          <Button variant="borderless" onClick={handleConnect}>
             Disconnect
           </Button>
         </Box>

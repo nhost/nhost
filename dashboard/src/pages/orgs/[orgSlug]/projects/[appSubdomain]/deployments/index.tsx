@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { NavLink } from '@/components/common/NavLink';
-import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Text } from '@/components/ui/v2/Text';
@@ -13,7 +12,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export default function DeploymentsPage() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
-  const { maintenanceActive } = useUI();
 
   if (!project?.githubRepository) {
     return (
@@ -41,7 +39,6 @@ export default function DeploymentsPage() {
             underline="none"
             variant="ghost"
             className="!text-primary"
-            disabled={maintenanceActive}
           >
             Connect your Project to GitHub
           </NavLink>

@@ -4,7 +4,6 @@ import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
@@ -42,7 +41,6 @@ type AllowedCIDRsFormValues = Yup.InferType<
 export default function DatabaseAllowedCIDRs() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
 
@@ -129,7 +127,7 @@ export default function DatabaseAllowedCIDRs() {
           description="Restrict public access to your database to specific IP ranges. When no CIDRs are configured, all public IPs are allowed."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}

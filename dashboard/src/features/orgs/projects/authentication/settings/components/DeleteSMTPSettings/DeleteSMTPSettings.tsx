@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -54,7 +53,6 @@ function ConfirmDeleteSMTPSettingsModal({
 export default function DeleteSMTPSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const [loading, setLoading] = useState(false);
   const { openDialog, closeDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
@@ -143,7 +141,7 @@ export default function DeleteSMTPSettings() {
           color="error"
           className="mx-4 mt-4 justify-self-end"
           onClick={confirmDeleteSMTPSettings}
-          disabled={loading || maintenanceActive || !isSMTPConfigured}
+          disabled={loading || !isSMTPConfigured}
           loading={loading}
         >
           Delete

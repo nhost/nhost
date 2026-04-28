@@ -174,12 +174,18 @@ export default function EditPermissionsForm({
   if (role && action) {
     return (
       <RolePermissionEditorForm
+        key={`${role}.${action}`}
         location={location}
         resourceVersion={metadata?.resourceVersion as number}
         schema={schema}
         table={table}
         role={role}
         action={action}
+        availableRoles={availableRoles}
+        allowedActions={allowedActions}
+        actionLabels={actionLabels}
+        onRoleChange={setRole}
+        onActionChange={setAction}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         permission={findPermission(metadataForTable, role, action)}

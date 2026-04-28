@@ -3,7 +3,6 @@ import { Inbox, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v3/button';
@@ -50,7 +49,6 @@ const sendInviteFormSchema = z.object({
 });
 
 export default function PendingInvites() {
-  const { maintenanceActive } = useUI();
   const { org } = useCurrentOrg();
   const isAdmin = useIsOrgAdmin();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -156,7 +154,7 @@ export default function PendingInvites() {
           }}
         >
           <DialogTrigger asChild>
-            <Button disabled={maintenanceActive}>Add member</Button>
+            <Button>Add member</Button>
           </DialogTrigger>
           <DialogContent className="text-foreground sm:max-w-xl">
             <Form {...form}>
