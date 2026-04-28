@@ -54,13 +54,13 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetFunctionsLogs      func(childComplexity int, appID string, path string, from *time.Time, to *time.Time) int
+		GetFunctionsLogs      func(childComplexity int, appID string, path string, regexFilter *string, from *time.Time, to *time.Time) int
 		GetServiceLabelValues func(childComplexity int, appID string) int
 		Logs                  func(childComplexity int, appID string, service *string, regexFilter *string, from *time.Time, to *time.Time) int
 	}
 
 	Subscription struct {
-		GetFunctionsLogs func(childComplexity int, appID string, path string, from *time.Time) int
+		GetFunctionsLogs func(childComplexity int, appID string, path string, regexFilter *string, from *time.Time) int
 		Logs             func(childComplexity int, appID string, service *string, regexFilter *string, from *time.Time) int
 	}
 }
@@ -68,11 +68,11 @@ type ComplexityRoot struct {
 type QueryResolver interface {
 	Logs(ctx context.Context, appID string, service *string, regexFilter *string, from *time.Time, to *time.Time) ([]model.Log, error)
 	GetServiceLabelValues(ctx context.Context, appID string) ([]string, error)
-	GetFunctionsLogs(ctx context.Context, appID string, path string, from *time.Time, to *time.Time) ([]model.Log, error)
+	GetFunctionsLogs(ctx context.Context, appID string, path string, regexFilter *string, from *time.Time, to *time.Time) ([]model.Log, error)
 }
 type SubscriptionResolver interface {
 	Logs(ctx context.Context, appID string, service *string, regexFilter *string, from *time.Time) (<-chan []model.Log, error)
-	GetFunctionsLogs(ctx context.Context, appID string, path string, from *time.Time) (<-chan []model.Log, error)
+	GetFunctionsLogs(ctx context.Context, appID string, path string, regexFilter *string, from *time.Time) (<-chan []model.Log, error)
 }
 
 type executableSchema struct {
@@ -123,7 +123,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.GetFunctionsLogs(childComplexity, args["appID"].(string), args["path"].(string), args["from"].(*time.Time), args["to"].(*time.Time)), true
+		return e.complexity.Query.GetFunctionsLogs(childComplexity, args["appID"].(string), args["path"].(string), args["regexFilter"].(*string), args["from"].(*time.Time), args["to"].(*time.Time)), true
 	case "Query.getServiceLabelValues":
 		if e.complexity.Query.GetServiceLabelValues == nil {
 			break
@@ -157,7 +157,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Subscription.GetFunctionsLogs(childComplexity, args["appID"].(string), args["path"].(string), args["from"].(*time.Time)), true
+		return e.complexity.Subscription.GetFunctionsLogs(childComplexity, args["appID"].(string), args["path"].(string), args["regexFilter"].(*string), args["from"].(*time.Time)), true
 	case "Subscription.logs":
 		if e.complexity.Subscription.Logs == nil {
 			break
@@ -311,6 +311,7 @@ type Query {
     getFunctionsLogs(
         appID: String!,
         path: String!,
+        regexFilter: String,
         from: Timestamp,
         to: Timestamp,
     ): [Log!]!
@@ -335,6 +336,7 @@ type Subscription {
     getFunctionsLogs(
         appID: String!,
         path: String!,
+        regexFilter: String,
         from: Timestamp,
     ): [Log!]!
 }
@@ -370,16 +372,21 @@ func (ec *executionContext) field_Query_getFunctionsLogs_args(ctx context.Contex
 		return nil, err
 	}
 	args["path"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "from", ec.unmarshalOTimestamp2ᚖtimeᚐTime)
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "regexFilter", ec.unmarshalOString2ᚖstring)
 	if err != nil {
 		return nil, err
 	}
-	args["from"] = arg2
-	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "to", ec.unmarshalOTimestamp2ᚖtimeᚐTime)
+	args["regexFilter"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "from", ec.unmarshalOTimestamp2ᚖtimeᚐTime)
 	if err != nil {
 		return nil, err
 	}
-	args["to"] = arg3
+	args["from"] = arg3
+	arg4, err := graphql.ProcessArgField(ctx, rawArgs, "to", ec.unmarshalOTimestamp2ᚖtimeᚐTime)
+	if err != nil {
+		return nil, err
+	}
+	args["to"] = arg4
 	return args, nil
 }
 
@@ -438,11 +445,16 @@ func (ec *executionContext) field_Subscription_getFunctionsLogs_args(ctx context
 		return nil, err
 	}
 	args["path"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "from", ec.unmarshalOTimestamp2ᚖtimeᚐTime)
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "regexFilter", ec.unmarshalOString2ᚖstring)
 	if err != nil {
 		return nil, err
 	}
-	args["from"] = arg2
+	args["regexFilter"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "from", ec.unmarshalOTimestamp2ᚖtimeᚐTime)
+	if err != nil {
+		return nil, err
+	}
+	args["from"] = arg3
 	return args, nil
 }
 
@@ -709,7 +721,7 @@ func (ec *executionContext) _Query_getFunctionsLogs(ctx context.Context, field g
 		ec.fieldContext_Query_getFunctionsLogs,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().GetFunctionsLogs(ctx, fc.Args["appID"].(string), fc.Args["path"].(string), fc.Args["from"].(*time.Time), fc.Args["to"].(*time.Time))
+			return ec.resolvers.Query().GetFunctionsLogs(ctx, fc.Args["appID"].(string), fc.Args["path"].(string), fc.Args["regexFilter"].(*string), fc.Args["from"].(*time.Time), fc.Args["to"].(*time.Time))
 		},
 		nil,
 		ec.marshalNLog2ᚕgithubᚗcomᚋnhostᚋnhostᚋcliᚋcmdᚋconfigserverᚋlogsapiᚋmodelᚐLogᚄ,
@@ -915,7 +927,7 @@ func (ec *executionContext) _Subscription_getFunctionsLogs(ctx context.Context, 
 		ec.fieldContext_Subscription_getFunctionsLogs,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Subscription().GetFunctionsLogs(ctx, fc.Args["appID"].(string), fc.Args["path"].(string), fc.Args["from"].(*time.Time))
+			return ec.resolvers.Subscription().GetFunctionsLogs(ctx, fc.Args["appID"].(string), fc.Args["path"].(string), fc.Args["regexFilter"].(*string), fc.Args["from"].(*time.Time))
 		},
 		nil,
 		ec.marshalNLog2ᚕgithubᚗcomᚋnhostᚋnhostᚋcliᚋcmdᚋconfigserverᚋlogsapiᚋmodelᚐLogᚄ,

@@ -248,12 +248,20 @@ const functionsService = "functions"
 
 func (d *DockerLogGatherer) GetFunctionsLogs(
 	ctx context.Context,
-	path string,
+	path, regexFilter string,
 	from, to time.Time,
 ) ([]model.Log, error) {
 	containers, err := d.listContainers(ctx, functionsService)
 	if err != nil {
 		return nil, err
+	}
+
+	var re *regexp.Regexp
+	if regexFilter != "" {
+		re, err = regexp.Compile(regexFilter)
+		if err != nil {
+			return nil, fmt.Errorf("failed to compile regex filter: %w", err)
+		}
 	}
 
 	var allLogs []model.Log
@@ -286,12 +294,24 @@ func (d *DockerLogGatherer) GetFunctionsLogs(
 
 	allLogs = filterByJSONPath(allLogs, path)
 
+	if re != nil {
+		filtered := make([]model.Log, 0, len(allLogs))
+
+		for _, l := range allLogs {
+			if re.MatchString(l.Log) {
+				filtered = append(filtered, l)
+			}
+		}
+
+		allLogs = filtered
+	}
+
 	return allLogs, nil
 }
 
 func (d *DockerLogGatherer) TailFunctionsLogs(
 	ctx context.Context,
-	path string,
+	path, regexFilter string,
 	from time.Time,
 	logsCh chan<- []model.Log,
 ) error {
@@ -300,6 +320,14 @@ func (d *DockerLogGatherer) TailFunctionsLogs(
 	containers, err := d.listContainers(ctx, functionsService)
 	if err != nil {
 		return err
+	}
+
+	var re *regexp.Regexp
+	if regexFilter != "" {
+		re, err = regexp.Compile(regexFilter)
+		if err != nil {
+			return fmt.Errorf("failed to compile regex filter: %w", err)
+		}
 	}
 
 	// See TailLogs: open every reader before launching any goroutine so a
@@ -330,7 +358,7 @@ func (d *DockerLogGatherer) TailFunctionsLogs(
 				}
 			}()
 
-			tailFunctionsContainerLogs(ctx, reader, path, logsCh)
+			tailFunctionsContainerLogs(ctx, reader, path, re, logsCh)
 		}(rd.r)
 	}
 
@@ -365,17 +393,23 @@ func matchesJSONPath(logLine, path string) bool {
 	return obj.Path == path
 }
 
-// tailFunctionsContainerLogs reads a Docker log stream and sends entries matching the path.
+// tailFunctionsContainerLogs reads a Docker log stream and sends entries
+// matching the path. When re is non-nil, entries must also match it.
 func tailFunctionsContainerLogs(
 	ctx context.Context,
 	reader io.Reader,
 	path string,
+	re *regexp.Regexp,
 	logsCh chan<- []model.Log,
 ) {
 	lineCh := make(chan model.Log)
 
 	go scanLines(ctx, reader, functionsService, func(l model.Log) bool {
-		return matchesJSONPath(l.Log, path)
+		if !matchesJSONPath(l.Log, path) {
+			return false
+		}
+
+		return re == nil || re.MatchString(l.Log)
 	}, lineCh)
 
 	sendBacklogThenTail(ctx, lineCh, logsCh)
