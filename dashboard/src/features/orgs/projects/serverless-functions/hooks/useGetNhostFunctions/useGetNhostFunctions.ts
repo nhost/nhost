@@ -9,6 +9,8 @@ import {
   type GetAppFunctionsMetadataQuery,
 } from '@/utils/__generated__/graphql';
 
+const NHOST_FUNCTIONS_STALE_TIME = 5 * 60_000;
+
 export default function useGetNhostFunctions() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
@@ -43,6 +45,7 @@ export default function useGetNhostFunctions() {
       return json.functions ?? [];
     },
     enabled: !!project?.id,
+    staleTime: NHOST_FUNCTIONS_STALE_TIME,
   });
 
   return { data: data ?? [], loading: isLoading, error };

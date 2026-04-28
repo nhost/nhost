@@ -2,15 +2,6 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { FormData as UndiciFormData } from 'undici';
 import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  test,
-} from 'vitest';
-import {
   fireEvent,
   mockPointerEvent,
   render,
@@ -70,16 +61,16 @@ async function pickContentType(user: TestUserEvent, contentType: string) {
   await user.click(screen.getByRole('option', { name: contentType }));
 }
 
-function submitForm(container: HTMLElement) {
-  const form = container.querySelector('form') as HTMLFormElement;
-  // use requestSubmit so React runs the current onSubmit handler (fireEvent.submit
-  // dispatches the event directly, which can race with a pending render).
-  form.requestSubmit();
+function clickSend() {
+  // user.click + mockPointerEvent does not trigger implicit form submit;
+  // fireEvent.click works because it skips the pointer sequence.
+  const [sendButton] = screen.getAllByRole('button', { name: 'Send' });
+  fireEvent.click(sendButton);
 }
 
 describe('ExecuteTab', () => {
-  test('sends application/x-www-form-urlencoded body with matching Content-Type', async () => {
-    const { container } = render(<ExecuteTab endpointUrl={FUNCTION_URL} />);
+  it('sends application/x-www-form-urlencoded body with matching Content-Type', async () => {
+    render(<ExecuteTab endpointUrl={FUNCTION_URL} />);
     const user = new TestUserEvent();
 
     await switchMethodToPost(user);
@@ -95,7 +86,7 @@ describe('ExecuteTab', () => {
     await user.type(keyInputs[1], 'role');
     await user.type(valueInputs[1], 'admin');
 
-    submitForm(container);
+    clickSend();
 
     await waitFor(() => {
       expect(captured.body).toBe('name=Alice&role=admin');
@@ -103,8 +94,8 @@ describe('ExecuteTab', () => {
     expect(captured.contentType).toBe('application/x-www-form-urlencoded');
   });
 
-  test('sends multipart body and lets fetch set Content-Type with boundary', async () => {
-    const { container } = render(<ExecuteTab endpointUrl={FUNCTION_URL} />);
+  it('sends multipart body and lets fetch set Content-Type with boundary', async () => {
+    render(<ExecuteTab endpointUrl={FUNCTION_URL} />);
     const user = new TestUserEvent();
 
     await switchMethodToPost(user);
@@ -113,13 +104,11 @@ describe('ExecuteTab', () => {
 
     await user.type(screen.getByPlaceholderText('Parameter name'), 'upload');
 
-    const fileInput = container.querySelector(
-      'input[type="file"]',
-    ) as HTMLInputElement;
+    const fileInput = screen.getByLabelText('File upload') as HTMLInputElement;
     const file = new File(['hello'], 'hello.txt', { type: 'text/plain' });
     fireEvent.change(fileInput, { target: { files: [file] } });
 
-    submitForm(container);
+    clickSend();
 
     await waitFor(() => {
       expect(captured.contentType).toMatch(
@@ -131,8 +120,8 @@ describe('ExecuteTab', () => {
     expect((uploaded as File).name).toBe('hello.txt');
   });
 
-  test('strips a user-supplied Content-Type header when sending multipart', async () => {
-    const { container } = render(<ExecuteTab endpointUrl={FUNCTION_URL} />);
+  it('strips a user-supplied Content-Type header when sending multipart', async () => {
+    render(<ExecuteTab endpointUrl={FUNCTION_URL} />);
     const user = new TestUserEvent();
 
     await switchMethodToPost(user);
@@ -150,7 +139,7 @@ describe('ExecuteTab', () => {
     await user.type(screen.getByPlaceholderText('Parameter name'), 'field');
     await user.type(screen.getByPlaceholderText('Value'), 'val');
 
-    submitForm(container);
+    clickSend();
 
     await waitFor(() => {
       expect(captured.contentType).toMatch(

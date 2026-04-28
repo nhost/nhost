@@ -27,10 +27,7 @@ export default function FunctionDetailsPanel({
     ? router.query.tab
     : 'overview';
 
-  const handleTabChange = (newTab: string) => {
-    if (!isFunctionTab(newTab)) {
-      return;
-    }
+  const handleTabChange = (newTab: FunctionTab) => {
     router.replace(
       {
         pathname: router.pathname,
@@ -77,7 +74,7 @@ export default function FunctionDetailsPanel({
 
         <Tabs
           value={activeTab}
-          onValueChange={handleTabChange}
+          onValueChange={(v) => handleTabChange(v as FunctionTab)}
           className="my-4"
         >
           <TabsList>

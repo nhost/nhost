@@ -22,26 +22,9 @@ export default function ServerlessFunctionView() {
     );
   }
 
-  if (error) {
-    return (
-      <FunctionsEmptyState
-        title="Function not found"
-        description={
-          <span>
-            Function{' '}
-            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-medium font-mono text-sm">
-              /{slug}
-            </code>{' '}
-            could not be loaded.
-          </span>
-        }
-      />
-    );
-  }
-
   const fn = functions.find((func) => func.route.replace(/^\//, '') === slug);
 
-  if (isEmptyValue(fn)) {
+  if (error || isEmptyValue(fn)) {
     return (
       <FunctionsEmptyState
         title="Function not found"
