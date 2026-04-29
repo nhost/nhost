@@ -1,4 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  type MetricsTimeRange,
+  resolveTimeRange,
+} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/timeRange';
 import type {
   ErrorsTableRow,
   FunctionMetricsResponse,
@@ -8,34 +12,49 @@ import type {
 
 interface UseFunctionMetricsOptions {
   route: string;
+  range: MetricsTimeRange;
 }
 
 interface UseFunctionMetricsResult {
   data: FunctionMetricsResponse | undefined;
   loading: boolean;
   error: Error | undefined;
+  refetch: () => void;
 }
 
-const POINTS = 60;
-const STEP_MS = 60_000;
+const TARGET_POINTS = 60;
+const MIN_STEP_MS = 1_000;
 
 export default function useFunctionMetrics({
   route,
+  range,
 }: UseFunctionMetricsOptions): UseFunctionMetricsResult {
+  const [refetchKey, setRefetchKey] = useState(0);
   const [state, setState] = useState<{
     data?: FunctionMetricsResponse;
     loading: boolean;
   }>({ loading: true });
 
+  const refetch = useCallback(() => {
+    setRefetchKey((k) => k + 1);
+  }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refetchKey is a re-run trigger, not a value read inside the effect
   useEffect(() => {
     setState({ loading: true });
     const handle = setTimeout(() => {
-      setState({ data: buildMockMetrics(route), loading: false });
+      const { from, to } = resolveTimeRange(range);
+      setState({ data: buildMockMetrics(route, from, to), loading: false });
     }, 200);
     return () => clearTimeout(handle);
-  }, [route]);
+  }, [route, range, refetchKey]);
 
-  return { data: state.data, loading: state.loading, error: undefined };
+  return {
+    data: state.data,
+    loading: state.loading,
+    error: undefined,
+    refetch,
+  };
 }
 
 function fnv1a(input: string): number {
@@ -58,26 +77,41 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-function buildTimestamps(endMs: number): string[] {
-  const stamps: string[] = [];
-  const start = endMs - (POINTS - 1) * STEP_MS;
-  for (let i = 0; i < POINTS; i += 1) {
-    stamps.push(Math.floor((start + i * STEP_MS) / 1000).toString());
-  }
-  return stamps;
-}
-
 function gaussian(rand: () => number): number {
   const u = Math.max(rand(), Number.EPSILON);
   const v = rand();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-function buildMockMetrics(route: string): FunctionMetricsResponse {
-  const now = Date.now();
-  const bucketHour = Math.floor(now / 3_600_000);
-  const rand = mulberry32(fnv1a(`${route}:${bucketHour}`));
-  const timestamps = buildTimestamps(now);
+interface RangeBuckets {
+  points: number;
+  stepMs: number;
+  startMs: number;
+  timestamps: string[];
+}
+
+function bucketsForRange(from: Date, to: Date): RangeBuckets {
+  const fromMs = from.getTime();
+  const toMs = to.getTime();
+  const durationMs = Math.max(MIN_STEP_MS * TARGET_POINTS, toMs - fromMs);
+  const stepMs = Math.max(MIN_STEP_MS, Math.floor(durationMs / TARGET_POINTS));
+  const points = Math.max(1, Math.floor(durationMs / stepMs));
+  const startMs = toMs - (points - 1) * stepMs;
+  const timestamps: string[] = [];
+  for (let i = 0; i < points; i += 1) {
+    timestamps.push(Math.floor((startMs + i * stepMs) / 1000).toString());
+  }
+  return { points, stepMs, startMs, timestamps };
+}
+
+function buildMockMetrics(
+  route: string,
+  from: Date,
+  to: Date,
+): FunctionMetricsResponse {
+  const { points, timestamps } = bucketsForRange(from, to);
+  const bucketHour = Math.floor(to.getTime() / 3_600_000);
+  const rand = mulberry32(fnv1a(`${route}:${bucketHour}:${points}`));
 
   const methodShares: Array<[string, number, number]> = [
     ['GET', 0.7, 12],
@@ -90,8 +124,8 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
   const invocationsByMethod: MetricSeries[] = methodShares.map(
     ([method, share, _jitter]) => {
       const datapoints: number[] = [];
-      for (let i = 0; i < POINTS; i += 1) {
-        const rhythm = 0.85 + 0.25 * Math.sin((i / POINTS) * Math.PI * 2);
+      for (let i = 0; i < points; i += 1) {
+        const rhythm = 0.85 + 0.25 * Math.sin((i / points) * Math.PI * 2);
         const noise = 1 + gaussian(rand) * 0.15;
         const spike = rand() < 0.02 ? 1 + rand() * 1.5 : 1;
         const v = Math.max(
@@ -105,7 +139,7 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
   );
 
   const totalsPerPoint: number[] = [];
-  for (let i = 0; i < POINTS; i += 1) {
+  for (let i = 0; i < points; i += 1) {
     let sum = 0;
     invocationsByMethod.forEach((s) => {
       sum += s.datapoints[i];
@@ -122,7 +156,7 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
   const responseStatus: MetricSeries[] = statusAllocations.map(
     ([status, base]) => {
       const datapoints: number[] = [];
-      for (let i = 0; i < POINTS; i += 1) {
+      for (let i = 0; i < points; i += 1) {
         let share = base;
         if (status === '500' && rand() < 0.04) {
           share += 0.1 + rand() * 0.1;
@@ -141,8 +175,8 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
       const base = 1500 + rand() * 2000;
       const trend = 50 + rand() * 40;
       const datapoints: number[] = [];
-      for (let i = 0; i < POINTS; i += 1) {
-        const drift = (i / POINTS) * trend;
+      for (let i = 0; i < points; i += 1) {
+        const drift = (i / points) * trend;
         const noise = gaussian(rand) * 200;
         const v = Math.max(64, Math.round(base + drift + noise));
         datapoints.push(v);
@@ -160,7 +194,7 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
   const avg: MetricSeries[] = methodShares.map(([method]) => {
     const mult = methodMultipliers[method] ?? 1;
     const datapoints: number[] = [];
-    for (let i = 0; i < POINTS; i += 1) {
+    for (let i = 0; i < points; i += 1) {
       const base = 0.02 * mult;
       const noise = Math.abs(gaussian(rand) * 0.005);
       datapoints.push(Math.max(0.001, base + noise));
@@ -193,11 +227,11 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
     );
     return { method, value: sum };
   });
-  const nowIso = new Date(now).toISOString();
+  const toIso = to.toISOString();
   const totalRequests: RequestsTableRow[] = totalRequestsByMethod
     .filter((r) => r.value > 0)
     .sort((a, b) => b.value - a.value)
-    .map((r) => ({ timestamp: nowIso, method: r.method, value: r.value }));
+    .map((r) => ({ timestamp: toIso, method: r.method, value: r.value }));
 
   const errorsByMethod: Record<string, { total: number; errors: number }> = {};
   methodShares.forEach(([method], idx) => {
@@ -209,7 +243,7 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
 
   const errorRate: MetricSeries[] = methodShares.map(([method], idx) => {
     const datapoints: number[] = [];
-    for (let i = 0; i < POINTS; i += 1) {
+    for (let i = 0; i < points; i += 1) {
       const calls = invocationsByMethod[idx].datapoints[i];
       if (calls === 0) {
         datapoints.push(0);
@@ -236,7 +270,7 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
     errorStatuses.forEach((status, i) => {
       const value = Math.round((weights[i] / weightSum) * errors);
       if (value > 0) {
-        totalErrorsRows.push({ timestamp: nowIso, method, status, value });
+        totalErrorsRows.push({ timestamp: toIso, method, status, value });
       }
     });
   });
@@ -246,7 +280,7 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
 
   let totalBytesSent = 0;
   invocationsByMethod.forEach((inv, idx) => {
-    for (let i = 0; i < POINTS; i += 1) {
+    for (let i = 0; i < points; i += 1) {
       totalBytesSent +=
         inv.datapoints[i] * averageResponseSize[idx].datapoints[i];
     }
@@ -254,7 +288,7 @@ function buildMockMetrics(route: string): FunctionMetricsResponse {
 
   let totalDurationSeconds = 0;
   invocationsByMethod.forEach((inv, idx) => {
-    for (let i = 0; i < POINTS; i += 1) {
+    for (let i = 0; i < points; i += 1) {
       totalDurationSeconds += inv.datapoints[i] * avg[idx].datapoints[i];
     }
   });
