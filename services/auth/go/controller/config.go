@@ -69,8 +69,13 @@ type Config struct {
 	SMSTwilioAuthToken                       string        `json:"AUTH_SMS_TWILIO_AUTH_TOKEN"`
 	SMSTwilioMessagingServiceID              string        `json:"AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID"`
 	SMSModicaUsername                        string        `json:"AUTH_SMS_MODICA_USERNAME"`
-	SMSModicaPassword                        string        `json:"AUTH_SMS_MODICA_PASSWORD"`
-	ServerPrefix                             string        `json:"AUTH_SERVER_PREFIX"`
+	SMSModicaPassword                        string        `json:"AUTH_SMS_MODICA_PASSWORD" mapstructure:"AUTH_SMS_MODICA_PASSWORD"`
+	SMSGenericURL                            string        `json:"AUTH_SMS_GENERIC_URL" mapstructure:"AUTH_SMS_GENERIC_URL"`
+	SMSGenericContentType                    string        `json:"AUTH_SMS_GENERIC_CONTENT_TYPE" mapstructure:"AUTH_SMS_GENERIC_CONTENT_TYPE"`
+	SMSGenericHeaders                        string        `json:"AUTH_SMS_GENERIC_HEADERS" mapstructure:"AUTH_SMS_GENERIC_HEADERS"`
+	SMSGenericTimeout                        time.Duration `json:"AUTH_SMS_GENERIC_TIMEOUT" mapstructure:"AUTH_SMS_GENERIC_TIMEOUT"`
+	SMSGenericBodyTemplate                   string        `json:"AUTH_SMS_GENERIC_BODY_TEMPLATE" mapstructure:"AUTH_SMS_GENERIC_BODY_TEMPLATE"`
+	ServerPrefix                             string        `json:"AUTH_SERVER_PREFIX" mapstructure:"AUTH_SERVER_PREFIX"`
 	DisableAutoSignup                        bool          `json:"AUTH_DISABLE_AUTO_SIGNUP"`
 	OAuth2ProviderEnabled                    bool          `json:"AUTH_OAUTH2_PROVIDER_ENABLED"`
 	OAuth2ProviderLoginURL                   string        `json:"AUTH_OAUTH2_PROVIDER_LOGIN_URL"`

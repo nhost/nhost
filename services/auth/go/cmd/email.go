@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -121,6 +122,8 @@ func getSMS( //nolint:ireturn
 		return getModicaSMS(cmd, templates, db, logger)
 	case "twilio":
 		return getTwilioSMS(cmd, templates, db)
+	case "generic":
+		return getGenericSMS(cmd, templates, db)
 	case "dev":
 		return sms.NewDev(templates, db, logger), nil
 	default:
@@ -183,6 +186,40 @@ func getModicaSMS( //nolint:ireturn
 		templates,
 		username,
 		password,
+		db,
+	), nil
+}
+
+func getGenericSMS( //nolint:ireturn
+	cmd *cli.Command,
+	templates *notifications.Templates,
+	db *sql.Queries,
+) (controller.SMSer, error) {
+	url := cmd.String(flagSMSGenericURL)
+	if url == "" {
+		return nil, errors.New("SMS is enabled but generic URL is missing") //nolint:err113
+	}
+
+	bodyTemplate := cmd.String(flagSMSGenericBodyTemplate)
+	if bodyTemplate == "" {
+		return nil, errors.New("SMS is enabled but generic body template is missing") //nolint:err113
+	}
+
+	headers := make(map[string]string)
+	headersJSON := cmd.String(flagSMSGenericHeaders)
+	if headersJSON != "" {
+		if err := json.Unmarshal([]byte(headersJSON), &headers); err != nil {
+			return nil, fmt.Errorf("failed to parse generic SMS headers: %w", err)
+		}
+	}
+
+	return sms.NewGenericSMSProvider(
+		url,
+		cmd.String(flagSMSGenericContentType),
+		bodyTemplate,
+		headers,
+		cmd.Duration(flagSMSGenericTimeout),
+		templates,
 		db,
 	), nil
 }

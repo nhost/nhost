@@ -104,6 +104,11 @@ const (
 	flagSMSTwilioMessagingServiceID              = "sms-twilio-messaging-service-id"
 	flagSMSModicaUsername                        = "sms-modica-username"
 	flagSMSModicaPassword                        = "sms-modica-password" //nolint:gosec
+	flagSMSGenericURL                            = "sms-generic-url"
+	flagSMSGenericContentType                    = "sms-generic-content-type"
+	flagSMSGenericHeaders                        = "sms-generic-headers"
+	flagSMSGenericTimeout                        = "sms-generic-timeout"
+	flagSMSGenericBodyTemplate                   = "sms-generic-body-template"
 	flagAnonymousUsersEnabled                    = "enable-anonymous-users"
 	flagMfaEnabled                               = "mfa-enabled"
 	flagMfaTotpIssuer                            = "mfa-totp-issuer"
@@ -735,6 +740,39 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Modica password for SMS",
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_MODICA_PASSWORD"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSGenericURL,
+				Usage:    "Generic SMS provider URL",
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_URL"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSGenericContentType,
+				Usage:    "Generic SMS provider content type",
+				Category: "sms",
+				Value:    "application/json",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_CONTENT_TYPE"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSGenericHeaders,
+				Usage:    "Generic SMS provider headers (JSON string)",
+				Category: "sms",
+				Value:    "{}",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_HEADERS"),
+			},
+			&cli.DurationFlag{ //nolint: exhaustruct
+				Name:     flagSMSGenericTimeout,
+				Usage:    "Generic SMS provider timeout",
+				Category: "sms",
+				Value:    10 * time.Second,
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_TIMEOUT"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSGenericBodyTemplate,
+				Usage:    "Generic SMS provider body template",
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_BODY_TEMPLATE"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagAnonymousUsersEnabled,
