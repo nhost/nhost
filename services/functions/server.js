@@ -36,6 +36,18 @@ const functionMeta = new Map();
 // bundle per function — matching the per-Lambda artifact layout in prod.
 let buildContext = null;
 
+// setInterval does not await its async callback, so two polls can overlap if a
+// rebuild runs longer than the polling interval — exactly the case for big
+// projects. Serialize all rebuilds behind a single in-flight promise so dispose
+// and create are strictly sequential and no context is leaked.
+let rebuildInFlight = Promise.resolve();
+function scheduleRebuild(functionsPath) {
+  rebuildInFlight = rebuildInFlight
+    .catch(() => {})
+    .then(() => rebuildContext(functionsPath));
+  return rebuildInFlight;
+}
+
 const wrapperTemplate = fs.readFileSync(
   path.join(__dirname, 'local-wrapper.js'),
   'utf-8',
@@ -243,7 +255,7 @@ const main = async () => {
   }
 
   try {
-    await rebuildContext(functionsPath);
+    await scheduleRebuild(functionsPath);
   } catch (err) {
     serverLog('ERROR', '', 'Failed initial build:', err);
   }
@@ -266,7 +278,7 @@ const main = async () => {
     for (const file of discoverFunctions(functionsPath)) {
       prepareFunctionEntry(functionsPath, file);
     }
-    await rebuildContext(functionsPath);
+    await scheduleRebuild(functionsPath);
   }
 
   // Poll for new/deleted function files. Filesystem events (chokidar/inotify)
@@ -300,7 +312,7 @@ const main = async () => {
 
     if (changed) {
       try {
-        await rebuildContext(functionsPath);
+        await scheduleRebuild(functionsPath);
       } catch (err) {
         serverLog('ERROR', '', 'Failed to rebuild context:', err);
       }
