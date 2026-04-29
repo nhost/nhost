@@ -19,6 +19,7 @@ import {
   fireEvent,
   render as rtlRender,
   waitForElementToBeRemoved as rtlWaitForElementToBeRemoved,
+  screen,
   waitFor,
 } from '@testing-library/react';
 import userEvent, {
@@ -245,6 +246,12 @@ export class TestUserEvent {
     });
   }
 
+  async paste(value: string) {
+    await waitFor(async () => {
+      await this.user.paste(value);
+    });
+  }
+
   static async fireClickEvent(element: Document | Element | Window | Node) {
     await waitFor(() => {
       fireEvent(
@@ -294,6 +301,20 @@ export function localStorageMock(initialStore: any = {}) {
       return Object.keys(store)[index] ?? null;
     },
   };
+}
+
+// Asserts that the given string is rendered as the visible textContent of
+// some element. Useful for components like TruncatedText / TextWithTooltip
+// that split a single logical string across multiple sibling elements:
+// `getByText('full string')` would not match because the text is broken up,
+// but the parent's textContent equals the full string. We use getAllByText
+// + length check because textContent propagates up the DOM tree, so multiple
+// ancestors of the rendering element will match.
+export function expectFullTextRendered(text: string) {
+  const matches = screen.getAllByText(
+    (_, element) => element?.textContent === text,
+  );
+  expect(matches.length).toBeGreaterThan(0);
 }
 
 export * from '@testing-library/react';

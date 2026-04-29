@@ -82,7 +82,6 @@ describe('ConditionValue', () => {
     mockUseCustomCheckEditor.mockReturnValue({
       schema: 'public',
       table: 'users',
-      disabled: false,
     });
 
     mockUseProject.mockReturnValue({
@@ -122,6 +121,56 @@ describe('ConditionValue', () => {
         shouldDirty: true,
       },
     );
+  });
+
+  it('should not add a duplicate when the same custom value is typed twice', async () => {
+    mocks.useGetRolesPermissionsQuery.mockImplementation(() => ({
+      data: mockPermissionsData,
+      loading: false,
+    }));
+
+    render(
+      <TestWrapper defaultValues={{ operator: '_in', value: [] }}>
+        <ConditionValue name="test" selectedTablePath="public.users" />
+      </TestWrapper>,
+    );
+    const user = new TestUserEvent();
+
+    const multiSelect = screen.getByPlaceholderText('Select options...');
+    await user.type(multiSelect, 'my-variable{Enter}');
+    expect(screen.getByTestId('badge-my-variable')).toBeInTheDocument();
+
+    mocks.setValueMock.mockClear();
+    await user.type(multiSelect, 'my-variable{Enter}');
+
+    expect(screen.queryAllByTestId('badge-my-variable')).toHaveLength(1);
+    expect(mocks.setValueMock).not.toHaveBeenCalled();
+  });
+
+  it('should clear the value when the last selected element is removed', async () => {
+    mocks.useGetRolesPermissionsQuery.mockImplementation(() => ({
+      data: mockPermissionsData,
+      loading: false,
+    }));
+
+    render(
+      <TestWrapper defaultValues={{ operator: '_in', value: [] }}>
+        <ConditionValue name="test" selectedTablePath="public.users" />
+      </TestWrapper>,
+    );
+    const user = new TestUserEvent();
+
+    const multiSelect = screen.getByPlaceholderText('Select options...');
+    await user.type(multiSelect, 'my-variable{Enter}');
+    expect(screen.getByTestId('badge-my-variable')).toBeInTheDocument();
+
+    mocks.setValueMock.mockClear();
+    await user.click(screen.getByLabelText('Remove my-variable'));
+
+    expect(screen.queryByTestId('badge-my-variable')).not.toBeInTheDocument();
+    expect(mocks.setValueMock).toHaveBeenCalledWith('test.value', [], {
+      shouldDirty: true,
+    });
   });
 
   it('should pass simple values as string array', async () => {

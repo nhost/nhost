@@ -350,6 +350,12 @@ func dashboard(
 			"NEXT_PUBLIC_NHOST_FUNCTIONS_URL": URL(
 				subdomain, "functions", httpPort, useTLS,
 			) + "/v1",
+			"NEXT_PUBLIC_NHOST_LOGS_GRAPHQL_URL": URL(
+				subdomain, "dashboard", httpPort, useTLS,
+			) + "/v1/logs/graphql",
+			"NEXT_PUBLIC_NHOST_LOGS_WEBSOCKET": WebsocketURL(
+				subdomain, "dashboard", httpPort, useTLS,
+			) + "/v1/logs/graphql",
 			"NEXT_PUBLIC_NHOST_GRAPHQL_URL": URL(
 				subdomain, "graphql", httpPort, useTLS) + "/v1",
 			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(subdomain, "hasura", httpPort, useTLS),

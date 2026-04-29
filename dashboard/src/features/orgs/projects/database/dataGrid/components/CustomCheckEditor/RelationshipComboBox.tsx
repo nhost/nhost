@@ -26,14 +26,12 @@ interface RelationshipComboBoxProps {
   name: string;
   relationship: string;
   onChange: (value: { name: string; schema: string; table: string }) => void;
-  disabled?: boolean;
 }
 
 export default function RelationshipComboBox({
   name,
   relationship,
   onChange,
-  disabled,
 }: RelationshipComboBoxProps) {
   const [open, setOpen] = useState(false);
   const { control } = useFormContext();
@@ -63,6 +61,8 @@ export default function RelationshipComboBox({
     (option) => option.group === 'relationships',
   );
 
+  const metadataLoaded = Boolean(tableData && metadata);
+
   const handleSelect = (value: string) => {
     const found = relationships.find((r) => r.value === value);
     if (found) {
@@ -84,6 +84,16 @@ export default function RelationshipComboBox({
     <FormField
       name={`${name}.relationship`}
       control={control}
+      rules={{
+        validate: (value) => {
+          return (
+            !value ||
+            !metadataLoaded ||
+            relationships.some((r) => r.value === value) ||
+            `Unknown relationship "${value}"`
+          );
+        },
+      }}
       render={({ fieldState }) => {
         const hasError = isNotEmptyValue(fieldState.error?.message);
         return (
@@ -91,7 +101,6 @@ export default function RelationshipComboBox({
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
-                  disabled={disabled}
                   variant="outline"
                   role="combobox"
                   aria-expanded={open}

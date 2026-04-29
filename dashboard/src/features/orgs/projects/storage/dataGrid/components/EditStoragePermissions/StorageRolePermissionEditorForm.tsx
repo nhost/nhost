@@ -13,7 +13,7 @@ import { useManagePermissionMutation } from '@/features/orgs/projects/database/d
 import type { HasuraMetadataPermission } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import {
-  unWrapRuleNodes,
+  serializeNode,
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -135,7 +135,7 @@ export default function StorageRolePermissionEditorForm({
   async function handleSubmit(values: StoragePermissionEditorFormValues) {
     const permissionFilter =
       values.rowCheckType === 'custom'
-        ? unWrapRuleNodes(values.filter as GroupNode)
+        ? serializeNode(values.filter as GroupNode)
         : (values.filter ?? {});
 
     const primaryPermission: HasuraMetadataPermission['permission'] = {
@@ -236,7 +236,7 @@ export default function StorageRolePermissionEditorForm({
         <div className="-mt-3 mb-4 px-6">
           <Alert
             variant="destructive"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            className="grid grid-flow-col items-center justify-between bg-destructive/10 px-4 py-3"
           >
             <span className="text-left text-sm+">
               <strong>Error:</strong> {error.message}

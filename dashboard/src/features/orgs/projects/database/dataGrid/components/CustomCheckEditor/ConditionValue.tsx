@@ -68,7 +68,6 @@ function ColumnSelectorInput({
   selectedTablePath,
   schema,
   table,
-  disabled,
   ...props
 }: ColumnAutocompleteProps & { selectedTablePath: string; name: string }) {
   const { setValue, control } = useFormContext();
@@ -81,7 +80,6 @@ function ColumnSelectorInput({
     <ColumnAutocomplete
       {...props}
       {...field}
-      disabled={disabled}
       value={
         // this array can either be ['$', 'columnName'] or ['columnName']
         Array.isArray(field.value) ? field.value.slice(-1)[0] : field.value
@@ -122,7 +120,7 @@ function ConditionValue({
   selectedTablePath,
   className,
 }: ConditionValueProps) {
-  const { schema, table, disabled } = useCustomCheckEditor();
+  const { schema, table } = useCustomCheckEditor();
   const { project } = useProject();
   const { setValue, control } = useFormContext();
   const inputName = `${name}.value`;
@@ -148,7 +146,6 @@ function ConditionValue({
       'border hover:bg-accent-background hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
     return (
       <Select
-        disabled={disabled}
         name={inputName}
         onValueChange={(newValue: string) => {
           setValue(inputName, newValue, { shouldDirty: true });
@@ -183,6 +180,12 @@ function ConditionValue({
 
     function handleOnChange(value: Option[]) {
       const typedValue = value as Array<Option & { isSystemVariable: boolean }>;
+
+      if (typedValue.length === 0) {
+        setValue(inputName, [], { shouldDirty: true });
+        return;
+      }
+
       const [firstValue] = typedValue;
       const [lastElement] = typedValue.slice(-1);
 
@@ -212,7 +215,6 @@ function ConditionValue({
         className={className}
         options={availableHasuraPermissionVariables}
         creatable
-        disabled={disabled}
         value={defaultValue}
         onChange={handleOnChange}
       />
@@ -222,7 +224,6 @@ function ConditionValue({
   if (['_ceq', '_cne', '_cgt', '_clt', '_cgte', '_clte'].includes(operator)) {
     return (
       <ColumnSelectorInput
-        disabled={disabled}
         selectedTablePath={selectedTablePath}
         schema={schema}
         table={table}
@@ -245,7 +246,6 @@ function ConditionValue({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          disabled={disabled}
           className={cn('w-full justify-between', className)}
         >
           <span className="truncate">{comboboxLabel}</span>

@@ -1,12 +1,12 @@
 export * from './parsePermissionRule';
 export { default as parsePermissionRule } from './parsePermissionRule';
-export * from './ruleNodesToPermission';
-export { default as ruleNodesToPermission } from './ruleNodesToPermission';
+export { default as serializeNode } from './serializeNode';
 
 export type {
   ConditionNode,
   ExistsNode,
   GroupNode,
+  InvalidNode,
   LogicalOperator,
   RelationshipNode,
   RuleNode,
@@ -15,5 +15,6 @@ export {
   isConditionNode,
   isExistsNode,
   isGroupNode,
+  isInvalidNode,
   isRelationshipNode,
 } from './types';
