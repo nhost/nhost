@@ -1,11 +1,14 @@
-import type { ReactNode } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import { PermissionSettingsSectionV3 as PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import { CustomCheckEditor } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor';
+import {
+  CustomCheckEditor,
+  CustomCheckModeProvider,
+  CustomCheckModeToggle,
+} from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor';
 import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import applyPreset from './applyPreset';
 import PermissionPresetCombobox from './PermissionPresetCombobox';
@@ -28,12 +31,8 @@ export default function StorageRowPermissionsSection({
   role,
   storageAction,
 }: StorageRowPermissionsSectionProps) {
-  const {
-    setValue,
-    getValues,
-    reset,
-    formState: { errors },
-  } = useFormContext<StoragePermissionEditorFormValues>();
+  const { setValue, getValues, reset } =
+    useFormContext<StoragePermissionEditorFormValues>();
 
   const rowCheckType = useWatch<
     StoragePermissionEditorFormValues,
@@ -69,47 +68,46 @@ export default function StorageRowPermissionsSection({
 
   return (
     <PermissionSettingsSection title={`File ${actionLabel} permissions`}>
-      <p className="text-sm+">
-        Allow role <InlineCode className="!text-sm+">{role}</InlineCode> to{' '}
-        <InlineCode className="!text-sm+">{actionLabel}</InlineCode> files:
-      </p>
-
-      <RadioGroup
-        value={rowCheckType}
-        className="flex gap-4"
-        onValueChange={(value) =>
-          handleCheckTypeChange(value as typeof rowCheckType)
-        }
-      >
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="none" id="row-check-none" />
-          <Label htmlFor="row-check-none" className="text-sm+">
-            Without any checks
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="custom" id="row-check-custom" />
-          <Label htmlFor="row-check-custom" className="text-sm+">
-            With custom check
-          </Label>
-        </div>
-      </RadioGroup>
-
-      <PermissionPresetCombobox onSelect={handlePresetSelect} />
-
-      {errors?.filter?.root?.message || errors?.filter?.message ? (
-        <p className="text-destructive text-sm">
-          {(errors.filter.root?.message ?? errors.filter.message) as ReactNode}
+      <CustomCheckModeProvider>
+        <p className="text-sm+">
+          Allow role <InlineCode className="!text-sm+">{role}</InlineCode> to{' '}
+          <InlineCode className="!text-sm+">{actionLabel}</InlineCode> files:
         </p>
-      ) : null}
 
-      {rowCheckType === 'custom' && (
-        <CustomCheckEditor
-          name="filter"
-          schema={STORAGE_SCHEMA}
-          table={STORAGE_TABLE}
-        />
-      )}
+        <div className="flex items-center justify-between gap-4">
+          <RadioGroup
+            value={rowCheckType}
+            className="flex gap-4"
+            onValueChange={(value) =>
+              handleCheckTypeChange(value as typeof rowCheckType)
+            }
+          >
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="none" id="row-check-none" />
+              <Label htmlFor="row-check-none" className="text-sm+">
+                Without any checks
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="custom" id="row-check-custom" />
+              <Label htmlFor="row-check-custom" className="text-sm+">
+                With custom check
+              </Label>
+            </div>
+          </RadioGroup>
+          {rowCheckType === 'custom' && <CustomCheckModeToggle />}
+        </div>
+
+        <PermissionPresetCombobox onSelect={handlePresetSelect} />
+
+        {rowCheckType === 'custom' && (
+          <CustomCheckEditor
+            name="filter"
+            schema={STORAGE_SCHEMA}
+            table={STORAGE_TABLE}
+          />
+        )}
+      </CustomCheckModeProvider>
     </PermissionSettingsSection>
   );
 }
