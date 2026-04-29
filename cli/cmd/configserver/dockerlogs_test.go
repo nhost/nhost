@@ -283,7 +283,7 @@ func TestGetFunctionsLogs(t *testing.T) {
 	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
 
 	logs, err := gatherer.GetFunctionsLogs(
-		context.Background(), "/api/hello", time.Time{}, time.Now(),
+		context.Background(), "/api/hello", "", time.Time{}, time.Now(),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -295,6 +295,90 @@ func TestGetFunctionsLogs(t *testing.T) {
 
 	if logs[0].Service != "functions" {
 		t.Errorf("service = %q, want %q", logs[0].Service, "functions")
+	}
+}
+
+func TestGetFunctionsLogsRegexFilter(t *testing.T) {
+	t.Parallel()
+
+	logBuf := &bytes.Buffer{}
+	logBuf.Write(
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:00Z {"path":"/api/hello","level":"error","msg":"boom"}`+"\n",
+		),
+	)
+	logBuf.Write(
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:01Z {"path":"/api/hello","level":"info","msg":"ok"}`+"\n",
+		),
+	)
+	logBuf.Write(
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:02Z {"path":"/api/other","level":"error","msg":"nope"}`+"\n",
+		),
+	)
+	logBuf.Write(
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:03Z {"path":"/api/hello","level":"error","msg":"another"}`+"\n",
+		),
+	)
+
+	mock := &mockContainerClient{ //nolint:exhaustruct
+		containers: []container.Summary{
+			{ //nolint:exhaustruct
+				ID:     "fn1",
+				Labels: map[string]string{composeServiceLabel: "functions"},
+			},
+		},
+		logData: map[string]*bytes.Buffer{"fn1": logBuf},
+	}
+
+	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
+
+	logs, err := gatherer.GetFunctionsLogs(
+		context.Background(), "/api/hello", `"level":"error"`, time.Time{}, time.Now(),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Expect only the /api/hello entries whose log line also contains
+	// `"level":"error"` — the /api/other error is filtered out by path, and
+	// the /api/hello info entry is filtered out by regex.
+	if len(logs) != 2 {
+		t.Fatalf("got %d logs, want 2", len(logs))
+	}
+}
+
+func TestGetFunctionsLogsInvalidRegex(t *testing.T) {
+	t.Parallel()
+
+	logBuf := &bytes.Buffer{}
+	logBuf.Write(
+		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:00Z {"path":"/api/hello"}`+"\n"),
+	)
+
+	mock := &mockContainerClient{ //nolint:exhaustruct
+		containers: []container.Summary{
+			{ //nolint:exhaustruct
+				ID:     "fn1",
+				Labels: map[string]string{composeServiceLabel: "functions"},
+			},
+		},
+		logData: map[string]*bytes.Buffer{"fn1": logBuf},
+	}
+
+	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
+
+	_, err := gatherer.GetFunctionsLogs(
+		context.Background(), "/api/hello", "[invalid", time.Time{}, time.Now(),
+	)
+	if err == nil {
+		t.Fatal("expected error for invalid regex, got nil")
 	}
 }
 
@@ -444,7 +528,13 @@ func TestTailFunctionsLogsFiltersByPath(t *testing.T) {
 
 	ch := make(chan []model.Log, 10)
 
-	if err := gatherer.TailFunctionsLogs(t.Context(), "/api/hello", time.Time{}, ch); err != nil {
+	if err := gatherer.TailFunctionsLogs(
+		t.Context(),
+		"/api/hello",
+		"",
+		time.Time{},
+		ch,
+	); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -457,6 +547,87 @@ func TestTailFunctionsLogsFiltersByPath(t *testing.T) {
 		if l.Service != "functions" {
 			t.Errorf("service = %q, want functions", l.Service)
 		}
+	}
+}
+
+func TestTailFunctionsLogsRegexFilter(t *testing.T) {
+	t.Parallel()
+
+	logBuf := &bytes.Buffer{}
+	logBuf.Write(
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:00Z {"path":"/api/hello","level":"error","msg":"one"}`+"\n",
+		),
+	)
+	logBuf.Write(
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:01Z {"path":"/api/hello","level":"info","msg":"nope"}`+"\n",
+		),
+	)
+	logBuf.Write(
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:02Z {"path":"/api/other","level":"error","msg":"wrong-path"}`+"\n",
+		),
+	)
+	logBuf.Write(
+		stdcopyFrame(
+			stdcopy.Stdout,
+			`2024-01-15T10:00:03Z {"path":"/api/hello","level":"error","msg":"two"}`+"\n",
+		),
+	)
+
+	mock := &mockContainerClient{ //nolint:exhaustruct
+		containers: []container.Summary{
+			{ //nolint:exhaustruct
+				ID:     "fn1",
+				Labels: map[string]string{composeServiceLabel: "functions"},
+			},
+		},
+		logData: map[string]*bytes.Buffer{"fn1": logBuf},
+	}
+
+	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
+
+	ch := make(chan []model.Log, 10)
+
+	if err := gatherer.TailFunctionsLogs(
+		t.Context(), "/api/hello", `"level":"error"`, time.Time{}, ch,
+	); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	logs := collectLogs(ch)
+	if len(logs) != 2 {
+		t.Fatalf("got %d logs, want 2", len(logs))
+	}
+}
+
+func TestTailFunctionsLogsInvalidRegex(t *testing.T) {
+	t.Parallel()
+
+	mock := &mockContainerClient{ //nolint:exhaustruct
+		containers: []container.Summary{
+			{ //nolint:exhaustruct
+				ID:     "fn1",
+				Labels: map[string]string{composeServiceLabel: "functions"},
+			},
+		},
+	}
+
+	gatherer := configserver.NewDockerLogGatherer(mock, "proj")
+
+	ch := make(chan []model.Log, 10)
+
+	err := gatherer.TailFunctionsLogs(t.Context(), "/api/hello", "[invalid", time.Time{}, ch)
+	if err == nil {
+		t.Fatal("expected error for invalid regex, got nil")
+	}
+
+	// Channel must be closed; no panic.
+	for range ch { //nolint:revive
 	}
 }
 

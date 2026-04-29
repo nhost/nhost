@@ -22,14 +22,12 @@ interface TableComboBoxProps {
   schema: string;
   table: string;
   onChange: (value: { schema: string; table: string }) => void;
-  disabled?: boolean;
 }
 
 export default function TableComboBox({
   schema,
   table,
   onChange,
-  disabled,
 }: TableComboBoxProps) {
   const [open, setOpen] = useState(false);
 
@@ -56,7 +54,6 @@ export default function TableComboBox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          disabled={disabled}
           variant="outline"
           role="combobox"
           aria-expanded={open}

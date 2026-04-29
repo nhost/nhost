@@ -60,6 +60,7 @@ overrides:
   '@xmldom/xmldom@>=0.9.0 <0.9.10': '>=0.9.10'
   uuid@<14.0.0: '>=14.0.0'
   defu@<=6.1.4: '>=6.1.5'
+  postcss@<8.5.10: '>=8.5.10'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 

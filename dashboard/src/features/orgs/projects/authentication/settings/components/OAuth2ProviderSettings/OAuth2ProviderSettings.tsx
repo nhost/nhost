@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -46,7 +45,6 @@ export default function OAuth2ProviderSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
 
   const [updateConfig] = useUpdateConfigMutation({
@@ -180,7 +178,7 @@ export default function OAuth2ProviderSettings() {
           docsTitle="OAuth2 Providers"
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}
@@ -247,10 +245,7 @@ export default function OAuth2ProviderSettings() {
                 discovery.
               </Text>
             </div>
-            <ControlledSwitch
-              name="clientIdMetadataDocumentEnabled"
-              disabled={maintenanceActive}
-            />
+            <ControlledSwitch name="clientIdMetadataDocumentEnabled" />
           </div>
         </SettingsContainer>
       </Form>

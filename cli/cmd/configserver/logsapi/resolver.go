@@ -26,12 +26,12 @@ type LogGatherer interface {
 	GetServiceLabelValues(ctx context.Context) ([]string, error)
 	GetFunctionsLogs(
 		ctx context.Context,
-		path string,
+		path, regexFilter string,
 		from, to time.Time,
 	) ([]model.Log, error)
 	TailFunctionsLogs(
 		ctx context.Context,
-		path string,
+		path, regexFilter string,
 		from time.Time,
 		logsCh chan<- []model.Log,
 	) error

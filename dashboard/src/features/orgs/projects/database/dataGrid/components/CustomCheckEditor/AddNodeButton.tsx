@@ -26,14 +26,12 @@ import useCustomCheckEditor from './useCustomCheckEditor';
 
 interface AddNodeButtonProps {
   onSelect: (node: RuleNode) => void;
-  disabled?: boolean;
   fullWidth?: boolean;
   label?: string;
 }
 
 export default function AddNodeButton({
   onSelect,
-  disabled,
   fullWidth,
   label = 'Add check',
 }: AddNodeButtonProps) {
@@ -130,7 +128,7 @@ export default function AddNodeButton({
         <Button
           type="button"
           variant="outline"
-          disabled={disabled}
+          disabled={!hasTable}
           className={cn(
             'justify-start text-muted-foreground',
             fullWidth && 'w-full',

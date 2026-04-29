@@ -24,12 +24,10 @@ export default function RelationshipNodeRenderer({
   depth = 0,
   maxDepth,
 }: RelationshipNodeRendererProps) {
-  const {
-    disabled: editorDisabled,
-    schema: parentSchema,
-    table: parentTable,
-  } = useCustomCheckEditor();
-  const { setValue } = useFormContext();
+  const { schema: parentSchema, table: parentTable } = useCustomCheckEditor();
+  const { setValue, getFieldState, formState } = useFormContext();
+
+  const { error: childError } = getFieldState(`${name}.child`, formState);
 
   const relationshipName: string =
     useWatch({ name: `${name}.relationship` }) ?? '';
@@ -79,22 +77,12 @@ export default function RelationshipNodeRenderer({
     };
   }, [relationshipName, options]);
 
-  const hasRelationship = Boolean(
-    relationshipName && resolvedTarget.schema && resolvedTarget.table,
-  );
-
   const contextValue = useMemo(
     () => ({
-      disabled: editorDisabled || !hasRelationship,
       schema: resolvedTarget.schema,
       table: resolvedTarget.table,
     }),
-    [
-      editorDisabled,
-      hasRelationship,
-      resolvedTarget.schema,
-      resolvedTarget.table,
-    ],
+    [resolvedTarget.schema, resolvedTarget.table],
   );
 
   function handleRelationshipChange(value: {
@@ -121,9 +109,8 @@ export default function RelationshipNodeRenderer({
         <button
           type="button"
           onClick={onRemove}
-          disabled={editorDisabled}
           aria-label="Delete relationship"
-          className="absolute top-2 right-2 rounded p-0.5 opacity-50 hover:opacity-100 disabled:pointer-events-none disabled:opacity-30"
+          className="absolute top-2 right-2 rounded p-0.5 opacity-50 hover:opacity-100"
         >
           <X className="h-4 w-4" />
         </button>
@@ -137,7 +124,6 @@ export default function RelationshipNodeRenderer({
           name={name}
           relationship={relationshipName}
           onChange={handleRelationshipChange}
-          disabled={editorDisabled}
         />
       </div>
 
@@ -149,6 +135,10 @@ export default function RelationshipNodeRenderer({
           maxDepth={maxDepth}
         />
       </CustomCheckEditorContext.Provider>
+
+      {childError?.message ? (
+        <p className="mt-2 text-destructive text-sm">{childError.message}</p>
+      ) : null}
     </div>
   );
 }

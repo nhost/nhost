@@ -1,3 +1,23 @@
+## [@nhost/dashboard@2.61.0] - 2026-04-29
+
+### 🚀 Features
+
+- *(dashboard)* Display constraints, triggers and indexes in database view (#3875)
+- *(dashboard)* Switch role and action via dropdowns in permissions editor (#4196)
+- *(dashboard)* Add JSON editor to custom check (#4166)
+- *(dashboard)* Serverless functions view (#4141)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Handle non-trackable postgres functions in database page (#4176)
+- *(deps)* Bump up uuid, Astro and xmldom due to CVEs (#4187)
+- *(dashboard)* Revalidate remote schema introspection after reload (#4178)
+- *(dashboard)* Stick permissions button to bottom of storage sidebar (#4188)
+- *(dashboard)* Include schema prefix in GraphQL root field placeholders (#4179)
+- *(deps)* Fix postcss XSS advisory (GHSA-qx2v-qp2m-jg93) (#4197)
+- *(dashboard)* Remove unused maintenance mode (#4180)
+
 ## [@nhost/dashboard@2.60.0] - 2026-04-20
 
 ### 🚀 Features

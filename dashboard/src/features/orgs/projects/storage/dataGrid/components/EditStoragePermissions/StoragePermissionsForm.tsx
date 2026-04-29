@@ -103,10 +103,17 @@ export default function StoragePermissionsForm({
     const dbAction = STORAGE_ACTION_TO_DB_ACTION[selectedAction];
     return (
       <StorageRolePermissionEditorForm
+        key={`${selectedRole}.${selectedAction}`}
         location={location}
         resourceVersion={metadata?.resourceVersion as number}
         role={selectedRole}
         storageAction={selectedAction}
+        availableRoles={availableRoles}
+        availableStorageActions={
+          Object.values(DB_ACTION_TO_STORAGE_ACTION) as StorageAction[]
+        }
+        onRoleChange={setSelectedRole}
+        onStorageActionChange={setSelectedAction}
         onSubmit={resetSelection}
         onCancel={resetSelection}
         permission={findPermission(metadataForTable, selectedRole, dbAction)}

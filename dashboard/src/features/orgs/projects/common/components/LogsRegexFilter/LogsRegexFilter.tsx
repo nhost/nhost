@@ -20,7 +20,7 @@ const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
       hideEmptyHelperText
       autoComplete="off"
       fullWidth
-      className="min-w-80"
+      className="min-w-0"
       startAdornment={
         <Tooltip
           componentsProps={{

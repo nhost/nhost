@@ -33,6 +33,7 @@ type Query {
     getFunctionsLogs(
         appID: String!,
         path: String!,
+        regexFilter: String,
         from: Timestamp,
         to: Timestamp,
     ): [Log!]!
@@ -57,6 +58,7 @@ type Subscription {
     getFunctionsLogs(
         appID: String!,
         path: String!,
+        regexFilter: String,
         from: Timestamp,
     ): [Log!]!
 }

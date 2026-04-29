@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -35,7 +34,6 @@ const AVAILABLE_HASURA_LOG_LEVELS = ['debug', 'info', 'warn', 'error'];
 export default function HasuraLogLevelSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
 
@@ -154,7 +152,7 @@ export default function HasuraLogLevelSettings() {
           docsTitle="Log Levels"
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive,
+              disabled: !isDirty,
               loading: formState.isSubmitting,
             },
           }}

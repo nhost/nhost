@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import parsePermissionRule from './parsePermissionRule';
 
 describe('parsePermissionRule', () => {
@@ -6,14 +5,25 @@ describe('parsePermissionRule', () => {
     expect(parsePermissionRule({})).toEqual([]);
   });
 
-  it('returns an empty array and logs an error when the value is a primitive (not an object)', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    expect(parsePermissionRule({ invalid: 'string' })).toEqual([]);
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'parsePermissionRule: unexpected primitive value for key "invalid":',
-      'string',
-    );
-    consoleSpy.mockRestore();
+  it('returns an InvalidNode with reason "primitive" when value is a primitive', () => {
+    const result = parsePermissionRule({ user_id: 5 });
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      type: 'invalid',
+      reason: 'primitive',
+      key: 'user_id',
+      raw: 5,
+    });
+  });
+
+  it('returns an InvalidNode with reason "operator" when value is an array at a non-_and/_or key', () => {
+    const result = parsePermissionRule({ _ad: [{ col: { _eq: 'a' } }] });
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      type: 'invalid',
+      reason: 'operator',
+      key: '_ad',
+    });
   });
 
   it('parses a simple equality condition', () => {

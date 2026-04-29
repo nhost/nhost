@@ -28,8 +28,8 @@
     "@vue/tsconfig": "^0.7.0",
     "npm-run-all2": "^8.0.4",
     "typescript": "~5.8.0",
-    "vite": "^8.0.6",
-    "vite-plugin-vue-devtools": "^8.0.0",
+    "vite": "^8.0.10",
+    "vite-plugin-vue-devtools": "^8.1.1",
     "vue-tsc": "^3.0.4"
   }
 }

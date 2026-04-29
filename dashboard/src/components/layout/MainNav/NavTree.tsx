@@ -1,4 +1,4 @@
-import { Box, ChevronDown, ChevronRight, Plus, Zap } from 'lucide-react';
+import { Box, ChevronDown, ChevronRight, Code, Plus, Zap } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 import {
@@ -68,6 +68,12 @@ const projectPages = [
     icon: <StorageIcon className="h-4 w-4" />,
     route: 'storage',
     slug: 'storage',
+  },
+  {
+    name: 'Functions',
+    icon: <Code className="h-4 w-4" />,
+    route: 'functions',
+    slug: 'functions',
   },
   {
     name: 'Run',
@@ -335,9 +341,7 @@ const createOrganization = (org: Org) => {
           isProjectPage: true,
           targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${_page.route}`,
           disabled:
-            (['deployments', 'backups', 'logs', 'metrics'].includes(
-              _page.slug,
-            ) &&
+            (['deployments', 'backups', 'metrics'].includes(_page.slug) &&
               isNotPlatform) ||
             (_page.name === 'Settings' && shouldDisableSettings) ||
             (_page.name === 'AI' && shouldDisableGraphite),

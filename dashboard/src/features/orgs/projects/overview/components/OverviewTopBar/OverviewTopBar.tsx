@@ -13,7 +13,6 @@ export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
   const { project } = useProject();
-  const { maintenanceActive } = useUI();
 
   const isFreeProject = !!org?.plan.isFree;
 
@@ -94,7 +93,6 @@ export default function OverviewTopBar() {
           href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
           className="flex h-10 gap-2"
           variant="outline"
-          disabled={maintenanceActive}
         >
           Settings
           <Settings className="h-4 w-4" />

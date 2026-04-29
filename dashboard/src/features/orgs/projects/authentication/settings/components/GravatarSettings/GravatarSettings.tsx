@@ -5,7 +5,6 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -36,7 +35,6 @@ export default function GravatarSettings() {
   const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
 
   const [updateConfig] = useUpdateConfigMutation({
@@ -142,7 +140,7 @@ export default function GravatarSettings() {
           description="Use Gravatars for avatar URLs for users."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}

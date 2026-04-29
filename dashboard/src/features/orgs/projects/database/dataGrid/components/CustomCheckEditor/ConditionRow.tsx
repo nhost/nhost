@@ -20,7 +20,7 @@ type OnHandlerOptions = {
 };
 
 export default function ConditionRow({ name, onRemove }: ConditionRowProps) {
-  const { schema, table, disabled } = useCustomCheckEditor();
+  const { schema, table } = useCustomCheckEditor();
   const { control, setValue, clearErrors } = useFormContext();
 
   const [selectedTablePath, setSelectedTablePath] = useState('');
@@ -69,7 +69,6 @@ export default function ConditionRow({ name, onRemove }: ConditionRowProps) {
             <div className="flex flex-col gap-2">
               <ColumnAutocomplete
                 {...autocompleteField}
-                disabled={disabled}
                 schema={schema}
                 table={table}
                 disableRelationships
@@ -85,11 +84,7 @@ export default function ConditionRow({ name, onRemove }: ConditionRowProps) {
         }}
       />
 
-      <OperatorComboBox
-        name={name}
-        disabled={disabled}
-        selectedColumnType={selectedColumnType}
-      />
+      <OperatorComboBox name={name} selectedColumnType={selectedColumnType} />
       <ConditionValue
         selectedTablePath={selectedTablePath}
         name={name}
@@ -99,9 +94,8 @@ export default function ConditionRow({ name, onRemove }: ConditionRowProps) {
       <Button
         variant="ghost"
         size="icon"
-        className={cn('w-full xl:w-auto', { 'text-destructive': !disabled })}
+        className="w-full text-destructive xl:w-auto"
         onClick={onRemove}
-        disabled={disabled}
         aria-label="Delete condition"
       >
         <Trash2 className="h-4 w-4" />

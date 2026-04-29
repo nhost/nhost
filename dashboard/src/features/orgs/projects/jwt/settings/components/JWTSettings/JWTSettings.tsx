@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -38,7 +37,6 @@ export default function JWTSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
 
   const [updateConfig] = useUpdateConfigMutation({
@@ -294,7 +292,7 @@ export default function JWTSettings() {
           description="Select how JSON Web Tokens (JWTs) are signed and verified."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}

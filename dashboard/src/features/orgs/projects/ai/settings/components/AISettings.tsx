@@ -57,7 +57,6 @@ export type AISettingsFormValues = Yup.InferType<typeof validationSchema>;
 export default function AISettings() {
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -291,7 +290,7 @@ export default function AISettings() {
               description={null}
               slotProps={{
                 submitButton: {
-                  disabled: !formState.isDirty || maintenanceActive,
+                  disabled: !formState.isDirty,
                   loading: formState.isSubmitting,
                 },
               }}

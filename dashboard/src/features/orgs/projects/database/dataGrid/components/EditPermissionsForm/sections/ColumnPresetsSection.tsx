@@ -9,12 +9,28 @@ import { IconButton } from '@/components/ui/v2/IconButton';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import { Plus, X } from 'lucide-react';
+import {
+  Controller,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
-import { isNotEmptyValue } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import ColumnPresetValueCombobox from './ColumnPresetValueCombobox';
 import PermissionSettingsSection from './PermissionSettingsSection';
 import { Plus, X } from 'lucide-react';
 export interface ColumnPreset {
@@ -23,13 +39,7 @@ column: string;
 }
 
 export interface ColumnPresetSectionProps {
-  /**
-   * Schema to use for fetching available columns.
-   */
   schema: string;
-  /**
-   * Table to use for fetching available columns.
-   */
   table: string;
 }
 
@@ -37,12 +47,10 @@ export default function ColumnPresetsSection({
   schema,
   table,
 }: ColumnPresetSectionProps) {
-  const theme = useTheme();
-  const {
-    data: tableData,
-    status: tableStatus,
-    error: tableError,
-  } = useTableSchemaQuery([`default.${schema}.${table}`], { schema, table });
+  const { data: tableData, error: tableError } = useTableSchemaQuery(
+    [`default.${schema}.${table}`],
+    { schema, table },
+  );
 
   const { project } = useProject();
 
@@ -51,15 +59,20 @@ export default function ColumnPresetsSection({
     skip: !project?.id,
   });
   const {
-    setValue,
+    control,
     formState: { errors },
   } = useFormContext<RolePermissionEditorFormValues>();
-  const { fields, append, remove } = useFieldArray({ name: 'columnPresets' });
-  const columnPresets = useWatch({ name: 'columnPresets' }) as ColumnPreset[];
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'columnPresets',
+  });
+  const columnPresets = useWatch({
+    control,
+    name: 'columnPresets',
+  }) as ColumnPreset[];
 
   const allColumnNames: string[] =
     tableData?.columns.map((column) => column.column_name) || [];
-  const selectedColumns = fields as (ColumnPreset & { id: string })[];
   const selectedColumnsMap = columnPresets.reduce(
     (map, { column }) => map.set(column, true),
     new Map<string, boolean>(),
@@ -74,133 +87,92 @@ export default function ColumnPresetsSection({
   ).map(({ key }) => ({
     label: `X-Hasura-${key}`,
     value: `X-Hasura-${key}`,
-    group: 'Permission variables',
   }));
 
   return (
     <PermissionSettingsSection title="Column presets" className="gap-6">
-      <Text variant="subtitle1">
+      <p className="text-secondary text-sm">
         Set static values or session variables as pre-determined values for
         columns while inserting.
-      </Text>
+      </p>
 
       <div className="grid grid-flow-row gap-2">
         <div className="grid grid-cols-[1fr_1fr_40px] gap-2">
-          <InputLabel as="span">Column Name</InputLabel>
-          <InputLabel as="span">Column Value</InputLabel>
+          <span className="font-medium text-sm">Column Name</span>
+          <span className="font-medium text-sm">Column Value</span>
         </div>
 
-        {tableStatus === 'loading' && (
-          <ActivityIndicator label="Loading columns..." />
-        )}
-
         <div className="grid grid-flow-row gap-4">
-          {tableStatus === 'success' &&
-            selectedColumns.map((field, index) => (
+          {fields.map((field, index) => {
+            const columnError =
+              errors?.columnPresets?.at?.(index)?.column?.message;
+            const valueError =
+              errors?.columnPresets?.at?.(index)?.value?.message;
+
+            return (
               <div
                 key={field.id}
                 className="grid grid-cols-[1fr_1fr_40px] gap-2"
               >
-                <ControlledSelect
+                <Controller
                   name={`columnPresets.${index}.column`}
-                  error={Boolean(
-                    errors?.columnPresets?.at?.(index)?.column?.message,
-                  )}
-                >
-                  {allColumnNames.map((column) => (
-                    <Option
-                      value={column}
-                      disabled={selectedColumnsMap.has(column)}
-                      key={column}
+                  control={control}
+                  render={({ field: columnField }) => (
+                    <Select
+                      value={columnField.value || undefined}
+                      onValueChange={columnField.onChange}
                     >
-                      {column}
-                    </Option>
-                  ))}
-                </ControlledSelect>
-
-                <Autocomplete
-                  options={permissionVariableOptions}
-                  groupBy={(option) => option.group || ''}
-                  name={`columnPresets.${index}.value`}
-                  inputValue={field.value}
-                  value={field.value}
-                  freeSolo
-                  fullWidth
-                  disableClearable={false}
-                  clearIcon={
-                    <XIcon
-                      className="mt-px h-4 w-4"
-                      sx={{ color: theme.palette.text.primary }}
-                    />
-                  }
-                  autoSelect
-                  autoHighlight={false}
-                  error={Boolean(
-                    errors?.columnPresets?.at?.(index)?.value?.message,
+                      <SelectTrigger
+                        className={cn(
+                          Boolean(columnError) &&
+                            'border-destructive text-destructive',
+                        )}
+                      >
+                        <SelectValue placeholder="Select column" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allColumnNames.map((column) => (
+                          <SelectItem
+                            key={column}
+                            value={column}
+                            disabled={
+                              selectedColumnsMap.has(column) &&
+                              columnField.value !== column
+                            }
+                          >
+                            {column}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
-                  slotProps={{
-                    paper: {
-                      className: clsx(
-                        permissionVariableOptions.length === 0 && 'hidden',
-                      ),
-                    },
-                  }}
-                  isOptionEqualToValue={(option, value) => {
-                    if (typeof value === 'string') {
-                      return (
-                        option.value.toLowerCase() ===
-                        (value as string).toLowerCase()
-                      );
-                    }
-
-                    return (
-                      option.value.toLowerCase() === value.value.toLowerCase()
-                    );
-                  }}
-                  onChange={(_event, _value, reason, details) => {
-                    if (reason === 'clear') {
-                      setValue(`columnPresets.${index}.value`, '', {
-                        shouldDirty: true,
-                      });
-
-                      return;
-                    }
-                    if (
-                      isNotEmptyValue(details) &&
-                      typeof details.option === 'string'
-                    ) {
-                      setValue(`columnPresets.${index}.value`, details.option, {
-                        shouldDirty: true,
-                      });
-                    } else if (isNotEmptyValue(details?.option?.value)) {
-                      setValue(
-                        `columnPresets.${index}.value`,
-                        details.option.value,
-                        { shouldDirty: true },
-                      );
-                    }
-                  }}
                 />
 
-                <IconButton
-                  variant="outlined"
-                  color="secondary"
-                  className="flex-[40px] shrink-0 grow-0"
+                <ColumnPresetValueCombobox
+                  name={`columnPresets.${index}.value`}
+                  options={permissionVariableOptions}
+                  hasError={Boolean(valueError)}
+                />
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  type="button"
+                  aria-label="Delete preset"
                   onClick={() => {
                     if (fields.length === 1) {
                       remove(index);
                       append({ column: '', value: '' });
-
                       return;
                     }
-
                     remove(index);
                   }}
                 >
                   <X className="h-4 w-4" />
                 </IconButton>
               </div>
-            ))}
+            );
+          })}
         </div>
 
         <Button
@@ -208,9 +180,10 @@ export default function ColumnPresetsSection({
           startIcon={<Plus />}
           size="small"
           onClick={() => append({ column: '', value: '' })}
-          disabled={selectedColumns.length === allColumnNames.length}
-          className="justify-self-start"
+          disabled={fields.length === allColumnNames.length}
+          className="justify-self-start text-primary hover:text-primary"
         >
+          <Plus className="mr-2 h-4 w-4" />
           Add Column
         </Button>
       </div>

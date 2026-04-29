@@ -4,7 +4,6 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
@@ -34,7 +33,6 @@ import {  MoreVertical, useDeleteSecretMutation, useGetSecretsQuery  } from 'luc
 export default function SecretsPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { openDialog, openAlertDialog } = useDialog();
 
@@ -240,7 +238,6 @@ export default function SecretsPage() {
             variant="borderless"
             startIcon={<Plus />}
             onClick={handleOpenCreator}
-            disabled={maintenanceActive}
           >
             Create Secret
           </Button>

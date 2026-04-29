@@ -2,7 +2,6 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -34,7 +33,6 @@ export interface EnvironmentVariableSettingsFormValues {
 export default function EnvironmentVariableSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { openDialog, openAlertDialog } = useDialog();
 
@@ -250,7 +248,6 @@ export default function EnvironmentVariableSettings() {
           variant="borderless"
           startIcon={<Plus />}
           onClick={handleOpenCreator}
-          disabled={maintenanceActive}
         >
           Create Environment Variable
         </Button>
