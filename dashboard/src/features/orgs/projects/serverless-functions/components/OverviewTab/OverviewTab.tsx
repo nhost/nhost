@@ -11,6 +11,7 @@ import {
   MetadataRow,
 } from '@/features/orgs/projects/serverless-functions/components/MetadataCard';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
+import { isNotEmptyValue } from '@/lib/utils';
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleString();
@@ -30,6 +31,9 @@ export default function OverviewTab({
   const isPlatform = useIsPlatform();
   const { orgSlug, appSubdomain } = useRouter().query;
   const isPlaceholderDate = (date: string) => date.startsWith('0001-01-01');
+  const showDeploymentCard =
+    isPlatform &&
+    (isNotEmptyValue(fn.createdWithCommitSha) || isNotEmptyValue(fn.checksum));
 
   return (
     <div className="space-y-4">
@@ -63,7 +67,7 @@ export default function OverviewTab({
         <MetadataCard
           title="Runtime"
           icon={Cpu}
-          className={!isPlatform ? 'col-span-2' : undefined}
+          className={!showDeploymentCard ? 'col-span-2' : undefined}
         >
           <div className="space-y-2">
             <MetadataRow label="Runtime" value={fn.runtime} />
@@ -90,27 +94,31 @@ export default function OverviewTab({
           </div>
         </MetadataCard>
 
-        {isPlatform && (
+        {showDeploymentCard && (
           <MetadataCard title="Deployment" icon={GitCommit}>
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Commit</span>
-                <div className="flex items-center gap-1">
-                  <Link
-                    href={`/orgs/${orgSlug}/projects/${appSubdomain}/deployments`}
-                    className="hover:underline"
-                  >
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {fn.createdWithCommitSha.slice(0, 7)}
-                    </Badge>
-                  </Link>
-                  <CopyToClipboardButton
-                    textToCopy={fn.createdWithCommitSha}
-                    title="Commit SHA"
-                  />
+              {isNotEmptyValue(fn.createdWithCommitSha) && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Commit
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Link
+                      href={`/orgs/${orgSlug}/projects/${appSubdomain}/deployments`}
+                      className="hover:underline"
+                    >
+                      <Badge variant="outline" className="font-mono text-xs">
+                        {fn.createdWithCommitSha.slice(0, 7)}
+                      </Badge>
+                    </Link>
+                    <CopyToClipboardButton
+                      textToCopy={fn.createdWithCommitSha}
+                      title="Commit SHA"
+                    />
+                  </div>
                 </div>
-              </div>
-              {fn.checksum && (
+              )}
+              {isNotEmptyValue(fn.checksum) && (
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <span className="shrink-0 text-gray-600 dark:text-gray-400">
                     Checksum

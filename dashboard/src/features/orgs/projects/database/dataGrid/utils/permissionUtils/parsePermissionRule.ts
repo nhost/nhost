@@ -133,11 +133,27 @@ function parsePermissionRule(
   }
 
   if (typeof value !== 'object' || value === null) {
-    console.error(
-      `parsePermissionRule: unexpected primitive value for key "${currentKey}":`,
-      value,
-    );
-    return [];
+    return [
+      {
+        type: 'invalid',
+        id: uuidv4(),
+        reason: 'primitive',
+        raw: value,
+        key: currentKey,
+      },
+    ];
+  }
+
+  if (Array.isArray(value)) {
+    return [
+      {
+        type: 'invalid',
+        id: uuidv4(),
+        reason: 'operator',
+        raw: value,
+        key: currentKey,
+      },
+    ];
   }
 
   const valueObj = value as Record<string, unknown>;

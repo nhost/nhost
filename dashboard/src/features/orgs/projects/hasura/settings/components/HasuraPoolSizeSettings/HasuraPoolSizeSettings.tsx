@@ -3,7 +3,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -31,7 +30,6 @@ export type HasuraPoolSizeFormValues = Yup.InferType<typeof validationSchema>;
 export default function HasuraPoolSizeSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
 
@@ -118,7 +116,7 @@ export default function HasuraPoolSizeSettings() {
           docsLink="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#events-http-pool-size"
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive,
+              disabled: !isDirty,
               loading: formState.isSubmitting,
             },
           }}

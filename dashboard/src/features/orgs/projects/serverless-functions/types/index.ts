@@ -6,7 +6,7 @@ export interface NhostFunction {
   createdAt: string;
   updatedAt: string;
   functionName: string;
-  createdWithCommitSha: string;
+  createdWithCommitSha?: string;
 }
 
 export const HTTP_METHODS = [

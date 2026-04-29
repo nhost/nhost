@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   AlertDialog,
@@ -22,7 +21,6 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { useDeleteOrganizationMutation } from '@/utils/__generated__/graphql';
 
 export default function DeleteOrg() {
-  const { maintenanceActive } = useUI();
   const router = useRouter();
   const { org } = useCurrentOrg();
   const { refetch: refetchOrgs } = useOrgs();
@@ -68,10 +66,7 @@ export default function DeleteOrg() {
       <div className="flex justify-end gap-2 p-2">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button
-              variant="destructive"
-              disabled={deleting || maintenanceActive}
-            >
+            <Button variant="destructive" disabled={deleting}>
               Delete
             </Button>
           </AlertDialogTrigger>
@@ -130,11 +125,7 @@ export default function DeleteOrg() {
                 }}
                 data-testid="deleteOrgButton"
                 className={buttonVariants({ variant: 'destructive' })}
-                disabled={
-                  deleting ||
-                  !(deleteCheck1 && deleteCheck2) ||
-                  maintenanceActive
-                }
+                disabled={deleting || !(deleteCheck1 && deleteCheck2)}
               >
                 {deleting ? <ActivityIndicator /> : 'Delete'}
               </AlertDialogAction>

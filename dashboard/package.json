@@ -125,7 +125,7 @@
     "tailwindcss-animate": "^1.0.7",
     "timezones-list": "^3.1.0",
     "utility-types": "^3.11.0",
-    "uuid": "^9.0.1",
+    "uuid": "^14.0.0",
     "yup": "^1.4.0",
     "yup-password": "^0.2.2",
     "zod": "^3.23.8"
@@ -152,7 +152,6 @@
     "@types/react": "19.2.8",
     "@types/react-dom": "^19.2.3",
     "@types/testing-library__jest-dom": "^5.14.9",
-    "@types/uuid": "^9.0.8",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.3",
     "audit-ci": "^6.6.1",
@@ -170,7 +169,7 @@
     "tailwindcss": "^3.4.12",
     "ts-node": "^10.9.2",
     "undici": "^7.24.0",
-    "vite": "^8.0.6",
+    "vite": "^8.0.10",
     "vitest": "^4.1.3"
   },
   "browserslist": {

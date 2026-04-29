@@ -49,13 +49,11 @@ export function FancyMultiSelect({
 
   const handleUnselect = useCallback(
     (option: Option) => {
-      setSelected((prev) => {
-        const next = prev.filter((s) => s.value !== option.value);
-        onChange?.(next);
-        return next;
-      });
+      const next = selected.filter((s) => s.value !== option.value);
+      setSelected(next);
+      onChange?.(next);
     },
-    [onChange],
+    [selected, onChange],
   );
 
   const handleKeyDown = useCallback(
@@ -64,11 +62,9 @@ export function FancyMultiSelect({
       if (input) {
         if (e.key === 'Delete' || e.key === 'Backspace') {
           if (input.value === '') {
-            setSelected((prev) => {
-              const next = prev.slice(0, -1);
-              onChange?.(next);
-              return next;
-            });
+            const next = selected.slice(0, -1);
+            setSelected(next);
+            onChange?.(next);
           }
         }
         // This is not a default behaviour of the <input /> field
@@ -77,7 +73,7 @@ export function FancyMultiSelect({
         }
       }
     },
-    [onChange],
+    [selected, onChange],
   );
 
   function handleSelect(option: Option) {
@@ -94,7 +90,11 @@ export function FancyMultiSelect({
         option.label.toLowerCase().includes(inputValue.toLowerCase()),
     );
 
-    if (creatable && inputValue) {
+    if (
+      creatable &&
+      inputValue &&
+      !selected.some((s) => s.value === inputValue)
+    ) {
       return [
         ...filtered,
         {

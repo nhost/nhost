@@ -37,6 +37,7 @@ export default function MultipartEditor({ name }: MultipartEditorProps) {
                 fileInputRefs.current[index] = el;
               }}
               type="file"
+              aria-label="File upload"
               className="hidden"
               onChange={(e) => {
                 const selected = e.target.files?.[0] ?? null;

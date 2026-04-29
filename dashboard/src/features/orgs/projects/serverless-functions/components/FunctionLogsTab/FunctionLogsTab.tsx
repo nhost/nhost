@@ -1,6 +1,6 @@
 import { subMinutes } from 'date-fns';
 import { Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Form } from '@/components/form/Form';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
@@ -35,26 +35,10 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
     from: filters.from,
     to: filters.to,
     path: fn.route,
+    regexFilter: filters.regexFilter,
   });
 
-  const logsData = useMemo(() => {
-    if (!data) {
-      return undefined;
-    }
-
-    let { getFunctionsLogs: logs } = data;
-
-    if (filters.regexFilter) {
-      try {
-        const regex = new RegExp(filters.regexFilter);
-        logs = logs.filter((log) => regex.test(log.log));
-      } catch {
-        // invalid regex, show all logs
-      }
-    }
-
-    return { logs };
-  }, [data, filters.regexFilter]);
+  const logsData = data ? { logs: data.getFunctionsLogs } : undefined;
 
   const handleSubmit = (values: LogsFilterFormValues) => {
     if (values.interval) {

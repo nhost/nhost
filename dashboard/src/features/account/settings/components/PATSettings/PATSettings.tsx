@@ -1,7 +1,6 @@
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -25,7 +24,6 @@ import {
 } from '@/utils/__generated__/graphql';
 
 export default function PATSettings() {
-  const { maintenanceActive } = useUI();
   const { openDialog, openAlertDialog } = useDialog();
 
   const { data, loading, error } = useGetPersonalAccessTokensQuery();
@@ -142,7 +140,6 @@ export default function PATSettings() {
                           <IconButton
                             variant="borderless"
                             color="secondary"
-                            disabled={maintenanceActive}
                             aria-label={`More options for ${pat.name}`}
                           >
                             <DotsVerticalIcon />
@@ -218,7 +215,6 @@ export default function PATSettings() {
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
-          disabled={maintenanceActive}
         >
           Create Personal Access Token
         </Button>

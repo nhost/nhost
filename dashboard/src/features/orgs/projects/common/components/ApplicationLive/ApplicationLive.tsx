@@ -1,5 +1,4 @@
 import { Container } from '@/components/layout/Container';
-import { MaintenanceAlert } from '@/components/presentational/MaintenanceAlert';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -58,8 +57,6 @@ export default function ApplicationLive({
 
   return (
     <Container>
-      <MaintenanceAlert />
-
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <OverviewTopBar />

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-export function MetadataCard({
+export default function MetadataCard({
   title,
   icon: Icon,
   children,

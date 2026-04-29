@@ -77,8 +77,11 @@ export default function CustomGraphQLRootFieldsSection({
 
   const customTableName = form.watch('customTableName');
 
+  const defaultTableName =
+    schema === 'public' ? tableName : `${schema}_${tableName}`;
+
   const tableNameAlias = isEmptyValue(customTableName)
-    ? tableName
+    ? defaultTableName
     : customTableName!;
 
   useEffect(() => {

@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
@@ -35,7 +34,6 @@ export default function RunServicePortDomain({
 }: RunServicePortProps) {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const [loading, setLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
@@ -122,12 +120,10 @@ export default function RunServicePortDomain({
 
   const isDisabled = () => {
     if (!isPlatform) {
-      return loading || !isDirty || maintenanceActive;
+      return loading || !isDirty;
     }
 
-    return (
-      loading || !isDirty || maintenanceActive || (!isVerified && !initialValue)
-    );
+    return loading || !isDirty || (!isVerified && !initialValue);
   };
 
   return (

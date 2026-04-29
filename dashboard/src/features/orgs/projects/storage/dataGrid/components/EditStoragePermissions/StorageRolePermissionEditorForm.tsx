@@ -5,15 +5,15 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import { useDialog } from '@/components/common/DialogProvider';
 import { PermissionSettingsSectionV3 as PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
+import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useManagePermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManagePermissionMutation';
 import type { HasuraMetadataPermission } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import {
-  unWrapRuleNodes,
+  serializeNode,
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -38,6 +38,10 @@ export interface StorageRolePermissionEditorFormProps extends DialogFormProps {
   role: string;
   resourceVersion: number;
   storageAction: StorageAction;
+  availableRoles: string[];
+  availableStorageActions: StorageAction[];
+  onRoleChange: (role: string) => void;
+  onStorageActionChange: (storageAction: StorageAction) => void;
   onSubmit: VoidFunction;
   onCancel: VoidFunction;
   permission?: HasuraMetadataPermission['permission'];
@@ -77,6 +81,10 @@ export default function StorageRolePermissionEditorForm({
   role,
   resourceVersion,
   storageAction,
+  availableRoles,
+  availableStorageActions,
+  onRoleChange,
+  onStorageActionChange,
   onSubmit,
   onCancel,
   permission,
@@ -127,7 +135,7 @@ export default function StorageRolePermissionEditorForm({
   async function handleSubmit(values: StoragePermissionEditorFormValues) {
     const permissionFilter =
       values.rowCheckType === 'custom'
-        ? unWrapRuleNodes(values.filter as GroupNode)
+        ? serializeNode(values.filter as GroupNode)
         : (values.filter ?? {});
 
     const primaryPermission: HasuraMetadataPermission['permission'] = {
@@ -228,7 +236,7 @@ export default function StorageRolePermissionEditorForm({
         <div className="-mt-3 mb-4 px-6">
           <Alert
             variant="destructive"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            className="grid grid-flow-col items-center justify-between bg-destructive/10 px-4 py-3"
           >
             <span className="text-left text-sm+">
               <strong>Error:</strong> {error.message}
@@ -248,26 +256,19 @@ export default function StorageRolePermissionEditorForm({
         <div className="grid flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection
             title="Selected role & action"
-            className="grid-flow-col justify-between"
+            className="grid-flow-col justify-start gap-6"
           >
-            <div className="grid grid-flow-col gap-4 text-sm+">
-              <span>
-                Role: <InlineCode className="text-sm+">{role}</InlineCode>
-              </span>
-              <span>
-                Action:{' '}
-                <InlineCode className="text-sm+">{actionLabel}</InlineCode>
-              </span>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={handleCancelClick}
-            >
-              Change
-            </Button>
+            <RoleActionSwitcher
+              role={role}
+              action={storageAction}
+              availableRoles={availableRoles}
+              availableActions={availableStorageActions}
+              actionLabels={STORAGE_ACTION_LABELS}
+              isDirty={isDirty}
+              location={location}
+              onRoleChange={onRoleChange}
+              onActionChange={onStorageActionChange}
+            />
           </PermissionSettingsSection>
 
           <StorageRowPermissionsSection

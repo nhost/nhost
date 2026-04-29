@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -22,7 +21,6 @@ export interface DeploymentBranchFormValues {
 }
 
 export default function DeploymentBranchSettings() {
-  const { maintenanceActive } = useUI();
   const { project } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
   const userData = useUserData();
@@ -84,10 +82,7 @@ export default function DeploymentBranchSettings() {
           description="When automatic deploys are enabled, commits pushed to this branch will trigger a deployment. You can switch to a different branch here."
           slotProps={{
             submitButton: {
-              disabled:
-                !formState.isDirty ||
-                maintenanceActive ||
-                !project?.automaticDeploys,
+              disabled: !formState.isDirty || !project?.automaticDeploys,
               loading: formState.isSubmitting,
             },
           }}

@@ -3,7 +3,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -33,7 +32,6 @@ import { validationSchema } from './ContactPointsSettingsTypes';
 
 export default function ContactPointsSettings() {
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
   const { openDialog } = useDialog();
@@ -187,7 +185,7 @@ export default function ContactPointsSettings() {
           className={twMerge('my-2 px-0')}
           slotProps={{
             submitButton: {
-              disabled: !form.formState.isDirty || maintenanceActive,
+              disabled: !form.formState.isDirty,
               loading: form.formState.isSubmitting,
             },
           }}

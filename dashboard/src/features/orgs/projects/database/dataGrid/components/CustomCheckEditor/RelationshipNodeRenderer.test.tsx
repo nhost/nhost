@@ -16,7 +16,7 @@ import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { mockPointerEvent, render, screen } from '@/tests/testUtils';
-import CustomCheckEditor from './CustomCheckEditor';
+import VisualRuleEditor from './VisualRuleEditor';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -128,7 +128,7 @@ describe('RelationshipNodeRenderer - nested context propagation', () => {
           ]),
         }}
       >
-        <CustomCheckEditor schema="public" table="books" name="rule" />
+        <VisualRuleEditor schema="public" table="books" name="rule" />
       </TestWrapper>,
     );
 
@@ -153,7 +153,7 @@ describe('RelationshipNodeRenderer - nested context propagation', () => {
           ]),
         }}
       >
-        <CustomCheckEditor schema="public" table="books" name="rule" />
+        <VisualRuleEditor schema="public" table="books" name="rule" />
       </TestWrapper>,
     );
 
