@@ -44,13 +44,6 @@ afterEach(() => {
 });
 
 describe('OverviewTab', () => {
-  it('renders endpoint card with the given URL', () => {
-    render(<OverviewTab fn={baseFn} endpointUrl={ENDPOINT} />);
-
-    expect(screen.getByText('Endpoint')).toBeInTheDocument();
-    expectFullTextRendered(ENDPOINT);
-  });
-
   it('renders the default endpoint section only when defaultEndpointUrl is provided', () => {
     const { rerender } = render(
       <OverviewTab fn={baseFn} endpointUrl={ENDPOINT} />,

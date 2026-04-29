@@ -1,12 +1,6 @@
 import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import {
-  fireEvent,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import FunctionLogsTab from './FunctionLogsTab';
 
 Object.defineProperty(window, 'matchMedia', {
@@ -66,10 +60,7 @@ describe('FunctionLogsTab', () => {
       '(?i)error',
     );
 
-    const form = screen
-      .getByRole('button', { name: /search/i })
-      .closest('form') as HTMLFormElement;
-    fireEvent.submit(form);
+    await user.click(screen.getByRole('button', { name: /search/i }));
 
     await waitFor(() => {
       expect(mocks.useFunctionLogs).toHaveBeenLastCalledWith(

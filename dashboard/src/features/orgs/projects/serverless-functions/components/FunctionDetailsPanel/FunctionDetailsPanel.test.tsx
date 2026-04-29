@@ -1,8 +1,9 @@
+import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
+import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
-  createGraphqlMockResolver,
   expectFullTextRendered,
   render,
   screen,
@@ -53,11 +54,16 @@ const fn = {
   updatedAt: '2026-04-02T00:00:00Z',
 };
 
-const server = setupServer();
+const settingsHandler = (data: Record<string, unknown>) =>
+  nhostGraphQLLink.query('GetServerlessFunctionsSettings', () =>
+    HttpResponse.json({ data }),
+  );
+
+const server = setupServer(settingsHandler({ config: null }));
 
 beforeAll(() => server.listen());
 afterEach(() => {
-  server.resetHandlers();
+  server.resetHandlers(settingsHandler({ config: null }));
   vi.restoreAllMocks();
 });
 afterAll(() => server.close());
@@ -85,12 +91,6 @@ beforeEach(() => {
 
 describe('FunctionDetailsPanel', () => {
   it('renders the function route as the heading and the file path', () => {
-    const resolver = createGraphqlMockResolver(
-      'GetServerlessFunctionsSettings',
-      'query',
-    );
-    server.use(resolver.handler);
-
     render(<FunctionDetailsPanel fn={fn} />);
 
     expect(
@@ -100,12 +100,6 @@ describe('FunctionDetailsPanel', () => {
   });
 
   it('renders Overview, Execute, and Logs tabs', () => {
-    const resolver = createGraphqlMockResolver(
-      'GetServerlessFunctionsSettings',
-      'query',
-    );
-    server.use(resolver.handler);
-
     render(<FunctionDetailsPanel fn={fn} />);
 
     expect(screen.getByRole('tab', { name: 'Overview' })).toBeInTheDocument();
@@ -126,12 +120,6 @@ describe('FunctionDetailsPanel', () => {
       replace,
     });
 
-    const resolver = createGraphqlMockResolver(
-      'GetServerlessFunctionsSettings',
-      'query',
-    );
-    server.use(resolver.handler);
-
     render(<FunctionDetailsPanel fn={fn} />);
 
     const user = new TestUserEvent({ pointerEventsCheck: 0 });
@@ -149,11 +137,19 @@ describe('FunctionDetailsPanel', () => {
   });
 
   it('uses the custom-domain endpoint URL when GraphQL returns an FQDN', async () => {
-    const resolver = createGraphqlMockResolver(
-      'GetServerlessFunctionsSettings',
-      'query',
+    server.use(
+      settingsHandler({
+        config: {
+          functions: {
+            resources: {
+              networking: {
+                ingresses: [{ fqdn: ['custom.example.com'] }],
+              },
+            },
+          },
+        },
+      }),
     );
-    server.use(resolver.handler);
 
     mocks.useRouter.mockReturnValue({
       pathname:
@@ -168,18 +164,6 @@ describe('FunctionDetailsPanel', () => {
     });
 
     render(<FunctionDetailsPanel fn={fn} />);
-
-    resolver.resolve({
-      config: {
-        functions: {
-          resources: {
-            networking: {
-              ingresses: [{ fqdn: ['custom.example.com'] }],
-            },
-          },
-        },
-      },
-    });
 
     const expectedUrl = 'https://custom.example.com/v1/hello';
     await waitFor(() => {
