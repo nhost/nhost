@@ -55,7 +55,7 @@ export default function EditRepositoryAndBranchSettings({
               >
                 Base Directory{' '}
                 <Link
-                  href="https://docs.nhost.io/platform/cloud/git#base-directory"
+                  href="https://docs.nhost.io/platform/cloud/deployments#base-directory"
                   rel="noopener noreferrer"
                   target="_blank"
                   underline="none"
