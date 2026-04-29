@@ -1,7 +1,4 @@
-import type {
-  GroupNode,
-  RuleNode,
-} from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils/types';
+import type { RuleNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils/types';
 
 function deepMerge(
   target: Record<string, unknown>,
@@ -59,7 +56,7 @@ function createNestedObject(
   };
 }
 
-function serializeNode(node: RuleNode): Record<string, unknown> {
+export default function serializeNode(node: RuleNode): Record<string, unknown> {
   if (node.type === 'condition') {
     const parts = node.column.split('.');
     return createNestedObject(parts, node.operator, node.value);
@@ -69,7 +66,7 @@ function serializeNode(node: RuleNode): Record<string, unknown> {
     return {
       _exists: {
         _table: { schema: node.schema, name: node.table },
-        _where: unWrapRuleNodes(node.where),
+        _where: serializeNode(node.where),
       },
     };
   }
@@ -83,11 +80,18 @@ function serializeNode(node: RuleNode): Record<string, unknown> {
     );
   }
 
-  if (node.operator === '_implicit') {
-    return ruleNodesToPermission(node.children);
+  if (node.type === 'invalid') {
+    return { [node.key]: node.raw };
   }
 
   const childObjects = node.children.map(serializeNode);
+
+  if (node.operator === '_implicit') {
+    return childObjects.reduce(
+      (permission, ruleNode) => deepMerge(permission, ruleNode),
+      {} as Record<string, unknown>,
+    );
+  }
 
   if (node.operator === '_not') {
     if (childObjects.length === 1) {
@@ -99,31 +103,4 @@ function serializeNode(node: RuleNode): Record<string, unknown> {
   }
 
   return { [node.operator]: childObjects };
-}
-
-export default function ruleNodesToPermission(
-  nodes: RuleNode[],
-): Record<string, unknown> {
-  if (nodes.length === 0) {
-    return {};
-  }
-
-  if (nodes.length === 1) {
-    return serializeNode(nodes[0]);
-  }
-
-  return nodes
-    .map(serializeNode)
-    .reduce(
-      (permission, ruleNode) => deepMerge(permission, ruleNode),
-      {} as Record<string, unknown>,
-    );
-}
-
-export function unWrapRuleNodes(root: GroupNode): Record<string, unknown> {
-  if (root.operator === '_implicit') {
-    return ruleNodesToPermission(root.children);
-  }
-
-  return ruleNodesToPermission([root]);
 }

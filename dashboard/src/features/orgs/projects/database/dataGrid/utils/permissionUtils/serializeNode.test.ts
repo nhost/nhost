@@ -1,10 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import parsePermissionRule, {
-  wrapPermissionsInAGroup,
-} from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils/parsePermissionRule';
-import ruleNodesToPermission, {
-  unWrapRuleNodes,
-} from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils/ruleNodesToPermission';
+import { wrapPermissionsInAGroup } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils/parsePermissionRule';
+import serializeNode from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils/serializeNode';
 import type {
   ConditionNode,
   ExistsNode,
@@ -33,14 +29,10 @@ function group(
 }
 
 function roundTrip(input: Record<string, unknown>): Record<string, unknown> {
-  return ruleNodesToPermission(parsePermissionRule(input));
+  return serializeNode(wrapPermissionsInAGroup(input));
 }
 
-function uiRoundTrip(input: Record<string, unknown>): Record<string, unknown> {
-  return unWrapRuleNodes(wrapPermissionsInAGroup(input));
-}
-
-describe('ruleNodesToPermission round-trip', () => {
+describe('serializeNode round-trip', () => {
   it('round-trips an empty object', () => {
     expect(roundTrip({})).toEqual({});
   });
@@ -245,54 +237,62 @@ describe('ruleNodesToPermission round-trip', () => {
   });
 });
 
-describe('ruleNodesToPermission unit', () => {
-  it('returns an empty object for an empty array', () => {
-    expect(ruleNodesToPermission([])).toEqual({});
+describe('serializeNode unit', () => {
+  it('returns an empty object for an empty _implicit group', () => {
+    expect(serializeNode(group('_implicit', []))).toEqual({});
   });
 
   it('serializes _is_null string "true" as boolean true', () => {
-    expect(
-      ruleNodesToPermission([condition('col', '_is_null', 'true')]),
-    ).toEqual({
+    expect(serializeNode(condition('col', '_is_null', 'true'))).toEqual({
       col: { _is_null: true },
     });
   });
 
   it('serializes _is_null string "false" as boolean false', () => {
-    expect(
-      ruleNodesToPermission([condition('col', '_is_null', 'false')]),
-    ).toEqual({
+    expect(serializeNode(condition('col', '_is_null', 'false'))).toEqual({
       col: { _is_null: false },
     });
   });
 
   it('serializes _not with a single child without wrapping in _and', () => {
     expect(
-      ruleNodesToPermission([group('_not', [condition('col', '_eq', 'val')])]),
+      serializeNode(group('_not', [condition('col', '_eq', 'val')])),
     ).toEqual({
       _not: { col: { _eq: 'val' } },
     });
   });
 
+  it('serializes an invalid node by reconstructing the original key/value pair', () => {
+    expect(
+      serializeNode({
+        type: 'invalid',
+        id: uuidv4(),
+        reason: 'operator',
+        key: '_ad',
+        raw: [{ id: { _eq: '21313' } }],
+      }),
+    ).toEqual({ _ad: [{ id: { _eq: '21313' } }] });
+  });
+
   it('serializes _not with multiple children by merging them into a single object', () => {
     expect(
-      ruleNodesToPermission([
+      serializeNode(
         group('_not', [
           condition('col1', '_eq', 'a'),
           condition('col2', '_eq', 'b'),
         ]),
-      ]),
+      ),
     ).toEqual({ _not: { col1: { _eq: 'a' }, col2: { _eq: 'b' } } });
   });
 
   it('serializes a nested _implicit group by flattening its children (no _implicit key in output)', () => {
     expect(
-      ruleNodesToPermission([
+      serializeNode(
         group('_and', [
           condition('col1', '_eq', 'a'),
           group('_implicit', [condition('col2', '_eq', 'b')]),
         ]),
-      ]),
+      ),
     ).toEqual({
       _and: [{ col1: { _eq: 'a' } }, { col2: { _eq: 'b' } }],
     });
@@ -308,7 +308,7 @@ describe('ruleNodesToPermission unit', () => {
     };
 
     expect(
-      ruleNodesToPermission([
+      serializeNode(
         group('_and', [
           condition('ident', '_gt', '45'),
           condition('uniqueConstraints', '_eq', 'Hello'),
@@ -317,7 +317,7 @@ describe('ruleNodesToPermission unit', () => {
             existsNode,
           ]),
         ]),
-      ]),
+      ),
     ).toEqual({
       _and: [
         { ident: { _gt: '45' } },
@@ -334,34 +334,39 @@ describe('ruleNodesToPermission unit', () => {
   });
 });
 
-describe('UI round-trip (wrapPermissionsInAGroup → unWrapRuleNodes)', () => {
+describe('UI round-trip (wrapPermissionsInAGroup → serializeNode)', () => {
   it('round-trips an empty object', () => {
-    expect(uiRoundTrip({})).toEqual({});
+    expect(roundTrip({})).toEqual({});
+  });
+
+  it('round-trips an unknown operator with an array value (invalid node)', () => {
+    const input = { _ad: [{ id: { _eq: '21313' } }] };
+    expect(roundTrip(input)).toEqual(input);
   });
 
   it('round-trips a flat permission object without adding an _and wrapper', () => {
     const input = { col: { _eq: 'val' } };
-    expect(uiRoundTrip(input)).toEqual(input);
+    expect(roundTrip(input)).toEqual(input);
   });
 
   it('round-trips multiple flat keys without adding an _and wrapper', () => {
     const input = { col1: { _eq: 'a' }, col2: { _eq: 'b' } };
-    expect(uiRoundTrip(input)).toEqual(input);
+    expect(roundTrip(input)).toEqual(input);
   });
 
   it('round-trips an explicit _and without double-wrapping', () => {
     const input = { _and: [{ col: { _eq: 'a' } }, { col: { _eq: 'b' } }] };
-    expect(uiRoundTrip(input)).toEqual(input);
+    expect(roundTrip(input)).toEqual(input);
   });
 
   it('round-trips an explicit _or without double-wrapping', () => {
     const input = { _or: [{ col: { _eq: 'a' } }, { col: { _eq: 'b' } }] };
-    expect(uiRoundTrip(input)).toEqual(input);
+    expect(roundTrip(input)).toEqual(input);
   });
 
   it('round-trips a _not group', () => {
     const input = { _not: { col: { _eq: 'val' } } };
-    expect(uiRoundTrip(input)).toEqual(input);
+    expect(roundTrip(input)).toEqual(input);
   });
 
   it('round-trips an _exists with a flat _where', () => {
@@ -371,7 +376,7 @@ describe('UI round-trip (wrapPermissionsInAGroup → unWrapRuleNodes)', () => {
         _where: { id: { _eq: 'X-Hasura-User-Id' } },
       },
     };
-    expect(uiRoundTrip(input)).toEqual(input);
+    expect(roundTrip(input)).toEqual(input);
   });
 
   it('round-trips an _exists with an empty _where', () => {
@@ -381,7 +386,7 @@ describe('UI round-trip (wrapPermissionsInAGroup → unWrapRuleNodes)', () => {
         _where: {},
       },
     };
-    expect(uiRoundTrip(input)).toEqual(input);
+    expect(roundTrip(input)).toEqual(input);
   });
 
   it('round-trips a complex permission matching the shape produced by the UI', () => {
@@ -398,6 +403,6 @@ describe('UI round-trip (wrapPermissionsInAGroup → unWrapRuleNodes)', () => {
         },
       ],
     };
-    expect(uiRoundTrip(input)).toEqual(input);
+    expect(roundTrip(input)).toEqual(input);
   });
 });

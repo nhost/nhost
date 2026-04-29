@@ -1,4 +1,4 @@
-import type { FocusEvent, ReactNode } from 'react';
+import type { FocusEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
@@ -6,7 +6,11 @@ import { Input } from '@/components/ui/v2/Input';
 import { Radio } from '@/components/ui/v2/Radio';
 import { RadioGroup } from '@/components/ui/v2/RadioGroup';
 import { Text } from '@/components/ui/v2/Text';
-import { CustomCheckEditor } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor';
+import {
+  CustomCheckEditor,
+  CustomCheckModeProvider,
+  CustomCheckModeToggle,
+} from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor';
 import type {
   RolePermissionEditorFormValues,
   RowCheckType,
@@ -58,35 +62,30 @@ export default function RowPermissionsSection({
 
   return (
     <PermissionSettingsSection title={`Row ${action} permissions`}>
-      <Text>
-        Allow role <HighlightedText>{role}</HighlightedText> to{' '}
-        <HighlightedText>{action}</HighlightedText> rows:
-      </Text>
-
-      <RadioGroup
-        value={rowCheckType}
-        className="grid grid-flow-col justify-start gap-4"
-        onChange={(_event, value) =>
-          handleCheckTypeChange(value as typeof rowCheckType)
-        }
-      >
-        <Radio value="none" label="Without any checks" />
-        <Radio value="custom" label="With custom check" />
-      </RadioGroup>
-
-      {errors?.filter?.root?.message || errors?.filter?.message ? (
-        <Text
-          variant="subtitle2"
-          className="font-normal"
-          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
-        >
-          {(errors.filter.root?.message ?? errors.filter.message) as ReactNode}
+      <CustomCheckModeProvider>
+        <Text>
+          Allow role <HighlightedText>{role}</HighlightedText> to{' '}
+          <HighlightedText>{action}</HighlightedText> rows:
         </Text>
-      ) : null}
 
-      {rowCheckType === 'custom' && (
-        <CustomCheckEditor name="filter" schema={schema} table={table} />
-      )}
+        <div className="flex items-center justify-between gap-4">
+          <RadioGroup
+            value={rowCheckType}
+            className="grid grid-flow-col justify-start gap-4"
+            onChange={(_event, value) =>
+              handleCheckTypeChange(value as typeof rowCheckType)
+            }
+          >
+            <Radio value="none" label="Without any checks" />
+            <Radio value="custom" label="With custom check" />
+          </RadioGroup>
+          {rowCheckType === 'custom' && <CustomCheckModeToggle />}
+        </div>
+
+        {rowCheckType === 'custom' && (
+          <CustomCheckEditor name="filter" schema={schema} table={table} />
+        )}
+      </CustomCheckModeProvider>
 
       {action === 'select' && (
         <Input

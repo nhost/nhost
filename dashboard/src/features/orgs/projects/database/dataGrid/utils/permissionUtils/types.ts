@@ -31,11 +31,20 @@ export interface RelationshipNode {
   child: GroupNode;
 }
 
+export interface InvalidNode {
+  type: 'invalid';
+  id: string;
+  reason: 'primitive' | 'operator';
+  raw: unknown;
+  key: string;
+}
+
 export type RuleNode =
   | ConditionNode
   | GroupNode
   | ExistsNode
-  | RelationshipNode;
+  | RelationshipNode
+  | InvalidNode;
 
 export function isConditionNode(node: RuleNode): node is ConditionNode {
   return node.type === 'condition';
@@ -51,4 +60,8 @@ export function isExistsNode(node: RuleNode): node is ExistsNode {
 
 export function isRelationshipNode(node: RuleNode): node is RelationshipNode {
   return node.type === 'relationship';
+}
+
+export function isInvalidNode(node: RuleNode): node is InvalidNode {
+  return node.type === 'invalid';
 }
