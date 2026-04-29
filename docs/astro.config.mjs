@@ -582,7 +582,7 @@ export default defineConfig({
                     { slug: 'platform/cloud/logs' },
                     { slug: 'platform/cloud/environment-variables' },
                     { slug: 'platform/cloud/secrets' },
-                    { slug: 'platform/cloud/git' },
+                    { slug: 'platform/cloud/deployments' },
                     { slug: 'platform/cloud/custom-domains' },
                     { slug: 'platform/cloud/rate-limits' },
                     { slug: 'platform/cloud/tls' },
