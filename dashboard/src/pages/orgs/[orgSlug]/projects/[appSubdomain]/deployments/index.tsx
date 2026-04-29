@@ -35,7 +35,7 @@ export default function DeploymentsPage() {
         </div>
         <div className="flex w-full justify-center">
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
             underline="none"
             variant="ghost"
             className="!text-primary"

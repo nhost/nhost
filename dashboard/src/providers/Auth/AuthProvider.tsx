@@ -147,7 +147,7 @@ function AuthProvider({ children }: PropsWithChildren) {
         removeQueryParamsFromUrl(...removableParams);
 
         await push(
-          `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/git?github-modal`,
+          `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/deployments?github-modal`,
         );
       }
 
@@ -163,7 +163,7 @@ function AuthProvider({ children }: PropsWithChildren) {
            * If the state isn't handled by Hasura auth, it returns `invalid-state`.
            * However, we check the provider_state search param to see if it has this format:
            * `install-github-app:<org-slug>:<project-subdomain>`.
-           * If it has this format, that means that we connected to GitHub in `/settings/git`,
+           * If it has this format, that means that we connected to GitHub in `/settings/deployments`,
            * thus we need to show the connect GitHub modal again.
            * Otherwise, we fall through to default error handling.
            */
@@ -178,7 +178,7 @@ function AuthProvider({ children }: PropsWithChildren) {
               const [, orgSlug, projectSubdomain] = providerState.split(':');
               removeQueryParamsFromUrl(...removableParams);
               await push(
-                `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/git?github-modal`,
+                `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/deployments?github-modal`,
               );
               break;
             }
