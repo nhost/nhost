@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -13,13 +14,18 @@ import (
 	"golang.org/x/term"
 )
 
+const flagJSON = "json"
+
 func CommandList() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "list",
 		Aliases: []string{},
 		Usage:   "List secrets in the cloud environment",
 		Action:  commandList,
-		Flags:   commonFlags(),
+		Flags: append(commonFlags(), &cli.BoolFlag{ //nolint:exhaustruct
+			Name:  flagJSON,
+			Usage: "Output as JSON",
+		}),
 	}
 }
 
@@ -47,14 +53,29 @@ func commandList(ctx context.Context, cmd *cli.Command) error {
 	appSecrets := secrets.GetAppSecrets()
 	isTTY := term.IsTerminal(int(os.Stdout.Fd()))
 
-	if isTTY {
-		printSecretsStyled(ce, appSecrets)
-
-		return nil
+	if cmd.Bool(flagJSON) {
+		return printSecretsJSON(appSecrets)
 	}
 
-	for _, secret := range appSecrets {
-		ce.Println("%s", secret.Name)
+	if isTTY {
+		printSecretsStyled(ce, appSecrets)
+	} else {
+		for _, secret := range appSecrets {
+			ce.Println("%s", secret.Name)
+		}
+	}
+
+	return nil
+}
+
+func printSecretsJSON(secrets []*graphql.GetSecrets_AppSecrets) error {
+	names := make([]string, len(secrets))
+	for i, s := range secrets {
+		names[i] = s.Name
+	}
+
+	if err := json.NewEncoder(os.Stdout).Encode(names); err != nil {
+		return fmt.Errorf("failed to encode JSON: %w", err)
 	}
 
 	return nil

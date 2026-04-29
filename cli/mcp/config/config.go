@@ -21,7 +21,13 @@ const (
 	DefaultLocalGraphqlURL      = "https://local.graphql.local.nhost.run/v1"
 )
 
-var ErrProjectNotConfigured = errors.New("project not configured")
+var (
+	ErrProjectNotConfigured = errors.New("project not configured")
+	ErrWizardRequiresTTY    = errors.New(
+		"interactive wizard requires a terminal. Use flags for non-interactive configuration",
+	)
+	ErrPickerCancelled = errors.New("cancelled")
+)
 
 type Config struct {
 	// If configured allows managing the cloud. For instance, this allows you to configure

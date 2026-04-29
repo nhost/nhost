@@ -3,7 +3,9 @@ package dev
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/dockercompose"
@@ -30,11 +32,13 @@ func commandAttach(ctx context.Context, cmd *cli.Command) error {
 		)
 	}
 
-	dc := dockercompose.New(
-		ce.Path.WorkingDir(),
-		ce.Path.DockerCompose(),
-		ce.ProjectName(),
+	dc := dockercompose.NewWithWriters(
+		ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName(),
+		io.Discard, io.Discard, strings.NewReader(""),
 	)
+
+	versions := fetchVersions(ctx, ce, cmd.Root().Version)
+	mcp := mcpStatus(ce)
 
 	cfg := tui.AppConfig{
 		DC:           dc,
@@ -43,6 +47,8 @@ func commandAttach(ctx context.Context, cmd *cli.Command) error {
 		UseTLS:       true,
 		PostgresPort: defaultPostgresPort,
 		ProjectName:  ce.ProjectName(),
+		Versions:     versions,
+		MCP:          mcp,
 	}
 
 	return tui.RunAttach(ctx, cfg) //nolint:wrapcheck

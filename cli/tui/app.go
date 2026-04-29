@@ -26,7 +26,11 @@ func (r *Reporter) StartPhase(name string) {
 }
 
 func (r *Reporter) EndPhase() {
-	r.p.Send(phaseEndMsg{})
+	r.p.Send(phaseEndMsg{detail: ""})
+}
+
+func (r *Reporter) EndPhaseWithDetail(detail string) {
+	r.p.Send(phaseEndMsg{detail: detail})
 }
 
 func (r *Reporter) FailPhase(err error) {

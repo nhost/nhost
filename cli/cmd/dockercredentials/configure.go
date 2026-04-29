@@ -3,6 +3,7 @@ package dockercredentials
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,8 +15,8 @@ import (
 )
 
 const (
-	flagDockerConfig  = "docker-config"
-	flagNoInteractive = "no-interactive"
+	flagDockerConfig = "docker-config"
+	flagYes          = "yes"
 )
 
 const (
@@ -42,9 +43,9 @@ func CommandConfigure() *cli.Command {
 				DefaultText: "$HOME/.docker/config.json",
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
-				Name:    flagNoInteractive,
-				Usage:   "Do not prompt for confirmation",
-				Sources: cli.EnvVars("NO_INTERACTIVE"),
+				Name:    flagYes,
+				Usage:   "Skip confirmation",
+				Sources: cli.EnvVars("NHOST_YES"),
 				Value:   false,
 			},
 		},
@@ -150,11 +151,11 @@ func actionConfigure(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	if cmd.Bool(flagNoInteractive) {
+	if cmd.Bool(flagYes) {
 		return configureDocker(cmd.String(flagDockerConfig))
 	}
 
-	confirmed, err := confirmDockerConfigure(ce, cmd.String(flagDockerConfig))
+	confirmed, err := confirmDockerConfigure()
 	if err != nil {
 		return fmt.Errorf("could not read input: %w", err)
 	}
@@ -166,26 +167,14 @@ func actionConfigure(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func confirmDockerConfigure(
-	ce *clienv.CliEnv,
-	dockerConfig string,
-) (bool, error) {
-	if term.IsTerminal(int(os.Stdout.Fd())) {
-		return tui.RunConfirm(
-			"Configure Docker for Nhost registry authentication?",
+func confirmDockerConfigure() (bool, error) {
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		return false, errors.New( //nolint:err113
+			"use --yes to skip confirmation",
 		)
 	}
 
-	//nolint:lll
-	ce.PromptMessage(
-		"I am about to configure docker to authenticate with Nhost's registry. This will modify your docker config file on %s. Should I continue? [y/N] ",
-		dockerConfig,
+	return tui.RunConfirm(
+		"Configure Docker for Nhost registry authentication?",
 	)
-
-	v, err := ce.PromptInput(false)
-	if err != nil {
-		return false, fmt.Errorf("could not read input: %w", err)
-	}
-
-	return v == "y" || v == "Y", nil
 }

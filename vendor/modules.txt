@@ -272,6 +272,9 @@ github.com/aws/smithy-go/tracing
 github.com/aws/smithy-go/transport/http
 github.com/aws/smithy-go/transport/http/internal/io
 github.com/aws/smithy-go/waiter
+# github.com/atotto/clipboard v0.1.4
+## explicit; go 1.9
+github.com/atotto/clipboard
 # github.com/aymanbagabas/go-osc52/v2 v2.0.1
 ## explicit; go 1.16
 github.com/aymanbagabas/go-osc52/v2
@@ -446,7 +449,11 @@ github.com/bytedance/sonic/loader/internal/rt
 github.com/cespare/xxhash/v2
 # github.com/charmbracelet/bubbles v0.20.0
 ## explicit; go 1.23.0
+github.com/charmbracelet/bubbles/cursor
+github.com/charmbracelet/bubbles/key
+github.com/charmbracelet/bubbles/runeutil
 github.com/charmbracelet/bubbles/spinner
+github.com/charmbracelet/bubbles/textinput
 # github.com/charmbracelet/bubbletea v1.3.4
 ## explicit; go 1.23.0
 github.com/charmbracelet/bubbletea

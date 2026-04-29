@@ -44,6 +44,7 @@ func main() {
 			dev.CommandDown(),
 			dev.CommandLogs(),
 			dev.CommandAttach(),
+			dev.CommandStatus(),
 			dockercredentials.Command(),
 			mcp.Command(),
 			project.CommandInit(),

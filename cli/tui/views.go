@@ -16,6 +16,8 @@ func (m Model) View() string {
 		return m.viewStartup()
 	case stateDashboard:
 		return m.viewDashboard()
+	case stateRestarting:
+		return m.viewRestarting()
 	case stateStopping:
 		return m.viewStopping()
 	default:
@@ -47,7 +49,23 @@ func (m Model) viewDashboard() string {
 	b.WriteString("\n")
 	b.WriteString(m.viewLogs())
 	b.WriteString("\n")
-	b.WriteString(m.viewHelp())
+
+	if m.searching {
+		b.WriteString("  / " + m.searchInput.View())
+	} else {
+		b.WriteString(m.viewHelp())
+	}
+
+	return b.String()
+}
+
+func (m Model) viewRestarting() string {
+	var b strings.Builder
+
+	b.WriteString(m.viewHeader("restarting"))
+	b.WriteString("\n")
+	b.WriteString(m.viewServices())
+	b.WriteString("\n  " + m.spinner.View() + " Restarting services...\n")
 
 	return b.String()
 }
@@ -87,6 +105,20 @@ func (m Model) viewPhases() string {
 	for _, phase := range m.phases {
 		b.WriteString(renderPhase(phase, m.spinner.View()))
 		b.WriteString("\n")
+
+		if phase.Detail != "" {
+			b.WriteString(renderPhaseDetail(phase.Detail))
+		}
+	}
+
+	return b.String()
+}
+
+func renderPhaseDetail(detail string) string {
+	var b strings.Builder
+
+	for _, line := range strings.Split(strings.TrimRight(detail, "\n"), "\n") {
+		b.WriteString("      " + logDim.Render(line) + "\n")
 	}
 
 	return b.String()
@@ -119,7 +151,6 @@ var corePriority = map[string]int{ //nolint:gochecknoglobals
 	"functions": 5,
 	"ai":        6,
 	"dashboard": 7,
-	"mailhog":   8,
 }
 
 var infraServices = map[string]bool{ //nolint:gochecknoglobals
@@ -127,6 +158,7 @@ var infraServices = map[string]bool{ //nolint:gochecknoglobals
 	"configserver": true,
 	"minio":        true,
 	"traefik":      true,
+	"mailhog":      true,
 }
 
 func (m Model) viewServices() string {
@@ -143,6 +175,10 @@ func (m Model) viewServices() string {
 
 	b.WriteString(m.viewSDK())
 
+	if m.config.MCP.Configured {
+		b.WriteString(m.viewMCP())
+	}
+
 	if len(infra) > 0 {
 		b.WriteString(subsectionTitle.Render("  Infrastructure") + "\n")
 
@@ -153,6 +189,18 @@ func (m Model) viewServices() string {
 	}
 
 	return b.String()
+}
+
+func (m Model) viewMCP() string {
+	projects := strings.Join(m.config.MCP.Projects, ", ")
+	if projects == "" {
+		projects = "no projects"
+	}
+
+	return subsectionTitle.Render(fmt.Sprintf(
+		"  MCP  configured \u00b7 projects: %s \u00b7 use `nhost mcp start`",
+		projects,
+	)) + "\n"
 }
 
 func (m Model) viewSDK() string {
@@ -187,23 +235,65 @@ func (m Model) renderServiceCompact(
 	svc dockercompose.ServiceStatus,
 ) string {
 	dot, status := serviceIndicator(svc)
+	name := padRight(logDim.Render(svc.Service), colName)
+	stat := padRight(status, colStatus)
+	ver := padRight("", colVersion)
+	svcURL := m.serviceURL(svc.Service)
 
-	return fmt.Sprintf("    %s %s %s",
-		dot, logDim.Render(fmt.Sprintf("%-14s", svc.Service)), status)
+	line := fmt.Sprintf("    %s %s %s %s", dot, name, stat, ver)
+
+	if svcURL != "" {
+		line += " " + urlStyle.Render(svcURL)
+	}
+
+	return line
 }
+
+const (
+	colName    = 14
+	colStatus  = 10
+	colVersion = 20
+)
 
 func (m Model) renderService(svc dockercompose.ServiceStatus) string {
 	dot, status := serviceIndicator(svc)
-	name := fmt.Sprintf("%-14s", svc.Service)
-	statusStr := fmt.Sprintf("%-12s", status)
+	name := padRight(svc.Service, colName)
+	stat := padRight(status, colStatus)
+	ver := m.renderVersion(svc.Service)
 	svcURL := m.serviceURL(svc.Service)
 
+	line := fmt.Sprintf("    %s %s %s %s", dot, name, stat, ver)
+
 	if svcURL != "" {
-		return fmt.Sprintf("    %s %s %s %s",
-			dot, name, statusStr, urlStyle.Render(svcURL))
+		line += " " + urlStyle.Render(svcURL)
 	}
 
-	return fmt.Sprintf("    %s %s %s", dot, name, statusStr)
+	return line
+}
+
+func (m Model) renderVersion(service string) string {
+	v, ok := m.config.Versions[service]
+	if !ok {
+		return padRight("", colVersion)
+	}
+
+	if v.OK {
+		return padRight(logDim.Render(v.Current), colVersion)
+	}
+
+	return padRight(
+		statusStarting.Render(v.Current+" \u2192 "+v.Recommended),
+		colVersion,
+	)
+}
+
+func padRight(s string, width int) string {
+	visible := lipgloss.Width(s)
+	if visible >= width {
+		return s
+	}
+
+	return s + strings.Repeat(" ", width-visible)
 }
 
 func serviceIndicator(
@@ -265,6 +355,12 @@ func (m Model) viewLogs() string {
 
 	title := sectionTitle.Render("  Logs")
 	filter := logDim.Render(" \u2500 " + filterLabel)
+
+	if m.logSearch != "" && !m.searching {
+		filter += logDim.Render(" \u2500 ") +
+			statusStarting.Render("\"/"+m.logSearch+"\"")
+	}
+
 	b.WriteString(title + filter + "\n")
 
 	filtered := m.filteredLogs()
@@ -274,28 +370,77 @@ func (m Model) viewLogs() string {
 		return b.String()
 	}
 
-	start, end := logWindow(len(filtered), available, m.logOffset)
+	rendered := m.renderLogLines(filtered)
+
+	start, end := logWindow(len(rendered), available, m.logOffset)
 
 	for i := start; i < end; i++ {
-		entry := filtered[i]
-		svc := logService.Render(entry.Service)
-		b.WriteString("    " + svc + " " + logSep + " " + entry.Text + "\n")
+		b.WriteString(rendered[i] + "\n")
 	}
 
 	return b.String()
 }
 
+func (m Model) renderLogLines(entries []LogEntry) []string {
+	return renderLogLinesAt(m.width, entries)
+}
+
+func renderLogLinesAt(termWidth int, entries []LogEntry) []string {
+	prefixWidth := 4 + colName + 1 + 1 + 1 // "    " + svc + " " + sep + " "
+	wrapWidth := termWidth - prefixWidth
+	if wrapWidth < 20 { //nolint:mnd
+		wrapWidth = 20
+	}
+
+	out := make([]string, 0, len(entries))
+
+	for _, entry := range entries {
+		svc := logService.Render(entry.Service)
+		text := wrapText(entry.Text, wrapWidth)
+
+		for j, line := range text {
+			if j == 0 {
+				out = append(out, "    "+svc+" "+logSep+" "+line)
+			} else {
+				out = append(out,
+					"    "+padRight("", colName)+" "+logSep+" "+line)
+			}
+		}
+	}
+
+	return out
+}
+
+func wrapText(s string, width int) []string {
+	if width <= 0 {
+		return []string{s}
+	}
+
+	wrapped := lipgloss.NewStyle().Width(width).Render(s)
+
+	return strings.Split(wrapped, "\n")
+}
+
 func (m Model) filteredLogs() []LogEntry {
-	if m.logFilter == "" {
+	if m.logFilter == "" && m.logSearch == "" {
 		return m.logs
 	}
 
 	filtered := make([]LogEntry, 0, len(m.logs))
+	search := strings.ToLower(m.logSearch)
 
 	for _, entry := range m.logs {
-		if entry.Service == m.logFilter {
-			filtered = append(filtered, entry)
+		if m.logFilter != "" && entry.Service != m.logFilter {
+			continue
 		}
+
+		if search != "" &&
+			!strings.Contains(strings.ToLower(entry.Text), search) &&
+			!strings.Contains(strings.ToLower(entry.Service), search) {
+			continue
+		}
+
+		filtered = append(filtered, entry)
 	}
 
 	return filtered
@@ -330,9 +475,11 @@ func logWindow(total, visible, offset int) (int, int) {
 func (m Model) viewHelp() string {
 	keys := []struct{ key, desc string }{
 		{"q", "quit"},
+		{"r", "restart"},
 		{"d", "down"},
 		{"\u2191\u2193", "scroll"},
 		{"tab", "filter"},
+		{"/", "search"},
 		{"esc", "clear"},
 	}
 

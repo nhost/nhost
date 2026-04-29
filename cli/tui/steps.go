@@ -94,8 +94,12 @@ func (m stepsModel) handleStepDone( //nolint:ireturn
 func (m stepsModel) View() string {
 	var b strings.Builder
 
-	for i, step := range m.steps {
-		b.WriteString(renderStepLine(step, i, m.current, m.err, m.spinner.View()))
+	for i := range m.steps {
+		if i > m.current {
+			break
+		}
+
+		b.WriteString(renderStepLine(m.steps[i], i, m.current, m.err, m.spinner.View()))
 		b.WriteString("\n")
 	}
 
@@ -108,12 +112,10 @@ func renderStepLine(
 	switch {
 	case index < current:
 		return "  " + phaseCheck + " " + step.Name
-	case index == current && finalErr != nil:
+	case finalErr != nil:
 		return "  " + phaseCross + " " + step.Name
-	case index == current:
-		return "  " + spinView + " " + step.Name
 	default:
-		return "    " + phasePending.Render(step.Name)
+		return "  " + spinView + " " + step.Name
 	}
 }
 

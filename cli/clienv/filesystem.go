@@ -71,6 +71,10 @@ func (p PathStructure) DockerCompose() string {
 	return filepath.Join(p.dotNhostFolder, "docker-compose.yaml")
 }
 
+func (p PathStructure) MCPConfig() string {
+	return filepath.Join(p.dotNhostFolder, "mcp-nhost.toml")
+}
+
 func (p PathStructure) Functions() string {
 	return filepath.Join(p.root, "functions")
 }

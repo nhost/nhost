@@ -2,6 +2,7 @@ package project
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -12,13 +13,21 @@ import (
 	"golang.org/x/term"
 )
 
+const flagSubdomain = "subdomain"
+
 func CommandLink() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "link",
 		Aliases: []string{},
 		Usage:   "Link local app to a remote one",
 		Action:  commandLink,
-		Flags:   []cli.Flag{},
+		Flags: []cli.Flag{
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagSubdomain,
+				Usage:   "Subdomain of the project to link to",
+				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
+			},
+		},
 	}
 }
 
@@ -29,13 +38,31 @@ func commandLink(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to create .nhost folder: %w", err)
 	}
 
-	if term.IsTerminal(int(os.Stdout.Fd())) {
-		return commandLinkInteractive(ctx, ce)
+	subdomain := cmd.String(flagSubdomain)
+	if subdomain != "" {
+		return commandLinkBySubdomain(ctx, ce, subdomain)
 	}
 
-	_, err := ce.Link(ctx)
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		return errors.New( //nolint:err113
+			"no project specified. Use --subdomain to specify a project",
+		)
+	}
 
-	return err //nolint:wrapcheck
+	return commandLinkInteractive(ctx, ce)
+}
+
+func commandLinkBySubdomain(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	subdomain string,
+) error {
+	app, err := ce.GetAppInfo(ctx, subdomain)
+	if err != nil {
+		return fmt.Errorf("failed to get app info: %w", err)
+	}
+
+	return ce.SaveLink(app)
 }
 
 func commandLinkInteractive(

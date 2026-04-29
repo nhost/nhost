@@ -1,8 +1,7 @@
-package secrets //nolint:dupl
+package secrets
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/nhost/nhost/cli/clienv"
@@ -13,7 +12,7 @@ import (
 func CommandUpdate() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:      "update",
-		ArgsUsage: "NAME VALUE",
+		ArgsUsage: "NAME [VALUE]",
 		Aliases:   []string{},
 		Usage:     "Update secret in the cloud environment",
 		Action:    commandUpdate,
@@ -22,8 +21,9 @@ func CommandUpdate() *cli.Command {
 }
 
 func commandUpdate(ctx context.Context, cmd *cli.Command) error {
-	if cmd.NArg() != 2 { //nolint:mnd
-		return errors.New("expected 2 arguments: NAME VALUE") //nolint:err113
+	name, value, err := resolveNameValue(cmd)
+	if err != nil {
+		return err
 	}
 
 	ce := clienv.FromCLI(cmd)
@@ -38,12 +38,7 @@ func commandUpdate(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	if _, err := cl.UpdateSecret(
-		ctx,
-		proj.ID,
-		cmd.Args().Get(0),
-		cmd.Args().Get(1),
-	); err != nil {
+	if _, err := cl.UpdateSecret(ctx, proj.ID, name, value); err != nil {
 		return fmt.Errorf("failed to update secret: %w", err)
 	}
 

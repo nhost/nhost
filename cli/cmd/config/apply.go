@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -45,19 +46,65 @@ func commandApply(ctx context.Context, cmd *cli.Command) error {
 		return cli.Exit(fmt.Sprintf("Failed to get app info: %v", err), 1)
 	}
 
+	skipConfirm := cmd.Bool(flagYes)
+
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		return commandApplyTUI(ctx, ce, proj.GetSubdomain(), proj.GetID(), proj.ID, skipConfirm)
+	}
+
+	return commandApplyPlain(ctx, ce, proj.GetSubdomain(), proj.GetID(), proj.ID, skipConfirm)
+}
+
+func commandApplyTUI( //nolint:funlen
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	subdomain, projID, appID string,
+	skipConfirm bool,
+) error {
+	if !skipConfirm {
+		if err := confirmApply(); err != nil {
+			return err
+		}
+	}
+
+	var cfg *model.ConfigConfig
+
+	ce.SetStdout(io.Discard)
+	defer ce.SetStdout(os.Stdout)
+
+	return tui.RunSteps([]tui.Step{
+		{
+			Name: "Validating configuration",
+			Fn: func() error {
+				var err error
+				cfg, _, err = ValidateRemote(ctx, ce, subdomain, projID)
+
+				return err
+			},
+		},
+		{
+			Name: "Applying configuration",
+			Fn: func() error {
+				return Apply(ctx, ce, appID, cfg, true)
+			},
+		},
+	}) //nolint:wrapcheck
+}
+
+func commandApplyPlain(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	subdomain, projID, appID string,
+	skipConfirm bool,
+) error {
 	ce.Infoln("Validating configuration...")
 
-	cfg, _, err := ValidateRemote(
-		ctx,
-		ce,
-		proj.GetSubdomain(),
-		proj.GetID(),
-	)
+	cfg, _, err := ValidateRemote(ctx, ce, subdomain, projID)
 	if err != nil {
 		return cli.Exit(err.Error(), 1)
 	}
 
-	if err := Apply(ctx, ce, proj.ID, cfg, cmd.Bool(flagYes)); err != nil {
+	if err := Apply(ctx, ce, appID, cfg, skipConfirm); err != nil {
 		return cli.Exit(err.Error(), 1)
 	}
 
@@ -72,7 +119,7 @@ func Apply(
 	skipConfirmation bool,
 ) error {
 	if !skipConfirmation {
-		if err := confirmApply(ce); err != nil {
+		if err := confirmApply(); err != nil {
 			return err
 		}
 	}
@@ -100,30 +147,17 @@ func Apply(
 	return nil
 }
 
-func confirmApply(ce *clienv.CliEnv) error {
-	if term.IsTerminal(int(os.Stdout.Fd())) {
-		confirmed, err := tui.RunConfirm("Overwrite project configuration?")
-		if err != nil {
-			return fmt.Errorf("failed to read input: %w", err)
-		}
-
-		if !confirmed {
-			return errors.New("operation cancelled") //nolint:err113
-		}
-
-		return nil
+func confirmApply() error {
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		return errors.New("use --yes to skip confirmation") //nolint:err113
 	}
 
-	ce.PromptMessage(
-		"We are going to overwrite the project's configuration. Do you want to proceed? [y/N] ",
-	)
-
-	resp, err := ce.PromptInput(false)
+	confirmed, err := tui.RunConfirm("Overwrite project configuration?")
 	if err != nil {
 		return fmt.Errorf("failed to read input: %w", err)
 	}
 
-	if resp != "y" && resp != "Y" {
+	if !confirmed {
 		return errors.New("operation cancelled") //nolint:err113
 	}
 

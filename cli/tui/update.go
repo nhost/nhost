@@ -1,13 +1,20 @@
 package tui
 
 import (
+	"context"
+
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.searching {
+			return m.handleSearchKey(msg)
+		}
+
 		return m.handleKey(msg)
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -31,11 +38,12 @@ func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 	switch msg := msg.(type) {
 	case phaseStartMsg:
 		m.phases = append(m.phases, Phase{
-			Name: msg.name, Status: StatusRunning, Err: nil,
+			Name: msg.name, Status: StatusRunning, Err: nil, Detail: "",
 		})
 	case phaseEndMsg:
 		if idx := m.lastRunning(); idx >= 0 {
 			m.phases[idx].Status = StatusDone
+			m.phases[idx].Detail = msg.detail
 		}
 	case phaseFailMsg:
 		if idx := m.lastRunning(); idx >= 0 {
@@ -51,6 +59,8 @@ func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 	case logLineMsg:
 		m.logs = appendLog(m.logs, msg)
 	case completeMsg:
+		m.state = stateDashboard
+	case restartDoneMsg:
 		m.state = stateDashboard
 	case stoppedMsg:
 		return m, tea.Quit
@@ -73,6 +83,15 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 		m.cancel()
 
 		return m, tea.Quit
+
+	case msg.String() == "r":
+		if m.state != stateDashboard {
+			return m, nil
+		}
+
+		m.state = stateRestarting
+
+		return m, m.restartCmd()
 
 	case msg.String() == "d":
 		if m.state != stateDashboard {
@@ -104,12 +123,51 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 
 	case msg.String() == "esc":
 		m.logFilter = ""
+		m.logSearch = ""
 		m.logOffset = 0
 
 		return m, nil
+
+	case msg.String() == "/":
+		if m.state != stateDashboard {
+			return m, nil
+		}
+
+		m.searching = true
+		m.searchInput.Reset()
+		m.searchInput.Focus()
+
+		return m, textinput.Blink
 	}
 
 	return m, nil
+}
+
+func (m Model) handleSearchKey( //nolint:ireturn
+	msg tea.KeyMsg,
+) (tea.Model, tea.Cmd) {
+	switch msg.Type {
+	case tea.KeyEnter:
+		m.logSearch = m.searchInput.Value()
+		m.searching = false
+		m.logOffset = 0
+
+		return m, nil
+	case tea.KeyEsc:
+		m.searching = false
+		m.logSearch = ""
+		m.logOffset = 0
+
+		return m, nil
+	default:
+		var cmd tea.Cmd
+
+		m.searchInput, cmd = m.searchInput.Update(msg)
+		m.logSearch = m.searchInput.Value()
+		m.logOffset = 0
+
+		return m, cmd
+	}
 }
 
 func appendLog(logs []LogEntry, msg logLineMsg) []LogEntry {
@@ -160,6 +218,18 @@ func (m Model) lastRunning() int {
 	}
 
 	return -1
+}
+
+func (m Model) restartCmd() tea.Cmd {
+	dc := m.config.DC
+
+	return func() tea.Msg {
+		ctx := context.Background()
+
+		err := dc.Wrapper(ctx, "restart")
+
+		return restartDoneMsg{err: err}
+	}
 }
 
 func (m Model) stopCmd() tea.Cmd {

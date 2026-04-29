@@ -255,25 +255,26 @@ func cloud( //nolint:funlen
 	}
 
 	ce.Infoln("Nhost development environment started.")
-	printCloudInfo(ce.LocalSubdomain(), httpPort, useTLS)
+	printCloudInfo(ce, ce.LocalSubdomain(), httpPort, useTLS)
 
 	return nil
 }
 
 func printCloudInfo(
+	ce *clienv.CliEnv,
 	subdomain string,
 	httpPort uint,
 	useTLS bool,
 ) {
-	dimStyle := lipgloss.NewStyle().Foreground(clienv.ANSIColorDim)
+	dimStyle := lipgloss.NewStyle().Foreground(clienv.ANSIColorGray)
 	bullet := lipgloss.NewStyle().Foreground(clienv.ANSIColorGreen).Render("●")
-	urlStyle := lipgloss.NewStyle().Underline(true)
+	uStyle := lipgloss.NewStyle().Underline(true)
 
-	fmt.Println("  " + dimStyle.Render("URLs"))
-	fmt.Printf("    %s %-14s %s\n", bullet, "Console",
-		urlStyle.Render(dockercompose.URL(subdomain, "hasura", httpPort, useTLS)))
-	fmt.Printf("    %s %-14s %s\n", bullet, "Dashboard",
-		urlStyle.Render(dockercompose.URL(subdomain, "dashboard", httpPort, useTLS)))
+	ce.Println("  %s", dimStyle.Render("URLs"))
+	ce.Println("    %s %-14s %s", bullet, "Console",
+		uStyle.Render(dockercompose.URL(subdomain, "hasura", httpPort, useTLS)))
+	ce.Println("    %s %-14s %s", bullet, "Dashboard",
+		uStyle.Render(dockercompose.URL(subdomain, "dashboard", httpPort, useTLS)))
 }
 
 func Cloud(

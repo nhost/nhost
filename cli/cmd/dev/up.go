@@ -624,6 +624,51 @@ func printInfoSDK(subdomain string, dim lipgloss.Style) {
 	fmt.Println("  Run `nhost logs` to watch the logs")
 }
 
+func fetchVersions(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	appVersion string,
+) map[string]tui.ServiceVersion {
+	cfg, err := loadConfig(ce)
+	if err != nil {
+		return nil
+	}
+
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:mnd
+	defer cancel()
+
+	svMap, err := software.GetServiceVersions(ctxWithTimeout, ce, cfg)
+	if err != nil {
+		return nil
+	}
+
+	result := make(map[string]tui.ServiceVersion, len(svMap))
+	for k, v := range svMap {
+		result[k] = tui.ServiceVersion{
+			Current:     v.Current,
+			Recommended: v.Recommended,
+			OK:          v.OK,
+		}
+	}
+
+	_ = appVersion // CLI version shown separately
+
+	return result
+}
+
+func loadConfig(ce *clienv.CliEnv) (*model.ConfigConfig, error) {
+	if !clienv.PathExists(ce.Path.NhostToml()) || !clienv.PathExists(ce.Path.Secrets()) {
+		return nil, fmt.Errorf("no config") //nolint:err113
+	}
+
+	var secrets model.Secrets
+	if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
+		return nil, err //nolint:wrapcheck
+	}
+
+	return config.Validate(ce, "local", secrets) //nolint:wrapcheck
+}
+
 func upErr(
 	ce *clienv.CliEnv,
 	dc *dockercompose.DockerCompose,
@@ -757,6 +802,9 @@ func upWithTUI(
 	)
 	ce.SetStdout(io.Discard)
 
+	versions := fetchVersions(ctx, ce, appVersion)
+	mcp := mcpStatus(ce)
+
 	appCfg := tui.AppConfig{
 		DC:           dc,
 		Subdomain:    ce.LocalSubdomain(),
@@ -764,6 +812,8 @@ func upWithTUI(
 		UseTLS:       useTLS,
 		PostgresPort: postgresPort,
 		ProjectName:  ce.ProjectName(),
+		Versions:     versions,
+		MCP:          mcp,
 	}
 
 	docker := dockercompose.NewDockerWithWriters(

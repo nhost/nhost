@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -60,17 +61,14 @@ func commandPull(ctx context.Context, cmd *cli.Command) error {
 		)
 	}
 
-	skipConfirmation := cmd.Bool(flagYes)
+	skipConfirm := cmd.Bool(flagYes)
+	writeSecrets := true
 
-	if !skipConfirmation {
+	if !skipConfirm {
 		if err := verifyFile(ce, ce.Path.NhostToml()); err != nil {
 			return err
 		}
-	}
 
-	writeSecrets := true
-
-	if !skipConfirmation {
 		if err := verifyFile(ce, ce.Path.Secrets()); err != nil {
 			writeSecrets = false
 		}
@@ -81,41 +79,64 @@ func commandPull(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		return commandPullTUI(ctx, ce, proj, writeSecrets)
+	}
+
 	_, err = Pull(ctx, ce, proj, writeSecrets)
 
 	return err
 }
 
-func verifyFile(ce *clienv.CliEnv, name string) error {
+func commandPullTUI(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	proj *graphql.AppSummaryFragment,
+	writeSecrets bool,
+) error {
+	ce.SetStdout(io.Discard)
+	defer ce.SetStdout(os.Stdout)
+
+	steps := []tui.Step{
+		{
+			Name: "Pulling configuration",
+			Fn: func() error {
+				_, err := pullConfig(ctx, ce, proj)
+
+				return err
+			},
+		},
+	}
+
+	if writeSecrets {
+		steps = append(steps, tui.Step{
+			Name: "Pulling secrets",
+			Fn:   func() error { return pullSecrets(ctx, ce, proj) },
+		})
+	}
+
+	return tui.RunSteps(steps) //nolint:wrapcheck
+}
+
+func verifyFile(_ *clienv.CliEnv, name string) error {
 	if !clienv.PathExists(name) {
 		return nil
 	}
 
-	if term.IsTerminal(int(os.Stdout.Fd())) {
-		confirmed, err := tui.RunConfirm(
-			fmt.Sprintf("Overwrite %s?", name),
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		return fmt.Errorf( //nolint:err113
+			"file already exists: %s. Use --yes to overwrite", name,
 		)
-		if err != nil {
-			return fmt.Errorf("failed to read input: %w", err)
-		}
-
-		if !confirmed {
-			return errors.New("operation cancelled") //nolint:err113
-		}
-
-		return nil
 	}
 
-	ce.PromptMessage("%s",
-		name+" already exists. Do you want to overwrite it? [y/N] ",
+	confirmed, err := tui.RunConfirm(
+		fmt.Sprintf("Overwrite %s?", name),
 	)
-
-	resp, err := ce.PromptInput(false)
 	if err != nil {
 		return fmt.Errorf("failed to read input: %w", err)
 	}
 
-	if resp != "y" && resp != "Y" {
+	if !confirmed {
 		return errors.New("operation cancelled") //nolint:err113
 	}
 
@@ -197,23 +218,17 @@ func pullSecrets(
 	return nil
 }
 
-func Pull(
+func pullConfig(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	proj *graphql.AppSummaryFragment,
-	writeSecrts bool,
 ) (*model.ConfigConfig, error) {
-	ce.Infoln("Pulling config from Nhost...")
-
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	cfg, err := cl.GetConfigRawJSON(
-		ctx,
-		proj.ID,
-	)
+	cfg, err := cl.GetConfigRawJSON(ctx, proj.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get config: %w", err)
 	}
@@ -231,18 +246,29 @@ func Pull(
 		return nil, fmt.Errorf("failed to save nhost.toml: %w", err)
 	}
 
-	if writeSecrts {
+	return &v, nil
+}
+
+func Pull(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	proj *graphql.AppSummaryFragment,
+	writeSecrets bool,
+) (*model.ConfigConfig, error) {
+	ce.Infoln("Pulling config from Nhost...")
+
+	v, err := pullConfig(ctx, ce, proj)
+	if err != nil {
+		return nil, err
+	}
+
+	if writeSecrets {
 		if err := pullSecrets(ctx, ce, proj); err != nil {
 			return nil, err
 		}
 	}
 
-	ce.Infoln("Success!")
-	ce.Warnln(
-		"- Review `nhost/nhost.toml` and make sure there are no secrets before you commit it to git.",
-	)
-	ce.Warnln("- Review `.secrets` file and set your development secrets")
-	ce.Warnln("- Review `.secrets` was added to .gitignore")
+	ce.Infoln("Done")
 
-	return &v, nil
+	return v, nil
 }

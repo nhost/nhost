@@ -140,12 +140,12 @@ func (m LogViewer) viewLogViewerLogs() string {
 		return b.String()
 	}
 
-	start, end := logWindow(len(filtered), available, m.logOffset)
+	rendered := renderLogLinesAt(m.width, filtered)
+
+	start, end := logWindow(len(rendered), available, m.logOffset)
 
 	for i := start; i < end; i++ {
-		entry := filtered[i]
-		svc := logService.Render(entry.Service)
-		b.WriteString("    " + svc + " " + logSep + " " + entry.Text + "\n")
+		b.WriteString(rendered[i] + "\n")
 	}
 
 	return b.String()

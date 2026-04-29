@@ -2,6 +2,7 @@ package tui
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/nhost/nhost/cli/clienv"
 )
@@ -22,11 +23,13 @@ type Phase struct {
 	Name   string
 	Status PhaseStatus
 	Err    error
+	Detail string
 }
 
 type ProgressReporter interface {
 	StartPhase(name string)
 	EndPhase()
+	EndPhaseWithDetail(detail string)
 	FailPhase(err error)
 	SkipPhase(name string)
 	Complete(info string)
@@ -46,6 +49,8 @@ func (r *TextReporter) StartPhase(name string) {
 
 func (r *TextReporter) EndPhase() {}
 
+func (r *TextReporter) EndPhaseWithDetail(_ string) {}
+
 func (r *TextReporter) FailPhase(_ error) {}
 
 func (r *TextReporter) SkipPhase(name string) {
@@ -53,3 +58,8 @@ func (r *TextReporter) SkipPhase(name string) {
 }
 
 func (r *TextReporter) Complete(_ string) {}
+
+// PrintCheck prints a single line with a green checkmark.
+func PrintCheck(msg string) {
+	fmt.Println("  " + phaseCheck + " " + msg) //nolint:forbidigo
+}

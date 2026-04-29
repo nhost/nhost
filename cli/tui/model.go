@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/nhost/nhost/cli/dockercompose"
@@ -22,13 +23,14 @@ type appState int
 const (
 	stateStartup appState = iota
 	stateDashboard
+	stateRestarting
 	stateStopping
 )
 
 // Messages.
 type (
 	phaseStartMsg    struct{ name string }
-	phaseEndMsg      struct{}
+	phaseEndMsg      struct{ detail string }
 	phaseFailMsg     struct{ err error }
 	phaseSkipMsg     struct{ name string }
 	completeMsg      struct{ info string }
@@ -37,7 +39,19 @@ type (
 	logLineMsg       struct{ service, text string }
 	tickMsg          time.Time
 	stoppedMsg       struct{ err error }
+	restartDoneMsg   struct{ err error }
 )
+
+type ServiceVersion struct {
+	Current     string
+	Recommended string
+	OK          bool
+}
+
+type MCPStatus struct {
+	Configured bool
+	Projects   []string
+}
 
 type AppConfig struct {
 	DC           *dockercompose.DockerCompose
@@ -46,6 +60,8 @@ type AppConfig struct {
 	UseTLS       bool
 	PostgresPort uint
 	ProjectName  string
+	Versions     map[string]ServiceVersion
+	MCP          MCPStatus
 }
 
 type LogEntry struct {
@@ -58,10 +74,13 @@ type Model struct {
 	phases  []Phase
 	spinner spinner.Model
 
-	services  []dockercompose.ServiceStatus
-	logs      []LogEntry
-	logOffset int
-	logFilter string
+	services   []dockercompose.ServiceStatus
+	logs       []LogEntry
+	logOffset  int
+	logFilter  string
+	logSearch  string
+	searching  bool
+	searchInput textinput.Model
 
 	config    AppConfig
 	startTime time.Time
@@ -78,20 +97,27 @@ func newModel(cfg AppConfig, cancel context.CancelFunc) Model {
 		spinner.WithStyle(lipgloss.NewStyle().Foreground(colorCyan)),
 	)
 
+	ti := textinput.New()
+	ti.Placeholder = "search..."
+	ti.CharLimit = 100 //nolint:mnd
+
 	return Model{
-		state:     stateStartup,
-		phases:    make([]Phase, 0),
-		spinner:   s,
-		services:  nil,
-		logs:      make([]LogEntry, 0, maxLogLines),
-		logOffset: 0,
-		logFilter: "",
-		config:    cfg,
-		startTime: time.Now(),
-		width:     80, //nolint:mnd
-		height:    24, //nolint:mnd
-		err:       nil,
-		cancel:    cancel,
+		state:       stateStartup,
+		phases:      make([]Phase, 0),
+		spinner:     s,
+		services:    nil,
+		logs:        make([]LogEntry, 0, maxLogLines),
+		logOffset:   0,
+		logFilter:   "",
+		logSearch:   "",
+		searching:   false,
+		searchInput: ti,
+		config:      cfg,
+		startTime:   time.Now(),
+		width:       80, //nolint:mnd
+		height:      24, //nolint:mnd
+		err:         nil,
+		cancel:      cancel,
 	}
 }
 

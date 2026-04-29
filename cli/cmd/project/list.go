@@ -2,6 +2,7 @@ package project
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -12,22 +13,30 @@ import (
 	"golang.org/x/term"
 )
 
+const flagJSON = "json"
+
 func CommandList() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "list",
 		Aliases: []string{},
 		Usage:   "List remote apps",
 		Action:  commandList,
-		Flags:   []cli.Flag{},
+		Flags: []cli.Flag{
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:  flagJSON,
+				Usage: "Output as JSON",
+			},
+		},
 	}
 }
 
 func commandList(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
-	return List(ctx, ce)
+
+	return List(ctx, ce, cmd.Bool(flagJSON))
 }
 
-func List(ctx context.Context, ce *clienv.CliEnv) error {
+func List(ctx context.Context, ce *clienv.CliEnv, jsonOutput bool) error {
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
@@ -38,11 +47,16 @@ func List(ctx context.Context, ce *clienv.CliEnv) error {
 		return fmt.Errorf("failed to get workspaces: %w", err)
 	}
 
-	if !term.IsTerminal(int(os.Stdout.Fd())) {
-		return clienv.Printlist(ce, orgs) //nolint:wrapcheck
+	if jsonOutput {
+		return printListJSON(orgs)
 	}
 
-	return printListStyled(ce, orgs)
+	isTTY := term.IsTerminal(int(os.Stdout.Fd()))
+	if isTTY {
+		return printListStyled(ce, orgs)
+	}
+
+	return clienv.Printlist(ce, orgs) //nolint:wrapcheck
 }
 
 func printListStyled(
@@ -84,4 +98,53 @@ func printOrgApps(
 	}
 
 	ce.Println("")
+}
+
+type projectJSON struct {
+	Name         string `json:"name"`
+	Subdomain    string `json:"subdomain"`
+	Organization string `json:"organization"`
+	Region       string `json:"region"`
+}
+
+func collectProjects(
+	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+) []projectJSON {
+	var projects []projectJSON
+
+	for _, org := range orgs.GetOrganizations() {
+		for _, app := range org.Apps {
+			projects = append(projects, projectJSON{
+				Name:         app.Name,
+				Subdomain:    app.Subdomain,
+				Organization: org.Name,
+				Region:       app.Region.Name,
+			})
+		}
+	}
+
+	for _, ws := range orgs.GetWorkspaces() {
+		for _, app := range ws.Apps {
+			projects = append(projects, projectJSON{
+				Name:         app.Name,
+				Subdomain:    app.Subdomain,
+				Organization: ws.Name,
+				Region:       app.Region.Name,
+			})
+		}
+	}
+
+	return projects
+}
+
+func printListJSON(
+	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+) error {
+	projects := collectProjects(orgs)
+
+	if err := json.NewEncoder(os.Stdout).Encode(projects); err != nil {
+		return fmt.Errorf("failed to encode JSON: %w", err)
+	}
+
+	return nil
 }

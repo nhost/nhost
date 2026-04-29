@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/nhost/nhost/cli/cmd/config"
 	"github.com/nhost/nhost/cli/dockercompose"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/cli/tui"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
@@ -88,7 +90,7 @@ func CommandInit() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagRemote,
-				Usage:   "Initialize pulling configuration, migrations and metadata from the linked project",
+				Usage:   "Initialize pulling configuration, migrations and metadata from the remote project",
 				Value:   false,
 				Sources: cli.EnvVars("NHOST_REMOTE"),
 			},
@@ -235,15 +237,92 @@ func InitRemote(
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		return initRemoteTUI(ctx, ce, proj)
+	}
+
+	return initRemotePlain(ctx, ce, proj)
+}
+
+func initRemoteTUI(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	proj *graphql.AppSummaryFragment,
+) error {
+	var cfg *model.ConfigConfig
+
+	// Suppress ce output during TUI — config.Pull prints status internally
+	ce.SetStdout(io.Discard)
+	defer ce.SetStdout(os.Stdout)
+
+	return tui.RunSteps([]tui.Step{
+		{
+			Name: "Pulling configuration from cloud",
+			Fn: func() error {
+				var err error
+				cfg, err = config.Pull(ctx, ce, proj, true)
+				return err
+			},
+		},
+		{
+			Name: "Creating project structure",
+			Fn:   func() error { return initFolders(ce.Path) },
+		},
+		{
+			Name: "Initializing Hasura",
+			Fn: func() error {
+				c := map[string]any{"version": hasuraMetadataVersion}
+				return clienv.MarshalFile(c, ce.Path.HasuraConfig(), yaml.Marshal)
+			},
+		},
+		{
+			Name: "Writing default configuration",
+			Fn:   func() error { return writeFiles(ce.Path, "templates/init", "") },
+		},
+		{
+			Name: "Downloading email templates",
+			Fn:   func() error { return downloadEmailTemplates(ctx) },
+		},
+		{
+			Name: "Creating migrations",
+			Fn: func() error {
+				return deployRemote(ctx, ce, cfg, proj)
+			},
+		},
+	}) //nolint:wrapcheck
+}
+
+func initRemotePlain(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	proj *graphql.AppSummaryFragment,
+) error {
+	ce.Infoln("Pulling configuration from cloud...")
+
 	cfg, err := config.Pull(ctx, ce, proj, true)
 	if err != nil {
 		return fmt.Errorf("failed to pull config: %w", err)
 	}
 
-	if err := initInit(ctx, ce); err != nil {
+	if err := initInitPlain(ctx, ce); err != nil {
 		return err
 	}
 
+	ce.Infoln("Creating migrations...")
+
+	if err := deployRemote(ctx, ce, cfg, proj); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deployRemote(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	cfg *model.ConfigConfig,
+	proj *graphql.AppSummaryFragment,
+) error {
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
@@ -258,15 +337,10 @@ func InitRemote(
 		"https://%s.hasura.%s.nhost.run", proj.Subdomain, proj.Region.Name,
 	)
 
-	if err := deploy(
-		ctx, ce, cfg, hasuraEndpoint, hasuraAdminSecret.App.Config.Hasura.AdminSecret,
-	); err != nil {
-		return fmt.Errorf("failed to deploy: %w", err)
-	}
-
-	ce.Infoln("Project initialized successfully!")
-
-	return nil
+	return deploy(
+		ctx, ce, cfg, hasuraEndpoint,
+		hasuraAdminSecret.App.Config.Hasura.AdminSecret,
+	)
 }
 
 func deploy(

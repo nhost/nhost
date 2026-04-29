@@ -67,7 +67,7 @@ func checkCLIVersion(
 			ce.Println("%s", styledCheck(msg, "", "(latest)", true))
 		} else {
 			ce.Infoln(
-				"✅ Nhost CLI %s for %s-%s is already on the latest version",
+				"Nhost CLI %s for %s-%s (latest)",
 				curVersion, runtime.GOOS, runtime.GOARCH,
 			)
 		}
@@ -86,7 +86,7 @@ func checkCLIVersion(
 			styledCheck("Nhost CLI", curVersion, "(latest: "+latest.TagName+")", false),
 		)
 	} else {
-		ce.Warnln("🟡 A new version of Nhost CLI is available: %s", latest.TagName)
+		ce.Warnln("Nhost CLI: %s (recommended: %s)", curVersion, latest.TagName)
 	}
 
 	ce.Println("   You can upgrade the CLI by running `nhost sw upgrade`")
@@ -130,7 +130,7 @@ func printServiceMatch(
 			styledCheck(string(sw), curVersion, "(recommended)", true),
 		)
 	} else {
-		ce.Infoln("✅ %s is already on a recommended version: %s", sw, curVersion)
+		ce.Infoln("%s: %s (ok)", sw, curVersion)
 	}
 }
 
@@ -147,8 +147,8 @@ func printServiceMismatch(
 		ce.Println("%s", styledCheck(string(sw), curVersion, extra, false))
 	} else {
 		ce.Warnln(
-			"🟡 %s is not on a recommended version. Recommended: %s",
-			sw, strings.Join(recommended, ", "),
+			"%s: %s (recommended: %s)",
+			sw, curVersion, strings.Join(recommended, ", "),
 		)
 	}
 
@@ -226,7 +226,7 @@ func commandVersion(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to validate config: %w", err)
 		}
 	} else {
-		ce.Warnln("🟡 No Nhost project found")
+		ce.Warnln("No Nhost project found")
 	}
 
 	return CheckVersions(ctx, ce, cfg, cmd.Root().Version)

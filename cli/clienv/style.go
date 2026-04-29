@@ -43,6 +43,10 @@ var promptMessage = lipgloss.NewStyle().
 	Bold(true).
 	Render
 
+func (ce *CliEnv) Stdout() io.Writer {
+	return ce.stdout
+}
+
 func (ce *CliEnv) SetStdout(w io.Writer) {
 	ce.stdout = w
 }
