@@ -285,7 +285,7 @@ nhost.clearSession()
 #### getUserSession()
 
 ```ts
-getUserSession(): Session | null;
+getUserSession(): StoredSession | null;
 ```
 
 Get the current session from storage.
@@ -293,7 +293,7 @@ This method retrieves the authenticated user's session information if one exists
 
 ##### Returns
 
-[`Session`](./session#session) \| `null`
+[`StoredSession`](#storedsession) \| `null`
 
 The current session or null if no session exists
 
@@ -311,7 +311,7 @@ if (session) {
 #### refreshSession()
 
 ```ts
-refreshSession(marginSeconds?: number): Promise<Session | null>;
+refreshSession(marginSeconds?: number): Promise<StoredSession | null>;
 ```
 
 Refresh the session using the current refresh token
@@ -328,7 +328,7 @@ or to force a refresh when needed.
 
 ##### Returns
 
-`Promise`&lt;[`Session`](./session#session) \| `null`&gt;
+`Promise`&lt;[`StoredSession`](#storedsession) \| `null`&gt;
 
 The new session or null if there is currently no session or if refresh fails
 
@@ -530,6 +530,106 @@ Nhost project subdomain (e.g., 'abcdefgh'). Used to construct the base URL for s
 ##### Inherited from
 
 [`NhostClientOptions`](#nhostclientoptions).[`subdomain`](#subdomain)
+
+---
+
+## StoredSession
+
+The enriched session stored and managed by the Nhost SDK client.
+
+This is a superset of the raw `Session` returned by the auth API
+(importable from `@nhost/nhost-js/auth`). In addition to the standard
+auth fields, it includes a `decodedToken` with the parsed JWT payload,
+making it easy to inspect Hasura claims, roles, and session variables
+without manually decoding the access token.
+
+This is the type you must use when implementing a custom
+SessionStorageBackend for `createServerClient`.
+
+### See
+
+SessionStorageBackend
+
+### Extends
+
+- [`Session`](./auth#session)
+
+### Properties
+
+#### accessToken
+
+```ts
+accessToken: string
+```
+
+JWT token for authenticating API requests
+Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+
+##### Inherited from
+
+[`Session`](./auth#session).[`accessToken`](./auth#accesstoken-1)
+
+#### accessTokenExpiresIn
+
+```ts
+accessTokenExpiresIn: number
+```
+
+Expiration time of the access token in seconds
+Example - `900`
+Format - int64
+
+##### Inherited from
+
+[`Session`](./auth#session).[`accessTokenExpiresIn`](./auth#accesstokenexpiresin)
+
+#### decodedToken
+
+```ts
+decodedToken: DecodedToken
+```
+
+Decoded JWT token payload with processed timestamps and Hasura claims
+
+#### refreshToken
+
+```ts
+refreshToken: string
+```
+
+Token used to refresh the access token
+Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+##### Inherited from
+
+[`Session`](./auth#session).[`refreshToken`](./auth#refreshtoken-4)
+
+#### refreshTokenId
+
+```ts
+refreshTokenId: string
+```
+
+Identifier for the refresh token
+Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+##### Inherited from
+
+[`Session`](./auth#session).[`refreshTokenId`](./auth#refreshtokenid)
+
+#### user?
+
+```ts
+optional user?: User;
+```
+
+User profile and account information
+
+##### Inherited from
+
+[`Session`](./auth#session).[`user`](./auth#user-1)
 
 # Type Aliases
 
@@ -758,15 +858,15 @@ const nhost = createServerClient({
   subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
   storage: {
     // storage compatible with Next.js server components
-    get: (): Session | null => {
+    get: (): StoredSession | null => {
       const s = cookieStore.get(key)?.value || null
       if (!s) {
         return null
       }
-      const session = JSON.parse(s) as Session
+      const session = JSON.parse(s) as StoredSession
       return session
     },
-    set: (value: Session) => {
+    set: (value: StoredSession) => {
       cookieStore.set(key, JSON.stringify(value))
     },
     remove: () => {
@@ -781,15 +881,15 @@ const nhost = createServerClient({
   subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
   storage: {
     // storage compatible with Next.js middleware
-    get: (): Session | null => {
+    get: (): StoredSession | null => {
       const raw = request.cookies.get(key)?.value || null
       if (!raw) {
         return null
       }
-      const session = JSON.parse(raw) as Session
+      const session = JSON.parse(raw) as StoredSession
       return session
     },
-    set: (value: Session) => {
+    set: (value: StoredSession) => {
       response.cookies.set({
         name: key,
         value: JSON.stringify(value),
@@ -818,15 +918,15 @@ const nhostClientFromCookies = (req: Request) => {
     subdomain: 'local',
     region: 'local',
     storage: {
-      get: (): Session | null => {
+      get: (): StoredSession | null => {
         const s = req.cookies.nhostSession || null
         if (!s) {
           return null
         }
-        const session = JSON.parse(s) as Session
+        const session = JSON.parse(s) as StoredSession
         return session
       },
-      set: (_value: Session) => {
+      set: (_value: StoredSession) => {
         throw new Error('It is easier to handle the session in the client')
       },
       remove: () => {

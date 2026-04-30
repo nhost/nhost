@@ -10,7 +10,7 @@ import { DeploymentBranchSettings } from '@/features/orgs/projects/git/settings/
 import { GitConnectionSettings } from '@/features/orgs/projects/git/settings/components/GitConnectionSettings';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 
-export default function GitSettingsPage() {
+export default function DeploymentsSettingsPage() {
   const router = useRouter();
   const { isReady: isRouterReady } = router;
   const { 'github-modal': githubModal } = router.query;
@@ -43,7 +43,7 @@ export default function GitSettingsPage() {
   );
 }
 
-GitSettingsPage.getLayout = function getLayout(page: ReactElement) {
+DeploymentsSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
       mainContainerProps={{

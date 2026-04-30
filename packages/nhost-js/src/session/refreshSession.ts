@@ -1,6 +1,6 @@
 import type { Client as AuthClient, ErrorResponse } from '../auth';
 import type { FetchResponse } from '../fetch';
-import type { Session } from './session';
+import type { StoredSession } from './session';
 import type { SessionStorage } from './storage';
 
 class DummyLock implements Lock {
@@ -45,7 +45,7 @@ export const refreshSession = async (
   auth: AuthClient,
   storage: SessionStorage,
   marginSeconds = 60,
-): Promise<Session | null> => {
+): Promise<StoredSession | null> => {
   try {
     return await _refreshSession(auth, storage, marginSeconds);
   } catch (error) {
@@ -79,17 +79,14 @@ const _refreshSession = async (
   auth: AuthClient,
   storage: SessionStorage,
   marginSeconds = 60,
-): Promise<Session | null> => {
+): Promise<StoredSession | null> => {
   const {
     session,
     needsRefresh,
-  }: { session: Session | null; needsRefresh: boolean } = await lock.request(
-    'nhostSessionLock',
-    { mode: 'shared' },
-    async () => {
+  }: { session: StoredSession | null; needsRefresh: boolean } =
+    await lock.request('nhostSessionLock', { mode: 'shared' }, async () => {
       return _needsRefresh(storage, marginSeconds);
-    },
-  );
+    });
 
   if (!session) {
     return null; // No session found
@@ -99,7 +96,7 @@ const _refreshSession = async (
     return session; // No need to refresh
   }
 
-  const refreshedSession: Session | null = await lock.request(
+  const refreshedSession: StoredSession | null = await lock.request(
     'nhostSessionLock',
     { mode: 'exclusive' },
     async () => {

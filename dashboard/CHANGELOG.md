@@ -1,3 +1,9 @@
+## [@nhost/dashboard@2.61.1] - 2026-04-30
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Rename Settings 'Git' to 'Deployments' (#4213)
+
 ## [@nhost/dashboard@2.61.0] - 2026-04-29
 
 ### 🚀 Features

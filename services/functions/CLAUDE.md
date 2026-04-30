@@ -31,7 +31,7 @@ services/functions/
 
 ## Key Concepts
 
-- **server.js**: Discovers functions via glob, creates an esbuild context per function, watches for changes. Routes are derived from file paths (e.g., `hello.ts` -> `/hello`). Index files map to parent directories. Builds are output to `.nhost-build/dist/`.
+- **server.js**: Discovers functions via glob, then creates a single shared esbuild context with one entry point per function (shares the parsed dependency graph across functions to keep memory bounded). Watches for changes via `ctx.watch()`; polls every 1s to detect added/removed files and recreates the context when the entry set changes. Routes are derived from file paths (e.g., `hello.ts` -> `/hello`). Index files map to parent directories. Builds are output to `/tmp/nhost-build/dist/<safeName>.js`, with generated wrappers in `/tmp/nhost-build/wrappers/`.
 - **local-wrapper.js**: Template that wraps each user function in an Express mini-app with JSON/URL-encoded body parsing (6MB limit), raw body preservation, invocation ID tracking, and error handling. The placeholder `%FUNCTION_PATH%` is replaced at build time.
 - **start.sh**: Docker entrypoint that detects whether `package.json` is at `./functions/` or `./`, validates a lock file exists, copies default `tsconfig.json`, installs dependencies via `nci` (@antfu/ni), and starts the server.
 - **Routing**: `functions/hello.ts` -> `/hello`, `functions/sub/index.ts` -> `/sub/`, `functions/_utils/` -> ignored. Route lookup is flexible: tries exact match, then without trailing slash, then with trailing slash.

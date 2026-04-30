@@ -86,7 +86,7 @@ export default function DeploymentBranchSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/platform/cloud/git#deployment-branch"
+          docsLink="https://docs.nhost.io/platform/cloud/deployments#deployment-branch"
           className="grid grid-flow-row lg:grid-cols-5"
         >
           {project?.githubRepository ? (

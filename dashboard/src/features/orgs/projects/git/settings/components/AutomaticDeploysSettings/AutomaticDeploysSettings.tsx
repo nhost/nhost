@@ -61,7 +61,7 @@ export default function AutomaticDeploysSettings() {
         <SettingsContainer
           title="Automatic Deploys"
           description="When enabled, commits pushed to the deployment branch will automatically trigger a deployment. When disabled, deployments must be triggered manually via the CLI or GitHub Actions."
-          docsLink="https://docs.nhost.io/platform/cloud/git"
+          docsLink="https://docs.nhost.io/platform/cloud/deployments"
           slotProps={{
             submitButton: {
               disabled: !formState.isDirty,

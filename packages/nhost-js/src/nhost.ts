@@ -22,9 +22,9 @@ import {
 import {
   detectStorage,
   refreshSession,
-  type Session,
   SessionStorage,
   type SessionStorageBackend,
+  type StoredSession,
 } from './session/';
 import {
   createAPIClient as createStorageClient,
@@ -211,7 +211,7 @@ export class NhostClient {
    * }
    * ```
    */
-  getUserSession(): Session | null {
+  getUserSession(): StoredSession | null {
     return this.sessionStorage.get();
   }
 
@@ -235,7 +235,7 @@ export class NhostClient {
    * const forcedRefresh = await nhost.refreshSession(0);
    * ```
    */
-  async refreshSession(marginSeconds = 60): Promise<Session | null> {
+  async refreshSession(marginSeconds = 60): Promise<StoredSession | null> {
     return refreshSession(this.auth, this.sessionStorage, marginSeconds);
   }
 
@@ -517,15 +517,15 @@ export interface NhostServerClientOptions extends NhostClientOptions {
  *   subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
  *   storage: {
  *     // storage compatible with Next.js server components
- *     get: (): Session | null => {
+ *     get: (): StoredSession | null => {
  *       const s = cookieStore.get(key)?.value || null;
  *       if (!s) {
  *         return null;
  *       }
- *       const session = JSON.parse(s) as Session;
+ *       const session = JSON.parse(s) as StoredSession;
  *       return session;
  *     },
- *     set: (value: Session) => {
+ *     set: (value: StoredSession) => {
  *       cookieStore.set(key, JSON.stringify(value));
  *     },
  *     remove: () => {
@@ -540,15 +540,15 @@ export interface NhostServerClientOptions extends NhostClientOptions {
  *   subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
  *   storage: {
  *     // storage compatible with Next.js middleware
- *     get: (): Session | null => {
+ *     get: (): StoredSession | null => {
  *       const raw = request.cookies.get(key)?.value || null;
  *       if (!raw) {
  *         return null;
  *       }
- *       const session = JSON.parse(raw) as Session;
+ *       const session = JSON.parse(raw) as StoredSession;
  *       return session;
  *     },
- *     set: (value: Session) => {
+ *     set: (value: StoredSession) => {
  *       response.cookies.set({
  *         name: key,
  *         value: JSON.stringify(value),
@@ -577,15 +577,15 @@ export interface NhostServerClientOptions extends NhostClientOptions {
  *     subdomain: "local",
  *     region: "local",
  *     storage: {
- *       get: (): Session | null => {
+ *       get: (): StoredSession | null => {
  *         const s = req.cookies.nhostSession || null;
  *         if (!s) {
  *           return null;
  *         }
- *         const session = JSON.parse(s) as Session;
+ *         const session = JSON.parse(s) as StoredSession;
  *         return session;
  *       },
- *       set: (_value: Session) => {
+ *       set: (_value: StoredSession) => {
  *         throw new Error("It is easier to handle the session in the client");
  *       },
  *       remove: () => {
