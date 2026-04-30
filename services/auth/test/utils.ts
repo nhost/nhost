@@ -1,5 +1,6 @@
 import fetch, { Response } from 'node-fetch';
 import { Response as SuperTestResponse } from 'supertest';
+import { execFileSync } from 'child_process';
 import { createHash, randomBytes } from 'crypto';
 import { ENV } from './src/env';
 import { verifyJwt } from './src/get-claims';
@@ -9,6 +10,37 @@ import { generateTicketExpiresAt } from './src/ticket';
 import { hashPassword } from './src/password';
 import { ClientBase } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
+
+const SMS_OUTPUT_CONTAINER = process.env.AUTH_SMS_OUTPUT_CONTAINER ?? 'docker-auth-1';
+const SMS_OUTPUT_DIR_IN_CONTAINER = '/sms-output';
+
+/**
+ * Read the latest SMS body for a phone number written by the dev SMS provider
+ * and extract the 6-digit OTP. Reads via `docker cp` from the auth container so
+ * we don't depend on a host bind mount (which is unreliable across docker
+ * backends like Docker Desktop, Colima, and remote daemons).
+ */
+export const readSMSCode = (phoneNumber: string): string => {
+  const body = execFileSync(
+    'docker',
+    [
+      'cp',
+      `${SMS_OUTPUT_CONTAINER}:${SMS_OUTPUT_DIR_IN_CONTAINER}/${phoneNumber}.txt`,
+      '-',
+    ],
+    { encoding: 'buffer' }
+  );
+  // `docker cp ... -` produces a tar stream. Pull out the file body via tar.
+  const text = execFileSync('tar', ['-xO'], {
+    input: body,
+    encoding: 'utf-8',
+  });
+  const match = text.match(/(\d{6})/);
+  if (!match) {
+    throw new Error(`No 6-digit code found in SMS for ${phoneNumber}: ${text}`);
+  }
+  return match[1];
+};
 
 interface MailhogEmailAddress {
   Relays: string | null;

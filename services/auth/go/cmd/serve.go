@@ -108,6 +108,7 @@ const (
 	flagSMSGenericHeaders                        = "sms-generic-headers"
 	flagSMSGenericTimeout                        = "sms-generic-timeout"
 	flagSMSGenericBodyTemplate                   = "sms-generic-body-template"
+	flagSMSDevOutputDir                          = "sms-dev-output-dir"
 	flagAnonymousUsersEnabled                    = "enable-anonymous-users"
 	flagMfaEnabled                               = "mfa-enabled"
 	flagMfaTotpIssuer                            = "mfa-totp-issuer"
@@ -786,6 +787,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 					`{"to":"${to}","message":"${body}"}`,
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_BODY_TEMPLATE"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSDevOutputDir,
+				Usage:    "Directory where the dev SMS provider writes each SMS body to <phone>.txt (test only)", //nolint:lll
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_DEV_OUTPUT_DIR"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagAnonymousUsersEnabled,

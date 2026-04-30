@@ -131,7 +131,7 @@ func getSMS( //nolint:ireturn
 	case "generic":
 		return getGenericSMS(cmd, templates, db, logger)
 	case "dev":
-		return sms.NewDev(templates, db, logger), nil
+		return sms.NewDev(templates, db, cmd.String(flagSMSDevOutputDir), logger), nil
 	default:
 		return nil, fmt.Errorf("unsupported SMS provider: %s", provider) //nolint:err113
 	}
