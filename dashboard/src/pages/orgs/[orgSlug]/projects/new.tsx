@@ -4,7 +4,6 @@ import type { FormEvent, ReactElement } from 'react';
 import { useState } from 'react';
 import slugify from 'slugify';
 import { twMerge } from 'tailwind-merge';
-import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -40,7 +39,6 @@ export function NewProjectPageContent({
   preSelectedOrg,
   preSelectedRegion,
 }: NewAppPageProps) {
-  const { maintenanceActive } = useUI();
   const router = useRouter();
 
   // form
@@ -326,12 +324,7 @@ export function NewProjectPageContent({
           )}
 
           <div className="flex justify-end">
-            <Button
-              type="submit"
-              loading={submitState.loading}
-              disabled={maintenanceActive}
-              id="create-app"
-            >
+            <Button type="submit" loading={submitState.loading} id="create-app">
               Create Project
             </Button>
           </div>

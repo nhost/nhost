@@ -56,14 +56,14 @@ Creates a new CookieStorage instance
 #### get()
 
 ```ts
-get(): Session | null;
+get(): StoredSession | null;
 ```
 
 Gets the session from cookies
 
 ##### Returns
 
-[`Session`](#session) \| `null`
+[`StoredSession`](./index#storedsession) \| `null`
 
 The stored session or null if not found
 
@@ -90,16 +90,16 @@ Removes the session cookie
 #### set()
 
 ```ts
-set(value: Session): void;
+set(value: StoredSession): void;
 ```
 
 Sets the session in a cookie
 
 ##### Parameters
 
-| Parameter | Type                  | Description          |
-| --------- | --------------------- | -------------------- |
-| `value`   | [`Session`](#session) | The session to store |
+| Parameter | Type                                      | Description          |
+| --------- | ----------------------------------------- | -------------------- |
+| `value`   | [`StoredSession`](./index#storedsession) | The session to store |
 
 ##### Returns
 
@@ -146,14 +146,14 @@ Creates a new LocalStorage instance
 #### get()
 
 ```ts
-get(): Session | null;
+get(): StoredSession | null;
 ```
 
 Gets the session from localStorage
 
 ##### Returns
 
-[`Session`](#session) \| `null`
+[`StoredSession`](./index#storedsession) \| `null`
 
 The stored session or null if not found
 
@@ -180,16 +180,16 @@ Removes the session from localStorage
 #### set()
 
 ```ts
-set(value: Session): void;
+set(value: StoredSession): void;
 ```
 
 Sets the session in localStorage
 
 ##### Parameters
 
-| Parameter | Type                  | Description          |
-| --------- | --------------------- | -------------------- |
-| `value`   | [`Session`](#session) | The session to store |
+| Parameter | Type                                      | Description          |
+| --------- | ----------------------------------------- | -------------------- |
+| `value`   | [`StoredSession`](./index#storedsession) | The session to store |
 
 ##### Returns
 
@@ -227,14 +227,14 @@ new MemoryStorage(): MemoryStorage;
 #### get()
 
 ```ts
-get(): Session | null;
+get(): StoredSession | null;
 ```
 
 Gets the session from memory
 
 ##### Returns
 
-[`Session`](#session) \| `null`
+[`StoredSession`](./index#storedsession) \| `null`
 
 The stored session or null if not set
 
@@ -261,16 +261,16 @@ Clears the session from memory
 #### set()
 
 ```ts
-set(value: Session): void;
+set(value: StoredSession): void;
 ```
 
 Sets the session in memory
 
 ##### Parameters
 
-| Parameter | Type                  | Description          |
-| --------- | --------------------- | -------------------- |
-| `value`   | [`Session`](#session) | The session to store |
+| Parameter | Type                                      | Description          |
+| --------- | ----------------------------------------- | -------------------- |
+| `value`   | [`StoredSession`](./index#storedsession) | The session to store |
 
 ##### Returns
 
@@ -312,14 +312,14 @@ Creates a new SessionStorage instance
 #### get()
 
 ```ts
-get(): Session | null;
+get(): StoredSession | null;
 ```
 
 Gets the session from the underlying storage
 
 ##### Returns
 
-[`Session`](#session) \| `null`
+[`StoredSession`](./index#storedsession) \| `null`
 
 The stored session or null if not found
 
@@ -431,111 +431,42 @@ Token subject (user ID)
 
 ---
 
-## Session
-
-User authentication session containing tokens and user information
-
-### Extends
-
-- [`Session`](./auth#session)
-
-### Properties
-
-#### accessToken
-
-```ts
-accessToken: string
-```
-
-JWT token for authenticating API requests
-Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
-
-##### Inherited from
-
-[`Session`](./auth#session).[`accessToken`](./auth#accesstoken-1)
-
-#### accessTokenExpiresIn
-
-```ts
-accessTokenExpiresIn: number
-```
-
-Expiration time of the access token in seconds
-Example - `900`
-Format - int64
-
-##### Inherited from
-
-[`Session`](./auth#session).[`accessTokenExpiresIn`](./auth#accesstokenexpiresin)
-
-#### decodedToken
-
-```ts
-decodedToken: DecodedToken
-```
-
-Decoded JWT token payload with processed timestamps and Hasura claims
-
-#### refreshToken
-
-```ts
-refreshToken: string
-```
-
-Token used to refresh the access token
-Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
-
-##### Inherited from
-
-[`Session`](./auth#session).[`refreshToken`](./auth#refreshtoken-4)
-
-#### refreshTokenId
-
-```ts
-refreshTokenId: string
-```
-
-Identifier for the refresh token
-Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
-Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
-
-##### Inherited from
-
-[`Session`](./auth#session).[`refreshTokenId`](./auth#refreshtokenid)
-
-#### user?
-
-```ts
-optional user?: User;
-```
-
-User profile and account information
-
-##### Inherited from
-
-[`Session`](./auth#session).[`user`](./auth#user-1)
-
----
-
 ## SessionStorageBackend
 
 Session storage interface for session persistence.
 This interface can be implemented to provide custom storage solutions.
+
+**Important:** The methods here operate on [StoredSession](./index#storedsession), which is
+the enriched client-side session managed by the Nhost SDK. It extends the
+raw `Session` type from `@nhost/nhost-js/auth` by adding a `decodedToken`
+field with the parsed JWT payload. Do **not** use `auth.Session` here —
+it is missing `decodedToken` and will cause a TypeScript error.
+
+### Example
+
+```ts
+import { type StoredSession, type SessionStorageBackend } from '@nhost/nhost-js/session';
+
+class MyCustomStorage implements SessionStorageBackend {
+  get(): StoredSession | null { ... }
+  set(value: StoredSession): void { ... }
+  remove(): void { ... }
+}
+```
 
 ### Methods
 
 #### get()
 
 ```ts
-get(): Session | null;
+get(): StoredSession | null;
 ```
 
 Get the current session from storage
 
 ##### Returns
 
-[`Session`](#session) \| `null`
+[`StoredSession`](./index#storedsession) \| `null`
 
 The stored session or null if not found
 
@@ -554,16 +485,16 @@ Remove the session from storage
 #### set()
 
 ```ts
-set(value: Session): void;
+set(value: StoredSession): void;
 ```
 
 Set the session in storage
 
 ##### Parameters
 
-| Parameter | Type                  | Description          |
-| --------- | --------------------- | -------------------- |
-| `value`   | [`Session`](#session) | The session to store |
+| Parameter | Type                                      | Description          |
+| --------- | ----------------------------------------- | -------------------- |
+| `value`   | [`StoredSession`](./index#storedsession) | The session to store |
 
 ##### Returns
 
@@ -571,19 +502,35 @@ Set the session in storage
 
 # Type Aliases
 
+## ~~Session~~
+
+```ts
+type Session = StoredSession
+```
+
+### Deprecated
+
+Use [StoredSession](./index#storedsession) instead. Both the auth module and the
+session module previously exported a type named `Session`, but they are
+different: `auth.Session` is the raw API response, while `session.Session`
+is the enriched client-side session that includes `decodedToken`.
+`StoredSession` is the unambiguous name for the latter.
+
+---
+
 ## SessionChangeCallback
 
 ```ts
-type SessionChangeCallback = (session: Session | null) => void
+type SessionChangeCallback = (session: StoredSession | null) => void
 ```
 
 Callback function type for session change subscriptions
 
 ### Parameters
 
-| Parameter | Type                            |
-| --------- | ------------------------------- |
-| `session` | [`Session`](#session) \| `null` |
+| Parameter | Type                                                |
+| --------- | --------------------------------------------------- |
+| `session` | [`StoredSession`](./index#storedsession) \| `null` |
 
 ### Returns
 
@@ -629,7 +576,7 @@ function refreshSession(
   auth: Client,
   storage: SessionStorage,
   marginSeconds?: number
-): Promise<Session | null>
+): Promise<StoredSession | null>
 ```
 
 Refreshes the authentication session if needed
@@ -648,6 +595,12 @@ refresh the token using the provided auth client.
 
 ### Returns
 
-`Promise`&lt;[`Session`](#session) \| `null`&gt;
+`Promise`&lt;[`StoredSession`](./index#storedsession) \| `null`&gt;
 
 A promise that resolves to the current session (refreshed if needed) or null if no session exists
+
+# References
+
+## StoredSession
+
+Re-exports [StoredSession](./index#storedsession)

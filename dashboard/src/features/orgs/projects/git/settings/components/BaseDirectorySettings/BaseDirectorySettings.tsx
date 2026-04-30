@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
@@ -23,7 +22,6 @@ export interface BaseDirectoryFormValues {
 }
 
 export default function BaseDirectorySettings() {
-  const { maintenanceActive } = useUI();
   const { project } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
   const userData = useUserData();
@@ -91,14 +89,11 @@ export default function BaseDirectorySettings() {
           }
           slotProps={{
             submitButton: {
-              disabled:
-                !formState.isDirty ||
-                maintenanceActive ||
-                !project?.automaticDeploys,
+              disabled: !formState.isDirty || !project?.automaticDeploys,
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/platform/cloud/git#base-directory"
+          docsLink="https://docs.nhost.io/platform/cloud/deployments#base-directory"
           className="grid grid-flow-row lg:grid-cols-5"
         >
           {project?.githubRepository ? (

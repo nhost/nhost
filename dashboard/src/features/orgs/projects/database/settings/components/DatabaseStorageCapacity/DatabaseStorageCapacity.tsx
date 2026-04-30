@@ -2,7 +2,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -43,7 +42,6 @@ export type DatabaseStorageCapacityFormValues = Yup.InferType<
 export default function DatabaseStorageCapacity() {
   const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
 
@@ -105,22 +103,12 @@ export default function DatabaseStorageCapacity() {
       return false;
     }
 
-    if (maintenanceActive) {
-      return true;
-    }
-
     if (decreasingSize && !applicationPause) {
       return true;
     }
 
     return false;
-  }, [
-    isDirty,
-    maintenanceActive,
-    decreasingSize,
-    applicationPause,
-    isPlatform,
-  ]);
+  }, [isDirty, decreasingSize, applicationPause, isPlatform]);
 
   useEffect(() => {
     if (data && !loading) {

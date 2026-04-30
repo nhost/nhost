@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -31,7 +30,6 @@ export type MetricsAlertingFormValues = Yup.InferType<
 export default function MetricsSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const {
     project,
@@ -141,7 +139,7 @@ export default function MetricsSettings() {
             description="Enable or disable Alerting."
             slotProps={{
               submitButton: {
-                disabled: !alertingForm.formState.isDirty || maintenanceActive,
+                disabled: !alertingForm.formState.isDirty,
                 loading: alertingForm.formState.isSubmitting,
               },
             }}

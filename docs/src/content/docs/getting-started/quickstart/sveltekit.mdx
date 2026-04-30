@@ -3,7 +3,7 @@ title: Get up and running with Nhost and SvelteKit
 description: Get up and running with Nhost and SvelteKit
 keywords: ["SvelteKit", "Svelte", "quickstart", "Nhost SDK", "GraphQL", "Vite"]
 sidebar:
-  label: SvelteKit
+  label: Svelte
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
@@ -80,81 +80,81 @@ Navigate to the application and install `@nhost/nhost-js`.
 
     <TabItem label="./src/lib/nhost.js">
 ```js
-    import { NhostClient } from "@nhost/nhost-js";
+import { createClient } from "@nhost/nhost-js";
 
-    // Replace <subdomain> and <region> with your project's values
-    export const nhost = new NhostClient({
-      subdomain: "<subdomain>",
-      region: "<region>",
-    })
-    ```
+// Replace <subdomain> and <region> with your project's values
+export const nhost = createClient({
+  subdomain: "<subdomain>",
+  region: "<region>",
+})
+```
 </TabItem>
 
     <TabItem label="./src/App.svelte">
 ```svelte
-    <script>
-      import { onMount } from 'svelte'
-      import { nhost } from './lib/nhost'
+<script>
+  import { onMount } from 'svelte'
+  import { nhost } from './lib/nhost'
 
-      let movies = []
-      let loading = true
-      let error = null
+  let movies = []
+  let loading = true
+  let error = null
 
-      onMount(async () => {
-        try {
-          const resp = await nhost.graphql.request({
-            query: `query GetMovies {
-              movies {
-                title
-                director
-                release_year
-                genre
-                rating
-              }
-            }`,
-          })
-
-          movies = resp.body.data.movies || []
-        } catch (err) {
-          error = 'Failed to fetch movies'
-        } finally {
-          loading = false
-        }
+  onMount(async () => {
+    try {
+      const resp = await nhost.graphql.request({
+        query: `query GetMovies {
+          movies {
+            title
+            director
+            release_year
+            genre
+            rating
+          }
+        }`,
       })
-    </script>
 
-    {#if loading}
-      <div>Loading...</div>
-    {:else if error}
-      <div>Error: {error}</div>
-    {:else}
-      <div>
-        <h1>Movies</h1>
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Director</th>
-              <th>Release Year</th>
-              <th>Genre</th>
-              <th>Rating</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each movies as movie, index (index)}
-              <tr>
-                <td>{movie.title}</td>
-                <td>{movie.director}</td>
-                <td>{movie.release_year}</td>
-                <td>{movie.genre}</td>
-                <td>{movie.rating}</td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {/if}
-    ```
+      movies = resp.body.data.movies || []
+    } catch (err) {
+      error = 'Failed to fetch movies'
+    } finally {
+      loading = false
+    }
+  })
+</script>
+
+{#if loading}
+  <div>Loading...</div>
+{:else if error}
+  <div>Error: {error}</div>
+{:else}
+  <div>
+    <h1>Movies</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Director</th>
+          <th>Release Year</th>
+          <th>Genre</th>
+          <th>Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each movies as movie, index (index)}
+          <tr>
+            <td>{movie.title}</td>
+            <td>{movie.director}</td>
+            <td>{movie.release_year}</td>
+            <td>{movie.genre}</td>
+            <td>{movie.rating}</td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
+{/if}
+```
 </TabItem>
 
     
@@ -165,6 +165,10 @@ Navigate to the application and install `@nhost/nhost-js`.
   ### The end
 
 Run your project with `npm run dev` and navigate to `http://localhost:5173` in your browser.
+
+## Related resources
+
+- [Full source code](https://github.com/nhost/nhost/tree/main/examples/quickstarts/svelte) on GitHub — a complete example configured for a local Nhost project
 
 
 

@@ -4,9 +4,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { cn } from '@/lib/utils';
 import GroupNodeRenderer from './GroupNodeRenderer';
 import TableComboBox from './TableComboBox';
-import useCustomCheckEditor, {
-  CustomCheckEditorContext,
-} from './useCustomCheckEditor';
+import { CustomCheckEditorContext } from './useCustomCheckEditor';
 
 interface ExistsNodeRendererProps {
   name: string;
@@ -19,21 +17,21 @@ export default function ExistsNodeRenderer({
   onRemove,
   depth = 0,
 }: ExistsNodeRendererProps) {
-  const { disabled: editorDisabled } = useCustomCheckEditor();
-  const { setValue } = useFormContext();
+  const { setValue, getFieldState, formState } = useFormContext();
 
   const schema: string = useWatch({ name: `${name}.schema` }) ?? '';
   const table: string = useWatch({ name: `${name}.table` }) ?? '';
 
-  const hasTable = Boolean(schema && table);
+  const { error: whereError } = getFieldState(`${name}.where`, formState);
+  const { error: tableError } = getFieldState(`${name}.table`, formState);
+  const { error: schemaError } = getFieldState(`${name}.schema`, formState);
 
   const contextValue = useMemo(
     () => ({
-      disabled: editorDisabled || !hasTable,
       schema,
       table,
     }),
-    [editorDisabled, hasTable, schema, table],
+    [schema, table],
   );
 
   function handleTableChange(value: { schema: string; table: string }) {
@@ -57,9 +55,8 @@ export default function ExistsNodeRenderer({
         <button
           type="button"
           onClick={onRemove}
-          disabled={editorDisabled}
           aria-label="Delete exists"
-          className="absolute top-2 right-2 rounded p-0.5 opacity-50 hover:opacity-100 disabled:pointer-events-none disabled:opacity-30"
+          className="absolute top-2 right-2 rounded p-0.5 opacity-50 hover:opacity-100"
         >
           <X className="h-4 w-4" />
         </button>
@@ -70,14 +67,23 @@ export default function ExistsNodeRenderer({
         <TableComboBox
           schema={schema}
           table={table}
-          disabled={editorDisabled}
           onChange={handleTableChange}
         />
       </div>
 
+      {schemaError?.message || tableError?.message ? (
+        <p className="mb-2 text-destructive text-sm">
+          {schemaError?.message ?? tableError?.message}
+        </p>
+      ) : null}
+
       <CustomCheckEditorContext.Provider value={contextValue}>
         <GroupNodeRenderer name={`${name}.where`} depth={depth + 1} />
       </CustomCheckEditorContext.Provider>
+
+      {whereError?.message ? (
+        <p className="mt-2 text-destructive text-sm">{whereError.message}</p>
+      ) : null}
     </div>
   );
 }

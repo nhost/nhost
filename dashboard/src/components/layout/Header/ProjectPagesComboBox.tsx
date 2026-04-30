@@ -2,6 +2,7 @@ import {
   Check,
   ChevronsUpDown,
   CloudIcon,
+  Code,
   CogIcon,
   DatabaseIcon,
   FileTextIcon,
@@ -109,6 +110,13 @@ export default function ProjectPagesComboBox() {
         disabled: false,
       },
       {
+        label: 'Functions',
+        value: 'functions',
+        icon: <Code className="h-4 w-4" />,
+        slug: 'functions',
+        disabled: false,
+      },
+      {
         label: 'Run',
         value: 'run',
         icon: <ServicesIcon className="h-4 w-4" />,
@@ -141,7 +149,7 @@ export default function ProjectPagesComboBox() {
         value: 'logs',
         icon: <FileTextIcon className="h-4 w-4" />,
         slug: 'logs',
-        disabled: !isPlatform,
+        disabled: false,
       },
       {
         label: 'Metrics',

@@ -2,6 +2,7 @@ import type {
   ConditionNode,
   ExistsNode,
   GroupNode,
+  InvalidNode,
   RelationshipNode,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils/types';
 
@@ -103,9 +104,36 @@ describe('filterValidationSchema', () => {
       ).resolves.toBeDefined();
     });
 
-    it('rejects non-string array value', async () => {
+    it('accepts numeric scalar value', async () => {
+      const filter = group('_implicit', [
+        condition({ value: 211 as unknown as string }),
+      ]);
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).resolves.toBeDefined();
+    });
+
+    it('accepts boolean scalar value', async () => {
+      const filter = group('_implicit', [
+        condition({ value: true as unknown as string }),
+      ]);
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).resolves.toBeDefined();
+    });
+
+    it('accepts array of numbers as value', async () => {
       const filter = group('_implicit', [
         condition({ value: [1, 2] as unknown as string }),
+      ]);
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).resolves.toBeDefined();
+    });
+
+    it('rejects array containing objects', async () => {
+      const filter = group('_implicit', [
+        condition({ value: [{ a: 1 }] as unknown as string }),
       ]);
       await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
         'Please enter a valid value',
@@ -200,14 +228,14 @@ describe('filterValidationSchema', () => {
         id: 'e1',
         schema: 'public',
         table: 'users',
-        where: group('_implicit', []),
+        where: group('_implicit', [condition({ id: 'c1' })]),
       };
       const exists2: ExistsNode = {
         type: 'exists',
         id: 'e2',
         schema: 'public',
         table: 'files',
-        where: group('_implicit', []),
+        where: group('_implicit', [condition({ id: 'c2' })]),
       };
       const filter = group('_implicit', [exists1, exists2]);
       await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
@@ -296,7 +324,123 @@ describe('filterValidationSchema', () => {
         /name.*appears more than once/,
       );
     });
+  });
 
+  describe('non-empty group validation', () => {
+    it('rejects empty root filter', async () => {
+      const filter = group('_implicit', []);
+      await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
+        /at least one rule/,
+      );
+    });
+
+    it('rejects root containing only an empty nested group', async () => {
+      const filter = group('_implicit', [group('_and', [], 'g2')]);
+      await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
+        /at least one rule/,
+      );
+    });
+
+    it('rejects exists with empty where', async () => {
+      const exists: ExistsNode = {
+        type: 'exists',
+        id: 'e1',
+        schema: 'public',
+        table: 'users',
+        where: group('_implicit', []),
+      };
+      const filter = group('_implicit', [exists]);
+      await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
+        /at least one condition inside the exists block/,
+      );
+    });
+
+    it('rejects exists where that only contains an empty nested group', async () => {
+      const exists: ExistsNode = {
+        type: 'exists',
+        id: 'e1',
+        schema: 'public',
+        table: 'users',
+        where: group('_implicit', [group('_and', [], 'g2')]),
+      };
+      const filter = group('_implicit', [exists]);
+      await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
+        /at least one condition inside the exists block/,
+      );
+    });
+
+    it('rejects exists with missing table', async () => {
+      const exists: ExistsNode = {
+        type: 'exists',
+        id: 'e1',
+        schema: 'public',
+        table: '',
+        where: group('_implicit', [condition()]),
+      };
+      const filter = group('_implicit', [exists]);
+      await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
+        /Please select a table/,
+      );
+    });
+
+    it('rejects relationship with empty child', async () => {
+      const rel: RelationshipNode = {
+        type: 'relationship',
+        id: 'r1',
+        relationship: 'author',
+        child: group('_implicit', []),
+      };
+      const filter = group('_implicit', [rel]);
+      await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
+        /at least one condition inside the relationship block/,
+      );
+    });
+
+    it('rejects relationship child that only contains an empty nested group', async () => {
+      const rel: RelationshipNode = {
+        type: 'relationship',
+        id: 'r1',
+        relationship: 'author',
+        child: group('_implicit', [group('_and', [], 'g2')]),
+      };
+      const filter = group('_implicit', [rel]);
+      await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
+        /at least one condition inside the relationship block/,
+      );
+    });
+  });
+
+  describe('invalid node validation', () => {
+    it('rejects invalid node with reason "primitive"', async () => {
+      const invalid: InvalidNode = {
+        type: 'invalid',
+        id: 'i1',
+        reason: 'primitive',
+        key: 'user_id',
+        raw: 5,
+      };
+      const filter = group('_implicit', [invalid]);
+      await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
+        /"user_id" has a primitive value/,
+      );
+    });
+
+    it('rejects invalid node with reason "operator"', async () => {
+      const invalid: InvalidNode = {
+        type: 'invalid',
+        id: 'i1',
+        reason: 'operator',
+        key: '_ad',
+        raw: [],
+      };
+      const filter = group('_implicit', [invalid]);
+      await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
+        /"_ad" is not a valid operator/,
+      );
+    });
+  });
+
+  describe('serialization collision detection (continued)', () => {
     it('detects collision in _not group with multiple children', async () => {
       const filter = group('_not', [
         condition({ id: 'c1', column: 'status', operator: '_eq', value: 'a' }),

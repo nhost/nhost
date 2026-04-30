@@ -20,13 +20,11 @@ import { getAvailableOperators } from './getAvailableOperators';
 
 interface OperatorComboBoxProps {
   name: string;
-  disabled?: boolean;
   selectedColumnType?: string;
 }
 
 export default function OperatorComboBox({
   name,
-  disabled,
   selectedColumnType,
 }: OperatorComboBoxProps) {
   const [open, setOpen] = useState(false);
@@ -53,7 +51,6 @@ export default function OperatorComboBox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          disabled={disabled}
           variant="outline"
           role="combobox"
           aria-expanded={open}

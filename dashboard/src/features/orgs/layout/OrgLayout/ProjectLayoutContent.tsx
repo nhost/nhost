@@ -16,7 +16,6 @@ import ProjectViewWithState from './ProjectViewWithState';
 const platFormOnlyPages = [
   '/orgs/[orgSlug]/projects/[appSubdomain]/deployments',
   '/orgs/[orgSlug]/projects/[appSubdomain]/backups',
-  '/orgs/[orgSlug]/projects/[appSubdomain]/logs',
   '/orgs/[orgSlug]/projects/[appSubdomain]/metrics',
   '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/[deploymentId]',
 ];

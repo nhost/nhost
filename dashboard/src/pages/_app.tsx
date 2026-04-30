@@ -1,5 +1,4 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
-import { UIProvider } from '@/components/common/UIProvider';
 import { TreeNavStateProvider } from '@/components/layout/MainNav/TreeNavStateContext';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
@@ -78,29 +77,27 @@ function MyApp({
             connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
           >
             <AuthProvider>
-              <UIProvider>
-                <Toaster position="bottom-center" />
-                <ThemeProvider
-                  colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
-                >
-                  <RetryableErrorBoundary>
-                    <RecoilRoot>
-                      <TooltipProvider>
-                        <DialogProvider>
-                          <ProgressBar
-                            height="2px"
-                            color="#0052cd"
-                            options={{ showSpinner: false }}
-                          />
-                          <TreeNavStateProvider>
-                            {getLayout(<Component {...pageProps} />)}
-                          </TreeNavStateProvider>
-                        </DialogProvider>
-                      </TooltipProvider>
-                    </RecoilRoot>
-                  </RetryableErrorBoundary>
-                </ThemeProvider>
-              </UIProvider>
+              <Toaster position="bottom-center" />
+              <ThemeProvider
+                colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
+              >
+                <RetryableErrorBoundary>
+                  <RecoilRoot>
+                    <TooltipProvider>
+                      <DialogProvider>
+                        <ProgressBar
+                          height="2px"
+                          color="#0052cd"
+                          options={{ showSpinner: false }}
+                        />
+                        <TreeNavStateProvider>
+                          {getLayout(<Component {...pageProps} />)}
+                        </TreeNavStateProvider>
+                      </DialogProvider>
+                    </TooltipProvider>
+                  </RecoilRoot>
+                </RetryableErrorBoundary>
+              </ThemeProvider>
             </AuthProvider>
           </NhostApolloProvider>
         </NhostProvider>

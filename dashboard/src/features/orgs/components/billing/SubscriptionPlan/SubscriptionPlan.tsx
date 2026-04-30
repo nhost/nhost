@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Button } from '@/components/ui/v3/button';
@@ -46,7 +45,6 @@ const changeOrgPlanForm = z.object({
 });
 
 export default function SubscriptionPlan() {
-  const { maintenanceActive } = useUI();
   const { org, refetch: refetchOrg } = useCurrentOrg();
   const [open, setOpen] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState('');
@@ -248,7 +246,7 @@ export default function SubscriptionPlan() {
                 className="h-fit truncate"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
-                disabled={maintenanceActive || loading || isFreeOrg}
+                disabled={loading || isFreeOrg}
               >
                 {loading ? (
                   <ActivityIndicator />
@@ -257,7 +255,7 @@ export default function SubscriptionPlan() {
                 )}
               </Button>
               <Button
-                disabled={maintenanceActive || loading}
+                disabled={loading}
                 className="h-fit"
                 onClick={() => setOpen(true)}
               >

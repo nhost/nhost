@@ -9,6 +9,8 @@ const util = require('node:util');
 
 const PORT = 3000;
 const BUILD_DIR = '/tmp/nhost-build';
+const DIST_DIR = path.join(BUILD_DIR, 'dist');
+const WRAPPER_DIR = path.join(BUILD_DIR, 'wrappers');
 
 function logJSON(obj) {
   process.stdout.write(`${JSON.stringify(obj)}\n`);
@@ -21,11 +23,30 @@ function serverLog(level, route, ...args) {
 // Map of route -> Express app (loaded from esbuild bundles)
 const functionHandlers = new Map();
 
-// Map of file path -> esbuild context (for disposing on delete)
-const esbuildContexts = new Map();
+// Map of file path -> { wrapperPath, outfile, route, safeName }
+const functionEntries = new Map();
 
 // Track discovered functions for metadata endpoint
 const functionMeta = new Map();
+
+// Single esbuild context covering every function's wrapper as an entry point.
+// Per-function contexts retained the parsed dep graph (express, aws-sdk, ...)
+// once per function, multiplying memory by N. A single context shares one
+// module graph across all entry points while still emitting an independent
+// bundle per function — matching the per-Lambda artifact layout in prod.
+let buildContext = null;
+
+// setInterval does not await its async callback, so two polls can overlap if a
+// rebuild runs longer than the polling interval — exactly the case for big
+// projects. Serialize all rebuilds behind a single in-flight promise so dispose
+// and create are strictly sequential and no context is leaked.
+let rebuildInFlight = Promise.resolve();
+function scheduleRebuild(functionsPath) {
+  rebuildInFlight = rebuildInFlight
+    .catch(() => {})
+    .then(() => rebuildContext(functionsPath));
+  return rebuildInFlight;
+}
 
 const wrapperTemplate = fs.readFileSync(
   path.join(__dirname, 'local-wrapper.js'),
@@ -64,63 +85,16 @@ function generateWrapper(relativeFunctionPath) {
   return wrapperTemplate.replace('%FUNCTION_PATH%', relativeFunctionPath);
 }
 
-async function buildFunction(functionsPath, file) {
+function prepareFunctionEntry(functionsPath, file) {
   const safeName = fileToSafeName(file);
-
-  // Write wrapper under BUILD_DIR to avoid polluting the user's functions directory.
-  // Use the absolute path to the function so require() resolution still works.
-  const wrapperDir = path.join(BUILD_DIR, 'wrappers');
-  fs.mkdirSync(wrapperDir, { recursive: true });
-  const wrapperPath = path.join(wrapperDir, `.wrapper-${safeName}.js`);
+  const wrapperPath = path.join(WRAPPER_DIR, `.wrapper-${safeName}.js`);
   const absoluteFuncPath = path.join(functionsPath, file);
-  const wrapperContent = generateWrapper(absoluteFuncPath);
-  fs.writeFileSync(wrapperPath, wrapperContent);
+  fs.writeFileSync(wrapperPath, generateWrapper(absoluteFuncPath));
 
-  const distDir = path.join(BUILD_DIR, 'dist', safeName);
-  fs.mkdirSync(distDir, { recursive: true });
-
-  const outfile = path.join(distDir, 'bundle.js');
+  const outfile = path.join(DIST_DIR, `${safeName}.js`);
   const route = fileToRoute(file);
 
-  // Resolve global node_modules (NODE_PATH) so esbuild can find express, etc.
-  const nodePaths = process.env.NODE_PATH
-    ? process.env.NODE_PATH.split(path.delimiter)
-    : [];
-
-  const ctx = await esbuild.context({
-    entryPoints: [wrapperPath],
-    bundle: true,
-    minify: true,
-    platform: 'node',
-    target: getNodeTarget(),
-    sourcemap: true,
-    outfile,
-    nodePaths,
-    logLevel: 'warning',
-    plugins: [
-      {
-        name: 'reload-notifier',
-        setup(build) {
-          build.onEnd((result) => {
-            if (result.errors.length > 0) return;
-            if (!fs.existsSync(path.join(functionsPath, file))) return;
-            loadBundle(route, outfile, safeName);
-            serverLog('INFO', route, `Rebuilt from ${file}`);
-          });
-        },
-      },
-    ],
-  });
-
-  // Initial build
-  await ctx.rebuild();
-
-  // Start watching for changes
-  await ctx.watch();
-
-  esbuildContexts.set(file, { ctx, wrapperPath });
-
-  // Store metadata
+  functionEntries.set(file, { wrapperPath, outfile, route, safeName });
   functionMeta.set(file, {
     path: path.join('functions', file),
     route,
@@ -130,11 +104,26 @@ async function buildFunction(functionsPath, file) {
     functionName: '',
     createdWithCommitSha: 'localdev',
   });
-
-  serverLog('INFO', route, `Loaded from ${file}`);
 }
 
-function loadBundle(route, bundlePath, _safeName) {
+function disposeFunctionEntry(file) {
+  const entry = functionEntries.get(file);
+  if (!entry) return;
+
+  try {
+    fs.unlinkSync(entry.wrapperPath);
+  } catch {}
+  try {
+    fs.unlinkSync(entry.outfile);
+    fs.unlinkSync(`${entry.outfile}.map`);
+  } catch {}
+
+  functionEntries.delete(file);
+  functionMeta.delete(file);
+  functionHandlers.delete(entry.route);
+}
+
+function loadBundle(route, bundlePath) {
   // Clear require cache so re-requiring gets fresh code
   const resolved = require.resolve(bundlePath);
   delete require.cache[resolved];
@@ -150,27 +139,64 @@ function loadBundle(route, bundlePath, _safeName) {
   }
 }
 
-async function removeFunction(_functionsPath, file) {
-  const entry = esbuildContexts.get(file);
-  if (entry) {
-    await entry.ctx.dispose();
-    // Clean up wrapper file
-    try {
-      fs.unlinkSync(entry.wrapperPath);
-    } catch {}
-    esbuildContexts.delete(file);
+async function rebuildContext(functionsPath) {
+  if (buildContext) {
+    await buildContext.dispose();
+    buildContext = null;
   }
 
-  const route = fileToRoute(file);
-  functionHandlers.delete(route);
-  functionMeta.delete(file);
+  if (functionEntries.size === 0) return;
 
-  // Clean up build artifacts
-  const safeName = fileToSafeName(file);
-  const distDir = path.join(BUILD_DIR, 'dist', safeName);
-  fs.rmSync(distDir, { recursive: true, force: true });
+  const nodePaths = process.env.NODE_PATH
+    ? process.env.NODE_PATH.split(path.delimiter)
+    : [];
 
-  serverLog('INFO', route, `Removed (${file} deleted)`);
+  const entryPoints = {};
+  for (const [, entry] of functionEntries) {
+    entryPoints[entry.safeName] = entry.wrapperPath;
+  }
+
+  const ctx = await esbuild.context({
+    entryPoints,
+    bundle: true,
+    minify: true,
+    platform: 'node',
+    target: getNodeTarget(),
+    sourcemap: true,
+    outdir: DIST_DIR,
+    nodePaths,
+    logLevel: 'warning',
+    plugins: [
+      {
+        name: 'reload-notifier',
+        setup(build) {
+          build.onEnd((result) => {
+            for (const err of result.errors) {
+              serverLog(
+                'ERROR',
+                err.location?.file || '',
+                `Build error: ${err.text}`,
+              );
+            }
+            // esbuild writes outputs atomically: on any error, no bundles are
+            // (re)written, so we keep the previously loaded handlers in place.
+            if (result.errors.length > 0) return;
+
+            for (const [file, entry] of functionEntries) {
+              if (!fs.existsSync(path.join(functionsPath, file))) continue;
+              if (!fs.existsSync(entry.outfile)) continue;
+              loadBundle(entry.route, entry.outfile);
+              serverLog('INFO', entry.route, `Rebuilt from ${file}`);
+            }
+          });
+        },
+      },
+    ],
+  });
+
+  await ctx.rebuild();
+  await ctx.watch();
+  buildContext = ctx;
 }
 
 function findRoute(reqPath) {
@@ -220,18 +246,18 @@ const main = async () => {
     res.json({ functions: Array.from(functionMeta.values()) });
   });
 
-  // Discover and build all functions
-  const files = discoverFunctions(functionsPath);
+  fs.mkdirSync(WRAPPER_DIR, { recursive: true });
+  fs.mkdirSync(DIST_DIR, { recursive: true });
 
-  // Ensure build directory exists
-  fs.mkdirSync(path.join(BUILD_DIR, 'dist'), { recursive: true });
+  // Discover and prepare all function entries
+  for (const file of discoverFunctions(functionsPath)) {
+    prepareFunctionEntry(functionsPath, file);
+  }
 
-  for (const file of files) {
-    try {
-      await buildFunction(functionsPath, file);
-    } catch (err) {
-      serverLog('ERROR', fileToRoute(file), `Failed to build ${file}:`, err);
-    }
+  try {
+    await scheduleRebuild(functionsPath);
+  } catch (err) {
+    serverLog('ERROR', '', 'Failed initial build:', err);
   }
 
   // Catch-all route — looks up handler from map
@@ -244,55 +270,51 @@ const main = async () => {
     }
   });
 
-  // Rebuild all functions (used after dependency changes)
+  // Tear down all entries and rebuild from scratch (used after dependency changes)
   async function rebuildAll() {
-    // Dispose all existing esbuild contexts
-    for (const [_file, entry] of esbuildContexts) {
-      await entry.ctx.dispose();
-      try {
-        fs.unlinkSync(entry.wrapperPath);
-      } catch {}
+    for (const file of [...functionEntries.keys()]) {
+      disposeFunctionEntry(file);
     }
-    esbuildContexts.clear();
-    functionHandlers.clear();
-    functionMeta.clear();
-
-    const files = discoverFunctions(functionsPath);
-    for (const file of files) {
-      try {
-        await buildFunction(functionsPath, file);
-      } catch (err) {
-        serverLog('ERROR', fileToRoute(file), `Failed to build ${file}:`, err);
-      }
+    for (const file of discoverFunctions(functionsPath)) {
+      prepareFunctionEntry(functionsPath, file);
     }
+    await scheduleRebuild(functionsPath);
   }
 
   // Poll for new/deleted function files. Filesystem events (chokidar/inotify)
   // are unreliable over Docker volume mounts — add/unlink all arrive as
-  // "change", so we periodically re-discover and diff instead.
+  // "change", so we periodically re-discover and diff instead. When the entry
+  // set changes, the esbuild context is recreated with the new entry points;
+  // edits inside existing functions are picked up by ctx.watch() without a
+  // recreate.
   setInterval(async () => {
     const currentFiles = new Set(discoverFunctions(functionsPath));
-    const knownFiles = new Set(esbuildContexts.keys());
+    const knownFiles = new Set(functionEntries.keys());
+
+    let changed = false;
 
     for (const file of currentFiles) {
       if (!knownFiles.has(file)) {
         serverLog('INFO', fileToRoute(file), `New function detected: ${file}`);
-        try {
-          await buildFunction(functionsPath, file);
-        } catch (err) {
-          serverLog(
-            'ERROR',
-            fileToRoute(file),
-            `Failed to build ${file}:`,
-            err,
-          );
-        }
+        prepareFunctionEntry(functionsPath, file);
+        changed = true;
       }
     }
 
     for (const file of knownFiles) {
       if (!currentFiles.has(file)) {
-        await removeFunction(functionsPath, file);
+        const route = fileToRoute(file);
+        disposeFunctionEntry(file);
+        serverLog('INFO', route, `Removed (${file} deleted)`);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      try {
+        await scheduleRebuild(functionsPath);
+      } catch (err) {
+        serverLog('ERROR', '', 'Failed to rebuild context:', err);
       }
     }
   }, 1000);

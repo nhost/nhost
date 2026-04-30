@@ -211,7 +211,7 @@ export default forwardRef(
           title={
             buttonPrefix
               ? `${buttonPrefix}.${selectedColumn?.label}`
-              : selectedColumn?.label || 'Select a column'
+              : selectedColumn?.label || externalValue || 'Select a column'
           }
         >
           <Button
@@ -231,7 +231,7 @@ export default forwardRef(
               </div>
             ) : (
               <span className="truncate">
-                {selectedColumn?.label || 'Select a column'}
+                {selectedColumn?.label || externalValue || 'Select a column'}
               </span>
             )}
             <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />

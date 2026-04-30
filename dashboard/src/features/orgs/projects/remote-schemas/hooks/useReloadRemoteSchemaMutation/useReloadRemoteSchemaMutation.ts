@@ -1,5 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
@@ -27,20 +28,38 @@ export default function useReloadRemoteSchemaMutation({
   mutationOptions,
 }: UseReloadRemoteSchemaMutationOptions = {}) {
   const { project } = useProject();
+  const queryClient = useQueryClient();
 
-  const mutation = useMutation((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+  const mutation = useMutation(
+    (variables) => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
 
-    return reloadRemoteSchema({
-      ...variables,
-      appUrl,
-      adminSecret: project!.config!.hasura.adminSecret,
-    });
-  }, mutationOptions);
+      return reloadRemoteSchema({
+        ...variables,
+        appUrl,
+        adminSecret: project!.config!.hasura.adminSecret,
+      });
+    },
+    {
+      ...mutationOptions,
+      onSuccess: (...args) => {
+        const [, variables] = args;
+
+        queryClient.invalidateQueries({
+          queryKey: ['introspect-remote-schema', variables.args.name],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+        });
+
+        mutationOptions?.onSuccess?.(...args);
+      },
+    },
+  );
 
   return mutation;
 }

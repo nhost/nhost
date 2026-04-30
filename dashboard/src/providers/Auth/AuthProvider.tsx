@@ -1,4 +1,4 @@
-import type { Session } from '@nhost/nhost-js/auth';
+import type { StoredSession } from '@nhost/nhost-js/session';
 import { useRouter } from 'next/router';
 import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -38,7 +38,7 @@ function AuthProvider({ children }: PropsWithChildren) {
     state,
     provider_state: providerState,
   } = query;
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
@@ -49,7 +49,7 @@ function AuthProvider({ children }: PropsWithChildren) {
     function storageEventListener(event: StorageEvent) {
       if (event.key === 'nhostSession') {
         const newSession = event.newValue
-          ? (JSON.parse(event.newValue) as Session)
+          ? (JSON.parse(event.newValue) as StoredSession)
           : null;
         setSession(newSession);
       }
@@ -84,11 +84,11 @@ function AuthProvider({ children }: PropsWithChildren) {
         }
 
         try {
-          const sessionResponse = await nhost.auth.tokenExchange({
+          await nhost.auth.tokenExchange({
             code,
             codeVerifier,
           });
-          const exchangedSession = sessionResponse.body.session ?? null;
+          const exchangedSession = nhost.getUserSession();
           setSession(exchangedSession);
           removeQueryParamsFromUrl(...removableParams);
 
@@ -147,7 +147,7 @@ function AuthProvider({ children }: PropsWithChildren) {
         removeQueryParamsFromUrl(...removableParams);
 
         await push(
-          `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/git?github-modal`,
+          `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/deployments?github-modal`,
         );
       }
 
@@ -163,7 +163,7 @@ function AuthProvider({ children }: PropsWithChildren) {
            * If the state isn't handled by Hasura auth, it returns `invalid-state`.
            * However, we check the provider_state search param to see if it has this format:
            * `install-github-app:<org-slug>:<project-subdomain>`.
-           * If it has this format, that means that we connected to GitHub in `/settings/git`,
+           * If it has this format, that means that we connected to GitHub in `/settings/deployments`,
            * thus we need to show the connect GitHub modal again.
            * Otherwise, we fall through to default error handling.
            */
@@ -178,7 +178,7 @@ function AuthProvider({ children }: PropsWithChildren) {
               const [, orgSlug, projectSubdomain] = providerState.split(':');
               removeQueryParamsFromUrl(...removableParams);
               await push(
-                `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/git?github-modal`,
+                `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/deployments?github-modal`,
               );
               break;
             }

@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -13,7 +12,6 @@ interface AutomaticDeploysFormValues {
 }
 
 export default function AutomaticDeploysSettings() {
-  const { maintenanceActive } = useUI();
   const { project, refetch } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
 
@@ -63,10 +61,10 @@ export default function AutomaticDeploysSettings() {
         <SettingsContainer
           title="Automatic Deploys"
           description="When enabled, commits pushed to the deployment branch will automatically trigger a deployment. When disabled, deployments must be triggered manually via the CLI or GitHub Actions."
-          docsLink="https://docs.nhost.io/platform/cloud/git"
+          docsLink="https://docs.nhost.io/platform/cloud/deployments"
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}

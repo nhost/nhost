@@ -144,8 +144,8 @@ Build a storage adapter that enables Nhost to persist sessions using React Nativ
 ```tsx title="app/lib/nhost/AsyncStorage.tsx" showLineNumbers
 import {
   DEFAULT_SESSION_KEY,
-  type Session,
   type SessionStorageBackend,
+  type StoredSession,
 } from "@nhost/nhost-js/session";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -158,7 +158,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
  */
 export default class NhostAsyncStorage implements SessionStorageBackend {
   private key: string;
-  private cache: Session | null = null;
+  private cache: StoredSession | null = null;
 
   constructor(key: string = DEFAULT_SESSION_KEY) {
     this.key = key;
@@ -177,7 +177,7 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
         .then((value) => {
           if (value) {
             try {
-              this.cache = JSON.parse(value) as Session;
+              this.cache = JSON.parse(value) as StoredSession;
             } catch (error) {
               console.warn("Error parsing session from AsyncStorage:", error);
               this.cache = null;
@@ -195,7 +195,7 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
   /**
    * Gets the session from the in-memory cache
    */
-  get(): Session | null {
+  get(): StoredSession | null {
     return this.cache;
   }
 
@@ -203,7 +203,7 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
    * Sets the session in the in-memory cache and persists to AsyncStorage
    * Ensures the data gets written by using an immediately invoked async function
    */
-  set(value: Session): void {
+  set(value: StoredSession): void {
     // Update cache immediately
     this.cache = value;
 
@@ -245,7 +245,7 @@ Build the core authentication provider that manages user sessions across your ap
 
 ```tsx title="app/lib/nhost/AuthProvider.tsx" showLineNumbers
 import { createClient, type NhostClient } from "@nhost/nhost-js";
-import type { Session } from "@nhost/nhost-js/session";
+import type { StoredSession } from "@nhost/nhost-js/session";
 import Constants from "expo-constants";
 import {
   createContext,
@@ -263,9 +263,9 @@ import NhostAsyncStorage from "./AsyncStorage";
  */
 interface AuthContextType {
   /** Current authenticated user object, null if not authenticated */
-  user: Session["user"] | null;
+  user: StoredSession["user"] | null;
   /** Current session object containing tokens and user data, null if no active session */
-  session: Session | null;
+  session: StoredSession | null;
   /** Boolean indicating if user is currently authenticated */
   isAuthenticated: boolean;
   /** Boolean indicating if authentication state is still loading */
@@ -291,8 +291,8 @@ interface AuthProviderProps {
  * - Async session initialization to work with React Native's AsyncStorage
  */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<Session["user"] | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<StoredSession["user"] | null>(null);
+  const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
