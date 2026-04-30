@@ -1,16 +1,10 @@
-import * as Apollo from '@apollo/client';
 import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -111,6 +105,7 @@ export type _GraphiteAssistantFileStores_Aggregate_Fields = {
   min?: Maybe<_GraphiteAssistantFileStores_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.assistant_file_stores" */
 export type _GraphiteAssistantFileStores_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
@@ -131,7 +126,7 @@ export type _GraphiteAssistantFileStores_Bool_Exp = {
 /** unique or primary key constraints on table "graphite.assistant_file_stores" */
 export enum _GraphiteAssistantFileStores_Constraint {
   /** unique or primary key constraint on columns "assistant_id", "file_store_id" */
-  AssistantFileStoresPkey = 'assistant_file_stores_pkey',
+  AssistantFileStoresPkey = 'assistant_file_stores_pkey'
 }
 
 /** input type for inserting data into table "graphite.assistant_file_stores" */
@@ -199,7 +194,7 @@ export enum _GraphiteAssistantFileStores_Select_Column {
   /** column name */
   FileStoreId = 'fileStoreID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "graphite.assistant_file_stores" */
@@ -235,7 +230,7 @@ export enum _GraphiteAssistantFileStores_Update_Column {
   /** column name */
   FileStoreId = 'fileStoreID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type _GraphiteAssistantFileStores_Updates = {
@@ -256,6 +251,7 @@ export type _GraphiteAssistants = {
   user_id?: Maybe<Scalars['uuid']>;
 };
 
+
 /** columns and relationships of "graphite.assistants" */
 export type _GraphiteAssistantsDataArgs = {
   path?: InputMaybe<Scalars['String']>;
@@ -275,6 +271,7 @@ export type _GraphiteAssistants_Aggregate_Fields = {
   max?: Maybe<_GraphiteAssistants_Max_Fields>;
   min?: Maybe<_GraphiteAssistants_Min_Fields>;
 };
+
 
 /** aggregate fields of "graphite.assistants" */
 export type _GraphiteAssistants_Aggregate_FieldsCountArgs = {
@@ -305,7 +302,7 @@ export enum _GraphiteAssistants_Constraint {
   /** unique or primary key constraint on columns "assistant_id" */
   AssistantsAssistantIdKey = 'assistants_assistant_id_key',
   /** unique or primary key constraint on columns "id" */
-  AssistantsPkey = 'assistants_pkey',
+  AssistantsPkey = 'assistants_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -402,7 +399,7 @@ export enum _GraphiteAssistants_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'user_id',
+  UserId = 'user_id'
 }
 
 /** input type for updating data in table "graphite.assistants" */
@@ -446,7 +443,7 @@ export enum _GraphiteAssistants_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'user_id',
+  UserId = 'user_id'
 }
 
 export type _GraphiteAssistants_Updates = {
@@ -490,6 +487,7 @@ export type _GraphiteFileStoreBuckets_Aggregate_Fields = {
   min?: Maybe<_GraphiteFileStoreBuckets_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.file_store_buckets" */
 export type _GraphiteFileStoreBuckets_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
@@ -510,7 +508,7 @@ export type _GraphiteFileStoreBuckets_Bool_Exp = {
 /** unique or primary key constraints on table "graphite.file_store_buckets" */
 export enum _GraphiteFileStoreBuckets_Constraint {
   /** unique or primary key constraint on columns "bucket_id", "file_store_id" */
-  FileStoreBucketsPkey = 'file_store_buckets_pkey',
+  FileStoreBucketsPkey = 'file_store_buckets_pkey'
 }
 
 /** input type for inserting data into table "graphite.file_store_buckets" */
@@ -578,7 +576,7 @@ export enum _GraphiteFileStoreBuckets_Select_Column {
   /** column name */
   FileStoreId = 'fileStoreID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "graphite.file_store_buckets" */
@@ -614,7 +612,7 @@ export enum _GraphiteFileStoreBuckets_Update_Column {
   /** column name */
   FileStoreId = 'fileStoreID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type _GraphiteFileStoreBuckets_Updates = {
@@ -651,6 +649,7 @@ export type _GraphiteFileStores_Aggregate_Fields = {
   min?: Maybe<_GraphiteFileStores_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.file_stores" */
 export type _GraphiteFileStores_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -676,7 +675,7 @@ export enum _GraphiteFileStores_Constraint {
   /** unique or primary key constraint on columns "id" */
   FileStoresPkey = 'file_stores_pkey',
   /** unique or primary key constraint on columns "vector_store_id" */
-  FileStoresVectorStoreIdKey = 'file_stores_vector_store_id_key',
+  FileStoresVectorStoreIdKey = 'file_stores_vector_store_id_key'
 }
 
 /** input type for inserting data into table "graphite.file_stores" */
@@ -761,7 +760,7 @@ export enum _GraphiteFileStores_Select_Column {
   /** column name */
   UserId = 'userID',
   /** column name */
-  VectorStoreId = 'vectorStoreID',
+  VectorStoreId = 'vectorStoreID'
 }
 
 /** input type for updating data in table "graphite.file_stores" */
@@ -809,7 +808,7 @@ export enum _GraphiteFileStores_Update_Column {
   /** column name */
   UserId = 'userID',
   /** column name */
-  VectorStoreId = 'vectorStoreID',
+  VectorStoreId = 'vectorStoreID'
 }
 
 export type _GraphiteFileStores_Updates = {
@@ -845,6 +844,7 @@ export type _GraphiteFiles_Aggregate_Fields = {
   min?: Maybe<_GraphiteFiles_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.files" */
 export type _GraphiteFiles_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
@@ -871,7 +871,7 @@ export enum _GraphiteFiles_Constraint {
   /** unique or primary key constraint on columns "id" */
   FilesPkey = 'files_pkey',
   /** unique or primary key constraint on columns "storage_file_id" */
-  FilesStorageFileIdKey = 'files_storage_file_id_key',
+  FilesStorageFileIdKey = 'files_storage_file_id_key'
 }
 
 /** input type for inserting data into table "graphite.files" */
@@ -950,7 +950,7 @@ export enum _GraphiteFiles_Select_Column {
   /** column name */
   StorageFileId = 'storageFileID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "graphite.files" */
@@ -994,7 +994,7 @@ export enum _GraphiteFiles_Update_Column {
   /** column name */
   StorageFileId = 'storageFileID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type _GraphiteFiles_Updates = {
@@ -1030,6 +1030,7 @@ export type _GraphiteSessions_Aggregate_Fields = {
   min?: Maybe<_GraphiteSessions_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.sessions" */
 export type _GraphiteSessions_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
@@ -1054,7 +1055,7 @@ export enum _GraphiteSessions_Constraint {
   /** unique or primary key constraint on columns "id" */
   SessionsPkey = 'sessions_pkey',
   /** unique or primary key constraint on columns "session_id" */
-  SessionsSessionIdKey = 'sessions_session_id_key',
+  SessionsSessionIdKey = 'sessions_session_id_key'
 }
 
 /** input type for inserting data into table "graphite.sessions" */
@@ -1133,7 +1134,7 @@ export enum _GraphiteSessions_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userID',
+  UserId = 'userID'
 }
 
 /** input type for updating data in table "graphite.sessions" */
@@ -1177,7 +1178,7 @@ export enum _GraphiteSessions_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userID',
+  UserId = 'userID'
 }
 
 export type _GraphiteSessions_Updates = {
@@ -1193,6 +1194,7 @@ export type AuthProviderRequests = {
   id: Scalars['uuid'];
   options?: Maybe<Scalars['jsonb']>;
 };
+
 
 /** Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProviderRequestsOptionsArgs = {
@@ -1213,6 +1215,7 @@ export type AuthProviderRequests_Aggregate_Fields = {
   max?: Maybe<AuthProviderRequests_Max_Fields>;
   min?: Maybe<AuthProviderRequests_Min_Fields>;
 };
+
 
 /** aggregate fields of "auth.provider_requests" */
 export type AuthProviderRequests_Aggregate_FieldsCountArgs = {
@@ -1237,7 +1240,7 @@ export type AuthProviderRequests_Bool_Exp = {
 /** unique or primary key constraints on table "auth.provider_requests" */
 export enum AuthProviderRequests_Constraint {
   /** unique or primary key constraint on columns "id" */
-  ProviderRequestsPkey = 'provider_requests_pkey',
+  ProviderRequestsPkey = 'provider_requests_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -1310,7 +1313,7 @@ export enum AuthProviderRequests_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Options = 'options',
+  Options = 'options'
 }
 
 /** input type for updating data in table "auth.provider_requests" */
@@ -1338,7 +1341,7 @@ export enum AuthProviderRequests_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Options = 'options',
+  Options = 'options'
 }
 
 export type AuthProviderRequests_Updates = {
@@ -1368,6 +1371,7 @@ export type AuthProviders = {
   userProviders_aggregate: AuthUserProviders_Aggregate;
 };
 
+
 /** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProvidersUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -1376,6 +1380,7 @@ export type AuthProvidersUserProvidersArgs = {
   order_by?: InputMaybe<Array<AuthUserProviders_Order_By>>;
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
+
 
 /** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProvidersUserProviders_AggregateArgs = {
@@ -1401,6 +1406,7 @@ export type AuthProviders_Aggregate_Fields = {
   min?: Maybe<AuthProviders_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.providers" */
 export type AuthProviders_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthProviders_Select_Column>>;
@@ -1420,7 +1426,7 @@ export type AuthProviders_Bool_Exp = {
 /** unique or primary key constraints on table "auth.providers" */
 export enum AuthProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
-  ProvidersPkey = 'providers_pkey',
+  ProvidersPkey = 'providers_pkey'
 }
 
 /** input type for inserting data into table "auth.providers" */
@@ -1478,7 +1484,7 @@ export type AuthProviders_Pk_Columns_Input = {
 /** select columns of table "auth.providers" */
 export enum AuthProviders_Select_Column {
   /** column name */
-  Id = 'id',
+  Id = 'id'
 }
 
 /** input type for updating data in table "auth.providers" */
@@ -1502,7 +1508,7 @@ export type AuthProviders_Stream_Cursor_Value_Input = {
 /** update columns of table "auth.providers" */
 export enum AuthProviders_Update_Column {
   /** column name */
-  Id = 'id',
+  Id = 'id'
 }
 
 export type AuthProviders_Updates = {
@@ -1523,6 +1529,7 @@ export type AuthRefreshTokenTypes = {
   value: Scalars['String'];
 };
 
+
 /** columns and relationships of "auth.refresh_token_types" */
 export type AuthRefreshTokenTypesRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -1531,6 +1538,7 @@ export type AuthRefreshTokenTypesRefreshTokensArgs = {
   order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
+
 
 /** columns and relationships of "auth.refresh_token_types" */
 export type AuthRefreshTokenTypesRefreshTokens_AggregateArgs = {
@@ -1556,6 +1564,7 @@ export type AuthRefreshTokenTypes_Aggregate_Fields = {
   min?: Maybe<AuthRefreshTokenTypes_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.refresh_token_types" */
 export type AuthRefreshTokenTypes_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
@@ -1576,14 +1585,14 @@ export type AuthRefreshTokenTypes_Bool_Exp = {
 /** unique or primary key constraints on table "auth.refresh_token_types" */
 export enum AuthRefreshTokenTypes_Constraint {
   /** unique or primary key constraint on columns "value" */
-  RefreshTokenTypesPkey = 'refresh_token_types_pkey',
+  RefreshTokenTypesPkey = 'refresh_token_types_pkey'
 }
 
 export enum AuthRefreshTokenTypes_Enum {
   /** Personal access token */
   Pat = 'pat',
   /** Regular refresh token */
-  Regular = 'regular',
+  Regular = 'regular'
 }
 
 /** Boolean expression to compare columns of type "authRefreshTokenTypes_enum". All fields are combined with logical 'AND'. */
@@ -1649,7 +1658,7 @@ export enum AuthRefreshTokenTypes_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value',
+  Value = 'value'
 }
 
 /** input type for updating data in table "auth.refresh_token_types" */
@@ -1677,7 +1686,7 @@ export enum AuthRefreshTokenTypes_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value',
+  Value = 'value'
 }
 
 export type AuthRefreshTokenTypes_Updates = {
@@ -1700,6 +1709,7 @@ export type AuthRefreshTokens = {
   user: Users;
   userId: Scalars['uuid'];
 };
+
 
 /** User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRefreshTokensMetadataArgs = {
@@ -1731,6 +1741,7 @@ export type AuthRefreshTokens_Aggregate_Fields = {
   max?: Maybe<AuthRefreshTokens_Max_Fields>;
   min?: Maybe<AuthRefreshTokens_Min_Fields>;
 };
+
 
 /** aggregate fields of "auth.refresh_tokens" */
 export type AuthRefreshTokens_Aggregate_FieldsCountArgs = {
@@ -1775,7 +1786,7 @@ export type AuthRefreshTokens_Bool_Exp = {
 /** unique or primary key constraints on table "auth.refresh_tokens" */
 export enum AuthRefreshTokens_Constraint {
   /** unique or primary key constraint on columns "id" */
-  RefreshTokensPkey = 'refresh_tokens_pkey',
+  RefreshTokensPkey = 'refresh_tokens_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -1896,7 +1907,7 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   Type = 'type',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 /** input type for updating data in table "auth.refresh_tokens" */
@@ -1944,7 +1955,7 @@ export enum AuthRefreshTokens_Update_Column {
   /** column name */
   Type = 'type',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 export type AuthRefreshTokens_Updates = {
@@ -1978,6 +1989,7 @@ export type AuthRoles = {
   usersByDefaultRole_aggregate: Users_Aggregate;
 };
 
+
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -1986,6 +1998,7 @@ export type AuthRolesUserRolesArgs = {
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
+
 
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUserRoles_AggregateArgs = {
@@ -1996,6 +2009,7 @@ export type AuthRolesUserRoles_AggregateArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUsersByDefaultRoleArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
@@ -2004,6 +2018,7 @@ export type AuthRolesUsersByDefaultRoleArgs = {
   order_by?: InputMaybe<Array<Users_Order_By>>;
   where?: InputMaybe<Users_Bool_Exp>;
 };
+
 
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUsersByDefaultRole_AggregateArgs = {
@@ -2029,6 +2044,7 @@ export type AuthRoles_Aggregate_Fields = {
   min?: Maybe<AuthRoles_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.roles" */
 export type AuthRoles_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthRoles_Select_Column>>;
@@ -2050,7 +2066,7 @@ export type AuthRoles_Bool_Exp = {
 /** unique or primary key constraints on table "auth.roles" */
 export enum AuthRoles_Constraint {
   /** unique or primary key constraint on columns "role" */
-  RolesPkey = 'roles_pkey',
+  RolesPkey = 'roles_pkey'
 }
 
 /** input type for inserting data into table "auth.roles" */
@@ -2110,7 +2126,7 @@ export type AuthRoles_Pk_Columns_Input = {
 /** select columns of table "auth.roles" */
 export enum AuthRoles_Select_Column {
   /** column name */
-  Role = 'role',
+  Role = 'role'
 }
 
 /** input type for updating data in table "auth.roles" */
@@ -2134,7 +2150,7 @@ export type AuthRoles_Stream_Cursor_Value_Input = {
 /** update columns of table "auth.roles" */
 export enum AuthRoles_Update_Column {
   /** column name */
-  Role = 'role',
+  Role = 'role'
 }
 
 export type AuthRoles_Updates = {
@@ -2187,6 +2203,7 @@ export type AuthUserProviders_Aggregate_Fields = {
   min?: Maybe<AuthUserProviders_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.user_providers" */
 export type AuthUserProviders_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -2231,7 +2248,7 @@ export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
   UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
   /** unique or primary key constraint on columns "user_id", "provider_id" */
-  UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key',
+  UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
 }
 
 /** input type for inserting data into table "auth.user_providers" */
@@ -2350,7 +2367,7 @@ export enum AuthUserProviders_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 /** input type for updating data in table "auth.user_providers" */
@@ -2402,7 +2419,7 @@ export enum AuthUserProviders_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 export type AuthUserProviders_Updates = {
@@ -2451,6 +2468,7 @@ export type AuthUserRoles_Aggregate_Fields = {
   min?: Maybe<AuthUserRoles_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.user_roles" */
 export type AuthUserRoles_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -2489,7 +2507,7 @@ export enum AuthUserRoles_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserRolesPkey = 'user_roles_pkey',
   /** unique or primary key constraint on columns "user_id", "role" */
-  UserRolesUserIdRoleKey = 'user_roles_user_id_role_key',
+  UserRolesUserIdRoleKey = 'user_roles_user_id_role_key'
 }
 
 /** input type for inserting data into table "auth.user_roles" */
@@ -2576,7 +2594,7 @@ export enum AuthUserRoles_Select_Column {
   /** column name */
   Role = 'role',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 /** input type for updating data in table "auth.user_roles" */
@@ -2612,7 +2630,7 @@ export enum AuthUserRoles_Update_Column {
   /** column name */
   Role = 'role',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 export type AuthUserRoles_Updates = {
@@ -2669,6 +2687,7 @@ export type AuthUserSecurityKeys_Aggregate_Fields = {
   var_samp?: Maybe<AuthUserSecurityKeys_Var_Samp_Fields>;
   variance?: Maybe<AuthUserSecurityKeys_Variance_Fields>;
 };
+
 
 /** aggregate fields of "auth.user_security_keys" */
 export type AuthUserSecurityKeys_Aggregate_FieldsCountArgs = {
@@ -2729,7 +2748,7 @@ export enum AuthUserSecurityKeys_Constraint {
   /** unique or primary key constraint on columns "credential_id" */
   UserSecurityKeyCredentialIdKey = 'user_security_key_credential_id_key',
   /** unique or primary key constraint on columns "id" */
-  UserSecurityKeysPkey = 'user_security_keys_pkey',
+  UserSecurityKeysPkey = 'user_security_keys_pkey'
 }
 
 /** input type for incrementing numeric columns in table "auth.user_security_keys" */
@@ -2839,7 +2858,7 @@ export enum AuthUserSecurityKeys_Select_Column {
   /** column name */
   Transports = 'transports',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 /** input type for updating data in table "auth.user_security_keys" */
@@ -2931,7 +2950,7 @@ export enum AuthUserSecurityKeys_Update_Column {
   /** column name */
   Transports = 'transports',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 export type AuthUserSecurityKeys_Updates = {
@@ -3006,6 +3025,7 @@ export type Buckets = {
   updatedAt: Scalars['timestamptz'];
 };
 
+
 /** columns and relationships of "storage.buckets" */
 export type BucketsFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
@@ -3014,6 +3034,7 @@ export type BucketsFilesArgs = {
   order_by?: InputMaybe<Array<Files_Order_By>>;
   where?: InputMaybe<Files_Bool_Exp>;
 };
+
 
 /** columns and relationships of "storage.buckets" */
 export type BucketsFiles_AggregateArgs = {
@@ -3046,6 +3067,7 @@ export type Buckets_Aggregate_Fields = {
   var_samp?: Maybe<Buckets_Var_Samp_Fields>;
   variance?: Maybe<Buckets_Variance_Fields>;
 };
+
 
 /** aggregate fields of "storage.buckets" */
 export type Buckets_Aggregate_FieldsCountArgs = {
@@ -3081,7 +3103,7 @@ export type Buckets_Bool_Exp = {
 /** unique or primary key constraints on table "storage.buckets" */
 export enum Buckets_Constraint {
   /** unique or primary key constraint on columns "id" */
-  BucketsPkey = 'buckets_pkey',
+  BucketsPkey = 'buckets_pkey'
 }
 
 /** input type for incrementing numeric columns in table "storage.buckets" */
@@ -3186,7 +3208,7 @@ export enum Buckets_Select_Column {
   /** column name */
   PresignedUrlsEnabled = 'presignedUrlsEnabled',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "storage.buckets" */
@@ -3270,7 +3292,7 @@ export enum Buckets_Update_Column {
   /** column name */
   PresignedUrlsEnabled = 'presignedUrlsEnabled',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type Buckets_Updates = {
@@ -3357,7 +3379,7 @@ export enum Cursor_Ordering {
   /** ascending ordering of the cursor */
   Asc = 'ASC',
   /** descending ordering of the cursor */
-  Desc = 'DESC',
+  Desc = 'DESC'
 }
 
 /** columns and relationships of "storage.files" */
@@ -3377,6 +3399,7 @@ export type Files = {
   updatedAt: Scalars['timestamptz'];
   uploadedByUserId?: Maybe<Scalars['uuid']>;
 };
+
 
 /** columns and relationships of "storage.files" */
 export type FilesMetadataArgs = {
@@ -3432,6 +3455,7 @@ export type Files_Aggregate_Fields = {
   var_samp?: Maybe<Files_Var_Samp_Fields>;
   variance?: Maybe<Files_Variance_Fields>;
 };
+
 
 /** aggregate fields of "storage.files" */
 export type Files_Aggregate_FieldsCountArgs = {
@@ -3499,7 +3523,7 @@ export type Files_Bool_Exp = {
 /** unique or primary key constraints on table "storage.files" */
 export enum Files_Constraint {
   /** unique or primary key constraint on columns "id" */
-  FilesPkey = 'files_pkey',
+  FilesPkey = 'files_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -3664,19 +3688,19 @@ export enum Files_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UploadedByUserId = 'uploadedByUserId',
+  UploadedByUserId = 'uploadedByUserId'
 }
 
 /** select "files_aggregate_bool_exp_bool_and_arguments_columns" columns of table "storage.files" */
 export enum Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
-  IsUploaded = 'isUploaded',
+  IsUploaded = 'isUploaded'
 }
 
 /** select "files_aggregate_bool_exp_bool_or_arguments_columns" columns of table "storage.files" */
 export enum Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
-  IsUploaded = 'isUploaded',
+  IsUploaded = 'isUploaded'
 }
 
 /** input type for updating data in table "storage.files" */
@@ -3784,7 +3808,7 @@ export enum Files_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UploadedByUserId = 'uploadedByUserId',
+  UploadedByUserId = 'uploadedByUserId'
 }
 
 export type Files_Updates = {
@@ -3986,11 +4010,10 @@ export type GraphiteAutoEmbeddingsConfiguration_Aggregate_Fields = {
   min?: Maybe<GraphiteAutoEmbeddingsConfiguration_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.auto_embeddings_configuration" */
 export type GraphiteAutoEmbeddingsConfiguration_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<
-    Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-  >;
+  columns?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
@@ -4019,7 +4042,7 @@ export enum GraphiteAutoEmbeddingsConfiguration_Constraint {
   /** unique or primary key constraint on columns "id" */
   AutoEmbeddingsConfigurationPkey = 'auto_embeddings_configuration_pkey',
   /** unique or primary key constraint on columns "column_name", "schema_name", "table_name" */
-  AutoEmbeddingsConfigurationSchemaNameTableNameColumnKey = 'auto_embeddings_configuration_schema_name_table_name_column_key',
+  AutoEmbeddingsConfigurationSchemaNameTableNameColumnKey = 'auto_embeddings_configuration_schema_name_table_name_column_key'
 }
 
 /** input type for inserting data into table "graphite.auto_embeddings_configuration" */
@@ -4128,7 +4151,7 @@ export enum GraphiteAutoEmbeddingsConfiguration_Select_Column {
   /** column name */
   TableName = 'tableName',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "graphite.auto_embeddings_configuration" */
@@ -4192,7 +4215,7 @@ export enum GraphiteAutoEmbeddingsConfiguration_Update_Column {
   /** column name */
   TableName = 'tableName',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type GraphiteAutoEmbeddingsConfiguration_Updates = {
@@ -4381,25 +4404,31 @@ export type GraphiteMutation = {
   updateFileStore: GraphiteFileStore;
 };
 
+
 export type GraphiteMutationDeleteAssistantArgs = {
   assistantID: Scalars['String'];
 };
+
 
 export type GraphiteMutationDeleteFileStoreArgs = {
   id: Scalars['uuid'];
 };
 
+
 export type GraphiteMutationDeleteSessionArgs = {
   sessionID: Scalars['String'];
 };
+
 
 export type GraphiteMutationInsertAssistantArgs = {
   object: GraphiteAssistantInput;
 };
 
+
 export type GraphiteMutationInsertFileStoreArgs = {
   object: GraphiteFileStoreInput;
 };
+
 
 export type GraphiteMutationSendDevMessageArgs = {
   message: Scalars['String'];
@@ -4407,20 +4436,24 @@ export type GraphiteMutationSendDevMessageArgs = {
   sessionID: Scalars['String'];
 };
 
+
 export type GraphiteMutationSendMessageArgs = {
   message: Scalars['String'];
   prevMessageID: Scalars['String'];
   sessionID: Scalars['String'];
 };
 
+
 export type GraphiteMutationStartSessionArgs = {
   assistantID: Scalars['String'];
 };
+
 
 export type GraphiteMutationUpdateAssistantArgs = {
   assistantID: Scalars['String'];
   object: GraphiteAssistantInput;
 };
+
 
 export type GraphiteMutationUpdateFileStoreArgs = {
   id: Scalars['uuid'];
@@ -4502,13 +4535,16 @@ export type GraphiteQuery = {
   sessions: Array<GraphiteSession>;
 };
 
+
 export type GraphiteQueryAssistantArgs = {
   assistantID: Scalars['String'];
 };
 
+
 export type GraphiteQuerySessionArgs = {
   sessionID: Scalars['String'];
 };
+
 
 export type GraphiteQuerySessionMessagesArgs = {
   sessionID: Scalars['String'];
@@ -4630,29 +4666,17 @@ export type Mutation_Root = {
   /** update data of the table: "graphite.sessions" */
   _updateGraphiteSessions?: Maybe<_GraphiteSessions_Mutation_Response>;
   /** update multiples rows of table: "graphite.assistant_file_stores" */
-  _updateManyGraphiteAssistantFileStores?: Maybe<
-    Array<Maybe<_GraphiteAssistantFileStores_Mutation_Response>>
-  >;
+  _updateManyGraphiteAssistantFileStores?: Maybe<Array<Maybe<_GraphiteAssistantFileStores_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.assistants" */
-  _updateManyGraphiteAssistants?: Maybe<
-    Array<Maybe<_GraphiteAssistants_Mutation_Response>>
-  >;
+  _updateManyGraphiteAssistants?: Maybe<Array<Maybe<_GraphiteAssistants_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.file_store_buckets" */
-  _updateManyGraphiteFileStoreBuckets?: Maybe<
-    Array<Maybe<_GraphiteFileStoreBuckets_Mutation_Response>>
-  >;
+  _updateManyGraphiteFileStoreBuckets?: Maybe<Array<Maybe<_GraphiteFileStoreBuckets_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.file_stores" */
-  _updateManyGraphiteFileStores?: Maybe<
-    Array<Maybe<_GraphiteFileStores_Mutation_Response>>
-  >;
+  _updateManyGraphiteFileStores?: Maybe<Array<Maybe<_GraphiteFileStores_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.files" */
-  _updateManyGraphiteFiles?: Maybe<
-    Array<Maybe<_GraphiteFiles_Mutation_Response>>
-  >;
+  _updateManyGraphiteFiles?: Maybe<Array<Maybe<_GraphiteFiles_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.sessions" */
-  _updateManyGraphiteSessions?: Maybe<
-    Array<Maybe<_GraphiteSessions_Mutation_Response>>
-  >;
+  _updateManyGraphiteSessions?: Maybe<Array<Maybe<_GraphiteSessions_Mutation_Response>>>;
   /** delete single row from the table: "auth.providers" */
   deleteAuthProvider?: Maybe<AuthProviders>;
   /** delete single row from the table: "auth.provider_requests" */
@@ -4803,9 +4827,7 @@ export type Mutation_Root = {
   /** update data of the table: "graphite.auto_embeddings_configuration" */
   updateGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
   /** update multiples rows of table: "graphite.auto_embeddings_configuration" */
-  updateManyGraphiteAutoEmbeddingsConfigurations?: Maybe<
-    Array<Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>>
-  >;
+  updateManyGraphiteAutoEmbeddingsConfigurations?: Maybe<Array<Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>>>;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
@@ -4815,35 +4837,21 @@ export type Mutation_Root = {
   /** update data of the table: "storage.virus" */
   updateViruses?: Maybe<Virus_Mutation_Response>;
   /** update multiples rows of table: "auth.provider_requests" */
-  update_authProviderRequests_many?: Maybe<
-    Array<Maybe<AuthProviderRequests_Mutation_Response>>
-  >;
+  update_authProviderRequests_many?: Maybe<Array<Maybe<AuthProviderRequests_Mutation_Response>>>;
   /** update multiples rows of table: "auth.providers" */
-  update_authProviders_many?: Maybe<
-    Array<Maybe<AuthProviders_Mutation_Response>>
-  >;
+  update_authProviders_many?: Maybe<Array<Maybe<AuthProviders_Mutation_Response>>>;
   /** update multiples rows of table: "auth.refresh_token_types" */
-  update_authRefreshTokenTypes_many?: Maybe<
-    Array<Maybe<AuthRefreshTokenTypes_Mutation_Response>>
-  >;
+  update_authRefreshTokenTypes_many?: Maybe<Array<Maybe<AuthRefreshTokenTypes_Mutation_Response>>>;
   /** update multiples rows of table: "auth.refresh_tokens" */
-  update_authRefreshTokens_many?: Maybe<
-    Array<Maybe<AuthRefreshTokens_Mutation_Response>>
-  >;
+  update_authRefreshTokens_many?: Maybe<Array<Maybe<AuthRefreshTokens_Mutation_Response>>>;
   /** update multiples rows of table: "auth.roles" */
   update_authRoles_many?: Maybe<Array<Maybe<AuthRoles_Mutation_Response>>>;
   /** update multiples rows of table: "auth.user_providers" */
-  update_authUserProviders_many?: Maybe<
-    Array<Maybe<AuthUserProviders_Mutation_Response>>
-  >;
+  update_authUserProviders_many?: Maybe<Array<Maybe<AuthUserProviders_Mutation_Response>>>;
   /** update multiples rows of table: "auth.user_roles" */
-  update_authUserRoles_many?: Maybe<
-    Array<Maybe<AuthUserRoles_Mutation_Response>>
-  >;
+  update_authUserRoles_many?: Maybe<Array<Maybe<AuthUserRoles_Mutation_Response>>>;
   /** update multiples rows of table: "auth.user_security_keys" */
-  update_authUserSecurityKeys_many?: Maybe<
-    Array<Maybe<AuthUserSecurityKeys_Mutation_Response>>
-  >;
+  update_authUserSecurityKeys_many?: Maybe<Array<Maybe<AuthUserSecurityKeys_Mutation_Response>>>;
   /** update multiples rows of table: "storage.buckets" */
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
   /** update multiples rows of table: "storage.files" */
@@ -4854,10 +4862,12 @@ export type Mutation_Root = {
   update_virus_many?: Maybe<Array<Maybe<Virus_Mutation_Response>>>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteAssistantArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteAssistantFileStoreArgs = {
@@ -4865,25 +4875,30 @@ export type Mutation_Root_DeleteGraphiteAssistantFileStoreArgs = {
   fileStoreID: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteAssistantFileStoresArgs = {
   where: _GraphiteAssistantFileStores_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteAssistantsArgs = {
   where: _GraphiteAssistants_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileArgs = {
   id: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileStoreArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileStoreBucketArgs = {
@@ -4891,30 +4906,36 @@ export type Mutation_Root_DeleteGraphiteFileStoreBucketArgs = {
   fileStoreID: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileStoreBucketsArgs = {
   where: _GraphiteFileStoreBuckets_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileStoresArgs = {
   where: _GraphiteFileStores_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFilesArgs = {
   where: _GraphiteFiles_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteSessionArgs = {
   id: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteSessionsArgs = {
   where: _GraphiteSessions_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteAssistantArgs = {
@@ -4922,11 +4943,13 @@ export type Mutation_Root_InsertGraphiteAssistantArgs = {
   on_conflict?: InputMaybe<_GraphiteAssistants_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteAssistantFileStoreArgs = {
   object: _GraphiteAssistantFileStores_Insert_Input;
   on_conflict?: InputMaybe<_GraphiteAssistantFileStores_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteAssistantFileStoresArgs = {
@@ -4934,11 +4957,13 @@ export type Mutation_Root_InsertGraphiteAssistantFileStoresArgs = {
   on_conflict?: InputMaybe<_GraphiteAssistantFileStores_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteAssistantsArgs = {
   objects: Array<_GraphiteAssistants_Insert_Input>;
   on_conflict?: InputMaybe<_GraphiteAssistants_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileArgs = {
@@ -4946,11 +4971,13 @@ export type Mutation_Root_InsertGraphiteFileArgs = {
   on_conflict?: InputMaybe<_GraphiteFiles_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileStoreArgs = {
   object: _GraphiteFileStores_Insert_Input;
   on_conflict?: InputMaybe<_GraphiteFileStores_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileStoreBucketArgs = {
@@ -4958,11 +4985,13 @@ export type Mutation_Root_InsertGraphiteFileStoreBucketArgs = {
   on_conflict?: InputMaybe<_GraphiteFileStoreBuckets_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileStoreBucketsArgs = {
   objects: Array<_GraphiteFileStoreBuckets_Insert_Input>;
   on_conflict?: InputMaybe<_GraphiteFileStoreBuckets_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileStoresArgs = {
@@ -4970,11 +4999,13 @@ export type Mutation_Root_InsertGraphiteFileStoresArgs = {
   on_conflict?: InputMaybe<_GraphiteFileStores_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFilesArgs = {
   objects: Array<_GraphiteFiles_Insert_Input>;
   on_conflict?: InputMaybe<_GraphiteFiles_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteSessionArgs = {
@@ -4982,11 +5013,13 @@ export type Mutation_Root_InsertGraphiteSessionArgs = {
   on_conflict?: InputMaybe<_GraphiteSessions_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteSessionsArgs = {
   objects: Array<_GraphiteSessions_Insert_Input>;
   on_conflict?: InputMaybe<_GraphiteSessions_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantArgs = {
@@ -4999,17 +5032,20 @@ export type Mutation_Root_UpdateGraphiteAssistantArgs = {
   pk_columns: _GraphiteAssistants_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantFileStoreArgs = {
   _set?: InputMaybe<_GraphiteAssistantFileStores_Set_Input>;
   pk_columns: _GraphiteAssistantFileStores_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantFileStoresArgs = {
   _set?: InputMaybe<_GraphiteAssistantFileStores_Set_Input>;
   where: _GraphiteAssistantFileStores_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantsArgs = {
@@ -5022,11 +5058,13 @@ export type Mutation_Root_UpdateGraphiteAssistantsArgs = {
   where: _GraphiteAssistants_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileArgs = {
   _set?: InputMaybe<_GraphiteFiles_Set_Input>;
   pk_columns: _GraphiteFiles_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileStoreArgs = {
@@ -5034,11 +5072,13 @@ export type Mutation_Root_UpdateGraphiteFileStoreArgs = {
   pk_columns: _GraphiteFileStores_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileStoreBucketArgs = {
   _set?: InputMaybe<_GraphiteFileStoreBuckets_Set_Input>;
   pk_columns: _GraphiteFileStoreBuckets_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileStoreBucketsArgs = {
@@ -5046,11 +5086,13 @@ export type Mutation_Root_UpdateGraphiteFileStoreBucketsArgs = {
   where: _GraphiteFileStoreBuckets_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileStoresArgs = {
   _set?: InputMaybe<_GraphiteFileStores_Set_Input>;
   where: _GraphiteFileStores_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFilesArgs = {
@@ -5058,11 +5100,13 @@ export type Mutation_Root_UpdateGraphiteFilesArgs = {
   where: _GraphiteFiles_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteSessionArgs = {
   _set?: InputMaybe<_GraphiteSessions_Set_Input>;
   pk_columns: _GraphiteSessions_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteSessionsArgs = {
@@ -5070,165 +5114,198 @@ export type Mutation_Root_UpdateGraphiteSessionsArgs = {
   where: _GraphiteSessions_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteAssistantFileStoresArgs = {
   updates: Array<_GraphiteAssistantFileStores_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteAssistantsArgs = {
   updates: Array<_GraphiteAssistants_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteFileStoreBucketsArgs = {
   updates: Array<_GraphiteFileStoreBuckets_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteFileStoresArgs = {
   updates: Array<_GraphiteFileStores_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteFilesArgs = {
   updates: Array<_GraphiteFiles_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteSessionsArgs = {
   updates: Array<_GraphiteSessions_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderArgs = {
   id: Scalars['String'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderRequestArgs = {
   id: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderRequestsArgs = {
   where: AuthProviderRequests_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthProvidersArgs = {
   where: AuthProviders_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenTypeArgs = {
   value: Scalars['String'];
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenTypesArgs = {
   where: AuthRefreshTokenTypes_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokensArgs = {
   where: AuthRefreshTokens_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthRoleArgs = {
   role: Scalars['String'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRolesArgs = {
   where: AuthRoles_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthUserProviderArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthUserProvidersArgs = {
   where: AuthUserProviders_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthUserRolesArgs = {
   where: AuthUserRoles_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthUserSecurityKeyArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthUserSecurityKeysArgs = {
   where: AuthUserSecurityKeys_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteBucketArgs = {
   id: Scalars['String'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteBucketsArgs = {
   where: Buckets_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteFilesArgs = {
   where: Files_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteGraphiteAutoEmbeddingsConfigurationArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteGraphiteAutoEmbeddingsConfigurationsArgs = {
   where: GraphiteAutoEmbeddingsConfiguration_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteUserArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteUsersArgs = {
   where: Users_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteVirusArgs = {
   id: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteVirusesArgs = {
   where: Virus_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthProviderArgs = {
@@ -5236,11 +5313,13 @@ export type Mutation_RootInsertAuthProviderArgs = {
   on_conflict?: InputMaybe<AuthProviders_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthProviderRequestArgs = {
   object: AuthProviderRequests_Insert_Input;
   on_conflict?: InputMaybe<AuthProviderRequests_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthProviderRequestsArgs = {
@@ -5248,11 +5327,13 @@ export type Mutation_RootInsertAuthProviderRequestsArgs = {
   on_conflict?: InputMaybe<AuthProviderRequests_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthProvidersArgs = {
   objects: Array<AuthProviders_Insert_Input>;
   on_conflict?: InputMaybe<AuthProviders_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokenArgs = {
@@ -5260,11 +5341,13 @@ export type Mutation_RootInsertAuthRefreshTokenArgs = {
   on_conflict?: InputMaybe<AuthRefreshTokens_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokenTypeArgs = {
   object: AuthRefreshTokenTypes_Insert_Input;
   on_conflict?: InputMaybe<AuthRefreshTokenTypes_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokenTypesArgs = {
@@ -5272,11 +5355,13 @@ export type Mutation_RootInsertAuthRefreshTokenTypesArgs = {
   on_conflict?: InputMaybe<AuthRefreshTokenTypes_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokensArgs = {
   objects: Array<AuthRefreshTokens_Insert_Input>;
   on_conflict?: InputMaybe<AuthRefreshTokens_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthRoleArgs = {
@@ -5284,11 +5369,13 @@ export type Mutation_RootInsertAuthRoleArgs = {
   on_conflict?: InputMaybe<AuthRoles_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthRolesArgs = {
   objects: Array<AuthRoles_Insert_Input>;
   on_conflict?: InputMaybe<AuthRoles_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthUserProviderArgs = {
@@ -5296,11 +5383,13 @@ export type Mutation_RootInsertAuthUserProviderArgs = {
   on_conflict?: InputMaybe<AuthUserProviders_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthUserProvidersArgs = {
   objects: Array<AuthUserProviders_Insert_Input>;
   on_conflict?: InputMaybe<AuthUserProviders_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthUserRoleArgs = {
@@ -5308,11 +5397,13 @@ export type Mutation_RootInsertAuthUserRoleArgs = {
   on_conflict?: InputMaybe<AuthUserRoles_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthUserRolesArgs = {
   objects: Array<AuthUserRoles_Insert_Input>;
   on_conflict?: InputMaybe<AuthUserRoles_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthUserSecurityKeyArgs = {
@@ -5320,11 +5411,13 @@ export type Mutation_RootInsertAuthUserSecurityKeyArgs = {
   on_conflict?: InputMaybe<AuthUserSecurityKeys_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthUserSecurityKeysArgs = {
   objects: Array<AuthUserSecurityKeys_Insert_Input>;
   on_conflict?: InputMaybe<AuthUserSecurityKeys_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertBucketArgs = {
@@ -5332,11 +5425,13 @@ export type Mutation_RootInsertBucketArgs = {
   on_conflict?: InputMaybe<Buckets_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertBucketsArgs = {
   objects: Array<Buckets_Insert_Input>;
   on_conflict?: InputMaybe<Buckets_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertFileArgs = {
@@ -5344,11 +5439,13 @@ export type Mutation_RootInsertFileArgs = {
   on_conflict?: InputMaybe<Files_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertFilesArgs = {
   objects: Array<Files_Insert_Input>;
   on_conflict?: InputMaybe<Files_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationArgs = {
@@ -5356,11 +5453,13 @@ export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationArgs = {
   on_conflict?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationsArgs = {
   objects: Array<GraphiteAutoEmbeddingsConfiguration_Insert_Input>;
   on_conflict?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertUserArgs = {
@@ -5368,11 +5467,13 @@ export type Mutation_RootInsertUserArgs = {
   on_conflict?: InputMaybe<Users_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertUsersArgs = {
   objects: Array<Users_Insert_Input>;
   on_conflict?: InputMaybe<Users_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertVirusArgs = {
@@ -5380,17 +5481,20 @@ export type Mutation_RootInsertVirusArgs = {
   on_conflict?: InputMaybe<Virus_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertVirusesArgs = {
   objects: Array<Virus_Insert_Input>;
   on_conflict?: InputMaybe<Virus_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderArgs = {
   _set?: InputMaybe<AuthProviders_Set_Input>;
   pk_columns: AuthProviders_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderRequestArgs = {
@@ -5403,6 +5507,7 @@ export type Mutation_RootUpdateAuthProviderRequestArgs = {
   pk_columns: AuthProviderRequests_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderRequestsArgs = {
   _append?: InputMaybe<AuthProviderRequests_Append_Input>;
@@ -5414,11 +5519,13 @@ export type Mutation_RootUpdateAuthProviderRequestsArgs = {
   where: AuthProviderRequests_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthProvidersArgs = {
   _set?: InputMaybe<AuthProviders_Set_Input>;
   where: AuthProviders_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokenArgs = {
@@ -5431,17 +5538,20 @@ export type Mutation_RootUpdateAuthRefreshTokenArgs = {
   pk_columns: AuthRefreshTokens_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokenTypeArgs = {
   _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
   pk_columns: AuthRefreshTokenTypes_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokenTypesArgs = {
   _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
   where: AuthRefreshTokenTypes_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokensArgs = {
@@ -5454,11 +5564,13 @@ export type Mutation_RootUpdateAuthRefreshTokensArgs = {
   where: AuthRefreshTokens_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthRoleArgs = {
   _set?: InputMaybe<AuthRoles_Set_Input>;
   pk_columns: AuthRoles_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthRolesArgs = {
@@ -5466,11 +5578,13 @@ export type Mutation_RootUpdateAuthRolesArgs = {
   where: AuthRoles_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthUserProviderArgs = {
   _set?: InputMaybe<AuthUserProviders_Set_Input>;
   pk_columns: AuthUserProviders_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthUserProvidersArgs = {
@@ -5478,17 +5592,20 @@ export type Mutation_RootUpdateAuthUserProvidersArgs = {
   where: AuthUserProviders_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthUserRoleArgs = {
   _set?: InputMaybe<AuthUserRoles_Set_Input>;
   pk_columns: AuthUserRoles_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthUserRolesArgs = {
   _set?: InputMaybe<AuthUserRoles_Set_Input>;
   where: AuthUserRoles_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthUserSecurityKeyArgs = {
@@ -5497,12 +5614,14 @@ export type Mutation_RootUpdateAuthUserSecurityKeyArgs = {
   pk_columns: AuthUserSecurityKeys_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthUserSecurityKeysArgs = {
   _inc?: InputMaybe<AuthUserSecurityKeys_Inc_Input>;
   _set?: InputMaybe<AuthUserSecurityKeys_Set_Input>;
   where: AuthUserSecurityKeys_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateBucketArgs = {
@@ -5511,12 +5630,14 @@ export type Mutation_RootUpdateBucketArgs = {
   pk_columns: Buckets_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateBucketsArgs = {
   _inc?: InputMaybe<Buckets_Inc_Input>;
   _set?: InputMaybe<Buckets_Set_Input>;
   where: Buckets_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateFileArgs = {
@@ -5530,6 +5651,7 @@ export type Mutation_RootUpdateFileArgs = {
   pk_columns: Files_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateFilesArgs = {
   _append?: InputMaybe<Files_Append_Input>;
@@ -5542,11 +5664,13 @@ export type Mutation_RootUpdateFilesArgs = {
   where: Files_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateGraphiteAutoEmbeddingsConfigurationArgs = {
   _set?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Set_Input>;
   pk_columns: GraphiteAutoEmbeddingsConfiguration_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateGraphiteAutoEmbeddingsConfigurationsArgs = {
@@ -5554,10 +5678,12 @@ export type Mutation_RootUpdateGraphiteAutoEmbeddingsConfigurationsArgs = {
   where: GraphiteAutoEmbeddingsConfiguration_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateManyGraphiteAutoEmbeddingsConfigurationsArgs = {
   updates: Array<GraphiteAutoEmbeddingsConfiguration_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateUserArgs = {
@@ -5570,6 +5696,7 @@ export type Mutation_RootUpdateUserArgs = {
   pk_columns: Users_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateUsersArgs = {
   _append?: InputMaybe<Users_Append_Input>;
@@ -5580,6 +5707,7 @@ export type Mutation_RootUpdateUsersArgs = {
   _set?: InputMaybe<Users_Set_Input>;
   where: Users_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateVirusArgs = {
@@ -5592,6 +5720,7 @@ export type Mutation_RootUpdateVirusArgs = {
   pk_columns: Virus_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateVirusesArgs = {
   _append?: InputMaybe<Virus_Append_Input>;
@@ -5603,60 +5732,72 @@ export type Mutation_RootUpdateVirusesArgs = {
   where: Virus_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_AuthProviderRequests_ManyArgs = {
   updates: Array<AuthProviderRequests_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthProviders_ManyArgs = {
   updates: Array<AuthProviders_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_AuthRefreshTokenTypes_ManyArgs = {
   updates: Array<AuthRefreshTokenTypes_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthRefreshTokens_ManyArgs = {
   updates: Array<AuthRefreshTokens_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_AuthRoles_ManyArgs = {
   updates: Array<AuthRoles_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserProviders_ManyArgs = {
   updates: Array<AuthUserProviders_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserRoles_ManyArgs = {
   updates: Array<AuthUserRoles_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserSecurityKeys_ManyArgs = {
   updates: Array<AuthUserSecurityKeys_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_Buckets_ManyArgs = {
   updates: Array<Buckets_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_Files_ManyArgs = {
   updates: Array<Files_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_Virus_ManyArgs = {
@@ -5676,7 +5817,7 @@ export enum Order_By {
   /** in descending order, nulls first */
   DescNullsFirst = 'desc_nulls_first',
   /** in descending order, nulls last */
-  DescNullsLast = 'desc_nulls_last',
+  DescNullsLast = 'desc_nulls_last'
 }
 
 export type Query_Root = {
@@ -5798,9 +5939,11 @@ export type Query_Root = {
   virusesAggregate: Virus_Aggregate;
 };
 
+
 export type Query_Root_GraphiteAssistantArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteAssistantAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
@@ -5810,10 +5953,12 @@ export type Query_Root_GraphiteAssistantAggregateArgs = {
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteAssistantFileStoreArgs = {
   assistantID: Scalars['String'];
   fileStoreID: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteAssistantFileStoreAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
@@ -5823,6 +5968,7 @@ export type Query_Root_GraphiteAssistantFileStoreAggregateArgs = {
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteAssistantFileStoresArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5830,6 +5976,7 @@ export type Query_Root_GraphiteAssistantFileStoresArgs = {
   order_by?: InputMaybe<Array<_GraphiteAssistantFileStores_Order_By>>;
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
+
 
 export type Query_Root_GraphiteAssistantsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
@@ -5839,9 +5986,11 @@ export type Query_Root_GraphiteAssistantsArgs = {
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteFileAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
@@ -5851,9 +6000,11 @@ export type Query_Root_GraphiteFileAggregateArgs = {
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFileStoreArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteFileStoreAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -5863,10 +6014,12 @@ export type Query_Root_GraphiteFileStoreAggregateArgs = {
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFileStoreBucketArgs = {
   bucketID: Scalars['String'];
   fileStoreID: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteFileStoreBucketAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
@@ -5876,6 +6029,7 @@ export type Query_Root_GraphiteFileStoreBucketAggregateArgs = {
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFileStoreBucketsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5883,6 +6037,7 @@ export type Query_Root_GraphiteFileStoreBucketsArgs = {
   order_by?: InputMaybe<Array<_GraphiteFileStoreBuckets_Order_By>>;
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
+
 
 export type Query_Root_GraphiteFileStoresArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -5892,6 +6047,7 @@ export type Query_Root_GraphiteFileStoresArgs = {
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFilesArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5900,9 +6056,11 @@ export type Query_Root_GraphiteFilesArgs = {
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteSessionArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteSessionAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
@@ -5912,6 +6070,7 @@ export type Query_Root_GraphiteSessionAggregateArgs = {
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteSessionsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5920,13 +6079,16 @@ export type Query_Root_GraphiteSessionsArgs = {
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
+
 export type Query_RootAuthProviderArgs = {
   id: Scalars['String'];
 };
 
+
 export type Query_RootAuthProviderRequestArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootAuthProviderRequestsArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
@@ -5936,6 +6098,7 @@ export type Query_RootAuthProviderRequestsArgs = {
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
 
+
 export type Query_RootAuthProviderRequestsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5943,6 +6106,7 @@ export type Query_RootAuthProviderRequestsAggregateArgs = {
   order_by?: InputMaybe<Array<AuthProviderRequests_Order_By>>;
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
+
 
 export type Query_RootAuthProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
@@ -5952,6 +6116,7 @@ export type Query_RootAuthProvidersArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Query_RootAuthProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5960,13 +6125,16 @@ export type Query_RootAuthProvidersAggregateArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
 };
 
+
 export type Query_RootAuthRefreshTokenTypeArgs = {
   value: Scalars['String'];
 };
+
 
 export type Query_RootAuthRefreshTokenTypesArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
@@ -5976,6 +6144,7 @@ export type Query_RootAuthRefreshTokenTypesArgs = {
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRefreshTokenTypesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5983,6 +6152,7 @@ export type Query_RootAuthRefreshTokenTypesAggregateArgs = {
   order_by?: InputMaybe<Array<AuthRefreshTokenTypes_Order_By>>;
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
+
 
 export type Query_RootAuthRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -5992,6 +6162,7 @@ export type Query_RootAuthRefreshTokensArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRefreshTokensAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6000,9 +6171,11 @@ export type Query_RootAuthRefreshTokensAggregateArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRoleArgs = {
   role: Scalars['String'];
 };
+
 
 export type Query_RootAuthRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
@@ -6012,6 +6185,7 @@ export type Query_RootAuthRolesArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6020,9 +6194,11 @@ export type Query_RootAuthRolesAggregateArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserProviderArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootAuthUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -6032,6 +6208,7 @@ export type Query_RootAuthUserProvidersArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6040,9 +6217,11 @@ export type Query_RootAuthUserProvidersAggregateArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootAuthUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -6052,6 +6231,7 @@ export type Query_RootAuthUserRolesArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6060,9 +6240,11 @@ export type Query_RootAuthUserRolesAggregateArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserSecurityKeyArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootAuthUserSecurityKeysArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
@@ -6072,6 +6254,7 @@ export type Query_RootAuthUserSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserSecurityKeysAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6080,9 +6263,11 @@ export type Query_RootAuthUserSecurityKeysAggregateArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Query_RootBucketArgs = {
   id: Scalars['String'];
 };
+
 
 export type Query_RootBucketsArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
@@ -6092,6 +6277,7 @@ export type Query_RootBucketsArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
 export type Query_RootBucketsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6100,9 +6286,11 @@ export type Query_RootBucketsAggregateArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
 export type Query_RootFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
@@ -6112,6 +6300,7 @@ export type Query_RootFilesArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
 export type Query_RootFilesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6120,33 +6309,34 @@ export type Query_RootFilesAggregateArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
 export type Query_RootGraphiteAutoEmbeddingsConfigurationArgs = {
   id: Scalars['uuid'];
 };
 
+
 export type Query_RootGraphiteAutoEmbeddingsConfigurationAggregateArgs = {
-  distinct_on?: InputMaybe<
-    Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-  >;
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
   where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
 };
 
+
 export type Query_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
-  distinct_on?: InputMaybe<
-    Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-  >;
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
   where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
 };
+
 
 export type Query_RootUserArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
@@ -6156,6 +6346,7 @@ export type Query_RootUsersArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Query_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6164,9 +6355,11 @@ export type Query_RootUsersAggregateArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Query_RootVirusArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootVirusesArgs = {
   distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
@@ -6175,6 +6368,7 @@ export type Query_RootVirusesArgs = {
   order_by?: InputMaybe<Array<Virus_Order_By>>;
   where?: InputMaybe<Virus_Bool_Exp>;
 };
+
 
 export type Query_RootVirusesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
@@ -6340,9 +6534,11 @@ export type Subscription_Root = {
   virusesAggregate: Virus_Aggregate;
 };
 
+
 export type Subscription_Root_GraphiteAssistantArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteAssistantAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
@@ -6352,10 +6548,12 @@ export type Subscription_Root_GraphiteAssistantAggregateArgs = {
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteAssistantFileStoreArgs = {
   assistantID: Scalars['String'];
   fileStoreID: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteAssistantFileStoreAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
@@ -6365,11 +6563,13 @@ export type Subscription_Root_GraphiteAssistantFileStoreAggregateArgs = {
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteAssistantFileStoreStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteAssistantFileStores_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteAssistantFileStoresArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
@@ -6379,11 +6579,13 @@ export type Subscription_Root_GraphiteAssistantFileStoresArgs = {
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteAssistantStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteAssistants_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteAssistantsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
@@ -6393,9 +6595,11 @@ export type Subscription_Root_GraphiteAssistantsArgs = {
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteFileAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
@@ -6405,9 +6609,11 @@ export type Subscription_Root_GraphiteFileAggregateArgs = {
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStoreArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteFileStoreAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -6417,10 +6623,12 @@ export type Subscription_Root_GraphiteFileStoreAggregateArgs = {
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStoreBucketArgs = {
   bucketID: Scalars['String'];
   fileStoreID: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteFileStoreBucketAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
@@ -6430,11 +6638,13 @@ export type Subscription_Root_GraphiteFileStoreBucketAggregateArgs = {
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStoreBucketStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteFileStoreBuckets_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteFileStoreBucketsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
@@ -6444,11 +6654,13 @@ export type Subscription_Root_GraphiteFileStoreBucketsArgs = {
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStoreStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteFileStores_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteFileStoresArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -6458,11 +6670,13 @@ export type Subscription_Root_GraphiteFileStoresArgs = {
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteFiles_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteFilesArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
@@ -6472,9 +6686,11 @@ export type Subscription_Root_GraphiteFilesArgs = {
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteSessionArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteSessionAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
@@ -6484,11 +6700,13 @@ export type Subscription_Root_GraphiteSessionAggregateArgs = {
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteSessionStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteSessions_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteSessionsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
@@ -6498,13 +6716,16 @@ export type Subscription_Root_GraphiteSessionsArgs = {
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthProviderArgs = {
   id: Scalars['String'];
 };
 
+
 export type Subscription_RootAuthProviderRequestArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootAuthProviderRequestsArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
@@ -6514,6 +6735,7 @@ export type Subscription_RootAuthProviderRequestsArgs = {
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthProviderRequestsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6522,11 +6744,13 @@ export type Subscription_RootAuthProviderRequestsAggregateArgs = {
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthProviderRequests_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthProviderRequests_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
+
 
 export type Subscription_RootAuthProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
@@ -6536,6 +6760,7 @@ export type Subscription_RootAuthProvidersArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6544,19 +6769,23 @@ export type Subscription_RootAuthProvidersAggregateArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthProviders_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthProviders_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
 };
 
+
 export type Subscription_RootAuthRefreshTokenTypeArgs = {
   value: Scalars['String'];
 };
+
 
 export type Subscription_RootAuthRefreshTokenTypesArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
@@ -6566,6 +6795,7 @@ export type Subscription_RootAuthRefreshTokenTypesArgs = {
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokenTypesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6574,11 +6804,13 @@ export type Subscription_RootAuthRefreshTokenTypesAggregateArgs = {
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokenTypes_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRefreshTokenTypes_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
+
 
 export type Subscription_RootAuthRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -6588,6 +6820,7 @@ export type Subscription_RootAuthRefreshTokensArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokensAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6596,15 +6829,18 @@ export type Subscription_RootAuthRefreshTokensAggregateArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokens_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRefreshTokens_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRoleArgs = {
   role: Scalars['String'];
 };
+
 
 export type Subscription_RootAuthRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
@@ -6614,6 +6850,7 @@ export type Subscription_RootAuthRolesArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6622,15 +6859,18 @@ export type Subscription_RootAuthRolesAggregateArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRoles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRoles_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserProviderArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootAuthUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -6640,6 +6880,7 @@ export type Subscription_RootAuthUserProvidersArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6648,15 +6889,18 @@ export type Subscription_RootAuthUserProvidersAggregateArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserProviders_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserProviders_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootAuthUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -6666,6 +6910,7 @@ export type Subscription_RootAuthUserRolesArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6674,15 +6919,18 @@ export type Subscription_RootAuthUserRolesAggregateArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserRoles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserRoles_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserSecurityKeyArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootAuthUserSecurityKeysArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
@@ -6692,6 +6940,7 @@ export type Subscription_RootAuthUserSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserSecurityKeysAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6700,15 +6949,18 @@ export type Subscription_RootAuthUserSecurityKeysAggregateArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserSecurityKeys_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserSecurityKeys_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Subscription_RootBucketArgs = {
   id: Scalars['String'];
 };
+
 
 export type Subscription_RootBucketsArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
@@ -6718,6 +6970,7 @@ export type Subscription_RootBucketsArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
 export type Subscription_RootBucketsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6726,15 +6979,18 @@ export type Subscription_RootBucketsAggregateArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
 export type Subscription_RootBuckets_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Buckets_Stream_Cursor_Input>>;
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
 export type Subscription_RootFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
@@ -6744,6 +7000,7 @@ export type Subscription_RootFilesArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
 export type Subscription_RootFilesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6752,48 +7009,48 @@ export type Subscription_RootFilesAggregateArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
 export type Subscription_RootFiles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Files_Stream_Cursor_Input>>;
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
 export type Subscription_RootGraphiteAutoEmbeddingsConfigurationArgs = {
   id: Scalars['uuid'];
 };
 
-export type Subscription_RootGraphiteAutoEmbeddingsConfigurationAggregateArgs =
-  {
-    distinct_on?: InputMaybe<
-      Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-    >;
-    limit?: InputMaybe<Scalars['Int']>;
-    offset?: InputMaybe<Scalars['Int']>;
-    order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
-    where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
-  };
 
-export type Subscription_RootGraphiteAutoEmbeddingsConfigurationStreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<
-    InputMaybe<GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Input>
-  >;
-  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
-};
-
-export type Subscription_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
-  distinct_on?: InputMaybe<
-    Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-  >;
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
   where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
 };
 
+
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Input>>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+};
+
+
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
@@ -6803,6 +7060,7 @@ export type Subscription_RootUsersArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Subscription_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6811,21 +7069,25 @@ export type Subscription_RootUsersAggregateArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Subscription_RootUsers_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Users_Stream_Cursor_Input>>;
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Subscription_RootVirusArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootVirus_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Virus_Stream_Cursor_Input>>;
   where?: InputMaybe<Virus_Bool_Exp>;
 };
+
 
 export type Subscription_RootVirusesArgs = {
   distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
@@ -6834,6 +7096,7 @@ export type Subscription_RootVirusesArgs = {
   order_by?: InputMaybe<Array<Virus_Order_By>>;
   where?: InputMaybe<Virus_Bool_Exp>;
 };
+
 
 export type Subscription_RootVirusesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
@@ -6904,10 +7167,12 @@ export type Users = {
   userProviders_aggregate: AuthUserProviders_Aggregate;
 };
 
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
+
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRefreshTokensArgs = {
@@ -6918,6 +7183,7 @@ export type UsersRefreshTokensArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRefreshTokens_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -6926,6 +7192,7 @@ export type UsersRefreshTokens_AggregateArgs = {
   order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
+
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRolesArgs = {
@@ -6936,6 +7203,7 @@ export type UsersRolesArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRoles_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -6944,6 +7212,7 @@ export type UsersRoles_AggregateArgs = {
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
+
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersSecurityKeysArgs = {
@@ -6954,6 +7223,7 @@ export type UsersSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersSecurityKeys_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
@@ -6963,6 +7233,7 @@ export type UsersSecurityKeys_AggregateArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -6971,6 +7242,7 @@ export type UsersUserProvidersArgs = {
   order_by?: InputMaybe<Array<AuthUserProviders_Order_By>>;
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
+
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersUserProviders_AggregateArgs = {
@@ -7022,6 +7294,7 @@ export type Users_Aggregate_Fields = {
   max?: Maybe<Users_Max_Fields>;
   min?: Maybe<Users_Min_Fields>;
 };
+
 
 /** aggregate fields of "auth.users" */
 export type Users_Aggregate_FieldsCountArgs = {
@@ -7096,7 +7369,7 @@ export enum Users_Constraint {
   /** unique or primary key constraint on columns "phone_number" */
   UsersPhoneNumberKey = 'users_phone_number_key',
   /** unique or primary key constraint on columns "id" */
-  UsersPkey = 'users_pkey',
+  UsersPkey = 'users_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -7364,7 +7637,7 @@ export enum Users_Select_Column {
   /** column name */
   TotpSecret = 'totpSecret',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** select "users_aggregate_bool_exp_bool_and_arguments_columns" columns of table "auth.users" */
@@ -7376,7 +7649,7 @@ export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_And_Arguments_Colu
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  PhoneNumberVerified = 'phoneNumberVerified',
+  PhoneNumberVerified = 'phoneNumberVerified'
 }
 
 /** select "users_aggregate_bool_exp_bool_or_arguments_columns" columns of table "auth.users" */
@@ -7388,7 +7661,7 @@ export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_Or_Arguments_Colum
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  PhoneNumberVerified = 'phoneNumberVerified',
+  PhoneNumberVerified = 'phoneNumberVerified'
 }
 
 /** input type for updating data in table "auth.users" */
@@ -7508,7 +7781,7 @@ export enum Users_Update_Column {
   /** column name */
   TotpSecret = 'totpSecret',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type Users_Updates = {
@@ -7555,6 +7828,7 @@ export type Virus = {
   virus: Scalars['String'];
 };
 
+
 /** columns and relationships of "storage.virus" */
 export type VirusUserSessionArgs = {
   path?: InputMaybe<Scalars['String']>;
@@ -7574,6 +7848,7 @@ export type Virus_Aggregate_Fields = {
   max?: Maybe<Virus_Max_Fields>;
   min?: Maybe<Virus_Min_Fields>;
 };
+
 
 /** aggregate fields of "storage.virus" */
 export type Virus_Aggregate_FieldsCountArgs = {
@@ -7604,7 +7879,7 @@ export type Virus_Bool_Exp = {
 /** unique or primary key constraints on table "storage.virus" */
 export enum Virus_Constraint {
   /** unique or primary key constraint on columns "id" */
-  VirusPkey = 'virus_pkey',
+  VirusPkey = 'virus_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -7709,7 +7984,7 @@ export enum Virus_Select_Column {
   /** column name */
   UserSession = 'userSession',
   /** column name */
-  Virus = 'virus',
+  Virus = 'virus'
 }
 
 /** input type for updating data in table "storage.virus" */
@@ -7757,7 +8032,7 @@ export enum Virus_Update_Column {
   /** column name */
   UserSession = 'userSession',
   /** column name */
-  Virus = 'virus',
+  Virus = 'virus'
 }
 
 export type Virus_Updates = {
@@ -7781,134 +8056,50 @@ export type DeleteAssistantMutationVariables = Exact<{
   id: Scalars['String'];
 }>;
 
-export type DeleteAssistantMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    deleteAssistant: boolean;
-  } | null;
-};
+
+export type DeleteAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', deleteAssistant: boolean } | null };
 
 export type GetAssistantsQueryVariables = Exact<{
   isFileStoresSupported: Scalars['Boolean'];
 }>;
 
-export type GetAssistantsQuery = {
-  __typename?: 'query_root';
-  graphite?: {
-    __typename?: 'graphiteQuery';
-    assistants: Array<{
-      __typename?: 'graphiteAssistant';
-      assistantID: string;
-      name: string;
-      description: string;
-      model: string;
-      instructions: string;
-      fileStores?: Array<any> | null;
-      graphql?: Array<{
-        __typename?: 'graphiteAssistantToolGraphQL';
-        name: string;
-        query: string;
-        description: string;
-        arguments: Array<{
-          __typename?: 'graphiteAssistantToolArgument';
-          name: string;
-          type: string;
-          description: string;
-          required: boolean;
-        }>;
-      }> | null;
-      webhooks?: Array<{
-        __typename?: 'graphiteAssistantToolWebhook';
-        name: string;
-        URL: string;
-        description: string;
-        arguments: Array<{
-          __typename?: 'graphiteAssistantToolArgument';
-          name: string;
-          type: string;
-          description: string;
-          required: boolean;
-        }>;
-      }> | null;
-    }>;
-  } | null;
-};
 
-export type GetGraphiteSessionsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, fileStores?: Array<any> | null, graphql?: Array<{ __typename?: 'graphiteAssistantToolGraphQL', name: string, query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantToolWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null }> } | null };
 
-export type GetGraphiteSessionsQuery = {
-  __typename?: 'query_root';
-  graphite?: {
-    __typename?: 'graphiteQuery';
-    sessions: Array<{ __typename?: 'graphiteSession'; sessionID: string }>;
-  } | null;
-};
+export type GetGraphiteSessionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGraphiteSessionsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', sessions: Array<{ __typename?: 'graphiteSession', sessionID: string }> } | null };
 
 export type InsertAssistantMutationVariables = Exact<{
   data: GraphiteAssistantInput;
 }>;
 
-export type InsertAssistantMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    insertAssistant: { __typename?: 'graphiteAssistant'; assistantID: string };
-  } | null;
-};
+
+export type InsertAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', insertAssistant: { __typename?: 'graphiteAssistant', assistantID: string } } | null };
 
 export type UpdateAssistantMutationVariables = Exact<{
   id: Scalars['String'];
   data: GraphiteAssistantInput;
 }>;
 
-export type UpdateAssistantMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    updateAssistant: { __typename?: 'graphiteAssistant'; assistantID: string };
-  } | null;
-};
+
+export type UpdateAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', updateAssistant: { __typename?: 'graphiteAssistant', assistantID: string } } | null };
 
 export type DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutation = {
-  __typename?: 'mutation_root';
-  deleteGraphiteAutoEmbeddingsConfiguration?: {
-    __typename: 'graphiteAutoEmbeddingsConfiguration';
-  } | null;
-};
+
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', deleteGraphiteAutoEmbeddingsConfiguration?: { __typename: 'graphiteAutoEmbeddingsConfiguration' } | null };
 
 export type GetGraphiteAutoEmbeddingsConfigurationsQueryVariables = Exact<{
   limit: Scalars['Int'];
   offset: Scalars['Int'];
 }>;
 
-export type GetGraphiteAutoEmbeddingsConfigurationsQuery = {
-  __typename?: 'query_root';
-  graphiteAutoEmbeddingsConfigurations: Array<{
-    __typename?: 'graphiteAutoEmbeddingsConfiguration';
-    id: any;
-    name: string;
-    model: string;
-    schemaName: string;
-    tableName: string;
-    columnName: string;
-    query?: string | null;
-    mutation?: string | null;
-    createdAt: any;
-    updatedAt: any;
-  }>;
-  graphiteAutoEmbeddingsConfigurationAggregate: {
-    __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate';
-    aggregate?: {
-      __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate_fields';
-      count: number;
-    } | null;
-  };
-};
+
+export type GetGraphiteAutoEmbeddingsConfigurationsQuery = { __typename?: 'query_root', graphiteAutoEmbeddingsConfigurations: Array<{ __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null, createdAt: any, updatedAt: any }>, graphiteAutoEmbeddingsConfigurationAggregate: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate', aggregate?: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate_fields', count: number } | null } };
 
 export type InsertGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   name?: InputMaybe<Scalars['String']>;
@@ -7920,13 +8111,8 @@ export type InsertGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   mutation?: InputMaybe<Scalars['String']>;
 }>;
 
-export type InsertGraphiteAutoEmbeddingsConfigurationMutation = {
-  __typename?: 'mutation_root';
-  insertGraphiteAutoEmbeddingsConfiguration?: {
-    __typename?: 'graphiteAutoEmbeddingsConfiguration';
-    id: any;
-  } | null;
-};
+
+export type InsertGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', insertGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any } | null };
 
 export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -7939,108 +8125,36 @@ export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   mutation?: InputMaybe<Scalars['String']>;
 }>;
 
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = {
-  __typename?: 'mutation_root';
-  updateGraphiteAutoEmbeddingsConfiguration?: {
-    __typename?: 'graphiteAutoEmbeddingsConfiguration';
-    id: any;
-    name: string;
-    model: string;
-    schemaName: string;
-    tableName: string;
-    columnName: string;
-    query?: string | null;
-    mutation?: string | null;
-  } | null;
-};
 
-export type SendDevMessageMutationVariables = Exact<{
-  sessionId: Scalars['String'];
-  prevMessageID: Scalars['String'];
-  message: Scalars['String'];
-}>;
-
-export type SendDevMessageMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    sendDevMessage: {
-      __typename?: 'graphiteMessageResponse';
-      messages: Array<{
-        __typename?: 'graphiteMessage';
-        id: string;
-        role: string;
-        message: string;
-        createdAt: any;
-      }>;
-    };
-  } | null;
-};
-
-export type StartDevSessionMutationVariables = Exact<{ [key: string]: never }>;
-
-export type StartDevSessionMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    startDevSession: { __typename?: 'graphiteSession'; sessionID: string };
-  } | null;
-};
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', updateGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null } | null };
 
 export type DeleteFileStoreMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
-export type DeleteFileStoreMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    deleteFileStore: boolean;
-  } | null;
-};
 
-export type GetGraphiteFileStoresQueryVariables = Exact<{
-  [key: string]: never;
-}>;
+export type DeleteFileStoreMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', deleteFileStore: boolean } | null };
 
-export type GetGraphiteFileStoresQuery = {
-  __typename?: 'query_root';
-  graphite?: {
-    __typename?: 'graphiteQuery';
-    fileStores: Array<{
-      __typename?: 'graphiteFileStore';
-      id: any;
-      name: string;
-      vectorStoreID: string;
-      buckets: Array<string>;
-    }>;
-  } | null;
-};
+export type GetGraphiteFileStoresQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGraphiteFileStoresQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', fileStores: Array<{ __typename?: 'graphiteFileStore', id: any, name: string, vectorStoreID: string, buckets: Array<string> }> } | null };
 
 export type InsertFileStoreMutationVariables = Exact<{
   object: GraphiteFileStoreInput;
 }>;
 
-export type InsertFileStoreMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    insertFileStore: { __typename?: 'graphiteFileStore'; id: any };
-  } | null;
-};
+
+export type InsertFileStoreMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', insertFileStore: { __typename?: 'graphiteFileStore', id: any } } | null };
 
 export type UpdateFileStoreMutationVariables = Exact<{
   id: Scalars['uuid'];
   object: GraphiteFileStoreInput;
 }>;
 
-export type UpdateFileStoreMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    updateFileStore: { __typename?: 'graphiteFileStore'; name: string };
-  } | null;
-};
+
+export type UpdateFileStoreMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', updateFileStore: { __typename?: 'graphiteFileStore', name: string } } | null };
+
 
 export const DeleteAssistantDocument = gql`
     mutation deleteAssistant($id: String!) {
@@ -8049,10 +8163,7 @@ export const DeleteAssistantDocument = gql`
   }
 }
     `;
-export type DeleteAssistantMutationFn = Apollo.MutationFunction<
-  DeleteAssistantMutation,
-  DeleteAssistantMutationVariables
->;
+export type DeleteAssistantMutationFn = Apollo.MutationFunction<DeleteAssistantMutation, DeleteAssistantMutationVariables>;
 
 /**
  * __useDeleteAssistantMutation__
@@ -8071,27 +8182,13 @@ export type DeleteAssistantMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteAssistantMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    DeleteAssistantMutation,
-    DeleteAssistantMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    DeleteAssistantMutation,
-    DeleteAssistantMutationVariables
-  >(DeleteAssistantDocument, options);
-}
-export type DeleteAssistantMutationHookResult = ReturnType<
-  typeof useDeleteAssistantMutation
->;
-export type DeleteAssistantMutationResult =
-  Apollo.MutationResult<DeleteAssistantMutation>;
-export type DeleteAssistantMutationOptions = Apollo.BaseMutationOptions<
-  DeleteAssistantMutation,
-  DeleteAssistantMutationVariables
->;
+export function useDeleteAssistantMutation(baseOptions?: Apollo.MutationHookOptions<DeleteAssistantMutation, DeleteAssistantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteAssistantMutation, DeleteAssistantMutationVariables>(DeleteAssistantDocument, options);
+      }
+export type DeleteAssistantMutationHookResult = ReturnType<typeof useDeleteAssistantMutation>;
+export type DeleteAssistantMutationResult = Apollo.MutationResult<DeleteAssistantMutation>;
+export type DeleteAssistantMutationOptions = Apollo.BaseMutationOptions<DeleteAssistantMutation, DeleteAssistantMutationVariables>;
 export const GetAssistantsDocument = gql`
     query getAssistants($isFileStoresSupported: Boolean!) {
   graphite {
@@ -8145,45 +8242,20 @@ export const GetAssistantsDocument = gql`
  *   },
  * });
  */
-export function useGetAssistantsQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetAssistantsQuery,
-    GetAssistantsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(
-    GetAssistantsDocument,
-    options,
-  );
-}
-export function useGetAssistantsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetAssistantsQuery,
-    GetAssistantsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(
-    GetAssistantsDocument,
-    options,
-  );
-}
-export type GetAssistantsQueryHookResult = ReturnType<
-  typeof useGetAssistantsQuery
->;
-export type GetAssistantsLazyQueryHookResult = ReturnType<
-  typeof useGetAssistantsLazyQuery
->;
-export type GetAssistantsQueryResult = Apollo.QueryResult<
-  GetAssistantsQuery,
-  GetAssistantsQueryVariables
->;
-export function refetchGetAssistantsQuery(
-  variables: GetAssistantsQueryVariables,
-) {
-  return { query: GetAssistantsDocument, variables: variables };
-}
+export function useGetAssistantsQuery(baseOptions: Apollo.QueryHookOptions<GetAssistantsQuery, GetAssistantsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(GetAssistantsDocument, options);
+      }
+export function useGetAssistantsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAssistantsQuery, GetAssistantsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(GetAssistantsDocument, options);
+        }
+export type GetAssistantsQueryHookResult = ReturnType<typeof useGetAssistantsQuery>;
+export type GetAssistantsLazyQueryHookResult = ReturnType<typeof useGetAssistantsLazyQuery>;
+export type GetAssistantsQueryResult = Apollo.QueryResult<GetAssistantsQuery, GetAssistantsQueryVariables>;
+export function refetchGetAssistantsQuery(variables: GetAssistantsQueryVariables) {
+      return { query: GetAssistantsDocument, variables: variables }
+    }
 export const GetGraphiteSessionsDocument = gql`
     query getGraphiteSessions {
   graphite {
@@ -8209,45 +8281,20 @@ export const GetGraphiteSessionsDocument = gql`
  *   },
  * });
  */
-export function useGetGraphiteSessionsQuery(
-  baseOptions?: Apollo.QueryHookOptions<
-    GetGraphiteSessionsQuery,
-    GetGraphiteSessionsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetGraphiteSessionsQuery,
-    GetGraphiteSessionsQueryVariables
-  >(GetGraphiteSessionsDocument, options);
-}
-export function useGetGraphiteSessionsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetGraphiteSessionsQuery,
-    GetGraphiteSessionsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetGraphiteSessionsQuery,
-    GetGraphiteSessionsQueryVariables
-  >(GetGraphiteSessionsDocument, options);
-}
-export type GetGraphiteSessionsQueryHookResult = ReturnType<
-  typeof useGetGraphiteSessionsQuery
->;
-export type GetGraphiteSessionsLazyQueryHookResult = ReturnType<
-  typeof useGetGraphiteSessionsLazyQuery
->;
-export type GetGraphiteSessionsQueryResult = Apollo.QueryResult<
-  GetGraphiteSessionsQuery,
-  GetGraphiteSessionsQueryVariables
->;
-export function refetchGetGraphiteSessionsQuery(
-  variables?: GetGraphiteSessionsQueryVariables,
-) {
-  return { query: GetGraphiteSessionsDocument, variables: variables };
-}
+export function useGetGraphiteSessionsQuery(baseOptions?: Apollo.QueryHookOptions<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>(GetGraphiteSessionsDocument, options);
+      }
+export function useGetGraphiteSessionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>(GetGraphiteSessionsDocument, options);
+        }
+export type GetGraphiteSessionsQueryHookResult = ReturnType<typeof useGetGraphiteSessionsQuery>;
+export type GetGraphiteSessionsLazyQueryHookResult = ReturnType<typeof useGetGraphiteSessionsLazyQuery>;
+export type GetGraphiteSessionsQueryResult = Apollo.QueryResult<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>;
+export function refetchGetGraphiteSessionsQuery(variables?: GetGraphiteSessionsQueryVariables) {
+      return { query: GetGraphiteSessionsDocument, variables: variables }
+    }
 export const InsertAssistantDocument = gql`
     mutation insertAssistant($data: graphiteAssistantInput!) {
   graphite {
@@ -8257,10 +8304,7 @@ export const InsertAssistantDocument = gql`
   }
 }
     `;
-export type InsertAssistantMutationFn = Apollo.MutationFunction<
-  InsertAssistantMutation,
-  InsertAssistantMutationVariables
->;
+export type InsertAssistantMutationFn = Apollo.MutationFunction<InsertAssistantMutation, InsertAssistantMutationVariables>;
 
 /**
  * __useInsertAssistantMutation__
@@ -8279,27 +8323,13 @@ export type InsertAssistantMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useInsertAssistantMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    InsertAssistantMutation,
-    InsertAssistantMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    InsertAssistantMutation,
-    InsertAssistantMutationVariables
-  >(InsertAssistantDocument, options);
-}
-export type InsertAssistantMutationHookResult = ReturnType<
-  typeof useInsertAssistantMutation
->;
-export type InsertAssistantMutationResult =
-  Apollo.MutationResult<InsertAssistantMutation>;
-export type InsertAssistantMutationOptions = Apollo.BaseMutationOptions<
-  InsertAssistantMutation,
-  InsertAssistantMutationVariables
->;
+export function useInsertAssistantMutation(baseOptions?: Apollo.MutationHookOptions<InsertAssistantMutation, InsertAssistantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertAssistantMutation, InsertAssistantMutationVariables>(InsertAssistantDocument, options);
+      }
+export type InsertAssistantMutationHookResult = ReturnType<typeof useInsertAssistantMutation>;
+export type InsertAssistantMutationResult = Apollo.MutationResult<InsertAssistantMutation>;
+export type InsertAssistantMutationOptions = Apollo.BaseMutationOptions<InsertAssistantMutation, InsertAssistantMutationVariables>;
 export const UpdateAssistantDocument = gql`
     mutation updateAssistant($id: String!, $data: graphiteAssistantInput!) {
   graphite {
@@ -8309,10 +8339,7 @@ export const UpdateAssistantDocument = gql`
   }
 }
     `;
-export type UpdateAssistantMutationFn = Apollo.MutationFunction<
-  UpdateAssistantMutation,
-  UpdateAssistantMutationVariables
->;
+export type UpdateAssistantMutationFn = Apollo.MutationFunction<UpdateAssistantMutation, UpdateAssistantMutationVariables>;
 
 /**
  * __useUpdateAssistantMutation__
@@ -8332,27 +8359,13 @@ export type UpdateAssistantMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateAssistantMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpdateAssistantMutation,
-    UpdateAssistantMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    UpdateAssistantMutation,
-    UpdateAssistantMutationVariables
-  >(UpdateAssistantDocument, options);
-}
-export type UpdateAssistantMutationHookResult = ReturnType<
-  typeof useUpdateAssistantMutation
->;
-export type UpdateAssistantMutationResult =
-  Apollo.MutationResult<UpdateAssistantMutation>;
-export type UpdateAssistantMutationOptions = Apollo.BaseMutationOptions<
-  UpdateAssistantMutation,
-  UpdateAssistantMutationVariables
->;
+export function useUpdateAssistantMutation(baseOptions?: Apollo.MutationHookOptions<UpdateAssistantMutation, UpdateAssistantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateAssistantMutation, UpdateAssistantMutationVariables>(UpdateAssistantDocument, options);
+      }
+export type UpdateAssistantMutationHookResult = ReturnType<typeof useUpdateAssistantMutation>;
+export type UpdateAssistantMutationResult = Apollo.MutationResult<UpdateAssistantMutation>;
+export type UpdateAssistantMutationOptions = Apollo.BaseMutationOptions<UpdateAssistantMutation, UpdateAssistantMutationVariables>;
 export const DeleteGraphiteAutoEmbeddingsConfigurationDocument = gql`
     mutation deleteGraphiteAutoEmbeddingsConfiguration($id: uuid!) {
   deleteGraphiteAutoEmbeddingsConfiguration(id: $id) {
@@ -8360,11 +8373,7 @@ export const DeleteGraphiteAutoEmbeddingsConfigurationDocument = gql`
   }
 }
     `;
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutationFn =
-  Apollo.MutationFunction<
-    DeleteGraphiteAutoEmbeddingsConfigurationMutation,
-    DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutationFn = Apollo.MutationFunction<DeleteGraphiteAutoEmbeddingsConfigurationMutation, DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 
 /**
  * __useDeleteGraphiteAutoEmbeddingsConfigurationMutation__
@@ -8383,27 +8392,13 @@ export type DeleteGraphiteAutoEmbeddingsConfigurationMutationFn =
  *   },
  * });
  */
-export function useDeleteGraphiteAutoEmbeddingsConfigurationMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    DeleteGraphiteAutoEmbeddingsConfigurationMutation,
-    DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    DeleteGraphiteAutoEmbeddingsConfigurationMutation,
-    DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >(DeleteGraphiteAutoEmbeddingsConfigurationDocument, options);
-}
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutationHookResult =
-  ReturnType<typeof useDeleteGraphiteAutoEmbeddingsConfigurationMutation>;
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutationResult =
-  Apollo.MutationResult<DeleteGraphiteAutoEmbeddingsConfigurationMutation>;
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutationOptions =
-  Apollo.BaseMutationOptions<
-    DeleteGraphiteAutoEmbeddingsConfigurationMutation,
-    DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export function useDeleteGraphiteAutoEmbeddingsConfigurationMutation(baseOptions?: Apollo.MutationHookOptions<DeleteGraphiteAutoEmbeddingsConfigurationMutation, DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteGraphiteAutoEmbeddingsConfigurationMutation, DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables>(DeleteGraphiteAutoEmbeddingsConfigurationDocument, options);
+      }
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutationHookResult = ReturnType<typeof useDeleteGraphiteAutoEmbeddingsConfigurationMutation>;
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutationResult = Apollo.MutationResult<DeleteGraphiteAutoEmbeddingsConfigurationMutation>;
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutationOptions = Apollo.BaseMutationOptions<DeleteGraphiteAutoEmbeddingsConfigurationMutation, DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 export const GetGraphiteAutoEmbeddingsConfigurationsDocument = gql`
     query getGraphiteAutoEmbeddingsConfigurations($limit: Int!, $offset: Int!) {
   graphiteAutoEmbeddingsConfigurations(limit: $limit, offset: $offset) {
@@ -8443,48 +8438,20 @@ export const GetGraphiteAutoEmbeddingsConfigurationsDocument = gql`
  *   },
  * });
  */
-export function useGetGraphiteAutoEmbeddingsConfigurationsQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >(GetGraphiteAutoEmbeddingsConfigurationsDocument, options);
-}
-export function useGetGraphiteAutoEmbeddingsConfigurationsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >(GetGraphiteAutoEmbeddingsConfigurationsDocument, options);
-}
-export type GetGraphiteAutoEmbeddingsConfigurationsQueryHookResult = ReturnType<
-  typeof useGetGraphiteAutoEmbeddingsConfigurationsQuery
->;
-export type GetGraphiteAutoEmbeddingsConfigurationsLazyQueryHookResult =
-  ReturnType<typeof useGetGraphiteAutoEmbeddingsConfigurationsLazyQuery>;
-export type GetGraphiteAutoEmbeddingsConfigurationsQueryResult =
-  Apollo.QueryResult<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >;
-export function refetchGetGraphiteAutoEmbeddingsConfigurationsQuery(
-  variables: GetGraphiteAutoEmbeddingsConfigurationsQueryVariables,
-) {
-  return {
-    query: GetGraphiteAutoEmbeddingsConfigurationsDocument,
-    variables: variables,
-  };
-}
+export function useGetGraphiteAutoEmbeddingsConfigurationsQuery(baseOptions: Apollo.QueryHookOptions<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>(GetGraphiteAutoEmbeddingsConfigurationsDocument, options);
+      }
+export function useGetGraphiteAutoEmbeddingsConfigurationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>(GetGraphiteAutoEmbeddingsConfigurationsDocument, options);
+        }
+export type GetGraphiteAutoEmbeddingsConfigurationsQueryHookResult = ReturnType<typeof useGetGraphiteAutoEmbeddingsConfigurationsQuery>;
+export type GetGraphiteAutoEmbeddingsConfigurationsLazyQueryHookResult = ReturnType<typeof useGetGraphiteAutoEmbeddingsConfigurationsLazyQuery>;
+export type GetGraphiteAutoEmbeddingsConfigurationsQueryResult = Apollo.QueryResult<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>;
+export function refetchGetGraphiteAutoEmbeddingsConfigurationsQuery(variables: GetGraphiteAutoEmbeddingsConfigurationsQueryVariables) {
+      return { query: GetGraphiteAutoEmbeddingsConfigurationsDocument, variables: variables }
+    }
 export const InsertGraphiteAutoEmbeddingsConfigurationDocument = gql`
     mutation insertGraphiteAutoEmbeddingsConfiguration($name: String, $model: String, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
   insertGraphiteAutoEmbeddingsConfiguration(
@@ -8494,11 +8461,7 @@ export const InsertGraphiteAutoEmbeddingsConfigurationDocument = gql`
   }
 }
     `;
-export type InsertGraphiteAutoEmbeddingsConfigurationMutationFn =
-  Apollo.MutationFunction<
-    InsertGraphiteAutoEmbeddingsConfigurationMutation,
-    InsertGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export type InsertGraphiteAutoEmbeddingsConfigurationMutationFn = Apollo.MutationFunction<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 
 /**
  * __useInsertGraphiteAutoEmbeddingsConfigurationMutation__
@@ -8523,27 +8486,13 @@ export type InsertGraphiteAutoEmbeddingsConfigurationMutationFn =
  *   },
  * });
  */
-export function useInsertGraphiteAutoEmbeddingsConfigurationMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    InsertGraphiteAutoEmbeddingsConfigurationMutation,
-    InsertGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    InsertGraphiteAutoEmbeddingsConfigurationMutation,
-    InsertGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >(InsertGraphiteAutoEmbeddingsConfigurationDocument, options);
-}
-export type InsertGraphiteAutoEmbeddingsConfigurationMutationHookResult =
-  ReturnType<typeof useInsertGraphiteAutoEmbeddingsConfigurationMutation>;
-export type InsertGraphiteAutoEmbeddingsConfigurationMutationResult =
-  Apollo.MutationResult<InsertGraphiteAutoEmbeddingsConfigurationMutation>;
-export type InsertGraphiteAutoEmbeddingsConfigurationMutationOptions =
-  Apollo.BaseMutationOptions<
-    InsertGraphiteAutoEmbeddingsConfigurationMutation,
-    InsertGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export function useInsertGraphiteAutoEmbeddingsConfigurationMutation(baseOptions?: Apollo.MutationHookOptions<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>(InsertGraphiteAutoEmbeddingsConfigurationDocument, options);
+      }
+export type InsertGraphiteAutoEmbeddingsConfigurationMutationHookResult = ReturnType<typeof useInsertGraphiteAutoEmbeddingsConfigurationMutation>;
+export type InsertGraphiteAutoEmbeddingsConfigurationMutationResult = Apollo.MutationResult<InsertGraphiteAutoEmbeddingsConfigurationMutation>;
+export type InsertGraphiteAutoEmbeddingsConfigurationMutationOptions = Apollo.BaseMutationOptions<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 export const UpdateGraphiteAutoEmbeddingsConfigurationDocument = gql`
     mutation updateGraphiteAutoEmbeddingsConfiguration($id: uuid!, $name: String, $model: String, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
   updateGraphiteAutoEmbeddingsConfiguration(
@@ -8561,11 +8510,7 @@ export const UpdateGraphiteAutoEmbeddingsConfigurationDocument = gql`
   }
 }
     `;
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutationFn =
-  Apollo.MutationFunction<
-    UpdateGraphiteAutoEmbeddingsConfigurationMutation,
-    UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutationFn = Apollo.MutationFunction<UpdateGraphiteAutoEmbeddingsConfigurationMutation, UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 
 /**
  * __useUpdateGraphiteAutoEmbeddingsConfigurationMutation__
@@ -8591,141 +8536,13 @@ export type UpdateGraphiteAutoEmbeddingsConfigurationMutationFn =
  *   },
  * });
  */
-export function useUpdateGraphiteAutoEmbeddingsConfigurationMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpdateGraphiteAutoEmbeddingsConfigurationMutation,
-    UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    UpdateGraphiteAutoEmbeddingsConfigurationMutation,
-    UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >(UpdateGraphiteAutoEmbeddingsConfigurationDocument, options);
-}
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutationHookResult =
-  ReturnType<typeof useUpdateGraphiteAutoEmbeddingsConfigurationMutation>;
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutationResult =
-  Apollo.MutationResult<UpdateGraphiteAutoEmbeddingsConfigurationMutation>;
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutationOptions =
-  Apollo.BaseMutationOptions<
-    UpdateGraphiteAutoEmbeddingsConfigurationMutation,
-    UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
-export const SendDevMessageDocument = gql`
-    mutation sendDevMessage($sessionId: String!, $prevMessageID: String!, $message: String!) {
-  graphite {
-    sendDevMessage(
-      sessionID: $sessionId
-      prevMessageID: $prevMessageID
-      message: $message
-    ) {
-      messages {
-        id
-        role
-        message
-        createdAt
+export function useUpdateGraphiteAutoEmbeddingsConfigurationMutation(baseOptions?: Apollo.MutationHookOptions<UpdateGraphiteAutoEmbeddingsConfigurationMutation, UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateGraphiteAutoEmbeddingsConfigurationMutation, UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables>(UpdateGraphiteAutoEmbeddingsConfigurationDocument, options);
       }
-    }
-  }
-}
-    `;
-export type SendDevMessageMutationFn = Apollo.MutationFunction<
-  SendDevMessageMutation,
-  SendDevMessageMutationVariables
->;
-
-/**
- * __useSendDevMessageMutation__
- *
- * To run a mutation, you first call `useSendDevMessageMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useSendDevMessageMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [sendDevMessageMutation, { data, loading, error }] = useSendDevMessageMutation({
- *   variables: {
- *      sessionId: // value for 'sessionId'
- *      prevMessageID: // value for 'prevMessageID'
- *      message: // value for 'message'
- *   },
- * });
- */
-export function useSendDevMessageMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    SendDevMessageMutation,
-    SendDevMessageMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    SendDevMessageMutation,
-    SendDevMessageMutationVariables
-  >(SendDevMessageDocument, options);
-}
-export type SendDevMessageMutationHookResult = ReturnType<
-  typeof useSendDevMessageMutation
->;
-export type SendDevMessageMutationResult =
-  Apollo.MutationResult<SendDevMessageMutation>;
-export type SendDevMessageMutationOptions = Apollo.BaseMutationOptions<
-  SendDevMessageMutation,
-  SendDevMessageMutationVariables
->;
-export const StartDevSessionDocument = gql`
-    mutation startDevSession {
-  graphite {
-    startDevSession {
-      sessionID
-    }
-  }
-}
-    `;
-export type StartDevSessionMutationFn = Apollo.MutationFunction<
-  StartDevSessionMutation,
-  StartDevSessionMutationVariables
->;
-
-/**
- * __useStartDevSessionMutation__
- *
- * To run a mutation, you first call `useStartDevSessionMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useStartDevSessionMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [startDevSessionMutation, { data, loading, error }] = useStartDevSessionMutation({
- *   variables: {
- *   },
- * });
- */
-export function useStartDevSessionMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    StartDevSessionMutation,
-    StartDevSessionMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    StartDevSessionMutation,
-    StartDevSessionMutationVariables
-  >(StartDevSessionDocument, options);
-}
-export type StartDevSessionMutationHookResult = ReturnType<
-  typeof useStartDevSessionMutation
->;
-export type StartDevSessionMutationResult =
-  Apollo.MutationResult<StartDevSessionMutation>;
-export type StartDevSessionMutationOptions = Apollo.BaseMutationOptions<
-  StartDevSessionMutation,
-  StartDevSessionMutationVariables
->;
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutationHookResult = ReturnType<typeof useUpdateGraphiteAutoEmbeddingsConfigurationMutation>;
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutationResult = Apollo.MutationResult<UpdateGraphiteAutoEmbeddingsConfigurationMutation>;
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutationOptions = Apollo.BaseMutationOptions<UpdateGraphiteAutoEmbeddingsConfigurationMutation, UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 export const DeleteFileStoreDocument = gql`
     mutation deleteFileStore($id: uuid!) {
   graphite {
@@ -8733,10 +8550,7 @@ export const DeleteFileStoreDocument = gql`
   }
 }
     `;
-export type DeleteFileStoreMutationFn = Apollo.MutationFunction<
-  DeleteFileStoreMutation,
-  DeleteFileStoreMutationVariables
->;
+export type DeleteFileStoreMutationFn = Apollo.MutationFunction<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>;
 
 /**
  * __useDeleteFileStoreMutation__
@@ -8755,27 +8569,13 @@ export type DeleteFileStoreMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteFileStoreMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    DeleteFileStoreMutation,
-    DeleteFileStoreMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    DeleteFileStoreMutation,
-    DeleteFileStoreMutationVariables
-  >(DeleteFileStoreDocument, options);
-}
-export type DeleteFileStoreMutationHookResult = ReturnType<
-  typeof useDeleteFileStoreMutation
->;
-export type DeleteFileStoreMutationResult =
-  Apollo.MutationResult<DeleteFileStoreMutation>;
-export type DeleteFileStoreMutationOptions = Apollo.BaseMutationOptions<
-  DeleteFileStoreMutation,
-  DeleteFileStoreMutationVariables
->;
+export function useDeleteFileStoreMutation(baseOptions?: Apollo.MutationHookOptions<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>(DeleteFileStoreDocument, options);
+      }
+export type DeleteFileStoreMutationHookResult = ReturnType<typeof useDeleteFileStoreMutation>;
+export type DeleteFileStoreMutationResult = Apollo.MutationResult<DeleteFileStoreMutation>;
+export type DeleteFileStoreMutationOptions = Apollo.BaseMutationOptions<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>;
 export const GetGraphiteFileStoresDocument = gql`
     query getGraphiteFileStores {
   graphite {
@@ -8804,45 +8604,20 @@ export const GetGraphiteFileStoresDocument = gql`
  *   },
  * });
  */
-export function useGetGraphiteFileStoresQuery(
-  baseOptions?: Apollo.QueryHookOptions<
-    GetGraphiteFileStoresQuery,
-    GetGraphiteFileStoresQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetGraphiteFileStoresQuery,
-    GetGraphiteFileStoresQueryVariables
-  >(GetGraphiteFileStoresDocument, options);
-}
-export function useGetGraphiteFileStoresLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetGraphiteFileStoresQuery,
-    GetGraphiteFileStoresQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetGraphiteFileStoresQuery,
-    GetGraphiteFileStoresQueryVariables
-  >(GetGraphiteFileStoresDocument, options);
-}
-export type GetGraphiteFileStoresQueryHookResult = ReturnType<
-  typeof useGetGraphiteFileStoresQuery
->;
-export type GetGraphiteFileStoresLazyQueryHookResult = ReturnType<
-  typeof useGetGraphiteFileStoresLazyQuery
->;
-export type GetGraphiteFileStoresQueryResult = Apollo.QueryResult<
-  GetGraphiteFileStoresQuery,
-  GetGraphiteFileStoresQueryVariables
->;
-export function refetchGetGraphiteFileStoresQuery(
-  variables?: GetGraphiteFileStoresQueryVariables,
-) {
-  return { query: GetGraphiteFileStoresDocument, variables: variables };
-}
+export function useGetGraphiteFileStoresQuery(baseOptions?: Apollo.QueryHookOptions<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>(GetGraphiteFileStoresDocument, options);
+      }
+export function useGetGraphiteFileStoresLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>(GetGraphiteFileStoresDocument, options);
+        }
+export type GetGraphiteFileStoresQueryHookResult = ReturnType<typeof useGetGraphiteFileStoresQuery>;
+export type GetGraphiteFileStoresLazyQueryHookResult = ReturnType<typeof useGetGraphiteFileStoresLazyQuery>;
+export type GetGraphiteFileStoresQueryResult = Apollo.QueryResult<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>;
+export function refetchGetGraphiteFileStoresQuery(variables?: GetGraphiteFileStoresQueryVariables) {
+      return { query: GetGraphiteFileStoresDocument, variables: variables }
+    }
 export const InsertFileStoreDocument = gql`
     mutation insertFileStore($object: graphiteFileStoreInput!) {
   graphite {
@@ -8852,10 +8627,7 @@ export const InsertFileStoreDocument = gql`
   }
 }
     `;
-export type InsertFileStoreMutationFn = Apollo.MutationFunction<
-  InsertFileStoreMutation,
-  InsertFileStoreMutationVariables
->;
+export type InsertFileStoreMutationFn = Apollo.MutationFunction<InsertFileStoreMutation, InsertFileStoreMutationVariables>;
 
 /**
  * __useInsertFileStoreMutation__
@@ -8874,27 +8646,13 @@ export type InsertFileStoreMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useInsertFileStoreMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    InsertFileStoreMutation,
-    InsertFileStoreMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    InsertFileStoreMutation,
-    InsertFileStoreMutationVariables
-  >(InsertFileStoreDocument, options);
-}
-export type InsertFileStoreMutationHookResult = ReturnType<
-  typeof useInsertFileStoreMutation
->;
-export type InsertFileStoreMutationResult =
-  Apollo.MutationResult<InsertFileStoreMutation>;
-export type InsertFileStoreMutationOptions = Apollo.BaseMutationOptions<
-  InsertFileStoreMutation,
-  InsertFileStoreMutationVariables
->;
+export function useInsertFileStoreMutation(baseOptions?: Apollo.MutationHookOptions<InsertFileStoreMutation, InsertFileStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertFileStoreMutation, InsertFileStoreMutationVariables>(InsertFileStoreDocument, options);
+      }
+export type InsertFileStoreMutationHookResult = ReturnType<typeof useInsertFileStoreMutation>;
+export type InsertFileStoreMutationResult = Apollo.MutationResult<InsertFileStoreMutation>;
+export type InsertFileStoreMutationOptions = Apollo.BaseMutationOptions<InsertFileStoreMutation, InsertFileStoreMutationVariables>;
 export const UpdateFileStoreDocument = gql`
     mutation updateFileStore($id: uuid!, $object: graphiteFileStoreInput!) {
   graphite {
@@ -8904,10 +8662,7 @@ export const UpdateFileStoreDocument = gql`
   }
 }
     `;
-export type UpdateFileStoreMutationFn = Apollo.MutationFunction<
-  UpdateFileStoreMutation,
-  UpdateFileStoreMutationVariables
->;
+export type UpdateFileStoreMutationFn = Apollo.MutationFunction<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>;
 
 /**
  * __useUpdateFileStoreMutation__
@@ -8927,24 +8682,10 @@ export type UpdateFileStoreMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateFileStoreMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpdateFileStoreMutation,
-    UpdateFileStoreMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    UpdateFileStoreMutation,
-    UpdateFileStoreMutationVariables
-  >(UpdateFileStoreDocument, options);
-}
-export type UpdateFileStoreMutationHookResult = ReturnType<
-  typeof useUpdateFileStoreMutation
->;
-export type UpdateFileStoreMutationResult =
-  Apollo.MutationResult<UpdateFileStoreMutation>;
-export type UpdateFileStoreMutationOptions = Apollo.BaseMutationOptions<
-  UpdateFileStoreMutation,
-  UpdateFileStoreMutationVariables
->;
+export function useUpdateFileStoreMutation(baseOptions?: Apollo.MutationHookOptions<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>(UpdateFileStoreDocument, options);
+      }
+export type UpdateFileStoreMutationHookResult = ReturnType<typeof useUpdateFileStoreMutation>;
+export type UpdateFileStoreMutationResult = Apollo.MutationResult<UpdateFileStoreMutation>;
+export type UpdateFileStoreMutationOptions = Apollo.BaseMutationOptions<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>;
