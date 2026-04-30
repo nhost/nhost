@@ -39,5 +39,6 @@ _dev-env-down:
 
 
 .PHONY: changelog-bump-refs
-changelog-bump-refs:  ## Bump functions version ref in CLI source
+changelog-bump-refs:  ## Bump functions version ref in CLI source and docs
 	@sed -i 's|defaultFunctionsVersion = "[^"]*"|defaultFunctionsVersion = "$(BUMP_VERSION)"|' $(ROOT_DIR)/cli/cmd/dev/up.go
+	@sed -i 's|\(--functions-version\*\*.*(default: \)"[^"]*"|\1"$(BUMP_VERSION)"|' $(ROOT_DIR)/docs/src/content/docs/reference/cli/commands.mdx
