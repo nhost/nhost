@@ -439,6 +439,7 @@ export default function NavTree() {
             className="flex flex-col gap-1"
           >
             <div className="flex flex-row items-center">
+              {arrow}
               <Button
                 asChild
                 onClick={() => {
@@ -493,7 +494,6 @@ export default function NavTree() {
                   </span>
                 </Link>
               </Button>
-              {arrow}
             </div>
             <div>{children}</div>
           </li>

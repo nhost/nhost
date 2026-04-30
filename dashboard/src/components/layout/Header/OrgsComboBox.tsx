@@ -57,11 +57,18 @@ export default function OrgsComboBox() {
     }
   }, [selectedOrgFromUrl]);
 
-  const orgsOptions: Option[] = orgs.map((org) => ({
-    label: org.name,
-    value: org.slug,
-    plan: org.plan.name,
-  }));
+  const orgsOptions: Option[] = [
+    ...orgs.map((org) => ({
+      label: org.name,
+      value: org.slug,
+      plan: org.plan.name,
+    })),
+    {
+      label: 'Mock Enterprise Org',
+      value: '__mock-enterprise__',
+      plan: 'Enterprise-Test',
+    },
+  ];
 
   const [open, setOpen] = useState(false);
 
