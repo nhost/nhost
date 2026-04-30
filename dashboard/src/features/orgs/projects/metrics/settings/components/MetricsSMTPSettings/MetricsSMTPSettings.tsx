@@ -4,7 +4,6 @@ import type { Optional } from 'utility-types';
 import * as yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
@@ -34,7 +33,6 @@ const smtpValidationSchema = yup
 export type MetricsSmtpFormValues = yup.InferType<typeof smtpValidationSchema>;
 
 export default function MetricsSMTPSettings() {
-  const { maintenanceActive } = useUI();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -129,7 +127,7 @@ export default function MetricsSMTPSettings() {
           className="grid gap-4 lg:grid-cols-9"
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive,
+              disabled: !isDirty,
               loading: isSubmitting,
             },
           }}

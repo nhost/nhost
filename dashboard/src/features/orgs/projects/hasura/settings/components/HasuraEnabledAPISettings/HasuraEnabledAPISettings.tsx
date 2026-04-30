@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -36,7 +35,6 @@ const AVAILABLE_HASURA_APIS = ['metadata', 'graphql', 'pgdump', 'config'];
 export default function HasuraEnabledAPISettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
 
@@ -137,7 +135,7 @@ export default function HasuraEnabledAPISettings() {
           description="Enable or disable APIs for your Hasura instance."
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive,
+              disabled: !isDirty,
               loading: formState.isSubmitting,
             },
           }}

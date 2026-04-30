@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import {
   ControlledAutocomplete,
   defaultFilterOptions,
@@ -40,7 +39,6 @@ export type HasuraServiceVersionFormValues = Yup.InferType<
 export default function HasuraServiceVersionSettings() {
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
 
@@ -160,7 +158,7 @@ export default function HasuraServiceVersionSettings() {
           description="The version of the Hasura GraphQL Engine to use."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}

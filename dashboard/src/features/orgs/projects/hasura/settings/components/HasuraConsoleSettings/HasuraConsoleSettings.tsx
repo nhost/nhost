@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -26,7 +25,6 @@ export type HasuraConsoleFormValues = Yup.InferType<typeof validationSchema>;
 export default function HasuraConsoleSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
 
@@ -121,7 +119,7 @@ export default function HasuraConsoleSettings() {
           description="Enable or disable the Hasura Console. This will enable or disable the Hasura Console on the dashboard as well."
           slotProps={{
             submitButton: {
-              disabled: !form.formState.isDirty || maintenanceActive,
+              disabled: !form.formState.isDirty,
               loading: form.formState.isSubmitting,
             },
           }}

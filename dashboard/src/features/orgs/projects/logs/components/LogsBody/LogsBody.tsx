@@ -7,12 +7,7 @@ import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { CORE_LOG_SERVICE_TO_LABEL } from '@/features/orgs/projects/logs/utils/constants/services';
-import type {
-  GetLogsSubscriptionSubscription,
-  GetProjectLogsQuery,
-} from '@/generated/graphql';
 import { cn } from '@/lib/utils';
-import type { QueryResult, SubscriptionResult } from '@apollo/client';
 import {
   flexRender,
   getCoreRowModel,
@@ -23,13 +18,21 @@ import { format } from 'date-fns';
 import type { PropsWithChildren } from 'react';
 import { useMemo, useRef } from 'react';
 
+export interface LogEntry {
+  timestamp: string;
+  service: string;
+  log: string;
+}
+
+export interface LogsData {
+  logs: LogEntry[];
+}
+
 export interface LogsBodyProps {
   /**
    * The query result
    */
-  logsData:
-    | QueryResult<GetProjectLogsQuery>['data']
-    | SubscriptionResult<GetLogsSubscriptionSubscription>['data'];
+  logsData: LogsData | undefined;
   /**
    * Determines whether or not the query or subscription is loading
    */
@@ -39,6 +42,7 @@ export interface LogsBodyProps {
    */
   error?: Error;
   tableContainerClasses?: string;
+  hideServiceColumn?: boolean;
 }
 
 export function LogsBodyCustomMessage({
@@ -114,6 +118,7 @@ export default function LogsBody({
   error,
   loading,
   tableContainerClasses,
+  hideServiceColumn,
 }: LogsBodyProps) {
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -128,9 +133,13 @@ export default function LogsBody({
     [logsData],
   );
 
+  const visibleColumns = hideServiceColumn
+    ? columns.filter((column) => column.id !== 'service')
+    : columns;
+
   const table = useReactTable({
     data,
-    columns,
+    columns: visibleColumns,
     defaultColumn: {
       size: 0,
     },

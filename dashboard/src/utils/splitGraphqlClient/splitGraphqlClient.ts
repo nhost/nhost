@@ -62,6 +62,7 @@ const splitQraphqlClient = new ApolloClient({
       },
     },
   }),
+  // send http requests to Hasura but websocket requests to Bragi
   link: split(
     ({ query }) => {
       const definition = getMainDefinition(query);

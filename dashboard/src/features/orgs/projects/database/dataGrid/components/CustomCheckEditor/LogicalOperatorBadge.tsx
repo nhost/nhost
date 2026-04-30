@@ -39,13 +39,11 @@ const parentBackgrounds = [
 
 interface LogicalOperatorBadgeProps {
   name: string;
-  disabled?: boolean;
   depth?: number;
 }
 
 export default function LogicalOperatorBadge({
   name,
-  disabled,
   depth = 0,
 }: LogicalOperatorBadgeProps) {
   const { setValue } = useFormContext();
@@ -59,7 +57,7 @@ export default function LogicalOperatorBadge({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild disabled={disabled}>
+      <DropdownMenuTrigger asChild>
         <Badge
           variant="outline"
           className={cn(

@@ -85,17 +85,37 @@ const conditionNodeSchema = Yup.object().shape({
   column: Yup.string().nullable().required('Please select a column.'),
   operator: Yup.string().nullable().required('Please select an operator.'),
   value: Yup.mixed()
-    .test(
-      'isArray',
-      'Please enter a valid value.',
-      (value) =>
-        typeof value === 'string' ||
-        (Array.isArray(value) &&
-          value.every((item) => typeof item === 'string')),
-    )
+    .test('isArray', 'Please enter a valid value.', (value) => {
+      const isPrimitive = (item: unknown) =>
+        typeof item === 'string' ||
+        typeof item === 'number' ||
+        typeof item === 'boolean';
+      return (
+        isPrimitive(value) || (Array.isArray(value) && value.every(isPrimitive))
+      );
+    })
     .nullable()
     .required('Please enter a value.'),
 });
+
+const invalidNodeSchema = Yup.object()
+  .shape({
+    type: Yup.string(),
+    id: Yup.string(),
+    reason: Yup.string(),
+    key: Yup.string(),
+  })
+  .test('not-invalid', '', function validateInvalidNode(value) {
+    if (!value || value.type !== 'invalid') {
+      return true;
+    }
+    const { reason, key } = value as { reason: string; key: string };
+    const message =
+      reason === 'primitive'
+        ? `"${key}" has a primitive value — did you mean {"_eq": ...}?`
+        : `"${key}" is not a valid operator — did you mean "_and" or "_or"?`;
+    return this.createError({ message });
+  });
 
 // biome-ignore lint/suspicious/noExplicitAny: recursive schema requires any
 const groupNodeSchema: Yup.ObjectSchema<any> = Yup.object().shape({
@@ -114,11 +134,30 @@ const groupNodeSchema: Yup.ObjectSchema<any> = Yup.object().shape({
       if (value?.type === 'relationship') {
         return relationshipNodeSchema;
       }
+      if (value?.type === 'invalid') {
+        return invalidNodeSchema;
+      }
       return groupNodeSchema;
       // biome-ignore lint/suspicious/noExplicitAny: discriminated union requires any
     }) as any,
   ),
 });
+
+function groupHasLeaf(value: unknown): boolean {
+  if (!value) {
+    return false;
+  }
+  const group = value as GroupNode;
+  if (!Array.isArray(group.children) || group.children.length === 0) {
+    return false;
+  }
+  return group.children.some((child) => {
+    if (child.type === 'group') {
+      return groupHasLeaf(child);
+    }
+    return true;
+  });
+}
 
 // biome-ignore lint/suspicious/noExplicitAny: recursive schema requires any
 const existsNodeSchema: Yup.ObjectSchema<any> = Yup.object().shape({
@@ -126,7 +165,11 @@ const existsNodeSchema: Yup.ObjectSchema<any> = Yup.object().shape({
   id: Yup.string(),
   schema: Yup.string().required('Please select a schema.'),
   table: Yup.string().required('Please select a table.'),
-  where: groupNodeSchema,
+  where: groupNodeSchema.test(
+    'exists-where-not-empty',
+    'Please add at least one condition inside the exists block.',
+    groupHasLeaf,
+  ),
 });
 
 // biome-ignore lint/suspicious/noExplicitAny: recursive schema requires any
@@ -136,11 +179,25 @@ const relationshipNodeSchema: Yup.ObjectSchema<any> = Yup.object().shape({
   relationship: Yup.string()
     .nullable()
     .required('Please select a relationship.'),
-  child: groupNodeSchema,
+  child: groupNodeSchema.test(
+    'relationship-child-not-empty',
+    'Please add at least one condition inside the relationship block.',
+    groupHasLeaf,
+  ),
 });
 
 export const filterValidationSchema = groupNodeSchema
   .nullable()
+  .test(
+    'not-empty-root',
+    'Please add at least one rule, or choose "Without any checks".',
+    (value) => {
+      if (!value) {
+        return true;
+      }
+      return groupHasLeaf(value);
+    },
+  )
   .test(
     'no-serialization-collisions',
     '',

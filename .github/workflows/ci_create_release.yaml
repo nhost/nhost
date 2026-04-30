@@ -19,6 +19,13 @@ jobs:
       actions: write
 
     steps:
+    - name: "Generate App token"
+      id: app-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ secrets.NHOST_BOT_APP_ID }}
+        private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
+
     - name: "Check out repository"
       uses: actions/checkout@v6
       with:
@@ -79,5 +86,5 @@ jobs:
           --notes "${{ steps.changelog.outputs.content }}" \
           --target main
       env:
-        # We need to use a PAT because GITHUB_TOKEN does not trigger workflows on releases
-        GH_TOKEN: ${{ secrets.GH_PAT }}
+        # We need a non-GITHUB_TOKEN here so the release event triggers downstream workflows
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}

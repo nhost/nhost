@@ -1,0 +1,37 @@
+query getFunctionsLogs(
+  $appID: String!
+  $from: Timestamp!
+  $to: Timestamp
+  $path: String!
+  $regexFilter: String
+) {
+  getFunctionsLogs(
+    appID: $appID
+    from: $from
+    to: $to
+    path: $path
+    regexFilter: $regexFilter
+  ) {
+    timestamp
+    service
+    log
+  }
+}
+
+subscription getFunctionsLogsSubscription(
+  $appID: String!
+  $from: Timestamp!
+  $path: String!
+  $regexFilter: String
+) {
+  getFunctionsLogs(
+    appID: $appID
+    from: $from
+    path: $path
+    regexFilter: $regexFilter
+  ) {
+    timestamp
+    service
+    log
+  }
+}

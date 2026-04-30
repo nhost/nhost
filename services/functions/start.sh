@@ -43,6 +43,11 @@ cp -n "$SERVER_PATH/tsconfig.json" "$FUNCTIONS_WORKING_DIR/tsconfig.json"
 
 # * Install dependencies and start the server from the functions working directory
 # * (cwd must be FUNCTIONS_WORKING_DIR so FUNCTIONS_RELATIVE_PATH resolves correctly)
+# * NODE_OPTIONS bumps the V8 heap so esbuild's watch context has headroom for
+# * projects with many functions / heavy deps. Override via env if needed.
+: "${NODE_OPTIONS:=--max-old-space-size=4096}"
+export NODE_OPTIONS
+
 cd "$FUNCTIONS_WORKING_DIR" && nci && \
 FUNCTIONS_RELATIVE_PATH="$FUNCTIONS_RELATIVE_PATH" \
 node "$SERVER_PATH/server.js"
