@@ -67,6 +67,15 @@ export const updateSessionFromResponseMiddleware = (
           return response;
         }
 
+        // A successful password change revokes every refresh token for the
+        // user on the server (including the caller's), so the locally stored
+        // session is no longer valid. Clear it so the user is treated as
+        // signed out on the client too.
+        if (url.endsWith('/user/password') && response.ok) {
+          storage.remove();
+          return response;
+        }
+
         // Check if this is an auth-related endpoint that might return session data
         if (
           url.endsWith('/token') ||
