@@ -1830,6 +1830,55 @@ func (q *Queries) UpdateUserDeanonymize(ctx context.Context, arg UpdateUserDeano
 	return err
 }
 
+const updateUserDeanonymizeSMS = `-- name: UpdateUserDeanonymizeSMS :exec
+WITH updated_user AS (
+    UPDATE auth.users
+    SET
+        is_anonymous = false,
+        phone_number = $2,
+        phone_number_verified = false,
+        otp_hash = crypt($3, gen_salt('bf')),
+        otp_hash_expires_at = $4,
+        otp_method_last_used = 'sms',
+        default_role = $5,
+        display_name = $6,
+        locale = $7,
+        metadata = $8
+    WHERE id = $9
+    RETURNING id
+)
+INSERT INTO auth.user_roles (user_id, role)
+    SELECT updated_user.id, roles.role
+    FROM updated_user, unnest($1::TEXT[]) AS roles(role)
+`
+
+type UpdateUserDeanonymizeSMSParams struct {
+	Roles            []string
+	PhoneNumber      pgtype.Text
+	Otp              pgtype.Text
+	OtpHashExpiresAt pgtype.Timestamptz
+	DefaultRole      pgtype.Text
+	DisplayName      pgtype.Text
+	Locale           pgtype.Text
+	Metadata         []byte
+	ID               pgtype.UUID
+}
+
+func (q *Queries) UpdateUserDeanonymizeSMS(ctx context.Context, arg UpdateUserDeanonymizeSMSParams) error {
+	_, err := q.db.Exec(ctx, updateUserDeanonymizeSMS,
+		arg.Roles,
+		arg.PhoneNumber,
+		arg.Otp,
+		arg.OtpHashExpiresAt,
+		arg.DefaultRole,
+		arg.DisplayName,
+		arg.Locale,
+		arg.Metadata,
+		arg.ID,
+	)
+	return err
+}
+
 const updateUserLastSeen = `-- name: UpdateUserLastSeen :one
 UPDATE auth.users
 SET last_seen = now()

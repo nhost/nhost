@@ -424,6 +424,20 @@ func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserDeanonymize(ctx, arg any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserDeanonymize", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserDeanonymize), ctx, arg)
 }
 
+// UpdateUserDeanonymizeSMS mocks base method.
+func (m *MockDBClientUpdateUser) UpdateUserDeanonymizeSMS(ctx context.Context, arg sql.UpdateUserDeanonymizeSMSParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserDeanonymizeSMS", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserDeanonymizeSMS indicates an expected call of UpdateUserDeanonymizeSMS.
+func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserDeanonymizeSMS(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserDeanonymizeSMS", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserDeanonymizeSMS), ctx, arg)
+}
+
 // UpdateUserLastSeen mocks base method.
 func (m *MockDBClientUpdateUser) UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error) {
 	m.ctrl.T.Helper()
@@ -1340,6 +1354,20 @@ func (m *MockDBClient) UpdateUserDeanonymize(ctx context.Context, arg sql.Update
 func (mr *MockDBClientMockRecorder) UpdateUserDeanonymize(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserDeanonymize", reflect.TypeOf((*MockDBClient)(nil).UpdateUserDeanonymize), ctx, arg)
+}
+
+// UpdateUserDeanonymizeSMS mocks base method.
+func (m *MockDBClient) UpdateUserDeanonymizeSMS(ctx context.Context, arg sql.UpdateUserDeanonymizeSMSParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserDeanonymizeSMS", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserDeanonymizeSMS indicates an expected call of UpdateUserDeanonymizeSMS.
+func (mr *MockDBClientMockRecorder) UpdateUserDeanonymizeSMS(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserDeanonymizeSMS", reflect.TypeOf((*MockDBClient)(nil).UpdateUserDeanonymizeSMS), ctx, arg)
 }
 
 // UpdateUserLastSeen mocks base method.

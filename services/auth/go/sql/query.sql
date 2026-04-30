@@ -369,6 +369,27 @@ INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role);
 
+-- name: UpdateUserDeanonymizeSMS :exec
+WITH updated_user AS (
+    UPDATE auth.users
+    SET
+        is_anonymous = false,
+        phone_number = @phone_number,
+        phone_number_verified = false,
+        otp_hash = crypt(@otp, gen_salt('bf')),
+        otp_hash_expires_at = @otp_hash_expires_at,
+        otp_method_last_used = 'sms',
+        default_role = @default_role,
+        display_name = @display_name,
+        locale = @locale,
+        metadata = @metadata
+    WHERE id = @id
+    RETURNING id
+)
+INSERT INTO auth.user_roles (user_id, role)
+    SELECT updated_user.id, roles.role
+    FROM updated_user, unnest(@roles::TEXT[]) AS roles(role);
+
 -- name: DeleteRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
 WHERE user_id = $1;

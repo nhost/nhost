@@ -1026,6 +1026,14 @@ type UserDeanonymizeRequest struct {
 // UserDeanonymizeRequestSignInMethod Which sign-in method to use
 type UserDeanonymizeRequestSignInMethod string
 
+// UserDeanonymizeSMSRequest defines model for UserDeanonymizeSMSRequest.
+type UserDeanonymizeSMSRequest struct {
+	Options *SignUpOptions `json:"options,omitempty"`
+
+	// PhoneNumber Phone number of the user
+	PhoneNumber string `json:"phoneNumber"`
+}
+
 // UserEmailChangeRequest defines model for UserEmailChangeRequest.
 type UserEmailChangeRequest struct {
 	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -1437,6 +1445,9 @@ type VerifyTokenJSONRequestBody = VerifyTokenRequest
 
 // DeanonymizeUserJSONRequestBody defines body for DeanonymizeUser for application/json ContentType.
 type DeanonymizeUserJSONRequestBody = UserDeanonymizeRequest
+
+// DeanonymizeUserSMSJSONRequestBody defines body for DeanonymizeUserSMS for application/json ContentType.
+type DeanonymizeUserSMSJSONRequestBody = UserDeanonymizeSMSRequest
 
 // ChangeUserEmailJSONRequestBody defines body for ChangeUserEmail for application/json ContentType.
 type ChangeUserEmailJSONRequestBody = UserEmailChangeRequest

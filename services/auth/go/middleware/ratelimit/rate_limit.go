@@ -35,6 +35,7 @@ func sendsSMS(path string) bool {
 	return slices.Contains([]string{
 		"/signin/passwordless/sms",
 		"/signup/passwordless/sms",
+		"/user/deanonymize/sms",
 	}, path)
 }
 

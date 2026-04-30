@@ -74,6 +74,7 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 		arg sql.UpdateUserChangeEmailParams,
 	) (sql.AuthUser, error)
 	UpdateUserDeanonymize(ctx context.Context, arg sql.UpdateUserDeanonymizeParams) error
+	UpdateUserDeanonymizeSMS(ctx context.Context, arg sql.UpdateUserDeanonymizeSMSParams) error
 	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
 	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
 	UpdateUserChangePassword(
