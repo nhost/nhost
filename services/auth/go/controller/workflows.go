@@ -745,8 +745,10 @@ func (wf *Workflows) ChangePassword(
 	}
 
 	// UpdateUserChangePassword atomically rotates the password hash and revokes
-	// all existing refresh tokens (both the regular and OAuth2 tables) within a
-	// single CTE, so a stolen token cannot be reused after a password change.
+	// session refresh tokens (regular rows in auth.refresh_tokens plus all
+	// auth.oauth2_refresh_tokens) within a single CTE. Personal Access Tokens
+	// (type='pat') are intentionally preserved so automation keeps working
+	// across password changes.
 	if _, err := wf.db.UpdateUserChangePassword(
 		ctx,
 		sql.UpdateUserChangePasswordParams{
