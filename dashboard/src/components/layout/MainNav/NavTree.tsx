@@ -21,10 +21,9 @@ import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Button } from '@/components/ui/v3/button';
-import { useProjectColor } from '@/features/orgs/projects/common/hooks/useProjectColor';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
+import ProjectSwitcher from './ProjectSwitcher';
 import { useTreeNavState } from './TreeNavStateContext';
 
 type ProjectPage = {
@@ -380,8 +379,6 @@ const emptyTree: { items: Record<TreeItemIndex, TreeItem<NavItem>> } = {
 
 export default function NavTree() {
   const router = useRouter();
-  const { project } = useProject();
-  const { entry: colorEntry } = useProjectColor(project?.id);
 
   const orgSlug = router.query.orgSlug as string | undefined;
   const appSubdomain = router.query.appSubdomain as string | undefined;
@@ -407,17 +404,9 @@ export default function NavTree() {
 
   return (
     <div className="flex flex-col gap-2">
-      {project && (
-        <div className="flex items-center gap-2 px-2 pb-1">
-          {colorEntry && (
-            <span
-              aria-hidden="true"
-              className={cn('h-3 w-3 shrink-0 rounded-full', colorEntry.dot)}
-            />
-          )}
-          <span className="truncate font-semibold text-foreground text-sm">
-            {project.name}
-          </span>
+      {appSubdomain && (
+        <div className="px-1 pb-1">
+          <ProjectSwitcher />
         </div>
       )}
 

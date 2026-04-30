@@ -9,7 +9,6 @@ import { Container } from '@/components/layout/Container';
 import { Header } from '@/components/layout/Header';
 import { MainNav } from '@/components/layout/MainNav';
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
-import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -39,7 +38,6 @@ export default function AuthenticatedLayout({
   const [mainNavContainer, setMainNavContainer] = useState<HTMLElement | null>(
     null,
   );
-  const { mainNavPinned } = useTreeNavState();
 
   const hasProject = Boolean(router.query.appSubdomain);
   const showSidebar = withMainNav && hasProject;
@@ -129,23 +127,17 @@ export default function AuthenticatedLayout({
         className="relative flex h-full flex-row overflow-hidden"
         ref={setMainNavContainer}
       >
-        {showSidebar && mainNavPinned && isMdOrLarger && <PinnedMainNav />}
-        {!showSidebar && isMdOrLarger && (
-          <div
-            aria-hidden="true"
-            className="h-full w-full flex-shrink-0 border-r sm:max-w-[310px]"
-          />
-        )}
+        {showSidebar && isMdOrLarger && <PinnedMainNav />}
 
         <div
           className={cn(
             'relative flex h-full w-full flex-row bg-accent-background',
             {
-              'overflow-x-auto': showSidebar && mainNavPinned && isMdOrLarger,
+              'overflow-x-auto': showSidebar && isMdOrLarger,
             },
           )}
         >
-          {showSidebar && (!mainNavPinned || !isMdOrLarger) && (
+          {showSidebar && !isMdOrLarger && (
             <div className="flex h-full w-6 justify-center">
               <MainNav container={mainNavContainer} />
             </div>

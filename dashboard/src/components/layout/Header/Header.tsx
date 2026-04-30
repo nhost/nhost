@@ -17,7 +17,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useProjectColor } from '@/features/orgs/projects/common/hooks/useProjectColor';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import BreadcrumbNav from './BreadcrumbNav';
+import OrgsComboBox from './OrgsComboBox';
 
 export interface HeaderProps
   extends PropsWithoutRef<
@@ -51,18 +51,19 @@ export default function Header({ className, ...props }: HeaderProps) {
     <Box
       component="header"
       className={twMerge(
-        'relative z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b px-4',
+        'relative z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b px-8',
         colorEntry && `border-b-2 ${colorEntry.border}`,
         className,
       )}
       sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
-      <div className="mr-2 h-6 w-6">
-        <Logo className="mx-auto h-6 w-6 cursor-pointer" />
+      <div className="flex items-center gap-3">
+        <Logo className="h-6 w-6 cursor-pointer" />
+        <div className="w-60">
+          <OrgsComboBox />
+        </div>
       </div>
-
-      <BreadcrumbNav />
 
       <div className="hidden grid-flow-col items-center gap-1 sm:grid">
         <Button

@@ -10,17 +10,14 @@ import {
 } from 'react';
 import type { IndividualTreeViewState } from 'react-complex-tree';
 import { useNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useNavTreeStateFromURL';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 
 interface TreeNavStateContextType {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  mainNavPinned: boolean;
   orgsTreeViewState: IndividualTreeViewState<never>;
   setOrgsTreeViewState: Dispatch<
     SetStateAction<IndividualTreeViewState<never>>
   >;
-  setMainNavPinned: (value: boolean) => void;
 }
 
 const TreeNavStateContext = createContext<TreeNavStateContextType | undefined>(
@@ -54,28 +51,16 @@ function useSyncedTreeViewState() {
 
 function TreeNavStateProvider({ children }: TreeNavProviderProps) {
   const [open, setOpen] = useState(false);
-  const [mainNavPinned, setMainNavPinned] = useSSRLocalStorage(
-    'pin-nav-tree',
-    true,
-  );
   const orgsTreeViewState = useSyncedTreeViewState();
 
   const value = useMemo(
     () => ({
       open,
       setOpen,
-      mainNavPinned,
-      setMainNavPinned,
       orgsTreeViewState: orgsTreeViewState.state,
       setOrgsTreeViewState: orgsTreeViewState.setState,
     }),
-    [
-      open,
-      mainNavPinned,
-      setMainNavPinned,
-      orgsTreeViewState.state,
-      orgsTreeViewState.setState,
-    ],
+    [open, orgsTreeViewState.state, orgsTreeViewState.setState],
   );
 
   return (

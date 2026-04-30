@@ -1,4 +1,4 @@
-import { Menu, Pin, PinOff, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/v3/button';
@@ -19,7 +19,7 @@ interface MainNavProps {
 export default function MainNav({ container }: MainNavProps) {
   const { asPath } = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const { open, setOpen, mainNavPinned, setMainNavPinned } = useTreeNavState();
+  const { open, setOpen } = useTreeNavState();
 
   useEffect(() => {
     if (open) {
@@ -49,7 +49,7 @@ export default function MainNav({ container }: MainNavProps) {
         side="left"
         container={container}
         hideCloseButton
-        className="h-full w-full p-0 sm:max-w-[310px]"
+        className="h-full w-full p-0 sm:max-w-[272px]"
         onMouseLeave={() => setOpen(false)}
       >
         <SheetHeader>
@@ -60,23 +60,7 @@ export default function MainNav({ container }: MainNavProps) {
         </SheetHeader>
 
         <div className="flex h-12 w-full flex-row items-center justify-end border-b bg-background px-1">
-          <Button
-            variant="ghost"
-            className="hidden sm:flex"
-            onClick={() => setMainNavPinned(!mainNavPinned)}
-          >
-            {mainNavPinned ? (
-              <PinOff className="h-5 w-5" />
-            ) : (
-              <Pin className="h-5 w-5" />
-            )}
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="flex sm:hidden"
-            onClick={() => setOpen(false)}
-          >
+          <Button variant="ghost" onClick={() => setOpen(false)}>
             <X className="h-5 w-5" />
           </Button>
         </div>

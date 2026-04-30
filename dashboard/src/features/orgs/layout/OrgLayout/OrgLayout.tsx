@@ -1,4 +1,5 @@
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { OrgTabs } from '@/features/orgs/layout/OrgTabs';
 import OrganizationGuard from './OrganizationGuard';
 import ProjectLayoutContent, {
   type ProjectLayoutContentProps,
@@ -17,7 +18,10 @@ export default function OrgLayout({
     <AuthenticatedLayout>
       <OrganizationGuard>
         {isOrgPage ? (
-          children
+          <div className="flex h-full flex-col">
+            <OrgTabs />
+            <div className="flex-1 overflow-auto">{children}</div>
+          </div>
         ) : (
           <ProjectLayoutContent mainContainerProps={mainContainerProps}>
             {children}
