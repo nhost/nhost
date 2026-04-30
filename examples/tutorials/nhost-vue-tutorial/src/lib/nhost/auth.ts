@@ -1,11 +1,11 @@
 import { createClient } from '@nhost/nhost-js';
-import type { Session } from '@nhost/nhost-js/auth';
+import type { StoredSession } from '@nhost/nhost-js/session';
 import { computed, reactive } from 'vue';
 
 // Global reactive state
 const authState = reactive({
-  user: null as Session['user'] | null,
-  session: null as Session | null,
+  user: null as StoredSession['user'] | null,
+  session: null as StoredSession | null,
   isLoading: true,
 });
 

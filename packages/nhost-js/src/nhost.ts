@@ -22,9 +22,9 @@ import {
 import {
   detectStorage,
   refreshSession,
-  type StoredSession,
   SessionStorage,
   type SessionStorageBackend,
+  type StoredSession,
 } from './session/';
 import {
   createAPIClient as createStorageClient,
