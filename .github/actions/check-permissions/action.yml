@@ -1,0 +1,15 @@
+name: 'Check Permissions'
+description: "Fail if the PR author lacks write permissions and the 'safe_to_test' label is not present"
+
+runs:
+  using: 'composite'
+  steps:
+    - shell: bash
+      run: |
+        echo "github.event_name: ${{ github.event_name }}"
+        echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
+    - name: "This task will run and fail if user has no permissions and label safe_to_test isn't present"
+      if: 'github.event_name == ''pull_request_target'' && ! ( contains(github.event.pull_request.labels.*.name, ''safe_to_test'') || contains(fromJson(''["OWNER", "MEMBER", "COLLABORATOR"]''), github.event.pull_request.author_association) || contains(fromJson(''["nhost-helper-bot[bot]"]''), github.event.pull_request.user.login) )'
+      shell: bash
+      run: |
+        exit 1
