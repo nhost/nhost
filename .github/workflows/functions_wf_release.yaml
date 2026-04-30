@@ -20,7 +20,9 @@ on:
         required: true
       DOCKER_PASSWORD:
         required: true
-      GH_PAT:
+      NHOST_BOT_APP_ID:
+        required: true
+      NHOST_BOT_PRIVATE_KEY:
         required: true
 
 jobs:
@@ -70,4 +72,5 @@ jobs:
       PATH: services/functions
       VERSION: ${{ inputs.VERSION }}
     secrets:
-      GH_PAT: ${{ secrets.GH_PAT }}
+      NHOST_BOT_APP_ID: ${{ secrets.NHOST_BOT_APP_ID }}
+      NHOST_BOT_PRIVATE_KEY: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}

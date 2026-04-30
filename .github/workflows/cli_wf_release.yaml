@@ -16,7 +16,9 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
-      GH_PAT:
+      NHOST_BOT_APP_ID:
+        required: true
+      NHOST_BOT_PRIVATE_KEY:
         required: true
       DOCKER_USERNAME:
         required: true
@@ -62,6 +64,17 @@ jobs:
     timeout-minutes: 180
 
     steps:
+      - name: "Generate App token"
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.NHOST_BOT_APP_ID }}
+          private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
+          owner: nhost
+          repositories: |
+            nhost
+            homebrew-tap
+
       - name: "Check out repository"
         uses: actions/checkout@v6
         with:
@@ -94,7 +107,7 @@ jobs:
       - name: "Upload assets"
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           export VERSION=${{ steps.vars.outputs.VERSION }}
 
@@ -122,7 +135,7 @@ jobs:
           homebrew-tap: nhost/homebrew-tap
           version: ${{ steps.vars.outputs.VERSION }}
           assets-dir: cli/upload
-          github-token: ${{ secrets.GH_PAT }}
+          github-token: ${{ steps.app-token.outputs.token }}
 
       - name: "Store Nix cache"
         uses: ./.github/actions/cache-nix
@@ -139,4 +152,5 @@ jobs:
       PATH: cli
       VERSION: ${{ inputs.VERSION }}
     secrets:
-      GH_PAT: ${{ secrets.GH_PAT }}
+      NHOST_BOT_APP_ID: ${{ secrets.NHOST_BOT_APP_ID }}
+      NHOST_BOT_PRIVATE_KEY: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
