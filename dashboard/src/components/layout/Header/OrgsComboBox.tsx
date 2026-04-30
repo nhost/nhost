@@ -57,18 +57,11 @@ export default function OrgsComboBox() {
     }
   }, [selectedOrgFromUrl]);
 
-  const orgsOptions: Option[] = [
-    ...orgs.map((org) => ({
-      label: org.name,
-      value: org.slug,
-      plan: org.plan.name,
-    })),
-    {
-      label: 'Mock Enterprise Org',
-      value: '__mock-enterprise__',
-      plan: 'Enterprise-Test',
-    },
-  ];
+  const orgsOptions: Option[] = orgs.map((org) => ({
+    label: org.name,
+    value: org.slug,
+    plan: org.plan.name,
+  }));
 
   const [open, setOpen] = useState(false);
 
@@ -85,7 +78,7 @@ export default function OrgsComboBox() {
           plan === 'Legacy'
             ? 'bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500'
             : '',
-          'hover:none ml-2 h-5 px-[6px] text-[10px]',
+          'hover:none ml-2 h-5 shrink-0 whitespace-nowrap px-[6px] text-[10px]',
         )}
       >
         {plan}
@@ -103,8 +96,8 @@ export default function OrgsComboBox() {
             className="w-full justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
           >
             {selectedItem ? (
-              <div className="flex flex-row items-center justify-center">
-                {selectedItem.label}
+              <div className="flex min-w-0 flex-1 flex-row items-center">
+                <span className="truncate">{selectedItem.label}</span>
                 {renderBadge(selectedItem.plan)}
               </div>
             ) : (
