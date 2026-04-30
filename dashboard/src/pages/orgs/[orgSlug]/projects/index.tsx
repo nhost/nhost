@@ -57,11 +57,7 @@ export default function OrgProjects() {
     );
   }
 
-  return (
-    <div className="h-full bg-accent-background">
-      <ProjectsGrid projects={apps} />
-    </div>
-  );
+  return <ProjectsGrid projects={apps} />;
 }
 
 OrgProjects.getLayout = function getLayout(page: ReactElement) {

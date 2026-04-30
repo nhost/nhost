@@ -20,7 +20,9 @@ export default function OrgLayout({
         {isOrgPage ? (
           <div className="flex h-full flex-col">
             <OrgTabs />
-            <div className="flex-1 overflow-auto">{children}</div>
+            <div className="flex-1 overflow-auto">
+              <div className="mx-auto w-full max-w-7xl">{children}</div>
+            </div>
           </div>
         ) : (
           <ProjectLayoutContent mainContainerProps={mainContainerProps}>

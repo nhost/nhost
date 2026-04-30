@@ -69,7 +69,7 @@ export default function MainNav({ container }: MainNavProps) {
           ref={scrollContainerRef}
           className="h-[calc(100vh-7rem)] space-y-4 overflow-auto pt-2 pb-12 lg:h-[calc(100vh-6rem)]"
         >
-          <div className="flex flex-col gap-1 px-4">
+          <div className="flex flex-col gap-1 px-6">
             <NavTree />
           </div>
         </div>

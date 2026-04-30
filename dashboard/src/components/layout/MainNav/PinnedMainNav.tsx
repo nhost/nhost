@@ -45,7 +45,7 @@ export default function PinnedMainNav() {
   return (
     <div className="flex h-full w-full flex-shrink-0 flex-col border-r p-0 sm:max-w-[272px]">
       <div ref={scrollContainerRef} className="flex-1 overflow-auto pt-2 pb-12">
-        <div className="flex flex-col gap-1 px-4">
+        <div className="flex flex-col gap-1 px-6">
           <NavTree />
         </div>
       </div>

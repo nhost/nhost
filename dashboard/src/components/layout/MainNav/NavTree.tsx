@@ -404,11 +404,7 @@ export default function NavTree() {
 
   return (
     <div className="flex flex-col gap-2">
-      {appSubdomain && (
-        <div className="px-1 pb-1">
-          <ProjectSwitcher />
-        </div>
-      )}
+      {appSubdomain && <ProjectSwitcher />}
 
       <ControlledTreeEnvironment
         items={navTree.items}
@@ -443,7 +439,6 @@ export default function NavTree() {
             className="flex flex-col gap-1"
           >
             <div className="flex flex-row items-center">
-              {arrow}
               <Button
                 asChild
                 onClick={() => {
@@ -465,7 +460,7 @@ export default function NavTree() {
                   context.focusItem();
                 }}
                 className={cn(
-                  'flex h-8 w-full flex-row justify-start gap-1 bg-background px-1 text-foreground hover:bg-accent',
+                  'flex h-8 min-w-0 flex-1 flex-row justify-start gap-2 bg-background px-2 text-foreground hover:bg-accent',
                   {
                     'bg-[#ebf3ff] hover:bg-accent dark:bg-muted':
                       context.isFocused,
@@ -498,6 +493,7 @@ export default function NavTree() {
                   </span>
                 </Link>
               </Button>
+              {arrow}
             </div>
             <div>{children}</div>
           </li>

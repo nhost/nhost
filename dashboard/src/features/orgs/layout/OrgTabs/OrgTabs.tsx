@@ -43,16 +43,20 @@ export default function OrgTabs() {
   }
 
   return (
-    <div className="flex border-b bg-background px-4 py-2">
-      <Tabs value={pathname}>
-        <TabsList>
-          {TAB_DEFINITIONS.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} asChild>
-              <Link href={`/orgs/${orgSlug}/${tab.segment}`}>{tab.label}</Link>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+    <div className="border-b bg-background">
+      <div className="mx-auto w-full max-w-7xl px-4 py-2">
+        <Tabs value={pathname}>
+          <TabsList>
+            {TAB_DEFINITIONS.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value} asChild>
+                <Link href={`/orgs/${orgSlug}/${tab.segment}`}>
+                  {tab.label}
+                </Link>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
     </div>
   );
 }
