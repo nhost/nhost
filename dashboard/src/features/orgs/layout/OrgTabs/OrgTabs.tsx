@@ -46,13 +46,13 @@ export default function OrgTabs() {
     <div className="border-b bg-background">
       <div className="mx-auto w-full max-w-7xl px-4">
         <Tabs value={pathname}>
-          <TabsList className="h-auto w-full justify-start gap-1 rounded-none bg-transparent p-0 text-muted-foreground">
+          <TabsList className="-mb-px h-auto w-full justify-start gap-1 rounded-none bg-transparent p-0 text-muted-foreground">
             {TAB_DEFINITIONS.map((tab) => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
                 asChild
-                className="h-12 rounded-none bg-transparent px-3 font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_hsl(var(--primary))]"
+                className="h-12 rounded-none border-transparent border-b-2 bg-transparent px-3 font-medium text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
               >
                 <Link href={`/orgs/${orgSlug}/${tab.segment}`}>
                   {tab.label}
