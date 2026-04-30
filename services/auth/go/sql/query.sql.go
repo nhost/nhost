@@ -1720,6 +1720,7 @@ WITH updated_user AS (
 revoked_refresh_tokens AS (
     DELETE FROM auth.refresh_tokens
     WHERE user_id = $2::uuid
+    AND type = 'regular'
 ),
 revoked_oauth2_refresh_tokens AS (
     DELETE FROM auth.oauth2_refresh_tokens
