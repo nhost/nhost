@@ -12,17 +12,17 @@ let
 in
 {
   check =
-    { src
+    {
+      src,
     }:
-    pkgs.runCommand "check-nixpkgs-fmt"
+    pkgs.runCommand "check-nixfmt"
       {
-        nativeBuildInputs = with pkgs;
-          [
-            nixpkgs-fmt
-          ];
+        nativeBuildInputs = with pkgs; [
+          nixfmt-rfc-style
+        ];
       }
       ''
-        nixpkgs-fmt --check ${src}/*
+        nixfmt --check ${src}/*
 
         mkdir $out
       '';

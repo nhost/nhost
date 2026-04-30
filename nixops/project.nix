@@ -1,4 +1,10 @@
-{ self, pkgs, nix2containerPkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nix2containerPkgs,
+  nix-filter,
+  nixops-lib,
+}:
 let
   name = "nixops";
   version = "0.0.0-dev";
@@ -10,14 +16,8 @@ let
     include = with nix-filter.lib; [
       "./flake.lock"
       "./flake.nix"
-      (and
-        (inDirectory submodule)
-        isDirectory
-      )
-      (and
-        (inDirectory submodule)
-        (matchExt "nix")
-      )
+      (and (inDirectory submodule) isDirectory)
+      (and (inDirectory submodule) (matchExt "nix"))
     ];
   };
 
@@ -54,7 +54,6 @@ let
   uid = "1000";
   gid = "1000";
 
-
   l = pkgs.lib // builtins;
 
   mkUser = pkgs.runCommand "mkUser" { } ''
@@ -77,13 +76,15 @@ let
     mkdir -p $out/home/${user}
   '';
 
-  tmpFolder = (pkgs.writeTextFile {
-    name = "tmp-file";
-    text = ''
-      dummy file to generate tmpdir
-    '';
-    destination = "/tmp/tmp-file";
-  });
+  tmpFolder = (
+    pkgs.writeTextFile {
+      name = "tmp-file";
+      text = ''
+        dummy file to generate tmpdir
+      '';
+      destination = "/tmp/tmp-file";
+    }
+  );
 
   nixConfig = pkgs.writeTextFile {
     name = "nix-config";
@@ -103,7 +104,6 @@ in
     buildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
   };
 
-
   package = pkgs.stdenv.mkDerivation {
     inherit name version src;
 
@@ -117,78 +117,80 @@ in
   };
 
   dockerImage = pkgs.runCommand "image-as-dir" { } ''
-    ${(nix2containerPkgs.nix2container.buildImage {
-      inherit name created;
-      tag = version;
-      maxLayers = 100;
+    ${
+      (nix2containerPkgs.nix2container.buildImage {
+        inherit name created;
+        tag = version;
+        maxLayers = 100;
 
-      initializeNixDatabase = true;
-      nixUid = l.toInt uid;
-      nixGid = l.toInt gid;
+        initializeNixDatabase = true;
+        nixUid = l.toInt uid;
+        nixGid = l.toInt gid;
 
-      copyToRoot = [
-        (pkgs.buildEnv {
-          name = "image";
-          paths = [
-            (pkgs.buildEnv {
-              name = "root";
-              paths = with pkgs; [
-                coreutils
-                nixVersions.nix_2_28
-                bash
-                gnugrep
-                gnumake
-              ];
-              pathsToLink = [
-                "/bin"
-              ];
-            })
-          ];
-        })
-        nixConfig
-        tmpFolder
-        mkUser
-      ];
-
-      perms = [
-        {
-          path = mkUser;
-          regex = "/home/${user}";
-          mode = "0744";
-          uid = l.toInt uid;
-          gid = l.toInt gid;
-          uname = user;
-          gname = group;
-        }
-        {
-          path = tmpFolder;
-          regex = "/tmp";
-          mode = "0777";
-          uid = l.toInt uid;
-          gid = l.toInt gid;
-          uname = user;
-          gname = group;
-        }
-      ];
-
-      config = {
-        User = "user";
-        WorkingDir = "/home/user";
-        Env = [
-          "NIX_PAGER=cat"
-          "USER=nobody"
-          "HOME=/home/user"
-          "TMPDIR=/tmp"
-          "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+        copyToRoot = [
+          (pkgs.buildEnv {
+            name = "image";
+            paths = [
+              (pkgs.buildEnv {
+                name = "root";
+                paths = with pkgs; [
+                  coreutils
+                  nixVersions.nix_2_28
+                  bash
+                  gnugrep
+                  gnumake
+                ];
+                pathsToLink = [
+                  "/bin"
+                ];
+              })
+            ];
+          })
+          nixConfig
+          tmpFolder
+          mkUser
         ];
-      };
 
-      layers = [
-        (nix2containerPkgs.nix2container.buildLayer {
-          deps = buildInputs;
-        })
-      ];
+        perms = [
+          {
+            path = mkUser;
+            regex = "/home/${user}";
+            mode = "0744";
+            uid = l.toInt uid;
+            gid = l.toInt gid;
+            uname = user;
+            gname = group;
+          }
+          {
+            path = tmpFolder;
+            regex = "/tmp";
+            mode = "0777";
+            uid = l.toInt uid;
+            gid = l.toInt gid;
+            uname = user;
+            gname = group;
+          }
+        ];
 
-    }).copyTo}/bin/copy-to dir:$out
+        config = {
+          User = "user";
+          WorkingDir = "/home/user";
+          Env = [
+            "NIX_PAGER=cat"
+            "USER=nobody"
+            "HOME=/home/user"
+            "TMPDIR=/tmp"
+            "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+          ];
+        };
+
+        layers = [
+          (nix2containerPkgs.nix2container.buildLayer {
+            deps = buildInputs;
+          })
+        ];
+
+      }).copyTo
+    }/bin/copy-to dir:$out
   '';
 }

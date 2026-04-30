@@ -1,4 +1,10 @@
-{ self, pkgs, nix2containerPkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nix2containerPkgs,
+  nix-filter,
+  nixops-lib,
+}:
 let
   name = "dashboard";
   version = "0.0.0-dev";
@@ -28,7 +34,6 @@ let
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
     '';
   };
-
 
   src = nix-filter.lib.filter {
     root = ../.;
@@ -82,15 +87,23 @@ let
 
   buildInputs = with pkgs; [ nodejs ];
 
-  nativeBuildInputs = with pkgs; [ pnpm cacert ];
+  nativeBuildInputs = with pkgs; [
+    pnpm
+    cacert
+  ];
 in
 rec {
   devShell = nixops-lib.js.devShell {
     inherit node_modules;
 
-    buildInputs = with pkgs;[
-      nodePackages.vercel
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    buildInputs =
+      with pkgs;
+      [
+        nodePackages.vercel
+      ]
+      ++ checkDeps
+      ++ buildInputs
+      ++ nativeBuildInputs;
 
     shellHook = ''
       export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
@@ -102,7 +115,14 @@ rec {
   entrypoint = pkgs.writeScriptBin "docker-entrypoint.sh" (builtins.readFile ./docker-entrypoint.sh);
 
   check = nixops-lib.js.check {
-    inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      node_modules
+      submodule
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
 
     preCheck = ''
       rm -rf packages/nhost-js
@@ -110,40 +130,45 @@ rec {
     '';
   };
 
-  check-staging = pkgs.runCommand "check"
-    {
-      nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
-    } ''
-    cp -r ${src}/* .
-    chmod +w -R .
+  check-staging =
+    pkgs.runCommand "check"
+      {
+        nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
+      }
+      ''
+        cp -r ${src}/* .
+        chmod +w -R .
 
-    cp -r ${node_modules}/node_modules/ node_modules
-    cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
+        cp -r ${node_modules}/node_modules/ node_modules
+        cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
 
-    rm -rf packages/nhost-js
-    cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
+        rm -rf packages/nhost-js
+        cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 
-    export HOME=$TMPDIR
+        export HOME=$TMPDIR
 
-    cd dashboard
+        cd dashboard
 
-    echo "➜ Running e2e tests"
-    pnpm e2e
+        echo "➜ Running e2e tests"
+        pnpm e2e
 
-    echo "➜ Running e2e tests (onboarding)"
-    pnpm e2e:onboarding
+        echo "➜ Running e2e tests (onboarding)"
+        pnpm e2e:onboarding
 
-    echo "➜ Running e2e tests against local Nhost instance"
-    pnpm e2e:local
+        echo "➜ Running e2e tests against local Nhost instance"
+        pnpm e2e:local
 
-    mkdir -p $out
-  '';
-
+        mkdir -p $out
+      '';
 
   package = pkgs.stdenv.mkDerivation {
     inherit name version src;
 
-    nativeBuildInputs = with pkgs; [ pnpm cacert nodejs ];
+    nativeBuildInputs = with pkgs; [
+      pnpm
+      cacert
+      nodejs
+    ];
     buildInputs = with pkgs; [ nodejs ];
 
     configurePhase = ''
@@ -186,49 +211,53 @@ rec {
   });
 
   dockerImage = pkgs.runCommand "image-as-dir" { } ''
-    ${(nix2containerPkgs.nix2container.buildImage {
-      inherit name created;
-      tag = version;
-      maxLayers = 100;
+    ${
+      (nix2containerPkgs.nix2container.buildImage {
+        inherit name created;
+        tag = version;
+        maxLayers = 100;
 
-      copyToRoot = pkgs.buildEnv {
-        name = "image";
-        paths = [
-          packageWithDisabledCSP
-          (pkgs.writeTextFile {
-            name = "tmp-file";
-            text = ''
-              dummy file to generate tmpdir
-            '';
-            destination = "/tmp/tmp-file";
-          })
-          pkgs.busybox
-        ];
-      };
+        copyToRoot = pkgs.buildEnv {
+          name = "image";
+          paths = [
+            packageWithDisabledCSP
+            (pkgs.writeTextFile {
+              name = "tmp-file";
+              text = ''
+                dummy file to generate tmpdir
+              '';
+              destination = "/tmp/tmp-file";
+            })
+            pkgs.busybox
+          ];
+        };
 
-      config = {
-        Env = [
-          "TMPDIR=/tmp"
-          "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-          "NEXT_TELEMETRY_DISABLED=1"
-          "NEXT_PUBLIC_ENV=dev"
-          "NEXT_PUBLIC_NHOST_PLATFORM=false"
-          "NEXT_PUBLIC_DASHBOARD_VERSION=${version}"
-          # placeholders for URLs, will be replaced on runtime by entrypoint script
-          "NEXT_PUBLIC_NHOST_ADMIN_SECRET=__NEXT_PUBLIC_NHOST_ADMIN_SECRET__"
-          "NEXT_PUBLIC_NHOST_AUTH_URL=__NEXT_PUBLIC_NHOST_AUTH_URL__"
-          "NEXT_PUBLIC_NHOST_FUNCTIONS_URL=__NEXT_PUBLIC_NHOST_FUNCTIONS_URL__"
-          "NEXT_PUBLIC_NHOST_GRAPHQL_URL=__NEXT_PUBLIC_NHOST_GRAPHQL_URL__"
-          "NEXT_PUBLIC_NHOST_STORAGE_URL=__NEXT_PUBLIC_NHOST_STORAGE_URL__"
-          "NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=__NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL__"
-          "NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=__NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL__"
-          "NEXT_PUBLIC_NHOST_HASURA_API_URL=__NEXT_PUBLIC_NHOST_HASURA_API_URL__"
-          "NEXT_PUBLIC_NHOST_CONFIGSERVER_URL=__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__"
-        ];
-        Entrypoint = [
-          "${entrypoint}/bin/docker-entrypoint.sh" "${pkgs.nodejs}/bin/node" "/dashboard/server.js"
-        ];
-      };
-    }).copyTo}/bin/copy-to dir:$out
+        config = {
+          Env = [
+            "TMPDIR=/tmp"
+            "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+            "NEXT_TELEMETRY_DISABLED=1"
+            "NEXT_PUBLIC_ENV=dev"
+            "NEXT_PUBLIC_NHOST_PLATFORM=false"
+            "NEXT_PUBLIC_DASHBOARD_VERSION=${version}"
+            # placeholders for URLs, will be replaced on runtime by entrypoint script
+            "NEXT_PUBLIC_NHOST_ADMIN_SECRET=__NEXT_PUBLIC_NHOST_ADMIN_SECRET__"
+            "NEXT_PUBLIC_NHOST_AUTH_URL=__NEXT_PUBLIC_NHOST_AUTH_URL__"
+            "NEXT_PUBLIC_NHOST_FUNCTIONS_URL=__NEXT_PUBLIC_NHOST_FUNCTIONS_URL__"
+            "NEXT_PUBLIC_NHOST_GRAPHQL_URL=__NEXT_PUBLIC_NHOST_GRAPHQL_URL__"
+            "NEXT_PUBLIC_NHOST_STORAGE_URL=__NEXT_PUBLIC_NHOST_STORAGE_URL__"
+            "NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=__NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL__"
+            "NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=__NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL__"
+            "NEXT_PUBLIC_NHOST_HASURA_API_URL=__NEXT_PUBLIC_NHOST_HASURA_API_URL__"
+            "NEXT_PUBLIC_NHOST_CONFIGSERVER_URL=__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__"
+          ];
+          Entrypoint = [
+            "${entrypoint}/bin/docker-entrypoint.sh"
+            "${pkgs.nodejs}/bin/node"
+            "/dashboard/server.js"
+          ];
+        };
+      }).copyTo
+    }/bin/copy-to dir:$out
   '';
 }
