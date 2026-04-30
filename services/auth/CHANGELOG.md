@@ -1,3 +1,10 @@
+## [auth@0.50.1] - 2026-04-30
+
+### 🐛 Bug Fixes
+
+- *(auth)* Revoke all sessions on password change  (#4192)
+- *(auth)* Only invalidate regular refresh tokens (#4226)
+
 ## [auth@0.50.0] - 2026-04-20
 
 ### 🚀 Features
