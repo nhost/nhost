@@ -1711,19 +1711,30 @@ func (q *Queries) UpdateUserChangeEmail(ctx context.Context, arg UpdateUserChang
 }
 
 const updateUserChangePassword = `-- name: UpdateUserChangePassword :one
-UPDATE auth.users
-SET password_hash = $2
-WHERE id = $1
-RETURNING id
+WITH updated_user AS (
+    UPDATE auth.users
+    SET password_hash = $1
+    WHERE id = $2::uuid
+    RETURNING id
+),
+revoked_refresh_tokens AS (
+    DELETE FROM auth.refresh_tokens
+    WHERE user_id = $2::uuid
+),
+revoked_oauth2_refresh_tokens AS (
+    DELETE FROM auth.oauth2_refresh_tokens
+    WHERE user_id = $2::uuid
+)
+SELECT id FROM updated_user
 `
 
 type UpdateUserChangePasswordParams struct {
-	ID           uuid.UUID
 	PasswordHash pgtype.Text
+	ID           uuid.UUID
 }
 
 func (q *Queries) UpdateUserChangePassword(ctx context.Context, arg UpdateUserChangePasswordParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, updateUserChangePassword, arg.ID, arg.PasswordHash)
+	row := q.db.QueryRow(ctx, updateUserChangePassword, arg.PasswordHash, arg.ID)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err

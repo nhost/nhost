@@ -744,6 +744,9 @@ func (wf *Workflows) ChangePassword(
 		return ErrInternalServerError
 	}
 
+	// UpdateUserChangePassword atomically rotates the password hash and revokes
+	// all existing refresh tokens (both the regular and OAuth2 tables) within a
+	// single CTE, so a stolen token cannot be reused after a password change.
 	if _, err := wf.db.UpdateUserChangePassword(
 		ctx,
 		sql.UpdateUserChangePasswordParams{
@@ -752,19 +755,6 @@ func (wf *Workflows) ChangePassword(
 		},
 	); err != nil {
 		logger.ErrorContext(ctx, "error updating user password", logError(err))
-		return ErrInternalServerError
-	}
-
-	// Revoke all existing sessions so stolen tokens cannot be reused after a
-	// password change. Both the regular refresh-token table and the OAuth2
-	// provider refresh-token table must be cleared.
-	if err := wf.db.DeleteRefreshTokens(ctx, userID); err != nil {
-		logger.ErrorContext(ctx, "error revoking refresh tokens after password change", logError(err))
-		return ErrInternalServerError
-	}
-
-	if err := wf.db.DeleteOAuth2RefreshTokensByUserID(ctx, userID); err != nil {
-		logger.ErrorContext(ctx, "error revoking OAuth2 refresh tokens after password change", logError(err))
 		return ErrInternalServerError
 	}
 

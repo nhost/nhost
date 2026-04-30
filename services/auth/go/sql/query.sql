@@ -312,10 +312,21 @@ WHERE id = $1
 RETURNING *;
 
 -- name: UpdateUserChangePassword :one
-UPDATE auth.users
-SET password_hash = $2
-WHERE id = $1
-RETURNING id;
+WITH updated_user AS (
+    UPDATE auth.users
+    SET password_hash = @password_hash
+    WHERE id = @id::uuid
+    RETURNING id
+),
+revoked_refresh_tokens AS (
+    DELETE FROM auth.refresh_tokens
+    WHERE user_id = @id::uuid
+),
+revoked_oauth2_refresh_tokens AS (
+    DELETE FROM auth.oauth2_refresh_tokens
+    WHERE user_id = @id::uuid
+)
+SELECT id FROM updated_user;
 
 -- name: UpdateUserConfirmChangeEmail :one
 UPDATE auth.users
