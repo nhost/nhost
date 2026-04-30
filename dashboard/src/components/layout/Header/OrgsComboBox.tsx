@@ -29,6 +29,13 @@ type Option = {
   plan: string;
 };
 
+const ORG_TAB_PATHNAMES = new Set([
+  '/orgs/[orgSlug]/projects',
+  '/orgs/[orgSlug]/members',
+  '/orgs/[orgSlug]/billing',
+  '/orgs/[orgSlug]/settings',
+]);
+
 export default function OrgsComboBox() {
   const { orgs } = useOrgs();
   const isPlatform = useIsPlatform();
@@ -36,8 +43,13 @@ export default function OrgsComboBox() {
 
   const {
     query: { orgSlug },
+    pathname,
     push,
   } = useRouter();
+
+  const orgScopedPathname = ORG_TAB_PATHNAMES.has(pathname)
+    ? pathname
+    : '/orgs/[orgSlug]/projects';
 
   const selectedOrgFromUrl =
     Boolean(orgSlug) && orgs.find((item) => item.slug === orgSlug);
@@ -125,7 +137,9 @@ export default function OrgsComboBox() {
                       // persist last slug in local storage
                       setLastSlug(option.value);
 
-                      push(`/orgs/${option.value}/projects`);
+                      push(
+                        orgScopedPathname.replace('[orgSlug]', option.value),
+                      );
                     }}
                   >
                     <Check
