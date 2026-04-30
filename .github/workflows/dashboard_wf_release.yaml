@@ -29,6 +29,8 @@ on:
         required: true
       DOCKER_PASSWORD:
         required: true
+      GH_PAT:
+        required: true
 
 jobs:
   deploy-vercel:
@@ -71,3 +73,14 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  bump-refs:
+    uses: ./.github/workflows/wf_bump_refs.yaml
+    needs:
+      - push-docker
+    with:
+      NAME: dashboard
+      PATH: dashboard
+      VERSION: ${{ inputs.VERSION }}
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}

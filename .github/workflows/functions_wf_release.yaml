@@ -20,6 +20,8 @@ on:
         required: true
       DOCKER_PASSWORD:
         required: true
+      GH_PAT:
+        required: true
 
 jobs:
   build_artifacts:
@@ -58,3 +60,14 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  bump-refs:
+    uses: ./.github/workflows/wf_bump_refs.yaml
+    needs:
+      - push-docker-hub
+    with:
+      NAME: functions
+      PATH: services/functions
+      VERSION: ${{ inputs.VERSION }}
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}

@@ -60,12 +60,6 @@ jobs:
         cd ${{ matrix.project }}
         nix develop .\#cliff -c make changelog-update
 
-    - name: "Bump version references"
-      if: steps.version.outputs.version != ''
-      run: |
-        cd ${{ matrix.project }}
-        make changelog-bump-refs VER=${{ steps.version.outputs.version }}
-
     - name: "Create Pull Request"
       if: steps.version.outputs.version != ''
       uses: peter-evans/create-pull-request@v8
@@ -76,11 +70,9 @@ jobs:
         committer: GitHub <noreply@github.com>
         author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
         body: |
-          Automated release preparation for ${{ matrix.project }} version ${{ steps.version.outputs.version }}
+          Automated release preparation for ${{ matrix.project }} version ${{ steps.version.outputs.version }}.
 
-          Changes:
-          - Updated CHANGELOG.md
-          - Bumped version references (`make changelog-bump-refs`) in dependent files
+          Version references in dependent files (CLI sources, docs, etc.) are bumped in a follow-up PR after the release publishes — see `wf_bump_refs.yaml`.
         branch: release/${{ matrix.project }}
         delete-branch: true
         labels: |

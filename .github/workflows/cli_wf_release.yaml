@@ -129,3 +129,14 @@ jobs:
         with:
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
         if: always()
+
+  bump-refs:
+    uses: ./.github/workflows/wf_bump_refs.yaml
+    needs:
+      - build-multiplatform
+    with:
+      NAME: cli
+      PATH: cli
+      VERSION: ${{ inputs.VERSION }}
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}

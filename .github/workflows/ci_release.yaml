@@ -79,6 +79,7 @@ jobs:
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      GH_PAT: ${{ secrets.GH_PAT }}
 
   nhost-js:
     needs: extract-project
@@ -135,6 +136,7 @@ jobs:
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      GH_PAT: ${{ secrets.GH_PAT }}
 
   mcp:
     needs: extract-project
