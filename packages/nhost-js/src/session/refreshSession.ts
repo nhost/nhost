@@ -83,13 +83,10 @@ const _refreshSession = async (
   const {
     session,
     needsRefresh,
-  }: { session: StoredSession | null; needsRefresh: boolean } = await lock.request(
-    'nhostSessionLock',
-    { mode: 'shared' },
-    async () => {
+  }: { session: StoredSession | null; needsRefresh: boolean } =
+    await lock.request('nhostSessionLock', { mode: 'shared' }, async () => {
       return _needsRefresh(storage, marginSeconds);
-    },
-  );
+    });
 
   if (!session) {
     return null; // No session found
