@@ -3115,17 +3115,7 @@ name: string
 
 ## Session
 
-Raw authentication session returned by the Nhost Auth service API.
-
-This type represents exactly what the auth endpoints return on sign-in,
-token refresh, etc. It contains the raw JWT access token but does **not**
-include a decoded token payload.
-
-If you need the enriched session that the Nhost SDK stores and manages
-internally — including the decoded JWT claims and Hasura session variables —
-use `StoredSession` from `@nhost/nhost-js/session` instead. That is also
-the type required by `SessionStorageBackend` when implementing a custom
-storage for `createServerClient`.
+User authentication session containing tokens and user information
 
 ### Extended by
 
