@@ -59,16 +59,18 @@ describe('user/deanonymize/sms', () => {
       .send({ refreshToken: anonRefreshToken })
       .expect(StatusCodes.UNAUTHORIZED);
 
-    // user is now non-anonymous in DB but phone_number_verified is still false
+    // User is now non-anonymous; phone is staged in new_phone_number and
+    // phone_number_verified is still false until OTP verification.
     {
       const { rows } = await client.query(
-        `SELECT is_anonymous, phone_number, phone_number_verified
-           FROM auth.users WHERE phone_number = $1`,
+        `SELECT is_anonymous, phone_number, new_phone_number, phone_number_verified
+           FROM auth.users WHERE new_phone_number = $1`,
         [phoneNumber]
       );
       expect(rows).toHaveLength(1);
       expect(rows[0].is_anonymous).toBe(false);
-      expect(rows[0].phone_number).toBe(phoneNumber);
+      expect(rows[0].phone_number).toBeNull();
+      expect(rows[0].new_phone_number).toBe(phoneNumber);
       expect(rows[0].phone_number_verified).toBe(false);
     }
 
@@ -121,7 +123,7 @@ describe('user/deanonymize/sms', () => {
       .expect(StatusCodes.CONFLICT);
   });
 
-  it('rejects when phone number already belongs to another user', async () => {
+  it('rejects when phone number is already verified by another user', async () => {
     const phoneNumber = '+15551110003';
 
     await request.post('/change-env').send({
@@ -130,10 +132,15 @@ describe('user/deanonymize/sms', () => {
       AUTH_SMS_PASSWORDLESS_ENABLED: true,
     });
 
-    // first user takes the phone via signup
+    // First user takes the phone via signup AND verifies it.
     await request
       .post('/signup/passwordless/sms')
       .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+    const otp = readSMSCode(phoneNumber);
+    await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
       .expect(StatusCodes.OK);
 
     const { body: anonBody }: { body: SignInResponse } = await request

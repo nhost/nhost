@@ -121,13 +121,21 @@ describe('user/phone-number/change', () => {
       .expect(StatusCodes.CONFLICT);
   });
 
-  it('rejects when new phone is already in use by another user', async () => {
+  it('rejects when new phone is already verified by another user', async () => {
     const newPhoneNumber = '+15552220003';
 
-    // another user signs up with that phone via signup-passwordless-sms
+    // Another user signs up with that phone via signup-passwordless-sms AND
+    // verifies it — only verified phone numbers block subsequent claims.
     await request
       .post('/signup/passwordless/sms')
       .send({ phoneNumber: newPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    const otp = readSMSCode(newPhoneNumber);
+
+    await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber: newPhoneNumber, otp })
       .expect(StatusCodes.OK);
 
     await request
@@ -135,6 +143,62 @@ describe('user/phone-number/change', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ newPhoneNumber })
       .expect(StatusCodes.CONFLICT);
+  });
+
+  it('does NOT reject when new phone is only staged (unverified) by another user', async () => {
+    const newPhoneNumber = '+15552220006';
+
+    // Another user signs up with the phone but never verifies — leaves
+    // new_phone_number=+1 on a stranger's row.
+    await request
+      .post('/signup/passwordless/sms')
+      .send({ phoneNumber: newPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    // Y proceeds with change — the verified-only existence check ignores X's
+    // unverified squat.
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber })
+      .expect(StatusCodes.OK);
+  });
+
+  it('allows retrying with the same number when previous OTP was not verified', async () => {
+    const newPhoneNumber = '+15552220005';
+
+    // First attempt: SMS sent, new_phone_number staged but never verified.
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    // Second attempt with the same number must succeed; the staged
+    // new_phone_number on the caller's row must not block them.
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    // The latest OTP must verify successfully.
+    const otp = readSMSCode(newPhoneNumber);
+
+    await request
+      .post('/user/phone-number/change/verify')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber, otp })
+      .expect(StatusCodes.OK);
+
+    const { rows } = await client.query(
+      `SELECT phone_number, phone_number_verified, new_phone_number
+         FROM auth.users WHERE email = $1`,
+      [email]
+    );
+    expect(rows[0].phone_number).toBe(newPhoneNumber);
+    expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[0].new_phone_number).toBeNull();
   });
 
   it('rejects verify with mismatched newPhoneNumber', async () => {

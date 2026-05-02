@@ -199,18 +199,18 @@ func (mr *MockDBClientGetUserMockRecorder) GetUserByPhoneNumber(ctx, phoneNumber
 }
 
 // GetUserByPhoneNumberOrNew mocks base method.
-func (m *MockDBClientGetUser) GetUserByPhoneNumberOrNew(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error) {
+func (m *MockDBClientGetUser) GetUserByPhoneNumberOrNew(ctx context.Context, arg sql.GetUserByPhoneNumberOrNewParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByPhoneNumberOrNew", ctx, phoneNumber)
+	ret := m.ctrl.Call(m, "GetUserByPhoneNumberOrNew", ctx, arg)
 	ret0, _ := ret[0].(sql.AuthUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserByPhoneNumberOrNew indicates an expected call of GetUserByPhoneNumberOrNew.
-func (mr *MockDBClientGetUserMockRecorder) GetUserByPhoneNumberOrNew(ctx, phoneNumber any) *gomock.Call {
+func (mr *MockDBClientGetUserMockRecorder) GetUserByPhoneNumberOrNew(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumberOrNew", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByPhoneNumberOrNew), ctx, phoneNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumberOrNew", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByPhoneNumberOrNew), ctx, arg)
 }
 
 // GetUserByRefreshTokenHash mocks base method.
@@ -1059,18 +1059,18 @@ func (mr *MockDBClientMockRecorder) GetUserByPhoneNumber(ctx, phoneNumber any) *
 }
 
 // GetUserByPhoneNumberOrNew mocks base method.
-func (m *MockDBClient) GetUserByPhoneNumberOrNew(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error) {
+func (m *MockDBClient) GetUserByPhoneNumberOrNew(ctx context.Context, arg sql.GetUserByPhoneNumberOrNewParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByPhoneNumberOrNew", ctx, phoneNumber)
+	ret := m.ctrl.Call(m, "GetUserByPhoneNumberOrNew", ctx, arg)
 	ret0, _ := ret[0].(sql.AuthUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserByPhoneNumberOrNew indicates an expected call of GetUserByPhoneNumberOrNew.
-func (mr *MockDBClientMockRecorder) GetUserByPhoneNumberOrNew(ctx, phoneNumber any) *gomock.Call {
+func (mr *MockDBClientMockRecorder) GetUserByPhoneNumberOrNew(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumberOrNew", reflect.TypeOf((*MockDBClient)(nil).GetUserByPhoneNumberOrNew), ctx, phoneNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumberOrNew", reflect.TypeOf((*MockDBClient)(nil).GetUserByPhoneNumberOrNew), ctx, arg)
 }
 
 // GetUserByProviderID mocks base method.

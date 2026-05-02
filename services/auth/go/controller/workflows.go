@@ -749,10 +749,14 @@ func (wf *Workflows) ChangeEmail(
 
 func (wf *Workflows) UserByPhoneNumberOrNewExists(
 	ctx context.Context,
+	userID uuid.UUID,
 	phoneNumber string,
 	logger *slog.Logger,
 ) (bool, *APIError) {
-	_, err := wf.db.GetUserByPhoneNumberOrNew(ctx, sql.Text(phoneNumber))
+	_, err := wf.db.GetUserByPhoneNumberOrNew(ctx, sql.GetUserByPhoneNumberOrNewParams{
+		UserID:      userID,
+		PhoneNumber: sql.Text(phoneNumber),
+	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return false, nil
 	}

@@ -49,7 +49,8 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 						Disabled:          false,
 						DisplayName:       "+1234567890",
 						AvatarUrl:         "",
-						PhoneNumber:       sql.Text("+1234567890"),
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						NewPhoneNumber:    sql.Text("+1234567890"),
 						Otp:               "otp",
 						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
 						OtpMethodLastUsed: sql.Text("sms"),

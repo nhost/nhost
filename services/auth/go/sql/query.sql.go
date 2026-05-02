@@ -574,7 +574,9 @@ func (q *Queries) GetUserByEmailAndTicket(ctx context.Context, arg GetUserByEmai
 
 const getUserByPhoneNumber = `-- name: GetUserByPhoneNumber :one
 SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, new_phone_number FROM auth.users
-WHERE phone_number = $1 LIMIT 1
+WHERE phone_number = $1
+  AND phone_number_verified = true
+LIMIT 1
 `
 
 func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (AuthUser, error) {
@@ -613,12 +615,17 @@ func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.T
 
 const getUserByPhoneNumberAndOTP = `-- name: GetUserByPhoneNumberAndOTP :one
 UPDATE auth.users
-SET otp_hash_expires_at = now(), phone_number_verified = true
+SET
+    phone_number = COALESCE(new_phone_number, phone_number),
+    new_phone_number = NULL,
+    phone_number_verified = true,
+    otp_hash = NULL,
+    otp_hash_expires_at = now()
 WHERE
-  phone_number = $1
-  AND otp_hash = crypt($2, otp_hash)
-  AND otp_hash_expires_at > now()
-  AND otp_method_last_used = 'sms'
+    (phone_number = $1 OR new_phone_number = $1)
+    AND otp_hash = crypt($2, otp_hash)
+    AND otp_hash_expires_at > now()
+    AND otp_method_last_used = 'sms'
 RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, new_phone_number
 `
 
@@ -666,11 +673,18 @@ SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url
 FROM auth.users
 WHERE
     disabled = false
-    AND (phone_number = $1 OR new_phone_number = $1)
+    AND id <> $1
+    AND phone_number_verified = true
+    AND phone_number = $2
 `
 
-func (q *Queries) GetUserByPhoneNumberOrNew(ctx context.Context, phoneNumber pgtype.Text) (AuthUser, error) {
-	row := q.db.QueryRow(ctx, getUserByPhoneNumberOrNew, phoneNumber)
+type GetUserByPhoneNumberOrNewParams struct {
+	UserID      uuid.UUID
+	PhoneNumber pgtype.Text
+}
+
+func (q *Queries) GetUserByPhoneNumberOrNew(ctx context.Context, arg GetUserByPhoneNumberOrNewParams) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getUserByPhoneNumberOrNew, arg.UserID, arg.PhoneNumber)
 	var i AuthUser
 	err := row.Scan(
 		&i.ID,
@@ -1096,6 +1110,7 @@ WITH inserted_user AS (
         display_name,
         avatar_url,
         phone_number,
+        new_phone_number,
         otp_hash,
         otp_hash_expires_at,
         otp_method_last_used,
@@ -1108,7 +1123,7 @@ WITH inserted_user AS (
         default_role,
         metadata
     ) VALUES (
-    $1, $2, $3, $4, $5, crypt($7, gen_salt('bf')), COALESCE($17, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
+    $1, $2, $3, $4, $5, $7, crypt($17, gen_salt('bf')), COALESCE($18, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
     RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, new_phone_number
 )
@@ -1125,7 +1140,7 @@ type InsertUserParams struct {
 	AvatarUrl         string
 	PhoneNumber       pgtype.Text
 	Roles             []string
-	Otp               string
+	NewPhoneNumber    pgtype.Text
 	OtpMethodLastUsed pgtype.Text
 	Email             pgtype.Text
 	PasswordHash      pgtype.Text
@@ -1135,6 +1150,7 @@ type InsertUserParams struct {
 	Locale            string
 	DefaultRole       string
 	Metadata          []byte
+	Otp               string
 	OtpHashExpiresAt  pgtype.Timestamptz
 }
 
@@ -1151,7 +1167,7 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertU
 		arg.AvatarUrl,
 		arg.PhoneNumber,
 		arg.Roles,
-		arg.Otp,
+		arg.NewPhoneNumber,
 		arg.OtpMethodLastUsed,
 		arg.Email,
 		arg.PasswordHash,
@@ -1161,6 +1177,7 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertU
 		arg.Locale,
 		arg.DefaultRole,
 		arg.Metadata,
+		arg.Otp,
 		arg.OtpHashExpiresAt,
 	)
 	var i InsertUserRow
@@ -1973,7 +1990,7 @@ WITH updated_user AS (
     UPDATE auth.users
     SET
         is_anonymous = false,
-        phone_number = $2,
+        new_phone_number = $2,
         phone_number_verified = false,
         otp_hash = crypt($3, gen_salt('bf')),
         otp_hash_expires_at = $4,

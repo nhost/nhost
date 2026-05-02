@@ -55,7 +55,9 @@ type DBClientGetUser interface {
 	GetUserByEmailAndTicket(
 		ctx context.Context, arg sql.GetUserByEmailAndTicketParams,
 	) (sql.AuthUser, error)
-	GetUserByPhoneNumberOrNew(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error)
+	GetUserByPhoneNumberOrNew(
+		ctx context.Context, arg sql.GetUserByPhoneNumberOrNewParams,
+	) (sql.AuthUser, error)
 }
 
 type DBClientInsertUser interface {
