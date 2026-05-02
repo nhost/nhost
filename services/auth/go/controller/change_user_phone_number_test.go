@@ -61,7 +61,11 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 				).Return(getSigninUser(userID), nil)
 
 				mock.EXPECT().GetUserByPhoneNumberOrNew(
-					gomock.Any(), sql.Text("+1234567890"),
+					gomock.Any(),
+					sql.GetUserByPhoneNumberOrNewParams{
+						UserID:      userID,
+						PhoneNumber: sql.Text("+1234567890"),
+					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().UpdateUserChangePhoneNumber(
@@ -136,7 +140,11 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 				).Return(getSigninUser(userID), nil)
 
 				mock.EXPECT().GetUserByPhoneNumberOrNew(
-					gomock.Any(), sql.Text("+1234567890"),
+					gomock.Any(),
+					sql.GetUserByPhoneNumberOrNewParams{
+						UserID:      userID,
+						PhoneNumber: sql.Text("+1234567890"),
+					},
 				).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
 
 				return mock
@@ -165,7 +173,11 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 				).Return(getSigninUser(userID), nil)
 
 				mock.EXPECT().GetUserByPhoneNumberOrNew(
-					gomock.Any(), sql.Text("+1234567890"),
+					gomock.Any(),
+					sql.GetUserByPhoneNumberOrNewParams{
+						UserID:      userID,
+						PhoneNumber: sql.Text("+1234567890"),
+					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				return mock

@@ -53,6 +53,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 							Metadata:        []byte("null"),
 							Roles:           []string{"user", "me"},
 							PhoneNumber:     pgtype.Text{},
+							NewPhoneNumber:  pgtype.Text{},
 							Otp:             "xxx",
 							OtpHashExpiresAt: sql.TimestampTz(
 								time.Now().Add(controller.In10Minutes),
@@ -237,6 +238,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 							Metadata:        []byte("null"),
 							Roles:           []string{"user", "me"},
 							PhoneNumber:     pgtype.Text{},
+							NewPhoneNumber:  pgtype.Text{},
 							Otp:             "xxx",
 							OtpHashExpiresAt: sql.TimestampTz(
 								time.Now().Add(controller.In10Minutes),
@@ -373,6 +375,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 							Metadata:        []byte(`{"asd":"asd"}`),
 							Roles:           []string{"user"},
 							PhoneNumber:     pgtype.Text{},
+							NewPhoneNumber:  pgtype.Text{},
 							Otp:             "xxx",
 							OtpHashExpiresAt: sql.TimestampTz(
 								time.Now().Add(controller.In10Minutes),
@@ -529,6 +532,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 					Locale:                   "en",
 					Email:                    sql.Text("jane@acme.com"),
 					PhoneNumber:              pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 					PasswordHash:             pgtype.Text{},
 					EmailVerified:            false,
 					PhoneNumberVerified:      false,
@@ -631,6 +635,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 					Locale:                   "en",
 					Email:                    sql.Text("jane@acme.com"),
 					PhoneNumber:              pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 					PasswordHash:             pgtype.Text{},
 					EmailVerified:            false,
 					PhoneNumberVerified:      false,
