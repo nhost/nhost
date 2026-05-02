@@ -334,6 +334,39 @@ SET (email, new_email) = (new_email, null)
 WHERE id = $1
 RETURNING *;
 
+-- name: GetUserByPhoneNumberOrNew :one
+SELECT *
+FROM auth.users
+WHERE
+    disabled = false
+    AND (phone_number = @phone_number OR new_phone_number = @phone_number);
+
+-- name: UpdateUserChangePhoneNumber :exec
+UPDATE auth.users
+SET
+    new_phone_number = @new_phone_number,
+    otp_hash = crypt(@otp, gen_salt('bf')),
+    otp_hash_expires_at = @otp_hash_expires_at,
+    otp_method_last_used = 'sms-change'
+WHERE id = @id;
+
+-- name: UpdateUserConfirmChangePhoneNumber :one
+UPDATE auth.users
+SET
+    phone_number = new_phone_number,
+    phone_number_verified = true,
+    new_phone_number = NULL,
+    otp_hash = NULL,
+    otp_hash_expires_at = now(),
+    otp_method_last_used = NULL
+WHERE
+    id = @id
+    AND new_phone_number = @new_phone_number
+    AND otp_hash = crypt(@otp, otp_hash)
+    AND otp_hash_expires_at > now()
+    AND otp_method_last_used = 'sms-change'
+RETURNING *;
+
 -- name: UpdateUserVerifyEmail :one
 UPDATE auth.users
 SET email_verified = true

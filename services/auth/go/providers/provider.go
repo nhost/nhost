@@ -60,7 +60,7 @@ func (p *Provider) IsOauth2() bool {
 	return p.oauth2 != nil
 }
 
-func (p *Provider) Oauth1() Oauth1Provider { //nolint:ireturn
+func (p *Provider) Oauth1() Oauth1Provider {
 	if p.oauth1 == nil {
 		panic("provider is not an Oauth1 provider")
 	}
@@ -68,7 +68,7 @@ func (p *Provider) Oauth1() Oauth1Provider { //nolint:ireturn
 	return p.oauth1
 }
 
-func (p *Provider) Oauth2() Oauth2Provider { //nolint:ireturn
+func (p *Provider) Oauth2() Oauth2Provider {
 	if p.oauth2 == nil {
 		panic("provider is not an Oauth2 provider")
 	}

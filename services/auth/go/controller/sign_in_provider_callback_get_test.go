@@ -1455,7 +1455,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByProviderID( //nolint:dupl
+				mock.EXPECT().GetUserByProviderID(
 					gomock.Any(),
 					sql.GetUserByProviderIDParams{
 						ProviderID:     "fake",
@@ -1492,6 +1492,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+						NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
 					}, nil)
 
 				// PKCE: no InsertRefreshtoken, no GetUserRoles, no UpdateUserLastSeen
@@ -1786,7 +1787,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
-				mock.EXPECT().GetUserByEmail( //nolint:dupl
+				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("user1@fake.com"),
 				).Return(
@@ -1820,6 +1821,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+						NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
 					}, nil)
 
 				// Provider not found by ID, so it should be linked

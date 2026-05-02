@@ -747,6 +747,76 @@ func (wf *Workflows) ChangeEmail(
 	return user, nil
 }
 
+func (wf *Workflows) UserByPhoneNumberOrNewExists(
+	ctx context.Context,
+	phoneNumber string,
+	logger *slog.Logger,
+) (bool, *APIError) {
+	_, err := wf.db.GetUserByPhoneNumberOrNew(ctx, sql.Text(phoneNumber))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user by phone number", logError(err))
+		return false, ErrInternalServerError
+	}
+
+	return true, nil
+}
+
+func (wf *Workflows) ChangePhoneNumber(
+	ctx context.Context,
+	userID uuid.UUID,
+	newPhoneNumber string,
+	otp string,
+	otpExpiresAt time.Time,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.db.UpdateUserChangePhoneNumber(
+		ctx,
+		sql.UpdateUserChangePhoneNumberParams{
+			ID:               userID,
+			NewPhoneNumber:   sql.Text(newPhoneNumber),
+			Otp:              otp,
+			OtpHashExpiresAt: sql.TimestampTz(otpExpiresAt),
+		},
+	); err != nil {
+		logger.ErrorContext(ctx, "error updating user phone number change", logError(err))
+		return ErrInternalServerError
+	}
+
+	return nil
+}
+
+func (wf *Workflows) ConfirmChangePhoneNumber(
+	ctx context.Context,
+	userID uuid.UUID,
+	newPhoneNumber string,
+	otp string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.UpdateUserConfirmChangePhoneNumber(
+		ctx,
+		sql.UpdateUserConfirmChangePhoneNumberParams{
+			ID:             userID,
+			NewPhoneNumber: sql.Text(newPhoneNumber),
+			Otp:            otp,
+		},
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "phone number change verification failed")
+		return sql.AuthUser{}, ErrInvalidOTP
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error confirming phone number change", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	return user, nil
+}
+
 func (wf *Workflows) ChangePassword(
 	ctx context.Context,
 	userID uuid.UUID,

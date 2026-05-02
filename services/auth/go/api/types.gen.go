@@ -1097,6 +1097,21 @@ type UserPasswordResetRequest struct {
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
 }
 
+// UserPhoneNumberChangeRequest defines model for UserPhoneNumberChangeRequest.
+type UserPhoneNumberChangeRequest struct {
+	// NewPhoneNumber New phone number to bind to the user once verified via SMS OTP
+	NewPhoneNumber string `json:"newPhoneNumber"`
+}
+
+// UserPhoneNumberChangeVerifyRequest defines model for UserPhoneNumberChangeVerifyRequest.
+type UserPhoneNumberChangeVerifyRequest struct {
+	// NewPhoneNumber The phone number that was previously requested via /user/phone-number/change
+	NewPhoneNumber string `json:"newPhoneNumber"`
+
+	// Otp One-time password received via SMS at the new phone number
+	Otp string `json:"otp"`
+}
+
 // UserVerificationRequirement A requirement for user verification for the operation
 type UserVerificationRequirement string
 
@@ -1463,6 +1478,12 @@ type ChangeUserPasswordJSONRequestBody = UserPasswordRequest
 
 // SendPasswordResetEmailJSONRequestBody defines body for SendPasswordResetEmail for application/json ContentType.
 type SendPasswordResetEmailJSONRequestBody = UserPasswordResetRequest
+
+// ChangeUserPhoneNumberJSONRequestBody defines body for ChangeUserPhoneNumber for application/json ContentType.
+type ChangeUserPhoneNumberJSONRequestBody = UserPhoneNumberChangeRequest
+
+// VerifyChangeUserPhoneNumberJSONRequestBody defines body for VerifyChangeUserPhoneNumber for application/json ContentType.
+type VerifyChangeUserPhoneNumberJSONRequestBody = UserPhoneNumberChangeVerifyRequest
 
 // VerifyAddSecurityKeyJSONRequestBody defines body for VerifyAddSecurityKey for application/json ContentType.
 type VerifyAddSecurityKeyJSONRequestBody = VerifyAddSecurityKeyRequest
