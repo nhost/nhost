@@ -296,6 +296,41 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 		},
 
 		{
+			name:   "phone number already in use",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(getSigninUser(userID), nil)
+
+				mock.EXPECT().UpdateUserConfirmChangePhoneNumber(
+					gomock.Any(), gomock.Any(),
+				).Return(
+					sql.AuthUser{}, //nolint:exhaustruct
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_phone_number_key" (SQLSTATE 23505)`), //nolint:err113,lll
+				)
+
+				return mock
+			},
+			jwtTokenFn: func() *jwt.Token { return nonAnonymousJWT(userID) },
+			request: api.VerifyChangeUserPhoneNumberRequestObject{
+				Body: &api.UserPhoneNumberChangeVerifyRequest{
+					NewPhoneNumber: "+1234567890",
+					Otp:            "123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "user-already-exists",
+				Message: "User already exists",
+				Status:  409,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
 			name: "sms passwordless disabled",
 			config: func() *controller.Config {
 				config := getConfig()

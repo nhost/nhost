@@ -814,6 +814,11 @@ func (wf *Workflows) ConfirmChangePhoneNumber(
 	}
 
 	if err != nil {
+		if sqlIsDuplcateError(err, "users_phone_number_key") {
+			logger.WarnContext(ctx, "phone number already in use", logError(err))
+			return sql.AuthUser{}, ErrUserAlreadyExists
+		}
+
 		logger.ErrorContext(ctx, "error confirming phone number change", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
