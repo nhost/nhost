@@ -139,6 +139,7 @@ type AuthUser struct {
 	Metadata                 []byte
 	WebauthnCurrentChallenge pgtype.Text
 	OtpAttempts              int16
+	NewPhoneNumber           pgtype.Text
 }
 
 // Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly.

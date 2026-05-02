@@ -63,6 +63,7 @@ type DBClientGetUser interface {
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
+	GetUserByPhoneNumberOrNew(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error)
 	VerifyEmailOTP(
 		ctx context.Context, arg sql.VerifyEmailOTPParams,
 	) (string, error)

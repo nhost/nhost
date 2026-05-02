@@ -518,7 +518,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{
+				).Return(sql.AuthUser{ //nolint:exhaustruct
 					ID:                       userID,
 					CreatedAt:                pgtype.Timestamptz{},
 					UpdatedAt:                pgtype.Timestamptz{},
@@ -620,7 +620,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{
+				).Return(sql.AuthUser{ //nolint:exhaustruct
 					ID:                       userID,
 					CreatedAt:                pgtype.Timestamptz{},
 					UpdatedAt:                pgtype.Timestamptz{},

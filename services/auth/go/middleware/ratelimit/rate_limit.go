@@ -37,6 +37,7 @@ func sendsSMS(path string) bool {
 		"/signin/passwordless/sms",
 		"/signup/passwordless/sms",
 		"/user/deanonymize/sms",
+		"/user/phone-number/change",
 	}, path)
 }
 

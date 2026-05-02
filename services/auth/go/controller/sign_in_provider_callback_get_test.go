@@ -476,6 +476,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 
@@ -574,6 +575,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 
@@ -738,6 +740,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 
@@ -937,6 +940,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().InsertUserProvider(
@@ -1030,6 +1034,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().InsertUserProvider(
@@ -1118,6 +1123,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				return mock
@@ -1212,6 +1218,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().InsertUserProvider(
@@ -1504,6 +1511,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 
@@ -1835,6 +1843,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 

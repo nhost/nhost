@@ -482,6 +482,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().UpdateUserOTPHash(
@@ -568,6 +569,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				return mock
@@ -621,6 +623,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				return mock
