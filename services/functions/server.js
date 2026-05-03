@@ -29,6 +29,10 @@ const functionEntries = new Map();
 // Track discovered functions for metadata endpoint
 const functionMeta = new Map();
 
+// Track source file mtimes for polling-based change detection (ctx.watch /
+// inotify is unreliable on Docker bind-mount volumes)
+const functionMtimes = new Map();
+
 // Single esbuild context covering every function's wrapper as an entry point.
 // Per-function contexts retained the parsed dep graph (express, aws-sdk, ...)
 // once per function, multiplying memory by N. A single context shares one
@@ -45,6 +49,19 @@ function scheduleRebuild(functionsPath) {
   rebuildInFlight = rebuildInFlight
     .catch(() => {})
     .then(() => rebuildContext(functionsPath));
+  return rebuildInFlight;
+}
+
+// Incremental rebuild reuses the existing context (no dispose/recreate), used
+// when only file contents changed (not the entry-point set).
+function scheduleIncrementalRebuild() {
+  rebuildInFlight = rebuildInFlight
+    .catch(() => {})
+    .then(async () => {
+      if (buildContext) {
+        await buildContext.rebuild();
+      }
+    });
   return rebuildInFlight;
 }
 
@@ -95,6 +112,9 @@ function prepareFunctionEntry(functionsPath, file) {
   const route = fileToRoute(file);
 
   functionEntries.set(file, { wrapperPath, outfile, route, safeName });
+  try {
+    functionMtimes.set(file, fs.statSync(absoluteFuncPath).mtimeMs);
+  } catch {}
   functionMeta.set(file, {
     path: path.join('functions', file),
     route,
@@ -120,6 +140,7 @@ function disposeFunctionEntry(file) {
 
   functionEntries.delete(file);
   functionMeta.delete(file);
+  functionMtimes.delete(file);
   functionHandlers.delete(entry.route);
 }
 
@@ -195,8 +216,19 @@ async function rebuildContext(functionsPath) {
   });
 
   await ctx.rebuild();
-  await ctx.watch();
+  // Do NOT call ctx.watch() — inotify/FSEvents are unreliable on Docker bind-mount
+  // volumes; content changes are detected via mtime polling instead (see setInterval below).
   buildContext = ctx;
+
+  // Re-snapshot mtimes so the poll has a fresh baseline after a context recreate.
+  for (const [file] of functionEntries) {
+    try {
+      functionMtimes.set(
+        file,
+        fs.statSync(path.join(functionsPath, file)).mtimeMs,
+      );
+    } catch {}
+  }
 }
 
 function findRoute(reqPath) {
@@ -281,12 +313,10 @@ const main = async () => {
     await scheduleRebuild(functionsPath);
   }
 
-  // Poll for new/deleted function files. Filesystem events (chokidar/inotify)
-  // are unreliable over Docker volume mounts — add/unlink all arrive as
-  // "change", so we periodically re-discover and diff instead. When the entry
-  // set changes, the esbuild context is recreated with the new entry points;
-  // edits inside existing functions are picked up by ctx.watch() without a
-  // recreate.
+  // Poll for new/deleted files and content changes. Filesystem events
+  // (chokidar/inotify) are unreliable over Docker volume mounts, so we poll
+  // instead: entry-set changes recreate the esbuild context; content changes
+  // (mtime diff) trigger an incremental rebuild on the existing context.
   setInterval(async () => {
     const currentFiles = new Set(discoverFunctions(functionsPath));
     const knownFiles = new Set(functionEntries.keys());
@@ -315,6 +345,32 @@ const main = async () => {
         await scheduleRebuild(functionsPath);
       } catch (err) {
         serverLog('ERROR', '', 'Failed to rebuild context:', err);
+      }
+      // rebuildContext re-snapshots all mtimes, so skip content-change check.
+      return;
+    }
+
+    // Content-change detection: check mtime of every known function file.
+    // This is the reliable path on Docker bind-mount volumes where inotify does
+    // not fire.
+    let contentChanged = false;
+    for (const [file, entry] of functionEntries) {
+      try {
+        const mtimeMs = fs.statSync(path.join(functionsPath, file)).mtimeMs;
+        const prev = functionMtimes.get(file);
+        if (prev !== undefined && mtimeMs !== prev) {
+          functionMtimes.set(file, mtimeMs);
+          contentChanged = true;
+          serverLog('INFO', entry.route, `Changed: ${file}`);
+        }
+      } catch {}
+    }
+
+    if (contentChanged) {
+      try {
+        await scheduleIncrementalRebuild();
+      } catch (err) {
+        serverLog('ERROR', '', 'Incremental rebuild failed:', err);
       }
     }
   }, 1000);
