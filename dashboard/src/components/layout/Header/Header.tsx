@@ -60,9 +60,7 @@ export default function Header({ className, ...props }: HeaderProps) {
     >
       <div className="flex items-center gap-3">
         <Logo className="h-6 w-6 cursor-pointer" />
-        <div className="w-60">
-          <OrgsComboBox />
-        </div>
+        <OrgsComboBox />
       </div>
 
       <div className="hidden grid-flow-col items-center gap-1 sm:grid">

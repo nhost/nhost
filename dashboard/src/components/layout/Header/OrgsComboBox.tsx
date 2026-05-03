@@ -105,7 +105,7 @@ export default function OrgsComboBox() {
           <Button
             size="sm"
             variant="ghost"
-            className="w-full justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+            className="max-w-xl justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
           >
             {selectedItem ? (
               <div className="flex min-w-0 flex-1 flex-row items-center">
@@ -118,7 +118,11 @@ export default function OrgsComboBox() {
             <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="p-0" side="bottom" align="start">
+        <PopoverContent
+          className="w-fit min-w-[var(--radix-popover-trigger-width)] max-w-xl p-0"
+          side="bottom"
+          align="start"
+        >
           <Command>
             <CommandInput placeholder="Select organization..." />
             <CommandList>
@@ -144,13 +148,15 @@ export default function OrgsComboBox() {
                   >
                     <Check
                       className={cn(
-                        'mr-2 h-4 w-4',
+                        'mr-2 h-4 w-4 shrink-0',
                         selectedItem?.value === option.value
                           ? 'opacity-100'
                           : 'opacity-0',
                       )}
                     />
-                    <span className="w-full truncate">{option.label}</span>
+                    <span className="min-w-0 flex-1 truncate">
+                      {option.label}
+                    </span>
                     {renderBadge(option.plan)}
                   </CommandItem>
                 ))}
