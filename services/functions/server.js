@@ -124,19 +124,33 @@ function disposeFunctionEntry(file) {
 }
 
 function loadBundle(route, bundlePath) {
-  // Clear require cache so re-requiring gets fresh code
   const resolved = require.resolve(bundlePath);
   delete require.cache[resolved];
 
   try {
     const bundled = require(bundlePath);
-    // The bundle exports an Express app (or app.default)
     const app = bundled.default || bundled;
     functionHandlers.set(route, app);
   } catch (err) {
     serverLog('ERROR', route, `Failed to load bundle:`, err);
     functionHandlers.delete(route);
   }
+}
+
+// Install a one-shot lazy handler so the bundle is loaded on the first request
+// that hits the route rather than immediately after a build. This keeps all N
+// bundles out of the V8 heap until they are actually needed — only bundles that
+// receive traffic are ever resident in memory at the same time.
+function deferBundleLoad(route, bundlePath) {
+  functionHandlers.set(route, function lazyLoad(req, res, next) {
+    loadBundle(route, bundlePath);
+    const handler = functionHandlers.get(route);
+    if (handler) {
+      handler(req, res, next);
+    } else {
+      next(new Error('Function failed to load'));
+    }
+  });
 }
 
 async function rebuildContext(functionsPath) {
@@ -185,7 +199,7 @@ async function rebuildContext(functionsPath) {
             for (const [file, entry] of functionEntries) {
               if (!fs.existsSync(path.join(functionsPath, file))) continue;
               if (!fs.existsSync(entry.outfile)) continue;
-              loadBundle(entry.route, entry.outfile);
+              deferBundleLoad(entry.route, entry.outfile);
               serverLog('INFO', entry.route, `Rebuilt from ${file}`);
             }
           });
