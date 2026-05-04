@@ -76,6 +76,7 @@ let
   node_modules-builder = pkgs.stdenv.mkDerivation {
     inherit version;
 
+    __noChroot = true;
     pname = "node_modules-builder";
 
     nativeBuildInputs = with pkgs; [

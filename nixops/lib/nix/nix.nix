@@ -17,6 +17,7 @@ in
     }:
     pkgs.runCommand "check-nixfmt"
       {
+        __noChroot = true;
         nativeBuildInputs = with pkgs; [
           nixfmt-rfc-style
         ];

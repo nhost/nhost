@@ -102,6 +102,7 @@ in
     }:
     pkgs.runCommand "gotests"
       {
+        __noChroot = true;
         nativeBuildInputs = goCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
       }
       ''

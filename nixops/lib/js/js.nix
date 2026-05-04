@@ -18,6 +18,7 @@ let
     pkgs.stdenv.mkDerivation {
       inherit name version src;
 
+      __noChroot = true;
       dontFixup = true;
 
       nativeBuildInputs = with pkgs; [
@@ -89,6 +90,7 @@ let
     }:
     pkgs.runCommand "jstests"
       {
+        __noChroot = true;
         nativeBuildInputs = jsCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
       }
       ''
