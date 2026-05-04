@@ -49,7 +49,7 @@ export default function MainNav({ container }: MainNavProps) {
         side="left"
         container={container}
         hideCloseButton
-        className="h-full w-full p-0 sm:max-w-[304px]"
+        className="h-full w-full p-0 sm:max-w-[272px]"
         onMouseLeave={() => setOpen(false)}
       >
         <SheetHeader>
@@ -69,7 +69,7 @@ export default function MainNav({ container }: MainNavProps) {
           ref={scrollContainerRef}
           className="h-[calc(100vh-7rem)] space-y-4 overflow-auto pt-2 pb-12 [scrollbar-gutter:stable] lg:h-[calc(100vh-6rem)]"
         >
-          <div className="flex flex-col gap-1 pr-6 pl-12">
+          <div className="flex flex-col gap-1 px-4">
             <NavTree />
           </div>
         </div>

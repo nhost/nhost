@@ -6,7 +6,6 @@ import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
 import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
-import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { Button } from '@/components/ui/v3/button';
@@ -58,10 +57,7 @@ export default function Header({ className, ...props }: HeaderProps) {
       sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
-      <div className="flex items-center gap-2">
-        <Logo className="h-6 w-6 cursor-pointer" />
-        <OrgsComboBox />
-      </div>
+      <OrgsComboBox />
 
       <div className="hidden grid-flow-col items-center gap-1 sm:grid">
         <Button
