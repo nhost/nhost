@@ -30,8 +30,12 @@ const functionEntries = new Map();
 const functionMeta = new Map();
 
 // Track source file mtimes for polling-based change detection (ctx.watch /
-// inotify is unreliable on Docker bind-mount volumes)
-const functionMtimes = new Map();
+// inotify is unreliable on Docker bind-mount volumes). Populated from
+// esbuild's metafile.inputs after each successful rebuild so the poll covers
+// the full dependency graph (e.g., _utils/), not just entry-point files.
+// Keys are paths as emitted by esbuild's metafile (relative to cwd, or
+// absolute for wrappers); we path.resolve() before stat'ing.
+const watchedMtimes = new Map();
 
 // Single esbuild context covering every function's wrapper as an entry point.
 // Per-function contexts retained the parsed dep graph (express, aws-sdk, ...)
@@ -112,9 +116,6 @@ function prepareFunctionEntry(functionsPath, file) {
   const route = fileToRoute(file);
 
   functionEntries.set(file, { wrapperPath, outfile, route, safeName });
-  try {
-    functionMtimes.set(file, fs.statSync(absoluteFuncPath).mtimeMs);
-  } catch {}
   functionMeta.set(file, {
     path: path.join('functions', file),
     route,
@@ -140,7 +141,6 @@ function disposeFunctionEntry(file) {
 
   functionEntries.delete(file);
   functionMeta.delete(file);
-  functionMtimes.delete(file);
   functionHandlers.delete(entry.route);
 }
 
@@ -184,6 +184,7 @@ async function rebuildContext(functionsPath) {
     platform: 'node',
     target: getNodeTarget(),
     sourcemap: true,
+    metafile: true,
     outdir: DIST_DIR,
     nodePaths,
     logLevel: 'warning',
@@ -209,6 +210,20 @@ async function rebuildContext(functionsPath) {
               loadBundle(entry.route, entry.outfile);
               serverLog('INFO', entry.route, `Rebuilt from ${file}`);
             }
+
+            // Refresh the watched-file snapshot from the just-built dependency
+            // graph so the poll catches edits to anything an entry imports
+            // (e.g., _utils/, sibling helpers), not just the entries themselves.
+            if (result.metafile) {
+              watchedMtimes.clear();
+              for (const inputPath of Object.keys(result.metafile.inputs)) {
+                if (inputPath.includes('node_modules/')) continue;
+                const absolute = path.resolve(inputPath);
+                try {
+                  watchedMtimes.set(inputPath, fs.statSync(absolute).mtimeMs);
+                } catch {}
+              }
+            }
           });
         },
       },
@@ -219,16 +234,6 @@ async function rebuildContext(functionsPath) {
   // Do NOT call ctx.watch() — inotify/FSEvents are unreliable on Docker bind-mount
   // volumes; content changes are detected via mtime polling instead (see setInterval below).
   buildContext = ctx;
-
-  // Re-snapshot mtimes so the poll has a fresh baseline after a context recreate.
-  for (const [file] of functionEntries) {
-    try {
-      functionMtimes.set(
-        file,
-        fs.statSync(path.join(functionsPath, file)).mtimeMs,
-      );
-    } catch {}
-  }
 }
 
 function findRoute(reqPath) {
@@ -346,22 +351,25 @@ const main = async () => {
       } catch (err) {
         serverLog('ERROR', '', 'Failed to rebuild context:', err);
       }
-      // rebuildContext re-snapshots all mtimes, so skip content-change check.
+      // rebuildContext's onEnd refreshes watchedMtimes from the new metafile,
+      // so skip the content-change check this tick.
       return;
     }
 
-    // Content-change detection: check mtime of every known function file.
-    // This is the reliable path on Docker bind-mount volumes where inotify does
-    // not fire.
+    // Content-change detection: stat every file in the dependency graph
+    // captured by the last build's metafile (entries + their transitive
+    // imports, e.g., _utils/). Reliable on Docker bind-mount volumes where
+    // inotify does not fire. Update the snapshot inline so a long rebuild
+    // doesn't queue redundant follow-ups; onEnd will re-snapshot from the
+    // fresh metafile once the rebuild completes.
     let contentChanged = false;
-    for (const [file, entry] of functionEntries) {
+    for (const [inputPath, prev] of watchedMtimes) {
       try {
-        const mtimeMs = fs.statSync(path.join(functionsPath, file)).mtimeMs;
-        const prev = functionMtimes.get(file);
-        if (prev !== undefined && mtimeMs !== prev) {
-          functionMtimes.set(file, mtimeMs);
+        const mtimeMs = fs.statSync(path.resolve(inputPath)).mtimeMs;
+        if (mtimeMs !== prev) {
+          watchedMtimes.set(inputPath, mtimeMs);
           contentChanged = true;
-          serverLog('INFO', entry.route, `Changed: ${file}`);
+          serverLog('INFO', '', `Changed: ${inputPath}`);
         }
       } catch {}
     }
