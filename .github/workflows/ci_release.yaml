@@ -54,6 +54,7 @@ jobs:
     with:
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-project.outputs.version }}
+      IS_PRERELEASE: ${{ github.event.release.prerelease }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -70,6 +71,7 @@ jobs:
     with:
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-project.outputs.version }}
+      IS_PRERELEASE: ${{ github.event.release.prerelease }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -132,6 +134,7 @@ jobs:
     with:
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-project.outputs.version }}
+      IS_PRERELEASE: ${{ github.event.release.prerelease }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
