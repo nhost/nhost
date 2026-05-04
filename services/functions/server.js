@@ -37,12 +37,23 @@ const functionMeta = new Map();
 // bundle per function — matching the per-Lambda artifact layout in prod.
 let buildContext = null;
 
+// Observability for hot-reload: lets integration tests confirm a file mutation
+// actually drove a rebuild through the chokidar watcher. Surfaced via the
+// /_nhost_functions_rebuild_stats endpoint.
+const rebuildStats = {
+  fullRebuildsScheduled: 0,
+  incrementalRebuildsScheduled: 0,
+  rebuildsCompleted: 0,
+  lastRebuildAt: null,
+};
+
 // setInterval does not await its async callback, so two polls can overlap if a
 // rebuild runs longer than the polling interval — exactly the case for big
 // projects. Serialize all rebuilds behind a single in-flight promise so dispose
 // and create are strictly sequential and no context is leaked.
 let rebuildInFlight = Promise.resolve();
 function scheduleRebuild(functionsPath) {
+  rebuildStats.fullRebuildsScheduled++;
   rebuildInFlight = rebuildInFlight
     .catch(() => {})
     .then(() => rebuildContext(functionsPath));
@@ -52,6 +63,7 @@ function scheduleRebuild(functionsPath) {
 // Incremental rebuild reuses the existing context (no dispose/recreate), used
 // when only file contents changed (not the entry-point set).
 function scheduleIncrementalRebuild() {
+  rebuildStats.incrementalRebuildsScheduled++;
   rebuildInFlight = rebuildInFlight
     .catch(() => {})
     .then(async () => {
@@ -202,6 +214,9 @@ async function rebuildContext(functionsPath) {
               loadBundle(entry.route, entry.outfile);
               serverLog('INFO', entry.route, `Rebuilt from ${file}`);
             }
+
+            rebuildStats.rebuildsCompleted++;
+            rebuildStats.lastRebuildAt = new Date().toISOString();
           });
         },
       },
@@ -260,6 +275,10 @@ const main = async () => {
   app.get('/_nhost_functions_metadata', (_req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
     res.json({ functions: Array.from(functionMeta.values()) });
+  });
+
+  app.get('/_nhost_functions_rebuild_stats', (_req, res) => {
+    res.json(rebuildStats);
   });
 
   fs.mkdirSync(WRAPPER_DIR, { recursive: true });
