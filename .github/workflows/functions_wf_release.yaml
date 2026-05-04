@@ -9,6 +9,10 @@ on:
       VERSION:
         required: true
         type: string
+      IS_PRERELEASE:
+        required: false
+        type: boolean
+        default: false
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -64,6 +68,7 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   bump-refs:
+    if: ${{ !inputs.IS_PRERELEASE }}
     uses: ./.github/workflows/wf_bump_refs.yaml
     needs:
       - push-docker-hub
