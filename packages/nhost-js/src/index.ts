@@ -44,6 +44,7 @@ export {
   withClientSideSessionMiddleware,
   withServerSideSessionMiddleware,
 } from './nhost';
+export type { StoredSession } from './session';
 
 /**
  * Generates a base URL for a Nhost service based on configuration

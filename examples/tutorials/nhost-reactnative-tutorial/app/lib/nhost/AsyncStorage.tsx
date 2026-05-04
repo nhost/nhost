@@ -1,7 +1,7 @@
 import {
   DEFAULT_SESSION_KEY,
-  type Session,
   type SessionStorageBackend,
+  type StoredSession,
 } from "@nhost/nhost-js/session";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -14,7 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
  */
 export default class NhostAsyncStorage implements SessionStorageBackend {
   private key: string;
-  private cache: Session | null = null;
+  private cache: StoredSession | null = null;
 
   constructor(key: string = DEFAULT_SESSION_KEY) {
     this.key = key;
@@ -33,7 +33,7 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
         .then((value) => {
           if (value) {
             try {
-              this.cache = JSON.parse(value) as Session;
+              this.cache = JSON.parse(value) as StoredSession;
             } catch (error) {
               console.warn("Error parsing session from AsyncStorage:", error);
               this.cache = null;
@@ -51,7 +51,7 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
   /**
    * Gets the session from the in-memory cache
    */
-  get(): Session | null {
+  get(): StoredSession | null {
     return this.cache;
   }
 
@@ -59,7 +59,7 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
    * Sets the session in the in-memory cache and persists to AsyncStorage
    * Ensures the data gets written by using an immediately invoked async function
    */
-  set(value: Session): void {
+  set(value: StoredSession): void {
     // Update cache immediately
     this.cache = value;
 

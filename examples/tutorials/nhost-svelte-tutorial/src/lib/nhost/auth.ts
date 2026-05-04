@@ -1,5 +1,5 @@
 import { createClient, type NhostClient } from '@nhost/nhost-js';
-import type { Session } from '@nhost/nhost-js/auth';
+import type { StoredSession } from '@nhost/nhost-js/session';
 import { derived, type Readable, writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
@@ -9,9 +9,9 @@ import { browser } from '$app/environment';
  */
 interface AuthStore {
   /** Current authenticated user object, null if not authenticated */
-  user: Session['user'] | null;
+  user: StoredSession['user'] | null;
   /** Current session object containing tokens and user data, null if no active session */
-  session: Session | null;
+  session: StoredSession | null;
   /** Boolean indicating if user is currently authenticated */
   isAuthenticated: boolean;
   /** Boolean indicating if authentication state is still loading */
@@ -27,8 +27,8 @@ export const nhost = createClient({
 });
 
 // Create writable stores for authentication state
-const userStore = writable<Session['user'] | null>(null);
-const sessionStore = writable<Session | null>(null);
+const userStore = writable<StoredSession['user'] | null>(null);
+const sessionStore = writable<StoredSession | null>(null);
 const isLoadingStore = writable<boolean>(true);
 
 // Derived store for authentication status

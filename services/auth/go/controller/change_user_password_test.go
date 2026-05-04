@@ -412,6 +412,98 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 			expectedJWT:       nil,
 			getControllerOpts: []getControllerOptsFunc{},
 		},
+
+		{
+			name:   "ticket - error updating password",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByTicket(
+					gomock.Any(),
+					sql.Text("passwordReset:ticket"),
+				).Return(sql.AuthUser{ //nolint:exhaustruct
+					ID:    userID,
+					Email: sql.Text("user@acme.local"),
+				}, nil)
+
+				mock.EXPECT().UpdateUserChangePassword(
+					gomock.Any(),
+					testhelpers.GomockCmpOpts(
+						sql.UpdateUserChangePasswordParams{
+							ID:           userID,
+							PasswordHash: sql.Text("password"),
+						},
+						cmpopts.IgnoreFields(
+							sql.UpdateUserChangePasswordParams{}, //nolint:exhaustruct
+							"PasswordHash",
+						),
+					),
+				).Return(uuid.Nil, pgx.ErrTxClosed)
+
+				return mock
+			},
+			jwtTokenFn: nil,
+			request: api.ChangeUserPasswordRequestObject{
+				Body: &api.ChangeUserPasswordJSONRequestBody{
+					NewPassword: "password",
+					Ticket:      new("passwordReset:ticket"),
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "auth header - error updating password",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(),
+					userID,
+				).Return(sql.AuthUser{ //nolint:exhaustruct
+					ID:    userID,
+					Email: sql.Text("user@acme.local"),
+				}, nil)
+
+				mock.EXPECT().UpdateUserChangePassword(
+					gomock.Any(),
+					testhelpers.GomockCmpOpts(
+						sql.UpdateUserChangePasswordParams{
+							ID:           userID,
+							PasswordHash: sql.Text("password"),
+						},
+						cmpopts.IgnoreFields(
+							sql.UpdateUserChangePasswordParams{}, //nolint:exhaustruct
+							"PasswordHash",
+						),
+					),
+				).Return(uuid.Nil, pgx.ErrTxClosed)
+
+				return mock
+			},
+			jwtTokenFn: jwtTokenFn,
+			request: api.ChangeUserPasswordRequestObject{
+				Body: &api.ChangeUserPasswordJSONRequestBody{
+					NewPassword: "password",
+					Ticket:      nil,
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
 	}
 
 	for _, tc := range cases {

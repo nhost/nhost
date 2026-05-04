@@ -1,5 +1,8 @@
 import { createClient, createNhostClient } from '@nhost/nhost-js';
-import type { Session, SessionStorageBackend } from '@nhost/nhost-js/session';
+import type {
+  SessionStorageBackend,
+  StoredSession,
+} from '@nhost/nhost-js/session';
 import {
   getAuthServiceUrl,
   getFunctionsServiceUrl,
@@ -22,13 +25,13 @@ const nhostRoutesClient = createNhostClient({
 });
 
 export class DummySessionStorage implements SessionStorageBackend {
-  private session: Session | null = null;
+  private session: StoredSession | null = null;
 
   /**
    * Get the current session from memory storage
    * @returns The stored session or null if not found
    */
-  get(): Session | null {
+  get(): StoredSession | null {
     return this.session;
   }
 
@@ -36,7 +39,7 @@ export class DummySessionStorage implements SessionStorageBackend {
    * Set the session in memory storage
    * @param value - The session to store
    */
-  set(value: Session): void {
+  set(value: StoredSession): void {
     this.session = value;
   }
 
