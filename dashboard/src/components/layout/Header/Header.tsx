@@ -51,8 +51,8 @@ export default function Header({ className, ...props }: HeaderProps) {
     <Box
       component="header"
       className={twMerge(
-        'relative z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b px-4',
-        colorEntry && `border-b-2 ${colorEntry.border}`,
+        'relative z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-2 px-4',
+        colorEntry?.border,
         className,
       )}
       sx={{ backgroundColor: 'background.paper' }}

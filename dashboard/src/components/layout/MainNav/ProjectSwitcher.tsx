@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { Box, Check, ChevronsUpDown } from 'lucide-react';
+import { Box, Check, ChevronsUpDown, Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import ProjectStatus from '@/components/layout/Header/ProjectStatus';
@@ -11,6 +11,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/v3/command';
 import {
   Popover,
@@ -24,8 +25,8 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 import { getProjectFeaturePagePath } from '@/utils/getProjectFeaturePagePath';
 
@@ -33,13 +34,14 @@ export default function ProjectSwitcher() {
   const { query, pathname, push } = useRouter();
   const appSubdomain = query.appSubdomain as string | undefined;
 
+  const isPlatform = useIsPlatform();
   const { state: appState } = useAppState();
   const { currentOrg: { slug: orgSlug, apps = [] } = {} } = useOrgs();
-  const { project } = useProject();
+  const currentApp = apps.find((app) => app.subdomain === appSubdomain);
 
   const [open, setOpen] = useState(false);
 
-  const isGitHubConnected = !!project?.githubRepository;
+  const isGitHubConnected = !!currentApp?.githubRepository;
 
   const handleSelect = (subdomain: string) => {
     setOpen(false);
@@ -60,9 +62,9 @@ export default function ProjectSwitcher() {
         >
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate font-semibold text-sm">
-              {project?.name ?? 'Select project'}
+              {currentApp?.name ?? 'Select project'}
             </span>
-            {project && <ProjectStatusIndicator status={appState} />}
+            {currentApp && <ProjectStatusIndicator status={appState} />}
             {isGitHubConnected && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -88,10 +90,10 @@ export default function ProjectSwitcher() {
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
         <Command>
-          <CommandInput placeholder="Select a project..." />
+          <CommandInput placeholder="Select project..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup heading="Projects">
               {apps.map((app) => (
                 <CommandItem
                   key={app.subdomain}
@@ -134,6 +136,22 @@ export default function ProjectSwitcher() {
                 </CommandItem>
               ))}
             </CommandGroup>
+            {isPlatform && (
+              <>
+                <CommandSeparator />
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={() => {
+                      setOpen(false);
+                      push(`/orgs/${orgSlug}/projects/new`);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    <span>New Project</span>
+                  </CommandItem>
+                </CommandGroup>
+              </>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>
