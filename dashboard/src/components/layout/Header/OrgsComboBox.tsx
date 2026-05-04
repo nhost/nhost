@@ -105,17 +105,19 @@ export default function OrgsComboBox() {
           <Button
             size="sm"
             variant="ghost"
-            className="max-w-xl justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-muted"
+            className="min-w-[223px] max-w-xl justify-between gap-2 px-2 text-foreground hover:bg-accent dark:hover:bg-muted"
           >
             {selectedItem ? (
               <div className="flex min-w-0 flex-1 flex-row items-center">
-                <span className="truncate">{selectedItem.label}</span>
+                <span className="truncate font-semibold">
+                  {selectedItem.label}
+                </span>
                 {renderBadge(selectedItem.plan)}
               </div>
             ) : (
               'Select organization'
             )}
-            <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
+            <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted-foreground" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
