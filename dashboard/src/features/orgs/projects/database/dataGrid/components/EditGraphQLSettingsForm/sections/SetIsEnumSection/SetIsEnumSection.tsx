@@ -29,6 +29,7 @@ export interface SetIsEnumSectionProps {
   isUntracked?: boolean;
   schema: string;
   tableName: string;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export default function SetIsEnumSection({
@@ -36,6 +37,7 @@ export default function SetIsEnumSection({
   isUntracked,
   schema,
   tableName,
+  onDirtyChange,
 }: SetIsEnumSectionProps) {
   const { mutateAsync: setTableIsEnum } = useSetTableIsEnumMutation();
   const {
@@ -69,6 +71,14 @@ export default function SetIsEnumSection({
   const { reset, formState } = form;
 
   const { isDirty, isSubmitting } = formState;
+
+  useEffect(() => {
+    if (!isDirty) {
+      return undefined;
+    }
+    onDirtyChange?.(true);
+    return () => onDirtyChange?.(false);
+  }, [isDirty, onDirtyChange]);
 
   useEffect(() => {
     if (isLoadingIsEnum) {

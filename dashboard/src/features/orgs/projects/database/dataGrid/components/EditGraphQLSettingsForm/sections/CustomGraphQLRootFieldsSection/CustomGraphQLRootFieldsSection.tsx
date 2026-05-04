@@ -37,6 +37,7 @@ interface CustomGraphQLRootFieldsFormProps {
   isUntracked?: boolean;
   schema: string;
   tableName: string;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export default function CustomGraphQLRootFieldsSection({
@@ -44,6 +45,7 @@ export default function CustomGraphQLRootFieldsSection({
   isUntracked,
   schema,
   tableName,
+  onDirtyChange,
 }: CustomGraphQLRootFieldsFormProps) {
   const { mutateAsync: setTableCustomization } =
     useSetTableCustomizationMutation();
@@ -74,6 +76,14 @@ export default function CustomGraphQLRootFieldsSection({
   const { formState, reset, setValue } = form;
 
   const { isSubmitting, isDirty } = formState;
+
+  useEffect(() => {
+    if (!isDirty) {
+      return undefined;
+    }
+    onDirtyChange?.(true);
+    return () => onDirtyChange?.(false);
+  }, [isDirty, onDirtyChange]);
 
   const customTableName = form.watch('customTableName');
 

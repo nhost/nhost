@@ -21,6 +21,7 @@ export interface ColumnsNameCustomizationSectionProps {
   isUntracked?: boolean;
   schema: string;
   tableName: string;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 type GraphQLFieldNamePath = `columns.${string}.graphqlFieldName`;
@@ -43,6 +44,7 @@ export default function ColumnsNameCustomizationSection({
   isUntracked,
   schema,
   tableName,
+  onDirtyChange,
 }: ColumnsNameCustomizationSectionProps) {
   const form = useForm<ColumnsNameCustomizationFormValues>({
     defaultValues: {
@@ -81,6 +83,14 @@ export default function ColumnsNameCustomizationSection({
 
   const { formState, reset, getValues, setValue } = form;
   const { isDirty, isSubmitting } = formState;
+
+  useEffect(() => {
+    if (!isDirty) {
+      return undefined;
+    }
+    onDirtyChange?.(true);
+    return () => onDirtyChange?.(false);
+  }, [isDirty, onDirtyChange]);
 
   useEffect(() => {
     if (
