@@ -42,6 +42,7 @@ in
   check =
     pkgs.runCommand "check-postgres"
       {
+        __noChroot = true;
         nativeBuildInputs = with pkgs; [
           postgresql_18
           diffutils
