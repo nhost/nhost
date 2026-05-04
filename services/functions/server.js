@@ -1,6 +1,7 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const { execSync } = require('node:child_process');
+const chokidar = require('chokidar');
 const express = require('express');
 const glob = require('glob');
 const esbuild = require('esbuild');
@@ -28,14 +29,6 @@ const functionEntries = new Map();
 
 // Track discovered functions for metadata endpoint
 const functionMeta = new Map();
-
-// Track source file mtimes for polling-based change detection (ctx.watch /
-// inotify is unreliable on Docker bind-mount volumes). Populated from
-// esbuild's metafile.inputs after each successful rebuild so the poll covers
-// the full dependency graph (e.g., _utils/), not just entry-point files.
-// Keys are paths as emitted by esbuild's metafile (relative to cwd, or
-// absolute for wrappers); we path.resolve() before stat'ing.
-const watchedMtimes = new Map();
 
 // Single esbuild context covering every function's wrapper as an entry point.
 // Per-function contexts retained the parsed dep graph (express, aws-sdk, ...)
@@ -184,7 +177,6 @@ async function rebuildContext(functionsPath) {
     platform: 'node',
     target: getNodeTarget(),
     sourcemap: true,
-    metafile: true,
     outdir: DIST_DIR,
     nodePaths,
     logLevel: 'warning',
@@ -210,20 +202,6 @@ async function rebuildContext(functionsPath) {
               loadBundle(entry.route, entry.outfile);
               serverLog('INFO', entry.route, `Rebuilt from ${file}`);
             }
-
-            // Refresh the watched-file snapshot from the just-built dependency
-            // graph so the poll catches edits to anything an entry imports
-            // (e.g., _utils/, sibling helpers), not just the entries themselves.
-            if (result.metafile) {
-              watchedMtimes.clear();
-              for (const inputPath of Object.keys(result.metafile.inputs)) {
-                if (inputPath.includes('node_modules/')) continue;
-                const absolute = path.resolve(inputPath);
-                try {
-                  watchedMtimes.set(inputPath, fs.statSync(absolute).mtimeMs);
-                } catch {}
-              }
-            }
           });
         },
       },
@@ -231,8 +209,9 @@ async function rebuildContext(functionsPath) {
   });
 
   await ctx.rebuild();
-  // Do NOT call ctx.watch() — inotify/FSEvents are unreliable on Docker bind-mount
-  // volumes; content changes are detected via mtime polling instead (see setInterval below).
+  // Do NOT call ctx.watch() — inotify/FSEvents are unreliable on Docker
+  // bind-mount volumes. Change detection is handled by chokidar with
+  // usePolling: true (see watchers in main()).
   buildContext = ctx;
 }
 
@@ -318,111 +297,101 @@ const main = async () => {
     await scheduleRebuild(functionsPath);
   }
 
-  // Poll for new/deleted files and content changes. Filesystem events
-  // (chokidar/inotify) are unreliable over Docker volume mounts, so we poll
-  // instead: entry-set changes recreate the esbuild context; content changes
-  // (mtime diff) trigger an incremental rebuild on the existing context.
-  setInterval(async () => {
-    const currentFiles = new Set(discoverFunctions(functionsPath));
-    const knownFiles = new Set(functionEntries.keys());
-
-    let changed = false;
-
-    for (const file of currentFiles) {
-      if (!knownFiles.has(file)) {
-        serverLog('INFO', fileToRoute(file), `New function detected: ${file}`);
-        prepareFunctionEntry(functionsPath, file);
-        changed = true;
-      }
+  // Mirrors discoverFunctions's filter: .js/.ts not under any underscore-
+  // prefixed segment (e.g. _utils/). chokidar's `ignored` already drops
+  // node_modules, so we only re-check the underscore rule here.
+  function isEntryFile(absPath) {
+    const rel = path.relative(functionsPath, absPath);
+    if (!/\.(js|ts)$/.test(rel)) return false;
+    for (const segment of rel.split(path.sep)) {
+      if (segment.startsWith('_')) return false;
     }
+    return true;
+  }
 
-    for (const file of knownFiles) {
-      if (!currentFiles.has(file)) {
-        const route = fileToRoute(file);
-        disposeFunctionEntry(file);
-        serverLog('INFO', route, `Removed (${file} deleted)`);
-        changed = true;
-      }
+  const triggerFullRebuild = () =>
+    scheduleRebuild(functionsPath).catch((err) =>
+      serverLog('ERROR', '', 'Failed to rebuild context:', err),
+    );
+  const triggerIncrementalRebuild = () =>
+    scheduleIncrementalRebuild().catch((err) =>
+      serverLog('ERROR', '', 'Incremental rebuild failed:', err),
+    );
+
+  // Watch the functions tree. usePolling is required because inotify/FSEvents
+  // don't propagate over Docker bind-mount volumes; chokidar's polling mode
+  // gives us proper add/change/unlink semantics (instead of everything
+  // arriving as "change") plus awaitWriteFinish to coalesce editor atomic-
+  // write sequences into a single event.
+  const watcher = chokidar.watch(functionsPath, {
+    ignored: (p) => /[\\/]node_modules(?:[\\/]|$)/.test(p),
+    ignoreInitial: true,
+    usePolling: true,
+    interval: 1000,
+    binaryInterval: 3000,
+    awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 100 },
+  });
+
+  watcher.on('add', (absPath) => {
+    const rel = path.relative(functionsPath, absPath);
+    if (isEntryFile(absPath) && !functionEntries.has(rel)) {
+      serverLog('INFO', fileToRoute(rel), `New function detected: ${rel}`);
+      prepareFunctionEntry(functionsPath, rel);
+      triggerFullRebuild();
+    } else {
+      // Non-entry add (e.g. new _utils/foo.js) — an existing function may
+      // import it, so a rebuild on the current context is enough.
+      triggerIncrementalRebuild();
     }
+  });
 
-    if (changed) {
-      try {
-        await scheduleRebuild(functionsPath);
-      } catch (err) {
-        serverLog('ERROR', '', 'Failed to rebuild context:', err);
-      }
-      // rebuildContext's onEnd refreshes watchedMtimes from the new metafile,
-      // so skip the content-change check this tick.
-      return;
+  watcher.on('unlink', (absPath) => {
+    const rel = path.relative(functionsPath, absPath);
+    if (functionEntries.has(rel)) {
+      const route = fileToRoute(rel);
+      disposeFunctionEntry(rel);
+      serverLog('INFO', route, `Removed (${rel} deleted)`);
+      triggerFullRebuild();
+    } else {
+      triggerIncrementalRebuild();
     }
+  });
 
-    // Content-change detection: stat every file in the dependency graph
-    // captured by the last build's metafile (entries + their transitive
-    // imports, e.g., _utils/). Reliable on Docker bind-mount volumes where
-    // inotify does not fire. Update the snapshot inline so a long rebuild
-    // doesn't queue redundant follow-ups; onEnd will re-snapshot from the
-    // fresh metafile once the rebuild completes.
-    let contentChanged = false;
-    for (const [inputPath, prev] of watchedMtimes) {
-      try {
-        const mtimeMs = fs.statSync(path.resolve(inputPath)).mtimeMs;
-        if (mtimeMs !== prev) {
-          watchedMtimes.set(inputPath, mtimeMs);
-          contentChanged = true;
-          serverLog('INFO', '', `Changed: ${inputPath}`);
-        }
-      } catch {}
-    }
+  watcher.on('change', (absPath) => {
+    const rel = path.relative(functionsPath, absPath);
+    serverLog('INFO', '', `Changed: ${rel}`);
+    triggerIncrementalRebuild();
+  });
 
-    if (contentChanged) {
-      try {
-        await scheduleIncrementalRebuild();
-      } catch (err) {
-        serverLog('ERROR', '', 'Incremental rebuild failed:', err);
-      }
-    }
-  }, 1000);
-
-  // Watch for dependency changes (package.json / lockfiles) via mtime polling.
+  // Watch dependency manifests so a saved package.json / lockfile triggers
+  // `nci` followed by a full rebuild.
   const workingDir = process.cwd();
   const depFiles = [
     'package.json',
     'package-lock.json',
     'yarn.lock',
     'pnpm-lock.yaml',
-  ];
-  const depMtimes = new Map();
-  for (const f of depFiles) {
+  ].map((f) => path.join(workingDir, f));
+
+  const depWatcher = chokidar.watch(depFiles, {
+    ignoreInitial: true,
+    usePolling: true,
+    interval: 1000,
+    awaitWriteFinish: { stabilityThreshold: 500, pollInterval: 100 },
+  });
+
+  depWatcher.on('change', async (filePath) => {
+    console.log(
+      `Dependency file changed: ${path.basename(filePath)} — reinstalling...`,
+    );
     try {
-      depMtimes.set(f, fs.statSync(path.join(workingDir, f)).mtimeMs);
-    } catch {}
-  }
-  setInterval(async () => {
-    for (const file of depFiles) {
-      const filePath = path.join(workingDir, file);
-      let mtimeMs;
-      try {
-        mtimeMs = fs.statSync(filePath).mtimeMs;
-      } catch {
-        if (depMtimes.has(file)) depMtimes.delete(file);
-        continue;
-      }
-      const prev = depMtimes.get(file);
-      if (prev !== undefined && prev !== mtimeMs) {
-        depMtimes.set(file, mtimeMs);
-        console.log(`Dependency file changed: ${file} — reinstalling...`);
-        try {
-          execSync('nci', { cwd: workingDir, stdio: 'inherit' });
-          console.log('Dependencies installed. Rebuilding all functions...');
-          await rebuildAll();
-        } catch (err) {
-          console.error('Failed to reinstall dependencies:', err);
-        }
-        return; // rebuildAll already covers everything
-      }
-      depMtimes.set(file, mtimeMs);
+      execSync('nci', { cwd: workingDir, stdio: 'inherit' });
+      console.log('Dependencies installed. Rebuilding all functions...');
+      await rebuildAll();
+    } catch (err) {
+      console.error('Failed to reinstall dependencies:', err);
     }
-  }, 1000);
+  });
 
   app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
