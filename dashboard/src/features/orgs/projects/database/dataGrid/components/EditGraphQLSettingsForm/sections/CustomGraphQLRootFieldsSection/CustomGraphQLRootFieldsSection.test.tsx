@@ -36,9 +36,17 @@ vi.mock(
   }),
 );
 
-function renderSection(tableName = 'user_profile', schema = 'public') {
+function renderSection(
+  tableName = 'user_profile',
+  schema = 'public',
+  onDirtyChange?: (dirty: boolean) => void,
+) {
   return render(
-    <CustomGraphQLRootFieldsSection schema={schema} tableName={tableName} />,
+    <CustomGraphQLRootFieldsSection
+      schema={schema}
+      tableName={tableName}
+      onDirtyChange={onDirtyChange}
+    />,
   );
 }
 
@@ -179,6 +187,27 @@ describe('CustomGraphQLRootFieldsSection', () => {
     expect(customTableInput).toHaveDisplayValue('authRoles');
     expect(selectField).toHaveDisplayValue('authRoles');
     expect(insertField).toHaveDisplayValue('insertAuthRoles');
+  });
+
+  it('reports dirty state through onDirtyChange when a field is edited and on unmount', async () => {
+    const user = new TestUserEvent();
+    const onDirtyChange = vi.fn();
+    const { unmount } = renderSection('user_profile', 'public', onDirtyChange);
+    await openAllSections(user);
+
+    expect(onDirtyChange).not.toHaveBeenCalledWith(true);
+
+    const [customTableInput] = screen.getAllByPlaceholderText(
+      'user_profile (default)',
+    );
+    await user.type(customTableInput, 'custom_table');
+
+    expect(onDirtyChange).toHaveBeenCalledWith(true);
+
+    onDirtyChange.mockClear();
+    unmount();
+
+    expect(onDirtyChange).toHaveBeenCalledWith(false);
   });
 
   it('resets every field back to defaults when Reset to default is clicked', async () => {

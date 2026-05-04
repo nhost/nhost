@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useDialog } from '@/components/common/DialogProvider';
 import { FormInput } from '@/components/form/FormInput';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Badge } from '@/components/ui/v3/badge';
@@ -56,6 +57,10 @@ export interface EditFunctionGraphQLSettingsFormProps {
    * Whether the form is disabled, if true, the form will be read-only.
    */
   disabled?: boolean;
+  /**
+   * Injected by `DialogProvider` when rendered as a drawer/dialog.
+   */
+  location?: 'drawer' | 'dialog';
 }
 
 export default function EditFunctionGraphQLSettingsForm({
@@ -64,6 +69,7 @@ export default function EditFunctionGraphQLSettingsForm({
   functionName,
   functionOID,
   disabled,
+  location = 'drawer',
 }: EditFunctionGraphQLSettingsFormProps) {
   const { query } = useRouter();
   const { dataSourceSlug } = query;
@@ -148,6 +154,12 @@ export default function EditFunctionGraphQLSettingsForm({
 
   const { formState, reset, getValues, setValue } = form;
   const { isSubmitting, isDirty } = formState;
+
+  const { onDirtyStateChange } = useDialog();
+
+  useEffect(() => {
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   useEffect(() => {
     if (isLoadingFunctionCustomization || !functionConfig) {
