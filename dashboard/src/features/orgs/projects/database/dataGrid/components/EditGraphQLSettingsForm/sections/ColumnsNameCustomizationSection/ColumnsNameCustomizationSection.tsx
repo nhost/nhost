@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useDialog } from '@/components/common/DialogProvider';
 import { FormInput } from '@/components/form/FormInput';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -16,12 +17,13 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { cn, isEmptyValue } from '@/lib/utils';
 import ColumnsNameCustomizationSectionSkeleton from './ColumnsNameCustomizationSectionSkeleton';
 
+const DIRTY_SOURCE_ID = 'edit-gql-columns';
+
 export interface ColumnsNameCustomizationSectionProps {
   disabled?: boolean;
   isUntracked?: boolean;
   schema: string;
   tableName: string;
-  onDirtyChange?: (dirty: boolean) => void;
 }
 
 type GraphQLFieldNamePath = `columns.${string}.graphqlFieldName`;
@@ -44,8 +46,9 @@ export default function ColumnsNameCustomizationSection({
   isUntracked,
   schema,
   tableName,
-  onDirtyChange,
 }: ColumnsNameCustomizationSectionProps) {
+  const { setDirtySource } = useDialog();
+
   const form = useForm<ColumnsNameCustomizationFormValues>({
     defaultValues: {
       columns: {},
@@ -85,12 +88,17 @@ export default function ColumnsNameCustomizationSection({
   const { isDirty, isSubmitting } = formState;
 
   useEffect(() => {
-    if (!isDirty) {
-      return undefined;
-    }
-    onDirtyChange?.(true);
-    return () => onDirtyChange?.(false);
-  }, [isDirty, onDirtyChange]);
+    const unsubscribe = form.subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty: nextIsDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(nextIsDirty));
+      },
+    });
+    return () => {
+      unsubscribe();
+      setDirtySource(DIRTY_SOURCE_ID, false);
+    };
+  }, [form, setDirtySource]);
 
   useEffect(() => {
     if (

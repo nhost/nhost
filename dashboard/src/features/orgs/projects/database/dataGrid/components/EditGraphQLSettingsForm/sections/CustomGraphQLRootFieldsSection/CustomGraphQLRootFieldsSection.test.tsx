@@ -15,6 +15,32 @@ const mocks = vi.hoisted(() => ({
   useGetMetadataResourceVersion: vi.fn(),
 }));
 
+const dialogMocks = vi.hoisted(() => ({
+  setDirtySource: vi.fn(),
+}));
+
+vi.mock('@/components/common/DialogProvider', async () => {
+  const actual = await vi.importActual<
+    typeof import('@/components/common/DialogProvider')
+  >('@/components/common/DialogProvider');
+  return {
+    ...actual,
+    useDialog: () => ({
+      setDirtySource: dialogMocks.setDirtySource,
+      onDirtyStateChange: vi.fn(),
+      openDialog: vi.fn(),
+      openDrawer: vi.fn(),
+      openAlertDialog: vi.fn(),
+      closeDialog: vi.fn(),
+      closeDrawer: vi.fn(),
+      closeDialogWithDirtyGuard: vi.fn(),
+      closeDrawerWithDirtyGuard: vi.fn(),
+      closeAlertDialog: vi.fn(),
+      openDirtyConfirmation: vi.fn(),
+    }),
+  };
+});
+
 vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery',
   () => ({
@@ -36,17 +62,9 @@ vi.mock(
   }),
 );
 
-function renderSection(
-  tableName = 'user_profile',
-  schema = 'public',
-  onDirtyChange?: (dirty: boolean) => void,
-) {
+function renderSection(tableName = 'user_profile', schema = 'public') {
   return render(
-    <CustomGraphQLRootFieldsSection
-      schema={schema}
-      tableName={tableName}
-      onDirtyChange={onDirtyChange}
-    />,
+    <CustomGraphQLRootFieldsSection schema={schema} tableName={tableName} />,
   );
 }
 
@@ -189,25 +207,33 @@ describe('CustomGraphQLRootFieldsSection', () => {
     expect(insertField).toHaveDisplayValue('insertAuthRoles');
   });
 
-  it('reports dirty state through onDirtyChange when a field is edited and on unmount', async () => {
+  it('reports dirty state through setDirtySource when a field is edited and on unmount', async () => {
     const user = new TestUserEvent();
-    const onDirtyChange = vi.fn();
-    const { unmount } = renderSection('user_profile', 'public', onDirtyChange);
+    const { unmount } = renderSection();
     await openAllSections(user);
 
-    expect(onDirtyChange).not.toHaveBeenCalledWith(true);
+    expect(dialogMocks.setDirtySource).not.toHaveBeenCalledWith(
+      'edit-gql-root-fields',
+      true,
+    );
 
     const [customTableInput] = screen.getAllByPlaceholderText(
       'user_profile (default)',
     );
     await user.type(customTableInput, 'custom_table');
 
-    expect(onDirtyChange).toHaveBeenCalledWith(true);
+    expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+      'edit-gql-root-fields',
+      true,
+    );
 
-    onDirtyChange.mockClear();
+    dialogMocks.setDirtySource.mockClear();
     unmount();
 
-    expect(onDirtyChange).toHaveBeenCalledWith(false);
+    expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+      'edit-gql-root-fields',
+      false,
+    );
   });
 
   it('resets every field back to defaults when Reset to default is clicked', async () => {

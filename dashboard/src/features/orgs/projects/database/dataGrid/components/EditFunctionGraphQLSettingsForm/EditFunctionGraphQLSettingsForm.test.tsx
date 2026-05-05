@@ -3,7 +3,7 @@ import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import EditFunctionGraphQLSettingsForm from './EditFunctionGraphQLSettingsForm';
 
 const dialogMocks = vi.hoisted(() => ({
-  onDirtyStateChange: vi.fn(),
+  setDirtySource: vi.fn(),
 }));
 
 const formMocks = vi.hoisted(() => ({
@@ -20,7 +20,8 @@ vi.mock('@/components/common/DialogProvider', async () => {
   return {
     ...actual,
     useDialog: () => ({
-      onDirtyStateChange: dialogMocks.onDirtyStateChange,
+      setDirtySource: dialogMocks.setDirtySource,
+      onDirtyStateChange: vi.fn(),
       openDialog: vi.fn(),
       openDrawer: vi.fn(),
       openAlertDialog: vi.fn(),
@@ -95,17 +96,19 @@ describe('EditFunctionGraphQLSettingsForm dirty-guard', () => {
     vi.clearAllMocks();
   });
 
-  it('reports dirty=true to onDirtyStateChange when a field is edited', async () => {
+  it('reports dirty state through setDirtySource when a field is edited and on unmount', async () => {
     const user = new TestUserEvent();
-    render(
+    const { unmount } = render(
       <EditFunctionGraphQLSettingsForm
         schema="public"
         functionName="get_user"
       />,
     );
 
-    expect(dialogMocks.onDirtyStateChange).toHaveBeenLastCalledWith(false);
-    dialogMocks.onDirtyStateChange.mockClear();
+    expect(dialogMocks.setDirtySource).not.toHaveBeenCalledWith(
+      'edit-fn-gql-settings',
+      true,
+    );
 
     const aggregateInput = screen.getByPlaceholderText(
       'get_user_aggregate (default)',
@@ -113,7 +116,18 @@ describe('EditFunctionGraphQLSettingsForm dirty-guard', () => {
     await user.type(aggregateInput, 'getUserAggregate');
 
     await waitFor(() => {
-      expect(dialogMocks.onDirtyStateChange).toHaveBeenCalledWith(true);
+      expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+        'edit-fn-gql-settings',
+        true,
+      );
     });
+
+    dialogMocks.setDirtySource.mockClear();
+    unmount();
+
+    expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+      'edit-fn-gql-settings',
+      false,
+    );
   });
 });

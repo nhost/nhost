@@ -8,6 +8,32 @@ const mocks = vi.hoisted(() => ({
   useGetMetadataResourceVersion: vi.fn(),
 }));
 
+const dialogMocks = vi.hoisted(() => ({
+  setDirtySource: vi.fn(),
+}));
+
+vi.mock('@/components/common/DialogProvider', async () => {
+  const actual = await vi.importActual<
+    typeof import('@/components/common/DialogProvider')
+  >('@/components/common/DialogProvider');
+  return {
+    ...actual,
+    useDialog: () => ({
+      setDirtySource: dialogMocks.setDirtySource,
+      onDirtyStateChange: vi.fn(),
+      openDialog: vi.fn(),
+      openDrawer: vi.fn(),
+      openAlertDialog: vi.fn(),
+      closeDialog: vi.fn(),
+      closeDrawer: vi.fn(),
+      closeDialogWithDirtyGuard: vi.fn(),
+      closeDrawerWithDirtyGuard: vi.fn(),
+      closeAlertDialog: vi.fn(),
+      openDirtyConfirmation: vi.fn(),
+    }),
+  };
+});
+
 vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useTableIsEnumQuery',
   () => ({
@@ -46,26 +72,30 @@ describe('SetIsEnumSection', () => {
     vi.clearAllMocks();
   });
 
-  it('reports dirty state through onDirtyChange when the switch is toggled and on unmount', async () => {
+  it('reports dirty state through setDirtySource when the switch is toggled and on unmount', async () => {
     const user = new TestUserEvent();
-    const onDirtyChange = vi.fn();
     const { unmount } = render(
-      <SetIsEnumSection
-        schema="public"
-        tableName="user_profile"
-        onDirtyChange={onDirtyChange}
-      />,
+      <SetIsEnumSection schema="public" tableName="user_profile" />,
     );
 
-    expect(onDirtyChange).not.toHaveBeenCalledWith(true);
+    expect(dialogMocks.setDirtySource).not.toHaveBeenCalledWith(
+      'edit-gql-is-enum',
+      true,
+    );
 
     await user.click(screen.getByRole('switch'));
 
-    expect(onDirtyChange).toHaveBeenCalledWith(true);
+    expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+      'edit-gql-is-enum',
+      true,
+    );
 
-    onDirtyChange.mockClear();
+    dialogMocks.setDirtySource.mockClear();
     unmount();
 
-    expect(onDirtyChange).toHaveBeenCalledWith(false);
+    expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+      'edit-gql-is-enum',
+      false,
+    );
   });
 });

@@ -1,6 +1,4 @@
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
-import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
@@ -15,7 +13,7 @@ export interface EditGraphQLSettingsFormProps {
   /**
    * Function to be called when the form is closed.
    */
-  onCancel?: () => void;
+  onCancel?: (event?: unknown) => void;
   /**
    * Schema where the table is located.
    */
@@ -44,18 +42,6 @@ export default function EditGraphQLSettingsForm({
 
   const { mutateAsync: setTableTracking, isPending: isTrackingPending } =
     useSetTableTrackingMutation();
-
-  const { onDirtyStateChange } = useDialog();
-  const [dirtyCount, setDirtyCount] = useState(0);
-  const isAnyDirty = dirtyCount > 0;
-
-  const reportSectionDirty = useCallback((dirty: boolean) => {
-    setDirtyCount((prev) => prev + (dirty ? 1 : -1));
-  }, []);
-
-  useEffect(() => {
-    onDirtyStateChange(isAnyDirty);
-  }, [isAnyDirty, onDirtyStateChange]);
 
   async function handleTrackToggle() {
     const tracked = !isTracked;
@@ -96,21 +82,18 @@ export default function EditGraphQLSettingsForm({
           isUntracked={isUntracked}
           schema={schema}
           tableName={tableName}
-          onDirtyChange={reportSectionDirty}
         />
         <CustomGraphQLRootFieldsSection
           disabled={isTrackingPending}
           isUntracked={isUntracked}
           schema={schema}
           tableName={tableName}
-          onDirtyChange={reportSectionDirty}
         />
         <SetIsEnumSection
           disabled={isTrackingPending}
           isUntracked={isUntracked}
           schema={schema}
           tableName={tableName}
-          onDirtyChange={reportSectionDirty}
         />
       </div>
 

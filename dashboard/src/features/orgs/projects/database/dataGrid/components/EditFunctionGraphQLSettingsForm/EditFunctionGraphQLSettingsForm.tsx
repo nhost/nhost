@@ -20,6 +20,8 @@ import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataG
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
 
+const DIRTY_SOURCE_ID = 'edit-fn-gql-settings';
+
 const validationSchema = z.object({
   customName: z.string().optional(),
   customRootFieldFunction: z.string().optional(),
@@ -40,7 +42,7 @@ export interface EditFunctionGraphQLSettingsFormProps {
   /**
    * Function to be called when the form is closed.
    */
-  onCancel?: () => void;
+  onCancel?: (event?: unknown) => void;
   /**
    * Schema where the function is located.
    */
@@ -150,11 +152,20 @@ export default function EditFunctionGraphQLSettingsForm({
   const { formState, reset, getValues, setValue } = form;
   const { isSubmitting, isDirty } = formState;
 
-  const { onDirtyStateChange } = useDialog();
+  const { setDirtySource } = useDialog();
 
   useEffect(() => {
-    onDirtyStateChange(isDirty);
-  }, [isDirty, onDirtyStateChange]);
+    const unsubscribe = form.subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty: nextIsDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(nextIsDirty));
+      },
+    });
+    return () => {
+      unsubscribe();
+      setDirtySource(DIRTY_SOURCE_ID, false);
+    };
+  }, [form, setDirtySource]);
 
   useEffect(() => {
     if (isLoadingFunctionCustomization || !functionConfig) {
@@ -175,8 +186,8 @@ export default function EditFunctionGraphQLSettingsForm({
       ? functionCustomizationError.message
       : 'An error occurred while loading the function customization.';
 
-  const handleCancel = () => {
-    onCancel?.();
+  const handleCancel = (event?: unknown) => {
+    onCancel?.(event);
   };
 
   if (isLoadingFunctionCustomization) {

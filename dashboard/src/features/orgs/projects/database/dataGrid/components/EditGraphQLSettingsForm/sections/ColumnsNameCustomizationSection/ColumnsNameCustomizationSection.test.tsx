@@ -9,6 +9,32 @@ const mocks = vi.hoisted(() => ({
   useTableSchemaQuery: vi.fn(),
 }));
 
+const dialogMocks = vi.hoisted(() => ({
+  setDirtySource: vi.fn(),
+}));
+
+vi.mock('@/components/common/DialogProvider', async () => {
+  const actual = await vi.importActual<
+    typeof import('@/components/common/DialogProvider')
+  >('@/components/common/DialogProvider');
+  return {
+    ...actual,
+    useDialog: () => ({
+      setDirtySource: dialogMocks.setDirtySource,
+      onDirtyStateChange: vi.fn(),
+      openDialog: vi.fn(),
+      openDrawer: vi.fn(),
+      openAlertDialog: vi.fn(),
+      closeDialog: vi.fn(),
+      closeDrawer: vi.fn(),
+      closeDialogWithDirtyGuard: vi.fn(),
+      closeDrawerWithDirtyGuard: vi.fn(),
+      closeAlertDialog: vi.fn(),
+      openDirtyConfirmation: vi.fn(),
+    }),
+  };
+});
+
 vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery',
   () => ({
@@ -62,27 +88,34 @@ describe('ColumnsNameCustomizationSection', () => {
     vi.clearAllMocks();
   });
 
-  it('reports dirty state through onDirtyChange when a field is edited and on unmount', async () => {
+  it('reports dirty state through setDirtySource when a field is edited and on unmount', async () => {
     const user = new TestUserEvent();
-    const onDirtyChange = vi.fn();
     const { unmount } = render(
       <ColumnsNameCustomizationSection
         schema="public"
         tableName="user_profile"
-        onDirtyChange={onDirtyChange}
       />,
     );
 
-    expect(onDirtyChange).not.toHaveBeenCalledWith(true);
+    expect(dialogMocks.setDirtySource).not.toHaveBeenCalledWith(
+      'edit-gql-columns',
+      true,
+    );
 
     const fieldNameInput = screen.getByPlaceholderText('id (default)');
     await user.type(fieldNameInput, 'identifier');
 
-    expect(onDirtyChange).toHaveBeenCalledWith(true);
+    expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+      'edit-gql-columns',
+      true,
+    );
 
-    onDirtyChange.mockClear();
+    dialogMocks.setDirtySource.mockClear();
     unmount();
 
-    expect(onDirtyChange).toHaveBeenCalledWith(false);
+    expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+      'edit-gql-columns',
+      false,
+    );
   });
 });
