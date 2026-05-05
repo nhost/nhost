@@ -1,6 +1,7 @@
-{ self, nix-filter }: final: prev: rec {
-  go = prev.go_1_26.overrideAttrs
-    (finalAttrs: previousAttrs: rec {
+{ self, nix-filter }:
+final: prev: rec {
+  go = prev.go_1_26.overrideAttrs (
+    finalAttrs: previousAttrs: rec {
       version = "1.26.2";
 
       src = final.fetchurl {
@@ -8,7 +9,8 @@
         sha256 = "sha256-LpHrtpR6lulDb7KzkmqIAu/mOm03Xf/sT4Kqnb1v1Ds=";
       };
 
-    });
+    }
+  );
 
   buildGoModule = prev.buildGoModule.override { go = go; };
 
@@ -102,15 +104,12 @@
     version = "0.0.0-dev";
     src = nix-filter.lib.filter {
       root = self;
-      include = with nix-filter.lib;[
+      include = with nix-filter.lib; [
         "go.mod"
         "go.sum"
         (inDirectory "vendor")
         isDirectory
-        (and
-          (inDirectory "tools/govulncheck-wrapper")
-          (matchExt "go")
-        )
+        (and (inDirectory "tools/govulncheck-wrapper") (matchExt "go"))
       ];
     };
     vendorHash = null;

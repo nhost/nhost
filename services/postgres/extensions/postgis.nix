@@ -1,4 +1,9 @@
-{ buildPGXSExtension, pkgs, postgresql, ... }:
+{
+  buildPGXSExtension,
+  pkgs,
+  postgresql,
+  ...
+}:
 let
   gdal = pkgs.gdalMinimal;
 in

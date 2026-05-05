@@ -8,15 +8,17 @@ let
   ];
 
   mkNodeModules =
-    { src
-    , name
-    , version
-    , preBuild ? ""
-    , pnpmOpts ? ""
+    {
+      src,
+      name,
+      version,
+      preBuild ? "",
+      pnpmOpts ? "",
     }:
     pkgs.stdenv.mkDerivation {
       inherit name version src;
 
+      __noChroot = true;
       dontFixup = true;
 
       nativeBuildInputs = with pkgs; [
@@ -46,10 +48,12 @@ let
     };
 
   devShell =
-    { node_modules
-    , buildInputs ? [ ]
-    , shellHook ? ""
-    }: pkgs.mkShell {
+    {
+      node_modules,
+      buildInputs ? [ ],
+      shellHook ? "",
+    }:
+    pkgs.mkShell {
 
       buildInputs = jsCheckDeps ++ buildInputs;
 
@@ -74,16 +78,19 @@ let
     };
 
   check =
-    { src
-    , node_modules
-    , submodule ? ""
-    , buildInputs
-    , nativeBuildInputs
-    , checkDeps ? [ ]
-    , preCheck ? ""
-    , extraCheck ? ""
-    }: pkgs.runCommand "jstests"
+    {
+      src,
+      node_modules,
+      submodule ? "",
+      buildInputs,
+      nativeBuildInputs,
+      checkDeps ? [ ],
+      preCheck ? "",
+      extraCheck ? "",
+    }:
+    pkgs.runCommand "jstests"
       {
+        __noChroot = true;
         nativeBuildInputs = jsCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
       }
       ''
