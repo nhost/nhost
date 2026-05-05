@@ -25,6 +25,8 @@ export * from './clearMetadataOperation';
 export * from './clearMetadataOperationArgs';
 export * from './clearMetadataOperationType';
 export * from './columnConfigValue';
+export * from './computedFieldDefinition';
+export * from './computedFieldItem';
 export * from './createArrayRelationshipBulkOperation';
 export * from './createArrayRelationshipBulkOperationType';
 export * from './createArrayRelationshipStep';
