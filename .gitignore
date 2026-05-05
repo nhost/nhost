@@ -71,5 +71,6 @@ result
 .vitest
 
 **/.claude/settings.local.json
+.review/
 
 letsencrypt/*
