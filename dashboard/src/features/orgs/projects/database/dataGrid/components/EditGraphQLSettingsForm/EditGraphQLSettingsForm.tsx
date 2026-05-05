@@ -24,17 +24,12 @@ export interface EditGraphQLSettingsFormProps {
    * Table's name that is being edited/viewed.
    */
   tableName: string;
-  /**
-   * Injected by `DialogProvider` when rendered as a drawer/dialog.
-   */
-  location?: 'drawer' | 'dialog';
 }
 
 export default function EditGraphQLSettingsForm({
   onCancel,
   schema,
   tableName,
-  location = 'drawer',
 }: EditGraphQLSettingsFormProps) {
   const { query } = useRouter();
   const { dataSourceSlug } = query;
@@ -59,8 +54,8 @@ export default function EditGraphQLSettingsForm({
   }, []);
 
   useEffect(() => {
-    onDirtyStateChange(isAnyDirty, location);
-  }, [isAnyDirty, location, onDirtyStateChange]);
+    onDirtyStateChange(isAnyDirty);
+  }, [isAnyDirty, onDirtyStateChange]);
 
   async function handleTrackToggle() {
     const tracked = !isTracked;

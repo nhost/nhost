@@ -57,10 +57,6 @@ export interface EditFunctionGraphQLSettingsFormProps {
    * Whether the form is disabled, if true, the form will be read-only.
    */
   disabled?: boolean;
-  /**
-   * Injected by `DialogProvider` when rendered as a drawer/dialog.
-   */
-  location?: 'drawer' | 'dialog';
 }
 
 export default function EditFunctionGraphQLSettingsForm({
@@ -69,7 +65,6 @@ export default function EditFunctionGraphQLSettingsForm({
   functionName,
   functionOID,
   disabled,
-  location = 'drawer',
 }: EditFunctionGraphQLSettingsFormProps) {
   const { query } = useRouter();
   const { dataSourceSlug } = query;
@@ -158,8 +153,8 @@ export default function EditFunctionGraphQLSettingsForm({
   const { onDirtyStateChange } = useDialog();
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, location);
-  }, [isDirty, location, onDirtyStateChange]);
+    onDirtyStateChange(isDirty);
+  }, [isDirty, onDirtyStateChange]);
 
   useEffect(() => {
     if (isLoadingFunctionCustomization || !functionConfig) {

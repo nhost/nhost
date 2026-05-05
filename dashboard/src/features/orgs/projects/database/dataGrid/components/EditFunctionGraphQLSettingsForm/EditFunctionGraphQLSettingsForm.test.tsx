@@ -104,10 +104,7 @@ describe('EditFunctionGraphQLSettingsForm dirty-guard', () => {
       />,
     );
 
-    expect(dialogMocks.onDirtyStateChange).toHaveBeenLastCalledWith(
-      false,
-      'drawer',
-    );
+    expect(dialogMocks.onDirtyStateChange).toHaveBeenLastCalledWith(false);
     dialogMocks.onDirtyStateChange.mockClear();
 
     const aggregateInput = screen.getByPlaceholderText(
@@ -116,25 +113,7 @@ describe('EditFunctionGraphQLSettingsForm dirty-guard', () => {
     await user.type(aggregateInput, 'getUserAggregate');
 
     await waitFor(() => {
-      expect(dialogMocks.onDirtyStateChange).toHaveBeenCalledWith(
-        true,
-        'drawer',
-      );
+      expect(dialogMocks.onDirtyStateChange).toHaveBeenCalledWith(true);
     });
-  });
-
-  it('forwards the location prop when rendered as a dialog', () => {
-    render(
-      <EditFunctionGraphQLSettingsForm
-        schema="public"
-        functionName="get_user"
-        location="dialog"
-      />,
-    );
-
-    expect(dialogMocks.onDirtyStateChange).toHaveBeenLastCalledWith(
-      false,
-      'dialog',
-    );
   });
 });

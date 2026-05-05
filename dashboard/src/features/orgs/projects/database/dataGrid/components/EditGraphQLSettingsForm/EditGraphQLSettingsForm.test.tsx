@@ -120,17 +120,14 @@ describe('EditGraphQLSettingsForm dirty-state aggregation', () => {
       <EditGraphQLSettingsForm schema="public" tableName="user_profile" />,
     );
 
-    expect(dialogMocks.onDirtyStateChange).toHaveBeenLastCalledWith(
-      false,
-      'drawer',
-    );
+    expect(dialogMocks.onDirtyStateChange).toHaveBeenLastCalledWith(false);
     dialogMocks.onDirtyStateChange.mockClear();
 
     act(() => {
       sectionState.columns.current?.(true);
     });
 
-    expect(dialogMocks.onDirtyStateChange).toHaveBeenCalledWith(true, 'drawer');
+    expect(dialogMocks.onDirtyStateChange).toHaveBeenCalledWith(true);
   });
 
   it('does not re-fire onDirtyStateChange when a second section also becomes dirty', () => {
@@ -182,25 +179,6 @@ describe('EditGraphQLSettingsForm dirty-state aggregation', () => {
       sectionState.columns.current?.(false);
     });
 
-    expect(dialogMocks.onDirtyStateChange).toHaveBeenCalledWith(
-      false,
-      'drawer',
-    );
-  });
-
-  it('forwards the location prop when rendered as a dialog', () => {
-    render(
-      <EditGraphQLSettingsForm
-        schema="public"
-        tableName="user_profile"
-        location="dialog"
-      />,
-    );
-
-    act(() => {
-      sectionState.isEnum.current?.(true);
-    });
-
-    expect(dialogMocks.onDirtyStateChange).toHaveBeenCalledWith(true, 'dialog');
+    expect(dialogMocks.onDirtyStateChange).toHaveBeenCalledWith(false);
   });
 });
