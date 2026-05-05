@@ -452,6 +452,14 @@ export interface DatabaseColumn {
    */
   isIdentity?: boolean;
   /**
+   * Determines whether or not the column is a generated column (GENERATED ALWAYS AS ... STORED).
+   */
+  isGenerated?: boolean;
+  /**
+   * The generation expression for generated columns.
+   */
+  generationExpression?: string | null;
+  /**
    * Determines whether or not the column is a primary key of the table.
    */
   isPrimary?: boolean;
@@ -535,6 +543,14 @@ export interface DataBrowserColumnMetadata {
    * Determines whether or not the column is identity.
    */
   isIdentity?: boolean;
+  /**
+   * Determines whether or not the column is a generated column (GENERATED ALWAYS AS ... STORED).
+   */
+  isGenerated?: boolean;
+  /**
+   * The generation expression for generated columns.
+   */
+  generationExpression?: string | null;
   /**
    * Determines whether or not the column is unique.
    */

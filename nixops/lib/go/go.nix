@@ -127,7 +127,9 @@ in
 
         find . -type f ! -path "./vendor/*" -print0 | xargs -0 sha1sum > $TMPDIR/sum
         cd ${src}
-        sha1sum -c $TMPDIR/sum || (echo "❌ ERROR: go generate changed files" && exit 1)
+        sha1sum -c $TMPDIR/sum 2>&1 | tee $TMPDIR/sha1out | grep -v ': OK$' || true
+        echo "✓ $(grep -c ': OK$' $TMPDIR/sha1out) files unchanged"
+        if grep -qv ': OK$' $TMPDIR/sha1out; then echo "❌ ERROR: go generate changed files" && exit 1; fi
 
         echo "➜ Checking for vulnerabilities"
         govulncheck-wrapper -config ${src}/govulncheck.yaml -- -scan=package ./${submodule}/...
