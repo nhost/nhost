@@ -130,6 +130,9 @@ export default function EditPermissionsForm({
   const availableColumns =
     tableData?.columns.map((column) => column.column_name) || [];
 
+  const availableComputedFields =
+    metadataForTable?.computed_fields?.map(({ name }) => name) || [];
+
   function handleSubmit() {
     setRole(undefined);
     setAction(undefined);
@@ -184,6 +187,7 @@ export default function EditPermissionsForm({
         availableRoles={availableRoles}
         allowedActions={allowedActions}
         actionLabels={actionLabels}
+        availableComputedFields={availableComputedFields}
         onRoleChange={setRole}
         onActionChange={setAction}
         onSubmit={handleSubmit}

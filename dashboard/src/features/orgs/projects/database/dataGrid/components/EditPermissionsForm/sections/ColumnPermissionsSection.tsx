@@ -26,6 +26,11 @@ export interface ColumnPermissionsSectionProps {
    * The table that is being edited.
    */
   table: string;
+  /**
+   * Names of computed fields configured on the table. Rendered as additional
+   * checkboxes for the `select` action only.
+   */
+  availableComputedFields?: string[];
 }
 
 export default function ColumnPermissionsSection({
@@ -33,10 +38,14 @@ export default function ColumnPermissionsSection({
   action,
   schema,
   table,
+  availableComputedFields = [],
 }: ColumnPermissionsSectionProps) {
   const { register, setValue } =
     useFormContext<RolePermissionEditorFormValues>();
   const selectedColumns = useWatch({ name: 'columns' }) as string[];
+  const selectedComputedFields = useWatch({ name: 'computedFields' }) as
+    | string[]
+    | undefined;
 
   const {
     data: tableData,
@@ -48,7 +57,13 @@ export default function ColumnPermissionsSection({
     throw tableError;
   }
 
-  const isAllSelected = selectedColumns?.length === tableData?.columns?.length;
+  const showComputedFields =
+    action === 'select' && availableComputedFields.length > 0;
+
+  const isAllSelected =
+    selectedColumns?.length === tableData?.columns?.length &&
+    (!showComputedFields ||
+      selectedComputedFields?.length === availableComputedFields.length);
 
   return (
     <PermissionSettingsSection title={`Column ${action} permissions`}>
@@ -64,6 +79,9 @@ export default function ColumnPermissionsSection({
           onClick={() => {
             if (isAllSelected) {
               setValue('columns', []);
+              if (showComputedFields) {
+                setValue('computedFields', []);
+              }
 
               return;
             }
@@ -72,6 +90,9 @@ export default function ColumnPermissionsSection({
               'columns',
               tableData?.columns?.map((column) => column.column_name),
             );
+            if (showComputedFields) {
+              setValue('computedFields', availableComputedFields);
+            }
           }}
         >
           {isAllSelected ? 'Deselect All' : 'Select All'}
@@ -93,6 +114,16 @@ export default function ColumnPermissionsSection({
               {...register('columns')}
             />
           ))}
+          {showComputedFields &&
+            availableComputedFields.map((fieldName) => (
+              <Checkbox
+                value={fieldName}
+                label={fieldName}
+                key={`computed-${fieldName}`}
+                checked={selectedComputedFields?.includes(fieldName) ?? false}
+                {...register('computedFields')}
+              />
+            ))}
         </div>
       )}
 

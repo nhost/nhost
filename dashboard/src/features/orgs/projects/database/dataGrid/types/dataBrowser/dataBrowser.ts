@@ -7,7 +7,10 @@ import type {
 } from '@tanstack/react-table';
 import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from '@/utils/hasura-api/generated/schemas';
+import type {
+  ComputedFieldItem,
+  ExportMetadataResponseMetadataSourcesItemFunctionsItem,
+} from '@/utils/hasura-api/generated/schemas';
 
 /**
  * Base options for functions that is used by data browser mutations or queries.
@@ -96,6 +99,7 @@ export interface HasuraMetadataTable {
   select_permissions?: HasuraMetadataPermission[];
   update_permissions?: HasuraMetadataPermission[];
   delete_permissions?: HasuraMetadataPermission[];
+  computed_fields?: ComputedFieldItem[];
 }
 
 /**
