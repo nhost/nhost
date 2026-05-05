@@ -1,3 +1,16 @@
+## [@nhost/dashboard@2.62.0] - 2026-05-05
+
+### 🚀 Features
+
+- *(dashboard)* Add copy button to Json editor (#4229)
+
+
+### 🐛 Bug Fixes
+
+- *(nhost-js)* Rename session.Session to StoredSession to disambiguate from auth.Session (#4194)
+- *(dashboard)* Add v2 icon migration inventory documentation (#4208)
+- *(dashboard)* Remove graphite dev assistant from topbar (#4222)
+
 ## [@nhost/dashboard@2.61.1] - 2026-04-30
 
 ### 🐛 Bug Fixes
