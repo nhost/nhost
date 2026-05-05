@@ -99,12 +99,16 @@ in
       preCheck ? "",
       extraCheck ? "",
       goTestFlags ? "",
+      impureEnvVars ? { },
     }:
     pkgs.runCommand "gotests"
-      {
-        __noChroot = true;
-        nativeBuildInputs = goCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
-      }
+      (
+        {
+          __noChroot = true;
+          nativeBuildInputs = goCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+        }
+        // impureEnvVars
+      )
       ''
         export HOME=$(mktemp -d)
 

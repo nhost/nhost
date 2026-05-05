@@ -23,7 +23,7 @@ in
         ];
       }
       ''
-        nixfmt --check ${src}/*
+        find ${src} -name '*.nix' -exec nixfmt --check {} +
 
         mkdir $out
       '';
