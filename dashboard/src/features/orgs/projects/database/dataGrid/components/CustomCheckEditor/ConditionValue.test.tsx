@@ -229,4 +229,32 @@ describe('ConditionValue', () => {
       },
     );
   });
+
+  describe('combobox trigger label', () => {
+    beforeEach(() => {
+      mocks.useGetRolesPermissionsQuery.mockImplementation(() => ({
+        data: mockPermissionsData,
+        loading: false,
+      }));
+    });
+
+    it.each([
+      { value: true, expected: 'true' },
+      { value: false, expected: 'false' },
+      { value: 'X-Hasura-User-Id', expected: 'X-Hasura-User-Id' },
+      { value: null, expected: 'Select variable...' },
+      { value: undefined, expected: 'Select variable...' },
+    ])('renders $value as "$expected" in the trigger', ({
+      value,
+      expected,
+    }) => {
+      render(
+        <TestWrapper defaultValues={{ operator: '_eq', value }}>
+          <ConditionValue name="test" selectedTablePath="public.users" />
+        </TestWrapper>,
+      );
+
+      expect(screen.getByRole('combobox')).toHaveTextContent(expected);
+    });
+  });
 });
