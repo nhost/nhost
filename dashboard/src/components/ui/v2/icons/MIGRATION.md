@@ -52,18 +52,17 @@ Disposition values and the import the codemod should write:
 | `DatabaseIcon` | lucide | `Database` | `lucide-react` | |
 | `DotsHorizontalIcon` | lucide | `Ellipsis` | `lucide-react` | |
 | `DotsVerticalIcon` | lucide | `EllipsisVertical` | `lucide-react` | |
-| `EmbeddingsIcon` | port-to-v3 | `EmbeddingsIcon` | `@/components/ui/v3/icons/EmbeddingsIcon` | Skip codemod until v3 file exists. |
+| `EmbeddingsIcon` | already-v3 | `EmbeddingsIcon` | `@/components/ui/v3/icons/EmbeddingsIcon` | Done — ported and call sites migrated in #4202. |
 | `ExclamationFilledIcon` | lucide | `CircleAlert` | `lucide-react` | Lucide is outline-only; if filled appearance is needed, add `className="fill-current"` (or a specific `fill-*` color) at the call site. |
 | `ExclamationIcon` | lucide | `CircleAlert` | `lucide-react` | |
 | `EyeIcon` | lucide | `Eye` | `lucide-react` | |
 | `EyeOffIcon` | lucide | `EyeOff` | `lucide-react` | |
-| `FileStoresIcon` | port-to-v3 | `FileStoresIcon` | `@/components/ui/v3/icons/FileStoresIcon` | Skip codemod until v3 file exists. |
+| `FileStoresIcon` | already-v3 | `FileStoresIcon` | `@/components/ui/v3/icons/FileStoresIcon` | Done — ported and call sites migrated in #4202. |
 | `FileTextIcon` | lucide | `FileText` | `lucide-react` | |
 | `FullPermissionIcon` | already-v3 | `FullPermissionIcon` | `@/components/ui/v3/icons/FullPermissionIcon` | Redirect imports; v2 copy deleted afterwards. |
 | `GaugeIcon` | lucide | `Gauge` | `lucide-react` | |
 | `GitHubIcon` | simple-icons | `SiGithub` | `@icons-pack/react-simple-icons` | |
 | `GraphQLIcon` | simple-icons | `SiGraphql` | `@icons-pack/react-simple-icons` | |
-| `GraphiteIcon` | port-to-v3 | `GraphiteIcon` | `@/components/ui/v3/icons/GraphiteIcon` | Skip codemod until v3 file exists. |
 | `HasuraIcon` | simple-icons | `SiHasura` | `@icons-pack/react-simple-icons` | |
 | `HomeIcon` | lucide | `Home` | `lucide-react` | |
 | `InfoIcon` | lucide | `Info` | `lucide-react` | |
@@ -80,13 +79,13 @@ Disposition values and the import the codemod should write:
 | `PlusIcon` | lucide | `Plus` | `lucide-react` | |
 | `PowerOffIcon` | lucide | `PowerOff` | `lucide-react` | |
 | `QuestionMarkCircleIcon` | lucide | `CircleHelp` | `lucide-react` | |
-| `QuestionMarkIcon` | port-to-v3 | `QuestionMarkIcon` | `@/components/ui/v3/icons/QuestionMarkIcon` | Bare "?" — Lucide has no equivalent. Skip codemod until v3 file exists. |
+| `QuestionMarkIcon` | already-v3 | `QuestionMarkIcon` | `@/components/ui/v3/icons/QuestionMarkIcon` | Done — ported and call sites migrated in #4202. Bare "?" — Lucide has no equivalent. |
 | `RepeatIcon` | lucide | `Repeat` | `lucide-react` | |
 | `RocketIcon` | lucide | `Rocket` | `lucide-react` | |
 | `RowIcon` | lucide | `Rows3` | `lucide-react` | |
 | `SearchIcon` | lucide | `Search` | `lucide-react` | |
 | `ServicesIcon` | simple-icons | `SiDocker` | `@icons-pack/react-simple-icons` | |
-| `ServicesOutlinedIcon` | port-to-v3 | `ServicesOutlinedIcon` | `@/components/ui/v3/icons/ServicesOutlinedIcon` | Skip codemod until v3 file exists. |
+| `ServicesOutlinedIcon` | already-v3 | `ServicesOutlinedIcon` | `@/components/ui/v3/icons/ServicesOutlinedIcon` | Done — ported and call sites migrated in #4202. |
 | `SlidersIcon` | lucide | `SlidersHorizontal` | `lucide-react` | |
 | `StorageIcon` | lucide | `HardDrive` | `lucide-react` | |
 | `SvgIcon` | already-v3 | — | — | Base MUI wrapper. No replacement; delete in final cleanup once nothing else extends it. |
@@ -104,8 +103,8 @@ Disposition values and the import the codemod should write:
   that size. Bump call sites to 20×20 (`h-5 w-5`) where layout allows. Keep
   16×16 only where unavoidable (tight badge dots) and port those to v3/icons as
   solid SVGs.
-- **Ported v2 icons.** When porting `EmbeddingsIcon`, `FileStoresIcon`,
-  `GraphiteIcon`, etc. into `v3/icons`: redraw at a 24×24 viewBox to match
+- **Ported v2 icons.** When porting `EmbeddingsIcon`, `FileStoresIcon`, etc.
+  into `v3/icons`: redraw at a 24×24 viewBox to match
   Lucide's grid. If the icon sits next to Lucide siblings (nav, menus) switch
   from filled to stroked outline at `strokeWidth=2`.
 - **Prop translation.** MUI `color="primary"` → `className="text-primary"`.

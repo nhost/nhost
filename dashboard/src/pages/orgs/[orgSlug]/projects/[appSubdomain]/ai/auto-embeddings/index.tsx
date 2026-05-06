@@ -8,10 +8,10 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';

@@ -1,15 +1,14 @@
-import type { IconProps } from '@/components/ui/v2/icons';
-import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
+import type { SVGProps } from 'react';
 
-function ServicesOutlinedIcon(props: IconProps) {
+export function ServicesOutlinedIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <SvgIcon
-      width="16"
-      height="16"
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 16 16"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label="Services"
+      aria-hidden="true"
       {...props}
     >
       <path
@@ -54,10 +53,6 @@ function ServicesOutlinedIcon(props: IconProps) {
         d="M9.73963 7.54505H11.0637C11.1277 7.54505 11.1796 7.49341 11.1799 7.42944V6.25005C11.1799 6.18583 11.1279 6.13379 11.0637 6.13379H9.73963C9.67579 6.13379 9.62402 6.18556 9.62402 6.24939V6.25005V7.42942C9.62402 7.49328 9.67579 7.54505 9.73963 7.54505Z"
         fill="currentColor"
       />
-    </SvgIcon>
+    </svg>
   );
 }
-
-ServicesOutlinedIcon.displayName = 'NhostServicesIcon';
-
-export default ServicesOutlinedIcon;

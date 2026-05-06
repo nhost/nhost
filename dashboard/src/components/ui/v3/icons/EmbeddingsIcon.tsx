@@ -1,15 +1,14 @@
-import type { IconProps } from '@/components/ui/v2/icons';
-import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
+import type { SVGProps } from 'react';
 
-function EmbeddingsIcon(props: IconProps) {
+export function EmbeddingsIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <SvgIcon
-      width="17"
-      height="17"
+    <svg
       xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 17 17"
       fill="none"
-      aria-label="Embeddings Icon"
+      aria-hidden="true"
       {...props}
     >
       <path
@@ -24,10 +23,6 @@ function EmbeddingsIcon(props: IconProps) {
         d="M12.9531 8.22458L16.8219 12.0934C17.0594 12.3308 17.0594 12.7157 16.8219 12.9531L12.9531 16.8219C12.7157 17.0594 12.3308 17.0594 12.0934 16.8219C11.856 16.5845 11.856 16.1996 12.0934 15.9622L14.9244 13.1312H4.23357V11.9153H14.9244L12.0934 9.08432C11.856 8.84691 11.856 8.46199 12.0934 8.22458C12.3308 7.98717 12.7157 7.98717 12.9531 8.22458Z"
         fill="currentColor"
       />
-    </SvgIcon>
+    </svg>
   );
 }
-
-EmbeddingsIcon.displayName = 'NhostEmbeddingsIcon';
-
-export default EmbeddingsIcon;
