@@ -6,7 +6,7 @@ import {
   type GraphQLSchema,
 } from 'graphql';
 import { Check } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -41,6 +41,7 @@ import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/u
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
+import PresetArgRow from './PresetArgRow';
 
 const rolePermissionsSchema = z.object({
   selectedFields: z.array(z.string()).optional().default([]),
@@ -98,6 +99,8 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     RemoteSchemaFields[]
   >([]);
   const [argTree, setArgTree] = useState<ArgTreeType>({});
+  const argTreeRef = useRef(argTree);
+  argTreeRef.current = argTree;
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
@@ -314,36 +317,42 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       argName: string,
       value: string,
     ) => {
-      setArgTree((prev) => {
-        const newArgTree = { ...prev };
-        if (!newArgTree[schemaTypeName]) {
-          newArgTree[schemaTypeName] = {};
-        }
-        if (!newArgTree[schemaTypeName][fieldName]) {
-          newArgTree[schemaTypeName][fieldName] = {};
-        }
+      const prev = argTreeRef.current;
+      const newArgTree = { ...prev };
+      if (!newArgTree[schemaTypeName]) {
+        newArgTree[schemaTypeName] = {};
+      }
+      if (!newArgTree[schemaTypeName][fieldName]) {
+        newArgTree[schemaTypeName][fieldName] = {};
+      }
 
-        if (value.trim() === '') {
-          delete newArgTree[schemaTypeName][fieldName][argName];
+      if (value.trim() === '') {
+        delete newArgTree[schemaTypeName][fieldName][argName];
 
-          if (Object.keys(newArgTree[schemaTypeName][fieldName]).length === 0) {
-            delete newArgTree[schemaTypeName][fieldName];
-          }
-          if (Object.keys(newArgTree[schemaTypeName]).length === 0) {
-            delete newArgTree[schemaTypeName];
-          }
-        } else {
-          newArgTree[schemaTypeName][fieldName][argName] = value;
+        if (Object.keys(newArgTree[schemaTypeName][fieldName]).length === 0) {
+          delete newArgTree[schemaTypeName][fieldName];
         }
+        if (Object.keys(newArgTree[schemaTypeName]).length === 0) {
+          delete newArgTree[schemaTypeName];
+        }
+      } else {
+        newArgTree[schemaTypeName][fieldName][argName] = value;
+      }
 
-        return newArgTree;
-      });
+      argTreeRef.current = newArgTree;
+      setArgTree(newArgTree);
     },
     [],
   );
 
   const handleSavePermission = async () => {
-    const schemaDefinition = composePermissionSDL(remoteSchemaFields, argTree);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    const schemaDefinition = composePermissionSDL(
+      remoteSchemaFields,
+      argTreeRef.current,
+    );
     if (!schemaDefinition) {
       return;
     }
@@ -646,39 +655,23 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                             Arguments:
                                           </Text>
                                           {Object.values(field.args).map(
-                                            (arg) => {
-                                              const presetValue =
-                                                formatPresetForInput(
+                                            (arg) => (
+                                              <PresetArgRow
+                                                key={arg.name}
+                                                schemaTypeName={schemaType.name}
+                                                fieldName={field.name}
+                                                arg={arg}
+                                                argTypeString={getArgTypeString(
+                                                  arg,
+                                                )}
+                                                initialValue={formatPresetForInput(
                                                   argTree?.[schemaType.name]?.[
                                                     field.name
                                                   ]?.[arg.name],
-                                                );
-
-                                              return (
-                                                <div
-                                                  key={arg.name}
-                                                  className="flex items-center space-x-2"
-                                                >
-                                                  <span className="min-w-0 flex-shrink-0 text-gray-600 text-sm">
-                                                    {arg.name}:{' '}
-                                                    {getArgTypeString(arg)}
-                                                  </span>
-                                                  <Input
-                                                    placeholder="preset value"
-                                                    value={presetValue}
-                                                    onChange={(e) =>
-                                                      handlePresetChange(
-                                                        schemaType.name,
-                                                        field.name,
-                                                        arg.name,
-                                                        e.target.value,
-                                                      )
-                                                    }
-                                                    className="text-xs"
-                                                  />
-                                                </div>
-                                              );
-                                            },
+                                                )}
+                                                onCommit={handlePresetChange}
+                                              />
+                                            ),
                                           )}
                                         </div>
                                       </AccordionContent>
@@ -807,39 +800,23 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           Arguments:
                                         </Text>
                                         {Object.values(field.args).map(
-                                          (arg) => {
-                                            const presetValue =
-                                              formatPresetForInput(
+                                          (arg) => (
+                                            <PresetArgRow
+                                              key={arg.name}
+                                              schemaTypeName={schemaType.name}
+                                              fieldName={field.name}
+                                              arg={arg}
+                                              argTypeString={getArgTypeString(
+                                                arg,
+                                              )}
+                                              initialValue={formatPresetForInput(
                                                 argTree?.[schemaType.name]?.[
                                                   field.name
                                                 ]?.[arg.name],
-                                              );
-
-                                            return (
-                                              <div
-                                                key={arg.name}
-                                                className="flex items-center space-x-2"
-                                              >
-                                                <span className="min-w-0 flex-shrink-0 text-gray-600 text-sm">
-                                                  {arg.name}:{' '}
-                                                  {getArgTypeString(arg)}
-                                                </span>
-                                                <Input
-                                                  placeholder="preset value"
-                                                  value={presetValue}
-                                                  onChange={(e) =>
-                                                    handlePresetChange(
-                                                      schemaType.name,
-                                                      field.name,
-                                                      arg.name,
-                                                      e.target.value,
-                                                    )
-                                                  }
-                                                  className="text-xs"
-                                                />
-                                              </div>
-                                            );
-                                          },
+                                              )}
+                                              onCommit={handlePresetChange}
+                                            />
+                                          ),
                                         )}
                                       </div>
                                     )}
