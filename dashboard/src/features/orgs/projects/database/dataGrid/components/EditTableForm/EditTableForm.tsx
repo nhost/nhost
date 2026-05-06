@@ -123,8 +123,6 @@ export default function EditTableForm({
       form.reset({
         name: originalTableName,
         columns: dataGridColumns.map((column) => ({
-          // ID can't be changed through the form, so we can use it to
-          // identify the column in the original array.
           id: column.id,
           name: column.id,
           type: column.type,
@@ -132,6 +130,8 @@ export default function EditTableForm({
           isNullable: column.isNullable,
           isUnique: column.isUnique,
           comment: column.comment || '',
+          isGenerated: column.isGenerated,
+          generationExpression: column.generationExpression,
         })),
         primaryKeyIndices,
         identityColumnIndex:

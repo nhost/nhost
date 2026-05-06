@@ -26,10 +26,14 @@ final.stdenvNoCC.mkDerivation {
   inherit version;
 
   src = final.fetchurl {
-    inherit (dist.${final.stdenvNoCC.hostPlatform.system} or
-      (throw "Unsupported system: ${final.stdenvNoCC.hostPlatform.system}")) url sha256;
+    inherit
+      (dist.${final.stdenvNoCC.hostPlatform.system}
+        or (throw "Unsupported system: ${final.stdenvNoCC.hostPlatform.system}")
+      )
+      url
+      sha256
+      ;
   };
-
 
   sourceRoot = ".";
 

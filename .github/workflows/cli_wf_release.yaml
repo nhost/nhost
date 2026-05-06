@@ -70,7 +70,7 @@ jobs:
     steps:
       - name: "Generate App token"
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.NHOST_BOT_APP_ID }}
           private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}

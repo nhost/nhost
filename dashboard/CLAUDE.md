@@ -140,7 +140,6 @@ src/
 
 ### State Management
 
-- Use Recoil for global state (Recoil atoms/selectors)
 - Use TanStack Query (React Query) for server state. For mutations, use `isPending` instead of the deprecated `isLoading` for status checks.
 - Use local state with `useState`/`useReducer` for UI state
 - When using table data hooks, use `useTableSchemaQuery` if you only need column definitions or foreign key relations (no row data). Use `useTableQuery` only when you also need row data (e.g. for a data grid).

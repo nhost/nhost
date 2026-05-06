@@ -12,18 +12,24 @@ let
   ];
 
   dockerImageFn =
-    { name
-    , version
-    , created
-    , package
-    , buildInputs
-    , maxLayers
-    , arch ? pkgs.go.GOARCH
-    , contents ? [ ]
-    , config ? { }
+    {
+      name,
+      version,
+      created,
+      package,
+      buildInputs,
+      maxLayers,
+      arch ? pkgs.go.GOARCH,
+      contents ? [ ],
+      config ? { },
     }:
     nix2containerPkgs.nix2container.buildImage {
-      inherit name created maxLayers arch;
+      inherit
+        name
+        created
+        maxLayers
+        arch
+        ;
       tag = version;
 
       copyToRoot = pkgs.buildEnv {
@@ -38,7 +44,9 @@ let
             destination = "/tmp/tmp-file";
           })
           # busybox
-        ] ++ buildInputs ++ contents;
+        ]
+        ++ buildInputs
+        ++ contents;
       };
 
       config = {
@@ -49,42 +57,58 @@ let
         Entrypoint = [
           "${package}/bin/${name}"
         ];
-      } // config;
+      }
+      // config;
     };
 in
 {
   devShell =
-    { buildInputs ? [ ]
-    , shellHook ? ""
-    }: pkgs.mkShell {
-      buildInputs = with pkgs; [
-        gnumake
-        nixpkgs-fmt
-      ] ++ goCheckDeps ++ buildInputs;
+    {
+      buildInputs ? [ ],
+      shellHook ? "",
+    }:
+    pkgs.mkShell {
+      buildInputs =
+        with pkgs;
+        [
+          gnumake
+          nixfmt
+        ]
+        ++ goCheckDeps
+        ++ buildInputs;
 
-      shellHook = shellHook + pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
-        export SDKROOT=${pkgs.apple-sdk_14}
-        export SDKROOT_FOR_TARGET=${pkgs.apple-sdk_14}
-        export DEVELOPER_DIR=${pkgs.apple-sdk_14}
-        export DEVELOPER_DIR_FOR_TARGET=${pkgs.apple-sdk_14}
-      '';
+      shellHook =
+        shellHook
+        + pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+          export SDKROOT=${pkgs.apple-sdk_14}
+          export SDKROOT_FOR_TARGET=${pkgs.apple-sdk_14}
+          export DEVELOPER_DIR=${pkgs.apple-sdk_14}
+          export DEVELOPER_DIR_FOR_TARGET=${pkgs.apple-sdk_14}
+        '';
     };
 
   check =
-    { src
-    , submodule ? ""
-    , ldflags
-    , tags
-    , buildInputs
-    , nativeBuildInputs
-    , checkDeps ? [ ]
-    , preCheck ? ""
-    , extraCheck ? ""
-    , goTestFlags ? ""
-    }: pkgs.runCommand "gotests"
-      {
-        nativeBuildInputs = goCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
-      }
+    {
+      src,
+      submodule ? "",
+      ldflags,
+      tags,
+      buildInputs,
+      nativeBuildInputs,
+      checkDeps ? [ ],
+      preCheck ? "",
+      extraCheck ? "",
+      goTestFlags ? "",
+      impureEnvVars ? { },
+    }:
+    pkgs.runCommand "gotests"
+      (
+        {
+          __noChroot = true;
+          nativeBuildInputs = goCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+        }
+        // impureEnvVars
+      )
       ''
         export HOME=$(mktemp -d)
 
@@ -107,7 +131,9 @@ in
 
         find . -type f ! -path "./vendor/*" -print0 | xargs -0 sha1sum > $TMPDIR/sum
         cd ${src}
-        sha1sum -c $TMPDIR/sum || (echo "❌ ERROR: go generate changed files" && exit 1)
+        sha1sum -c $TMPDIR/sum 2>&1 | tee $TMPDIR/sha1out | grep -v ': OK$' || true
+        echo "✓ $(grep -c ': OK$' $TMPDIR/sha1out) files unchanged"
+        if grep -qv ': OK$' $TMPDIR/sha1out; then echo "❌ ERROR: go generate changed files" && exit 1; fi
 
         echo "➜ Checking for vulnerabilities"
         govulncheck-wrapper -config ${src}/govulncheck.yaml -- -scan=package ./${submodule}/...
@@ -130,17 +156,24 @@ in
       '';
 
   package =
-    { name
-    , submodule ? ""
-    , description ? ""
-    , src
-    , version
-    , ldflags
-    , buildInputs
-    , nativeBuildInputs
-    , postInstall ? ""
-    }: (pkgs.buildGoModule.override { go = pkgs.go; } {
-      inherit src version ldflags buildInputs;
+    {
+      name,
+      submodule ? "",
+      description ? "",
+      src,
+      version,
+      ldflags,
+      buildInputs,
+      nativeBuildInputs,
+      postInstall ? "",
+    }:
+    (pkgs.buildGoModule.override { go = pkgs.go; } {
+      inherit
+        src
+        version
+        ldflags
+        buildInputs
+        ;
 
       pname = name;
 
@@ -164,43 +197,60 @@ in
         maintainers = [ "nhost" ];
         platforms = platforms.linux ++ platforms.darwin;
       };
-    }).overrideAttrs (old: old // {
+    }).overrideAttrs
+      (
+        old:
+        old
+        // {
 
-      buildPhase = old.buildPhase + ''
-        dir=$NIX_BUILD_TOP/go/bin/"$GOOS"_"$GOARCH"
-        if [ -d $dir ]; then
-          mv $dir/* $dir/..
-          rm -rf $dir
-        fi
-      '';
+          buildPhase = old.buildPhase + ''
+            dir=$NIX_BUILD_TOP/go/bin/"$GOOS"_"$GOARCH"
+            if [ -d $dir ]; then
+              mv $dir/* $dir/..
+              rm -rf $dir
+            fi
+          '';
 
-      postFixup = (old.postFixup or "") + ''
-        find $out/bin -type f -exec remove-references-to -t ${pkgs.go} {} +
+          postFixup = (old.postFixup or "") + ''
+            find $out/bin -type f -exec remove-references-to -t ${pkgs.go} {} +
 
-        # Re-sign darwin (Mach-O) binaries after modification to fix invalid signatures
-        for f in $out/bin/*; do
-          if file "$f" | grep -q "Mach-O"; then
-            rcodesign sign "$f"
-          fi
-        done
-      '';
-    });
+            # Re-sign darwin (Mach-O) binaries after modification to fix invalid signatures
+            for f in $out/bin/*; do
+              if file "$f" | grep -q "Mach-O"; then
+                rcodesign sign "$f"
+              fi
+            done
+          '';
+        }
+      );
 
   docker-image =
-    { name
-    , version
-    , created
-    , package
-    , buildInputs
-    , maxLayers ? 100
-    , arch ? pkgs.go.GOARCH
-    , contents ? [ ]
-    , config ? { }
+    {
+      name,
+      version,
+      created,
+      package,
+      buildInputs,
+      maxLayers ? 100,
+      arch ? pkgs.go.GOARCH,
+      contents ? [ ],
+      config ? { },
     }:
     pkgs.runCommand "image-as-dir" { } ''
-      ${(dockerImageFn {
-        inherit name version created package buildInputs maxLayers arch contents config;
-      }).copyTo}/bin/copy-to dir:$out
+      ${
+        (dockerImageFn {
+          inherit
+            name
+            version
+            created
+            package
+            buildInputs
+            maxLayers
+            arch
+            contents
+            config
+            ;
+        }).copyTo
+      }/bin/copy-to dir:$out
     '';
 }
-

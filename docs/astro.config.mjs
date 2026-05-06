@@ -558,7 +558,6 @@ export default defineConfig({
                     { slug: 'products/ai/local-development' },
                     { slug: 'products/ai/auto-embeddings' },
                     { slug: 'products/ai/assistants' },
-                    { slug: 'products/ai/dev-assistant' },
                   ],
                 },
               ],

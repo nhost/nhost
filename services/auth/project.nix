@@ -1,4 +1,9 @@
-{ self, pkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nix-filter,
+  nixops-lib,
+}:
 let
   name = "auth";
   description = "Nhost Auth";
@@ -8,17 +13,14 @@ let
 
   src = nix-filter.lib.filter {
     root = ../..;
-    include = with nix-filter.lib;[
+    include = with nix-filter.lib; [
       "go.mod"
       "go.sum"
       (inDirectory "vendor")
       ".golangci.yaml"
       "govulncheck.yaml"
       isDirectory
-      (and
-        (inDirectory submodule)
-        (matchExt "go")
-      )
+      (and (inDirectory submodule) (matchExt "go"))
 
       ./docs/cli.md
       ./docs/openapi.yaml
@@ -42,7 +44,7 @@ let
 
   node-src = nix-filter.lib.filter {
     root = ./.;
-    include = with nix-filter.lib;[
+    include = with nix-filter.lib; [
       ./package.json
       ./bun.lock
       ./bunfig.toml
@@ -74,6 +76,7 @@ let
   node_modules-builder = pkgs.stdenv.mkDerivation {
     inherit version;
 
+    __noChroot = true;
     pname = "node_modules-builder";
 
     nativeBuildInputs = with pkgs; [
@@ -109,7 +112,15 @@ let
 in
 rec {
   check = nixops-lib.go.check {
-    inherit src submodule ldflags tags buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      submodule
+      ldflags
+      tags
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
 
     preCheck = ''
       echo "➜ Checking OpenAPI spec..."
@@ -134,15 +145,29 @@ rec {
   };
 
   devShell = nixops-lib.go.devShell {
-    buildInputs = with pkgs; [
-      go-migrate
-      skopeo
-      bun
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    buildInputs =
+      with pkgs;
+      [
+        go-migrate
+        skopeo
+        bun
+      ]
+      ++ checkDeps
+      ++ buildInputs
+      ++ nativeBuildInputs;
   };
 
   package = nixops-lib.go.package {
-    inherit name description version src submodule ldflags buildInputs nativeBuildInputs;
+    inherit
+      name
+      description
+      version
+      src
+      submodule
+      ldflags
+      buildInputs
+      nativeBuildInputs
+      ;
 
     postInstall = ''
       mkdir $out/share
@@ -151,7 +176,13 @@ rec {
   };
 
   dockerImage = nixops-lib.go.docker-image {
-    inherit name package created version buildInputs;
+    inherit
+      name
+      package
+      created
+      version
+      buildInputs
+      ;
 
     contents = with pkgs; [
       wget # do not remove, useful for docker healthchecks
