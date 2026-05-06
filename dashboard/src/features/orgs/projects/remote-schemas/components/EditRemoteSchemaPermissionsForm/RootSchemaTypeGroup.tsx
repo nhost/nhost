@@ -38,7 +38,7 @@ const RootSchemaTypeGroup = memo(
     onPresetCommit,
   }: RootSchemaTypeGroupProps) => (
     <div className="space-y-2">
-      <Text className="font-semibold text-blue-600">
+      <Text className="font-semibold text-blue-600 dark:text-blue-400">
         {schemaType.name.replace('type ', '')} Operations
       </Text>
       <div className="pl-4">

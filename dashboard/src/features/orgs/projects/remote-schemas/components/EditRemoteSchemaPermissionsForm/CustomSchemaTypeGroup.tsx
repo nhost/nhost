@@ -37,7 +37,9 @@ const CustomSchemaTypeGroup = memo(
     onPresetCommit,
   }: CustomSchemaTypeGroupProps) => (
     <div className="space-y-2">
-      <Text className="font-semibold text-green-600">{schemaType.name}</Text>
+      <Text className="font-semibold text-green-600 dark:text-green-400">
+        {schemaType.name}
+      </Text>
       <div className="space-y-1 pl-4">
         {(schemaType.children ?? []).map((field) => (
           <CustomFieldRow
