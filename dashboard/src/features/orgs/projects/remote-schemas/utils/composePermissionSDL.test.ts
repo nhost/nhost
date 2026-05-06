@@ -1,0 +1,131 @@
+import { buildSchema } from 'graphql';
+import buildRemoteSchemaFieldTree from './buildRemoteSchemaFieldTree';
+import composePermissionSDL from './composePermissionSDL';
+import { createPermissionsSchema } from './createPermissionsSchema';
+import parsePresetArgTreeFromSDL from './parsePresetArgTreeFromSDL';
+
+const introspectionSchema = buildSchema(`
+  type Query {
+    getThing(
+      force: Boolean
+      count: Int
+      pi: Float
+      name: String
+      sessionVar: String
+    ): String
+  }
+`);
+
+function roundTrip(permissionSDL: string): string {
+  const permissionsSchema = createPermissionsSchema(permissionSDL);
+  const argTree = parsePresetArgTreeFromSDL(permissionSDL, introspectionSchema);
+  const fields = buildRemoteSchemaFieldTree(
+    introspectionSchema,
+    permissionsSchema,
+  );
+  return composePermissionSDL(fields, argTree);
+}
+
+test('Boolean preset value `false` round-trips unquoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean @preset(value: false), count: Int, pi: Float, name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: false)');
+  expect(sdl).not.toContain('@preset(value: "false")');
+});
+
+test('Boolean preset value `true` round-trips unquoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean @preset(value: true), count: Int, pi: Float, name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: true)');
+  expect(sdl).not.toContain('@preset(value: "true")');
+});
+
+test('Int preset value 0 is preserved (not dropped as falsy)', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int @preset(value: 0), pi: Float, name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: 0)');
+});
+
+test('Int preset value 5431 round-trips unquoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int @preset(value: 5431), pi: Float, name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: 5431)');
+  expect(sdl).not.toContain('@preset(value: "5431")');
+});
+
+test('Quoted boolean string is fixed to unquoted boolean on round-trip', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean @preset(value: "true"), count: Int, pi: Float, name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: true)');
+});
+
+test('Quoted numeric string is fixed to unquoted number on round-trip', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int @preset(value: "5431"), pi: Float, name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: 5431)');
+});
+
+test('Session variable on String field stays quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String, sessionVar: String @preset(value: "X-Hasura-User-Id")): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "X-Hasura-User-Id")');
+});
+
+test('Plain string preset is quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: "hello"), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "hello")');
+});
+
+test('Field without @preset emits no preset directive', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).not.toContain('@preset');
+});
+
+test('Float preset value 3.14 round-trips unquoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float @preset(value: 3.14), name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: 3.14)');
+  expect(sdl).not.toContain('@preset(value: "3.14")');
+});

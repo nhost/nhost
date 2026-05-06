@@ -1,11 +1,17 @@
 import {
+  GraphQLBoolean,
   GraphQLEnumType,
+  GraphQLFloat,
   type GraphQLInputField,
   type GraphQLInputType,
+  GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
 } from 'graphql';
-import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
+import type {
+  ArgLeafType,
+  ArgTreeType,
+} from '@/features/orgs/projects/remote-schemas/types';
 import stringifyGraphQLInputObject from './stringifyGraphQLInputObject';
 
 function unwrapToBaseInputType(type: GraphQLInputType): GraphQLInputType {
@@ -18,23 +24,69 @@ function unwrapToBaseInputType(type: GraphQLInputType): GraphQLInputType {
   return type;
 }
 
+function isSessionVariable(value: string): boolean {
+  return value.toLowerCase().startsWith('x-hasura');
+}
+
 function isEnumValueLiteral(
-  argName: ArgTreeType | string,
+  argName: unknown,
   argType: GraphQLInputType,
 ): boolean {
   if (typeof argName !== 'string') {
     return false;
   }
-  if (argName.toLowerCase().startsWith('x-hasura')) {
+  if (isSessionVariable(argName)) {
     return false;
   }
+  return unwrapToBaseInputType(argType) instanceof GraphQLEnumType;
+}
 
+function isBooleanLiteral(
+  argName: unknown,
+  argType: GraphQLInputType,
+): boolean {
+  if (typeof argName === 'boolean') {
+    return true;
+  }
+  if (typeof argName !== 'string') {
+    return false;
+  }
+  if (isSessionVariable(argName)) {
+    return false;
+  }
+  if (unwrapToBaseInputType(argType) !== GraphQLBoolean) {
+    return false;
+  }
+  return argName === 'true' || argName === 'false';
+}
+
+function isNumericLiteral(
+  argName: unknown,
+  argType: GraphQLInputType,
+): boolean {
+  if (typeof argName === 'number') {
+    return Number.isFinite(argName);
+  }
+  if (typeof argName !== 'string') {
+    return false;
+  }
+  if (isSessionVariable(argName)) {
+    return false;
+  }
   const baseType = unwrapToBaseInputType(argType);
-  return baseType instanceof GraphQLEnumType;
+  if (baseType === GraphQLInt) {
+    const n = Number(argName);
+    return Number.isInteger(n);
+  }
+  if (baseType === GraphQLFloat) {
+    const n = Number(argName);
+    return Number.isFinite(n);
+  }
+  return false;
 }
 
 export interface FormatParamArgs {
-  argName: ArgTreeType | string;
+  argName: ArgTreeType | ArgLeafType;
   arg: GraphQLInputField;
 }
 
@@ -42,7 +94,9 @@ export default function stringifyGraphQLValue({
   argName,
   arg,
 }: FormatParamArgs): string | undefined {
-  const isEnum = isEnumValueLiteral(argName, arg.type);
+  if (argName === null) {
+    return 'null';
+  }
 
   if (typeof argName === 'object') {
     if (Array.isArray(argName)) {
@@ -54,8 +108,15 @@ export default function stringifyGraphQLValue({
     return stringifyGraphQLInputObject(argName, arg);
   }
 
-  if (typeof argName === 'number' || isEnum) {
+  if (
+    isBooleanLiteral(argName, arg.type) ||
+    isEnumValueLiteral(argName, arg.type)
+  ) {
     return String(argName);
+  }
+
+  if (isNumericLiteral(argName, arg.type)) {
+    return String(Number(argName));
   }
 
   return `"${argName}"`;
