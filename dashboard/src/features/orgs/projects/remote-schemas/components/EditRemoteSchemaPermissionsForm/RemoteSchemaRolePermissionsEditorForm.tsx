@@ -49,6 +49,19 @@ const rolePermissionsSchema = z.object({
 
 type RolePermissionsFormValues = z.infer<typeof rolePermissionsSchema>;
 
+function formatPresetForInput(value: unknown): string {
+  if (value === undefined || value === null) {
+    return '';
+  }
+  if (typeof value === 'boolean' || typeof value === 'number') {
+    return String(value);
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  return JSON.stringify(value);
+}
+
 export interface RemoteSchemaRolePermissionsEditorFormProps
   extends DialogFormProps {
   /**
@@ -645,9 +658,11 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           {Object.values(field.args).map(
                                             (arg) => {
                                               const presetValue =
-                                                argTree?.[schemaType.name]?.[
-                                                  field.name
-                                                ]?.[arg.name] || '';
+                                                formatPresetForInput(
+                                                  argTree?.[schemaType.name]?.[
+                                                    field.name
+                                                  ]?.[arg.name],
+                                                );
 
                                               return (
                                                 <div
@@ -804,9 +819,11 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                         {Object.values(field.args).map(
                                           (arg) => {
                                             const presetValue =
-                                              argTree?.[schemaType.name]?.[
-                                                field.name
-                                              ]?.[arg.name] || '';
+                                              formatPresetForInput(
+                                                argTree?.[schemaType.name]?.[
+                                                  field.name
+                                                ]?.[arg.name],
+                                              );
 
                                             return (
                                               <div
