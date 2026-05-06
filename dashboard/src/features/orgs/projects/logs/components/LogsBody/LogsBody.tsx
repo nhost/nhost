@@ -1,32 +1,30 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Table } from '@/components/ui/v2/Table';
-import { TableBody } from '@/components/ui/v2/TableBody';
-import { TableCell } from '@/components/ui/v2/TableCell';
 import { TableContainer } from '@/components/ui/v2/TableContainer';
-import { TableHead } from '@/components/ui/v2/TableHead';
-import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
-import { CORE_LOG_SERVICE_TO_LABEL } from '@/features/orgs/projects/logs/utils/constants/services';
-import { cn } from '@/lib/utils';
+import { LogsDetailSheet } from '@/features/orgs/projects/logs/components/LogsDetailSheet';
 import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { format } from 'date-fns';
-import type { PropsWithChildren } from 'react';
-import { useMemo, useRef } from 'react';
-
-export interface LogEntry {
-  timestamp: string;
-  service: string;
-  log: string;
-}
-
-export interface LogsData {
-  logs: LogEntry[];
-}
+  ACTIONS_WIDTH,
+  LOG_CELL_PADDING,
+  LOG_CHAR_WIDTH,
+  LOG_LEVEL_WIDTH,
+  LOG_MIN_WIDTH,
+  SERVICE_WIDTH,
+  TIMESTAMP_WIDTH,
+} from '@/features/orgs/projects/logs/components/LogsBody/columns';
+import { LogsBodyCustomMessage } from '@/features/orgs/projects/logs/components/LogsBody/LogsBodyCustomMessage';
+import {
+  LogsTable,
+  type LogsTableHandle,
+} from '@/features/orgs/projects/logs/components/LogsBody/LogsTable';
+import { isSameLogEntry } from '@/features/orgs/projects/logs/components/LogsBody/isSameLogEntry';
+import type {
+  LogEntry,
+  LogsData,
+} from '@/features/orgs/projects/logs/components/LogsBody/types';
+import { useGlobalSearchShortcut } from '@/features/orgs/projects/logs/components/LogsBody/useGlobalSearchShortcut';
+import { useLogSearch } from '@/features/orgs/projects/logs/components/LogsBody/useLogSearch';
+import { LogsSearchBar } from '@/features/orgs/projects/logs/components/LogsSearchBar';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export interface LogsBodyProps {
   /**
@@ -43,75 +41,111 @@ export interface LogsBodyProps {
   error?: Error;
   tableContainerClasses?: string;
   hideServiceColumn?: boolean;
+  /**
+   * Active filter set. When any field changes, internal search and selection
+   * state (search query, current match, selected log entry, scroll position)
+   * is reset. Pass the same object the caller uses to fetch the logs, so the
+   * reset key cannot drift out of sync when a new filter is added.
+   */
+  filters: object;
 }
 
-export function LogsBodyCustomMessage({
-  children,
-}: PropsWithChildren<unknown>) {
+interface LogsBodyContentProps {
+  data: LogEntry[];
+  totalTableWidth: number;
+  hideServiceColumn: boolean;
+  tableContainerClasses?: string;
+}
+
+function LogsBodyContent({
+  data,
+  totalTableWidth,
+  hideServiceColumn,
+  tableContainerClasses,
+}: LogsBodyContentProps) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const tableRef = useRef<LogsTableHandle>(null);
+  const [selectedEntry, setSelectedEntry] = useState<LogEntry | null>(null);
+
+  useGlobalSearchShortcut({ targetRef: searchInputRef });
+
+  const {
+    searchQuery,
+    searchedQuery,
+    filterMode,
+    tableData,
+    matches,
+    rangesByRow,
+    totalMatches,
+    currentMatch,
+    setQuery,
+    setCurrentMatchIndex,
+    toggleFilter,
+    clear: clearSearch,
+  } = useLogSearch(data);
+
+  // Scroll to the first match as soon as a search settles, mirroring the
+  // browser's Ctrl+F. Keyed on `searchedQuery` (the deferred value the matches
+  // are derived from) so it fires once per query change with fresh matches, and
+  // never when new logs merely stream in under an unchanged query. An empty
+  // query is a no-op, so clearing the search leaves the scroll position alone.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `matches` is intentionally excluded — it changes as logs stream in, and re-scrolling then is exactly what we want to avoid; it is always fresh in the render `searchedQuery` changes.
+  useEffect(() => {
+    if (!searchedQuery || matches.length === 0) {
+      return;
+    }
+    tableRef.current?.scrollToRow(matches[0].rowIndex);
+  }, [searchedQuery]);
+
+  const goNext = () => {
+    if (totalMatches === 0) return;
+    const next = (currentMatch + 1) % totalMatches;
+    setCurrentMatchIndex(next);
+    tableRef.current?.scrollToRow(matches[next].rowIndex);
+  };
+
+  const goPrev = () => {
+    if (totalMatches === 0) return;
+    const prev = (currentMatch - 1 + totalMatches) % totalMatches;
+    setCurrentMatchIndex(prev);
+    tableRef.current?.scrollToRow(matches[prev].rowIndex);
+  };
+
+  const toggleSelection = (entry: LogEntry) => {
+    setSelectedEntry((current) => (isSameLogEntry(current, entry) ? null : entry));
+  };
+
   return (
-    <TableContainer className="h-full w-full">
-      <Table stickyHeader aria-label="sticky table">
-        <TableBody>
-          <TableRow>
-            <TableCell
-              className="p-2.5"
-              align="left"
-              padding="none"
-              sx={{ backgroundColor: 'background.paper' }}
-            >
-              {children}
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <>
+      <LogsSearchBar
+        ref={searchInputRef}
+        query={searchQuery}
+        onQueryChange={setQuery}
+        totalMatches={totalMatches}
+        currentMatch={currentMatch}
+        filterMode={filterMode}
+        onToggleFilter={toggleFilter}
+        onPrev={goPrev}
+        onNext={goNext}
+        onClear={clearSearch}
+      />
+      <LogsTable
+        ref={tableRef}
+        data={tableData}
+        rangesByRow={rangesByRow}
+        totalTableWidth={totalTableWidth}
+        hideServiceColumn={hideServiceColumn}
+        selectedEntry={selectedEntry}
+        onToggleSelection={toggleSelection}
+        className={tableContainerClasses}
+      />
+      <LogsDetailSheet
+        entry={selectedEntry}
+        onClose={() => setSelectedEntry(null)}
+      />
+    </>
   );
 }
-
-function DateCell({ getValue }: { getValue: () => string }) {
-  return (
-    <Text className="font-mono text-xs-">
-      {format(new Date(getValue()), 'yyyy-MM-dd HH:mm:ss')}
-    </Text>
-  );
-}
-
-function TextCell({ getValue }: { getValue: () => string }) {
-  return <Text className="font-mono text-xs-">{getValue()}</Text>;
-}
-
-function ServiceCell({ getValue }: { getValue: () => string }) {
-  const service = getValue();
-  const serviceLabel = CORE_LOG_SERVICE_TO_LABEL[service] ?? service;
-
-  return <Text className="font-mono text-xs-">{serviceLabel}</Text>;
-}
-
-const columns = [
-  {
-    id: 'timestamp',
-    accessorKey: 'timestamp',
-    cell: DateCell,
-    size: 140,
-    header: () => 'Timestamp',
-  },
-  {
-    id: 'service',
-    accessorKey: 'service',
-    cell: ServiceCell,
-    size: 100,
-    header: () => 'Service',
-  },
-  {
-    id: 'log',
-    accessorKey: 'log',
-    cell: TextCell,
-    header: () => 'Log',
-    minSize: 300,
-    maxSize: 0,
-    size: 0,
-  },
-];
 
 export default function LogsBody({
   logsData,
@@ -119,8 +153,9 @@ export default function LogsBody({
   loading,
   tableContainerClasses,
   hideServiceColumn,
+  filters,
 }: LogsBodyProps) {
-  const tableRef = useRef<HTMLTableElement>(null);
+  const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
   const data = useMemo(
     () =>
@@ -133,27 +168,24 @@ export default function LogsBody({
     [logsData],
   );
 
-  const visibleColumns = hideServiceColumn
-    ? columns.filter((column) => column.id !== 'service')
-    : columns;
+  const logColumnWidth = useMemo(() => {
+    let longest = 0;
+    for (const entry of data) {
+      const len = entry.log.length;
+      if (len > longest) {
+        longest = len;
+      }
+    }
+    const measured = longest * LOG_CHAR_WIDTH + LOG_CELL_PADDING;
+    return Math.max(LOG_MIN_WIDTH, measured);
+  }, [data]);
 
-  const table = useReactTable({
-    data,
-    columns: visibleColumns,
-    defaultColumn: {
-      size: 0,
-    },
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  const { rows } = table.getRowModel();
-
-  const rowVirtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => tableRef.current,
-    estimateSize: () => 63,
-    overscan: 50,
-  });
+  const totalTableWidth =
+    ACTIONS_WIDTH +
+    TIMESTAMP_WIDTH +
+    LOG_LEVEL_WIDTH +
+    (hideServiceColumn ? 0 : SERVICE_WIDTH) +
+    logColumnWidth;
 
   if (loading && !error) {
     return (
@@ -190,71 +222,14 @@ export default function LogsBody({
   }
 
   return (
-    <TableContainer
-      className={cn([
-        'flex h-full w-full flex-col overflow-auto',
-        tableContainerClasses,
-      ])}
-    >
-      <Table ref={tableRef} stickyHeader className="w-full table-fixed">
-        <TableHead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="w-full">
-              {headerGroup.headers.map((header) => (
-                <TableCell
-                  scope="col"
-                  className="min-h-[38px] flex-auto p-2 text-left font-display text-xs- font-semibold"
-                  key={header.id}
-                  align="left"
-                  padding="none"
-                  style={{
-                    width: header.getSize() || 'auto',
-                    minWidth: !header.getSize() ? 300 : 'initial',
-                  }}
-                  sx={{ backgroundColor: 'background.paper' }}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableHead>
-
-        <TableBody
-          style={{
-            width: '100%',
-            height: rowVirtualizer.getTotalSize(),
-          }}
-          className="w-full"
-        >
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const row = rows[virtualRow.index];
-            return (
-              <TableRow key={row.index}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    component="td"
-                    className="break-words px-2 py-2.5 align-top text-xs- font-normal tracking-tight"
-                    style={{
-                      width: cell.column.getSize() || 'auto',
-                      minWidth: !cell.column.getSize() ? 300 : 'initial',
-                    }}
-                    sx={{ backgroundColor: 'background.paper' }}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <div className="flex h-full w-full flex-col overflow-hidden bg-paper">
+      <LogsBodyContent
+        key={filterKey}
+        data={data}
+        totalTableWidth={totalTableWidth}
+        hideServiceColumn={hideServiceColumn ?? false}
+        tableContainerClasses={tableContainerClasses}
+      />
+    </div>
   );
 }
