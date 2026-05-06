@@ -45,6 +45,9 @@ function isBooleanLiteral(
   argName: unknown,
   argType: GraphQLInputType,
 ): boolean {
+  if (unwrapToBaseInputType(argType) !== GraphQLBoolean) {
+    return false;
+  }
   if (typeof argName === 'boolean') {
     return true;
   }
@@ -54,9 +57,6 @@ function isBooleanLiteral(
   if (isSessionVariable(argName)) {
     return false;
   }
-  if (unwrapToBaseInputType(argType) !== GraphQLBoolean) {
-    return false;
-  }
   return argName === 'true' || argName === 'false';
 }
 
@@ -64,6 +64,10 @@ function isNumericLiteral(
   argName: unknown,
   argType: GraphQLInputType,
 ): boolean {
+  const baseType = unwrapToBaseInputType(argType);
+  if (baseType !== GraphQLInt && baseType !== GraphQLFloat) {
+    return false;
+  }
   if (typeof argName === 'number') {
     return Number.isFinite(argName);
   }
@@ -73,16 +77,24 @@ function isNumericLiteral(
   if (isSessionVariable(argName)) {
     return false;
   }
-  const baseType = unwrapToBaseInputType(argType);
+  if (argName.trim() === '') {
+    return false;
+  }
+  const n = Number(argName);
   if (baseType === GraphQLInt) {
-    const n = Number(argName);
     return Number.isInteger(n);
   }
-  if (baseType === GraphQLFloat) {
-    const n = Number(argName);
-    return Number.isFinite(n);
-  }
-  return false;
+  return Number.isFinite(n);
+}
+
+function isUnquotedNullType(argType: GraphQLInputType): boolean {
+  const baseType = unwrapToBaseInputType(argType);
+  return (
+    baseType === GraphQLBoolean ||
+    baseType === GraphQLInt ||
+    baseType === GraphQLFloat ||
+    baseType instanceof GraphQLEnumType
+  );
 }
 
 export interface FormatParamArgs {
@@ -95,7 +107,7 @@ export default function stringifyGraphQLValue({
   arg,
 }: FormatParamArgs): string | undefined {
   if (argName === null) {
-    return 'null';
+    return isUnquotedNullType(arg.type) ? 'null' : '"null"';
   }
 
   if (typeof argName === 'object') {

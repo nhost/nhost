@@ -129,3 +129,58 @@ test('Float preset value 3.14 round-trips unquoted', () => {
   expect(sdl).toContain('@preset(value: 3.14)');
   expect(sdl).not.toContain('@preset(value: "3.14")');
 });
+
+test('String field with quoted "true" preset round-trips quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: "true"), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "true")');
+  expect(sdl).not.toContain('@preset(value: true)');
+});
+
+test('String field with quoted "false" preset round-trips quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: "false"), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "false")');
+  expect(sdl).not.toContain('@preset(value: false)');
+});
+
+test('String field with quoted numeric preset "5431" round-trips quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: "5431"), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "5431")');
+  expect(sdl).not.toContain('@preset(value: 5431)');
+});
+
+test('String field with quoted "null" preset round-trips quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: "null"), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "null")');
+  expect(sdl).not.toContain('@preset(value: null)');
+});
+
+test('Boolean field with null preset round-trips unquoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean @preset(value: null), count: Int, pi: Float, name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: null)');
+  expect(sdl).not.toContain('@preset(value: "null")');
+});

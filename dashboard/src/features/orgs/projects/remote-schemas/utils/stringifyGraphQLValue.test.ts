@@ -98,6 +98,20 @@ test('Int: non-integer string falls back to quoted', () => {
   );
 });
 
+test('Int: empty string falls back to quoted', () => {
+  expect(stringifyGraphQLValue({ argName: '', arg: arg('count') })).toBe('""');
+});
+
+test('Int: whitespace string falls back to quoted', () => {
+  expect(stringifyGraphQLValue({ argName: '  ', arg: arg('count') })).toBe(
+    '"  "',
+  );
+});
+
+test('Float: empty string falls back to quoted', () => {
+  expect(stringifyGraphQLValue({ argName: '', arg: arg('pi') })).toBe('""');
+});
+
 test('Int: session variable stays quoted', () => {
   expect(
     stringifyGraphQLValue({ argName: 'X-Hasura-Org-Id', arg: arg('count') }),
@@ -157,8 +171,65 @@ test('Custom scalar (UUID): value is quoted', () => {
   ).toBe('"00000000-0000-0000-0000-000000000000"');
 });
 
-test('null: emitted as unquoted null literal', () => {
+test('null on Boolean field: emitted as unquoted null literal', () => {
   expect(stringifyGraphQLValue({ argName: null, arg: arg('flag') })).toBe(
     'null',
   );
+});
+
+test('null on Int field: emitted as unquoted null literal', () => {
+  expect(stringifyGraphQLValue({ argName: null, arg: arg('count') })).toBe(
+    'null',
+  );
+});
+
+test('null on Float field: emitted as unquoted null literal', () => {
+  expect(stringifyGraphQLValue({ argName: null, arg: arg('pi') })).toBe('null');
+});
+
+test('null on Enum field: emitted as unquoted null literal', () => {
+  expect(stringifyGraphQLValue({ argName: null, arg: arg('role') })).toBe(
+    'null',
+  );
+});
+
+test('null on String field: emitted as quoted "null" literal', () => {
+  expect(stringifyGraphQLValue({ argName: null, arg: arg('name') })).toBe(
+    '"null"',
+  );
+});
+
+test('null on ID field: emitted as quoted "null" literal', () => {
+  expect(stringifyGraphQLValue({ argName: null, arg: arg('id') })).toBe(
+    '"null"',
+  );
+});
+
+test('null on custom scalar (UUID): emitted as quoted "null" literal', () => {
+  expect(stringifyGraphQLValue({ argName: null, arg: arg('uid') })).toBe(
+    '"null"',
+  );
+});
+
+test('Real boolean on String field falls back to quoted', () => {
+  expect(stringifyGraphQLValue({ argName: true, arg: arg('name') })).toBe(
+    '"true"',
+  );
+  expect(stringifyGraphQLValue({ argName: false, arg: arg('name') })).toBe(
+    '"false"',
+  );
+});
+
+test('Real boolean on Int field falls back to quoted', () => {
+  expect(stringifyGraphQLValue({ argName: true, arg: arg('count') })).toBe(
+    '"true"',
+  );
+});
+
+test('Real number on String field falls back to quoted', () => {
+  expect(stringifyGraphQLValue({ argName: 42, arg: arg('name') })).toBe('"42"');
+});
+
+test('Real number on Boolean field falls back to quoted', () => {
+  expect(stringifyGraphQLValue({ argName: 42, arg: arg('flag') })).toBe('"42"');
 });
