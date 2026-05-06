@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import { Sigma } from 'lucide-react';
 import type { PropsWithoutRef } from 'react';
 import { memo, useEffect, useState } from 'react';
 import type { FieldError } from 'react-hook-form';
@@ -13,11 +12,6 @@ import { InlineCode } from '@/components/presentational/InlineCode';
 import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
 import { Input } from '@/components/ui/v2/Input';
 import { OptionBase } from '@/components/ui/v2/Option';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/v3/tooltip';
 import type {
   ColumnType,
   ForeignKeyRelation,
@@ -37,27 +31,6 @@ export interface FieldArrayInputProps {
   index: number;
 }
 
-function GeneratedBadge({
-  generationExpression,
-}: {
-  generationExpression: string | null | undefined;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="mr-1 flex cursor-help items-center text-muted-foreground">
-          <Sigma width={14} height={14} aria-label="Generated column" />
-        </span>
-      </TooltipTrigger>
-      <TooltipContent sideOffset={8}>
-        <span className="font-semibold">Generated column</span> — value is
-        computed from {generationExpression}. Type and constraints are fixed,
-        but you can rename, edit the comment, or drop the column.
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
 function NameInput({ index }: FieldArrayInputProps) {
   const { register, clearErrors, setValue, getValues } = useFormContext();
   const originalColumnName = getValues(`columns.${index}.name`);
@@ -72,10 +45,6 @@ function NameInput({ index }: FieldArrayInputProps) {
   });
 
   const primaryKeyIndices: string[] = useWatch({ name: 'primaryKeyIndices' });
-  const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
-  const generationExpression = useWatch({
-    name: `columns.${index}.generationExpression`,
-  });
 
   return (
     <Input
@@ -109,11 +78,6 @@ function NameInput({ index }: FieldArrayInputProps) {
       error={Boolean(errors?.columns?.[index]?.name)}
       helperText={errors?.columns?.[index]?.name?.message}
       inputProps={{ 'data-testid': `columns.${index}.name` }}
-      endAdornment={
-        isGenerated ? (
-          <GeneratedBadge generationExpression={generationExpression} />
-        ) : undefined
-      }
     />
   );
 }
@@ -123,7 +87,6 @@ function TypeAutocomplete({ index }: FieldArrayInputProps) {
   const { setValue } = useFormContext();
   const { errors } = useFormState({ name: `columns.${index}.type` });
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
-  const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
   const type = useWatch({ name: `columns.${index}.type` });
 
   useEffect(() => {
@@ -160,7 +123,6 @@ function TypeAutocomplete({ index }: FieldArrayInputProps) {
       }}
       clearOnBlur
       showCustomOption="first"
-      disabled={isGenerated}
       filterOptions={defaultFilterGroupedOptions}
       error={Boolean(errors?.columns?.[index]?.type)}
       helperText={(errors?.columns?.[index]?.type as FieldError)?.message}
@@ -213,10 +175,6 @@ function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
   const type = useWatch({ name: `columns.${index}.type` });
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
   const isIdentity = identityColumnIndex === index;
-  const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
-  const generationExpression = useWatch({
-    name: `columns.${index}.generationExpression`,
-  });
 
   const availableFunctions = (postgresFunctions[type?.value] || []).map(
     (functionName: string) => ({
@@ -230,18 +188,6 @@ function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
       setInputValue('');
     }
   }, [defaultValue]);
-
-  if (isGenerated) {
-    return (
-      <Input
-        value={generationExpression || ''}
-        disabled
-        hideEmptyHelperText
-        aria-label="Generation expression"
-        inputProps={{ 'data-testid': `columns.${index}.generationExpression` }}
-      />
-    );
-  }
 
   return (
     <ControlledAutocomplete
@@ -286,7 +232,6 @@ function Checkbox({
 }: FieldArrayInputProps & PropsWithoutRef<CheckboxProps>) {
   const primaryKeyIndices = useWatch({ name: 'primaryKeyIndices' });
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
-  const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
 
   const isPrimary = primaryKeyIndices.includes(`${index}`);
   const isIdentity = identityColumnIndex === index;
@@ -294,7 +239,7 @@ function Checkbox({
   return (
     <ControlledCheckbox
       name={name}
-      disabled={isGenerated || isIdentity || isPrimary}
+      disabled={isIdentity || isPrimary}
       uncheckWhenDisabled
       {...props}
     />
