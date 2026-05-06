@@ -98,7 +98,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     RemoteSchemaFields[]
   >([]);
   const [argTree, setArgTree] = useState<ArgTreeType>({});
-  const [schemaDefinition, setSchemaDefinition] = useState('');
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
@@ -154,14 +153,13 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         const introspectionSchema = buildClientSchema(introspectionData);
 
         let permissionSchema: GraphQLSchema | null = null;
-        let newArgTree: ArgTreeType = {};
 
         if (permission?.definition?.schema) {
           permissionSchema = createPermissionsSchema(
             permission.definition.schema,
           );
 
-          newArgTree = parsePresetArgTreeFromSDL(
+          const newArgTree = parsePresetArgTreeFromSDL(
             permission.definition.schema,
             introspectionSchema,
           );
@@ -173,28 +171,19 @@ export default function RemoteSchemaRolePermissionsEditorForm({
           permissionSchema,
         );
         setRemoteSchemaFields(fields);
-
-        if (permissionSchema) {
-          setSchemaDefinition(permission.definition.schema);
-        } else {
-          const sdl = composePermissionSDL(fields, newArgTree);
-          setSchemaDefinition(sdl);
-        }
       } catch (error) {
         console.error('Error building schema:', error);
       }
     }
   }, [introspectionData, permission]);
 
-  useEffect(() => {
-    if (remoteSchemaFields.length > 0) {
-      const newSchemaDefinition = composePermissionSDL(
-        remoteSchemaFields,
-        argTree,
-      );
-      setSchemaDefinition(newSchemaDefinition);
-    }
-  }, [remoteSchemaFields, argTree]);
+  const hasAnySelection = useMemo(
+    () =>
+      remoteSchemaFields.some((schemaType) =>
+        schemaType.children?.some((child) => child.checked),
+      ),
+    [remoteSchemaFields],
+  );
 
   const handleFieldToggle = useCallback(
     (schemaTypeIndex: number, fieldIndex: number, checked: boolean) => {
@@ -354,6 +343,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   );
 
   const handleSavePermission = async () => {
+    const schemaDefinition = composePermissionSDL(remoteSchemaFields, argTree);
     if (!schemaDefinition) {
       return;
     }
@@ -909,7 +899,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
               color="primary"
               onClick={handleSavePermission}
               disabled={
-                !schemaDefinition || isAddingPermission || isUpdatingPermission
+                !hasAnySelection || isAddingPermission || isUpdatingPermission
               }
               loading={isAddingPermission || isUpdatingPermission}
             >
