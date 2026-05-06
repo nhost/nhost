@@ -26,6 +26,15 @@ const actionLabels: Record<DatabaseAction, string> = {
   delete: 'Delete',
 };
 
+function isSortedEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((value, index) => value === sortedB[index]);
+}
+
 export interface EditPermissionsFormProps extends DialogFormProps {
   /**
    * The schema that is being edited.
@@ -144,29 +153,40 @@ export default function EditPermissionsForm({
   }
 
   function getAccessLevel(
+    currentAction: DatabaseAction,
     permission?: HasuraMetadataPermission['permission'],
   ): DatabaseAccessLevel {
+    if (!permission) {
+      return 'none';
+    }
+
+    const isSelect = currentAction === 'select';
+    const hasGrantedComputedFields =
+      isSelect && (permission.computed_fields?.length ?? 0) > 0;
+
     if (
-      !permission ||
-      (!permission?.check && permission && permission?.columns?.length === 0)
+      !permission.check &&
+      permission.columns?.length === 0 &&
+      !hasGrantedComputedFields
     ) {
       return 'none';
     }
 
-    const sortedTableColumns = [...availableColumns].sort();
-    const isAllColumnSelected =
-      sortedTableColumns.length === permission?.columns?.length &&
-      [...(permission?.columns || [])]
-        .sort()
-        .every(
-          (permissionColumn, index) =>
-            permissionColumn === sortedTableColumns[index],
-        );
+    const isAllColumnsSelected = isSortedEqual(
+      availableColumns,
+      permission.columns ?? [],
+    );
+
+    const isAllComputedFieldsSelected =
+      !isSelect ||
+      availableComputedFields.length === 0 ||
+      isSortedEqual(availableComputedFields, permission.computed_fields ?? []);
 
     if (
-      Object.keys(permission?.check || {}).length === 0 &&
-      Object.keys(permission?.filter || {}).length === 0 &&
-      isAllColumnSelected
+      Object.keys(permission.check || {}).length === 0 &&
+      Object.keys(permission.filter || {}).length === 0 &&
+      isAllColumnsSelected &&
+      isAllComputedFieldsSelected
     ) {
       return 'full';
     }
@@ -205,6 +225,7 @@ export default function EditPermissionsForm({
         actionLabels={actionLabels}
         getAccessLevel={(currentRole, dbAction) =>
           getAccessLevel(
+            dbAction,
             findPermission(metadataForTable, currentRole, dbAction),
           )
         }
