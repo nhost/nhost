@@ -15,6 +15,7 @@ import type {
   HasuraMetadataPermission,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getAllowedActions } from '@/features/orgs/projects/database/dataGrid/utils/getAllowedActions';
+import { areStrArraysEqual } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import RolePermissionEditorForm from './RolePermissionEditorForm';
@@ -25,15 +26,6 @@ const actionLabels: Record<DatabaseAction, string> = {
   update: 'Update',
   delete: 'Delete',
 };
-
-function isSortedEqual(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  const sortedA = [...a].sort();
-  const sortedB = [...b].sort();
-  return sortedA.every((value, index) => value === sortedB[index]);
-}
 
 export interface EditPermissionsFormProps extends DialogFormProps {
   /**
@@ -172,7 +164,7 @@ export default function EditPermissionsForm({
       return 'none';
     }
 
-    const isAllColumnsSelected = isSortedEqual(
+    const isAllColumnsSelected = areStrArraysEqual(
       availableColumns,
       permission.columns ?? [],
     );
@@ -180,7 +172,10 @@ export default function EditPermissionsForm({
     const isAllComputedFieldsSelected =
       !isSelect ||
       availableComputedFields.length === 0 ||
-      isSortedEqual(availableComputedFields, permission.computed_fields ?? []);
+      areStrArraysEqual(
+        availableComputedFields,
+        permission.computed_fields ?? [],
+      );
 
     if (
       Object.keys(permission.check || {}).length === 0 &&

@@ -4,6 +4,11 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -118,7 +123,14 @@ export default function ColumnPermissionsSection({
             availableComputedFields.map((fieldName) => (
               <Checkbox
                 value={fieldName}
-                label={fieldName}
+                label={
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="italic">{fieldName}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>Computed field</TooltipContent>
+                  </Tooltip>
+                }
                 key={`computed-${fieldName}`}
                 checked={selectedComputedFields?.includes(fieldName) ?? false}
                 {...register('computedFields')}
