@@ -1,7 +1,7 @@
 ---
 title: SMS OTP
 description: Learn how to sign in users with one-time passwords delivered via SMS using Twilio.
-keywords: ["SMS", "OTP", "phone", "mobile", "text message", "Twilio", "passwordless", "phone verification"]
+keywords: ["SMS", "OTP", "phone", "mobile", "text message", "Twilio", "passwordless", "phone verification", "deanonymize", "change phone number"]
 sidebar:
   label: SMS
 ---
@@ -23,6 +23,13 @@ You need to configure the following:
 - Account SID
 - Auth Token
 - Messaging Service SID (or a Twilio phone number)
+
+Or in `nhost.toml`:
+
+```toml
+[auth.method.smsPasswordless]
+enabled = true
+```
 
 ## Sign In
 
@@ -83,3 +90,48 @@ A user account is created the first time a phone number is used
 :::note
 Phone numbers should start with `+` (not `00`) to follow the [E.164 formatting standard](https://en.wikipedia.org/wiki/E.164)
 :::
+
+## Change Phone Number
+
+An authenticated user can change the phone number on their account. This is a two-step flow: the user requests the change, an OTP is sent via SMS to the new number, and the user submits the OTP to confirm. The current phone number is left unchanged until verification succeeds.
+
+This endpoint requires [elevated permissions](/products/auth/elevated-permissions).
+
+### Request the Change
+
+```js
+await nhost.auth.changeUserPhoneNumber({
+  newPhoneNumber: '+11233213123',
+});
+```
+
+### Verify the Change
+
+Submit the OTP received via SMS to commit the new number:
+
+```js
+await nhost.auth.verifyChangeUserPhoneNumber({
+  newPhoneNumber: '+11233213123',
+  otp: '123456',
+});
+```
+
+If a different user already has this phone number verified, the request fails with `user-already-exists`.
+
+## Deanonymize with SMS
+
+[Anonymous users](/products/auth/sign-in-anonymous) can be converted to permanent accounts by linking a phone number. An OTP is sent to the new number; the user completes the conversion by signing in with the OTP via the standard SMS sign-in flow, which also returns a non-anonymous session.
+
+```js
+// 1. Anonymous user requests deanonymization with a phone number
+await nhost.auth.deanonymizeUserSMS({
+  phoneNumber: '+11233213123',
+});
+
+// 2. The same user verifies the OTP via the regular SMS sign-in endpoint —
+//    on success the phone number is verified and a non-anonymous session is returned
+await nhost.auth.signIn({
+  phoneNumber: '+11233213123',
+  otp: '123456',
+});
+```
