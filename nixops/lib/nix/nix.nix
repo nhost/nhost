@@ -19,11 +19,11 @@ in
       {
         __noChroot = true;
         nativeBuildInputs = with pkgs; [
-          nixfmt-rfc-style
+          nixfmt
         ];
       }
       ''
-        nixfmt --check ${src}/*
+        find ${src} -name '*.nix' -exec nixfmt --check {} +
 
         mkdir $out
       '';
