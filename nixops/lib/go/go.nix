@@ -72,7 +72,7 @@ in
         with pkgs;
         [
           gnumake
-          nixfmt-rfc-style
+          nixfmt
         ]
         ++ goCheckDeps
         ++ buildInputs;

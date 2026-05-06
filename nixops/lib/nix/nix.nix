@@ -19,7 +19,7 @@ in
       {
         __noChroot = true;
         nativeBuildInputs = with pkgs; [
-          nixfmt-rfc-style
+          nixfmt
         ];
       }
       ''
