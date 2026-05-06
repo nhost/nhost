@@ -13,7 +13,6 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import { Accordion } from '@/components/ui/v3/accordion';
 import { Form } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -33,8 +32,8 @@ import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/u
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
-import CustomFieldRow from './CustomFieldRow';
-import RootFieldRow from './RootFieldRow';
+import CustomSchemaTypeGroup from './CustomSchemaTypeGroup';
+import RootSchemaTypeGroup from './RootSchemaTypeGroup';
 
 const rolePermissionsSchema = z.object({
   selectedFields: z.array(z.string()).optional().default([]),
@@ -566,26 +565,14 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                     </Text>
                     <div className="space-y-4 rounded border p-4">
                       {rootTypes.map((schemaType) => (
-                        <div key={schemaType.name} className="space-y-2">
-                          <Text className="font-semibold text-blue-600">
-                            {schemaType.name.replace('type ', '')} Operations
-                          </Text>
-                          <div className="pl-4">
-                            <Accordion type="multiple" className="space-y-1">
-                              {(schemaType.children ?? []).map((field) => (
-                                <RootFieldRow
-                                  key={`${schemaType.name}.${field.name}`}
-                                  schemaTypeName={schemaType.name}
-                                  field={field}
-                                  argTree={argTree}
-                                  getArgTypeString={getArgTypeString}
-                                  onFieldToggle={handleFieldToggle}
-                                  onPresetCommit={handlePresetChange}
-                                />
-                              ))}
-                            </Accordion>
-                          </div>
-                        </div>
+                        <RootSchemaTypeGroup
+                          key={schemaType.name}
+                          schemaType={schemaType}
+                          argTree={argTree}
+                          getArgTypeString={getArgTypeString}
+                          onFieldToggle={handleFieldToggle}
+                          onPresetCommit={handlePresetChange}
+                        />
                       ))}
 
                       {rootTypes.length === 0 && (
@@ -604,24 +591,14 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                     <Text className="font-semibold text-lg">Custom Types</Text>
                     <div className="space-y-4 rounded border p-4">
                       {customTypes.map((schemaType) => (
-                        <div key={schemaType.name} className="space-y-2">
-                          <Text className="font-semibold text-green-600">
-                            {schemaType.name}
-                          </Text>
-                          <div className="space-y-1 pl-4">
-                            {(schemaType.children ?? []).map((field) => (
-                              <CustomFieldRow
-                                key={`${schemaType.name}.${field.name}`}
-                                schemaTypeName={schemaType.name}
-                                field={field}
-                                argTree={argTree}
-                                getArgTypeString={getArgTypeString}
-                                onFieldToggle={handleFieldToggle}
-                                onPresetCommit={handlePresetChange}
-                              />
-                            ))}
-                          </div>
-                        </div>
+                        <CustomSchemaTypeGroup
+                          key={schemaType.name}
+                          schemaType={schemaType}
+                          argTree={argTree}
+                          getArgTypeString={getArgTypeString}
+                          onFieldToggle={handleFieldToggle}
+                          onPresetCommit={handlePresetChange}
+                        />
                       ))}
 
                       {customTypes.length === 0 && !searchTerm && (
