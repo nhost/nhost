@@ -5,7 +5,6 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   FetchTableSchemaOptions,
   FetchTableSchemaReturnType,
@@ -77,10 +76,7 @@ export default function useTableSchemaQuery(
 
       return await fetchTableSchema({
         appUrl: customAppUrl || appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : customAdminSecret || project!.config!.hasura.adminSecret,
+        adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource,
         schema,
         table,

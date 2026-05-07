@@ -24,7 +24,6 @@ import { filtersToFilesWhere } from '@/features/orgs/projects/storage/dataGrid/u
 import { isNotEmptyValue } from '@/lib/utils';
 import type { Files, GetBucketQuery } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
-import { getHasuraAdminSecret } from '@/utils/env';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 
 export type StoredFile = Omit<Files, 'bucket'> & {
@@ -264,10 +263,7 @@ export default function FilesDataGrid({
         },
         {
           headers: {
-            'x-hasura-admin-secret':
-              process.env.NEXT_PUBLIC_ENV === 'dev'
-                ? getHasuraAdminSecret()
-                : project!.config!.hasura.adminSecret,
+            'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
           },
         },
       );
