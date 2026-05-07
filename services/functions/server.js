@@ -1,6 +1,7 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const { execSync } = require('node:child_process');
+const chokidar = require('chokidar');
 const express = require('express');
 const glob = require('glob');
 const esbuild = require('esbuild');
@@ -36,15 +37,53 @@ const functionMeta = new Map();
 // bundle per function — matching the per-Lambda artifact layout in prod.
 let buildContext = null;
 
+// Observability for hot-reload: lets integration tests confirm a file mutation
+// actually drove a rebuild through the chokidar watcher. Surfaced via the
+// /_nhost_functions_rebuild_stats endpoint.
+const rebuildStats = {
+  fullRebuildsScheduled: 0,
+  incrementalRebuildsScheduled: 0,
+  rebuildsCompleted: 0,
+  lastRebuildAt: null,
+};
+
+// Bounded log of chokidar events. Integration tests run inside the Nix build
+// sandbox, which can't write to the bind-mount source on the host — so the
+// dev-env Makefile performs the file mutations and the tests read this log
+// over HTTP to confirm the watcher saw them.
+const MAX_EVENTS = 500;
+const recentEvents = [];
+function recordEvent(type, file) {
+  recentEvents.push({ timestamp: new Date().toISOString(), type, file });
+  if (recentEvents.length > MAX_EVENTS) {
+    recentEvents.splice(0, recentEvents.length - MAX_EVENTS);
+  }
+}
+
 // setInterval does not await its async callback, so two polls can overlap if a
 // rebuild runs longer than the polling interval — exactly the case for big
 // projects. Serialize all rebuilds behind a single in-flight promise so dispose
 // and create are strictly sequential and no context is leaked.
 let rebuildInFlight = Promise.resolve();
 function scheduleRebuild(functionsPath) {
+  rebuildStats.fullRebuildsScheduled++;
   rebuildInFlight = rebuildInFlight
     .catch(() => {})
     .then(() => rebuildContext(functionsPath));
+  return rebuildInFlight;
+}
+
+// Incremental rebuild reuses the existing context (no dispose/recreate), used
+// when only file contents changed (not the entry-point set).
+function scheduleIncrementalRebuild() {
+  rebuildStats.incrementalRebuildsScheduled++;
+  rebuildInFlight = rebuildInFlight
+    .catch(() => {})
+    .then(async () => {
+      if (buildContext) {
+        await buildContext.rebuild();
+      }
+    });
   return rebuildInFlight;
 }
 
@@ -188,6 +227,9 @@ async function rebuildContext(functionsPath) {
               loadBundle(entry.route, entry.outfile);
               serverLog('INFO', entry.route, `Rebuilt from ${file}`);
             }
+
+            rebuildStats.rebuildsCompleted++;
+            rebuildStats.lastRebuildAt = new Date().toISOString();
           });
         },
       },
@@ -195,7 +237,9 @@ async function rebuildContext(functionsPath) {
   });
 
   await ctx.rebuild();
-  await ctx.watch();
+  // Do NOT call ctx.watch() — inotify/FSEvents are unreliable on Docker
+  // bind-mount volumes. Change detection is handled by chokidar with
+  // usePolling: true (see watchers in main()).
   buildContext = ctx;
 }
 
@@ -246,6 +290,14 @@ const main = async () => {
     res.json({ functions: Array.from(functionMeta.values()) });
   });
 
+  app.get('/_nhost_functions_rebuild_stats', (_req, res) => {
+    res.json(rebuildStats);
+  });
+
+  app.get('/_nhost_functions_events', (_req, res) => {
+    res.json({ events: recentEvents });
+  });
+
   fs.mkdirSync(WRAPPER_DIR, { recursive: true });
   fs.mkdirSync(DIST_DIR, { recursive: true });
 
@@ -281,84 +333,104 @@ const main = async () => {
     await scheduleRebuild(functionsPath);
   }
 
-  // Poll for new/deleted function files. Filesystem events (chokidar/inotify)
-  // are unreliable over Docker volume mounts — add/unlink all arrive as
-  // "change", so we periodically re-discover and diff instead. When the entry
-  // set changes, the esbuild context is recreated with the new entry points;
-  // edits inside existing functions are picked up by ctx.watch() without a
-  // recreate.
-  setInterval(async () => {
-    const currentFiles = new Set(discoverFunctions(functionsPath));
-    const knownFiles = new Set(functionEntries.keys());
-
-    let changed = false;
-
-    for (const file of currentFiles) {
-      if (!knownFiles.has(file)) {
-        serverLog('INFO', fileToRoute(file), `New function detected: ${file}`);
-        prepareFunctionEntry(functionsPath, file);
-        changed = true;
-      }
+  // Mirrors discoverFunctions's filter: .js/.ts not under any underscore-
+  // prefixed segment (e.g. _utils/). chokidar's `ignored` already drops
+  // node_modules, so we only re-check the underscore rule here.
+  function isEntryFile(absPath) {
+    const rel = path.relative(functionsPath, absPath);
+    if (!/\.(js|ts)$/.test(rel)) return false;
+    for (const segment of rel.split(path.sep)) {
+      if (segment.startsWith('_')) return false;
     }
+    return true;
+  }
 
-    for (const file of knownFiles) {
-      if (!currentFiles.has(file)) {
-        const route = fileToRoute(file);
-        disposeFunctionEntry(file);
-        serverLog('INFO', route, `Removed (${file} deleted)`);
-        changed = true;
-      }
+  const triggerFullRebuild = () =>
+    scheduleRebuild(functionsPath).catch((err) =>
+      serverLog('ERROR', '', 'Failed to rebuild context:', err),
+    );
+  const triggerIncrementalRebuild = () =>
+    scheduleIncrementalRebuild().catch((err) =>
+      serverLog('ERROR', '', 'Incremental rebuild failed:', err),
+    );
+
+  // Watch the functions tree. usePolling is required because inotify/FSEvents
+  // don't propagate over Docker bind-mount volumes; chokidar's polling mode
+  // gives us proper add/change/unlink semantics (instead of everything
+  // arriving as "change") plus awaitWriteFinish to coalesce editor atomic-
+  // write sequences into a single event.
+  const watcher = chokidar.watch(functionsPath, {
+    ignored: (p) => /[\\/]node_modules(?:[\\/]|$)/.test(p),
+    ignoreInitial: true,
+    usePolling: true,
+    interval: 1000,
+    binaryInterval: 3000,
+    awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 100 },
+  });
+
+  watcher.on('add', (absPath) => {
+    const rel = path.relative(functionsPath, absPath);
+    recordEvent('add', rel);
+    if (isEntryFile(absPath) && !functionEntries.has(rel)) {
+      serverLog('INFO', fileToRoute(rel), `New function detected: ${rel}`);
+      prepareFunctionEntry(functionsPath, rel);
+      triggerFullRebuild();
+    } else {
+      // Non-entry add (e.g. new _utils/foo.js) — an existing function may
+      // import it, so a rebuild on the current context is enough.
+      triggerIncrementalRebuild();
     }
+  });
 
-    if (changed) {
-      try {
-        await scheduleRebuild(functionsPath);
-      } catch (err) {
-        serverLog('ERROR', '', 'Failed to rebuild context:', err);
-      }
+  watcher.on('unlink', (absPath) => {
+    const rel = path.relative(functionsPath, absPath);
+    recordEvent('unlink', rel);
+    if (functionEntries.has(rel)) {
+      const route = fileToRoute(rel);
+      disposeFunctionEntry(rel);
+      serverLog('INFO', route, `Removed (${rel} deleted)`);
+      triggerFullRebuild();
+    } else {
+      triggerIncrementalRebuild();
     }
-  }, 1000);
+  });
 
-  // Watch for dependency changes (package.json / lockfiles) via mtime polling.
+  watcher.on('change', (absPath) => {
+    const rel = path.relative(functionsPath, absPath);
+    recordEvent('change', rel);
+    serverLog('INFO', '', `Changed: ${rel}`);
+    triggerIncrementalRebuild();
+  });
+
+  // Watch dependency manifests so a saved package.json / lockfile triggers
+  // `nci` followed by a full rebuild.
   const workingDir = process.cwd();
   const depFiles = [
     'package.json',
     'package-lock.json',
     'yarn.lock',
     'pnpm-lock.yaml',
-  ];
-  const depMtimes = new Map();
-  for (const f of depFiles) {
+  ].map((f) => path.join(workingDir, f));
+
+  const depWatcher = chokidar.watch(depFiles, {
+    ignoreInitial: true,
+    usePolling: true,
+    interval: 1000,
+    awaitWriteFinish: { stabilityThreshold: 500, pollInterval: 100 },
+  });
+
+  depWatcher.on('change', async (filePath) => {
+    console.log(
+      `Dependency file changed: ${path.basename(filePath)} — reinstalling...`,
+    );
     try {
-      depMtimes.set(f, fs.statSync(path.join(workingDir, f)).mtimeMs);
-    } catch {}
-  }
-  setInterval(async () => {
-    for (const file of depFiles) {
-      const filePath = path.join(workingDir, file);
-      let mtimeMs;
-      try {
-        mtimeMs = fs.statSync(filePath).mtimeMs;
-      } catch {
-        if (depMtimes.has(file)) depMtimes.delete(file);
-        continue;
-      }
-      const prev = depMtimes.get(file);
-      if (prev !== undefined && prev !== mtimeMs) {
-        depMtimes.set(file, mtimeMs);
-        console.log(`Dependency file changed: ${file} — reinstalling...`);
-        try {
-          execSync('nci', { cwd: workingDir, stdio: 'inherit' });
-          console.log('Dependencies installed. Rebuilding all functions...');
-          await rebuildAll();
-        } catch (err) {
-          console.error('Failed to reinstall dependencies:', err);
-        }
-        return; // rebuildAll already covers everything
-      }
-      depMtimes.set(file, mtimeMs);
+      execSync('nci', { cwd: workingDir, stdio: 'inherit' });
+      console.log('Dependencies installed. Rebuilding all functions...');
+      await rebuildAll();
+    } catch (err) {
+      console.error('Failed to reinstall dependencies:', err);
     }
-  }, 1000);
+  });
 
   app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
