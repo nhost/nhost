@@ -16,6 +16,9 @@ const schema = buildSchema(`
       id: ID
       role: Role
       uid: UUID
+      nameRequired: String!
+      idRequired: ID!
+      uidRequired: UUID!
     ): String
   }
 `);
@@ -193,22 +196,38 @@ test('null on Enum field: emitted as unquoted null literal', () => {
   );
 });
 
-test('null on String field: emitted as quoted "null" literal', () => {
+test('null on nullable String field: emitted as unquoted null literal', () => {
   expect(stringifyGraphQLValue({ argName: null, arg: arg('name') })).toBe(
-    '"null"',
+    'null',
   );
 });
 
-test('null on ID field: emitted as quoted "null" literal', () => {
-  expect(stringifyGraphQLValue({ argName: null, arg: arg('id') })).toBe(
-    '"null"',
-  );
+test('null on nullable ID field: emitted as unquoted null literal', () => {
+  expect(stringifyGraphQLValue({ argName: null, arg: arg('id') })).toBe('null');
 });
 
-test('null on custom scalar (UUID): emitted as quoted "null" literal', () => {
+test('null on nullable custom scalar (UUID): emitted as unquoted null literal', () => {
   expect(stringifyGraphQLValue({ argName: null, arg: arg('uid') })).toBe(
+    'null',
+  );
+});
+
+test('null on non-null String field: emitted as quoted "null" literal', () => {
+  expect(
+    stringifyGraphQLValue({ argName: null, arg: arg('nameRequired') }),
+  ).toBe('"null"');
+});
+
+test('null on non-null ID field: emitted as quoted "null" literal', () => {
+  expect(stringifyGraphQLValue({ argName: null, arg: arg('idRequired') })).toBe(
     '"null"',
   );
+});
+
+test('null on non-null custom scalar: emitted as quoted "null" literal', () => {
+  expect(
+    stringifyGraphQLValue({ argName: null, arg: arg('uidRequired') }),
+  ).toBe('"null"');
 });
 
 test('Real boolean on String field falls back to quoted', () => {

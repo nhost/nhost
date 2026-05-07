@@ -87,13 +87,7 @@ function isNumericLiteral(
 }
 
 function acceptsBareNullLiteral(argType: GraphQLInputType): boolean {
-  const baseType = unwrapToBaseInputType(argType);
-  return (
-    baseType === GraphQLBoolean ||
-    baseType === GraphQLInt ||
-    baseType === GraphQLFloat ||
-    baseType instanceof GraphQLEnumType
-  );
+  return !(argType instanceof GraphQLNonNull);
 }
 
 export interface FormatParamArgs {

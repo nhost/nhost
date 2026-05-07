@@ -3,14 +3,6 @@ import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import {
   buildClientSchema,
   type GraphQLArgument,
-  GraphQLBoolean,
-  GraphQLEnumType,
-  type GraphQLEnumValue,
-  GraphQLFloat,
-  GraphQLInt,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLScalarType,
   type GraphQLSchema,
 } from 'graphql';
 import { Braces, Check } from 'lucide-react';
@@ -60,56 +52,19 @@ import composePermissionSDL from '@/features/orgs/projects/remote-schemas/utils/
 import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas/utils/createPermissionsSchema';
 import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
-import { unwrapToBaseInputType } from '@/features/orgs/projects/remote-schemas/utils/stringifyGraphQLValue';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
-
-function getEnumValuesForArg(
-  arg: GraphQLArgument,
-): readonly GraphQLEnumValue[] | null {
-  const baseType = unwrapToBaseInputType(arg.type);
-  return baseType instanceof GraphQLEnumType ? baseType.getValues() : null;
-}
-
-function isBooleanArg(arg: GraphQLArgument): boolean {
-  return unwrapToBaseInputType(arg.type) === GraphQLBoolean;
-}
-
-// `null` is only a valid GraphQL literal for nullable argument types.
-// `Boolean!` / `uuid!` / `String!` reject it at typecheck time.
-function isNullableArg(arg: GraphQLArgument): boolean {
-  return !(arg.type instanceof GraphQLNonNull);
-}
-
-// Returns `true` when the arg's outer wrapper is a list (`[T]` or `[T]!`).
-// Scalar literals like `true` / `5` / `""` / `ENUM_VALUE` are invalid presets
-// for list-typed args — Hasura expects `[true]`, `[5]`, etc. — so we hide the
-// scalar-only menu items in that case.
-function isListArg(arg: GraphQLArgument): boolean {
-  const outer = arg.type instanceof GraphQLNonNull ? arg.type.ofType : arg.type;
-  return outer instanceof GraphQLList;
-}
-
-// `""` is only meaningful as a preset literal on string-like types.
-// Boolean / Int / Float / Enum would reject it at GraphQL typecheck time.
-function acceptsEmptyStringLiteral(arg: GraphQLArgument): boolean {
-  const baseType = unwrapToBaseInputType(arg.type);
-  return (
-    baseType !== GraphQLBoolean &&
-    baseType !== GraphQLInt &&
-    baseType !== GraphQLFloat &&
-    !(baseType instanceof GraphQLEnumType)
-  );
-}
-
-function acceptsSessionVariable(arg: GraphQLArgument): boolean {
-  const baseType = unwrapToBaseInputType(arg.type);
-  return (
-    baseType instanceof GraphQLScalarType || baseType instanceof GraphQLEnumType
-  );
-}
+import {
+  acceptsEmptyStringLiteral,
+  acceptsSessionVariable,
+  formatPresetForInput,
+  getEnumValuesForArg,
+  isBooleanArg,
+  isListArg,
+  isNullableArg,
+} from './presetInputHelpers';
 
 const rolePermissionsSchema = z.object({
   selectedFields: z.array(z.string()).optional().default([]),
@@ -117,19 +72,6 @@ const rolePermissionsSchema = z.object({
 });
 
 type RolePermissionsFormValues = z.infer<typeof rolePermissionsSchema>;
-
-function formatPresetForInput(value: unknown): string {
-  if (value === undefined || value === null) {
-    return '';
-  }
-  if (typeof value === 'boolean' || typeof value === 'number') {
-    return String(value);
-  }
-  if (typeof value === 'string') {
-    return value;
-  }
-  return JSON.stringify(value);
-}
 
 interface PresetValueInputProps {
   arg: GraphQLArgument;

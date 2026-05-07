@@ -184,3 +184,14 @@ test('Boolean field with null preset round-trips unquoted', () => {
   expect(sdl).toContain('@preset(value: null)');
   expect(sdl).not.toContain('@preset(value: "null")');
 });
+
+test('nullable String field with null preset round-trips unquoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: null), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toMatch(/name\s*:\s*String\s*@preset\(value:\s*null\s*\)/);
+  expect(sdl).not.toContain('@preset(value: "null")');
+});
