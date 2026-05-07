@@ -253,6 +253,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   >([]);
   const [argTree, setArgTree] = useState<ArgTreeType>({});
   const [schemaDefinition, setSchemaDefinition] = useState('');
+  const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]);
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
@@ -763,7 +764,12 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                             {schemaType.name.replace('type ', '')} Operations
                           </Text>
                           <div className="pl-4">
-                            <Accordion type="multiple" className="space-y-1">
+                            <Accordion
+                              type="multiple"
+                              value={openAccordionItems}
+                              onValueChange={setOpenAccordionItems}
+                              className="space-y-1"
+                            >
                               {(schemaType.children ?? []).map((field) => {
                                 const fieldKey = `${schemaType.name}.${field.name}`;
                                 const actualSchemaIndex =
@@ -795,13 +801,25 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                             asChild
                                             id={fieldKey}
                                             checked={field.checked}
-                                            onCheckedChange={(checked) =>
+                                            onClick={(e) => e.stopPropagation()}
+                                            onCheckedChange={(checked) => {
+                                              const isChecked =
+                                                checked as boolean;
                                               handleFieldToggle(
                                                 actualSchemaIndex,
                                                 actualFieldIndex,
-                                                checked as boolean,
-                                              )
-                                            }
+                                                isChecked,
+                                              );
+                                              setOpenAccordionItems((prev) =>
+                                                isChecked
+                                                  ? prev.includes(fieldKey)
+                                                    ? prev
+                                                    : [...prev, fieldKey]
+                                                  : prev.filter(
+                                                      (k) => k !== fieldKey,
+                                                    ),
+                                              );
+                                            }}
                                             className="peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                                           >
                                             <span className="peer h-4 w-4 shrink-0 rounded-sm border border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground">
