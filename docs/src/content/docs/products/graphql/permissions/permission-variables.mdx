@@ -1,0 +1,106 @@
+---
+title: Permission Variables
+description: Session variables and roles used to build permission rules
+keywords: ["permissions", "session variables", "x-hasura-user-id", "custom claims", "JSONPath", "roles", "default role", "allowed roles"]
+sidebar:
+  label: Permission Variables
+---
+
+Permission variables are values pulled from the user's access token at request time, used inside [permission rules](/products/graphql/permissions). Every project has a built-in `x-hasura-user-id`; you can also define your own.
+
+## What is `x-hasura-user-id`?
+
+`x-hasura-user-id` is a permission variable used to create permission rules. Permission variables come from the session's access token. You can add custom permission variables (see below) to create more complex rules unique to your project.
+
+## Custom Permission Variables
+
+You can add your own permission variables through the Nhost Dashboard under **Settings → Roles and Permissions → Permission Variables**. All variables are available in users' access tokens, which means you can use them when defining permissions for the GraphQL API.
+
+### Example
+
+Let's say you add a new permission variable `x-hasura-company-id` with path `user.company.id`. Nhost Auth will get the value for `x-hasura-company-id` by generating and running the following GraphQL query:
+
+```graphql
+query {
+  user(id: "<user-id>") {
+    company {
+      id
+    }
+  }
+}
+```
+
+### JSONPath
+
+We leverage [JSONPath](https://goessner.net/articles/JsonPath/) to extract the data which means you have a good amount of flexibility. To help you build your queries you can leverage the following [playground](https://jsonpath.com). Just remember to skip `$.` when configuring them.
+
+#### Example
+
+Let's say you have a permission variable `x-hasura-organization-ids`, the path should be, e.g., `user.profile.organizations[*].id`.
+
+This will result in the following GraphQL query internally:
+
+```graphql
+query {
+  user(id: "<user-id>") {
+    profile {
+      organizations {
+        id
+      }
+    }
+  }
+}
+```
+
+And result in the following permission variable:
+
+```json
+{
+  "x-hasura-organization-ids": "{\"13\",\"37\"}"
+}
+```
+
+:::note
+This example is very useful for those building multi-tenant applications.
+:::
+
+### Limitation on JSON/JSONB columns
+
+JSON columns cannot be used in custom claims, except the `users.metadata` column.
+
+### Permission Variables locally with the CLI
+
+To use permission variables locally, add your claims to `nhost.toml` as follows:
+
+#### Example
+
+Add a permission variable `x-hasura-organization-id`:
+
+```toml title="nhost.toml"
+[[auth.session.accessToken.customClaims]]
+key = 'organization-id'
+value = 'profile.organization.id'
+default = '00000000-0000-0000-0000-000000000000'
+```
+
+:::caution
+The claim path should **not** start with `user` when defined in `nhost.toml`.
+:::
+
+## Roles
+
+Every GraphQL request resolves permissions using a **single role**.
+
+### Default Role
+
+Every user has one **default role**. The default role is used to resolve permissions if no role is specified using the `x-hasura-role` header in the GraphQL request.
+
+`user` is the default role for authenticated users.
+
+### Allowed Roles
+
+Every user also has an array of **allowed roles**. Allowed roles are roles that the user is allowed to use to override the default role when making a GraphQL request. To override the default role, add a header `x-hasura-role = <role>` to the GraphQL request.
+
+## Public Access and Unauthenticated Users
+
+GraphQL requests from unauthenticated users resolve permissions using the `public` role.
