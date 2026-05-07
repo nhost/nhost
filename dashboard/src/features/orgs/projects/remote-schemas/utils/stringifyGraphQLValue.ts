@@ -14,18 +14,17 @@ import type {
 } from '@/features/orgs/projects/remote-schemas/types';
 import stringifyGraphQLInputObject from './stringifyGraphQLInputObject';
 
-function unwrapToBaseInputType(type: GraphQLInputType): GraphQLInputType {
+export function unwrapToBaseInputType(
+  type: GraphQLInputType,
+): GraphQLInputType {
   if (type instanceof GraphQLList || type instanceof GraphQLNonNull) {
-    const inner = (
-      type as GraphQLList<GraphQLInputType> | GraphQLNonNull<GraphQLInputType>
-    ).ofType as GraphQLInputType;
-    return unwrapToBaseInputType(inner);
+    return unwrapToBaseInputType(type.ofType as GraphQLInputType);
   }
   return type;
 }
 
 function isSessionVariable(value: string): boolean {
-  return value.toLowerCase().startsWith('x-hasura');
+  return value.toLowerCase().startsWith('x-hasura-');
 }
 
 function isEnumValueLiteral(
@@ -87,7 +86,7 @@ function isNumericLiteral(
   return Number.isFinite(n);
 }
 
-function isUnquotedNullType(argType: GraphQLInputType): boolean {
+function acceptsBareNullLiteral(argType: GraphQLInputType): boolean {
   const baseType = unwrapToBaseInputType(argType);
   return (
     baseType === GraphQLBoolean ||
@@ -107,7 +106,7 @@ export default function stringifyGraphQLValue({
   arg,
 }: FormatParamArgs): string | undefined {
   if (argName === null) {
-    return isUnquotedNullType(arg.type) ? 'null' : '"null"';
+    return acceptsBareNullLiteral(arg.type) ? 'null' : '"null"';
   }
 
   if (typeof argName === 'object') {

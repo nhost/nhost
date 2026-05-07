@@ -7,10 +7,10 @@ import {
   GraphQLEnumType,
   type GraphQLEnumValue,
   GraphQLFloat,
-  type GraphQLInputType,
   GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
+  GraphQLScalarType,
   type GraphQLSchema,
 } from 'graphql';
 import { Braces, Check } from 'lucide-react';
@@ -60,29 +60,21 @@ import composePermissionSDL from '@/features/orgs/projects/remote-schemas/utils/
 import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas/utils/createPermissionsSchema';
 import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
+import { unwrapToBaseInputType } from '@/features/orgs/projects/remote-schemas/utils/stringifyGraphQLValue';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
 
-const ENUM_INLINE_LIMIT = 10;
-
-function unwrapInputBaseType(type: GraphQLInputType): GraphQLInputType {
-  if (type instanceof GraphQLList || type instanceof GraphQLNonNull) {
-    return unwrapInputBaseType(type.ofType as GraphQLInputType);
-  }
-  return type;
-}
-
 function getEnumValuesForArg(
   arg: GraphQLArgument,
 ): readonly GraphQLEnumValue[] | null {
-  const baseType = unwrapInputBaseType(arg.type);
+  const baseType = unwrapToBaseInputType(arg.type);
   return baseType instanceof GraphQLEnumType ? baseType.getValues() : null;
 }
 
 function isBooleanArg(arg: GraphQLArgument): boolean {
-  return unwrapInputBaseType(arg.type) === GraphQLBoolean;
+  return unwrapToBaseInputType(arg.type) === GraphQLBoolean;
 }
 
 // `null` is only a valid GraphQL literal for nullable argument types.
@@ -91,15 +83,31 @@ function isNullableArg(arg: GraphQLArgument): boolean {
   return !(arg.type instanceof GraphQLNonNull);
 }
 
+// Returns `true` when the arg's outer wrapper is a list (`[T]` or `[T]!`).
+// Scalar literals like `true` / `5` / `""` / `ENUM_VALUE` are invalid presets
+// for list-typed args — Hasura expects `[true]`, `[5]`, etc. — so we hide the
+// scalar-only menu items in that case.
+function isListArg(arg: GraphQLArgument): boolean {
+  const outer = arg.type instanceof GraphQLNonNull ? arg.type.ofType : arg.type;
+  return outer instanceof GraphQLList;
+}
+
 // `""` is only meaningful as a preset literal on string-like types.
 // Boolean / Int / Float / Enum would reject it at GraphQL typecheck time.
 function acceptsEmptyStringLiteral(arg: GraphQLArgument): boolean {
-  const baseType = unwrapInputBaseType(arg.type);
+  const baseType = unwrapToBaseInputType(arg.type);
   return (
     baseType !== GraphQLBoolean &&
     baseType !== GraphQLInt &&
     baseType !== GraphQLFloat &&
     !(baseType instanceof GraphQLEnumType)
+  );
+}
+
+function acceptsSessionVariable(arg: GraphQLArgument): boolean {
+  const baseType = unwrapToBaseInputType(arg.type);
+  return (
+    baseType instanceof GraphQLScalarType || baseType instanceof GraphQLEnumType
   );
 }
 
@@ -146,10 +154,15 @@ function PresetValueInput({
   const isEmptyStringPreset = rawValue === '';
   const isPresetSet = rawValue !== undefined;
 
-  const enumValues = useMemo(() => getEnumValuesForArg(arg), [arg]);
-  const acceptsBoolean = isBooleanArg(arg);
-  const acceptsEmptyString = acceptsEmptyStringLiteral(arg);
+  const isList = isListArg(arg);
+  const enumValues = useMemo(
+    () => (isList ? null : getEnumValuesForArg(arg)),
+    [arg, isList],
+  );
+  const acceptsBoolean = !isList && isBooleanArg(arg);
+  const acceptsEmptyString = !isList && acceptsEmptyStringLiteral(arg);
   const acceptsNull = isNullableArg(arg);
+  const allowsSessionVariables = acceptsSessionVariable(arg);
 
   let placeholder = 'preset value';
   if (isNullPreset) {
@@ -209,36 +222,22 @@ function PresetValueInput({
             {enumValues && enumValues.length > 0 && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Enum values</DropdownMenuLabel>
-                {enumValues.length <= ENUM_INLINE_LIMIT ? (
-                  enumValues.map((v) => (
-                    <DropdownMenuItem
-                      key={v.name}
-                      onSelect={() => onSetExpression(v.name)}
-                    >
-                      <span className="font-mono">{v.name}</span>
-                    </DropdownMenuItem>
-                  ))
-                ) : (
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      Values ({enumValues.length})
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
-                      {enumValues.map((v) => (
-                        <DropdownMenuItem
-                          key={v.name}
-                          onSelect={() => onSetExpression(v.name)}
-                        >
-                          <span className="font-mono">{v.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                )}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Enum values</DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
+                    {enumValues.map((v) => (
+                      <DropdownMenuItem
+                        key={v.name}
+                        onSelect={() => onSetExpression(v.name)}
+                      >
+                        <span className="font-mono">{v.name}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
               </>
             )}
-            {sessionVariableOptions.length > 0 && (
+            {allowsSessionVariables && sessionVariableOptions.length > 0 && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuSub>
@@ -620,6 +619,40 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     [],
   );
 
+  const renderPresetRow = useCallback(
+    (schemaTypeName: string, fieldName: string, arg: GraphQLArgument) => {
+      const rawValue = argTree?.[schemaTypeName]?.[fieldName]?.[arg.name];
+      return (
+        <PresetValueInput
+          key={arg.name}
+          arg={arg}
+          argTypeString={getArgTypeString(arg)}
+          rawValue={rawValue}
+          presetValue={formatPresetForInput(rawValue)}
+          sessionVariableOptions={sessionVariableOptions}
+          onChange={(value) =>
+            handlePresetChange(schemaTypeName, fieldName, arg.name, value)
+          }
+          onSetExpression={(value) =>
+            handleSetPresetExpression(
+              schemaTypeName,
+              fieldName,
+              arg.name,
+              value,
+            )
+          }
+        />
+      );
+    },
+    [
+      argTree,
+      getArgTypeString,
+      sessionVariableOptions,
+      handlePresetChange,
+      handleSetPresetExpression,
+    ],
+  );
+
   const handleSavePermission = async () => {
     if (!schemaDefinition) {
       return;
@@ -923,44 +956,12 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                             Arguments:
                                           </Text>
                                           {Object.values(field.args).map(
-                                            (arg) => {
-                                              const rawValue =
-                                                argTree?.[schemaType.name]?.[
-                                                  field.name
-                                                ]?.[arg.name];
-                                              return (
-                                                <PresetValueInput
-                                                  key={arg.name}
-                                                  arg={arg}
-                                                  argTypeString={getArgTypeString(
-                                                    arg,
-                                                  )}
-                                                  rawValue={rawValue}
-                                                  presetValue={formatPresetForInput(
-                                                    rawValue,
-                                                  )}
-                                                  sessionVariableOptions={
-                                                    sessionVariableOptions
-                                                  }
-                                                  onChange={(value) =>
-                                                    handlePresetChange(
-                                                      schemaType.name,
-                                                      field.name,
-                                                      arg.name,
-                                                      value,
-                                                    )
-                                                  }
-                                                  onSetExpression={(value) =>
-                                                    handleSetPresetExpression(
-                                                      schemaType.name,
-                                                      field.name,
-                                                      arg.name,
-                                                      value,
-                                                    )
-                                                  }
-                                                />
-                                              );
-                                            },
+                                            (arg) =>
+                                              renderPresetRow(
+                                                schemaType.name,
+                                                field.name,
+                                                arg,
+                                              ),
                                           )}
                                         </div>
                                       </AccordionContent>
@@ -1088,45 +1089,12 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                         <Text className="font-medium text-gray-700 text-sm">
                                           Arguments:
                                         </Text>
-                                        {Object.values(field.args).map(
-                                          (arg) => {
-                                            const rawValue =
-                                              argTree?.[schemaType.name]?.[
-                                                field.name
-                                              ]?.[arg.name];
-                                            return (
-                                              <PresetValueInput
-                                                key={arg.name}
-                                                arg={arg}
-                                                argTypeString={getArgTypeString(
-                                                  arg,
-                                                )}
-                                                rawValue={rawValue}
-                                                presetValue={formatPresetForInput(
-                                                  rawValue,
-                                                )}
-                                                sessionVariableOptions={
-                                                  sessionVariableOptions
-                                                }
-                                                onChange={(value) =>
-                                                  handlePresetChange(
-                                                    schemaType.name,
-                                                    field.name,
-                                                    arg.name,
-                                                    value,
-                                                  )
-                                                }
-                                                onSetExpression={(value) =>
-                                                  handleSetPresetExpression(
-                                                    schemaType.name,
-                                                    field.name,
-                                                    arg.name,
-                                                    value,
-                                                  )
-                                                }
-                                              />
-                                            );
-                                          },
+                                        {Object.values(field.args).map((arg) =>
+                                          renderPresetRow(
+                                            schemaType.name,
+                                            field.name,
+                                            arg,
+                                          ),
                                         )}
                                       </div>
                                     )}
