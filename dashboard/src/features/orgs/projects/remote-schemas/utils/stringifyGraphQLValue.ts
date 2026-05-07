@@ -5,7 +5,6 @@ import {
   type GraphQLInputField,
   type GraphQLInputType,
   GraphQLInt,
-  GraphQLList,
   GraphQLNonNull,
 } from 'graphql';
 import type {
@@ -13,15 +12,7 @@ import type {
   ArgTreeType,
 } from '@/features/orgs/projects/remote-schemas/types';
 import stringifyGraphQLInputObject from './stringifyGraphQLInputObject';
-
-export function unwrapToBaseInputType(
-  type: GraphQLInputType,
-): GraphQLInputType {
-  if (type instanceof GraphQLList || type instanceof GraphQLNonNull) {
-    return unwrapToBaseInputType(type.ofType as GraphQLInputType);
-  }
-  return type;
-}
+import unwrapNamedType from './unwrapNamedType';
 
 function isSessionVariable(value: string): boolean {
   return value.toLowerCase().startsWith('x-hasura-');
@@ -37,14 +28,14 @@ function isEnumValueLiteral(
   if (isSessionVariable(argName)) {
     return false;
   }
-  return unwrapToBaseInputType(argType) instanceof GraphQLEnumType;
+  return unwrapNamedType(argType) instanceof GraphQLEnumType;
 }
 
 function isBooleanLiteral(
   argName: unknown,
   argType: GraphQLInputType,
 ): boolean {
-  if (unwrapToBaseInputType(argType) !== GraphQLBoolean) {
+  if (unwrapNamedType(argType) !== GraphQLBoolean) {
     return false;
   }
   if (typeof argName === 'boolean') {
@@ -63,7 +54,7 @@ function isNumericLiteral(
   argName: unknown,
   argType: GraphQLInputType,
 ): boolean {
-  const baseType = unwrapToBaseInputType(argType);
+  const baseType = unwrapNamedType(argType);
   if (baseType !== GraphQLInt && baseType !== GraphQLFloat) {
     return false;
   }

@@ -35,6 +35,12 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import { Form } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/v3/input-group';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
@@ -50,21 +56,14 @@ import type {
 import buildRemoteSchemaFieldTree from '@/features/orgs/projects/remote-schemas/utils/buildRemoteSchemaFieldTree';
 import composePermissionSDL from '@/features/orgs/projects/remote-schemas/utils/composePermissionSDL';
 import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas/utils/createPermissionsSchema';
+import formatPresetForInput from '@/features/orgs/projects/remote-schemas/utils/formatPresetForInput';
+import getArgPresetCapabilities from '@/features/orgs/projects/remote-schemas/utils/getArgPresetCapabilities';
 import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
-import {
-  acceptsEmptyStringLiteral,
-  acceptsSessionVariable,
-  formatPresetForInput,
-  getEnumValuesForArg,
-  isBooleanArg,
-  isListArg,
-  isNullableArg,
-} from './presetInputHelpers';
 
 const rolePermissionsSchema = z.object({
   selectedFields: z.array(z.string()).optional().default([]),
@@ -75,36 +74,29 @@ type RolePermissionsFormValues = z.infer<typeof rolePermissionsSchema>;
 
 interface PresetValueInputProps {
   arg: GraphQLArgument;
-  argTypeString: string;
   rawValue: ArgLeafType | ArgTreeType | undefined;
   presetValue: string;
   sessionVariableOptions: string[];
-  onChange: (value: string) => void;
-  onSetExpression: (value: ArgLeafType | undefined) => void;
+  onValueChange: (value: ArgLeafType | undefined) => void;
 }
 
 function PresetValueInput({
   arg,
-  argTypeString,
   rawValue,
   presetValue,
   sessionVariableOptions,
-  onChange,
-  onSetExpression,
+  onValueChange,
 }: PresetValueInputProps) {
   const isNullPreset = rawValue === null;
   const isEmptyStringPreset = rawValue === '';
   const isPresetSet = rawValue !== undefined;
 
-  const isList = isListArg(arg);
-  const enumValues = useMemo(
-    () => (isList ? null : getEnumValuesForArg(arg)),
-    [arg, isList],
-  );
-  const acceptsBoolean = !isList && isBooleanArg(arg);
-  const acceptsEmptyString = !isList && acceptsEmptyStringLiteral(arg);
-  const acceptsNull = isNullableArg(arg);
-  const allowsSessionVariables = acceptsSessionVariable(arg);
+  const cap = useMemo(() => getArgPresetCapabilities(arg), [arg]);
+  const enumValues = cap.isList ? null : cap.enumValues;
+  const acceptsBoolean = !cap.isList && cap.isBoolean;
+  const acceptsEmptyString = !cap.isList && cap.acceptsEmptyString;
+  const acceptsNull = cap.isNullable;
+  const allowsSessionVariables = cap.acceptsSessionVariable;
 
   let placeholder = 'preset value';
   if (isNullPreset) {
@@ -116,103 +108,110 @@ function PresetValueInput({
   return (
     <div className="flex flex-1 items-center space-x-2">
       <span className="min-w-0 flex-shrink-0 text-gray-600 text-sm">
-        {arg.name}: {argTypeString}
+        {arg.name}: {arg.type.toString()}
       </span>
-      <div className="relative flex max-w-xs flex-1 items-center">
-        <Input
+      <InputGroup className="max-w-xs flex-1">
+        <InputGroupInput
           placeholder={placeholder}
           value={presetValue}
-          onChange={(e) => onChange(e.target.value)}
-          className="pr-9 text-xs"
+          onChange={(e) =>
+            onValueChange(
+              e.target.value.trim() === '' ? undefined : e.target.value,
+            )
+          }
+          className="text-xs"
           wrapperClassName="w-full"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label="Insert preset expression"
-              className="absolute top-1/2 right-1 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              <Braces className="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[14rem]">
-            <DropdownMenuLabel>Insert literal</DropdownMenuLabel>
-            {acceptsNull && (
-              <DropdownMenuItem onSelect={() => onSetExpression(null)}>
-                <span className="font-mono">null</span>
-              </DropdownMenuItem>
-            )}
-            {acceptsEmptyString && (
-              <DropdownMenuItem onSelect={() => onSetExpression('')}>
-                <span className="font-mono">&quot;&quot;</span>
-                <span className="ml-2 text-muted-foreground text-xs">
-                  empty string
-                </span>
-              </DropdownMenuItem>
-            )}
-            {acceptsBoolean && (
-              <>
-                <DropdownMenuItem onSelect={() => onSetExpression(true)}>
-                  <span className="font-mono">true</span>
+        <InputGroupAddon align="inline-end" tabIndex={-1}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <InputGroupButton
+                variant="outline"
+                size="icon-xs"
+                aria-label="Insert preset expression"
+                className="h-6 w-6 text-muted-foreground"
+              >
+                <Braces className="size-3.5" />
+              </InputGroupButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[14rem]">
+              <DropdownMenuLabel>Insert literal</DropdownMenuLabel>
+              {acceptsNull && (
+                <DropdownMenuItem onSelect={() => onValueChange(null)}>
+                  <span className="font-mono">null</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onSetExpression(false)}>
-                  <span className="font-mono">false</span>
+              )}
+              {acceptsEmptyString && (
+                <DropdownMenuItem onSelect={() => onValueChange('')}>
+                  <span className="font-mono">&quot;&quot;</span>
+                  <span className="ml-2 text-muted-foreground text-xs">
+                    empty string
+                  </span>
                 </DropdownMenuItem>
-              </>
-            )}
-            {enumValues && enumValues.length > 0 && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Enum values</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
-                    {enumValues.map((v) => (
-                      <DropdownMenuItem
-                        key={v.name}
-                        onSelect={() => onSetExpression(v.name)}
-                      >
-                        <span className="font-mono">{v.name}</span>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              </>
-            )}
-            {allowsSessionVariables && sessionVariableOptions.length > 0 && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    Session variables
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
-                    {sessionVariableOptions.map((v) => (
-                      <DropdownMenuItem
-                        key={v}
-                        onSelect={() => onSetExpression(v)}
-                      >
-                        <span className="font-mono">{v}</span>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              </>
-            )}
-            {isPresetSet && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={() => onSetExpression(undefined)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  Clear preset
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+              )}
+              {acceptsBoolean && (
+                <>
+                  <DropdownMenuItem onSelect={() => onValueChange(true)}>
+                    <span className="font-mono">true</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => onValueChange(false)}>
+                    <span className="font-mono">false</span>
+                  </DropdownMenuItem>
+                </>
+              )}
+              {enumValues && enumValues.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>Enum values</DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
+                      {enumValues.map((v) => (
+                        <DropdownMenuItem
+                          key={v.name}
+                          onSelect={() => onValueChange(v.name)}
+                        >
+                          <span className="font-mono">{v.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                </>
+              )}
+              {allowsSessionVariables && sessionVariableOptions.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      Session variables
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
+                      {sessionVariableOptions.map((v) => (
+                        <DropdownMenuItem
+                          key={v}
+                          onSelect={() => onValueChange(v)}
+                        >
+                          <span className="font-mono">{v}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                </>
+              )}
+              {isPresetSet && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={() => onValueChange(undefined)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    Clear preset
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </InputGroupAddon>
+      </InputGroup>
     </div>
   );
 }
@@ -262,26 +261,15 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     variables: { appId: project?.id },
     skip: !project?.id,
   });
+  const customClaims =
+    permissionVariablesData?.config?.auth?.session?.accessToken?.customClaims;
   const sessionVariableOptions = useMemo(
     () =>
-      getAllPermissionVariables(
-        permissionVariablesData?.config?.auth?.session?.accessToken
-          ?.customClaims,
-      ).map(({ key }) => `X-Hasura-${key}`),
-    [permissionVariablesData],
+      getAllPermissionVariables(customClaims).map(
+        ({ key }) => `X-Hasura-${key}`,
+      ),
+    [customClaims],
   );
-
-  const getArgTypeString = useCallback((arg: GraphQLArgument): string => {
-    const t = arg?.type;
-    if (typeof t === 'string') {
-      return t;
-    }
-    if (t?.toString) {
-      return t.toString();
-    }
-
-    return String(t ?? '');
-  }, []);
 
   const countVisible = useCallback(
     (list: RemoteSchemaFields[]) =>
@@ -487,45 +475,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     [],
   );
 
-  const handlePresetChange = useCallback(
-    (
-      schemaTypeName: string,
-      fieldName: string,
-      argName: string,
-      value: string,
-    ) => {
-      setArgTree((prev) => {
-        const newArgTree = { ...prev };
-        if (!newArgTree[schemaTypeName]) {
-          newArgTree[schemaTypeName] = {};
-        }
-        if (!newArgTree[schemaTypeName][fieldName]) {
-          newArgTree[schemaTypeName][fieldName] = {};
-        }
-
-        if (value.trim() === '') {
-          delete newArgTree[schemaTypeName][fieldName][argName];
-
-          if (Object.keys(newArgTree[schemaTypeName][fieldName]).length === 0) {
-            delete newArgTree[schemaTypeName][fieldName];
-          }
-          if (Object.keys(newArgTree[schemaTypeName]).length === 0) {
-            delete newArgTree[schemaTypeName];
-          }
-        } else {
-          newArgTree[schemaTypeName][fieldName][argName] = value;
-        }
-
-        return newArgTree;
-      });
-    },
-    [],
-  );
-
-  // Set or clear a preset value directly, bypassing the trim-empty-deletes path
-  // in `handlePresetChange`. Pass `undefined` to clear the entry; any other
-  // ArgLeafType (`null`, `''`, boolean, number, string) is written through.
-  const handleSetPresetExpression = useCallback(
+  const setPresetValue = useCallback(
     (
       schemaTypeName: string,
       fieldName: string,
@@ -568,31 +518,16 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         <PresetValueInput
           key={arg.name}
           arg={arg}
-          argTypeString={getArgTypeString(arg)}
           rawValue={rawValue}
           presetValue={formatPresetForInput(rawValue)}
           sessionVariableOptions={sessionVariableOptions}
-          onChange={(value) =>
-            handlePresetChange(schemaTypeName, fieldName, arg.name, value)
-          }
-          onSetExpression={(value) =>
-            handleSetPresetExpression(
-              schemaTypeName,
-              fieldName,
-              arg.name,
-              value,
-            )
+          onValueChange={(value) =>
+            setPresetValue(schemaTypeName, fieldName, arg.name, value)
           }
         />
       );
     },
-    [
-      argTree,
-      getArgTypeString,
-      sessionVariableOptions,
-      handlePresetChange,
-      handleSetPresetExpression,
-    ],
+    [argTree, sessionVariableOptions, setPresetValue],
   );
 
   const handleSavePermission = async () => {
