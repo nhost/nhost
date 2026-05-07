@@ -605,6 +605,44 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).not.toMatch(/@preset\(value:\s*"null"\s*\)/);
     });
 
+    test('Clear preset is hidden when no preset is set', async () => {
+      renderForm({
+        permission: permissionForField('field_with_int(count: Int): String'),
+      });
+      const user = new TestUserEvent();
+      await screen.findByText('field_with_int');
+      await expandAccordion(user, 'field_with_int');
+      await openLiteralMenu(user);
+
+      await screen.findByRole('menuitem', { name: /Session variables/ });
+      expect(
+        screen.queryByRole('menuitem', { name: /Clear preset/ }),
+      ).not.toBeInTheDocument();
+    });
+
+    test('Clear preset strips the @preset directive from the saved SDL', async () => {
+      renderForm({
+        permission: permissionForField(
+          'field_with_int(count: Int @preset(value: 5431)): String',
+        ),
+      });
+      const user = new TestUserEvent();
+      await screen.findByText('field_with_int');
+      await expandAccordion(user, 'field_with_int');
+
+      expect(screen.getByPlaceholderText('preset value')).toHaveValue('5431');
+
+      await openLiteralMenu(user);
+      await user.click(
+        await screen.findByRole('menuitem', { name: /Clear preset/ }),
+      );
+
+      await clickSaveAndWaitForRequest(user);
+      const sdl = lastSavedSDL();
+      expect(sdl).not.toMatch(/@preset/);
+      expect(sdl).toMatch(/field_with_int/);
+    });
+
     test('legacy quoted Int preset is normalized to unquoted on no-op save', async () => {
       renderForm({
         permission: permissionForField(
