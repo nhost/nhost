@@ -31,11 +31,13 @@ _dev-env-build:
 .PHONY: _dev-env-up
 _dev-env-up:
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
+	${DOCKER_DEV_ENV_PATH}/mutate.sh
 
 
 .PHONY: _dev-env-down
 _dev-env-down:
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml down --volumes
+	pnpm clean
 
 
 .PHONY: changelog-bump-refs

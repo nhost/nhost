@@ -10,7 +10,8 @@
     "generate": "echo 'nothing to generate'",
     "test": "biome check . && jest --testTimeout=120000",
     "lint": "biome check .",
-    "lint:fix": "biome check --write ."
+    "lint:fix": "biome check --write .",
+    "clean": "rm -f example-*/functions/hotreload-makefile-*.js && (git ls-files --error-unmatch example-pnpm/functions/_utils/hotreload-helper.js >/dev/null 2>&1 && git checkout -- example-pnpm/functions/_utils/hotreload-helper.js || true)"
   },
   "repository": {
     "type": "git",

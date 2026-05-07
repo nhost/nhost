@@ -47,6 +47,19 @@ const rebuildStats = {
   lastRebuildAt: null,
 };
 
+// Bounded log of chokidar events. Integration tests run inside the Nix build
+// sandbox, which can't write to the bind-mount source on the host — so the
+// dev-env Makefile performs the file mutations and the tests read this log
+// over HTTP to confirm the watcher saw them.
+const MAX_EVENTS = 500;
+const recentEvents = [];
+function recordEvent(type, file) {
+  recentEvents.push({ timestamp: new Date().toISOString(), type, file });
+  if (recentEvents.length > MAX_EVENTS) {
+    recentEvents.splice(0, recentEvents.length - MAX_EVENTS);
+  }
+}
+
 // setInterval does not await its async callback, so two polls can overlap if a
 // rebuild runs longer than the polling interval — exactly the case for big
 // projects. Serialize all rebuilds behind a single in-flight promise so dispose
@@ -281,6 +294,10 @@ const main = async () => {
     res.json(rebuildStats);
   });
 
+  app.get('/_nhost_functions_events', (_req, res) => {
+    res.json({ events: recentEvents });
+  });
+
   fs.mkdirSync(WRAPPER_DIR, { recursive: true });
   fs.mkdirSync(DIST_DIR, { recursive: true });
 
@@ -353,6 +370,7 @@ const main = async () => {
 
   watcher.on('add', (absPath) => {
     const rel = path.relative(functionsPath, absPath);
+    recordEvent('add', rel);
     if (isEntryFile(absPath) && !functionEntries.has(rel)) {
       serverLog('INFO', fileToRoute(rel), `New function detected: ${rel}`);
       prepareFunctionEntry(functionsPath, rel);
@@ -366,6 +384,7 @@ const main = async () => {
 
   watcher.on('unlink', (absPath) => {
     const rel = path.relative(functionsPath, absPath);
+    recordEvent('unlink', rel);
     if (functionEntries.has(rel)) {
       const route = fileToRoute(rel);
       disposeFunctionEntry(rel);
@@ -378,6 +397,7 @@ const main = async () => {
 
   watcher.on('change', (absPath) => {
     const rel = path.relative(functionsPath, absPath);
+    recordEvent('change', rel);
     serverLog('INFO', '', `Changed: ${rel}`);
     triggerIncrementalRebuild();
   });

@@ -4,3 +4,9 @@ data
 .nhost-build
 .wrapper-*
 node_modules
+
+# Files created by build/dev/docker/mutate.sh during dev-env-up.
+# The hot-reload integration tests assert chokidar observed these mutations.
+# `make dev-env-down` cleans them up, but ignore them here so they don't show
+# as untracked between bring-up and tear-down.
+example-*/functions/hotreload-makefile-*.js
