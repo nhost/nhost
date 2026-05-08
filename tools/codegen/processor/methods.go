@@ -470,7 +470,8 @@ func getMethodResponses(
 		mediaType := pcontent.Key()
 		proxy := pcontent.Value()
 
-		// some types may not have a schema defined, e.g., for 204 No Content responses or binary responses
+		// some types may not have a schema defined, e.g., for 204 No Content responses
+		// or binary responses
 		if proxy.Schema == nil {
 			responses[code][mediaType] = nil
 			continue

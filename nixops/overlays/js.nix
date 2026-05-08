@@ -23,10 +23,10 @@
   in
   rec {
     nodejs-slim_24 = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
-      version = "24.13.0";
+      version = "24.14.1";
       src = prev.fetchurl {
         url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
-        sha256 = "sha256-Mg/pCcuzR9z1FiAeSWTvF3uBON+af4ENDVSVBIGzFYs=";
+        sha256 = "sha256-eCJQdxPyAs8qVRiZ0lAllkP0d7ZxcG20Iab7VcSqCZE=";
       };
     });
 
@@ -45,14 +45,18 @@
           meta
           src
           ;
-
-        pkgs = final.callPackage "${final.path}/pkgs/development/node-packages/default.nix" {
-          nodejs = final.nodejs;
-        };
       };
     };
 
-    nodePackages = prev.nodejs.pkgs // {
+    nodePackages = {
+      inherit (final)
+        eslint
+        node-gyp
+        node-gyp-build
+        pnpm
+        typescript
+        typescript-language-server
+        ;
       vercel =
         (import ./vercel {
           pkgs = final;
@@ -71,6 +75,7 @@
         url = "https://registry.npmjs.org/npm/-/npm-${version}.tgz";
         sha256 = "sha256-KS8ULcGowBGZujSgflfPAWwmDqLFm2Tz7uiqrnoudQQ=";
       };
+      nativeBuildInputs = [ final.nodejs-slim_24 ];
       dontBuild = true;
       installPhase = ''
         mkdir -p $out/lib/node_modules/npm
@@ -78,6 +83,7 @@
         mkdir -p $out/bin
         ln -s $out/lib/node_modules/npm/bin/npm-cli.js $out/bin/npm
         ln -s $out/lib/node_modules/npm/bin/npx-cli.js $out/bin/npx
+        patchShebangs $out/lib/node_modules/npm/bin
       '';
     };
 
