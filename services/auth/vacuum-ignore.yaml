@@ -78,6 +78,9 @@ camel-case-properties:
   - $.components.schemas['OAuth2RegisterResponse'].properties['client_uri']
   - $.components.schemas['OAuth2RegisterResponse'].properties['logo_uri']
   - $.components.schemas['OAuth2RegisterResponse'].properties['client_secret_expires_at']
+  # go-webauthn
+  - $.components.schemas['AuthenticatorAssertionResponse'].properties['clientDataJSON']
+  - $.components.schemas['AuthenticatorAttestationResponse'].properties['clientDataJSON']
 
 nullable-enum-contains-null:
   # This is actually hacky as they shouldn't be nullable at all, but the conformance tests
