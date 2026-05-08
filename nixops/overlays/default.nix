@@ -5,13 +5,6 @@ final: prev:
     doCheck = false;
   });
 
-  linux-pam = prev.linux-pam.overrideAttrs (oldAttrs: {
-    outputs = [
-      "out"
-      "scripts"
-    ];
-  });
-
   nhost-cli = final.callPackage ./nhost-cli.nix { inherit final; };
 }
 // import ./go.nix { inherit self nix-filter; } final prev

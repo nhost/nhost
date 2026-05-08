@@ -464,7 +464,8 @@ func getMethodResponses(
 		if pcontent.Next() != nil {
 			return nil, nil, fmt.Errorf(
 				"%w: operation %s has multiple response bodies for code %s",
-				ErrUnsupportedFeature, operation.OperationId, code)
+				ErrUnsupportedFeature, operation.OperationId, code,
+			)
 		}
 
 		mediaType := pcontent.Key()
