@@ -1,8 +1,9 @@
-{ name
-, version
-, pkgs
-, nix2containerPkgs
-, basePostgres
+{
+  name,
+  version,
+  pkgs,
+  nix2containerPkgs,
+  basePostgres,
 }:
 let
 
@@ -30,31 +31,34 @@ let
     mkdir -p $out/var/lib/postgresql/data/pgdata
   '';
 
-  postgres = (basePostgres.override {
-    systemdSupport = false;
-  }).overrideAttrs (oldAttrs: {
-    doCheck = false;
-    doInstallCheck = false;
-  });
+  postgres =
+    (basePostgres.override {
+      systemdSupport = false;
+    }).overrideAttrs
+      (oldAttrs: {
+        doCheck = false;
+        doInstallCheck = false;
+      });
 
   # from https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/servers/sql/postgresql/generic.nix
   # it'd be better to call `withPackages` with the list of plugins, but for some reason the postgres
   # overlay isn't picked up in that case
   postgres_with_plugins = pkgs.buildEnv {
     name = "postgresql-and-plugins-${postgres.version}";
-    paths = pkgs.callPackage ./extensions/default.nix { inherit pkgs postgres; }
-      ++ [
+    paths = pkgs.callPackage ./extensions/default.nix { inherit pkgs postgres; } ++ [
       postgres
       postgres.lib
       # postgres.pg_config
     ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
 
-
     # We include /bin to ensure the $out/bin directory is created, which is
     # needed because we'll be removing the files from that directory in postBuild
     # below. See #22653
-    pathsToLink = [ "/" "/bin" ];
+    pathsToLink = [
+      "/"
+      "/bin"
+    ];
 
     # Note: the duplication of executables is about 4MB size.
     # So a nicer solution was patching postgresql to allow setting the
@@ -87,7 +91,8 @@ in
         postgres_with_plugins
         pkgs.wal-g
         pkgs.cacert
-      ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+      ]
+      ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
         pkgs.busybox
       ];
       pathsToLink = [
@@ -177,8 +182,12 @@ in
         "PITR_TARGET_TIMELINE=latest"
         "TRACK_IO_TIMING=off"
       ];
-      ExposedPorts = { "5432/tcp" = { }; };
-      Volumes = { "/var/lib/postgresql" = { }; };
+      ExposedPorts = {
+        "5432/tcp" = { };
+      };
+      Volumes = {
+        "/var/lib/postgresql" = { };
+      };
     };
   };
 }

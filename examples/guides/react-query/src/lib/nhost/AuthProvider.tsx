@@ -1,5 +1,5 @@
 import { createClient, type NhostClient } from '@nhost/nhost-js';
-import type { Session } from '@nhost/nhost-js/auth';
+import type { StoredSession } from '@nhost/nhost-js/session';
 import {
   createContext,
   type ReactNode,
@@ -17,9 +17,9 @@ import {
  */
 interface AuthContextType {
   /** Current authenticated user object, null if not authenticated */
-  user: Session['user'] | null;
+  user: StoredSession['user'] | null;
   /** Current session object containing tokens and user data, null if no active session */
-  session: Session | null;
+  session: StoredSession | null;
   /** Boolean indicating if user is currently authenticated */
   isAuthenticated: boolean;
   /** Boolean indicating if authentication state is still loading */
@@ -46,8 +46,8 @@ interface AuthProviderProps {
  * - Client-side only session management (no server-side rendering)
  */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<Session['user'] | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<StoredSession['user'] | null>(null);
+  const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const lastRefreshTokenIdRef = useRef<string | null>(null);

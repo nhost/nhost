@@ -1,5 +1,8 @@
 import { createServerClient, type NhostClient } from '@nhost/nhost-js';
-import { DEFAULT_SESSION_KEY, type Session } from '@nhost/nhost-js/session';
+import {
+  DEFAULT_SESSION_KEY,
+  type StoredSession,
+} from '@nhost/nhost-js/session';
 import { cookies } from 'next/headers';
 import type { NextRequest, NextResponse } from 'next/server';
 
@@ -19,15 +22,15 @@ export async function createNhostClient(): Promise<NhostClient> {
     subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
     storage: {
       // storage compatible with Next.js server components
-      get: (): Session | null => {
+      get: (): StoredSession | null => {
         const s = cookieStore.get(key)?.value || null;
         if (!s) {
           return null;
         }
-        const session = JSON.parse(s) as Session;
+        const session = JSON.parse(s) as StoredSession;
         return session;
       },
-      set: (value: Session) => {
+      set: (value: StoredSession) => {
         cookieStore.set(key, JSON.stringify(value));
       },
       remove: () => {
@@ -52,21 +55,21 @@ export async function createNhostClient(): Promise<NhostClient> {
 export async function handleNhostProxy(
   request: NextRequest,
   response: NextResponse<unknown>,
-): Promise<Session | null> {
+): Promise<StoredSession | null> {
   const nhost = createServerClient({
     region: process.env['NHOST_REGION'] || 'local',
     subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
     storage: {
       // storage compatible with Next.js proxy
-      get: (): Session | null => {
+      get: (): StoredSession | null => {
         const raw = request.cookies.get(key)?.value || null;
         if (!raw) {
           return null;
         }
-        const session = JSON.parse(raw) as Session;
+        const session = JSON.parse(raw) as StoredSession;
         return session;
       },
-      set: (value: Session) => {
+      set: (value: StoredSession) => {
         response.cookies.set({
           name: key,
           value: JSON.stringify(value),

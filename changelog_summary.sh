@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/bin/sh
 PREV_MONTH=$(date -d "1 month ago" +%Y-%m)
 
 echo "prev: $PREV_MONTH"

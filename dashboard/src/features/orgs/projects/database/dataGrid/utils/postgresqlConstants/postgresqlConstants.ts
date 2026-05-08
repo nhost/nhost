@@ -51,6 +51,25 @@ export const POSTGRESQL_CHARACTER_TYPES = [
 export const POSTGRESQL_JSON_TYPES = ['json', 'jsonb'];
 
 /**
+ * PostgreSQL types that have no default B-tree ordering operator and therefore
+ * cannot be used in ORDER BY. Sorting on these via Hasura's run_sql endpoint
+ * fails with: "could not identify an ordering operator for type ...".
+ */
+export const POSTGRESQL_UNSORTABLE_TYPES = [
+  'point',
+  'line',
+  'lseg',
+  'box',
+  'path',
+  'polygon',
+  'circle',
+  'json',
+  'xml',
+  'tsvector',
+  'tsquery',
+];
+
+/**
  * Date / Time types in PostgreSQL.
  *
  * @docs https://www.postgresql.org/docs/current/datatype-datetime.html

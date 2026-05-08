@@ -233,11 +233,23 @@ function ConditionValue({
     );
   }
 
+  function getDisplayValue(value: unknown): string {
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return String(value);
+  }
+
   const selectedVariable = availableHasuraPermissionVariables.find(
     (variable) => variable.value === comboboxValue,
   );
   const comboboxLabel =
-    selectedVariable?.label || comboboxValue || 'Select variable...';
+    selectedVariable?.label ||
+    getDisplayValue(comboboxValue) ||
+    'Select variable...';
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

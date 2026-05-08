@@ -112,7 +112,7 @@ function OverviewDeploymentList() {
           </Box>
 
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
             variant="ghost"
             className="text-primary"
             underline="none"

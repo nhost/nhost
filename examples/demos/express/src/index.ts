@@ -1,5 +1,5 @@
 import { createServerClient } from '@nhost/nhost-js';
-import type { Session } from '@nhost/nhost-js/session';
+import type { StoredSession } from '@nhost/nhost-js/session';
 import type { FileMetadata } from '@nhost/nhost-js/storage';
 import cookieParser from 'cookie-parser';
 import express, { type Request, type Response } from 'express';
@@ -17,8 +17,9 @@ const nhostClientFromCookies = (req: Request) => {
     subdomain: 'local',
     region: 'local',
     storage: {
-      get: (): Session | null => {
-        return (JSON.parse(req.cookies.nhostSession) || null) as Session | null;
+      get: (): StoredSession | null => {
+        return (JSON.parse(req.cookies.nhostSession) ||
+          null) as StoredSession | null;
       },
       set: () => {
         throw new Error('It is easier to handle the session in the client');
@@ -38,7 +39,7 @@ const nhostClientFromAuthHeader = (req: Request) => {
     subdomain: 'local',
     region: 'local',
     storage: {
-      get: (): Session | null => {
+      get: (): StoredSession | null => {
         const s = req.headers.authorization || null;
         if (!s) {
           return null;
@@ -52,7 +53,7 @@ const nhostClientFromAuthHeader = (req: Request) => {
         if (!token) {
           return null;
         }
-        const session = { accessToken: token } as Session;
+        const session = { accessToken: token } as StoredSession;
         return session;
       },
       set: () => {

@@ -7,8 +7,17 @@
     nix2container.follows = "nixops/nix2container";
   };
 
-  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter, nix2container }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixops,
+      nixpkgs,
+      flake-utils,
+      nix-filter,
+      nix2container,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         overlays = [ nixops.overlays.default ];
         pkgs = import nixpkgs {
@@ -20,7 +29,7 @@
 
         src = nix-filter.lib.filter {
           root = ./.;
-          include = with nix-filter.lib;[
+          include = with nix-filter.lib; [
             (nix-filter.lib.matchExt "go")
             ./go.mod
           ];
@@ -42,7 +51,14 @@
       {
         checks = {
           go-checks = nixops-lib.go.check {
-            inherit src ldflags tags buildInputs nativeBuildInputs checkDeps;
+            inherit
+              src
+              ldflags
+              tags
+              buildInputs
+              nativeBuildInputs
+              checkDeps
+              ;
           };
         };
 
@@ -60,7 +76,14 @@
 
         packages = flake-utils.lib.flattenTree rec {
           example = nixops-lib.go.package {
-            inherit name src version ldflags buildInputs nativeBuildInputs;
+            inherit
+              name
+              src
+              version
+              ldflags
+              buildInputs
+              nativeBuildInputs
+              ;
           };
 
           # example-arm64-darwin = (nixops-lib.go.package {

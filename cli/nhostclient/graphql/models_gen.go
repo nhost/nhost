@@ -29,11 +29,22 @@ type BooleanComparisonExp struct {
 }
 
 type ConfigAi struct {
+	Anthropic      *ConfigAIAnthropic      `json:"anthropic,omitempty"`
 	AutoEmbeddings *ConfigAIAutoEmbeddings `json:"autoEmbeddings,omitempty"`
-	Openai         *ConfigAIOpenai         `json:"openai"`
+	Google         *ConfigAIGoogle         `json:"google,omitempty"`
+	Openai         *ConfigAIOpenai         `json:"openai,omitempty"`
 	Resources      *ConfigAIResources      `json:"resources"`
 	Version        *string                 `json:"version,omitempty"`
+	WebSearch      *ConfigAIWebSearch      `json:"webSearch,omitempty"`
 	WebhookSecret  string                  `json:"webhookSecret"`
+}
+
+type ConfigAIAnthropic struct {
+	APIKey string `json:"apiKey"`
+}
+
+type ConfigAIAnthropicUpdateInput struct {
+	APIKey *string `json:"apiKey,omitempty"`
 }
 
 type ConfigAIAutoEmbeddings struct {
@@ -42,6 +53,14 @@ type ConfigAIAutoEmbeddings struct {
 
 type ConfigAIAutoEmbeddingsUpdateInput struct {
 	SynchPeriodMinutes *uint32 `json:"synchPeriodMinutes,omitempty"`
+}
+
+type ConfigAIGoogle struct {
+	APIKey string `json:"apiKey"`
+}
+
+type ConfigAIGoogleUpdateInput struct {
+	APIKey *string `json:"apiKey,omitempty"`
 }
 
 type ConfigAIOpenai struct {
@@ -63,11 +82,24 @@ type ConfigAIResourcesUpdateInput struct {
 }
 
 type ConfigAIUpdateInput struct {
+	Anthropic      *ConfigAIAnthropicUpdateInput      `json:"anthropic,omitempty"`
 	AutoEmbeddings *ConfigAIAutoEmbeddingsUpdateInput `json:"autoEmbeddings,omitempty"`
+	Google         *ConfigAIGoogleUpdateInput         `json:"google,omitempty"`
 	Openai         *ConfigAIOpenaiUpdateInput         `json:"openai,omitempty"`
 	Resources      *ConfigAIResourcesUpdateInput      `json:"resources,omitempty"`
 	Version        *string                            `json:"version,omitempty"`
+	WebSearch      *ConfigAIWebSearchUpdateInput      `json:"webSearch,omitempty"`
 	WebhookSecret  *string                            `json:"webhookSecret,omitempty"`
+}
+
+type ConfigAIWebSearch struct {
+	BraveAPIKey  *string `json:"braveApiKey,omitempty"`
+	TavilyAPIKey *string `json:"tavilyApiKey,omitempty"`
+}
+
+type ConfigAIWebSearchUpdateInput struct {
+	BraveAPIKey  *string `json:"braveApiKey,omitempty"`
+	TavilyAPIKey *string `json:"tavilyApiKey,omitempty"`
 }
 
 // Configuration for auth service
@@ -1989,6 +2021,7 @@ type AppsIncInput struct {
 
 // input type for inserting data into table "apps"
 type AppsInsertInput struct {
+	Deployments    *DeploymentsArrRelInsertInput  `json:"deployments,omitempty"`
 	FeatureFlags   *FeatureFlagsArrRelInsertInput `json:"featureFlags,omitempty"`
 	Name           *string                        `json:"name,omitempty"`
 	OrganizationID *string                        `json:"organizationID,omitempty"`
@@ -2919,6 +2952,13 @@ type DeploymentsAggregateOrderBy struct {
 	Min   *DeploymentsMinOrderBy `json:"min,omitempty"`
 }
 
+// input type for inserting array relation for remote table "deployments"
+type DeploymentsArrRelInsertInput struct {
+	Data []*DeploymentsInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *DeploymentsOnConflict `json:"on_conflict,omitempty"`
+}
+
 // Boolean expression to filter rows from the table "deployments". All fields are combined with a logical 'AND'.
 type DeploymentsBoolExp struct {
 	And                 []*DeploymentsBoolExp     `json:"_and,omitempty"`
@@ -2945,6 +2985,17 @@ type DeploymentsBoolExp struct {
 	MigrationsEndedAt   *TimestamptzComparisonExp `json:"migrationsEndedAt,omitempty"`
 	MigrationsStartedAt *TimestamptzComparisonExp `json:"migrationsStartedAt,omitempty"`
 	MigrationsStatus    *StringComparisonExp      `json:"migrationsStatus,omitempty"`
+}
+
+// input type for inserting data into table "deployments"
+type DeploymentsInsertInput struct {
+	App                 *AppsObjRelInsertInput `json:"app,omitempty"`
+	AppID               *string                `json:"appId,omitempty"`
+	CommitMessage       *string                `json:"commitMessage,omitempty"`
+	CommitSha           *string                `json:"commitSHA,omitempty"`
+	CommitUserAvatarURL *string                `json:"commitUserAvatarUrl,omitempty"`
+	CommitUserName      *string                `json:"commitUserName,omitempty"`
+	DeploymentStatus    *string                `json:"deploymentStatus,omitempty"`
 }
 
 // order by max() on columns of table "deployments"
@@ -2991,6 +3042,21 @@ type DeploymentsMinOrderBy struct {
 	MigrationsEndedAt   *OrderBy `json:"migrationsEndedAt,omitempty"`
 	MigrationsStartedAt *OrderBy `json:"migrationsStartedAt,omitempty"`
 	MigrationsStatus    *OrderBy `json:"migrationsStatus,omitempty"`
+}
+
+// response of any mutation on the table "deployments"
+type DeploymentsMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*Deployments `json:"returning"`
+}
+
+// on_conflict condition type for table "deployments"
+type DeploymentsOnConflict struct {
+	Constraint    DeploymentsConstraint     `json:"constraint"`
+	UpdateColumns []DeploymentsUpdateColumn `json:"update_columns"`
+	Where         *DeploymentsBoolExp       `json:"where,omitempty"`
 }
 
 // Ordering options when selecting data from "deployments".
@@ -7196,6 +7262,61 @@ func (e DeploymentLogsSelectColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// unique or primary key constraints on table "deployments"
+type DeploymentsConstraint string
+
+const (
+	// unique or primary key constraint on columns "id"
+	DeploymentsConstraintDeploymentsPkey DeploymentsConstraint = "deployments_pkey"
+)
+
+var AllDeploymentsConstraint = []DeploymentsConstraint{
+	DeploymentsConstraintDeploymentsPkey,
+}
+
+func (e DeploymentsConstraint) IsValid() bool {
+	switch e {
+	case DeploymentsConstraintDeploymentsPkey:
+		return true
+	}
+	return false
+}
+
+func (e DeploymentsConstraint) String() string {
+	return string(e)
+}
+
+func (e *DeploymentsConstraint) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DeploymentsConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid deployments_constraint", str)
+	}
+	return nil
+}
+
+func (e DeploymentsConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *DeploymentsConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e DeploymentsConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 // select columns of table "deployments"
 type DeploymentsSelectColumn string
 
@@ -7300,6 +7421,61 @@ func (e *DeploymentsSelectColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e DeploymentsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// placeholder for update columns of table "deployments" (current role has no relevant permissions)
+type DeploymentsUpdateColumn string
+
+const (
+	// placeholder (do not use)
+	DeploymentsUpdateColumnPlaceholder DeploymentsUpdateColumn = "_PLACEHOLDER"
+)
+
+var AllDeploymentsUpdateColumn = []DeploymentsUpdateColumn{
+	DeploymentsUpdateColumnPlaceholder,
+}
+
+func (e DeploymentsUpdateColumn) IsValid() bool {
+	switch e {
+	case DeploymentsUpdateColumnPlaceholder:
+		return true
+	}
+	return false
+}
+
+func (e DeploymentsUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *DeploymentsUpdateColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DeploymentsUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid deployments_update_column", str)
+	}
+	return nil
+}
+
+func (e DeploymentsUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *DeploymentsUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e DeploymentsUpdateColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

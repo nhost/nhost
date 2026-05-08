@@ -7,7 +7,7 @@ buildPGXSExtension rec {
   src = pkgs.fetchFromGitHub {
     owner = "cybertec-postgresql";
     repo = "pg_squeeze";
-    rev = "REL${builtins.replaceStrings ["."] ["_"] version}";
+    rev = "REL${builtins.replaceStrings [ "." ] [ "_" ] version}";
     hash = "sha256-KbCS3kg2MoxKHl+35UOFCSF4kPPsIMeO7AfwfHZYZVg=";
   };
 

@@ -63,13 +63,8 @@ jobs:
     if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo "github.event_name: ${{ github.event_name }}"
-          echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
-      - name: "This task will run and fail if user has no permissions and label safe_to_test isn't present"
-        if: 'github.event_name == ''pull_request_target'' && ! ( contains(github.event.pull_request.labels.*.name, ''safe_to_test'') || contains(fromJson(''["OWNER", "MEMBER", "COLLABORATOR"]''), github.event.pull_request.author_association) )'
-        run: |
-          exit 1
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/check-permissions
 
   tests:
     uses: ./.github/workflows/wf_check.yaml

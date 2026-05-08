@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This pinned version is bumped automatically by the changelog workflow.
-VERSION="1.44.0"
+VERSION="1.45.0"
 
 # helper functions
 yell() { echo -e "${RED}FAILED> $* ${NC}" >&2; }
@@ -112,6 +112,10 @@ log "${GREEN}Download complete!${NC}"
 echo
 
 if [[ "$platform" != 'windows' ]]; then
+    if [ ! -d "${INSTALL_PATH}" ]; then
+        log "${YELLOW}Install path '${INSTALL_PATH}' does not exist. Creating it...${NC}"
+        try sudo mkdir -p "${INSTALL_PATH}"
+    fi
     try sudo mv ./cli ${INSTALL_PATH}/nhost
     nhost --version
     echo

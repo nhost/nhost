@@ -30,6 +30,7 @@ import {
   POSTGRESQL_DATE_TIME_TYPES,
   POSTGRESQL_JSON_TYPES,
   POSTGRESQL_NUMERIC_TYPES,
+  POSTGRESQL_UNSORTABLE_TYPES,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import {
   DataGrid,
@@ -42,6 +43,7 @@ import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/c
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useDataGridQueryParams } from './DataGridQueryParamsProvider';
+import GeneratedColumnIndicator from './GeneratedColumnIndicator';
 import NoMatchesFound from './NoMatchesFound';
 
 const CreateRecordForm = dynamic(
@@ -61,12 +63,16 @@ export function extractColumnMetadata(
   const { normalizedDefaultValue, custom: isDefaultValueCustom } =
     normalizeDefaultValue(column.column_default);
 
+  const isGeneratedColumn = column.is_generated === 'ALWAYS';
+
   const metadata: DataBrowserColumnMetadata = {
     id: column.column_name,
-    isEditable,
+    isEditable: isGeneratedColumn ? false : isEditable,
     isPrimary: column.is_primary,
     isNullable: column.is_nullable !== 'NO',
     isIdentity: column.is_identity === 'YES',
+    isGenerated: isGeneratedColumn,
+    generationExpression: column.generation_expression ?? null,
     defaultValue: normalizedDefaultValue,
     isDefaultValueCustom,
     isUnique: column.is_unique,
@@ -98,10 +104,19 @@ export function createDataGridColumn(
 ): DataBrowserGridColumnDef {
   const meta = extractColumnMetadata(column, isEditable);
 
+  const isSortable =
+    !POSTGRESQL_UNSORTABLE_TYPES.includes(column.udt_name) &&
+    !POSTGRESQL_UNSORTABLE_TYPES.includes(column.data_type);
+
   const defaultColumnConfiguration = {
     header: () => (
       <div className="grid grid-flow-col items-center justify-start gap-1 font-normal">
         {column.is_primary && <KeyRound width={14} height={14} />}
+        {meta.isGenerated && meta.generationExpression && (
+          <GeneratedColumnIndicator
+            generationExpression={meta.generationExpression}
+          />
+        )}
 
         <span className="truncate font-bold" title={column.column_name}>
           {column.column_name}
@@ -114,6 +129,7 @@ export function createDataGridColumn(
     accessorKey: column.column_name as string,
     size: 250,
     meta,
+    enableSorting: isSortable,
     cell: (props: CellContext<UnknownDataGridRow, string>) => (
       <DataGridTextCell {...props} />
     ),

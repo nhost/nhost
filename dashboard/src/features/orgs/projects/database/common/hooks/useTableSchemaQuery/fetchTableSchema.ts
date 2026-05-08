@@ -11,16 +11,17 @@ import type {
   NormalizedQueryDataRow,
   QueryError,
   QueryResult,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 
 export interface FetchTableSchemaOptions extends MutationOrQueryBaseOptions {
   /**
-   * When true, a pg_attribute-based query is used instead of
-   * information_schema.columns to fetch column metadata.
+   * The relation kind. Materialized views use a pg_attribute-based column
+   * query instead of `information_schema.columns`.
    */
-  isMaterializedView?: boolean;
+  tableType?: TableLikeObjectType;
 }
 
 export type FetchTableSchemaReturnType = Omit<
@@ -41,11 +42,12 @@ export default async function fetchTableSchema({
   table,
   appUrl,
   adminSecret,
-  isMaterializedView,
+  tableType,
 }: FetchTableSchemaOptions): Promise<FetchTableSchemaReturnType> {
-  const columnDefinitionQuery = isMaterializedView
-    ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
-    : COLUMN_DEFINITION_QUERY;
+  const columnDefinitionQuery =
+    tableType === 'MATERIALIZED VIEW'
+      ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
+      : COLUMN_DEFINITION_QUERY;
   const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {

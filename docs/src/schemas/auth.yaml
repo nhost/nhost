@@ -1464,7 +1464,10 @@ paths:
   /user/password:
     post:
       summary: Change user password
-      description: Change the user's password. The user must be authenticated with elevated permissions or provide a valid password reset ticket.
+      description: |
+        Change the user's password. The user must be authenticated with elevated permissions or provide a valid password reset ticket.
+
+        All of the user's existing sessions are revoked atomically as part of this operation, including the session used to make the request. Clients must treat the user as signed out after a successful response and obtain a new session via sign-in.
       operationId: changeUserPassword
       tags:
         - user

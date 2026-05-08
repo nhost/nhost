@@ -140,7 +140,7 @@ test('should render an empty state when GitHub is connected, but there are no de
   expect(await screen.findByText(/test\/git-project/i)).toBeInTheDocument();
   expect(await screen.findByRole('link', { name: /edit/i })).toHaveAttribute(
     'href',
-    '/orgs/xyz/projects/test-project/settings/git',
+    '/orgs/xyz/projects/test-project/settings/deployments',
   );
 });
 
