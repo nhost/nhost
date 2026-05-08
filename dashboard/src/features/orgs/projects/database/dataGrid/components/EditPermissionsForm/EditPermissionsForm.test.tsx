@@ -35,13 +35,6 @@ vi.mock('@/utils/__generated__/graphql', async () => {
 vi.mock(
   '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery',
   () => ({
-    default: () => ({
-      data: {
-        columns: [{ column_name: 'id' }, { column_name: 'name' }],
-      },
-      status: 'success',
-      error: null,
-    }),
     useTableSchemaQuery: () => ({
       data: {
         columns: [{ column_name: 'id' }, { column_name: 'name' }],
@@ -55,7 +48,6 @@ vi.mock(
 vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery',
   () => ({
-    default: useMetadataQueryMock,
     useMetadataQuery: useMetadataQueryMock,
   }),
 );
