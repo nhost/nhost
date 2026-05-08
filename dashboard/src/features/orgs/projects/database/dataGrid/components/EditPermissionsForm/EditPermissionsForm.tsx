@@ -15,6 +15,7 @@ import type {
   HasuraMetadataPermission,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getAllowedActions } from '@/features/orgs/projects/database/dataGrid/utils/getAllowedActions';
+import { areStrArraysEqual } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import RolePermissionEditorForm from './RolePermissionEditorForm';
@@ -130,6 +131,9 @@ export default function EditPermissionsForm({
   const availableColumns =
     tableData?.columns.map((column) => column.column_name) || [];
 
+  const availableComputedFields =
+    metadataForTable?.computed_fields?.map(({ name }) => name) || [];
+
   function handleSubmit() {
     setRole(undefined);
     setAction(undefined);
@@ -141,29 +145,43 @@ export default function EditPermissionsForm({
   }
 
   function getAccessLevel(
+    currentAction: DatabaseAction,
     permission?: HasuraMetadataPermission['permission'],
   ): DatabaseAccessLevel {
+    if (!permission) {
+      return 'none';
+    }
+
+    const isSelect = currentAction === 'select';
+    const hasGrantedComputedFields =
+      isSelect && (permission.computed_fields?.length ?? 0) > 0;
+
     if (
-      !permission ||
-      (!permission?.check && permission && permission?.columns?.length === 0)
+      !permission.check &&
+      permission.columns?.length === 0 &&
+      !hasGrantedComputedFields
     ) {
       return 'none';
     }
 
-    const sortedTableColumns = [...availableColumns].sort();
-    const isAllColumnSelected =
-      sortedTableColumns.length === permission?.columns?.length &&
-      [...(permission?.columns || [])]
-        .sort()
-        .every(
-          (permissionColumn, index) =>
-            permissionColumn === sortedTableColumns[index],
-        );
+    const isAllColumnsSelected = areStrArraysEqual(
+      availableColumns,
+      permission.columns ?? [],
+    );
+
+    const isAllComputedFieldsSelected =
+      !isSelect ||
+      availableComputedFields.length === 0 ||
+      areStrArraysEqual(
+        availableComputedFields,
+        permission.computed_fields ?? [],
+      );
 
     if (
-      Object.keys(permission?.check || {}).length === 0 &&
-      Object.keys(permission?.filter || {}).length === 0 &&
-      isAllColumnSelected
+      Object.keys(permission.check || {}).length === 0 &&
+      Object.keys(permission.filter || {}).length === 0 &&
+      isAllColumnsSelected &&
+      isAllComputedFieldsSelected
     ) {
       return 'full';
     }
@@ -184,6 +202,7 @@ export default function EditPermissionsForm({
         availableRoles={availableRoles}
         allowedActions={allowedActions}
         actionLabels={actionLabels}
+        availableComputedFields={availableComputedFields}
         onRoleChange={setRole}
         onActionChange={setAction}
         onSubmit={handleSubmit}
@@ -201,6 +220,7 @@ export default function EditPermissionsForm({
         actionLabels={actionLabels}
         getAccessLevel={(currentRole, dbAction) =>
           getAccessLevel(
+            dbAction,
             findPermission(metadataForTable, currentRole, dbAction),
           )
         }

@@ -22,11 +22,18 @@ jobs:
       actions: write
 
     steps:
+    - name: "Generate App token"
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        app-id: ${{ secrets.NHOST_BOT_APP_ID }}
+        private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
+
     - name: "Check out repository"
       uses: actions/checkout@v6
       with:
         fetch-depth: 0
-        token: ${{ secrets.GH_PAT }}
+        token: ${{ steps.app-token.outputs.token }}
 
     - name: Configure aws
       uses: aws-actions/configure-aws-credentials@v6
@@ -60,27 +67,19 @@ jobs:
         cd ${{ matrix.project }}
         nix develop .\#cliff -c make changelog-update
 
-    - name: "Bump version references"
-      if: steps.version.outputs.version != ''
-      run: |
-        cd ${{ matrix.project }}
-        make changelog-bump-refs VER=${{ steps.version.outputs.version }}
-
     - name: "Create Pull Request"
       if: steps.version.outputs.version != ''
       uses: peter-evans/create-pull-request@v8
       with:
-        token: ${{ secrets.GH_PAT }}
+        token: ${{ steps.app-token.outputs.token }}
         commit-message: "release(${{ matrix.project }}): ${{ steps.version.outputs.version }}"
         title: "release(${{ matrix.project }}): ${{ steps.version.outputs.version }}"
-        committer: GitHub <noreply@github.com>
-        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+        committer: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
+        author: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
         body: |
-          Automated release preparation for ${{ matrix.project }} version ${{ steps.version.outputs.version }}
+          Automated release preparation for ${{ matrix.project }} version ${{ steps.version.outputs.version }}.
 
-          Changes:
-          - Updated CHANGELOG.md
-          - Bumped version references (`make changelog-bump-refs`) in dependent files
+          Version references in dependent files (CLI sources, docs, etc.) are bumped in a follow-up PR after the release publishes — see `wf_bump_refs.yaml`.
         branch: release/${{ matrix.project }}
         delete-branch: true
         labels: |

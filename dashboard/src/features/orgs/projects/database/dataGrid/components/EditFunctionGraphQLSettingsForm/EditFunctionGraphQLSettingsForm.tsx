@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useDialog } from '@/components/common/DialogProvider';
 import { FormInput } from '@/components/form/FormInput';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Badge } from '@/components/ui/v3/badge';
@@ -18,6 +19,8 @@ import { useTrackFunctionWithTableToast } from '@/features/orgs/projects/databas
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
+
+const DIRTY_SOURCE_ID = 'edit-fn-gql-settings';
 
 const validationSchema = z.object({
   customName: z.string().optional(),
@@ -39,7 +42,7 @@ export interface EditFunctionGraphQLSettingsFormProps {
   /**
    * Function to be called when the form is closed.
    */
-  onCancel?: () => void;
+  onCancel?: (event?: unknown) => void;
   /**
    * Schema where the function is located.
    */
@@ -149,6 +152,21 @@ export default function EditFunctionGraphQLSettingsForm({
   const { formState, reset, getValues, setValue } = form;
   const { isSubmitting, isDirty } = formState;
 
+  const { setDirtySource } = useDialog();
+
+  useEffect(() => {
+    const unsubscribe = form.subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty: nextIsDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(nextIsDirty));
+      },
+    });
+    return () => {
+      unsubscribe();
+      setDirtySource(DIRTY_SOURCE_ID, false);
+    };
+  }, [form, setDirtySource]);
+
   useEffect(() => {
     if (isLoadingFunctionCustomization || !functionConfig) {
       return;
@@ -168,8 +186,8 @@ export default function EditFunctionGraphQLSettingsForm({
       ? functionCustomizationError.message
       : 'An error occurred while loading the function customization.';
 
-  const handleCancel = () => {
-    onCancel?.();
+  const handleCancel = (event?: unknown) => {
+    onCancel?.(event);
   };
 
   if (isLoadingFunctionCustomization) {

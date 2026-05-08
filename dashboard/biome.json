@@ -15,6 +15,12 @@
         "noRestrictedImports": {
           "level": "error",
           "options": {
+            "paths": {
+              "@nhost/nhost-js/session": {
+                "importNames": ["Session"],
+                "message": "`Session` from @nhost/nhost-js/session is deprecated; import `StoredSession` instead."
+              }
+            },
             "patterns": [
               {
                 "group": ["../**/*"],

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useDialog } from '@/components/common/DialogProvider';
 import { FormInput } from '@/components/form/FormInput';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -15,6 +16,8 @@ import { prepareCustomGraphQLColumnNameDTO } from '@/features/orgs/projects/data
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
 import ColumnsNameCustomizationSectionSkeleton from './ColumnsNameCustomizationSectionSkeleton';
+
+const DIRTY_SOURCE_ID = 'edit-gql-columns';
 
 export interface ColumnsNameCustomizationSectionProps {
   disabled?: boolean;
@@ -44,6 +47,8 @@ export default function ColumnsNameCustomizationSection({
   schema,
   tableName,
 }: ColumnsNameCustomizationSectionProps) {
+  const { setDirtySource } = useDialog();
+
   const form = useForm<ColumnsNameCustomizationFormValues>({
     defaultValues: {
       columns: {},
@@ -81,6 +86,19 @@ export default function ColumnsNameCustomizationSection({
 
   const { formState, reset, getValues, setValue } = form;
   const { isDirty, isSubmitting } = formState;
+
+  useEffect(() => {
+    const unsubscribe = form.subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty: nextIsDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(nextIsDirty));
+      },
+    });
+    return () => {
+      unsubscribe();
+      setDirtySource(DIRTY_SOURCE_ID, false);
+    };
+  }, [form, setDirtySource]);
 
   useEffect(() => {
     if (

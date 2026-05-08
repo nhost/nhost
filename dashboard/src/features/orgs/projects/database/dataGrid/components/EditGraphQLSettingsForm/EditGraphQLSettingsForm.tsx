@@ -13,7 +13,7 @@ export interface EditGraphQLSettingsFormProps {
   /**
    * Function to be called when the form is closed.
    */
-  onCancel?: () => void;
+  onCancel?: (event?: unknown) => void;
   /**
    * Schema where the table is located.
    */

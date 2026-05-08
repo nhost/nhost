@@ -12,17 +12,18 @@ let
 in
 {
   check =
-    { src
+    {
+      src,
     }:
-    pkgs.runCommand "check-nixpkgs-fmt"
+    pkgs.runCommand "check-nixfmt"
       {
-        nativeBuildInputs = with pkgs;
-          [
-            nixpkgs-fmt
-          ];
+        __noChroot = true;
+        nativeBuildInputs = with pkgs; [
+          nixfmt
+        ];
       }
       ''
-        nixpkgs-fmt --check ${src}/*
+        find ${src} -name '*.nix' -exec nixfmt --check {} +
 
         mkdir $out
       '';

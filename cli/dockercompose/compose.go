@@ -418,6 +418,7 @@ func functions( //nolint:funlen
 	jwtSecret string,
 	port uint,
 	branch string,
+	functionsVersion string,
 ) (*Service, error) {
 	jwtSecret, err := stripJWTSecretToPublic(jwtSecret)
 	if err != nil {
@@ -447,8 +448,9 @@ func functions( //nolint:funlen
 
 	return &Service{
 		Image: fmt.Sprintf(
-			"nhost/functions:%d-2.0.0-rc2",
+			"nhost/functions:%d-%s",
 			*cfg.GetFunctions().GetNode().Version,
+			functionsVersion,
 		),
 		DependsOn:   nil,
 		EntryPoint:  nil,
@@ -579,6 +581,7 @@ func getServices( //nolint: funlen,cyclop
 	ports ExposePorts,
 	branch string,
 	dashboardVersion string,
+	functionsVersion string,
 	configserviceImage string,
 	startFunctions bool,
 	runServices ...*RunService,
@@ -653,6 +656,7 @@ func getServices( //nolint: funlen,cyclop
 			jwtSecret,
 			ports.Functions,
 			branch,
+			functionsVersion,
 		)
 		if err != nil {
 			return nil, err
@@ -720,6 +724,7 @@ func ComposeFileFromConfig(
 	ports ExposePorts,
 	branch string,
 	dashboardVersion string,
+	functionsVersion string,
 	configserverImage string,
 	startFunctions bool,
 	caCertificatesPath string,
@@ -738,6 +743,7 @@ func ComposeFileFromConfig(
 		ports,
 		branch,
 		dashboardVersion,
+		functionsVersion,
 		configserverImage,
 		startFunctions,
 		runServices...,

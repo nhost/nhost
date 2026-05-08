@@ -49,7 +49,7 @@ export default function GitConnectionSettings() {
     <SettingsContainer
       title="Git Repository"
       description="Create Deployments for commits pushed to your Git repository."
-      docsLink="https://docs.nhost.io/platform/cloud/git"
+      docsLink="https://docs.nhost.io/platform/cloud/deployments"
       slotProps={{ submitButton: { className: 'hidden' } }}
       className="grid grid-cols-5"
     >

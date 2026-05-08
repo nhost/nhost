@@ -7,7 +7,10 @@ import type {
 } from '@tanstack/react-table';
 import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from '@/utils/hasura-api/generated/schemas';
+import type {
+  ComputedFieldItem,
+  ExportMetadataResponseMetadataSourcesItemFunctionsItem,
+} from '@/utils/hasura-api/generated/schemas';
 
 /**
  * Base options for functions that is used by data browser mutations or queries.
@@ -96,6 +99,7 @@ export interface HasuraMetadataTable {
   select_permissions?: HasuraMetadataPermission[];
   update_permissions?: HasuraMetadataPermission[];
   delete_permissions?: HasuraMetadataPermission[];
+  computed_fields?: ComputedFieldItem[];
 }
 
 /**
@@ -452,6 +456,14 @@ export interface DatabaseColumn {
    */
   isIdentity?: boolean;
   /**
+   * Determines whether or not the column is a generated column (GENERATED ALWAYS AS ... STORED).
+   */
+  isGenerated?: boolean;
+  /**
+   * The generation expression for generated columns.
+   */
+  generationExpression?: string | null;
+  /**
    * Determines whether or not the column is a primary key of the table.
    */
   isPrimary?: boolean;
@@ -535,6 +547,14 @@ export interface DataBrowserColumnMetadata {
    * Determines whether or not the column is identity.
    */
   isIdentity?: boolean;
+  /**
+   * Determines whether or not the column is a generated column (GENERATED ALWAYS AS ... STORED).
+   */
+  isGenerated?: boolean;
+  /**
+   * The generation expression for generated columns.
+   */
+  generationExpression?: string | null;
   /**
    * Determines whether or not the column is unique.
    */

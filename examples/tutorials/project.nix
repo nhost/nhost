@@ -1,4 +1,10 @@
-{ self, pkgs, nix2containerPkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nix2containerPkgs,
+  nix-filter,
+  nixops-lib,
+}:
 let
   name = "tutorials";
   version = "0.0.0-dev";
@@ -55,22 +61,38 @@ let
     ];
   };
 
-  checkDeps = with pkgs; [ nhost-cli biome ];
+  checkDeps = with pkgs; [
+    nhost-cli
+    biome
+  ];
 
   buildInputs = with pkgs; [ nodejs ];
 
-  nativeBuildInputs = with pkgs; [ pnpm cacert ];
+  nativeBuildInputs = with pkgs; [
+    pnpm
+    cacert
+  ];
 in
 {
   devShell = nixops-lib.js.devShell {
     inherit node_modules;
 
     buildInputs = [
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    ]
+    ++ checkDeps
+    ++ buildInputs
+    ++ nativeBuildInputs;
   };
 
   check = nixops-lib.js.check {
-    inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      node_modules
+      submodule
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
 
     preCheck = ''
       rm -rf packages/nhost-js
@@ -81,7 +103,11 @@ in
   package = pkgs.stdenv.mkDerivation {
     inherit name version src;
 
-    nativeBuildInputs = with pkgs; [ pnpm cacert nodejs ];
+    nativeBuildInputs = with pkgs; [
+      pnpm
+      cacert
+      nodejs
+    ];
     buildInputs = with pkgs; [ nodejs ];
 
     buildPhase = ''

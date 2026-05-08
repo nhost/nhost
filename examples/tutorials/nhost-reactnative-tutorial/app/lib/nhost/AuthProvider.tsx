@@ -1,6 +1,6 @@
-import { createClient, type NhostClient } from "@nhost/nhost-js";
-import type { Session } from "@nhost/nhost-js/session";
-import Constants from "expo-constants";
+import { createClient, type NhostClient } from '@nhost/nhost-js';
+import type { StoredSession } from '@nhost/nhost-js/session';
+import Constants from 'expo-constants';
 import {
   createContext,
   type ReactNode,
@@ -8,8 +8,8 @@ import {
   useEffect,
   useMemo,
   useState,
-} from "react";
-import NhostAsyncStorage from "./AsyncStorage";
+} from 'react';
+import NhostAsyncStorage from './AsyncStorage';
 
 /**
  * Authentication context interface providing access to user session state and Nhost client.
@@ -17,9 +17,9 @@ import NhostAsyncStorage from "./AsyncStorage";
  */
 interface AuthContextType {
   /** Current authenticated user object, null if not authenticated */
-  user: Session["user"] | null;
+  user: StoredSession['user'] | null;
   /** Current session object containing tokens and user data, null if no active session */
-  session: Session | null;
+  session: StoredSession | null;
   /** Boolean indicating if user is currently authenticated */
   isAuthenticated: boolean;
   /** Boolean indicating if authentication state is still loading */
@@ -45,8 +45,8 @@ interface AuthProviderProps {
  * - Async session initialization to work with React Native's AsyncStorage
  */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<Session["user"] | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<StoredSession['user'] | null>(null);
+  const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
@@ -54,9 +54,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const nhost = useMemo(() => {
     // Get configuration values with type assertion
     const subdomain =
-      (Constants.expoConfig?.extra?.["NHOST_SUBDOMAIN"] as string) || "local";
+      (Constants.expoConfig?.extra?.['NHOST_SUBDOMAIN'] as string) || 'local';
     const region =
-      (Constants.expoConfig?.extra?.["NHOST_REGION"] as string) || "local";
+      (Constants.expoConfig?.extra?.['NHOST_REGION'] as string) || 'local';
 
     return createClient({
       subdomain,
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(currentSession);
         setIsAuthenticated(!!currentSession);
       } catch (error) {
-        console.warn("Error initializing session:", error);
+        console.warn('Error initializing session:', error);
       } finally {
         setIsLoading(false);
       }
@@ -140,7 +140,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
