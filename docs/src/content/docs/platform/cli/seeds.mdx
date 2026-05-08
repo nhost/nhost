@@ -1,12 +1,21 @@
 ---
 title: Seeds
-description: Learn about using seeds to populate your local database
-keywords: ["database seeds", "test data", "seed files", "development data", "data population"]
+description: Learn about using seeds to populate your local database and storage
+keywords: ["database seeds", "storage seeds", "test data", "seed files", "development data", "data population"]
 ---
 
 When developing locally, it is very useful to work with a known set of data as it can simplify testing and development, especially when working in larger teams with multiple developers.
 
-With the CLI, it is easy to extract data from an existing environment and generate a "seed" that can be shared and used to pre-populate any development environment as it initializes.
+The CLI supports two kinds of seeds:
+
+- **Database seeds** — SQL snapshots of one or more tables, applied via Hasura.
+- **Storage seeds** — file snapshots of one or more buckets, applied via the storage service.
+
+Both are picked up automatically by `nhost up --apply-seeds`.
+
+## Database seeds
+
+Database seeds are SQL `INSERT` statements applied via Hasura. With the CLI, it is easy to extract data from an existing environment and generate a "seed" that can be shared and used to pre-populate any development environment as it initializes.
 
 As mentioned before, you can create a seed from any environment. In this guide, we will assume that we have already started a local development with a table called "animals". At this point, we can add some data ourselves as usual. Once we are satisfied and have the data we want, we can run the following command to create a seed:
 
@@ -85,3 +94,100 @@ INFO Seeds planted
 Seeds are different from migrations because seeds are not automatically applied. If there is data
   that you want to have in all of your environments, it is best to use a database migration.
 :::
+
+## Storage seeds
+
+Storage seeds let you snapshot the contents of a storage bucket on one project and restore them on another. They are useful when you need a known set of files (avatars, documents, fixtures) available in every developer's local environment, or when you want to clone a staging bucket into local for debugging.
+
+Storage seeds are **metadata-driven**: the CLI uses the rows in `storage.files` (queried via Hasura with the admin secret) as the source of truth. `create` downloads exactly those rows; `apply` uploads exactly those rows back. The `storage.files` table itself — file IDs, names, mime types, bucket associations — is not touched by either command. That means metadata for every file you want to seed must already exist on the target environment, typically as part of a database seed or a migration.
+
+### Capturing the metadata
+
+Use the existing database seed flow to snapshot `storage.buckets` and `storage.files` from the source environment. Listing `buckets` before `files` matters: `storage.files.bucket_id` has a foreign key on `storage.buckets.id`, and Hasura writes the `INSERT` statements in the order you pass `--from-table`.
+
+```bash
+$ nhost dev hasura seed create storage-metadata \
+    --endpoint https://local.hasura.local.nhost.run \
+    --admin-secret nhost-admin-secret \
+    --database-name default \
+    --from-table storage.buckets \
+    --from-table storage.files
+
+INFO created seed file successfully    file=/app/seeds/default/1685692310174_storage-metadata.sql
+```
+
+The generated SQL file lives in `nhost/seeds/default/` alongside any other database seeds and will be applied on `nhost up --apply-seeds` before the storage seed runs, satisfying its metadata prerequisite.
+
+:::note
+The default `storage.buckets` row (id `default`) is created automatically by the storage service's own migration. If you only use the `default` bucket, drop `storage.buckets` from `--from-table` — Hasura emits plain `INSERT` statements, and trying to re-insert the default row will fail on a duplicate key on apply. For custom buckets, prefer adding their creation to a Hasura migration (idempotent and run before seeds), and only seed `storage.files`.
+:::
+
+### Creating a storage seed
+
+Run `nhost storage seed create` to download all uploaded files in a bucket. By default the command targets the linked cloud project; pass `--subdomain=local` to read from a running local environment.
+
+```bash
+$ nhost storage seed create default \
+    --subdomain=local \
+    --admin-secret=nhost-admin-secret
+Listing files in bucket "default"...
+Downloading 12 file(s) to nhost/files/default ...
+Successfully created seed with 12 file(s) in nhost/files/default
+```
+
+The files are written to `nhost/files/<bucket>/<id>` — named by their UUID with no extension, mirroring how the storage backend stores them. Pass `--debug` to log every individual download.
+
+You can repeat the command for each bucket you want to capture. Commit `nhost/files/` to git (or attach it to a release artifact) so other developers can restore the same set of files.
+
+### Applying a storage seed
+
+`nhost storage seed apply` performs the inverse: it queries `storage.files` for every uploaded row in the bucket, and for each row uploads the local file at `nhost/files/<bucket>/<id>` via `PUT /v1/files/{id}` (replace).
+
+```bash
+$ nhost storage seed apply default \
+    --subdomain=local \
+    --admin-secret=nhost-admin-secret
+Listing files in bucket "default"...
+Applying 12 file(s) from nhost/files/default ...
+Successfully applied 12/12 file(s) from nhost/files/default
+```
+
+Rows whose local file is missing are reported as warnings and skipped, so a partial seed will still succeed for the files it has.
+
+:::note
+Apply does **not** create rows in `storage.files` — it only uploads the file content for rows that are already there. If the target's metadata is empty, the command will report "No files registered in bucket" and exit cleanly. Make sure your database seed (or your migrations) populates `storage.files` before running `nhost storage seed apply`.
+:::
+
+### Auto-applying with `nhost up --apply-seeds`
+
+When you start a local environment with `nhost up --apply-seeds` (or on first start, when the `.nhost` folder doesn't exist yet), the CLI automatically scans `nhost/files/` for bucket subdirectories and applies the storage seed for each one — using the local admin secret resolved from `nhost.toml` and `.secrets`.
+
+```bash
+$ nhost up --apply-seeds
+Setting up Nhost development environment...
+
+(...) omitted for brevity
+
+Applying migrations...
+Applying metadata...
+Applying seeds...
+
+(...) omitted for brevity
+
+Applying storage seed for bucket "default"...
+Applied 12/12 file(s) for bucket "default"
+
+(...) omitted for brevity
+```
+
+This is the recommended way to keep your local environment reproducible: the database seed populates `storage.files` rows, and the storage seed populates the file blobs that go with them.
+
+### Targeting a different environment
+
+The `--subdomain` flag accepts:
+
+- `""` (omitted) — the linked Nhost Cloud project.
+- `local` — the local development environment.
+- any other value — a specific cloud project's subdomain.
+
+`--http-port` and `--disable-tls` only apply when targeting `local`.

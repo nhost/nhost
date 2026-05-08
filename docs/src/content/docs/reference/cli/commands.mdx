@@ -13,6 +13,7 @@ nhost
 
 ```
 [--branch]=[value]
+[--debug]
 [--dot-nhost-folder]=[value]
 [--help|-h]
 [--local-subdomain]=[value]
@@ -35,6 +36,8 @@ nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 # GLOBAL OPTIONS
 
 **--branch**="": Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value. (default: &lt;current-git-branch&gt;) [$BRANCH]
+
+**--debug**: Enable verbose debug logging [$NHOST_DEBUG]
 
 **--dot-nhost-folder**="": Path to .nhost folder
 	 (default: ".nhost") [$NHOST_DOT_NHOST_FOLDER]
@@ -709,6 +712,66 @@ Shows a list of commands or help for one command
 Show the current version of Nhost CLI you have installed
 
 **--help, -h**: show help
+
+#### help, h
+
+Shows a list of commands or help for one command
+
+### help, h
+
+Shows a list of commands or help for one command
+
+## storage
+
+Manage storage
+
+**--help, -h**: show help
+
+### seed
+
+Snapshot a bucket's files (create) or restore them (apply)
+
+**--help, -h**: show help
+
+#### create
+
+Create a local seed by downloading all files in a bucket
+
+**--admin-secret**="": Hasura admin secret [$NHOST_ADMIN_SECRET]
+
+**--dir**="": Local files directory. Defaults to &lt;nhost-folder&gt;/files [$NHOST_STORAGE_DIR]
+
+**--disable-tls**: Disable TLS when targeting the local development environment [$NHOST_DISABLE_TLS]
+
+**--help, -h**: show help
+
+**--http-port**="": HTTP(S) port for the local development environment (default: 443) [$NHOST_HTTP_PORT]
+
+**--subdomain**="": Project subdomain. Use 'local' for the local development environment. Defaults to the linked project. [$NHOST_SUBDOMAIN]
+
+##### help, h
+
+Shows a list of commands or help for one command
+
+#### apply
+
+Restore a local seed by uploading its files into a bucket
+
+**--admin-secret**="": Hasura admin secret [$NHOST_ADMIN_SECRET]
+
+**--dir**="": Local files directory. Defaults to &lt;nhost-folder&gt;/files [$NHOST_STORAGE_DIR]
+
+**--disable-tls**: Disable TLS when targeting the local development environment [$NHOST_DISABLE_TLS]
+
+**--help, -h**: show help
+
+**--http-port**="": HTTP(S) port for the local development environment (default: 443) [$NHOST_HTTP_PORT]
+
+**--subdomain**="": Project subdomain. Use 'local' for the local development environment. Defaults to the linked project. [$NHOST_SUBDOMAIN]
+
+##### help, h
+
+Shows a list of commands or help for one command
 
 #### help, h
 
