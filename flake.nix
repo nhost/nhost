@@ -22,7 +22,31 @@
     {
       #nixops
       lib = import ./nixops/lib/lib.nix;
-      overlays.default = import ./nixops/overlays/default.nix { inherit self nix-filter; };
+      overlays = {
+        default =
+          final: prev:
+          let
+            system = prev.stdenv.hostPlatform.system;
+            exposed = [
+              "auth"
+              "cli"
+              "codegen"
+              "dashboard"
+              "functions"
+              "mcp"
+              "storage"
+            ];
+            pkgs = self.packages.${system} or { };
+          in
+          prev.lib.listToAttrs (
+            map (name: prev.lib.nameValuePair "nhost-${name}" pkgs.${name}) exposed
+          );
+        dev =
+          final: prev:
+          builtins.removeAttrs
+            (import ./nixops/overlays/default.nix { inherit self nix-filter; } final prev)
+            [ "nhost-cli" ];
+      };
     }
     // flake-utils.lib.eachDefaultSystem (
       system:
@@ -356,6 +380,39 @@
           storage-docker-image = storagef.dockerImage;
           clamav-docker-image = storagef.clamav-docker-image;
           tutorials = tutorialsf.package;
+        }
+        // {
+          dev = {
+            inherit (pkgs)
+              gh
+              git-cliff
+              gnused
+              skopeo
+              certbot-full
+              nhost-cli
+              playwright-driver
+              lychee
+              nodejs
+              pnpm
+              biome
+              go
+              golines
+              gofumpt
+              golangci-lint
+              gqlgen
+              gqlgenc
+              oapi-codegen
+              mockgen
+              sqlc
+              vacuum-go
+              govulncheck
+              postgresql_18-client
+              bun
+              vale
+              ;
+            vercel = pkgs.nodePackages.vercel;
+            certbot-dns-route53 = pkgs.python312Packages.certbot-dns-route53;
+          };
         };
       }
     );
