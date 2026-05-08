@@ -23,12 +23,19 @@ func CommandApply() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:      "apply",
 		Aliases:   []string{},
-		Usage:     "Replace files in a bucket with the local copies in the files folder",
+		Usage:     "Restore a local seed by uploading its files into a bucket",
 		ArgsUsage: "[bucket-name]",
-		Description: "Fetches every file row in the bucket, then replaces each one with the local " +
-			"file at <dir>/<bucket>/<id> via PUT /v1/files/{id}. Files missing locally are " +
-			"reported as warnings and skipped. Targets the linked cloud project by default; " +
-			"pass --subdomain=local to apply to a running local development environment.",
+		Description: "Restores a bucket's contents from disk in two steps:\n" +
+			"  1. Queries Hasura for every uploaded row in storage.files where bucket_id matches.\n" +
+			"  2. For each row, uploads <dir>/<bucket>/<id> via PUT /v1/files/{id} (replace).\n" +
+			"     Rows whose local file is missing are warned and skipped.\n\n" +
+			"This command does NOT create metadata rows — it only uploads file contents for " +
+			"rows that already exist in storage.files. The target project's metadata must " +
+			"therefore be pre-seeded (typically via Hasura SQL seeds or migrations) before " +
+			"running apply, otherwise there is nothing to upload to.\n\n" +
+			"Pair with `nhost storage seed create` to first snapshot a source environment.\n\n" +
+			"Targets the linked cloud project by default; pass --subdomain=local to apply to " +
+			"a running local development environment.",
 		Action: commandApply,
 		Flags: append(commonFlags(),
 			&cli.StringFlag{ //nolint:exhaustruct

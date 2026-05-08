@@ -24,10 +24,15 @@ func CommandCreate() *cli.Command {
 		Aliases:   []string{},
 		Usage:     "Create a local seed by downloading all files in a bucket",
 		ArgsUsage: "[bucket-name]",
-		Description: "Downloads every uploaded file from the given bucket using the supplied " +
-			"Hasura admin secret. Files are written to <dir>/<bucket>/<id>. " +
-			"Targets the linked cloud project by default; pass --subdomain=local to read from a " +
-			"running local development environment.",
+		Description: "Snapshots a bucket's contents to disk in two steps:\n" +
+			"  1. Queries Hasura for every uploaded row in storage.files where bucket_id matches.\n" +
+			"  2. Downloads each file via GET /v1/files/{id} and writes it to <dir>/<bucket>/<id>\n" +
+			"     (named by ID, no extension).\n\n" +
+			"The local dump is metadata-driven: only rows present in storage.files are fetched. " +
+			"Pair with `nhost storage seed apply` to restore the snapshot into another " +
+			"environment that already has the same metadata.\n\n" +
+			"Targets the linked cloud project by default; pass --subdomain=local to read from " +
+			"a running local development environment.",
 		Action: commandCreate,
 		Flags: append(commonFlags(),
 			&cli.StringFlag{ //nolint:exhaustruct
