@@ -53,6 +53,16 @@ func (ce *CliEnv) Infoln(msg string, a ...any) {
 	}
 }
 
+func (ce *CliEnv) Debugln(msg string, a ...any) {
+	if !ce.debug {
+		return
+	}
+
+	if _, err := fmt.Fprintln(ce.stdout, info(fmt.Sprintf(msg, a...))); err != nil {
+		panic(err)
+	}
+}
+
 func (ce *CliEnv) Warnln(msg string, a ...any) {
 	if _, err := fmt.Fprintln(ce.stdout, warn(fmt.Sprintf(msg, a...))); err != nil {
 		panic(err)

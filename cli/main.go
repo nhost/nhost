@@ -18,6 +18,7 @@ import (
 	"github.com/nhost/nhost/cli/cmd/run"
 	"github.com/nhost/nhost/cli/cmd/secrets"
 	"github.com/nhost/nhost/cli/cmd/software"
+	"github.com/nhost/nhost/cli/cmd/storage"
 	"github.com/nhost/nhost/cli/cmd/user"
 	"github.com/nhost/nhost/internal/lib/clidocs"
 	"github.com/urfave/cli/v3"
@@ -53,6 +54,7 @@ func main() {
 			run.Command(),
 			secrets.Command(),
 			software.Command(),
+			storage.Command(),
 			user.CommandLogin(),
 			markdownDocs(),
 		},

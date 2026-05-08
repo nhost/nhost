@@ -14,6 +14,7 @@ func newTestCliEnv() *CliEnv {
 		io.Discard, io.Discard,
 		NewPathStructure("", "", "", ""),
 		"", "", "", "", "", "", "",
+		false,
 	)
 }
 

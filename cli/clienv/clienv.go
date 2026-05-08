@@ -34,6 +34,7 @@ type CliEnv struct {
 	nhpublicclient *graphql.Client
 	projectName    string
 	localSubdomain string
+	debug          bool
 }
 
 func New(
@@ -47,6 +48,7 @@ func New(
 	branch string,
 	projectName string,
 	localSubdomain string,
+	debug bool,
 ) *CliEnv {
 	return &CliEnv{
 		stdout:         stdout,
@@ -61,6 +63,7 @@ func New(
 		nhpublicclient: nil,
 		projectName:    projectName,
 		localSubdomain: localSubdomain,
+		debug:          debug,
 	}
 }
 
@@ -88,7 +91,12 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 		nhclient:       nil,
 		nhpublicclient: nil,
 		localSubdomain: cmd.String(flagLocalSubdomain),
+		debug:          cmd.Bool(flagDebug),
 	}
+}
+
+func (ce *CliEnv) Debug() bool {
+	return ce.debug
 }
 
 func (ce *CliEnv) ProjectName() string {

@@ -20,6 +20,7 @@ const (
 	flagNhostFolder    = "nhost-folder"
 	flagDotNhostFolder = "dot-nhost-folder"
 	flagLocalSubdomain = "local-subdomain"
+	flagDebug          = "debug"
 )
 
 func getGitBranchName() string {
@@ -120,6 +121,12 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 			Usage:   "Local subdomain to reach the development environment",
 			Value:   "local",
 			Sources: cli.EnvVars("NHOST_LOCAL_SUBDOMAIN"),
+		},
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name:    flagDebug,
+			Usage:   "Enable verbose debug logging",
+			Value:   false,
+			Sources: cli.EnvVars("NHOST_DEBUG"),
 		},
 	}, nil
 }

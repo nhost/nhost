@@ -17,6 +17,7 @@ import (
 	"github.com/nhost/nhost/cli/cmd/config"
 	"github.com/nhost/nhost/cli/cmd/run"
 	"github.com/nhost/nhost/cli/cmd/software"
+	"github.com/nhost/nhost/cli/cmd/storage"
 	"github.com/nhost/nhost/cli/dockercompose"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/urfave/cli/v3"
@@ -497,6 +498,17 @@ func up( //nolint:funlen,cyclop
 
 	if err := restart(ctx, ce, dc, composeFile); err != nil {
 		return err
+	}
+
+	if applySeeds {
+		storageURL := dockercompose.URL(ce.LocalSubdomain(), "storage", httpPort, useTLS) + "/v1"
+		graphqlURL := dockercompose.URL(ce.LocalSubdomain(), "graphql", httpPort, useTLS) + "/v1"
+
+		if err := storage.ApplyAllBuckets(
+			ctx, ce, storageURL, graphqlURL, cfg.Hasura.AdminSecret,
+		); err != nil {
+			return fmt.Errorf("failed to apply storage seeds: %w", err)
+		}
 	}
 
 	docker := dockercompose.NewDocker()

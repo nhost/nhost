@@ -282,6 +282,7 @@ func TestValidate(t *testing.T) {
 				"fakebranch",
 				"",
 				"local",
+				false,
 			)
 
 			var secrets model.Secrets
