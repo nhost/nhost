@@ -1,3 +1,4 @@
+import { GRID_COLS } from '@/features/orgs/projects/overview/dashboard/templates';
 import type {
   DashboardLayout,
   LayoutItem,
@@ -7,26 +8,36 @@ const METRIC_PRESETS: Record<
   string,
   { label: string; value: string; accent: string }
 > = {
-  rps: { label: 'Req/s', value: '1.2k', accent: '#FF8B5C' },
   dau: { label: 'DAU', value: '8,431', accent: '#5EA3FF' },
+  mau: { label: 'MAU', value: '24.7k', accent: '#3D7FE0' },
+  allUsers: { label: 'Users', value: '92,108', accent: '#7AA9F0' },
+  rps: { label: 'Req/s', value: '1.2k', accent: '#FF8B5C' },
   reqs: { label: 'Requests', value: '4.1M', accent: '#7CDB9A' },
+  egress: { label: 'Egress', value: '128 GB', accent: '#34C29C' },
+  fns: { label: 'Fns', value: '12h', accent: '#F2B95E' },
   storage: { label: 'Storage', value: '218 GB', accent: '#C58BFF' },
+  pgvol: { label: 'pgvol', value: '64 GB', accent: '#A86EFF' },
 };
 
 const TPL_TITLES: Record<string, string | Record<string, string>> = {
   metric: {
-    rps: 'Requests',
     dau: 'Active users',
+    mau: 'MAU',
+    allUsers: 'Users',
+    rps: 'Requests',
     reqs: 'Total reqs',
+    egress: 'Egress',
+    fns: 'Fns',
     storage: 'Storage',
+    pgvol: 'pgvol',
   },
-  pulse: 'Live pulse',
   health: 'Service health',
   deploys: 'Deployments',
   info: 'Project info',
   logs: 'Logs',
   repo: 'Repository',
-  docs: 'Documentation',
+  'frameworks-docs': 'Frameworks',
+  'features-docs': 'Platform docs',
 };
 
 function MetricMini({ cfg }: { cfg: LayoutItem['cfg'] }) {
@@ -64,43 +75,6 @@ function MetricMini({ cfg }: { cfg: LayoutItem['cfg'] }) {
         />
       </svg>
     </>
-  );
-}
-
-function PulseMini() {
-  return (
-    <svg
-      viewBox="0 0 200 60"
-      preserveAspectRatio="none"
-      className="block h-full w-full"
-      aria-hidden="true"
-    >
-      <title>Pulse preview</title>
-      <defs>
-        <linearGradient id="tpl-pulse-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop
-            offset="0%"
-            stopColor="hsl(var(--primary-main))"
-            stopOpacity="0.45"
-          />
-          <stop
-            offset="100%"
-            stopColor="hsl(var(--primary-main))"
-            stopOpacity="0"
-          />
-        </linearGradient>
-      </defs>
-      <path
-        d="M0 45 C 18 38, 28 25, 44 32 S 70 50, 88 38 S 120 18, 140 28 S 175 48, 200 30 L 200 60 L 0 60 Z"
-        fill="url(#tpl-pulse-fill)"
-      />
-      <path
-        d="M0 45 C 18 38, 28 25, 44 32 S 70 50, 88 38 S 120 18, 140 28 S 175 48, 200 30"
-        fill="none"
-        stroke="hsl(var(--primary-main))"
-        strokeWidth="1.4"
-      />
-    </svg>
   );
 }
 
@@ -260,8 +234,6 @@ function renderCell(item: LayoutItem) {
   switch (item.type) {
     case 'metric':
       return <MetricMini cfg={item.cfg} />;
-    case 'pulse':
-      return <PulseMini />;
     case 'health':
       return (
         <RowsMini
@@ -300,7 +272,9 @@ function renderCell(item: LayoutItem) {
       );
     case 'repo':
       return <RepoMini />;
-    case 'docs':
+    case 'frameworks-docs':
+      return <DocsMini />;
+    case 'features-docs':
       return <DocsMini />;
     default:
       return null;
@@ -323,7 +297,7 @@ type TemplatePreviewProps = {
 };
 
 export default function TemplatePreview({ layout }: TemplatePreviewProps) {
-  const cols = 12;
+  const cols = GRID_COLS;
   const rows = layout.reduce((m, it) => Math.max(m, it.y + it.h), 1);
 
   return (
@@ -336,7 +310,6 @@ export default function TemplatePreview({ layout }: TemplatePreviewProps) {
     >
       {layout.map((item) => {
         const isMetric = item.type === 'metric';
-        const isPulse = item.type === 'pulse';
         return (
           <div
             key={item.i}
@@ -344,7 +317,7 @@ export default function TemplatePreview({ layout }: TemplatePreviewProps) {
             style={{
               gridColumn: `${item.x + 1} / span ${item.w}`,
               gridRow: `${item.y + 1} / span ${item.h}`,
-              padding: isMetric ? '5px 6px' : isPulse ? '4px 5px 0' : undefined,
+              padding: isMetric ? '5px 6px' : undefined,
             }}
           >
             {!isMetric ? (
@@ -355,14 +328,7 @@ export default function TemplatePreview({ layout }: TemplatePreviewProps) {
                 {titleFor(item)}
               </div>
             ) : null}
-            <div
-              className="flex min-h-0 flex-1 flex-col gap-[2px] overflow-hidden"
-              style={
-                isPulse
-                  ? { padding: 0, margin: '-2px -3px -2px -3px' }
-                  : undefined
-              }
-            >
+            <div className="flex min-h-0 flex-1 flex-col gap-[2px] overflow-hidden">
               {renderCell(item)}
             </div>
           </div>

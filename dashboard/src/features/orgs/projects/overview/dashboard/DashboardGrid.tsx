@@ -1,6 +1,6 @@
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import { useMemo } from 'react';
+import { type Ref, useMemo } from 'react';
 import GridLayout, { type Layout, WidthProvider } from 'react-grid-layout';
 import {
   GRID_COLS,
@@ -14,8 +14,31 @@ import type {
 } from '@/features/orgs/projects/overview/dashboard/types';
 import Widget from '@/features/orgs/projects/overview/dashboard/Widget';
 import { WIDGET_RENDERERS } from '@/features/orgs/projects/overview/dashboard/widgets';
+import { cn } from '@/lib/utils';
 
 const ResponsiveGridLayout = WidthProvider(GridLayout);
+
+function renderResizeHandle(axis: string, ref: Ref<HTMLElement>) {
+  return (
+    <div
+      ref={ref as Ref<HTMLDivElement>}
+      className={cn(
+        'react-resizable-handle text-muted-foreground hover:text-foreground',
+        `react-resizable-handle-${axis}`,
+      )}
+      style={{ backgroundImage: 'none' }}
+    >
+      <svg
+        viewBox="0 0 6 6"
+        className="pointer-events-none absolute right-[3px] bottom-[3px] h-1.5 w-1.5"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M 6 6 L 0 6 L 0 4.2 L 4 4.2 L 4.2 4.2 L 4.2 0 L 6 0 L 6 6 L 6 6 Z" />
+      </svg>
+    </div>
+  );
+}
 
 type DashboardGridProps = {
   layout: DashboardLayout;
@@ -88,6 +111,7 @@ export default function DashboardGrid({
       cols={GRID_COLS}
       rowHeight={GRID_ROW_HEIGHT}
       margin={[GRID_GUTTER, GRID_GUTTER]}
+      containerPadding={[0, 0]}
       isDraggable={editing}
       isResizable={editing}
       compactType={null}
@@ -95,6 +119,7 @@ export default function DashboardGrid({
       onLayoutChange={handleLayoutChange}
       draggableCancel=".dashboard-no-drag, button, input, textarea, a"
       resizeHandles={['se']}
+      resizeHandle={renderResizeHandle}
     >
       {layout.map((item) => {
         const Renderer = WIDGET_RENDERERS[item.type];

@@ -5,7 +5,7 @@ import {
   findFreeSlot,
   makeId,
 } from '@/features/orgs/projects/overview/dashboard/findFreeSlot';
-import { WIDGET_TYPES } from '@/features/orgs/projects/overview/dashboard/registry';
+import type { CatalogEntry } from '@/features/orgs/projects/overview/dashboard/registry';
 import {
   dismissFirstTime as dismissFirstTimeStorage,
   isFirstTimeDismissed,
@@ -20,7 +20,6 @@ import type {
   DashboardLayout,
   LayoutItem,
   WidgetConfig,
-  WidgetType,
 } from '@/features/orgs/projects/overview/dashboard/types';
 
 type UseDashboardLayoutResult = {
@@ -35,14 +34,14 @@ type UseDashboardLayoutResult = {
   save: VoidFunction;
   discard: VoidFunction;
   applyTemplate: (layout: DashboardLayout) => void;
-  addWidget: (type: WidgetType, slot?: { x: number; y: number }) => void;
+  addWidget: (entry: CatalogEntry, slot?: { x: number; y: number }) => void;
   removeWidget: (id: string) => void;
   updateWidgetConfig: (id: string, cfg: Partial<WidgetConfig>) => void;
   dismissFirstTime: VoidFunction;
 };
 
 export function useDashboardLayout(
-  projectId: string | undefined,
+  subdomain: string | undefined,
 ): UseDashboardLayoutResult {
   const router = useRouter();
 
@@ -54,16 +53,16 @@ export function useDashboardLayout(
   const [firstTimeDismissed, setFirstTimeDismissed] = useState(true);
 
   useEffect(() => {
-    if (!projectId) {
+    if (!subdomain) {
       return;
     }
-    const stored = loadLayout(projectId);
+    const stored = loadLayout(subdomain);
     const initial = stored ?? DEFAULT_LAYOUT;
     setSavedLayout(initial);
     setLayoutState(initial);
     setHasSavedLayout(stored !== null);
-    setFirstTimeDismissed(isFirstTimeDismissed(projectId));
-  }, [projectId]);
+    setFirstTimeDismissed(isFirstTimeDismissed(subdomain));
+  }, [subdomain]);
 
   const dirty = useMemo(
     () => !dequal(layout, savedLayout),
@@ -107,14 +106,14 @@ export function useDashboardLayout(
   const startEditing = useCallback(() => setEditing(true), []);
 
   const save = useCallback(() => {
-    if (!projectId) {
+    if (!subdomain) {
       return;
     }
-    saveLayout(projectId, layout);
+    saveLayout(subdomain, layout);
     setSavedLayout(layout);
     setHasSavedLayout(true);
     setEditing(false);
-  }, [projectId, layout]);
+  }, [subdomain, layout]);
 
   const discard = useCallback(() => {
     setLayoutState(savedLayout);
@@ -126,22 +125,26 @@ export function useDashboardLayout(
   }, []);
 
   const addWidget = useCallback(
-    (type: WidgetType, slot?: { x: number; y: number }) => {
-      const meta = WIDGET_TYPES[type];
+    (entry: CatalogEntry, slot?: { x: number; y: number }) => {
       setLayoutState((current) => {
         const where =
           slot ??
-          findFreeSlot(current, GRID_COLS, meta.default.w, meta.default.h);
+          findFreeSlot(
+            current,
+            GRID_COLS,
+            entry.defaultSize.w,
+            entry.defaultSize.h,
+          );
         const item: LayoutItem = {
-          i: makeId(type),
-          type,
-          cfg: type === 'docs' ? { variant: 'frameworks' } : {},
+          i: makeId(entry.type),
+          type: entry.type,
+          cfg: { ...entry.cfg },
           x: where.x,
           y: where.y,
-          w: meta.default.w,
-          h: meta.default.h,
-          minW: meta.default.minW,
-          minH: meta.default.minH,
+          w: entry.defaultSize.w,
+          h: entry.defaultSize.h,
+          minW: entry.defaultSize.minW,
+          minH: entry.defaultSize.minH,
         };
         return [...current, item];
       });
@@ -165,12 +168,12 @@ export function useDashboardLayout(
   );
 
   const dismissFirstTime = useCallback(() => {
-    if (!projectId) {
+    if (!subdomain) {
       return;
     }
-    dismissFirstTimeStorage(projectId);
+    dismissFirstTimeStorage(subdomain);
     setFirstTimeDismissed(true);
-  }, [projectId]);
+  }, [subdomain]);
 
   return {
     layout,

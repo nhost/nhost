@@ -26,12 +26,7 @@ export default function Widget({
       )}
     >
       {editing ? (
-        // biome-ignore lint/a11y/noStaticElementInteractions: stops drag, no keyboard interaction
-        <div
-          className="pointer-events-none absolute top-2 right-2 z-10 flex items-center gap-1"
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
+        <div className="pointer-events-none absolute top-2 right-2 z-10 flex items-center gap-1">
           {onRemove ? (
             <Button
               variant="outline"

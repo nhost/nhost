@@ -30,7 +30,7 @@ export default function OverviewDashboard() {
     removeWidget,
     updateWidgetConfig,
     dismissFirstTime,
-  } = useDashboardLayout(project?.id);
+  } = useDashboardLayout(project?.subdomain);
 
   if (!project) {
     return null;
@@ -86,8 +86,8 @@ export default function OverviewDashboard() {
         open={addOpen}
         onOpenChange={setAddOpen}
         existingTypes={layout.map((it) => it.type)}
-        onAdd={(type) => {
-          addWidget(type);
+        onAdd={(entry) => {
+          addWidget(entry);
           setAddOpen(false);
         }}
       />

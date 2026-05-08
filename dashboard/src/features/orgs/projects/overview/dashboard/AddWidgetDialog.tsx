@@ -1,4 +1,22 @@
-import { Search } from 'lucide-react';
+import {
+  Activity,
+  ArrowDownToLine,
+  ArrowRightLeft,
+  BookOpen,
+  Code,
+  Database,
+  FileText,
+  Folder,
+  GitCommit,
+  Github,
+  HeartPulse,
+  Info,
+  Library,
+  type LucideIcon,
+  Search,
+  Users,
+  UsersRound,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   Dialog,
@@ -8,18 +26,22 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { Input } from '@/components/ui/v3/input';
-import { WIDGET_TYPES } from '@/features/orgs/projects/overview/dashboard/registry';
+import {
+  type CatalogEntry,
+  WIDGET_CATALOG,
+} from '@/features/orgs/projects/overview/dashboard/registry';
 import type {
   WidgetCategory,
   WidgetType,
 } from '@/features/orgs/projects/overview/dashboard/types';
+import WidgetThumbnail from '@/features/orgs/projects/overview/dashboard/WidgetThumbnail';
 import { cn } from '@/lib/utils';
 
 type AddWidgetDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   existingTypes: WidgetType[];
-  onAdd: (type: WidgetType) => void;
+  onAdd: (entry: CatalogEntry) => void;
 };
 
 const CATEGORIES: ('All' | WidgetCategory)[] = [
@@ -30,6 +52,24 @@ const CATEGORIES: ('All' | WidgetCategory)[] = [
   'Resources',
 ];
 
+const ICON_MAP: Record<string, LucideIcon> = {
+  Users,
+  UsersRound,
+  Activity,
+  ArrowRightLeft,
+  ArrowDownToLine,
+  Code,
+  Folder,
+  Database,
+  GitCommit,
+  FileText,
+  HeartPulse,
+  Info,
+  Github,
+  BookOpen,
+  Library,
+};
+
 export default function AddWidgetDialog({
   open,
   onOpenChange,
@@ -39,28 +79,28 @@ export default function AddWidgetDialog({
   const [category, setCategory] = useState<'All' | WidgetCategory>('All');
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { All: Object.keys(WIDGET_TYPES).length };
-    for (const meta of Object.values(WIDGET_TYPES)) {
-      c[meta.cat] = (c[meta.cat] ?? 0) + 1;
+    const c: Record<string, number> = { All: WIDGET_CATALOG.length };
+    for (const entry of WIDGET_CATALOG) {
+      c[entry.category] = (c[entry.category] ?? 0) + 1;
     }
     return c;
   }, []);
 
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return Object.entries(WIDGET_TYPES).filter(([, meta]) => {
-      if (category !== 'All' && meta.cat !== category) {
+    return WIDGET_CATALOG.filter((entry) => {
+      if (category !== 'All' && entry.category !== category) {
         return false;
       }
       if (
         q &&
-        !meta.name.toLowerCase().includes(q) &&
-        !meta.desc.toLowerCase().includes(q)
+        !entry.name.toLowerCase().includes(q) &&
+        !entry.desc.toLowerCase().includes(q)
       ) {
         return false;
       }
       return true;
-    }) as [WidgetType, (typeof WIDGET_TYPES)[WidgetType]][];
+    });
   }, [query, category]);
 
   return (
@@ -108,24 +148,40 @@ export default function AddWidgetDialog({
           </div>
           <div className="overflow-y-auto p-3">
             <div className="grid grid-cols-2 gap-2">
-              {items.map(([type, meta]) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => onAdd(type)}
-                  className="flex flex-col gap-1 rounded-lg border bg-paper p-3 text-left transition-colors hover:border-primary-main hover:bg-primary-highlight"
-                >
-                  <div className="font-semibold text-foreground text-sm">
-                    {meta.name}
-                  </div>
-                  <div className="text-muted-foreground text-xs leading-snug">
-                    {meta.desc}
-                  </div>
-                  <div className="mt-1 font-mono text-[10px] text-muted-foreground/70 uppercase tracking-wide">
-                    {meta.default.w}×{meta.default.h} · {meta.cat}
-                  </div>
-                </button>
-              ))}
+              {items.map((entry) => {
+                const Icon = ICON_MAP[entry.icon];
+                return (
+                  <button
+                    key={entry.key}
+                    type="button"
+                    onClick={() => onAdd(entry)}
+                    className="flex flex-col gap-2 rounded-lg border bg-paper p-3 text-left transition-colors hover:border-primary-main hover:bg-primary-highlight"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        {Icon ? (
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                        ) : null}
+                        <div className="font-semibold text-foreground text-sm">
+                          {entry.name}
+                        </div>
+                      </div>
+                      <div className="text-muted-foreground text-xs leading-snug">
+                        {entry.desc}
+                      </div>
+                      <div className="font-mono text-[10px] text-muted-foreground/70 uppercase tracking-wide">
+                        {entry.defaultSize.w}×{entry.defaultSize.h} ·{' '}
+                        {entry.category}
+                      </div>
+                    </div>
+                    <WidgetThumbnail
+                      type={entry.type}
+                      cfg={entry.cfg}
+                      size={entry.defaultSize}
+                    />
+                  </button>
+                );
+              })}
               {items.length === 0 ? (
                 <div className="col-span-2 px-4 py-8 text-center text-muted-foreground text-sm">
                   No widgets match &ldquo;{query}&rdquo;.

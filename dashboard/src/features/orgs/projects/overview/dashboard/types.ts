@@ -1,31 +1,26 @@
 export type WidgetType =
   | 'metric'
-  | 'pulse'
-  | 'health'
   | 'deploys'
-  | 'logs'
+  | 'frameworks-docs'
+  | 'features-docs'
+  | 'health'
   | 'info'
   | 'repo'
-  | 'docs';
+  | 'logs';
 
 export type MetricKind =
-  | 'rps'
   | 'dau'
   | 'mau'
   | 'allUsers'
+  | 'rps'
   | 'reqs'
   | 'egress'
   | 'fns'
   | 'storage'
   | 'pgvol';
 
-export type MetricWindow = '5m' | '1h' | '24h' | '7d' | 'MTD';
-
 export type WidgetConfig = {
   metric?: MetricKind;
-  window?: MetricWindow;
-  count?: number;
-  variant?: 'frameworks' | 'features';
 };
 
 export type LayoutItem = {
@@ -43,14 +38,6 @@ export type LayoutItem = {
 export type DashboardLayout = LayoutItem[];
 
 export type WidgetCategory = 'Metrics' | 'Activity' | 'Services' | 'Resources';
-
-export type WidgetMeta = {
-  name: string;
-  desc: string;
-  icon: string;
-  cat: WidgetCategory;
-  default: { w: number; h: number; minW: number; minH: number };
-};
 
 export type DashboardTemplate = {
   id: string;
