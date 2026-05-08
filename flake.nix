@@ -38,14 +38,12 @@
             ];
             pkgs = self.packages.${system} or { };
           in
-          prev.lib.listToAttrs (
-            map (name: prev.lib.nameValuePair "nhost-${name}" pkgs.${name}) exposed
-          );
+          prev.lib.listToAttrs (map (name: prev.lib.nameValuePair "nhost-${name}" pkgs.${name}) exposed);
         dev =
           final: prev:
-          builtins.removeAttrs
-            (import ./nixops/overlays/default.nix { inherit self nix-filter; } final prev)
-            [ "nhost-cli" ];
+          builtins.removeAttrs (import ./nixops/overlays/default.nix {
+            inherit self nix-filter;
+          } final prev) [ "nhost-cli" ];
       };
     }
     // flake-utils.lib.eachDefaultSystem (
@@ -346,74 +344,75 @@
           tutorials = tutorialsf.devShell;
         };
 
-        packages = flake-utils.lib.flattenTree {
-          auth = authf.package;
-          auth-docker-image = authf.dockerImage;
-          cli = clif.package;
-          cli-multiplatform = clif.cli-multiplatform;
-          cli-docker-image = clif.dockerImage;
-          codegen = codegenf.package;
-          govulncheck-wrapper = govulncheck-wrapperf.package;
-          dashboard = dashboardf.package;
-          dashboard-docker-image = dashboardf.dockerImage;
-          demos = demosf.package;
-          functions = functionsf.package;
-          functions-node22-docker-image = functionsf.dockerImage;
-          functions-node20-docker-image = functionsf.node20DockerImage;
-          guides = guidesf.package;
-          nhost-js = nhost-jsf.package;
-          stripe-graphql-js = stripe-graphql-jsf.package;
-          mcp = mcpf.package;
-          mcp-docker-image = mcpf.dockerImage;
-          nixops = nixopsf.package;
-          nixops-docker-image = nixopsf.dockerImage;
-          postgres-pg16 = postgresf.packages.pg16-package;
-          postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
-          postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
-          postgres-pg17 = postgresf.packages.pg17-package;
-          postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
-          postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;
-          postgres-pg18 = postgresf.packages.pg18-package;
-          postgres-pg18-docker-image = postgresf.packages.pg18-docker-image;
-          postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;
-          storage = storagef.package;
-          storage-docker-image = storagef.dockerImage;
-          clamav-docker-image = storagef.clamav-docker-image;
-          tutorials = tutorialsf.package;
-        }
-        // {
-          dev = {
-            inherit (pkgs)
-              gh
-              git-cliff
-              gnused
-              skopeo
-              certbot-full
-              nhost-cli
-              playwright-driver
-              lychee
-              nodejs
-              pnpm
-              biome
-              go
-              golines
-              gofumpt
-              golangci-lint
-              gqlgen
-              gqlgenc
-              oapi-codegen
-              mockgen
-              sqlc
-              vacuum-go
-              govulncheck
-              postgresql_18-client
-              bun
-              vale
-              ;
-            vercel = pkgs.nodePackages.vercel;
-            certbot-dns-route53 = pkgs.python312Packages.certbot-dns-route53;
+        packages =
+          flake-utils.lib.flattenTree {
+            auth = authf.package;
+            auth-docker-image = authf.dockerImage;
+            cli = clif.package;
+            cli-multiplatform = clif.cli-multiplatform;
+            cli-docker-image = clif.dockerImage;
+            codegen = codegenf.package;
+            govulncheck-wrapper = govulncheck-wrapperf.package;
+            dashboard = dashboardf.package;
+            dashboard-docker-image = dashboardf.dockerImage;
+            demos = demosf.package;
+            functions = functionsf.package;
+            functions-node22-docker-image = functionsf.dockerImage;
+            functions-node20-docker-image = functionsf.node20DockerImage;
+            guides = guidesf.package;
+            nhost-js = nhost-jsf.package;
+            stripe-graphql-js = stripe-graphql-jsf.package;
+            mcp = mcpf.package;
+            mcp-docker-image = mcpf.dockerImage;
+            nixops = nixopsf.package;
+            nixops-docker-image = nixopsf.dockerImage;
+            postgres-pg16 = postgresf.packages.pg16-package;
+            postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
+            postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
+            postgres-pg17 = postgresf.packages.pg17-package;
+            postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
+            postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;
+            postgres-pg18 = postgresf.packages.pg18-package;
+            postgres-pg18-docker-image = postgresf.packages.pg18-docker-image;
+            postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;
+            storage = storagef.package;
+            storage-docker-image = storagef.dockerImage;
+            clamav-docker-image = storagef.clamav-docker-image;
+            tutorials = tutorialsf.package;
+          }
+          // {
+            dev = {
+              inherit (pkgs)
+                gh
+                git-cliff
+                gnused
+                skopeo
+                certbot-full
+                nhost-cli
+                playwright-driver
+                lychee
+                nodejs
+                pnpm
+                biome
+                go
+                golines
+                gofumpt
+                golangci-lint
+                gqlgen
+                gqlgenc
+                oapi-codegen
+                mockgen
+                sqlc
+                vacuum-go
+                govulncheck
+                postgresql_18-client
+                bun
+                vale
+                ;
+              vercel = pkgs.nodePackages.vercel;
+              certbot-dns-route53 = pkgs.python312Packages.certbot-dns-route53;
+            };
           };
-        };
       }
     );
 }
