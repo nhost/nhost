@@ -55,6 +55,7 @@ func main() {
 			software.Command(),
 			user.CommandLogin(),
 			markdownDocs(),
+			jsonDocs(),
 		},
 		Metadata: map[string]any{
 			"Author":  "Nhost",
@@ -63,8 +64,28 @@ func main() {
 		Flags: flags,
 	}
 
+	if err := clidocs.ApplyHints(app, agentHints); err != nil {
+		log.Fatal(err)
+	}
+
 	if err := app.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func jsonDocs() *cli.Command {
+	return &cli.Command{ //nolint:exhaustruct
+		Name:   "gen-json-docs",
+		Usage:  "Generate a structured JSON description of all CLI commands and flags",
+		Hidden: true,
+		Action: func(_ context.Context, cmd *cli.Command) error {
+			b, err := clidocs.ToJSON(cmd.Root())
+			if err != nil {
+				return cli.Exit("failed to generate json schema: "+err.Error(), 1)
+			}
+			fmt.Println(string(b)) //nolint:forbidigo
+			return nil
+		},
 	}
 }
 
