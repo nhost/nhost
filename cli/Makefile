@@ -1,10 +1,6 @@
 ROOT_DIR?=$(abspath ../)
+NIX_CHECK_EXTRA_ARGS=--impure
 include $(ROOT_DIR)/build/makefiles/general.makefile
-
-
-.PHONY: _check-pre
-_check-pre:
-	@sed -i 's/$$NHOST_PAT/$(NHOST_PAT)/' get_access_token.sh
 
 
 .PHONY: _dev-env-up

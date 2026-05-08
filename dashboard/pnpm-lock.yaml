@@ -312,7 +312,7 @@ importers:
         specifier: ^4.0.13
         version: 4.1.2(react@19.2.3)
       react-hook-form:
-        specifier: ^7.55.0
+        specifier: ^7.75.0
         version: 7.75.0(react@19.2.3)
       react-hot-toast:
         specifier: ^2.4.1

@@ -79,7 +79,16 @@ rec {
       checkDeps
       ;
 
+    impureEnvVars = {
+      NHOST_PAT = builtins.getEnv "NHOST_PAT";
+    };
+
     preCheck = ''
+      if [ -z "''${NHOST_PAT:-}" ]; then
+        echo "ERROR: NHOST_PAT environment variable is not set"
+        exit 1
+      fi
+
       echo "➜ Getting access token"
       export NHOST_ACCESS_TOKEN=$(bash ${src}/cli/get_access_token.sh)
     '';
