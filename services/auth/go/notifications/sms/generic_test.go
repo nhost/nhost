@@ -1,24 +1,51 @@
 package sms
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
+func jsonEqual(t *testing.T, expected, actual string) bool {
+	t.Helper()
+	var expObj, actObj any
+	if err := json.Unmarshal([]byte(expected), &expObj); err != nil {
+		t.Fatalf("failed to unmarshal expected JSON: %v", err)
+	}
+	if err := json.Unmarshal([]byte(actual), &actObj); err != nil {
+		t.Fatalf("failed to unmarshal actual JSON: %v", err)
+	}
+	return reflect.DeepEqual(expObj, actObj)
+}
+
 func TestGenericSMS_SendSMS_JSON(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
-		assert.Equal(t, "secret-value", r.Header.Get("X-Custom-Header"))
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST method, got: %s", r.Method)
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			t.Errorf("expected application/json, got: %s", r.Header.Get("Content-Type"))
+		}
+		if r.Header.Get("X-Custom-Header") != "secret-value" {
+			t.Errorf("expected secret-value header, got: %s", r.Header.Get("X-Custom-Header"))
+		}
 
 		body, err := io.ReadAll(r.Body)
-		assert.NoError(t, err)
-		assert.JSONEq(t, `{"to": "+123456789", "message": "Your code is 123456"}`, string(body))
+		if err != nil {
+			t.Fatalf("failed to read body: %v", err)
+		}
+
+		expectedBody := `{"to": "+123456789", "message": "Your code is 123456"}`
+		if !jsonEqual(t, expectedBody, string(body)) {
+			t.Errorf("JSON body mismatch.\nExpected: %s\nGot: %s", expectedBody, string(body))
+		}
 
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -32,33 +59,48 @@ func TestGenericSMS_SendSMS_JSON(t *testing.T) {
 	provider := NewGenericSMS(server.URL, "application/json", template, headers, 5*time.Second)
 
 	err := provider.SendSMS("+123456789", "123456")
-	assert.NoError(t, err)
+	if err != nil {
+		t.Errorf("expected no error, got: %v", err)
+	}
 }
 
 func TestGenericSMS_SendSMS_Form(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
+		if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
+			t.Errorf("expected application/x-www-form-urlencoded, got: %s", r.Header.Get("Content-Type"))
+		}
 
 		err := r.ParseForm()
-		assert.NoError(t, err)
-		assert.Equal(t, "123456", r.Form.Get("otp"))
-		assert.Equal(t, "+919999999999", r.Form.Get("number"))
+		if err != nil {
+			t.Fatalf("failed to parse form: %v", err)
+		}
+
+		if r.Form.Get("otp") != "123456" {
+			t.Errorf("expected otp=123456, got: %s", r.Form.Get("otp"))
+		}
+		if r.Form.Get("number") != "+919999999999" {
+			t.Errorf("expected number=+919999999999, got: %s", r.Form.Get("number"))
+		}
 
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer server.Close()
 
-	// In Form mode, the user provides a template like: {"otp":"${body}", "number":"${to}"}
-	// which we convert to form values.
 	template := `{"otp":"${body}", "number":"${to}"}`
 	provider := NewGenericSMS(server.URL, "application/x-www-form-urlencoded", template, nil, 5*time.Second)
 
 	err := provider.SendSMS("+919999999999", "123456")
-	assert.NoError(t, err)
+	if err != nil {
+		t.Errorf("expected no error, got: %v", err)
+	}
 }
 
 func TestGenericSMS_SendSMS_Error(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
@@ -66,20 +108,39 @@ func TestGenericSMS_SendSMS_Error(t *testing.T) {
 	provider := NewGenericSMS(server.URL, "application/json", "{}", nil, 5*time.Second)
 
 	err := provider.SendSMS("+123456789", "123456")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "generic sms provider returned status: 500")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "generic sms provider returned status: 500") {
+		t.Errorf("expected error to contain status 500, got: %v", err)
+	}
 }
 
 func TestGenericSMS_TwilioCompatibility(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
-		assert.Contains(t, r.Header.Get("Authorization"), "Basic")
+		if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
+			t.Errorf("expected application/x-www-form-urlencoded, got: %s", r.Header.Get("Content-Type"))
+		}
+		if !strings.Contains(r.Header.Get("Authorization"), "Basic") {
+			t.Errorf("expected Authorization header to contain Basic, got: %s", r.Header.Get("Authorization"))
+		}
 
 		err := r.ParseForm()
-		assert.NoError(t, err)
-		assert.Equal(t, "+919999999999", r.Form.Get("To"))
-		assert.Contains(t, r.Form.Get("Body"), "123456")
-		assert.Equal(t, "+12345", r.Form.Get("From"))
+		if err != nil {
+			t.Fatalf("failed to parse form: %v", err)
+		}
+
+		if r.Form.Get("To") != "+919999999999" {
+			t.Errorf("expected To=+919999999999, got: %s", r.Form.Get("To"))
+		}
+		if !strings.Contains(r.Form.Get("Body"), "123456") {
+			t.Errorf("expected Body to contain 123456, got: %s", r.Form.Get("Body"))
+		}
+		if r.Form.Get("From") != "+12345" {
+			t.Errorf("expected From=+12345, got: %s", r.Form.Get("From"))
+		}
 
 		w.WriteHeader(http.StatusCreated)
 	}))
@@ -89,32 +150,42 @@ func TestGenericSMS_TwilioCompatibility(t *testing.T) {
 		"Authorization": "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==",
 	}
 
-	// Use a JSON template to verify that our auto-encoding logic
-	// correctly handles special characters like '+' in phone numbers
-	// when sending as application/x-www-form-urlencoded
 	template := `{"To":"${to}", "Body":"Your code is ${ body }", "From":"+12345"}`
 	provider := NewGenericSMS(server.URL, "application/x-www-form-urlencoded", template, headers, 5*time.Second)
 
 	err := provider.SendSMS("+919999999999", "123456")
-	assert.NoError(t, err)
+	if err != nil {
+		t.Errorf("expected no error, got: %v", err)
+	}
 }
 
 func TestGenericSMS_ModicaCompatibility(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		if r.Header.Get("Content-Type") != "application/json" {
+			t.Errorf("expected application/json, got: %s", r.Header.Get("Content-Type"))
+		}
 
 		body, err := io.ReadAll(r.Body)
-		assert.NoError(t, err)
-		assert.JSONEq(t, `{"destination": "+123456789", "content": "123456"}`, string(body))
+		if err != nil {
+			t.Fatalf("failed to read body: %v", err)
+		}
+
+		expectedBody := `{"destination": "+123456789", "content": "123456"}`
+		if !jsonEqual(t, expectedBody, string(body)) {
+			t.Errorf("JSON body mismatch.\nExpected: %s\nGot: %s", expectedBody, string(body))
+		}
 
 		w.WriteHeader(http.StatusAccepted)
 	}))
 	defer server.Close()
 
-	// Modica uses "destination" and "content"
 	template := `{"destination": "${to}", "content": "${body}"}`
 	provider := NewGenericSMS(server.URL, "application/json", template, nil, 5*time.Second)
 
 	err := provider.SendSMS("+123456789", "123456")
-	assert.NoError(t, err)
+	if err != nil {
+		t.Errorf("expected no error, got: %v", err)
+	}
 }
