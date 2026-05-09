@@ -123,7 +123,7 @@ func getSMS( //nolint:ireturn
 	case "twilio":
 		return getTwilioSMS(cmd, templates, db)
 	case "generic":
-		return getGenericSMS(cmd, templates, db)
+		return getGenericSMS(cmd, templates, db, logger)
 	case "dev":
 		return sms.NewDev(templates, db, logger), nil
 	default:
@@ -194,6 +194,7 @@ func getGenericSMS( //nolint:ireturn
 	cmd *cli.Command,
 	templates *notifications.Templates,
 	db *sql.Queries,
+	logger *slog.Logger,
 ) (controller.SMSer, error) {
 	url := cmd.String(flagSMSGenericURL)
 	if url == "" {
@@ -203,6 +204,15 @@ func getGenericSMS( //nolint:ireturn
 	bodyTemplate := cmd.String(flagSMSGenericBodyTemplate)
 	if bodyTemplate == "" {
 		return nil, errors.New("SMS is enabled but generic body template is missing") //nolint:err113
+	}
+
+	if templates == nil {
+		var err error
+
+		templates, err = getTemplates(cmd, logger)
+		if err != nil {
+			return nil, fmt.Errorf("problem creating templates: %w", err)
+		}
 	}
 
 	headers := make(map[string]string)
