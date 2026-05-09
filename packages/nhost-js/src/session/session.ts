@@ -18,10 +18,33 @@ export interface DecodedToken {
   [key: string]: unknown;
 }
 
-export interface Session extends AuthSession {
+/**
+ * The enriched session stored and managed by the Nhost SDK client.
+ *
+ * This is a superset of the raw `Session` returned by the auth API
+ * (importable from `@nhost/nhost-js/auth`). In addition to the standard
+ * auth fields, it includes a `decodedToken` with the parsed JWT payload,
+ * making it easy to inspect Hasura claims, roles, and session variables
+ * without manually decoding the access token.
+ *
+ * This is the type you must use when implementing a custom
+ * {@link SessionStorageBackend} for `createServerClient`.
+ *
+ * @see {@link SessionStorageBackend}
+ */
+export interface StoredSession extends AuthSession {
   /** Decoded JWT token payload with processed timestamps and Hasura claims */
   decodedToken: DecodedToken;
 }
+
+/**
+ * @deprecated Use {@link StoredSession} instead. Both the auth module and the
+ * session module previously exported a type named `Session`, but they are
+ * different: `auth.Session` is the raw API response, while `session.Session`
+ * is the enriched client-side session that includes `decodedToken`.
+ * `StoredSession` is the unambiguous name for the latter.
+ */
+export type Session = StoredSession;
 
 /**
  * Decodes a base64url-encoded string (RFC 4648 Section 5) to a UTF-8 string.

@@ -1,4 +1,9 @@
-{ self, pkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nix-filter,
+  nixops-lib,
+}:
 let
   name = "storage";
   description = "Nhost Storage";
@@ -8,17 +13,14 @@ let
 
   src = nix-filter.lib.filter {
     root = ../..;
-    include = with nix-filter.lib;[
+    include = with nix-filter.lib; [
       "go.mod"
       "go.sum"
       (inDirectory "vendor")
       ".golangci.yaml"
       "govulncheck.yaml"
       isDirectory
-      (and
-        (inDirectory submodule)
-        (matchExt "go")
-      )
+      (and (inDirectory submodule) (matchExt "go"))
       "${submodule}/gqlgenc.yaml"
       "${submodule}/controller/openapi.yaml"
       "${submodule}/api/types.cfg.yaml"
@@ -67,7 +69,12 @@ let
   };
 
   vips = pkgs.vips.overrideAttrs (oldAttrs: {
-    outputs = [ "bin" "out" "man" "dev" ];
+    outputs = [
+      "bin"
+      "out"
+      "man"
+      "dev"
+    ];
     buildInputs = with pkgs; [
       glib
       libxml2
@@ -119,7 +126,15 @@ let
 in
 rec {
   check = nixops-lib.go.check {
-    inherit src submodule ldflags tags buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      submodule
+      ldflags
+      tags
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
 
     preCheck = ''
       export GIN_MODE=release
@@ -138,15 +153,33 @@ rec {
 
   devShell = nixops-lib.go.devShell {
     buildInputs = [
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    ]
+    ++ checkDeps
+    ++ buildInputs
+    ++ nativeBuildInputs;
   };
 
   package = nixops-lib.go.package {
-    inherit name description version src submodule ldflags buildInputs nativeBuildInputs;
+    inherit
+      name
+      description
+      version
+      src
+      submodule
+      ldflags
+      buildInputs
+      nativeBuildInputs
+      ;
   };
 
   dockerImage = nixops-lib.go.docker-image {
-    inherit name package created version buildInputs;
+    inherit
+      name
+      package
+      created
+      version
+      buildInputs
+      ;
 
     config = {
       Env = [
@@ -162,37 +195,40 @@ rec {
     tag = version;
     created = "now";
 
-    contents = with pkgs; [
-      (writeTextFile {
-        name = "tmp-file";
-        text = ''
-          dummy file to generate tmpdir
-        '';
-        destination = "/tmp/tmp-file";
-      })
-      (writeTextFile {
-        name = "entrypoint.sh";
-        text = pkgs.lib.fileContents ./build/clamav/entrypoint.sh;
-        executable = true;
-        destination = "/usr/local/bin/entrypoint.sh";
-      })
-      (writeTextFile {
-        name = "freshclam.conf";
-        text = pkgs.lib.fileContents ./build/clamav/freshclam.conf.tmpl;
-        destination = "/etc/clamav/freshclam.conf.tmpl";
-      })
-      (writeTextFile {
-        name = "clamd.conf";
-        text = pkgs.lib.fileContents ./build/clamav/clamd.conf.tmpl;
-        destination = "/etc/clamav/clamd.conf.tmpl";
-      })
-      envsubst
-      clamav
-      fakeNss
-      dockerTools.caCertificates
-    ] ++ lib.optionals stdenv.isLinux [
-      busybox
-    ];
+    contents =
+      with pkgs;
+      [
+        (writeTextFile {
+          name = "tmp-file";
+          text = ''
+            dummy file to generate tmpdir
+          '';
+          destination = "/tmp/tmp-file";
+        })
+        (writeTextFile {
+          name = "entrypoint.sh";
+          text = pkgs.lib.fileContents ./build/clamav/entrypoint.sh;
+          executable = true;
+          destination = "/usr/local/bin/entrypoint.sh";
+        })
+        (writeTextFile {
+          name = "freshclam.conf";
+          text = pkgs.lib.fileContents ./build/clamav/freshclam.conf.tmpl;
+          destination = "/etc/clamav/freshclam.conf.tmpl";
+        })
+        (writeTextFile {
+          name = "clamd.conf";
+          text = pkgs.lib.fileContents ./build/clamav/clamd.conf.tmpl;
+          destination = "/etc/clamav/clamd.conf.tmpl";
+        })
+        envsubst
+        clamav
+        fakeNss
+        dockerTools.caCertificates
+      ]
+      ++ lib.optionals stdenv.isLinux [
+        busybox
+      ];
     config = {
       Env = [
         "TMPDIR=/tmp"
@@ -203,4 +239,3 @@ rec {
     };
   };
 }
-

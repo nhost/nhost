@@ -1,4 +1,8 @@
 {
+  nixConfig = {
+    sandbox = "relaxed";
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
@@ -7,12 +11,21 @@
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flake-utils, nix-filter, nix2container }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      nix-filter,
+      nix2container,
+    }:
     {
       #nixops
       lib = import ./nixops/lib/lib.nix;
       overlays.default = import ./nixops/overlays/default.nix { inherit self nix-filter; };
-    } // flake-utils.lib.eachDefaultSystem (system:
+    }
+    // flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -26,71 +39,163 @@
         nixops-lib = (import ./nixops/lib/lib.nix) { inherit pkgs nix2containerPkgs; };
 
         authf = import ./services/auth/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         clif = import ./cli/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         codegenf = import ./tools/codegen/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         govulncheck-wrapperf = import ./tools/govulncheck-wrapper/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         dashboardf = import ./dashboard/project.nix {
-          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            nix2containerPkgs
+            ;
         };
 
         demosf = import ./examples/demos/project.nix {
-          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            nix2containerPkgs
+            ;
         };
 
         functionsf = import ./services/functions/project.nix {
-          inherit self pkgs nix2containerPkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix2containerPkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         docsf = import ./docs/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         guidesf = import ./examples/guides/project.nix {
-          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            nix2containerPkgs
+            ;
         };
 
         mcpf = import ./services/mcp/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         nhost-jsf = import ./packages/nhost-js/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         stripe-graphql-jsf = import ./packages/stripe-graphql-js/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         nixopsf = import ./nixops/project.nix {
-          inherit self pkgs nix2containerPkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix2containerPkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         postgresf = import ./services/postgres/project.nix {
-          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            nix2containerPkgs
+            ;
         };
 
         nhostclientf = import ./internal/lib/nhostclient/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         storagef = import ./services/storage/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
         };
 
         tutorialsf = import ./examples/tutorials/project.nix {
-          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            nix2containerPkgs
+            ;
         };
 
       in
@@ -185,13 +290,13 @@
           };
 
           skopeo = pkgs.mkShell {
-            buildInputs = with pkgs;[
+            buildInputs = with pkgs; [
               skopeo
             ];
           };
 
           vercel = pkgs.mkShell {
-            buildInputs = with pkgs;[
+            buildInputs = with pkgs; [
               pnpm
               nodejs
               nodePackages.vercel

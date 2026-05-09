@@ -14,9 +14,11 @@ import type {
   OrderBy,
   QueryError,
   QueryResult,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
+import { buildDefaultOrderByClause } from './buildDefaultOrderByClause';
 import { filtersToWhere } from './filtersToWhere';
 
 function isQueryError(payload: unknown): payload is QueryError {
@@ -45,10 +47,12 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
    */
   filters?: DataGridFilter[];
   /**
-   * When true, a pg_attribute-based query is used instead of
-   * information_schema.columns to fetch column metadata.
+   * The relation kind (`'ORDINARY TABLE'`, `'VIEW'`, `'MATERIALIZED VIEW'`,
+   * `'FOREIGN TABLE'`). Materialized views use a pg_attribute-based column
+   * query; regular views and foreign tables skip the `ctid` tiebreaker since
+   * they don't have a usable `ctid`.
    */
-  isMaterializedView?: boolean;
+  tableType?: TableLikeObjectType;
 }
 
 export interface FetchTableReturnType {
@@ -96,7 +100,7 @@ export default async function fetchTable({
   offset,
   orderBy,
   filters,
-  isMaterializedView,
+  tableType,
 }: FetchTableOptions): Promise<FetchTableReturnType> {
   let limitAndOffsetClause = '';
 
@@ -108,7 +112,7 @@ export default async function fetchTable({
     limitAndOffsetClause = `LIMIT ${DEFAULT_ROWS_LIMIT}`;
   }
 
-  let orderByClause = 'ORDER BY 1';
+  let orderByClause = '';
   if (orderBy && orderBy.length > 0) {
     // Note: This part will be added to the SQL template
     const pgFormatTemplate = orderBy.map(() => '%I %s').join(' ');
@@ -131,9 +135,10 @@ export default async function fetchTable({
 
   const whereClause = filtersToWhere(filters);
 
-  const columnDefinitionQuery = isMaterializedView
-    ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
-    : COLUMN_DEFINITION_QUERY;
+  const columnDefinitionQuery =
+    tableType === 'MATERIALIZED VIEW'
+      ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
+      : COLUMN_DEFINITION_QUERY;
 
   const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
@@ -153,34 +158,6 @@ export default async function fetchTable({
           CONSTRAINT_DEFINITION_QUERY,
           schema,
           table,
-        ),
-      ],
-      type: 'bulk',
-      version: 1,
-    }),
-  });
-  const rowDataResponse = await fetch(`${appUrl}/v2/query`, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
-    body: JSON.stringify({
-      args: [
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT * FROM %I.%I %s %s %s) TABLE_DATA`,
-          schema,
-          table,
-          whereClause,
-          orderByClause,
-          limitAndOffsetClause,
-        ),
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          `SELECT COUNT(*) FROM %I.%I %s`,
-          schema,
-          table,
-          whereClause,
         ),
       ],
       type: 'bulk',
@@ -309,6 +286,39 @@ export default async function fetchTable({
       } as NormalizedQueryDataRow;
     })
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
+
+  if (!orderByClause) {
+    orderByClause = buildDefaultOrderByClause(columns, tableType);
+  }
+
+  const rowDataResponse = await fetch(`${appUrl}/v2/query`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
+    },
+    body: JSON.stringify({
+      args: [
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT * FROM %I.%I %s %s %s) TABLE_DATA`,
+          schema,
+          table,
+          whereClause,
+          orderByClause,
+          limitAndOffsetClause,
+        ),
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT COUNT(*) FROM %I.%I %s`,
+          schema,
+          table,
+          whereClause,
+        ),
+      ],
+      type: 'bulk',
+      version: 1,
+    }),
+  });
 
   const flatForeignKeyRelations = Array.from(
     foreignKeyRelationMap.keys(),

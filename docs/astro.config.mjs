@@ -267,7 +267,18 @@ export default defineConfig({
                   collapsed: false,
                   items: [
                     { slug: 'products/graphql/configuring-hasura' },
-                    { slug: 'products/graphql/permissions' },
+                    {
+                      label: 'Permissions',
+                      collapsed: false,
+                      items: [
+                        { slug: 'products/graphql/permissions' },
+                        { slug: 'products/graphql/permissions/rule-editor' },
+                        {
+                          slug: 'products/graphql/permissions/permission-variables',
+                        },
+                        { slug: 'products/graphql/permissions/examples' },
+                      ],
+                    },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/advanced-features' },
                   ],
@@ -558,7 +569,6 @@ export default defineConfig({
                     { slug: 'products/ai/local-development' },
                     { slug: 'products/ai/auto-embeddings' },
                     { slug: 'products/ai/assistants' },
-                    { slug: 'products/ai/dev-assistant' },
                   ],
                 },
               ],

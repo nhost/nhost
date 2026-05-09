@@ -363,6 +363,8 @@ changeUserPassword(body: UserPasswordRequest, options?: RequestInit): Promise<Fe
 Summary: Change user password
 Change the user's password. The user must be authenticated with elevated permissions or provide a valid password reset ticket.
 
+All of the user's existing sessions are revoked atomically as part of this operation, including the session used to make the request. Clients must treat the user as signed out after a successful response and obtain a new session via sign-in.
+
 This method may return different T based on the response code:
 
 - 200: OKResponse
@@ -3119,7 +3121,7 @@ User authentication session containing tokens and user information
 
 ### Extended by
 
-- [`Session`](./session#session)
+- [`StoredSession`](./index#storedsession)
 
 ### Properties
 

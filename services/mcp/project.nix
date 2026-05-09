@@ -1,4 +1,9 @@
-{ self, pkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nix-filter,
+  nixops-lib,
+}:
 let
   name = "mcp";
   description = "Nhost MCP";
@@ -8,25 +13,16 @@ let
 
   src = nix-filter.lib.filter {
     root = ../..;
-    include = with nix-filter.lib;[
+    include = with nix-filter.lib; [
       "go.mod"
       "go.sum"
       (inDirectory "vendor")
       ".golangci.yaml"
       "govulncheck.yaml"
       isDirectory
-      (and
-        (inDirectory submodule)
-        (matchExt "go")
-      )
-      (and
-        (inDirectory "cli/mcp/graphql")
-        (matchExt "go")
-      )
-      (and
-        (inDirectory "internal/lib/oapi/middleware")
-        (matchExt "go")
-      )
+      (and (inDirectory submodule) (matchExt "go"))
+      (and (inDirectory "cli/mcp/graphql") (matchExt "go"))
+      (and (inDirectory "internal/lib/oapi/middleware") (matchExt "go"))
     ];
   };
 
@@ -44,19 +40,47 @@ let
 in
 rec {
   check = nixops-lib.go.check {
-    inherit src submodule ldflags tags buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      submodule
+      ldflags
+      tags
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
   };
 
   devShell = nixops-lib.go.devShell {
-    buildInputs = with pkgs; [
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    buildInputs =
+      with pkgs;
+      [
+      ]
+      ++ checkDeps
+      ++ buildInputs
+      ++ nativeBuildInputs;
   };
 
   package = nixops-lib.go.package {
-    inherit name description version src submodule ldflags buildInputs nativeBuildInputs;
+    inherit
+      name
+      description
+      version
+      src
+      submodule
+      ldflags
+      buildInputs
+      nativeBuildInputs
+      ;
   };
 
   dockerImage = nixops-lib.go.docker-image {
-    inherit name package created version buildInputs;
+    inherit
+      name
+      package
+      created
+      version
+      buildInputs
+      ;
   };
 }

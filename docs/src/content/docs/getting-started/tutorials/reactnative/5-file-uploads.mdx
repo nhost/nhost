@@ -67,10 +67,9 @@ By the end of this part, you'll have:
 First, we'll create a storage bucket where users can upload their personal files.
 
 In your Nhost project dashboard:
-1. Navigate to **Database**
-2. Change to **schema.storage**, then buckets
-3. Now click on `+ Insert` on the top right corner.
-4. As id set `personal`, leave the rest of the fields blank and click on Insert at the bottom
+1. Navigate to **Storage**
+2. Click **New Bucket** in the sidebar
+3. Set the name to `personal` and click **Save**
 
 ![Create bucket](/images/tutorials/uploads/1.png)
 
@@ -80,11 +79,16 @@ In your Nhost project dashboard:
 
 Now we need to set up permissions for the storage bucket to ensure the `user` role can only upload, view, and delete their own files.
 
+In the dashboard, navigate to **Storage** and click **Permissions** to open the permission grid.
+
 <Tabs>
 
 <TabItem label="Upload">
 
-To upload files we need to grant permissions to insert on the table `storage.files`. Because we want to allow uploading files only to the `personal` bucket we will be using the `bucket_id eq personal` as a custom check. In addition, we are configuring a preset `uploaded_by_user_id = X-Hasura-User-id`, this will automatically extract the user_id from the session and set the column accordingly. Then we can use this in other permissions to allow downloading files and deleting them.
+Click the **Upload** cell for the `user` role.
+
+1. Select **With custom check** and add a rule: `bucket_id` equals `personal`
+2. Enable the **Uploader identity** toggle — this automatically sets `uploaded_by_user_id` to the current user's ID on every upload, so you can reference it in Download and Delete rules.
 
 ![upload files permissions](/images/tutorials/uploads/2.png)
 
@@ -92,7 +96,11 @@ To upload files we need to grant permissions to insert on the table `storage.fil
 
 <TabItem label="Download">
 
-To download files users need to be able to query those files. To make sure users can only download files they uploaded we will be leveraging the column `uploaded_by_user_id` column from before and the `bucket_id``.
+Click the **Download** cell for the `user` role.
+
+1. Select **With custom check** and add two rules combined with AND:
+   - `bucket_id` equals `personal`
+   - `uploaded_by_user_id` equals `X-Hasura-User-Id`
 
 ![download files permissions](/images/tutorials/uploads/3.png)
 
@@ -100,7 +108,11 @@ To download files users need to be able to query those files. To make sure users
 
 <TabItem label="Delete">
 
-Similarly to downloading files, to delete files users need to be able to delete rows from the `storage.files` table. Again we will use the `uploaded_by_user_id` column and the `bucket_id` to make sure users can only delete their own files.
+Click the **Delete** cell for the `user` role.
+
+1. Select **With custom check** and add the same two rules as Download:
+   - `bucket_id` equals `personal`
+   - `uploaded_by_user_id` equals `X-Hasura-User-Id`
 
 ![delete files permissions](/images/tutorials/uploads/4.png)
 
@@ -109,7 +121,7 @@ Similarly to downloading files, to delete files users need to be able to delete 
 </Tabs>
 
 :::note
-You can read more about storage permissions [here](/products/storage/#permissions)
+You can read more about storage permissions [here](/products/storage/permissions)
 :::
 
 

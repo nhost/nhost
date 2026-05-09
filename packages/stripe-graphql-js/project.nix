@@ -1,4 +1,9 @@
-{ self, pkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nix-filter,
+  nixops-lib,
+}:
 let
   name = "stripe-graphql-js";
   version = "0.0.0-dev";
@@ -44,24 +49,41 @@ let
 
   buildInputs = with pkgs; [ nodejs ];
 
-  nativeBuildInputs = with pkgs; [ pnpm cacert ];
+  nativeBuildInputs = with pkgs; [
+    pnpm
+    cacert
+  ];
 in
 {
   devShell = nixops-lib.js.devShell {
     inherit node_modules;
 
-    buildInputs = with pkgs;[
-    ] ++ buildInputs ++ nativeBuildInputs;
+    buildInputs =
+      with pkgs;
+      [
+      ]
+      ++ buildInputs
+      ++ nativeBuildInputs;
   };
 
   check = nixops-lib.js.check {
-    inherit src node_modules submodule buildInputs nativeBuildInputs;
+    inherit
+      src
+      node_modules
+      submodule
+      buildInputs
+      nativeBuildInputs
+      ;
   };
 
   package = pkgs.stdenv.mkDerivation {
     inherit name version src;
 
-    nativeBuildInputs = with pkgs; [ pnpm cacert nodejs ];
+    nativeBuildInputs = with pkgs; [
+      pnpm
+      cacert
+      nodejs
+    ];
     buildInputs = with pkgs; [ nodejs ];
 
     buildPhase = ''

@@ -1,4 +1,4 @@
-import type { Session } from '@nhost/nhost-js/auth';
+import type { StoredSession } from '@nhost/nhost-js/session';
 import { useRouter } from 'next/router';
 import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -38,7 +38,7 @@ function AuthProvider({ children }: PropsWithChildren) {
     state,
     provider_state: providerState,
   } = query;
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
@@ -49,7 +49,7 @@ function AuthProvider({ children }: PropsWithChildren) {
     function storageEventListener(event: StorageEvent) {
       if (event.key === 'nhostSession') {
         const newSession = event.newValue
-          ? (JSON.parse(event.newValue) as Session)
+          ? (JSON.parse(event.newValue) as StoredSession)
           : null;
         setSession(newSession);
       }
@@ -84,11 +84,11 @@ function AuthProvider({ children }: PropsWithChildren) {
         }
 
         try {
-          const sessionResponse = await nhost.auth.tokenExchange({
+          await nhost.auth.tokenExchange({
             code,
             codeVerifier,
           });
-          const exchangedSession = sessionResponse.body.session ?? null;
+          const exchangedSession = nhost.getUserSession();
           setSession(exchangedSession);
           removeQueryParamsFromUrl(...removableParams);
 
