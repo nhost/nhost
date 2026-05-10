@@ -2,6 +2,7 @@
   "name": "functions-example",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@10.26.0",
   "dependencies": {
     "sharp": "^0.34.5",
     "uuid": "^11.1.0"
