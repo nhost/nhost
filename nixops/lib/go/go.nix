@@ -152,7 +152,7 @@ in
 
         ${extraCheck}
 
-        mkdir $out
+        mkdir -p $out
       '';
 
   package =

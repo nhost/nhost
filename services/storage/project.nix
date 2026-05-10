@@ -149,6 +149,14 @@ rec {
         --ignore-file ${src}/${submodule}/vacuum-ignore.yaml \
         ${src}/${submodule}/controller/openapi.yaml
     '';
+
+    extraCheck = ''
+      if [ -d "$TMPDIR/nhost-visual" ]; then
+        echo "➜ Copying TestManipulateVisual outputs to $out/visual/"
+        mkdir -p $out/visual
+        cp -r $TMPDIR/nhost-visual/. $out/visual/
+      fi
+    '';
   };
 
   devShell = nixops-lib.go.devShell {
