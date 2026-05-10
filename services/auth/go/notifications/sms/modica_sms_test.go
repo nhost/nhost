@@ -145,8 +145,8 @@ func TestModicaIntegration(t *testing.T) {
 	logger := slog.New(
 		slog.NewTextHandler(
 			os.Stdout,
-			&slog.HandlerOptions{Level: slog.LevelWarn},
-		), //nolint:exhaustruct
+			&slog.HandlerOptions{Level: slog.LevelWarn}, //nolint:exhaustruct
+		),
 	)
 
 	// Initialize templates properly from filesystem

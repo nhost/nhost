@@ -1571,8 +1571,8 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, "shutting down server")
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(
-		context.Background(), 30*time.Second,
-	) //nolint:mnd
+		context.Background(), 30*time.Second, //nolint:mnd
+	)
 	defer shutdownCancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck
