@@ -207,7 +207,8 @@ func TestUploadFile(t *testing.T) {
 						UploadedByUserId: new("some-valid-uuid"),
 						Metadata:         new(map[string]any{}),
 					},
-					nil)
+					nil,
+				)
 			}
 
 			{
@@ -257,7 +258,8 @@ func TestUploadFile(t *testing.T) {
 						UploadedByUserId: new("some-valid-uuid"),
 						Metadata:         new(map[string]any{"some": "metadata"}),
 					},
-					nil)
+					nil,
+				)
 			}
 
 			av.EXPECT().ScanReader(gomock.Any(), gomock.Any()).Return(nil)
@@ -284,36 +286,37 @@ func TestUploadFile(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			assert(t, api.UploadFiles201JSONResponse{
-				ProcessedFiles: []api.FileMetadata{
-					{
-						Id:               "38288c85-02af-416b-b075-11c4dae9",
-						Name:             "a_file.txt",
-						Size:             12,
-						BucketId:         "blah",
-						Etag:             "some-etag",
-						CreatedAt:        time.Time{}, // ignored
-						UpdatedAt:        time.Time{}, // ignored
-						IsUploaded:       true,
-						MimeType:         "text/plain; charset=utf-8",
-						UploadedByUserId: new("some-valid-uuid"),
-						Metadata:         new(map[string]any{}),
+			assert(
+				t, api.UploadFiles201JSONResponse{
+					ProcessedFiles: []api.FileMetadata{
+						{
+							Id:               "38288c85-02af-416b-b075-11c4dae9",
+							Name:             "a_file.txt",
+							Size:             12,
+							BucketId:         "blah",
+							Etag:             "some-etag",
+							CreatedAt:        time.Time{}, // ignored
+							UpdatedAt:        time.Time{}, // ignored
+							IsUploaded:       true,
+							MimeType:         "text/plain; charset=utf-8",
+							UploadedByUserId: new("some-valid-uuid"),
+							Metadata:         new(map[string]any{}),
+						},
+						{
+							Id:               "d041c7c5-10e7-410e-a599-799409b5",
+							Name:             "another_file.md",
+							Size:             12,
+							BucketId:         "blah",
+							Etag:             "some-etag",
+							CreatedAt:        time.Time{}, // ignored
+							UpdatedAt:        time.Time{}, // ignored
+							IsUploaded:       true,
+							MimeType:         "text/plain; charset=utf-8",
+							UploadedByUserId: new("some-valid-uuid"),
+							Metadata:         new(map[string]any{"some": "metadata"}),
+						},
 					},
-					{
-						Id:               "d041c7c5-10e7-410e-a599-799409b5",
-						Name:             "another_file.md",
-						Size:             12,
-						BucketId:         "blah",
-						Etag:             "some-etag",
-						CreatedAt:        time.Time{}, // ignored
-						UpdatedAt:        time.Time{}, // ignored
-						IsUploaded:       true,
-						MimeType:         "text/plain; charset=utf-8",
-						UploadedByUserId: new("some-valid-uuid"),
-						Metadata:         new(map[string]any{"some": "metadata"}),
-					},
-				},
-			}, resp,
+				}, resp,
 				cmpopts.IgnoreFields(api.FileMetadata{}, "Id", "CreatedAt", "UpdatedAt"),
 			)
 		})

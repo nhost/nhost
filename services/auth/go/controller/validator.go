@@ -64,7 +64,8 @@ func ValidateRedirectTo( //nolint:cyclop
 
 		redirectToClean := strings.Split(
 			strings.Split(redirectTo, "#")[0],
-			"?")[0]
+			"?",
+		)[0]
 
 		for _, m := range matches {
 			if m.Match(redirectToClean) || m.Match(redirectToClean+"/") {

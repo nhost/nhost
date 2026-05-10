@@ -44,25 +44,26 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          false,
-						DisplayName:       "+1234567890",
-						AvatarUrl:         "",
-						PhoneNumber:       sql.Text("+1234567890"),
-						Otp:               "otp",
-						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-						OtpMethodLastUsed: sql.Text("sms"),
-						Email:             pgtype.Text{}, //nolint:exhaustruct
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-						Ticket:            pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt:   sql.TimestampTz(time.Now()),
-						EmailVerified:     false,
-						Locale:            "en",
-						DefaultRole:       "user",
-						Metadata:          []byte("null"),
-						Roles:             []string{"user", "me"},
-					},
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          false,
+							DisplayName:       "+1234567890",
+							AvatarUrl:         "",
+							PhoneNumber:       sql.Text("+1234567890"),
+							Otp:               "otp",
+							OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
+							OtpMethodLastUsed: sql.Text("sms"),
+							Email:             pgtype.Text{}, //nolint:exhaustruct
+							PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+							Ticket:            pgtype.Text{}, //nolint:exhaustruct
+							TicketExpiresAt:   sql.TimestampTz(time.Now()),
+							EmailVerified:     false,
+							Locale:            "en",
+							DefaultRole:       "user",
+							Metadata:          []byte("null"),
+							Roles:             []string{"user", "me"},
+						},
 						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
 						testhelpers.FilterPathLast(
 							[]string{".OtpHash", "text()"},
@@ -178,25 +179,26 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          false,
-						DisplayName:       "+1234567890",
-						AvatarUrl:         "",
-						PhoneNumber:       sql.Text("+1234567890"),
-						Otp:               "otp",
-						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-						OtpMethodLastUsed: sql.Text("sms"),
-						Email:             pgtype.Text{}, //nolint:exhaustruct
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-						Ticket:            pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt:   sql.TimestampTz(time.Now()),
-						EmailVerified:     false,
-						Locale:            "en",
-						DefaultRole:       "user",
-						Metadata:          []byte("null"),
-						Roles:             []string{"user", "me"},
-					},
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          false,
+							DisplayName:       "+1234567890",
+							AvatarUrl:         "",
+							PhoneNumber:       sql.Text("+1234567890"),
+							Otp:               "otp",
+							OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
+							OtpMethodLastUsed: sql.Text("sms"),
+							Email:             pgtype.Text{}, //nolint:exhaustruct
+							PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+							Ticket:            pgtype.Text{}, //nolint:exhaustruct
+							TicketExpiresAt:   sql.TimestampTz(time.Now()),
+							EmailVerified:     false,
+							Locale:            "en",
+							DefaultRole:       "user",
+							Metadata:          []byte("null"),
+							Roles:             []string{"user", "me"},
+						},
 						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
 						testhelpers.FilterPathLast(
 							[]string{".OtpHash", "text()"},
@@ -297,25 +299,26 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          false,
-						DisplayName:       "Jane Doe",
-						AvatarUrl:         "",
-						PhoneNumber:       sql.Text("+1234567890"),
-						Otp:               "otp",
-						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-						OtpMethodLastUsed: sql.Text("sms"),
-						Email:             pgtype.Text{}, //nolint:exhaustruct
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-						Ticket:            pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt:   sql.TimestampTz(time.Now()),
-						EmailVerified:     false,
-						Locale:            "fr",
-						DefaultRole:       "user",
-						Metadata:          []byte(`{"asd":"asd"}`),
-						Roles:             []string{"user"},
-					},
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          false,
+							DisplayName:       "Jane Doe",
+							AvatarUrl:         "",
+							PhoneNumber:       sql.Text("+1234567890"),
+							Otp:               "otp",
+							OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
+							OtpMethodLastUsed: sql.Text("sms"),
+							Email:             pgtype.Text{}, //nolint:exhaustruct
+							PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+							Ticket:            pgtype.Text{}, //nolint:exhaustruct
+							TicketExpiresAt:   sql.TimestampTz(time.Now()),
+							EmailVerified:     false,
+							Locale:            "fr",
+							DefaultRole:       "user",
+							Metadata:          []byte(`{"asd":"asd"}`),
+							Roles:             []string{"user"},
+						},
 						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
 						testhelpers.FilterPathLast(
 							[]string{".OtpHash", "text()"},
@@ -483,12 +486,13 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().UpdateUserOTPHash(
 					gomock.Any(),
-					cmpDBParams(sql.UpdateUserOTPHashParams{
-						ID:                userID,
-						Otp:               "otp",
-						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-						OtpMethodLastUsed: sql.Text("sms"),
-					},
+					cmpDBParams(
+						sql.UpdateUserOTPHashParams{
+							ID:                userID,
+							Otp:               "otp",
+							OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
+							OtpMethodLastUsed: sql.Text("sms"),
+						},
 						testhelpers.FilterPathLast(
 							[]string{".OtpHash", "text()"},
 							cmp.Comparer(func(x, y string) bool { return x != "" && y != "" }),

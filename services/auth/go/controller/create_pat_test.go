@@ -76,7 +76,8 @@ func TestCreatePAT(t *testing.T) {
 							ExpiresAt:        sql.TimestampTz(time.Now().Add(time.Hour)),
 							Type:             "pat",
 							Metadata:         nil,
-						})).
+						}),
+					).
 					Return(refreshTokenID, nil)
 
 				return mock
@@ -116,7 +117,8 @@ func TestCreatePAT(t *testing.T) {
 							ExpiresAt:        sql.TimestampTz(time.Now().Add(time.Hour)),
 							Type:             "pat",
 							Metadata:         []byte(`{"key":"value"}`),
-						})).
+						}),
+					).
 					Return(refreshTokenID, nil)
 
 				return mock

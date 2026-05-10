@@ -45,25 +45,26 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          false,
-						DisplayName:       "jane@acme.com",
-						AvatarUrl:         "",
-						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-						Ticket:            sql.Text("passwordlessEmail:xxx"),
-						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
-						EmailVerified:     false,
-						Locale:            "en",
-						DefaultRole:       "user",
-						Metadata:          []byte("null"),
-						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
-						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
-					},
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          false,
+							DisplayName:       "jane@acme.com",
+							AvatarUrl:         "",
+							Email:             sql.Text("jane@acme.com"),
+							PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+							Ticket:            sql.Text("passwordlessEmail:xxx"),
+							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
+							EmailVerified:     false,
+							Locale:            "en",
+							DefaultRole:       "user",
+							Metadata:          []byte("null"),
+							Roles:             []string{"user", "me"},
+							PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+							Otp:               "",
+							OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
+							OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+						},
 						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
 					),
 				).Return(sql.InsertUserRow{
@@ -105,10 +106,13 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -128,25 +132,26 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          false,
-						DisplayName:       "jane@acme.com",
-						AvatarUrl:         "",
-						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-						Ticket:            sql.Text("passwordlessEmail:xxx"),
-						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
-						EmailVerified:     false,
-						Locale:            "en",
-						DefaultRole:       "user",
-						Metadata:          []byte("null"),
-						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
-						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
-					},
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          false,
+							DisplayName:       "jane@acme.com",
+							AvatarUrl:         "",
+							Email:             sql.Text("jane@acme.com"),
+							PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+							Ticket:            sql.Text("passwordlessEmail:xxx"),
+							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
+							EmailVerified:     false,
+							Locale:            "en",
+							DefaultRole:       "user",
+							Metadata:          []byte("null"),
+							Roles:             []string{"user", "me"},
+							PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+							Otp:               "",
+							OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
+							OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+						},
 						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
 					),
 				).Return(sql.InsertUserRow{
@@ -188,10 +193,13 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),

@@ -79,24 +79,27 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderAndRefreshTokenParams{
-						ID:                    userID,
-						Disabled:              false,
-						DisplayName:           "Jane",
-						AvatarUrl:             "https://myapp.local/jane.jpg",
-						Email:                 sql.Text("jane@myapp.local"),
-						Ticket:                sql.Text(""),
-						TicketExpiresAt:       sql.TimestampTz(time.Now()),
-						EmailVerified:         true,
-						Locale:                "en",
-						DefaultRole:           "user",
-						Metadata:              []byte("null"),
-						Roles:                 []string{"user", "me"},
-						RefreshTokenHash:      sql.Text("asdadasdasdasd"),
-						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						ProviderID:            "fake",
-						ProviderUserID:        "106964149809169421082",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderAndRefreshTokenParams{
+							ID:               userID,
+							Disabled:         false,
+							DisplayName:      "Jane",
+							AvatarUrl:        "https://myapp.local/jane.jpg",
+							Email:            sql.Text("jane@myapp.local"),
+							Ticket:           sql.Text(""),
+							TicketExpiresAt:  sql.TimestampTz(time.Now()),
+							EmailVerified:    true,
+							Locale:           "en",
+							DefaultRole:      "user",
+							Metadata:         []byte("null"),
+							Roles:            []string{"user", "me"},
+							RefreshTokenHash: sql.Text("asdadasdasdasd"),
+							RefreshTokenExpiresAt: sql.TimestampTz(
+								time.Now().Add(30 * 24 * time.Hour),
+							),
+							ProviderID:     "fake",
+							ProviderUserID: "106964149809169421082",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderAndRefreshTokenParams{}, //nolint:exhaustruct
 							"ID",
@@ -187,24 +190,27 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderAndRefreshTokenParams{
-						ID:                    userID,
-						Disabled:              false,
-						DisplayName:           "Some other name",
-						AvatarUrl:             "https://myapp.local/jane.jpg",
-						Email:                 sql.Text("jane@myapp.local"),
-						Ticket:                sql.Text(""),
-						TicketExpiresAt:       sql.TimestampTz(time.Now()),
-						EmailVerified:         true,
-						Locale:                "se",
-						DefaultRole:           "me",
-						Metadata:              []byte(`{"key":"value"}`),
-						Roles:                 []string{"me"},
-						RefreshTokenHash:      sql.Text("asdadasdasdasd"),
-						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						ProviderID:            "fake",
-						ProviderUserID:        "106964149809169421082",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderAndRefreshTokenParams{
+							ID:               userID,
+							Disabled:         false,
+							DisplayName:      "Some other name",
+							AvatarUrl:        "https://myapp.local/jane.jpg",
+							Email:            sql.Text("jane@myapp.local"),
+							Ticket:           sql.Text(""),
+							TicketExpiresAt:  sql.TimestampTz(time.Now()),
+							EmailVerified:    true,
+							Locale:           "se",
+							DefaultRole:      "me",
+							Metadata:         []byte(`{"key":"value"}`),
+							Roles:            []string{"me"},
+							RefreshTokenHash: sql.Text("asdadasdasdasd"),
+							RefreshTokenExpiresAt: sql.TimestampTz(
+								time.Now().Add(30 * 24 * time.Hour),
+							),
+							ProviderID:     "fake",
+							ProviderUserID: "106964149809169421082",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderAndRefreshTokenParams{}, //nolint:exhaustruct
 							"ID",
@@ -402,22 +408,23 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProvider(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderParams{
-						ID:              userID,
-						Disabled:        true,
-						DisplayName:     "Jane",
-						AvatarUrl:       "https://myapp.local/jane.jpg",
-						Email:           sql.Text("jane@myapp.local"),
-						Ticket:          sql.Text(""),
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
-						EmailVerified:   true,
-						Locale:          "en",
-						DefaultRole:     "user",
-						Metadata:        []byte("null"),
-						Roles:           []string{"user", "me"},
-						ProviderID:      "fake",
-						ProviderUserID:  "106964149809169421082",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderParams{
+							ID:              userID,
+							Disabled:        true,
+							DisplayName:     "Jane",
+							AvatarUrl:       "https://myapp.local/jane.jpg",
+							Email:           sql.Text("jane@myapp.local"),
+							Ticket:          sql.Text(""),
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   true,
+							Locale:          "en",
+							DefaultRole:     "user",
+							Metadata:        []byte("null"),
+							Roles:           []string{"user", "me"},
+							ProviderID:      "fake",
+							ProviderUserID:  "106964149809169421082",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
 							"ID",
@@ -524,7 +531,8 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
-					}, nil)
+					}, nil,
+				)
 
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
@@ -659,7 +667,8 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
-					}, nil)
+					}, nil,
+				)
 
 				mock.EXPECT().InsertUserProvider(
 					gomock.Any(),
@@ -809,7 +818,8 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
-					}, nil)
+					}, nil,
+				)
 
 				return mock
 			},
@@ -862,7 +872,8 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						Email:         sql.Text("jane@myapp.local"),
 						EmailVerified: true,
 						DefaultRole:   "user",
-					}, nil)
+					}, nil,
+				)
 
 				return mock
 			},

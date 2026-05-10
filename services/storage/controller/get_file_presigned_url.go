@@ -58,7 +58,8 @@ func (ctrl *Controller) GetFilePresignedURL( //nolint:ireturn
 	)
 	if apiErr != nil {
 		logger.ErrorContext(
-			ctx, "error creating presigned URL for file", slog.String("error", apiErr.Error()))
+			ctx, "error creating presigned URL for file", slog.String("error", apiErr.Error()),
+		)
 
 		return apiErr, nil
 	}
