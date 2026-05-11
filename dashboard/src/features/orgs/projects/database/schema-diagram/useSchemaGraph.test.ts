@@ -1,15 +1,15 @@
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { renderHook } from '@/tests/testUtils';
+import type {
+  SchemaDiagramColumn,
+  SchemaDiagramForeignKey,
+} from './useAllTableColumns';
 import useSchemaGraph, {
   columnHandleId,
   nodeIdFor,
   type TableNode,
   type TableNodeData,
 } from './useSchemaGraph';
-import type {
-  SchemaDiagramColumn,
-  SchemaDiagramForeignKey,
-} from './useAllTableColumns';
 
 function buildColumn(
   overrides: Partial<SchemaDiagramColumn> = {},
@@ -108,9 +108,7 @@ describe('useSchemaGraph', () => {
       }),
     );
 
-    const node = result.current.nodes.find(
-      (n) => n.id === 'public.untracked',
-    )!;
+    const node = result.current.nodes.find((n) => n.id === 'public.untracked')!;
     expect(dataOf(node).metadataTable).toBeUndefined();
   });
 
@@ -267,9 +265,7 @@ describe('useSchemaGraph', () => {
     expect(edge.target).toBe(nodeIdFor('public', 'users'));
     expect(edge.sourceHandle).toBe(columnHandleId('source', 'author_id'));
     expect(edge.targetHandle).toBe(columnHandleId('target', 'id'));
-    expect(edge.id).toBe(
-      `${fk.constraintName}-public.posts.author_id`,
-    );
+    expect(edge.id).toBe(`${fk.constraintName}-public.posts.author_id`);
   });
 
   it('marks columns as isForeignKey when they appear in foreignKeys', () => {

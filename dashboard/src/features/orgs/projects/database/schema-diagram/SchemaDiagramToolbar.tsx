@@ -105,25 +105,18 @@ export default function SchemaDiagramToolbar({
       </div>
 
       <div className="ml-auto flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          {legendItems.map(({ action, label }) => (
-            <div key={action} className="flex items-center gap-1">
-              <PermissionDot action={action} state="filled" size={9} />
-              <span className="text-muted-foreground text-xs">{label}</span>
-            </div>
-          ))}
-        </div>
         <Popover>
           <PopoverTrigger asChild>
             <button
               type="button"
-              aria-label="Diagram legend"
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent"
+              aria-label="Diagram help"
+              className="flex h-8 items-center gap-1.5 rounded-md border border-border px-2 text-muted-foreground text-xs hover:bg-accent"
             >
               <Info className="h-4 w-4" />
+              <span>Help</span>
             </button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-[280px] text-xs">
+          <PopoverContent align="end" className="w-[320px] text-xs">
             <div className="space-y-3">
               <div>
                 <div className="mb-1 font-semibold">Dot colors</div>
@@ -150,6 +143,29 @@ export default function SchemaDiagramToolbar({
                   <li className="flex items-center gap-2">
                     <PermissionDot action="select" state="none" />
                     <span>Not allowed</span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <div className="mb-1 font-semibold">Interactions</div>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li>
+                    <span className="text-foreground">Click a table</span> to
+                    focus it and its foreign-key relationships.
+                  </li>
+                  <li>
+                    <span className="text-foreground">
+                      Click a second table
+                    </span>{' '}
+                    to show only the connections between the two.
+                  </li>
+                  <li>
+                    <span className="text-foreground">Click a connection</span>{' '}
+                    to focus that specific relationship.
+                  </li>
+                  <li>
+                    <span className="text-foreground">Click the canvas</span> to
+                    clear the selection.
                   </li>
                 </ul>
               </div>

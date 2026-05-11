@@ -156,7 +156,7 @@ export default function useSchemaGraph({
         target: nodeIdFor(fk.toSchema, fk.toTable),
         sourceHandle: columnHandleId('source', fk.fromColumn),
         targetHandle: columnHandleId('target', fk.toColumn),
-        type: 'smoothstep',
+        type: 'smart',
         markerEnd: {
           type: MarkerType.ArrowClosed,
           width: 16,
