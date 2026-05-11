@@ -64,7 +64,7 @@ export default function useTableRelatedObjectsQuery(
     },
     ...queryOptions,
     enabled:
-      project?.config?.hasura.adminSecret && isReady && !!schema && !!table
+      project?.config?.hasura.adminSecret && isReady && schema && table
         ? (queryOptions?.enabled ?? true)
         : false,
   });

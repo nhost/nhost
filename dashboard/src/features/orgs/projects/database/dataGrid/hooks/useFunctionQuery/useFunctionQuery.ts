@@ -53,10 +53,9 @@ export default function useFunctionQuery(
     keepPreviousData: true,
     ...queryOptions,
     enabled:
-      isNotEmptyValue(project) &&
-      project?.config?.hasura.adminSecret &&
+      isNotEmptyValue(project?.config?.hasura.adminSecret) &&
       isReady &&
-      !!functionOID
+      functionOID
         ? queryOptions?.enabled
         : false,
   });
