@@ -91,18 +91,32 @@ export default function useSchemaGraph({
       metadataByTableId.set(nodeIdFor(t.table.schema, t.table.name), t);
     }
 
-    const allTableIds = new Set<string>([
-      ...columnsByTable.keys(),
-      ...metadataTables.map((t) => nodeIdFor(t.table.schema, t.table.name)),
-    ]);
+    const tableIdentByNodeId = new Map<
+      string,
+      { schema: string; table: string }
+    >();
+    for (const col of columns) {
+      const id = nodeIdFor(col.schema, col.table);
+      if (!tableIdentByNodeId.has(id)) {
+        tableIdentByNodeId.set(id, { schema: col.schema, table: col.table });
+      }
+    }
+    for (const t of metadataTables) {
+      const id = nodeIdFor(t.table.schema, t.table.name);
+      if (!tableIdentByNodeId.has(id)) {
+        tableIdentByNodeId.set(id, {
+          schema: t.table.schema,
+          table: t.table.name,
+        });
+      }
+    }
 
-    const totalTableCount = allTableIds.size;
+    const totalTableCount = tableIdentByNodeId.size;
 
     const visibleNodeIds = new Set<string>();
 
     const nodes: TableNode[] = [];
-    for (const id of allTableIds) {
-      const [schema, table] = id.split(/\.(.+)/);
+    for (const [id, { schema, table }] of tableIdentByNodeId) {
       if (!visibleSchemas.has(schema)) {
         continue;
       }
