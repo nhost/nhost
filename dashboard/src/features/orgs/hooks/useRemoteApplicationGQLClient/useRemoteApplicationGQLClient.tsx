@@ -8,7 +8,6 @@ import { useMemo } from 'react';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import { getHasuraAdminSecret } from '@/utils/env';
 
 // Module-level cache so the same ApolloClient (and its warm cache) is reused
 // across component mounts. Without this, remounting a consumer would build a
@@ -65,10 +64,7 @@ export default function useRemoteApplicationGQLClient() {
         link: new HttpLink({
           uri: serviceUrl,
           headers: {
-            'x-hasura-admin-secret':
-              process.env.NEXT_PUBLIC_ENV === 'dev'
-                ? getHasuraAdminSecret()
-                : projectAdminSecret,
+            'x-hasura-admin-secret': projectAdminSecret,
           },
         }),
       });
