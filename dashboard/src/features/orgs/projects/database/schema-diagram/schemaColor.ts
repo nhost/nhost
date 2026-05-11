@@ -2,8 +2,7 @@ const KNOWN_SCHEMA_COLORS: Record<string, string> = {
   public: 'rgb(59, 130, 246)',
   auth: 'rgb(168, 85, 247)',
   storage: 'rgb(16, 185, 129)',
-  graphql: 'rgb(236, 72, 153)',
-  hdb_catalog: 'rgb(100, 116, 139)',
+  graphite: 'rgb(236, 72, 153)',
 };
 
 const PALETTE = [

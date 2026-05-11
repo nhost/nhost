@@ -7,7 +7,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from '@xyflow/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -48,7 +48,9 @@ function SchemaDiagramContent() {
   } = useGetRemoteAppRolesQuery({ client: gqlClient });
 
   const [selectedRole, setSelectedRole] = useState<string>(ADMIN_ROLE);
-  const [selectedSchemas, setSelectedSchemas] = useState<string[] | null>(null);
+  const [deselectedSchemas, setDeselectedSchemas] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [hideEmpty, setHideEmpty] = useState(false);
 
   const availableSchemas = useMemo(() => {
@@ -64,16 +66,22 @@ function SchemaDiagramContent() {
     return Array.from(set).sort();
   }, [schemaData?.columns, metadataTables]);
 
-  useEffect(() => {
-    if (selectedSchemas === null && availableSchemas.length > 0) {
-      setSelectedSchemas(availableSchemas);
-    }
-  }, [availableSchemas, selectedSchemas]);
+  const selectedSchemas = useMemo(
+    () => availableSchemas.filter((s) => !deselectedSchemas.has(s)),
+    [availableSchemas, deselectedSchemas],
+  );
 
   const visibleSchemas = useMemo(
-    () => new Set(selectedSchemas ?? availableSchemas),
-    [selectedSchemas, availableSchemas],
+    () => new Set(selectedSchemas),
+    [selectedSchemas],
   );
+
+  const handleSelectedSchemasChange = (next: string[]) => {
+    const nextSelected = new Set(next);
+    setDeselectedSchemas(
+      new Set(availableSchemas.filter((s) => !nextSelected.has(s))),
+    );
+  };
 
   const { nodes, edges, totalTableCount } = useSchemaGraph({
     metadataTables: metadataTables ?? [],
@@ -119,8 +127,8 @@ function SchemaDiagramContent() {
         selectedRole={selectedRole}
         onRoleChange={setSelectedRole}
         schemas={availableSchemas}
-        selectedSchemas={selectedSchemas ?? availableSchemas}
-        onSelectedSchemasChange={setSelectedSchemas}
+        selectedSchemas={selectedSchemas}
+        onSelectedSchemasChange={handleSelectedSchemasChange}
         hideEmpty={hideEmpty}
         onHideEmptyChange={setHideEmpty}
       />
