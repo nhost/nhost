@@ -1,4 +1,4 @@
-import { Lock, Network, Plus, Search, Terminal } from 'lucide-react';
+import { Lock, Plus, Search, Terminal } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -72,7 +72,6 @@ function DataBrowserSidebarContent({
   const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);
 
   const sqlEditorHref = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/editor`;
-  const schemaDiagramHref = `/orgs/${orgSlug}/projects/${appSubdomain}/database/schema`;
 
   useEffect(() => {
     if (selectedSchema) {
@@ -285,25 +284,6 @@ function DataBrowserSidebarContent({
       </div>
 
       <div className="flex shrink-0 flex-col border-t">
-        <Button
-          size="sm"
-          variant="link"
-          asChild
-          className={cn(
-            'flex rounded-none border-b text-sm+ hover:bg-accent hover:no-underline group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9',
-            {
-              'bg-table-selected text-primary-main':
-                asPath === schemaDiagramHref,
-            },
-          )}
-        >
-          <NextLink href={schemaDiagramHref}>
-            <div className="flex w-full flex-row items-center justify-center space-x-4">
-              <Network />
-              <span className="flex">Schema Diagram</span>
-            </div>
-          </NextLink>
-        </Button>
         <Button
           size="sm"
           variant="link"

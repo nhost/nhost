@@ -64,7 +64,6 @@ const sidebarPages = new Set(
     'graphql/remote-schemas/[remoteSchemaSlug]',
     'database',
     'database/browser/[dataSourceSlug]',
-    'database/schema',
   ].map((page) => baseProjectPageRoute.concat(page)),
 );
 
