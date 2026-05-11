@@ -365,7 +365,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    test('list of strings: hides scalar literals (no "" / true / false / enum)', async () => {
+    test('list of strings: hides scalar literals and session variables (only null is offered)', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_string_list(roles: [String!]): String',
@@ -390,6 +390,9 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
       expect(
         screen.queryByRole('menuitem', { name: /Enum values/ }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: /Session variables/ }),
       ).not.toBeInTheDocument();
     });
   });

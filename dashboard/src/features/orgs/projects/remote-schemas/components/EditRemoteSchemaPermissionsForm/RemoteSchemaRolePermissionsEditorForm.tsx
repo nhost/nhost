@@ -5,7 +5,7 @@ import {
   type GraphQLArgument,
   type GraphQLSchema,
 } from 'graphql';
-import { Braces, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -22,25 +22,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Checkbox } from '@/components/ui/v3/checkbox';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
 import { Form } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from '@/components/ui/v3/input-group';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
@@ -55,15 +38,19 @@ import type {
 } from '@/features/orgs/projects/remote-schemas/types';
 import buildRemoteSchemaFieldTree from '@/features/orgs/projects/remote-schemas/utils/buildRemoteSchemaFieldTree';
 import composePermissionSDL from '@/features/orgs/projects/remote-schemas/utils/composePermissionSDL';
+import {
+  BUILT_IN_SCALARS,
+  SDL_TYPE_KEYWORDS,
+} from '@/features/orgs/projects/remote-schemas/utils/constants';
 import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas/utils/createPermissionsSchema';
 import formatPresetForInput from '@/features/orgs/projects/remote-schemas/utils/formatPresetForInput';
-import getArgPresetCapabilities from '@/features/orgs/projects/remote-schemas/utils/getArgPresetCapabilities';
 import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
+import PresetValueInput from './PresetValueInput';
 
 const rolePermissionsSchema = z.object({
   selectedFields: z.array(z.string()).optional().default([]),
@@ -71,150 +58,6 @@ const rolePermissionsSchema = z.object({
 });
 
 type RolePermissionsFormValues = z.infer<typeof rolePermissionsSchema>;
-
-interface PresetValueInputProps {
-  arg: GraphQLArgument;
-  rawValue: ArgLeafType | ArgTreeType | undefined;
-  presetValue: string;
-  sessionVariableOptions: string[];
-  onValueChange: (value: ArgLeafType | undefined) => void;
-}
-
-function PresetValueInput({
-  arg,
-  rawValue,
-  presetValue,
-  sessionVariableOptions,
-  onValueChange,
-}: PresetValueInputProps) {
-  const isNullPreset = rawValue === null;
-  const isEmptyStringPreset = rawValue === '';
-  const isPresetSet = rawValue !== undefined;
-
-  const cap = useMemo(() => getArgPresetCapabilities(arg), [arg]);
-  const enumValues = cap.isList ? null : cap.enumValues;
-  const acceptsBoolean = !cap.isList && cap.isBoolean;
-  const acceptsEmptyString = !cap.isList && cap.acceptsEmptyString;
-  const acceptsNull = cap.isNullable;
-  const allowsSessionVariables = cap.acceptsSessionVariable;
-
-  let placeholder = 'preset value';
-  if (isNullPreset) {
-    placeholder = '(null literal)';
-  } else if (isEmptyStringPreset) {
-    placeholder = '(empty string "")';
-  }
-
-  return (
-    <div className="flex flex-1 items-center space-x-2">
-      <span className="min-w-0 flex-shrink-0 text-gray-600 text-sm">
-        {arg.name}: {arg.type.toString()}
-      </span>
-      <InputGroup className="max-w-xs flex-1">
-        <InputGroupInput
-          placeholder={placeholder}
-          value={presetValue}
-          onChange={(e) =>
-            onValueChange(
-              e.target.value.trim() === '' ? undefined : e.target.value,
-            )
-          }
-          className="text-xs"
-          wrapperClassName="w-full"
-        />
-        <InputGroupAddon align="inline-end" tabIndex={-1}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <InputGroupButton
-                variant="outline"
-                size="icon-xs"
-                aria-label="Insert preset expression"
-                className="h-6 w-6 text-muted-foreground"
-              >
-                <Braces className="size-3.5" />
-              </InputGroupButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[14rem]">
-              <DropdownMenuLabel>Insert literal</DropdownMenuLabel>
-              {acceptsNull && (
-                <DropdownMenuItem onSelect={() => onValueChange(null)}>
-                  <span className="font-mono">null</span>
-                </DropdownMenuItem>
-              )}
-              {acceptsEmptyString && (
-                <DropdownMenuItem onSelect={() => onValueChange('')}>
-                  <span className="font-mono">&quot;&quot;</span>
-                  <span className="ml-2 text-muted-foreground text-xs">
-                    empty string
-                  </span>
-                </DropdownMenuItem>
-              )}
-              {acceptsBoolean && (
-                <>
-                  <DropdownMenuItem onSelect={() => onValueChange(true)}>
-                    <span className="font-mono">true</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => onValueChange(false)}>
-                    <span className="font-mono">false</span>
-                  </DropdownMenuItem>
-                </>
-              )}
-              {enumValues && enumValues.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>Enum values</DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
-                      {enumValues.map((v) => (
-                        <DropdownMenuItem
-                          key={v.name}
-                          onSelect={() => onValueChange(v.name)}
-                        >
-                          <span className="font-mono">{v.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                </>
-              )}
-              {allowsSessionVariables && sessionVariableOptions.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      Session variables
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
-                      {sessionVariableOptions.map((v) => (
-                        <DropdownMenuItem
-                          key={v}
-                          onSelect={() => onValueChange(v)}
-                        >
-                          <span className="font-mono">{v}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                </>
-              )}
-              {isPresetSet && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => onValueChange(undefined)}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    Clear preset
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </InputGroupAddon>
-      </InputGroup>
-    </div>
-  );
-}
 
 export interface RemoteSchemaRolePermissionsEditorFormProps
   extends DialogFormProps {
@@ -378,11 +221,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
           const typesToCheck = new Set<string>();
 
           const returnBaseType = getBaseTypeName(currentField.return);
-          if (
-            !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
-              returnBaseType,
-            )
-          ) {
+          if (!BUILT_IN_SCALARS.has(returnBaseType)) {
             typesToCheck.add(returnBaseType);
           }
 
@@ -399,12 +238,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
               const argBaseType = getBaseTypeName(argTypeString);
 
-              if (
-                argBaseType &&
-                !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
-                  argBaseType,
-                )
-              ) {
+              if (argBaseType && !BUILT_IN_SCALARS.has(argBaseType)) {
                 typesToCheck.add(argBaseType);
               }
             });
@@ -420,18 +254,13 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
             visited.add(baseType);
 
-            const typeNames = [
-              `type ${baseType}`,
-              `input ${baseType}`,
-              `enum ${baseType}`,
-              `scalar ${baseType}`,
-              `union ${baseType}`,
-              `interface ${baseType}`,
-            ];
-
-            const depTypeIndex = newFields.findIndex((type) =>
-              typeNames.includes(type.name),
-            );
+            const depTypeIndex = newFields.findIndex((type) => {
+              const [keyword] = type.name.split(' ');
+              return (
+                SDL_TYPE_KEYWORDS.has(keyword) &&
+                type.name === `${keyword} ${baseType}`
+              );
+            });
 
             if (depTypeIndex !== -1) {
               const hasUncheckedFields = (
@@ -452,11 +281,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 newFields[depTypeIndex].children?.forEach((childField) => {
                   if (childField.return) {
                     const childBaseType = getBaseTypeName(childField.return);
-                    if (
-                      !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
-                        childBaseType,
-                      )
-                    ) {
+                    if (!BUILT_IN_SCALARS.has(childBaseType)) {
                       checkTypeDependencies(childBaseType, visited);
                     }
                   }
@@ -484,29 +309,33 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       value: ArgLeafType | undefined,
     ) => {
       setArgTree((prev) => {
-        const newArgTree = { ...prev };
-        const typeBucket = (newArgTree[schemaTypeName] ?? {}) as ArgTreeType;
-        const fieldBucket = (typeBucket[fieldName] ?? {}) as ArgTreeType;
-
+        const fieldBucket = {
+          ...((prev[schemaTypeName] as ArgTreeType | undefined)?.[fieldName] as
+            | ArgTreeType
+            | undefined),
+        };
         if (value === undefined) {
           delete fieldBucket[argName];
-          if (Object.keys(fieldBucket).length === 0) {
-            delete typeBucket[fieldName];
-          } else {
-            typeBucket[fieldName] = fieldBucket;
-          }
-          if (Object.keys(typeBucket).length === 0) {
-            delete newArgTree[schemaTypeName];
-          } else {
-            newArgTree[schemaTypeName] = typeBucket;
-          }
-          return newArgTree;
+        } else {
+          fieldBucket[argName] = value;
         }
 
-        fieldBucket[argName] = value;
-        typeBucket[fieldName] = fieldBucket;
-        newArgTree[schemaTypeName] = typeBucket;
-        return newArgTree;
+        const typeBucket = {
+          ...(prev[schemaTypeName] as ArgTreeType | undefined),
+        };
+        if (Object.keys(fieldBucket).length === 0) {
+          delete typeBucket[fieldName];
+        } else {
+          typeBucket[fieldName] = fieldBucket;
+        }
+
+        const next = { ...prev };
+        if (Object.keys(typeBucket).length === 0) {
+          delete next[schemaTypeName];
+        } else {
+          next[schemaTypeName] = typeBucket;
+        }
+        return next;
       });
     },
     [],
@@ -758,145 +587,147 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                       Root Operations
                     </Text>
                     <div className="space-y-4 rounded border p-4">
-                      {rootTypes.map((schemaType) => (
-                        <div key={schemaType.name} className="space-y-2">
-                          <Text className="font-semibold text-blue-600">
-                            {schemaType.name.replace('type ', '')} Operations
-                          </Text>
-                          <div className="pl-4">
-                            <Accordion
-                              type="multiple"
-                              value={openAccordionItems}
-                              onValueChange={setOpenAccordionItems}
-                              className="space-y-1"
-                            >
-                              {(schemaType.children ?? []).map((field) => {
-                                const fieldKey = `${schemaType.name}.${field.name}`;
-                                const actualSchemaIndex =
-                                  remoteSchemaFields.findIndex(
-                                    (f) => f.name === schemaType.name,
-                                  );
-                                const actualFieldIndex = remoteSchemaFields[
-                                  actualSchemaIndex
-                                ]?.children
-                                  ? remoteSchemaFields[
-                                      actualSchemaIndex
-                                    ].children!.findIndex(
-                                      (f) => f.name === field.name,
-                                    )
-                                  : -1;
+                      {rootTypes.map((schemaType) => {
+                        const actualSchemaIndex = remoteSchemaFields.findIndex(
+                          (f) => f.name === schemaType.name,
+                        );
+                        const schemaChildren =
+                          remoteSchemaFields[actualSchemaIndex]?.children;
+                        return (
+                          <div key={schemaType.name} className="space-y-2">
+                            <Text className="font-semibold text-blue-600">
+                              {schemaType.name.replace('type ', '')} Operations
+                            </Text>
+                            <div className="pl-4">
+                              <Accordion
+                                type="multiple"
+                                value={openAccordionItems}
+                                onValueChange={setOpenAccordionItems}
+                                className="space-y-1"
+                              >
+                                {(schemaType.children ?? []).map((field) => {
+                                  const fieldKey = `${schemaType.name}.${field.name}`;
+                                  const actualFieldIndex = schemaChildren
+                                    ? schemaChildren.findIndex(
+                                        (f) => f.name === field.name,
+                                      )
+                                    : -1;
 
-                                if (
-                                  field.args &&
-                                  Object.values(field.args).length > 0
-                                ) {
-                                  return (
-                                    <AccordionItem
-                                      key={fieldKey}
-                                      value={fieldKey}
-                                    >
-                                      <AccordionTrigger className="justify-start py-2 text-left hover:no-underline">
-                                        <div className="flex w-full items-center justify-start space-x-2 text-left">
-                                          <CheckboxPrimitive.Root
-                                            asChild
-                                            id={fieldKey}
-                                            checked={field.checked}
-                                            onClick={(e) => e.stopPropagation()}
-                                            onCheckedChange={(checked) => {
-                                              const isChecked =
-                                                checked as boolean;
-                                              handleFieldToggle(
-                                                actualSchemaIndex,
-                                                actualFieldIndex,
-                                                isChecked,
-                                              );
-                                              setOpenAccordionItems((prev) =>
-                                                isChecked
-                                                  ? prev.includes(fieldKey)
-                                                    ? prev
-                                                    : [...prev, fieldKey]
-                                                  : prev.filter(
-                                                      (k) => k !== fieldKey,
-                                                    ),
-                                              );
-                                            }}
-                                            className="peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                                          >
-                                            <span className="peer h-4 w-4 shrink-0 rounded-sm border border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground">
-                                              <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
-                                                <Check className="h-4 w-4" />
-                                              </CheckboxPrimitive.Indicator>
+                                  if (
+                                    field.args &&
+                                    Object.values(field.args).length > 0
+                                  ) {
+                                    return (
+                                      <AccordionItem
+                                        key={fieldKey}
+                                        value={fieldKey}
+                                      >
+                                        <AccordionTrigger className="justify-start py-2 text-left hover:no-underline">
+                                          <div className="flex w-full items-center justify-start space-x-2 text-left">
+                                            <CheckboxPrimitive.Root
+                                              asChild
+                                              id={fieldKey}
+                                              checked={field.checked}
+                                              onClick={(e) =>
+                                                e.stopPropagation()
+                                              }
+                                              onCheckedChange={(checked) => {
+                                                const isChecked =
+                                                  checked as boolean;
+                                                handleFieldToggle(
+                                                  actualSchemaIndex,
+                                                  actualFieldIndex,
+                                                  isChecked,
+                                                );
+                                                setOpenAccordionItems((prev) =>
+                                                  isChecked
+                                                    ? prev.includes(fieldKey)
+                                                      ? prev
+                                                      : [...prev, fieldKey]
+                                                    : prev.filter(
+                                                        (k) => k !== fieldKey,
+                                                      ),
+                                                );
+                                              }}
+                                              className="peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                                            >
+                                              <span className="peer h-4 w-4 shrink-0 rounded-sm border border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground">
+                                                <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
+                                                  <Check className="h-4 w-4" />
+                                                </CheckboxPrimitive.Indicator>
+                                              </span>
+                                            </CheckboxPrimitive.Root>
+                                            <span className="font-medium">
+                                              {field.name}
                                             </span>
-                                          </CheckboxPrimitive.Root>
-                                          <span className="font-medium">
-                                            {field.name}
-                                          </span>
-                                          <span className="text-gray-500 text-sm">
-                                            : {field.return}
-                                          </span>
-                                          <span className="text-gray-400 text-xs">
-                                            ({Object.values(field.args).length}{' '}
-                                            arg
-                                            {Object.values(field.args).length >
-                                            1
-                                              ? 's'
-                                              : ''}
-                                            )
-                                          </span>
-                                        </div>
-                                      </AccordionTrigger>
-                                      <AccordionContent>
-                                        <div className="ml-6 space-y-2 border-gray-200 border-l-2 pl-4">
-                                          <Text className="font-medium text-gray-700 text-sm">
-                                            Arguments:
-                                          </Text>
-                                          {Object.values(field.args).map(
-                                            (arg) =>
-                                              renderPresetRow(
-                                                schemaType.name,
-                                                field.name,
-                                                arg,
-                                              ),
-                                          )}
-                                        </div>
-                                      </AccordionContent>
-                                    </AccordionItem>
-                                  );
-                                }
-                                return (
-                                  <div
-                                    key={fieldKey}
-                                    className="flex items-center space-x-2 border-b py-2"
-                                  >
-                                    <Checkbox
-                                      id={fieldKey}
-                                      checked={field.checked}
-                                      onCheckedChange={(checked) =>
-                                        handleFieldToggle(
-                                          actualSchemaIndex,
-                                          actualFieldIndex,
-                                          checked as boolean,
-                                        )
-                                      }
-                                    />
-                                    <label
-                                      htmlFor={fieldKey}
-                                      className="flex-1 cursor-pointer"
+                                            <span className="text-gray-500 text-sm">
+                                              : {field.return}
+                                            </span>
+                                            <span className="text-gray-400 text-xs">
+                                              (
+                                              {Object.values(field.args).length}{' '}
+                                              arg
+                                              {Object.values(field.args)
+                                                .length > 1
+                                                ? 's'
+                                                : ''}
+                                              )
+                                            </span>
+                                          </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                          <div className="ml-6 space-y-2 border-gray-200 border-l-2 pl-4">
+                                            <Text className="font-medium text-gray-700 text-sm">
+                                              Arguments:
+                                            </Text>
+                                            {Object.values(field.args).map(
+                                              (arg) =>
+                                                renderPresetRow(
+                                                  schemaType.name,
+                                                  field.name,
+                                                  arg,
+                                                ),
+                                            )}
+                                          </div>
+                                        </AccordionContent>
+                                      </AccordionItem>
+                                    );
+                                  }
+                                  return (
+                                    <div
+                                      key={fieldKey}
+                                      className="flex items-center space-x-2 border-b py-2"
                                     >
-                                      <span className="font-medium">
-                                        {field.name}
-                                      </span>
-                                      <span className="ml-2 text-gray-500 text-sm">
-                                        : {field.return}
-                                      </span>
-                                    </label>
-                                  </div>
-                                );
-                              })}
-                            </Accordion>
+                                      <Checkbox
+                                        id={fieldKey}
+                                        checked={field.checked}
+                                        onCheckedChange={(checked) =>
+                                          handleFieldToggle(
+                                            actualSchemaIndex,
+                                            actualFieldIndex,
+                                            checked as boolean,
+                                          )
+                                        }
+                                      />
+                                      <label
+                                        htmlFor={fieldKey}
+                                        className="flex-1 cursor-pointer"
+                                      >
+                                        <span className="font-medium">
+                                          {field.name}
+                                        </span>
+                                        <span className="ml-2 text-gray-500 text-sm">
+                                          : {field.return}
+                                        </span>
+                                      </label>
+                                    </div>
+                                  );
+                                })}
+                              </Accordion>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
 
                       {rootTypes.length === 0 && (
                         <div className="py-8 text-center text-gray-500">
@@ -913,92 +744,93 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                   <div className="space-y-4">
                     <Text className="font-semibold text-lg">Custom Types</Text>
                     <div className="space-y-4 rounded border p-4">
-                      {customTypes.map((schemaType) => (
-                        <div key={schemaType.name} className="space-y-2">
-                          <Text className="font-semibold text-green-600">
-                            {schemaType.name}
-                          </Text>
-                          <div className="space-y-1 pl-4">
-                            {(schemaType.children ?? []).map((field) => {
-                              const fieldKey = `${schemaType.name}.${field.name}`;
-                              const actualSchemaIndex =
-                                remoteSchemaFields.findIndex(
-                                  (f) => f.name === schemaType.name,
-                                );
-                              const actualFieldIndex = remoteSchemaFields[
-                                actualSchemaIndex
-                              ]?.children
-                                ? remoteSchemaFields[
-                                    actualSchemaIndex
-                                  ].children!.findIndex(
-                                    (f) => f.name === field.name,
-                                  )
-                                : -1;
+                      {customTypes.map((schemaType) => {
+                        const actualSchemaIndex = remoteSchemaFields.findIndex(
+                          (f) => f.name === schemaType.name,
+                        );
+                        const schemaChildren =
+                          remoteSchemaFields[actualSchemaIndex]?.children;
+                        return (
+                          <div key={schemaType.name} className="space-y-2">
+                            <Text className="font-semibold text-green-600">
+                              {schemaType.name}
+                            </Text>
+                            <div className="space-y-1 pl-4">
+                              {(schemaType.children ?? []).map((field) => {
+                                const fieldKey = `${schemaType.name}.${field.name}`;
+                                const actualFieldIndex = schemaChildren
+                                  ? schemaChildren.findIndex(
+                                      (f) => f.name === field.name,
+                                    )
+                                  : -1;
 
-                              return (
-                                <div key={fieldKey} className="space-y-2">
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={fieldKey}
-                                      checked={field.checked}
-                                      onCheckedChange={(checked) =>
-                                        handleFieldToggle(
-                                          actualSchemaIndex,
-                                          actualFieldIndex,
-                                          checked as boolean,
-                                        )
-                                      }
-                                    />
-                                    <label
-                                      htmlFor={fieldKey}
-                                      className="flex-1 cursor-pointer"
-                                    >
-                                      <span className="font-medium">
-                                        {field.name}
-                                      </span>
-                                      {field.return && (
-                                        <span className="ml-2 text-gray-500 text-sm">
-                                          : {field.return}
+                                return (
+                                  <div key={fieldKey} className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={fieldKey}
+                                        checked={field.checked}
+                                        onCheckedChange={(checked) =>
+                                          handleFieldToggle(
+                                            actualSchemaIndex,
+                                            actualFieldIndex,
+                                            checked as boolean,
+                                          )
+                                        }
+                                      />
+                                      <label
+                                        htmlFor={fieldKey}
+                                        className="flex-1 cursor-pointer"
+                                      >
+                                        <span className="font-medium">
+                                          {field.name}
                                         </span>
-                                      )}
-                                      {field.args &&
-                                        Object.values(field.args).length >
-                                          0 && (
-                                          <span className="ml-2 text-gray-400 text-xs">
-                                            ({Object.values(field.args).length}{' '}
-                                            arg
-                                            {Object.values(field.args).length >
-                                            1
-                                              ? 's'
-                                              : ''}
-                                            )
+                                        {field.return && (
+                                          <span className="ml-2 text-gray-500 text-sm">
+                                            : {field.return}
                                           </span>
                                         )}
-                                    </label>
-                                  </div>
+                                        {field.args &&
+                                          Object.values(field.args).length >
+                                            0 && (
+                                            <span className="ml-2 text-gray-400 text-xs">
+                                              (
+                                              {Object.values(field.args).length}{' '}
+                                              arg
+                                              {Object.values(field.args)
+                                                .length > 1
+                                                ? 's'
+                                                : ''}
+                                              )
+                                            </span>
+                                          )}
+                                      </label>
+                                    </div>
 
-                                  {field.expanded &&
-                                    field.args &&
-                                    Object.values(field.args).length > 0 && (
-                                      <div className="ml-6 space-y-2 border-gray-200 border-l-2 pl-4">
-                                        <Text className="font-medium text-gray-700 text-sm">
-                                          Arguments:
-                                        </Text>
-                                        {Object.values(field.args).map((arg) =>
-                                          renderPresetRow(
-                                            schemaType.name,
-                                            field.name,
-                                            arg,
-                                          ),
-                                        )}
-                                      </div>
-                                    )}
-                                </div>
-                              );
-                            })}
+                                    {field.expanded &&
+                                      field.args &&
+                                      Object.values(field.args).length > 0 && (
+                                        <div className="ml-6 space-y-2 border-gray-200 border-l-2 pl-4">
+                                          <Text className="font-medium text-gray-700 text-sm">
+                                            Arguments:
+                                          </Text>
+                                          {Object.values(field.args).map(
+                                            (arg) =>
+                                              renderPresetRow(
+                                                schemaType.name,
+                                                field.name,
+                                                arg,
+                                              ),
+                                          )}
+                                        </div>
+                                      )}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
 
                       {customTypes.length === 0 && !searchTerm && (
                         <div className="py-8 text-center text-gray-500">

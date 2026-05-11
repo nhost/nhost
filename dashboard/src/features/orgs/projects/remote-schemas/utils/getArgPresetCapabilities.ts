@@ -13,9 +13,8 @@ import unwrapNamedType from './unwrapNamedType';
 
 export interface ArgPresetCapabilities {
   enumValues: readonly GraphQLEnumValue[] | null;
-  isBoolean: boolean;
-  isNullable: boolean;
-  isList: boolean;
+  acceptsBoolean: boolean;
+  acceptsNull: boolean;
   acceptsEmptyString: boolean;
   acceptsSessionVariable: boolean;
 }
@@ -25,16 +24,17 @@ export default function getArgPresetCapabilities(
 ): ArgPresetCapabilities {
   const baseType = unwrapNamedType(arg.type);
   const outer = arg.type instanceof GraphQLNonNull ? arg.type.ofType : arg.type;
+  const isList = outer instanceof GraphQLList;
   const isEnum = baseType instanceof GraphQLEnumType;
   const isBoolean = baseType === GraphQLBoolean;
   const isNumeric = baseType === GraphQLInt || baseType === GraphQLFloat;
 
   return {
-    enumValues: isEnum ? baseType.getValues() : null,
-    isBoolean,
-    isNullable: !(arg.type instanceof GraphQLNonNull),
-    isList: outer instanceof GraphQLList,
-    acceptsEmptyString: !isBoolean && !isNumeric && !isEnum,
-    acceptsSessionVariable: baseType instanceof GraphQLScalarType || isEnum,
+    enumValues: !isList && isEnum ? baseType.getValues() : null,
+    acceptsBoolean: !isList && isBoolean,
+    acceptsNull: !(arg.type instanceof GraphQLNonNull),
+    acceptsEmptyString: !isList && !isBoolean && !isNumeric && !isEnum,
+    acceptsSessionVariable:
+      !isList && (baseType instanceof GraphQLScalarType || isEnum),
   };
 }

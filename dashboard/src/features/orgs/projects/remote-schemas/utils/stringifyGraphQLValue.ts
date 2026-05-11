@@ -1,85 +1,10 @@
-import {
-  GraphQLBoolean,
-  GraphQLEnumType,
-  GraphQLFloat,
-  type GraphQLInputField,
-  type GraphQLInputType,
-  GraphQLInt,
-  GraphQLNonNull,
-} from 'graphql';
+import type { GraphQLInputField } from 'graphql';
 import type {
   ArgLeafType,
   ArgTreeType,
 } from '@/features/orgs/projects/remote-schemas/types';
-import stringifyGraphQLInputObject from './stringifyGraphQLInputObject';
-import unwrapNamedType from './unwrapNamedType';
-
-function isSessionVariable(value: string): boolean {
-  return value.toLowerCase().startsWith('x-hasura-');
-}
-
-function isEnumValueLiteral(
-  argName: unknown,
-  argType: GraphQLInputType,
-): boolean {
-  if (typeof argName !== 'string') {
-    return false;
-  }
-  if (isSessionVariable(argName)) {
-    return false;
-  }
-  return unwrapNamedType(argType) instanceof GraphQLEnumType;
-}
-
-function isBooleanLiteral(
-  argName: unknown,
-  argType: GraphQLInputType,
-): boolean {
-  if (unwrapNamedType(argType) !== GraphQLBoolean) {
-    return false;
-  }
-  if (typeof argName === 'boolean') {
-    return true;
-  }
-  if (typeof argName !== 'string') {
-    return false;
-  }
-  if (isSessionVariable(argName)) {
-    return false;
-  }
-  return argName === 'true' || argName === 'false';
-}
-
-function isNumericLiteral(
-  argName: unknown,
-  argType: GraphQLInputType,
-): boolean {
-  const baseType = unwrapNamedType(argType);
-  if (baseType !== GraphQLInt && baseType !== GraphQLFloat) {
-    return false;
-  }
-  if (typeof argName === 'number') {
-    return Number.isFinite(argName);
-  }
-  if (typeof argName !== 'string') {
-    return false;
-  }
-  if (isSessionVariable(argName)) {
-    return false;
-  }
-  if (argName.trim() === '') {
-    return false;
-  }
-  const n = Number(argName);
-  if (baseType === GraphQLInt) {
-    return Number.isInteger(n);
-  }
-  return Number.isFinite(n);
-}
-
-function acceptsBareNullLiteral(argType: GraphQLInputType): boolean {
-  return !(argType instanceof GraphQLNonNull);
-}
+import parsePresetValue from './presetExpression/parsePresetValue';
+import serializePresetExpression from './presetExpression/serializePresetExpression';
 
 export interface FormatParamArgs {
   argName: ArgTreeType | ArgLeafType;
@@ -90,30 +15,5 @@ export default function stringifyGraphQLValue({
   argName,
   arg,
 }: FormatParamArgs): string | undefined {
-  if (argName === null) {
-    return acceptsBareNullLiteral(arg.type) ? 'null' : '"null"';
-  }
-
-  if (typeof argName === 'object') {
-    if (Array.isArray(argName)) {
-      const items = argName.map((item) =>
-        stringifyGraphQLValue({ arg, argName: item }),
-      );
-      return `[${items.join(',')}]`;
-    }
-    return stringifyGraphQLInputObject(argName, arg);
-  }
-
-  if (
-    isBooleanLiteral(argName, arg.type) ||
-    isEnumValueLiteral(argName, arg.type)
-  ) {
-    return String(argName);
-  }
-
-  if (isNumericLiteral(argName, arg.type)) {
-    return String(Number(argName));
-  }
-
-  return `"${argName}"`;
+  return serializePresetExpression(parsePresetValue(argName, arg.type), arg);
 }

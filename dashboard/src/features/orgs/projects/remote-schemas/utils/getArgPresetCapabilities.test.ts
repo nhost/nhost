@@ -45,62 +45,43 @@ function caps(name: string) {
   return getArgPresetCapabilities(arg(name));
 }
 
-describe('isNullable', () => {
+describe('acceptsNull', () => {
   test('true for unwrapped scalars', () => {
-    expect(caps('flag').isNullable).toBe(true);
-    expect(caps('count').isNullable).toBe(true);
-    expect(caps('name').isNullable).toBe(true);
-    expect(caps('uid').isNullable).toBe(true);
+    expect(caps('flag').acceptsNull).toBe(true);
+    expect(caps('count').acceptsNull).toBe(true);
+    expect(caps('name').acceptsNull).toBe(true);
+    expect(caps('uid').acceptsNull).toBe(true);
   });
 
   test('true for nullable lists', () => {
-    expect(caps('tags').isNullable).toBe(true);
-    expect(caps('ints').isNullable).toBe(true);
+    expect(caps('tags').acceptsNull).toBe(true);
+    expect(caps('ints').acceptsNull).toBe(true);
   });
 
   test('false for NonNull-wrapped types', () => {
-    expect(caps('flagRequired').isNullable).toBe(false);
-    expect(caps('nameRequired').isNullable).toBe(false);
-    expect(caps('idRequired').isNullable).toBe(false);
-    expect(caps('roleRequired').isNullable).toBe(false);
-    expect(caps('tagsRequired').isNullable).toBe(false);
+    expect(caps('flagRequired').acceptsNull).toBe(false);
+    expect(caps('nameRequired').acceptsNull).toBe(false);
+    expect(caps('idRequired').acceptsNull).toBe(false);
+    expect(caps('roleRequired').acceptsNull).toBe(false);
+    expect(caps('tagsRequired').acceptsNull).toBe(false);
   });
 });
 
-describe('isBoolean', () => {
+describe('acceptsBoolean', () => {
   test('true for Boolean and Boolean!', () => {
-    expect(caps('flag').isBoolean).toBe(true);
-    expect(caps('flagRequired').isBoolean).toBe(true);
-  });
-
-  test('true for [Boolean!]! (base type unwraps to Boolean)', () => {
-    expect(caps('bools').isBoolean).toBe(true);
+    expect(caps('flag').acceptsBoolean).toBe(true);
+    expect(caps('flagRequired').acceptsBoolean).toBe(true);
   });
 
   test('false for non-Boolean scalars and enums', () => {
-    expect(caps('count').isBoolean).toBe(false);
-    expect(caps('name').isBoolean).toBe(false);
-    expect(caps('uid').isBoolean).toBe(false);
-    expect(caps('role').isBoolean).toBe(false);
-  });
-});
-
-describe('isList', () => {
-  test('true for [T] and [T]!', () => {
-    expect(caps('tags').isList).toBe(true);
-    expect(caps('tagsRequired').isList).toBe(true);
-    expect(caps('ints').isList).toBe(true);
-    expect(caps('bools').isList).toBe(true);
-    expect(caps('enums').isList).toBe(true);
+    expect(caps('count').acceptsBoolean).toBe(false);
+    expect(caps('name').acceptsBoolean).toBe(false);
+    expect(caps('uid').acceptsBoolean).toBe(false);
+    expect(caps('role').acceptsBoolean).toBe(false);
   });
 
-  test('false for unwrapped scalars and enums (even non-null)', () => {
-    expect(caps('flag').isList).toBe(false);
-    expect(caps('flagRequired').isList).toBe(false);
-    expect(caps('name').isList).toBe(false);
-    expect(caps('nameRequired').isList).toBe(false);
-    expect(caps('role').isList).toBe(false);
-    expect(caps('uid').isList).toBe(false);
+  test('false for list-of-Boolean (cannot emit bare true/false on a list arg)', () => {
+    expect(caps('bools').acceptsBoolean).toBe(false);
   });
 });
 
@@ -116,11 +97,8 @@ describe('enumValues', () => {
     ]);
   });
 
-  test('returns enum values for [Enum!] (base type unwraps to Role)', () => {
-    expect(caps('enums').enumValues?.map((v) => v.name)).toEqual([
-      'ADMIN',
-      'USER',
-    ]);
+  test('returns null for list-of-enum (cannot emit bare enum value on a list arg)', () => {
+    expect(caps('enums').enumValues).toBeNull();
   });
 
   test('returns null for non-enum types', () => {
@@ -145,6 +123,11 @@ describe('acceptsEmptyString', () => {
     expect(caps('pi').acceptsEmptyString).toBe(false);
     expect(caps('role').acceptsEmptyString).toBe(false);
   });
+
+  test('false for list types', () => {
+    expect(caps('tags').acceptsEmptyString).toBe(false);
+    expect(caps('ints').acceptsEmptyString).toBe(false);
+  });
 });
 
 describe('acceptsSessionVariable', () => {
@@ -162,8 +145,9 @@ describe('acceptsSessionVariable', () => {
     expect(caps('uidRequired').acceptsSessionVariable).toBe(true);
   });
 
-  test('true for lists with scalar/enum base types', () => {
-    expect(caps('tags').acceptsSessionVariable).toBe(true);
-    expect(caps('enums').acceptsSessionVariable).toBe(true);
+  test('false for list types (preset directive on a list cannot take a bare session-variable string)', () => {
+    expect(caps('tags').acceptsSessionVariable).toBe(false);
+    expect(caps('enums').acceptsSessionVariable).toBe(false);
+    expect(caps('bools').acceptsSessionVariable).toBe(false);
   });
 });
