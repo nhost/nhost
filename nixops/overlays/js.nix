@@ -57,7 +57,7 @@
         (import ./vercel {
           pkgs = final;
           nodejs = final.nodejs;
-        })."vercel-50.9.5";
+        })."vercel-53.3.2";
     };
 
     buildNpmPackage = prev.buildNpmPackage.override {
@@ -71,6 +71,7 @@
         url = "https://registry.npmjs.org/npm/-/npm-${version}.tgz";
         sha256 = "sha256-KS8ULcGowBGZujSgflfPAWwmDqLFm2Tz7uiqrnoudQQ=";
       };
+      nativeBuildInputs = [ final.nodejs-slim_24.out ];
       dontBuild = true;
       installPhase = ''
         mkdir -p $out/lib/node_modules/npm
@@ -78,6 +79,7 @@
         mkdir -p $out/bin
         ln -s $out/lib/node_modules/npm/bin/npm-cli.js $out/bin/npm
         ln -s $out/lib/node_modules/npm/bin/npx-cli.js $out/bin/npx
+        patchShebangs $out/lib/node_modules/npm/bin
       '';
     };
 

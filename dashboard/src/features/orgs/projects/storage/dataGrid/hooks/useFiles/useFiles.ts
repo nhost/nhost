@@ -7,7 +7,6 @@ import type {
   GetFilesQuery,
 } from '@/utils/__generated__/graphql';
 import { useGetFilesQuery } from '@/utils/__generated__/graphql';
-import { getHasuraAdminSecret } from '@/utils/env';
 
 export type UseFilesOptions = {
   /**
@@ -88,9 +87,7 @@ export default function useFiles({
                   const response = await fetch(finalUrl, {
                     headers: {
                       'x-hasura-admin-secret':
-                        process.env.NEXT_PUBLIC_ENV === 'dev'
-                          ? getHasuraAdminSecret()
-                          : project!.config!.hasura.adminSecret,
+                        project!.config!.hasura.adminSecret,
                     },
                     mode: 'cors',
                     ...init,

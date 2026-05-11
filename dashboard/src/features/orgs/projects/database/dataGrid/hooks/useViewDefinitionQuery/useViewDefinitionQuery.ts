@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   FetchViewDefinitionOptions,
   FetchViewDefinitionReturnType,
@@ -56,10 +55,7 @@ export default function useViewDefinitionQuery(
         schema: customSchema || (schemaSlug as string),
         table: customTable || (tableSlug as string),
         appUrl: customAppUrl || appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : customAdminSecret || project!.config!.hasura.adminSecret,
+        adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
       });
     },
     ...queryOptions,

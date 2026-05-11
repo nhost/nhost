@@ -2,11 +2,11 @@
 final: prev: rec {
   go = prev.go_1_26.overrideAttrs (
     finalAttrs: previousAttrs: rec {
-      version = "1.26.2";
+      version = "1.26.3";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-LpHrtpR6lulDb7KzkmqIAu/mOm03Xf/sT4Kqnb1v1Ds=";
+        sha256 = "sha256-HGRoddCqh5kTMYTtV895/yS97+jIggRwYCqdPW2Rkrg=";
       };
 
     }
@@ -116,6 +116,11 @@ final: prev: rec {
     subPackages = [ "tools/govulncheck-wrapper" ];
     doCheck = false;
   };
+
+  sqlc = prev.sqlc.overrideAttrs (oldAttrs: rec {
+    postInstall = "";
+    doInstallCheck = false;
+  });
 
   oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: {
     version = "2.6.0-beta0";
