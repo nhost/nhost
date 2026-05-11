@@ -2,6 +2,7 @@ import {
   GraphQLBoolean,
   GraphQLEnumType,
   GraphQLFloat,
+  GraphQLInputObjectType,
   type GraphQLInputType,
   GraphQLInt,
   GraphQLList,
@@ -19,6 +20,25 @@ function tryParseJSONArray(value: string): unknown[] | null {
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function tryParseJSONObject(value: string): Record<string, unknown> | null {
+  if (!isJSONString(value)) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(value);
+    if (
+      parsed === null ||
+      typeof parsed !== 'object' ||
+      Array.isArray(parsed)
+    ) {
+      return null;
+    }
+    return parsed as Record<string, unknown>;
   } catch {
     return null;
   }
@@ -59,6 +79,16 @@ export default function parsePresetValue(
   }
 
   const baseType = unwrapNamedType(argType);
+
+  if (
+    typeof rawValue === 'string' &&
+    baseType instanceof GraphQLInputObjectType
+  ) {
+    const entries = tryParseJSONObject(rawValue);
+    if (entries) {
+      return { kind: 'object', entries: entries as ArgTreeType };
+    }
+  }
 
   if (baseType === GraphQLBoolean) {
     if (typeof rawValue === 'boolean') {

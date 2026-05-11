@@ -7,6 +7,10 @@ const schema = buildSchema(`
     USER
   }
   scalar UUID
+  input WhereInput {
+    foo: String
+    bar: Int
+  }
   type Query {
     test(
       flag: Boolean
@@ -19,6 +23,8 @@ const schema = buildSchema(`
       nameRequired: String!
       roles: [Role!]
       tags: [String!]
+      where: WhereInput
+      whereRequired: WhereInput!
     ): String
   }
 `);
@@ -270,6 +276,52 @@ describe('object', () => {
     expect(parsePresetValue({ a: 1 }, argType('name'))).toEqual({
       kind: 'object',
       entries: { a: 1 },
+    });
+  });
+});
+
+describe('input object', () => {
+  test('JSON-object string on nullable input-object arg is hydrated', () => {
+    expect(
+      parsePresetValue('{"foo":"hello","bar":1}', argType('where')),
+    ).toEqual({
+      kind: 'object',
+      entries: { foo: 'hello', bar: 1 },
+    });
+  });
+
+  test('JSON-object string on non-null input-object arg is also hydrated', () => {
+    expect(parsePresetValue('{"foo":"x"}', argType('whereRequired'))).toEqual({
+      kind: 'object',
+      entries: { foo: 'x' },
+    });
+  });
+
+  test('non-JSON string on input-object arg falls back to string', () => {
+    expect(parsePresetValue('hello', argType('where'))).toEqual({
+      kind: 'string',
+      value: 'hello',
+    });
+  });
+
+  test('JSON-array string on input-object arg is not hydrated as object', () => {
+    expect(parsePresetValue('[1, 2]', argType('where'))).toEqual({
+      kind: 'string',
+      value: '[1, 2]',
+    });
+  });
+
+  test('real object on input-object arg passes through as object', () => {
+    expect(parsePresetValue({ foo: 'x' }, argType('where'))).toEqual({
+      kind: 'object',
+      entries: { foo: 'x' },
+    });
+  });
+
+  test('JSON-object string on a non-input-object arg is not hydrated', () => {
+    expect(parsePresetValue('{"foo":1}', argType('name'))).toEqual({
+      kind: 'string',
+      value: '{"foo":1}',
     });
   });
 });

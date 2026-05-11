@@ -195,3 +195,27 @@ test('nullable String field with null preset round-trips unquoted', () => {
   expect(sdl).toMatch(/name\s*:\s*String\s*@preset\(value:\s*null\s*\)/);
   expect(sdl).not.toContain('@preset(value: "null")');
 });
+
+test('legacy JSON-object string preset on input-object arg rehydrates to a structured object literal', () => {
+  const introspection = buildSchema(`
+    input WhereInput { foo: String, bar: Int }
+    type Query {
+      getThing(where: WhereInput): String
+    }
+  `);
+  const permissionSDL = `
+    schema { query: Query }
+    input WhereInput { foo: String, bar: Int }
+    type Query {
+      getThing(where: WhereInput @preset(value: "{\\"foo\\":\\"hello\\",\\"bar\\":1}")): String
+    }
+  `;
+  const permissionsSchema = createPermissionsSchema(permissionSDL);
+  const argTree = parsePresetArgTreeFromSDL(permissionSDL, introspection);
+  const fields = buildRemoteSchemaFieldTree(introspection, permissionsSchema);
+  const sdl = composePermissionSDL(fields, argTree);
+
+  expect(sdl).toMatch(/foo:\s*"hello"/);
+  expect(sdl).toMatch(/bar:\s*1/);
+  expect(sdl).not.toMatch(/@preset\(value:\s*"\{/);
+});
