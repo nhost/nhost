@@ -16,8 +16,10 @@ import {
   ADMIN_ROLE,
   DATABASE_ACTIONS,
   getColumnPermissionState,
+  getRelevantRules,
   getTablePermissionState,
   type PermissionDotState,
+  type RuleKey,
 } from './permissionState';
 import { getSchemaColor } from './schemaColor';
 import { columnHandleId, type TableNode } from './useSchemaGraph';
@@ -35,9 +37,10 @@ const ACTION_LABELS: Record<DatabaseAction, string> = {
   delete: 'Delete',
 };
 
-function ruleKey(action: DatabaseAction): 'filter' | 'check' {
-  return action === 'insert' || action === 'update' ? 'check' : 'filter';
-}
+const RULE_LABELS: Record<RuleKey, string> = {
+  filter: 'Row filter',
+  check: 'Row check',
+};
 
 function describeState(state: PermissionDotState): string {
   switch (state) {
@@ -87,23 +90,26 @@ function TableDotTooltipContent({
   }
 
   const permission = findPermission(metadataTable, role, action);
-  const key = ruleKey(action);
-  const rule = permission?.[key];
+  const rules = getRelevantRules(permission, action);
 
   return (
     <div className="space-y-1">
       <div className="font-semibold">{label}</div>
-      {state === 'hollow' && rule ? (
-        <>
-          <div className="text-muted-foreground text-xs">Row {key}:</div>
-          <pre className="max-w-[360px] overflow-x-auto rounded bg-muted p-2 font-mono text-[11px] leading-tight">
-            {JSON.stringify(rule, null, 2)}
-          </pre>
-        </>
-      ) : (
+      {rules.length === 0 ? (
         <div className="text-muted-foreground text-xs">
-          No row {key} — applies to all rows.
+          No row rule — applies to all rows.
         </div>
+      ) : (
+        rules.map(({ key, value }) => (
+          <div key={key} className="space-y-1">
+            <div className="text-muted-foreground text-xs">
+              {RULE_LABELS[key]}:
+            </div>
+            <pre className="max-w-[360px] overflow-x-auto rounded bg-muted p-2 font-mono text-[11px] leading-tight">
+              {JSON.stringify(value, null, 2)}
+            </pre>
+          </div>
+        ))
       )}
     </div>
   );

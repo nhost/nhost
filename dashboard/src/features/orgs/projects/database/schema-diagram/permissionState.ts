@@ -1,6 +1,7 @@
 import { findPermission } from '@/components/common/PermissionsGrid';
 import type {
   DatabaseAction,
+  HasuraMetadataPermission,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
@@ -15,10 +16,47 @@ export const DATABASE_ACTIONS: readonly DatabaseAction[] = [
 
 export type PermissionDotState = 'none' | 'filled' | 'hollow';
 
+export type RuleKey = 'filter' | 'check';
+
+export interface PermissionRule {
+  key: RuleKey;
+  value: Record<string, unknown>;
+}
+
 function isEmptyConstraint(
   value: Record<string, unknown> | undefined,
 ): boolean {
   return !value || Object.keys(value).length === 0;
+}
+
+const RULE_KEYS_BY_ACTION: Record<DatabaseAction, readonly RuleKey[]> = {
+  select: ['filter'],
+  insert: ['check'],
+  update: ['filter', 'check'],
+  delete: ['filter'],
+};
+
+export function getRelevantRuleKeys(
+  action: DatabaseAction,
+): readonly RuleKey[] {
+  return RULE_KEYS_BY_ACTION[action];
+}
+
+export function getRelevantRules(
+  permission: HasuraMetadataPermission['permission'] | undefined,
+  action: DatabaseAction,
+): PermissionRule[] {
+  if (!permission) {
+    return [];
+  }
+  const rules: PermissionRule[] = [];
+  for (const key of getRelevantRuleKeys(action)) {
+    const value = permission[key];
+    if (!isEmptyConstraint(value)) {
+      rules.push({ key, value: value as Record<string, unknown> });
+    }
+  }
+  return rules;
 }
 
 export function getTablePermissionState(
@@ -36,12 +74,9 @@ export function getTablePermissionState(
     return 'none';
   }
 
-  const constraint =
-    action === 'insert' || action === 'update'
-      ? permission.check
-      : permission.filter;
-
-  return isEmptyConstraint(constraint) ? 'filled' : 'hollow';
+  return getRelevantRules(permission, action).length === 0
+    ? 'filled'
+    : 'hollow';
 }
 
 export function getColumnPermissionState(
