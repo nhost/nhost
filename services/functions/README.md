@@ -39,8 +39,8 @@ make develop
 make help              # Show all available targets
 make check             # Run linting via nix
 make build             # Build the server package
-make build-docker-image                    # Build Docker image (Node 22)
-NODE_VERSION=20 make build-docker-image    # Build Docker image (Node 20)
+make build-docker-image                    # Build Docker image (Node 22, default)
+NODE_VERSION=24 make build-docker-image    # Build Docker image (Node 24)
 ```
 
 ### Testing locally with examples
@@ -51,10 +51,10 @@ There are three example projects (`example-pnpm/`, `example-npm/`, `example-yarn
 # Build both Docker image variants and run all examples
 make dev-env-up
 # Functions available at:
-#   http://localhost:3001 (Node 20, pnpm)
-#   http://localhost:3002 (Node 22, pnpm)
-#   http://localhost:3003 (Node 22, npm)
-#   http://localhost:3004 (Node 22, yarn)
+#   http://localhost:3001 (Node 22, pnpm)
+#   http://localhost:3002 (Node 24, pnpm)
+#   http://localhost:3003 (Node 24, npm)
+#   http://localhost:3004 (Node 24, yarn)
 
 # Or test a single example manually:
 make build-docker-image
@@ -77,9 +77,9 @@ Tests verify routing, metadata, 404 handling, utility imports (`_utils/`), npm d
 
 ## Release
 
-Releases are managed through the monorepo CI pipeline. Creating a GitHub release with tag `functions@X.Y.Z` triggers the release workflow, which builds and pushes Docker images for both Node 20 and Node 22 to Docker Hub and ECR.
+Releases are managed through the monorepo CI pipeline. Creating a GitHub release with tag `functions@X.Y.Z` triggers the release workflow, which builds and pushes Docker images for both Node 22 and Node 24 to Docker Hub and ECR.
 
 ### Docker image variants
 
 - `nhost/functions:X.Y.Z` - Node 22 (default)
-- `nhost/functions-node20:X.Y.Z` - Node 20
+- `nhost/functions-node24:X.Y.Z` - Node 24
