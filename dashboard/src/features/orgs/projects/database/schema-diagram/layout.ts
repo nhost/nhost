@@ -32,7 +32,7 @@ export function layoutNodes<TNode extends Node, TEdge extends Edge>(
   g.setDefaultEdgeLabel(() => ({}));
   g.setGraph({
     rankdir: 'LR',
-    ranksep: options.rankSep ?? 120,
+    ranksep: options.rankSep ?? 220,
     nodesep: options.nodeSep ?? 60,
     marginx: 40,
     marginy: 40,

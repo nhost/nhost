@@ -279,7 +279,7 @@ function SchemaDiagramContent() {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
-            fitViewOptions={{ padding: 0.15, maxZoom: 0.85 }}
+            fitViewOptions={{ padding: 0.1, maxZoom: 1.25 }}
             minZoom={0.1}
             maxZoom={2}
             proOptions={{ hideAttribution: true }}
