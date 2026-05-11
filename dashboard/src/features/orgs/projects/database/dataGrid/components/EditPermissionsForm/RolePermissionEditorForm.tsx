@@ -116,6 +116,11 @@ export interface RolePermissionEditorFormProps extends DialogFormProps {
    */
   actionLabels: Record<DatabaseAction, string>;
   /**
+   * Names of computed fields configured on the table. Only relevant for the
+   * `select` action; rendered as additional checkboxes alongside columns.
+   */
+  availableComputedFields?: string[];
+  /**
    * Called when the user picks a different role from the dropdown.
    */
   onRoleChange: (role: string) => void;
@@ -209,6 +214,7 @@ export default function RolePermissionEditorForm({
   availableRoles,
   allowedActions,
   actionLabels,
+  availableComputedFields,
   onRoleChange,
   onActionChange,
   onSubmit,
@@ -293,9 +299,10 @@ export default function RolePermissionEditorForm({
         filter: action !== 'insert' ? permissionFilter : permission?.filter,
         check: action === 'insert' ? permissionFilter : permission?.check,
         backend_only: values.backendOnly,
-        computed_fields: isNotEmptyValue(permission?.computed_fields)
-          ? permission?.computed_fields
-          : null,
+        computed_fields:
+          action === 'select' && isNotEmptyValue(values.computedFields)
+            ? values.computedFields
+            : null,
       },
     });
 
@@ -430,6 +437,7 @@ export default function RolePermissionEditorForm({
               action={action}
               schema={schema}
               table={table}
+              availableComputedFields={availableComputedFields}
             />
           )}
 

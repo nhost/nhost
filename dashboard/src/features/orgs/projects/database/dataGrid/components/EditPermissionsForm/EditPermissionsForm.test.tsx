@@ -1,6 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@/tests/testUtils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, within } from '@/tests/testUtils';
 import EditPermissionsForm from './EditPermissionsForm';
+
+const { useMetadataQueryMock } = vi.hoisted(() => ({
+  useMetadataQueryMock: vi.fn(),
+}));
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: () => ({ project: { subdomain: 'test', region: 'us-east-1' } }),
@@ -31,13 +35,6 @@ vi.mock('@/utils/__generated__/graphql', async () => {
 vi.mock(
   '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery',
   () => ({
-    default: () => ({
-      data: {
-        columns: [{ column_name: 'id' }, { column_name: 'name' }],
-      },
-      status: 'success',
-      error: null,
-    }),
     useTableSchemaQuery: () => ({
       data: {
         columns: [{ column_name: 'id' }, { column_name: 'name' }],
@@ -51,18 +48,17 @@ vi.mock(
 vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery',
   () => ({
-    default: () => ({
-      data: { resourceVersion: 1, tables: [] },
-      status: 'success',
-      error: null,
-    }),
-    useMetadataQuery: () => ({
-      data: { resourceVersion: 1, tables: [] },
-      status: 'success',
-      error: null,
-    }),
+    useMetadataQuery: useMetadataQueryMock,
   }),
 );
+
+beforeEach(() => {
+  useMetadataQueryMock.mockReturnValue({
+    data: { resourceVersion: 1, tables: [] },
+    status: 'success',
+    error: null,
+  });
+});
 
 // pg_relation_is_updatable(oid, true) returns a bitmask:
 //   8  = insertable
@@ -230,5 +226,173 @@ describe('EditPermissionsForm', () => {
     expect(screen.getByText('Select')).toBeInTheDocument();
     expect(screen.getByText('Update')).toBeInTheDocument();
     expect(screen.getByText('Delete')).toBeInTheDocument();
+  });
+});
+
+describe('EditPermissionsForm – select access level with computed fields', () => {
+  function buildMetadata(selectPermission: {
+    columns?: string[];
+    filter?: Record<string, unknown>;
+    computed_fields?: string[] | null;
+  }) {
+    return {
+      data: {
+        resourceVersion: 1,
+        tables: [
+          {
+            table: { name: 'users', schema: 'public' },
+            configuration: {},
+            select_permissions: [
+              { role: 'user', permission: selectPermission },
+            ],
+            computed_fields: [
+              {
+                name: 'full_name',
+                definition: {
+                  function: { name: 'fn_full_name', schema: 'public' },
+                },
+              },
+              {
+                name: 'age_in_days',
+                definition: {
+                  function: { name: 'fn_age', schema: 'public' },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      status: 'success',
+      error: null,
+    };
+  }
+
+  function getUserSelectIcon() {
+    const userRow = screen.getByText('user').closest('tr') as HTMLElement;
+    const buttons = within(userRow).getAllByRole('button');
+    // For an ORDINARY TABLE, action order is [insert, select, update, delete]
+    return within(buttons[1]);
+  }
+
+  it('shows partial permission when all columns are selected but a computed field is missing', () => {
+    useMetadataQueryMock.mockReturnValue(
+      buildMetadata({
+        columns: ['id', 'name'],
+        filter: {},
+        computed_fields: ['full_name'],
+      }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('Partial permission'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows full permission when all columns and all computed fields are selected', () => {
+    useMetadataQueryMock.mockReturnValue(
+      buildMetadata({
+        columns: ['id', 'name'],
+        filter: {},
+        computed_fields: ['full_name', 'age_in_days'],
+      }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('Full permission'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows partial permission when only a computed field is granted (no columns)', () => {
+    useMetadataQueryMock.mockReturnValue(
+      buildMetadata({
+        columns: [],
+        filter: {},
+        computed_fields: ['full_name'],
+      }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('Partial permission'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows no permission when columns are empty and computed_fields is null', () => {
+    useMetadataQueryMock.mockReturnValue(
+      buildMetadata({
+        columns: [],
+        filter: {},
+        computed_fields: null,
+      }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('No permission'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows full permission when all columns are selected on a table with no computed fields configured', () => {
+    useMetadataQueryMock.mockReturnValue({
+      data: {
+        resourceVersion: 1,
+        tables: [
+          {
+            table: { name: 'users', schema: 'public' },
+            configuration: {},
+            select_permissions: [
+              {
+                role: 'user',
+                permission: { columns: ['id', 'name'], filter: {} },
+              },
+            ],
+          },
+        ],
+      },
+      status: 'success',
+      error: null,
+    });
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('Full permission'),
+    ).toBeInTheDocument();
   });
 });
