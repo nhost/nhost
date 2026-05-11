@@ -118,16 +118,7 @@ final: prev: rec {
   };
 
   sqlc = prev.sqlc.overrideAttrs (oldAttrs: rec {
-    version = "1.31.1";
-    src = final.fetchFromGitHub {
-      owner = "sqlc-dev";
-      repo = "sqlc";
-      tag = "v${version}";
-      hash = "sha256-/skb7p3s9TaQE699UCprk1D6S+G/T8Ek9/ADOtS/n44=";
-    };
-    vendorHash = "sha256-+kSAupLQwTzJdgnhlqulEtRcDj9gqSq8uTnWNyDLZew=";
     postInstall = "";
-    doInstallCheck = false;
   });
 
   oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: {

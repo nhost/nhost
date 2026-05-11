@@ -71,7 +71,7 @@
         url = "https://registry.npmjs.org/npm/-/npm-${version}.tgz";
         sha256 = "sha256-KS8ULcGowBGZujSgflfPAWwmDqLFm2Tz7uiqrnoudQQ=";
       };
-      nativeBuildInputs = [ final.nodejs-slim_24 ];
+      nativeBuildInputs = [ final.nodejs-slim_24.out ];
       dontBuild = true;
       installPhase = ''
         mkdir -p $out/lib/node_modules/npm
