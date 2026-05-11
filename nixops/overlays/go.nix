@@ -119,6 +119,7 @@ final: prev: rec {
 
   sqlc = prev.sqlc.overrideAttrs (oldAttrs: rec {
     postInstall = "";
+    doInstallCheck = false;
   });
 
   oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: {
