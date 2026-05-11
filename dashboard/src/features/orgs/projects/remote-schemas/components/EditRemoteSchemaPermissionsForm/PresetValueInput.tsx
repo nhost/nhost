@@ -24,7 +24,7 @@ import type {
 } from '@/features/orgs/projects/remote-schemas/types';
 import getArgPresetCapabilities from '@/features/orgs/projects/remote-schemas/utils/getArgPresetCapabilities';
 
-export interface PresetValueInputProps {
+interface PresetValueInputProps {
   arg: GraphQLArgument;
   rawValue: ArgLeafType | ArgTreeType | undefined;
   presetValue: string;

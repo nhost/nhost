@@ -11,7 +11,7 @@ import {
 } from 'graphql';
 import unwrapNamedType from './unwrapNamedType';
 
-export interface ArgPresetCapabilities {
+interface ArgPresetCapabilities {
   enumValues: readonly GraphQLEnumValue[] | null;
   acceptsBoolean: boolean;
   acceptsNull: boolean;

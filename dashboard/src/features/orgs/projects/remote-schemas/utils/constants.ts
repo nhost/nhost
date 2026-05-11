@@ -1,6 +1,6 @@
 export const DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS = 60;
 
-export const SESSION_VARIABLE_PREFIX = 'x-hasura-';
+const SESSION_VARIABLE_PREFIX = 'x-hasura-';
 
 export function isSessionVariable(value: string): boolean {
   return value.toLowerCase().startsWith(SESSION_VARIABLE_PREFIX);
