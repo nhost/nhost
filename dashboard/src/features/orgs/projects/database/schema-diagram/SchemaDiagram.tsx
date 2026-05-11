@@ -283,11 +283,11 @@ function SchemaDiagramContent() {
             minZoom={0.1}
             maxZoom={2}
             proOptions={{ hideAttribution: true }}
-            nodesDraggable
+            nodesDraggable={false}
             nodesConnectable={false}
             elementsSelectable
             multiSelectionKeyCode={null}
-            nodeDragThreshold={6}
+            panOnDrag
             onNodeClick={handleNodeClick}
             onEdgeClick={handleEdgeClick}
             onPaneClick={handlePaneClick}
