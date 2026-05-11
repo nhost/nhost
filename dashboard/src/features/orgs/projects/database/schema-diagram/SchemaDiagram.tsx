@@ -15,11 +15,19 @@ import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
+import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
+import type {
+  DatabaseObjectViewModel,
+  HasuraMetadataTable,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import { ADMIN_ROLE } from './permissionState';
 import SchemaDiagramToolbar from './SchemaDiagramToolbar';
 import { getSchemaColor } from './schemaColor';
+import { TableActionsProvider } from './TableActionsContext';
 import TableNode from './TableNode';
 import useAllTableColumns from './useAllTableColumns';
 import useSchemaGraph from './useSchemaGraph';
@@ -62,6 +70,35 @@ function SchemaDiagramContent() {
     loading: rolesLoading,
     error: rolesError,
   } = useGetRemoteAppRolesQuery({ client: gqlClient });
+
+  const { data: trackedTablesSet } = useGetTrackedTablesSet({
+    dataSource: DATA_SOURCE,
+  });
+
+  const { data: databaseData, refetch: refetchDatabaseQuery } =
+    useDatabaseQuery([DATA_SOURCE], { dataSource: DATA_SOURCE });
+
+  const allObjects = useMemo<DatabaseObjectViewModel[]>(() => {
+    const tableLikeObjects = databaseData?.tableLikeObjects ?? [];
+    return sortDatabaseObjects(
+      tableLikeObjects.map((tableLikeObject) => ({
+        schema: tableLikeObject.table_schema,
+        name: tableLikeObject.table_name,
+        objectType: tableLikeObject.table_type || 'ORDINARY TABLE',
+        updatability: tableLikeObject.updatability,
+      })),
+    );
+  }, [databaseData?.tableLikeObjects]);
+
+  const dataBrowserActions = useDataBrowserActions({
+    dataSourceSlug: DATA_SOURCE,
+    schemaSlug: undefined,
+    tableSlug: undefined,
+    functionOID: undefined,
+    selectedSchema: '',
+    refetchDatabaseQuery,
+    allObjects,
+  });
 
   const [selectedRole, setSelectedRole] = useState<string>(ADMIN_ROLE);
   const [deselectedSchemas, setDeselectedSchemas] = useState<Set<string>>(
@@ -251,70 +288,74 @@ function SchemaDiagramContent() {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <SchemaDiagramToolbar
-        roles={roles}
-        selectedRole={selectedRole}
-        onRoleChange={setSelectedRole}
-        schemas={availableSchemas}
-        selectedSchemas={selectedSchemas}
-        onSelectedSchemasChange={handleSelectedSchemasChange}
-        hideEmpty={hideEmpty}
-        onHideEmptyChange={setHideEmpty}
-      />
+    <TableActionsProvider
+      value={{ actions: dataBrowserActions, trackedTablesSet }}
+    >
+      <div className="flex h-full flex-col">
+        <SchemaDiagramToolbar
+          roles={roles}
+          selectedRole={selectedRole}
+          onRoleChange={setSelectedRole}
+          schemas={availableSchemas}
+          selectedSchemas={selectedSchemas}
+          onSelectedSchemasChange={handleSelectedSchemasChange}
+          hideEmpty={hideEmpty}
+          onHideEmptyChange={setHideEmpty}
+        />
 
-      <div className="relative min-h-0 flex-1">
-        {totalTableCount === 0 ? (
-          <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-            No tables found.
-          </div>
-        ) : nodes.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground text-sm">
-            <span>No tables match the current filters.</span>
-          </div>
-        ) : (
-          <ReactFlow
-            nodes={styledNodes}
-            edges={styledEdges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            fitView
-            fitViewOptions={{ padding: 0.1, maxZoom: 1.25 }}
-            minZoom={0.1}
-            maxZoom={2}
-            proOptions={{ hideAttribution: true }}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            elementsSelectable
-            multiSelectionKeyCode={null}
-            panOnDrag
-            onNodeClick={handleNodeClick}
-            onEdgeClick={handleEdgeClick}
-            onPaneClick={handlePaneClick}
-            className="schema-diagram-canvas"
-          >
-            <Background />
-            <MiniMap
-              pannable
-              zoomable
-              className="!border !border-border"
-              bgColor="hsl(var(--card))"
-              maskColor="hsl(var(--background) / 0.75)"
-              maskStrokeColor="hsl(var(--border))"
-              maskStrokeWidth={2}
-              nodeColor="hsl(var(--muted-foreground))"
-              nodeStrokeColor="hsl(var(--border))"
-              nodeStrokeWidth={3}
-              nodeBorderRadius={4}
-            />
-            <Controls
-              showInteractive={false}
-              className="!shadow-none [&>button]:!border-border [&>button]:!bg-muted [&>button]:!fill-foreground [&>button:hover]:!bg-accent [&>button>svg]:!fill-foreground overflow-hidden rounded-md border border-border"
-            />
-          </ReactFlow>
-        )}
+        <div className="relative min-h-0 flex-1">
+          {totalTableCount === 0 ? (
+            <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+              No tables found.
+            </div>
+          ) : nodes.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground text-sm">
+              <span>No tables match the current filters.</span>
+            </div>
+          ) : (
+            <ReactFlow
+              nodes={styledNodes}
+              edges={styledEdges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              fitView
+              fitViewOptions={{ padding: 0.1, maxZoom: 1.25 }}
+              minZoom={0.1}
+              maxZoom={2}
+              proOptions={{ hideAttribution: true }}
+              nodesDraggable={false}
+              nodesConnectable={false}
+              elementsSelectable
+              multiSelectionKeyCode={null}
+              panOnDrag
+              onNodeClick={handleNodeClick}
+              onEdgeClick={handleEdgeClick}
+              onPaneClick={handlePaneClick}
+              className="schema-diagram-canvas"
+            >
+              <Background />
+              <MiniMap
+                pannable
+                zoomable
+                className="!border !border-border"
+                bgColor="hsl(var(--card))"
+                maskColor="hsl(var(--background) / 0.75)"
+                maskStrokeColor="hsl(var(--border))"
+                maskStrokeWidth={2}
+                nodeColor="hsl(var(--muted-foreground))"
+                nodeStrokeColor="hsl(var(--border))"
+                nodeStrokeWidth={3}
+                nodeBorderRadius={4}
+              />
+              <Controls
+                showInteractive={false}
+                className="!shadow-none [&>button]:!border-border [&>button]:!bg-muted [&>button]:!fill-foreground [&>button:hover]:!bg-accent [&>button>svg]:!fill-foreground overflow-hidden rounded-md border border-border"
+              />
+            </ReactFlow>
+          )}
+        </div>
       </div>
-    </div>
+    </TableActionsProvider>
   );
 }
 

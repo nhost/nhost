@@ -1,4 +1,5 @@
 import { Handle, type NodeProps, Position } from '@xyflow/react';
+import { Settings } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
 import { findPermission } from '@/components/common/PermissionsGrid';
 import {
@@ -6,10 +7,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import DatabaseObjectActions from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar/DatabaseObjectActions';
 import type {
   DatabaseAction,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { cn } from '@/lib/utils';
 import PermissionDot from './PermissionDot';
 import {
@@ -22,6 +25,7 @@ import {
   type RuleKey,
 } from './permissionState';
 import { getSchemaColor } from './schemaColor';
+import { useTableActionsContext } from './TableActionsContext';
 import { columnHandleId, type TableNode } from './useSchemaGraph';
 
 const COLUMN_ACTIONS: readonly DatabaseAction[] = [
@@ -118,6 +122,13 @@ function TableDotTooltipContent({
 function TableNodeView({ data }: NodeProps<TableNode>) {
   const { schema, table, columns, metadataTable, role } = data;
   const schemaColor = getSchemaColor(schema);
+  const tableActions = useTableActionsContext();
+  const objectKey = `ORDINARY TABLE.${schema}.${table}`;
+  const tablePath = `${schema}.${table}`;
+  const isUntracked = !tableActions?.trackedTablesSet?.has(tablePath);
+  const isLocked = isSchemaLocked(schema);
+  const isMenuOpen = tableActions?.actions.sidebarMenuObject === objectKey;
+  const isRemoving = tableActions?.actions.removableObject === objectKey;
 
   return (
     <div
@@ -158,6 +169,67 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
               </Tooltip>
             );
           })}
+          {tableActions && (
+            <span
+              className="nodrag nopan inline-flex"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              role="none"
+            >
+              <DatabaseObjectActions
+                objectName={table}
+                objectType="ORDINARY TABLE"
+                isUntracked={isUntracked}
+                disabled={isRemoving}
+                open={isMenuOpen}
+                triggerIcon={<Settings className="h-3.5 w-3.5" />}
+                onOpen={() =>
+                  tableActions.actions.setSidebarMenuObject(objectKey)
+                }
+                onClose={() =>
+                  tableActions.actions.setSidebarMenuObject(undefined)
+                }
+                className="ml-1"
+                isSelectedNotSchemaLocked={!isLocked}
+                onEdit={() =>
+                  tableActions.actions.openEditTableDrawer(schema, table)
+                }
+                onEditPermissions={
+                  isUntracked
+                    ? undefined
+                    : () =>
+                        tableActions.actions.handleEditPermission(
+                          schema,
+                          table,
+                          'ORDINARY TABLE',
+                        )
+                }
+                onEditRelationships={
+                  isUntracked
+                    ? undefined
+                    : () =>
+                        tableActions.actions.handleEditRelationships(
+                          schema,
+                          table,
+                        )
+                }
+                onEditGraphQLSettings={() =>
+                  tableActions.actions.handleEditGraphQLSettings(
+                    schema,
+                    table,
+                    'ORDINARY TABLE',
+                  )
+                }
+                onDelete={() =>
+                  tableActions.actions.handleDeleteDatabaseObject(
+                    schema,
+                    table,
+                    'ORDINARY TABLE',
+                  )
+                }
+              />
+            </span>
+          )}
         </div>
       </div>
 

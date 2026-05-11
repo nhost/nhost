@@ -14,6 +14,7 @@ import type {
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
+import { ALL_TABLE_COLUMNS_QUERY_KEY } from '@/features/orgs/projects/database/schema-diagram/useAllTableColumns';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 
@@ -230,6 +231,10 @@ export function useDataBrowserActions({
         queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
       });
 
+      queryClient.invalidateQueries({
+        queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY],
+      });
+
       if (!nextObject) {
         await router.push(
           `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
@@ -410,6 +415,9 @@ export function useDataBrowserActions({
       refetchDatabaseQuery(),
       queryClient.refetchQueries({
         queryKey: [`${dataSourceSlug}.${schema}.${tableName}`],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY],
       }),
     ]);
   }
