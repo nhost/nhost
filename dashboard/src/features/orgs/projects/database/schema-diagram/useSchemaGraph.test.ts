@@ -268,6 +268,84 @@ describe('useSchemaGraph', () => {
     expect(edge.id).toBe(`${fk.constraintName}-public.posts.author_id`);
   });
 
+  it('emits one edge per column pair for composite foreign keys', () => {
+    const columns = [
+      buildColumn({
+        schema: 'public',
+        table: 'order_items',
+        columnName: 'order_id',
+        ordinalPosition: 1,
+        isPrimary: false,
+      }),
+      buildColumn({
+        schema: 'public',
+        table: 'order_items',
+        columnName: 'tenant_id',
+        ordinalPosition: 2,
+        isPrimary: false,
+      }),
+      buildColumn({
+        schema: 'public',
+        table: 'orders',
+        columnName: 'id',
+        ordinalPosition: 1,
+        isPrimary: true,
+      }),
+      buildColumn({
+        schema: 'public',
+        table: 'orders',
+        columnName: 'tenant_id',
+        ordinalPosition: 2,
+        isPrimary: true,
+      }),
+    ];
+    const foreignKeys = [
+      buildForeignKey({
+        fromTable: 'order_items',
+        fromColumn: 'order_id',
+        toTable: 'orders',
+        toColumn: 'id',
+        constraintName: 'order_items_order_fkey',
+      }),
+      buildForeignKey({
+        fromTable: 'order_items',
+        fromColumn: 'tenant_id',
+        toTable: 'orders',
+        toColumn: 'tenant_id',
+        constraintName: 'order_items_order_fkey',
+      }),
+    ];
+
+    const { result } = renderHook(() =>
+      useSchemaGraph({
+        metadataTables: [],
+        columns,
+        foreignKeys,
+        role: 'admin',
+        visibleSchemas: new Set(['public']),
+        hideTablesWithoutPermissions: false,
+      }),
+    );
+
+    expect(result.current.edges).toHaveLength(2);
+    const edgeIds = result.current.edges.map((e) => e.id).sort();
+    expect(edgeIds).toEqual(
+      [
+        'order_items_order_fkey-public.order_items.order_id',
+        'order_items_order_fkey-public.order_items.tenant_id',
+      ].sort(),
+    );
+
+    const orderItems = result.current.nodes.find(
+      (n) => n.id === 'public.order_items',
+    )!;
+    const byName = Object.fromEntries(
+      dataOf(orderItems).columns.map((c) => [c.name, c]),
+    );
+    expect(byName.order_id.isForeignKey).toBe(true);
+    expect(byName.tenant_id.isForeignKey).toBe(true);
+  });
+
   it('marks columns as isForeignKey when they appear in foreignKeys', () => {
     const columns = [
       buildColumn({

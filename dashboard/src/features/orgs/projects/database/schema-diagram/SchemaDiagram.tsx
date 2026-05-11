@@ -298,12 +298,12 @@ function SchemaDiagramContent() {
               pannable
               zoomable
               className="!border !border-border"
-              bgColor="rgb(30, 41, 59)"
-              maskColor="rgba(15, 23, 42, 0.75)"
-              maskStrokeColor="rgb(148, 163, 184)"
+              bgColor="hsl(var(--card))"
+              maskColor="hsl(var(--background) / 0.75)"
+              maskStrokeColor="hsl(var(--border))"
               maskStrokeWidth={2}
-              nodeColor="rgb(241, 245, 249)"
-              nodeStrokeColor="rgb(148, 163, 184)"
+              nodeColor="hsl(var(--muted-foreground))"
+              nodeStrokeColor="hsl(var(--border))"
               nodeStrokeWidth={3}
               nodeBorderRadius={4}
             />

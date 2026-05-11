@@ -58,8 +58,8 @@ const COLUMN_QUERY = `
           AND i.indisprimary
       ) AS is_primary
     FROM information_schema.columns c
-    WHERE c.table_schema NOT LIKE 'pg_%%'
-      AND c.table_schema NOT LIKE 'hdb_%%'
+    WHERE c.table_schema NOT LIKE 'pg_%'
+      AND c.table_schema NOT LIKE 'hdb_%'
       AND c.table_schema != 'information_schema'
   ) col_data
 `;
@@ -80,11 +80,14 @@ const FOREIGN_KEY_QUERY = `
     JOIN pg_namespace n_from ON n_from.oid = cls_from.relnamespace
     JOIN pg_class cls_to ON cls_to.oid = con.confrelid
     JOIN pg_namespace n_to ON n_to.oid = cls_to.relnamespace
-    JOIN pg_attribute att_from ON att_from.attrelid = con.conrelid AND att_from.attnum = con.conkey[1]
-    JOIN pg_attribute att_to ON att_to.attrelid = con.confrelid AND att_to.attnum = con.confkey[1]
+    CROSS JOIN LATERAL unnest(con.conkey)  WITH ORDINALITY AS fk(attnum, ord)
+    CROSS JOIN LATERAL unnest(con.confkey) WITH ORDINALITY AS rk(attnum, ord)
+    JOIN pg_attribute att_from ON att_from.attrelid = con.conrelid  AND att_from.attnum = fk.attnum
+    JOIN pg_attribute att_to   ON att_to.attrelid   = con.confrelid AND att_to.attnum   = rk.attnum
     WHERE con.contype = 'f'
-      AND n_from.nspname NOT LIKE 'pg_%%'
-      AND n_from.nspname NOT LIKE 'hdb_%%'
+      AND fk.ord = rk.ord
+      AND n_from.nspname NOT LIKE 'pg_%'
+      AND n_from.nspname NOT LIKE 'hdb_%'
       AND n_from.nspname != 'information_schema'
   ) fk_data
 `;
