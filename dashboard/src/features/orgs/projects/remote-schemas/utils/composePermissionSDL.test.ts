@@ -219,3 +219,26 @@ test('legacy JSON-object string preset on input-object arg rehydrates to a struc
   expect(sdl).toMatch(/bar:\s*1/);
   expect(sdl).not.toMatch(/@preset\(value:\s*"\{/);
 });
+
+test('nested null on input-object field survives a no-op round-trip', () => {
+  const introspection = buildSchema(`
+    input WhereInput { foo: String, bar: Int }
+    type Query {
+      getThing(where: WhereInput): String
+    }
+  `);
+  const permissionSDL = `
+    schema { query: Query }
+    input WhereInput { foo: String, bar: Int }
+    type Query {
+      getThing(where: WhereInput @preset(value: {foo: null, bar: 1})): String
+    }
+  `;
+  const permissionsSchema = createPermissionsSchema(permissionSDL);
+  const argTree = parsePresetArgTreeFromSDL(permissionSDL, introspection);
+  const fields = buildRemoteSchemaFieldTree(introspection, permissionsSchema);
+  const sdl = composePermissionSDL(fields, argTree);
+
+  expect(sdl).toMatch(/foo:\s*null/);
+  expect(sdl).toMatch(/bar:\s*1/);
+});

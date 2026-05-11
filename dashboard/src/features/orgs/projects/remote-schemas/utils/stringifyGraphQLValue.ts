@@ -3,7 +3,7 @@ import type {
   ArgLeafType,
   ArgTreeType,
 } from '@/features/orgs/projects/remote-schemas/types';
-import parsePresetValue from './presetExpression/parsePresetValue';
+import parsePresetExpression from './presetExpression/parsePresetExpression';
 import serializePresetExpression from './presetExpression/serializePresetExpression';
 
 export interface FormatParamArgs {
@@ -15,5 +15,8 @@ export default function stringifyGraphQLValue({
   argName,
   arg,
 }: FormatParamArgs): string | undefined {
-  return serializePresetExpression(parsePresetValue(argName, arg.type), arg);
+  return serializePresetExpression(
+    parsePresetExpression(argName, arg.type),
+    arg,
+  );
 }

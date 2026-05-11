@@ -43,10 +43,10 @@ import {
   SDL_TYPE_KEYWORDS,
 } from '@/features/orgs/projects/remote-schemas/utils/constants';
 import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas/utils/createPermissionsSchema';
-import formatPresetForInput from '@/features/orgs/projects/remote-schemas/utils/formatPresetForInput';
 import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
@@ -227,17 +227,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
           if (currentField.args) {
             Object.values(currentField.args).forEach((arg) => {
-              let argTypeString = '';
-              if (typeof arg === 'object' && arg.type) {
-                if (typeof arg.type === 'string') {
-                  argTypeString = arg.type;
-                } else if (arg.type.toString) {
-                  argTypeString = arg.type.toString();
-                }
-              }
-
-              const argBaseType = getBaseTypeName(argTypeString);
-
+              const argBaseType = getBaseTypeName(arg.type.toString());
               if (argBaseType && !BUILT_IN_SCALARS.has(argBaseType)) {
                 typesToCheck.add(argBaseType);
               }
@@ -323,14 +313,14 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         const typeBucket = {
           ...(prev[schemaTypeName] as ArgTreeType | undefined),
         };
-        if (Object.keys(fieldBucket).length === 0) {
+        if (isEmptyValue(fieldBucket)) {
           delete typeBucket[fieldName];
         } else {
           typeBucket[fieldName] = fieldBucket;
         }
 
         const next = { ...prev };
-        if (Object.keys(typeBucket).length === 0) {
+        if (isEmptyValue(typeBucket)) {
           delete next[schemaTypeName];
         } else {
           next[schemaTypeName] = typeBucket;
@@ -349,7 +339,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
           key={arg.name}
           arg={arg}
           rawValue={rawValue}
-          presetValue={formatPresetForInput(rawValue)}
           sessionVariableOptions={sessionVariableOptions}
           onValueChange={(value) =>
             setPresetValue(schemaTypeName, fieldName, arg.name, value)
@@ -639,14 +628,19 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                   actualFieldIndex,
                                                   isChecked,
                                                 );
-                                                setOpenAccordionItems((prev) =>
-                                                  isChecked
-                                                    ? prev.includes(fieldKey)
-                                                      ? prev
-                                                      : [...prev, fieldKey]
-                                                    : prev.filter(
+                                                setOpenAccordionItems(
+                                                  (prev) => {
+                                                    if (!isChecked) {
+                                                      return prev.filter(
                                                         (k) => k !== fieldKey,
-                                                      ),
+                                                      );
+                                                    }
+                                                    return prev.includes(
+                                                      fieldKey,
+                                                    )
+                                                      ? prev
+                                                      : [...prev, fieldKey];
+                                                  },
                                                 );
                                               }}
                                               className="peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"

@@ -22,12 +22,12 @@ import type {
   ArgLeafType,
   ArgTreeType,
 } from '@/features/orgs/projects/remote-schemas/types';
+import formatPresetForInput from '@/features/orgs/projects/remote-schemas/utils/formatPresetForInput';
 import getArgPresetCapabilities from '@/features/orgs/projects/remote-schemas/utils/getArgPresetCapabilities';
 
 interface PresetValueInputProps {
   arg: GraphQLArgument;
   rawValue: ArgLeafType | ArgTreeType | undefined;
-  presetValue: string;
   sessionVariableOptions: string[];
   onValueChange: (value: ArgLeafType | undefined) => void;
 }
@@ -35,11 +35,11 @@ interface PresetValueInputProps {
 export default function PresetValueInput({
   arg,
   rawValue,
-  presetValue,
   sessionVariableOptions,
   onValueChange,
 }: PresetValueInputProps) {
   const cap = useMemo(() => getArgPresetCapabilities(arg), [arg]);
+  const presetValue = formatPresetForInput(rawValue);
 
   let placeholder = 'preset value';
   if (rawValue === null) {

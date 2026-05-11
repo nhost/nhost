@@ -2,7 +2,7 @@ import type { GraphQLInputField, GraphQLInputFieldMap } from 'graphql';
 import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import { isEmptyValue } from '@/lib/utils';
 import getInputFieldChildren from './getInputFieldChildren';
-import parsePresetValue from './presetExpression/parsePresetValue';
+import parsePresetExpression from './presetExpression/parsePresetExpression';
 import serializePresetExpression from './presetExpression/serializePresetExpression';
 
 export default function stringifyGraphQLInputObject(
@@ -21,7 +21,7 @@ export default function stringifyGraphQLInputObject(
 
   const entries: string[] = [];
   for (const [key, value] of Object.entries(args)) {
-    if (isEmptyValue(value)) {
+    if (value === undefined) {
       continue;
     }
     const gqlArg = gqlArgs[key];
@@ -29,7 +29,7 @@ export default function stringifyGraphQLInputObject(
       continue;
     }
     const literal = serializePresetExpression(
-      parsePresetValue(value, gqlArg.type),
+      parsePresetExpression(value, gqlArg.type),
       gqlArg,
     );
     if (literal !== undefined) {

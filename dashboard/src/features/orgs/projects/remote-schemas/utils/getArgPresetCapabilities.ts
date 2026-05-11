@@ -4,6 +4,7 @@ import {
   GraphQLEnumType,
   type GraphQLEnumValue,
   GraphQLFloat,
+  GraphQLInputObjectType,
   GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
@@ -28,12 +29,14 @@ export default function getArgPresetCapabilities(
   const isEnum = baseType instanceof GraphQLEnumType;
   const isBoolean = baseType === GraphQLBoolean;
   const isNumeric = baseType === GraphQLInt || baseType === GraphQLFloat;
+  const isInputObject = baseType instanceof GraphQLInputObjectType;
 
   return {
     enumValues: !isList && isEnum ? baseType.getValues() : null,
     acceptsBoolean: !isList && isBoolean,
     acceptsNull: !(arg.type instanceof GraphQLNonNull),
-    acceptsEmptyString: !isList && !isBoolean && !isNumeric && !isEnum,
+    acceptsEmptyString:
+      !isList && !isBoolean && !isNumeric && !isEnum && !isInputObject,
     acceptsSessionVariable:
       !isList && (baseType instanceof GraphQLScalarType || isEnum),
   };

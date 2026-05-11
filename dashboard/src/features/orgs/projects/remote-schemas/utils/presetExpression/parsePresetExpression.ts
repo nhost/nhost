@@ -10,41 +10,17 @@ import {
 import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import { isSessionVariable } from '@/features/orgs/projects/remote-schemas/utils/constants';
 import unwrapNamedType from '@/features/orgs/projects/remote-schemas/utils/unwrapNamedType';
-import { isJSONString } from '@/lib/utils';
 import type { PresetExpression } from './types';
 
-function tryParseJSONArray(value: string): unknown[] | null {
-  if (!isJSONString(value)) {
-    return null;
-  }
+function tryParseJSON(value: string): unknown {
   try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : null;
+    return JSON.parse(value);
   } catch {
-    return null;
+    return undefined;
   }
 }
 
-function tryParseJSONObject(value: string): Record<string, unknown> | null {
-  if (!isJSONString(value)) {
-    return null;
-  }
-  try {
-    const parsed = JSON.parse(value);
-    if (
-      parsed === null ||
-      typeof parsed !== 'object' ||
-      Array.isArray(parsed)
-    ) {
-      return null;
-    }
-    return parsed as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
-export default function parsePresetValue(
+export default function parsePresetExpression(
   rawValue: unknown,
   argType: GraphQLInputType,
 ): PresetExpression {
@@ -55,7 +31,7 @@ export default function parsePresetValue(
   if (Array.isArray(rawValue)) {
     return {
       kind: 'list',
-      items: rawValue.map((item) => parsePresetValue(item, argType)),
+      items: rawValue.map((item) => parsePresetExpression(item, argType)),
     };
   }
 
@@ -68,12 +44,12 @@ export default function parsePresetValue(
   }
 
   if (typeof rawValue === 'string' && argType instanceof GraphQLList) {
-    const items = tryParseJSONArray(rawValue);
-    if (items) {
+    const parsed = tryParseJSON(rawValue);
+    if (Array.isArray(parsed)) {
       const inner = argType.ofType as GraphQLInputType;
       return {
         kind: 'list',
-        items: items.map((item) => parsePresetValue(item, inner)),
+        items: parsed.map((item) => parsePresetExpression(item, inner)),
       };
     }
   }
@@ -84,9 +60,13 @@ export default function parsePresetValue(
     typeof rawValue === 'string' &&
     baseType instanceof GraphQLInputObjectType
   ) {
-    const entries = tryParseJSONObject(rawValue);
-    if (entries) {
-      return { kind: 'object', entries: entries as ArgTreeType };
+    const parsed = tryParseJSON(rawValue);
+    if (
+      parsed !== null &&
+      typeof parsed === 'object' &&
+      !Array.isArray(parsed)
+    ) {
+      return { kind: 'object', entries: parsed as ArgTreeType };
     }
   }
 

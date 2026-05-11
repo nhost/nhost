@@ -7,6 +7,9 @@ const schema = buildSchema(`
     USER
   }
   scalar UUID
+  input WhereInput {
+    eq: String
+  }
   type Query {
     test(
       flag: Boolean
@@ -27,6 +30,8 @@ const schema = buildSchema(`
       ints: [Int]
       bools: [Boolean!]!
       enums: [Role!]
+      where: WhereInput
+      whereRequired: WhereInput!
     ): String
   }
 `);
@@ -128,6 +133,11 @@ describe('acceptsEmptyString', () => {
     expect(caps('tags').acceptsEmptyString).toBe(false);
     expect(caps('ints').acceptsEmptyString).toBe(false);
   });
+
+  test('false for input-object types (cannot emit "" on an input-object arg)', () => {
+    expect(caps('where').acceptsEmptyString).toBe(false);
+    expect(caps('whereRequired').acceptsEmptyString).toBe(false);
+  });
 });
 
 describe('acceptsSessionVariable', () => {
@@ -149,5 +159,10 @@ describe('acceptsSessionVariable', () => {
     expect(caps('tags').acceptsSessionVariable).toBe(false);
     expect(caps('enums').acceptsSessionVariable).toBe(false);
     expect(caps('bools').acceptsSessionVariable).toBe(false);
+  });
+
+  test('false for input-object types', () => {
+    expect(caps('where').acceptsSessionVariable).toBe(false);
+    expect(caps('whereRequired').acceptsSessionVariable).toBe(false);
   });
 });
