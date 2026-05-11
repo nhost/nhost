@@ -129,3 +129,116 @@ test('Float preset value 3.14 round-trips unquoted', () => {
   expect(sdl).toContain('@preset(value: 3.14)');
   expect(sdl).not.toContain('@preset(value: "3.14")');
 });
+
+test('String field with quoted "true" preset round-trips quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: "true"), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "true")');
+  expect(sdl).not.toContain('@preset(value: true)');
+});
+
+test('String field with quoted "false" preset round-trips quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: "false"), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "false")');
+  expect(sdl).not.toContain('@preset(value: false)');
+});
+
+test('String field with quoted numeric preset "5431" round-trips quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: "5431"), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "5431")');
+  expect(sdl).not.toContain('@preset(value: 5431)');
+});
+
+test('String field with quoted "null" preset round-trips quoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: "null"), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: "null")');
+  expect(sdl).not.toContain('@preset(value: null)');
+});
+
+test('Boolean field with null preset round-trips unquoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean @preset(value: null), count: Int, pi: Float, name: String, sessionVar: String): String
+    }
+  `);
+  expect(sdl).toContain('@preset(value: null)');
+  expect(sdl).not.toContain('@preset(value: "null")');
+});
+
+test('nullable String field with null preset round-trips unquoted', () => {
+  const sdl = roundTrip(`
+    schema { query: Query }
+    type Query {
+      getThing(force: Boolean, count: Int, pi: Float, name: String @preset(value: null), sessionVar: String): String
+    }
+  `);
+  expect(sdl).toMatch(/name\s*:\s*String\s*@preset\(value:\s*null\s*\)/);
+  expect(sdl).not.toContain('@preset(value: "null")');
+});
+
+test('legacy JSON-object string preset on input-object arg rehydrates to a structured object literal', () => {
+  const introspection = buildSchema(`
+    input WhereInput { foo: String, bar: Int }
+    type Query {
+      getThing(where: WhereInput): String
+    }
+  `);
+  const permissionSDL = `
+    schema { query: Query }
+    input WhereInput { foo: String, bar: Int }
+    type Query {
+      getThing(where: WhereInput @preset(value: "{\\"foo\\":\\"hello\\",\\"bar\\":1}")): String
+    }
+  `;
+  const permissionsSchema = createPermissionsSchema(permissionSDL);
+  const argTree = parsePresetArgTreeFromSDL(permissionSDL, introspection);
+  const fields = buildRemoteSchemaFieldTree(introspection, permissionsSchema);
+  const sdl = composePermissionSDL(fields, argTree);
+
+  expect(sdl).toMatch(/foo:\s*"hello"/);
+  expect(sdl).toMatch(/bar:\s*1/);
+  expect(sdl).not.toMatch(/@preset\(value:\s*"\{/);
+});
+
+test('nested null on input-object field survives a no-op round-trip', () => {
+  const introspection = buildSchema(`
+    input WhereInput { foo: String, bar: Int }
+    type Query {
+      getThing(where: WhereInput): String
+    }
+  `);
+  const permissionSDL = `
+    schema { query: Query }
+    input WhereInput { foo: String, bar: Int }
+    type Query {
+      getThing(where: WhereInput @preset(value: {foo: null, bar: 1})): String
+    }
+  `;
+  const permissionsSchema = createPermissionsSchema(permissionSDL);
+  const argTree = parsePresetArgTreeFromSDL(permissionSDL, introspection);
+  const fields = buildRemoteSchemaFieldTree(introspection, permissionsSchema);
+  const sdl = composePermissionSDL(fields, argTree);
+
+  expect(sdl).toMatch(/foo:\s*null/);
+  expect(sdl).toMatch(/bar:\s*1/);
+});

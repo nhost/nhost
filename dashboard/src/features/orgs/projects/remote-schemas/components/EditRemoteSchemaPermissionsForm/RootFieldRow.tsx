@@ -1,5 +1,4 @@
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
-import type { GraphQLArgument } from 'graphql';
 import { Check } from 'lucide-react';
 import { memo } from 'react';
 import { Text } from '@/components/ui/v2/Text';
@@ -10,18 +9,18 @@ import {
 } from '@/components/ui/v3/accordion';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import type {
+  ArgLeafType,
   ArgTreeType,
   CustomFieldType,
   FieldType,
 } from '@/features/orgs/projects/remote-schemas/types';
-import formatPresetForInput from './formatPresetForInput';
-import PresetArgRow from './PresetArgRow';
+import PresetValueInput from './PresetValueInput';
 
 export interface RootFieldRowProps {
   schemaTypeName: string;
   field: FieldType | CustomFieldType;
   argTree: ArgTreeType;
-  getArgTypeString: (arg: GraphQLArgument) => string;
+  sessionVariableOptions: string[];
   onFieldToggle: (
     schemaTypeName: string,
     fieldName: string,
@@ -31,7 +30,7 @@ export interface RootFieldRowProps {
     schemaTypeName: string,
     fieldName: string,
     argName: string,
-    value: string,
+    value: ArgLeafType | undefined,
   ) => void;
 }
 
@@ -40,7 +39,7 @@ const RootFieldRow = memo(
     schemaTypeName,
     field,
     argTree,
-    getArgTypeString,
+    sessionVariableOptions,
     onFieldToggle,
     onPresetCommit,
   }: RootFieldRowProps) => {
@@ -56,6 +55,7 @@ const RootFieldRow = memo(
               <CheckboxPrimitive.Root
                 asChild
                 id={fieldKey}
+                aria-label={field.name}
                 checked={field.checked}
                 onCheckedChange={(checked) =>
                   onFieldToggle(schemaTypeName, field.name, checked as boolean)
@@ -81,16 +81,14 @@ const RootFieldRow = memo(
                 Arguments:
               </Text>
               {args.map((arg) => (
-                <PresetArgRow
+                <PresetValueInput
                   key={arg.name}
-                  schemaTypeName={schemaTypeName}
-                  fieldName={field.name}
                   arg={arg}
-                  argTypeString={getArgTypeString(arg)}
-                  initialValue={formatPresetForInput(
-                    argTree?.[schemaTypeName]?.[field.name]?.[arg.name],
-                  )}
-                  onCommit={onPresetCommit}
+                  rawValue={argTree?.[schemaTypeName]?.[field.name]?.[arg.name]}
+                  sessionVariableOptions={sessionVariableOptions}
+                  onValueChange={(value) =>
+                    onPresetCommit(schemaTypeName, field.name, arg.name, value)
+                  }
                 />
               ))}
             </div>

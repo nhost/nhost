@@ -1,20 +1,19 @@
-import type { GraphQLArgument } from 'graphql';
 import { memo } from 'react';
 import { Text } from '@/components/ui/v2/Text';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import type {
+  ArgLeafType,
   ArgTreeType,
   CustomFieldType,
   FieldType,
 } from '@/features/orgs/projects/remote-schemas/types';
-import formatPresetForInput from './formatPresetForInput';
-import PresetArgRow from './PresetArgRow';
+import PresetValueInput from './PresetValueInput';
 
 export interface CustomFieldRowProps {
   schemaTypeName: string;
   field: FieldType | CustomFieldType;
   argTree: ArgTreeType;
-  getArgTypeString: (arg: GraphQLArgument) => string;
+  sessionVariableOptions: string[];
   onFieldToggle: (
     schemaTypeName: string,
     fieldName: string,
@@ -24,7 +23,7 @@ export interface CustomFieldRowProps {
     schemaTypeName: string,
     fieldName: string,
     argName: string,
-    value: string,
+    value: ArgLeafType | undefined,
   ) => void;
 }
 
@@ -33,7 +32,7 @@ const CustomFieldRow = memo(
     schemaTypeName,
     field,
     argTree,
-    getArgTypeString,
+    sessionVariableOptions,
     onFieldToggle,
     onPresetCommit,
   }: CustomFieldRowProps) => {
@@ -72,16 +71,14 @@ const CustomFieldRow = memo(
               Arguments:
             </Text>
             {args.map((arg) => (
-              <PresetArgRow
+              <PresetValueInput
                 key={arg.name}
-                schemaTypeName={schemaTypeName}
-                fieldName={field.name}
                 arg={arg}
-                argTypeString={getArgTypeString(arg)}
-                initialValue={formatPresetForInput(
-                  argTree?.[schemaTypeName]?.[field.name]?.[arg.name],
-                )}
-                onCommit={onPresetCommit}
+                rawValue={argTree?.[schemaTypeName]?.[field.name]?.[arg.name]}
+                sessionVariableOptions={sessionVariableOptions}
+                onValueChange={(value) =>
+                  onPresetCommit(schemaTypeName, field.name, arg.name, value)
+                }
               />
             ))}
           </div>

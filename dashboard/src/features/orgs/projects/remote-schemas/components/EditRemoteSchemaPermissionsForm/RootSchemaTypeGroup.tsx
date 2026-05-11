@@ -1,8 +1,8 @@
-import type { GraphQLArgument } from 'graphql';
 import { memo } from 'react';
 import { Text } from '@/components/ui/v2/Text';
 import { Accordion } from '@/components/ui/v3/accordion';
 import type {
+  ArgLeafType,
   ArgTreeType,
   CustomFieldType,
   FieldType,
@@ -15,7 +15,7 @@ export interface RootSchemaTypeGroupProps {
     children?: ReadonlyArray<FieldType | CustomFieldType>;
   };
   argTree: ArgTreeType;
-  getArgTypeString: (arg: GraphQLArgument) => string;
+  sessionVariableOptions: string[];
   onFieldToggle: (
     schemaTypeName: string,
     fieldName: string,
@@ -25,7 +25,7 @@ export interface RootSchemaTypeGroupProps {
     schemaTypeName: string,
     fieldName: string,
     argName: string,
-    value: string,
+    value: ArgLeafType | undefined,
   ) => void;
 }
 
@@ -33,7 +33,7 @@ const RootSchemaTypeGroup = memo(
   ({
     schemaType,
     argTree,
-    getArgTypeString,
+    sessionVariableOptions,
     onFieldToggle,
     onPresetCommit,
   }: RootSchemaTypeGroupProps) => (
@@ -49,7 +49,7 @@ const RootSchemaTypeGroup = memo(
               schemaTypeName={schemaType.name}
               field={field}
               argTree={argTree}
-              getArgTypeString={getArgTypeString}
+              sessionVariableOptions={sessionVariableOptions}
               onFieldToggle={onFieldToggle}
               onPresetCommit={onPresetCommit}
             />

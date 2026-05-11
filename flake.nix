@@ -265,6 +265,9 @@
               # docs
               vale
 
+              # nix
+              nixfmt
+
               # internal packages
               self.packages.${system}.codegen
               self.packages.${system}.govulncheck-wrapper
@@ -334,8 +337,8 @@
           dashboard-docker-image = dashboardf.dockerImage;
           demos = demosf.package;
           functions = functionsf.package;
-          functions-node22-docker-image = functionsf.dockerImage;
-          functions-node20-docker-image = functionsf.node20DockerImage;
+          functions-node22-docker-image = functionsf.node22DockerImage;
+          functions-node24-docker-image = functionsf.node24DockerImage;
           guides = guidesf.package;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;

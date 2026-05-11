@@ -16,7 +16,6 @@ import type { FileUploadButtonProps } from '@/features/orgs/projects/storage/dat
 import { FileUploadButton } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
 import { cn } from '@/lib/utils';
 import type { Files } from '@/utils/__generated__/graphql';
-import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
 
 export interface FilesDataGridControlsProps {
@@ -76,10 +75,7 @@ export default function FilesDataGridControls({
         selectedFiles.map((file) =>
           appClient.storage.deleteFile(file.original.id, {
             headers: {
-              'x-hasura-admin-secret':
-                process.env.NEXT_PUBLIC_ENV === 'dev'
-                  ? getHasuraAdminSecret()
-                  : project!.config!.hasura.adminSecret,
+              'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
             },
           }),
         ),

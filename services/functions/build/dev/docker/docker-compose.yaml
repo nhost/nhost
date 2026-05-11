@@ -1,25 +1,9 @@
 services:
-  functions-node20:
-    image: functions:20-0.0.0-dev
-    container_name: functions-node20
-    ports:
-      - "3001:3000"
-    volumes:
-      - ../../../example-pnpm:/opt/project
-      - node20_project_node_modules:/opt/project/node_modules
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-S", "http://localhost:3000/healthz"]
-      interval: 5s
-      timeout: 10s
-      retries: 20
-      start_period: 30s
-    restart: unless-stopped
-
   functions-node22:
     image: functions:22-0.0.0-dev
     container_name: functions-node22
     ports:
-      - "3002:3000"
+      - "3001:3000"
     volumes:
       - ../../../example-pnpm:/opt/project
       - node22_project_node_modules:/opt/project/node_modules
@@ -31,8 +15,24 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  functions-node24:
+    image: functions:24-0.0.0-dev
+    container_name: functions-node24
+    ports:
+      - "3002:3000"
+    volumes:
+      - ../../../example-pnpm:/opt/project
+      - node24_project_node_modules:/opt/project/node_modules
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-S", "http://localhost:3000/healthz"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
   functions-npm:
-    image: functions:22-0.0.0-dev
+    image: functions:24-0.0.0-dev
     container_name: functions-npm
     ports:
       - "3003:3000"
@@ -48,7 +48,7 @@ services:
     restart: unless-stopped
 
   functions-yarn:
-    image: functions:22-0.0.0-dev
+    image: functions:24-0.0.0-dev
     container_name: functions-yarn
     ports:
       - "3004:3000"
@@ -65,6 +65,6 @@ services:
 
 volumes:
   node22_project_node_modules:
-  node20_project_node_modules:
+  node24_project_node_modules:
   npm_project_node_modules:
   yarn_project_node_modules:

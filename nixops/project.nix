@@ -45,6 +45,7 @@ let
     clang
     pkg-config
     nodejs
+    nodePackages.vercel
   ];
 
   nativeBuildInputs = [ ];

@@ -1,9 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  buildClientSchema,
-  type GraphQLArgument,
-  type GraphQLSchema,
-} from 'graphql';
+import { buildClientSchema, type GraphQLSchema } from 'graphql';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -16,21 +12,30 @@ import { Text } from '@/components/ui/v2/Text';
 import { Form } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { useAddRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useAddRemoteSchemaPermissionsMutation';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import { useRemoveRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaPermissionsMutation';
 import { useUpdateRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useUpdateRemoteSchemaPermissionsMutation';
 import type {
+  ArgLeafType,
   ArgTreeType,
   RemoteSchemaFields,
 } from '@/features/orgs/projects/remote-schemas/types';
 import buildRemoteSchemaFieldTree from '@/features/orgs/projects/remote-schemas/utils/buildRemoteSchemaFieldTree';
 import composePermissionSDL from '@/features/orgs/projects/remote-schemas/utils/composePermissionSDL';
+import {
+  BUILT_IN_SCALARS,
+  SDL_TYPE_KEYWORDS,
+} from '@/features/orgs/projects/remote-schemas/utils/constants';
 import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas/utils/createPermissionsSchema';
 import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
+import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
 import CustomSchemaTypeGroup from './CustomSchemaTypeGroup';
 import RootSchemaTypeGroup from './RootSchemaTypeGroup';
@@ -83,17 +88,20 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
-  const getArgTypeString = useCallback((arg: GraphQLArgument): string => {
-    const t = arg?.type;
-    if (typeof t === 'string') {
-      return t;
-    }
-    if (t?.toString) {
-      return t.toString();
-    }
-
-    return String(t ?? '');
-  }, []);
+  const { project } = useProject();
+  const { data: permissionVariablesData } = useGetRolesPermissionsQuery({
+    variables: { appId: project?.id },
+    skip: !project?.id,
+  });
+  const customClaims =
+    permissionVariablesData?.config?.auth?.session?.accessToken?.customClaims;
+  const sessionVariableOptions = useMemo(
+    () =>
+      getAllPermissionVariables(customClaims).map(
+        ({ key }) => `X-Hasura-${key}`,
+      ),
+    [customClaims],
+  );
 
   const countVisible = useCallback(
     (list: RemoteSchemaFields[]) =>
@@ -197,33 +205,14 @@ export default function RemoteSchemaRolePermissionsEditorForm({
           const typesToCheck = new Set<string>();
 
           const returnBaseType = getBaseTypeName(currentField.return);
-          if (
-            !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
-              returnBaseType,
-            )
-          ) {
+          if (!BUILT_IN_SCALARS.has(returnBaseType)) {
             typesToCheck.add(returnBaseType);
           }
 
           if (currentField.args) {
             Object.values(currentField.args).forEach((arg) => {
-              let argTypeString = '';
-              if (typeof arg === 'object' && arg.type) {
-                if (typeof arg.type === 'string') {
-                  argTypeString = arg.type;
-                } else if (arg.type.toString) {
-                  argTypeString = arg.type.toString();
-                }
-              }
-
-              const argBaseType = getBaseTypeName(argTypeString);
-
-              if (
-                argBaseType &&
-                !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
-                  argBaseType,
-                )
-              ) {
+              const argBaseType = getBaseTypeName(arg.type.toString());
+              if (argBaseType && !BUILT_IN_SCALARS.has(argBaseType)) {
                 typesToCheck.add(argBaseType);
               }
             });
@@ -239,18 +228,13 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
             visited.add(baseType);
 
-            const typeNames = [
-              `type ${baseType}`,
-              `input ${baseType}`,
-              `enum ${baseType}`,
-              `scalar ${baseType}`,
-              `union ${baseType}`,
-              `interface ${baseType}`,
-            ];
-
-            const depTypeIndex = newFields.findIndex((type) =>
-              typeNames.includes(type.name),
-            );
+            const depTypeIndex = newFields.findIndex((type) => {
+              const [keyword] = type.name.split(' ');
+              return (
+                SDL_TYPE_KEYWORDS.has(keyword) &&
+                type.name === `${keyword} ${baseType}`
+              );
+            });
 
             if (depTypeIndex !== -1) {
               const hasUncheckedFields = (
@@ -271,11 +255,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 newFields[depTypeIndex].children?.forEach((childField) => {
                   if (childField.return) {
                     const childBaseType = getBaseTypeName(childField.return);
-                    if (
-                      !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
-                        childBaseType,
-                      )
-                    ) {
+                    if (!BUILT_IN_SCALARS.has(childBaseType)) {
                       checkTypeDependencies(childBaseType, visited);
                     }
                   }
@@ -295,37 +275,42 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     [],
   );
 
-  const handlePresetChange = useCallback(
+  const setPresetValue = useCallback(
     (
       schemaTypeName: string,
       fieldName: string,
       argName: string,
-      value: string,
+      value: ArgLeafType | undefined,
     ) => {
-      const prev = argTreeRef.current;
-      const newArgTree = { ...prev };
-      if (!newArgTree[schemaTypeName]) {
-        newArgTree[schemaTypeName] = {};
-      }
-      if (!newArgTree[schemaTypeName][fieldName]) {
-        newArgTree[schemaTypeName][fieldName] = {};
-      }
-
-      if (value.trim() === '') {
-        delete newArgTree[schemaTypeName][fieldName][argName];
-
-        if (Object.keys(newArgTree[schemaTypeName][fieldName]).length === 0) {
-          delete newArgTree[schemaTypeName][fieldName];
+      setArgTree((prev) => {
+        const fieldBucket = {
+          ...((prev[schemaTypeName] as ArgTreeType | undefined)?.[fieldName] as
+            | ArgTreeType
+            | undefined),
+        };
+        if (value === undefined) {
+          delete fieldBucket[argName];
+        } else {
+          fieldBucket[argName] = value;
         }
-        if (Object.keys(newArgTree[schemaTypeName]).length === 0) {
-          delete newArgTree[schemaTypeName];
-        }
-      } else {
-        newArgTree[schemaTypeName][fieldName][argName] = value;
-      }
 
-      argTreeRef.current = newArgTree;
-      setArgTree(newArgTree);
+        const typeBucket = {
+          ...(prev[schemaTypeName] as ArgTreeType | undefined),
+        };
+        if (isEmptyValue(fieldBucket)) {
+          delete typeBucket[fieldName];
+        } else {
+          typeBucket[fieldName] = fieldBucket;
+        }
+
+        const next = { ...prev };
+        if (isEmptyValue(typeBucket)) {
+          delete next[schemaTypeName];
+        } else {
+          next[schemaTypeName] = typeBucket;
+        }
+        return next;
+      });
     },
     [],
   );
@@ -569,9 +554,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                           key={schemaType.name}
                           schemaType={schemaType}
                           argTree={argTree}
-                          getArgTypeString={getArgTypeString}
+                          sessionVariableOptions={sessionVariableOptions}
                           onFieldToggle={handleFieldToggle}
-                          onPresetCommit={handlePresetChange}
+                          onPresetCommit={setPresetValue}
                         />
                       ))}
 
@@ -595,9 +580,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                           key={schemaType.name}
                           schemaType={schemaType}
                           argTree={argTree}
-                          getArgTypeString={getArgTypeString}
+                          sessionVariableOptions={sessionVariableOptions}
                           onFieldToggle={handleFieldToggle}
-                          onPresetCommit={handlePresetChange}
+                          onPresetCommit={setPresetValue}
                         />
                       ))}
 

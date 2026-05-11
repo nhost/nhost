@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { FetchFunctionDefinitionReturnType } from './fetchFunctionDefinition';
 import fetchFunctionDefinition from './fetchFunctionDefinition';
 
@@ -45,10 +44,7 @@ export default function useFunctionQuery(
 
       return fetchFunctionDefinition({
         appUrl: customAppUrl || appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : customAdminSecret || project!.config!.hasura.adminSecret,
+        adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         functionOID,
       });

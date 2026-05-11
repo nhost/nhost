@@ -1,6 +1,17 @@
 import { vi } from 'vitest';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
+import {
+  mockPointerEvent,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import DataBrowserSidebar from './DataBrowserSidebar';
+
+mockPointerEvent();
+
+const DIRTY_MESSAGE =
+  'You have unsaved local changes. Are you sure you want to discard them?';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -8,9 +19,21 @@ const mocks = vi.hoisted(() => ({
   useProject: vi.fn(),
   useDatabaseQuery: vi.fn(),
   useGetEnumsSet: vi.fn(),
-  useDataBrowserActions: vi.fn(),
   useGetTrackedTablesSet: vi.fn(),
   useGetTrackedFunctionsSet: vi.fn(),
+  useDeleteDatabaseObjectWithToastMutation: vi.fn(),
+  useFunctionQuery: vi.fn(),
+  useTrackFunctionWithTableToast: vi.fn(),
+  useFunctionCustomizationQuery: vi.fn(),
+  useSetFunctionCustomizationMutation: vi.fn(),
+  useIsTrackedTable: vi.fn(),
+  useGetMetadataResourceVersion: vi.fn(),
+  useSetTableTrackingMutation: vi.fn(),
+  useTableCustomizationQuery: vi.fn(),
+  useSetTableCustomizationMutation: vi.fn(),
+  useTableSchemaQuery: vi.fn(),
+  useTableIsEnumQuery: vi.fn(),
+  useSetTableIsEnumMutation: vi.fn(),
 }));
 
 vi.mock('next/router', () => ({
@@ -40,13 +63,6 @@ vi.mock(
 );
 
 vi.mock(
-  '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions',
-  () => ({
-    useDataBrowserActions: mocks.useDataBrowserActions,
-  }),
-);
-
-vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet',
   () => ({
     useGetTrackedTablesSet: mocks.useGetTrackedTablesSet,
@@ -57,6 +73,99 @@ vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedFunctionsSet',
   () => ({
     useGetTrackedFunctionsSet: mocks.useGetTrackedFunctionsSet,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useDeleteDatabaseObjectMutation',
+  () => ({
+    useDeleteDatabaseObjectWithToastMutation:
+      mocks.useDeleteDatabaseObjectWithToastMutation,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery',
+  () => ({
+    useFunctionQuery: mocks.useFunctionQuery,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useTrackFunctionWithTable',
+  () => ({
+    useTrackFunctionWithTableToast: mocks.useTrackFunctionWithTableToast,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery',
+  () => ({
+    useFunctionCustomizationQuery: mocks.useFunctionCustomizationQuery,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useSetFunctionCustomizationMutation',
+  () => ({
+    useSetFunctionCustomizationMutation:
+      mocks.useSetFunctionCustomizationMutation,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable',
+  () => ({
+    useIsTrackedTable: mocks.useIsTrackedTable,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion',
+  () => ({
+    useGetMetadataResourceVersion: mocks.useGetMetadataResourceVersion,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation',
+  () => ({
+    useSetTableTrackingMutation: mocks.useSetTableTrackingMutation,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery',
+  () => ({
+    useTableCustomizationQuery: mocks.useTableCustomizationQuery,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation',
+  () => ({
+    useSetTableCustomizationMutation: mocks.useSetTableCustomizationMutation,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery',
+  () => ({
+    useTableSchemaQuery: mocks.useTableSchemaQuery,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useTableIsEnumQuery',
+  () => ({
+    useTableIsEnumQuery: mocks.useTableIsEnumQuery,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useSetTableIsEnumMutation',
+  () => ({
+    useSetTableIsEnumMutation: mocks.useSetTableIsEnumMutation,
   }),
 );
 
@@ -157,21 +266,65 @@ function setupMocks() {
   mocks.useGetEnumsSet.mockReturnValue({
     data: new Set(['public.status_enum']),
   });
-  mocks.useDataBrowserActions.mockReturnValue({
-    optimisticlyRemovedObject: undefined,
-    sidebarMenuObject: undefined,
-    setSidebarMenuObject: vi.fn(),
-    handleDeleteDatabaseObject: vi.fn(),
-    handleEditPermission: vi.fn(),
-    handleEditGraphQLSettings: vi.fn(),
-    handleEditRelationships: vi.fn(),
-    openEditTableDrawer: vi.fn(),
-    openEditViewDrawer: vi.fn(),
-    openEditFunctionDrawer: vi.fn(),
-    openCreateTableDrawer: vi.fn(),
-  });
   mocks.useGetTrackedTablesSet.mockReturnValue({ data: allTrackedPaths });
   mocks.useGetTrackedFunctionsSet.mockReturnValue({ data: allTrackedPaths });
+  mocks.useDeleteDatabaseObjectWithToastMutation.mockReturnValue({
+    mutateAsync: vi.fn(),
+  });
+  mocks.useFunctionQuery.mockReturnValue({
+    data: {
+      functionMetadata: {
+        functionType: 'STABLE',
+        returnTableName: 'user_profile',
+        returnTableSchema: 'public',
+      },
+    },
+  });
+  mocks.useTrackFunctionWithTableToast.mockReturnValue({
+    isTracked: true,
+    isReturnTableUntracked: false,
+    isPending: false,
+    trackFunctionWithToast: vi.fn(),
+    toggleTrackingFunctionWithToast: vi.fn(),
+  });
+  mocks.useFunctionCustomizationQuery.mockReturnValue({
+    data: { configuration: {} },
+    isLoading: false,
+    refetch: vi.fn(),
+  });
+  mocks.useSetFunctionCustomizationMutation.mockReturnValue({
+    mutateAsync: vi.fn(),
+  });
+  mocks.useIsTrackedTable.mockReturnValue({ data: true });
+  mocks.useGetMetadataResourceVersion.mockReturnValue({ data: 1 });
+  mocks.useSetTableTrackingMutation.mockReturnValue({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  });
+  mocks.useTableCustomizationQuery.mockReturnValue({
+    data: { column_config: { id: { custom_name: '' } } },
+    isLoading: false,
+    refetch: vi.fn(),
+  });
+  mocks.useSetTableCustomizationMutation.mockReturnValue({
+    mutateAsync: vi.fn(),
+  });
+  mocks.useTableSchemaQuery.mockReturnValue({
+    data: {
+      columns: [
+        { column_name: 'id', data_type: 'uuid', full_data_type: 'uuid' },
+      ],
+    },
+    isLoading: false,
+  });
+  mocks.useTableIsEnumQuery.mockReturnValue({
+    data: false,
+    isLoading: false,
+    refetch: vi.fn(),
+  });
+  mocks.useSetTableIsEnumMutation.mockReturnValue({
+    mutateAsync: vi.fn(),
+  });
 }
 
 function getVisibleObjectNames(): string[] {
@@ -297,5 +450,108 @@ describe('DataBrowserSidebar', () => {
       expect(names).not.toContain('posts');
       expect(names).not.toContain('search_users');
     });
+  });
+});
+
+async function openGraphQLSettingsDrawer(
+  user: TestUserEvent,
+  triggerId: string,
+  objectName: string,
+) {
+  await waitFor(() => {
+    expect(screen.getByText(objectName)).toBeInTheDocument();
+  });
+
+  const trigger = document.getElementById(triggerId);
+  expect(trigger).not.toBeNull();
+  await user.click(trigger as HTMLElement);
+
+  await user.click(
+    await screen.findByRole('menuitem', { name: /Edit GraphQL/ }),
+  );
+}
+
+describe('DataBrowserSidebar — discard guard for GraphQL settings drawer', () => {
+  beforeEach(() => {
+    setupMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('opens the discard modal when the function GraphQL settings drawer has unsaved changes', async () => {
+    const user = new TestUserEvent();
+    render(<DataBrowserSidebar />);
+
+    await openGraphQLSettingsDrawer(
+      user,
+      'function-management-menu-search_users',
+      'search_users',
+    );
+
+    const aggregateInput = await screen.findByPlaceholderText(
+      'search_users_aggregate (default)',
+    );
+    await user.type(aggregateInput, 'searchUsersAggregate');
+
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+
+    expect(await screen.findByText(DIRTY_MESSAGE)).toBeInTheDocument();
+  });
+
+  it('opens the discard modal when ColumnsNameCustomizationSection has unsaved changes', async () => {
+    const user = new TestUserEvent();
+    render(<DataBrowserSidebar />);
+
+    await openGraphQLSettingsDrawer(
+      user,
+      'table-management-menu-users',
+      'users',
+    );
+
+    const fieldNameInput = await screen.findByPlaceholderText('id (default)');
+    await user.type(fieldNameInput, 'identifier');
+
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+
+    expect(await screen.findByText(DIRTY_MESSAGE)).toBeInTheDocument();
+  });
+
+  it('opens the discard modal when CustomGraphQLRootFieldsSection has unsaved changes', async () => {
+    const user = new TestUserEvent();
+    render(<DataBrowserSidebar />);
+
+    await openGraphQLSettingsDrawer(
+      user,
+      'table-management-menu-users',
+      'users',
+    );
+
+    const customTableNameInput =
+      await screen.findByLabelText('Custom Table Name');
+    await user.type(customTableNameInput, 'CustomUsers');
+
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+
+    expect(await screen.findByText(DIRTY_MESSAGE)).toBeInTheDocument();
+  });
+
+  it('opens the discard modal when SetIsEnumSection has unsaved changes', async () => {
+    const user = new TestUserEvent();
+    render(<DataBrowserSidebar />);
+
+    await openGraphQLSettingsDrawer(
+      user,
+      'table-management-menu-users',
+      'users',
+    );
+
+    const switchControl = await screen.findByRole('switch');
+    await user.click(switchControl);
+
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+
+    expect(await screen.findByText(DIRTY_MESSAGE)).toBeInTheDocument();
   });
 });

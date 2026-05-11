@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   UpdateColumnOptions,
   UpdateColumnVariables,
@@ -53,10 +52,7 @@ export default function useUpdateColumnMutation({
     return mutationFn({
       ...variables,
       appUrl: customAppUrl || appUrl,
-      adminSecret:
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : customAdminSecret || project!.config!.hasura.adminSecret,
+      adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
       dataSource: customDataSource || (dataSourceSlug as string),
       schema: customSchema || (schemaSlug as string),
       table: customTable || (tableSlug as string),
