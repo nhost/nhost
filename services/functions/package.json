@@ -10,7 +10,7 @@
     "generate": "echo 'nothing to generate'",
     "test": "biome check . && jest --testTimeout=120000",
     "lint": "biome check .",
-    "lint:fix": "biome check --write . && echo hi"
+    "lint:fix": "biome check --write ."
   },
   "repository": {
     "type": "git",

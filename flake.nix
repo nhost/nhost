@@ -339,7 +339,6 @@
           functions = functionsf.package;
           functions-node22-docker-image = functionsf.node22DockerImage;
           functions-node24-docker-image = functionsf.node24DockerImage;
-          # functions-node26-docker-image = functionsf.node26DockerImage;
           guides = guidesf.package;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;

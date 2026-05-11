@@ -26,7 +26,6 @@ build-docker-image:  ## Build docker container for native architecture
 _dev-env-build:
 	$(MAKE) build-docker-image NODE_VERSION=22
 	$(MAKE) build-docker-image NODE_VERSION=24
-	# $(MAKE) build-docker-image NODE_VERSION=26
 
 
 .PHONY: _dev-env-up
