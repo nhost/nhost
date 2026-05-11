@@ -8,7 +8,7 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { getHasuraAdminSecret, getHasuraMigrationsApiUrl } from '@/utils/env';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import { parseIdentifiersFromSQL } from '@/utils/sql';
 
 export default function useRunSQL(
@@ -43,10 +43,7 @@ export default function useRunSQL(
     'hasura',
   );
 
-  const adminSecret =
-    process.env.NEXT_PUBLIC_ENV === 'dev'
-      ? getHasuraAdminSecret()
-      : project!.config!.hasura.adminSecret;
+  const adminSecret = project!.config!.hasura.adminSecret;
 
   const toastStyle = getToastStyleProps();
 

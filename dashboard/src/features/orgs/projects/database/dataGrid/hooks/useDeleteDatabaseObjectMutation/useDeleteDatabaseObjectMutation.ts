@@ -5,7 +5,6 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import fetchFunctionDefinition from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery/fetchFunctionDefinition';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   DeleteDatabaseObjectOptions,
   DeleteDatabaseObjectVariables,
@@ -65,9 +64,7 @@ export default function useDeleteDatabaseObjectMutation({
       );
       const finalAppUrl = customAppUrl || appUrl;
       const finalAdminSecret =
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : customAdminSecret || project!.config!.hasura.adminSecret;
+        customAdminSecret || project!.config!.hasura.adminSecret;
       const finalDataSource = customDataSource || (dataSourceSlug as string);
 
       let { inputArgTypes } = variables;

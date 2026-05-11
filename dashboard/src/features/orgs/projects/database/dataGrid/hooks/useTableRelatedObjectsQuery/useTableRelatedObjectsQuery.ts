@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { FetchTableRelatedObjectsReturnType } from './fetchTableRelatedObjects';
 import fetchTableRelatedObjects from './fetchTableRelatedObjects';
 
@@ -57,10 +56,7 @@ export default function useTableRelatedObjectsQuery(
       );
       return fetchTableRelatedObjects({
         appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : project!.config!.hasura.adminSecret,
+        adminSecret: project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string) || 'default',
         schema,
         table,
