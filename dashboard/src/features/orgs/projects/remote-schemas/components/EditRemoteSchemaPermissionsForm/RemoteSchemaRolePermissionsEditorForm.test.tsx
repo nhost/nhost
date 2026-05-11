@@ -52,6 +52,8 @@ interface MigrationStep {
   type: string;
   args?: {
     definition?: { schema?: string };
+    remote_schema?: string;
+    role?: string;
     [key: string]: unknown;
   };
 }
@@ -659,6 +661,53 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       const sdl = lastSavedSDL();
       expect(sdl).toMatch(/count\s*:\s*Int\s*@preset\(value:\s*5431\s*\)/);
       expect(sdl).not.toMatch(/@preset\(value:\s*"5431"\s*\)/);
+    });
+  });
+
+  describe('Create permission from scratch', () => {
+    test('checking a field expands its accordion and saving emits the typed preset', async () => {
+      renderForm();
+      const user = new TestUserEvent();
+      await screen.findByText('field_with_int');
+
+      const checkbox = screen.getByRole('checkbox', {
+        name: 'field_with_int',
+      });
+      await user.click(checkbox);
+      expect(checkbox).toBeChecked();
+
+      await screen.findByText('Arguments:');
+
+      await user.type(screen.getByPlaceholderText('preset value'), '42');
+
+      await clickSaveAndWaitForRequest(user);
+      const sdl = lastSavedSDL();
+      expect(sdl).toMatch(
+        /field_with_int.*count\s*:\s*Int\s*@preset\(value:\s*42\s*\)/s,
+      );
+    });
+  });
+
+  describe('Delete permission', () => {
+    test('confirming the Delete dialog sends a drop_remote_schema_permissions migration', async () => {
+      renderForm({
+        permission: permissionForField(
+          'field_with_int(count: Int @preset(value: 5431)): String',
+        ),
+      });
+      const user = new TestUserEvent();
+      await screen.findByText('field_with_int');
+
+      await user.click(
+        screen.getByRole('button', { name: 'Delete Permissions' }),
+      );
+      await user.click(await screen.findByRole('button', { name: 'Delete' }));
+
+      await waitFor(() => expect(capturedMigrations).toHaveLength(1));
+      const step = capturedMigrations[0].up?.[0];
+      expect(step?.type).toBe('drop_remote_schema_permissions');
+      expect(step?.args?.remote_schema).toBe(REMOTE_SCHEMA_NAME);
+      expect(step?.args?.role).toBe(TEST_ROLE);
     });
   });
 });

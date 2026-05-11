@@ -1,11 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import {
   buildClientSchema,
   type GraphQLArgument,
   type GraphQLSchema,
 } from 'graphql';
-import { Check } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -611,64 +609,57 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                         key={fieldKey}
                                         value={fieldKey}
                                       >
-                                        <AccordionTrigger className="justify-start py-2 text-left hover:no-underline">
-                                          <div className="flex w-full items-center justify-start space-x-2 text-left">
-                                            <CheckboxPrimitive.Root
-                                              asChild
-                                              id={fieldKey}
-                                              checked={field.checked}
-                                              onClick={(e) =>
-                                                e.stopPropagation()
-                                              }
-                                              onCheckedChange={(checked) => {
-                                                const isChecked =
-                                                  checked as boolean;
-                                                handleFieldToggle(
-                                                  actualSchemaIndex,
-                                                  actualFieldIndex,
-                                                  isChecked,
-                                                );
-                                                setOpenAccordionItems(
-                                                  (prev) => {
-                                                    if (!isChecked) {
-                                                      return prev.filter(
-                                                        (k) => k !== fieldKey,
-                                                      );
-                                                    }
-                                                    return prev.includes(
-                                                      fieldKey,
-                                                    )
-                                                      ? prev
-                                                      : [...prev, fieldKey];
-                                                  },
-                                                );
-                                              }}
-                                              className="peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                                            >
-                                              <span className="peer h-4 w-4 shrink-0 rounded-sm border border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground">
-                                                <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
-                                                  <Check className="h-4 w-4" />
-                                                </CheckboxPrimitive.Indicator>
-                                              </span>
-                                            </CheckboxPrimitive.Root>
-                                            <span className="font-medium">
-                                              {field.name}
-                                            </span>
-                                            <span className="text-gray-500 text-sm">
-                                              : {field.return}
-                                            </span>
-                                            <span className="text-gray-400 text-xs">
-                                              (
-                                              {Object.values(field.args).length}{' '}
-                                              arg
-                                              {Object.values(field.args)
-                                                .length > 1
-                                                ? 's'
-                                                : ''}
-                                              )
-                                            </span>
+                                        <div className="flex items-center gap-2">
+                                          <Checkbox
+                                            id={fieldKey}
+                                            aria-label={field.name}
+                                            checked={field.checked}
+                                            onCheckedChange={(checked) => {
+                                              const isChecked =
+                                                checked as boolean;
+                                              handleFieldToggle(
+                                                actualSchemaIndex,
+                                                actualFieldIndex,
+                                                isChecked,
+                                              );
+                                              setOpenAccordionItems((prev) => {
+                                                if (!isChecked) {
+                                                  return prev.filter(
+                                                    (k) => k !== fieldKey,
+                                                  );
+                                                }
+                                                return prev.includes(fieldKey)
+                                                  ? prev
+                                                  : [...prev, fieldKey];
+                                              });
+                                            }}
+                                          />
+                                          <div className="flex-1">
+                                            <AccordionTrigger className="justify-start py-2 text-left hover:no-underline">
+                                              <div className="flex w-full items-center justify-start space-x-2 text-left">
+                                                <span className="font-medium">
+                                                  {field.name}
+                                                </span>
+                                                <span className="text-gray-500 text-sm">
+                                                  : {field.return}
+                                                </span>
+                                                <span className="text-gray-400 text-xs">
+                                                  (
+                                                  {
+                                                    Object.values(field.args)
+                                                      .length
+                                                  }{' '}
+                                                  arg
+                                                  {Object.values(field.args)
+                                                    .length > 1
+                                                    ? 's'
+                                                    : ''}
+                                                  )
+                                                </span>
+                                              </div>
+                                            </AccordionTrigger>
                                           </div>
-                                        </AccordionTrigger>
+                                        </div>
                                         <AccordionContent>
                                           <div className="ml-6 space-y-2 border-gray-200 border-l-2 pl-4">
                                             <Text className="font-medium text-gray-700 text-sm">
