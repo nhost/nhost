@@ -21,18 +21,18 @@ function arg(name: string): GraphQLInputField {
   return found as GraphQLInputField;
 }
 
-test('null on nullable arg emits unquoted null', () => {
+it('null on nullable arg emits unquoted null', () => {
   expect(serializePresetExpression({ kind: 'null' }, arg('flag'))).toBe('null');
   expect(serializePresetExpression({ kind: 'null' }, arg('name'))).toBe('null');
 });
 
-test('null on non-null arg emits quoted "null"', () => {
+it('null on non-null arg emits quoted "null"', () => {
   expect(serializePresetExpression({ kind: 'null' }, arg('nameRequired'))).toBe(
     '"null"',
   );
 });
 
-test('boolean emits unquoted literal', () => {
+it('boolean emits unquoted literal', () => {
   expect(
     serializePresetExpression({ kind: 'boolean', value: true }, arg('flag')),
   ).toBe('true');
@@ -41,7 +41,7 @@ test('boolean emits unquoted literal', () => {
   ).toBe('false');
 });
 
-test('number emits unquoted literal', () => {
+it('number emits unquoted literal', () => {
   expect(
     serializePresetExpression({ kind: 'number', value: 5431 }, arg('flag')),
   ).toBe('5431');
@@ -53,13 +53,13 @@ test('number emits unquoted literal', () => {
   ).toBe('0');
 });
 
-test('enum emits unquoted name', () => {
+it('enum emits unquoted name', () => {
   expect(
     serializePresetExpression({ kind: 'enum', value: 'ADMIN' }, arg('name')),
   ).toBe('ADMIN');
 });
 
-test('sessionVariable emits quoted key', () => {
+it('sessionVariable emits quoted key', () => {
   expect(
     serializePresetExpression(
       { kind: 'sessionVariable', key: 'X-Hasura-User-Id' },
@@ -68,7 +68,7 @@ test('sessionVariable emits quoted key', () => {
   ).toBe('"X-Hasura-User-Id"');
 });
 
-test('string emits quoted value', () => {
+it('string emits quoted value', () => {
   expect(
     serializePresetExpression({ kind: 'string', value: 'hello' }, arg('name')),
   ).toBe('"hello"');
@@ -77,7 +77,7 @@ test('string emits quoted value', () => {
   ).toBe('""');
 });
 
-test('list serializes each item and wraps in brackets', () => {
+it('list serializes each item and wraps in brackets', () => {
   expect(
     serializePresetExpression(
       {

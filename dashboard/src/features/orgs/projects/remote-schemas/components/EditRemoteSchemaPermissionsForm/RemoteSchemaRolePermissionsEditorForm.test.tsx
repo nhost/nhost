@@ -221,7 +221,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
   });
 
   describe('Insert-literal menu visibility per arg type', () => {
-    test('nullable enum: null + enum + session vars; no "" / true / false', async () => {
+    it('nullable enum: null + enum + session vars; no "" / true / false', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_enum(state: TestState): String',
@@ -252,7 +252,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    test('non-null enum: enum + session vars; no null / "" / true / false', async () => {
+    it('non-null enum: enum + session vars; no null / "" / true / false', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_required_enum(state: TestState!): String',
@@ -280,7 +280,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    test('non-null String: "" + session vars; no null / true / false / enum', async () => {
+    it('non-null String: "" + session vars; no null / true / false / enum', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_required_string(name: String!): String',
@@ -308,7 +308,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    test('nullable Boolean: null + true/false + session vars; no "" / enum', async () => {
+    it('nullable Boolean: null + true/false + session vars; no "" / enum', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_boolean(force: Boolean): String',
@@ -339,7 +339,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    test('nullable String: null + "" + session vars; no true/false / enum', async () => {
+    it('nullable String: null + "" + session vars; no true/false / enum', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_string(name: String): String',
@@ -367,7 +367,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    test('list of strings: hides scalar literals and session variables (only null is offered)', async () => {
+    it('list of strings: hides scalar literals and session variables (only null is offered)', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_string_list(roles: [String!]): String',
@@ -400,7 +400,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
   });
 
   describe('Selected presets are serialized as the correct GraphQL literal', () => {
-    test('typing "5431" on Int field emits unquoted integer literal', async () => {
+    it('typing "5431" on Int field emits unquoted integer literal', async () => {
       renderForm({
         permission: permissionForField('field_with_int(count: Int): String'),
       });
@@ -418,7 +418,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).not.toMatch(/@preset\(value:\s*"5431"\s*\)/);
     });
 
-    test('typing "3.14" on Float field emits unquoted float literal', async () => {
+    it('typing "3.14" on Float field emits unquoted float literal', async () => {
       renderForm({
         permission: permissionForField('field_with_float(pi: Float): String'),
       });
@@ -436,7 +436,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).not.toMatch(/@preset\(value:\s*"3\.14"\s*\)/);
     });
 
-    test('picking `true` from dropdown on Boolean field emits unquoted true', async () => {
+    it('picking `true` from dropdown on Boolean field emits unquoted true', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_boolean(force: Boolean): String',
@@ -455,7 +455,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).not.toMatch(/@preset\(value:\s*"true"\s*\)/);
     });
 
-    test('picking `null` on nullable Boolean emits unquoted null', async () => {
+    it('picking `null` on nullable Boolean emits unquoted null', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_boolean(force: Boolean): String',
@@ -474,7 +474,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).not.toMatch(/@preset\(value:\s*"null"\s*\)/);
     });
 
-    test('picking `null` on nullable String emits unquoted null', async () => {
+    it('picking `null` on nullable String emits unquoted null', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_string(name: String): String',
@@ -493,7 +493,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).not.toMatch(/@preset\(value:\s*"null"\s*\)/);
     });
 
-    test('typing enum value name on enum field emits unquoted enum literal', async () => {
+    it('typing enum value name on enum field emits unquoted enum literal', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_enum(state: TestState): String',
@@ -515,7 +515,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).not.toMatch(/@preset\(value:\s*"GREEN"\s*\)/);
     });
 
-    test('typing session variable on String emits quoted X-Hasura-* literal', async () => {
+    it('typing session variable on String emits quoted X-Hasura-* literal', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_required_string(name: String!): String',
@@ -536,7 +536,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       );
     });
 
-    test('typing plain string on String emits quoted string literal', async () => {
+    it('typing plain string on String emits quoted string literal', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_required_string(name: String!): String',
@@ -557,7 +557,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       );
     });
 
-    test('picking `""` on nullable String emits empty-string literal', async () => {
+    it('picking `""` on nullable String emits empty-string literal', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_string(name: String): String',
@@ -579,7 +579,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
   });
 
   describe('Round-trip — open existing permission and save without edits', () => {
-    test('enum preset is preserved on no-op save', async () => {
+    it('enum preset is preserved on no-op save', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_required_enum(state: TestState! @preset(value: BLUE)): String',
@@ -595,7 +595,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       );
     });
 
-    test('bare null on nullable String round-trips unquoted on no-op save', async () => {
+    it('bare null on nullable String round-trips unquoted on no-op save', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_string(name: String @preset(value: null)): String',
@@ -610,7 +610,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).not.toMatch(/@preset\(value:\s*"null"\s*\)/);
     });
 
-    test('Clear preset is hidden when no preset is set', async () => {
+    it('Clear preset is hidden when no preset is set', async () => {
       renderForm({
         permission: permissionForField('field_with_int(count: Int): String'),
       });
@@ -625,7 +625,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    test('Clear preset strips the @preset directive from the saved SDL', async () => {
+    it('Clear preset strips the @preset directive from the saved SDL', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_int(count: Int @preset(value: 5431)): String',
@@ -648,7 +648,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).toMatch(/field_with_int/);
     });
 
-    test('legacy quoted Int preset is normalized to unquoted on no-op save', async () => {
+    it('legacy quoted Int preset is normalized to unquoted on no-op save', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_int(count: Int @preset(value: "5431")): String',
@@ -665,7 +665,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
   });
 
   describe('Create permission from scratch', () => {
-    test('checking a field expands its accordion and saving emits the typed preset', async () => {
+    it('checking a field expands its accordion and saving emits the typed preset', async () => {
       renderForm();
       const user = new TestUserEvent();
       await screen.findByText('field_with_int');
@@ -689,7 +689,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
   });
 
   describe('Delete permission', () => {
-    test('confirming the Delete dialog sends a drop_remote_schema_permissions migration', async () => {
+    it('confirming the Delete dialog sends a drop_remote_schema_permissions migration', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_int(count: Int @preset(value: 5431)): String',
