@@ -33,7 +33,7 @@ jobs:
   build_artifacts:
     strategy:
       matrix:
-        node: ["20", "22"]
+        node: ["22", "24"]
       fail-fast: true
     uses: ./.github/workflows/wf_build_artifacts.yaml
     with:
@@ -52,7 +52,7 @@ jobs:
   push-docker-hub:
     strategy:
       matrix:
-        node: ["20", "22"]
+        node: ["22", "24"]
       fail-fast: true
     uses: ./.github/workflows/wf_docker_push_image.yaml
     needs:

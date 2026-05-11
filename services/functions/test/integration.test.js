@@ -1,8 +1,8 @@
 const { describe, it, expect, beforeAll } = require('@jest/globals');
 
 const PORTS = {
-  node22: 3002,
-  node20: 3001,
+  node22: 3001,
+  node24: 3002,
   npm: 3003,
   yarn: 3004,
 };
@@ -32,9 +32,9 @@ async function waitForHealthy(port, label, maxAttempts = 60) {
 
 describe.each([
   ['node22 (pnpm)', PORTS.node22, 'nodejs22.x'],
-  ['node20 (pnpm)', PORTS.node20, 'nodejs20.x'],
-  ['node22 (npm)', PORTS.npm, 'nodejs22.x'],
-  ['node22 (yarn)', PORTS.yarn, 'nodejs22.x'],
+  ['node24 (pnpm)', PORTS.node24, 'nodejs24.x'],
+  ['node24 (npm)', PORTS.npm, 'nodejs24.x'],
+  ['node24 (yarn)', PORTS.yarn, 'nodejs24.x'],
 ])('functions runtime (%s)', (label, port, expectedRuntime) => {
   const base = `http://127.0.0.1:${port}`;
 

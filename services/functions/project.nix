@@ -171,7 +171,7 @@ in
 
   package = serverFiles;
 
-  dockerImage = mkDockerImage { nodejs = pkgs.nodejs_22; };
-
-  node20DockerImage = mkDockerImage { nodejs = pkgs.nodejs_20; };
+  node22DockerImage = mkDockerImage { nodejs = pkgs.nodejs_22; };
+  node24DockerImage = mkDockerImage { nodejs = pkgs.nodejs_24; };
+  # node26DockerImage = mkDockerImage { nodejs = pkgs.nodejs_26; };
 }
