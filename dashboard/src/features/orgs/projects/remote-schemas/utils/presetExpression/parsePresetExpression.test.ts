@@ -40,7 +40,7 @@ function argType(name: string) {
 }
 
 describe('null', () => {
-  test('null on any arg type yields a NullExpression', () => {
+  it('null on any arg type yields a NullExpression', () => {
     expect(parsePresetExpression(null, argType('flag'))).toEqual({
       kind: 'null',
     });
@@ -54,7 +54,7 @@ describe('null', () => {
 });
 
 describe('boolean', () => {
-  test('real true/false on Boolean field', () => {
+  it('real true/false on Boolean field', () => {
     expect(parsePresetExpression(true, argType('flag'))).toEqual({
       kind: 'boolean',
       value: true,
@@ -65,7 +65,7 @@ describe('boolean', () => {
     });
   });
 
-  test('string "true"/"false" on Boolean field', () => {
+  it('string "true"/"false" on Boolean field', () => {
     expect(parsePresetExpression('true', argType('flag'))).toEqual({
       kind: 'boolean',
       value: true,
@@ -76,14 +76,14 @@ describe('boolean', () => {
     });
   });
 
-  test('arbitrary string on Boolean field falls back to string', () => {
+  it('arbitrary string on Boolean field falls back to string', () => {
     expect(parsePresetExpression('maybe', argType('flag'))).toEqual({
       kind: 'string',
       value: 'maybe',
     });
   });
 
-  test('real boolean on a non-Boolean field falls back to string', () => {
+  it('real boolean on a non-Boolean field falls back to string', () => {
     expect(parsePresetExpression(true, argType('name'))).toEqual({
       kind: 'string',
       value: 'true',
@@ -96,7 +96,7 @@ describe('boolean', () => {
 });
 
 describe('number', () => {
-  test('real numbers on Int / Float', () => {
+  it('real numbers on Int / Float', () => {
     expect(parsePresetExpression(5431, argType('count'))).toEqual({
       kind: 'number',
       value: 5431,
@@ -111,7 +111,7 @@ describe('number', () => {
     });
   });
 
-  test('numeric strings on Int canonicalize', () => {
+  it('numeric strings on Int canonicalize', () => {
     expect(parsePresetExpression('5431', argType('count'))).toEqual({
       kind: 'number',
       value: 5431,
@@ -126,14 +126,14 @@ describe('number', () => {
     });
   });
 
-  test('non-integer string on Int falls back to string', () => {
+  it('non-integer string on Int falls back to string', () => {
     expect(parsePresetExpression('3.14', argType('count'))).toEqual({
       kind: 'string',
       value: '3.14',
     });
   });
 
-  test('empty / whitespace string on numeric arg falls back to string', () => {
+  it('empty / whitespace string on numeric arg falls back to string', () => {
     expect(parsePresetExpression('', argType('count'))).toEqual({
       kind: 'string',
       value: '',
@@ -148,7 +148,7 @@ describe('number', () => {
     });
   });
 
-  test('real number on String / Boolean field falls back to string', () => {
+  it('real number on String / Boolean field falls back to string', () => {
     expect(parsePresetExpression(42, argType('name'))).toEqual({
       kind: 'string',
       value: '42',
@@ -161,14 +161,14 @@ describe('number', () => {
 });
 
 describe('enum', () => {
-  test('string on enum field', () => {
+  it('string on enum field', () => {
     expect(parsePresetExpression('ADMIN', argType('role'))).toEqual({
       kind: 'enum',
       value: 'ADMIN',
     });
   });
 
-  test('string on non-enum field is not classified as enum', () => {
+  it('string on non-enum field is not classified as enum', () => {
     expect(parsePresetExpression('ADMIN', argType('name'))).toEqual({
       kind: 'string',
       value: 'ADMIN',
@@ -177,7 +177,7 @@ describe('enum', () => {
 });
 
 describe('sessionVariable', () => {
-  test('detected on any arg type', () => {
+  it('detected on any arg type', () => {
     expect(parsePresetExpression('X-Hasura-User-Id', argType('name'))).toEqual({
       kind: 'sessionVariable',
       key: 'X-Hasura-User-Id',
@@ -195,7 +195,7 @@ describe('sessionVariable', () => {
     });
   });
 
-  test('case-insensitive prefix match', () => {
+  it('case-insensitive prefix match', () => {
     expect(parsePresetExpression('x-hasura-user-id', argType('name'))).toEqual({
       kind: 'sessionVariable',
       key: 'x-hasura-user-id',
@@ -204,21 +204,21 @@ describe('sessionVariable', () => {
 });
 
 describe('string fallback', () => {
-  test('plain text on String', () => {
+  it('plain text on String', () => {
     expect(parsePresetExpression('hello', argType('name'))).toEqual({
       kind: 'string',
       value: 'hello',
     });
   });
 
-  test('value on ID', () => {
+  it('value on ID', () => {
     expect(parsePresetExpression('abc-123', argType('id'))).toEqual({
       kind: 'string',
       value: 'abc-123',
     });
   });
 
-  test('value on custom scalar (UUID)', () => {
+  it('value on custom scalar (UUID)', () => {
     expect(
       parsePresetExpression(
         '00000000-0000-0000-0000-000000000000',
@@ -232,7 +232,7 @@ describe('string fallback', () => {
 });
 
 describe('list', () => {
-  test('array of strings on [Role!] classifies items as enum', () => {
+  it('array of strings on [Role!] classifies items as enum', () => {
     expect(parsePresetExpression(['ADMIN', 'USER'], argType('roles'))).toEqual({
       kind: 'list',
       items: [
@@ -242,14 +242,14 @@ describe('list', () => {
     });
   });
 
-  test('empty array on [Role!]', () => {
+  it('empty array on [Role!]', () => {
     expect(parsePresetExpression([], argType('roles'))).toEqual({
       kind: 'list',
       items: [],
     });
   });
 
-  test('JSON-array-literal string on a list-typed arg is parsed eagerly', () => {
+  it('JSON-array-literal string on a list-typed arg is parsed eagerly', () => {
     expect(parsePresetExpression('["a", "b"]', argType('roles'))).toEqual({
       kind: 'list',
       items: [
@@ -259,14 +259,14 @@ describe('list', () => {
     });
   });
 
-  test('non-JSON list-like string (e.g. "[a, b]") on [String!] falls back to string', () => {
+  it('non-JSON list-like string (e.g. "[a, b]") on [String!] falls back to string', () => {
     expect(parsePresetExpression('[a, b]', argType('tags'))).toEqual({
       kind: 'string',
       value: '[a, b]',
     });
   });
 
-  test('JSON-array-literal string on a non-list arg is not parsed', () => {
+  it('JSON-array-literal string on a non-list arg is not parsed', () => {
     expect(parsePresetExpression('[1, 2]', argType('name'))).toEqual({
       kind: 'string',
       value: '[1, 2]',
@@ -275,7 +275,7 @@ describe('list', () => {
 });
 
 describe('object', () => {
-  test('plain object becomes an ObjectExpression', () => {
+  it('plain object becomes an ObjectExpression', () => {
     expect(parsePresetExpression({ a: 1 }, argType('name'))).toEqual({
       kind: 'object',
       entries: { a: 1 },
@@ -284,7 +284,7 @@ describe('object', () => {
 });
 
 describe('input object', () => {
-  test('JSON-object string on nullable input-object arg is hydrated', () => {
+  it('JSON-object string on nullable input-object arg is hydrated', () => {
     expect(
       parsePresetExpression('{"foo":"hello","bar":1}', argType('where')),
     ).toEqual({
@@ -293,7 +293,7 @@ describe('input object', () => {
     });
   });
 
-  test('JSON-object string on non-null input-object arg is also hydrated', () => {
+  it('JSON-object string on non-null input-object arg is also hydrated', () => {
     expect(
       parsePresetExpression('{"foo":"x"}', argType('whereRequired')),
     ).toEqual({
@@ -302,28 +302,28 @@ describe('input object', () => {
     });
   });
 
-  test('non-JSON string on input-object arg falls back to string', () => {
+  it('non-JSON string on input-object arg falls back to string', () => {
     expect(parsePresetExpression('hello', argType('where'))).toEqual({
       kind: 'string',
       value: 'hello',
     });
   });
 
-  test('JSON-array string on input-object arg is not hydrated as object', () => {
+  it('JSON-array string on input-object arg is not hydrated as object', () => {
     expect(parsePresetExpression('[1, 2]', argType('where'))).toEqual({
       kind: 'string',
       value: '[1, 2]',
     });
   });
 
-  test('real object on input-object arg passes through as object', () => {
+  it('real object on input-object arg passes through as object', () => {
     expect(parsePresetExpression({ foo: 'x' }, argType('where'))).toEqual({
       kind: 'object',
       entries: { foo: 'x' },
     });
   });
 
-  test('JSON-object string on a non-input-object arg is not hydrated', () => {
+  it('JSON-object string on a non-input-object arg is not hydrated', () => {
     expect(parsePresetExpression('{"foo":1}', argType('name'))).toEqual({
       kind: 'string',
       value: '{"foo":1}',

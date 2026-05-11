@@ -26,7 +26,7 @@ function roundTrip(permissionSDL: string): string {
   return composePermissionSDL(fields, argTree);
 }
 
-test('Boolean preset value `false` round-trips unquoted', () => {
+it('Boolean preset value `false` round-trips unquoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -37,7 +37,7 @@ test('Boolean preset value `false` round-trips unquoted', () => {
   expect(sdl).not.toContain('@preset(value: "false")');
 });
 
-test('Boolean preset value `true` round-trips unquoted', () => {
+it('Boolean preset value `true` round-trips unquoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -48,7 +48,7 @@ test('Boolean preset value `true` round-trips unquoted', () => {
   expect(sdl).not.toContain('@preset(value: "true")');
 });
 
-test('Int preset value 0 is preserved (not dropped as falsy)', () => {
+it('Int preset value 0 is preserved (not dropped as falsy)', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -58,7 +58,7 @@ test('Int preset value 0 is preserved (not dropped as falsy)', () => {
   expect(sdl).toContain('@preset(value: 0)');
 });
 
-test('Int preset value 5431 round-trips unquoted', () => {
+it('Int preset value 5431 round-trips unquoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -69,7 +69,7 @@ test('Int preset value 5431 round-trips unquoted', () => {
   expect(sdl).not.toContain('@preset(value: "5431")');
 });
 
-test('Quoted boolean string is fixed to unquoted boolean on round-trip', () => {
+it('Quoted boolean string is fixed to unquoted boolean on round-trip', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -79,7 +79,7 @@ test('Quoted boolean string is fixed to unquoted boolean on round-trip', () => {
   expect(sdl).toContain('@preset(value: true)');
 });
 
-test('Quoted numeric string is fixed to unquoted number on round-trip', () => {
+it('Quoted numeric string is fixed to unquoted number on round-trip', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -89,7 +89,7 @@ test('Quoted numeric string is fixed to unquoted number on round-trip', () => {
   expect(sdl).toContain('@preset(value: 5431)');
 });
 
-test('Session variable on String field stays quoted', () => {
+it('Session variable on String field stays quoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -99,7 +99,7 @@ test('Session variable on String field stays quoted', () => {
   expect(sdl).toContain('@preset(value: "X-Hasura-User-Id")');
 });
 
-test('Plain string preset is quoted', () => {
+it('Plain string preset is quoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -109,7 +109,7 @@ test('Plain string preset is quoted', () => {
   expect(sdl).toContain('@preset(value: "hello")');
 });
 
-test('Field without @preset emits no preset directive', () => {
+it('Field without @preset emits no preset directive', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -119,7 +119,7 @@ test('Field without @preset emits no preset directive', () => {
   expect(sdl).not.toContain('@preset');
 });
 
-test('Float preset value 3.14 round-trips unquoted', () => {
+it('Float preset value 3.14 round-trips unquoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -130,7 +130,7 @@ test('Float preset value 3.14 round-trips unquoted', () => {
   expect(sdl).not.toContain('@preset(value: "3.14")');
 });
 
-test('String field with quoted "true" preset round-trips quoted', () => {
+it('String field with quoted "true" preset round-trips quoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -141,7 +141,7 @@ test('String field with quoted "true" preset round-trips quoted', () => {
   expect(sdl).not.toContain('@preset(value: true)');
 });
 
-test('String field with quoted "false" preset round-trips quoted', () => {
+it('String field with quoted "false" preset round-trips quoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -152,7 +152,7 @@ test('String field with quoted "false" preset round-trips quoted', () => {
   expect(sdl).not.toContain('@preset(value: false)');
 });
 
-test('String field with quoted numeric preset "5431" round-trips quoted', () => {
+it('String field with quoted numeric preset "5431" round-trips quoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -163,7 +163,7 @@ test('String field with quoted numeric preset "5431" round-trips quoted', () => 
   expect(sdl).not.toContain('@preset(value: 5431)');
 });
 
-test('String field with quoted "null" preset round-trips quoted', () => {
+it('String field with quoted "null" preset round-trips quoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -174,7 +174,7 @@ test('String field with quoted "null" preset round-trips quoted', () => {
   expect(sdl).not.toContain('@preset(value: null)');
 });
 
-test('Boolean field with null preset round-trips unquoted', () => {
+it('Boolean field with null preset round-trips unquoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -185,7 +185,7 @@ test('Boolean field with null preset round-trips unquoted', () => {
   expect(sdl).not.toContain('@preset(value: "null")');
 });
 
-test('nullable String field with null preset round-trips unquoted', () => {
+it('nullable String field with null preset round-trips unquoted', () => {
   const sdl = roundTrip(`
     schema { query: Query }
     type Query {
@@ -196,7 +196,7 @@ test('nullable String field with null preset round-trips unquoted', () => {
   expect(sdl).not.toContain('@preset(value: "null")');
 });
 
-test('legacy JSON-object string preset on input-object arg rehydrates to a structured object literal', () => {
+it('legacy JSON-object string preset on input-object arg rehydrates to a structured object literal', () => {
   const introspection = buildSchema(`
     input WhereInput { foo: String, bar: Int }
     type Query {
@@ -220,7 +220,7 @@ test('legacy JSON-object string preset on input-object arg rehydrates to a struc
   expect(sdl).not.toMatch(/@preset\(value:\s*"\{/);
 });
 
-test('nested null on input-object field survives a no-op round-trip', () => {
+it('nested null on input-object field survives a no-op round-trip', () => {
   const introspection = buildSchema(`
     input WhereInput { foo: String, bar: Int }
     type Query {
