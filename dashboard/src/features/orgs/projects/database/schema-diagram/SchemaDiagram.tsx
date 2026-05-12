@@ -395,14 +395,22 @@ function SchemaDiagramContent() {
   }, [rolesData]);
 
   const searchableTables = useMemo(() => {
-    return (metadataTables ?? [])
-      .map((t) => ({ schema: t.table.schema, name: t.table.name }))
-      .sort((a, b) =>
-        a.schema === b.schema
-          ? a.name.localeCompare(b.name)
-          : a.schema.localeCompare(b.schema),
-      );
-  }, [metadataTables]);
+    const byId = new Map<string, { schema: string; name: string }>();
+    for (const c of schemaData?.columns ?? []) {
+      byId.set(`${c.schema}.${c.table}`, { schema: c.schema, name: c.table });
+    }
+    for (const t of metadataTables ?? []) {
+      byId.set(`${t.table.schema}.${t.table.name}`, {
+        schema: t.table.schema,
+        name: t.table.name,
+      });
+    }
+    return [...byId.values()].sort((a, b) =>
+      a.schema === b.schema
+        ? a.name.localeCompare(b.name)
+        : a.schema.localeCompare(b.schema),
+    );
+  }, [schemaData?.columns, metadataTables]);
 
   if (metadataLoading || columnsLoading || rolesLoading) {
     return (
