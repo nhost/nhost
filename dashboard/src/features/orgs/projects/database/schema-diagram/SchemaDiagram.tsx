@@ -31,10 +31,7 @@ import { getSchemaColor } from './schemaColor';
 import { TableActionsProvider } from './TableActionsContext';
 import TableNode from './TableNode';
 import useAllTableColumns from './useAllTableColumns';
-import useSchemaGraph, {
-  EDGE_MARKER_IDS,
-  nodeIdFor,
-} from './useSchemaGraph';
+import useSchemaGraph, { EDGE_MARKER_IDS, nodeIdFor } from './useSchemaGraph';
 
 const nodeTypes = { tableNode: TableNode } as const;
 const edgeTypes = { smart: SmartStepEdge } as const;
@@ -322,12 +319,14 @@ function SchemaDiagramContent() {
     return nodes.map((node) => {
       const isSelected = selectedNodeIds.has(node.id);
       const isDimmed = !!focusedNodeIds && !focusedNodeIds.has(node.id);
+      const isUntracked = !node.data.metadataTable;
       const schemaColor = getSchemaColor(node.data.schema);
+      const baseOpacity = isSelected ? 1 : isDimmed || isUntracked ? 0.35 : 1;
       return {
         ...node,
         style: {
           ...node.style,
-          opacity: isDimmed ? 0.35 : 1,
+          opacity: baseOpacity,
           boxShadow: isSelected
             ? `0 0 0 2px ${schemaColor}, 0 8px 24px ${rgbWithAlpha(schemaColor, 0.35)}`
             : undefined,

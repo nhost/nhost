@@ -134,6 +134,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
     <div
       className="w-[280px] overflow-hidden rounded-md border border-border bg-background text-foreground shadow-md"
       style={{ borderLeft: `4px solid ${schemaColor}` }}
+      title={isUntracked ? 'Untracked in GraphQL' : undefined}
     >
       <div className="flex items-center justify-between gap-2 border-border border-b bg-muted/60 px-3 py-2">
         <div className="min-w-0">
