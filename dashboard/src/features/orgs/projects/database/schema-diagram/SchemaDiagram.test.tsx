@@ -188,7 +188,9 @@ describe('SchemaDiagram', () => {
     });
     render(<SchemaDiagram />);
 
-    expect(screen.getByText('Failed to load schema diagram.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Failed to load schema diagram.'),
+    ).toBeInTheDocument();
   });
 
   it('renders the empty state when there are no tables at all', () => {
@@ -197,7 +199,9 @@ describe('SchemaDiagram', () => {
 
     expect(screen.getByText('No tables found.')).toBeInTheDocument();
     // The toolbar should still render so the user can change filters/role.
-    expect(screen.getByRole('button', { name: /New Table/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /New Table/i }),
+    ).toBeInTheDocument();
   });
 
   it('renders the filtered-empty state when filters hide every table', () => {

@@ -153,7 +153,9 @@ describe('TableNode', () => {
 
   it('disables "Edit Permissions" and "Edit Relationships" for an untracked table', async () => {
     renderNode(baseData, {
-      actions: makeActions({ sidebarMenuObject: 'ORDINARY TABLE.public.users' }),
+      actions: makeActions({
+        sidebarMenuObject: 'ORDINARY TABLE.public.users',
+      }),
       trackedTablesSet: new Set(),
     });
 

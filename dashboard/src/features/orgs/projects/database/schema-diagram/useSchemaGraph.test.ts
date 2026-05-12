@@ -603,7 +603,10 @@ describe('useSchemaGraph', () => {
       const metadataTables = [
         buildMetadataTable('public', 'posts', {
           object_relationships: [
-            { name: 'author', using: { foreign_key_constraint_on: 'author_id' } },
+            {
+              name: 'author',
+              using: { foreign_key_constraint_on: 'author_id' },
+            },
           ],
         }),
         buildMetadataTable('public', 'users', {
@@ -639,7 +642,10 @@ describe('useSchemaGraph', () => {
       const metadataTables = [
         buildMetadataTable('public', 'posts', {
           object_relationships: [
-            { name: 'author', using: { foreign_key_constraint_on: 'author_id' } },
+            {
+              name: 'author',
+              using: { foreign_key_constraint_on: 'author_id' },
+            },
           ],
         }),
         buildMetadataTable('public', 'users'),
