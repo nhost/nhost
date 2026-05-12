@@ -234,7 +234,7 @@ const projectDatabasePages = [
   {
     name: 'Schema Navigator',
     slug: 'schema',
-    route: 'database/schema',
+    route: 'database/schema/default',
   },
 ];
 

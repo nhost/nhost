@@ -11,6 +11,7 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from '@xyflow/react';
+import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -33,8 +34,6 @@ import TableNode from './TableNode';
 import useAllTableColumns from './useAllTableColumns';
 import useSchemaGraph, { nodeIdFor } from './useSchemaGraph';
 
-const DATA_SOURCE = 'default';
-
 const nodeTypes = { tableNode: TableNode } as const;
 const edgeTypes = { smart: SmartStepEdge } as const;
 
@@ -51,13 +50,17 @@ function rgbWithAlpha(rgb: string, alpha: number): string {
 
 function SchemaDiagramContent() {
   const { fitView } = useReactFlow();
+  const {
+    query: { dataSourceSlug },
+  } = useRouter();
+  const dataSource = (dataSourceSlug as string | undefined) ?? 'default';
 
   const {
     data: metadataTables,
     isLoading: metadataLoading,
     error: metadataError,
   } = useExportMetadata((data) => {
-    const source = data.metadata.sources?.find((s) => s.name === DATA_SOURCE);
+    const source = data.metadata.sources?.find((s) => s.name === dataSource);
     return (source?.tables ?? []) as unknown as HasuraMetadataTable[];
   });
 
@@ -65,7 +68,7 @@ function SchemaDiagramContent() {
     data: schemaData,
     isLoading: columnsLoading,
     error: columnsError,
-  } = useAllTableColumns(DATA_SOURCE);
+  } = useAllTableColumns(dataSource);
 
   const gqlClient = useRemoteApplicationGQLClient();
   const {
@@ -75,11 +78,11 @@ function SchemaDiagramContent() {
   } = useGetRemoteAppRolesQuery({ client: gqlClient });
 
   const { data: trackedTablesSet } = useGetTrackedTablesSet({
-    dataSource: DATA_SOURCE,
+    dataSource,
   });
 
   const { data: databaseData, refetch: refetchDatabaseQuery } =
-    useDatabaseQuery([DATA_SOURCE], { dataSource: DATA_SOURCE });
+    useDatabaseQuery([dataSource], { dataSource });
 
   const allObjects = useMemo<DatabaseObjectViewModel[]>(() => {
     const tableLikeObjects = databaseData?.tableLikeObjects ?? [];
@@ -148,7 +151,7 @@ function SchemaDiagramContent() {
   );
 
   const dataBrowserActions = useDataBrowserActions({
-    dataSourceSlug: DATA_SOURCE,
+    dataSourceSlug: dataSource,
     schemaSlug: undefined,
     tableSlug: undefined,
     functionOID: undefined,

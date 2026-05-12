@@ -32,7 +32,7 @@ const projectDatabasePages: Option[] = [
   {
     label: 'Schema Navigator',
     value: 'schema',
-    route: 'database/schema',
+    route: 'database/schema/default',
   },
 ];
 
