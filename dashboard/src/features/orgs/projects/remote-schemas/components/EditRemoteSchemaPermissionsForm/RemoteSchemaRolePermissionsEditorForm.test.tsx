@@ -7,10 +7,10 @@ import {
 } from 'graphql';
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
+import { type Mock, vi } from 'vitest';
+import * as useProjectModule from '@/features/orgs/projects/hooks/useProject';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
-import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   mockPointerEvent,
@@ -96,16 +96,31 @@ const migrateHandler = http.post(
 const server = setupServer(
   tokenQuery,
   getProjectQuery,
-  permissionVariablesQuery,
   metadataHandler,
   migrateHandler,
 );
 
-const mocks = vi.hoisted(() => ({ useRouter: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  useRouter: vi.fn(),
+  useGetRolesPermissionsQuery: vi.fn(),
+}));
 
 vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
+
+vi.mock('@/features/orgs/projects/hooks/useProject');
+
+vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
+  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  return {
+    ...actual,
+    useGetRolesPermissionsQuery: mocks.useGetRolesPermissionsQuery,
+  };
+});
+
+const mockUseProject = useProjectModule.useProject as Mock;
 
 const REMOTE_SCHEMA_NAME = 'fixture_remote';
 const TEST_ROLE = 'user';
@@ -188,6 +203,15 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
   beforeEach(() => {
     capturedMigrations = [];
     mockPointerEvent();
+    mockUseProject.mockReturnValue({
+      project: {
+        id: '00000000-0000-0000-0000-000000000000',
+        subdomain: 'local',
+        region: { id: null, countryCode: '', city: '', name: '', domain: '' },
+        config: { hasura: { adminSecret: 'nhost-admin-secret' } },
+      },
+    });
+    mocks.useGetRolesPermissionsQuery.mockReturnValue({});
     mocks.useRouter.mockReturnValue({
       basePath: '',
       pathname: '/orgs/xyz/projects/test-project',
