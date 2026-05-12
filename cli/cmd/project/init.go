@@ -123,7 +123,11 @@ func initInit(ps *clienv.PathStructure) error {
 		return fmt.Errorf("failed to write project files: %w", err)
 	}
 
-	if err := writeFS(emailtemplates.FS, ".", filepath.Join(ps.NhostFolder(), "emails")); err != nil {
+	if err := writeFS(
+		emailtemplates.FS,
+		".",
+		filepath.Join(ps.NhostFolder(), "emails"),
+	); err != nil {
 		return fmt.Errorf("failed to write email templates: %w", err)
 	}
 
