@@ -50,7 +50,7 @@ export default async function execPromiseWithErrorToast(
       {
         className: 'error-toast',
         duration: Number.POSITIVE_INFINITY,
-        style: toastStyle.style
+        style: toastStyle.style,
       },
     );
 
