@@ -147,6 +147,20 @@ export interface UseDataBrowserActionsParams {
   selectedSchema: string;
   refetchDatabaseQuery: () => Promise<unknown>;
   allObjects: DatabaseObjectViewModel[];
+  /**
+   * When provided, the "Create a New Table" drawer renders a schema picker
+   * so the user can choose where the table will be created. Useful in
+   * contexts where there is no ambient selected schema (e.g. the schema
+   * navigator).
+   */
+  availableSchemas?: string[];
+  /**
+   * Callback invoked after a new table has been created and tracked.
+   * When provided, the drawer's default redirect to the data browser is
+   * suppressed and the caller takes over the post-create flow (e.g.
+   * highlighting the new node in the schema diagram).
+   */
+  onTableCreated?: (info: { schema: string; name: string }) => void;
 }
 
 export function useDataBrowserActions({
@@ -157,6 +171,8 @@ export function useDataBrowserActions({
   selectedSchema,
   refetchDatabaseQuery,
   allObjects,
+  availableSchemas,
+  onTableCreated,
 }: UseDataBrowserActionsParams) {
   const queryClient = useQueryClient();
   const { openDrawer, openAlertDialog } = useDialog();
@@ -166,7 +182,7 @@ export function useDataBrowserActions({
   } = router;
   const { project } = useProject();
   const { mutateAsync: deleteDatabaseObject } =
-    useDeleteDatabaseObjectWithToastMutation();
+    useDeleteDatabaseObjectWithToastMutation({ dataSource: dataSourceSlug });
 
   const [removableObject, setRemovableObject] = useState<string>();
   const [optimisticlyRemovedObject, setOptimisticlyRemovedObject] =
@@ -398,13 +414,20 @@ export function useDataBrowserActions({
     });
   }
 
-  async function handleCreateTableSubmit() {
+  async function handleCreateTableSubmit(info: {
+    schema: string;
+    name: string;
+  }) {
     await Promise.all([
       queryClient.refetchQueries({
         queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
       }),
       refetchDatabaseQuery(),
+      queryClient.refetchQueries({
+        queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY],
+      }),
     ]);
+    onTableCreated?.(info);
   }
 
   async function handleEditTableSubmit(schema: string, tableName: string) {
@@ -495,6 +518,9 @@ export function useDataBrowserActions({
         <CreateTableForm
           onSubmit={handleCreateTableSubmit}
           schema={selectedSchema}
+          dataSource={dataSourceSlug}
+          availableSchemas={availableSchemas}
+          redirectOnSuccess={!onTableCreated}
         />
       ),
       props: {

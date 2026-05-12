@@ -6,6 +6,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export const ADMIN_ROLE = 'admin';
+export const PUBLIC_ROLE = 'public';
 
 export const DATABASE_ACTIONS: readonly DatabaseAction[] = [
   'select',

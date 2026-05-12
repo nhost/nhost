@@ -9,8 +9,9 @@ import {
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  useReactFlow,
 } from '@xyflow/react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -24,13 +25,13 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
-import { ADMIN_ROLE } from './permissionState';
+import { ADMIN_ROLE, PUBLIC_ROLE } from './permissionState';
 import SchemaDiagramToolbar from './SchemaDiagramToolbar';
 import { getSchemaColor } from './schemaColor';
 import { TableActionsProvider } from './TableActionsContext';
 import TableNode from './TableNode';
 import useAllTableColumns from './useAllTableColumns';
-import useSchemaGraph from './useSchemaGraph';
+import useSchemaGraph, { nodeIdFor } from './useSchemaGraph';
 
 const DATA_SOURCE = 'default';
 
@@ -49,6 +50,8 @@ function rgbWithAlpha(rgb: string, alpha: number): string {
 }
 
 function SchemaDiagramContent() {
+  const { fitView } = useReactFlow();
+
   const {
     data: metadataTables,
     isLoading: metadataLoading,
@@ -90,22 +93,6 @@ function SchemaDiagramContent() {
     );
   }, [databaseData?.tableLikeObjects]);
 
-  const dataBrowserActions = useDataBrowserActions({
-    dataSourceSlug: DATA_SOURCE,
-    schemaSlug: undefined,
-    tableSlug: undefined,
-    functionOID: undefined,
-    selectedSchema: '',
-    refetchDatabaseQuery,
-    allObjects,
-  });
-
-  const [selectedRole, setSelectedRole] = useState<string>(ADMIN_ROLE);
-  const [deselectedSchemas, setDeselectedSchemas] = useState<Set<string>>(
-    () => new Set(),
-  );
-  const [hideEmpty, setHideEmpty] = useState(false);
-
   const availableSchemas = useMemo(() => {
     const set = new Set<string>();
     for (const col of schemaData?.columns ?? []) {
@@ -118,6 +105,59 @@ function SchemaDiagramContent() {
     }
     return Array.from(set).sort();
   }, [schemaData?.columns, metadataTables]);
+
+  const targetSchema = useMemo(() => {
+    if (availableSchemas.includes('public')) {
+      return 'public';
+    }
+    return availableSchemas[0] ?? '';
+  }, [availableSchemas]);
+
+  const [selectedRole, setSelectedRole] = useState<string>(ADMIN_ROLE);
+  const [deselectedSchemas, setDeselectedSchemas] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [hideEmpty, setHideEmpty] = useState(false);
+  const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [pendingFocusNodeId, setPendingFocusNodeId] = useState<string | null>(
+    null,
+  );
+
+  const focusTable = useCallback((schema: string, name: string) => {
+    const id = nodeIdFor(schema, name);
+    setSelectedEdgeId(null);
+    setDeselectedSchemas((prev) => {
+      if (!prev.has(schema)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.delete(schema);
+      return next;
+    });
+    setSelectedNodeIds(new Set([id]));
+    setPendingFocusNodeId(id);
+  }, []);
+
+  const handleTableCreated = useCallback(
+    (info: { schema: string; name: string }) =>
+      focusTable(info.schema, info.name),
+    [focusTable],
+  );
+
+  const dataBrowserActions = useDataBrowserActions({
+    dataSourceSlug: DATA_SOURCE,
+    schemaSlug: undefined,
+    tableSlug: undefined,
+    functionOID: undefined,
+    selectedSchema: targetSchema,
+    refetchDatabaseQuery,
+    allObjects,
+    availableSchemas,
+    onTableCreated: handleTableCreated,
+  });
 
   const selectedSchemas = useMemo(
     () => availableSchemas.filter((s) => !deselectedSchemas.has(s)),
@@ -144,11 +184,6 @@ function SchemaDiagramContent() {
     visibleSchemas,
     hideTablesWithoutPermissions: hideEmpty,
   });
-
-  const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(
-    () => new Set(),
-  );
-  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
 
   const focusedNodeIds = useMemo(() => {
     if (selectedNodeIds.size === 0 && !selectedEdgeId) {
@@ -259,10 +294,43 @@ function SchemaDiagramContent() {
     setSelectedEdgeId(null);
   }, []);
 
+  useEffect(() => {
+    if (!pendingFocusNodeId) {
+      return;
+    }
+    if (!nodes.some((n) => n.id === pendingFocusNodeId)) {
+      return;
+    }
+    const targetId = pendingFocusNodeId;
+    setPendingFocusNodeId(null);
+    requestAnimationFrame(() => {
+      fitView({
+        nodes: [{ id: targetId }],
+        duration: 600,
+        maxZoom: 0.85,
+        padding: 0.8,
+      });
+    });
+  }, [nodes, fitView, pendingFocusNodeId]);
+
   const roles = useMemo(() => {
     const names = (rolesData?.authRoles ?? []).map((r) => r.role);
-    return [ADMIN_ROLE, ...names.filter((r) => r !== ADMIN_ROLE)];
+    return [
+      ADMIN_ROLE,
+      PUBLIC_ROLE,
+      ...names.filter((r) => r !== ADMIN_ROLE && r !== PUBLIC_ROLE),
+    ];
   }, [rolesData]);
+
+  const searchableTables = useMemo(() => {
+    return (metadataTables ?? [])
+      .map((t) => ({ schema: t.table.schema, name: t.table.name }))
+      .sort((a, b) =>
+        a.schema === b.schema
+          ? a.name.localeCompare(b.name)
+          : a.schema.localeCompare(b.schema),
+      );
+  }, [metadataTables]);
 
   if (metadataLoading || columnsLoading || rolesLoading) {
     return (
@@ -301,6 +369,11 @@ function SchemaDiagramContent() {
           onSelectedSchemasChange={handleSelectedSchemasChange}
           hideEmpty={hideEmpty}
           onHideEmptyChange={setHideEmpty}
+          onNewTable={dataBrowserActions.openCreateTableDrawer}
+          canCreateTable={!!targetSchema}
+          targetSchema={targetSchema}
+          tables={searchableTables}
+          onSelectTable={focusTable}
         />
 
         <div className="relative min-h-0 flex-1">

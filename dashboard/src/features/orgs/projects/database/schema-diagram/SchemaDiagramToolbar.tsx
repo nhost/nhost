@@ -1,4 +1,14 @@
-import { Info } from 'lucide-react';
+import { Info, Plus, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/v3/command';
 import {
   MultiSelect,
   MultiSelectContent,
@@ -32,6 +42,11 @@ export interface SchemaDiagramToolbarProps {
   onSelectedSchemasChange: (schemas: string[]) => void;
   hideEmpty: boolean;
   onHideEmptyChange: (value: boolean) => void;
+  onNewTable: () => void;
+  canCreateTable: boolean;
+  targetSchema: string;
+  tables: Array<{ schema: string; name: string }>;
+  onSelectTable: (schema: string, name: string) => void;
 }
 
 const legendItems: Array<{ action: DatabaseAction; label: string }> = [
@@ -50,8 +65,23 @@ export default function SchemaDiagramToolbar({
   onSelectedSchemasChange,
   hideEmpty,
   onHideEmptyChange,
+  onNewTable,
+  canCreateTable,
+  targetSchema,
+  tables,
+  onSelectTable,
 }: SchemaDiagramToolbarProps) {
   const allRoles = roles.includes(ADMIN_ROLE) ? roles : [ADMIN_ROLE, ...roles];
+  const [searchOpen, setSearchOpen] = useState(false);
+  const tablesBySchema = useMemo(() => {
+    const grouped = new Map<string, Array<{ schema: string; name: string }>>();
+    for (const t of tables) {
+      const list = grouped.get(t.schema) ?? [];
+      list.push(t);
+      grouped.set(t.schema, list);
+    }
+    return Array.from(grouped.entries());
+  }, [tables]);
 
   return (
     <div className="flex flex-wrap items-center gap-3 border-border border-b bg-background px-4 py-2">
@@ -105,6 +135,61 @@ export default function SchemaDiagramToolbar({
       </div>
 
       <div className="ml-auto flex items-center gap-3">
+        <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              aria-label="Search tables"
+              className="flex h-8 w-[220px] items-center gap-1.5 rounded-md border border-border bg-background px-2 text-muted-foreground text-xs hover:bg-accent"
+            >
+              <Search className="h-4 w-4" />
+              <span className="flex-1 text-left">Search tables…</span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-[320px] p-0">
+            <Command>
+              <CommandInput placeholder="Search tables…" />
+              <CommandList>
+                <CommandEmpty>No tables found.</CommandEmpty>
+                {tablesBySchema.map(([schema, items]) => (
+                  <CommandGroup key={schema} heading={schema}>
+                    {items.map((t) => (
+                      <CommandItem
+                        key={`${t.schema}.${t.name}`}
+                        value={`${t.schema}.${t.name}`}
+                        onSelect={() => {
+                          onSelectTable(t.schema, t.name);
+                          setSearchOpen(false);
+                        }}
+                      >
+                        <span className="text-muted-foreground">
+                          {t.schema}.
+                        </span>
+                        <span className="font-medium">{t.name}</span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                ))}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1.5 px-2 text-xs"
+          onClick={onNewTable}
+          disabled={!canCreateTable}
+          title={
+            canCreateTable
+              ? `Create a new table in "${targetSchema}"`
+              : 'No schema available'
+          }
+        >
+          <Plus className="h-4 w-4" />
+          New Table
+        </Button>
         <Popover>
           <PopoverTrigger asChild>
             <button

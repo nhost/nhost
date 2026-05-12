@@ -1,7 +1,9 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
+import { useDialog } from '@/components/common/DialogProvider';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -27,24 +29,51 @@ export interface CreateTableFormProps
    */
   schema: string;
   /**
-   * Function to be called when the form is submitted.
+   * Data source slug. When the form is rendered outside a data-source route
+   * (e.g. from the schema navigator), the router does not expose
+   * `dataSourceSlug`, so callers must pass it explicitly.
    */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  onSubmit?: (args?: any) => Promise<any>;
+  dataSource?: string;
+  /**
+   * If provided, render a schema picker so the user can choose where to
+   * create the table.
+   */
+  availableSchemas?: string[];
+  /**
+   * Whether to navigate to the new table's page after a successful create.
+   *
+   * @default true
+   */
+  redirectOnSuccess?: boolean;
+  /**
+   * Function to be called after the table has been created and tracked.
+   */
+  onSubmit?: (info: { schema: string; name: string }) => Promise<unknown>;
 }
 
 export default function CreateTableForm({
   onSubmit,
   schema,
+  dataSource,
+  availableSchemas,
+  redirectOnSuccess = true,
   ...props
 }: CreateTableFormProps) {
   const router = useRouter();
+  const { closeDrawer } = useDialog();
+  const [selectedSchema, setSelectedSchema] = useState<string>(schema);
+
+  const resolvedDataSource =
+    dataSource ?? (router.query.dataSourceSlug as string | undefined);
 
   const {
     mutateAsync: createTable,
     error: createTableError,
     reset: resetCreateError,
-  } = useCreateTableMutation({ schema });
+  } = useCreateTableMutation({
+    schema: selectedSchema,
+    dataSource: resolvedDataSource,
+  });
 
   const {
     mutateAsync: setTableTracking,
@@ -53,7 +82,7 @@ export default function CreateTableForm({
   } = useSetTableTrackingMutation();
 
   const { mutateAsync: trackForeignKeyRelation, error: foreignKeyError } =
-    useTrackForeignKeyRelationsMutation();
+    useTrackForeignKeyRelationsMutation({ dataSource: resolvedDataSource });
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
@@ -117,28 +146,32 @@ export default function CreateTableForm({
         tracked: true,
         resourceVersion,
         args: {
-          source: router.query.dataSourceSlug as string,
-          table: { name: table.name, schema },
+          source: resolvedDataSource as string,
+          table: { name: table.name, schema: selectedSchema },
         },
       });
 
       if (isNotEmptyValue(table.foreignKeyRelations)) {
         await trackForeignKeyRelation({
           unTrackedForeignKeyRelations: table.foreignKeyRelations,
-          schema,
+          schema: selectedSchema,
           table: table.name,
         });
       }
 
       if (onSubmit) {
-        await onSubmit();
+        await onSubmit({ schema: selectedSchema, name: table.name });
       }
 
       triggerToast('The table has been created successfully.');
 
-      await router.push(
-        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/tables/${table.name}`,
-      );
+      if (redirectOnSuccess && resolvedDataSource) {
+        await router.push(
+          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${resolvedDataSource}/${selectedSchema}/tables/${table.name}`,
+        );
+      } else {
+        closeDrawer();
+      }
     } catch {
       // This error is handled by the useCreateTableMutation hook.
     }
@@ -174,6 +207,9 @@ export default function CreateTableForm({
       <BaseTableForm
         submitButtonText="Create"
         onSubmit={handleSubmit}
+        schema={selectedSchema}
+        availableSchemas={availableSchemas}
+        onSchemaChange={setSelectedSchema}
         {...props}
       />
     </FormProvider>
