@@ -1,5 +1,5 @@
 import { Info } from 'lucide-react';
-import { Alert } from '@/components/ui/v2/Alert';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
 import {
@@ -83,8 +83,10 @@ export default function ResourcesConfirmationDialog({
 
   if (!loading && !proPlan) {
     return (
-      <Alert severity="error">
-        Couldn&apos;t load the plan for this project. Please try again.
+      <Alert variant="destructive">
+        <AlertDescription>
+          Couldn&apos;t load the plan for this project. Please try again.
+        </AlertDescription>
       </Alert>
     );
   }

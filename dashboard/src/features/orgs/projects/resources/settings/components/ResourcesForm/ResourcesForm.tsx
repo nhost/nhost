@@ -4,8 +4,8 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Tabs,
   TabsContent,
@@ -216,19 +216,21 @@ export default function ResourcesForm() {
 
   if (isPlatform && !proPlan && !proPlanLoading) {
     return (
-      <Alert severity="error">
-        Couldn&apos;t load the plan for this project. Please try again.
+      <Alert variant="destructive">
+        <AlertDescription>
+          Couldn&apos;t load the plan for this project. Please try again.
+        </AlertDescription>
       </Alert>
     );
   }
 
   if (isPlatform && (loading || proPlanLoading)) {
     return (
-      <ActivityIndicator
-        label="Loading resource settings..."
-        delay={1000}
-        className="mx-auto"
-      />
+      <Spinner size="small" className="mx-auto">
+        <span className="mt-2 text-muted-foreground text-sm">
+          Loading resource settings...
+        </span>
+      </Spinner>
     );
   }
 
@@ -460,9 +462,11 @@ function ResourcesFormBody({ initialPrice }: { initialPrice: number }) {
   if (!enabled) {
     return (
       <div className="px-4 pb-4">
-        <Alert className="text-left">
-          Enable this feature to access custom resource allocation for your
-          services.
+        <Alert>
+          <AlertDescription>
+            Enable this feature to access custom resource allocation for your
+            services.
+          </AlertDescription>
         </Alert>
         <ResourcesFormFooter />
       </div>

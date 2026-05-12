@@ -104,9 +104,3 @@ export function getPreset(id: PresetId): PresetDefinition | null {
   }
   return PRESETS.find((preset) => preset.id === id) ?? null;
 }
-
-export function isAtNaturalRatio(preset: PresetDefinition): boolean {
-  return (['database', 'hasura', 'auth', 'storage'] as const).every(
-    (key) => preset[key].memory === preset[key].vcpu * 2.048,
-  );
-}
