@@ -1,23 +1,23 @@
 (
   final: prev:
   let
-    biome_version = "2.4.2";
+    biome_version = "2.4.15";
     biome_dist = {
       aarch64-darwin = {
         url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-arm64";
-        sha256 = "1qjmbnw0v000d6qgfa8rgicra9sq737w555s2l0n4phkp465yyqw";
+        sha256 = "0ym19wd6yzpzpj6inydsfc5xzakl6w7g4lj1dihd1z5hnc0mdimj";
       };
       x86_64-darwin = {
         url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-x64";
-        sha256 = "05jjj2nw0fziiagcahw29lr6km3dlcpjjl5rnv2y16r067288srl";
+        sha256 = "0zd0508kdx6bs4cly6jhny1k96g8wy07ybwmn8hghf2aqnfs7f7s";
       };
       aarch64-linux = {
         url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-arm64";
-        sha256 = "116mddjdy8m23mc0i7g51qv2g0lcfhwzg13g189gnqwg3isb99qy";
+        sha256 = "1bp2adhhszz38p6izszhbxk9w54vq9lm8m007yj91f9nva9dbf3y";
       };
       x86_64-linux = {
         url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-x64";
-        sha256 = "10pr2ymh7846karlswy9xnd24pfv6p4bjcm2azmii3pczv2shnh2";
+        sha256 = "001m5xy2riy2yj3mjf5bq4ywydm0i8dbxlqvx8q35l5gkrry5bwd";
       };
     };
   in

@@ -57,9 +57,7 @@ export default function useTableSchemaQuery(
     name: table,
     queryOptions: {
       enabled:
-        isNotEmptyValue(project) &&
-        !!project?.config?.hasura.adminSecret &&
-        isReady
+        isNotEmptyValue(project?.config?.hasura.adminSecret) && isReady
           ? queryOptions?.enabled
           : false,
     },
