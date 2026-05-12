@@ -23,6 +23,8 @@ import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Form } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { useAddRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useAddRemoteSchemaPermissionsMutation';
@@ -99,9 +101,12 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { data: permissionVariablesData } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
     skip: !project?.id,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
   const customClaims =
     permissionVariablesData?.config?.auth?.session?.accessToken?.customClaims;

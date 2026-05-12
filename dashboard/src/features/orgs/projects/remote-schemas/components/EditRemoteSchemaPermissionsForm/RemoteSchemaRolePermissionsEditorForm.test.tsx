@@ -221,7 +221,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
   });
 
   describe('Insert-literal menu visibility per arg type', () => {
-    it('nullable enum: null + enum + session vars; no "" / true / false', async () => {
+    it('nullable enum: null + enum + permission vars; no "" / true / false', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_enum(state: TestState): String',
@@ -239,7 +239,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
         screen.getByRole('menuitem', { name: /Enum values/ }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('menuitem', { name: /Session variables/ }),
+        screen.getByRole('menuitem', { name: /Permission variables/ }),
       ).toBeInTheDocument();
       expect(
         screen.queryByRole('menuitem', { name: /empty string/ }),
@@ -252,7 +252,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('non-null enum: enum + session vars; no null / "" / true / false', async () => {
+    it('non-null enum: enum + permission vars; no null / "" / true / false', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_required_enum(state: TestState!): String',
@@ -267,7 +267,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
         await screen.findByRole('menuitem', { name: /Enum values/ }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('menuitem', { name: /Session variables/ }),
+        screen.getByRole('menuitem', { name: /Permission variables/ }),
       ).toBeInTheDocument();
       expect(
         screen.queryByRole('menuitem', { name: 'null' }),
@@ -280,7 +280,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('non-null String: "" + session vars; no null / true / false / enum', async () => {
+    it('non-null String: "" + permission vars; no null / true / false / enum', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_required_string(name: String!): String',
@@ -295,7 +295,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
         await screen.findByRole('menuitem', { name: /empty string/ }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('menuitem', { name: /Session variables/ }),
+        screen.getByRole('menuitem', { name: /Permission variables/ }),
       ).toBeInTheDocument();
       expect(
         screen.queryByRole('menuitem', { name: 'null' }),
@@ -308,7 +308,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('nullable Boolean: null + true/false + session vars; no "" / enum', async () => {
+    it('nullable Boolean: null + true/false + permission vars; no "" / enum', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_boolean(force: Boolean): String',
@@ -329,7 +329,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
         screen.getByRole('menuitem', { name: 'false' }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('menuitem', { name: /Session variables/ }),
+        screen.getByRole('menuitem', { name: /Permission variables/ }),
       ).toBeInTheDocument();
       expect(
         screen.queryByRole('menuitem', { name: /empty string/ }),
@@ -339,7 +339,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('nullable String: null + "" + session vars; no true/false / enum', async () => {
+    it('nullable String: null + "" + permission vars; no true/false / enum', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_nullable_string(name: String): String',
@@ -357,7 +357,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
         screen.getByRole('menuitem', { name: /empty string/ }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('menuitem', { name: /Session variables/ }),
+        screen.getByRole('menuitem', { name: /Permission variables/ }),
       ).toBeInTheDocument();
       expect(
         screen.queryByRole('menuitem', { name: 'true' }),
@@ -367,7 +367,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('list of strings: hides scalar literals and session variables (only null is offered)', async () => {
+    it('list of strings: hides scalar literals and permission variables (only null is offered)', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_string_list(roles: [String!]): String',
@@ -394,7 +394,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
         screen.queryByRole('menuitem', { name: /Enum values/ }),
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByRole('menuitem', { name: /Session variables/ }),
+        screen.queryByRole('menuitem', { name: /Permission variables/ }),
       ).not.toBeInTheDocument();
     });
   });
@@ -515,7 +515,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       expect(sdl).not.toMatch(/@preset\(value:\s*"GREEN"\s*\)/);
     });
 
-    it('typing session variable on String emits quoted X-Hasura-* literal', async () => {
+    it('typing permission variable on String emits quoted X-Hasura-* literal', async () => {
       renderForm({
         permission: permissionForField(
           'field_with_required_string(name: String!): String',
@@ -619,7 +619,7 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
       await expandAccordion(user, 'field_with_int');
       await openLiteralMenu(user);
 
-      await screen.findByRole('menuitem', { name: /Session variables/ });
+      await screen.findByRole('menuitem', { name: /Permission variables/ });
       expect(
         screen.queryByRole('menuitem', { name: /Clear preset/ }),
       ).not.toBeInTheDocument();

@@ -128,7 +128,7 @@ export default function PresetValueInput({
                     <DropdownMenuSeparator />
                     <DropdownMenuSub>
                       <DropdownMenuSubTrigger>
-                        Session variables
+                        Permission variables
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
                         {sessionVariableOptions.map((v) => (
