@@ -26,37 +26,41 @@ const (
 var embeddedFS embed.FS
 
 func writeFS(srcFS fs.FS, srcRoot, dstRoot string) error {
-	return fs.WalkDir(srcFS, srcRoot, func(p string, d fs.DirEntry, err error) error { //nolint:wrapcheck
-		if err != nil {
-			return fmt.Errorf("failed to walk %s: %w", p, err)
-		}
+	return fs.WalkDir( //nolint:wrapcheck
+		srcFS,
+		srcRoot,
+		func(p string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return fmt.Errorf("failed to walk %s: %w", p, err)
+			}
 
-		rel, err := filepath.Rel(srcRoot, p)
-		if err != nil {
-			return fmt.Errorf("failed to compute relative path for %s: %w", p, err)
-		}
+			rel, err := filepath.Rel(srcRoot, p)
+			if err != nil {
+				return fmt.Errorf("failed to compute relative path for %s: %w", p, err)
+			}
 
-		dst := filepath.Join(dstRoot, rel)
+			dst := filepath.Join(dstRoot, rel)
 
-		if d.IsDir() {
-			if err := os.MkdirAll(dst, 0o755); err != nil { //nolint:mnd
-				return fmt.Errorf("failed to create dir %s: %w", dst, err)
+			if d.IsDir() {
+				if err := os.MkdirAll(dst, 0o755); err != nil { //nolint:mnd
+					return fmt.Errorf("failed to create dir %s: %w", dst, err)
+				}
+
+				return nil
+			}
+
+			data, err := fs.ReadFile(srcFS, p)
+			if err != nil {
+				return fmt.Errorf("failed to read file %s: %w", p, err)
+			}
+
+			if err := os.WriteFile(dst, data, 0o600); err != nil { //nolint:mnd
+				return fmt.Errorf("failed to write file %s: %w", dst, err)
 			}
 
 			return nil
-		}
-
-		data, err := fs.ReadFile(srcFS, p)
-		if err != nil {
-			return fmt.Errorf("failed to read file %s: %w", p, err)
-		}
-
-		if err := os.WriteFile(dst, data, 0o600); err != nil { //nolint:mnd
-			return fmt.Errorf("failed to write file %s: %w", dst, err)
-		}
-
-		return nil
-	})
+		},
+	)
 }
 
 const hasuraMetadataVersion = 3
