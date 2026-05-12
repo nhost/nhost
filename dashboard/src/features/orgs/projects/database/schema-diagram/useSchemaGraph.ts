@@ -1,7 +1,9 @@
 import type { Edge, Node } from '@xyflow/react';
-import { MarkerType } from '@xyflow/react';
 import { useMemo } from 'react';
-import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  HasuraMetadataRelationship,
+  HasuraMetadataTable,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { computeNodeHeight, layoutNodes, TABLE_NODE_WIDTH } from './layout';
 import { tableHasAnyPermission } from './permissionState';
 import type {
@@ -51,6 +53,56 @@ export function columnHandleId(
   column: string,
 ): string {
   return `${side}-${column}`;
+}
+
+export interface FkEdgeData extends Record<string, unknown> {
+  hasObjectRel: boolean;
+  hasArrayRel: boolean;
+  fromTracked: boolean;
+  toTracked: boolean;
+}
+
+export const EDGE_MARKER_IDS = {
+  arrowFilled: 'schema-diagram-arrow-filled',
+  arrowHollow: 'schema-diagram-arrow-hollow',
+  circleHollow: 'schema-diagram-circle-hollow',
+} as const;
+
+function relMatchesFk(
+  rel: HasuraMetadataRelationship,
+  fk: SchemaDiagramForeignKey,
+  side: 'object' | 'array',
+): boolean {
+  const using = rel.using;
+  if (using.foreign_key_constraint_on !== undefined) {
+    const fkc = using.foreign_key_constraint_on;
+    if (side === 'object') {
+      return typeof fkc === 'string' && fkc === fk.fromColumn;
+    }
+    return (
+      typeof fkc === 'object' &&
+      fkc.column === fk.fromColumn &&
+      fkc.table.schema === fk.fromSchema &&
+      fkc.table.name === fk.fromTable
+    );
+  }
+  const manual = using.manual_configuration;
+  if (!manual) {
+    return false;
+  }
+  const remoteMatches =
+    side === 'object'
+      ? manual.remote_table.schema === fk.toSchema &&
+        manual.remote_table.name === fk.toTable
+      : manual.remote_table.schema === fk.fromSchema &&
+        manual.remote_table.name === fk.fromTable;
+  if (!remoteMatches) {
+    return false;
+  }
+  if (side === 'object') {
+    return manual.column_mapping[fk.fromColumn] === fk.toColumn;
+  }
+  return manual.column_mapping[fk.toColumn] === fk.fromColumn;
 }
 
 export default function useSchemaGraph({
@@ -161,19 +213,37 @@ export default function useSchemaGraph({
         const toId = nodeIdFor(fk.toSchema, fk.toTable);
         return visibleNodeIds.has(fromId) && visibleNodeIds.has(toId);
       })
-      .map((fk) => ({
-        id: `${fk.constraintName}-${fk.fromSchema}.${fk.fromTable}.${fk.fromColumn}`,
-        source: nodeIdFor(fk.fromSchema, fk.fromTable),
-        target: nodeIdFor(fk.toSchema, fk.toTable),
-        sourceHandle: columnHandleId('source', fk.fromColumn),
-        targetHandle: columnHandleId('target', fk.toColumn),
-        type: 'smart',
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 16,
-          height: 16,
-        },
-      }));
+      .map((fk) => {
+        const fromId = nodeIdFor(fk.fromSchema, fk.fromTable);
+        const toId = nodeIdFor(fk.toSchema, fk.toTable);
+        const sourceMeta = metadataByTableId.get(fromId);
+        const targetMeta = metadataByTableId.get(toId);
+        const hasObjectRel = !!sourceMeta?.object_relationships?.some((r) =>
+          relMatchesFk(r, fk, 'object'),
+        );
+        const hasArrayRel = !!targetMeta?.array_relationships?.some((r) =>
+          relMatchesFk(r, fk, 'array'),
+        );
+        const data: FkEdgeData = {
+          hasObjectRel,
+          hasArrayRel,
+          fromTracked: !!sourceMeta,
+          toTracked: !!targetMeta,
+        };
+        return {
+          id: `${fk.constraintName}-${fk.fromSchema}.${fk.fromTable}.${fk.fromColumn}`,
+          source: fromId,
+          target: toId,
+          sourceHandle: columnHandleId('source', fk.fromColumn),
+          targetHandle: columnHandleId('target', fk.toColumn),
+          type: 'smart',
+          data,
+          markerStart: hasObjectRel ? undefined : EDGE_MARKER_IDS.circleHollow,
+          markerEnd: hasArrayRel
+            ? EDGE_MARKER_IDS.arrowFilled
+            : EDGE_MARKER_IDS.arrowHollow,
+        };
+      });
 
     const columnCountByNodeId = new Map<string, number>();
     for (const node of nodes) {

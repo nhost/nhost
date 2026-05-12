@@ -232,6 +232,100 @@ export default function SchemaDiagramToolbar({
                 </ul>
               </div>
               <div>
+                <div className="mb-1 font-semibold">Edge markers</div>
+                <ul className="space-y-1.5">
+                  <li className="flex items-center gap-2">
+                    <svg
+                      width="56"
+                      height="16"
+                      viewBox="0 0 56 16"
+                      aria-hidden="true"
+                      className="shrink-0"
+                    >
+                      <line
+                        x1="2"
+                        y1="8"
+                        x2="44"
+                        y2="8"
+                        stroke="rgb(148, 163, 184)"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M44,3 L54,8 L44,13 z"
+                        fill="rgb(148, 163, 184)"
+                      />
+                    </svg>
+                    <span>
+                      <span className="text-foreground">Solid arrow</span> —
+                      array relationship tracked (target side)
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <svg
+                      width="56"
+                      height="16"
+                      viewBox="0 0 56 16"
+                      aria-hidden="true"
+                      className="shrink-0"
+                    >
+                      <line
+                        x1="2"
+                        y1="8"
+                        x2="44"
+                        y2="8"
+                        stroke="rgb(148, 163, 184)"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M44,3 L54,8 L44,13 z"
+                        fill="hsl(var(--background))"
+                        stroke="rgb(148, 163, 184)"
+                        strokeWidth="1.5"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span>
+                      <span className="text-foreground">Hollow arrow</span> —
+                      array relationship missing
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <svg
+                      width="56"
+                      height="16"
+                      viewBox="0 0 56 16"
+                      aria-hidden="true"
+                      className="shrink-0"
+                    >
+                      <circle
+                        cx="6"
+                        cy="8"
+                        r="4"
+                        fill="hsl(var(--background))"
+                        stroke="rgb(148, 163, 184)"
+                        strokeWidth="1.5"
+                      />
+                      <line
+                        x1="11"
+                        y1="8"
+                        x2="44"
+                        y2="8"
+                        stroke="rgb(148, 163, 184)"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M44,3 L54,8 L44,13 z"
+                        fill="rgb(148, 163, 184)"
+                      />
+                    </svg>
+                    <span>
+                      <span className="text-foreground">Hollow circle</span> —
+                      object relationship missing (source side)
+                    </span>
+                  </li>
+                </ul>
+              </div>
+              <div>
                 <div className="mb-1 font-semibold">Interactions</div>
                 <ul className="space-y-1 text-muted-foreground">
                   <li>

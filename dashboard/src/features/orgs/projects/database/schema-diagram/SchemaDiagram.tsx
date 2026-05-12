@@ -5,7 +5,6 @@ import {
   Background,
   Controls,
   type Edge,
-  MarkerType,
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
@@ -32,13 +31,89 @@ import { getSchemaColor } from './schemaColor';
 import { TableActionsProvider } from './TableActionsContext';
 import TableNode from './TableNode';
 import useAllTableColumns from './useAllTableColumns';
-import useSchemaGraph, { nodeIdFor } from './useSchemaGraph';
+import useSchemaGraph, {
+  EDGE_MARKER_IDS,
+  nodeIdFor,
+} from './useSchemaGraph';
 
 const nodeTypes = { tableNode: TableNode } as const;
 const edgeTypes = { smart: SmartStepEdge } as const;
 
 const EDGE_COLOR_DEFAULT = 'rgb(148, 163, 184)';
 const EDGE_COLOR_HIGHLIGHT = 'rgb(59, 130, 246)';
+
+function EdgeMarkerDefs() {
+  return (
+    <svg
+      aria-hidden="true"
+      style={{
+        position: 'absolute',
+        width: 0,
+        height: 0,
+        pointerEvents: 'none',
+      }}
+    >
+      <defs>
+        <marker
+          id={EDGE_MARKER_IDS.arrowFilled}
+          viewBox="0 0 12 12"
+          refX="10"
+          refY="6"
+          markerWidth="8"
+          markerHeight="8"
+          orient="auto-start-reverse"
+          markerUnits="userSpaceOnUse"
+        >
+          <path
+            d="M0,0 L12,6 L0,12 z"
+            style={{ fill: 'context-stroke', stroke: 'context-stroke' }}
+          />
+        </marker>
+        <marker
+          id={EDGE_MARKER_IDS.arrowHollow}
+          viewBox="0 0 12 12"
+          refX="10"
+          refY="6"
+          markerWidth="9"
+          markerHeight="9"
+          orient="auto-start-reverse"
+          markerUnits="userSpaceOnUse"
+        >
+          <path
+            d="M1,1 L11,6 L1,11 z"
+            style={{
+              fill: 'hsl(var(--background))',
+              stroke: 'context-stroke',
+              strokeWidth: 1.5,
+              strokeLinejoin: 'round',
+            }}
+          />
+        </marker>
+        <marker
+          id={EDGE_MARKER_IDS.circleHollow}
+          viewBox="0 0 12 12"
+          refX="2"
+          refY="6"
+          markerWidth="9"
+          markerHeight="9"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <circle
+            cx="6"
+            cy="6"
+            r="4"
+            style={{
+              fill: 'hsl(var(--background))',
+              stroke: 'context-stroke',
+              strokeWidth: 1.5,
+            }}
+          />
+        </marker>
+      </defs>
+    </svg>
+  );
+}
 
 function rgbWithAlpha(rgb: string, alpha: number): string {
   const match = rgb.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
@@ -239,12 +314,6 @@ function SchemaDiagramContent() {
           opacity: isDimmed ? (multiSelect ? 0.05 : 0.15) : 1,
           transition: 'opacity 150ms, stroke 150ms, stroke-width 150ms',
         },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 16,
-          height: 16,
-          color,
-        },
       };
     });
   }, [edges, focusedNodeIds, selectedEdgeId, selectedNodeIds]);
@@ -380,6 +449,7 @@ function SchemaDiagramContent() {
         />
 
         <div className="relative min-h-0 flex-1">
+          <EdgeMarkerDefs />
           {totalTableCount === 0 ? (
             <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
               No tables found.

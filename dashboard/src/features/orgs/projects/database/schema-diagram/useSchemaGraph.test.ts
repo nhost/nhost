@@ -6,6 +6,8 @@ import type {
 } from './useAllTableColumns';
 import useSchemaGraph, {
   columnHandleId,
+  EDGE_MARKER_IDS,
+  type FkEdgeData,
   nodeIdFor,
   type TableNode,
   type TableNodeData,
@@ -443,5 +445,287 @@ describe('useSchemaGraph', () => {
     );
     expect(byName.id.dataType).toBe('int4');
     expect(byName.tags.dataType).toBe('ARRAY');
+  });
+
+  describe('per-edge relationship tracking', () => {
+    const fkColumns: SchemaDiagramColumn[] = [
+      buildColumn({
+        schema: 'public',
+        table: 'posts',
+        columnName: 'author_id',
+        ordinalPosition: 1,
+        isPrimary: false,
+      }),
+      buildColumn({
+        schema: 'public',
+        table: 'users',
+        columnName: 'id',
+      }),
+    ];
+    const fk = buildForeignKey();
+
+    function getEdgeData(metadataTables: HasuraMetadataTable[]): FkEdgeData {
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns: fkColumns,
+          foreignKeys: [fk],
+          role: 'admin',
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+        }),
+      );
+      return result.current.edges[0].data as FkEdgeData;
+    }
+
+    it('marks an edge as fully tracked when both relationships exist via foreign_key_constraint_on', () => {
+      const data = getEdgeData([
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            {
+              name: 'author',
+              using: { foreign_key_constraint_on: 'author_id' },
+            },
+          ],
+        }),
+        buildMetadataTable('public', 'users', {
+          array_relationships: [
+            {
+              name: 'posts',
+              using: {
+                foreign_key_constraint_on: {
+                  column: 'author_id',
+                  table: { schema: 'public', name: 'posts' },
+                },
+              },
+            },
+          ],
+        }),
+      ]);
+
+      expect(data).toEqual({
+        hasObjectRel: true,
+        hasArrayRel: true,
+        fromTracked: true,
+        toTracked: true,
+      });
+    });
+
+    it('detects only the object relationship when the array side is missing', () => {
+      const data = getEdgeData([
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            {
+              name: 'author',
+              using: { foreign_key_constraint_on: 'author_id' },
+            },
+          ],
+        }),
+        buildMetadataTable('public', 'users'),
+      ]);
+
+      expect(data.hasObjectRel).toBe(true);
+      expect(data.hasArrayRel).toBe(false);
+      expect(data.fromTracked).toBe(true);
+      expect(data.toTracked).toBe(true);
+    });
+
+    it('detects only the array relationship when the object side is missing', () => {
+      const data = getEdgeData([
+        buildMetadataTable('public', 'posts'),
+        buildMetadataTable('public', 'users', {
+          array_relationships: [
+            {
+              name: 'posts',
+              using: {
+                foreign_key_constraint_on: {
+                  column: 'author_id',
+                  table: { schema: 'public', name: 'posts' },
+                },
+              },
+            },
+          ],
+        }),
+      ]);
+
+      expect(data.hasObjectRel).toBe(false);
+      expect(data.hasArrayRel).toBe(true);
+      expect(data.fromTracked).toBe(true);
+      expect(data.toTracked).toBe(true);
+    });
+
+    it('reports both sides as untracked when neither table has metadata', () => {
+      const data = getEdgeData([]);
+
+      expect(data).toEqual({
+        hasObjectRel: false,
+        hasArrayRel: false,
+        fromTracked: false,
+        toTracked: false,
+      });
+    });
+
+    it('matches relationships defined via manual_configuration', () => {
+      const data = getEdgeData([
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            {
+              name: 'author',
+              using: {
+                manual_configuration: {
+                  remote_table: { schema: 'public', name: 'users' },
+                  column_mapping: { author_id: 'id' },
+                },
+              },
+            },
+          ],
+        }),
+        buildMetadataTable('public', 'users', {
+          array_relationships: [
+            {
+              name: 'posts',
+              using: {
+                manual_configuration: {
+                  remote_table: { schema: 'public', name: 'posts' },
+                  column_mapping: { id: 'author_id' },
+                },
+              },
+            },
+          ],
+        }),
+      ]);
+
+      expect(data.hasObjectRel).toBe(true);
+      expect(data.hasArrayRel).toBe(true);
+    });
+
+    it('uses a filled-arrow markerEnd and no markerStart when both ends are tracked', () => {
+      const metadataTables = [
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            { name: 'author', using: { foreign_key_constraint_on: 'author_id' } },
+          ],
+        }),
+        buildMetadataTable('public', 'users', {
+          array_relationships: [
+            {
+              name: 'posts',
+              using: {
+                foreign_key_constraint_on: {
+                  column: 'author_id',
+                  table: { schema: 'public', name: 'posts' },
+                },
+              },
+            },
+          ],
+        }),
+      ];
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns: fkColumns,
+          foreignKeys: [fk],
+          role: 'admin',
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+        }),
+      );
+      const edge = result.current.edges[0];
+      expect(edge.markerEnd).toBe(EDGE_MARKER_IDS.arrowFilled);
+      expect(edge.markerStart).toBeUndefined();
+    });
+
+    it('switches markerEnd to hollow when the array relationship is missing', () => {
+      const metadataTables = [
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            { name: 'author', using: { foreign_key_constraint_on: 'author_id' } },
+          ],
+        }),
+        buildMetadataTable('public', 'users'),
+      ];
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns: fkColumns,
+          foreignKeys: [fk],
+          role: 'admin',
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+        }),
+      );
+      const edge = result.current.edges[0];
+      expect(edge.markerEnd).toBe(EDGE_MARKER_IDS.arrowHollow);
+      expect(edge.markerStart).toBeUndefined();
+    });
+
+    it('adds a hollow-circle markerStart when the object relationship is missing', () => {
+      const metadataTables = [
+        buildMetadataTable('public', 'posts'),
+        buildMetadataTable('public', 'users', {
+          array_relationships: [
+            {
+              name: 'posts',
+              using: {
+                foreign_key_constraint_on: {
+                  column: 'author_id',
+                  table: { schema: 'public', name: 'posts' },
+                },
+              },
+            },
+          ],
+        }),
+      ];
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns: fkColumns,
+          foreignKeys: [fk],
+          role: 'admin',
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+        }),
+      );
+      const edge = result.current.edges[0];
+      expect(edge.markerStart).toBe(EDGE_MARKER_IDS.circleHollow);
+      expect(edge.markerEnd).toBe(EDGE_MARKER_IDS.arrowFilled);
+    });
+
+    it('uses hollow markers on both ends when no metadata exists', () => {
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables: [],
+          columns: fkColumns,
+          foreignKeys: [fk],
+          role: 'admin',
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+        }),
+      );
+      const edge = result.current.edges[0];
+      expect(edge.markerStart).toBe(EDGE_MARKER_IDS.circleHollow);
+      expect(edge.markerEnd).toBe(EDGE_MARKER_IDS.arrowHollow);
+    });
+
+    it('rejects foreign_key_constraint_on entries that point at a different remote table', () => {
+      const data = getEdgeData([
+        buildMetadataTable('public', 'posts'),
+        buildMetadataTable('public', 'users', {
+          array_relationships: [
+            {
+              name: 'something_else',
+              using: {
+                foreign_key_constraint_on: {
+                  column: 'author_id',
+                  table: { schema: 'public', name: 'comments' },
+                },
+              },
+            },
+          ],
+        }),
+      ]);
+
+      expect(data.hasArrayRel).toBe(false);
+    });
   });
 });
