@@ -39,7 +39,6 @@ export interface UseSchemaGraphInput {
 export interface UseSchemaGraphResult {
   nodes: TableNode[];
   edges: Edge[];
-  schemas: string[];
   totalTableCount: number;
 }
 
@@ -64,11 +63,9 @@ export default function useSchemaGraph({
 }: UseSchemaGraphInput): UseSchemaGraphResult {
   return useMemo(() => {
     const columnsByTable = new Map<string, SchemaDiagramColumn[]>();
-    const schemaSet = new Set<string>();
 
     for (const col of columns) {
       const id = nodeIdFor(col.schema, col.table);
-      schemaSet.add(col.schema);
       const list = columnsByTable.get(id) ?? [];
       list.push(col);
       columnsByTable.set(id, list);
@@ -188,7 +185,6 @@ export default function useSchemaGraph({
     return {
       nodes: positionedNodes,
       edges,
-      schemas: Array.from(schemaSet).sort(),
       totalTableCount,
     };
   }, [
