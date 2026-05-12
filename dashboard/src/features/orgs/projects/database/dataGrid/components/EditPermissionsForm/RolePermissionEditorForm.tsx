@@ -11,7 +11,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useManagePermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManagePermissionMutation';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   DatabaseAction,
   HasuraMetadataPermission,
@@ -22,6 +21,7 @@ import {
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { ALL_TABLE_COLUMNS_QUERY_KEY } from '@/features/orgs/projects/database/schema-diagram/useAllTableColumns';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';

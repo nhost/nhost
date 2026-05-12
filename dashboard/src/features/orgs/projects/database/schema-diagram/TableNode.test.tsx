@@ -1,15 +1,15 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { vi } from 'vitest';
+import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
   mockPointerEvent,
   render,
   screen,
   TestUserEvent,
 } from '@/tests/testUtils';
-import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
-  TableActionsProvider,
   type TableActionsContextValue,
+  TableActionsProvider,
 } from './TableActionsContext';
 import TableNode from './TableNode';
 import type { TableNodeData } from './useSchemaGraph';
