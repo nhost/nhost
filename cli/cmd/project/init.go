@@ -26,7 +26,7 @@ const (
 var embeddedFS embed.FS
 
 func writeFS(srcFS fs.FS, srcRoot, dstRoot string) error {
-	return fs.WalkDir(srcFS, srcRoot, func(p string, d fs.DirEntry, err error) error {
+	return fs.WalkDir(srcFS, srcRoot, func(p string, d fs.DirEntry, err error) error { //nolint:wrapcheck
 		if err != nil {
 			return fmt.Errorf("failed to walk %s: %w", p, err)
 		}
@@ -42,6 +42,7 @@ func writeFS(srcFS fs.FS, srcRoot, dstRoot string) error {
 			if err := os.MkdirAll(dst, 0o755); err != nil { //nolint:mnd
 				return fmt.Errorf("failed to create dir %s: %w", dst, err)
 			}
+
 			return nil
 		}
 
