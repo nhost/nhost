@@ -55,8 +55,7 @@ export default function useManagePermissionMutation({
       ...variables,
       appUrl: customAppUrl || appUrl,
       adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
-      dataSource:
-        customDataSource || (dataSourceSlug as string | undefined) || 'default',
+      dataSource: customDataSource || (dataSourceSlug as string),
       schema: customSchema || (schemaSlug as string),
       table: customTable || (dataSourceSlug as string),
     });

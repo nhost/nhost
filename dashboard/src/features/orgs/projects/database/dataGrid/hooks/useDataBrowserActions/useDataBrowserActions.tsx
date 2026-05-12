@@ -248,7 +248,7 @@ export function useDataBrowserActions({
       });
 
       queryClient.invalidateQueries({
-        queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY],
+        queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY, project?.subdomain],
       });
 
       if (!nextObject) {
@@ -424,7 +424,7 @@ export function useDataBrowserActions({
       }),
       refetchDatabaseQuery(),
       queryClient.refetchQueries({
-        queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY],
+        queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY, project?.subdomain],
       }),
     ]);
     onTableCreated?.(info);
@@ -440,7 +440,7 @@ export function useDataBrowserActions({
         queryKey: [`${dataSourceSlug}.${schema}.${tableName}`],
       }),
       queryClient.invalidateQueries({
-        queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY],
+        queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY, project?.subdomain],
       }),
     ]);
   }

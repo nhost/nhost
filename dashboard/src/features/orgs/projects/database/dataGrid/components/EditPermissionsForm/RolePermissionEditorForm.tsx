@@ -11,6 +11,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useManagePermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManagePermissionMutation';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   DatabaseAction,
   HasuraMetadataPermission,
@@ -225,6 +226,7 @@ export default function RolePermissionEditorForm({
   location,
 }: RolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
+  const { project } = useProject();
   const {
     mutateAsync: managePermission,
     error,
@@ -237,10 +239,10 @@ export default function RolePermissionEditorForm({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['default.metadata'] });
         queryClient.invalidateQueries({
-          queryKey: [EXPORT_METADATA_QUERY_KEY],
+          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
         queryClient.invalidateQueries({
-          queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY],
+          queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY, project?.subdomain],
         });
       },
     },
