@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { Separator } from '@/components/ui/v3/separator';
 import { Switch } from '@/components/ui/v3/switch';
@@ -69,7 +69,12 @@ export default function ServiceRow({
     ? RESOURCE_MEMORY_LOCKED_STEP
     : RESOURCE_MEMORY_STEP;
 
+  const hydratedRef = useRef(false);
   useEffect(() => {
+    if (!hydratedRef.current) {
+      hydratedRef.current = true;
+      return;
+    }
     if (!effectiveLock) {
       return;
     }
@@ -218,7 +223,7 @@ export default function ServiceRow({
                     id={`${serviceKey}-lock`}
                     checked={effectiveLock}
                     disabled={forceLocked}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={(checked: boolean) => {
                       field.onChange(checked);
                       if (checked) {
                         const next = computeMemoryFromCPU(cpu, memoryStep);
@@ -280,7 +285,7 @@ export default function ServiceRow({
                   <Switch
                     id={`${serviceKey}-autoscale`}
                     checked={Boolean(field.value)}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={(checked: boolean) => {
                       field.onChange(checked);
                       handleAutoscaleChange(checked);
                     }}

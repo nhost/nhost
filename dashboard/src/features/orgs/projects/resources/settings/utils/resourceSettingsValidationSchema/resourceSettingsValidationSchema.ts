@@ -104,7 +104,7 @@ export const resourceSettingsValidationSchema = Yup.object({
   .test(
     'total-cpu-min',
     `Total compute must be at least ${MIN_TOTAL_VCPU / RESOURCE_VCPU_MULTIPLIER} vCPU.`,
-    (values) => {
+    (values: ResourceSettingsLooseShape | undefined) => {
       if (!values?.enabled) {
         return true;
       }
@@ -119,7 +119,7 @@ export const resourceSettingsValidationSchema = Yup.object({
   .test(
     'aggregate-ratio',
     'Total memory must equal total vCPU at the 1:2 ratio.',
-    (values) => {
+    (values: ResourceSettingsLooseShape | undefined) => {
       if (!values?.enabled) {
         return true;
       }
@@ -140,6 +140,19 @@ export const resourceSettingsValidationSchema = Yup.object({
       return totalMemory === expected;
     },
   );
+
+type ResourceServiceShape = {
+  vcpu?: number;
+  memory?: number;
+};
+
+type ResourceSettingsLooseShape = {
+  enabled?: boolean;
+  database?: ResourceServiceShape;
+  hasura?: ResourceServiceShape;
+  auth?: ResourceServiceShape;
+  storage?: ResourceServiceShape;
+};
 
 export type ResourceSettingsFormValues = Yup.InferType<
   typeof resourceSettingsValidationSchema

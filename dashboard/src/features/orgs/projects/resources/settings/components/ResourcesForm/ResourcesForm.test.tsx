@@ -155,12 +155,28 @@ test('opens the confirmation dialog when saving valid changes', async () => {
 
   await user.click(screen.getByRole('button', { name: /save changes/i }));
 
-  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  const dialog = await screen.findByRole('dialog');
   expect(
-    within(screen.getByRole('dialog')).getByRole('heading', {
+    within(dialog).getByRole('heading', {
       name: /confirm dedicated resources/i,
     }),
   ).toBeInTheDocument();
+
+  // Billable after one +CPU on database: 2.25 + 2 + 2 + 2 = 8.25 vCPU
+  // memory: 4608 + 4096*3 = 16896 MiB. Cost: 8.25 * $50 = $412.50/mo,
+  // 8.25 * $0.0012 = $0.0099/min.
+  expect(within(dialog).getByText(/\$0\.0099\/min/i)).toBeInTheDocument();
+  expect(within(dialog).getByText(/\$412\.50\/mo/i)).toBeInTheDocument();
+
+  expect(
+    within(dialog).getByText(/postgresql database/i).parentElement,
+  ).toHaveTextContent(/2\.25 vCPU \+ 4608 MiB/i);
+  expect(
+    within(dialog).getByText(/hasura graphql/i).parentElement,
+  ).toHaveTextContent(/2 vCPU \+ 4096 MiB/i);
+  expect(within(dialog).getByText(/^Total$/i).parentElement).toHaveTextContent(
+    /8\.25 vCPU \+ 16896 MiB/i,
+  );
 
   server.use(resourcesUpdatedQuery);
 
@@ -173,6 +189,40 @@ test('opens the confirmation dialog when saving valid changes', async () => {
   ).toBeInTheDocument();
 });
 
+test('replicas are reflected in the dialog rows and recalculated cost', async () => {
+  const user = new TestUserEvent();
+  server.use(updateConfigMutation);
+  render(<ResourcesForm />);
+
+  await screen.findByRole('tab', { name: /advanced/i });
+  await switchToAdvancedTab(user);
+
+  // Footer CostSummary starts at 8 vCPU * $50 = $400.00/mo.
+  expect(screen.getByText(/^\$400\.00\/mo$/i)).toBeInTheDocument();
+
+  await user.click(
+    screen.getByRole('button', { name: /increase hasura graphql replicas/i }),
+  );
+
+  // Hasura now has 2 replicas. Billable CPU: 2 + 2*2 + 2 + 2 = 10 vCPU →
+  // $500.00/mo.
+  await waitFor(() => {
+    expect(screen.getByText(/\$500\.00\/mo/i)).toBeInTheDocument();
+  });
+
+  await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+  const dialog = await screen.findByRole('dialog');
+  expect(within(dialog).getByText(/\$0\.0120\/min/i)).toBeInTheDocument();
+  expect(within(dialog).getByText(/\$500\.00\/mo/i)).toBeInTheDocument();
+  expect(
+    within(dialog).getByText(/hasura graphql/i).parentElement,
+  ).toHaveTextContent(/2 vCPU \+ 4096 MiB \(2 replicas\)/i);
+  expect(within(dialog).getByText(/^Total$/i).parentElement).toHaveTextContent(
+    /10 vCPU \+ 20480 MiB/i,
+  );
+});
+
 test('disabling resources surfaces the destructive confirm dialog', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);
@@ -183,12 +233,15 @@ test('disabling resources surfaces the destructive confirm dialog', async () => 
 
   await user.click(screen.getByRole('button', { name: /save changes/i }));
 
-  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  const dialog = await screen.findByRole('dialog');
   expect(
-    within(screen.getByRole('dialog')).getByRole('heading', {
+    within(dialog).getByRole('heading', {
       name: /disable dedicated resources/i,
     }),
   ).toBeInTheDocument();
+  expect(
+    within(dialog).getByRole('button', { name: /^confirm$/i }),
+  ).toHaveClass('bg-destructive');
 });
 
 test('unlocking a service in Advanced lets memory drift and surfaces the ratio banner', async () => {
