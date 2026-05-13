@@ -209,10 +209,7 @@ export default function BaseTableForm({
       <div className="flex-auto overflow-y-auto pb-4">
         {showSchemaPicker && (
           <section className="grid grid-cols-8 items-center gap-2 px-6 py-3">
-            <label
-              htmlFor="schema"
-              className="col-span-2 font-medium text-sm"
-            >
+            <label htmlFor="schema" className="col-span-2 font-medium text-sm">
               Schema
             </label>
             <div className="col-span-6">
