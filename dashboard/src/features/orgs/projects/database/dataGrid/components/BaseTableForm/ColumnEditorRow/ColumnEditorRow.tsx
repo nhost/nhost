@@ -1,33 +1,25 @@
-import clsx from 'clsx';
 import { Sigma } from 'lucide-react';
-import type { PropsWithoutRef } from 'react';
-import { memo, useEffect, useState } from 'react';
-import type { FieldError } from 'react-hook-form';
-import { useFormContext, useFormState, useWatch } from 'react-hook-form';
+import { memo } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 import {
-  ControlledAutocomplete,
-  defaultFilterGroupedOptions,
-} from '@/components/form/ControlledAutocomplete';
-import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
-import { InlineCode } from '@/components/presentational/InlineCode';
-import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
-import { Input } from '@/components/ui/v2/Input';
-import { OptionBase } from '@/components/ui/v2/Option';
+  FormAutocomplete,
+  type FormAutocompleteOption,
+} from '@/components/form/FormAutocomplete';
+import { FormCheckbox } from '@/components/form/FormCheckbox';
+import { FormInput } from '@/components/form/FormInput';
+import { InlineCode } from '@/components/ui/v3/inline-code';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import type {
-  ColumnType,
-  ForeignKeyRelation,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
   identityTypes,
-  postgresFunctions,
   postgresTypeGroups,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import ColumnComment from './ColumnComment';
+import DefaultValueAutocomplete from './DefaultValueAutocomplete';
 import { RemoveButton } from './RemoveButton';
 
 export interface FieldArrayInputProps {
@@ -59,17 +51,13 @@ function GeneratedBadge({
 }
 
 function NameInput({ index }: FieldArrayInputProps) {
-  const { register, clearErrors, setValue, getValues } = useFormContext();
+  const { control, clearErrors, setValue, getValues } = useFormContext();
   const originalColumnName = getValues(`columns.${index}.name`);
   const foreignKeyRelations = getValues(`foreignKeyRelations`);
   const originalForeignKeyRelationIndex = foreignKeyRelations.findIndex(
     (relation: ForeignKeyRelation) =>
       relation.columnName === originalColumnName,
   );
-
-  const { errors } = useFormState({
-    name: [`columns.${index}.name`],
-  });
 
   const primaryKeyIndices: string[] = useWatch({ name: 'primaryKeyIndices' });
   const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
@@ -78,124 +66,94 @@ function NameInput({ index }: FieldArrayInputProps) {
   });
 
   return (
-    <Input
-      {...register(`columns.${index}.name`, {
-        onChange: (event) => {
-          if (originalForeignKeyRelationIndex > -1) {
-            setValue(
-              `foreignKeyRelations.${originalForeignKeyRelationIndex}.columnName`,
-              event.target.value,
-            );
-          }
-        },
-        onBlur: (event) => {
-          if (errors?.columns) {
-            clearErrors('columns');
-          }
-
-          if (!event.target.value && primaryKeyIndices.includes(`${index}`)) {
-            const updatedPrimaryKeyIndices = primaryKeyIndices.filter(
-              (pk) => pk !== `${index}`,
-            );
-
-            setValue('primaryKeyIndices', updatedPrimaryKeyIndices);
-          }
-        },
-      })}
-      autoComplete="off"
+    <FormInput
+      control={control}
+      name={`columns.${index}.name`}
       aria-label="Name"
       placeholder="Enter name"
-      hideEmptyHelperText
-      error={Boolean(errors?.columns?.[index]?.name)}
-      helperText={errors?.columns?.[index]?.name?.message}
-      inputProps={{ 'data-testid': `columns.${index}.name` }}
-      endAdornment={
+      autoComplete="off"
+      className="border-border"
+      data-testid={`columns.${index}.name`}
+      addonEnd={
         isGenerated ? (
           <GeneratedBadge generationExpression={generationExpression} />
         ) : undefined
       }
+      onChange={(event) => {
+        if (originalForeignKeyRelationIndex > -1) {
+          setValue(
+            `foreignKeyRelations.${originalForeignKeyRelationIndex}.columnName`,
+            event.target.value,
+          );
+        }
+      }}
+      onBlur={(event) => {
+        clearErrors('columns');
+        if (!event.target.value && primaryKeyIndices.includes(`${index}`)) {
+          setValue(
+            'primaryKeyIndices',
+            primaryKeyIndices.filter((pk) => pk !== `${index}`),
+          );
+        }
+      }}
     />
   );
 }
 
+const typeOptions: FormAutocompleteOption[] = postgresTypeGroups.map(
+  ({ group, label, value }) => ({
+    value,
+    group,
+    label,
+    render: (
+      <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
+        <span>{label}</span>
+        <InlineCode>{value}</InlineCode>
+      </div>
+    ),
+  }),
+);
+
 function TypeAutocomplete({ index }: FieldArrayInputProps) {
-  const [inputValue, setInputValue] = useState<string>();
-  const { setValue } = useFormContext();
-  const { errors } = useFormState({ name: `columns.${index}.type` });
+  const { control, setValue } = useFormContext();
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
   const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
-  const type = useWatch({ name: `columns.${index}.type` });
+  const type: string | null = useWatch({ name: `columns.${index}.type` });
 
-  useEffect(() => {
-    setInputValue(type?.label ?? '');
-  }, [type?.label]);
+  if (isGenerated) {
+    return (
+      <div
+        className="flex h-10 w-full cursor-not-allowed items-center rounded-md border bg-background px-4 py-2 text-sm opacity-50"
+        data-testid={`columns.${index}.type`}
+      >
+        <span className="truncate">{type ?? ''}</span>
+      </div>
+    );
+  }
 
   return (
-    <ControlledAutocomplete
-      slotProps={{
-        inputRoot: {
-          'data-testid': `columns.${index}.type`,
-        },
-      }}
-      id={`columns.${index}.type`}
+    <FormAutocomplete
+      control={control}
       name={`columns.${index}.type`}
-      aria-label="Type"
-      options={postgresTypeGroups}
-      groupBy={(option) => option.group ?? ''}
       placeholder="Select type"
-      hideEmptyHelperText
-      freeSolo
-      inputValue={inputValue}
-      onInputChange={(_event, value) => {
-        // Keep the list scrolled to the top while searching
-        requestAnimationFrame(() => {
-          const listbox = document.querySelector(
-            `[id="columns.${index}.type-listbox"]`,
-          );
-          if (listbox) {
-            listbox.scrollTop = 0;
-          }
-        });
-        setInputValue(value);
+      aria-label="Type"
+      searchPlaceholder="Search types..."
+      options={typeOptions}
+      filter={(value, search, keywords) => {
+        const haystack = [value, ...(keywords ?? [])].join(' ').toLowerCase();
+        return haystack.includes(search.toLowerCase()) ? 1 : 0;
       }}
-      clearOnBlur
-      showCustomOption="first"
-      disabled={isGenerated}
-      filterOptions={defaultFilterGroupedOptions}
-      error={Boolean(errors?.columns?.[index]?.type)}
-      helperText={(errors?.columns?.[index]?.type as FieldError)?.message}
-      renderOption={(optionProps, { label, value, custom }) => {
-        if (custom) {
-          return (
-            <OptionBase {...optionProps}>
-              <span>Use type: &quot;{value}&quot;</span>
-            </OptionBase>
-          );
-        }
-        return (
-          <OptionBase {...optionProps}>
-            <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
-              <span>{label}</span>
-
-              <InlineCode>{value}</InlineCode>
-            </div>
-          </OptionBase>
-        );
-      }}
-      onChange={(_event, value) => {
-        if (typeof value === 'string' || Array.isArray(value)) {
-          return;
-        }
-
+      allowCustomValue
+      customValueLabel={(input) => `Use type: "${input}"`}
+      data-testid={`columns.${index}.type`}
+      popoverContentClassName="w-80"
+      onChange={(value) => {
         setValue(`columns.${index}.defaultValue`, null);
-
-        // We need to reset identityColumnIndex if the column
-        // that's being edited is the identity column, but its
-        // new type is not suitable for identity columns.
         if (
-          !identityTypes.includes(value?.value as ColumnType) &&
+          value !== null &&
+          !(identityTypes as readonly string[]).includes(value) &&
           identityColumnIndex !== null &&
-          typeof identityColumnIndex !== 'undefined' &&
+          identityColumnIndex !== undefined &&
           identityColumnIndex === index
         ) {
           setValue('identityColumnIndex', null);
@@ -205,85 +163,14 @@ function TypeAutocomplete({ index }: FieldArrayInputProps) {
   );
 }
 
-function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
-  const [inputValue, setInputValue] = useState('');
-  const { setValue } = useFormContext();
-  const { errors } = useFormState({ name: `columns.${index}.defaultValue` });
-  const defaultValue = useWatch({ name: `columns.${index}.defaultValue` });
-  const type = useWatch({ name: `columns.${index}.type` });
-  const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
-  const isIdentity = identityColumnIndex === index;
-  const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
-  const generationExpression = useWatch({
-    name: `columns.${index}.generationExpression`,
-  });
-
-  const availableFunctions = (postgresFunctions[type?.value] || []).map(
-    (functionName: string) => ({
-      label: functionName,
-      value: functionName,
-    }),
-  );
-
-  useEffect(() => {
-    if (!defaultValue) {
-      setInputValue('');
-    }
-  }, [defaultValue]);
-
-  if (isGenerated) {
-    return (
-      <Input
-        value={generationExpression || ''}
-        disabled
-        hideEmptyHelperText
-        aria-label="Generation expression"
-        inputProps={{ 'data-testid': `columns.${index}.generationExpression` }}
-      />
-    );
-  }
-
-  return (
-    <ControlledAutocomplete
-      id={`columns.${index}.defaultValue`}
-      name={`columns.${index}.defaultValue`}
-      aria-label="Default Value"
-      options={availableFunctions}
-      hideEmptyHelperText
-      autoHighlight
-      autoSelect={(filteredOptions) =>
-        filteredOptions?.length === 0 && inputValue.length > 0
-      }
-      freeSolo
-      slotProps={{
-        paper: { className: clsx(availableFunctions.length === 0 && 'hidden') },
-        inputRoot: {
-          'data-testid': `columns.${index}.defaultValue`,
-        },
-      }}
-      disabled={isIdentity}
-      noOptionsText="Enter a custom default value"
-      placeholder="NULL"
-      error={Boolean(errors?.columns?.[index]?.defaultValue)}
-      helperText={errors?.columns?.[index]?.defaultValue?.message}
-      inputValue={isIdentity ? '' : inputValue}
-      onInputChange={(_event, value) => setInputValue(value)}
-      onBlur={(event) => {
-        if (event.target instanceof HTMLInputElement && !event.target.value) {
-          setValue(`columns.${index}.defaultValue`, null);
-        }
-      }}
-      showCustomOption="always"
-      customOptionLabel={(optionLabel) => `Use "${optionLabel}" as a literal`}
-    />
-  );
+interface CheckboxProps extends FieldArrayInputProps {
+  name: string;
+  'aria-label'?: string;
+  'data-testid'?: string;
 }
 
-function Checkbox({
-  name,
-  index,
-  ...props
-}: FieldArrayInputProps & PropsWithoutRef<CheckboxProps>) {
+function Checkbox({ name, index, ...props }: CheckboxProps) {
+  const { control } = useFormContext();
   const primaryKeyIndices = useWatch({ name: 'primaryKeyIndices' });
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
   const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
@@ -292,7 +179,8 @@ function Checkbox({
   const isIdentity = identityColumnIndex === index;
 
   return (
-    <ControlledCheckbox
+    <FormCheckbox
+      control={control}
       name={name}
       disabled={isGenerated || isIdentity || isPrimary}
       uncheckWhenDisabled
@@ -340,6 +228,7 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
         name={`columns.${index}.isUnique`}
         aria-label="Unique"
         index={index}
+        data-testid={`columns.${index}.isUnique`}
       />
     </div>
 

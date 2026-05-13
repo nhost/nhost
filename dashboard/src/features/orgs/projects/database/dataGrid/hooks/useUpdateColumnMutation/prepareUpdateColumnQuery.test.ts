@@ -10,16 +10,16 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
-        defaultValue: { value: 'test', label: 'test' },
+        type: 'text',
+        defaultValue: { value: 'test', custom: true },
         isNullable: true,
         isUnique: false,
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
-        defaultValue: { value: 'test', label: 'test' },
+        type: 'text',
+        defaultValue: { value: 'test', custom: true },
         isNullable: true,
         isUnique: false,
       },
@@ -36,12 +36,12 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
       },
       column: {
         id: 'name',
         name: 'new_name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
       },
     });
 
@@ -59,12 +59,12 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'int4', label: 'integer' },
+        type: 'int4',
       },
     });
 
@@ -85,19 +85,13 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: {
-          value: 'text',
-          label: 'text',
-        },
-        defaultValue: { value: 'test', label: 'test' },
+        type: 'text',
+        defaultValue: { value: 'test', custom: true },
       },
       column: {
         id: 'name',
         name: 'name',
-        type: {
-          value: 'text',
-          label: 'text',
-        },
+        type: 'text',
         defaultValue: null,
       },
     });
@@ -116,14 +110,14 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
-        defaultValue: { value: 'test', label: 'test' },
+        type: 'text',
+        defaultValue: { value: 'test', custom: true },
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
-        defaultValue: { value: 'new_test', label: 'new_test', custom: true },
+        type: 'text',
+        defaultValue: { value: 'new_test', custom: true },
       },
     });
 
@@ -133,54 +127,27 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to set the default value if the type changed from custom to non-custom or vice versa', () => {
-    // change default value from custom (literal) 'version()' to non-custom
-    // (non-literal) 'version()'
-    const customToNonCustomTransaction = prepareUpdateColumnQuery({
+  test('should emit SET DEFAULT when only the custom flag flips on a colliding value', () => {
+    const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
       table: 'test_table',
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
-        defaultValue: { value: 'version()', label: 'version()', custom: true },
+        type: 'text',
+        defaultValue: { value: 'version()', custom: false },
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
-        defaultValue: { value: 'version()', label: 'version()' },
+        type: 'text',
+        defaultValue: { value: 'version()', custom: true },
       },
     });
 
-    expect(customToNonCustomTransaction).toHaveLength(1);
-    expect(customToNonCustomTransaction[0].args.sql).toBe(
-      'ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT version();',
-    );
-
-    // change default value from non-custom (non-literal) version() to custom
-    // (literal) version()
-    const nonCustomToCustomTransaction = prepareUpdateColumnQuery({
-      dataSource: 'test_datasource',
-      schema: 'test_schema',
-      table: 'test_table',
-      originalColumn: {
-        id: 'name',
-        name: 'name',
-        type: { value: 'text', label: 'text' },
-        defaultValue: { value: 'version()', label: 'version()' },
-      },
-      column: {
-        id: 'name',
-        name: 'name',
-        type: { value: 'text', label: 'text' },
-        defaultValue: { value: 'version()', label: 'version()', custom: true },
-      },
-    });
-
-    expect(nonCustomToCustomTransaction).toHaveLength(1);
-    expect(nonCustomToCustomTransaction[0].args.sql).toBe(
+    expect(transaction).toHaveLength(1);
+    expect(transaction[0].args.sql).toBe(
       "ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT 'version()';",
     );
   });
@@ -193,13 +160,13 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         comment: 'test comment',
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
       },
     });
 
@@ -217,12 +184,12 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         comment: 'test comment',
       },
     });
@@ -241,13 +208,13 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         comment: 'original comment',
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         comment: 'test comment',
       },
     });
@@ -266,13 +233,13 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isNullable: false,
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isNullable: true,
       },
     });
@@ -291,13 +258,13 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isNullable: true,
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isNullable: false,
       },
     });
@@ -316,13 +283,13 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isUnique: false,
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isUnique: true,
       },
     });
@@ -341,14 +308,14 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isUnique: true,
         uniqueConstraints: ['test_table_test_column_unique'],
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isUnique: false,
       },
     });
@@ -367,13 +334,13 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isIdentity: false,
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isIdentity: true,
       },
     });
@@ -392,13 +359,13 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isIdentity: true,
       },
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         isIdentity: false,
       },
     });
@@ -417,18 +384,12 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: {
-          value: 'text',
-          label: 'text',
-        },
+        type: 'text',
       },
       column: {
         id: 'name',
         name: 'name',
-        type: {
-          value: 'text',
-          label: 'text',
-        },
+        type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
           columnName: 'name',
@@ -455,10 +416,7 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: {
-          value: 'text',
-          label: 'text',
-        },
+        type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
           columnName: 'name',
@@ -472,10 +430,7 @@ describe('prepareUpdateColumnQuery', () => {
       column: {
         id: 'name',
         name: 'name',
-        type: {
-          value: 'text',
-          label: 'text',
-        },
+        type: 'text',
         foreignKeyRelation: null,
       },
     });
@@ -494,10 +449,7 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: {
-          value: 'text',
-          label: 'text',
-        },
+        type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
           columnName: 'name',
@@ -511,10 +463,7 @@ describe('prepareUpdateColumnQuery', () => {
       column: {
         id: 'name',
         name: 'name',
-        type: {
-          value: 'text',
-          label: 'text',
-        },
+        type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
           columnName: 'name',
@@ -544,7 +493,7 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
           columnName: 'name',
@@ -558,7 +507,7 @@ describe('prepareUpdateColumnQuery', () => {
       column: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
           columnName: 'name',
@@ -582,16 +531,12 @@ describe('prepareUpdateColumnQuery', () => {
       originalColumn: {
         id: 'name',
         name: 'name',
-        type: { value: 'text', label: 'text' },
+        type: 'text',
       },
       column: {
         id: 'name',
         name: 'name',
-        type: {
-          // biome-ignore lint/suspicious/noExplicitAny: test file
-          value: 'varchar(10)' as any,
-          label: 'varchar(10)',
-        },
+        type: 'varchar(10)',
       },
     });
 

@@ -43,10 +43,6 @@ pnpm codegen-hasura-api     # Generate Hasura API client with Orval
 pnpm format                 # Format code with Biome
 ```
 
-### Note
-
-Some tests have special handling: `BaseTableForm.test.tsx` is excluded from the main test run and executed separately.
-
 ## Project Structure
 
 ```

@@ -119,7 +119,7 @@ export default function DatabaseRecordInputGroup({
       {description && (
         <p className="mb-3 text-secondary text-xs">{description}</p>
       )}
-      <div>
+      <div className="space-y-4 sm:space-y-0">
         {columns.map((column, index) => {
           const {
             id: columnId,

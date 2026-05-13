@@ -65,12 +65,9 @@ export default function CreateTableForm({
     defaultValues: {
       columns: [
         {
-          type: { label: 'uuid', value: 'uuid' },
+          type: 'uuid',
           name: 'id',
-          defaultValue: {
-            label: 'gen_random_uuid()',
-            value: 'gen_random_uuid()',
-          },
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
           isNullable: false,
           isUnique: false,
           isIdentity: false,
@@ -78,10 +75,8 @@ export default function CreateTableForm({
         },
         {
           name: '',
-          // biome-ignore lint/suspicious/noExplicitAny: TODO
-          type: null as any,
-          // biome-ignore lint/suspicious/noExplicitAny: TODO
-          defaultValue: null as any,
+          type: null,
+          defaultValue: null,
           isNullable: false,
           isUnique: false,
           isIdentity: false,

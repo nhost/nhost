@@ -34,10 +34,8 @@ const defaultFormValues = {
   columns: [
     {
       name: '',
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      type: null as any,
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      defaultValue: null as any,
+      type: null,
+      defaultValue: null,
       isNullable: false,
       isUnique: false,
       isIdentity: false,
@@ -67,9 +65,24 @@ function TestTableFormWrapper({ defaultValues = defaultFormValues }: any) {
   );
 }
 
+async function pickAutocompleteOption(
+  triggerTestId: string,
+  searchPlaceholder: string,
+  optionName: RegExp | string,
+  searchTerm: string,
+  user: TestUserEvent,
+) {
+  await user.click(screen.getByTestId(triggerTestId));
+  const searchInput = screen.getByPlaceholderText(searchPlaceholder);
+  if (searchTerm) {
+    await user.type(searchInput, searchTerm);
+  }
+  await user.click(screen.getByRole('option', { name: optionName }));
+}
+
 async function fillColumnForm(
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  { columnName, optionName, typeValue, defaultValue }: any,
+  { columnName, optionName, typeValue, defaultValue, defaultValueKind }: any,
   index: number,
   user: TestUserEvent,
 ) {
@@ -77,71 +90,56 @@ async function fillColumnForm(
   expect(columnNameInput).toBeInTheDocument();
   await user.type(columnNameInput, columnName);
 
-  await TestUserEvent.fireClickEvent(
-    screen.getByTestId(`columns.${index}.type`),
+  await pickAutocompleteOption(
+    `columns.${index}.type`,
+    'Search types...',
+    optionName,
+    '',
+    user,
   );
 
-  await TestUserEvent.fireClickEvent(
-    screen.getByRole('option', { name: optionName }),
+  expect(screen.getByTestId(`columns.${index}.type`)).toHaveTextContent(
+    typeValue,
   );
-
-  expect(screen.getByDisplayValue(typeValue)).toBeInTheDocument();
 
   if (defaultValue) {
     expect(
       screen.getByTestId(`columns.${index}.defaultValue`),
     ).toBeInTheDocument();
 
-    TestUserEvent.fireTypeEvent(
-      screen.getByTestId(`columns.${index}.defaultValue`),
-      `${defaultValue}`,
-    );
-
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', {
-        name: `Use "${defaultValue}" as a literal`,
-      }),
-    );
-
-    expect(screen.getByTestId(`columns.${index}.defaultValue`)).toHaveValue(
+    const kind = defaultValueKind ?? 'literal';
+    await pickAutocompleteOption(
+      `columns.${index}.defaultValue`,
+      'Search functions...',
+      kind === 'function' ? defaultValue : `Use '${defaultValue}' as a literal`,
       defaultValue,
+      user,
     );
+
+    expect(
+      screen.getByTestId(`columns.${index}.defaultValue`),
+    ).toHaveTextContent(defaultValue);
   }
 }
 
 describe('BaseTableForm', () => {
+  beforeEach(() => {
+    mocks.onSubmit.mockClear();
+  });
+
   it('should not disable the nullable and unique checkboxes after setting the column name', async () => {
     render(<TestTableFormWrapper />);
 
     const user = new TestUserEvent();
 
-    let firstColumnIsNullableCheckbox = screen.getByRole('checkbox', {
-      name: (_accessibleName, element) =>
-        element.getAttribute('name') === 'columns.0.isNullable',
-    });
-
-    let firstColumnIsUniqueCheckbox = screen.getByRole('checkbox', {
-      name: (_accessibleName, element) =>
-        element.getAttribute('name') === 'columns.0.isUnique',
-    });
-
-    expect(firstColumnIsNullableCheckbox).not.toBeDisabled();
-    expect(firstColumnIsUniqueCheckbox).not.toBeDisabled();
+    expect(screen.getByTestId('columns.0.isNullable')).not.toBeDisabled();
+    expect(screen.getByTestId('columns.0.isUnique')).not.toBeDisabled();
 
     await user.type(screen.getByPlaceholderText('Enter name'), 'column1');
     expect(screen.getByDisplayValue('column1')).toBeInTheDocument();
 
-    firstColumnIsNullableCheckbox = screen.getByRole('checkbox', {
-      name: (_accessibleName, element) =>
-        element.getAttribute('name') === 'columns.0.isNullable',
-    });
-    firstColumnIsUniqueCheckbox = screen.getByRole('checkbox', {
-      name: (_accessibleName, element) =>
-        element.getAttribute('name') === 'columns.0.isUnique',
-    });
-
-    expect(firstColumnIsNullableCheckbox).not.toBeDisabled();
-    expect(firstColumnIsUniqueCheckbox).not.toBeDisabled();
+    expect(screen.getByTestId('columns.0.isNullable')).not.toBeDisabled();
+    expect(screen.getByTestId('columns.0.isUnique')).not.toBeDisabled();
   });
 
   it('should disable the nullable and unique checkboxes if the column is the primary key', async () => {
@@ -155,6 +153,7 @@ describe('BaseTableForm', () => {
         optionName: /^uuid.*uuid/,
         typeValue: 'uuid',
         defaultValue: 'gen_random_uuid()',
+        defaultValueKind: 'function',
       },
       0,
       user,
@@ -194,18 +193,8 @@ describe('BaseTableForm', () => {
     );
 
     expect(screen.getByTestId('id')).toBeInTheDocument();
-    expect(
-      screen.getByRole('checkbox', {
-        name: (_accessibleName, element) =>
-          element.getAttribute('name') === 'columns.0.isNullable',
-      }),
-    ).toBeDisabled();
-    expect(
-      screen.getByRole('checkbox', {
-        name: (_accessibleName, element) =>
-          element.getAttribute('name') === 'columns.0.isUnique',
-      }),
-    ).toBeDisabled();
+    expect(screen.getByTestId('columns.0.isNullable')).toBeDisabled();
+    expect(screen.getByTestId('columns.0.isUnique')).toBeDisabled();
   });
 
   it('should disable the nullable and unique checkboxes and default value if the column is an identity column', async () => {
@@ -219,6 +208,7 @@ describe('BaseTableForm', () => {
         optionName: /^uuid.*uuid/,
         typeValue: 'uuid',
         defaultValue: 'gen_random_uuid()',
+        defaultValueKind: 'function',
       },
       0,
       user,
@@ -252,58 +242,55 @@ describe('BaseTableForm', () => {
 
   it('should display identity column picker when smallint is selected', async () => {
     render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireTypeEvent(
-      screen.getByPlaceholderText('Select type'),
+    await pickAutocompleteOption(
+      'columns.0.type',
+      'Search types...',
+      /^smallint.*int2/,
       'int',
-    );
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: /^smallint.*int2/ }),
+      user,
     );
 
-    expect(screen.getByDisplayValue('smallint')).toBeInTheDocument();
+    expect(screen.getByTestId('columns.0.type')).toHaveTextContent('smallint');
     expect(screen.getByLabelText('Identity')).toBeInTheDocument();
   });
 
   it('should display identity column picker when integer is selected', async () => {
     render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByPlaceholderText('Select type'),
-    );
-    await TestUserEvent.fireTypeEvent(
-      screen.getByPlaceholderText('Select type'),
+    await pickAutocompleteOption(
+      'columns.0.type',
+      'Search types...',
+      /^integer.*int4/,
       'int',
-    );
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: /^integer.*int4/ }),
+      user,
     );
 
-    expect(screen.getByDisplayValue('integer')).toBeInTheDocument();
+    expect(screen.getByTestId('columns.0.type')).toHaveTextContent('integer');
     expect(screen.getByLabelText('Identity')).toBeInTheDocument();
   });
 
   it('should display identity column picker when bigint is selected', async () => {
     render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByPlaceholderText('Select type'),
-    );
-    await TestUserEvent.fireTypeEvent(
-      screen.getByPlaceholderText('Select type'),
+    await pickAutocompleteOption(
+      'columns.0.type',
+      'Search types...',
+      /^bigint.*int8/,
       'int',
-    );
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: /^bigint.*int8/ }),
+      user,
     );
 
-    expect(screen.getByDisplayValue('bigint')).toBeInTheDocument();
+    expect(screen.getByTestId('columns.0.type')).toHaveTextContent('bigint');
     expect(screen.getByLabelText('Identity')).toBeInTheDocument();
   });
 
@@ -313,32 +300,33 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByPlaceholderText('Select type'),
-    );
-    await user.type(screen.getByPlaceholderText('Select type'), 'text');
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: /^text.*text/ }),
+    await pickAutocompleteOption(
+      'columns.0.type',
+      'Search types...',
+      /^text.*text/,
+      'text',
+      user,
     );
 
-    expect(screen.getByDisplayValue('text')).toBeInTheDocument();
+    expect(screen.getByTestId('columns.0.type')).toHaveTextContent('text');
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
   });
 
   it('should not display identity column picker when numeric type is selected', async () => {
     render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireTypeEvent(
-      screen.getByPlaceholderText('Select type'),
+    await pickAutocompleteOption(
+      'columns.0.type',
+      'Search types...',
+      /^numeric.*numeric/,
       'numeric',
-    );
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: /^numeric.*numeric/ }),
+      user,
     );
 
-    expect(screen.getByDisplayValue('numeric')).toBeInTheDocument();
+    expect(screen.getByTestId('columns.0.type')).toHaveTextContent('numeric');
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
   });
 
@@ -348,27 +336,25 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByPlaceholderText('Select type'),
-    );
-    await TestUserEvent.fireTypeEvent(
-      screen.getByPlaceholderText('Select type'),
+    await pickAutocompleteOption(
+      'columns.0.type',
+      'Search types...',
+      /^text.*text/,
       'text',
-    );
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: /^text.*text/ }),
+      user,
     );
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(screen.getByDisplayValue('text'));
-    await user.clear(screen.getByTestId('columns.0.type'));
-    await user.type(screen.getByTestId('columns.0.type'), 'int');
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: /^integer.*int4/ }),
+    await pickAutocompleteOption(
+      'columns.0.type',
+      'Search types...',
+      /^integer.*int4/,
+      'int',
+      user,
     );
 
-    expect(screen.getByDisplayValue('integer')).toBeInTheDocument();
+    expect(screen.getByTestId('columns.0.type')).toHaveTextContent('integer');
     expect(screen.getByLabelText('Identity')).toBeInTheDocument();
   });
 
@@ -433,6 +419,7 @@ describe('BaseTableForm', () => {
         optionName: /^uuid.*uuid/,
         typeValue: 'uuid',
         defaultValue: 'gen_random_uuid()',
+        defaultValueKind: 'function',
       },
       0,
       user,
@@ -509,13 +496,8 @@ describe('BaseTableForm', () => {
     expect(mocks.onSubmit.mock.calls[0][0].columns).toStrictEqual([
       {
         name: 'id',
-        type: { group: 'UUID types', label: 'uuid', value: 'uuid' },
-        defaultValue: {
-          custom: true,
-          dropdownLabel: 'Use "gen_random_uuid()" as a literal',
-          label: 'gen_random_uuid()',
-          value: 'gen_random_uuid()',
-        },
+        type: 'uuid',
+        defaultValue: { value: 'gen_random_uuid()', custom: false },
         isNullable: false,
         isUnique: false,
         isIdentity: false,
@@ -523,7 +505,7 @@ describe('BaseTableForm', () => {
       },
       {
         name: 'description',
-        type: { group: 'String types', label: 'text', value: 'text' },
+        type: 'text',
         defaultValue: null,
         isNullable: false,
         isUnique: false,
@@ -537,12 +519,35 @@ describe('BaseTableForm', () => {
         isNullable: false,
         isUnique: false,
         name: 'identity_column',
-        type: {
-          group: 'Numeric types',
-          label: 'smallint',
-          value: 'int2',
-        },
+        type: 'int2',
       },
     ]);
+  });
+
+  it('should submit a colliding default as a literal when the user picks the create item', async () => {
+    render(<TestTableFormWrapper />);
+
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'test_table');
+
+    await fillColumnForm(
+      {
+        columnName: 'note',
+        optionName: /^text.*text/,
+        typeValue: 'text',
+        defaultValue: 'version()',
+        defaultValueKind: 'literal',
+      },
+      0,
+      user,
+    );
+
+    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+
+    expect(mocks.onSubmit.mock.calls[0][0].columns[0].defaultValue).toEqual({
+      value: 'version()',
+      custom: true,
+    });
   });
 });

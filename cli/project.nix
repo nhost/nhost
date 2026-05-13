@@ -43,6 +43,9 @@ let
       (inDirectory "${submodule}/cmd/mcp/testdata")
       (inDirectory "${submodule}/mcp/graphql/testdata")
 
+      # auth email templates (embedded into the CLI binary by `nhost init`)
+      (inDirectory "services/auth/email-templates")
+
       # docs
       ../docs/embed.go
       (and (inDirectory ../docs/src/content/docs) (matchExt "mdx"))

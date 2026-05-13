@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Badge, type BadgeProps } from '@/components/ui/v2/Badge';
 import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
 import { ExclamationFilledIcon } from '@/components/ui/v2/icons/ExclamationFilledIcon';
-import { QuestionMarkIcon } from '@/components/ui/v2/icons/QuestionMarkIcon';
+import { QuestionMarkIcon } from '@/components/ui/v3/icons/QuestionMarkIcon';
 
 export interface ProjectHealthBadgeProps extends BadgeProps {
   badgeVariant?: 'standard' | 'dot';
@@ -27,13 +27,7 @@ export default function ProjectHealthBadge({
   let innerBadgeContent: ReactNode | null = null;
   if (unknownState) {
     innerBadgeContent = (
-      <QuestionMarkIcon
-        sx={{
-          color: (theme) =>
-            theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-        }}
-        className="h-2 w-2 stroke-2"
-      />
+      <QuestionMarkIcon className="h-2 w-2 stroke-2 text-[#F5F5F5] dark:text-[#21262D]" />
     );
   } else if (showCheckIcon) {
     innerBadgeContent = (
