@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import type { FieldError, Path, PathValue } from 'react-hook-form';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { Separator } from '@/components/ui/v3/separator';
 import { Switch } from '@/components/ui/v3/switch';
@@ -12,15 +13,18 @@ import computeMemoryFromCPU from '@/features/orgs/projects/resources/settings/ut
 import { prettifyVCPU } from '@/features/orgs/projects/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
+  MAX_AUTOSCALER_MAX_REPLICAS,
   MAX_SERVICE_MEMORY,
   MAX_SERVICE_REPLICAS,
   MAX_SERVICE_VCPU,
+  MIN_AUTOSCALER_MAX_REPLICAS,
   MIN_SERVICE_MEMORY,
   MIN_SERVICE_REPLICAS,
   MIN_SERVICE_VCPU,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   RESOURCE_MEMORY_LOCKED_STEP,
+  RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_MEMORY_STEP,
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
@@ -29,11 +33,32 @@ import {
 
 type ServiceKey = 'database' | 'hasura' | 'auth' | 'storage';
 
+type ServiceValueShape = {
+  vcpu?: number;
+  memory?: number;
+  replicas?: number;
+  autoscale?: boolean;
+  maxReplicas?: number;
+  lockRatio?: boolean;
+};
+
+type ServiceErrorShape = {
+  vcpu?: FieldError;
+  memory?: FieldError;
+  replicas?: FieldError;
+  maxReplicas?: FieldError;
+};
+
+const MAX_SERVICE_VCPU_LABEL = MAX_SERVICE_VCPU / RESOURCE_VCPU_MULTIPLIER;
+const MAX_SERVICE_MEMORY_LABEL = Math.floor(
+  MAX_SERVICE_MEMORY / RESOURCE_MEMORY_MULTIPLIER,
+);
+
 const formatVCPU = (value: number) => `${prettifyVCPU(value).toFixed(2)} vCPU`;
 const formatMemory = (value: number) =>
-  value % 1024 === 0
-    ? `${(value / 1024).toFixed(0)} GiB`
-    : `${(value / 1024).toFixed(2)} GiB`;
+  value % RESOURCE_MEMORY_MULTIPLIER === 0
+    ? `${(value / RESOURCE_MEMORY_MULTIPLIER).toFixed(0)} GiB`
+    : `${(value / RESOURCE_MEMORY_MULTIPLIER).toFixed(2)} GiB`;
 const formatInteger = (value: number) => value.toString();
 
 export interface ServiceRowProps {
@@ -53,15 +78,14 @@ export default function ServiceRow({
 
   const serviceValues = useWatch<ResourceSettingsFormValues>({
     name: serviceKey,
-    // biome-ignore lint/suspicious/noExplicitAny: shape varies by service
-  }) as any;
+  }) as ServiceValueShape | undefined;
 
-  const cpu: number = serviceValues?.vcpu ?? MIN_SERVICE_VCPU;
-  const memory: number = serviceValues?.memory ?? MIN_SERVICE_MEMORY;
-  const replicas: number = serviceValues?.replicas ?? 1;
-  const autoscale: boolean = serviceValues?.autoscale ?? false;
-  const maxReplicas: number = serviceValues?.maxReplicas ?? 10;
-  const lockRatio: boolean = serviceValues?.lockRatio ?? true;
+  const cpu = serviceValues?.vcpu ?? MIN_SERVICE_VCPU;
+  const memory = serviceValues?.memory ?? MIN_SERVICE_MEMORY;
+  const replicas = serviceValues?.replicas ?? 1;
+  const autoscale = serviceValues?.autoscale ?? false;
+  const maxReplicas = serviceValues?.maxReplicas ?? 10;
+  const lockRatio = serviceValues?.lockRatio ?? true;
 
   const forceLocked = !disableReplicas && (replicas > 1 || autoscale);
   const effectiveLock = lockRatio || forceLocked;
@@ -69,7 +93,23 @@ export default function ServiceRow({
     ? RESOURCE_MEMORY_LOCKED_STEP
     : RESOURCE_MEMORY_STEP;
 
+  const setFieldValue = <P extends Path<ResourceSettingsFormValues>>(
+    path: P,
+    value: PathValue<ResourceSettingsFormValues, P>,
+    options: { shouldDirty?: boolean; shouldValidate?: boolean } = {
+      shouldDirty: true,
+      shouldValidate: true,
+    },
+  ) => setValue(path, value, options);
+
+  const memoryPath = `${serviceKey}.memory` as Path<ResourceSettingsFormValues>;
+  const lockRatioPath =
+    `${serviceKey}.lockRatio` as Path<ResourceSettingsFormValues>;
+  const autoscalePath =
+    `${serviceKey}.autoscale` as Path<ResourceSettingsFormValues>;
+
   const hydratedRef = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setFieldValue and memoryPath derive from serviceKey + form context — stable for a given service.
   useEffect(() => {
     if (!hydratedRef.current) {
       hydratedRef.current = true;
@@ -80,52 +120,55 @@ export default function ServiceRow({
     }
     const derivedMemory = computeMemoryFromCPU(cpu, memoryStep);
     if (derivedMemory !== memory) {
-      setValue(`${serviceKey}.memory` as never, derivedMemory as never, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+      setFieldValue(
+        memoryPath,
+        derivedMemory as PathValue<
+          ResourceSettingsFormValues,
+          typeof memoryPath
+        >,
+      );
     }
-  }, [effectiveLock, cpu, memory, memoryStep, serviceKey, setValue]);
+  }, [effectiveLock, cpu, memory, memoryStep, serviceKey]);
 
   const handleCPUChange = (next: number) => {
     if (effectiveLock) {
       const nextMemory = computeMemoryFromCPU(next, memoryStep);
-      setValue(`${serviceKey}.memory` as never, nextMemory as never, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+      setFieldValue(
+        memoryPath,
+        nextMemory as PathValue<ResourceSettingsFormValues, typeof memoryPath>,
+      );
     }
-    setValue('preset' as never, 'custom' as never);
+    setFieldValue('preset', 'custom');
   };
 
   const handleMemoryChange = () => {
-    setValue('preset' as never, 'custom' as never);
+    setFieldValue('preset', 'custom');
   };
 
   const handleReplicasChange = (next: number) => {
-    setValue('preset' as never, 'custom' as never);
+    setFieldValue('preset', 'custom');
     const nextForceLocked = next > 1 || autoscale;
     if (nextForceLocked) {
       const nextMemory = computeMemoryFromCPU(cpu, RESOURCE_MEMORY_LOCKED_STEP);
-      setValue(`${serviceKey}.memory` as never, nextMemory as never, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+      setFieldValue(
+        memoryPath,
+        nextMemory as PathValue<ResourceSettingsFormValues, typeof memoryPath>,
+      );
     }
   };
 
   const handleAutoscaleChange = (checked: boolean) => {
-    setValue(`${serviceKey}.autoscale` as never, checked as never, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    setValue('preset' as never, 'custom' as never);
+    setFieldValue(
+      autoscalePath,
+      checked as PathValue<ResourceSettingsFormValues, typeof autoscalePath>,
+    );
+    setFieldValue('preset', 'custom');
     if (checked) {
       const nextMemory = computeMemoryFromCPU(cpu, RESOURCE_MEMORY_LOCKED_STEP);
-      setValue(`${serviceKey}.memory` as never, nextMemory as never, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+      setFieldValue(
+        memoryPath,
+        nextMemory as PathValue<ResourceSettingsFormValues, typeof memoryPath>,
+      );
     }
   };
 
@@ -133,23 +176,12 @@ export default function ServiceRow({
   const monthlyCost =
     (billableVCPU / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE;
 
-  const serviceError =
-    formState.errors[serviceKey as keyof typeof formState.errors];
-  const memoryErrorMessage =
-    serviceError && 'memory' in serviceError
-      ? // biome-ignore lint/suspicious/noExplicitAny: nested form error
-        (serviceError as any).memory?.message
-      : null;
-  const replicasErrorMessage =
-    serviceError && 'replicas' in serviceError
-      ? // biome-ignore lint/suspicious/noExplicitAny: nested form error
-        (serviceError as any).replicas?.message
-      : null;
-  const maxReplicasErrorMessage =
-    serviceError && 'maxReplicas' in serviceError
-      ? // biome-ignore lint/suspicious/noExplicitAny: nested form error
-        (serviceError as any).maxReplicas?.message
-      : null;
+  const serviceError = formState.errors[serviceKey] as
+    | ServiceErrorShape
+    | undefined;
+  const memoryErrorMessage = serviceError?.memory?.message;
+  const replicasErrorMessage = serviceError?.replicas?.message;
+  const maxReplicasErrorMessage = serviceError?.maxReplicas?.message;
 
   return (
     <div className="flex flex-col gap-4 px-4 py-5">
@@ -185,7 +217,7 @@ export default function ServiceRow({
           ariaLabel={`${title} vCPU`}
           onValueChange={handleCPUChange}
           minHint="Minimum is 0.25 vCPU"
-          maxHint="Maximum is 7 vCPU per service"
+          maxHint={`Maximum is ${MAX_SERVICE_VCPU_LABEL} vCPU per service`}
         />
 
         <label
@@ -208,7 +240,7 @@ export default function ServiceRow({
               ? 'Unlock the 1:2 ratio to set memory manually'
               : 'Minimum is 128 MiB'
           }
-          maxHint="Maximum is 14 GiB per service"
+          maxHint={`Maximum is ${MAX_SERVICE_MEMORY_LABEL} GiB per service`}
         />
       </div>
 
@@ -217,7 +249,7 @@ export default function ServiceRow({
           <TooltipTrigger asChild>
             <span className="inline-flex">
               <Controller
-                name={`${serviceKey}.lockRatio` as never}
+                name={lockRatioPath}
                 render={({ field }) => (
                   <Switch
                     id={`${serviceKey}-lock`}
@@ -227,10 +259,12 @@ export default function ServiceRow({
                       field.onChange(checked);
                       if (checked) {
                         const next = computeMemoryFromCPU(cpu, memoryStep);
-                        setValue(
-                          `${serviceKey}.memory` as never,
-                          next as never,
-                          { shouldDirty: true, shouldValidate: true },
+                        setFieldValue(
+                          memoryPath,
+                          next as PathValue<
+                            ResourceSettingsFormValues,
+                            typeof memoryPath
+                          >,
                         );
                       }
                     }}
@@ -280,7 +314,7 @@ export default function ServiceRow({
 
             <div className="flex items-center gap-3">
               <Controller
-                name={`${serviceKey}.autoscale` as never}
+                name={autoscalePath}
                 render={({ field }) => (
                   <Switch
                     id={`${serviceKey}-autoscale`}
@@ -308,13 +342,13 @@ export default function ServiceRow({
                 </span>
                 <ComputeStepper
                   name={`${serviceKey}.maxReplicas`}
-                  min={Math.max(2, replicas)}
-                  max={MAX_SERVICE_REPLICAS}
+                  min={Math.max(MIN_AUTOSCALER_MAX_REPLICAS, replicas)}
+                  max={MAX_AUTOSCALER_MAX_REPLICAS}
                   step={1}
                   format={formatInteger}
                   ariaLabel={`${title} max replicas`}
                   minHint="Must be ≥ replicas"
-                  maxHint={`Up to ${MAX_SERVICE_REPLICAS}`}
+                  maxHint={`Up to ${MAX_AUTOSCALER_MAX_REPLICAS}`}
                 />
               </div>
             ) : (

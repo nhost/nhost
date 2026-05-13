@@ -10,24 +10,26 @@ import {
 } from '@/utils/constants/common';
 
 export default function RatioBanner() {
-  const values =
-    useWatch<ResourceSettingsFormValues>() as ResourceSettingsFormValues;
+  const [enabled, database, hasura, auth, storage] = useWatch<
+    ResourceSettingsFormValues,
+    ['enabled', 'database', 'hasura', 'auth', 'storage']
+  >({ name: ['enabled', 'database', 'hasura', 'auth', 'storage'] });
 
-  if (!values?.enabled) {
+  if (!enabled) {
     return null;
   }
 
   const totalCPU =
-    (values.database?.vcpu ?? 0) +
-    (values.hasura?.vcpu ?? 0) +
-    (values.auth?.vcpu ?? 0) +
-    (values.storage?.vcpu ?? 0);
+    (database?.vcpu ?? 0) +
+    (hasura?.vcpu ?? 0) * (hasura?.replicas ?? 1) +
+    (auth?.vcpu ?? 0) * (auth?.replicas ?? 1) +
+    (storage?.vcpu ?? 0) * (storage?.replicas ?? 1);
 
   const totalMemory =
-    (values.database?.memory ?? 0) +
-    (values.hasura?.memory ?? 0) +
-    (values.auth?.memory ?? 0) +
-    (values.storage?.memory ?? 0);
+    (database?.memory ?? 0) +
+    (hasura?.memory ?? 0) * (hasura?.replicas ?? 1) +
+    (auth?.memory ?? 0) * (auth?.replicas ?? 1) +
+    (storage?.memory ?? 0) * (storage?.replicas ?? 1);
 
   const expectedMemory =
     (totalCPU / RESOURCE_VCPU_MULTIPLIER) *

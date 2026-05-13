@@ -63,3 +63,20 @@ test('getPreset returns the definition for non-custom ids', () => {
   expect(getPreset('starter')?.id).toBe('starter');
   expect(getPreset('custom')).toBeNull();
 });
+
+test('every preset has matching topology across hasura, auth, and storage', () => {
+  // getPresetTopologyLine reads only preset.hasura — guard against future
+  // presets where the generic services disagree.
+  for (const preset of PRESETS) {
+    const hasuraTopology = {
+      replicas: preset.hasura.replicas ?? 1,
+      autoscale: preset.hasura.autoscale ?? false,
+      maxReplicas: preset.hasura.maxReplicas ?? 10,
+    };
+    for (const service of [preset.auth, preset.storage]) {
+      expect(service.replicas ?? 1).toBe(hasuraTopology.replicas);
+      expect(service.autoscale ?? false).toBe(hasuraTopology.autoscale);
+      expect(service.maxReplicas ?? 10).toBe(hasuraTopology.maxReplicas);
+    }
+  }
+});

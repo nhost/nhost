@@ -20,39 +20,31 @@ export interface CostSummaryProps {
   initialCost: number;
 }
 
-function computeBillable(values: Partial<ResourceSettingsFormValues>) {
-  return calculateBillableResources(
-    {
-      replicas: 1,
-      vcpu: values.database?.vcpu,
-      memory: values.database?.memory,
-    },
-    {
-      replicas: values.hasura?.replicas,
-      vcpu: values.hasura?.vcpu,
-      memory: values.hasura?.memory,
-    },
-    {
-      replicas: values.auth?.replicas,
-      vcpu: values.auth?.vcpu,
-      memory: values.auth?.memory,
-    },
-    {
-      replicas: values.storage?.replicas,
-      vcpu: values.storage?.vcpu,
-      memory: values.storage?.memory,
-    },
-  );
-}
-
 export default function CostSummary({ initialCost }: CostSummaryProps) {
   const isPlatform = useIsPlatform();
   const { formState } = useFormContext<ResourceSettingsFormValues>();
-  const values =
-    useWatch<ResourceSettingsFormValues>() as ResourceSettingsFormValues;
-  const enabled = values?.enabled ?? false;
 
-  const billable = enabled ? computeBillable(values) : { vcpu: 0, memory: 0 };
+  const [enabled, database, hasura, auth, storage] = useWatch<
+    ResourceSettingsFormValues,
+    ['enabled', 'database', 'hasura', 'auth', 'storage']
+  >({ name: ['enabled', 'database', 'hasura', 'auth', 'storage'] });
+
+  const billable = enabled
+    ? calculateBillableResources(
+        { replicas: 1, vcpu: database?.vcpu, memory: database?.memory },
+        {
+          replicas: hasura?.replicas,
+          vcpu: hasura?.vcpu,
+          memory: hasura?.memory,
+        },
+        { replicas: auth?.replicas, vcpu: auth?.vcpu, memory: auth?.memory },
+        {
+          replicas: storage?.replicas,
+          vcpu: storage?.vcpu,
+          memory: storage?.memory,
+        },
+      )
+    : { vcpu: 0, memory: 0 };
 
   const newCost = isPlatform
     ? (billable.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
@@ -81,8 +73,8 @@ export default function CostSummary({ initialCost }: CostSummaryProps) {
               </TooltipTrigger>
               <TooltipContent>
                 Equivalent to ${RESOURCE_VCPU_PRICE}/vCPU/month. Your
-                organization's $15/mo credits cover both shared and dedicated
-                compute.
+                organization&apos;s $15/mo credits cover both shared and
+                dedicated compute.
               </TooltipContent>
             </Tooltip>
           </div>

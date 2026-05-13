@@ -9,11 +9,15 @@ export const MIN_TOTAL_VCPU = 1 * RESOURCE_VCPU_MULTIPLIER;
 
 export const MIN_SERVICE_REPLICAS = 1;
 
-export const MAX_SERVICE_REPLICAS = 32;
+export const MAX_SERVICE_REPLICAS = 10;
+
+export const MIN_AUTOSCALER_MAX_REPLICAS = 2;
+
+export const MAX_AUTOSCALER_MAX_REPLICAS = 100;
 
 export const MIN_SERVICE_VCPU = 0.25 * RESOURCE_VCPU_MULTIPLIER;
 
-export const MAX_SERVICE_VCPU = 7 * RESOURCE_VCPU_MULTIPLIER;
+export const MAX_SERVICE_VCPU = 30 * RESOURCE_VCPU_MULTIPLIER;
 
 export const MEM_CPU_RATIO = 2.048;
 
@@ -23,10 +27,13 @@ export const MAX_STORAGE_CAPACITY = 1000;
 
 export const MIN_SERVICE_MEMORY = 128;
 
-export const MAX_SERVICE_MEMORY =
-  (MAX_SERVICE_VCPU / RESOURCE_VCPU_MULTIPLIER) *
-  RESOURCE_VCPU_MEMORY_RATIO *
-  RESOURCE_MEMORY_MULTIPLIER;
+export const MAX_SERVICE_MEMORY = 62464;
+
+export const MIN_SERVICES_CPU = Math.floor(128 / MEM_CPU_RATIO);
+export const MIN_SERVICES_MEM = 128;
+export const MAX_SERVICES_CPU = 30000;
+export const MAX_SERVICES_MEM = Math.floor(MAX_SERVICES_CPU * MEM_CPU_RATIO);
+export const COST_PER_VCPU = 0.05;
 
 const PER_SERVICE_RATIO_MESSAGE =
   'vCPU and Memory for this service must follow a 1:2 ratio when more than one replica is selected or when the autoscaler is activated.';
@@ -40,8 +47,8 @@ const genericServiceValidationSchema = Yup.object({
   maxReplicas: Yup.number()
     .label('Max Replicas')
     .required()
-    .min(MIN_SERVICE_REPLICAS)
-    .max(MAX_SERVICE_REPLICAS)
+    .min(MIN_AUTOSCALER_MAX_REPLICAS)
+    .max(MAX_AUTOSCALER_MAX_REPLICAS)
     .test(
       'max-replicas-gte-replicas',
       'Max Replicas must be greater than or equal to Replicas.',
@@ -131,14 +138,14 @@ export const resourceSettingsValidationSchema = Yup.object({
       }
       const totalCPU =
         (values.database?.vcpu ?? 0) +
-        (values.hasura?.vcpu ?? 0) +
-        (values.auth?.vcpu ?? 0) +
-        (values.storage?.vcpu ?? 0);
+        (values.hasura?.vcpu ?? 0) * (values.hasura?.replicas ?? 1) +
+        (values.auth?.vcpu ?? 0) * (values.auth?.replicas ?? 1) +
+        (values.storage?.vcpu ?? 0) * (values.storage?.replicas ?? 1);
       const totalMemory =
         (values.database?.memory ?? 0) +
-        (values.hasura?.memory ?? 0) +
-        (values.auth?.memory ?? 0) +
-        (values.storage?.memory ?? 0);
+        (values.hasura?.memory ?? 0) * (values.hasura?.replicas ?? 1) +
+        (values.auth?.memory ?? 0) * (values.auth?.replicas ?? 1) +
+        (values.storage?.memory ?? 0) * (values.storage?.replicas ?? 1);
       const expected =
         (totalCPU / RESOURCE_VCPU_MULTIPLIER) *
         RESOURCE_VCPU_MEMORY_RATIO *
@@ -150,6 +157,7 @@ export const resourceSettingsValidationSchema = Yup.object({
 type ResourceServiceShape = {
   vcpu?: number;
   memory?: number;
+  replicas?: number;
 };
 
 type ResourceSettingsLooseShape = {
@@ -163,9 +171,3 @@ type ResourceSettingsLooseShape = {
 export type ResourceSettingsFormValues = Yup.InferType<
   typeof resourceSettingsValidationSchema
 >;
-
-export const MIN_SERVICES_CPU = Math.floor(128 / MEM_CPU_RATIO);
-export const MIN_SERVICES_MEM = 128;
-export const MAX_SERVICES_CPU = 7000;
-export const MAX_SERVICES_MEM = Math.floor(MAX_SERVICES_CPU * MEM_CPU_RATIO);
-export const COST_PER_VCPU = 0.05;

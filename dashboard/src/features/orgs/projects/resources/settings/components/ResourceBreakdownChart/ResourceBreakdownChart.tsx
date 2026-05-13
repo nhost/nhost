@@ -62,13 +62,15 @@ function StackedBar({
   segments,
   scale,
   trailing,
+  overlay,
 }: {
   segments: SegmentInput[];
   scale: number;
   trailing?: { widthPct: number; label: string } | null;
+  overlay?: { widthPct: number; label: string } | null;
 }) {
   return (
-    <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted/50">
+    <div className="relative flex h-3 w-full overflow-hidden rounded-full bg-muted/50">
       {segments.map((segment) => {
         const widthPct = scale > 0 ? (segment.value / scale) * 100 : 0;
         if (widthPct <= 0) {
@@ -104,23 +106,48 @@ function StackedBar({
           <TooltipContent>{trailing.label}</TooltipContent>
         </Tooltip>
       )}
+      {overlay && overlay.widthPct > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              aria-label={overlay.label}
+              className="absolute top-0 right-0 h-full border-2 border-destructive border-dashed transition-all"
+              style={{ width: `${overlay.widthPct}%` }}
+            />
+          </TooltipTrigger>
+          <TooltipContent>{overlay.label}</TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }
 
 export default function ResourceBreakdownChart() {
-  const values =
-    useWatch<ResourceSettingsFormValues>() as ResourceSettingsFormValues;
+  const [database, hasura, auth, storage] = useWatch<
+    ResourceSettingsFormValues,
+    ['database', 'hasura', 'auth', 'storage']
+  >({ name: ['database', 'hasura', 'auth', 'storage'] });
+
+  const serviceMap = { database, hasura, auth, storage } as const;
 
   const totalCPU = SERVICES.reduce((sum, { key }) => {
-    const cpu = values?.[key]?.vcpu ?? 0;
-    const replicas = key === 'database' ? 1 : (values?.[key]?.replicas ?? 1);
+    const service = serviceMap[key];
+    const cpu = service?.vcpu ?? 0;
+    const replicas =
+      key === 'database'
+        ? 1
+        : ((service as { replicas?: number } | undefined)?.replicas ?? 1);
     return sum + cpu * replicas;
   }, 0);
 
   const totalMemory = SERVICES.reduce((sum, { key }) => {
-    const memory = values?.[key]?.memory ?? 0;
-    const replicas = key === 'database' ? 1 : (values?.[key]?.replicas ?? 1);
+    const service = serviceMap[key];
+    const memory = service?.memory ?? 0;
+    const replicas =
+      key === 'database'
+        ? 1
+        : ((service as { replicas?: number } | undefined)?.replicas ?? 1);
     return sum + memory * replicas;
   }, 0);
 
@@ -132,8 +159,12 @@ export default function ResourceBreakdownChart() {
   const memoryScale = Math.max(totalMemory, expectedMemory);
 
   const cpuSegments: SegmentInput[] = SERVICES.map(({ key, label, fill }) => {
-    const cpu = values?.[key]?.vcpu ?? 0;
-    const replicas = key === 'database' ? 1 : (values?.[key]?.replicas ?? 1);
+    const service = serviceMap[key];
+    const cpu = service?.vcpu ?? 0;
+    const replicas =
+      key === 'database'
+        ? 1
+        : ((service as { replicas?: number } | undefined)?.replicas ?? 1);
     const value = cpu * replicas;
     return {
       key,
@@ -146,8 +177,12 @@ export default function ResourceBreakdownChart() {
 
   const memorySegments: SegmentInput[] = SERVICES.map(
     ({ key, label, fill }) => {
-      const memory = values?.[key]?.memory ?? 0;
-      const replicas = key === 'database' ? 1 : (values?.[key]?.replicas ?? 1);
+      const service = serviceMap[key];
+      const memory = service?.memory ?? 0;
+      const replicas =
+        key === 'database'
+          ? 1
+          : ((service as { replicas?: number } | undefined)?.replicas ?? 1);
       const value = memory * replicas;
       return {
         key,
@@ -164,6 +199,14 @@ export default function ResourceBreakdownChart() {
       ? {
           widthPct: memoryScale > 0 ? (memoryDelta / memoryScale) * 100 : 0,
           label: `${prettifyMemory(memoryDelta)} unallocated — total memory must equal 2× total vCPU`,
+        }
+      : null;
+
+  const memoryOverlay =
+    memoryDelta < 0
+      ? {
+          widthPct: memoryScale > 0 ? (-memoryDelta / memoryScale) * 100 : 0,
+          label: `${prettifyMemory(-memoryDelta)} over the 1:2 ratio — reduce memory or allocate more vCPU`,
         }
       : null;
 
@@ -195,6 +238,7 @@ export default function ResourceBreakdownChart() {
           segments={memorySegments}
           scale={memoryScale}
           trailing={memoryTrailing}
+          overlay={memoryOverlay}
         />
       </div>
 

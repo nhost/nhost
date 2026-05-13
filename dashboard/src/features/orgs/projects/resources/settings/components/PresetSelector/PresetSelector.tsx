@@ -21,37 +21,39 @@ import { cn } from '@/lib/utils';
 
 export default function PresetSelector() {
   const { setValue, trigger } = useFormContext<ResourceSettingsFormValues>();
-  const values =
-    useWatch<ResourceSettingsFormValues>() as ResourceSettingsFormValues;
-  const activePreset: PresetId = values
-    ? detectPreset({
-        database: {
-          vcpu: values.database?.vcpu ?? 0,
-          memory: values.database?.memory ?? 0,
-        },
-        hasura: {
-          vcpu: values.hasura?.vcpu ?? 0,
-          memory: values.hasura?.memory ?? 0,
-          replicas: values.hasura?.replicas ?? 1,
-          autoscale: values.hasura?.autoscale ?? false,
-          maxReplicas: values.hasura?.maxReplicas ?? 10,
-        },
-        auth: {
-          vcpu: values.auth?.vcpu ?? 0,
-          memory: values.auth?.memory ?? 0,
-          replicas: values.auth?.replicas ?? 1,
-          autoscale: values.auth?.autoscale ?? false,
-          maxReplicas: values.auth?.maxReplicas ?? 10,
-        },
-        storage: {
-          vcpu: values.storage?.vcpu ?? 0,
-          memory: values.storage?.memory ?? 0,
-          replicas: values.storage?.replicas ?? 1,
-          autoscale: values.storage?.autoscale ?? false,
-          maxReplicas: values.storage?.maxReplicas ?? 10,
-        },
-      })
-    : 'custom';
+
+  const [database, hasura, auth, storage] = useWatch<
+    ResourceSettingsFormValues,
+    ['database', 'hasura', 'auth', 'storage']
+  >({ name: ['database', 'hasura', 'auth', 'storage'] });
+
+  const activePreset: PresetId = detectPreset({
+    database: {
+      vcpu: database?.vcpu ?? 0,
+      memory: database?.memory ?? 0,
+    },
+    hasura: {
+      vcpu: hasura?.vcpu ?? 0,
+      memory: hasura?.memory ?? 0,
+      replicas: hasura?.replicas ?? 1,
+      autoscale: hasura?.autoscale ?? false,
+      maxReplicas: hasura?.maxReplicas ?? 10,
+    },
+    auth: {
+      vcpu: auth?.vcpu ?? 0,
+      memory: auth?.memory ?? 0,
+      replicas: auth?.replicas ?? 1,
+      autoscale: auth?.autoscale ?? false,
+      maxReplicas: auth?.maxReplicas ?? 10,
+    },
+    storage: {
+      vcpu: storage?.vcpu ?? 0,
+      memory: storage?.memory ?? 0,
+      replicas: storage?.replicas ?? 1,
+      autoscale: storage?.autoscale ?? false,
+      maxReplicas: storage?.maxReplicas ?? 10,
+    },
+  });
 
   const applyPreset = (id: Exclude<PresetId, 'custom'>) => {
     const preset = getPreset(id);

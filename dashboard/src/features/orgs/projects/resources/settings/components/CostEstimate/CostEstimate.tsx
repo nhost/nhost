@@ -13,25 +13,25 @@ import {
   RESOURCE_VCPU_PRICE_PER_MINUTE,
 } from '@/utils/constants/common';
 
-const GENERIC_SERVICES = ['hasura', 'auth', 'storage'] as const;
-
 export default function CostEstimate() {
-  const values =
-    useWatch<ResourceSettingsFormValues>() as ResourceSettingsFormValues;
+  const [enabled, database, hasura, auth, storage] = useWatch<
+    ResourceSettingsFormValues,
+    ['enabled', 'database', 'hasura', 'auth', 'storage']
+  >({ name: ['enabled', 'database', 'hasura', 'auth', 'storage'] });
 
-  const billableVCPU = !values?.enabled
+  const generic = [hasura, auth, storage];
+
+  const billableVCPU = !enabled
     ? 0
-    : (values.database?.vcpu ?? 0) +
-      GENERIC_SERVICES.reduce(
-        (sum, key) =>
-          sum + (values[key]?.vcpu ?? 0) * (values[key]?.replicas ?? 1),
+    : (database?.vcpu ?? 0) +
+      generic.reduce(
+        (sum, service) => sum + (service?.vcpu ?? 0) * (service?.replicas ?? 1),
         0,
       );
 
-  const autoscaleExtraVCPU = !values?.enabled
+  const autoscaleExtraVCPU = !enabled
     ? 0
-    : GENERIC_SERVICES.reduce((sum, key) => {
-        const service = values[key];
+    : generic.reduce((sum, service) => {
         if (!service?.autoscale) {
           return sum;
         }
@@ -43,7 +43,7 @@ export default function CostEstimate() {
       }, 0);
 
   const hasAutoscaler =
-    !!values?.enabled && GENERIC_SERVICES.some((key) => values[key]?.autoscale);
+    !!enabled && generic.some((service) => service?.autoscale);
 
   const perMinute =
     (billableVCPU / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE_PER_MINUTE;
@@ -71,8 +71,8 @@ export default function CostEstimate() {
           </TooltipTrigger>
           <TooltipContent>
             Billed per vCPU per minute. Memory is included at the 1:2 ratio.
-            Your organization's $15/mo credits cover both shared and dedicated
-            compute.
+            Your organization&apos;s $15/mo credits cover both shared and
+            dedicated compute.
           </TooltipContent>
         </Tooltip>
       </div>

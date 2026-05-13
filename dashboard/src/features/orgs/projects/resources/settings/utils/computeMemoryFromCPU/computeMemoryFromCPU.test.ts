@@ -4,7 +4,7 @@ import {
 } from '@/utils/constants/common';
 import computeMemoryFromCPU from './computeMemoryFromCPU';
 
-test('derives memory at the 1:2.048 ratio using the default 128 MiB step', () => {
+test('derives memory at the 1:2 vCPU-to-GiB ratio using the default 128 MiB step', () => {
   expect(computeMemoryFromCPU(250)).toBe(512);
   expect(computeMemoryFromCPU(500)).toBe(1024);
   expect(computeMemoryFromCPU(750)).toBe(1536);
