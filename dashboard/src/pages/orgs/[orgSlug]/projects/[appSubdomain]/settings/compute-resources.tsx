@@ -37,7 +37,7 @@ ResourceSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
       mainContainerProps={{
-        className: 'flex h-full overflow-auto',
+        className: 'flex w-full flex-auto flex-col',
       }}
     >
       <SettingsLayout>
