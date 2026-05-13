@@ -59,7 +59,7 @@ export default function ComputeStepper({
         return (
           <div
             className={cn(
-              'inline-flex items-center gap-1 rounded-md border bg-background',
+              'inline-flex w-fit items-center gap-1 justify-self-start rounded-md border bg-background',
               disabled && 'opacity-50',
               className,
             )}
