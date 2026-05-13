@@ -20,7 +20,6 @@ import {
   serializeNode,
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
-import { ALL_TABLE_COLUMNS_QUERY_KEY } from '@/features/orgs/projects/database/schema-diagram/useAllTableColumns';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -240,9 +239,6 @@ export default function RolePermissionEditorForm({
         queryClient.invalidateQueries({ queryKey: ['default.metadata'] });
         queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-        });
-        queryClient.invalidateQueries({
-          queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY, project?.subdomain],
         });
       },
     },

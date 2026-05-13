@@ -29,12 +29,6 @@ export interface CreateTableFormProps
    */
   schema: string;
   /**
-   * Data source slug. When the form is rendered outside a data-source route
-   * (e.g. from the schema navigator), the router does not expose
-   * `dataSourceSlug`, so callers must pass it explicitly.
-   */
-  dataSource?: string;
-  /**
    * If provided, render a schema picker so the user can choose where to
    * create the table.
    */
@@ -54,7 +48,6 @@ export interface CreateTableFormProps
 export default function CreateTableForm({
   onSubmit,
   schema,
-  dataSource,
   availableSchemas,
   redirectOnSuccess = true,
   ...props
@@ -63,8 +56,7 @@ export default function CreateTableForm({
   const { closeDrawer } = useDialog();
   const [selectedSchema, setSelectedSchema] = useState<string>(schema);
 
-  const resolvedDataSource =
-    dataSource ?? (router.query.dataSourceSlug as string | undefined);
+  const dataSource = router.query.dataSourceSlug as string;
 
   const {
     mutateAsync: createTable,
@@ -72,7 +64,7 @@ export default function CreateTableForm({
     reset: resetCreateError,
   } = useCreateTableMutation({
     schema: selectedSchema,
-    dataSource: resolvedDataSource,
+    dataSource,
   });
 
   const {
@@ -82,7 +74,7 @@ export default function CreateTableForm({
   } = useSetTableTrackingMutation();
 
   const { mutateAsync: trackForeignKeyRelation, error: foreignKeyError } =
-    useTrackForeignKeyRelationsMutation({ dataSource: resolvedDataSource });
+    useTrackForeignKeyRelationsMutation({ dataSource });
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
@@ -146,7 +138,7 @@ export default function CreateTableForm({
         tracked: true,
         resourceVersion,
         args: {
-          source: resolvedDataSource as string,
+          source: dataSource,
           table: { name: table.name, schema: selectedSchema },
         },
       });
@@ -165,9 +157,9 @@ export default function CreateTableForm({
 
       triggerToast('The table has been created successfully.');
 
-      if (redirectOnSuccess && resolvedDataSource) {
+      if (redirectOnSuccess && dataSource) {
         await router.push(
-          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${resolvedDataSource}/${selectedSchema}/tables/${table.name}`,
+          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${dataSource}/${selectedSchema}/tables/${table.name}`,
         );
       } else {
         closeDrawer();

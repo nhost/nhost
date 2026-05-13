@@ -518,7 +518,6 @@ export function useDataBrowserActions({
         <CreateTableForm
           onSubmit={handleCreateTableSubmit}
           schema={selectedSchema}
-          dataSource={dataSourceSlug}
           availableSchemas={availableSchemas}
           redirectOnSuccess={!onTableCreated}
         />
