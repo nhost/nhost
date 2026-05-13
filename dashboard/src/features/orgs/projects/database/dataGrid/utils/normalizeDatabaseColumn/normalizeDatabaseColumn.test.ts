@@ -68,15 +68,8 @@ test('should normalize a raw database column', () => {
     isUnique: true,
     isPrimary: true,
     isNullable: false,
-    type: {
-      value: 'uuid',
-      label: 'uuid',
-    },
-    defaultValue: {
-      value: 'gen_random_uuid()',
-      label: 'gen_random_uuid()',
-      custom: false,
-    },
+    type: 'uuid',
+    defaultValue: { value: 'gen_random_uuid()', custom: false },
     comment: null,
     primaryConstraints: ['test_table_pkey'],
     uniqueConstraints: [],
@@ -103,11 +96,7 @@ test('should set identity to true if the column is an identity column', () => {
     isUnique: true,
     isPrimary: true,
     isNullable: false,
-    type: {
-      value: 'int4',
-      label: 'integer',
-      custom: false,
-    },
+    type: 'int4',
     defaultValue: null,
     comment: null,
     primaryConstraints: ['test_table_pkey'],
@@ -142,7 +131,7 @@ test('should set isGenerated to true and map generationExpression for generated 
     isNullable: false,
     isUnique: false,
     isPrimary: false,
-    type: { value: 'numeric', label: 'numeric' },
+    type: 'numeric',
     defaultValue: null,
     comment: null,
     primaryConstraints: [],
@@ -166,18 +155,39 @@ test('should set nullable to true if the column is nullable', () => {
     isUnique: true,
     isPrimary: true,
     isNullable: true,
-    type: {
-      value: 'uuid',
-      label: 'uuid',
-    },
-    defaultValue: {
-      value: 'gen_random_uuid()',
-      label: 'gen_random_uuid()',
-      custom: false,
-    },
+    type: 'uuid',
+    defaultValue: { value: 'gen_random_uuid()', custom: false },
     comment: null,
     primaryConstraints: ['test_table_pkey'],
     uniqueConstraints: [],
     foreignKeyRelation: null,
   });
+});
+
+test('should preserve the literal flag when the stored default is a quoted literal that collides with a function name', () => {
+  const rawLiteralColumn: typeof rawColumn = {
+    ...rawColumn,
+    udt_name: 'text',
+    data_type: 'text',
+    full_data_type: 'text',
+    column_default: "'version()'::text",
+  };
+
+  const column = normalizeDatabaseColumn(rawLiteralColumn);
+
+  expect(column.defaultValue).toEqual({ value: 'version()', custom: true });
+});
+
+test('should mark a bare function default as non-custom', () => {
+  const rawFunctionColumn: typeof rawColumn = {
+    ...rawColumn,
+    udt_name: 'text',
+    data_type: 'text',
+    full_data_type: 'text',
+    column_default: 'version()',
+  };
+
+  const column = normalizeDatabaseColumn(rawFunctionColumn);
+
+  expect(column.defaultValue).toEqual({ value: 'version()', custom: false });
 });

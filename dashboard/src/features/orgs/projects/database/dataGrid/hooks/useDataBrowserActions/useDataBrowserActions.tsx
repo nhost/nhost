@@ -424,6 +424,9 @@ export function useDataBrowserActions({
           tableName={tableName}
         />
       ),
+      props: {
+        PaperProps: { className: '[overflow-y:initial]' },
+      },
     });
   }
 
@@ -486,6 +489,9 @@ export function useDataBrowserActions({
           schema={selectedSchema}
         />
       ),
+      props: {
+        PaperProps: { className: '[overflow-y:initial]' },
+      },
     });
   }
 

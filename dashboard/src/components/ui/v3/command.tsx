@@ -157,8 +157,10 @@ CommandShortcut.displayName = 'CommandShortcut';
 
 const CommandCreateItem = ({
   onCreate,
+  label,
 }: {
   onCreate: (value: string) => void;
+  label?: (query: string) => React.ReactNode;
 }) => {
   const query = useCommandState((state) => state.search);
   if (!query || !onCreate) {
@@ -167,7 +169,13 @@ const CommandCreateItem = ({
 
   return (
     <CommandItem forceMount value="create" onSelect={() => onCreate(query)}>
-      <PlusIcon className="mr-2" /> {query}
+      {label ? (
+        label(query)
+      ) : (
+        <>
+          <PlusIcon className="mr-2" /> {query}
+        </>
+      )}
     </CommandItem>
   );
 };

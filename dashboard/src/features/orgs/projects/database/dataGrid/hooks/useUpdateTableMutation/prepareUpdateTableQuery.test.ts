@@ -10,17 +10,14 @@ const originalColumns: DatabaseColumn[] = [
   {
     id: 'id',
     name: 'id',
-    type: { value: 'uuid', label: 'UUID' },
-    defaultValue: {
-      value: 'gen_random_uuid()',
-      label: 'gen_random_uuid()',
-    },
+    type: 'uuid',
+    defaultValue: { value: 'gen_random_uuid()', custom: false },
     isPrimary: true,
   },
   {
     id: 'author_id',
     name: 'author_id',
-    type: { value: 'int4', label: 'int4' },
+    type: 'int4',
   },
 ];
 
@@ -33,16 +30,13 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
-          defaultValue: {
-            value: 'gen_random_uuid()',
-            label: 'gen_random_uuid()',
-          },
+          type: 'uuid',
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
         },
         {
           id: 'author_id',
           name: 'author_id',
-          type: { value: 'int4', label: 'int4' },
+          type: 'int4',
         },
       ],
       foreignKeyRelations: [],
@@ -71,15 +65,12 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
-          defaultValue: {
-            value: 'gen_random_uuid()',
-            label: 'gen_random_uuid()',
-          },
+          type: 'uuid',
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
         },
         {
           name: 'author_id',
-          type: { value: 'int4', label: 'int4' },
+          type: 'int4',
         },
       ],
       foreignKeyRelations: [],
@@ -110,11 +101,8 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
-          defaultValue: {
-            value: 'gen_random_uuid()',
-            label: 'gen_random_uuid()',
-          },
+          type: 'uuid',
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
         },
       ],
       foreignKeyRelations: [],
@@ -143,17 +131,13 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
-          defaultValue: {
-            value: 'gen_random_uuid()',
-            label: 'gen_random_uuid()',
-          },
+          type: 'uuid',
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
         },
         {
           id: 'author_id',
           name: 'age',
-          // biome-ignore lint/suspicious/noExplicitAny: test file
-          type: { value: 'numeric(10,2)' as any, label: 'numeric(10,2)' },
+          type: 'numeric(10,2)',
         },
       ],
       foreignKeyRelations: [],
@@ -188,16 +172,13 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
-          defaultValue: {
-            value: 'gen_random_uuid()',
-            label: 'gen_random_uuid()',
-          },
+          type: 'uuid',
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
         },
         {
           id: 'author_id',
           name: 'author_id',
-          type: { value: 'int4', label: 'int4' },
+          type: 'int4',
         },
       ],
       foreignKeyRelations: [
@@ -235,16 +216,13 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
-          defaultValue: {
-            value: 'gen_random_uuid()',
-            label: 'gen_random_uuid()',
-          },
+          type: 'uuid',
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
         },
         {
           id: 'author_id',
           name: 'author_id',
-          type: { value: 'int4', label: 'int4' },
+          type: 'int4',
         },
       ],
       foreignKeyRelations: [],
@@ -283,16 +261,13 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
-          defaultValue: {
-            value: 'gen_random_uuid()',
-            label: 'gen_random_uuid()',
-          },
+          type: 'uuid',
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
         },
         {
           id: 'author_id',
           name: 'author_id',
-          type: { value: 'int4', label: 'int4' },
+          type: 'int4',
         },
       ],
       foreignKeyRelations: [
@@ -341,14 +316,14 @@ describe('prepareUpdateTableQuery', () => {
       {
         id: 'id',
         name: 'id',
-        type: { value: 'uuid', label: 'UUID' },
+        type: 'uuid',
         isPrimary: true,
         primaryConstraints: ['test_table_pkey'],
       },
       {
         id: 'author_id',
         name: 'author_id',
-        type: { value: 'int4', label: 'int4' },
+        type: 'int4',
       },
     ];
 
@@ -359,12 +334,12 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
         },
         {
           id: 'author_id',
           name: 'author_id',
-          type: { value: 'int4', label: 'int4' },
+          type: 'int4',
         },
       ],
       foreignKeyRelations: [],
@@ -393,14 +368,14 @@ describe('prepareUpdateTableQuery', () => {
       {
         id: 'id',
         name: 'id',
-        type: { value: 'uuid', label: 'UUID' },
+        type: 'uuid',
         isPrimary: true,
         primaryConstraints: ['test_table_pkey'],
       },
       {
         id: 'author_id',
         name: 'author_id',
-        type: { value: 'int4', label: 'int4' },
+        type: 'int4',
       },
     ];
 
@@ -411,12 +386,12 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
         },
         {
           id: 'author_id',
           name: 'author_id',
-          type: { value: 'int4', label: 'int4' },
+          type: 'int4',
         },
       ],
       foreignKeyRelations: [],
@@ -453,14 +428,14 @@ describe('prepareUpdateTableQuery', () => {
       {
         id: 'id',
         name: 'id',
-        type: { value: 'uuid', label: 'UUID' },
+        type: 'uuid',
         isPrimary: true,
         primaryConstraints: ['test_table_pkey'],
       },
       {
         id: 'author_id',
         name: 'author_id',
-        type: { value: 'int4', label: 'int4' },
+        type: 'int4',
       },
     ];
 
@@ -471,12 +446,12 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
+          type: 'uuid',
         },
         {
           id: 'author_id',
           name: 'author_id',
-          type: { value: 'int4', label: 'int4' },
+          type: 'int4',
         },
       ],
       foreignKeyRelations: [],
@@ -510,16 +485,13 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'id',
           name: 'id',
-          type: { value: 'uuid', label: 'UUID' },
-          defaultValue: {
-            value: 'gen_random_uuid()',
-            label: 'gen_random_uuid()',
-          },
+          type: 'uuid',
+          defaultValue: { value: 'gen_random_uuid()', custom: false },
         },
         {
           id: 'author_id',
           name: 'author_id',
-          type: { value: 'int4', label: 'int4' },
+          type: 'int4',
           comment: 'Author id',
         },
       ],

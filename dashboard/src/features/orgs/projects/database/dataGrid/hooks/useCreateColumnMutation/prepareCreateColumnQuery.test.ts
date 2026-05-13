@@ -5,7 +5,7 @@ import prepareCreateColumnQuery from './prepareCreateColumnQuery';
 test('should prepare one query for a simple column', () => {
   const column: DatabaseColumn = {
     name: 'test_column',
-    type: { value: 'text', label: 'text' },
+    type: 'text',
   };
 
   const transaction = prepareCreateColumnQuery({
@@ -24,7 +24,7 @@ test('should prepare one query for a simple column', () => {
 test('should prepare a minimum of two queries for a column with a comment', () => {
   const column: DatabaseColumn = {
     name: 'test_column',
-    type: { value: 'text', label: 'text' },
+    type: 'text',
     comment: 'test comment',
   };
 
@@ -48,7 +48,7 @@ test('should not prepare an identity query if column is not of the right type', 
   // Note that `text` columns can't be identity columns.
   const column: DatabaseColumn = {
     name: 'test_column',
-    type: { value: 'text', label: 'text' },
+    type: 'text',
     isIdentity: true,
   };
 
@@ -68,7 +68,7 @@ test('should not prepare an identity query if column is not of the right type', 
 test('should prepare a minimum of two queries for an identity column', () => {
   const column: DatabaseColumn = {
     name: 'test_column',
-    type: { value: 'int4', label: 'integer' },
+    type: 'int4',
     isIdentity: true,
   };
 
@@ -91,7 +91,7 @@ test('should prepare a minimum of two queries for an identity column', () => {
 test('should prepare a minimum of two queries for a column that has a foreign key relation', () => {
   const column: DatabaseColumn = {
     name: 'test_column',
-    type: { value: 'int4', label: 'integer' },
+    type: 'int4',
     foreignKeyRelation: {
       name: 'test_table_name_fkey',
       columnName: 'test_column',
@@ -122,7 +122,7 @@ test('should prepare a minimum of two queries for a column that has a foreign ke
 test(`should not prepare a query for the foreign key relation if generator is disabled`, () => {
   const column: DatabaseColumn = {
     name: 'test_column',
-    type: { value: 'int4', label: 'integer' },
+    type: 'int4',
     foreignKeyRelation: {
       name: 'test_table_name_fkey',
       columnName: 'test_column',
