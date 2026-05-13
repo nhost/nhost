@@ -13,6 +13,7 @@ packages:
 
 sharedWorkspaceLockfile: false
 preferWorkspacePackages: true
+verifyDepsBeforeRun: warn
 
 packageExtensions:
   "@uiw/codemirror-theme-bbedit":
