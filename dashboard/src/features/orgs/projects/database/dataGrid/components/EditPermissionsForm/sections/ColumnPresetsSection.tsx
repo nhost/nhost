@@ -15,12 +15,15 @@ import {
 } from '@/components/ui/v3/select';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { cn } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import ColumnPresetValueCombobox from './ColumnPresetValueCombobox';
 import PermissionSettingsSection from './PermissionSettingsSection';
+
 
 export interface ColumnPreset {
   column: string;
@@ -42,11 +45,16 @@ export default function ColumnPresetsSection({
   );
 
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
 
   const { data: permissionVariablesData } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
     skip: !project?.id,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
+
+  
   const {
     control,
     formState: { errors },
