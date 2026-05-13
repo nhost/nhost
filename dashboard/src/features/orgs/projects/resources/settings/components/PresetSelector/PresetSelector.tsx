@@ -1,10 +1,19 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import computeMemoryFromCPU from '@/features/orgs/projects/resources/settings/utils/computeMemoryFromCPU';
-import type { PresetId } from '@/features/orgs/projects/resources/settings/utils/presets';
+import type {
+  PresetGenericAllocation,
+  PresetId,
+} from '@/features/orgs/projects/resources/settings/utils/presets';
 import {
   detectPreset,
   getPreset,
+  getPresetTopologyLine,
   PRESETS,
 } from '@/features/orgs/projects/resources/settings/utils/presets';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
@@ -25,18 +34,21 @@ export default function PresetSelector() {
           memory: values.hasura?.memory ?? 0,
           replicas: values.hasura?.replicas ?? 1,
           autoscale: values.hasura?.autoscale ?? false,
+          maxReplicas: values.hasura?.maxReplicas ?? 10,
         },
         auth: {
           vcpu: values.auth?.vcpu ?? 0,
           memory: values.auth?.memory ?? 0,
           replicas: values.auth?.replicas ?? 1,
           autoscale: values.auth?.autoscale ?? false,
+          maxReplicas: values.auth?.maxReplicas ?? 10,
         },
         storage: {
           vcpu: values.storage?.vcpu ?? 0,
           memory: values.storage?.memory ?? 0,
           replicas: values.storage?.replicas ?? 1,
           autoscale: values.storage?.autoscale ?? false,
+          maxReplicas: values.storage?.maxReplicas ?? 10,
         },
       })
     : 'custom';
@@ -59,65 +71,91 @@ export default function PresetSelector() {
       opts,
     );
 
-    for (const key of ['hasura', 'auth', 'storage'] as const) {
-      setValue(`${key}.vcpu`, preset[key].vcpu, opts);
-      setValue(`${key}.memory`, preset[key].memory, opts);
-      setValue(`${key}.replicas`, 1, opts);
-      setValue(`${key}.autoscale`, false, opts);
-      setValue(`${key}.maxReplicas`, 10, opts);
+    const applyGeneric = (
+      key: 'hasura' | 'auth' | 'storage',
+      service: PresetGenericAllocation,
+    ) => {
+      setValue(`${key}.vcpu`, service.vcpu, opts);
+      setValue(`${key}.memory`, service.memory, opts);
+      setValue(`${key}.replicas`, service.replicas ?? 1, opts);
+      setValue(`${key}.autoscale`, service.autoscale ?? false, opts);
+      setValue(`${key}.maxReplicas`, service.maxReplicas ?? 10, opts);
       setValue(
         `${key}.lockRatio`,
-        isLocked(preset[key].vcpu, preset[key].memory),
+        isLocked(service.vcpu, service.memory),
         opts,
       );
-    }
+    };
+
+    applyGeneric('hasura', preset.hasura);
+    applyGeneric('auth', preset.auth);
+    applyGeneric('storage', preset.storage);
 
     setValue('preset', id, { shouldDirty: true });
     trigger();
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-2">
       <span className="font-medium text-sm">Preset</span>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {PRESETS.map((preset) => {
           const isActive = activePreset === preset.id;
           return (
-            <Button
-              key={preset.id}
-              type="button"
-              variant={isActive ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => applyPreset(preset.id)}
-              className={cn(
-                'flex h-auto flex-col items-start gap-0.5 px-3 py-2 text-left',
-                isActive && 'border-primary',
-              )}
-              aria-pressed={isActive}
-            >
-              <span className="font-medium text-sm">{preset.label}</span>
-              <span
-                className={cn(
-                  'text-xs',
-                  isActive ? 'text-white/80' : 'text-muted-foreground',
-                )}
-              >
-                {preset.description}
-              </span>
-            </Button>
+            <Tooltip key={preset.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant={isActive ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyPreset(preset.id)}
+                  className={cn(
+                    'flex h-auto min-h-[5.25rem] w-full flex-col items-start justify-start gap-0.5 px-3 py-2 text-left',
+                    isActive && 'border-primary',
+                  )}
+                  aria-pressed={isActive}
+                >
+                  <span className="font-medium text-sm">{preset.label}</span>
+                  <span
+                    className={cn(
+                      'text-xs',
+                      isActive ? 'text-white/90' : 'text-muted-foreground',
+                    )}
+                  >
+                    {preset.description}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-xs',
+                      isActive ? 'text-white/70' : 'text-muted-foreground/80',
+                    )}
+                  >
+                    {getPresetTopologyLine(preset)}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                {preset.tooltip}
+              </TooltipContent>
+            </Tooltip>
           );
         })}
         <div
           role="status"
           className={cn(
-            'flex items-center rounded-md border px-3 py-2 text-sm',
+            'flex min-h-[5.25rem] flex-col items-start justify-center rounded-md border px-3 py-2 text-sm',
             activePreset === 'custom'
               ? 'border-primary text-foreground'
               : 'border-dashed text-muted-foreground',
           )}
           aria-label="Custom preset"
         >
-          Custom
+          <span className="font-medium">Custom</span>
+          <span className="text-muted-foreground text-xs">
+            {activePreset === 'custom'
+              ? 'Manually configured'
+              : 'No preset matches'}
+          </span>
         </div>
       </div>
     </div>
