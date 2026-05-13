@@ -3,9 +3,9 @@ import { cn } from '@/lib/utils';
 import type { PermissionDotState } from './permissionState';
 
 const actionColors: Record<DatabaseAction, string> = {
-  select: 'rgb(34, 197, 94)',
-  insert: 'rgb(234, 179, 8)',
-  update: 'rgb(249, 115, 22)',
+  select: 'rgb(59, 130, 246)',
+  insert: 'rgb(34, 197, 94)',
+  update: 'rgb(245, 158, 11)',
   delete: 'rgb(239, 68, 68)',
 };
 
