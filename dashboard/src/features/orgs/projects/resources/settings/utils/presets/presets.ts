@@ -3,21 +3,35 @@ import {
   RESOURCE_VCPU_MULTIPLIER,
 } from '@/utils/constants/common';
 
-export type PresetId = 'starter' | 'standard' | 'performance' | 'custom';
+export type PresetId =
+  | 'starter'
+  | 'standard'
+  | 'performance'
+  | 'performance-reliability'
+  | 'custom';
 
-export interface PresetServiceAllocation {
+export interface PresetDatabaseAllocation {
   vcpu: number;
   memory: number;
+}
+
+export interface PresetGenericAllocation {
+  vcpu: number;
+  memory: number;
+  replicas?: number;
+  autoscale?: boolean;
+  maxReplicas?: number;
 }
 
 export interface PresetDefinition {
   id: Exclude<PresetId, 'custom'>;
   label: string;
   description: string;
-  database: PresetServiceAllocation;
-  hasura: PresetServiceAllocation;
-  auth: PresetServiceAllocation;
-  storage: PresetServiceAllocation;
+  tooltip: string;
+  database: PresetDatabaseAllocation;
+  hasura: PresetGenericAllocation;
+  auth: PresetGenericAllocation;
+  storage: PresetGenericAllocation;
 }
 
 const cpu = (vcpu: number) => vcpu * RESOURCE_VCPU_MULTIPLIER;
@@ -28,6 +42,8 @@ export const PRESETS: PresetDefinition[] = [
     id: 'starter',
     label: 'Starter',
     description: '1 vCPU · 2 GiB',
+    tooltip:
+      'Use this for prototypes, demos, and personal projects with light, intermittent traffic.',
     database: { vcpu: cpu(0.25), memory: mem(0.5) },
     hasura: { vcpu: cpu(0.25), memory: mem(1) },
     auth: { vcpu: cpu(0.25), memory: mem(0.25) },
@@ -37,6 +53,8 @@ export const PRESETS: PresetDefinition[] = [
     id: 'standard',
     label: 'Standard',
     description: '2 vCPU · 4 GiB',
+    tooltip:
+      'Use this for production apps with steady, moderate traffic and predictable load.',
     database: { vcpu: cpu(1), memory: mem(2.5) },
     hasura: { vcpu: cpu(0.5), memory: mem(1) },
     auth: { vcpu: cpu(0.25), memory: mem(0.25) },
@@ -46,10 +64,56 @@ export const PRESETS: PresetDefinition[] = [
     id: 'performance',
     label: 'Performance',
     description: '4 vCPU · 8 GiB',
+    tooltip:
+      'Use this for high-traffic apps that can burst. The autoscaler adds Hasura, Auth, and Storage replicas (up to 10) during spikes.',
     database: { vcpu: cpu(3), memory: mem(6) },
-    hasura: { vcpu: cpu(0.5), memory: mem(1.25) },
-    auth: { vcpu: cpu(0.25), memory: mem(0.25) },
-    storage: { vcpu: cpu(0.25), memory: mem(0.5) },
+    hasura: {
+      vcpu: cpu(0.5),
+      memory: mem(1),
+      autoscale: true,
+      maxReplicas: 10,
+    },
+    auth: {
+      vcpu: cpu(0.25),
+      memory: mem(0.5),
+      autoscale: true,
+      maxReplicas: 10,
+    },
+    storage: {
+      vcpu: cpu(0.25),
+      memory: mem(0.5),
+      autoscale: true,
+      maxReplicas: 10,
+    },
+  },
+  {
+    id: 'performance-reliability',
+    label: 'Performance + HA',
+    description: '4 vCPU · 8 GiB',
+    tooltip:
+      'Use this for production-critical apps. Two replicas of Hasura, Auth, and Storage stay up across pod restarts (high availability), and the autoscaler (max 10) handles bursts.',
+    database: { vcpu: cpu(3), memory: mem(6) },
+    hasura: {
+      vcpu: cpu(0.5),
+      memory: mem(1),
+      replicas: 2,
+      autoscale: true,
+      maxReplicas: 10,
+    },
+    auth: {
+      vcpu: cpu(0.25),
+      memory: mem(0.5),
+      replicas: 2,
+      autoscale: true,
+      maxReplicas: 10,
+    },
+    storage: {
+      vcpu: cpu(0.25),
+      memory: mem(0.5),
+      replicas: 2,
+      autoscale: true,
+      maxReplicas: 10,
+    },
   },
 ];
 
@@ -60,39 +124,42 @@ interface PresetMatchInput {
     memory: number;
     replicas: number;
     autoscale: boolean;
+    maxReplicas: number;
   };
-  auth: { vcpu: number; memory: number; replicas: number; autoscale: boolean };
+  auth: {
+    vcpu: number;
+    memory: number;
+    replicas: number;
+    autoscale: boolean;
+    maxReplicas: number;
+  };
   storage: {
     vcpu: number;
     memory: number;
     replicas: number;
     autoscale: boolean;
+    maxReplicas: number;
   };
 }
 
+const genericMatches = (
+  preset: PresetGenericAllocation,
+  value: PresetMatchInput['hasura'],
+) =>
+  preset.vcpu === value.vcpu &&
+  preset.memory === value.memory &&
+  (preset.replicas ?? 1) === value.replicas &&
+  (preset.autoscale ?? false) === value.autoscale &&
+  (!preset.autoscale || (preset.maxReplicas ?? 10) === value.maxReplicas);
+
 export function detectPreset(values: PresetMatchInput): PresetId {
-  const noReplicas =
-    values.hasura.replicas === 1 &&
-    values.auth.replicas === 1 &&
-    values.storage.replicas === 1 &&
-    !values.hasura.autoscale &&
-    !values.auth.autoscale &&
-    !values.storage.autoscale;
-
-  if (!noReplicas) {
-    return 'custom';
-  }
-
   const match = PRESETS.find(
     (preset) =>
       preset.database.vcpu === values.database.vcpu &&
       preset.database.memory === values.database.memory &&
-      preset.hasura.vcpu === values.hasura.vcpu &&
-      preset.hasura.memory === values.hasura.memory &&
-      preset.auth.vcpu === values.auth.vcpu &&
-      preset.auth.memory === values.auth.memory &&
-      preset.storage.vcpu === values.storage.vcpu &&
-      preset.storage.memory === values.storage.memory,
+      genericMatches(preset.hasura, values.hasura) &&
+      genericMatches(preset.auth, values.auth) &&
+      genericMatches(preset.storage, values.storage),
   );
 
   return match?.id ?? 'custom';
@@ -103,4 +170,20 @@ export function getPreset(id: PresetId): PresetDefinition | null {
     return null;
   }
   return PRESETS.find((preset) => preset.id === id) ?? null;
+}
+
+export function getPresetTopologyLine(preset: PresetDefinition): string {
+  const replicas = preset.hasura.replicas ?? 1;
+  const autoscale = preset.hasura.autoscale ?? false;
+  const maxReplicas = preset.hasura.maxReplicas ?? 10;
+  if (replicas > 1 && autoscale) {
+    return `${replicas}× replicas · autoscale ${maxReplicas}`;
+  }
+  if (replicas > 1) {
+    return `${replicas}× replicas`;
+  }
+  if (autoscale) {
+    return `autoscale up to ${maxReplicas}`;
+  }
+  return 'single replica';
 }

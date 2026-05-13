@@ -1,26 +1,27 @@
 import { detectPreset, getPreset, PRESETS } from './presets';
 
-function buildValuesFromPreset(
-  preset: (typeof PRESETS)[number],
-  overrides: Partial<{ replicas: number; autoscale: boolean }> = {},
-) {
+function buildValuesFromPreset(preset: (typeof PRESETS)[number]) {
+  const hydrate = (
+    service: (typeof PRESETS)[number]['hasura'],
+  ): {
+    vcpu: number;
+    memory: number;
+    replicas: number;
+    autoscale: boolean;
+    maxReplicas: number;
+  } => ({
+    vcpu: service.vcpu,
+    memory: service.memory,
+    replicas: service.replicas ?? 1,
+    autoscale: service.autoscale ?? false,
+    maxReplicas: service.maxReplicas ?? 10,
+  });
+
   return {
     database: { ...preset.database },
-    hasura: {
-      ...preset.hasura,
-      replicas: overrides.replicas ?? 1,
-      autoscale: overrides.autoscale ?? false,
-    },
-    auth: {
-      ...preset.auth,
-      replicas: 1,
-      autoscale: false,
-    },
-    storage: {
-      ...preset.storage,
-      replicas: 1,
-      autoscale: false,
-    },
+    hasura: hydrate(preset.hasura),
+    auth: hydrate(preset.auth),
+    storage: hydrate(preset.storage),
   };
 }
 
@@ -37,14 +38,25 @@ test('returns "custom" when one service is off-preset', () => {
   expect(detectPreset(values)).toBe('custom');
 });
 
-test('returns "custom" when replicas or autoscale are set', () => {
+test('returns "custom" when replicas or autoscale drift from the preset', () => {
   const standard = PRESETS.find((p) => p.id === 'standard')!;
-  expect(detectPreset(buildValuesFromPreset(standard, { replicas: 2 }))).toBe(
-    'custom',
+  const replicaDrift = buildValuesFromPreset(standard);
+  replicaDrift.hasura.replicas = 2;
+  expect(detectPreset(replicaDrift)).toBe('custom');
+
+  const autoscaleDrift = buildValuesFromPreset(standard);
+  autoscaleDrift.hasura.autoscale = true;
+  expect(detectPreset(autoscaleDrift)).toBe('custom');
+});
+
+test('matches the performance-reliability preset with replicas and autoscaler', () => {
+  const preset = PRESETS.find((p) => p.id === 'performance-reliability')!;
+  expect(preset.hasura.replicas).toBe(2);
+  expect(preset.hasura.autoscale).toBe(true);
+  expect(preset.hasura.maxReplicas).toBe(10);
+  expect(detectPreset(buildValuesFromPreset(preset))).toBe(
+    'performance-reliability',
   );
-  expect(
-    detectPreset(buildValuesFromPreset(standard, { autoscale: true })),
-  ).toBe('custom');
 });
 
 test('getPreset returns the definition for non-custom ids', () => {
