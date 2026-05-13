@@ -91,7 +91,7 @@ export default function PresetSelector() {
     applyGeneric('auth', preset.auth);
     applyGeneric('storage', preset.storage);
 
-    setValue('preset', id, { shouldDirty: true });
+    setValue('preset', id);
     trigger();
   };
 

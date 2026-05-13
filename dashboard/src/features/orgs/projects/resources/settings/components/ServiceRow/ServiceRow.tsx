@@ -95,15 +95,15 @@ export default function ServiceRow({
         shouldValidate: true,
       });
     }
-    setValue('preset' as never, 'custom' as never, { shouldDirty: true });
+    setValue('preset' as never, 'custom' as never);
   };
 
   const handleMemoryChange = () => {
-    setValue('preset' as never, 'custom' as never, { shouldDirty: true });
+    setValue('preset' as never, 'custom' as never);
   };
 
   const handleReplicasChange = (next: number) => {
-    setValue('preset' as never, 'custom' as never, { shouldDirty: true });
+    setValue('preset' as never, 'custom' as never);
     const nextForceLocked = next > 1 || autoscale;
     if (nextForceLocked) {
       const nextMemory = computeMemoryFromCPU(cpu, RESOURCE_MEMORY_LOCKED_STEP);
@@ -119,7 +119,7 @@ export default function ServiceRow({
       shouldDirty: true,
       shouldValidate: true,
     });
-    setValue('preset' as never, 'custom' as never, { shouldDirty: true });
+    setValue('preset' as never, 'custom' as never);
     if (checked) {
       const nextMemory = computeMemoryFromCPU(cpu, RESOURCE_MEMORY_LOCKED_STEP);
       setValue(`${serviceKey}.memory` as never, nextMemory as never, {

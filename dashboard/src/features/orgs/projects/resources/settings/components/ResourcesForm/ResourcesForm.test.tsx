@@ -1,7 +1,9 @@
+import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { expect, test, vi } from 'vitest';
 import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import { getProPlanOnlyQuery } from '@/tests/msw/mocks/graphql/plansQuery';
 import {
   resourcesAvailableQuery,
@@ -242,6 +244,106 @@ test('disabling resources surfaces the destructive confirm dialog', async () => 
   expect(
     within(dialog).getByRole('button', { name: /^confirm$/i }),
   ).toHaveClass('bg-destructive');
+});
+
+function pickPresetButton(label: string) {
+  const btn = screen.getAllByRole('button').find((b: HTMLElement) => {
+    const text = b.textContent ?? '';
+    if (label === 'Performance') {
+      return (
+        text.startsWith('Performance') && !text.startsWith('Performance + HA')
+      );
+    }
+    return text.startsWith(label);
+  });
+  if (!btn) {
+    throw new Error(`No preset button matching "${label}"`);
+  }
+  return btn;
+}
+
+test('Performance + HA enables Save and is detected as the active preset', async () => {
+  const user = new TestUserEvent();
+  render(<ResourcesForm />);
+  await screen.findByRole('tab', { name: /advanced/i });
+
+  await user.click(pickPresetButton('Performance + HA'));
+
+  const saveBtn = screen.getByRole('button', {
+    name: /save changes/i,
+  }) as HTMLButtonElement;
+  expect(saveBtn.disabled).toBe(false);
+
+  const activePresetButtons = screen
+    .getAllByRole('button')
+    .filter((b: HTMLElement) => b.getAttribute('aria-pressed') === 'true');
+  expect(activePresetButtons).toHaveLength(1);
+  expect(activePresetButtons[0].textContent).toMatch(/^Performance \+ HA/);
+});
+
+const resourcesMatchingPerformancePreset = nhostGraphQLLink.query(
+  'GetResources',
+  () =>
+    HttpResponse.json({
+      data: {
+        config: {
+          __typename: 'ConfigConfig',
+          postgres: {
+            resources: {
+              compute: { cpu: 3000, memory: 6144 },
+              enablePublicAccess: null,
+              storage: { capacity: 1 },
+              autoscaler: null,
+              networking: null,
+              replicas: 1,
+            },
+          },
+          hasura: {
+            resources: {
+              compute: { cpu: 500, memory: 1024 },
+              autoscaler: { maxReplicas: 10 },
+              networking: null,
+              replicas: 1,
+            },
+          },
+          auth: {
+            resources: {
+              compute: { cpu: 250, memory: 512 },
+              autoscaler: { maxReplicas: 10 },
+              networking: null,
+              replicas: 1,
+            },
+          },
+          storage: {
+            resources: {
+              compute: { cpu: 250, memory: 512 },
+              autoscaler: { maxReplicas: 10 },
+              networking: null,
+              replicas: 1,
+            },
+          },
+        },
+      },
+    }),
+);
+
+test('re-selecting the originally loaded preset disables Save again', async () => {
+  server.use(resourcesMatchingPerformancePreset);
+
+  const user = new TestUserEvent();
+  render(<ResourcesForm />);
+  await screen.findByRole('tab', { name: /advanced/i });
+
+  const saveBtn = screen.getByRole('button', {
+    name: /save changes/i,
+  }) as HTMLButtonElement;
+  expect(saveBtn.disabled).toBe(true);
+
+  await user.click(pickPresetButton('Standard'));
+  expect(saveBtn.disabled).toBe(false);
+
+  await user.click(pickPresetButton('Performance'));
+  expect(saveBtn.disabled).toBe(true);
 });
 
 test('unlocking a service in Advanced lets memory drift and surfaces the ratio banner', async () => {
