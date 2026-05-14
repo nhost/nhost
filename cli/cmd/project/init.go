@@ -9,11 +9,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hashicorp/go-getter/v2"
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/config"
 	"github.com/nhost/nhost/cli/dockercompose"
+	emailtemplates "github.com/nhost/nhost/services/auth/email-templates"
 	"github.com/urfave/cli/v3"
 	"gopkg.in/yaml.v3"
 )
@@ -25,41 +25,42 @@ const (
 //go:embed templates/init/*
 var embeddedFS embed.FS
 
-func writeFiles(ps *clienv.PathStructure, root, relPath string) error {
-	dirEntries, err := embeddedFS.ReadDir(filepath.Join(root, relPath))
-	if err != nil {
-		return fmt.Errorf("failed to read dir: %w", err)
-	}
+func writeFS(srcFS fs.FS, srcRoot, dstRoot string) error {
+	return fs.WalkDir( //nolint:wrapcheck
+		srcFS,
+		srcRoot,
+		func(p string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return fmt.Errorf("failed to walk %s: %w", p, err)
+			}
 
-	for _, entry := range dirEntries {
-		if entry.IsDir() {
-			return writeFiles(ps, root, filepath.Join(relPath, entry.Name()))
-		}
+			rel, err := filepath.Rel(srcRoot, p)
+			if err != nil {
+				return fmt.Errorf("failed to compute relative path for %s: %w", p, err)
+			}
 
-		src := filepath.Join(root, relPath, entry.Name())
+			dst := filepath.Join(dstRoot, rel)
 
-		fileData, err := fs.ReadFile(embeddedFS, src)
-		if err != nil {
-			return fmt.Errorf("failed to read file %s: %w", src, err)
-		}
+			if d.IsDir() {
+				if err := os.MkdirAll(dst, 0o755); err != nil { //nolint:mnd
+					return fmt.Errorf("failed to create dir %s: %w", dst, err)
+				}
 
-		dst := filepath.Join(ps.Root(), relPath, entry.Name())
+				return nil
+			}
 
-		f, err := os.OpenFile(
-			filepath.Join(ps.Root(), dst),
-			os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600, //nolint:mnd
-		)
-		if err != nil {
-			return fmt.Errorf("failed to open file %s: %w", dst, err)
-		}
-		defer f.Close()
+			data, err := fs.ReadFile(srcFS, p)
+			if err != nil {
+				return fmt.Errorf("failed to read file %s: %w", p, err)
+			}
 
-		if _, err := f.Write(fileData); err != nil {
-			return fmt.Errorf("failed to write file %s: %w", dst, err)
-		}
-	}
+			if err := os.WriteFile(dst, data, 0o600); err != nil { //nolint:mnd
+				return fmt.Errorf("failed to write file %s: %w", dst, err)
+			}
 
-	return nil
+			return nil
+		},
+	)
 }
 
 const hasuraMetadataVersion = 3
@@ -103,7 +104,7 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to initialize remote project: %w", err)
 		}
 	} else {
-		if err := initInit(ctx, ce.Path); err != nil {
+		if err := initInit(ce.Path); err != nil {
 			return fmt.Errorf("failed to initialize project: %w", err)
 		}
 	}
@@ -113,9 +114,7 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func initInit(
-	ctx context.Context, ps *clienv.PathStructure,
-) error {
+func initInit(ps *clienv.PathStructure) error {
 	hasuraConf := map[string]any{"version": hasuraMetadataVersion}
 	if err := clienv.MarshalFile(hasuraConf, ps.HasuraConfig(), yaml.Marshal); err != nil {
 		return fmt.Errorf("failed to save hasura config: %w", err)
@@ -125,17 +124,16 @@ func initInit(
 		return err
 	}
 
-	if err := writeFiles(ps, "templates/init", ""); err != nil {
-		return err
+	if err := writeFS(embeddedFS, "templates/init", ps.Root()); err != nil {
+		return fmt.Errorf("failed to write project files: %w", err)
 	}
 
-	getclient := &getter.Client{}                    //nolint:exhaustruct
-	if _, err := getclient.Get(ctx, &getter.Request{ //nolint:exhaustruct
-		Src:             "git::https://github.com/nhost/nhost.git//services/auth/email-templates",
-		Dst:             "nhost/emails",
-		DisableSymlinks: true,
-	}); err != nil {
-		return fmt.Errorf("failed to download email templates: %w", err)
+	if err := writeFS(
+		emailtemplates.FS,
+		".",
+		filepath.Join(ps.NhostFolder(), "emails"),
+	); err != nil {
+		return fmt.Errorf("failed to write email templates: %w", err)
 	}
 
 	return nil
@@ -173,7 +171,7 @@ func InitRemote(
 		return fmt.Errorf("failed to pull config: %w", err)
 	}
 
-	if err := initInit(ctx, ce.Path); err != nil {
+	if err := initInit(ce.Path); err != nil {
 		return err
 	}
 

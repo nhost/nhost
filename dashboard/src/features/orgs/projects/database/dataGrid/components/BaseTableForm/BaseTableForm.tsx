@@ -3,15 +3,14 @@ import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
@@ -77,10 +76,7 @@ export const baseColumnValidationSchema = Yup.object().shape({
       /^\w+$/i,
       'Column name must contain only letters, numbers, or underscores.',
     ),
-  type: Yup.object()
-    .shape({ value: Yup.string().required() })
-    .required('This field is required.')
-    .nullable(),
+  type: Yup.string().required('This field is required.').nullable(),
 });
 
 export const baseTableValidationSchema = Yup.object({
@@ -110,27 +106,18 @@ export const baseTableValidationSchema = Yup.object({
 });
 
 function NameInput() {
-  const { register } = useFormContext();
-  const { errors } = useFormState({ name: 'name' });
+  const { control } = useFormContext<BaseTableFormValues>();
 
   return (
-    <Input
-      {...register('name')}
-      id="name"
-      fullWidth
-      inputProps={{
-        'data-testid': 'tableNameInput',
-      }}
+    <FormInput
+      control={control}
+      name="name"
       label="Name"
-      helperText={
-        typeof errors.name?.message === 'string' ? errors.name?.message : ''
-      }
-      hideEmptyHelperText
-      error={Boolean(errors.name)}
-      variant="inline"
-      className="col-span-8 py-3"
+      inline
       autoComplete="off"
-      autoFocus
+      className="border-border"
+      containerClassName="col-span-8"
+      data-testid="tableNameInput"
     />
   );
 }
@@ -162,17 +149,12 @@ function FormFooter({
   }, [isDirty, location, onDirtyStateChange]);
 
   return (
-    <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-      <Button
-        variant="borderless"
-        color="secondary"
-        onClick={onCancel}
-        tabIndex={isDirty ? -1 : 0}
-      >
+    <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
+      <Button variant="ghost" onClick={onCancel} tabIndex={isDirty ? -1 : 0}>
         Cancel
       </Button>
 
-      <Button
+      <ButtonWithLoading
         loading={isSubmitting}
         disabled={isSubmitting}
         type="submit"
@@ -180,8 +162,8 @@ function FormFooter({
         onClick={onSubmitClick}
       >
         {submitButtonText}
-      </Button>
-    </Box>
+      </ButtonWithLoading>
+    </div>
   );
 }
 
@@ -204,9 +186,9 @@ export default function BaseTableForm({
       className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto pb-4">
-        <Box component="section" className="grid grid-cols-8 px-6 py-3">
+        <section className="grid grid-cols-8 px-6 py-3">
           <NameInput />
-        </Box>
+        </section>
 
         <Accordion
           type="multiple"
@@ -219,7 +201,7 @@ export default function BaseTableForm({
               Columns
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-3" forceMount>
-              <div className="grid grid-cols-8">
+              <div className="">
                 <ColumnEditorTable />
                 <PrimaryKeySelect />
                 <IdentityColumnSelect />

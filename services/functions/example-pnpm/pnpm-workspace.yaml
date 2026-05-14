@@ -1,2 +1,11 @@
 allowBuilds:
   sharp: true
+
+supportedArchitectures:
+  os:
+    - current
+    - linux
+  cpu:
+    - current
+    - arm64
+    - x64

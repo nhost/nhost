@@ -131,7 +131,7 @@ export default function SMTPSettings() {
           title="SMTP Settings"
           description="Configure your SMTP settings to send emails from your email domain."
           submitButtonText="Save"
-          className="grid grid-cols-9 gap-4"
+          className="grid grid-cols-1 gap-4 lg:grid-cols-9"
           slotProps={{
             submitButton: {
               disabled: !isDirty,

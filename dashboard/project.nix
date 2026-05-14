@@ -201,6 +201,12 @@ rec {
       mkdir -p $out/dashboard/.next
       cp -r .next/static $out/dashboard/.next/static
       cp -r public $out/dashboard/public
+
+      # pnpm 11 produces more .pnpm/node_modules/<pkg> indirection symlinks
+      # than pnpm 10. Next.js NFT copies some of these without their targets,
+      # leaving dangling symlinks that fail Nix's noBrokenSymlinks fixup check.
+      # These point at packages that aren't runtime deps, so prune them.
+      find $out -xtype l -delete
     '';
   };
 
