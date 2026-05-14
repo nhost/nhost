@@ -1,7 +1,7 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { Settings as CogIcon } from 'lucide-react';
 import Image from 'next/image';
 import { NavLink } from '@/components/common/NavLink';
-import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
