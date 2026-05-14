@@ -1,12 +1,10 @@
+import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { type Path, useFieldArray, useFormContext } from 'react-hook-form';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -47,7 +45,7 @@ export default function ArgumentsFormSection({
             Arguments
           </Text>
           <Tooltip title={<span>Arguments</span>}>
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
           </Tooltip>
         </div>
         <Button variant="borderless" onClick={() => append({})}>
