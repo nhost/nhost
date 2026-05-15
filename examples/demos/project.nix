@@ -17,9 +17,9 @@ let
     src = nix-filter.lib.filter {
       root = ../..;
       include = [
-        ".npmrc "
+        ".npmrc"
         "package.json"
-        "pnpm-workspace.yaml "
+        "pnpm-workspace.yaml"
         "pnpm-lock.yaml"
         "${submodule}/package.json"
         "${submodule}/pnpm-lock.yaml"
