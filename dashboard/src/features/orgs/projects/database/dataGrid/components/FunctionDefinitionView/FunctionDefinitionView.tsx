@@ -249,6 +249,7 @@ export default function FunctionDefinitionView() {
             <div className="space-y-2">
               {functionMetadata.parameters.map((param, index) => (
                 <div
+                  // biome-ignore lint/suspicious/noArrayIndexKey: function parameters are positional and the list never reorders
                   key={`param-${param.name || index}-${index}`}
                   className="flex items-center gap-3 text-sm"
                 >

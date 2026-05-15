@@ -1,14 +1,15 @@
+import { X } from 'lucide-react';
+import type { MouseEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import type { ButtonProps } from '@/components/ui/v2/Button';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
+import { Button } from '@/components/ui/v3/button';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
 
-export function RemoveButton({
-  index,
-  onClick,
-}: FieldArrayInputProps & ButtonProps) {
+export interface RemoveButtonProps extends FieldArrayInputProps {
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+}
+
+export function RemoveButton({ index, onClick }: RemoveButtonProps) {
   const { setValue } = useFormContext();
   const foreignKeyRelations: ForeignKeyRelation[] = useWatch({
     name: 'foreignKeyRelations',
@@ -18,10 +19,10 @@ export function RemoveButton({
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
 
   return (
-    <IconButton
-      variant="outlined"
-      color="secondary"
-      size="small"
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
       data-testid={`remove-column-${index}`}
       className="h-9 w-9"
       disabled={columns?.length === 1}
@@ -57,7 +58,7 @@ export function RemoveButton({
         }
       }}
     >
-      <XIcon className="h-4 w-4" />
-    </IconButton>
+      <X className="h-4 w-4" />
+    </Button>
   );
 }

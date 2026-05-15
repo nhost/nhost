@@ -1,7 +1,0 @@
-mutation startDevSession {
-  graphite {
-    startDevSession {
-      sessionID
-    }
-  }
-}

@@ -9,6 +9,10 @@ on:
       VERSION:
         required: true
         type: string
+      IS_PRERELEASE:
+        required: false
+        type: boolean
+        default: false
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -66,7 +70,7 @@ jobs:
     steps:
       - name: "Generate App token"
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.NHOST_BOT_APP_ID }}
           private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
@@ -144,6 +148,7 @@ jobs:
         if: always()
 
   bump-refs:
+    if: ${{ !inputs.IS_PRERELEASE }}
     uses: ./.github/workflows/wf_bump_refs.yaml
     needs:
       - build-multiplatform

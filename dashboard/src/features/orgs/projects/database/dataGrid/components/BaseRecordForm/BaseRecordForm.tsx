@@ -40,11 +40,17 @@ export default function BaseRecordForm({
   location,
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
+  const generatedColumnsCount = columns.filter((c) => c.isGenerated).length;
+
   const { requiredColumns, optionalColumns } = columns.reduce<{
     requiredColumns: DataBrowserColumnMetadata[];
     optionalColumns: DataBrowserColumnMetadata[];
   }>(
     (accumulator, column) => {
+      if (column.isGenerated) {
+        return accumulator;
+      }
+
       if (
         column.isPrimary ||
         (!column.isNullable && !column.defaultValue && !column.isIdentity)
@@ -98,6 +104,10 @@ export default function BaseRecordForm({
       columnIds.reduce((options, columnId) => {
         const gridColumn = gridColumnMap.get(columnId);
         const value = columnValues[columnId];
+
+        if (gridColumn?.isGenerated) {
+          return options;
+        }
 
         if (!value && (gridColumn?.defaultValue || gridColumn?.isIdentity)) {
           return {
@@ -161,6 +171,13 @@ export default function BaseRecordForm({
           />
         )}
       </div>
+
+      {generatedColumnsCount > 0 && (
+        <p className="border-t-1 px-6 py-2 text-muted-foreground text-sm">
+          {generatedColumnsCount} generated column
+          {generatedColumnsCount > 1 ? 's' : ''} omitted
+        </p>
+      )}
 
       <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button

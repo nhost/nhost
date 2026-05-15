@@ -2,10 +2,9 @@ import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useIsMaterializedView } from '@/features/orgs/projects/database/dataGrid/hooks/useIsMaterializedView';
+import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   FetchTableSchemaOptions,
   FetchTableSchemaReturnType,
@@ -13,7 +12,7 @@ import type {
 import fetchTableSchema from './fetchTableSchema';
 
 export interface UseTableSchemaQueryOptions
-  extends Partial<Omit<FetchTableSchemaOptions, 'isMaterializedView'>> {
+  extends Partial<Omit<FetchTableSchemaOptions, 'tableType'>> {
   /**
    * Props passed to the underlying query hook.
    */
@@ -52,15 +51,13 @@ export default function useTableSchemaQuery(
   const schema = customSchema || (schemaSlug as string);
   const table = customTable || (tableSlug as string);
 
-  const isMaterializedView = useIsMaterializedView({
+  const { tableType, isFetched: isTableTypeFetched } = useTableType({
     dataSource,
     schema,
     name: table,
     queryOptions: {
       enabled:
-        isNotEmptyValue(project) &&
-        !!project?.config?.hasura.adminSecret &&
-        isReady
+        isNotEmptyValue(project?.config?.hasura.adminSecret) && isReady
           ? queryOptions?.enabled
           : false,
     },
@@ -77,14 +74,11 @@ export default function useTableSchemaQuery(
 
       return await fetchTableSchema({
         appUrl: customAppUrl || appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : customAdminSecret || project!.config!.hasura.adminSecret,
+        adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource,
         schema,
         table,
-        isMaterializedView,
+        tableType,
       });
     },
     retry: false,
@@ -95,7 +89,8 @@ export default function useTableSchemaQuery(
       project?.config?.hasura.adminSecret &&
       isReady &&
       isNotEmptyValue(schema) &&
-      isNotEmptyValue(table)
+      isNotEmptyValue(table) &&
+      isTableTypeFetched
         ? queryOptions?.enabled
         : false,
   });

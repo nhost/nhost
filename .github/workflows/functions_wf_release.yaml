@@ -9,6 +9,10 @@ on:
       VERSION:
         required: true
         type: string
+      IS_PRERELEASE:
+        required: false
+        type: boolean
+        default: false
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -29,7 +33,7 @@ jobs:
   build_artifacts:
     strategy:
       matrix:
-        node: ["20", "22"]
+        node: ["22", "24"]
       fail-fast: true
     uses: ./.github/workflows/wf_build_artifacts.yaml
     with:
@@ -48,7 +52,7 @@ jobs:
   push-docker-hub:
     strategy:
       matrix:
-        node: ["20", "22"]
+        node: ["22", "24"]
       fail-fast: true
     uses: ./.github/workflows/wf_docker_push_image.yaml
     needs:
@@ -64,6 +68,7 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   bump-refs:
+    if: ${{ !inputs.IS_PRERELEASE }}
     uses: ./.github/workflows/wf_bump_refs.yaml
     needs:
       - push-docker-hub

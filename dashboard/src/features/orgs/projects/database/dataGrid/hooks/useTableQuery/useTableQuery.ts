@@ -2,15 +2,14 @@ import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useIsMaterializedView } from '@/features/orgs/projects/database/dataGrid/hooks/useIsMaterializedView';
+import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { FetchTableOptions, FetchTableReturnType } from './fetchTable';
 import fetchTable from './fetchTable';
 
 export interface UseDataBrowserDatabaseQueryOptions
-  extends Partial<Omit<FetchTableOptions, 'isMaterializedView'>> {
+  extends Partial<Omit<FetchTableOptions, 'tableType'>> {
   /**
    * Props passed to the underlying query hook.
    */
@@ -50,15 +49,13 @@ export default function useTableQuery(
   const schema = customSchema || (schemaSlug as string);
   const table = customTable || (tableSlug as string);
 
-  const isMaterializedView = useIsMaterializedView({
+  const { tableType, isFetched: isTableTypeFetched } = useTableType({
     dataSource,
     schema,
     name: table,
     queryOptions: {
       enabled:
-        isNotEmptyValue(project) &&
-        !!project?.config?.hasura.adminSecret &&
-        isReady
+        isNotEmptyValue(project?.config?.hasura.adminSecret) && isReady
           ? queryOptions?.enabled
           : false,
     },
@@ -75,12 +72,9 @@ export default function useTableQuery(
 
       return fetchTable({
         ...options,
-        isMaterializedView,
+        tableType,
         appUrl: customAppUrl || appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : customAdminSecret || project!.config!.hasura.adminSecret,
+        adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource,
         schema,
         table,
@@ -90,7 +84,10 @@ export default function useTableQuery(
     keepPreviousData: true,
     ...queryOptions,
     enabled:
-      isNotEmptyValue(project) && project?.config?.hasura.adminSecret && isReady
+      isNotEmptyValue(project) &&
+      project?.config?.hasura.adminSecret &&
+      isReady &&
+      isTableTypeFetched
         ? queryOptions?.enabled
         : false,
   });

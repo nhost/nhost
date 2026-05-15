@@ -1,5 +1,7 @@
+import { Check, Copy } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { Button } from '@/components/ui/v3/button';
 import { Textarea } from '@/components/ui/v3/textarea';
 import {
   type RuleNode,
@@ -7,6 +9,7 @@ import {
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { cn } from '@/lib/utils';
+import { copy } from '@/utils/copy';
 
 export interface JsonRuleEditorProps {
   name: string;
@@ -40,7 +43,9 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
 
   const [draft, setDraft] = useState<string | null>(null);
   const [overflowing, setOverflowing] = useState(false);
+  const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const copyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const displayed = draft ?? serializeRule(value);
   const error = errors[name]?.message as string | undefined;
@@ -49,9 +54,21 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
   useEffect(
     () => () => {
       clearErrors(name);
+      if (copyResetTimerRef.current) {
+        clearTimeout(copyResetTimerRef.current);
+      }
     },
     [],
   );
+
+  function handleCopy() {
+    copy(displayed);
+    setCopied(true);
+    if (copyResetTimerRef.current) {
+      clearTimeout(copyResetTimerRef.current);
+    }
+    copyResetTimerRef.current = setTimeout(() => setCopied(false), 1500);
+  }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-run on `displayed` so the textarea resizes whenever its rendered content changes
   useLayoutEffect(() => {
@@ -99,7 +116,7 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
   }
 
   return (
-    <div className="mb-2">
+    <div className="relative mb-2">
       <Textarea
         ref={textareaRef}
         rows={1}
@@ -107,11 +124,25 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
         value={displayed}
         onChange={handleChange}
         className={cn(
-          'min-h-10 resize-none overflow-x-auto whitespace-pre py-2.5 font-mono text-xs leading-5',
+          'min-h-10 resize-none overflow-x-auto whitespace-pre py-2.5 pr-10 font-mono text-xs leading-5',
           overflowing ? 'overflow-y-auto' : 'overflow-y-hidden',
           error && 'border-destructive focus-visible:ring-destructive',
         )}
       />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={handleCopy}
+        aria-label={copied ? 'Copied' : 'Copy JSON'}
+        className="absolute top-1 right-3 h-7 w-7"
+      >
+        {copied ? (
+          <Check className="h-4 w-4 text-green-600" />
+        ) : (
+          <Copy className="h-4 w-4" />
+        )}
+      </Button>
     </div>
   );
 }

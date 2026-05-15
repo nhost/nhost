@@ -11,7 +11,6 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { isNotEmptyValue } from '@/lib/utils';
 import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
 import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/utils/__generated__/graphite.graphql';
-import { getHasuraAdminSecret } from '@/utils/env';
 
 export interface DeleteAutoEmbeddingsModalProps {
   autoEmbeddingsConfiguration: AutoEmbeddingsConfiguration;
@@ -45,10 +44,7 @@ export default function DeleteAutoEmbeddingsModal({
         link: new HttpLink({
           uri: serviceUrl,
           headers: {
-            'x-hasura-admin-secret':
-              process.env.NEXT_PUBLIC_ENV === 'dev'
-                ? getHasuraAdminSecret()
-                : project.config.hasura.adminSecret,
+            'x-hasura-admin-secret': project.config.hasura.adminSecret,
           },
         }),
       });

@@ -188,7 +188,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       setRemoteSchemaFields((prev) => {
         const newFields = [...prev];
         const schemaType = newFields[schemaTypeIndex];
-        if (!schemaType || !schemaType.children) {
+        if (!schemaType?.children) {
           return prev;
         }
         if (fieldIndex < 0 || fieldIndex >= schemaType.children.length) {

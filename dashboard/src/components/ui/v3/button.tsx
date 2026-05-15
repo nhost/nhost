@@ -67,4 +67,4 @@ const ButtonWithLoading = React.forwardRef<
   );
 });
 
-export { Button, buttonVariants, ButtonWithLoading };
+export { Button, ButtonWithLoading, buttonVariants };
