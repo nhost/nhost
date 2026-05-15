@@ -846,6 +846,7 @@ func (wf *Workflows) ConfirmChangePhoneNumber(
 		}
 
 		logger.ErrorContext(ctx, "error confirming phone number change", logError(err))
+
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
