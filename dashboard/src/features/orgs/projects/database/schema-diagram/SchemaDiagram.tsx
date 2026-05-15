@@ -24,6 +24,7 @@ import type {
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
+import { cn } from '@/lib/utils';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import { ADMIN_ROLE, PUBLIC_ROLE } from './permissionState';
 import SchemaDiagramToolbar from './SchemaDiagramToolbar';
@@ -36,20 +37,12 @@ import useSchemaGraph, { EDGE_MARKER_IDS, nodeIdFor } from './useSchemaGraph';
 const nodeTypes = { tableNode: TableNode } as const;
 const edgeTypes = { smart: SmartStepEdge } as const;
 
-const EDGE_COLOR_DEFAULT = 'rgb(148, 163, 184)';
-const EDGE_COLOR_HIGHLIGHT = 'rgb(59, 130, 246)';
+const EDGE_COLOR_DEFAULT = 'hsl(var(--muted-foreground))';
+const EDGE_COLOR_HIGHLIGHT = 'hsl(var(--primary))';
 
 function EdgeMarkerDefs() {
   return (
-    <svg
-      aria-hidden="true"
-      style={{
-        position: 'absolute',
-        width: 0,
-        height: 0,
-        pointerEvents: 'none',
-      }}
-    >
+    <svg aria-hidden="true" className="pointer-events-none absolute h-0 w-0">
       <defs>
         <marker
           id={EDGE_MARKER_IDS.arrowFilled}
@@ -63,7 +56,8 @@ function EdgeMarkerDefs() {
         >
           <path
             d="M0,0 L12,6 L0,12 z"
-            style={{ fill: 'context-stroke', stroke: 'context-stroke' }}
+            fill="context-stroke"
+            stroke="context-stroke"
           />
         </marker>
         <marker
@@ -78,12 +72,10 @@ function EdgeMarkerDefs() {
         >
           <path
             d="M1,1 L11,6 L1,11 z"
-            style={{
-              fill: 'hsl(var(--background))',
-              stroke: 'context-stroke',
-              strokeWidth: 1.5,
-              strokeLinejoin: 'round',
-            }}
+            className="fill-background"
+            stroke="context-stroke"
+            strokeWidth={1.5}
+            strokeLinejoin="round"
           />
         </marker>
         <marker
@@ -100,24 +92,14 @@ function EdgeMarkerDefs() {
             cx="6"
             cy="6"
             r="4"
-            style={{
-              fill: 'hsl(var(--background))',
-              stroke: 'context-stroke',
-              strokeWidth: 1.5,
-            }}
+            className="fill-background"
+            stroke="context-stroke"
+            strokeWidth={1.5}
           />
         </marker>
       </defs>
     </svg>
   );
-}
-
-function rgbWithAlpha(rgb: string, alpha: number): string {
-  const match = rgb.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
-  if (!match) {
-    return rgb;
-  }
-  return `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${alpha})`;
 }
 
 function SchemaDiagramContent() {
@@ -224,9 +206,6 @@ function SchemaDiagramContent() {
 
   const dataBrowserActions = useDataBrowserActions({
     dataSourceSlug: dataSource,
-    schemaSlug: undefined,
-    tableSlug: undefined,
-    functionOID: undefined,
     selectedSchema: targetSchema,
     refetchDatabaseQuery,
     allObjects,
@@ -324,14 +303,16 @@ function SchemaDiagramContent() {
       const baseOpacity = isSelected ? 1 : isDimmed || isUntracked ? 0.35 : 1;
       return {
         ...node,
+        className: cn(
+          node.className,
+          'rounded-md transition-[opacity,box-shadow] duration-150',
+          isSelected &&
+            'shadow-[0_8px_24px_rgb(var(--schema-color)/0.35)] ring-2 ring-[rgb(var(--schema-color))]',
+        ),
         style: {
           ...node.style,
+          '--schema-color': schemaColor,
           opacity: baseOpacity,
-          boxShadow: isSelected
-            ? `0 0 0 2px ${schemaColor}, 0 8px 24px ${rgbWithAlpha(schemaColor, 0.35)}`
-            : undefined,
-          borderRadius: 6,
-          transition: 'opacity 150ms, box-shadow 150ms',
         },
         zIndex: isSelected ? 1001 : node.zIndex,
       };

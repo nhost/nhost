@@ -283,7 +283,7 @@ function DataBrowserSidebarContent({
         </nav>
       </div>
 
-      <div className="flex shrink-0 flex-col border-t">
+      <div className="shrink-0 border-t">
         <Button
           size="sm"
           variant="link"

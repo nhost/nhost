@@ -82,14 +82,21 @@ describe('SchemaDiagramToolbar', () => {
     expect(onSelectedSchemasChange).toHaveBeenCalledWith(['auth']);
   });
 
-  it('calls onHideEmptyChange when the hide-empty switch is flipped', async () => {
-    const { onHideEmptyChange } = setup();
+  it('calls onHideEmptyChange when the hide-empty switch is flipped for a non-admin role', async () => {
+    const { onHideEmptyChange } = setup({ selectedRole: 'user' });
     const user = new TestUserEvent();
 
     const toggle = screen.getByLabelText('Hide tables without permissions');
     await user.click(toggle);
 
     expect(onHideEmptyChange).toHaveBeenCalledWith(true);
+  });
+
+  it('disables the hide-empty switch when the admin role is selected', () => {
+    setup({ selectedRole: 'admin' });
+
+    const toggle = screen.getByLabelText('Hide tables without permissions');
+    expect(toggle).toBeDisabled();
   });
 
   it('disables the New Table button when canCreateTable is false', () => {

@@ -141,9 +141,9 @@ const EditRelationshipsForm = dynamic(
 
 export interface UseDataBrowserActionsParams {
   dataSourceSlug: string;
-  schemaSlug: string | undefined;
-  tableSlug: string | undefined;
-  functionOID: string | undefined;
+  schemaSlug?: string;
+  tableSlug?: string;
+  functionOID?: string;
   selectedSchema: string;
   refetchDatabaseQuery: () => Promise<unknown>;
   allObjects: DatabaseObjectViewModel[];

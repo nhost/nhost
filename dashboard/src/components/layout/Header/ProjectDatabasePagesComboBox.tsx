@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -49,17 +49,12 @@ export default function ProjectDatabasePagesComboBox() {
     ? pathSegments[6] || 'browser'
     : null;
 
-  const selectedDatabasePageFromUrl = projectDatabasePages.find(
-    (item) => item.value === databasePageFromUrl,
+  const selectedDatabasePage = useMemo(
+    () =>
+      projectDatabasePages.find((item) => item.value === databasePageFromUrl) ??
+      null,
+    [databasePageFromUrl],
   );
-  const [selectedDatabasePage, setSelectedDatabasePage] =
-    useState<Option | null>(null);
-
-  useEffect(() => {
-    if (selectedDatabasePageFromUrl) {
-      setSelectedDatabasePage(selectedDatabasePageFromUrl);
-    }
-  }, [selectedDatabasePageFromUrl]);
 
   const [open, setOpen] = useState(false);
 
@@ -90,7 +85,6 @@ export default function ProjectDatabasePagesComboBox() {
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
-                    setSelectedDatabasePage(option);
                     setOpen(false);
                     push(
                       `/orgs/${orgSlug}/projects/${appSubdomain}/${option.route}`,

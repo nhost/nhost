@@ -2,11 +2,11 @@ import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/
 import { cn } from '@/lib/utils';
 import type { PermissionDotState } from './permissionState';
 
-const actionColors: Record<DatabaseAction, string> = {
-  select: 'rgb(59, 130, 246)',
-  insert: 'rgb(34, 197, 94)',
-  update: 'rgb(245, 158, 11)',
-  delete: 'rgb(239, 68, 68)',
+const actionClasses: Record<DatabaseAction, { bg: string; border: string }> = {
+  select: { bg: 'bg-blue-500', border: 'border-blue-500' },
+  insert: { bg: 'bg-green-500', border: 'border-green-500' },
+  update: { bg: 'bg-amber-500', border: 'border-amber-500' },
+  delete: { bg: 'bg-red-500', border: 'border-red-500' },
 };
 
 const actionLabels: Record<DatabaseAction, string> = {
@@ -35,39 +35,22 @@ export default function PermissionDot({
   size = 10,
   className,
 }: PermissionDotProps) {
-  const color = actionColors[action];
+  const { bg, border } = actionClasses[action];
   const title = `${actionLabels[action]}: ${stateLabels[state]}`;
-
-  const style: React.CSSProperties =
-    state === 'none'
-      ? {
-          width: size,
-          height: size,
-          backgroundColor: 'transparent',
-          borderColor: 'rgb(148, 163, 184)',
-          opacity: 0.35,
-        }
-      : state === 'hollow'
-        ? {
-            width: size,
-            height: size,
-            backgroundColor: 'transparent',
-            borderColor: color,
-          }
-        : {
-            width: size,
-            height: size,
-            backgroundColor: color,
-            borderColor: color,
-          };
 
   return (
     <span
       role="img"
       aria-label={title}
       title={title}
-      className={cn('inline-block rounded-full border-2', className)}
-      style={style}
+      style={{ width: size, height: size }}
+      className={cn(
+        'inline-block rounded-full border-2',
+        state === 'filled' && [bg, border],
+        state === 'hollow' && ['bg-transparent', border],
+        state === 'none' && 'border-slate-400 bg-transparent opacity-[0.35]',
+        className,
+      )}
     />
   );
 }

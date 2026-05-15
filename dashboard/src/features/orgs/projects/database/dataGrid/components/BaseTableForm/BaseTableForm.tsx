@@ -213,10 +213,7 @@ export default function BaseTableForm({
               Schema
             </label>
             <div className="col-span-6">
-              <Select
-                value={schema ?? ''}
-                onValueChange={(value) => onSchemaChange?.(value)}
-              >
+              <Select value={schema ?? ''} onValueChange={onSchemaChange}>
                 <SelectTrigger id="schema" className="h-10 w-full">
                   <SelectValue placeholder="Select schema" />
                 </SelectTrigger>

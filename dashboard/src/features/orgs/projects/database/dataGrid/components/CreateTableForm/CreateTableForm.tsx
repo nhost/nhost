@@ -62,10 +62,7 @@ export default function CreateTableForm({
     mutateAsync: createTable,
     error: createTableError,
     reset: resetCreateError,
-  } = useCreateTableMutation({
-    schema: selectedSchema,
-    dataSource,
-  });
+  } = useCreateTableMutation({ schema: selectedSchema });
 
   const {
     mutateAsync: setTableTracking,
@@ -74,7 +71,7 @@ export default function CreateTableForm({
   } = useSetTableTrackingMutation();
 
   const { mutateAsync: trackForeignKeyRelation, error: foreignKeyError } =
-    useTrackForeignKeyRelationsMutation({ dataSource });
+    useTrackForeignKeyRelationsMutation();
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 

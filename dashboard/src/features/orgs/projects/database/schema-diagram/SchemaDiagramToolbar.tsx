@@ -28,8 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { Switch } from '@/components/ui/v3/switch';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import HideEmptyTablesSwitch from './HideEmptyTablesSwitch';
 import PermissionDot from './PermissionDot';
 import { ADMIN_ROLE } from './permissionState';
 
@@ -120,19 +120,11 @@ export default function SchemaDiagramToolbar({
         </MultiSelect>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Switch
-          id="schema-diagram-hide-empty"
-          checked={hideEmpty}
-          onCheckedChange={onHideEmptyChange}
-        />
-        <label
-          htmlFor="schema-diagram-hide-empty"
-          className="cursor-pointer text-xs"
-        >
-          Hide tables without permissions
-        </label>
-      </div>
+      <HideEmptyTablesSwitch
+        selectedRole={selectedRole}
+        hideEmpty={hideEmpty}
+        onHideEmptyChange={onHideEmptyChange}
+      />
 
       <div className="ml-auto flex items-center gap-3">
         <Popover open={searchOpen} onOpenChange={setSearchOpen}>

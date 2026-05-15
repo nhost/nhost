@@ -1,19 +1,23 @@
+/** Per-schema color as RGB channels separated by spaces, e.g. "59 130 246".
+ * Designed to be plugged into a CSS custom property and consumed by Tailwind
+ * arbitrary values via `rgb(var(--schema-color) / <alpha>)`. */
+
 const KNOWN_SCHEMA_COLORS: Record<string, string> = {
-  public: 'rgb(59, 130, 246)',
-  auth: 'rgb(168, 85, 247)',
-  storage: 'rgb(16, 185, 129)',
-  graphite: 'rgb(236, 72, 153)',
+  public: '59 130 246',
+  auth: '168 85 247',
+  storage: '16 185 129',
+  graphite: '236 72 153',
 };
 
 const PALETTE = [
-  'rgb(244, 114, 182)',
-  'rgb(251, 146, 60)',
-  'rgb(250, 204, 21)',
-  'rgb(132, 204, 22)',
-  'rgb(34, 211, 238)',
-  'rgb(96, 165, 250)',
-  'rgb(167, 139, 250)',
-  'rgb(45, 212, 191)',
+  '244 114 182',
+  '251 146 60',
+  '250 204 21',
+  '132 204 22',
+  '34 211 238',
+  '96 165 250',
+  '167 139 250',
+  '45 212 191',
 ];
 
 export function getSchemaColor(schema: string): string {

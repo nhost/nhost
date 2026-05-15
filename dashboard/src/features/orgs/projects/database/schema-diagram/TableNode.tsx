@@ -24,7 +24,6 @@ import {
   type PermissionDotState,
   type RuleKey,
 } from './permissionState';
-import { getSchemaColor } from './schemaColor';
 import { useTableActionsContext } from './TableActionsContext';
 import { columnHandleId, type TableNode } from './useSchemaGraph';
 
@@ -121,7 +120,6 @@ function TableDotTooltipContent({
 
 function TableNodeView({ data }: NodeProps<TableNode>) {
   const { schema, table, columns, metadataTable, role } = data;
-  const schemaColor = getSchemaColor(schema);
   const tableActions = useTableActionsContext();
   const objectKey = `ORDINARY TABLE.${schema}.${table}`;
   const tablePath = `${schema}.${table}`;
@@ -132,15 +130,15 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
 
   return (
     <div
-      className="w-[280px] overflow-hidden rounded-md border border-border bg-background text-foreground shadow-md"
-      style={{ borderLeft: `4px solid ${schemaColor}` }}
+      className={cn(
+        'w-[280px] overflow-hidden rounded-md border border-y-border border-r-border border-l-4 border-l-[rgb(var(--schema-color))] bg-background text-foreground shadow-md',
+      )}
       title={isUntracked ? 'Untracked in GraphQL' : undefined}
     >
       <div className="flex items-center justify-between gap-2 border-border border-b bg-muted/60 px-3 py-2">
         <div className="min-w-0">
           <div
-            className="truncate text-xs"
-            style={{ color: schemaColor }}
+            className="truncate text-[rgb(var(--schema-color))] text-xs"
             title={schema}
           >
             {schema}
