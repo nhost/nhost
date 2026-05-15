@@ -1,7 +1,7 @@
 import { formatDistance } from 'date-fns';
+import { ArrowRightIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
