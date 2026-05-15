@@ -99,7 +99,14 @@ export default function DatabaseObjectListItem({
         );
 
   return (
-    <li className="group pb-1">
+    <li
+      className="group pb-1"
+      ref={(node) => {
+        if (node && isSelected) {
+          node.scrollIntoView({ block: 'nearest' });
+        }
+      }}
+    >
       <Tooltip open={isUntracked ? undefined : false}>
         <TooltipTrigger asChild>
           <Button

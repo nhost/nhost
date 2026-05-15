@@ -121,7 +121,14 @@ describe('FunctionDefinitionView', () => {
 
   it('omits the SETOF prefix when returnsSet is false', () => {
     renderWith({ functionMetadata: meta({ returnsSet: false }) });
-    expect(screen.queryByText(/SETOF/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/SETOF mytable/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/SETOF public\.mytable/)).not.toBeInTheDocument();
+  });
+
+  it('shows the SETOF alert when the function does not return a set', () => {
+    renderWith({ functionMetadata: meta({ returnsSet: false }) });
+    expect(screen.getByText('Not exposable in GraphQL')).toBeInTheDocument();
+    expect(screen.getByText(/doesn't return a SETOF/)).toBeInTheDocument();
   });
 
   it('renders the source definition panel with an Edit button when a definition is present', () => {

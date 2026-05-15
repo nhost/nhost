@@ -134,17 +134,25 @@ export default function FunctionDefinitionView() {
     functionMetadata.parameters.length - functionMetadata.defaultArgsCount;
 
   const isCompositeReturn = functionMetadata.returnTypeKind === 'c';
-  const isTrackable = isCompositeReturn && !functionMetadata.hasVariadic;
+  const { returnsSet, hasVariadic } = functionMetadata;
+  const isTrackable = isCompositeReturn && returnsSet && !hasVariadic;
 
   const returnTypeDisplay = functionMetadata.returnTableName
     ? `${functionMetadata.returnTableSchema}.${functionMetadata.returnTableName}`
     : functionMetadata.returnTypeName;
 
-  const returnPrefix = functionMetadata.returnsSet ? 'SETOF ' : '';
+  const returnPrefix = returnsSet ? 'SETOF ' : '';
 
-  const nonTrackableReason = !isCompositeReturn
-    ? `This function returns the type "${functionMetadata.returnTypeName}", so it can't be exposed in GraphQL.`
-    : "This function uses VARIADIC arguments, so it can't be exposed in GraphQL.";
+  let nonTrackableReason: string;
+  if (!isCompositeReturn) {
+    nonTrackableReason = `This function returns the type "${functionMetadata.returnTypeName}", so it can't be exposed in GraphQL.`;
+  } else if (!returnsSet) {
+    nonTrackableReason =
+      "This function doesn't return a SETOF, so it can't be exposed in GraphQL.";
+  } else {
+    nonTrackableReason =
+      "This function uses VARIADIC arguments, so it can't be exposed in GraphQL.";
+  }
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
