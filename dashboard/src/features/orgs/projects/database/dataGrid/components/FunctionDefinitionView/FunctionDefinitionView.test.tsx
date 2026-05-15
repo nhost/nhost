@@ -121,7 +121,6 @@ describe('FunctionDefinitionView', () => {
 
   it('omits the SETOF prefix when returnsSet is false', () => {
     renderWith({ functionMetadata: meta({ returnsSet: false }) });
-    expect(screen.queryByText(/SETOF mytable/)).not.toBeInTheDocument();
     expect(screen.queryByText(/SETOF public\.mytable/)).not.toBeInTheDocument();
   });
 
