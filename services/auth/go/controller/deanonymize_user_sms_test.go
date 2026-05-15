@@ -89,10 +89,6 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 					),
 				).Return(nil)
 
-				mock.EXPECT().DeleteRefreshTokens(
-					gomock.Any(), userID,
-				).Return(nil)
-
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
@@ -155,10 +151,6 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 							cmpopts.EquateApproxTime(time.Minute),
 						),
 					),
-				).Return(nil)
-
-				mock.EXPECT().DeleteRefreshTokens(
-					gomock.Any(), userID,
 				).Return(nil)
 
 				return mock

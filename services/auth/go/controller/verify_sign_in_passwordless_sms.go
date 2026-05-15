@@ -28,6 +28,18 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 		return ctrl.sendError(ErrInvalidOTP), nil
 	}
 
+	// If the user was still anonymous at OTP-check time, this verify call
+	// completes a previously-staged SMS deanonymization: flip is_anonymous
+	// and revoke the old anonymous refresh tokens. This must run before the
+	// email validation below, which otherwise rejects anonymous users.
+	if user.IsAnonymous {
+		if apiErr := ctrl.wf.CompleteDeanonymizeSMS(ctx, user.ID, logger); apiErr != nil {
+			return ctrl.respondWithError(apiErr), nil
+		}
+
+		user.IsAnonymous = false
+	}
+
 	if err := ctrl.wf.ValidateUserEmailOptional(ctx, user, logger); err != nil {
 		return ctrl.sendError(ErrInternalServerError), nil //nolint:nilerr
 	}

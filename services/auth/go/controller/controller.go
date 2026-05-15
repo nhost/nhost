@@ -63,8 +63,8 @@ type DBClientGetUser interface {
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
-	GetUserByPhoneNumberOrNew(
-		ctx context.Context, arg sql.GetUserByPhoneNumberOrNewParams,
+	GetVerifiedUserByPhoneNumberOtherThanSelf(
+		ctx context.Context, arg sql.GetVerifiedUserByPhoneNumberOtherThanSelfParams,
 	) (sql.AuthUser, error)
 	VerifyEmailOTP(
 		ctx context.Context, arg sql.VerifyEmailOTPParams,
@@ -89,6 +89,13 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 	) (sql.AuthUser, error)
 	UpdateUserDeanonymize(ctx context.Context, arg sql.UpdateUserDeanonymizeParams) error
 	UpdateUserDeanonymizeSMS(ctx context.Context, arg sql.UpdateUserDeanonymizeSMSParams) error
+	UpdateUserConfirmDeanonymizeSMS(ctx context.Context, id uuid.UUID) error
+	UpdateUserChangePhoneNumber(
+		ctx context.Context, arg sql.UpdateUserChangePhoneNumberParams,
+	) error
+	UpdateUserConfirmChangePhoneNumber(
+		ctx context.Context, arg sql.UpdateUserConfirmChangePhoneNumberParams,
+	) (sql.AuthUser, error)
 	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
 	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
 	UpdateUserChangePassword(

@@ -24,7 +24,7 @@ func (ctrl *Controller) ChangeUserPhoneNumber( //nolint:ireturn
 		return ctrl.respondWithError(apiErr), nil
 	}
 
-	exists, apiErr := ctrl.wf.UserByPhoneNumberOrNewExists(
+	exists, apiErr := ctrl.wf.PhoneNumberClaimedByOtherUser(
 		ctx, user.ID, request.Body.NewPhoneNumber, logger,
 	)
 	if apiErr != nil {

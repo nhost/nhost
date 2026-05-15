@@ -534,6 +534,118 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				}),
 			},
 		},
+
+		{
+			name:   "anonymous user completes SMS deanonymization on OTP verify",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().UpdateUserConfirmDeanonymizeSMS(
+					gomock.Any(), userID,
+				).Return(nil)
+
+				mock.EXPECT().DeleteRefreshTokens(
+					gomock.Any(), userID,
+				).Return(nil)
+
+				mock.EXPECT().GetUserRoles(
+					gomock.Any(), userID,
+				).Return([]sql.AuthUserRole{
+					{UserID: userID, Role: "user"}, //nolint:exhaustruct
+					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+				}, nil)
+
+				mock.EXPECT().InsertRefreshtoken(
+					gomock.Any(),
+					cmpDBParams(sql.InsertRefreshtokenParams{
+						UserID:           userID,
+						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						Type:             sql.RefreshTokenTypeRegular,
+						Metadata:         nil,
+					}),
+				).Return(refreshTokenID, nil)
+
+				mock.EXPECT().UpdateUserLastSeen(
+					gomock.Any(), userID,
+				).Return(sql.TimestampTz(time.Now()), nil)
+
+				return mock
+			},
+			request: api.VerifySignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsOtpRequest{
+					PhoneNumber: "+1234567890",
+					Otp:         "123456",
+				},
+			},
+			expectedResponse: api.VerifySignInPasswordlessSms200JSONResponse{
+				Session: &api.Session{
+					AccessToken:          "",
+					AccessTokenExpiresIn: 900,
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
+					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
+					User: &api.User{
+						AvatarUrl:           "",
+						CreatedAt:           time.Now(),
+						DefaultRole:         "user",
+						DisplayName:         "Jane Doe",
+						Email:               ptr(types.Email("jane@acme.com")),
+						EmailVerified:       true,
+						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
+						IsAnonymous:         false,
+						Locale:              "en",
+						Metadata:            map[string]any{},
+						PhoneNumber:         new("+1234567890"),
+						PhoneNumberVerified: true,
+						Roles:               []string{"user", "me"},
+						ActiveMfaType:       nil,
+					},
+				},
+				Mfa: nil,
+			},
+			expectedJWT: &jwt.Token{
+				Raw:    "",
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{
+					"alg": "HS256",
+					"typ": "JWT",
+				},
+				Claims: jwt.MapClaims{
+					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":     []any{"user", "me"},
+						"x-hasura-default-role":      "user",
+						"x-hasura-user-id":           "db477732-48fa-4289-b694-2886a646b6eb",
+						"x-hasura-user-is-anonymous": "false",
+					},
+					"iat": float64(time.Now().Unix()),
+					"iss": "hasura-auth",
+					"sub": "db477732-48fa-4289-b694-2886a646b6eb",
+				},
+				Signature: []byte{},
+				Valid:     true,
+			},
+			jwtTokenFn: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					user := getSigninUser(userID)
+					user.PhoneNumber = sql.Text("+1234567890")
+					user.PhoneNumberVerified = true
+					user.IsAnonymous = true
+
+					mock.EXPECT().CheckVerificationCode(
+						gomock.Any(),
+						"+1234567890",
+						"123456",
+					).Return(user, nil)
+
+					return mock
+				}),
+			},
+		},
 	}
 
 	for _, tc := range cases {
