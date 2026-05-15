@@ -23,29 +23,20 @@ type Option = {
   route: string;
 };
 
-const projectGraphQLPages = [
+const projectDatabasePages: Option[] = [
   {
-    name: 'Playground',
-    slug: 'playground',
-    route: '',
+    label: 'Table Editor & Browser',
+    value: 'browser',
+    route: 'database/browser/default',
   },
   {
-    name: 'Remote Schemas',
-    slug: 'remote-schemas',
-    route: 'remote-schemas',
+    label: 'Schema Navigator',
+    value: 'schema',
+    route: 'database/schema/default',
   },
-  {
-    name: 'Metadata',
-    slug: 'metadata',
-    route: 'metadata',
-  },
-].map((item) => ({
-  label: item.name,
-  value: item.slug,
-  route: item.route,
-}));
+];
 
-export default function ProjectGraphQLPagesComboBox() {
+export default function ProjectDatabasePagesComboBox() {
   const {
     query: { orgSlug, appSubdomain },
     push,
@@ -53,20 +44,17 @@ export default function ProjectGraphQLPagesComboBox() {
   } = useRouter();
 
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
-  const isGraphQLPage = pathSegments.includes('graphql');
-  const graphQLPageFromUrl = isGraphQLPage
-    ? pathSegments[6] || 'playground'
+  const isDatabasePage = pathSegments[5] === 'database';
+  const databasePageFromUrl = isDatabasePage
+    ? pathSegments[6] || 'browser'
     : null;
 
-  const selectedGraphQLPage = projectGraphQLPages.find(
-    (item) => item.value === graphQLPageFromUrl,
+  const selectedDatabasePage = useMemo(
+    () =>
+      projectDatabasePages.find((item) => item.value === databasePageFromUrl) ??
+      null,
+    [databasePageFromUrl],
   );
-
-  const options: Option[] = projectGraphQLPages.map((page) => ({
-    label: page.label,
-    value: page.value,
-    route: page.route,
-  }));
 
   const [open, setOpen] = useState(false);
 
@@ -78,10 +66,10 @@ export default function ProjectGraphQLPagesComboBox() {
           size="sm"
           className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         >
-          {selectedGraphQLPage ? (
-            <div>{selectedGraphQLPage.label}</div>
+          {selectedDatabasePage ? (
+            <div>{selectedDatabasePage.label}</div>
           ) : (
-            <>Select a page</>
+            'Select a page'
           )}
           <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
@@ -92,21 +80,21 @@ export default function ProjectGraphQLPagesComboBox() {
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {projectDatabasePages.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
                     setOpen(false);
                     push(
-                      `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/${option.route}/`,
+                      `/orgs/${orgSlug}/projects/${appSubdomain}/${option.route}`,
                     );
                   }}
                 >
                   <Check
                     className={cn(
                       'mr-2 h-4 w-4',
-                      selectedGraphQLPage?.value === option.value
+                      selectedDatabasePage?.value === option.value
                         ? 'opacity-100'
                         : 'opacity-0',
                     )}

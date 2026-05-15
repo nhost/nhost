@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -69,20 +69,9 @@ export default function ProjectAuthPagesComboBox() {
   const isAuthPage = pathSegments.includes('auth');
   const authPageFromUrl = isAuthPage ? pathSegments[6] || 'users' : null;
 
-  const selectedAuthPageFromUrl = projectAuthPages.find(
+  const selectedAuthPage = projectAuthPages.find(
     (item) => item.value === authPageFromUrl,
   );
-  const [selectedAuthPage, setSelectedAuthPage] = useState<Option | null>(null);
-
-  useEffect(() => {
-    if (selectedAuthPageFromUrl) {
-      setSelectedAuthPage({
-        label: selectedAuthPageFromUrl.label,
-        value: selectedAuthPageFromUrl.value,
-        route: selectedAuthPageFromUrl.route,
-      });
-    }
-  }, [selectedAuthPageFromUrl]);
 
   const options: Option[] = projectAuthPages.map((page) => ({
     label: page.label,
@@ -119,7 +108,6 @@ export default function ProjectAuthPagesComboBox() {
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
-                    setSelectedAuthPage(option);
                     setOpen(false);
                     push(
                       `/orgs/${orgSlug}/projects/${appSubdomain}/auth/${option.route}/`,
