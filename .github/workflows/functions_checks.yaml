@@ -14,7 +14,13 @@ on:
       - "build/**"
 
       # common javascript
+      - ".npmrc"
       - "biome.json"
+      - "audit-ci.jsonc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
 
       # functions
       - "services/functions/**"
@@ -36,7 +42,13 @@ jobs:
         flake.lock
         nixops/**
         build/**
+        .npmrc
         biome.json
+        audit-ci.jsonc
+        package.json
+        pnpm-workspace.yaml
+        pnpm-lock.yaml
+        turbo.json
         services/functions/**
 
   check-permissions:

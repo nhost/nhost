@@ -83,12 +83,26 @@
       '';
     };
 
-    pnpm = (
-      final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
-        version = "10.26.0";
-        hash = "sha256-9gl0xoz+ChP5UfugGZZpWIV38OPwybfRp8pHYzv3I4Y=";
-      }
-    );
+    pnpm =
+      (final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
+        version = "11.1.0";
+        hash = "sha256-VzyCrTVuiwl+bKxIG3OB+d7tM6MYr38xGYSFjr4fl+8=";
+      }).overrideAttrs
+        (oldAttrs: {
+          # In pnpm 11, bin/pnpm.cjs is a non-executable compatibility shim; the
+          # real entrypoint moved to bin/pnpm.mjs. Upstream generic.nix still
+          # symlinks to pnpm.cjs, which yields "permission denied" at runtime.
+          installPhase = ''
+            runHook preInstall
+
+            install -d $out/{bin,libexec}
+            cp -R . $out/libexec/pnpm
+            ln -s $out/libexec/pnpm/bin/pnpm.mjs $out/bin/pnpm
+            ln -s $out/libexec/pnpm/bin/pnpx.mjs $out/bin/pnpx
+
+            runHook postInstall
+          '';
+        });
 
     ell = prev.ell.overrideAttrs (oldAttrs: {
       doCheck = false;

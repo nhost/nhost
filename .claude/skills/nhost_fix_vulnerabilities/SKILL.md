@@ -158,4 +158,4 @@ Do **not** commit. Leave the working tree dirty so the user reviews the diff fir
 
 `jq` and `pnpm` are guaranteed available. Python and Node are not part of this skill's toolkit — never reach for them.
 
-**Always use `pnpm`** — never `npm` or `yarn`. This repo is pinned to pnpm 10.26.0; `npm install` / `yarn install` would corrupt the lockfile and miss the `pnpm.overrides` block. Applies to every command: install, audit, run, why, exec, list.
+**Always use `pnpm`** — never `npm` or `yarn`. This repo is pinned to pnpm 11.1.0; `npm install` / `yarn install` would corrupt the lockfile and miss the `pnpm.overrides` block. Applies to every command: install, audit, run, why, exec, list.
