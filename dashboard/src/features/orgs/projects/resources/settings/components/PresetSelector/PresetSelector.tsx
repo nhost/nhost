@@ -1,26 +1,22 @@
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import computeMemoryFromCPU from '@/features/orgs/projects/resources/settings/utils/computeMemoryFromCPU';
-import type {
-  PresetGenericAllocation,
-  PresetId,
-} from '@/features/orgs/projects/resources/settings/utils/presets';
+import type { PresetId } from '@/features/orgs/projects/resources/settings/utils/presets';
 import {
   detectPreset,
-  getPreset,
   getPresetTopologyLine,
   PRESETS,
+  useApplyPreset,
 } from '@/features/orgs/projects/resources/settings/utils/presets';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { cn } from '@/lib/utils';
 
 export default function PresetSelector() {
-  const { setValue, trigger } = useFormContext<ResourceSettingsFormValues>();
+  const applyPreset = useApplyPreset();
 
   const [database, hasura, auth, storage] = useWatch<
     ResourceSettingsFormValues,
@@ -55,48 +51,6 @@ export default function PresetSelector() {
     },
   });
 
-  const applyPreset = (id: Exclude<PresetId, 'custom'>) => {
-    const preset = getPreset(id);
-    if (!preset) {
-      return;
-    }
-    const opts = { shouldDirty: true, shouldValidate: true } as const;
-
-    const isLocked = (vcpu: number, memory: number) =>
-      memory === computeMemoryFromCPU(vcpu);
-
-    setValue('database.vcpu', preset.database.vcpu, opts);
-    setValue('database.memory', preset.database.memory, opts);
-    setValue(
-      'database.lockRatio',
-      isLocked(preset.database.vcpu, preset.database.memory),
-      opts,
-    );
-
-    const applyGeneric = (
-      key: 'hasura' | 'auth' | 'storage',
-      service: PresetGenericAllocation,
-    ) => {
-      setValue(`${key}.vcpu`, service.vcpu, opts);
-      setValue(`${key}.memory`, service.memory, opts);
-      setValue(`${key}.replicas`, service.replicas ?? 1, opts);
-      setValue(`${key}.autoscale`, service.autoscale ?? false, opts);
-      setValue(`${key}.maxReplicas`, service.maxReplicas ?? 10, opts);
-      setValue(
-        `${key}.lockRatio`,
-        isLocked(service.vcpu, service.memory),
-        opts,
-      );
-    };
-
-    applyGeneric('hasura', preset.hasura);
-    applyGeneric('auth', preset.auth);
-    applyGeneric('storage', preset.storage);
-
-    setValue('preset', id);
-    trigger();
-  };
-
   return (
     <div className="flex flex-col gap-2">
       <span className="font-medium text-sm">Preset</span>
@@ -112,7 +66,7 @@ export default function PresetSelector() {
                   size="sm"
                   onClick={() => applyPreset(preset.id)}
                   className={cn(
-                    'flex h-auto min-h-[5.25rem] w-full flex-col items-start justify-start gap-0.5 px-3 py-2 text-left',
+                    'flex h-auto min-h-[5.25rem] w-full flex-col items-start justify-start gap-0.5 whitespace-normal break-words px-3 py-2 text-left leading-snug',
                     isActive && 'border-primary',
                   )}
                   aria-pressed={isActive}

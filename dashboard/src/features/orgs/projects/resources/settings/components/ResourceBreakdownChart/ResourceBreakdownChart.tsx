@@ -4,6 +4,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { getServiceTopologyLine } from '@/features/orgs/projects/resources/settings/utils/presets';
 import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/orgs/projects/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
@@ -242,13 +243,31 @@ export default function ResourceBreakdownChart() {
         />
       </div>
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 text-xs">
-        {SERVICES.map(({ key, label, legend }) => (
-          <span key={key} className="inline-flex items-center gap-1.5">
-            <span className={cn('h-2 w-2 rounded-full', legend)} />
-            <span className="text-muted-foreground">{label}</span>
-          </span>
-        ))}
+      <div className="flex flex-col gap-1.5 border-t pt-3 text-xs">
+        {SERVICES.map(({ key, label, legend }) => {
+          const service = serviceMap[key];
+          const topology =
+            key === 'database'
+              ? 'fixed'
+              : getServiceTopologyLine(
+                  (service as {
+                    replicas?: number;
+                    autoscale?: boolean;
+                    maxReplicas?: number;
+                  }) ?? {},
+                );
+          return (
+            <div key={key} className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5">
+                <span className={cn('h-2 w-2 rounded-full', legend)} />
+                <span className="text-foreground">{label}</span>
+              </span>
+              <span className="text-muted-foreground tabular-nums">
+                {topology}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

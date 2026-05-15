@@ -43,7 +43,7 @@ export const PRESETS: PresetDefinition[] = [
     label: 'Starter',
     description: '1 vCPU · 2 GiB',
     tooltip:
-      'Use this for prototypes, demos, and personal projects with light, intermittent traffic.',
+      'Use this for small projects with low usage that still need predictable performance.',
     database: { vcpu: cpu(0.25), memory: mem(0.5) },
     hasura: { vcpu: cpu(0.25), memory: mem(1) },
     auth: { vcpu: cpu(0.25), memory: mem(0.25) },
@@ -91,7 +91,7 @@ export const PRESETS: PresetDefinition[] = [
     label: 'Performance + HA',
     description: '4 vCPU · 8 GiB',
     tooltip:
-      'Use this for production-critical apps. Two replicas of Hasura, Auth, and Storage stay up across pod restarts (high availability), and the autoscaler (max 10) handles bursts.',
+      'Use this for production-critical apps. Two replicas of Hasura, Auth, and Storage stay up to keep the app available through unforeseen issues (high availability), and the autoscaler (max 10) handles bursts.',
     database: { vcpu: cpu(3), memory: mem(6) },
     hasura: {
       vcpu: cpu(0.5),
@@ -173,9 +173,17 @@ export function getPreset(id: PresetId): PresetDefinition | null {
 }
 
 export function getPresetTopologyLine(preset: PresetDefinition): string {
-  const replicas = preset.hasura.replicas ?? 1;
-  const autoscale = preset.hasura.autoscale ?? false;
-  const maxReplicas = preset.hasura.maxReplicas ?? 10;
+  return getServiceTopologyLine(preset.hasura);
+}
+
+export function getServiceTopologyLine(service: {
+  replicas?: number;
+  autoscale?: boolean;
+  maxReplicas?: number;
+}): string {
+  const replicas = service.replicas ?? 1;
+  const autoscale = service.autoscale ?? false;
+  const maxReplicas = service.maxReplicas ?? 10;
   if (replicas > 1 && autoscale) {
     return `${replicas}× replicas · autoscale ${maxReplicas}`;
   }

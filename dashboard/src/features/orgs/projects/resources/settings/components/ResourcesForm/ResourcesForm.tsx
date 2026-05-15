@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useRef } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -25,6 +26,7 @@ import { ResourcesConfirmationDialog } from '@/features/orgs/projects/resources/
 import ServiceRow from '@/features/orgs/projects/resources/settings/components/ServiceRow';
 import { calculateBillableResources } from '@/features/orgs/projects/resources/settings/utils/calculateBillableResources';
 import computeMemoryFromCPU from '@/features/orgs/projects/resources/settings/utils/computeMemoryFromCPU';
+import { useApplyPreset } from '@/features/orgs/projects/resources/settings/utils/presets';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -447,17 +449,36 @@ export default function ResourcesForm() {
             footer: { className: 'hidden', 'aria-hidden': true },
           }}
         >
-          <ResourcesFormBody initialPrice={initialPrice} />
+          <ResourcesFormBody
+            initialPrice={initialPrice}
+            hadInitialValues={hasInitialValues}
+          />
         </SettingsContainer>
       </Form>
     </FormProvider>
   );
 }
 
-function ResourcesFormBody({ initialPrice }: { initialPrice: number }) {
+function ResourcesFormBody({
+  initialPrice,
+  hadInitialValues,
+}: {
+  initialPrice: number;
+  hadInitialValues: boolean;
+}) {
   const enabled = useWatch<ResourceSettingsFormValues>({
     name: 'enabled',
   }) as boolean;
+
+  const applyPreset = useApplyPreset();
+  const hasAppliedDefaultPresetRef = useRef(hadInitialValues);
+
+  useEffect(() => {
+    if (enabled && !hasAppliedDefaultPresetRef.current) {
+      hasAppliedDefaultPresetRef.current = true;
+      applyPreset('standard');
+    }
+  }, [enabled, applyPreset]);
 
   if (!enabled) {
     return (
