@@ -18,7 +18,7 @@ func (ctrl *Controller) postUserDeanonymizeSMSValidateRequest(
 	if !ok {
 		logger.ErrorContext(
 			ctx,
-			"jwt token not found in context, this should not be possilble due to middleware",
+			"jwt token not found in context, this should not be possible due to middleware",
 		)
 
 		return uuid.UUID{}, nil, ErrInternalServerError
