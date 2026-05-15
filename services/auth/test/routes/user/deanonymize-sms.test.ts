@@ -53,14 +53,14 @@ describe('user/deanonymize/sms', () => {
       .send({ phoneNumber })
       .expect(StatusCodes.OK);
 
-    // anonymous refresh token must have been invalidated
+    // Until the OTP is verified, the user stays anonymous and the anonymous
+    // refresh token remains valid — otherwise a user who never receives the
+    // SMS would be permanently locked out.
     await request
       .post('/token')
       .send({ refreshToken: anonRefreshToken })
-      .expect(StatusCodes.UNAUTHORIZED);
+      .expect(StatusCodes.OK);
 
-    // User is now non-anonymous; phone is staged in new_phone_number and
-    // phone_number_verified is still false until OTP verification.
     {
       const { rows } = await client.query(
         `SELECT is_anonymous, phone_number, new_phone_number, phone_number_verified
@@ -68,7 +68,7 @@ describe('user/deanonymize/sms', () => {
         [phoneNumber]
       );
       expect(rows).toHaveLength(1);
-      expect(rows[0].is_anonymous).toBe(false);
+      expect(rows[0].is_anonymous).toBe(true);
       expect(rows[0].phone_number).toBeNull();
       expect(rows[0].new_phone_number).toBe(phoneNumber);
       expect(rows[0].phone_number_verified).toBe(false);
@@ -92,11 +92,71 @@ describe('user/deanonymize/sms', () => {
       claims?.['https://hasura.io/jwt/claims']['x-hasura-user-is-anonymous']
     ).toBe('false');
 
+    // After OTP verification the user is non-anonymous and the OLD anonymous
+    // refresh token is revoked.
+    await request
+      .post('/token')
+      .send({ refreshToken: anonRefreshToken })
+      .expect(StatusCodes.UNAUTHORIZED);
+
     const { rows } = await client.query(
-      `SELECT phone_number_verified FROM auth.users WHERE phone_number = $1`,
+      `SELECT is_anonymous, phone_number_verified FROM auth.users WHERE phone_number = $1`,
       [phoneNumber]
     );
+    expect(rows[0].is_anonymous).toBe(false);
     expect(rows[0].phone_number_verified).toBe(true);
+  });
+
+  it('allows retrying with the same number when previous OTP was not verified', async () => {
+    const phoneNumber = '+15551110005';
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    const { body: anonBody }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+    if (!anonBody.session) {
+      throw new Error('anonymous session is not set');
+    }
+    const anonAccessToken = anonBody.session.accessToken;
+
+    // First attempt — SMS sent, OTP staged, but user never verifies.
+    await request
+      .post('/user/deanonymize/sms')
+      .set('Authorization', `Bearer ${anonAccessToken}`)
+      .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+
+    // Second attempt with the same number must succeed: the anonymous session
+    // is still alive and the existing staged row gets a fresh OTP.
+    await request
+      .post('/user/deanonymize/sms')
+      .set('Authorization', `Bearer ${anonAccessToken}`)
+      .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+
+    // The latest OTP must verify successfully.
+    const otp = readSMSCode(phoneNumber);
+
+    const { body: verifyBody }: { body: SignInResponse } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
+      .expect(StatusCodes.OK);
+    expect(verifyBody.session).toBeTruthy();
+
+    const { rows } = await client.query(
+      `SELECT is_anonymous, phone_number, phone_number_verified, new_phone_number
+         FROM auth.users WHERE phone_number = $1`,
+      [phoneNumber]
+    );
+    expect(rows[0].is_anonymous).toBe(false);
+    expect(rows[0].phone_number).toBe(phoneNumber);
+    expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[0].new_phone_number).toBeNull();
   });
 
   it('rejects when SMS passwordless is disabled', async () => {

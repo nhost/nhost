@@ -668,55 +668,6 @@ func (q *Queries) GetUserByPhoneNumberAndOTP(ctx context.Context, arg GetUserByP
 	return i, err
 }
 
-const getUserByPhoneNumberOrNew = `-- name: GetUserByPhoneNumberOrNew :one
-SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, new_phone_number
-FROM auth.users
-WHERE
-    disabled = false
-    AND id <> $1
-    AND phone_number_verified = true
-    AND phone_number = $2
-`
-
-type GetUserByPhoneNumberOrNewParams struct {
-	UserID      uuid.UUID
-	PhoneNumber pgtype.Text
-}
-
-func (q *Queries) GetUserByPhoneNumberOrNew(ctx context.Context, arg GetUserByPhoneNumberOrNewParams) (AuthUser, error) {
-	row := q.db.QueryRow(ctx, getUserByPhoneNumberOrNew, arg.UserID, arg.PhoneNumber)
-	var i AuthUser
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastSeen,
-		&i.Disabled,
-		&i.DisplayName,
-		&i.AvatarUrl,
-		&i.Locale,
-		&i.Email,
-		&i.PhoneNumber,
-		&i.PasswordHash,
-		&i.EmailVerified,
-		&i.PhoneNumberVerified,
-		&i.NewEmail,
-		&i.OtpMethodLastUsed,
-		&i.OtpHash,
-		&i.OtpHashExpiresAt,
-		&i.DefaultRole,
-		&i.IsAnonymous,
-		&i.TotpSecret,
-		&i.ActiveMfaType,
-		&i.Ticket,
-		&i.TicketExpiresAt,
-		&i.Metadata,
-		&i.WebauthnCurrentChallenge,
-		&i.NewPhoneNumber,
-	)
-	return i, err
-}
-
 const getUserByProviderID = `-- name: GetUserByProviderID :one
 WITH user_providers AS (
     SELECT id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id FROM auth.user_providers
@@ -942,6 +893,58 @@ func (q *Queries) GetUsersWithUnencryptedTOTPSecret(ctx context.Context) ([]Auth
 		return nil, err
 	}
 	return items, nil
+}
+
+const getVerifiedUserByPhoneNumberOtherThanSelf = `-- name: GetVerifiedUserByPhoneNumberOtherThanSelf :one
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, new_phone_number
+FROM auth.users
+WHERE
+    disabled = false
+    AND id <> $1
+    AND phone_number_verified = true
+    AND phone_number = $2
+`
+
+type GetVerifiedUserByPhoneNumberOtherThanSelfParams struct {
+	UserID      uuid.UUID
+	PhoneNumber pgtype.Text
+}
+
+// Returns a row only if another non-disabled user already has this number
+// as their VERIFIED phone_number. Unverified `new_phone_number` squats are
+// intentionally ignored — see services/auth/test/routes/user/phone-squat.test.ts.
+func (q *Queries) GetVerifiedUserByPhoneNumberOtherThanSelf(ctx context.Context, arg GetVerifiedUserByPhoneNumberOtherThanSelfParams) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getVerifiedUserByPhoneNumberOtherThanSelf, arg.UserID, arg.PhoneNumber)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+		&i.NewPhoneNumber,
+	)
+	return i, err
 }
 
 const insertOAuth2AuthRequest = `-- name: InsertOAuth2AuthRequest :one
@@ -1936,6 +1939,20 @@ func (q *Queries) UpdateUserConfirmChangePhoneNumber(ctx context.Context, arg Up
 	return i, err
 }
 
+const updateUserConfirmDeanonymizeSMS = `-- name: UpdateUserConfirmDeanonymizeSMS :exec
+UPDATE auth.users
+SET is_anonymous = false
+WHERE id = $1
+`
+
+// Final commit of an SMS deanonymization: flip is_anonymous AFTER the OTP has
+// been verified by GetUserByPhoneNumberAndOTP. Called only when the verifying
+// user was anonymous at OTP-check time.
+func (q *Queries) UpdateUserConfirmDeanonymizeSMS(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, updateUserConfirmDeanonymizeSMS, id)
+	return err
+}
+
 const updateUserDeanonymize = `-- name: UpdateUserDeanonymize :exec
 WITH inserted_user AS (
     UPDATE auth.users
@@ -1990,9 +2007,7 @@ const updateUserDeanonymizeSMS = `-- name: UpdateUserDeanonymizeSMS :exec
 WITH updated_user AS (
     UPDATE auth.users
     SET
-        is_anonymous = false,
         new_phone_number = $2,
-        phone_number_verified = false,
         otp_hash = crypt($3, gen_salt('bf')),
         otp_hash_expires_at = $4,
         otp_method_last_used = 'sms',
@@ -2020,6 +2035,10 @@ type UpdateUserDeanonymizeSMSParams struct {
 	ID               pgtype.UUID
 }
 
+// Stages an SMS-based deanonymization. The is_anonymous flip and refresh-token
+// revocation are intentionally deferred to OTP verification (see
+// UpdateUserConfirmDeanonymizeSMS and VerifySignInPasswordlessSms) so that a
+// user who fails to receive or enter the OTP can retry without being locked out.
 func (q *Queries) UpdateUserDeanonymizeSMS(ctx context.Context, arg UpdateUserDeanonymizeSMSParams) error {
 	_, err := q.db.Exec(ctx, updateUserDeanonymizeSMS,
 		arg.Roles,

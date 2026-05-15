@@ -747,16 +747,22 @@ func (wf *Workflows) ChangeEmail(
 	return user, nil
 }
 
-func (wf *Workflows) UserByPhoneNumberOrNewExists(
+// PhoneNumberClaimedByOtherUser returns true only if another non-disabled user
+// has this number as their VERIFIED phone_number. Unverified `new_phone_number`
+// squats are intentionally ignored — see services/auth/test/routes/user/phone-squat.test.ts.
+func (wf *Workflows) PhoneNumberClaimedByOtherUser(
 	ctx context.Context,
 	userID uuid.UUID,
 	phoneNumber string,
 	logger *slog.Logger,
 ) (bool, *APIError) {
-	_, err := wf.db.GetUserByPhoneNumberOrNew(ctx, sql.GetUserByPhoneNumberOrNewParams{
-		UserID:      userID,
-		PhoneNumber: sql.Text(phoneNumber),
-	})
+	_, err := wf.db.GetVerifiedUserByPhoneNumberOtherThanSelf(
+		ctx,
+		sql.GetVerifiedUserByPhoneNumberOtherThanSelfParams{
+			UserID:      userID,
+			PhoneNumber: sql.Text(phoneNumber),
+		},
+	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return false, nil
 	}
@@ -1263,6 +1269,26 @@ func (wf *Workflows) DeanonymizeUserSMS(
 		},
 	); err != nil {
 		logger.ErrorContext(ctx, "error updating user", logError(err))
+		return ErrInternalServerError
+	}
+
+	// is_anonymous flip and refresh-token revocation are intentionally
+	// deferred to OTP verification (CompleteDeanonymizeSMS) so a user who
+	// loses the OTP can retry without being locked out.
+
+	return nil
+}
+
+// CompleteDeanonymizeSMS finalises an SMS deanonymization after the OTP has
+// been successfully verified for an anonymous user. It flips is_anonymous to
+// false and revokes the anonymous refresh tokens.
+func (wf *Workflows) CompleteDeanonymizeSMS(
+	ctx context.Context,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.db.UpdateUserConfirmDeanonymizeSMS(ctx, userID); err != nil {
+		logger.ErrorContext(ctx, "error confirming SMS deanonymization", logError(err))
 		return ErrInternalServerError
 	}
 

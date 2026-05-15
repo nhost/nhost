@@ -343,7 +343,10 @@ SET (email, new_email) = (new_email, null)
 WHERE id = $1
 RETURNING *;
 
--- name: GetUserByPhoneNumberOrNew :one
+-- name: GetVerifiedUserByPhoneNumberOtherThanSelf :one
+-- Returns a row only if another non-disabled user already has this number
+-- as their VERIFIED phone_number. Unverified `new_phone_number` squats are
+-- intentionally ignored — see services/auth/test/routes/user/phone-squat.test.ts.
 SELECT *
 FROM auth.users
 WHERE
@@ -414,12 +417,14 @@ INSERT INTO auth.user_roles (user_id, role)
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role);
 
 -- name: UpdateUserDeanonymizeSMS :exec
+-- Stages an SMS-based deanonymization. The is_anonymous flip and refresh-token
+-- revocation are intentionally deferred to OTP verification (see
+-- UpdateUserConfirmDeanonymizeSMS and VerifySignInPasswordlessSms) so that a
+-- user who fails to receive or enter the OTP can retry without being locked out.
 WITH updated_user AS (
     UPDATE auth.users
     SET
-        is_anonymous = false,
         new_phone_number = @phone_number,
-        phone_number_verified = false,
         otp_hash = crypt(@otp, gen_salt('bf')),
         otp_hash_expires_at = @otp_hash_expires_at,
         otp_method_last_used = 'sms',
@@ -433,6 +438,14 @@ WITH updated_user AS (
 INSERT INTO auth.user_roles (user_id, role)
     SELECT updated_user.id, roles.role
     FROM updated_user, unnest(@roles::TEXT[]) AS roles(role);
+
+-- name: UpdateUserConfirmDeanonymizeSMS :exec
+-- Final commit of an SMS deanonymization: flip is_anonymous AFTER the OTP has
+-- been verified by GetUserByPhoneNumberAndOTP. Called only when the verifying
+-- user was anonymous at OTP-check time.
+UPDATE auth.users
+SET is_anonymous = false
+WHERE id = $1;
 
 -- name: DeleteRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
