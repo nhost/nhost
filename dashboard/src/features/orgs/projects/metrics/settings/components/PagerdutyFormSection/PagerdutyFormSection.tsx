@@ -1,10 +1,8 @@
+import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
@@ -43,7 +41,7 @@ export default function PagerdutyFormSection() {
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
           </Tooltip>
         </Box>
         <Button
