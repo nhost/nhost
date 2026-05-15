@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -58,22 +58,9 @@ export default function ProjectGraphQLPagesComboBox() {
     ? pathSegments[6] || 'playground'
     : null;
 
-  const selectedGraphQLPageFromUrl = projectGraphQLPages.find(
+  const selectedGraphQLPage = projectGraphQLPages.find(
     (item) => item.value === graphQLPageFromUrl,
   );
-  const [selectedGraphQLPage, setSelectedGraphQLPage] = useState<Option | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (selectedGraphQLPageFromUrl) {
-      setSelectedGraphQLPage({
-        label: selectedGraphQLPageFromUrl.label,
-        value: selectedGraphQLPageFromUrl.value,
-        route: selectedGraphQLPageFromUrl.route,
-      });
-    }
-  }, [selectedGraphQLPageFromUrl]);
 
   const options: Option[] = projectGraphQLPages.map((page) => ({
     label: page.label,
@@ -110,7 +97,6 @@ export default function ProjectGraphQLPagesComboBox() {
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
-                    setSelectedGraphQLPage(option);
                     setOpen(false);
                     push(
                       `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/${option.route}/`,

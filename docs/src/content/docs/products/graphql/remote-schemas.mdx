@@ -177,6 +177,14 @@ Once enabled, you can configure permissions for each role:
 
 For more information about roles and permissions, see [Permissions](/products/graphql/permissions).
 
+### Argument Presets
+
+You can preset an argument's value per role with the `@preset` directive. The value is auto-injected at request time and the argument is hidden from that role's schema.
+
+Expand a field's row to reveal its arguments; each one has a preset input with an Insert-literal dropdown (the `{}` icon). The dropdown is gated by the argument's type and offers `null`, `""`, `true` / `false`, enum values, and your project's [permission variables](/products/graphql/permissions/permission-variables) (`X-Hasura-*`). You can also type the literal directly.
+
+![Argument preset dropdown](/images/graphql/remote-schemas-permissions-preset-dropdown.png)
+
 ## Relationships
 
 Remote Schemas can be connected to other parts of your GraphQL API through relationships. This enables powerful cross-service queries.

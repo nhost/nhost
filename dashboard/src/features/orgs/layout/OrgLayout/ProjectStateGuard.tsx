@@ -26,6 +26,7 @@ const overlayPages = new Set(
   [
     'database',
     'database/browser/[dataSourceSlug]',
+    'database/schema/[dataSourceSlug]',
     'graphql',
     'graphql/remote-schemas',
     'graphql/remote-schemas/[remoteSchemaSlug]',

@@ -28,6 +28,9 @@ on:
       - "internal/lib/clidocs/**"
       - "internal/lib/nhostclient/**"
 
+      # auth email templates (embedded into the CLI by `nhost init`)
+      - "services/auth/email-templates/**"
+
       # docs
       - "docs/**"
   merge_group:
@@ -56,6 +59,7 @@ jobs:
         vendor/**
         cli/**
         internal/lib/clidocs/**
+        services/auth/email-templates/**
         docs/**
 
   check-permissions:

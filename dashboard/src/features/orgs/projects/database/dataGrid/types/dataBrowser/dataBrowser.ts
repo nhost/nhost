@@ -5,7 +5,6 @@ import type {
   ColumnDef,
   Row,
 } from '@tanstack/react-table';
-import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import type {
   ComputedFieldItem,
@@ -421,8 +420,20 @@ export interface ForeignKeyRelation {
   oneToOne?: boolean;
 }
 
+export interface ColumnDefaultValue {
+  /**
+   * The raw default value text (e.g. `gen_random_uuid()`, `Hello`).
+   */
+  value: string;
+  /**
+   * `true` if the value is a literal string the user typed in; `false` if it
+   * is a postgres function reference. Drives `DEFAULT %L` vs `DEFAULT %s`.
+   */
+  custom: boolean;
+}
+
 /**
- * Represents a column in a table.
+ * Represents a column in the database.
  */
 export interface DatabaseColumn {
   /**
@@ -436,13 +447,17 @@ export interface DatabaseColumn {
    */
   name: string;
   /**
-   * Type of the column.
+   * Postgres type of the column. May be a built-in `ColumnType` literal or
+   * a custom user-typed string (e.g. `vector(1536)`, a domain type).
+   * `null` while the user has not yet chosen a type during column creation.
    */
-  type: AutocompleteOption<ColumnType>;
+  type: string | null;
   /**
-   * Default value of the column.
+   * Default value of the column. `custom` distinguishes a literal (e.g. the
+   * user typed `version()` as a string) from a postgres function reference
+   * (e.g. picking `version()` from the function list).
    */
-  defaultValue?: string | null | AutocompleteOption<string | null>;
+  defaultValue?: ColumnDefaultValue | null;
   /**
    * Determines whether or not the column is nullable.
    */

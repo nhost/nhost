@@ -90,7 +90,7 @@ function TicketPage() {
   const canSetPriority = typeof slaLevel === 'string' && slaLevel !== 'none';
 
   useEffect(() => {
-    if (!!selectedOrganization && !canSetPriority && priority !== 'low') {
+    if (selectedOrganization && !canSetPriority && priority !== 'low') {
       setValue('priority', 'low', { shouldValidate: true });
     }
   }, [selectedOrganization, canSetPriority, priority, setValue]);
@@ -261,7 +261,7 @@ function TicketPage() {
                     }}
                     error={!!errors.priority}
                     helperText={
-                      !!selectedOrganization && !canSetPriority ? (
+                      selectedOrganization && !canSetPriority ? (
                         <>
                           To set a higher priority, upgrade to a plan with an
                           SLA.{' '}

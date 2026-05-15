@@ -30,7 +30,7 @@ export default function prepareCreateTableQuery({
 }: PrepareCreateTableQueryVariables) {
   let columnsAndConstraints = table.columns
     .map((column) => {
-      const columnBase = format('%I %s', column.name, column.type.value);
+      const columnBase = format('%I %s', column.name, column.type);
       const isIdentity = table.identityColumn === column.name;
 
       if (isIdentity) {
@@ -42,9 +42,7 @@ export default function prepareCreateTableQuery({
 
       let defaultClause = '';
 
-      if (typeof column.defaultValue === 'string') {
-        defaultClause = format('DEFAULT %L', column.defaultValue);
-      } else if (column.defaultValue?.value) {
+      if (column.defaultValue) {
         defaultClause = format(
           column.defaultValue.custom ? 'DEFAULT %L' : 'DEFAULT %s',
           column.defaultValue.value,

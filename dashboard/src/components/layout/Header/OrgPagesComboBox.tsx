@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -42,17 +42,9 @@ export default function OrgPagesComboBox() {
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
   const orgPageFromUrl = pathSegments[3] || null;
 
-  const selectedOrgPageFromUrl = orgPages.find(
+  const selectedOrgPage = orgPages.find(
     (item) => item.value === orgPageFromUrl,
   );
-
-  const [selectedOrgPage, setSelectedOrgPage] = useState<Option | null>(null);
-
-  useEffect(() => {
-    if (selectedOrgPageFromUrl) {
-      setSelectedOrgPage(selectedOrgPageFromUrl);
-    }
-  }, [selectedOrgPageFromUrl]);
 
   const options: Option[] = orgPages.map((page) => ({
     label: page.label,
@@ -88,7 +80,6 @@ export default function OrgPagesComboBox() {
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
-                    setSelectedOrgPage(option);
                     setOpen(false);
                     push(`/orgs/${orgSlug}/${option.value}`);
                   }}

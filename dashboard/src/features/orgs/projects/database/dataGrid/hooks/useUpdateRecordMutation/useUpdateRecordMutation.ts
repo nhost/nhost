@@ -5,7 +5,6 @@ import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   UpdateRecordOptions,
   UpdateRecordVariables,
@@ -57,10 +56,7 @@ export default function useUpdateRecordMutation<
     return updateRecord<TData>({
       ...variables,
       appUrl: customAppUrl || appUrl,
-      adminSecret:
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : customAdminSecret || project!.config!.hasura.adminSecret,
+      adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
       dataSource: customDataSource || (dataSourceSlug as string),
       schema: customSchema || (schemaSlug as string),
       table: customTable || (tableSlug as string),

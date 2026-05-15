@@ -10,6 +10,7 @@ import {
 import OrgPagesComboBox from './OrgPagesComboBox';
 import OrgsComboBox from './OrgsComboBox';
 import ProjectAuthPagesComboBox from './ProjectAuthPagesComboBox';
+import ProjectDatabasePagesComboBox from './ProjectDatabasePagesComboBox';
 import ProjectEventsPagesComboBox from './ProjectEventsPagesComboBox';
 import ProjectGraphQLPagesComboBox from './ProjectGraphQLPagesComboBox';
 import ProjectPagesComboBox from './ProjectPagesComboBox';
@@ -30,6 +31,7 @@ export default function BreadcrumbNav() {
   const isGraphQLPage = pathSegments[5] === 'graphql';
   const isEventsPage = pathSegments[5] === 'events';
   const isAuthPage = pathSegments[5] === 'auth';
+  const isDatabasePage = pathSegments[5] === 'database';
 
   const showBreadcrumbs = !['/', '/orgs/verify'].includes(route);
 
@@ -128,6 +130,21 @@ export default function BreadcrumbNav() {
 
                 <BreadcrumbItem>
                   <ProjectAuthPagesComboBox />
+                </BreadcrumbItem>
+              </>
+            )}
+
+            {isDatabasePage && (
+              <>
+                <BreadcrumbSeparator>
+                  <Slash
+                    strokeWidth={3.5}
+                    className="text-muted-foreground/50"
+                  />
+                </BreadcrumbSeparator>
+
+                <BreadcrumbItem>
+                  <ProjectDatabasePagesComboBox />
                 </BreadcrumbItem>
               </>
             )}

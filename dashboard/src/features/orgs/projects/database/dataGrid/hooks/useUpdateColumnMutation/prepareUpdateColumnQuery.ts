@@ -4,7 +4,6 @@ import type {
   DatabaseColumn,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import { prepareUpdateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
 
@@ -46,7 +45,7 @@ export default function prepareUpdateColumnQuery({
     return [];
   }
 
-  if (originalColumn.type.value !== column.type.value) {
+  if (originalColumn.type !== column.type) {
     args = args.concat(
       getPreparedHasuraQuery(
         dataSource,
@@ -61,49 +60,25 @@ export default function prepareUpdateColumnQuery({
         schema,
         table,
         originalColumn.id,
-        column.type.value,
+        column.type,
       ),
     );
   }
 
-  const { normalizedDefaultValue: normalizedOriginalDefaultValue } =
-    normalizeDefaultValue(
-      typeof originalColumn.defaultValue === 'string'
-        ? originalColumn.defaultValue
-        : originalColumn.defaultValue?.value,
-    );
+  const originalDefault = originalColumn.defaultValue ?? null;
+  const updatedDefault = column.defaultValue ?? null;
 
-  const updatedDefaultValue =
-    typeof column.defaultValue === 'string'
-      ? column.defaultValue
-      : column.defaultValue?.value || '';
+  const defaultChanged =
+    originalDefault?.value !== updatedDefault?.value ||
+    originalDefault?.custom !== updatedDefault?.custom;
 
-  const isOriginalCustom =
-    typeof originalColumn.defaultValue === 'string'
-      ? true
-      : originalColumn.defaultValue?.custom || false;
-
-  const isUpdatedCustom =
-    typeof column.defaultValue === 'string'
-      ? true
-      : column.defaultValue?.custom || false;
-
-  if (
-    normalizedOriginalDefaultValue !== updatedDefaultValue ||
-    isOriginalCustom !== isUpdatedCustom
-  ) {
-    let defaultClause = '';
-
-    if (typeof column.defaultValue === 'string') {
-      defaultClause = format('SET DEFAULT %L', column.defaultValue);
-    } else if (column.defaultValue?.value) {
-      defaultClause = format(
-        column.defaultValue.custom ? 'SET DEFAULT %L' : 'SET DEFAULT %s',
-        column.defaultValue.value,
-      );
-    } else {
-      defaultClause = format('DROP DEFAULT');
-    }
+  if (defaultChanged) {
+    const defaultClause = updatedDefault
+      ? format(
+          updatedDefault.custom ? 'SET DEFAULT %L' : 'SET DEFAULT %s',
+          updatedDefault.value,
+        )
+      : format('DROP DEFAULT');
 
     args = args.concat(
       getPreparedHasuraQuery(

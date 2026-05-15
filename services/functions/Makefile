@@ -25,7 +25,7 @@ build-docker-image:  ## Build docker container for native architecture
 .PHONY: _dev-env-build
 _dev-env-build:
 	$(MAKE) build-docker-image NODE_VERSION=22
-	$(MAKE) build-docker-image NODE_VERSION=20
+	$(MAKE) build-docker-image NODE_VERSION=24
 
 
 .PHONY: _dev-env-up
