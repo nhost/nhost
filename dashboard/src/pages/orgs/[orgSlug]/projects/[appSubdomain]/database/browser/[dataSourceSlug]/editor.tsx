@@ -25,7 +25,7 @@ Editor.getLayout = function getLayout(page: ReactElement) {
     >
       <DataBrowserSidebar />
       <RetryableErrorBoundary>
-        <div className="flex w-full flex-col">{page}</div>
+        <div className="flex w-full flex-col overflow-x-hidden">{page}</div>
       </RetryableErrorBoundary>
     </OrgLayout>
   );
