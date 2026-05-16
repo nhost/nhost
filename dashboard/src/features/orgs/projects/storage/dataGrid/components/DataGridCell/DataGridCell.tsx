@@ -365,12 +365,18 @@ function DataGridCellContent<
         )}
     </div>
   );
-  // TODO: https://github.com/nhost/nhost/issues/3677
   if (isEditable) {
+    const cellValuePreview =
+      optimisticValue != null
+        ? typeof optimisticValue === 'object'
+          ? JSON.stringify(optimisticValue)
+          : String(optimisticValue)
+        : null;
+
     return (
       <Tooltip
         delayDuration={100}
-        open={tooltipOpen}
+        open={tooltipOpen || undefined}
         onOpenChange={(newState) => {
           if (!newState) {
             resetTooltipTitle();
@@ -378,7 +384,9 @@ function DataGridCellContent<
         }}
       >
         <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent>{tooltipTitle}</TooltipContent>
+        <TooltipContent>
+          {tooltipTitle || cellValuePreview || 'Empty'}
+        </TooltipContent>
       </Tooltip>
     );
   }
