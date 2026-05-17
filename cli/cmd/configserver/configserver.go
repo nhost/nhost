@@ -13,8 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nhost/be/services/mimir/graph"
 	"github.com/nhost/nhost/cli/cmd/configserver/logsapi"
-	"github.com/rs/cors"
-	corsgin "github.com/rs/cors/wrapper/gin"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v3"
 )
@@ -43,8 +42,9 @@ var dashboardOriginRe = regexp.MustCompile(
 // ConfigEnvironmentVariable.value selection. The dashboard never reads secret
 // values back — it only lists names and accepts user-typed values on edit —
 // so withholding the value here prevents trivial exfiltration via the
-// configserver GraphQL API.
-const redactedSecretValue = ""
+// configserver GraphQL API. A visible sentinel (rather than "") makes the
+// redaction self-evident to anyone inspecting a response.
+const redactedSecretValue = "<redacted>"
 
 func Command() *cli.Command {
 	return &cli.Command{ //nolint: exhaustruct
@@ -107,10 +107,8 @@ func Command() *cli.Command {
 }
 
 func corsMiddleware() gin.HandlerFunc {
-	return corsgin.New(cors.Options{ //nolint:exhaustruct
-		AllowOriginFunc: func(origin string) bool {
-			return dashboardOriginRe.MatchString(origin)
-		},
+	return oapimw.CORS(oapimw.CORSOptions{ //nolint:exhaustruct
+		AllowOriginFunc: dashboardOriginRe.MatchString,
 		AllowedMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
@@ -120,7 +118,8 @@ func corsMiddleware() gin.HandlerFunc {
 			http.MethodOptions,
 			http.MethodHead,
 		},
-		AllowedHeaders:   []string{"*"},
+		// AllowedHeaders: nil reflects the client's Access-Control-Request-Headers,
+		// which is the equivalent of "*" under credentialed CORS.
 		AllowCredentials: true,
 	})
 }

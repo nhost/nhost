@@ -10,13 +10,26 @@ import (
 
 // CORSOptions configures the CORS middleware behavior.
 //
-// The middleware supports three strategies for handling Access-Control-Allow-Headers:
+// The middleware supports several strategies for gating Access-Control-Allow-Origin:
+//   - AllowOriginFunc non-nil: the function decides; AllowedOrigins is ignored.
+//   - AllowedOrigins nil: all origins allowed.
+//   - AllowedOrigins contains "*": all origins allowed.
+//   - AllowedOrigins non-empty: only listed origins allowed.
+//   - AllowedOrigins empty slice: all origins denied.
+//
+// And three strategies for handling Access-Control-Allow-Headers:
 //   - nil (default): Reflects the Access-Control-Request-Headers from the client
 //   - empty slice: Denies all headers (no Access-Control-Allow-Headers header is set)
 //   - non-empty slice: Uses the specified headers
 type CORSOptions struct {
+	// AllowOriginFunc, when non-nil, is consulted to decide whether an origin
+	// is allowed. It takes precedence over AllowedOrigins. Use this when the
+	// allowed origins are not a fixed enumerable list (e.g. a regex-matched
+	// pattern).
+	AllowOriginFunc func(origin string) bool
+
 	// AllowedOrigins is a list of origins permitted to make cross-origin requests.
-	// Use "*" or nil slice to allow all origins.
+	// Use "*" or nil slice to allow all origins. Ignored when AllowOriginFunc is set.
 	AllowedOrigins []string
 
 	// AllowedMethods is a list of HTTP methods the client is permitted to use.
@@ -84,10 +97,10 @@ func CORS(opts CORSOptions) gin.HandlerFunc { //nolint:cyclop,funlen
 		allowedHeaders = strings.Join(opts.AllowedHeaders, ", ")
 	}
 
+	originAllowed := allowOriginFunc(opts)
+
 	f := func(c *gin.Context, origin string) {
-		if opts.AllowedOrigins != nil &&
-			!slices.Contains(opts.AllowedOrigins, origin) &&
-			!slices.Contains(opts.AllowedOrigins, "*") {
+		if !originAllowed(origin) {
 			return
 		}
 
@@ -136,5 +149,23 @@ func CORS(opts CORSOptions) gin.HandlerFunc { //nolint:cyclop,funlen
 		}
 
 		c.Next()
+	}
+}
+
+// allowOriginFunc picks an origin-check strategy once at construction time
+// and returns a closure that the per-request path can call without re-doing
+// the strategy switch (or scanning AllowedOrigins for "*") on every request.
+func allowOriginFunc(opts CORSOptions) func(origin string) bool {
+	switch {
+	case opts.AllowOriginFunc != nil:
+		return opts.AllowOriginFunc
+	case opts.AllowedOrigins == nil, slices.Contains(opts.AllowedOrigins, "*"):
+		return func(string) bool { return true }
+	default:
+		allowed := opts.AllowedOrigins
+
+		return func(origin string) bool {
+			return slices.Contains(allowed, origin)
+		}
 	}
 }
