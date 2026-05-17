@@ -61,8 +61,9 @@ const (
 
 func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 	return oapimw.CORSOptions{
-		AllowedOrigins: cmd.StringSlice(flagCorsAllowOrigins),
-		AllowedMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
+		AllowOriginFunc: nil,
+		AllowedOrigins:  cmd.StringSlice(flagCorsAllowOrigins),
+		AllowedMethods:  []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
 		AllowedHeaders: []string{
 			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
 			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
