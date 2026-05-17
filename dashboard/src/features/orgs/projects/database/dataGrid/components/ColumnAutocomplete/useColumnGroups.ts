@@ -1,29 +1,29 @@
-import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
-import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
-import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import { isNotEmptyValue } from '@/lib/utils';
+import type { AutocompleteOption } from '@/components/ui/types'
+import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery'
+import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery'
+import { isNotEmptyValue } from '@/lib/utils'
 
 export interface UseColumnGroupsOptions {
   /**
    * Selected schema to be used to determines the column groups.
    */
-  selectedSchema?: string;
+  selectedSchema?: string
   /**
    * Selected table to be used to determine the column groups.
    */
-  selectedTable?: string;
+  selectedTable?: string
   /**
    * Table data to be used to determine the column groups.
    */
-  tableData?: FetchTableSchemaReturnType;
+  tableData?: FetchTableSchemaReturnType
   /**
    * Metadata to be used to determine the column groups.
    */
-  metadata?: FetchMetadataReturnType;
+  metadata?: FetchMetadataReturnType
   /**
    * Determines whether or not to disable column groups.
    */
-  disableRelationships?: boolean;
+  disableRelationships?: boolean
 }
 
 export default function useColumnGroups({
@@ -31,59 +31,55 @@ export default function useColumnGroups({
   selectedSchema,
   tableData,
   metadata,
-  disableRelationships,
+  disableRelationships
 }: UseColumnGroupsOptions) {
-  const { columns, foreignKeyRelations } = tableData || {};
+  const { columns, foreignKeyRelations } = tableData || {}
 
   const columnTargetMap = foreignKeyRelations?.reduce(
     (map, currentRelation) =>
       map.set(currentRelation.columnName, {
         schema: currentRelation.referencedSchema || 'public',
-        table: currentRelation.referencedTable,
+        table: currentRelation.referencedTable
       }),
-    new Map<string, { schema: string; table: string }>(),
-  );
+    new Map<string, { schema: string; table: string }>()
+  )
 
   const columnOptions: AutocompleteOption[] =
     columns?.map((column) => ({
       label: column.column_name,
       value: column.column_name,
       group: 'columns',
-      metadata: column,
-    })) || [];
+      metadata: column
+    })) || []
 
   if (disableRelationships) {
-    return columnOptions;
+    return columnOptions
   }
 
   const { object_relationships, array_relationships } =
     metadata?.tables?.find(
       ({ table: metadataTable }) =>
-        metadataTable.name === selectedTable &&
-        metadataTable.schema === selectedSchema,
-    ) || {};
+        metadataTable.name === selectedTable && metadataTable.schema === selectedSchema
+    ) || {}
 
   const objectAndArrayRelationships = [
     ...(object_relationships || []),
-    ...(array_relationships || []),
+    ...(array_relationships || [])
   ].reduce<{ schema: string; table: string; column: string; name: string }[]>(
     (relationships, currentRelationship) => {
       if (isNotEmptyValue(currentRelationship?.using)) {
-        const { foreign_key_constraint_on, manual_configuration } =
-          currentRelationship.using;
+        const { foreign_key_constraint_on, manual_configuration } = currentRelationship.using
 
         if (manual_configuration) {
           return [
             ...relationships,
-            ...Object.keys(manual_configuration.column_mapping).map(
-              (column) => ({
-                schema: manual_configuration.remote_table?.schema || 'public',
-                table: manual_configuration.remote_table?.name,
-                column,
-                name: currentRelationship.name,
-              }),
-            ),
-          ];
+            ...Object.keys(manual_configuration.column_mapping).map((column) => ({
+              schema: manual_configuration.remote_table?.schema || 'public',
+              table: manual_configuration.remote_table?.name,
+              column,
+              name: currentRelationship.name
+            }))
+          ]
         }
 
         if (
@@ -97,9 +93,9 @@ export default function useColumnGroups({
               schema: selectedSchema!,
               table: selectedTable!,
               column: foreign_key_constraint_on,
-              name: currentRelationship.name,
-            },
-          ];
+              name: currentRelationship.name
+            }
+          ]
         }
         if (
           isNotEmptyValue(foreign_key_constraint_on) &&
@@ -111,15 +107,15 @@ export default function useColumnGroups({
               schema: foreign_key_constraint_on.table.schema,
               table: foreign_key_constraint_on.table.name,
               column: foreign_key_constraint_on.column,
-              name: currentRelationship.name,
-            },
-          ];
+              name: currentRelationship.name
+            }
+          ]
         }
       }
-      return relationships;
+      return relationships
     },
-    [] as { schema: string; table: string; column: string; name: string }[],
-  );
+    [] as { schema: string; table: string; column: string; name: string }[]
+  )
 
   return [
     ...columnOptions,
@@ -133,9 +129,9 @@ export default function useColumnGroups({
           table: relationship.table,
           column: relationship.column,
           ...(columnTargetMap?.get(relationship.column) || {}),
-          name: relationship.name,
-        },
-      },
-    })),
-  ];
+          name: relationship.name
+        }
+      }
+    }))
+  ]
 }

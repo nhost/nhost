@@ -1,56 +1,31 @@
-import type { StyledComponent } from '@emotion/styled';
-import { Popper } from '@mui/base';
-import type { UseAutocompleteProps } from '@mui/base/useAutocomplete';
-import { createFilterOptions } from '@mui/base/useAutocomplete';
-import { styled } from '@mui/material';
-import type { AutocompleteProps as MaterialAutocompleteProps } from '@mui/material/Autocomplete';
+import type { StyledComponent } from '@emotion/styled'
+import { Popper } from '@mui/base'
+import type { UseAutocompleteProps } from '@mui/base/useAutocomplete'
+import { createFilterOptions } from '@mui/base/useAutocomplete'
+import { styled } from '@mui/material'
+import type { AutocompleteProps as MaterialAutocompleteProps } from '@mui/material/Autocomplete'
 import MaterialAutocomplete, {
-  autocompleteClasses as materialAutocompleteClasses,
-} from '@mui/material/Autocomplete';
-import clsx from 'clsx';
-import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
-import { forwardRef, useEffect, useState } from 'react';
-import { Chip } from '@/components/ui/v2/Chip';
-import type { FormControlProps } from '@/components/ui/v2/FormControl';
-import type { InputProps } from '@/components/ui/v2/Input';
-import { Input, inputClasses } from '@/components/ui/v2/Input';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
-import { OptionBase } from '@/components/ui/v2/Option';
-import { OptionGroupBase } from '@/components/ui/v2/OptionGroup';
+  autocompleteClasses as materialAutocompleteClasses
+} from '@mui/material/Autocomplete'
+import clsx from 'clsx'
+import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
+import { Chip } from '@/components/ui/v2/Chip'
+import type { FormControlProps } from '@/components/ui/v2/FormControl'
+import type { InputProps } from '@/components/ui/v2/Input'
+import { Input, inputClasses } from '@/components/ui/v2/Input'
+import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon'
+import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon'
+import { XIcon } from '@/components/ui/v2/icons/XIcon'
+import { OptionBase } from '@/components/ui/v2/Option'
+import { OptionGroupBase } from '@/components/ui/v2/OptionGroup'
+import type { AutocompleteOption } from '@/components/ui/types'
 
-export interface AutocompleteOption<TValue = string> {
-  /**
-   * Label to display.
-   */
-  label: string;
-  /**
-   * Label to display in the dropdown.
-   */
-  dropdownLabel?: string;
-  /**
-   * Value to be submitted.
-   */
-  value: TValue;
-  /**
-   * Determines whether the option is custom.
-   */
-  custom?: boolean;
-  /**
-   * Value that can be used to group options.
-   */
-  group?: string;
-  /**
-   * Any additional data to be passed to the option.
-   */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  metadata?: any;
-}
+export type { AutocompleteOption }
 
-export interface AutocompleteProps<
-  TOption extends AutocompleteOption = AutocompleteOption,
-> extends Omit<
+export interface AutocompleteProps<TOption extends AutocompleteOption = AutocompleteOption>
+  extends
+    Omit<
       MaterialAutocompleteProps<TOption, boolean, boolean, boolean>,
       'renderInput' | 'autoSelect' | 'componentsProps' | 'isOptionEqualToValue'
     >,
@@ -68,94 +43,88 @@ export interface AutocompleteProps<
   /**
    * Props for component slots.
    */
-  slotProps?: MaterialAutocompleteProps<
-    TOption,
-    boolean,
-    boolean,
-    boolean
-  >['componentsProps'] & {
+  slotProps?: MaterialAutocompleteProps<TOption, boolean, boolean, boolean>['componentsProps'] & {
     /**
      * Props passed to the root element.
      */
     // biome-ignore lint/suspicious/noExplicitAny: TODO
-    root?: Partial<UseAutocompleteProps<any, boolean, boolean, boolean>>;
+    root?: Partial<UseAutocompleteProps<any, boolean, boolean, boolean>>
     /**
      * Props passed to the input component.
      */
-    input?: Partial<Omit<InputProps, 'ref'>>;
-    inputRoot?: Partial<
-      DetailedHTMLProps<HTMLProps<HTMLInputElement>, HTMLInputElement>
-    > & { 'data-testid'?: string };
+    input?: Partial<Omit<InputProps, 'ref'>>
+    inputRoot?: Partial<DetailedHTMLProps<HTMLProps<HTMLInputElement>, HTMLInputElement>> & {
+      'data-testid'?: string
+    }
     /**
      * Props passed to the input's `FormControl` component.
      */
-    formControl?: Partial<FormControlProps>;
-  };
+    formControl?: Partial<FormControlProps>
+  }
   /**
    * Name of the input field.
    */
-  name?: string;
+  name?: string
   /**
    * Function to be used to conditionally decide if the highlighted option
    * should automatically be selected on blur.
    */
-  autoSelect?: boolean | ((filteredOptions?: AutocompleteOption[]) => boolean);
+  autoSelect?: boolean | ((filteredOptions?: AutocompleteOption[]) => boolean)
   /**
    * Show custom option at the end of filtered options.
    *
    * @default 'never'
    */
-  showCustomOption?: 'always' | 'never' | 'auto' | 'first';
+  showCustomOption?: 'always' | 'never' | 'auto' | 'first'
   /**
    * Custom option label.
    */
-  customOptionLabel?: string | ((customOptionLabel: string) => string);
+  customOptionLabel?: string | ((customOptionLabel: string) => string)
   isOptionEqualToValue?: (
     option: AutocompleteOption<string>,
-    value: string | AutocompleteOption<string>,
-  ) => boolean;
+    value: string | AutocompleteOption<string>
+  ) => boolean
 
   sortByOptions?: (
     option1: AutocompleteOption<string>,
-    option2: AutocompleteOption<string>,
-  ) => number;
+    option2: AutocompleteOption<string>
+  ) => number
 }
 
 const StyledTag = styled(Chip)(({ theme }) => ({
   fontSize: theme.typography.pxToRem(15),
   lineHeight: theme.typography.pxToRem(22),
   color: theme.palette.text.primary,
-  fontWeight: 400,
-}));
+  fontWeight: 400
+}))
 
 const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
   [`&:not(.${materialAutocompleteClasses.focused})`]: {
     [`& .${inputClasses.root}`]: {
       maxHeight: 40,
-      overflow: 'auto',
-    },
+      overflow: 'auto'
+    }
   },
   [`.${materialAutocompleteClasses.endAdornment}`]: {
-    right: theme.spacing(1.5),
+    right: theme.spacing(1.5)
   },
   [`.${materialAutocompleteClasses.input}`]: {
-    paddingRight: theme.spacing(3),
+    paddingRight: theme.spacing(3)
   },
-  [`.${materialAutocompleteClasses.endAdornment} .${materialAutocompleteClasses.popupIndicator}`]:
-    {
-      color: theme.palette.text.secondary,
-    },
+  [`.${materialAutocompleteClasses.endAdornment} .${materialAutocompleteClasses.popupIndicator}`]: {
+    color: theme.palette.text.secondary
+  }
   // biome-ignore lint/suspicious/noExplicitAny: TODO
 })) as any as StyledComponent<
   MaterialAutocompleteProps<AutocompleteOption, boolean, boolean, boolean>
->;
+>
 
 const StyledOptionBase = styled(OptionBase)(({ theme }) => ({
   display: 'grid !important',
   gridAutoFlow: 'column',
   justifyContent: 'space-between !important',
-  gap: theme.spacing(0.5),
-}));
+  gap: theme.spacing(0.5)
+}))
 
 export const AutocompletePopper = styled(Popper)(({ theme }) => ({
   zIndex: theme.zIndex.modal + 1,
@@ -166,13 +135,10 @@ export const AutocompletePopper = styled(Popper)(({ theme }) => ({
     borderRadius: theme.shape.borderRadius,
     overflow: 'hidden',
     backgroundColor:
-      theme.palette.mode === 'dark'
-        ? theme.palette.secondary[100]
-        : theme.palette.common.white,
+      theme.palette.mode === 'dark' ? theme.palette.secondary[100] : theme.palette.common.white,
     borderWidth: theme.palette.mode === 'dark' ? 1 : 0,
-    borderColor:
-      theme.palette.mode === 'dark' ? theme.palette.grey[400] : 'none',
-    boxShadow: `0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)`,
+    borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[400] : 'none',
+    boxShadow: `0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)`
   },
   [`& .${materialAutocompleteClasses.listbox}`]: {
     overflow: 'auto',
@@ -181,23 +147,21 @@ export const AutocompletePopper = styled(Popper)(({ theme }) => ({
     maxHeight: 400,
     margin: 0,
     backgroundColor:
-      theme.palette.mode === 'dark'
-        ? theme.palette.secondary[100]
-        : theme.palette.common.white,
+      theme.palette.mode === 'dark' ? theme.palette.secondary[100] : theme.palette.common.white,
     padding: 0,
     [`& .${materialAutocompleteClasses.option}`]: {
       padding: theme.spacing(1, 1.5),
       cursor: 'default',
-      minHeight: 'initial',
-    },
+      minHeight: 'initial'
+    }
   },
   [`& .${materialAutocompleteClasses.noOptions}`]: {
     padding: theme.spacing(1, 1.5),
     fontSize: '0.875rem',
     fontWeight: 500,
-    color: theme.palette.text.secondary,
-  },
-}));
+    color: theme.palette.text.secondary
+  }
+}))
 
 /**
  * Function to be used to filter options.
@@ -207,8 +171,8 @@ export const filterOptions = createFilterOptions<AutocompleteOption>({
   ignoreAccents: true,
   ignoreCase: true,
   trim: true,
-  stringify: (option) => `${option.label} (${option.value})`,
-});
+  stringify: (option) => `${option.label} (${option.value})`
+})
 
 const Autocomplete = forwardRef(
   (
@@ -232,47 +196,41 @@ const Autocomplete = forwardRef(
       sortByOptions,
       ...props
     }: AutocompleteProps<AutocompleteOption>,
-    ref: ForwardedRef<HTMLInputElement>,
+    ref: ForwardedRef<HTMLInputElement>
   ) => {
-    const { formControl: formControlSlotProps, ...defaultComponentsProps } =
-      slotProps || {};
+    const { formControl: formControlSlotProps, ...defaultComponentsProps } = slotProps || {}
 
-    const [inputValue, setInputValue] = useState<string>(
-      () => externalInputValue || '',
-    );
+    const [inputValue, setInputValue] = useState<string>(() => externalInputValue || '')
 
     // TODO: Revisit this implementation. We should probably have a better way to
     // make this component controlled.
     useEffect(() => {
-      setInputValue(externalInputValue ?? '');
-    }, [externalInputValue]);
+      setInputValue(externalInputValue ?? '')
+    }, [externalInputValue])
 
-    const filterOptionsFn = externalFilterOptions || filterOptions;
-    const filteredOptions = filterOptionsFn(
-      props.options as AutocompleteOption[],
-      {
-        inputValue: inputValue || '',
-        getOptionLabel: props.getOptionLabel
-          ? props.getOptionLabel
-          : (option: string | number | AutocompleteOption<string>) => {
-              if (typeof option !== 'object') {
-                return option.toString();
-              }
+    const filterOptionsFn = externalFilterOptions || filterOptions
+    const filteredOptions = filterOptionsFn(props.options as AutocompleteOption[], {
+      inputValue: inputValue || '',
+      getOptionLabel: props.getOptionLabel
+        ? props.getOptionLabel
+        : (option: string | number | AutocompleteOption<string>) => {
+            if (typeof option !== 'object') {
+              return option.toString()
+            }
 
-              return option.label ?? option.dropdownLabel;
-            },
-      },
-    );
+            return option.label ?? option.dropdownLabel
+          }
+    })
 
     const autoSelect =
       typeof externalAutoSelect === 'function'
         ? externalAutoSelect(filteredOptions)
-        : externalAutoSelect;
+        : externalAutoSelect
 
     const customOptionLabel =
       typeof externalCustomOptionLabel === 'function'
         ? externalCustomOptionLabel(inputValue)
-        : externalCustomOptionLabel;
+        : externalCustomOptionLabel
 
     return (
       <StyledAutocomplete
@@ -286,80 +244,71 @@ const Autocomplete = forwardRef(
           popper: {
             modifiers: [{ name: 'offset', options: { offset: [0, 10] } }],
             ...defaultComponentsProps.popper,
-            placement: 'bottom-start',
+            placement: 'bottom-start'
           },
           popupIndicator: {
             ...defaultComponentsProps?.popupIndicator,
             disableRipple: true,
             className: clsx(
               materialAutocompleteClasses.popupIndicator,
-              defaultComponentsProps?.popupIndicator?.className,
-            ),
-          },
+              defaultComponentsProps?.popupIndicator?.className
+            )
+          }
         }}
         inputValue={inputValue || ''}
         onInputChange={(event, value, reason) => {
-          setInputValue(value);
+          setInputValue(value)
 
           if (onInputChange) {
-            onInputChange(event, value, reason);
+            onInputChange(event, value, reason)
           }
         }}
         onKeyDown={(event) => {
           if (event.key !== 'Escape') {
-            return;
+            return
           }
 
-          event.stopPropagation();
+          event.stopPropagation()
 
           if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
+            document.activeElement.blur()
           }
         }}
         PopperComponent={AutocompletePopper}
         popupIcon={<ChevronDownIcon sx={{ width: 12, height: 12 }} />}
-        getOptionLabel={(
-          option: string | number | AutocompleteOption<string>,
-        ) => {
+        getOptionLabel={(option: string | number | AutocompleteOption<string>) => {
           if (!option) {
-            return '';
+            return ''
           }
 
           if (typeof option !== 'object') {
-            return option.toString();
+            return option.toString()
           }
 
-          return option.label ?? option.dropdownLabel;
+          return option.label ?? option.dropdownLabel
         }}
-        isOptionEqualToValue={(
-          option,
-          value: string | AutocompleteOption<string>,
-        ) => {
+        isOptionEqualToValue={(option, value: string | AutocompleteOption<string>) => {
           if (!value) {
-            return false;
+            return false
           }
 
           if (typeof value !== 'object') {
-            return option.value.toString() === value.toString();
+            return option.value.toString() === value.toString()
           }
 
-          return option.value === value.value && option.custom === value.custom;
+          return option.value === value.value && option.custom === value.custom
         }}
         renderTags={(value, getTagProps) =>
-          value.map(
-            (option: string | number | AutocompleteOption<string>, index) => (
-              // biome-ignore lint/correctness/useJsxKeyInIterable: key is added with getTagProps
-              <StyledTag
-                deleteIcon={<XIcon />}
-                size="small"
-                sx={{ fontSize: (theme) => theme.typography.pxToRem(12) }}
-                label={
-                  typeof option !== 'object' ? option.toString() : option.value
-                }
-                {...getTagProps({ index })}
-              />
-            ),
-          )
+          value.map((option: string | number | AutocompleteOption<string>, index) => (
+            // biome-ignore lint/correctness/useJsxKeyInIterable: key is added with getTagProps
+            <StyledTag
+              deleteIcon={<XIcon />}
+              size="small"
+              sx={{ fontSize: (theme) => theme.typography.pxToRem(12) }}
+              label={typeof option !== 'object' ? option.toString() : option.value}
+              {...getTagProps({ index })}
+            />
+          ))
         }
         renderGroup={({ group, key, children }) =>
           group ? (
@@ -372,46 +321,36 @@ const Autocomplete = forwardRef(
             <div key={key}>{children}</div>
           )
         }
-        renderOption={(
-          optionProps,
-          option: string | number | AutocompleteOption<string>,
-        ) => {
-          const selected = optionProps['aria-selected'];
+        renderOption={(optionProps, option: string | number | AutocompleteOption<string>) => {
+          const selected = optionProps['aria-selected']
 
           if (typeof option !== 'object') {
             return (
               <StyledOptionBase {...optionProps} key={option.toString()}>
                 {option.toString()}
-                {selected && props.multiple && (
-                  <CheckIcon sx={{ width: 16, height: 16 }} />
-                )}
+                {selected && props.multiple && <CheckIcon sx={{ width: 16, height: 16 }} />}
               </StyledOptionBase>
-            );
+            )
           }
 
           return (
-            <StyledOptionBase
-              {...optionProps}
-              key={option.dropdownLabel || option.label}
-            >
+            <StyledOptionBase {...optionProps} key={option.dropdownLabel || option.label}>
               <span>{option.dropdownLabel || option.label}</span>
 
-              {selected && props.multiple && (
-                <CheckIcon key="asd" sx={{ width: 16, height: 16 }} />
-              )}
+              {selected && props.multiple && <CheckIcon key="asd" sx={{ width: 16, height: 16 }} />}
             </StyledOptionBase>
-          );
+          )
         }}
         filterOptions={
           showCustomOption !== 'never'
             ? () => {
                 if (!inputValue) {
-                  return filteredOptions;
+                  return filteredOptions
                 }
                 if (showCustomOption === 'first') {
                   const isInputValueInOptions = filteredOptions.some(
-                    (filteredOption) => filteredOption.label === inputValue,
-                  );
+                    (filteredOption) => filteredOption.label === inputValue
+                  )
 
                   return isInputValueInOptions
                     ? filteredOptions
@@ -419,17 +358,16 @@ const Autocomplete = forwardRef(
                         {
                           value: inputValue,
                           label: inputValue,
-                          dropdownLabel:
-                            customOptionLabel || `Select "${inputValue}"`,
-                          custom: Boolean(inputValue),
+                          dropdownLabel: customOptionLabel || `Select "${inputValue}"`,
+                          custom: Boolean(inputValue)
                         },
-                        ...filteredOptions,
-                      ];
+                        ...filteredOptions
+                      ]
                 }
                 if (showCustomOption === 'auto') {
                   const isInputValueInOptions = filteredOptions.some(
-                    (filteredOption) => filteredOption.label === inputValue,
-                  );
+                    (filteredOption) => filteredOption.label === inputValue
+                  )
 
                   return isInputValueInOptions
                     ? filteredOptions
@@ -438,11 +376,10 @@ const Autocomplete = forwardRef(
                         {
                           value: inputValue,
                           label: inputValue,
-                          dropdownLabel:
-                            customOptionLabel || `Select "${inputValue}"`,
-                          custom: Boolean(inputValue),
-                        },
-                      ];
+                          dropdownLabel: customOptionLabel || `Select "${inputValue}"`,
+                          custom: Boolean(inputValue)
+                        }
+                      ]
                 }
 
                 return [
@@ -450,20 +387,15 @@ const Autocomplete = forwardRef(
                   {
                     value: inputValue,
                     label: inputValue,
-                    dropdownLabel:
-                      customOptionLabel || `Select "${inputValue}"`,
-                    custom: Boolean(inputValue),
-                  },
-                ];
+                    dropdownLabel: customOptionLabel || `Select "${inputValue}"`,
+                    custom: Boolean(inputValue)
+                  }
+                ]
               }
             : filterOptionsFn
         }
         autoSelect={autoSelect}
-        renderInput={({
-          InputProps: InternalInputProps,
-          InputLabelProps,
-          ...params
-        }) => (
+        renderInput={({ InputProps: InternalInputProps, InputLabelProps, ...params }) => (
           <Input
             slotProps={{
               input: {
@@ -473,17 +405,17 @@ const Autocomplete = forwardRef(
                       flexWrap: 'wrap',
                       [`& .${inputClasses.input}`]: {
                         minWidth: 30,
-                        width: 0,
-                      },
+                        width: 0
+                      }
                     }
-                  : null,
+                  : null
               },
               inputRoot: {
                 'aria-label': ariaLabel,
-                ...slotProps.inputRoot,
+                ...slotProps.inputRoot
               },
               label: InputLabelProps,
-              formControl: formControlSlotProps,
+              formControl: formControlSlotProps
             }}
             {...InternalInputProps}
             {...params}
@@ -504,10 +436,10 @@ const Autocomplete = forwardRef(
         )}
         {...props}
       />
-    );
-  },
-);
+    )
+  }
+)
 
-Autocomplete.displayName = 'NhostAutocomplete';
+Autocomplete.displayName = 'NhostAutocomplete'
 
-export default Autocomplete;
+export default Autocomplete
