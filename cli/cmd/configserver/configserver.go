@@ -3,7 +3,9 @@ package configserver
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/docker/docker/client"
@@ -11,7 +13,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/nhost/be/services/mimir/graph"
 	"github.com/nhost/nhost/cli/cmd/configserver/logsapi"
-	cors "github.com/rs/cors/wrapper/gin"
+	"github.com/rs/cors"
+	corsgin "github.com/rs/cors/wrapper/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v3"
 )
@@ -24,8 +27,24 @@ const (
 	storageLocalConfigPath      = "storage-local-config-path"
 	storageLocalSecretsPath     = "storage-local-secrets-path"
 	storageLocalRunServicesPath = "storage-local-run-services-path"
+	appIDFlag                   = "app-id"
 	dockerComposeProjectEnv     = "DOCKER_COMPOSE_PROJECT"
 )
+
+// dashboardOriginRe matches the origins where the CLI-instantiated dashboard
+// is reachable. The dashboard is served by traefik on the same hostnames it
+// uses for routing (see dockercompose.traefikHostMatch), optionally including
+// a non-standard HTTP(S) port.
+var dashboardOriginRe = regexp.MustCompile(
+	`^https?://([^./]+\.dashboard\.local\.nhost\.run|local\.dashboard\.nhost\.run)(:\d+)?$`,
+)
+
+// redactedSecretValue is returned in place of the real value for any
+// ConfigEnvironmentVariable.value selection. The dashboard never reads secret
+// values back — it only lists names and accepts user-typed values on edit —
+// so withholding the value here prevents trivial exfiltration via the
+// configserver GraphQL API.
+const redactedSecretValue = ""
 
 func Command() *cli.Command {
 	return &cli.Command{ //nolint: exhaustruct
@@ -75,9 +94,102 @@ func Command() *cli.Command {
 				Category: "plugins",
 				Sources:  cli.EnvVars("STORAGE_LOCAL_RUN_SERVICES_PATH"),
 			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     appIDFlag,
+				Usage:    "App ID this configserver instance represents",
+				Value:    ZeroUUID,
+				Category: "server",
+				Sources:  cli.EnvVars("NHOST_APP_ID"),
+			},
 		},
 		Action: serve,
 	}
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return corsgin.New(cors.Options{ //nolint:exhaustruct
+		AllowOriginFunc: func(origin string) bool {
+			return dashboardOriginRe.MatchString(origin)
+		},
+		AllowedMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodOptions,
+			http.MethodHead,
+		},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	})
+}
+
+// secretParentFields lists the field names whose resolved
+// ConfigEnvironmentVariable values represent app-level secrets and should be
+// hidden when serialized to GraphQL clients. The run-service `environment`
+// field intentionally uses the same type but is excluded, since those values
+// are part of the (already-publicly-readable) run-service config.
+var secretParentFields = map[string]struct{}{
+	"appSecrets":   {},
+	"appsSecrets":  {},
+	"secrets":      {},
+	"insertSecret": {},
+	"updateSecret": {},
+	"deleteSecret": {},
+}
+
+// redactSecretValueMiddleware replaces the resolved value of any
+// `ConfigEnvironmentVariable.value` field that is reached through a known
+// secrets field path with a constant placeholder, so that secret values
+// cannot be exfiltrated through the configserver GraphQL API. The underlying
+// in-memory and on-disk state is untouched, so config resolution and
+// validation continue to operate on real values.
+func redactSecretValueMiddleware(ctx context.Context, next graphql.Resolver) (any, error) {
+	res, err := next(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil || fc.Object != "ConfigEnvironmentVariable" || fc.Field.Name != "value" {
+		return res, nil
+	}
+
+	if !isSecretFieldContext(fc) {
+		return res, nil
+	}
+
+	switch v := res.(type) {
+	case string:
+		return redactedSecretValue, nil
+	case *string:
+		if v == nil {
+			return v, nil
+		}
+
+		s := redactedSecretValue
+
+		return &s, nil
+	default:
+		return res, nil
+	}
+}
+
+// isSecretFieldContext returns true if the current field is being resolved as
+// part of a secrets-bearing parent (e.g. `appSecrets`, `updateSecret`).
+func isSecretFieldContext(fc *graphql.FieldContext) bool {
+	for parent := fc.Parent; parent != nil; parent = parent.Parent {
+		if parent.Field.Field == nil {
+			continue
+		}
+
+		if _, ok := secretParentFields[parent.Field.Name]; ok {
+			return true
+		}
+	}
+
+	return false
 }
 
 func dummyMiddleware(
@@ -144,7 +256,12 @@ func serve(_ context.Context, cmd *cli.Command) error {
 	secretsFile := cmd.String(storageLocalSecretsPath)
 	runServices := runServicesFiles(cmd.StringSlice(storageLocalRunServicesPath)...)
 
-	st := NewLocal(configFile, secretsFile, runServices)
+	appID := cmd.String(appIDFlag)
+	if _, err := uuid.Parse(appID); err != nil {
+		return fmt.Errorf("invalid --%s value %q: %w", appIDFlag, appID, err)
+	}
+
+	st := NewLocal(appID, configFile, secretsFile, runServices)
 
 	data, err := st.GetApps(configFile, secretsFile, runServices)
 	if err != nil {
@@ -165,9 +282,9 @@ func serve(_ context.Context, cmd *cli.Command) error {
 		dummyMiddleware2,
 		cmd.Bool(enablePlaygroundFlag),
 		cmd.Root().Version,
-		[]graphql.FieldMiddleware{},
+		[]graphql.FieldMiddleware{redactSecretValueMiddleware},
 		gin.Recovery(),
-		cors.Default(),
+		corsMiddleware(),
 	)
 
 	if err := setupLogsAPI(

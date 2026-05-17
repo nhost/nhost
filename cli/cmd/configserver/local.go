@@ -15,7 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const zeroUUID = "00000000-0000-0000-0000-000000000000"
+const ZeroUUID = "00000000-0000-0000-0000-000000000000"
 
 var ErrNotImpl = errors.New("not implemented")
 
@@ -27,13 +27,15 @@ type Local struct {
 	config      string
 	secrets     string
 	runServices map[string]string
+	appID       string
 }
 
-func NewLocal(config, secrets string, runServices map[string]string) *Local {
+func NewLocal(appID, config, secrets string, runServices map[string]string) *Local {
 	return &Local{
 		config:      config,
 		secrets:     secrets,
 		runServices: runServices,
+		appID:       appID,
 	}
 }
 
@@ -131,7 +133,7 @@ func (l *Local) GetApps(
 			},
 			Secrets:  secrets,
 			Services: services,
-			AppID:    zeroUUID,
+			AppID:    l.appID,
 		},
 	}, nil
 }

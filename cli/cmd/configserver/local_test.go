@@ -122,6 +122,7 @@ func TestLocalGetApps(t *testing.T) {
 			}
 
 			st := configserver.NewLocal(
+				configserver.ZeroUUID,
 				configF.Name(),
 				secretsF.Name(),
 				nil,
@@ -185,6 +186,7 @@ func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
 			}
 
 			st := configserver.NewLocal(
+				configserver.ZeroUUID,
 				configF.Name(),
 				secretsF.Name(),
 				nil,
@@ -255,6 +257,7 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 			}
 
 			st := configserver.NewLocal(
+				configserver.ZeroUUID,
 				configF.Name(),
 				secretsF.Name(),
 				nil,

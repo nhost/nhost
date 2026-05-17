@@ -332,6 +332,7 @@ func dashboard(
 	dashboardVersion string,
 	httpPort uint,
 	useTLS bool,
+	appID string,
 ) *Service {
 	return &Service{
 		Image:      dashboardVersion,
@@ -341,6 +342,7 @@ func dashboard(
 		Environment: map[string]string{
 			"NEXT_PUBLIC_ENV":                "dev",
 			"NEXT_PUBLIC_NHOST_PLATFORM":     "false",
+			"NEXT_PUBLIC_NHOST_APP_ID":       appID,
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 			"NEXT_PUBLIC_NHOST_AUTH_URL": URL(
 				subdomain, "auth", httpPort, useTLS) + "/v1",
@@ -583,6 +585,7 @@ func getServices( //nolint: funlen,cyclop
 	dashboardVersion string,
 	functionsVersion string,
 	configserviceImage string,
+	appID string,
 	startFunctions bool,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
@@ -627,6 +630,7 @@ func getServices( //nolint: funlen,cyclop
 		rootFolder,
 		nhostFolder,
 		projectName,
+		appID,
 		useTLS,
 		runServices...,
 	)
@@ -636,7 +640,7 @@ func getServices( //nolint: funlen,cyclop
 
 	services := map[string]*Service{
 		"console":      console,
-		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS),
+		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID),
 		"graphql":      graphql,
 		"minio":        minio,
 		"postgres":     postgres,
@@ -726,6 +730,7 @@ func ComposeFileFromConfig(
 	dashboardVersion string,
 	functionsVersion string,
 	configserverImage string,
+	appID string,
 	startFunctions bool,
 	caCertificatesPath string,
 	runServices ...*RunService,
@@ -745,6 +750,7 @@ func ComposeFileFromConfig(
 		dashboardVersion,
 		functionsVersion,
 		configserverImage,
+		appID,
 		startFunctions,
 		runServices...,
 	)

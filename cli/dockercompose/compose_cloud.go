@@ -20,8 +20,9 @@ func dashboardCloud(
 	httpPort uint,
 	useTLS bool,
 	dashboardVersion string,
+	appID string,
 ) *Service {
-	dashboard := dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS)
+	dashboard := dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID)
 
 	dashboard.Environment["NEXT_PUBLIC_NHOST_ADMIN_SECRET"] = cloudAdminSecret
 	dashboard.Environment["NEXT_PUBLIC_NHOST_AUTH_URL"] = fmt.Sprintf(
@@ -101,6 +102,7 @@ func getServicesCloud(
 	ports ExposePorts,
 	dashboardVersion string,
 	configserviceImage string,
+	appID string,
 ) (map[string]*Service, error) {
 	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder)
 	if err != nil {
@@ -128,6 +130,7 @@ func getServicesCloud(
 		rootFolder,
 		nhostFolder,
 		projectName,
+		appID,
 		useTLS,
 	)
 	if err != nil {
@@ -145,6 +148,7 @@ func getServicesCloud(
 			httpPort,
 			useTLS,
 			dashboardVersion,
+			appID,
 		),
 		"traefik":      traefik,
 		"configserver": cs,
@@ -169,6 +173,7 @@ func CloudComposeFileFromConfig(
 	ports ExposePorts,
 	dashboardVersion string,
 	configserverImage string,
+	appID string,
 	caCertificatesPath string,
 ) (*ComposeFile, error) {
 	services, err := getServicesCloud(
@@ -187,6 +192,7 @@ func CloudComposeFileFromConfig(
 		ports,
 		dashboardVersion,
 		configserverImage,
+		appID,
 	)
 	if err != nil {
 		return nil, err
