@@ -125,20 +125,6 @@ func corsMiddleware() gin.HandlerFunc {
 	})
 }
 
-// secretParentFields lists the field names whose resolved
-// ConfigEnvironmentVariable values represent app-level secrets and should be
-// hidden when serialized to GraphQL clients. The run-service `environment`
-// field intentionally uses the same type but is excluded, since those values
-// are part of the (already-publicly-readable) run-service config.
-var secretParentFields = map[string]struct{}{
-	"appSecrets":   {},
-	"appsSecrets":  {},
-	"secrets":      {},
-	"insertSecret": {},
-	"updateSecret": {},
-	"deleteSecret": {},
-}
-
 // redactSecretValueMiddleware replaces the resolved value of any
 // `ConfigEnvironmentVariable.value` field that is reached through a known
 // secrets field path with a constant placeholder, so that secret values
@@ -177,14 +163,19 @@ func redactSecretValueMiddleware(ctx context.Context, next graphql.Resolver) (an
 }
 
 // isSecretFieldContext returns true if the current field is being resolved as
-// part of a secrets-bearing parent (e.g. `appSecrets`, `updateSecret`).
+// part of a secrets-bearing parent (e.g. `appSecrets`, `updateSecret`). The
+// run-service `environment` field intentionally uses the same
+// `ConfigEnvironmentVariable` type but is excluded, since those values are
+// part of the (already-publicly-readable) run-service config.
 func isSecretFieldContext(fc *graphql.FieldContext) bool {
 	for parent := fc.Parent; parent != nil; parent = parent.Parent {
 		if parent.Field.Field == nil {
 			continue
 		}
 
-		if _, ok := secretParentFields[parent.Field.Name]; ok {
+		switch parent.Field.Name {
+		case "appSecrets", "appsSecrets", "secrets",
+			"insertSecret", "updateSecret", "deleteSecret":
 			return true
 		}
 	}

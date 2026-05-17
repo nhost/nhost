@@ -86,7 +86,7 @@ func consoleCloud(
 	return console, nil
 }
 
-func getServicesCloud(
+func getServicesCloud( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	cloudSubdomain string,

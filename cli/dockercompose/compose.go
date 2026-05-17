@@ -715,7 +715,7 @@ func mountCACertificates(
 	}
 }
 
-func ComposeFileFromConfig(
+func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,

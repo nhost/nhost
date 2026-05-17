@@ -14,7 +14,7 @@ import (
 // random UUIDv4 if the file does not exist. The parent directory must already
 // exist.
 func GetOrCreateAppID(path string) (string, error) {
-	b, err := os.ReadFile(path) //nolint:gosec
+	b, err := os.ReadFile(path)
 	if err == nil {
 		id := strings.TrimSpace(string(b))
 		if _, err := uuid.Parse(id); err != nil {
