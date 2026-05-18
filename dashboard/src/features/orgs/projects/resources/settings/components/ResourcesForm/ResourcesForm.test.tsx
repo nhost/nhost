@@ -372,6 +372,30 @@ test('re-selecting the originally loaded preset disables Save again', async () =
   expect(saveBtn.disabled).toBe(true);
 });
 
+test('reverting an Advanced edit via the originally loaded preset disables Save', async () => {
+  server.use(resourcesMatchingPerformancePreset);
+
+  const user = new TestUserEvent();
+  render(<ResourcesForm />);
+  await screen.findByRole('tab', { name: /advanced/i });
+  await switchToAdvancedTab(user);
+
+  const saveBtn = screen.getByRole('button', {
+    name: /^save$/i,
+  }) as HTMLButtonElement;
+  expect(saveBtn.disabled).toBe(true);
+
+  await user.click(
+    screen.getByRole('button', { name: /increase postgresql database vcpu/i }),
+  );
+  expect(saveBtn.disabled).toBe(false);
+
+  await user.click(screen.getByRole('tab', { name: /overview/i }));
+  await user.click(pickPresetButton('Performance'));
+
+  expect(saveBtn.disabled).toBe(true);
+});
+
 test('unlocking a service in Advanced lets memory drift and surfaces the ratio banner', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);

@@ -48,7 +48,6 @@ export function applyPresetToForm(
   applyGeneric('auth', preset.auth);
   applyGeneric('storage', preset.storage);
 
-  setValue('preset', id);
   trigger();
 }
 

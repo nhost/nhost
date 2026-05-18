@@ -99,7 +99,7 @@ export default function PresetSelector() {
         <div
           role="status"
           className={cn(
-            'flex min-h-[5.25rem] flex-col items-start justify-center rounded-md border px-3 py-2 text-sm',
+            'flex min-h-[5.25rem] flex-col items-start justify-start gap-0.5 rounded-md border px-3 py-2 text-sm leading-snug',
             activePreset === 'custom'
               ? 'border-primary text-foreground'
               : 'border-dashed text-muted-foreground',
@@ -108,9 +108,7 @@ export default function PresetSelector() {
         >
           <span className="font-medium">Custom</span>
           <span className="text-muted-foreground text-xs">
-            {activePreset === 'custom'
-              ? 'Manually configured'
-              : 'No preset matches'}
+            No preset matches
           </span>
         </div>
       </div>

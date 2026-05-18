@@ -102,13 +102,6 @@ const postgresServiceValidationSchema = Yup.object({
 
 export const resourceSettingsValidationSchema = Yup.object({
   enabled: Yup.boolean(),
-  preset: Yup.string().oneOf([
-    'starter',
-    'standard',
-    'performance',
-    'performance-reliability',
-    'custom',
-  ]),
   database: postgresServiceValidationSchema.required(),
   hasura: genericServiceValidationSchema.required(),
   auth: genericServiceValidationSchema.required(),

@@ -51,7 +51,6 @@ type ConfigKeys = Exclude<
 
 const DEFAULT_VALUES: ResourceSettingsFormValues = {
   enabled: false,
-  preset: 'standard',
   database: {
     vcpu: 1000,
     memory: computeMemoryFromCPU(1000),
@@ -160,7 +159,6 @@ export default function ResourcesForm() {
   const form = useForm<ResourceSettingsFormValues>({
     values: {
       enabled: hasInitialValues,
-      preset: 'standard',
       database: {
         vcpu: initialDatabaseResources.vcpu || DEFAULT_VALUES.database.vcpu,
         memory:

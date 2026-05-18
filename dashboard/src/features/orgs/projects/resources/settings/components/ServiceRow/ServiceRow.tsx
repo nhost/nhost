@@ -138,15 +138,9 @@ export default function ServiceRow({
         nextMemory as PathValue<ResourceSettingsFormValues, typeof memoryPath>,
       );
     }
-    setFieldValue('preset', 'custom');
-  };
-
-  const handleMemoryChange = () => {
-    setFieldValue('preset', 'custom');
   };
 
   const handleReplicasChange = (next: number) => {
-    setFieldValue('preset', 'custom');
     const nextForceLocked = next > 1 || autoscale;
     if (nextForceLocked) {
       const nextMemory = computeMemoryFromCPU(cpu, RESOURCE_MEMORY_LOCKED_STEP);
@@ -162,7 +156,6 @@ export default function ServiceRow({
       autoscalePath,
       checked as PathValue<ResourceSettingsFormValues, typeof autoscalePath>,
     );
-    setFieldValue('preset', 'custom');
     if (checked) {
       const nextMemory = computeMemoryFromCPU(cpu, RESOURCE_MEMORY_LOCKED_STEP);
       setFieldValue(
@@ -233,7 +226,6 @@ export default function ServiceRow({
           step={memoryStep}
           format={formatMemory}
           ariaLabel={`${title} Memory`}
-          onValueChange={handleMemoryChange}
           disabled={effectiveLock}
           minHint={
             effectiveLock
