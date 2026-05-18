@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -116,21 +116,9 @@ export default function ProjectSettingsPagesComboBox() {
     ? pathSegments[6] || 'general'
     : null;
 
-  const selectedSettingsPageFromUrl = projectSettingsPages.find(
+  const selectedSettingsPage = projectSettingsPages.find(
     (item) => item.value === settingsPageFromUrl,
   );
-  const [selectedSettingsPage, setSelectedSettingsPage] =
-    useState<Option | null>(null);
-
-  useEffect(() => {
-    if (selectedSettingsPageFromUrl) {
-      setSelectedSettingsPage({
-        label: selectedSettingsPageFromUrl.label,
-        value: selectedSettingsPageFromUrl.value,
-        route: selectedSettingsPageFromUrl.route,
-      });
-    }
-  }, [selectedSettingsPageFromUrl]);
 
   const options: Option[] = projectSettingsPages.map((page) => ({
     label: page.label,
@@ -167,7 +155,6 @@ export default function ProjectSettingsPagesComboBox() {
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
-                    setSelectedSettingsPage(option);
                     setOpen(false);
                     push(
                       `/orgs/${orgSlug}/projects/${appSubdomain}/settings/${option.route}/`,
