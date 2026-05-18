@@ -3,7 +3,9 @@ package configserver
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/docker/docker/client"
@@ -11,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nhost/be/services/mimir/graph"
 	"github.com/nhost/nhost/cli/cmd/configserver/logsapi"
-	cors "github.com/rs/cors/wrapper/gin"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v3"
 )
@@ -24,7 +26,18 @@ const (
 	storageLocalConfigPath      = "storage-local-config-path"
 	storageLocalSecretsPath     = "storage-local-secrets-path"
 	storageLocalRunServicesPath = "storage-local-run-services-path"
+	appIDFlag                   = "app-id"
 	dockerComposeProjectEnv     = "DOCKER_COMPOSE_PROJECT"
+)
+
+// dashboardOriginRe matches the origins where the CLI-instantiated dashboard
+// is reachable. The subdomain segment is intentionally restricted to a single
+// DNS label (`[^./]+`) — stricter than traefik's `.+` host-regexp — so that
+// only the canonical `<sub>.dashboard.local.nhost.run` (and the bare
+// `local.dashboard.nhost.run`) form is credentialed-CORS eligible. An optional
+// non-standard HTTP(S) port is permitted.
+var dashboardOriginRe = regexp.MustCompile(
+	`^https?://([^./]+\.dashboard\.local\.nhost\.run|local\.dashboard\.nhost\.run)(:\d+)?$`,
 )
 
 func Command() *cli.Command {
@@ -75,9 +88,38 @@ func Command() *cli.Command {
 				Category: "plugins",
 				Sources:  cli.EnvVars("STORAGE_LOCAL_RUN_SERVICES_PATH"),
 			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     appIDFlag,
+				Usage:    "App ID this configserver instance represents",
+				Value:    ZeroUUID,
+				Category: "server",
+				Sources:  cli.EnvVars("NHOST_APP_ID"),
+			},
 		},
 		Action: serve,
 	}
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return oapimw.CORS(oapimw.CORSOptions{
+		AllowOriginFunc: dashboardOriginRe.MatchString,
+		AllowedOrigins:  nil,
+		AllowedMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodOptions,
+			http.MethodHead,
+		},
+		// AllowedHeaders: nil reflects the client's Access-Control-Request-Headers,
+		// which is the equivalent of "*" under credentialed CORS.
+		AllowedHeaders:   nil,
+		ExposedHeaders:   nil,
+		AllowCredentials: true,
+		MaxAge:           "",
+	})
 }
 
 func dummyMiddleware(
@@ -144,7 +186,12 @@ func serve(_ context.Context, cmd *cli.Command) error {
 	secretsFile := cmd.String(storageLocalSecretsPath)
 	runServices := runServicesFiles(cmd.StringSlice(storageLocalRunServicesPath)...)
 
-	st := NewLocal(configFile, secretsFile, runServices)
+	appID := cmd.String(appIDFlag)
+	if _, err := uuid.Parse(appID); err != nil {
+		return fmt.Errorf("invalid --%s value %q: %w", appIDFlag, appID, err)
+	}
+
+	st := NewLocal(appID, configFile, secretsFile, runServices)
 
 	data, err := st.GetApps(configFile, secretsFile, runServices)
 	if err != nil {
@@ -165,9 +212,9 @@ func serve(_ context.Context, cmd *cli.Command) error {
 		dummyMiddleware2,
 		cmd.Bool(enablePlaygroundFlag),
 		cmd.Root().Version,
-		[]graphql.FieldMiddleware{},
+		nil,
 		gin.Recovery(),
-		cors.Default(),
+		corsMiddleware(),
 	)
 
 	if err := setupLogsAPI(

@@ -32,6 +32,8 @@ let
 
       (and (inDirectory "internal/lib/nhostclient") (matchExt "go"))
 
+      (and (inDirectory "internal/lib/oapi") (matchExt "go"))
+
       "${submodule}/cmd/configserver/logsapi/gqlgen.yml"
       "${submodule}/cmd/configserver/logsapi/schema.graphqls"
 
