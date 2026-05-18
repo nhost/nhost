@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"mime/multipart"
+	"net/http"
 	"net/textproto"
 	"os"
 	"strings"
@@ -317,5 +318,107 @@ func TestUploadFile(t *testing.T) {
 				cmpopts.IgnoreFields(api.FileMetadata{}, "Id", "CreatedAt", "UpdatedAt"),
 			)
 		})
+	}
+}
+
+func TestUploadFiles_FileTooBig(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}),
+	)
+
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	metadataStorage := mock.NewMockMetadataStorage(c)
+	contentStorage := mock.NewMockContentStorage(c)
+	av := mock.NewMockAntivirus(c)
+
+	metadataStorage.EXPECT().GetBucketByID(
+		gomock.Any(), "blah", gomock.Any(),
+	).Return(controller.BucketMetadata{
+		ID:                   "blah",
+		MinUploadFile:        0,
+		MaxUploadFile:        10,
+		PresignedURLsEnabled: false,
+		DownloadExpiration:   30,
+		CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
+		UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
+	}, nil)
+
+	file := fakeFile{
+		contents:    strings.Repeat("a", 100),
+		contentType: "",
+		md: fakeFileMetadata{
+			Name:     "big.txt",
+			ID:       uuid.New().String(),
+			Metadata: map[string]any{},
+		},
+	}
+
+	ctrl := controller.New(
+		"http://asd",
+		"/v1",
+		"asdasd",
+		metadataStorage,
+		contentStorage,
+		nil,
+		av,
+		logger,
+	)
+
+	resp, err := ctrl.UploadFiles(
+		t.Context(),
+		api.UploadFilesRequestObject{
+			Body: createMultiForm(t, file),
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, ok := resp.(api.UploadFilesdefaultJSONResponse)
+	if !ok {
+		t.Fatalf("unexpected response type %T", resp)
+	}
+
+	if got.StatusCode != http.StatusBadRequest {
+		t.Fatalf("status %d, want %d", got.StatusCode, http.StatusBadRequest)
+	}
+
+	em := got.Body.Error
+	if em == nil {
+		t.Fatal("missing error")
+	}
+
+	if em.Message != "file too big" {
+		t.Fatalf("message %q, want file too big", em.Message)
+	}
+
+	if em.Data == nil {
+		t.Fatal("missing error data")
+	}
+
+	d := *em.Data
+
+	if d["filename"] != "big.txt" {
+		t.Fatalf("filename %#v, want big.txt", d["filename"])
+	}
+
+	if d["file"] != "big.txt" {
+		t.Fatalf("file %#v, want big.txt", d["file"])
+	}
+
+	if _, ok := d["size"]; !ok {
+		t.Fatal("missing size in data")
+	}
+
+	if _, ok := d["maxSize"]; !ok {
+		t.Fatal("missing maxSize in data")
+	}
+
+	if got.Body.ProcessedFiles == nil || len(*got.Body.ProcessedFiles) != 0 {
+		t.Fatal("want empty processedFiles when upload fails early")
 	}
 }
