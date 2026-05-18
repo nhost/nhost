@@ -172,7 +172,6 @@ func (ctrl *Controller) upload(
 	for _, file := range request.files {
 		metadata, err := ctrl.processFile(ctx, file, bucket, sessionHeaders)
 		if err != nil {
-			err.SetData("file", file.Name)
 			return filesMetadata, err
 		}
 
