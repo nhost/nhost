@@ -108,7 +108,9 @@ export default function PresetSelector() {
         >
           <span className="font-medium">Custom</span>
           <span className="text-muted-foreground text-xs">
-            No preset matches
+            {activePreset === 'custom'
+              ? 'Manually configured'
+              : 'No preset matches'}
           </span>
         </div>
       </div>
