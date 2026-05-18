@@ -13,7 +13,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect, useMemo, useState } from 'react';
+import { type ReactElement, useMemo, useState } from 'react';
 
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
@@ -176,18 +176,13 @@ export default function ProjectPagesComboBox() {
   const selectedProjectPageFromUrl = projectPages.find(
     (item) => item.value === projectPageFromUrl,
   );
-  const [selectedProjectPage, setSelectedProjectPage] =
-    useState<SelectedOption | null>(null);
-
-  useEffect(() => {
-    if (selectedProjectPageFromUrl) {
-      setSelectedProjectPage({
+  const selectedProjectPage: SelectedOption | null = selectedProjectPageFromUrl
+    ? {
         label: selectedProjectPageFromUrl.label,
         value: selectedProjectPageFromUrl.slug,
         icon: selectedProjectPageFromUrl.icon,
-      });
-    }
-  }, [selectedProjectPageFromUrl]);
+      }
+    : null;
 
   const options: Option[] = projectPages.map((app) => ({
     label: app.label,
@@ -229,7 +224,6 @@ export default function ProjectPagesComboBox() {
                   value={option.label}
                   disabled={option.disabled}
                   onSelect={() => {
-                    setSelectedProjectPage(option);
                     setOpen(false);
                     push(
                       `/orgs/${orgSlug}/projects/${appSubdomain}/${option.value}`,

@@ -11,6 +11,13 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
@@ -63,6 +70,15 @@ export interface BaseTableFormProps extends DialogFormProps {
    * Name of the table being edited.
    */
   tableName?: string;
+  /**
+   * When provided together with `onSchemaChange`, renders a schema selector
+   * alongside the table name so the user can pick the target schema.
+   */
+  availableSchemas?: string[];
+  /**
+   * Called when the user picks a new schema. Requires `availableSchemas`.
+   */
+  onSchemaChange?: (schema: string) => void;
 }
 
 export const baseColumnValidationSchema = Yup.object().shape({
@@ -174,11 +190,16 @@ export default function BaseTableForm({
   submitButtonText = 'Save',
   schema,
   tableName,
+  availableSchemas,
+  onSchemaChange,
 }: BaseTableFormProps) {
   const [openSections, setOpenSections] = useState<string[]>([
     'columns',
     'foreignKeys',
   ]);
+
+  const showSchemaPicker =
+    !!onSchemaChange && !!availableSchemas && availableSchemas.length > 0;
 
   return (
     <Form
@@ -186,6 +207,27 @@ export default function BaseTableForm({
       className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto pb-4">
+        {showSchemaPicker && (
+          <section className="grid grid-cols-8 items-center gap-2 px-6 py-3">
+            <label htmlFor="schema" className="col-span-2 font-medium text-sm">
+              Schema
+            </label>
+            <div className="col-span-6">
+              <Select value={schema ?? ''} onValueChange={onSchemaChange}>
+                <SelectTrigger id="schema" className="h-10 w-full">
+                  <SelectValue placeholder="Select schema" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSchemas?.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </section>
+        )}
         <section className="grid grid-cols-8 px-6 py-3">
           <NameInput />
         </section>

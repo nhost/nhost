@@ -1,7 +1,7 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import { Box, Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ProjectStatus from '@/components/layout/Header/ProjectStatus';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -47,7 +47,6 @@ export default function ProjectsComboBox() {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
 
-  const [selectedProject, setSelectedProject] = useState<Option | null>(null);
   const [open, setOpen] = useState(false);
 
   const options: Option[] = apps.map((app) => ({
@@ -60,18 +59,15 @@ export default function ProjectsComboBox() {
     (app) => app.subdomain === appSubdomain,
   );
 
-  useEffect(() => {
-    if (selectedProjectFromUrl) {
-      setSelectedProject({
+  const selectedProject: Option | null = selectedProjectFromUrl
+    ? {
         label: selectedProjectFromUrl.name,
         value: selectedProjectFromUrl.subdomain,
         hasGitHubRepo: !!selectedProjectFromUrl.githubRepository,
-      });
-    }
-  }, [selectedProjectFromUrl]);
+      }
+    : null;
 
   const handleProjectSelect = (option: Option) => {
-    setSelectedProject(option);
     setOpen(false);
     const featurePath = getProjectFeaturePagePath(pathname);
     push(`/orgs/${orgSlug}/projects/${option.value}${featurePath}`);

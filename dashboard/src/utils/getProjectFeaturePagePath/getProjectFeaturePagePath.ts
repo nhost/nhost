@@ -6,6 +6,7 @@
  */
 const featurePathOverrides: Record<string, string> = {
   '/storage/bucket': '/storage',
+  '/database/schema': '/database/schema/default',
 };
 
 /**

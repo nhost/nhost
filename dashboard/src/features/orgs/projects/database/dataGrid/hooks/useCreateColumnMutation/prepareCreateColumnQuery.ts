@@ -74,7 +74,7 @@ export default function prepareCreateColumnQuery({
   }
 
   if (
-    !!column.type &&
+    column.type &&
     (identityTypes as readonly string[]).includes(column.type) &&
     column.isIdentity
   ) {

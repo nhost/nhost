@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -37,22 +37,17 @@ export default function OrgsComboBox() {
     push,
   } = useRouter();
 
-  const selectedOrgFromUrl =
-    Boolean(orgSlug) && orgs.find((item) => item.slug === orgSlug);
+  const selectedOrgFromUrl = orgSlug
+    ? orgs.find((item) => item.slug === orgSlug)
+    : undefined;
 
-  const [selectedItem, setSelectedItem] = useState<Option | null>(null);
-
-  useEffect(() => {
-    const selectedItemFromUrl = selectedOrgFromUrl;
-
-    if (selectedItemFromUrl) {
-      setSelectedItem({
-        label: selectedItemFromUrl.name,
-        value: selectedItemFromUrl.slug,
-        plan: selectedOrgFromUrl ? selectedOrgFromUrl.plan.name : 'Legacy',
-      });
-    }
-  }, [selectedOrgFromUrl]);
+  const selectedItem: Option | null = selectedOrgFromUrl
+    ? {
+        label: selectedOrgFromUrl.name,
+        value: selectedOrgFromUrl.slug,
+        plan: selectedOrgFromUrl.plan?.name ?? 'Legacy',
+      }
+    : null;
 
   const orgsOptions: Option[] = orgs.map((org) => ({
     label: org.name,
@@ -115,7 +110,6 @@ export default function OrgsComboBox() {
                   value={option.value}
                   className="flex items-center text-foreground dark:hover:bg-muted"
                   onSelect={() => {
-                    setSelectedItem(option);
                     setOpen(false);
 
                     // persist last slug in local storage
