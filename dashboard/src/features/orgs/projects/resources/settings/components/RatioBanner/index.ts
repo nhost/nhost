@@ -1,1 +1,1 @@
-export { default } from './RatioBanner';
+export { default as RatioBanner } from './RatioBanner';

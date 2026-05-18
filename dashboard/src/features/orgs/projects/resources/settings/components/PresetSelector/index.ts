@@ -1,1 +1,1 @@
-export { default } from './PresetSelector';
+export { default as PresetSelector } from './PresetSelector';

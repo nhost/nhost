@@ -113,60 +113,7 @@ export const resourceSettingsValidationSchema = Yup.object({
   hasura: genericServiceValidationSchema.required(),
   auth: genericServiceValidationSchema.required(),
   storage: genericServiceValidationSchema.required(),
-})
-  .test(
-    'total-cpu-min',
-    `Total compute must be at least ${MIN_TOTAL_VCPU / RESOURCE_VCPU_MULTIPLIER} vCPU.`,
-    (values: ResourceSettingsLooseShape | undefined) => {
-      if (!values?.enabled) {
-        return true;
-      }
-      const total =
-        (values.database?.vcpu ?? 0) +
-        (values.hasura?.vcpu ?? 0) +
-        (values.auth?.vcpu ?? 0) +
-        (values.storage?.vcpu ?? 0);
-      return total >= MIN_TOTAL_VCPU;
-    },
-  )
-  .test(
-    'aggregate-ratio',
-    'Total memory must equal total vCPU at the 1:2 ratio.',
-    (values: ResourceSettingsLooseShape | undefined) => {
-      if (!values?.enabled) {
-        return true;
-      }
-      const totalCPU =
-        (values.database?.vcpu ?? 0) +
-        (values.hasura?.vcpu ?? 0) * (values.hasura?.replicas ?? 1) +
-        (values.auth?.vcpu ?? 0) * (values.auth?.replicas ?? 1) +
-        (values.storage?.vcpu ?? 0) * (values.storage?.replicas ?? 1);
-      const totalMemory =
-        (values.database?.memory ?? 0) +
-        (values.hasura?.memory ?? 0) * (values.hasura?.replicas ?? 1) +
-        (values.auth?.memory ?? 0) * (values.auth?.replicas ?? 1) +
-        (values.storage?.memory ?? 0) * (values.storage?.replicas ?? 1);
-      const expected =
-        (totalCPU / RESOURCE_VCPU_MULTIPLIER) *
-        RESOURCE_VCPU_MEMORY_RATIO *
-        RESOURCE_MEMORY_MULTIPLIER;
-      return totalMemory === expected;
-    },
-  );
-
-type ResourceServiceShape = {
-  vcpu?: number;
-  memory?: number;
-  replicas?: number;
-};
-
-type ResourceSettingsLooseShape = {
-  enabled?: boolean;
-  database?: ResourceServiceShape;
-  hasura?: ResourceServiceShape;
-  auth?: ResourceServiceShape;
-  storage?: ResourceServiceShape;
-};
+});
 
 export type ResourceSettingsFormValues = Yup.InferType<
   typeof resourceSettingsValidationSchema

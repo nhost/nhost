@@ -1,1 +1,1 @@
-export { default } from './ServiceRow';
+export { default as ServiceRow } from './ServiceRow';

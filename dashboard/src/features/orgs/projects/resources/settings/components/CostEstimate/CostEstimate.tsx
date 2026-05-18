@@ -14,36 +14,32 @@ import {
 } from '@/utils/constants/common';
 
 export default function CostEstimate() {
-  const [enabled, database, hasura, auth, storage] = useWatch<
+  const [database, hasura, auth, storage] = useWatch<
     ResourceSettingsFormValues,
-    ['enabled', 'database', 'hasura', 'auth', 'storage']
-  >({ name: ['enabled', 'database', 'hasura', 'auth', 'storage'] });
+    ['database', 'hasura', 'auth', 'storage']
+  >({ name: ['database', 'hasura', 'auth', 'storage'] });
 
   const generic = [hasura, auth, storage];
 
-  const billableVCPU = !enabled
-    ? 0
-    : (database?.vcpu ?? 0) +
-      generic.reduce(
-        (sum, service) => sum + (service?.vcpu ?? 0) * (service?.replicas ?? 1),
-        0,
-      );
+  const billableVCPU =
+    (database?.vcpu ?? 0) +
+    generic.reduce(
+      (sum, service) => sum + (service?.vcpu ?? 0) * (service?.replicas ?? 1),
+      0,
+    );
 
-  const autoscaleExtraVCPU = !enabled
-    ? 0
-    : generic.reduce((sum, service) => {
-        if (!service?.autoscale) {
-          return sum;
-        }
-        const headroom = (service.maxReplicas ?? 0) - (service.replicas ?? 1);
-        if (headroom <= 0) {
-          return sum;
-        }
-        return sum + (service.vcpu ?? 0) * headroom;
-      }, 0);
+  const autoscaleExtraVCPU = generic.reduce((sum, service) => {
+    if (!service?.autoscale) {
+      return sum;
+    }
+    const headroom = (service.maxReplicas ?? 0) - (service.replicas ?? 1);
+    if (headroom <= 0) {
+      return sum;
+    }
+    return sum + (service.vcpu ?? 0) * headroom;
+  }, 0);
 
-  const hasAutoscaler =
-    !!enabled && generic.some((service) => service?.autoscale);
+  const hasAutoscaler = generic.some((service) => service?.autoscale);
 
   const perMinute =
     (billableVCPU / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE_PER_MINUTE;

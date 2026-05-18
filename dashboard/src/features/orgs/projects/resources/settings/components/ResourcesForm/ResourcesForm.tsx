@@ -1,5 +1,4 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useRef } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -17,16 +16,16 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useProPlan } from '@/features/orgs/projects/common/hooks/useProPlan';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import CostEstimate from '@/features/orgs/projects/resources/settings/components/CostEstimate';
-import CostSummary from '@/features/orgs/projects/resources/settings/components/CostSummary';
-import PresetSelector from '@/features/orgs/projects/resources/settings/components/PresetSelector';
-import RatioBanner from '@/features/orgs/projects/resources/settings/components/RatioBanner';
-import ResourceBreakdownChart from '@/features/orgs/projects/resources/settings/components/ResourceBreakdownChart';
+import { CostEstimate } from '@/features/orgs/projects/resources/settings/components/CostEstimate';
+import { CostSummary } from '@/features/orgs/projects/resources/settings/components/CostSummary';
+import { PresetSelector } from '@/features/orgs/projects/resources/settings/components/PresetSelector';
+import { RatioBanner } from '@/features/orgs/projects/resources/settings/components/RatioBanner';
+import { ResourceBreakdownChart } from '@/features/orgs/projects/resources/settings/components/ResourceBreakdownChart';
 import { ResourcesConfirmationDialog } from '@/features/orgs/projects/resources/settings/components/ResourcesConfirmationDialog';
-import ServiceRow from '@/features/orgs/projects/resources/settings/components/ServiceRow';
+import { ServiceRow } from '@/features/orgs/projects/resources/settings/components/ServiceRow';
 import { calculateBillableResources } from '@/features/orgs/projects/resources/settings/utils/calculateBillableResources';
 import computeMemoryFromCPU from '@/features/orgs/projects/resources/settings/utils/computeMemoryFromCPU';
-import { useApplyPreset } from '@/features/orgs/projects/resources/settings/utils/presets';
+import { applyPresetToForm } from '@/features/orgs/projects/resources/settings/utils/presets';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -399,6 +398,10 @@ export default function ResourcesForm() {
 
       if (!formValues.enabled) {
         form.reset(DEFAULT_VALUES);
+        applyPresetToForm(form.setValue, form.trigger, 'standard', {
+          shouldDirty: false,
+        });
+        form.reset(form.getValues());
       } else {
         form.reset(undefined, { keepValues: true, keepDirty: false });
       }
@@ -446,51 +449,43 @@ export default function ResourcesForm() {
               className: 'hidden',
               'aria-hidden': true,
             },
+            switch: {
+              onChange: (event) => {
+                if (event.target.checked && !hasInitialValues) {
+                  applyPresetToForm(form.setValue, form.trigger, 'standard', {
+                    shouldDirty: false,
+                  });
+                }
+              },
+            },
             footer: { className: 'hidden', 'aria-hidden': true },
           }}
         >
-          <ResourcesFormBody
-            initialPrice={initialPrice}
-            hadInitialValues={hasInitialValues}
-          />
+          <ResourcesFormBody initialPrice={initialPrice} />
         </SettingsContainer>
       </Form>
     </FormProvider>
   );
 }
 
-function ResourcesFormBody({
-  initialPrice,
-  hadInitialValues,
-}: {
-  initialPrice: number;
-  hadInitialValues: boolean;
-}) {
+function ResourcesFormBody({ initialPrice }: { initialPrice: number }) {
   const enabled = useWatch<ResourceSettingsFormValues>({
     name: 'enabled',
   }) as boolean;
 
-  const applyPreset = useApplyPreset();
-  const hasAppliedDefaultPresetRef = useRef(hadInitialValues);
-
-  useEffect(() => {
-    if (enabled && !hasAppliedDefaultPresetRef.current) {
-      hasAppliedDefaultPresetRef.current = true;
-      applyPreset('standard');
-    }
-  }, [enabled, applyPreset]);
-
   if (!enabled) {
     return (
-      <div className="px-4 pb-4">
-        <Alert>
-          <AlertDescription>
-            Enable this feature to access custom resource allocation for your
-            services.
-          </AlertDescription>
-        </Alert>
+      <>
+        <div className="px-4 pb-4">
+          <Alert>
+            <AlertDescription>
+              Enable this feature to access custom resource allocation for your
+              services.
+            </AlertDescription>
+          </Alert>
+        </div>
         <ResourcesFormFooter />
-      </div>
+      </>
     );
   }
 

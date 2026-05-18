@@ -92,6 +92,32 @@ test('enabling the master switch reveals the Overview tab with presets', async (
   expect(screen.getByRole('button', { name: /^starter/i })).toBeInTheDocument();
 });
 
+test('toggling the master switch on then off leaves Save disabled', async () => {
+  server.use(resourcesUnavailableQuery);
+  const user = new TestUserEvent();
+  render(<ResourcesForm />);
+
+  expect(await screen.findByText(/enable this feature/i)).toBeInTheDocument();
+
+  const checkbox = screen.getByRole('checkbox');
+  await user.click(checkbox);
+
+  await screen.findByRole('button', { name: /^starter/i });
+
+  const saveWhenEnabled = screen.getByRole('button', {
+    name: /^save$/i,
+  }) as HTMLButtonElement;
+  expect(saveWhenEnabled.disabled).toBe(false);
+
+  await user.click(checkbox);
+
+  await screen.findByText(/enable this feature/i);
+  const saveWhenDisabled = screen.getByRole('button', {
+    name: /^save$/i,
+  }) as HTMLButtonElement;
+  expect(saveWhenDisabled.disabled).toBe(true);
+});
+
 test('Advanced tab renders per-service steppers with initial values', async () => {
   const user = new TestUserEvent();
   render(<ResourcesForm />);
@@ -155,7 +181,7 @@ test('opens the confirmation dialog when saving valid changes', async () => {
     screen.getByRole('button', { name: /increase postgresql database vcpu/i }),
   );
 
-  await user.click(screen.getByRole('button', { name: /save changes/i }));
+  await user.click(screen.getByRole('button', { name: /^save$/i }));
 
   const dialog = await screen.findByRole('dialog');
   expect(
@@ -212,7 +238,7 @@ test('replicas are reflected in the dialog rows and recalculated cost', async ()
     expect(screen.getByText(/\$500\.00\/mo/i)).toBeInTheDocument();
   });
 
-  await user.click(screen.getByRole('button', { name: /save changes/i }));
+  await user.click(screen.getByRole('button', { name: /^save$/i }));
 
   const dialog = await screen.findByRole('dialog');
   expect(within(dialog).getByText(/\$0\.0120\/min/i)).toBeInTheDocument();
@@ -233,7 +259,7 @@ test('disabling resources surfaces the destructive confirm dialog', async () => 
 
   await user.click(screen.getByRole('checkbox'));
 
-  await user.click(screen.getByRole('button', { name: /save changes/i }));
+  await user.click(screen.getByRole('button', { name: /^save$/i }));
 
   const dialog = await screen.findByRole('dialog');
   expect(
@@ -270,7 +296,7 @@ test('Performance + HA enables Save and is detected as the active preset', async
   await user.click(pickPresetButton('Performance + HA'));
 
   const saveBtn = screen.getByRole('button', {
-    name: /save changes/i,
+    name: /^save$/i,
   }) as HTMLButtonElement;
   expect(saveBtn.disabled).toBe(false);
 
@@ -335,7 +361,7 @@ test('re-selecting the originally loaded preset disables Save again', async () =
   await screen.findByRole('tab', { name: /advanced/i });
 
   const saveBtn = screen.getByRole('button', {
-    name: /save changes/i,
+    name: /^save$/i,
   }) as HTMLButtonElement;
   expect(saveBtn.disabled).toBe(true);
 
@@ -367,4 +393,42 @@ test('unlocking a service in Advanced lets memory drift and surfaces the ratio b
       screen.getAllByText(/of memory (unallocated|over the 1:2 ratio)/i)[0],
     ).toBeInTheDocument();
   });
+});
+
+test('ratio mismatch disables Save with a reason, then re-enables once fixed', async () => {
+  const user = new TestUserEvent();
+  render(<ResourcesForm />);
+
+  await screen.findByRole('tab', { name: /advanced/i });
+  await switchToAdvancedTab(user);
+
+  const saveBtn = screen.getByRole('button', {
+    name: /^save$/i,
+  }) as HTMLButtonElement;
+
+  const lockSwitch = screen.getByRole('switch', {
+    name: /lock 1:2 ratio for auth/i,
+  });
+  await user.click(lockSwitch);
+  await user.click(
+    screen.getByRole('button', { name: /decrease auth memory/i }),
+  );
+
+  await waitFor(() => {
+    expect(
+      screen.getByText(/add .* of memory to reach the 1:2 ratio/i),
+    ).toBeInTheDocument();
+  });
+  expect(saveBtn.disabled).toBe(true);
+
+  await user.click(
+    screen.getByRole('button', { name: /increase auth memory/i }),
+  );
+
+  await waitFor(() => {
+    expect(
+      screen.queryByText(/of memory to reach the 1:2 ratio/i),
+    ).not.toBeInTheDocument();
+  });
+  expect(saveBtn.disabled).toBe(false);
 });

@@ -1,1 +1,1 @@
-export { default } from './ComputeStepper';
+export { default as ComputeStepper } from './ComputeStepper';

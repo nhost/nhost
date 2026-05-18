@@ -1,1 +1,1 @@
-export { default } from './CostEstimate';
+export { default as CostEstimate } from './CostEstimate';

@@ -24,27 +24,25 @@ export default function CostSummary({ initialCost }: CostSummaryProps) {
   const isPlatform = useIsPlatform();
   const { formState } = useFormContext<ResourceSettingsFormValues>();
 
-  const [enabled, database, hasura, auth, storage] = useWatch<
+  const [database, hasura, auth, storage] = useWatch<
     ResourceSettingsFormValues,
-    ['enabled', 'database', 'hasura', 'auth', 'storage']
-  >({ name: ['enabled', 'database', 'hasura', 'auth', 'storage'] });
+    ['database', 'hasura', 'auth', 'storage']
+  >({ name: ['database', 'hasura', 'auth', 'storage'] });
 
-  const billable = enabled
-    ? calculateBillableResources(
-        { replicas: 1, vcpu: database?.vcpu, memory: database?.memory },
-        {
-          replicas: hasura?.replicas,
-          vcpu: hasura?.vcpu,
-          memory: hasura?.memory,
-        },
-        { replicas: auth?.replicas, vcpu: auth?.vcpu, memory: auth?.memory },
-        {
-          replicas: storage?.replicas,
-          vcpu: storage?.vcpu,
-          memory: storage?.memory,
-        },
-      )
-    : { vcpu: 0, memory: 0 };
+  const billable = calculateBillableResources(
+    { replicas: 1, vcpu: database?.vcpu, memory: database?.memory },
+    {
+      replicas: hasura?.replicas,
+      vcpu: hasura?.vcpu,
+      memory: hasura?.memory,
+    },
+    { replicas: auth?.replicas, vcpu: auth?.vcpu, memory: auth?.memory },
+    {
+      replicas: storage?.replicas,
+      vcpu: storage?.vcpu,
+      memory: storage?.memory,
+    },
+  );
 
   const newCost = isPlatform
     ? (billable.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE

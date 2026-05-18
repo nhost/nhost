@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import ComputeStepper from '@/features/orgs/projects/resources/settings/components/ComputeStepper';
+import { ComputeStepper } from '@/features/orgs/projects/resources/settings/components/ComputeStepper';
 import computeMemoryFromCPU from '@/features/orgs/projects/resources/settings/utils/computeMemoryFromCPU';
 import { prettifyVCPU } from '@/features/orgs/projects/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';

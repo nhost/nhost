@@ -1,1 +1,1 @@
-export { default } from './ResourceBreakdownChart';
+export { default as ResourceBreakdownChart } from './ResourceBreakdownChart';
