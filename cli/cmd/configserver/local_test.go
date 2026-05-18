@@ -27,6 +27,11 @@ adminPassword = 'asdasd'
 const rawSecrets = `someSecret = 'asdasd'
 `
 
+// placeholderSecretValue mirrors the constant in package configserver; we
+// duplicate it here because it is unexported. Tests assert on this exact
+// string to verify GetApps redacts real values at load time.
+const placeholderSecretValue = "<placeholder-from-local-configserver-substituted-for-real-secret>"
+
 func newApp() *graph.App {
 	return &graph.App{
 		Config: &model.ConfigConfig{
@@ -72,7 +77,7 @@ func newApp() *graph.App {
 		Secrets: []*model.ConfigEnvironmentVariable{
 			{
 				Name:  "someSecret",
-				Value: "asdasd",
+				Value: placeholderSecretValue,
 			},
 		},
 		Services: graph.Services{},
@@ -90,7 +95,7 @@ func TestLocalGetApps(t *testing.T) {
 		expected   []*graph.App
 	}{
 		{
-			name:       "works",
+			name:       "secret values are redacted at load time",
 			configRaw:  rawConfig,
 			secretsRaw: rawSecrets,
 			expected:   []*graph.App{newApp()},
@@ -142,7 +147,7 @@ func TestLocalGetApps(t *testing.T) {
 	}
 }
 
-func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
+func TestLocalUpdateConfig(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
@@ -213,22 +218,65 @@ func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
 	}
 }
 
-func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
+func secretsApp(secrets ...*model.ConfigEnvironmentVariable) *graph.App {
+	return &graph.App{ //nolint:exhaustruct
+		Secrets: secrets,
+	}
+}
+
+func TestLocalUpdateSecrets(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
 		name       string
-		configRaw  string
 		secretsRaw string
 		newApp     *graph.App
 		expected   string
 	}{
 		{
-			name:       "works",
-			configRaw:  rawConfig,
-			secretsRaw: rawSecrets,
-			newApp:     newApp(),
-			expected:   rawSecrets,
+			// Placeholder values mean "unchanged" — UpdateSecrets must
+			// merge with the on-disk value, never overwriting real
+			// secrets with the placeholder sentinel.
+			name:       "placeholder preserves on-disk value",
+			secretsRaw: "kept = 'real-on-disk-value'\n",
+			newApp: secretsApp(&model.ConfigEnvironmentVariable{
+				Name:  "kept",
+				Value: placeholderSecretValue,
+			}),
+			expected: "kept = 'real-on-disk-value'\n",
+		},
+		{
+			// A real (non-placeholder) value is a genuine update from
+			// the dashboard — write it through.
+			name:       "real value writes through",
+			secretsRaw: "edited = 'old-value'\n",
+			newApp: secretsApp(&model.ConfigEnvironmentVariable{
+				Name:  "edited",
+				Value: "new-value",
+			}),
+			expected: "edited = 'new-value'\n",
+		},
+		{
+			// A real value for a name that does not yet exist on disk
+			// is a fresh insert.
+			name:       "insert of new name writes through",
+			secretsRaw: "",
+			newApp: secretsApp(&model.ConfigEnvironmentVariable{
+				Name:  "fresh",
+				Value: "brand-new",
+			}),
+			expected: "fresh = 'brand-new'\n",
+		},
+		{
+			// A name present on disk but absent from newApp.Secrets is
+			// a delete — it must not be carried over.
+			name:       "missing name is deleted",
+			secretsRaw: "stays = 'real-stays'\ndropped = 'real-dropped'\n",
+			newApp: secretsApp(&model.ConfigEnvironmentVariable{
+				Name:  "stays",
+				Value: placeholderSecretValue,
+			}),
+			expected: "stays = 'real-stays'\n",
 		},
 	}
 
@@ -236,17 +284,17 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			configF, err := os.CreateTemp(t.TempDir(), "TestLocalGetApps")
+			configF, err := os.CreateTemp(t.TempDir(), "TestLocalUpdateSecrets")
 			if err != nil {
 				t.Fatalf("failed to create temp file: %v", err)
 			}
 			defer os.Remove(configF.Name())
 
-			if _, err := configF.WriteString(tc.configRaw); err != nil {
+			if _, err := configF.WriteString(rawConfig); err != nil {
 				t.Fatalf("failed to write to temp file: %v", err)
 			}
 
-			secretsF, err := os.CreateTemp(t.TempDir(), "TestLocalGetApps")
+			secretsF, err := os.CreateTemp(t.TempDir(), "TestLocalUpdateSecrets")
 			if err != nil {
 				t.Fatalf("failed to create temp file: %v", err)
 			}
@@ -274,7 +322,7 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 
 			b, err := os.ReadFile(secretsF.Name())
 			if err != nil {
-				t.Errorf("failed to read config file: %v", err)
+				t.Errorf("failed to read secrets file: %v", err)
 			}
 
 			if diff := cmp.Diff(tc.expected, string(b)); diff != "" {

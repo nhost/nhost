@@ -31,20 +31,14 @@ const (
 )
 
 // dashboardOriginRe matches the origins where the CLI-instantiated dashboard
-// is reachable. The dashboard is served by traefik on the same hostnames it
-// uses for routing (see dockercompose.traefikHostMatch), optionally including
-// a non-standard HTTP(S) port.
+// is reachable. The subdomain segment is intentionally restricted to a single
+// DNS label (`[^./]+`) — stricter than traefik's `.+` host-regexp — so that
+// only the canonical `<sub>.dashboard.local.nhost.run` (and the bare
+// `local.dashboard.nhost.run`) form is credentialed-CORS eligible. An optional
+// non-standard HTTP(S) port is permitted.
 var dashboardOriginRe = regexp.MustCompile(
 	`^https?://([^./]+\.dashboard\.local\.nhost\.run|local\.dashboard\.nhost\.run)(:\d+)?$`,
 )
-
-// redactedSecretValue is returned in place of the real value for any
-// ConfigEnvironmentVariable.value selection. The dashboard never reads secret
-// values back — it only lists names and accepts user-typed values on edit —
-// so withholding the value here prevents trivial exfiltration via the
-// configserver GraphQL API. A visible sentinel (rather than "") makes the
-// redaction self-evident to anyone inspecting a response.
-const redactedSecretValue = "<redacted>"
 
 func Command() *cli.Command {
 	return &cli.Command{ //nolint: exhaustruct
@@ -107,8 +101,9 @@ func Command() *cli.Command {
 }
 
 func corsMiddleware() gin.HandlerFunc {
-	return oapimw.CORS(oapimw.CORSOptions{ //nolint:exhaustruct
+	return oapimw.CORS(oapimw.CORSOptions{
 		AllowOriginFunc: dashboardOriginRe.MatchString,
+		AllowedOrigins:  nil,
 		AllowedMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
@@ -120,66 +115,11 @@ func corsMiddleware() gin.HandlerFunc {
 		},
 		// AllowedHeaders: nil reflects the client's Access-Control-Request-Headers,
 		// which is the equivalent of "*" under credentialed CORS.
+		AllowedHeaders:   nil,
+		ExposedHeaders:   nil,
 		AllowCredentials: true,
+		MaxAge:           "",
 	})
-}
-
-// redactSecretValueMiddleware replaces the resolved value of any
-// `ConfigEnvironmentVariable.value` field that is reached through a known
-// secrets field path with a constant placeholder, so that secret values
-// cannot be exfiltrated through the configserver GraphQL API. The underlying
-// in-memory and on-disk state is untouched, so config resolution and
-// validation continue to operate on real values.
-func redactSecretValueMiddleware(ctx context.Context, next graphql.Resolver) (any, error) {
-	res, err := next(ctx)
-	if err != nil {
-		return res, err
-	}
-
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil || fc.Object != "ConfigEnvironmentVariable" || fc.Field.Name != "value" {
-		return res, nil
-	}
-
-	if !isSecretFieldContext(fc) {
-		return res, nil
-	}
-
-	switch v := res.(type) {
-	case string:
-		return redactedSecretValue, nil
-	case *string:
-		if v == nil {
-			return v, nil
-		}
-
-		s := redactedSecretValue
-
-		return &s, nil
-	default:
-		return res, nil
-	}
-}
-
-// isSecretFieldContext returns true if the current field is being resolved as
-// part of a secrets-bearing parent (e.g. `appSecrets`, `updateSecret`). The
-// run-service `environment` field intentionally uses the same
-// `ConfigEnvironmentVariable` type but is excluded, since those values are
-// part of the (already-publicly-readable) run-service config.
-func isSecretFieldContext(fc *graphql.FieldContext) bool {
-	for parent := fc.Parent; parent != nil; parent = parent.Parent {
-		if parent.Field.Field == nil {
-			continue
-		}
-
-		switch parent.Field.Name {
-		case "appSecrets", "appsSecrets", "secrets",
-			"insertSecret", "updateSecret", "deleteSecret":
-			return true
-		}
-	}
-
-	return false
 }
 
 func dummyMiddleware(
@@ -272,7 +212,7 @@ func serve(_ context.Context, cmd *cli.Command) error {
 		dummyMiddleware2,
 		cmd.Bool(enablePlaygroundFlag),
 		cmd.Root().Version,
-		[]graphql.FieldMiddleware{redactSecretValueMiddleware},
+		nil,
 		gin.Recovery(),
 		corsMiddleware(),
 	)
