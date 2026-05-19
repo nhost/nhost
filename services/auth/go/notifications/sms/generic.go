@@ -3,6 +3,7 @@ package sms
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -20,6 +21,10 @@ const (
 	contentTypeJSON           = "application/json"
 	maxErrorBodySize          = 4 * 1024
 	httpStatusErrorThreshold  = 400
+	// Sample values fed through the body template at construction time so
+	// unknown-variable and JSON-shape misconfigurations surface at startup.
+	templateCheckTo   = "+10000000000"
+	templateCheckBody = "000000"
 )
 
 // GenericSMS is a generic SMS provider that sends requests to a configured webhook.
@@ -27,38 +32,122 @@ type GenericSMS struct {
 	client       *http.Client
 	url          string
 	contentType  string
+	mediaType    string
 	headers      map[string]string
 	bodyTemplate *fasttemplate.Template
 }
 
-// NewGenericSMS creates a new GenericSMS provider.
+// NewGenericSMS creates a new GenericSMS provider. All static configuration
+// (URL, content type, timeout, headers, body template) is validated up front
+// so a misconfigured deployment fails at startup rather than on the first
+// SMS send.
 func NewGenericSMS(
-	url, contentType, bodyTemplate string,
+	rawURL, contentType, bodyTemplate string,
 	headers map[string]string,
 	timeout time.Duration,
-) *GenericSMS {
-	return &GenericSMS{
-		client:       &http.Client{Timeout: timeout},
-		url:          url,
-		contentType:  contentType,
-		headers:      headers,
-		bodyTemplate: fasttemplate.New(bodyTemplate, "${", "}"),
+) (*GenericSMS, error) {
+	if err := validateGenericURL(rawURL); err != nil {
+		return nil, err
 	}
+
+	mediaType, err := parseGenericContentType(contentType)
+	if err != nil {
+		return nil, err
+	}
+
+	if timeout <= 0 {
+		return nil, fmt.Errorf( //nolint:err113
+			"generic SMS timeout must be positive, got %s", timeout,
+		)
+	}
+
+	if bodyTemplate == "" {
+		return nil, errors.New("generic SMS body template is required") //nolint:err113
+	}
+
+	tmpl, err := fasttemplate.NewTemplate(bodyTemplate, "${", "}")
+	if err != nil {
+		return nil, fmt.Errorf("invalid generic SMS body template: %w", err)
+	}
+
+	s := &GenericSMS{
+		client:       &http.Client{Timeout: timeout}, //nolint:exhaustruct
+		url:          rawURL,
+		contentType:  contentType,
+		mediaType:    mediaType,
+		headers:      headers,
+		bodyTemplate: tmpl,
+	}
+
+	if err := s.checkTemplate(); err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
+func validateGenericURL(rawURL string) error {
+	if rawURL == "" {
+		return errors.New("generic SMS URL is required") //nolint:err113
+	}
+
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid generic SMS URL %q: %w", rawURL, err)
+	}
+
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf( //nolint:err113
+			"generic SMS URL must use http or https scheme, got %q", u.Scheme,
+		)
+	}
+
+	if u.Host == "" {
+		return errors.New("generic SMS URL must include a host") //nolint:err113
+	}
+
+	return nil
+}
+
+func parseGenericContentType(contentType string) (string, error) {
+	if contentType == "" {
+		return "", errors.New("generic SMS content type is required") //nolint:err113
+	}
+
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return "", fmt.Errorf(
+			"invalid generic SMS content type %q: %w", contentType, err,
+		)
+	}
+
+	return mediaType, nil
+}
+
+// checkTemplate dry-runs the body template with sample values so that unknown
+// template variables and (for form-urlencoded) non-JSON renderings fail at
+// construction rather than on the first SMS send.
+func (s *GenericSMS) checkTemplate() error {
+	rendered, err := s.renderBody(templateCheckTo, templateCheckBody)
+	if err != nil {
+		return fmt.Errorf("generic SMS body template check failed: %w", err)
+	}
+
+	if _, err := encodeBody(s.mediaType, rendered); err != nil {
+		return fmt.Errorf("generic SMS body template check failed: %w", err)
+	}
+
+	return nil
 }
 
 // SendSMS sends an SMS by rendering the body template and making a POST request.
 func (s *GenericSMS) SendSMS(to, body string) error {
-	mediaType, _, err := mime.ParseMediaType(s.contentType)
-	if err != nil {
-		return fmt.Errorf("invalid content type %q: %w", s.contentType, err)
-	}
-
-	renderedBody, err := s.renderBody(mediaType, to, body)
+	rendered, err := s.renderBody(to, body)
 	if err != nil {
 		return err
 	}
 
-	bodyReader, err := encodeBody(mediaType, renderedBody)
+	bodyReader, err := encodeBody(s.mediaType, rendered)
 	if err != nil {
 		return err
 	}
@@ -68,10 +157,10 @@ func (s *GenericSMS) SendSMS(to, body string) error {
 
 // renderBody substitutes the to/body template variables, JSON-escaping them
 // first when the rendered output must be valid JSON.
-func (s *GenericSMS) renderBody(mediaType, to, body string) (string, error) {
+func (s *GenericSMS) renderBody(to, body string) (string, error) {
 	toValue, bodyValue := to, body
 
-	if mediaType == contentTypeJSON || mediaType == contentTypeFormURLEncoded {
+	if s.mediaType == contentTypeJSON || s.mediaType == contentTypeFormURLEncoded {
 		escapedTo, err := jsonStringEscape(to)
 		if err != nil {
 			return "", fmt.Errorf("failed to json-escape to: %w", err)
@@ -178,15 +267,16 @@ func jsonStringEscape(s string) (string, error) {
 
 // NewGenericSMSProvider returns a new SMS instance configured with the GenericSMS backend.
 func NewGenericSMSProvider(
-	url, contentType, bodyTemplate string,
+	rawURL, contentType, bodyTemplate string,
 	headers map[string]string,
 	timeout time.Duration,
 	templates *notifications.Templates,
 	db DB,
-) *SMS {
-	return NewSMS(
-		NewGenericSMS(url, contentType, bodyTemplate, headers, timeout),
-		templates,
-		db,
-	)
+) (*SMS, error) {
+	backend, err := NewGenericSMS(rawURL, contentType, bodyTemplate, headers, timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewSMS(backend, templates, db), nil
 }

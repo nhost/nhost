@@ -29,6 +29,155 @@ func jsonEqual(t *testing.T, expected, actual string) bool {
 	return reflect.DeepEqual(expObj, actObj)
 }
 
+// TestGenericSMS_NewGenericSMS_Validation verifies that every static piece of
+// configuration (URL, content type, timeout, body template) is validated at
+// construction so a misconfigured deployment fails at startup rather than on
+// the first SMS send. Each case feeds an otherwise-valid config and breaks one
+// field; success cases live in TestGenericSMS_SendSMS.
+func TestGenericSMS_NewGenericSMS_Validation(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		name         string
+		url          string
+		contentType  string
+		bodyTemplate string
+		timeout      time.Duration
+		wantErrSub   string
+	}
+
+	const (
+		validURL         = "https://example.test/sms"
+		validContentType = "application/json"
+		validTemplate    = `{"to":"${to}","body":"${body}"}`
+		validTimeout     = 5 * time.Second
+	)
+
+	cases := []testCase{
+		{
+			name:         "empty URL",
+			url:          "",
+			contentType:  validContentType,
+			bodyTemplate: validTemplate,
+			timeout:      validTimeout,
+			wantErrSub:   "URL is required",
+		},
+		{
+			name:         "URL without scheme",
+			url:          "example.test/sms",
+			contentType:  validContentType,
+			bodyTemplate: validTemplate,
+			timeout:      validTimeout,
+			wantErrSub:   "must use http or https scheme",
+		},
+		{
+			name:         "URL with non-http scheme",
+			url:          "ftp://example.test/sms",
+			contentType:  validContentType,
+			bodyTemplate: validTemplate,
+			timeout:      validTimeout,
+			wantErrSub:   "must use http or https scheme",
+		},
+		{
+			name:         "URL with empty host",
+			url:          "http:///sms",
+			contentType:  validContentType,
+			bodyTemplate: validTemplate,
+			timeout:      validTimeout,
+			wantErrSub:   "must include a host",
+		},
+		{
+			name:         "URL that fails to parse",
+			url:          "http://example.test/%zz",
+			contentType:  validContentType,
+			bodyTemplate: validTemplate,
+			timeout:      validTimeout,
+			wantErrSub:   "invalid generic SMS URL",
+		},
+		{
+			name:         "empty content type",
+			url:          validURL,
+			contentType:  "",
+			bodyTemplate: validTemplate,
+			timeout:      validTimeout,
+			wantErrSub:   "content type is required",
+		},
+		{
+			name:         "malformed content type",
+			url:          validURL,
+			contentType:  "not a mime type",
+			bodyTemplate: validTemplate,
+			timeout:      validTimeout,
+			wantErrSub:   "invalid generic SMS content type",
+		},
+		{
+			name:         "zero timeout",
+			url:          validURL,
+			contentType:  validContentType,
+			bodyTemplate: validTemplate,
+			timeout:      0,
+			wantErrSub:   "timeout must be positive",
+		},
+		{
+			name:         "negative timeout",
+			url:          validURL,
+			contentType:  validContentType,
+			bodyTemplate: validTemplate,
+			timeout:      -1 * time.Second,
+			wantErrSub:   "timeout must be positive",
+		},
+		{
+			name:         "empty body template",
+			url:          validURL,
+			contentType:  validContentType,
+			bodyTemplate: "",
+			timeout:      validTimeout,
+			wantErrSub:   "body template is required",
+		},
+		{
+			name:         "malformed body template",
+			url:          validURL,
+			contentType:  validContentType,
+			bodyTemplate: "oops ${unterminated",
+			timeout:      validTimeout,
+			wantErrSub:   "invalid generic SMS body template",
+		},
+		{
+			name:         "body template references unknown variable",
+			url:          validURL,
+			contentType:  validContentType,
+			bodyTemplate: `{"to":"${to}","oops":"${unknown}"}`,
+			timeout:      validTimeout,
+			wantErrSub:   "unknown template variable",
+		},
+		{
+			name:         "form-urlencoded with non-JSON body template",
+			url:          validURL,
+			contentType:  "application/x-www-form-urlencoded",
+			bodyTemplate: `otp=${body}&number=${to}`,
+			timeout:      validTimeout,
+			wantErrSub:   "body template must render to valid JSON",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := sms.NewGenericSMS(
+				tc.url, tc.contentType, tc.bodyTemplate, nil, tc.timeout,
+			)
+			if err == nil {
+				t.Fatalf("expected error containing %q, got nil", tc.wantErrSub)
+			}
+
+			if !strings.Contains(err.Error(), tc.wantErrSub) {
+				t.Errorf("expected error to contain %q, got: %v", tc.wantErrSub, err)
+			}
+		})
+	}
+}
+
 // TestGenericSMS_SendSMS exercises the generic SMS provider against an httptest
 // server through a table of inline cases. The per-case server handlers contain
 // the assertions specific to each case (headers, body shape, response status),
@@ -72,7 +221,10 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 				}
 
 				if r.Header.Get("X-Custom-Header") != "secret-value" {
-					t.Errorf("expected secret-value header, got: %s", r.Header.Get("X-Custom-Header"))
+					t.Errorf(
+						"expected secret-value header, got: %s",
+						r.Header.Get("X-Custom-Header"),
+					)
 				}
 
 				body, err := io.ReadAll(r.Body)
@@ -100,7 +252,10 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 				t.Helper()
 
 				if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
-					t.Errorf("expected application/x-www-form-urlencoded, got: %s", r.Header.Get("Content-Type"))
+					t.Errorf(
+						"expected application/x-www-form-urlencoded, got: %s",
+						r.Header.Get("Content-Type"),
+					)
 				}
 
 				if err := r.ParseForm(); err != nil {
@@ -175,16 +330,6 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 			},
 		},
 		{
-			name:                 "error: unknown template variable does not send request",
-			contentType:          "application/json",
-			bodyTemplate:         `{"to":"${to}","oops":"${unknown}"}`,
-			headers:              nil,
-			to:                   "+123",
-			body:                 "456",
-			serverHandler:        nil,
-			expectedErrSubstring: "unknown template variable",
-		},
-		{
 			name:         "error: response body is surfaced in error",
 			contentType:  "application/json",
 			bodyTemplate: `{"to":"${to}"}`,
@@ -197,16 +342,6 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 			expectedErrSubstring: "invalid phone number",
 		},
 		{
-			name:                 "error: form content-type with non-JSON template does not send request",
-			contentType:          "application/x-www-form-urlencoded",
-			bodyTemplate:         `otp=${body}&number=${to}`,
-			headers:              nil,
-			to:                   "+919999999999",
-			body:                 "123456",
-			serverHandler:        nil,
-			expectedErrSubstring: "body template must render to valid JSON",
-		},
-		{
 			name:                 "form: charset parameter still routes through form encoder and is preserved on Content-Type",
 			contentType:          "application/x-www-form-urlencoded; charset=utf-8",
 			bodyTemplate:         `{"otp":"${body}", "number":"${to}"}`,
@@ -217,7 +352,9 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 			serverHandler: func(t *testing.T, r *http.Request) (int, string) {
 				t.Helper()
 
-				if got := r.Header.Get("Content-Type"); got != "application/x-www-form-urlencoded; charset=utf-8" {
+				if got := r.Header.Get(
+					"Content-Type",
+				); got != "application/x-www-form-urlencoded; charset=utf-8" {
 					t.Errorf("expected Content-Type to preserve charset, got: %s", got)
 				}
 
@@ -276,10 +413,12 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 			expectedErrSubstring: "generic sms provider returned status: 500",
 		},
 		{
-			name:                 "twilio compatibility: form + basic auth header, 201 created",
-			contentType:          "application/x-www-form-urlencoded",
-			bodyTemplate:         `{"To":"${to}", "Body":"Your code is ${ body }", "From":"+12345"}`,
-			headers:              map[string]string{"Authorization": "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="},
+			name:         "twilio compatibility: form + basic auth header, 201 created",
+			contentType:  "application/x-www-form-urlencoded",
+			bodyTemplate: `{"To":"${to}", "Body":"Your code is ${ body }", "From":"+12345"}`,
+			headers: map[string]string{
+				"Authorization": "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==",
+			},
 			to:                   "+919999999999",
 			body:                 "123456",
 			expectedErrSubstring: "",
@@ -287,11 +426,17 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 				t.Helper()
 
 				if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
-					t.Errorf("expected application/x-www-form-urlencoded, got: %s", r.Header.Get("Content-Type"))
+					t.Errorf(
+						"expected application/x-www-form-urlencoded, got: %s",
+						r.Header.Get("Content-Type"),
+					)
 				}
 
 				if !strings.Contains(r.Header.Get("Authorization"), "Basic") {
-					t.Errorf("expected Authorization header to contain Basic, got: %s", r.Header.Get("Authorization"))
+					t.Errorf(
+						"expected Authorization header to contain Basic, got: %s",
+						r.Header.Get("Authorization"),
+					)
 				}
 
 				if err := r.ParseForm(); err != nil {
@@ -349,34 +494,39 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 
 			var serverHit bool
 
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				serverHit = true
+			server := httptest.NewServer(
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					serverHit = true
 
-				if tc.serverHandler == nil {
-					t.Error("expected no request to be sent")
-					w.WriteHeader(http.StatusOK)
+					if tc.serverHandler == nil {
+						t.Error("expected no request to be sent")
+						w.WriteHeader(http.StatusOK)
 
-					return
-				}
+						return
+					}
 
-				status, respBody := tc.serverHandler(t, r)
-				if status == 0 {
-					status = http.StatusOK
-				}
+					status, respBody := tc.serverHandler(t, r)
+					if status == 0 {
+						status = http.StatusOK
+					}
 
-				w.WriteHeader(status)
+					w.WriteHeader(status)
 
-				if respBody != "" {
-					_, _ = w.Write([]byte(respBody))
-				}
-			}))
+					if respBody != "" {
+						_, _ = w.Write([]byte(respBody))
+					}
+				}),
+			)
 			defer server.Close()
 
-			provider := sms.NewGenericSMS(
+			provider, err := sms.NewGenericSMS(
 				server.URL, tc.contentType, tc.bodyTemplate, tc.headers, 5*time.Second,
 			)
+			if err != nil {
+				t.Fatalf("failed to construct GenericSMS: %v", err)
+			}
 
-			err := provider.SendSMS(tc.to, tc.body)
+			err = provider.SendSMS(tc.to, tc.body)
 
 			if tc.expectedErrSubstring != "" {
 				if err == nil {

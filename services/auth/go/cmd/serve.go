@@ -194,6 +194,8 @@ const (
 	flagOAuth2ProviderCIMDAllowInsecureTransport = "oauth2-provider-cimd-allow-insecure-transport"
 )
 
+const defaultSMSGenericTimeout = 10 * time.Second
+
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
 	return &cli.Command{ //nolint: exhaustruct
 		Name:  "serve",
@@ -706,7 +708,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagSMSProvider,
-				Usage:    "SMS provider (twilio or modica)",
+				Usage:    "SMS provider (twilio, modica, generic, or dev)",
 				Category: "sms",
 				Value:    "twilio",
 				Sources:  cli.EnvVars("AUTH_SMS_PROVIDER"),
@@ -771,7 +773,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Name:     flagSMSGenericTimeout,
 				Usage:    "Timeout for the generic SMS provider HTTP request",
 				Category: "sms",
-				Value:    10 * time.Second,
+				Value:    defaultSMSGenericTimeout,
 				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_TIMEOUT"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
