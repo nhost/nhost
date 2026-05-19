@@ -1,5 +1,5 @@
 import { Handle, type NodeProps, Position } from '@xyflow/react';
-import { FunctionSquare, Settings } from 'lucide-react';
+import { Settings, Sigma } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
 import { findPermission } from '@/components/common/PermissionsGrid';
 import {
@@ -7,6 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import DatabaseObjectActions from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar/DatabaseObjectActions';
 import type {
   DatabaseAction,
@@ -296,35 +297,33 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                 style={{ right: -4 }}
               />
 
-              <div className="flex min-w-0 items-center gap-1.5">
-                <span
+              <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                <TextWithTooltip
+                  text={column.name}
+                  containerClassName="min-w-0 flex-1"
                   className={cn(
-                    'truncate font-mono',
+                    'font-mono',
                     column.isPrimary && 'font-semibold text-primary',
                   )}
-                  title={column.name}
-                >
-                  {column.name}
-                </span>
+                />
                 {column.isPrimary && (
-                  <span className="rounded bg-primary/15 px-1 py-px font-medium text-[10px] text-primary uppercase">
+                  <span className="shrink-0 rounded bg-primary/15 px-1 py-px font-medium text-[10px] text-primary uppercase">
                     PK
                   </span>
                 )}
                 {column.isForeignKey && (
-                  <span className="rounded bg-muted px-1 py-px font-medium text-[10px] text-muted-foreground uppercase">
+                  <span className="shrink-0 rounded bg-muted px-1 py-px font-medium text-[10px] text-muted-foreground uppercase">
                     FK
                   </span>
                 )}
               </div>
 
               <div className="flex shrink-0 items-center gap-1.5">
-                <span
-                  className="truncate font-mono text-[10px] text-muted-foreground"
-                  title={column.dataType}
-                >
-                  {column.dataType}
-                </span>
+                <TextWithTooltip
+                  text={column.dataType}
+                  containerClassName="max-w-[80px]"
+                  className="font-mono text-[10px] text-muted-foreground"
+                />
                 <div className="flex items-center gap-1">
                   {COLUMN_ACTIONS.map((action) => (
                     <PermissionDot
@@ -344,48 +343,58 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
             </li>
           ))}
           {computedFields.map((field) => (
-            <Tooltip key={field.name} delayDuration={150}>
-              <TooltipTrigger asChild>
-                <li className="relative flex cursor-help items-center justify-between gap-2 px-3 py-1 text-xs hover:bg-accent/40">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <FunctionSquare
-                      aria-hidden
-                      className="h-3 w-3 shrink-0 text-muted-foreground"
-                    />
-                    <span
-                      className="truncate font-mono italic"
-                      title={field.name}
-                    >
-                      {field.name}
-                    </span>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    {field.returnType && (
-                      <span
-                        className="truncate font-mono text-[10px] text-muted-foreground"
-                        title={field.returnType}
-                      >
-                        {field.returnType}
-                      </span>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <PermissionDot
-                        action="select"
-                        size={8}
-                        state={getComputedFieldPermissionState(
-                          metadataTable,
-                          role,
-                          field.name,
-                        )}
+            <li
+              key={field.name}
+              className="relative flex items-center justify-between gap-2 px-3 py-1 text-xs hover:bg-accent/40"
+            >
+              <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                <Tooltip delayDuration={150}>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex shrink-0 cursor-help">
+                      <Sigma
+                        aria-hidden
+                        className="h-3 w-3 text-muted-foreground"
                       />
-                    </div>
-                  </div>
-                </li>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-[400px] text-xs">
-                <ComputedFieldTooltipContent field={field} />
-              </TooltipContent>
-            </Tooltip>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[400px] text-xs">
+                    <ComputedFieldTooltipContent field={field} />
+                  </TooltipContent>
+                </Tooltip>
+                <TextWithTooltip
+                  text={field.name}
+                  containerClassName="min-w-0 flex-1"
+                  className="font-mono italic"
+                />
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                {field.returnType && (
+                  <TextWithTooltip
+                    text={field.returnType}
+                    containerClassName="max-w-[80px]"
+                    className="font-mono text-[10px] text-muted-foreground"
+                  />
+                )}
+                <div className="flex items-center gap-1">
+                  {COLUMN_ACTIONS.map((action) => (
+                    <PermissionDot
+                      key={action}
+                      action={action}
+                      size={8}
+                      state={
+                        action === 'select'
+                          ? getComputedFieldPermissionState(
+                              metadataTable,
+                              role,
+                              field.name,
+                            )
+                          : 'none'
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+            </li>
           ))}
         </ul>
       )}

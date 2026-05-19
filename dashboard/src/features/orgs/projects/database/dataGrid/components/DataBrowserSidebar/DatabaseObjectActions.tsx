@@ -98,7 +98,7 @@ function DatabaseObjectActions({
           id={`${idPrefix}-management-menu-${objectName}`}
           variant="outline"
           size="icon"
-          className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent"
+          className="h-6 w-6 border-none bg-transparent px-0 hover:bg-accent hover:text-accent-foreground"
         >
           {triggerIcon ?? <Ellipsis />}
         </Button>
