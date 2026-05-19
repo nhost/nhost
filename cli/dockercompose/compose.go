@@ -58,13 +58,27 @@ type ComposeFile struct {
 	Volumes  map[string]struct{} `yaml:"volumes"`
 }
 
+// Environment is a map of environment variables that escapes literal `$` as
+// `$$` when marshaled to YAML so Docker Compose doesn't interpret them as
+// variable substitution.
+type Environment map[string]string
+
+func (e Environment) MarshalYAML() (any, error) {
+	escaped := make(map[string]string, len(e))
+	for k, v := range e {
+		escaped[k] = strings.ReplaceAll(v, "$", "$$")
+	}
+
+	return escaped, nil
+}
+
 //nolint:tagliatelle
 type Service struct {
 	Image       string                    `yaml:"image"`
 	DependsOn   map[string]DependsOn      `yaml:"depends_on,omitempty"`
 	EntryPoint  []string                  `yaml:"entrypoint,omitempty"`
 	Command     []string                  `yaml:"command,omitempty"`
-	Environment map[string]string         `yaml:"environment,omitempty"`
+	Environment Environment               `yaml:"environment,omitempty"`
 	ExtraHosts  []string                  `yaml:"extra_hosts"`
 	HealthCheck *HealthCheck              `yaml:"healthcheck,omitempty"`
 	Labels      map[string]string         `yaml:"labels,omitempty"`
