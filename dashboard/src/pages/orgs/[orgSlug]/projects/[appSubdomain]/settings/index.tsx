@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -10,7 +11,6 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -303,10 +303,7 @@ export default function SettingsGeneralPage() {
                               <Link
                                 href="/support"
                                 target="_blank"
-                                className="underline"
-                                sx={{
-                                  color: 'text.primary',
-                                }}
+                                className="text-primary-text underline"
                                 rel="noopener noreferrer"
                               >
                                 support

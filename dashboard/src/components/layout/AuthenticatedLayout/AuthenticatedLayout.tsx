@@ -13,8 +13,8 @@ import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -101,14 +101,13 @@ export default function AuthenticatedLayout({
             Did you forget to start{' '}
             <HighlightedText className="font-mono">nhost up</HighlightedText>?
             Please refer to the{' '}
-            <Link
+            <TextLink
               href="https://docs.nhost.io/platform/cli/local-development"
               target="_blank"
               rel="noopener noreferrer"
-              underline="hover"
             >
               CLI documentation
-            </Link>{' '}
+            </TextLink>{' '}
             if you are having trouble starting your project.
           </Text>
 
