@@ -228,6 +228,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                   tableActions.actions.setSidebarMenuObject(undefined)
                 }
                 className="ml-1"
+                triggerClassName="hover:bg-accent hover:text-accent-foreground"
                 isSelectedNotSchemaLocked={!isLocked}
                 onEdit={() =>
                   tableActions.actions.openEditTableDrawer(schema, table)
@@ -307,12 +308,12 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                   )}
                 />
                 {column.isPrimary && (
-                  <span className="shrink-0 rounded bg-primary/15 px-1 py-px font-medium text-[10px] text-primary uppercase">
+                  <span className="shrink-0 rounded bg-primary/15 px-1 py-px font-medium text-primary text-xs- uppercase">
                     PK
                   </span>
                 )}
                 {column.isForeignKey && (
-                  <span className="shrink-0 rounded bg-muted px-1 py-px font-medium text-[10px] text-muted-foreground uppercase">
+                  <span className="shrink-0 rounded bg-muted px-1 py-px font-medium text-muted-foreground text-xs- uppercase">
                     FK
                   </span>
                 )}
@@ -338,7 +339,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                 <TextWithTooltip
                   text={column.dataType}
                   containerClassName="max-w-[80px]"
-                  className="font-mono text-[10px] text-muted-foreground"
+                  className="font-mono text-muted-foreground text-xs-"
                 />
                 <div className="flex items-center gap-1">
                   {COLUMN_ACTIONS.map((action) => (
@@ -388,7 +389,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                   <TextWithTooltip
                     text={field.returnType}
                     containerClassName="max-w-[80px]"
-                    className="font-mono text-[10px] text-muted-foreground"
+                    className="font-mono text-muted-foreground text-xs-"
                   />
                 )}
                 <div className="flex items-center gap-1">
