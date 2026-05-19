@@ -26,9 +26,6 @@ export interface TableNodeComputedField {
   returnType: string | undefined;
   functionSchema: string;
   functionName: string;
-  tableArgument: string | null | undefined;
-  sessionArgument: string | null | undefined;
-  comment: string | undefined;
 }
 
 export interface TableNodeData extends Record<string, unknown> {
@@ -215,9 +212,6 @@ export default function useSchemaGraph({
           returnType: returnTypeByFunctionId.get(fnId),
           functionSchema: cf.definition.function.schema,
           functionName: cf.definition.function.name,
-          tableArgument: cf.definition.table_argument,
-          sessionArgument: cf.definition.session_argument,
-          comment: cf.comment,
         };
       });
 

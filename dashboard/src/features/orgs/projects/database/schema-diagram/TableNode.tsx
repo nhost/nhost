@@ -136,23 +136,6 @@ function ComputedFieldTooltipContent({
       <div className="text-muted-foreground text-xs">
         Calls <span className="font-mono">{fnRef}</span>
       </div>
-      {(field.tableArgument || field.sessionArgument) && (
-        <div className="text-muted-foreground text-xs">
-          {field.tableArgument && (
-            <>
-              row arg <span className="font-mono">{field.tableArgument}</span>
-            </>
-          )}
-          {field.tableArgument && field.sessionArgument && ' · '}
-          {field.sessionArgument && (
-            <>
-              session arg{' '}
-              <span className="font-mono">{field.sessionArgument}</span>
-            </>
-          )}
-        </div>
-      )}
-      {field.comment && <div className="text-xs">{field.comment}</div>}
     </div>
   );
 }
