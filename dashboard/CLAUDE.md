@@ -162,6 +162,11 @@ src/
 - No comments unless explaining complex logic (code should be self-explanatory)
 - Do not add inline JSX comments like `{/* Section Name */}` to label sections in components — the code should be self-documenting
 
+## Tool Usage
+
+- **Prefer the LSP tool for TypeScript/TSX symbol lookups** — finding references, definitions, hover/type info, rename impact. The LSP understands aliased imports, re-exports through barrels, and dynamic imports; grep does not.
+- Use grep (`Bash`) only for non-semantic searches: file globs, text in comments or strings, config files, GraphQL/SQL, or when LSP isn't available.
+
 ## Linting and Formatting
 
 - **Biome**: Used for both linting and formatting

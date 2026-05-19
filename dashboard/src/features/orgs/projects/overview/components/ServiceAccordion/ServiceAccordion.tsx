@@ -1,8 +1,8 @@
+import { ChevronDownIcon } from 'lucide-react';
 import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { Accordion } from '@/components/ui/v2/Accordion';
-import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { AccordionHealthBadge } from '@/features/orgs/projects/overview/components/AccordionHealthBadge';
 import { ServiceState } from '@/utils/__generated__/graphql';
@@ -43,13 +43,7 @@ export default function ServiceAccordion({
   return (
     <Accordion.Root defaultExpanded={defaultExpanded}>
       <Accordion.Summary
-        expandIcon={
-          <ChevronDownIcon
-            sx={{
-              color: 'text.primary',
-            }}
-          />
-        }
+        expandIcon={<ChevronDownIcon className="text-foreground" />}
         aria-controls="panel1-content"
         id="panel1-header"
         className="px-6"

@@ -1,5 +1,5 @@
 import { Box } from '@/components/ui/v2/Box';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
+import { ProjectHealthCheckIcon } from '@/components/ui/v3/icons/ProjectHealthCheckIcon';
 import { QuestionMarkIcon } from '@/components/ui/v3/icons/QuestionMarkIcon';
 import { serviceStateToThemeColor } from '@/features/orgs/projects/overview/health';
 import { ServiceState } from '@/utils/__generated__/graphql';
@@ -39,13 +39,7 @@ export default function AccordionHealthBadge({
         }}
         className="flex h-2.5 w-2.5 items-center justify-center rounded-full"
       >
-        <CheckIcon
-          sx={{
-            color: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-          }}
-          className="h-3/4 w-3/4 stroke-2"
-        />
+        <ProjectHealthCheckIcon className="h-3/4 w-3/4 text-[#F5F5F5] dark:text-[#21262D]" />
       </Box>
     );
   }

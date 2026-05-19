@@ -1,6 +1,6 @@
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { NavLink } from '@/components/common/NavLink';
 import { Box } from '@/components/ui/v2/Box';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -24,7 +24,7 @@ export default function OverviewRepository() {
             variant="outline"
             className="h-9 w-full gap-2"
           >
-            <GitHubIcon />
+            <GitHubIcon className="h-4 w-4" />
             Connect to GitHub
           </NavLink>
         </div>

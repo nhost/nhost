@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"mime/multipart"
+	"net/http"
 	"net/textproto"
 	"os"
 	"strings"
@@ -318,4 +319,81 @@ func TestUploadFile(t *testing.T) {
 			)
 		})
 	}
+}
+
+func TestUploadFiles_FileTooBig(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}),
+	)
+
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	metadataStorage := mock.NewMockMetadataStorage(c)
+	contentStorage := mock.NewMockContentStorage(c)
+	av := mock.NewMockAntivirus(c)
+
+	metadataStorage.EXPECT().GetBucketByID(
+		gomock.Any(), "blah", gomock.Any(),
+	).Return(controller.BucketMetadata{
+		ID:                   "blah",
+		MinUploadFile:        0,
+		MaxUploadFile:        10,
+		PresignedURLsEnabled: false,
+		DownloadExpiration:   30,
+		CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
+		UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
+	}, nil)
+
+	file := fakeFile{
+		contents:    strings.Repeat("a", 100),
+		contentType: "",
+		md: fakeFileMetadata{
+			Name:     "big.txt",
+			ID:       uuid.New().String(),
+			Metadata: map[string]any{},
+		},
+	}
+
+	ctrl := controller.New(
+		"http://asd",
+		"/v1",
+		"asdasd",
+		metadataStorage,
+		contentStorage,
+		nil,
+		av,
+		logger,
+	)
+
+	resp, err := ctrl.UploadFiles(
+		t.Context(),
+		api.UploadFilesRequestObject{
+			Body: createMultiForm(t, file),
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert(t, resp, api.UploadFilesdefaultJSONResponse{
+		Body: api.ErrorResponseWithProcessedFiles{
+			Error: &struct {
+				Data    *map[string]any `json:"data,omitempty"`
+				Message string          `json:"message"`
+			}{
+				Data: &map[string]any{
+					"file":     "big.txt",
+					"filename": "big.txt",
+					"size":     100,
+					"maxSize":  10,
+				},
+				Message: "file too big",
+			},
+			ProcessedFiles: &[]api.FileMetadata{},
+		},
+		StatusCode: http.StatusBadRequest,
+	})
 }

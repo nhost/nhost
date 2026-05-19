@@ -58,13 +58,27 @@ type ComposeFile struct {
 	Volumes  map[string]struct{} `yaml:"volumes"`
 }
 
+// Environment is a map of environment variables that escapes literal `$` as
+// `$$` when marshaled to YAML so Docker Compose doesn't interpret them as
+// variable substitution.
+type Environment map[string]string
+
+func (e Environment) MarshalYAML() (any, error) {
+	escaped := make(map[string]string, len(e))
+	for k, v := range e {
+		escaped[k] = strings.ReplaceAll(v, "$", "$$")
+	}
+
+	return escaped, nil
+}
+
 //nolint:tagliatelle
 type Service struct {
 	Image       string                    `yaml:"image"`
 	DependsOn   map[string]DependsOn      `yaml:"depends_on,omitempty"`
 	EntryPoint  []string                  `yaml:"entrypoint,omitempty"`
 	Command     []string                  `yaml:"command,omitempty"`
-	Environment map[string]string         `yaml:"environment,omitempty"`
+	Environment Environment               `yaml:"environment,omitempty"`
 	ExtraHosts  []string                  `yaml:"extra_hosts"`
 	HealthCheck *HealthCheck              `yaml:"healthcheck,omitempty"`
 	Labels      map[string]string         `yaml:"labels,omitempty"`
@@ -332,6 +346,7 @@ func dashboard(
 	dashboardVersion string,
 	httpPort uint,
 	useTLS bool,
+	appID string,
 ) *Service {
 	return &Service{
 		Image:      dashboardVersion,
@@ -341,6 +356,7 @@ func dashboard(
 		Environment: map[string]string{
 			"NEXT_PUBLIC_ENV":                "dev",
 			"NEXT_PUBLIC_NHOST_PLATFORM":     "false",
+			"NEXT_PUBLIC_NHOST_APP_ID":       appID,
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 			"NEXT_PUBLIC_NHOST_AUTH_URL": URL(
 				subdomain, "auth", httpPort, useTLS) + "/v1",
@@ -583,6 +599,7 @@ func getServices( //nolint: funlen,cyclop
 	dashboardVersion string,
 	functionsVersion string,
 	configserviceImage string,
+	appID string,
 	startFunctions bool,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
@@ -627,6 +644,7 @@ func getServices( //nolint: funlen,cyclop
 		rootFolder,
 		nhostFolder,
 		projectName,
+		appID,
 		useTLS,
 		runServices...,
 	)
@@ -636,7 +654,7 @@ func getServices( //nolint: funlen,cyclop
 
 	services := map[string]*Service{
 		"console":      console,
-		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS),
+		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID),
 		"graphql":      graphql,
 		"minio":        minio,
 		"postgres":     postgres,
@@ -711,7 +729,7 @@ func mountCACertificates(
 	}
 }
 
-func ComposeFileFromConfig(
+func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,
@@ -726,6 +744,7 @@ func ComposeFileFromConfig(
 	dashboardVersion string,
 	functionsVersion string,
 	configserverImage string,
+	appID string,
 	startFunctions bool,
 	caCertificatesPath string,
 	runServices ...*RunService,
@@ -745,6 +764,7 @@ func ComposeFileFromConfig(
 		dashboardVersion,
 		functionsVersion,
 		configserverImage,
+		appID,
 		startFunctions,
 		runServices...,
 	)
