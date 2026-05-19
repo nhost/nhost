@@ -38,7 +38,6 @@ import {
   type UnknownDataGridRow,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
-import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -183,7 +182,7 @@ export function createDataGridColumn(
       ...defaultColumnConfiguration,
       size: 200,
       cell: (props: CellContext<UnknownDataGridRow, string>) => (
-        <DataGridDateCell {...props} />
+        <DataGridTextCell {...props} />
       ),
     };
   }

@@ -3,8 +3,6 @@ import { Input } from '@/components/ui/v3/input';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
-import { cn } from '@/lib/utils';
-import { getDateComponents } from '@/utils/getDateComponents';
 
 export interface DataGridDateCellProps<
   TData extends UnknownDataGridRow = UnknownDataGridRow,
@@ -17,27 +15,7 @@ export default function DataGridDateCell<
   optimisticValue,
   temporaryValue,
   onTemporaryValueChange,
-  cell: { column },
 }: DataGridDateCellProps<TData>) {
-  const specificType = column.columnDef.meta?.specificType;
-
-  // Note: No date (year-month-day) is saved for time / timetz columns, so we
-  // need to add it manually.
-  const date =
-    optimisticValue && specificType !== 'interval'
-      ? new Date(
-          specificType === 'time' || specificType === 'timetz'
-            ? `1970-01-01 ${optimisticValue}`
-            : optimisticValue,
-        )
-      : undefined;
-
-  const { year, month, day, hour, minute, second } = getDateComponents(date, {
-    adjustTimezone: ['date', 'timetz', 'timestamptz'].includes(
-      specificType as string,
-    ),
-  });
-
   const { inputRef, isEditing } = useDataGridCell<HTMLInputElement>();
 
   async function handleSave() {
@@ -93,20 +71,5 @@ export default function DataGridDateCell<
     return <p className="truncate text-secondary text-xs">null</p>;
   }
 
-  if (specificType === 'interval') {
-    return <p className="truncate text-xs">{optimisticValue}</p>;
-  }
-
-  return (
-    <div className={cn('grid grid-flow-row')}>
-      <p className="truncate text-xs">
-        {specificType !== 'time' && specificType !== 'timetz' && (
-          <span>{[year, month, day].filter(Boolean).join('-')}</span>
-        )}{' '}
-        {specificType !== 'date' && (
-          <span>{[hour, minute, second].filter(Boolean).join(':')}</span>
-        )}
-      </p>
-    </div>
-  );
+  return <p className="truncate text-xs">{optimisticValue}</p>;
 }
