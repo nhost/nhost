@@ -106,6 +106,31 @@ export function getColumnPermissionState(
   return tableState;
 }
 
+export function getComputedFieldPermissionState(
+  table: HasuraMetadataTable | undefined,
+  role: string,
+  fieldName: string,
+): PermissionDotState {
+  const tableState = getTablePermissionState(table, role, 'select');
+
+  if (tableState === 'none') {
+    return 'none';
+  }
+
+  if (role === ADMIN_ROLE) {
+    return tableState;
+  }
+
+  const permission = findPermission(table, role, 'select');
+  const allowedFields = permission?.computed_fields ?? [];
+
+  if (!allowedFields.includes(fieldName)) {
+    return 'none';
+  }
+
+  return tableState;
+}
+
 export function tableHasAnyPermission(
   table: HasuraMetadataTable | undefined,
   role: string,

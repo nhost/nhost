@@ -19,6 +19,7 @@ const callArgs = {
 
 const columnHeader = ['data'];
 const fkHeader = ['data'];
+const fnHeader = ['data'];
 
 function columnRow(
   overrides: Partial<{
@@ -68,10 +69,32 @@ function fkRow(
   });
 }
 
-function bulkResponse(columnRows: string[], fkRows: string[]) {
+function fnRow(
+  overrides: Partial<{
+    schema: string;
+    name: string;
+    return_type: string;
+    returns_set: boolean;
+  }> = {},
+): string {
+  return JSON.stringify({
+    schema: 'public',
+    name: 'full_name',
+    return_type: 'text',
+    returns_set: false,
+    ...overrides,
+  });
+}
+
+function bulkResponse(
+  columnRows: string[],
+  fkRows: string[],
+  fnRows: string[] = [],
+) {
   return ok([
     { result: [columnHeader, ...columnRows], result_type: 'TuplesOk' },
     { result: [fkHeader, ...fkRows], result_type: 'TuplesOk' },
+    { result: [fnHeader, ...fnRows], result_type: 'TuplesOk' },
   ]);
 }
 
@@ -173,7 +196,46 @@ describe('fetchSchemaDiagramData', () => {
 
     const result = await fetchSchemaDiagramData(callArgs);
 
-    expect(result).toEqual({ columns: [], foreignKeys: [] });
+    expect(result).toEqual({
+      columns: [],
+      foreignKeys: [],
+      functionReturnTypes: [],
+    });
+  });
+
+  it('maps function rows into typed function return types', async () => {
+    fetchMock.mockResolvedValueOnce(
+      bulkResponse(
+        [],
+        [],
+        [
+          fnRow(),
+          fnRow({
+            schema: 'public',
+            name: 'posts_for_user',
+            return_type: 'public.posts',
+            returns_set: true,
+          }),
+        ],
+      ),
+    );
+
+    const result = await fetchSchemaDiagramData(callArgs);
+
+    expect(result.functionReturnTypes).toEqual([
+      {
+        schema: 'public',
+        name: 'full_name',
+        returnType: 'text',
+        returnsSet: false,
+      },
+      {
+        schema: 'public',
+        name: 'posts_for_user',
+        returnType: 'public.posts',
+        returnsSet: true,
+      },
+    ]);
   });
 
   it('coerces is_nullable "YES"/"NO" into a boolean', async () => {
@@ -251,7 +313,7 @@ describe('fetchSchemaDiagramData', () => {
     const body = JSON.parse(init.body);
     expect(body.type).toBe('bulk');
     expect(body.version).toBe(1);
-    expect(body.args).toHaveLength(2);
+    expect(body.args).toHaveLength(3);
     for (const arg of body.args) {
       expect(arg.type).toBe('run_sql');
       expect(arg.args.read_only).toBe(true);

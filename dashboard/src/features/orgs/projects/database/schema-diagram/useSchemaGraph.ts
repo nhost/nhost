@@ -9,6 +9,7 @@ import { tableHasAnyPermission } from './permissionState';
 import type {
   SchemaDiagramColumn,
   SchemaDiagramForeignKey,
+  SchemaDiagramFunctionReturnType,
 } from './useAllTableColumns';
 
 export interface TableNodeColumn {
@@ -19,10 +20,21 @@ export interface TableNodeColumn {
   isForeignKey: boolean;
 }
 
+export interface TableNodeComputedField {
+  name: string;
+  returnType: string | undefined;
+  functionSchema: string;
+  functionName: string;
+  tableArgument: string | null | undefined;
+  sessionArgument: string | null | undefined;
+  comment: string | undefined;
+}
+
 export interface TableNodeData extends Record<string, unknown> {
   schema: string;
   table: string;
   columns: TableNodeColumn[];
+  computedFields: TableNodeComputedField[];
   metadataTable: HasuraMetadataTable | undefined;
   role: string;
 }
@@ -33,6 +45,7 @@ export interface UseSchemaGraphInput {
   metadataTables: HasuraMetadataTable[];
   columns: SchemaDiagramColumn[];
   foreignKeys: SchemaDiagramForeignKey[];
+  functionReturnTypes: SchemaDiagramFunctionReturnType[];
   role: string;
   visibleSchemas: Set<string>;
   hideTablesWithoutPermissions: boolean;
@@ -109,6 +122,7 @@ export default function useSchemaGraph({
   metadataTables,
   columns,
   foreignKeys,
+  functionReturnTypes,
   role,
   visibleSchemas,
   hideTablesWithoutPermissions,
@@ -125,6 +139,15 @@ export default function useSchemaGraph({
 
     for (const sorted of columnsByTable.values()) {
       sorted.sort((a, b) => a.ordinalPosition - b.ordinalPosition);
+    }
+
+    const returnTypeByFunctionId = new Map<string, string>();
+    for (const fn of functionReturnTypes) {
+      const id = `${fn.schema}.${fn.name}`;
+      returnTypeByFunctionId.set(
+        id,
+        fn.returnsSet ? `setof ${fn.returnType}` : fn.returnType,
+      );
     }
 
     const foreignKeyColumnsByTable = new Map<string, Set<string>>();
@@ -182,6 +205,21 @@ export default function useSchemaGraph({
       const fkColumns = foreignKeyColumnsByTable.get(id) ?? new Set<string>();
       const tableColumns = columnsByTable.get(id) ?? [];
 
+      const computedFields: TableNodeComputedField[] = (
+        metadataTable?.computed_fields ?? []
+      ).map((cf) => {
+        const fnId = `${cf.definition.function.schema}.${cf.definition.function.name}`;
+        return {
+          name: cf.name,
+          returnType: returnTypeByFunctionId.get(fnId),
+          functionSchema: cf.definition.function.schema,
+          functionName: cf.definition.function.name,
+          tableArgument: cf.definition.table_argument,
+          sessionArgument: cf.definition.session_argument,
+          comment: cf.comment,
+        };
+      });
+
       const data: TableNodeData = {
         schema,
         table,
@@ -192,6 +230,7 @@ export default function useSchemaGraph({
           isPrimary: c.isPrimary,
           isForeignKey: fkColumns.has(c.columnName),
         })),
+        computedFields,
         metadataTable,
         role,
       };
@@ -201,7 +240,9 @@ export default function useSchemaGraph({
         type: 'tableNode',
         position: { x: 0, y: 0 },
         width: TABLE_NODE_WIDTH,
-        height: computeNodeHeight(data.columns.length),
+        height: computeNodeHeight(
+          data.columns.length + data.computedFields.length,
+        ),
         data,
       });
       visibleNodeIds.add(id);
@@ -245,12 +286,15 @@ export default function useSchemaGraph({
         };
       });
 
-    const columnCountByNodeId = new Map<string, number>();
+    const rowCountByNodeId = new Map<string, number>();
     for (const node of nodes) {
-      columnCountByNodeId.set(node.id, node.data.columns.length);
+      rowCountByNodeId.set(
+        node.id,
+        node.data.columns.length + node.data.computedFields.length,
+      );
     }
 
-    const positionedNodes = layoutNodes(nodes, edges, columnCountByNodeId);
+    const positionedNodes = layoutNodes(nodes, edges, rowCountByNodeId);
 
     return {
       nodes: positionedNodes,
@@ -261,6 +305,7 @@ export default function useSchemaGraph({
     metadataTables,
     columns,
     foreignKeys,
+    functionReturnTypes,
     role,
     visibleSchemas,
     hideTablesWithoutPermissions,

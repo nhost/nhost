@@ -1,5 +1,5 @@
 import { Handle, type NodeProps, Position } from '@xyflow/react';
-import { Settings } from 'lucide-react';
+import { FunctionSquare, Settings } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
 import { findPermission } from '@/components/common/PermissionsGrid';
 import {
@@ -19,13 +19,18 @@ import {
   ADMIN_ROLE,
   DATABASE_ACTIONS,
   getColumnPermissionState,
+  getComputedFieldPermissionState,
   getRelevantRules,
   getTablePermissionState,
   type PermissionDotState,
   type RuleKey,
 } from './permissionState';
 import { useTableActionsContext } from './TableActionsContext';
-import { columnHandleId, type TableNode } from './useSchemaGraph';
+import {
+  columnHandleId,
+  type TableNode,
+  type TableNodeComputedField,
+} from './useSchemaGraph';
 
 const COLUMN_ACTIONS: readonly DatabaseAction[] = [
   'select',
@@ -118,8 +123,41 @@ function TableDotTooltipContent({
   );
 }
 
+function ComputedFieldTooltipContent({
+  field,
+}: {
+  field: TableNodeComputedField;
+}): ReactNode {
+  const fnRef = `${field.functionSchema}.${field.functionName}`;
+  return (
+    <div className="space-y-1">
+      <div className="font-semibold">Computed field</div>
+      <div className="text-muted-foreground text-xs">
+        Backed by <span className="font-mono">{fnRef}</span>
+      </div>
+      {(field.tableArgument || field.sessionArgument) && (
+        <div className="text-muted-foreground text-xs">
+          {field.tableArgument && (
+            <>
+              row arg <span className="font-mono">{field.tableArgument}</span>
+            </>
+          )}
+          {field.tableArgument && field.sessionArgument && ' · '}
+          {field.sessionArgument && (
+            <>
+              session arg{' '}
+              <span className="font-mono">{field.sessionArgument}</span>
+            </>
+          )}
+        </div>
+      )}
+      {field.comment && <div className="text-xs">{field.comment}</div>}
+    </div>
+  );
+}
+
 function TableNodeView({ data }: NodeProps<TableNode>) {
-  const { schema, table, columns, metadataTable, role } = data;
+  const { schema, table, columns, computedFields, metadataTable, role } = data;
   const tableActions = useTableActionsContext();
   const objectKey = `ORDINARY TABLE.${schema}.${table}`;
   const tablePath = `${schema}.${table}`;
@@ -232,7 +270,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
         </div>
       </div>
 
-      {columns.length === 0 ? (
+      {columns.length === 0 && computedFields.length === 0 ? (
         <div className="px-3 py-2 text-muted-foreground text-xs italic">
           No columns
         </div>
@@ -304,6 +342,50 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                 </div>
               </div>
             </li>
+          ))}
+          {computedFields.map((field) => (
+            <Tooltip key={field.name} delayDuration={150}>
+              <TooltipTrigger asChild>
+                <li className="relative flex cursor-help items-center justify-between gap-2 px-3 py-1 text-xs hover:bg-accent/40">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <FunctionSquare
+                      aria-hidden
+                      className="h-3 w-3 shrink-0 text-muted-foreground"
+                    />
+                    <span
+                      className="truncate font-mono italic"
+                      title={field.name}
+                    >
+                      {field.name}
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {field.returnType && (
+                      <span
+                        className="truncate font-mono text-[10px] text-muted-foreground"
+                        title={field.returnType}
+                      >
+                        {field.returnType}
+                      </span>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <PermissionDot
+                        action="select"
+                        size={8}
+                        state={getComputedFieldPermissionState(
+                          metadataTable,
+                          role,
+                          field.name,
+                        )}
+                      />
+                    </div>
+                  </div>
+                </li>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[400px] text-xs">
+                <ComputedFieldTooltipContent field={field} />
+              </TooltipContent>
+            </Tooltip>
           ))}
         </ul>
       )}

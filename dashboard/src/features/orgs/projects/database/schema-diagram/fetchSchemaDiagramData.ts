@@ -25,9 +25,17 @@ export interface SchemaDiagramForeignKey {
   constraintName: string;
 }
 
+export interface SchemaDiagramFunctionReturnType {
+  schema: string;
+  name: string;
+  returnType: string;
+  returnsSet: boolean;
+}
+
 export interface SchemaDiagramData {
   columns: SchemaDiagramColumn[];
   foreignKeys: SchemaDiagramForeignKey[];
+  functionReturnTypes: SchemaDiagramFunctionReturnType[];
 }
 
 const COLUMN_QUERY = `
@@ -86,6 +94,23 @@ const FOREIGN_KEY_QUERY = `
   ) fk_data
 `;
 
+const FUNCTION_RETURN_TYPE_QUERY = `
+  SELECT row_to_json(fn_data) AS data
+  FROM (
+    SELECT DISTINCT ON (n.nspname, p.proname)
+      n.nspname AS schema,
+      p.proname AS name,
+      pg_catalog.format_type(p.prorettype, NULL) AS return_type,
+      p.proretset AS returns_set
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname NOT LIKE 'pg_%'
+      AND n.nspname NOT LIKE 'hdb_%'
+      AND n.nspname != 'information_schema'
+    ORDER BY n.nspname, p.proname, p.oid
+  ) fn_data
+`;
+
 interface RawColumn {
   table_schema: string;
   table_name: string;
@@ -107,6 +132,13 @@ interface RawForeignKey {
   constraint_name: string;
 }
 
+interface RawFunctionReturnType {
+  schema: string;
+  name: string;
+  return_type: string;
+  returns_set: boolean;
+}
+
 export interface FetchSchemaDiagramDataArgs {
   appUrl: string;
   adminSecret: string;
@@ -125,6 +157,11 @@ export default async function fetchSchemaDiagramData({
       args: [
         getPreparedReadOnlyHasuraQuery(dataSource, COLUMN_QUERY, ''),
         getPreparedReadOnlyHasuraQuery(dataSource, FOREIGN_KEY_QUERY, ''),
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          FUNCTION_RETURN_TYPE_QUERY,
+          '',
+        ),
       ],
       type: 'bulk',
       version: 1,
@@ -145,6 +182,7 @@ export default async function fetchSchemaDiagramData({
 
   const [, ...rawColumns] = responseData[0].result;
   const [, ...rawForeignKeys] = responseData[1].result;
+  const [, ...rawFunctions] = responseData[2].result;
 
   const columns: SchemaDiagramColumn[] = rawColumns.map((raw) => {
     const row = JSON.parse(raw) as RawColumn;
@@ -173,5 +211,16 @@ export default async function fetchSchemaDiagramData({
     };
   });
 
-  return { columns, foreignKeys };
+  const functionReturnTypes: SchemaDiagramFunctionReturnType[] =
+    rawFunctions.map((raw) => {
+      const row = JSON.parse(raw) as RawFunctionReturnType;
+      return {
+        schema: row.schema,
+        name: row.name,
+        returnType: row.return_type,
+        returnsSet: row.returns_set,
+      };
+    });
+
+  return { columns, foreignKeys, functionReturnTypes };
 }

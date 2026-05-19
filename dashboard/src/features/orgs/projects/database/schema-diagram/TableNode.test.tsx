@@ -71,6 +71,7 @@ const baseData: TableNodeData = {
     table: { schema: 'public', name: 'users' },
     configuration: {},
   } as HasuraMetadataTable,
+  computedFields: [],
   columns: [
     {
       name: 'id',

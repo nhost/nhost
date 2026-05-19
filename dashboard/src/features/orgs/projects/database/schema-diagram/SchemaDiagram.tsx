@@ -234,6 +234,7 @@ function SchemaDiagramContent() {
     metadataTables: metadataTables ?? [],
     columns: schemaData?.columns ?? [],
     foreignKeys: schemaData?.foreignKeys ?? [],
+    functionReturnTypes: schemaData?.functionReturnTypes ?? [],
     role: selectedRole,
     visibleSchemas,
     hideTablesWithoutPermissions: hideEmpty,
