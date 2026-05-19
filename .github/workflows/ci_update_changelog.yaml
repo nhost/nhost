@@ -13,7 +13,18 @@ jobs:
 
     strategy:
       matrix:
-        project: [cli, dashboard, packages/nhost-js, packages/stripe-graphql-js, services/auth, services/functions, services/mcp, services/storage]
+        project:
+          [
+            cli,
+            dashboard,
+            packages/nhost-js,
+            packages/stripe-graphql-js,
+            services/auth,
+            services/constellation,
+            services/functions,
+            services/mcp,
+            services/storage,
+          ]
 
     permissions:
       id-token: write
