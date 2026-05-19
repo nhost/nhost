@@ -56,7 +56,7 @@ func CommandCloud() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:2.61.1",
+				Value:   "nhost/dashboard:2.63.0",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -204,6 +204,7 @@ func cloud( //nolint:funlen
 		ports,
 		dashboardVersion,
 		configserverImage,
+		proj.GetID(),
 		caCertificatesPath,
 	)
 	if err != nil {

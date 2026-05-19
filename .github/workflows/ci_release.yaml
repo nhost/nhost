@@ -64,6 +64,20 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
+  constellation:
+    needs: extract-project
+    if: needs.extract-project.outputs.project == 'constellation'
+    uses: ./.github/workflows/constellation_wf_release.yaml
+    with:
+      GIT_REF: ${{ github.sha }}
+      VERSION: ${{ needs.extract-project.outputs.version }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
   dashboard:
     needs: extract-project
     if: needs.extract-project.outputs.project == '@nhost/dashboard'

@@ -30,11 +30,11 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
   return (
     <Box
       sx={{ backgroundColor: 'background.default' }}
-      className="flex h-full w-full flex-auto flex-col overflow-y-auto overflow-x-hidden"
+      className="flex w-full flex-auto flex-col overflow-x-hidden"
     >
       <Box
         sx={{ backgroundColor: 'background.default' }}
-        className="flex h-full flex-col"
+        className="flex flex-col"
       >
         <RetryableErrorBoundary>
           <div className="flex flex-col space-y-2">

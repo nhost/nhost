@@ -27,6 +27,7 @@ on:
       # lib
       - "internal/lib/clidocs/**"
       - "internal/lib/nhostclient/**"
+      - "internal/lib/oapi/**"
 
       # auth email templates (embedded into the CLI by `nhost init`)
       - "services/auth/email-templates/**"
@@ -59,6 +60,8 @@ jobs:
         vendor/**
         cli/**
         internal/lib/clidocs/**
+        internal/lib/nhostclient/**
+        internal/lib/oapi/**
         services/auth/email-templates/**
         docs/**
 

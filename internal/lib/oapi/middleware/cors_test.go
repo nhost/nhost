@@ -3,6 +3,7 @@ package middleware_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -261,6 +262,55 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 			wantStatus:     http.StatusOK,
 			wantHeaders: http.Header{
 				"Access-Control-Allow-Origin": []string{"https://another-example.com"},
+			},
+			expectNext: true,
+		},
+		{
+			name: "AllowOriginFunc accepts matching origin",
+			opts: middleware.CORSOptions{ //nolint:exhaustruct
+				AllowOriginFunc: func(origin string) bool {
+					return strings.HasSuffix(origin, ".example.com")
+				},
+				AllowedMethods: []string{"GET"},
+			},
+			requestMethod:  "GET",
+			requestOrigin:  "https://app.example.com",
+			requestHeaders: map[string]string{},
+			wantStatus:     http.StatusOK,
+			wantHeaders: http.Header{
+				"Access-Control-Allow-Origin": []string{"https://app.example.com"},
+			},
+			expectNext: true,
+		},
+		{
+			name: "AllowOriginFunc rejects non-matching origin",
+			opts: middleware.CORSOptions{ //nolint:exhaustruct
+				AllowOriginFunc: func(origin string) bool {
+					return strings.HasSuffix(origin, ".example.com")
+				},
+				AllowedMethods: []string{"GET"},
+			},
+			requestMethod:  "GET",
+			requestOrigin:  "https://malicious.com",
+			requestHeaders: map[string]string{},
+			wantStatus:     http.StatusOK,
+			wantHeaders:    http.Header{},
+			expectNext:     true,
+		},
+		{
+			name: "AllowOriginFunc takes precedence over AllowedOrigins",
+			opts: middleware.CORSOptions{ //nolint:exhaustruct
+				// AllowedOrigins would deny everything, but AllowOriginFunc accepts.
+				AllowedOrigins:  []string{"https://different.com"},
+				AllowOriginFunc: func(_ string) bool { return true },
+				AllowedMethods:  []string{"GET"},
+			},
+			requestMethod:  "GET",
+			requestOrigin:  "https://anything.com",
+			requestHeaders: map[string]string{},
+			wantStatus:     http.StatusOK,
+			wantHeaders: http.Header{
+				"Access-Control-Allow-Origin": []string{"https://anything.com"},
 			},
 			expectNext: true,
 		},
