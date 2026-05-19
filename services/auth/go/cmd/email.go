@@ -155,7 +155,7 @@ func getTwilioSMS( //nolint:ireturn
 		return nil, errors.New("SMS is enabled but Twilio credentials are missing") //nolint:err113
 	}
 
-	if strings.HasPrefix(messagingServiceID, "VA") {
+	if strings.HasPrefix(accountSid, "VA") {
 		return nil, errors.New( //nolint:err113
 			`twilio Verification Services (Messaging Service SID starting with "VA") ` +
 				"are no longer supported; use a Messaging Service SID (MG...) or a " +
