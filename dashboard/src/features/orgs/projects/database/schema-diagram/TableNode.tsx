@@ -1,5 +1,5 @@
 import { Handle, type NodeProps, Position } from '@xyflow/react';
-import { Settings, Sigma } from 'lucide-react';
+import { Parentheses, Settings } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
 import { findPermission } from '@/components/common/PermissionsGrid';
 import {
@@ -134,7 +134,7 @@ function ComputedFieldTooltipContent({
     <div className="space-y-1">
       <div className="font-semibold">Computed field</div>
       <div className="text-muted-foreground text-xs">
-        Backed by <span className="font-mono">{fnRef}</span>
+        Computed by <span className="font-mono">{fnRef}</span>
       </div>
       {(field.tableArgument || field.sessionArgument) && (
         <div className="text-muted-foreground text-xs">
@@ -351,7 +351,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                 <Tooltip delayDuration={150}>
                   <TooltipTrigger asChild>
                     <span className="inline-flex shrink-0 cursor-help">
-                      <Sigma
+                      <Parentheses
                         aria-hidden
                         className="h-3 w-3 text-muted-foreground"
                       />
