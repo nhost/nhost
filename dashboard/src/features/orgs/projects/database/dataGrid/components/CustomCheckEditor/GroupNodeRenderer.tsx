@@ -5,9 +5,9 @@ import { cn } from '@/lib/utils';
 import AddNodeButton from './AddNodeButton';
 import ConditionRow from './ConditionRow';
 import ExistsNodeRenderer from './ExistsNodeRenderer';
+import InvalidNodeRenderer from './InvalidNodeRenderer';
 import LogicalOperatorBadge from './LogicalOperatorBadge';
 import RelationshipNodeRenderer from './RelationshipNodeRenderer';
-import useCustomCheckEditor from './useCustomCheckEditor';
 
 const depthBackgrounds = [
   'bg-secondary-100',
@@ -32,7 +32,6 @@ export default function GroupNodeRenderer({
   maxDepth,
   onRemove,
 }: GroupNodeRendererProps) {
-  const { disabled: editorDisabled } = useCustomCheckEditor();
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -54,20 +53,15 @@ export default function GroupNodeRenderer({
       )}
     >
       <div className="absolute -top-3 left-3">
-        <LogicalOperatorBadge
-          name={name}
-          depth={depth}
-          disabled={editorDisabled}
-        />
+        <LogicalOperatorBadge name={name} depth={depth} />
       </div>
 
       {onRemove && (
         <button
           type="button"
           onClick={onRemove}
-          disabled={editorDisabled}
           aria-label="Delete group"
-          className="absolute top-2 right-2 rounded p-0.5 opacity-50 hover:opacity-100 disabled:pointer-events-none disabled:opacity-30"
+          className="absolute top-2 right-2 rounded p-0.5 opacity-50 hover:opacity-100"
         >
           <X className="h-4 w-4" />
         </button>
@@ -102,6 +96,16 @@ export default function GroupNodeRenderer({
             );
           }
 
+          if (child.type === 'invalid') {
+            return (
+              <InvalidNodeRenderer
+                key={field.id}
+                name={`${name}.children.${index}`}
+                onRemove={() => remove(index)}
+              />
+            );
+          }
+
           if (child.type === 'relationship') {
             return (
               <RelationshipNodeRenderer
@@ -129,7 +133,6 @@ export default function GroupNodeRenderer({
       <div className="mt-3">
         <AddNodeButton
           onSelect={handleAddNode}
-          disabled={editorDisabled}
           fullWidth={fields.length === 0}
           label="Add"
         />

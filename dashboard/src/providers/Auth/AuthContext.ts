@@ -1,14 +1,14 @@
-import type { Session } from '@nhost/nhost-js/auth';
+import type { StoredSession } from '@nhost/nhost-js/session';
 import { createContext } from 'react';
 
 export type AuthContextType = {
-  user: NonNullable<Session['user']> | null;
-  session: Session | null;
+  user: NonNullable<StoredSession['user']> | null;
+  session: StoredSession | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   signout: () => Promise<void>;
   isSigningOut: boolean;
-  updateSession: (newSession: Session | null) => void;
+  updateSession: (newSession: StoredSession | null) => void;
   clearIsSigningOut: () => void;
 };
 

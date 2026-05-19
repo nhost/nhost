@@ -267,7 +267,18 @@ export default defineConfig({
                   collapsed: false,
                   items: [
                     { slug: 'products/graphql/configuring-hasura' },
-                    { slug: 'products/graphql/permissions' },
+                    {
+                      label: 'Permissions',
+                      collapsed: false,
+                      items: [
+                        { slug: 'products/graphql/permissions' },
+                        { slug: 'products/graphql/permissions/rule-editor' },
+                        {
+                          slug: 'products/graphql/permissions/permission-variables',
+                        },
+                        { slug: 'products/graphql/permissions/examples' },
+                      ],
+                    },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/advanced-features' },
                   ],
@@ -301,6 +312,7 @@ export default defineConfig({
                     { slug: 'products/auth/jwt' },
                     { slug: 'products/auth/email-templates' },
                     { slug: 'products/auth/gravatar' },
+                    { slug: 'products/auth/controlling-user-creation' },
                   ],
                 },
                 {
@@ -557,7 +569,6 @@ export default defineConfig({
                     { slug: 'products/ai/local-development' },
                     { slug: 'products/ai/auto-embeddings' },
                     { slug: 'products/ai/assistants' },
-                    { slug: 'products/ai/dev-assistant' },
                   ],
                 },
               ],
@@ -581,7 +592,7 @@ export default defineConfig({
                     { slug: 'platform/cloud/logs' },
                     { slug: 'platform/cloud/environment-variables' },
                     { slug: 'platform/cloud/secrets' },
-                    { slug: 'platform/cloud/git' },
+                    { slug: 'platform/cloud/deployments' },
                     { slug: 'platform/cloud/custom-domains' },
                     { slug: 'platform/cloud/rate-limits' },
                     { slug: 'platform/cloud/tls' },

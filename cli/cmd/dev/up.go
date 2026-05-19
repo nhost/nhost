@@ -41,6 +41,7 @@ const (
 	flagsHasuraPort        = "hasura-port"
 	flagsHasuraConsolePort = "hasura-console-port"
 	flagDashboardVersion   = "dashboard-version"
+	flagFunctionsVersion   = "functions-version"
 	flagConfigserverImage  = "configserver-image"
 	flagRunService         = "run-service"
 	flagRunServiceVolume   = "run-service-volume"
@@ -49,8 +50,9 @@ const (
 )
 
 const (
-	defaultHTTPPort     = 443
-	defaultPostgresPort = 5432
+	defaultHTTPPort         = 443
+	defaultPostgresPort     = 5432
+	defaultFunctionsVersion = "2.1.0"
 )
 
 func CommandUp() *cli.Command { //nolint:funlen
@@ -112,8 +114,14 @@ func CommandUp() *cli.Command { //nolint:funlen
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:2.59.0",
+				Value:   "nhost/dashboard:2.61.1",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagFunctionsVersion,
+				Usage:   "Functions version to use",
+				Value:   defaultFunctionsVersion,
+				Sources: cli.EnvVars("NHOST_FUNCTIONS_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagConfigserverImage,
@@ -188,6 +196,7 @@ func commandUp(ctx context.Context, cmd *cli.Command) error {
 			Functions: cmd.Uint(flagsFunctionsPort),
 		},
 		cmd.String(flagDashboardVersion),
+		cmd.String(flagFunctionsVersion),
 		configserverImage,
 		cmd.String(flagCACertificates),
 		cmd.StringSlice(flagRunService),
@@ -402,6 +411,7 @@ func up( //nolint:funlen,cyclop
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
 	dashboardVersion string,
+	functionsVersion string,
 	configserverImage string,
 	caCertificatesPath string,
 	runServices []string,
@@ -428,6 +438,15 @@ func up( //nolint:funlen,cyclop
 	cfg, err := config.Validate(ce, "local", secrets)
 	if err != nil {
 		return fmt.Errorf("failed to validate config: %w", err)
+	}
+
+	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:mnd
+		return fmt.Errorf("failed to create .nhost folder: %w", err)
+	}
+
+	appID, err := clienv.GetOrCreateAppID(ce.Path.AppID())
+	if err != nil {
+		return fmt.Errorf("failed to get app id: %w", err)
 	}
 
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:mnd
@@ -461,7 +480,9 @@ func up( //nolint:funlen,cyclop
 		ports,
 		ce.Branch(),
 		dashboardVersion,
+		functionsVersion,
 		configserverImage,
+		appID,
 		clienv.PathExists(ce.Path.Functions()),
 		caCertificatesPath,
 		runServicesCfg...,
@@ -620,6 +641,7 @@ func Up(
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
 	dashboardVersion string,
+	functionsVersion string,
 	configserverImage string,
 	caCertificatesPath string,
 	runServices []string,
@@ -639,6 +661,7 @@ func Up(
 		applySeeds,
 		ports,
 		dashboardVersion,
+		functionsVersion,
 		configserverImage,
 		caCertificatesPath,
 		runServices,

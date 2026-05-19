@@ -56,6 +56,13 @@ func (f *FakeProvider) Exchange(
 			TokenType:    "Bearer",
 			ExpiresIn:    9000, //nolint:mnd
 		}, nil
+	case "valid-code-unverified-email":
+		return &oauth2.Token{ //nolint:exhaustruct
+			AccessToken:  "valid-accesstoken-unverified-email",
+			RefreshToken: "valid-refreshtoken-unverified-email",
+			TokenType:    "Bearer",
+			ExpiresIn:    9000, //nolint:mnd
+		}, nil
 	default:
 		return nil, errors.New("invalid code") //nolint:err113
 	}
@@ -72,7 +79,7 @@ func (f *FakeProvider) GetProfile(
 		return oidc.Profile{
 			ProviderUserID: "1234567890",
 			Email:          "user1@fake.com",
-			EmailVerified:  true,
+			EmailVerified:  oidc.EmailVerificationStatusVerified,
 			Name:           "User One",
 			Picture:        "https://fake.com/images/profile/user1.jpg",
 		}, nil
@@ -80,9 +87,17 @@ func (f *FakeProvider) GetProfile(
 		return oidc.Profile{
 			ProviderUserID: "9876543210",
 			Email:          "",
-			EmailVerified:  false,
+			EmailVerified:  oidc.EmailVerificationStatusUnverified,
 			Name:           "User No Email",
 			Picture:        "https://fake.com/images/profile/user2.jpg",
+		}, nil
+	case "valid-accesstoken-unverified-email":
+		return oidc.Profile{
+			ProviderUserID: "1234567890",
+			Email:          "user1@fake.com",
+			EmailVerified:  oidc.EmailVerificationStatusUnverified,
+			Name:           "User One",
+			Picture:        "https://fake.com/images/profile/user1.jpg",
 		}, nil
 	default:
 		return oidc.Profile{}, errors.New("invalid access token") //nolint:err113

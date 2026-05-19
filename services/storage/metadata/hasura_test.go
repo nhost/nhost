@@ -133,7 +133,7 @@ func TestInitializeFile(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: 400,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"asdsad\"","extensions":{"code":"data-exception","path":"$.selectionSet.insertFile.args.object"}}]}`,
+				Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"asdsad\"","extensions":{"code":"data-exception","path":"$.selectionSet.insertFiles.args.objects[0]"}}]}`,
 			},
 		},
 		{

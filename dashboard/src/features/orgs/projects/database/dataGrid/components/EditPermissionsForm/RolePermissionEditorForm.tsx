@@ -3,12 +3,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
+import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
 import { Form } from '@/components/form/Form';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useManagePermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManagePermissionMutation';
 import type {
   DatabaseAction,
@@ -16,9 +17,10 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import {
-  unWrapRuleNodes,
+  serializeNode,
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
@@ -32,7 +34,13 @@ import RootFieldPermissionsSection from './sections/RootFieldPermissionsSection'
 import RowPermissionsSection from './sections/RowPermissionsSection';
 import validationSchemas from './validationSchemas';
 
+export type RowCheckType = 'none' | 'custom';
+
 export interface RolePermissionEditorFormValues {
+  /**
+   * Whether custom row checks are enabled.
+   */
+  rowCheckType: RowCheckType;
   /**
    * The permission filter to be applied for the role.
    */
@@ -98,6 +106,31 @@ export interface RolePermissionEditorFormProps extends DialogFormProps {
    */
   action: DatabaseAction;
   /**
+   * All roles selectable in the role dropdown.
+   */
+  availableRoles: string[];
+  /**
+   * All actions selectable in the action dropdown.
+   */
+  allowedActions: DatabaseAction[];
+  /**
+   * Human-readable labels for each action.
+   */
+  actionLabels: Record<DatabaseAction, string>;
+  /**
+   * Names of computed fields configured on the table. Only relevant for the
+   * `select` action; rendered as additional checkboxes alongside columns.
+   */
+  availableComputedFields?: string[];
+  /**
+   * Called when the user picks a different role from the dropdown.
+   */
+  onRoleChange: (role: string) => void;
+  /**
+   * Called when the user picks a different action from the dropdown.
+   */
+  onActionChange: (action: DatabaseAction) => void;
+  /**
    * Function to be called when the form is submitted.
    */
   onSubmit: VoidFunction;
@@ -111,21 +144,32 @@ export interface RolePermissionEditorFormProps extends DialogFormProps {
   permission?: HasuraMetadataPermission['permission'];
 }
 
-function getDefaultCustomCheck(
+function getDefaultFilter(
   action: DatabaseAction,
   permission?: HasuraMetadataPermission['permission'],
-): GroupNode | null {
+): {
+  rowCheckType: RowCheckType;
+  filter: RolePermissionEditorFormValues['filter'];
+} {
   if (!permission) {
-    return null;
+    return { rowCheckType: 'none', filter: {} };
   }
 
   if (action === 'insert' && isNotEmptyValue(permission.check)) {
-    return wrapPermissionsInAGroup(permission.check);
+    return {
+      rowCheckType: 'custom',
+      filter: wrapPermissionsInAGroup(permission.check),
+    };
   }
 
-  return isNotEmptyValue(permission.filter)
-    ? wrapPermissionsInAGroup(permission.filter)
-    : null;
+  if (isNotEmptyValue(permission.filter)) {
+    return {
+      rowCheckType: 'custom',
+      filter: wrapPermissionsInAGroup(permission.filter),
+    };
+  }
+
+  return { rowCheckType: 'none', filter: {} };
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
@@ -169,12 +213,19 @@ export default function RolePermissionEditorForm({
   role,
   resourceVersion,
   action,
+  availableRoles,
+  allowedActions,
+  actionLabels,
+  availableComputedFields,
+  onRoleChange,
+  onActionChange,
   onSubmit,
   onCancel,
   permission,
   location,
 }: RolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
+  const { project } = useProject();
   const {
     mutateAsync: managePermission,
     error,
@@ -186,14 +237,21 @@ export default function RolePermissionEditorForm({
     mutationOptions: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['default.metadata'] });
+        queryClient.invalidateQueries({
+          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+        });
       },
     },
   });
 
+  const { rowCheckType: defaultRowCheckType, filter: defaultFilter } =
+    getDefaultFilter(action, permission);
+
   const form = useForm<RolePermissionEditorFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      filter: getDefaultCustomCheck(action, permission),
+      rowCheckType: defaultRowCheckType,
+      filter: defaultFilter,
       columns: permission?.columns || [],
       limit: permission?.limit || null,
       allowAggregations: permission?.allow_aggregations || false,
@@ -222,6 +280,11 @@ export default function RolePermissionEditorForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(values: RolePermissionEditorFormValues) {
+    const permissionFilter =
+      values.rowCheckType === 'custom'
+        ? serializeNode(values.filter as GroupNode)
+        : (values.filter ?? {});
+
     const managePermissionPromise = managePermission({
       role,
       action,
@@ -239,22 +302,13 @@ export default function RolePermissionEditorForm({
         subscription_root_fields: isNotEmptyValue(values.subscriptionRootFields)
           ? values.subscriptionRootFields
           : null,
-        filter:
-          action !== 'insert'
-            ? values.filter
-              ? unWrapRuleNodes(values.filter as GroupNode)
-              : {}
-            : permission?.filter,
-        check:
-          action === 'insert'
-            ? values.filter
-              ? unWrapRuleNodes(values.filter as GroupNode)
-              : {}
-            : permission?.check,
+        filter: action !== 'insert' ? permissionFilter : permission?.filter,
+        check: action === 'insert' ? permissionFilter : permission?.check,
         backend_only: values.backendOnly,
-        computed_fields: isNotEmptyValue(permission?.computed_fields)
-          ? permission?.computed_fields
-          : null,
+        computed_fields:
+          action === 'select' && isNotEmptyValue(values.computedFields)
+            ? values.computedFields
+            : null,
       },
     });
 
@@ -361,21 +415,19 @@ export default function RolePermissionEditorForm({
         <div className="grid flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection
             title="Selected role & action"
-            className="grid-flow-col justify-between"
+            className="grid-flow-col justify-start gap-6"
           >
-            <div className="grid grid-flow-col gap-4">
-              <Text>
-                Role: <HighlightedText>{role}</HighlightedText>
-              </Text>
-
-              <Text>
-                Action: <HighlightedText>{action}</HighlightedText>
-              </Text>
-            </div>
-
-            <Button variant="borderless" onClick={handleCancelClick}>
-              Change
-            </Button>
+            <RoleActionSwitcher
+              role={role}
+              action={action}
+              availableRoles={availableRoles}
+              availableActions={allowedActions}
+              actionLabels={actionLabels}
+              isDirty={isDirty}
+              location={location}
+              onRoleChange={onRoleChange}
+              onActionChange={onActionChange}
+            />
           </PermissionSettingsSection>
 
           <RowPermissionsSection
@@ -391,6 +443,7 @@ export default function RolePermissionEditorForm({
               action={action}
               schema={schema}
               table={table}
+              availableComputedFields={availableComputedFields}
             />
           )}
 

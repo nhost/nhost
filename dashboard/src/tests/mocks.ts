@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: mock file */
 
 import { faker } from '@faker-js/faker';
-import type { Session } from '@nhost/nhost-js/session';
+import type { StoredSession } from '@nhost/nhost-js/session';
 import type { NextRouter } from 'next/router';
 import { vi } from 'vitest';
 import type { Organization, Project } from '@/types/application';
@@ -87,7 +87,7 @@ export const mockApplication: Project = {
   },
 };
 
-export const mockSession: Session = {
+export const mockSession: StoredSession = {
   accessToken:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
   accessTokenExpiresIn: 86400,

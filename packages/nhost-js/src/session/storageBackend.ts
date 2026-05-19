@@ -5,24 +5,41 @@
  * across page reloads and browser sessions.
  */
 
-import type { Session } from './session';
+import type { StoredSession } from './session';
 
 /**
  * Session storage interface for session persistence.
  * This interface can be implemented to provide custom storage solutions.
+ *
+ * **Important:** The methods here operate on {@link StoredSession}, which is
+ * the enriched client-side session managed by the Nhost SDK. It extends the
+ * raw `Session` type from `@nhost/nhost-js/auth` by adding a `decodedToken`
+ * field with the parsed JWT payload. Do **not** use `auth.Session` here —
+ * it is missing `decodedToken` and will cause a TypeScript error.
+ *
+ * @example
+ * ```ts
+ * import { type StoredSession, type SessionStorageBackend } from '@nhost/nhost-js/session';
+ *
+ * class MyCustomStorage implements SessionStorageBackend {
+ *   get(): StoredSession | null { ... }
+ *   set(value: StoredSession): void { ... }
+ *   remove(): void { ... }
+ * }
+ * ```
  */
 export interface SessionStorageBackend {
   /**
    * Get the current session from storage
    * @returns The stored session or null if not found
    */
-  get(): Session | null;
+  get(): StoredSession | null;
 
   /**
    * Set the session in storage
    * @param value - The session to store
    */
-  set(value: Session): void;
+  set(value: StoredSession): void;
 
   /**
    * Remove the session from storage
@@ -55,10 +72,10 @@ export class LocalStorage implements SessionStorageBackend {
    * Gets the session from localStorage
    * @returns The stored session or null if not found
    */
-  get(): Session | null {
+  get(): StoredSession | null {
     try {
       const value = window.localStorage.getItem(this.storageKey);
-      return value ? (JSON.parse(value) as Session) : null;
+      return value ? (JSON.parse(value) as StoredSession) : null;
     } catch {
       this.remove();
       return null;
@@ -69,7 +86,7 @@ export class LocalStorage implements SessionStorageBackend {
    * Sets the session in localStorage
    * @param value - The session to store
    */
-  set(value: Session): void {
+  set(value: StoredSession): void {
     window.localStorage.setItem(this.storageKey, JSON.stringify(value));
   }
 
@@ -86,13 +103,13 @@ export class LocalStorage implements SessionStorageBackend {
  * persistent storage is not available or desirable.
  */
 export class MemoryStorage implements SessionStorageBackend {
-  private session: Session | null = null;
+  private session: StoredSession | null = null;
 
   /**
    * Gets the session from memory
    * @returns The stored session or null if not set
    */
-  get(): Session | null {
+  get(): StoredSession | null {
     return this.session;
   }
 
@@ -100,7 +117,7 @@ export class MemoryStorage implements SessionStorageBackend {
    * Sets the session in memory
    * @param value - The session to store
    */
-  set(value: Session): void {
+  set(value: StoredSession): void {
     this.session = value;
   }
 
@@ -148,13 +165,13 @@ export class CookieStorage implements SessionStorageBackend {
    * Gets the session from cookies
    * @returns The stored session or null if not found
    */
-  get(): Session | null {
+  get(): StoredSession | null {
     const cookies = document.cookie.split(';');
     for (const cookie of cookies) {
       const [name, value] = cookie.trim().split('=');
       if (name === this.cookieName) {
         try {
-          return JSON.parse(decodeURIComponent(value || '')) as Session;
+          return JSON.parse(decodeURIComponent(value || '')) as StoredSession;
         } catch {
           this.remove();
           return null;
@@ -168,7 +185,7 @@ export class CookieStorage implements SessionStorageBackend {
    * Sets the session in a cookie
    * @param value - The session to store
    */
-  set(value: Session): void {
+  set(value: StoredSession): void {
     const expires = new Date();
     expires.setTime(
       expires.getTime() + this.expirationDays * 24 * 60 * 60 * 1000,

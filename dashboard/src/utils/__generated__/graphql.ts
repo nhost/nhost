@@ -1037,6 +1037,8 @@ export type ConfigAuthSessionUpdateInput = {
 
 export type ConfigAuthSignUp = {
   __typename?: 'ConfigAuthSignUp';
+  /** AUTH_DISABLE_AUTO_SIGNUP */
+  disableAutoSignup?: Maybe<Scalars['Boolean']>;
   /** AUTH_DISABLE_NEW_USERS */
   disableNewUsers?: Maybe<Scalars['Boolean']>;
   /** Inverse of AUTH_DISABLE_SIGNUP */
@@ -1048,12 +1050,14 @@ export type ConfigAuthSignUpComparisonExp = {
   _and?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
   _not?: InputMaybe<ConfigAuthSignUpComparisonExp>;
   _or?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
+  disableAutoSignup?: InputMaybe<ConfigBooleanComparisonExp>;
   disableNewUsers?: InputMaybe<ConfigBooleanComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
   turnstile?: InputMaybe<ConfigAuthSignUpTurnstileComparisonExp>;
 };
 
 export type ConfigAuthSignUpInsertInput = {
+  disableAutoSignup?: InputMaybe<Scalars['Boolean']>;
   disableNewUsers?: InputMaybe<Scalars['Boolean']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
   turnstile?: InputMaybe<ConfigAuthSignUpTurnstileInsertInput>;
@@ -1080,6 +1084,7 @@ export type ConfigAuthSignUpTurnstileUpdateInput = {
 };
 
 export type ConfigAuthSignUpUpdateInput = {
+  disableAutoSignup?: InputMaybe<Scalars['Boolean']>;
   disableNewUsers?: InputMaybe<Scalars['Boolean']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
   turnstile?: InputMaybe<ConfigAuthSignUpTurnstileUpdateInput>;
@@ -22126,6 +22131,11 @@ export type Query_Root = {
   getEgressVolume: Metrics;
   getFunctionsDuration: Metrics;
   getFunctionsInvocations: Metrics;
+  /**
+   * Returns functions logs for a given application, filtered by function path.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   */
+  getFunctionsLogs: Array<Log>;
   getLogsVolume: Metrics;
   getPiTRBaseBackups: Array<PiTrBaseBackup>;
   /**
@@ -23180,6 +23190,15 @@ export type Query_RootGetFunctionsDurationArgs = {
 export type Query_RootGetFunctionsInvocationsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetFunctionsLogsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  path: Scalars['String'];
+  regexFilter?: InputMaybe<Scalars['String']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
@@ -26086,6 +26105,11 @@ export type Subscription_Root = {
   /** fetch data from the table in a streaming manner: "storage.files" */
   files_stream: Array<Files>;
   /**
+   * Returns functions logs for a given application, filtered by function path.
+   * If `from` is not provided, it defaults to an hour ago.
+   */
+  getFunctionsLogs: Array<Log>;
+  /**
    * Returns pipeline run logs for a given application and pipeline run.
    * If `from` is not provided, it defaults to an hour ago.
    */
@@ -27329,6 +27353,14 @@ export type Subscription_RootFiles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Files_Stream_Cursor_Input>>;
   where?: InputMaybe<Files_Bool_Exp>;
+};
+
+
+export type Subscription_RootGetFunctionsLogsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  path: Scalars['String'];
+  regexFilter?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -30804,7 +30836,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null, disableNewUsers?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null, disableNewUsers?: boolean | null, disableAutoSignup?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
 
 export type BackupFragment = { __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null };
 
@@ -31333,6 +31365,27 @@ export type GetGithubRepositoriesQueryVariables = Exact<{ [key: string]: never; 
 
 
 export type GetGithubRepositoriesQuery = { __typename?: 'query_root', githubRepositories: Array<{ __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } }>, githubAppInstallations: Array<{ __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null }> };
+
+export type GetFunctionsLogsQueryVariables = Exact<{
+  appID: Scalars['String'];
+  from: Scalars['Timestamp'];
+  to?: InputMaybe<Scalars['Timestamp']>;
+  path: Scalars['String'];
+  regexFilter?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type GetFunctionsLogsQuery = { __typename?: 'query_root', getFunctionsLogs: Array<{ __typename?: 'Log', timestamp: any, service: string, log: string }> };
+
+export type GetFunctionsLogsSubscriptionSubscriptionVariables = Exact<{
+  appID: Scalars['String'];
+  from: Scalars['Timestamp'];
+  path: Scalars['String'];
+  regexFilter?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type GetFunctionsLogsSubscriptionSubscription = { __typename?: 'subscription_root', getFunctionsLogs: Array<{ __typename?: 'Log', timestamp: any, service: string, log: string }> };
 
 export type GetProjectLogsQueryVariables = Exact<{
   appID: Scalars['String'];
@@ -32662,6 +32715,7 @@ export const GetAuthenticationSettingsDocument = gql`
       signUp {
         enabled
         disableNewUsers
+        disableAutoSignup
       }
       session {
         accessToken {
@@ -35758,6 +35812,96 @@ export type GetGithubRepositoriesQueryResult = Apollo.QueryResult<GetGithubRepos
 export function refetchGetGithubRepositoriesQuery(variables?: GetGithubRepositoriesQueryVariables) {
       return { query: GetGithubRepositoriesDocument, variables: variables }
     }
+export const GetFunctionsLogsDocument = gql`
+    query getFunctionsLogs($appID: String!, $from: Timestamp!, $to: Timestamp, $path: String!, $regexFilter: String) {
+  getFunctionsLogs(
+    appID: $appID
+    from: $from
+    to: $to
+    path: $path
+    regexFilter: $regexFilter
+  ) {
+    timestamp
+    service
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetFunctionsLogsQuery__
+ *
+ * To run a query within a React component, call `useGetFunctionsLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFunctionsLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFunctionsLogsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *      path: // value for 'path'
+ *      regexFilter: // value for 'regexFilter'
+ *   },
+ * });
+ */
+export function useGetFunctionsLogsQuery(baseOptions: Apollo.QueryHookOptions<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>(GetFunctionsLogsDocument, options);
+      }
+export function useGetFunctionsLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>(GetFunctionsLogsDocument, options);
+        }
+export type GetFunctionsLogsQueryHookResult = ReturnType<typeof useGetFunctionsLogsQuery>;
+export type GetFunctionsLogsLazyQueryHookResult = ReturnType<typeof useGetFunctionsLogsLazyQuery>;
+export type GetFunctionsLogsQueryResult = Apollo.QueryResult<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>;
+export function refetchGetFunctionsLogsQuery(variables: GetFunctionsLogsQueryVariables) {
+      return { query: GetFunctionsLogsDocument, variables: variables }
+    }
+export const GetFunctionsLogsSubscriptionDocument = gql`
+    subscription getFunctionsLogsSubscription($appID: String!, $from: Timestamp!, $path: String!, $regexFilter: String) {
+  getFunctionsLogs(
+    appID: $appID
+    from: $from
+    path: $path
+    regexFilter: $regexFilter
+  ) {
+    timestamp
+    service
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetFunctionsLogsSubscriptionSubscription__
+ *
+ * To run a query within a React component, call `useGetFunctionsLogsSubscriptionSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetFunctionsLogsSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFunctionsLogsSubscriptionSubscription({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      from: // value for 'from'
+ *      path: // value for 'path'
+ *      regexFilter: // value for 'regexFilter'
+ *   },
+ * });
+ */
+export function useGetFunctionsLogsSubscriptionSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetFunctionsLogsSubscriptionSubscription, GetFunctionsLogsSubscriptionSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetFunctionsLogsSubscriptionSubscription, GetFunctionsLogsSubscriptionSubscriptionVariables>(GetFunctionsLogsSubscriptionDocument, options);
+      }
+export type GetFunctionsLogsSubscriptionSubscriptionHookResult = ReturnType<typeof useGetFunctionsLogsSubscriptionSubscription>;
+export type GetFunctionsLogsSubscriptionSubscriptionResult = Apollo.SubscriptionResult<GetFunctionsLogsSubscriptionSubscription>;
 export const GetProjectLogsDocument = gql`
     query getProjectLogs($appID: String!, $service: String, $from: Timestamp, $to: Timestamp, $regexFilter: String) {
   logs(

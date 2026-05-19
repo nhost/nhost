@@ -45,7 +45,7 @@ Generate a structured PR description and publish it.
 
 Follow the format template in [template.md](template.md) exactly.
 
-Write the complete body (author content + your section) directly to `PR_<PR_NUMBER>_DESCRIPTION.md` at the repo root using the Write tool.
+Write the complete body (author content + your section) directly to `.review/PR_<PR_NUMBER>_DESCRIPTION.md` at the repo root using the Write tool.
 
 ---
 
@@ -74,7 +74,7 @@ Instead, follow this validation loop:
    - Explore the codebase freely (callers, interfaces, other packages, tests) to confirm or refute the issue.
    - If confirmed, propose the plan to address it.
    - Return: `{ confirmed: bool, reason: string, plan: string | null }`.
-3. **If confirmed**, write the finding directly to `PR_<PR_NUMBER>_COMMENT_<N>.md` at the repo root using the Write tool, where `<N>` is an incrementing counter starting at 1. The file must include:
+3. **If confirmed**, write the finding directly to `.review/PR_<PR_NUMBER>_COMMENT_<N>.md` at the repo root using the Write tool, where `<N>` is an incrementing counter starting at 1. The file must include:
    - A `**File:**` header with the file path.
    - A `**Line:**` header with the line number.
    - The severity and a brief explanation of why it matters.
@@ -90,6 +90,7 @@ Instead, follow this validation loop:
 ### What to look for:
 
 **Before starting**, identify which project(s) the PR touches and load their `CLAUDE.md` files.
+Skip any `vendor/` files — they are auto-managed and excluded from the diff.
 
 - **Security**: SQL injection, command injection, hardcoded secrets, credentials in logs, input sanitization, etc.
 - **Documentation**: new public functions, APIs, or significant logic should have documentation. Specially if the changes are customer-facing.
@@ -100,11 +101,11 @@ Instead, follow this validation loop:
 
 Post each validated finding as described above.
 
-After all findings are written, write the review summary directly to `PR_<PR_NUMBER>_REVIEW.md` at the repo root using the Write tool. The file must start with a `**Decision:**` header containing one of: `approve`, `request-changes`, `comment`.
+After all findings are written, write the review summary directly to `.review/PR_<PR_NUMBER>_REVIEW.md` at the repo root using the Write tool. The file must start with a `**Decision:**` header containing one of: `approve`, `request-changes`, `comment`.
 
 The summary should list:
 - Count of findings by severity.
 - Any high-impact warnings.
 - An overall assessment (approve, request changes, or comment).
 
-All output files are written at the repo root: `PR_<PR_NUMBER>_DESCRIPTION.md`, `PR_<PR_NUMBER>_COMMENT_N.md`, `PR_<PR_NUMBER>_REVIEW.md`.
+All output files are written under `.review/` at the repo root: `.review/PR_<PR_NUMBER>_DESCRIPTION.md`, `.review/PR_<PR_NUMBER>_COMMENT_N.md`, `.review/PR_<PR_NUMBER>_REVIEW.md`.

@@ -3,7 +3,6 @@ import { alpha } from '@mui/system';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Button } from '@/components/ui/v2/Button';
@@ -24,7 +23,6 @@ import { triggerToast } from '@/utils/toast';
 export default function ResetDatabasePasswordSettings() {
   const [resetPassword, { loading: resetPasswordLoading }] =
     useResetDatabasePasswordMutation();
-  const { maintenanceActive } = useUI();
   const user = useUserData();
   const { project } = useProject();
   const { openAlertDialog } = useDialog();
@@ -123,7 +121,7 @@ export default function ResetDatabasePasswordSettings() {
             submitButton: {
               variant: isDirty ? 'contained' : 'outlined',
               color: isDirty ? 'error' : 'secondary',
-              disabled: !isDirty || maintenanceActive,
+              disabled: !isDirty,
               loading: isSubmitting || resetPasswordLoading,
             },
           }}

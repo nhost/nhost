@@ -186,11 +186,6 @@ describe('ProjectLayoutContent', () => {
     },
     {
       description:
-        'should redirect to 404 if we are not on platform and on a the logs page',
-      route: '/orgs/[orgSlug]/projects/[appSubdomain]/logs',
-    },
-    {
-      description:
         'should redirect to 404 if we are not on platform and on a the backups page',
       route: '/orgs/[orgSlug]/projects/[appSubdomain]/backups',
     },

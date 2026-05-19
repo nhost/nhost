@@ -47,10 +47,12 @@ function relationshipNode(
 const validationSchema = validationSchemas.select;
 
 async function validateFilter(filter: GroupNode | null) {
-  return validationSchema.validateAt('filter', { filter }).then(
-    () => null,
-    (err: { message: string }) => err.message,
-  );
+  return validationSchema
+    .validateAt('filter', { filter, rowCheckType: 'custom' })
+    .then(
+      () => null,
+      (err: { message: string }) => err.message,
+    );
 }
 
 describe('validationSchemas — duplicate flat condition detection', () => {

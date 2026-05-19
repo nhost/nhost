@@ -744,6 +744,11 @@ func (wf *Workflows) ChangePassword(
 		return ErrInternalServerError
 	}
 
+	// UpdateUserChangePassword atomically rotates the password hash and revokes
+	// session refresh tokens (regular rows in auth.refresh_tokens plus all
+	// auth.oauth2_refresh_tokens) within a single CTE. Personal Access Tokens
+	// (type='pat') are intentionally preserved so automation keeps working
+	// across password changes.
 	if _, err := wf.db.UpdateUserChangePassword(
 		ctx,
 		sql.UpdateUserChangePasswordParams{
@@ -1219,7 +1224,7 @@ func (wf *Workflows) UpdateUserConfirmChangeEmail(
 	if err != nil {
 		if sqlIsDuplcateError(err, "users_email_key") {
 			logger.ErrorContext(ctx, "user email id already in use", logError(err))
-			return sql.AuthUser{}, ErrEmailAlreadyInUse
+			return sql.AuthUser{}, ErrUserAlreadyExists
 		}
 
 		logger.ErrorContext(ctx, "error updating user", logError(err))

@@ -128,6 +128,7 @@ function TaskLogList({ logs }: { logs: DeploymentLog[] }) {
       className="max-h-64 overflow-x-auto overflow-y-scroll"
     >
       {logs.map((log, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: logs are append-only and timestamps can collide, so index disambiguates
         <div key={`${log.timestamp}-${index}`} className="flex font-mono">
           <div className="mr-2 flex-shrink-0 text-white/60">
             {format(parseISO(log.timestamp), 'HH:mm:ss')}

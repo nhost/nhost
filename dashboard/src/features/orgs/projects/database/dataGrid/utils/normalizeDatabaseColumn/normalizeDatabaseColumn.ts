@@ -13,8 +13,9 @@ import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGri
 export default function normalizeDatabaseColumn(
   rawColumn: NormalizedQueryDataRow,
 ): DatabaseColumn {
-  const { normalizedDefaultValue, custom: isDefaultValueCustom } =
-    normalizeDefaultValue(rawColumn.column_default);
+  const { normalizedDefaultValue, custom } = normalizeDefaultValue(
+    rawColumn.column_default,
+  );
 
   return {
     id: rawColumn.column_name,
@@ -22,15 +23,13 @@ export default function normalizeDatabaseColumn(
     type: normalizeColumnType(rawColumn),
     isPrimary: rawColumn.is_primary,
     isIdentity: rawColumn.is_identity === 'YES',
+    isGenerated: rawColumn.is_generated === 'ALWAYS',
+    generationExpression: rawColumn.generation_expression ?? null,
     isNullable: rawColumn.is_nullable === 'YES',
     isUnique: rawColumn.is_unique,
     comment: rawColumn.column_comment || null,
     defaultValue: rawColumn.column_default
-      ? {
-          value: normalizedDefaultValue,
-          label: normalizedDefaultValue,
-          custom: isDefaultValueCustom,
-        }
+      ? { value: normalizedDefaultValue, custom }
       : null,
     uniqueConstraints: rawColumn.unique_constraints,
     primaryConstraints: rawColumn.primary_constraints,

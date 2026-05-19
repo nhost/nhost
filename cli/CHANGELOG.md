@@ -1,3 +1,39 @@
+## [cli@1.45.0] - 2026-04-30
+
+### 🚀 Features
+
+- *(cli)* Allow filtering function logs by regex (#4193)
+- *(dashboard)* Serverless functions view (#4141)
+- *(functions)* Reuse esbuild context to lower memory usage (#4211)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up uuid, Astro and xmldom due to CVEs (#4187)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(functions)* Bump references to 2.1.0 (#4218)
+
+## [cli@1.44.0] - 2026-04-20
+
+### 🚀 Features
+
+- *(auth)* Allow disabling auto-signup (#4168)
+- *(cli)* Add support for logs and update functions to new v2 (#4159)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Bump version references as part of the changelog (#4169)
+
+## [cli@1.43.1] - 2026-04-17
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump versions (#4165)
+
 ## [cli@1.43.0] - 2026-04-14
 
 ### 🚀 Features

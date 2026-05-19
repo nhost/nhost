@@ -1,5 +1,4 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
-import { UIProvider } from '@/components/common/UIProvider';
 import { TreeNavStateProvider } from '@/components/layout/MainNav/TreeNavStateContext';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
@@ -8,7 +7,6 @@ import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
 import { NhostProvider } from '@/providers/nhost';
 import '@/styles/fonts.css';
-import '@/styles/github-dark.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
@@ -31,7 +29,6 @@ import { DefaultSeo } from 'next-seo';
 import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { RecoilRoot } from 'recoil';
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -78,29 +75,25 @@ function MyApp({
             connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
           >
             <AuthProvider>
-              <UIProvider>
-                <Toaster position="bottom-center" />
-                <ThemeProvider
-                  colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
-                >
-                  <RetryableErrorBoundary>
-                    <RecoilRoot>
-                      <TooltipProvider>
-                        <DialogProvider>
-                          <ProgressBar
-                            height="2px"
-                            color="#0052cd"
-                            options={{ showSpinner: false }}
-                          />
-                          <TreeNavStateProvider>
-                            {getLayout(<Component {...pageProps} />)}
-                          </TreeNavStateProvider>
-                        </DialogProvider>
-                      </TooltipProvider>
-                    </RecoilRoot>
-                  </RetryableErrorBoundary>
-                </ThemeProvider>
-              </UIProvider>
+              <Toaster position="bottom-center" />
+              <ThemeProvider
+                colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
+              >
+                <RetryableErrorBoundary>
+                  <TooltipProvider>
+                    <DialogProvider>
+                      <ProgressBar
+                        height="2px"
+                        color="#0052cd"
+                        options={{ showSpinner: false }}
+                      />
+                      <TreeNavStateProvider>
+                        {getLayout(<Component {...pageProps} />)}
+                      </TreeNavStateProvider>
+                    </DialogProvider>
+                  </TooltipProvider>
+                </RetryableErrorBoundary>
+              </ThemeProvider>
             </AuthProvider>
           </NhostApolloProvider>
         </NhostProvider>

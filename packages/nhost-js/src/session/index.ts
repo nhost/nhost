@@ -15,7 +15,7 @@
  */
 
 export { refreshSession } from './refreshSession';
-export type { DecodedToken, Session } from './session';
+export type { DecodedToken, Session, StoredSession } from './session';
 export {
   detectStorage,
   type SessionChangeCallback,

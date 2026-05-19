@@ -1,4 +1,5 @@
 import { Anchor, Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -43,6 +44,7 @@ type Props = {
   isUntracked: boolean;
   open: boolean;
   className?: string;
+  triggerIcon?: ReactNode;
   onOpen: () => void;
   onClose: () => void;
   disabled: boolean;
@@ -60,6 +62,7 @@ function DatabaseObjectActions({
   isUntracked,
   open,
   className,
+  triggerIcon,
   onClose,
   onOpen,
   disabled,
@@ -97,7 +100,7 @@ function DatabaseObjectActions({
           size="icon"
           className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent"
         >
-          <Ellipsis />
+          {triggerIcon ?? <Ellipsis />}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="bottom" align="start" className="w-52 p-0">

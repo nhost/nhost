@@ -1,3 +1,106 @@
+## [@nhost/dashboard@2.63.0] - 2026-05-18
+
+### 🚀 Features
+
+- *(dashboard)* Added database schema navigator (#4268)
+- *(dashboard)* Re-do completely compute resources interface (#4276)
+- *(cli)* Harden local configserver against cross-origin and exfil access (#4302)
+
+
+### 🐛 Bug Fixes
+
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(dashboard)* Fix column ordering on the database table (#4198)
+- *(dashboard)* Add support for generated columns (#4186)
+- *(dashboard)* Update create user e2e test (#4251)
+- *(dashboard)* Display boolean values in CustomCheckEditor (#4228)
+- *(dashboard)* Show discard changes dialog for GraphQL settings drawer (#4235)
+- *(dashboard)* Show computed fields in table permissions (#4248)
+- *(deps)* Fix fast-uri advisory (GHSA-v39h-62p7-jpjc) (#4265)
+- *(dashboard)* Drop redundant NEXT_PUBLIC_ENV admin-secret branc (#4259)
+- *(deps)* Update biome to 2.4.15 (#4270)
+- *(dashboard)* Migrate custom product icons to v3 (#4249)
+- *(dashboard)* Migrate BaseTableForm to v3 (#4212)
+- *(dashboard)* Unify toast background color in light theme (#4269)
+- *(dashboard)* Fixed mobile responsive smtp layout (#4274)
+- *(dashboard)* Serialize remote schema permission presets as GraphQL literals (#4257)
+- *(dashboard)* Remove useEffect URL→state sync in header comboboxes (#4290)
+- *(dashboard)* Route useGetRolesPermissionsQuery through localMimirClient in ColumnPresetsSection (#4280)
+- *(dashboard)* Hide non-trackable functions from the data browser (#4294)
+- *(dashboard)* Prevent SQL editor from shrinking data browser sidebar (#4295)
+- *(deps)* Update brace-expansion due to CVE (#4306)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Update CLAUDE.md with the use of lsp (#4299)
+
+
+### Chore
+
+- *(deps)* Upgrade Next.js to 16.2.5 (#4271)
+- *(deps)* Update pnpm to v11 (#4275)
+
+## [@nhost/dashboard@2.62.0] - 2026-05-05
+
+### 🚀 Features
+
+- *(dashboard)* Add copy button to Json editor (#4229)
+
+
+### 🐛 Bug Fixes
+
+- *(nhost-js)* Rename session.Session to StoredSession to disambiguate from auth.Session (#4194)
+- *(dashboard)* Add v2 icon migration inventory documentation (#4208)
+- *(dashboard)* Remove graphite dev assistant from topbar (#4222)
+
+## [@nhost/dashboard@2.61.1] - 2026-04-30
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Rename Settings 'Git' to 'Deployments' (#4213)
+
+## [@nhost/dashboard@2.61.0] - 2026-04-29
+
+### 🚀 Features
+
+- *(dashboard)* Display constraints, triggers and indexes in database view (#3875)
+- *(dashboard)* Switch role and action via dropdowns in permissions editor (#4196)
+- *(dashboard)* Add JSON editor to custom check (#4166)
+- *(dashboard)* Serverless functions view (#4141)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Handle non-trackable postgres functions in database page (#4176)
+- *(deps)* Bump up uuid, Astro and xmldom due to CVEs (#4187)
+- *(dashboard)* Revalidate remote schema introspection after reload (#4178)
+- *(dashboard)* Stick permissions button to bottom of storage sidebar (#4188)
+- *(dashboard)* Include schema prefix in GraphQL root field placeholders (#4179)
+- *(deps)* Fix postcss XSS advisory (GHSA-qx2v-qp2m-jg93) (#4197)
+- *(dashboard)* Remove unused maintenance mode (#4180)
+
+## [@nhost/dashboard@2.60.0] - 2026-04-20
+
+### 🚀 Features
+
+- *(dashboard)* Delete buckets (#3987)
+- *(dashboard)* Add filters to storage page (#4125)
+- *(dashboard)* Storage maintenance (#4126)
+- *(dashboard)* Add permission handling to storage (#4049)
+- *(auth)* Allow disabling auto-signup (#4168)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Combine View and Materialized View database sidebar filters, and improve filter bar UX (#4152)
+- *(dashboard)* Show the correct preview (#4157)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Bump version references as part of the changelog (#4169)
+
 ## [@nhost/dashboard@2.59.0] - 2026-04-14
 
 ### 🚀 Features

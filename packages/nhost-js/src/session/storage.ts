@@ -6,7 +6,7 @@
  */
 
 import type { Session as AuthSession } from '../auth';
-import { decodeUserSession, type Session } from './session';
+import { decodeUserSession, type StoredSession } from './session';
 import {
   LocalStorage,
   MemoryStorage,
@@ -16,7 +16,7 @@ import {
 /**
  * Callback function type for session change subscriptions
  */
-export type SessionChangeCallback = (session: Session | null) => void;
+export type SessionChangeCallback = (session: StoredSession | null) => void;
 
 /**
  * A wrapper around any SessionStorageInterface implementation that adds
@@ -38,7 +38,7 @@ export class SessionStorage {
    * Gets the session from the underlying storage
    * @returns The stored session or null if not found
    */
-  get(): Session | null {
+  get(): StoredSession | null {
     return this.storage.get();
   }
 
@@ -82,7 +82,7 @@ export class SessionStorage {
    * Notify all subscribers of a session change
    * @param session - The new session value or null if removed
    */
-  private notifySubscribers(session: Session | null): void {
+  private notifySubscribers(session: StoredSession | null): void {
     for (const subscriber of this.subscribers) {
       try {
         subscriber(session);

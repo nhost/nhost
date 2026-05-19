@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useDialog } from '@/components/common/DialogProvider';
 import { FormInput } from '@/components/form/FormInput';
 import {
   Accordion,
@@ -32,6 +33,8 @@ import {
 } from './CustomGraphQLRootFieldsFormTypes';
 import CustomGraphQLRootFieldsSectionSkeleton from './CustomGraphQLRootFieldsSectionSkeleton';
 
+const DIRTY_SOURCE_ID = 'edit-gql-root-fields';
+
 interface CustomGraphQLRootFieldsFormProps {
   disabled?: boolean;
   isUntracked?: boolean;
@@ -45,6 +48,8 @@ export default function CustomGraphQLRootFieldsSection({
   schema,
   tableName,
 }: CustomGraphQLRootFieldsFormProps) {
+  const { setDirtySource } = useDialog();
+
   const { mutateAsync: setTableCustomization } =
     useSetTableCustomizationMutation();
 
@@ -75,10 +80,26 @@ export default function CustomGraphQLRootFieldsSection({
 
   const { isSubmitting, isDirty } = formState;
 
+  useEffect(() => {
+    const unsubscribe = form.subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty: nextIsDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(nextIsDirty));
+      },
+    });
+    return () => {
+      unsubscribe();
+      setDirtySource(DIRTY_SOURCE_ID, false);
+    };
+  }, [form, setDirtySource]);
+
   const customTableName = form.watch('customTableName');
 
+  const defaultTableName =
+    schema === 'public' ? tableName : `${schema}_${tableName}`;
+
   const tableNameAlias = isEmptyValue(customTableName)
-    ? tableName
+    ? defaultTableName
     : customTableName!;
 
   useEffect(() => {

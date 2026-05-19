@@ -34,11 +34,12 @@ func NewLinkedInProvider(
 }
 
 type linkedInUserInfoProfile struct {
-	ID         string `json:"sub"`
-	Email      string `json:"email"`
-	GivenName  string `json:"given_name"`
-	FamilyName string `json:"family_name"`
-	Picture    string `json:"picture"`
+	ID            string `json:"sub"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Picture       string `json:"picture"`
 }
 
 func (l *LinkedIn) GetProfile(
@@ -75,7 +76,7 @@ func (l *LinkedIn) GetProfile(
 	return oidc.Profile{
 		ProviderUserID: userProfile.ID,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "",
+		EmailVerified:  oidc.EmailVerificationFromBool(userProfile.EmailVerified),
 		Name:           name,
 		Picture:        userProfile.Picture,
 	}, nil

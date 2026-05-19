@@ -1,10 +1,8 @@
+import { Plus } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Button } from '@/components/ui/v2/Button';
-import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import type { BaseForeignKeyFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import { CreateForeignKeyForm } from '@/features/orgs/projects/database/dataGrid/components/CreateForeignKeyForm';
 import { EditForeignKeyForm } from '@/features/orgs/projects/database/dataGrid/components/EditForeignKeyForm';
@@ -64,10 +62,6 @@ export default function ForeignKeyEditorSection() {
 
   return (
     <section className="grid grid-flow-row gap-2 px-6">
-      <InputLabel as="h3" className="mb-2 font-bold text-[0.9375rem] leading-5">
-        Foreign Keys
-      </InputLabel>
-
       {fields?.map((field, index) => (
         <ForeignKeyEditorRow
           index={index}
@@ -93,19 +87,14 @@ export default function ForeignKeyEditorSection() {
       ))}
 
       <Button
-        variant="borderless"
-        startIcon={<PlusIcon />}
-        size="small"
+        type="button"
+        variant="ghost"
+        size="sm"
         className={twMerge(
-          'mt-1 rounded-sm+ py-2',
+          'mt-1 gap-2 rounded-sm+ py-2 text-primary hover:text-primary',
+          fields.length === 0 && 'border border-input',
           fields.length > 0 && 'justify-self-start',
         )}
-        sx={{
-          border: (theme) =>
-            fields.length === 0
-              ? `1px solid ${theme.palette.grey[300]}`
-              : 'none',
-        }}
         disabled={columnsWithNameAndType?.length === 0}
         onClick={() => {
           openDialog({
@@ -113,10 +102,10 @@ export default function ForeignKeyEditorSection() {
               <span className="grid grid-flow-row">
                 <span>Add a Foreign Key Relation</span>
 
-                <Text variant="subtitle1" component="span">
+                <span className="text-muted-foreground text-sm">
                   Foreign keys help ensure the referential integrity of your
                   data.
-                </Text>
+                </span>
               </span>
             ),
             component: (
@@ -132,6 +121,7 @@ export default function ForeignKeyEditorSection() {
           });
         }}
       >
+        <Plus className="h-4 w-4" />
         Add Foreign Key
       </Button>
     </section>

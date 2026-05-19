@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useUI } from '@/components/common/UIProvider';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import {
   AlertDialog,
@@ -72,7 +71,6 @@ const updateMemberRoleFormSchema = z.object({
 });
 
 export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
-  const { maintenanceActive } = useUI();
   const user = useUserData();
   const { push } = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
@@ -187,11 +185,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
 
           <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
             <DropdownMenuTrigger
-              disabled={
-                (!isAdmin && user?.id !== member.user.id) ||
-                isFree ||
-                maintenanceActive
-              }
+              disabled={(!isAdmin && user?.id !== member.user.id) || isFree}
               asChild
               className="h-fit"
             >

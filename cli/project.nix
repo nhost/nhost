@@ -1,4 +1,9 @@
-{ self, pkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nix-filter,
+  nixops-lib,
+}:
 let
   name = "cli";
   description = "Nhost CLI";
@@ -8,17 +13,14 @@ let
 
   src = nix-filter.lib.filter {
     root = ./..;
-    include = with nix-filter.lib;[
+    include = with nix-filter.lib; [
       "go.mod"
       "go.sum"
       (inDirectory "vendor")
       ".golangci.yaml"
       "govulncheck.yaml"
       isDirectory
-      (and
-        (inDirectory submodule)
-        (matchExt "go")
-      )
+      (and (inDirectory submodule) (matchExt "go"))
       "${submodule}/get_access_token.sh"
       "${submodule}/gqlgenc.yaml"
       (inDirectory "${submodule}/ssl/.ssl")
@@ -26,15 +28,14 @@ let
       (inDirectory "${submodule}/cmd/project/templates")
       (inDirectory "${submodule}/nhostclient/graphql/query/")
 
-      (and
-        (inDirectory "internal/lib/clidocs")
-        (matchExt "go")
-      )
+      (and (inDirectory "internal/lib/clidocs") (matchExt "go"))
 
-      (and
-        (inDirectory "internal/lib/nhostclient")
-        (matchExt "go")
-      )
+      (and (inDirectory "internal/lib/nhostclient") (matchExt "go"))
+
+      (and (inDirectory "internal/lib/oapi") (matchExt "go"))
+
+      "${submodule}/cmd/configserver/logsapi/gqlgen.yml"
+      "${submodule}/cmd/configserver/logsapi/schema.graphqls"
 
       "${submodule}/mcp/nhost/auth/openapi.yaml"
       "${submodule}/mcp/nhost/graphql/openapi.yaml"
@@ -44,12 +45,12 @@ let
       (inDirectory "${submodule}/cmd/mcp/testdata")
       (inDirectory "${submodule}/mcp/graphql/testdata")
 
+      # auth email templates (embedded into the CLI binary by `nhost init`)
+      (inDirectory "services/auth/email-templates")
+
       # docs
       ../docs/embed.go
-      (and
-        (inDirectory ../docs/src/content/docs)
-        (matchExt "mdx")
-      )
+      (and (inDirectory ../docs/src/content/docs) (matchExt "mdx"))
     ];
   };
 
@@ -62,6 +63,7 @@ let
     jq
     curl
     cacert
+    gqlgen
     gqlgenc
     oapi-codegen
   ];
@@ -72,89 +74,196 @@ let
 in
 rec {
   check = nixops-lib.go.check {
-    inherit src submodule ldflags tags buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      submodule
+      ldflags
+      tags
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
+
+    impureEnvVars = {
+      NHOST_PAT = builtins.getEnv "NHOST_PAT";
+    };
 
     preCheck = ''
+      if [ -z "''${NHOST_PAT:-}" ]; then
+        echo "ERROR: NHOST_PAT environment variable is not set"
+        exit 1
+      fi
+
       echo "➜ Getting access token"
       export NHOST_ACCESS_TOKEN=$(bash ${src}/cli/get_access_token.sh)
     '';
   };
 
   devShell = nixops-lib.go.devShell {
-    buildInputs = with pkgs; [
-      certbot-full
-      python312Packages.certbot-dns-route53
+    buildInputs =
+      with pkgs;
+      [
+        certbot-full
+        python312Packages.certbot-dns-route53
 
-      # javascript
-      nodejs
-      pnpm
-      biome
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+        gqlgen
+
+        # javascript
+        nodejs
+        pnpm
+        biome
+      ]
+      ++ checkDeps
+      ++ buildInputs
+      ++ nativeBuildInputs;
   };
 
-  package = (nixops-lib.go.package {
-    inherit name description version src submodule ldflags buildInputs nativeBuildInputs;
-  }).overrideAttrs (old: old // {
-    env = {
-      CGO_ENABLED = "0";
-    };
-  });
+  package =
+    (nixops-lib.go.package {
+      inherit
+        name
+        description
+        version
+        src
+        submodule
+        ldflags
+        buildInputs
+        nativeBuildInputs
+        ;
+    }).overrideAttrs
+      (
+        old:
+        old
+        // {
+          env = {
+            CGO_ENABLED = "0";
+          };
+        }
+      );
 
   dockerImage = nixops-lib.go.docker-image {
-    inherit name package created version buildInputs;
+    inherit
+      name
+      package
+      created
+      version
+      buildInputs
+      ;
   };
 
-  cli-arm64-darwin = (nixops-lib.go.package {
-    inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
-  }).overrideAttrs (old: old // {
-    env = {
-      GOOS = "darwin";
-      GOARCH = "arm64";
-      CGO_ENABLED = "0";
-    };
-  });
+  cli-arm64-darwin =
+    (nixops-lib.go.package {
+      inherit
+        name
+        submodule
+        description
+        src
+        version
+        ldflags
+        buildInputs
+        nativeBuildInputs
+        ;
+    }).overrideAttrs
+      (
+        old:
+        old
+        // {
+          env = {
+            GOOS = "darwin";
+            GOARCH = "arm64";
+            CGO_ENABLED = "0";
+          };
+        }
+      );
 
-  cli-amd64-darwin = (nixops-lib.go.package {
-    inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
-  }).overrideAttrs (old: old // {
-    env = {
-      GOOS = "darwin";
-      GOARCH = "amd64";
-      CGO_ENABLED = "0";
-    };
-  });
+  cli-amd64-darwin =
+    (nixops-lib.go.package {
+      inherit
+        name
+        submodule
+        description
+        src
+        version
+        ldflags
+        buildInputs
+        nativeBuildInputs
+        ;
+    }).overrideAttrs
+      (
+        old:
+        old
+        // {
+          env = {
+            GOOS = "darwin";
+            GOARCH = "amd64";
+            CGO_ENABLED = "0";
+          };
+        }
+      );
 
-  cli-arm64-linux = (nixops-lib.go.package {
-    inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
-  }).overrideAttrs (old: old // {
-    env = {
-      GOOS = "linux";
-      GOARCH = "arm64";
-      CGO_ENABLED = "0";
-    };
-  });
+  cli-arm64-linux =
+    (nixops-lib.go.package {
+      inherit
+        name
+        submodule
+        description
+        src
+        version
+        ldflags
+        buildInputs
+        nativeBuildInputs
+        ;
+    }).overrideAttrs
+      (
+        old:
+        old
+        // {
+          env = {
+            GOOS = "linux";
+            GOARCH = "arm64";
+            CGO_ENABLED = "0";
+          };
+        }
+      );
 
-  cli-amd64-linux = (nixops-lib.go.package {
-    inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
-  }).overrideAttrs (old: old // {
-    env = {
-      GOOS = "linux";
-      GOARCH = "amd64";
-      CGO_ENABLED = "0";
-    };
-  });
+  cli-amd64-linux =
+    (nixops-lib.go.package {
+      inherit
+        name
+        submodule
+        description
+        src
+        version
+        ldflags
+        buildInputs
+        nativeBuildInputs
+        ;
+    }).overrideAttrs
+      (
+        old:
+        old
+        // {
+          env = {
+            GOOS = "linux";
+            GOARCH = "amd64";
+            CGO_ENABLED = "0";
+          };
+        }
+      );
 
-  cli-multiplatform = pkgs.runCommand "cli-multiplatform-${version}"
-    {
-      meta = {
-        description = "Multi-platform ${description} binaries";
-      };
-    } ''
-    mkdir -p $out/{darwin,linux}/{arm64,amd64}
+  cli-multiplatform =
+    pkgs.runCommand "cli-multiplatform-${version}"
+      {
+        meta = {
+          description = "Multi-platform ${description} binaries";
+        };
+      }
+      ''
+        mkdir -p $out/{darwin,linux}/{arm64,amd64}
 
-    cp ${cli-arm64-darwin}/bin/${name} $out/darwin/arm64/cli
-    cp ${cli-amd64-darwin}/bin/${name} $out/darwin/amd64/cli
-    cp ${cli-arm64-linux}/bin/${name} $out/linux/arm64/cli
-    cp ${cli-amd64-linux}/bin/${name} $out/linux/amd64/cli
-  '';
+        cp ${cli-arm64-darwin}/bin/${name} $out/darwin/arm64/cli
+        cp ${cli-amd64-darwin}/bin/${name} $out/darwin/amd64/cli
+        cp ${cli-arm64-linux}/bin/${name} $out/linux/arm64/cli
+        cp ${cli-amd64-linux}/bin/${name} $out/linux/amd64/cli
+      '';
 }

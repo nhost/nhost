@@ -1,10 +1,12 @@
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Info } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Button } from '@/components/ui/v3/button';
+import { Separator } from '@/components/ui/v3/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useProPlan } from '@/features/orgs/projects/common/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/orgs/projects/resources/settings/utils/calculateBillableResources';
 import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
@@ -17,18 +19,28 @@ import {
 } from '@/utils/constants/common';
 
 export interface ResourcesConfirmationDialogProps {
-  /**
-   * The updated resources that the user has selected.
-   */
   formValues: ResourceSettingsFormValues;
-  /**
-   * Function to be called when the user clicks the cancel button.
-   */
   onCancel: () => void;
-  /**
-   * Function to be called when the user clicks the confirm button.
-   */
   onSubmit: () => Promise<void>;
+}
+
+interface ServiceLineProps {
+  label: string;
+  vcpu: number;
+  memory: number;
+  replicas?: number;
+}
+
+function ServiceLine({ label, vcpu, memory, replicas }: ServiceLineProps) {
+  return (
+    <div className="flex items-center justify-between gap-2 text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-muted-foreground tabular-nums">
+        {prettifyVCPU(vcpu)} vCPU + {prettifyMemory(memory)}
+        {replicas && replicas > 1 ? ` (${replicas} replicas)` : ''}
+      </span>
+    </div>
+  );
 }
 
 export default function ResourcesConfirmationDialog({
@@ -37,12 +49,9 @@ export default function ResourcesConfirmationDialog({
   onSubmit,
 }: ResourcesConfirmationDialogProps) {
   const { data: proPlan, loading, error } = useProPlan();
+  const { enabled } = formValues;
 
-  const priceForTotalAvailableVCPU =
-    (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) *
-    RESOURCE_VCPU_PRICE;
-
-  const billableResources = calculateBillableResources(
+  const billable = calculateBillableResources(
     {
       replicas: 1,
       vcpu: formValues.database?.vcpu,
@@ -65,23 +74,19 @@ export default function ResourcesConfirmationDialog({
     },
   );
 
-  const totalBillableVCPU = formValues.enabled ? billableResources.vcpu : 0;
-  const totalBillableMemory = formValues.enabled ? billableResources.memory : 0;
-
-  const { enabled } = formValues;
+  const totalBillableVCPU = enabled ? billable.vcpu : 0;
+  const totalBillableMemory = enabled ? billable.memory : 0;
 
   const updatedPrice = enabled
-    ? Math.max(
-        priceForTotalAvailableVCPU,
-        (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
-          RESOURCE_VCPU_PRICE,
-      )
+    ? (totalBillableVCPU / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
     : proPlan?.price;
 
   if (!loading && !proPlan) {
     return (
-      <Alert severity="error">
-        Couldn&apos;t load the plan for this project. Please try again.
+      <Alert variant="destructive">
+        <AlertDescription>
+          Couldn&apos;t load the plan for this project. Please try again.
+        </AlertDescription>
       </Alert>
     );
   }
@@ -90,147 +95,114 @@ export default function ResourcesConfirmationDialog({
     throw error;
   }
 
-  const databaseVCPU = enabled ? formValues.database.vcpu : 0;
-  const databaseMemory = enabled ? formValues.database.memory : 0;
-
-  const hasuraVCPU = enabled ? formValues.hasura.vcpu : 0;
-  const hasuraMemory = enabled ? formValues.hasura.memory : 0;
-
-  const authVCPU = enabled ? formValues.auth.vcpu : 0;
-  const authMemory = enabled ? formValues.auth.memory : 0;
-
-  const storageVCPU = enabled ? formValues.storage.vcpu : 0;
-  const storageMemory = enabled ? formValues.storage.memory : 0;
-
-  const databaseResources = `${prettifyVCPU(
-    databaseVCPU,
-  )} vCPU + ${prettifyMemory(databaseMemory)}`;
-  const hasuraResources = `${prettifyVCPU(hasuraVCPU)} vCPU + ${prettifyMemory(
-    hasuraMemory,
-  )}`;
-  const authResources = `${prettifyVCPU(authVCPU)} vCPU + ${prettifyMemory(
-    authMemory,
-  )}`;
-  const storageResources = `${prettifyVCPU(
-    storageVCPU,
-  )} vCPU + ${prettifyMemory(storageMemory)}`;
-
   return (
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
       {totalBillableVCPU > 0 ? (
-        <Text className="text-center">
+        <p className="text-center text-sm">
           Please allow some time for the selected resources to take effect.
-        </Text>
+        </p>
       ) : (
-        <Text className="text-center">
+        <p className="text-center text-sm">
           By confirming this you will go back to the original shared resources
           included in the {proPlan?.name} plan.
-        </Text>
+        </p>
       )}
-      <Box className="grid grid-flow-row gap-4">
-        <Box className="grid grid-flow-row gap-1.5">
-          <Box className="grid grid-flow-col items-center justify-between gap-2">
-            <Box className="grid grid-flow-row gap-0.5">
-              <Text className="font-medium">Dedicated Resources</Text>
-            </Box>
-            <Text>
+
+      <div className="grid grid-flow-row gap-4">
+        <div className="grid grid-flow-row gap-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-medium">Dedicated Resources</span>
+            <span className="text-sm tabular-nums">
               $
               {(
                 (totalBillableVCPU / RESOURCE_VCPU_MULTIPLIER) *
                 RESOURCE_VCPU_PRICE_PER_MINUTE
               ).toFixed(4)}
               /min
-            </Text>
-          </Box>
+            </span>
+          </div>
 
-          <Box className="grid w-full grid-flow-row gap-1.5">
-            <Box className="grid grid-flow-col justify-between gap-2">
-              <Text className="text-xs" color="secondary">
-                PostgreSQL Database
-              </Text>
+          <div className="grid grid-flow-row gap-1">
+            <ServiceLine
+              label="PostgreSQL Database"
+              vcpu={enabled ? formValues.database.vcpu : 0}
+              memory={enabled ? formValues.database.memory : 0}
+            />
+            <ServiceLine
+              label="Hasura GraphQL"
+              vcpu={enabled ? formValues.hasura.vcpu : 0}
+              memory={enabled ? formValues.hasura.memory : 0}
+              replicas={enabled ? formValues.hasura.replicas : 1}
+            />
+            <ServiceLine
+              label="Auth"
+              vcpu={enabled ? formValues.auth.vcpu : 0}
+              memory={enabled ? formValues.auth.memory : 0}
+              replicas={enabled ? formValues.auth.replicas : 1}
+            />
+            <ServiceLine
+              label="Storage"
+              vcpu={enabled ? formValues.storage.vcpu : 0}
+              memory={enabled ? formValues.storage.memory : 0}
+              replicas={enabled ? formValues.storage.replicas : 1}
+            />
 
-              <Text className="text-xs" color="secondary">
-                {databaseResources}
-              </Text>
-            </Box>
-
-            <Box className="grid grid-flow-col justify-between gap-2">
-              <Text className="text-xs" color="secondary">
-                Hasura GraphQL
-              </Text>
-              <Text className="text-xs" color="secondary">
-                {formValues.hasura.replicas > 1
-                  ? `${hasuraResources} (${formValues.hasura.replicas} replicas)`
-                  : hasuraResources}
-              </Text>
-            </Box>
-
-            <Box className="grid grid-flow-col justify-between gap-2">
-              <Text className="text-xs" color="secondary">
-                Auth
-              </Text>
-              <Text className="text-xs" color="secondary">
-                {formValues.auth.replicas > 1
-                  ? `${authResources} (${formValues.auth.replicas} replicas)`
-                  : authResources}
-              </Text>
-            </Box>
-            <Box className="grid grid-flow-col justify-between gap-2">
-              <Text className="text-xs" color="secondary">
-                Storage
-              </Text>
-              <Text className="text-xs" color="secondary">
-                {formValues.storage.replicas > 1
-                  ? `${storageResources} (${formValues.storage.replicas} replicas)`
-                  : storageResources}
-              </Text>
-            </Box>
-
-            <Box className="grid grid-flow-col justify-between gap-2">
-              <Text className="font-medium text-xs" color="secondary">
-                Total
-              </Text>
-              <Text className="font-medium text-xs" color="secondary">
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="font-medium text-muted-foreground">Total</span>
+              <span className="font-medium text-muted-foreground tabular-nums">
                 {prettifyVCPU(totalBillableVCPU)} vCPU +{' '}
                 {prettifyMemory(totalBillableMemory)}
-              </Text>
-            </Box>
-          </Box>
-        </Box>
+              </span>
+            </div>
+          </div>
+        </div>
 
-        <Divider />
+        <Separator />
 
-        <Box className="grid grid-flow-col justify-between gap-2">
-          <Box className="grid grid-flow-col items-center gap-1.5">
-            <Text className="font-medium">Approximate Cost</Text>
-
-            <Tooltip title="$0.0012/minute for every 1 vCPU and 2 GiB of RAM">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium">Approximate Cost</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex">
+                  <Info
+                    className="h-4 w-4 text-primary"
+                    aria-label="Billing info"
+                  />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                $0.0012/minute for every 1 vCPU and 2 GiB of RAM.
+              </TooltipContent>
             </Tooltip>
-          </Box>
+          </div>
 
-          <Text>{enabled ? `$${updatedPrice?.toFixed(2)}/mo` : `$0/mo`}</Text>
-        </Box>
+          <span className="text-sm">
+            {enabled ? `$${updatedPrice?.toFixed(2)}/mo` : '$0/mo'}
+          </span>
+        </div>
+
         {enabled && (
-          <Text className="text-gray-400 text-xs">
-            Note: Your organization&apos;s $15 worth of credits cover for both
-            shared and dedicated compute.
-          </Text>
+          <p className="text-muted-foreground text-xs">
+            Note: Your organization's $15 worth of credits cover both shared and
+            dedicated compute.
+          </p>
         )}
-      </Box>
-      <Box className="grid grid-flow-row gap-2">
+      </div>
+
+      <div className="grid grid-flow-row gap-2">
         <Button
-          color={totalBillableVCPU > 0 ? 'primary' : 'error'}
+          type="button"
+          variant={totalBillableVCPU > 0 ? 'default' : 'destructive'}
           onClick={onSubmit}
           autoFocus
         >
           Confirm
         </Button>
-
-        <Button variant="borderless" color="secondary" onClick={onCancel}>
+        <Button type="button" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
-      </Box>
+      </div>
     </div>
   );
 }

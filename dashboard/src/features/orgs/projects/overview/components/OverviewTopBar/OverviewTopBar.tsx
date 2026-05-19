@@ -1,7 +1,6 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import { NavLink } from '@/components/common/NavLink';
-import { useUI } from '@/components/common/UIProvider';
 import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -14,7 +13,6 @@ export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
   const { project } = useProject();
-  const { maintenanceActive } = useUI();
 
   const isFreeProject = !!org?.plan.isFree;
 
@@ -95,7 +93,6 @@ export default function OverviewTopBar() {
           href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
           className="flex h-10 gap-2"
           variant="outline"
-          disabled={maintenanceActive}
         >
           Settings
           <CogIcon className="h-4 w-4" />

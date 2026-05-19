@@ -26,10 +26,10 @@
   "homepage": "https://github.com/nhost/nhost/tree/main/services/functions#readme",
   "devDependencies": {
     "@antfu/ni": "^0.17.2",
-    "esbuild": "^0.24.0",
+    "@jest/globals": "^29.7.0",
+    "esbuild": ">=0.25.0",
     "express": "^5.2.1",
     "glob": "^8.1.0",
-    "@jest/globals": "^29.7.0",
     "jest": "^29.7.0"
   }
 }

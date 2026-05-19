@@ -6,11 +6,11 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
 import {
   AutoEmbeddingsForm,
   type AutoEmbeddingsInitialData,

@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import {
   ControlledAutocomplete,
   defaultFilterOptions,
@@ -39,7 +38,6 @@ export default function AuthServiceVersionSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
 
   const [updateConfig] = useUpdateConfigMutation({
@@ -159,7 +157,7 @@ export default function AuthServiceVersionSettings() {
           description="The version of Auth to use."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}

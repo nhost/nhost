@@ -345,6 +345,7 @@ func dashboard(
 	dashboardVersion string,
 	httpPort uint,
 	useTLS bool,
+	appID string,
 ) *Service {
 	return &Service{
 		Image:      dashboardVersion,
@@ -354,6 +355,7 @@ func dashboard(
 		Environment: map[string]string{
 			"NEXT_PUBLIC_ENV":                "dev",
 			"NEXT_PUBLIC_NHOST_PLATFORM":     "false",
+			"NEXT_PUBLIC_NHOST_APP_ID":       appID,
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 			"NEXT_PUBLIC_NHOST_AUTH_URL": URL(
 				subdomain, "auth", httpPort, useTLS) + "/v1",
@@ -363,6 +365,12 @@ func dashboard(
 			"NEXT_PUBLIC_NHOST_FUNCTIONS_URL": URL(
 				subdomain, "functions", httpPort, useTLS,
 			) + "/v1",
+			"NEXT_PUBLIC_NHOST_LOGS_GRAPHQL_URL": URL(
+				subdomain, "dashboard", httpPort, useTLS,
+			) + "/v1/logs/graphql",
+			"NEXT_PUBLIC_NHOST_LOGS_WEBSOCKET": WebsocketURL(
+				subdomain, "dashboard", httpPort, useTLS,
+			) + "/v1/logs/graphql",
 			"NEXT_PUBLIC_NHOST_GRAPHQL_URL": URL(
 				subdomain, "graphql", httpPort, useTLS) + "/v1",
 			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(subdomain, "hasura", httpPort, useTLS),
@@ -425,6 +433,7 @@ func functions( //nolint:funlen
 	jwtSecret string,
 	port uint,
 	branch string,
+	functionsVersion string,
 ) (*Service, error) {
 	jwtSecret, err := stripJWTSecretToPublic(jwtSecret)
 	if err != nil {
@@ -453,7 +462,11 @@ func functions( //nolint:funlen
 	}
 
 	return &Service{
-		Image:       fmt.Sprintf("nhost/functions:%d-1.5.0", *cfg.GetFunctions().GetNode().Version),
+		Image: fmt.Sprintf(
+			"nhost/functions:%d-%s",
+			*cfg.GetFunctions().GetNode().Version,
+			functionsVersion,
+		),
 		DependsOn:   nil,
 		EntryPoint:  nil,
 		Command:     nil,
@@ -583,7 +596,9 @@ func getServices( //nolint: funlen,cyclop
 	ports ExposePorts,
 	branch string,
 	dashboardVersion string,
+	functionsVersion string,
 	configserviceImage string,
+	appID string,
 	startFunctions bool,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
@@ -623,21 +638,29 @@ func getServices( //nolint: funlen,cyclop
 	mailhogVolumeName := "mailhog_" + sanitizeBranch(branch)
 	mailhog := mailhog(subdomain, mailhogVolumeName, useTLS)
 
+	cs, err := configserver(
+		configserviceImage,
+		rootFolder,
+		nhostFolder,
+		projectName,
+		appID,
+		useTLS,
+		runServices...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	services := map[string]*Service{
-		"console":   console,
-		"dashboard": dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS),
-		"graphql":   graphql,
-		"minio":     minio,
-		"postgres":  postgres,
-		"storage":   storage,
-		"mailhog":   mailhog,
-		"traefik":   traefik,
-		"configserver": configserver(
-			configserviceImage,
-			rootFolder,
-			nhostFolder,
-			useTLS,
-			runServices...),
+		"console":      console,
+		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID),
+		"graphql":      graphql,
+		"minio":        minio,
+		"postgres":     postgres,
+		"storage":      storage,
+		"mailhog":      mailhog,
+		"traefik":      traefik,
+		"configserver": cs,
 	}
 
 	if startFunctions {
@@ -650,6 +673,7 @@ func getServices( //nolint: funlen,cyclop
 			jwtSecret,
 			ports.Functions,
 			branch,
+			functionsVersion,
 		)
 		if err != nil {
 			return nil, err
@@ -704,7 +728,7 @@ func mountCACertificates(
 	}
 }
 
-func ComposeFileFromConfig(
+func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,
@@ -717,7 +741,9 @@ func ComposeFileFromConfig(
 	ports ExposePorts,
 	branch string,
 	dashboardVersion string,
+	functionsVersion string,
 	configserverImage string,
+	appID string,
 	startFunctions bool,
 	caCertificatesPath string,
 	runServices ...*RunService,
@@ -735,7 +761,9 @@ func ComposeFileFromConfig(
 		ports,
 		branch,
 		dashboardVersion,
+		functionsVersion,
 		configserverImage,
+		appID,
 		startFunctions,
 		runServices...,
 	)

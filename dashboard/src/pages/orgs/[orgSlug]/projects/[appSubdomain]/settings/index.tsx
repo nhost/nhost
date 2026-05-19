@@ -4,7 +4,6 @@ import { type ReactElement, useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -49,7 +48,6 @@ export type ProjectNameValidationSchema = Yup.InferType<
 export default function SettingsGeneralPage() {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const { openDialog, openAlertDialog, closeDialog } = useDialog();
 
   const isOwner = useIsCurrentUserOwner();
@@ -208,11 +206,9 @@ export default function SettingsGeneralPage() {
   const isPaused = state === ApplicationStatus.Paused;
   const isPausing = state === ApplicationStatus.Pausing;
 
-  const pausedDisabled =
-    maintenanceActive || !isPlatform || pauseApplicationLoading;
+  const pausedDisabled = !isPlatform || pauseApplicationLoading;
 
-  const wakeUpDisabled =
-    maintenanceActive || !isPlatform || unpauseApplicationLoading || isPausing;
+  const wakeUpDisabled = !isPlatform || unpauseApplicationLoading || isPausing;
 
   if (loading) {
     return <LoadingScreen />;
@@ -231,8 +227,7 @@ export default function SettingsGeneralPage() {
             className="grid grid-flow-row px-4 lg:grid-cols-4"
             slotProps={{
               submitButton: {
-                disabled:
-                  !formState.isDirty || maintenanceActive || !isPlatform,
+                disabled: !formState.isDirty || !isPlatform,
                 loading: formState.isSubmitting,
               },
             }}
@@ -353,7 +348,6 @@ export default function SettingsGeneralPage() {
               type: 'button',
               color: 'error',
               variant: 'contained',
-              disabled: maintenanceActive,
               onClick: () => {
                 openDialog({
                   component: (

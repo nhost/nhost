@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -58,22 +58,9 @@ export default function ProjectEventsPagesComboBox() {
     ? pathSegments[6] || 'event-triggers'
     : null;
 
-  const selectedEventsPageFromUrl = projectEventsPages.find(
+  const selectedEventsPage = projectEventsPages.find(
     (item) => item.value === eventsPageFromUrl,
   );
-  const [selectedEventsPage, setSelectedEventsPage] = useState<Option | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (selectedEventsPageFromUrl) {
-      setSelectedEventsPage({
-        label: selectedEventsPageFromUrl.label,
-        value: selectedEventsPageFromUrl.value,
-        route: selectedEventsPageFromUrl.route,
-      });
-    }
-  }, [selectedEventsPageFromUrl]);
 
   const options: Option[] = projectEventsPages.map((page) => ({
     label: page.label,
@@ -110,7 +97,6 @@ export default function ProjectEventsPagesComboBox() {
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
-                    setSelectedEventsPage(option);
                     setOpen(false);
                     push(
                       `/orgs/${orgSlug}/projects/${appSubdomain}/events/${option.route}/`,

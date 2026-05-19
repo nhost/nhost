@@ -12,6 +12,7 @@ const PARALLELIZABLE_TESTS = [
   'account/**/*.test.ts',
   'overview/**/*.test.ts',
   'run/**/*.test.ts',
+  'serverless-functions/**/*.test.ts',
 ];
 
 export default defineConfig({

@@ -8,6 +8,7 @@ import { DataGridFiltersPopover } from '@/features/orgs/projects/common/componen
 import { DataGridTableViewConfigurationPopover } from '@/features/orgs/projects/common/components/DataGridTableViewConfigurationPopover';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { StorageMaintenanceButton } from '@/features/orgs/projects/storage/components/StorageMaintenanceButton';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
@@ -15,7 +16,6 @@ import type { FileUploadButtonProps } from '@/features/orgs/projects/storage/dat
 import { FileUploadButton } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
 import { cn } from '@/lib/utils';
 import type { Files } from '@/utils/__generated__/graphql';
-import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
 
 export interface FilesDataGridControlsProps {
@@ -75,10 +75,7 @@ export default function FilesDataGridControls({
         selectedFiles.map((file) =>
           appClient.storage.deleteFile(file.original.id, {
             headers: {
-              'x-hasura-admin-secret':
-                process.env.NEXT_PUBLIC_ENV === 'dev'
-                  ? getHasuraAdminSecret()
-                  : project!.config!.hasura.adminSecret,
+              'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
             },
           }),
         ),
@@ -157,6 +154,7 @@ export default function FilesDataGridControls({
               storageKey={storageKey}
               isFetching={isFetching}
             />
+            <StorageMaintenanceButton />
             <DataGridTableViewConfigurationPopover />
             <FileUploadButton
               className={twMerge(

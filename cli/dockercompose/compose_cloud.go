@@ -20,8 +20,9 @@ func dashboardCloud(
 	httpPort uint,
 	useTLS bool,
 	dashboardVersion string,
+	appID string,
 ) *Service {
-	dashboard := dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS)
+	dashboard := dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID)
 
 	dashboard.Environment["NEXT_PUBLIC_NHOST_ADMIN_SECRET"] = cloudAdminSecret
 	dashboard.Environment["NEXT_PUBLIC_NHOST_AUTH_URL"] = fmt.Sprintf(
@@ -85,7 +86,7 @@ func consoleCloud(
 	return console, nil
 }
 
-func getServicesCloud(
+func getServicesCloud( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	cloudSubdomain string,
@@ -101,6 +102,7 @@ func getServicesCloud(
 	ports ExposePorts,
 	dashboardVersion string,
 	configserviceImage string,
+	appID string,
 ) (map[string]*Service, error) {
 	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder)
 	if err != nil {
@@ -123,6 +125,18 @@ func getServicesCloud(
 		return nil, fmt.Errorf("failed to create console service: %w", err)
 	}
 
+	cs, err := configserver(
+		configserviceImage,
+		rootFolder,
+		nhostFolder,
+		projectName,
+		appID,
+		useTLS,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	services := map[string]*Service{
 		"console": console,
 		"dashboard": dashboardCloud(
@@ -134,14 +148,10 @@ func getServicesCloud(
 			httpPort,
 			useTLS,
 			dashboardVersion,
+			appID,
 		),
-		"traefik": traefik,
-		"configserver": configserver(
-			configserviceImage,
-			rootFolder,
-			nhostFolder,
-			useTLS,
-		),
+		"traefik":      traefik,
+		"configserver": cs,
 	}
 
 	return services, nil
@@ -163,6 +173,7 @@ func CloudComposeFileFromConfig(
 	ports ExposePorts,
 	dashboardVersion string,
 	configserverImage string,
+	appID string,
 	caCertificatesPath string,
 ) (*ComposeFile, error) {
 	services, err := getServicesCloud(
@@ -181,6 +192,7 @@ func CloudComposeFileFromConfig(
 		ports,
 		dashboardVersion,
 		configserverImage,
+		appID,
 	)
 	if err != nil {
 		return nil, err

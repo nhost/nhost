@@ -1,4 +1,10 @@
-{ self, pkgs, nix-filter, nixops-lib, nix2containerPkgs }:
+{
+  self,
+  pkgs,
+  nix-filter,
+  nixops-lib,
+  nix2containerPkgs,
+}:
 let
   name = "nhost/postgres";
   version = "0.0.0-dev";
@@ -14,54 +20,66 @@ let
     ];
   };
 
-  mkPostgres = basePostgres: import ./postgres.nix {
-    inherit name version pkgs nix2containerPkgs basePostgres;
-  };
+  mkPostgres =
+    basePostgres:
+    import ./postgres.nix {
+      inherit
+        name
+        version
+        pkgs
+        nix2containerPkgs
+        basePostgres
+        ;
+    };
 
-  mkAsDir = image: pkgs.runCommand "image-as-dir" { }
-    "${image.copyTo}/bin/copy-to dir:$out";
+  mkAsDir = image: pkgs.runCommand "image-as-dir" { } "${image.copyTo}/bin/copy-to dir:$out";
 
   pg16 = mkPostgres pkgs.postgresql_16;
   pg17 = mkPostgres pkgs.postgresql_17;
   pg18 = mkPostgres pkgs.postgresql_18;
 in
 {
-  check = pkgs.runCommand "check-postgres"
-    {
-      nativeBuildInputs = with pkgs;
-        [
+  check =
+    pkgs.runCommand "check-postgres"
+      {
+        __noChroot = true;
+        nativeBuildInputs = with pkgs; [
           postgresql_18
           diffutils
         ];
-    }
-    ''
-      PG_URL="postgres://postgres@localhost:5432/local"
+      }
+      ''
+        PG_URL="postgres://postgres@localhost:5432/local"
 
-      psql \
-        -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \
-        "$PG_URL"
+        psql \
+          -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \
+          "$PG_URL"
 
-      # Verify plugins.md is up to date (only for PG18)
-      PG_MAJOR=$(psql --no-psqlrc -t -A -c "SHOW server_version_num;" "$PG_URL" | head -c2)
-      if [ "$PG_MAJOR" = "18" ]; then
-        {
-          echo "| Name | Version | Description |"
-          echo "| ---- | ------- | ----------- |"
-          psql --no-psqlrc -t -A -F '|' \
-            -c "SELECT name, default_version, comment FROM pg_available_extensions ORDER BY name ASC;" \
-            "$PG_URL" \
-            | sed 's/^/| /; s/$/|/'
-        } > expected-plugins.md
+        # Verify plugins.md is up to date (only for PG18)
+        PG_MAJOR=$(psql --no-psqlrc -t -A -c "SHOW server_version_num;" "$PG_URL" | head -c2)
+        if [ "$PG_MAJOR" = "18" ]; then
+          {
+            echo "| Name | Version | Description |"
+            echo "| ---- | ------- | ----------- |"
+            psql --no-psqlrc -t -A -F '|' \
+              -c "SELECT name, default_version, comment FROM pg_available_extensions ORDER BY name ASC;" \
+              "$PG_URL" \
+              | sed 's/^/| /; s/$/|/'
+          } > expected-plugins.md
 
-        diff -u ${src}/plugins.md expected-plugins.md || \
-          (echo "ERROR: plugins.md is out of date. Run 'make get-plugin-versions' and commit the result." && exit 1)
-      fi
+          diff -u ${src}/plugins.md expected-plugins.md || \
+            (echo "ERROR: plugins.md is out of date. Run 'make get-plugin-versions' and commit the result." && exit 1)
+        fi
 
-      mkdir $out
-    '';
+        mkdir $out
+      '';
 
   devShell = pkgs.mkShell {
-    buildInputs = with pkgs; [ wal-g docker-client skopeo ];
+    buildInputs = with pkgs; [
+      wal-g
+      docker-client
+      skopeo
+    ];
   };
 
   packages = rec {

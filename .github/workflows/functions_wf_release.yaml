@@ -9,6 +9,10 @@ on:
       VERSION:
         required: true
         type: string
+      IS_PRERELEASE:
+        required: false
+        type: boolean
+        default: false
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -20,12 +24,16 @@ on:
         required: true
       DOCKER_PASSWORD:
         required: true
+      NHOST_BOT_APP_ID:
+        required: true
+      NHOST_BOT_PRIVATE_KEY:
+        required: true
 
 jobs:
   build_artifacts:
     strategy:
       matrix:
-        node: ["20", "22"]
+        node: ["22", "24"]
       fail-fast: true
     uses: ./.github/workflows/wf_build_artifacts.yaml
     with:
@@ -44,7 +52,7 @@ jobs:
   push-docker-hub:
     strategy:
       matrix:
-        node: ["20", "22"]
+        node: ["22", "24"]
       fail-fast: true
     uses: ./.github/workflows/wf_docker_push_image.yaml
     needs:
@@ -58,3 +66,16 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  bump-refs:
+    if: ${{ !inputs.IS_PRERELEASE }}
+    uses: ./.github/workflows/wf_bump_refs.yaml
+    needs:
+      - push-docker-hub
+    with:
+      NAME: functions
+      PATH: services/functions
+      VERSION: ${{ inputs.VERSION }}
+    secrets:
+      NHOST_BOT_APP_ID: ${{ secrets.NHOST_BOT_APP_ID }}
+      NHOST_BOT_PRIVATE_KEY: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}

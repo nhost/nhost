@@ -61,6 +61,7 @@ func getConfig() *controller.Config {
 		SMSTwilioMessagingServiceID:              "smsMessagingServiceID",
 		SMSModicaUsername:                        "modicaUsername",
 		SMSModicaPassword:                        "modicaPassword",
+		DisableAutoSignup:                        false,
 		OAuth2ProviderEnabled:                    false,
 		OAuth2ProviderLoginURL:                   "",
 		OAuth2ProviderAccessTokenTTL:             900,

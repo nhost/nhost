@@ -71,7 +71,6 @@ const (
 	DisabledEndpoint                ErrorResponseError = "disabled-endpoint"
 	DisabledMfaTotp                 ErrorResponseError = "disabled-mfa-totp"
 	DisabledUser                    ErrorResponseError = "disabled-user"
-	EmailAlreadyInUse               ErrorResponseError = "email-already-in-use"
 	EmailAlreadyVerified            ErrorResponseError = "email-already-verified"
 	ForbiddenAnonymous              ErrorResponseError = "forbidden-anonymous"
 	InternalServerError             ErrorResponseError = "internal-server-error"
@@ -97,6 +96,7 @@ const (
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
 	TotpAlreadyActive               ErrorResponseError = "totp-already-active"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
+	UserAlreadyExists               ErrorResponseError = "user-already-exists"
 	UserNotAnonymous                ErrorResponseError = "user-not-anonymous"
 )
 
@@ -275,24 +275,44 @@ const (
 	GetProviderTokensParamsProviderWorkos      GetProviderTokensParamsProvider = "workos"
 )
 
+// Defines values for SignUpProviderParamsProvider.
+const (
+	SignUpProviderParamsProviderApple       SignUpProviderParamsProvider = "apple"
+	SignUpProviderParamsProviderAzuread     SignUpProviderParamsProvider = "azuread"
+	SignUpProviderParamsProviderBitbucket   SignUpProviderParamsProvider = "bitbucket"
+	SignUpProviderParamsProviderDiscord     SignUpProviderParamsProvider = "discord"
+	SignUpProviderParamsProviderEntraid     SignUpProviderParamsProvider = "entraid"
+	SignUpProviderParamsProviderFacebook    SignUpProviderParamsProvider = "facebook"
+	SignUpProviderParamsProviderGithub      SignUpProviderParamsProvider = "github"
+	SignUpProviderParamsProviderGitlab      SignUpProviderParamsProvider = "gitlab"
+	SignUpProviderParamsProviderGoogle      SignUpProviderParamsProvider = "google"
+	SignUpProviderParamsProviderLinkedin    SignUpProviderParamsProvider = "linkedin"
+	SignUpProviderParamsProviderSpotify     SignUpProviderParamsProvider = "spotify"
+	SignUpProviderParamsProviderStrava      SignUpProviderParamsProvider = "strava"
+	SignUpProviderParamsProviderTwitch      SignUpProviderParamsProvider = "twitch"
+	SignUpProviderParamsProviderTwitter     SignUpProviderParamsProvider = "twitter"
+	SignUpProviderParamsProviderWindowslive SignUpProviderParamsProvider = "windowslive"
+	SignUpProviderParamsProviderWorkos      SignUpProviderParamsProvider = "workos"
+)
+
 // Defines values for RefreshProviderTokenParamsProvider.
 const (
-	Apple       RefreshProviderTokenParamsProvider = "apple"
-	Azuread     RefreshProviderTokenParamsProvider = "azuread"
-	Bitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
-	Discord     RefreshProviderTokenParamsProvider = "discord"
-	Entraid     RefreshProviderTokenParamsProvider = "entraid"
-	Facebook    RefreshProviderTokenParamsProvider = "facebook"
-	Github      RefreshProviderTokenParamsProvider = "github"
-	Gitlab      RefreshProviderTokenParamsProvider = "gitlab"
-	Google      RefreshProviderTokenParamsProvider = "google"
-	Linkedin    RefreshProviderTokenParamsProvider = "linkedin"
-	Spotify     RefreshProviderTokenParamsProvider = "spotify"
-	Strava      RefreshProviderTokenParamsProvider = "strava"
-	Twitch      RefreshProviderTokenParamsProvider = "twitch"
-	Twitter     RefreshProviderTokenParamsProvider = "twitter"
-	Windowslive RefreshProviderTokenParamsProvider = "windowslive"
-	Workos      RefreshProviderTokenParamsProvider = "workos"
+	RefreshProviderTokenParamsProviderApple       RefreshProviderTokenParamsProvider = "apple"
+	RefreshProviderTokenParamsProviderAzuread     RefreshProviderTokenParamsProvider = "azuread"
+	RefreshProviderTokenParamsProviderBitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
+	RefreshProviderTokenParamsProviderDiscord     RefreshProviderTokenParamsProvider = "discord"
+	RefreshProviderTokenParamsProviderEntraid     RefreshProviderTokenParamsProvider = "entraid"
+	RefreshProviderTokenParamsProviderFacebook    RefreshProviderTokenParamsProvider = "facebook"
+	RefreshProviderTokenParamsProviderGithub      RefreshProviderTokenParamsProvider = "github"
+	RefreshProviderTokenParamsProviderGitlab      RefreshProviderTokenParamsProvider = "gitlab"
+	RefreshProviderTokenParamsProviderGoogle      RefreshProviderTokenParamsProvider = "google"
+	RefreshProviderTokenParamsProviderLinkedin    RefreshProviderTokenParamsProvider = "linkedin"
+	RefreshProviderTokenParamsProviderSpotify     RefreshProviderTokenParamsProvider = "spotify"
+	RefreshProviderTokenParamsProviderStrava      RefreshProviderTokenParamsProvider = "strava"
+	RefreshProviderTokenParamsProviderTwitch      RefreshProviderTokenParamsProvider = "twitch"
+	RefreshProviderTokenParamsProviderTwitter     RefreshProviderTokenParamsProvider = "twitter"
+	RefreshProviderTokenParamsProviderWindowslive RefreshProviderTokenParamsProvider = "windowslive"
+	RefreshProviderTokenParamsProviderWorkos      RefreshProviderTokenParamsProvider = "workos"
 )
 
 // Defines values for VerifyTicketParamsType.
@@ -858,6 +878,24 @@ type SignUpEmailPasswordRequest struct {
 	Password string `json:"password"`
 }
 
+// SignUpIdTokenRequest defines model for SignUpIdTokenRequest.
+type SignUpIdTokenRequest struct {
+	// IdToken Apple or Google ID token
+	IdToken string `json:"idToken"`
+
+	// Nonce Nonce used during sign in process
+	Nonce    *string         `json:"nonce,omitempty"`
+	Options  *SignUpOptions  `json:"options,omitempty"`
+	Provider IdTokenProvider `json:"provider"`
+}
+
+// SignUpOTPEmailRequest defines model for SignUpOTPEmailRequest.
+type SignUpOTPEmailRequest struct {
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *SignUpOptions      `json:"options,omitempty"`
+}
+
 // SignUpOptions defines model for SignUpOptions.
 type SignUpOptions struct {
 	AllowedRoles *[]string `json:"allowedRoles,omitempty"`
@@ -868,6 +906,24 @@ type SignUpOptions struct {
 	Locale     *string                 `json:"locale,omitempty"`
 	Metadata   *map[string]interface{} `json:"metadata,omitempty"`
 	RedirectTo *string                 `json:"redirectTo,omitempty"`
+}
+
+// SignUpPasswordlessEmailRequest defines model for SignUpPasswordlessEmailRequest.
+type SignUpPasswordlessEmailRequest struct {
+	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `json:"codeChallenge,omitempty"`
+
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *SignUpOptions      `json:"options,omitempty"`
+}
+
+// SignUpPasswordlessSmsRequest defines model for SignUpPasswordlessSmsRequest.
+type SignUpPasswordlessSmsRequest struct {
+	Options *SignUpOptions `json:"options,omitempty"`
+
+	// PhoneNumber Phone number of the user
+	PhoneNumber string `json:"phoneNumber"`
 }
 
 // SignUpWebauthnRequest defines model for SignUpWebauthnRequest.
@@ -1233,6 +1289,39 @@ type SignInProviderCallbackPostParamsProvider string
 // GetProviderTokensParamsProvider defines parameters for GetProviderTokens.
 type GetProviderTokensParamsProvider string
 
+// SignUpProviderParams defines parameters for SignUpProvider.
+type SignUpProviderParams struct {
+	// AllowedRoles Array of allowed roles for the user
+	AllowedRoles *[]string `form:"allowedRoles,omitempty" json:"allowedRoles,omitempty"`
+
+	// DefaultRole Default role for the user
+	DefaultRole *string `form:"defaultRole,omitempty" json:"defaultRole,omitempty"`
+
+	// DisplayName Display name for the user
+	DisplayName *string `form:"displayName,omitempty" json:"displayName,omitempty"`
+
+	// Locale A two or three characters locale
+	Locale *string `form:"locale,omitempty" json:"locale,omitempty"`
+
+	// Metadata Additional metadata for the user (JSON encoded string)
+	Metadata *map[string]interface{} `form:"metadata,omitempty" json:"metadata,omitempty"`
+
+	// RedirectTo URI to redirect to
+	RedirectTo *string `form:"redirectTo,omitempty" json:"redirectTo,omitempty"`
+
+	// State Opaque state value to be returned by the provider
+	State *string `form:"state,omitempty" json:"state,omitempty"`
+
+	// ProviderSpecificParams Additional provider-specific parameters
+	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
+
+	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
+	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
+}
+
+// SignUpProviderParamsProvider defines parameters for SignUpProvider.
+type SignUpProviderParamsProvider string
+
 // RefreshProviderTokenParamsProvider defines parameters for RefreshProviderToken.
 type RefreshProviderTokenParamsProvider string
 
@@ -1322,6 +1411,18 @@ type SignOutJSONRequestBody = SignOutRequest
 
 // SignUpEmailPasswordJSONRequestBody defines body for SignUpEmailPassword for application/json ContentType.
 type SignUpEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
+
+// SignUpIdTokenJSONRequestBody defines body for SignUpIdToken for application/json ContentType.
+type SignUpIdTokenJSONRequestBody = SignUpIdTokenRequest
+
+// SignUpOTPEmailJSONRequestBody defines body for SignUpOTPEmail for application/json ContentType.
+type SignUpOTPEmailJSONRequestBody = SignUpOTPEmailRequest
+
+// SignUpPasswordlessEmailJSONRequestBody defines body for SignUpPasswordlessEmail for application/json ContentType.
+type SignUpPasswordlessEmailJSONRequestBody = SignUpPasswordlessEmailRequest
+
+// SignUpPasswordlessSmsJSONRequestBody defines body for SignUpPasswordlessSms for application/json ContentType.
+type SignUpPasswordlessSmsJSONRequestBody = SignUpPasswordlessSmsRequest
 
 // SignUpWebauthnJSONRequestBody defines body for SignUpWebauthn for application/json ContentType.
 type SignUpWebauthnJSONRequestBody = SignUpWebauthnRequest
@@ -2019,6 +2120,29 @@ type ClientInterface interface {
 	SignUpEmailPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SignUpEmailPassword(ctx context.Context, body SignUpEmailPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SignUpIdTokenWithBody request with any body
+	SignUpIdTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SignUpIdToken(ctx context.Context, body SignUpIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SignUpOTPEmailWithBody request with any body
+	SignUpOTPEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SignUpOTPEmail(ctx context.Context, body SignUpOTPEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SignUpPasswordlessEmailWithBody request with any body
+	SignUpPasswordlessEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SignUpPasswordlessEmail(ctx context.Context, body SignUpPasswordlessEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SignUpPasswordlessSmsWithBody request with any body
+	SignUpPasswordlessSmsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SignUpPasswordlessSms(ctx context.Context, body SignUpPasswordlessSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SignUpProvider request
+	SignUpProvider(ctx context.Context, provider SignUpProviderParamsProvider, params *SignUpProviderParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SignUpWebauthnWithBody request with any body
 	SignUpWebauthnWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2820,6 +2944,114 @@ func (c *Client) SignUpEmailPasswordWithBody(ctx context.Context, contentType st
 
 func (c *Client) SignUpEmailPassword(ctx context.Context, body SignUpEmailPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignUpEmailPasswordRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpIdTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpIdTokenRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpIdToken(ctx context.Context, body SignUpIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpIdTokenRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpOTPEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpOTPEmailRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpOTPEmail(ctx context.Context, body SignUpOTPEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpOTPEmailRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpPasswordlessEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpPasswordlessEmailRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpPasswordlessEmail(ctx context.Context, body SignUpPasswordlessEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpPasswordlessEmailRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpPasswordlessSmsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpPasswordlessSmsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpPasswordlessSms(ctx context.Context, body SignUpPasswordlessSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpPasswordlessSmsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignUpProvider(ctx context.Context, provider SignUpProviderParamsProvider, params *SignUpProviderParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignUpProviderRequest(c.Server, provider, params)
 	if err != nil {
 		return nil, err
 	}
@@ -5005,6 +5237,344 @@ func NewSignUpEmailPasswordRequestWithBody(server string, contentType string, bo
 	return req, nil
 }
 
+// NewSignUpIdTokenRequest calls the generic SignUpIdToken builder with application/json body
+func NewSignUpIdTokenRequest(server string, body SignUpIdTokenJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSignUpIdTokenRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSignUpIdTokenRequestWithBody generates requests for SignUpIdToken with any type of body
+func NewSignUpIdTokenRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signup/idtoken")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSignUpOTPEmailRequest calls the generic SignUpOTPEmail builder with application/json body
+func NewSignUpOTPEmailRequest(server string, body SignUpOTPEmailJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSignUpOTPEmailRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSignUpOTPEmailRequestWithBody generates requests for SignUpOTPEmail with any type of body
+func NewSignUpOTPEmailRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signup/otp/email")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSignUpPasswordlessEmailRequest calls the generic SignUpPasswordlessEmail builder with application/json body
+func NewSignUpPasswordlessEmailRequest(server string, body SignUpPasswordlessEmailJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSignUpPasswordlessEmailRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSignUpPasswordlessEmailRequestWithBody generates requests for SignUpPasswordlessEmail with any type of body
+func NewSignUpPasswordlessEmailRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signup/passwordless/email")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSignUpPasswordlessSmsRequest calls the generic SignUpPasswordlessSms builder with application/json body
+func NewSignUpPasswordlessSmsRequest(server string, body SignUpPasswordlessSmsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSignUpPasswordlessSmsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSignUpPasswordlessSmsRequestWithBody generates requests for SignUpPasswordlessSms with any type of body
+func NewSignUpPasswordlessSmsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signup/passwordless/sms")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSignUpProviderRequest generates requests for SignUpProvider
+func NewSignUpProviderRequest(server string, provider SignUpProviderParamsProvider, params *SignUpProviderParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "provider", runtime.ParamLocationPath, provider)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/signup/provider/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.AllowedRoles != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "allowedRoles", runtime.ParamLocationQuery, *params.AllowedRoles); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.DefaultRole != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "defaultRole", runtime.ParamLocationQuery, *params.DefaultRole); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.DisplayName != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "displayName", runtime.ParamLocationQuery, *params.DisplayName); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Locale != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "locale", runtime.ParamLocationQuery, *params.Locale); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Metadata != nil {
+
+			if queryParamBuf, err := json.Marshal(*params.Metadata); err != nil {
+				return nil, err
+			} else {
+				queryValues.Add("metadata", string(queryParamBuf))
+			}
+
+		}
+
+		if params.RedirectTo != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "redirectTo", runtime.ParamLocationQuery, *params.RedirectTo); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.State != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "state", runtime.ParamLocationQuery, *params.State); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ProviderSpecificParams != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "providerSpecificParams", runtime.ParamLocationQuery, *params.ProviderSpecificParams); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CodeChallenge != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "codeChallenge", runtime.ParamLocationQuery, *params.CodeChallenge); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewSignUpWebauthnRequest calls the generic SignUpWebauthn builder with application/json body
 func NewSignUpWebauthnRequest(server string, body SignUpWebauthnJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -5904,6 +6474,29 @@ type ClientWithResponsesInterface interface {
 	SignUpEmailPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpEmailPasswordR, error)
 
 	SignUpEmailPasswordWithResponse(ctx context.Context, body SignUpEmailPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpEmailPasswordR, error)
+
+	// SignUpIdTokenWithBodyWithResponse request with any body
+	SignUpIdTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpIdTokenR, error)
+
+	SignUpIdTokenWithResponse(ctx context.Context, body SignUpIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpIdTokenR, error)
+
+	// SignUpOTPEmailWithBodyWithResponse request with any body
+	SignUpOTPEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOTPEmailR, error)
+
+	SignUpOTPEmailWithResponse(ctx context.Context, body SignUpOTPEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpOTPEmailR, error)
+
+	// SignUpPasswordlessEmailWithBodyWithResponse request with any body
+	SignUpPasswordlessEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpPasswordlessEmailR, error)
+
+	SignUpPasswordlessEmailWithResponse(ctx context.Context, body SignUpPasswordlessEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpPasswordlessEmailR, error)
+
+	// SignUpPasswordlessSmsWithBodyWithResponse request with any body
+	SignUpPasswordlessSmsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpPasswordlessSmsR, error)
+
+	SignUpPasswordlessSmsWithResponse(ctx context.Context, body SignUpPasswordlessSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpPasswordlessSmsR, error)
+
+	// SignUpProviderWithResponse request
+	SignUpProviderWithResponse(ctx context.Context, provider SignUpProviderParamsProvider, params *SignUpProviderParams, reqEditors ...RequestEditorFn) (*SignUpProviderR, error)
 
 	// SignUpWebauthnWithBodyWithResponse request with any body
 	SignUpWebauthnWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpWebauthnR, error)
@@ -6850,6 +7443,120 @@ func (r SignUpEmailPasswordR) StatusCode() int {
 	return 0
 }
 
+type SignUpIdTokenR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SessionPayload
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignUpIdTokenR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignUpIdTokenR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SignUpOTPEmailR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OKResponse
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignUpOTPEmailR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignUpOTPEmailR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SignUpPasswordlessEmailR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OKResponse
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignUpPasswordlessEmailR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignUpPasswordlessEmailR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SignUpPasswordlessSmsR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OKResponse
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignUpPasswordlessSmsR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignUpPasswordlessSmsR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SignUpProviderR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SignUpProviderR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignUpProviderR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SignUpWebauthnR struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7767,6 +8474,83 @@ func (c *ClientWithResponses) SignUpEmailPasswordWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseSignUpEmailPasswordR(rsp)
+}
+
+// SignUpIdTokenWithBodyWithResponse request with arbitrary body returning *SignUpIdTokenR
+func (c *ClientWithResponses) SignUpIdTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpIdTokenR, error) {
+	rsp, err := c.SignUpIdTokenWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpIdTokenR(rsp)
+}
+
+func (c *ClientWithResponses) SignUpIdTokenWithResponse(ctx context.Context, body SignUpIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpIdTokenR, error) {
+	rsp, err := c.SignUpIdToken(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpIdTokenR(rsp)
+}
+
+// SignUpOTPEmailWithBodyWithResponse request with arbitrary body returning *SignUpOTPEmailR
+func (c *ClientWithResponses) SignUpOTPEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpOTPEmailR, error) {
+	rsp, err := c.SignUpOTPEmailWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpOTPEmailR(rsp)
+}
+
+func (c *ClientWithResponses) SignUpOTPEmailWithResponse(ctx context.Context, body SignUpOTPEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpOTPEmailR, error) {
+	rsp, err := c.SignUpOTPEmail(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpOTPEmailR(rsp)
+}
+
+// SignUpPasswordlessEmailWithBodyWithResponse request with arbitrary body returning *SignUpPasswordlessEmailR
+func (c *ClientWithResponses) SignUpPasswordlessEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpPasswordlessEmailR, error) {
+	rsp, err := c.SignUpPasswordlessEmailWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpPasswordlessEmailR(rsp)
+}
+
+func (c *ClientWithResponses) SignUpPasswordlessEmailWithResponse(ctx context.Context, body SignUpPasswordlessEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpPasswordlessEmailR, error) {
+	rsp, err := c.SignUpPasswordlessEmail(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpPasswordlessEmailR(rsp)
+}
+
+// SignUpPasswordlessSmsWithBodyWithResponse request with arbitrary body returning *SignUpPasswordlessSmsR
+func (c *ClientWithResponses) SignUpPasswordlessSmsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpPasswordlessSmsR, error) {
+	rsp, err := c.SignUpPasswordlessSmsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpPasswordlessSmsR(rsp)
+}
+
+func (c *ClientWithResponses) SignUpPasswordlessSmsWithResponse(ctx context.Context, body SignUpPasswordlessSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpPasswordlessSmsR, error) {
+	rsp, err := c.SignUpPasswordlessSms(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpPasswordlessSmsR(rsp)
+}
+
+// SignUpProviderWithResponse request returning *SignUpProviderR
+func (c *ClientWithResponses) SignUpProviderWithResponse(ctx context.Context, provider SignUpProviderParamsProvider, params *SignUpProviderParams, reqEditors ...RequestEditorFn) (*SignUpProviderR, error) {
+	rsp, err := c.SignUpProvider(ctx, provider, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignUpProviderR(rsp)
 }
 
 // SignUpWebauthnWithBodyWithResponse request with arbitrary body returning *SignUpWebauthnR
@@ -9219,6 +10003,164 @@ func ParseSignUpEmailPasswordR(rsp *http.Response) (*SignUpEmailPasswordR, error
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSignUpIdTokenR parses an HTTP response from a SignUpIdTokenWithResponse call
+func ParseSignUpIdTokenR(rsp *http.Response) (*SignUpIdTokenR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignUpIdTokenR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SessionPayload
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSignUpOTPEmailR parses an HTTP response from a SignUpOTPEmailWithResponse call
+func ParseSignUpOTPEmailR(rsp *http.Response) (*SignUpOTPEmailR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignUpOTPEmailR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OKResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSignUpPasswordlessEmailR parses an HTTP response from a SignUpPasswordlessEmailWithResponse call
+func ParseSignUpPasswordlessEmailR(rsp *http.Response) (*SignUpPasswordlessEmailR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignUpPasswordlessEmailR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OKResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSignUpPasswordlessSmsR parses an HTTP response from a SignUpPasswordlessSmsWithResponse call
+func ParseSignUpPasswordlessSmsR(rsp *http.Response) (*SignUpPasswordlessSmsR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignUpPasswordlessSmsR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OKResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSignUpProviderR parses an HTTP response from a SignUpProviderWithResponse call
+func ParseSignUpProviderR(rsp *http.Response) (*SignUpProviderR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignUpProviderR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
 		var dest ErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {

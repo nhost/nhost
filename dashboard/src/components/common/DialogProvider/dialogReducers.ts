@@ -16,7 +16,7 @@ export interface DialogState {
    */
   activeDialog?: ReactElement<{
     location?: 'drawer' | 'dialog';
-    onCancel?: () => void;
+    onCancel?: (event?: unknown) => void;
     // biome-ignore lint/suspicious/noExplicitAny: TODO
     onSubmit?: (args?: any) => Promise<any> | undefined;
   }>;

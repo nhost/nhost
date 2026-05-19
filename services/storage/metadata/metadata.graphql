@@ -49,8 +49,8 @@ query ListFilesSummary {
 }
 
 mutation InsertFile($object: files_insert_input!) {
-  insertFile(object: $object) {
-    id
+  insertFiles(objects: [$object]) {
+    affected_rows
   }
 }
 

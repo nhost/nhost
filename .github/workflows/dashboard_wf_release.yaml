@@ -10,6 +10,10 @@ on:
       VERSION:
         required: true
         type: string
+      IS_PRERELEASE:
+        required: false
+        type: boolean
+        default: false
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -25,11 +29,13 @@ on:
         required: true
       DISCORD_WEBHOOK:
         required: false
-      GH_PAT:
-        required: true
       DOCKER_USERNAME:
         required: true
       DOCKER_PASSWORD:
+        required: true
+      NHOST_BOT_APP_ID:
+        required: true
+      NHOST_BOT_PRIVATE_KEY:
         required: true
 
 jobs:
@@ -74,32 +80,15 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  bump-cli:
-    name: Bump Dashboard version in the Nhost CLI
-    runs-on: ubuntu-latest
+  bump-refs:
+    if: ${{ !inputs.IS_PRERELEASE }}
+    uses: ./.github/workflows/wf_bump_refs.yaml
     needs:
       - push-docker
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          token: ${{ secrets.GH_PAT }}
-
-      - name: Bump version in source code
-        run: |
-          find cli -type f -exec sed -i 's/"nhost\/dashboard:[^"]*"/"nhost\/dashboard:${{ inputs.VERSION }}"/g' {} +
-          sed -i 's/"nhost\/dashboard:[^"]*"/"nhost\/dashboard:${{ inputs.VERSION }}"/g' docs/src/content/docs/reference/cli/commands.mdx
-
-      - name: "Create Pull Request"
-        uses: peter-evans/create-pull-request@v8
-        with:
-          token: ${{ secrets.GH_PAT }}
-          title: "chore(cli): bump nhost/dashboard to ${{ inputs.VERSION }}"
-          commit-message: "chore: bump nhost/dashboard to ${{ inputs.VERSION }}"
-          committer: GitHub <noreply@github.com>
-          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-          body: |
-            This PR bumps the Nhost Dashboard Docker image to version ${{ inputs.VERSION }}.
-          branch: bump-dashboard-version
-          base: main
-          delete-branch: true
+    with:
+      NAME: dashboard
+      PATH: dashboard
+      VERSION: ${{ inputs.VERSION }}
+    secrets:
+      NHOST_BOT_APP_ID: ${{ secrets.NHOST_BOT_APP_ID }}
+      NHOST_BOT_PRIVATE_KEY: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}

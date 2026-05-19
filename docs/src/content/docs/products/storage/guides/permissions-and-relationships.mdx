@@ -15,42 +15,77 @@ The simplest pattern — users can upload, view, and delete only their own files
 
 ### 1. Create a Bucket
 
-Insert a `personal` bucket into `storage.buckets` (via the Dashboard or a migration):
+Go to the **Storage** page in the dashboard and click **New Bucket** in the sidebar. Name it `personal`.
 
+![Create bucket](/images/tutorials/uploads/1.png)
+
+:::note
+Alternatively, you can create the bucket via a migration:
 ```sql
 INSERT INTO storage.buckets (id)
 VALUES ('personal');
 ```
+:::
 
 ### 2. Configure Permissions
 
-Set permissions on the `storage.files` table for the `user` role:
+Open **Storage → Permissions** in the dashboard to reach the permission grid. For each action below, click the cell for the `user` role and configure it in the [rule editor](/products/graphql/permissions/rule-editor). The JSON equivalent is shown below each rule — you can also paste it directly into the rule editor's JSON view instead of building the rule visually.
 
 <Tabs>
-<TabItem label="Insert (Upload)">
+<TabItem label="Upload">
 
-| Setting | Value |
-|---------|-------|
-| Columns | `id`, `bucket_id`, `name`, `size`, `mime_type` |
-| Row check | `{"bucket_id": {"_eq": "personal"}}` |
-| Column preset | `uploaded_by_user_id` = `X-Hasura-User-Id` |
+1. Select **With custom check** and add a rule: `bucket_id` equals `personal`.
+2. Under **Uploader identity**, enable the **Prefill `uploaded_by_user_id` with `X-Hasura-User-Id`** toggle — this automatically tags every upload with `uploaded_by_user_id = X-Hasura-User-Id`.
 
-The column preset automatically tags every upload with the authenticated user's ID.
+![upload files permissions](/images/tutorials/uploads/2.png)
+
+*Equivalent JSON:*
+
+```json
+{"bucket_id": {"_eq": "personal"}}
+```
 
 </TabItem>
-<TabItem label="Select (Download)">
+<TabItem label="Download">
 
-| Setting | Value |
-|---------|-------|
-| Columns | **All** |
-| Row check | `{"_and": [{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}, {"bucket_id": {"_eq": "personal"}}]}` |
+1. Select **With custom check**.
+2. Add two rules (combined with AND by default):
+   - `uploaded_by_user_id` equals `X-Hasura-User-Id`
+   - `bucket_id` equals `personal`
+
+![download files permissions](/images/tutorials/uploads/3.png)
+
+*Equivalent JSON:*
+
+```json
+{
+  "_and": [
+    {"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}},
+    {"bucket_id": {"_eq": "personal"}}
+  ]
+}
+```
 
 </TabItem>
 <TabItem label="Delete">
 
-| Setting | Value |
-|---------|-------|
-| Row check | `{"_and": [{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}, {"bucket_id": {"_eq": "personal"}}]}` |
+Use the same two rules as Download:
+
+- `uploaded_by_user_id` equals `X-Hasura-User-Id`
+- `bucket_id` equals `personal`
+
+![delete files permissions](/images/tutorials/uploads/4.png)
+
+*Equivalent JSON:*
+
+```json
+{
+  "_and": [
+    {"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}},
+    {"bucket_id": {"_eq": "personal"}}
+  ]
+}
+```
 
 </TabItem>
 </Tabs>
@@ -139,10 +174,11 @@ erDiagram
 
 ### 1. Create the Schema
 
-```sql
--- Communities bucket
-INSERT INTO storage.buckets (id) VALUES ('communities');
+Go to the **Storage** page in the dashboard and click **New Bucket** in the sidebar. Name it `communities`.
 
+Then create the required tables (via the Dashboard or a migration):
+
+```sql
 -- Communities
 CREATE TABLE public.communities (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -169,119 +205,205 @@ CREATE TABLE public.community_files (
 );
 ```
 
-Track all three tables and their foreign-key relationships in Hasura so they appear in the GraphQL API.
+### 2. Configure Relationships
 
-### 2. Configure Relationships in Hasura
+On the **Database** page sidebar, click the **⋯** menu on each table and choose **Edit Relationships**. Under **Suggested Relationships**, every foreign key is listed — click **Add** and then **Create Relationship**. Do this for each table below so the relationships appear in the GraphQL API.
 
-| Source table | Relationship | Type | Target |
+![Suggested Relationships](/images/storage/suggested-relationships.png)
+
+| From | Name | Type | To |
 |---|---|---|---|
-| `communities` | `members` | array | `community_members.community_id` |
-| `communities` | `community_files` | array | `community_files.community_id` |
-| `community_members` | `community` | object | `community_members.community_id → communities.id` |
-| `community_members` | `user` | object | `community_members.user_id → auth.users.id` |
-| `community_files` | `community` | object | `community_files.community_id → communities.id` |
-| `community_files` | `file` | object | `community_files.file_id → storage.files.id` |
-| `storage.files` | `community_files` | array | `community_files.file_id` |
-| `storage.files` | `uploadedByUser` | object | `storage.files.uploaded_by_user_id → auth.users.id` (manual config) |
+| `communities` | `members` | Array | `community_members` |
+| `communities` | `community_files` | Array | `community_files` |
+| `community_members` | `community` | Object | `communities` |
+| `community_members` | `user` | Object | `auth.users` |
+| `community_files` | `community` | Object | `communities` |
+| `community_files` | `file` | Object | `storage.files` |
+| `storage.files` | `community_files` | Array | `community_files` |
+
+:::note
+The dashboard suggests `community_members` as the name for the array relationship from `communities`. This guide uses `members` instead (matching the [Nhost demo app](https://github.com/nhost/nhost/tree/main/examples/demos)) — rename it when you add the relationship, or stick with `community_members` and substitute it throughout the rules below.
+:::
+
+One more relationship links each file to the user who uploaded it. In the **Database** sidebar, switch to the `storage` schema, open the **files** table's **Edit Relationships**, and click **Relationship +**:
+
+- **Relationship Name**: `uploadedByUser`
+- **From Source**: `default` / `storage` / `files`
+- **To Reference**: `default` / `auth` / `users`
+- **Relationship Type**: Object Relationship
+- **Source Column** → **Reference Column**: `uploaded_by_user_id` → `id`
+
+Click **Create Relationship**.
+
+![uploadedByUser relationship form](/images/storage/uploaded-by-user-relationship.png)
 
 ### 3. Configure Permissions
 
 #### `public.communities` (user role)
 
-| Operation | Columns | Filter |
-|-----------|---------|--------|
-| Select | all | `{}` (all communities visible) |
+On the **Database** page, open the `communities` table and click **Permissions**. For the `user` role, configure **Select**: choose **Without any checks** and select all columns. All communities are visible so anyone can browse and join.
+
+![communities Select permission](/images/storage/permissions-communities-select.png)
 
 #### `public.community_members` (user role)
+
+On the **Database** page, open `community_members` → **Permissions** for the `user` role and configure each operation below.
 
 <Tabs>
 <TabItem label="Select">
 
-| Setting | Value |
-|---------|-------|
-| Columns | all |
-| Filter | `{}` |
+Choose **Without any checks** and select all columns. Anyone can see who's a member of any community.
+
+![community_members Select permission](/images/storage/permissions-community_members-select.png)
 
 </TabItem>
 <TabItem label="Insert">
 
-| Setting | Value |
-|---------|-------|
-| Columns | `user_id`, `community_id` |
-| Row check | `{"user_id": {"_eq": "X-Hasura-User-Id"}}` |
-| Column preset | `user_id` = `X-Hasura-User-Id` |
+1. Select **With custom check** and add a rule: `user_id` equals `X-Hasura-User-Id` — this prevents users from adding memberships for other users.
+2. Under **Column presets**, set `user_id` to `X-Hasura-User-Id`.
+3. Allow columns `user_id` and `community_id`.
+
+![community_members Insert permission](/images/storage/permissions-community_members-insert.png)
+
+*Equivalent JSON:*
+
+```json
+{"user_id": {"_eq": "X-Hasura-User-Id"}}
+```
 
 </TabItem>
 <TabItem label="Delete">
 
-| Setting | Value |
-|---------|-------|
-| Filter | `{"user_id": {"_eq": "X-Hasura-User-Id"}}` |
+Select **With custom check** and add a rule: `user_id` equals `X-Hasura-User-Id`. Users can only remove their own memberships.
+
+![community_members Delete permission](/images/storage/permissions-community_members-delete.png)
+
+*Equivalent JSON:*
+
+```json
+{"user_id": {"_eq": "X-Hasura-User-Id"}}
+```
 
 </TabItem>
 </Tabs>
 
 #### `public.community_files` (user role)
 
+On the **Database** page, open `community_files` → **Permissions** for the `user` role and configure each operation below.
+
 <Tabs>
 <TabItem label="Select">
 
 Only members of the file's community can see it:
 
-| Setting | Value |
-|---------|-------|
-| Columns | all |
-| Filter | `{"community": {"members": {"user_id": {"_eq": "X-Hasura-User-Id"}}}}` |
+1. Select **With custom check**.
+2. Pick relationship `community`, then pick relationship `members`, then add condition: `user_id` equals `X-Hasura-User-Id`.
+3. Allow all columns.
 
-This traverses the `community` → `members` relationships to check membership.
+![community_files Select permission](/images/storage/permissions-community_files-select.png)
+
+*Equivalent JSON:*
+
+```json
+{"community": {"members": {"user_id": {"_eq": "X-Hasura-User-Id"}}}}
+```
 
 </TabItem>
 <TabItem label="Insert">
 
-| Setting | Value |
-|---------|-------|
-| Columns | `file_id`, `community_id` |
-| Row check | `{"community": {"members": {"user_id": {"_eq": "X-Hasura-User-Id"}}}}` |
+1. Select **With custom check**.
+2. Pick relationship `community` → `members`, then add condition: `user_id` equals `X-Hasura-User-Id`.
+3. Allow columns `file_id` and `community_id`.
+
+![community_files Insert permission](/images/storage/permissions-community_files-insert.png)
+
+*Equivalent JSON:*
+
+```json
+{"community": {"members": {"user_id": {"_eq": "X-Hasura-User-Id"}}}}
+```
 
 </TabItem>
 <TabItem label="Delete">
 
-| Setting | Value |
-|---------|-------|
-| Filter | `{"file": {"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}}` |
+Only the uploader of the underlying file can remove the association:
+
+1. Select **With custom check**.
+2. Pick relationship `file`, then add condition: `uploaded_by_user_id` equals `X-Hasura-User-Id`.
+
+![community_files Delete permission](/images/storage/permissions-community_files-delete.png)
+
+*Equivalent JSON:*
+
+```json
+{"file": {"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}}
+```
 
 </TabItem>
 </Tabs>
 
-#### `storage.files` (user role)
+#### Storage permissions (user role)
 
-Update the existing `storage.files` permissions to support all three buckets:
+Configure the **Storage** permissions for the `user` role: Upload, Download, and Delete each get their own rule.
 
 <Tabs>
-<TabItem label="Insert (Upload)">
+<TabItem label="Upload">
 
-| Setting | Value |
-|---------|-------|
-| Columns | `id`, `bucket_id`, `name`, `size`, `mime_type` |
-| Row check | `{"bucket_id": {"_in": ["default", "personal", "communities"]}}` |
-| Column preset | `uploaded_by_user_id` = `X-Hasura-User-Id` |
+Click the **Upload** cell for the `user` role:
+
+1. Select **With custom check** and add a rule: `bucket_id` is in `default`, `personal`, `communities`.
+2. Under **Uploader identity**, enable the **Prefill `uploaded_by_user_id` with `X-Hasura-User-Id`** toggle.
+
+![storage.files Upload permission](/images/storage/permissions-storage_files-upload.png)
+
+*Equivalent JSON:*
+
+```json
+{"bucket_id": {"_in": ["default", "personal", "communities"]}}
+```
 
 </TabItem>
-<TabItem label="Select (Download)">
+<TabItem label="Download">
 
 Users can see their own files in `default`/`personal` buckets, plus any community files they have membership for:
 
-| Setting | Value |
-|---------|-------|
-| Columns | all |
-| Filter | `{"_or": [{"_and": [{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}, {"bucket_id": {"_in": ["default", "personal"]}}]}, {"community_files": {"community": {"members": {"user_id": {"_eq": "X-Hasura-User-Id"}}}}}]}` |
+1. Click the **Download** cell for the `user` role, select **With custom check**.
+2. Change the root group operator to **OR**.
+3. Add the first branch — an AND group with two conditions:
+   - `uploaded_by_user_id` equals `X-Hasura-User-Id`
+   - `bucket_id` is in `default`, `personal`
+4. Add the second branch: pick relationship `community_files` → `community` → `members`, then add condition `user_id` equals `X-Hasura-User-Id`.
+
+![storage.files Download permission](/images/storage/permissions-storage_files-download.png)
+
+*Equivalent JSON:*
+
+```json
+{
+  "_or": [
+    {
+      "_and": [
+        {"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}},
+        {"bucket_id": {"_in": ["default", "personal"]}}
+      ]
+    },
+    {"community_files": {"community": {"members": {"user_id": {"_eq": "X-Hasura-User-Id"}}}}}
+  ]
+}
+```
 
 </TabItem>
 <TabItem label="Delete">
 
-| Setting | Value |
-|---------|-------|
-| Filter | `{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}` |
+Click the **Delete** cell for the `user` role. Select **With custom check** and add a rule: `uploaded_by_user_id` equals `X-Hasura-User-Id`.
+
+![storage.files Delete permission](/images/storage/permissions-storage_files-delete.png)
+
+*Equivalent JSON:*
+
+```json
+{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}
+```
 
 </TabItem>
 </Tabs>

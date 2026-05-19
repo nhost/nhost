@@ -35,11 +35,12 @@ func NewGitlabProvider(
 }
 
 type gitlabUserProfile struct {
-	ID        int    `json:"id"`
-	Username  string `json:"username"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	AvatarURL string `json:"avatar_url"`
+	ID          int    `json:"id"`
+	Username    string `json:"username"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	ConfirmedAt string `json:"confirmed_at"`
+	AvatarURL   string `json:"avatar_url"`
 }
 
 func (g *Gitlab) GetProfile(
@@ -58,12 +59,18 @@ func (g *Gitlab) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("GitLab API error: %w", err)
 	}
 
+	// GitLab's /user endpoint returns the account's primary email and a
+	// `confirmed_at` timestamp that is non-empty only after the user has
+	// verified the address. Require both to mark the email as verified so a
+	// pending-confirmation account cannot be linked to an existing Nhost user.
 	return oidc.Profile{
 		ProviderUserID: strconv.Itoa(userProfile.ID),
 		Name:           userProfile.Name,
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "",
-		Picture:        userProfile.AvatarURL,
+		EmailVerified: oidc.EmailVerificationFromBool(
+			userProfile.Email != "" && userProfile.ConfirmedAt != "",
+		),
+		Picture: userProfile.AvatarURL,
 	}, nil
 }
 

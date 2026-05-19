@@ -154,7 +154,7 @@ func (a *Apple) GetProfile(
 	return oidc.Profile{
 		ProviderUserID: sub,
 		Email:          email,
-		EmailVerified:  emailVerified,
+		EmailVerified:  oidc.EmailVerificationFromBool(emailVerified),
 		Name:           displayName,
 		Picture:        "",
 	}, nil

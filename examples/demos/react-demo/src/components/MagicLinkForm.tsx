@@ -6,10 +6,12 @@ import { generateAndStorePKCE } from '../lib/utils';
 
 interface MagicLinkFormProps {
   buttonLabel?: string;
+  mode?: 'signIn' | 'signUp';
 }
 
 export default function MagicLinkForm({
   buttonLabel = 'Send Magic Link',
+  mode = 'signIn',
 }: MagicLinkFormProps): JSX.Element {
   const [email, setEmail] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -26,13 +28,19 @@ export default function MagicLinkForm({
     try {
       const { challenge } = await generateAndStorePKCE();
 
-      await nhost.auth.signInPasswordlessEmail({
+      const request = {
         email,
         options: {
           redirectTo: `${window.location.origin}/verify`,
         },
         codeChallenge: challenge,
-      });
+      };
+
+      if (mode === 'signUp') {
+        await nhost.auth.signUpPasswordlessEmail(request);
+      } else {
+        await nhost.auth.signInPasswordlessEmail(request);
+      }
 
       setSuccess(true);
     } catch (err) {

@@ -73,7 +73,7 @@ export default function FeatureSidebar({
 
       <aside
         className={cn(
-          'absolute top-0 z-[35] h-full w-full max-w-sidebar overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform',
+          'absolute top-0 z-[35] h-full w-full max-w-sidebar overflow-auto border-r-1 bg-background pt-2 pb-17 motion-safe:transition-transform',
           mobileBreakpoint === 'sm' &&
             'sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
           mobileBreakpoint === 'md' &&

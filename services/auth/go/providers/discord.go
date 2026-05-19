@@ -38,6 +38,7 @@ type discordUserProfile struct {
 	Username      string `json:"username"`
 	Discriminator string `json:"discriminator"`
 	Email         string `json:"email"`
+	Verified      bool   `json:"verified"`
 	Locale        string `json:"locale"`
 	Avatar        string `json:"avatar"`
 }
@@ -62,7 +63,7 @@ func (d *Discord) GetProfile(
 		ProviderUserID: userProfile.ID,
 		Name:           fmt.Sprintf("%s#%s", userProfile.Username, userProfile.Discriminator),
 		Email:          userProfile.Email,
-		EmailVerified:  userProfile.Email != "",
+		EmailVerified:  oidc.EmailVerificationFromBool(userProfile.Verified),
 		Picture: fmt.Sprintf(
 			"https://cdn.discordapp.com/avatars/%s/%s.png",
 			userProfile.ID,

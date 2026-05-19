@@ -88,6 +88,10 @@ module.exports = {
           4: 'hsl(var(--chart-4))',
           5: 'hsl(var(--chart-5))',
         },
+        grey: {
+          400: 'hsl(var(--grey-400))',
+          500: 'hsl(var(--grey-500))',
+        },
       },
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',
@@ -254,7 +258,7 @@ module.exports = {
         toastleave: 'leave 150ms ease-in forwards',
         progress: 'progress 1s infinite linear',
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out forwards',
       },
     },
   },

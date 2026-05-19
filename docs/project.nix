@@ -1,4 +1,9 @@
-{ self, pkgs, nixops-lib, nix-filter }:
+{
+  self,
+  pkgs,
+  nixops-lib,
+  nix-filter,
+}:
 let
   name = "docs";
   version = "0.0.0-dev";
@@ -38,10 +43,7 @@ let
       "turbo.json"
       (inDirectory "./build")
       (inDirectory "${submodule}")
-      (and
-        (inDirectory "packages/nhost-js/src")
-        (matchExt "ts")
-      )
+      (and (inDirectory "packages/nhost-js/src") (matchExt "ts"))
       ../services/auth/docs/openapi.yaml
       ../services/storage/controller/openapi.yaml
       ../packages/nhost-js/tsconfig.json
@@ -57,23 +59,38 @@ let
 
   buildInputs = with pkgs; [ nodejs ];
 
-  nativeBuildInputs = with pkgs; [ pnpm cacert ];
+  nativeBuildInputs = with pkgs; [
+    pnpm
+    cacert
+  ];
 in
 {
   devShell = nixops-lib.js.devShell {
     inherit node_modules;
 
     buildInputs = [
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    ]
+    ++ checkDeps
+    ++ buildInputs
+    ++ nativeBuildInputs;
   };
 
   check = nixops-lib.js.check {
-    inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      node_modules
+      submodule
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
 
     preCheck = ''
       mkdir -p packages/nhost-js
       cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js}/dist packages/nhost-js/dist
-      cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js}/node_modules packages/nhost-js/node_modules
+      cp -r ${
+        self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js
+      }/node_modules packages/nhost-js/node_modules
     '';
   };
 }

@@ -4,7 +4,6 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -35,7 +34,6 @@ export type HasuraCorsDomainFormValues = Yup.InferType<typeof validationSchema>;
 export default function HasuraCorsDomainSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
 
@@ -136,7 +134,7 @@ export default function HasuraCorsDomainSettings() {
           description="Allow requests from specific domains to access your GraphQL API. Disable this setting to allow requests from all domains."
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive,
+              disabled: !isDirty,
               loading: formState.isSubmitting,
             },
           }}

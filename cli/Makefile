@@ -1,10 +1,6 @@
 ROOT_DIR?=$(abspath ../)
+NIX_CHECK_EXTRA_ARGS=--impure
 include $(ROOT_DIR)/build/makefiles/general.makefile
-
-
-.PHONY: _check-pre
-_check-pre:
-	@sed -i 's/$$NHOST_PAT/$(NHOST_PAT)/' get_access_token.sh
 
 
 .PHONY: _dev-env-up
@@ -27,3 +23,8 @@ build-multiplatform:  ## Build cli for all supported platforms
 	nix build \
 		--print-build-logs \
 		.\#packages.$(ARCH)-$(OS).cli-multiplatform
+
+
+.PHONY: changelog-bump-refs
+changelog-bump-refs:  ## Bump pinned CLI version in get.sh
+	@sed -i 's/^VERSION=".*"/VERSION="$(VERSION)"/' get.sh

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
   "root": true,
   "javascript": { "formatter": { "quoteStyle": "single" }, "globals": [] },
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
@@ -14,6 +14,19 @@
       "recommended": true,
       "complexity": {
         "useLiteralKeys": "off"
+      },
+      "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "@nhost/nhost-js/session": {
+                "importNames": ["Session"],
+                "message": "`Session` from @nhost/nhost-js/session is deprecated; import `StoredSession` instead."
+              }
+            }
+          }
+        }
       }
     },
     "includes": ["**", "!.next", "!node_modules"]

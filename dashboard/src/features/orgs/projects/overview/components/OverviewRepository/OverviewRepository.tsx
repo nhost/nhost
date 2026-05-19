@@ -1,5 +1,4 @@
 import { NavLink } from '@/components/common/NavLink';
-import { useUI } from '@/components/common/UIProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
@@ -9,7 +8,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export default function OverviewRepository() {
   const { project } = useProject();
   const { org } = useCurrentOrg();
-  const { maintenanceActive } = useUI();
 
   return (
     <div>
@@ -22,7 +20,7 @@ export default function OverviewRepository() {
       {!project?.githubRepository ? (
         <div className="mt-6 flex flex-row place-content-between rounded-lg">
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
             variant="outline"
             className="h-9 w-full gap-2"
           >
@@ -46,12 +44,11 @@ export default function OverviewRepository() {
           </Box>
 
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
             className="text-primary"
             variant="ghost"
             underline="none"
             size="sm"
-            disabled={maintenanceActive}
           >
             Edit
           </NavLink>

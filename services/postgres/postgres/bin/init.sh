@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-function init_db() {
+init_db() {
     DATABASE_INITALIZED=false
     if [ ! -f $PGDATA/PG_VERSION ]; then
         echo "Initializing database"
@@ -12,7 +12,7 @@ function init_db() {
     export DATABASE_INITALIZED
 }
 
-function resolve_config() {
+resolve_config() {
     echo "Resolving pg_hba.conf and postgresql.conf"
     POSTGRES_DEV_INSECURE=${POSTGRES_DEV_INSECURE:-}
     if [[ -n "$POSTGRES_DEV_INSECURE" ]]; then
@@ -25,7 +25,7 @@ function resolve_config() {
 }
 
 
-function wait_for_postgres() {
+wait_for_postgres() {
     echo "Waiting for postgres to start"
     # wait for postgres to start
     while ! pg_isready -q; do
@@ -39,7 +39,7 @@ function wait_for_postgres() {
 }
 
 
-function wait_for_postgres_slow() {
+wait_for_postgres_slow() {
     echo "Waiting for postgres to start"
     # wait for postgres to start
     while ! pg_isready -q; do
@@ -61,7 +61,7 @@ function wait_for_postgres_slow() {
 }
 
 
-function start_postgres() {
+start_postgres() {
     echo "Starting postgres"
     chmod u=rwx,g=rx $PGDATA
     postgres \
@@ -71,14 +71,14 @@ function start_postgres() {
         -c hba_file="/tmp/postgresql/pg_hba.conf"
 }
 
-function delete_core_dumps() {
+delete_core_dumps() {
     while true; do
         find "$PGDATA" -type f -name "core.*" -exec rm -f {} \;
         sleep 60
     done
 }
 
-function run_init_scripts() {
+run_init_scripts() {
     echo "Running init scripts"
     psql --dbname postgres -c "CREATE DATABASE $POSTGRES_DB;"
 
@@ -89,7 +89,7 @@ function run_init_scripts() {
     done
 }
 
-function run_nhost_scripts() {
+run_nhost_scripts() {
     echo "Running nhost's scripts"
 
     mkdir -p /tmp/postgresql/nhost.d
@@ -99,7 +99,7 @@ function run_nhost_scripts() {
     done
 }
 
-function pitr_restore() {
+pitr_restore() {
     echo "Cleaning up PGDATA"
     rm -rf $PGDATA
     echo "pitr_recover: fetching $PITR_BASEBACKUP"
@@ -114,7 +114,7 @@ function pitr_restore() {
     touch $PGDATA/recovery.signal
 }
 
-function post_restore_sql() {
+post_restore_sql() {
     if [ -n "${PITR_POST_RESTORE_SQL_NO_DB:-}" ]; then
         echo "Running post restore SQL without database connection"
         psql -U postgres -c "$PITR_POST_RESTORE_SQL_NO_DB"
@@ -126,7 +126,7 @@ function post_restore_sql() {
     fi
 }
 
-function main() {
+main() {
     if [ -n "${PITR_BASEBACKUP:-}" ]; then
         resolve_config
         pitr_restore
