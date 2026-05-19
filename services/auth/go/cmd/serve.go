@@ -1371,6 +1371,7 @@ func getDependencies( //nolint:ireturn
 
 func getCORSOptions() oapimw.CORSOptions {
 	return oapimw.CORSOptions{
+		AllowOriginFunc:  nil,
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"POST", "GET"},
 		AllowedHeaders:   nil,

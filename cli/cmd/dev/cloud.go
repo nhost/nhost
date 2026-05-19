@@ -204,6 +204,7 @@ func cloud( //nolint:funlen
 		ports,
 		dashboardVersion,
 		configserverImage,
+		proj.GetID(),
 		caCertificatesPath,
 	)
 	if err != nil {
