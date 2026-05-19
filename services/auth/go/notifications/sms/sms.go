@@ -11,19 +11,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
-const (
-	in5Minutes  = 5 * 60 * time.Second
-	in10Minutes = 10 * 60 * time.Second
-)
-
-func deptr[T any](v *T) T { //nolint:ireturn,nolintlint
-	if v == nil {
-		var zero T
-		return zero
-	}
-
-	return *v
-}
+const in5Minutes = 5 * 60 * time.Second
 
 type GenericSMSProvider interface {
 	SendSMS(to string, body string) error
