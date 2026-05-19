@@ -58,9 +58,9 @@ type ComposeFile struct {
 	Volumes  map[string]struct{} `yaml:"volumes"`
 }
 
-// This is a normal map type, but with special handling to correctly escape $ with $$
-// which is required for for Docker Compose environment variables,
-// so that Docker Compose doesn't interpret them as variable substitution.
+// Environment is a map of environment variables that escapes literal `$` as
+// `$$` when marshaled to YAML so Docker Compose doesn't interpret them as
+// variable substitution.
 type Environment map[string]string
 
 func (e Environment) MarshalYAML() (any, error) {
@@ -68,6 +68,7 @@ func (e Environment) MarshalYAML() (any, error) {
 	for k, v := range e {
 		escaped[k] = strings.ReplaceAll(v, "$", "$$")
 	}
+
 	return escaped, nil
 }
 
