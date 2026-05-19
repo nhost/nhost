@@ -13,6 +13,7 @@ export interface SchemaDiagramColumn {
   isNullable: boolean;
   ordinalPosition: number;
   isPrimary: boolean;
+  isGenerated: boolean;
 }
 
 export interface SchemaDiagramForeignKey {
@@ -49,6 +50,7 @@ const COLUMN_QUERY = `
       c.udt_name,
       c.is_nullable,
       c.ordinal_position,
+      c.is_generated,
       EXISTS (
         SELECT 1 FROM pg_index i
         JOIN pg_class cls ON cls.oid = i.indrelid
@@ -120,6 +122,7 @@ interface RawColumn {
   is_nullable: 'YES' | 'NO';
   ordinal_position: number;
   is_primary: boolean;
+  is_generated: 'ALWAYS' | 'NEVER';
 }
 
 interface RawForeignKey {
@@ -195,6 +198,7 @@ export default async function fetchSchemaDiagramData({
       isNullable: row.is_nullable === 'YES',
       ordinalPosition: row.ordinal_position,
       isPrimary: row.is_primary,
+      isGenerated: row.is_generated === 'ALWAYS',
     };
   });
 

@@ -18,6 +18,7 @@ export interface TableNodeColumn {
   isNullable: boolean;
   isPrimary: boolean;
   isForeignKey: boolean;
+  isGenerated: boolean;
 }
 
 export interface TableNodeComputedField {
@@ -229,6 +230,7 @@ export default function useSchemaGraph({
           isNullable: c.isNullable,
           isPrimary: c.isPrimary,
           isForeignKey: fkColumns.has(c.columnName),
+          isGenerated: c.isGenerated,
         })),
         computedFields,
         metadataTable,

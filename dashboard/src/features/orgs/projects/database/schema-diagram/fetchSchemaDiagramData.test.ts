@@ -31,6 +31,7 @@ function columnRow(
     is_nullable: 'YES' | 'NO';
     ordinal_position: number;
     is_primary: boolean;
+    is_generated: 'ALWAYS' | 'NEVER';
   }> = {},
 ): string {
   return JSON.stringify({
@@ -42,6 +43,7 @@ function columnRow(
     is_nullable: 'NO',
     ordinal_position: 1,
     is_primary: true,
+    is_generated: 'NEVER',
     ...overrides,
   });
 }
@@ -138,6 +140,7 @@ describe('fetchSchemaDiagramData', () => {
         isNullable: false,
         ordinalPosition: 1,
         isPrimary: true,
+        isGenerated: false,
       },
       {
         schema: 'public',
@@ -148,6 +151,7 @@ describe('fetchSchemaDiagramData', () => {
         isNullable: true,
         ordinalPosition: 2,
         isPrimary: false,
+        isGenerated: false,
       },
     ]);
   });

@@ -1,5 +1,5 @@
 import { Handle, type NodeProps, Position } from '@xyflow/react';
-import { Parentheses, Settings } from 'lucide-react';
+import { Parentheses, Settings, Sigma } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
 import { findPermission } from '@/components/common/PermissionsGrid';
 import {
@@ -134,7 +134,7 @@ function ComputedFieldTooltipContent({
     <div className="space-y-1">
       <div className="font-semibold">Computed field</div>
       <div className="text-muted-foreground text-xs">
-        Computed by <span className="font-mono">{fnRef}</span>
+        Calls <span className="font-mono">{fnRef}</span>
       </div>
       {(field.tableArgument || field.sessionArgument) && (
         <div className="text-muted-foreground text-xs">
@@ -315,6 +315,22 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                   <span className="shrink-0 rounded bg-muted px-1 py-px font-medium text-[10px] text-muted-foreground uppercase">
                     FK
                   </span>
+                )}
+                {column.isGenerated && (
+                  <Tooltip delayDuration={150}>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex shrink-0 cursor-help">
+                        <Sigma
+                          aria-label="Generated column"
+                          className="h-3 w-3 text-muted-foreground"
+                        />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      <span className="font-semibold">Generated column</span> —
+                      value is computed by Postgres.
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
 

@@ -25,6 +25,7 @@ function buildColumn(
     isNullable: false,
     ordinalPosition: 1,
     isPrimary: true,
+    isGenerated: false,
     ...overrides,
   };
 }

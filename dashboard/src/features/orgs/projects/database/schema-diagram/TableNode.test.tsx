@@ -79,6 +79,7 @@ const baseData: TableNodeData = {
       isNullable: false,
       isPrimary: true,
       isForeignKey: false,
+      isGenerated: false,
     },
     {
       name: 'author_id',
@@ -86,6 +87,7 @@ const baseData: TableNodeData = {
       isNullable: true,
       isPrimary: false,
       isForeignKey: true,
+      isGenerated: false,
     },
     {
       name: 'email',
@@ -93,6 +95,7 @@ const baseData: TableNodeData = {
       isNullable: true,
       isPrimary: false,
       isForeignKey: false,
+      isGenerated: false,
     },
   ],
 };
