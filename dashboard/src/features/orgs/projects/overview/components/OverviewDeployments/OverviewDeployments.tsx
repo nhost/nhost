@@ -1,12 +1,11 @@
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
+import { ChevronRightIcon, RocketIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
-import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
-import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
@@ -82,11 +81,7 @@ function OverviewDeploymentList() {
   if (!deployments.length) {
     return (
       <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 px-4 py-12 shadow-sm">
-        <RocketIcon
-          strokeWidth={1}
-          className="h-10 w-10"
-          sx={{ color: 'text.primary' }}
-        />
+        <RocketIcon strokeWidth={1} className="h-10 w-10 text-foreground" />
         <div className="grid grid-flow-row gap-2">
           <Text className="text-center font-medium" variant="h3">
             No Deployments
@@ -96,7 +91,6 @@ function OverviewDeploymentList() {
             deployment branch in your connected GitHub repository
           </Text>
         </div>
-
         <Box
           className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg px-2 py-2"
           sx={{ backgroundColor: 'grey.200' }}
