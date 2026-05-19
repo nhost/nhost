@@ -121,6 +121,36 @@ describe('TableNode', () => {
     expect(screen.getByText('No columns')).toBeInTheDocument();
   });
 
+  it('renders the Sigma indicator on generated columns', () => {
+    renderNode({
+      ...baseData,
+      columns: [
+        { ...baseData.columns[0], isGenerated: true },
+        baseData.columns[1],
+        baseData.columns[2],
+      ],
+    });
+
+    expect(screen.getByLabelText('Generated column')).toBeInTheDocument();
+  });
+
+  it('renders a computed field row with its name and return type', () => {
+    renderNode({
+      ...baseData,
+      computedFields: [
+        {
+          name: 'posts_count',
+          returnType: 'bigint',
+          functionSchema: 'public',
+          functionName: 'users_posts_count',
+        },
+      ],
+    });
+
+    expect(screen.getByText('posts_count')).toBeInTheDocument();
+    expect(screen.getByText('bigint')).toBeInTheDocument();
+  });
+
   it('does not render the action menu when no TableActionsContext is provided', () => {
     renderNode(baseData, null);
 

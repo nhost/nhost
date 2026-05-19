@@ -2,6 +2,7 @@ import type { HasuraMetadataTable } from '@/features/orgs/projects/database/data
 import {
   ADMIN_ROLE,
   getColumnPermissionState,
+  getComputedFieldPermissionState,
   getRelevantRules,
   getTablePermissionState,
   tableHasAnyPermission,
@@ -219,6 +220,113 @@ describe('getColumnPermissionState', () => {
     });
     expect(getColumnPermissionState(table, 'user', 'update', 'name')).toBe(
       'hollow',
+    );
+  });
+});
+
+describe('getComputedFieldPermissionState', () => {
+  it('returns "filled" for admin regardless of computed_fields metadata', () => {
+    expect(
+      getComputedFieldPermissionState(buildTable(), ADMIN_ROLE, 'full_name'),
+    ).toBe('filled');
+  });
+
+  it('returns "none" when no select permission exists for the role', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'manager',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            computed_fields: ['full_name'],
+          },
+        },
+      ],
+    });
+    expect(getComputedFieldPermissionState(table, 'user', 'full_name')).toBe(
+      'none',
+    );
+  });
+
+  it('returns "none" when the field is not in the allowed computed_fields list', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            computed_fields: ['other_field'],
+          },
+        },
+      ],
+    });
+    expect(getComputedFieldPermissionState(table, 'user', 'full_name')).toBe(
+      'none',
+    );
+  });
+
+  it('returns "none" when computed_fields is omitted or null', () => {
+    const tableWithUnset = buildTable({
+      select_permissions: [
+        { role: 'user', permission: { columns: ['id'], filter: {} } },
+      ],
+    });
+    expect(
+      getComputedFieldPermissionState(tableWithUnset, 'user', 'full_name'),
+    ).toBe('none');
+
+    const tableWithNull = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            computed_fields: null,
+          },
+        },
+      ],
+    });
+    expect(
+      getComputedFieldPermissionState(tableWithNull, 'user', 'full_name'),
+    ).toBe('none');
+  });
+
+  it('mirrors the table state when the field is in the allowed list', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: { id: { _eq: 'X-Hasura-User-Id' } },
+            computed_fields: ['full_name'],
+          },
+        },
+      ],
+    });
+    expect(getComputedFieldPermissionState(table, 'user', 'full_name')).toBe(
+      'hollow',
+    );
+  });
+
+  it('returns "filled" when the field is allowed and the filter is empty', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            computed_fields: ['full_name'],
+          },
+        },
+      ],
+    });
+    expect(getComputedFieldPermissionState(table, 'user', 'full_name')).toBe(
+      'filled',
     );
   });
 });

@@ -1,8 +1,10 @@
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { renderHook } from '@/tests/testUtils';
+import { computeNodeHeight } from './layout';
 import type {
   SchemaDiagramColumn,
   SchemaDiagramForeignKey,
+  SchemaDiagramFunctionReturnType,
 } from './useAllTableColumns';
 import useSchemaGraph, {
   columnHandleId,
@@ -53,6 +55,18 @@ function buildMetadataTable(
   return {
     table: { name, schema },
     configuration: {},
+    ...overrides,
+  };
+}
+
+function buildFunctionReturnType(
+  overrides: Partial<SchemaDiagramFunctionReturnType> = {},
+): SchemaDiagramFunctionReturnType {
+  return {
+    schema: 'public',
+    name: 'full_name',
+    returnType: 'text',
+    returnsSet: false,
     ...overrides,
   };
 }
@@ -750,6 +764,166 @@ describe('useSchemaGraph', () => {
       ]);
 
       expect(data.hasArrayRel).toBe(false);
+    });
+  });
+
+  describe('computed fields', () => {
+    it('maps metadataTable.computed_fields and resolves return types from functionReturnTypes', () => {
+      const columns = [buildColumn({ schema: 'public', table: 'users' })];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'full_name',
+              definition: {
+                function: { schema: 'public', name: 'users_full_name' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [
+            buildFunctionReturnType({
+              schema: 'public',
+              name: 'users_full_name',
+              returnType: 'text',
+              returnsSet: false,
+            }),
+          ],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.computedFields).toEqual([
+        {
+          name: 'full_name',
+          returnType: 'text',
+          functionSchema: 'public',
+          functionName: 'users_full_name',
+        },
+      ]);
+    });
+
+    it('prefixes "setof " when the resolved function returns a set', () => {
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'posts',
+              definition: {
+                function: { schema: 'public', name: 'posts_for_user' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns: [buildColumn({ schema: 'public', table: 'users' })],
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [
+            buildFunctionReturnType({
+              schema: 'public',
+              name: 'posts_for_user',
+              returnType: 'public.posts',
+              returnsSet: true,
+            }),
+          ],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.computedFields[0].returnType).toBe('setof public.posts');
+    });
+
+    it('returns returnType: undefined when no matching functionReturnTypes entry exists', () => {
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'full_name',
+              definition: {
+                function: { schema: 'public', name: 'users_full_name' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns: [buildColumn({ schema: 'public', table: 'users' })],
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.computedFields[0].returnType).toBeUndefined();
+    });
+
+    it('sizes node height by columns + computedFields', () => {
+      const columns = [
+        buildColumn({ schema: 'public', table: 'users', columnName: 'id' }),
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+      ];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'full_name',
+              definition: {
+                function: { schema: 'public', name: 'users_full_name' },
+              },
+            },
+            {
+              name: 'posts_count',
+              definition: {
+                function: { schema: 'public', name: 'users_posts_count' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.height).toBe(computeNodeHeight(4));
     });
   });
 });
