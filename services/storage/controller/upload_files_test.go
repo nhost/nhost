@@ -378,47 +378,22 @@ func TestUploadFiles_FileTooBig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, ok := resp.(api.UploadFilesdefaultJSONResponse)
-	if !ok {
-		t.Fatalf("unexpected response type %T", resp)
-	}
-
-	if got.StatusCode != http.StatusBadRequest {
-		t.Fatalf("status %d, want %d", got.StatusCode, http.StatusBadRequest)
-	}
-
-	em := got.Body.Error
-	if em == nil {
-		t.Fatal("missing error")
-	}
-
-	if em.Message != "file too big" {
-		t.Fatalf("message %q, want file too big", em.Message)
-	}
-
-	if em.Data == nil {
-		t.Fatal("missing error data")
-	}
-
-	d := *em.Data
-
-	if d["filename"] != "big.txt" {
-		t.Fatalf("filename %#v, want big.txt", d["filename"])
-	}
-
-	if d["file"] != "big.txt" {
-		t.Fatalf("file %#v, want big.txt", d["file"])
-	}
-
-	if _, ok := d["size"]; !ok {
-		t.Fatal("missing size in data")
-	}
-
-	if _, ok := d["maxSize"]; !ok {
-		t.Fatal("missing maxSize in data")
-	}
-
-	if got.Body.ProcessedFiles == nil || len(*got.Body.ProcessedFiles) != 0 {
-		t.Fatal("want empty processedFiles when upload fails early")
-	}
+	assert(t, resp, api.UploadFilesdefaultJSONResponse{
+		Body: api.ErrorResponseWithProcessedFiles{
+			Error: &struct {
+				Data    *map[string]any `json:"data,omitempty"`
+				Message string          `json:"message"`
+			}{
+				Data: &map[string]any{
+					"file":     "big.txt",
+					"filename": "big.txt",
+					"size":     100,
+					"maxSize":  10,
+				},
+				Message: "file too big",
+			},
+			ProcessedFiles: &[]api.FileMetadata{},
+		},
+		StatusCode: http.StatusBadRequest,
+	})
 }
