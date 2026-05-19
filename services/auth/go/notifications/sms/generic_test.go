@@ -207,7 +207,7 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 			expectedErrSubstring: "body template must render to valid JSON",
 		},
 		{
-			name:                 "form: charset parameter still routes through form encoder",
+			name:                 "form: charset parameter still routes through form encoder and is preserved on Content-Type",
 			contentType:          "application/x-www-form-urlencoded; charset=utf-8",
 			bodyTemplate:         `{"otp":"${body}", "number":"${to}"}`,
 			headers:              nil,
@@ -217,12 +217,47 @@ func TestGenericSMS_SendSMS(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,mai
 			serverHandler: func(t *testing.T, r *http.Request) (int, string) {
 				t.Helper()
 
+				if got := r.Header.Get("Content-Type"); got != "application/x-www-form-urlencoded; charset=utf-8" {
+					t.Errorf("expected Content-Type to preserve charset, got: %s", got)
+				}
+
 				if err := r.ParseForm(); err != nil {
 					t.Fatalf("failed to parse form: %v", err)
 				}
 
 				if r.Form.Get("otp") != "123456" {
 					t.Errorf("expected otp=123456, got: %s", r.Form.Get("otp"))
+				}
+
+				return http.StatusOK, ""
+			},
+		},
+		{
+			name:                 "json: charset parameter routes through json branch and is preserved on Content-Type",
+			contentType:          "application/json; charset=utf-8",
+			bodyTemplate:         `{"to":"${to}","body":"${body}"}`,
+			headers:              nil,
+			to:                   "+123456789",
+			body:                 "123456",
+			expectedErrSubstring: "",
+			serverHandler: func(t *testing.T, r *http.Request) (int, string) {
+				t.Helper()
+
+				if got := r.Header.Get("Content-Type"); got != "application/json; charset=utf-8" {
+					t.Errorf("expected Content-Type to preserve charset, got: %s", got)
+				}
+
+				var payload struct {
+					To   string `json:"to"`
+					Body string `json:"body"`
+				}
+
+				if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+					t.Fatalf("rendered body is not valid JSON: %v", err)
+				}
+
+				if payload.To != "+123456789" {
+					t.Errorf("expected to=+123456789, got: %s", payload.To)
 				}
 
 				return http.StatusOK, ""

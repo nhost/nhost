@@ -743,34 +743,46 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagSMSGenericURL,
-				Usage:    "Generic SMS provider URL",
+				Usage:    "Webhook URL the generic SMS provider POSTs each request to",
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_URL"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagSMSGenericContentType,
-				Usage:    "Generic SMS provider content type",
+				Name: flagSMSGenericContentType,
+				Usage: "Content-Type header for the generic SMS request. For " +
+					"application/x-www-form-urlencoded the body template must " +
+					"render to a JSON object whose top-level fields are flattened " +
+					"into form values; any other content type sends the rendered " +
+					"template bytes verbatim. Charset parameters are preserved.",
 				Category: "sms",
 				Value:    "application/json",
 				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_CONTENT_TYPE"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagSMSGenericHeaders,
-				Usage:    "Generic SMS provider headers (JSON string)",
+				Name: flagSMSGenericHeaders,
+				Usage: "Additional HTTP headers for the generic SMS request as a " +
+					`JSON object of string-to-string, e.g. ` +
+					`{"Authorization":"Bearer ..."}`,
 				Category: "sms",
 				Value:    "{}",
 				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_HEADERS"),
 			},
 			&cli.DurationFlag{ //nolint: exhaustruct
 				Name:     flagSMSGenericTimeout,
-				Usage:    "Generic SMS provider timeout",
+				Usage:    "Timeout for the generic SMS provider HTTP request",
 				Category: "sms",
 				Value:    10 * time.Second,
 				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_TIMEOUT"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagSMSGenericBodyTemplate,
-				Usage:    "Generic SMS provider body template",
+				Name: flagSMSGenericBodyTemplate,
+				Usage: "Body template for the generic SMS request. Reference " +
+					"${to} (destination phone) and ${body} (rendered SMS " +
+					"message); whitespace inside ${...} is ignored. Unknown " +
+					"variables cause render-time errors. Values are JSON-escaped " +
+					"when the content type is application/json or " +
+					`application/x-www-form-urlencoded. Example: ` +
+					`{"to":"${to}","message":"${body}"}`,
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_BODY_TEMPLATE"),
 			},
