@@ -35,7 +35,10 @@ describe('getInputType', () => {
       'datetime-local',
     );
     expect(
-      getInputType({ type: 'date', specificType: 'timestamp without time zone' }),
+      getInputType({
+        type: 'date',
+        specificType: 'timestamp without time zone',
+      }),
     ).toBe('datetime-local');
     expect(
       getInputType({ type: 'date', specificType: 'timestamp with time zone' }),

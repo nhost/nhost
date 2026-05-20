@@ -42,7 +42,7 @@ function FilesDataGridDateCell({ value }: { value: string | null }) {
   }
 
   return (
-    <span className="truncate text-xs font-medium">
+    <span className="truncate font-medium text-xs">
       {date.toLocaleString()}
     </span>
   );
