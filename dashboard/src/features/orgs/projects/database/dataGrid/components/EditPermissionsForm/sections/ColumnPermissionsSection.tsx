@@ -38,6 +38,10 @@ export interface ColumnPermissionsSectionProps {
   availableComputedFields?: string[];
 }
 
+function isGeneratedColumn(column: { is_generated?: string }): boolean {
+  return column.is_generated === 'ALWAYS';
+}
+
 export default function ColumnPermissionsSection({
   role,
   action,
@@ -64,9 +68,18 @@ export default function ColumnPermissionsSection({
 
   const showComputedFields =
     action === 'select' && availableComputedFields.length > 0;
+  const isWriteAction = action === 'insert' || action === 'update';
+
+  const selectableColumns =
+    tableData?.columns?.filter(
+      (column) => !(isWriteAction && isGeneratedColumn(column)),
+    ) ?? [];
 
   const isAllSelected =
-    selectedColumns?.length === tableData?.columns?.length &&
+    selectableColumns.length > 0 &&
+    selectableColumns.every((column) =>
+      selectedColumns.includes(column.column_name),
+    ) &&
     (!showComputedFields ||
       selectedComputedFields?.length === availableComputedFields.length);
 
@@ -93,7 +106,7 @@ export default function ColumnPermissionsSection({
 
             setValue(
               'columns',
-              tableData?.columns?.map((column) => column.column_name),
+              selectableColumns.map((column) => column.column_name),
             );
             if (showComputedFields) {
               setValue('computedFields', availableComputedFields);
@@ -110,15 +123,43 @@ export default function ColumnPermissionsSection({
 
       {tableStatus === 'success' && (
         <div className="flex flex-row flex-wrap items-center justify-start gap-6">
-          {tableData?.columns?.map((column) => (
-            <Checkbox
-              value={column.column_name}
-              label={column.column_name}
-              key={column.column_name}
-              checked={selectedColumns.includes(column.column_name)}
-              {...register('columns')}
-            />
-          ))}
+          {tableData?.columns?.map((column) => {
+            const disabledForGenerated =
+              isWriteAction && isGeneratedColumn(column);
+
+            if (!disabledForGenerated) {
+              return (
+                <Checkbox
+                  key={column.column_name}
+                  value={column.column_name}
+                  label={column.column_name}
+                  checked={selectedColumns.includes(column.column_name)}
+                  {...register('columns')}
+                />
+              );
+            }
+
+            return (
+              <Tooltip key={column.column_name}>
+                <TooltipTrigger asChild>
+                  <span className="inline-block cursor-not-allowed">
+                    <Checkbox
+                      className="pointer-events-none"
+                      value={column.column_name}
+                      label={column.column_name}
+                      checked={selectedColumns.includes(column.column_name)}
+                      disabled
+                      {...register('columns')}
+                    />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Generated column — value is computed by Postgres, can't be{' '}
+                  {action === 'insert' ? 'inserted' : 'updated'}.
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
           {showComputedFields &&
             availableComputedFields.map((fieldName) => (
               <Checkbox

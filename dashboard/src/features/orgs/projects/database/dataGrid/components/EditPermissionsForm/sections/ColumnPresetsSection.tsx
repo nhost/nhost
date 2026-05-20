@@ -66,7 +66,9 @@ export default function ColumnPresetsSection({
   }) as ColumnPreset[];
 
   const allColumnNames: string[] =
-    tableData?.columns.map((column) => column.column_name) || [];
+    tableData?.columns
+      .filter((column) => column.is_generated !== 'ALWAYS')
+      .map((column) => column.column_name) || [];
   const selectedColumnsMap = columnPresets.reduce(
     (map, { column }) => map.set(column, true),
     new Map<string, boolean>(),
@@ -111,35 +113,52 @@ export default function ColumnPresetsSection({
                 <Controller
                   name={`columnPresets.${index}.column`}
                   control={control}
-                  render={({ field: columnField }) => (
-                    <Select
-                      value={columnField.value || undefined}
-                      onValueChange={columnField.onChange}
-                    >
-                      <SelectTrigger
-                        className={cn(
-                          Boolean(columnError) &&
-                            'border-destructive text-destructive',
-                        )}
+                  render={({ field: columnField }) => {
+                    const staleValue =
+                      columnField.value &&
+                      !allColumnNames.includes(columnField.value)
+                        ? columnField.value
+                        : null;
+
+                    return (
+                      <Select
+                        value={columnField.value || undefined}
+                        onValueChange={columnField.onChange}
                       >
-                        <SelectValue placeholder="Select column" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allColumnNames.map((column) => (
-                          <SelectItem
-                            key={column}
-                            value={column}
-                            disabled={
-                              selectedColumnsMap.has(column) &&
-                              columnField.value !== column
-                            }
-                          >
-                            {column}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                        <SelectTrigger
+                          className={cn(
+                            Boolean(columnError) &&
+                              'border-destructive text-destructive',
+                          )}
+                        >
+                          <SelectValue placeholder="Select column" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allColumnNames.map((column) => (
+                            <SelectItem
+                              key={column}
+                              value={column}
+                              disabled={
+                                selectedColumnsMap.has(column) &&
+                                columnField.value !== column
+                              }
+                            >
+                              {column}
+                            </SelectItem>
+                          ))}
+                          {staleValue && (
+                            <SelectItem
+                              key={staleValue}
+                              value={staleValue}
+                              disabled
+                            >
+                              {staleValue}
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    );
+                  }}
                 />
 
                 <ColumnPresetValueCombobox
