@@ -88,3 +88,4 @@ overrides:
 
 minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
+  - turbo@2.9.14
