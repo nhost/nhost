@@ -65,6 +65,29 @@ const COLUMN_QUERY = `
     WHERE c.table_schema NOT LIKE 'pg_%'
       AND c.table_schema NOT LIKE 'hdb_%'
       AND c.table_schema != 'information_schema'
+
+    UNION ALL
+
+    SELECT
+      mv_n.nspname AS table_schema,
+      mv_c.relname AS table_name,
+      mv_a.attname AS column_name,
+      pg_catalog.format_type(mv_a.atttypid, mv_a.atttypmod) AS data_type,
+      mv_t.typname AS udt_name,
+      CASE WHEN mv_a.attnotnull THEN 'NO' ELSE 'YES' END AS is_nullable,
+      mv_a.attnum::int AS ordinal_position,
+      'NEVER' AS is_generated,
+      false AS is_primary
+    FROM pg_class mv_c
+    JOIN pg_namespace mv_n ON mv_n.oid = mv_c.relnamespace
+    JOIN pg_attribute mv_a ON mv_a.attrelid = mv_c.oid
+    JOIN pg_type mv_t ON mv_t.oid = mv_a.atttypid
+    WHERE mv_c.relkind = 'm'
+      AND mv_a.attnum > 0
+      AND NOT mv_a.attisdropped
+      AND mv_n.nspname NOT LIKE 'pg_%'
+      AND mv_n.nspname NOT LIKE 'hdb_%'
+      AND mv_n.nspname != 'information_schema'
   ) col_data
 `;
 
