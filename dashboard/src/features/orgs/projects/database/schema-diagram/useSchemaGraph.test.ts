@@ -94,6 +94,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables,
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
@@ -119,6 +120,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
@@ -139,6 +141,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [buildMetadataTable('public', 'users')],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
@@ -163,6 +166,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
@@ -195,6 +199,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables,
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'user',
@@ -216,6 +221,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [buildMetadataTable('public', 'posts')],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'user',
@@ -253,6 +259,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys,
         role: 'admin',
@@ -282,6 +289,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [fk],
         role: 'admin',
@@ -352,6 +360,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys,
         role: 'admin',
@@ -407,6 +416,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [buildForeignKey()],
         role: 'admin',
@@ -435,6 +445,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
@@ -468,6 +479,7 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
@@ -507,6 +519,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
@@ -667,6 +680,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
@@ -696,6 +710,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
@@ -730,6 +745,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
@@ -748,6 +764,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables: [],
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
@@ -803,6 +820,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns,
           foreignKeys: [],
           role: 'admin',
@@ -848,6 +866,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: [buildColumn({ schema: 'public', table: 'users' })],
           foreignKeys: [],
           role: 'admin',
@@ -886,6 +905,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: [buildColumn({ schema: 'public', table: 'users' })],
           foreignKeys: [],
           role: 'admin',
@@ -933,6 +953,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns,
           foreignKeys: [],
           role: 'admin',
@@ -967,6 +988,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns,
           foreignKeys: [],
           role: 'admin',
@@ -1006,6 +1028,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns,
           foreignKeys: [],
           role: 'admin',
@@ -1042,6 +1065,7 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns,
           foreignKeys: [],
           role: 'admin',
@@ -1054,6 +1078,77 @@ describe('useSchemaGraph', () => {
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
       expect(node.data.columns[0].graphqlName).toBe('emailAddress');
+    });
+  });
+
+  describe('objectType', () => {
+    it('maps each table_type from tableLikeObjects onto its node', () => {
+      const columns = [
+        buildColumn({ schema: 'public', table: 'users' }),
+        buildColumn({ schema: 'public', table: 'active_users' }),
+        buildColumn({ schema: 'public', table: 'daily_metrics' }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables: [],
+          tableLikeObjects: [
+            {
+              table_schema: 'public',
+              table_name: 'users',
+              table_type: 'ORDINARY TABLE',
+              updatability: 1,
+            },
+            {
+              table_schema: 'public',
+              table_name: 'active_users',
+              table_type: 'VIEW',
+              updatability: 0,
+            },
+            {
+              table_schema: 'public',
+              table_name: 'daily_metrics',
+              table_type: 'MATERIALIZED VIEW',
+              updatability: 0,
+            },
+          ],
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const byId = Object.fromEntries(
+        result.current.nodes.map((n) => [n.id, n.data.objectType]),
+      );
+      expect(byId['public.users']).toBe('ORDINARY TABLE');
+      expect(byId['public.active_users']).toBe('VIEW');
+      expect(byId['public.daily_metrics']).toBe('MATERIALIZED VIEW');
+    });
+
+    it("defaults to 'ORDINARY TABLE' for nodes with no matching tableLikeObjects entry", () => {
+      const columns = [buildColumn({ schema: 'public', table: 'orphan' })];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables: [],
+          tableLikeObjects: [],
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.orphan')!;
+      expect(node.data.objectType).toBe('ORDINARY TABLE');
     });
   });
 });

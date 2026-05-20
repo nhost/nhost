@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import type {
   HasuraMetadataRelationship,
   HasuraMetadataTable,
+  TableLikeObject,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { computeNodeHeight, layoutNodes, TABLE_NODE_WIDTH } from './layout';
 import { tableHasAnyPermission } from './permissionState';
@@ -34,6 +36,7 @@ export interface TableNodeComputedField {
 export interface TableNodeData extends Record<string, unknown> {
   schema: string;
   table: string;
+  objectType: TableLikeObjectType;
   tableGraphqlName: string | undefined;
   columns: TableNodeColumn[];
   computedFields: TableNodeComputedField[];
@@ -46,6 +49,7 @@ export type TableNode = Node<TableNodeData, 'tableNode'>;
 
 export interface UseSchemaGraphInput {
   metadataTables: HasuraMetadataTable[];
+  tableLikeObjects: TableLikeObject[];
   columns: SchemaDiagramColumn[];
   foreignKeys: SchemaDiagramForeignKey[];
   functionReturnTypes: SchemaDiagramFunctionReturnType[];
@@ -159,6 +163,7 @@ function readColumnGraphqlName(
 
 export default function useSchemaGraph({
   metadataTables,
+  tableLikeObjects,
   columns,
   foreignKeys,
   functionReturnTypes,
@@ -201,6 +206,14 @@ export default function useSchemaGraph({
     const metadataByTableId = new Map<string, HasuraMetadataTable>();
     for (const t of metadataTables) {
       metadataByTableId.set(nodeIdFor(t.table.schema, t.table.name), t);
+    }
+
+    const objectTypeByTableId = new Map<string, TableLikeObjectType>();
+    for (const obj of tableLikeObjects) {
+      objectTypeByTableId.set(
+        nodeIdFor(obj.table_schema, obj.table_name),
+        obj.table_type,
+      );
     }
 
     const tableIdentByNodeId = new Map<
@@ -261,6 +274,7 @@ export default function useSchemaGraph({
       const data: TableNodeData = {
         schema,
         table,
+        objectType: objectTypeByTableId.get(id) ?? 'ORDINARY TABLE',
         tableGraphqlName: readTableGraphqlName(metadataTable),
         columns: tableColumns.map((c) => ({
           name: c.columnName,
@@ -345,6 +359,7 @@ export default function useSchemaGraph({
     };
   }, [
     metadataTables,
+    tableLikeObjects,
     columns,
     foreignKeys,
     functionReturnTypes,
