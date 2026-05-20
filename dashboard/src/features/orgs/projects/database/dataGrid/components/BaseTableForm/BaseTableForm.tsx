@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -138,6 +138,8 @@ function NameInput() {
   );
 }
 
+const DIRTY_SOURCE_ID = 'base-table-form';
+
 const ACCORDION_SECTION_VALUES = [
   'columns',
   'foreignKeys',
@@ -149,24 +151,21 @@ const ACCORDION_SECTION_VALUES = [
 function FormFooter({
   onCancel,
   submitButtonText,
-  location,
   onSubmitClick,
-}: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> &
-  Pick<DialogFormProps, 'location'> & { onSubmitClick?: VoidFunction }) {
-  const { onDirtyStateChange } = useDialog();
-  const { isSubmitting, dirtyFields } = useFormState();
+}: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> & {
+  onSubmitClick?: VoidFunction;
+}) {
+  const { closeDrawerWithDirtyGuard } = useDialog();
+  const { isSubmitting } = useFormState();
 
-  // react-hook-form's isDirty gets true even if an input field is focused, then
-  // immediately unfocused - we can't rely on that information
-  const isDirty = Object.keys(dirtyFields).length > 0;
-
-  useEffect(() => {
-    onDirtyStateChange(isDirty, location);
-  }, [isDirty, location, onDirtyStateChange]);
+  const handleCancel = (event: MouseEvent<HTMLButtonElement>) => {
+    onCancel?.();
+    closeDrawerWithDirtyGuard(event);
+  };
 
   return (
     <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-      <Button variant="ghost" onClick={onCancel} tabIndex={isDirty ? -1 : 0}>
+      <Button type="button" variant="ghost" onClick={handleCancel}>
         Cancel
       </Button>
 
@@ -197,6 +196,25 @@ export default function BaseTableForm({
     'columns',
     'foreignKeys',
   ]);
+  const { setDirtySource } = useDialog();
+  const form = useFormContext();
+
+  useEffect(() => {
+    const unsubscribe = form.subscribe({
+      formState: { dirtyFields: true },
+      callback: ({ dirtyFields }) => {
+        setDirtySource(
+          DIRTY_SOURCE_ID,
+          Object.keys(dirtyFields ?? {}).length > 0,
+          location,
+        );
+      },
+    });
+    return () => {
+      unsubscribe();
+      setDirtySource(DIRTY_SOURCE_ID, false, location);
+    };
+  }, [form, setDirtySource, location]);
 
   const showSchemaPicker =
     !!onSchemaChange && !!availableSchemas && availableSchemas.length > 0;
@@ -269,7 +287,6 @@ export default function BaseTableForm({
       <FormFooter
         onCancel={onCancel}
         submitButtonText={submitButtonText}
-        location={location}
         onSubmitClick={() => setOpenSections([...ACCORDION_SECTION_VALUES])}
       />
     </Form>

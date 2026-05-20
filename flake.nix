@@ -65,6 +65,15 @@
             ;
         };
 
+        constellationf = import ./services/constellation/project.nix {
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
+        };
+
         govulncheck-wrapperf = import ./tools/govulncheck-wrapper/project.nix {
           inherit
             self
@@ -204,6 +213,7 @@
           auth = authf.check;
           cli = clif.check;
           codegen = codegenf.check;
+          constellation = constellationf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
@@ -309,6 +319,7 @@
           auth = authf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
+          constellation = constellationf.devShell;
           govulncheck-wrapper = govulncheck-wrapperf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
@@ -332,6 +343,8 @@
           cli-multiplatform = clif.cli-multiplatform;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          constellation = constellationf.package;
+          constellation-docker-image = constellationf.dockerImage;
           govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
