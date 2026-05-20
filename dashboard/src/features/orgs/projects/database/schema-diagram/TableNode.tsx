@@ -374,12 +374,16 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                         key={action}
                         action={action}
                         size={8}
-                        state={getColumnPermissionState(
-                          metadataTable,
-                          role,
-                          action,
-                          column.name,
-                        )}
+                        state={
+                          column.isGenerated && action !== 'select'
+                            ? 'none'
+                            : getColumnPermissionState(
+                                metadataTable,
+                                role,
+                                action,
+                                column.name,
+                              )
+                        }
                       />
                     ))}
                   </div>

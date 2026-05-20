@@ -139,6 +139,18 @@ describe('TableNode', () => {
     expect(screen.getByLabelText('Generated column')).toBeInTheDocument();
   });
 
+  it('forces insert/update dots to "not allowed" on generated columns, even for admin', () => {
+    renderNode({
+      ...baseData,
+      columns: [
+        { ...baseData.columns[2], name: 'computed_total', isGenerated: true },
+      ],
+    });
+
+    expect(screen.getAllByLabelText('Insert: not allowed')).toHaveLength(1);
+    expect(screen.getAllByLabelText('Update: not allowed')).toHaveLength(1);
+  });
+
   it('renders a computed field row with its name, return type, and Sigma indicator', () => {
     renderNode({
       ...baseData,
