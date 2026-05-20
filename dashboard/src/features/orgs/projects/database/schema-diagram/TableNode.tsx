@@ -1,5 +1,5 @@
 import { Handle, type NodeProps, Position } from '@xyflow/react';
-import { Parentheses, Settings, Sigma } from 'lucide-react';
+import { Settings, Sigma } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
 import { findPermission } from '@/components/common/PermissionsGrid';
 import {
@@ -29,9 +29,27 @@ import {
 import { useTableActionsContext } from './TableActionsContext';
 import {
   columnHandleId,
+  type NamingMode,
   type TableNode,
   type TableNodeComputedField,
 } from './useSchemaGraph';
+
+const GRAPHQL_NAME_CLASS = 'text-purple-600 dark:text-purple-400';
+
+function resolveDisplayName(
+  postgresName: string,
+  graphqlName: string | undefined,
+  namingMode: NamingMode,
+): { name: string; isCustomGraphql: boolean } {
+  if (
+    namingMode === 'graphql' &&
+    graphqlName !== undefined &&
+    graphqlName !== postgresName
+  ) {
+    return { name: graphqlName, isCustomGraphql: true };
+  }
+  return { name: postgresName, isCustomGraphql: false };
+}
 
 const COLUMN_ACTIONS: readonly DatabaseAction[] = [
   'select',
@@ -141,7 +159,16 @@ function ComputedFieldTooltipContent({
 }
 
 function TableNodeView({ data }: NodeProps<TableNode>) {
-  const { schema, table, columns, computedFields, metadataTable, role } = data;
+  const {
+    schema,
+    table,
+    tableGraphqlName,
+    columns,
+    computedFields,
+    metadataTable,
+    role,
+    namingMode,
+  } = data;
   const tableActions = useTableActionsContext();
   const objectKey = `ORDINARY TABLE.${schema}.${table}`;
   const tablePath = `${schema}.${table}`;
@@ -149,6 +176,8 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
   const isLocked = isSchemaLocked(schema);
   const isMenuOpen = tableActions?.actions.sidebarMenuObject === objectKey;
   const isRemoving = tableActions?.actions.removableObject === objectKey;
+
+  const displayTable = resolveDisplayName(table, tableGraphqlName, namingMode);
 
   return (
     <div
@@ -165,8 +194,14 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
           >
             {schema}
           </div>
-          <div className="truncate font-semibold text-sm" title={table}>
-            {table}
+          <div
+            className={cn(
+              'truncate font-semibold text-sm',
+              displayTable.isCustomGraphql && GRAPHQL_NAME_CLASS,
+            )}
+            title={displayTable.name}
+          >
+            {displayTable.name}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -261,141 +296,155 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
         </div>
       ) : (
         <ul className="py-1">
-          {columns.map((column) => (
-            <li
-              key={column.name}
-              className="relative flex items-center justify-between gap-2 px-3 py-1 text-xs hover:bg-accent/40"
-            >
-              <Handle
-                type="target"
-                position={Position.Left}
-                id={columnHandleId('target', column.name)}
-                className="!h-2 !w-2 !border-border !bg-muted-foreground"
-                style={{ left: -4 }}
-              />
-              <Handle
-                type="source"
-                position={Position.Right}
-                id={columnHandleId('source', column.name)}
-                className="!h-2 !w-2 !border-border !bg-muted-foreground"
-                style={{ right: -4 }}
-              />
-
-              <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                <TextWithTooltip
-                  text={column.name}
-                  containerClassName="min-w-0 flex-1"
-                  className={cn(
-                    'font-mono',
-                    column.isPrimary && 'font-semibold text-primary',
-                  )}
+          {columns.map((column) => {
+            const displayColumn = resolveDisplayName(
+              column.name,
+              column.graphqlName,
+              namingMode,
+            );
+            return (
+              <li
+                key={column.name}
+                className="relative flex items-center justify-between gap-2 px-3 py-1 text-xs hover:bg-accent/40"
+              >
+                <Handle
+                  type="target"
+                  position={Position.Left}
+                  id={columnHandleId('target', column.name)}
+                  className="!h-2 !w-2 !border-border !bg-muted-foreground"
+                  style={{ left: -4 }}
                 />
-                {column.isPrimary && (
-                  <span className="shrink-0 rounded bg-primary/15 px-1 py-px font-medium text-primary text-xs- uppercase">
-                    PK
-                  </span>
-                )}
-                {column.isForeignKey && (
-                  <span className="shrink-0 rounded bg-muted px-1 py-px font-medium text-muted-foreground text-xs- uppercase">
-                    FK
-                  </span>
-                )}
-                {column.isGenerated && (
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  id={columnHandleId('source', column.name)}
+                  className="!h-2 !w-2 !border-border !bg-muted-foreground"
+                  style={{ right: -4 }}
+                />
+
+                <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                  <TextWithTooltip
+                    text={displayColumn.name}
+                    containerClassName="min-w-0 flex-1"
+                    className={cn(
+                      'font-mono',
+                      column.isPrimary && 'font-semibold text-primary',
+                      displayColumn.isCustomGraphql &&
+                        !column.isPrimary &&
+                        GRAPHQL_NAME_CLASS,
+                    )}
+                  />
+                  {column.isPrimary && (
+                    <span className="shrink-0 rounded bg-primary/15 px-1 py-px font-medium text-primary text-xs- uppercase">
+                      PK
+                    </span>
+                  )}
+                  {column.isForeignKey && (
+                    <span className="shrink-0 rounded bg-muted px-1 py-px font-medium text-muted-foreground text-xs- uppercase">
+                      FK
+                    </span>
+                  )}
+                  {column.isGenerated && (
+                    <Tooltip delayDuration={150}>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex shrink-0 cursor-help">
+                          <Sigma
+                            aria-label="Generated column"
+                            className="h-3 w-3 text-muted-foreground"
+                          />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        <span className="font-semibold">Generated column</span>{' '}
+                        — value is computed by Postgres.
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <TextWithTooltip
+                    text={column.dataType}
+                    containerClassName="max-w-[80px]"
+                    className="font-mono text-muted-foreground text-xs-"
+                  />
+                  <div className="flex items-center gap-1">
+                    {COLUMN_ACTIONS.map((action) => (
+                      <PermissionDot
+                        key={action}
+                        action={action}
+                        size={8}
+                        state={getColumnPermissionState(
+                          metadataTable,
+                          role,
+                          action,
+                          column.name,
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+          {namingMode === 'graphql' &&
+            computedFields.map((field) => (
+              <li
+                key={field.name}
+                className="relative flex items-center justify-between gap-2 px-3 py-1 text-xs hover:bg-accent/40"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                  <TextWithTooltip
+                    text={field.name}
+                    containerClassName="min-w-0 flex-1"
+                    className="font-mono text-purple-600 italic dark:text-purple-400"
+                  />
                   <Tooltip delayDuration={150}>
                     <TooltipTrigger asChild>
                       <span className="inline-flex shrink-0 cursor-help">
                         <Sigma
-                          aria-label="Generated column"
-                          className="h-3 w-3 text-muted-foreground"
+                          aria-label="Computed field"
+                          className="h-3 w-3 text-purple-600 dark:text-purple-400"
                         />
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      <span className="font-semibold">Generated column</span> —
-                      value is computed by Postgres.
+                    <TooltipContent
+                      side="top"
+                      className="max-w-[400px] text-xs"
+                    >
+                      <ComputedFieldTooltipContent field={field} />
                     </TooltipContent>
                   </Tooltip>
-                )}
-              </div>
-
-              <div className="flex shrink-0 items-center gap-1.5">
-                <TextWithTooltip
-                  text={column.dataType}
-                  containerClassName="max-w-[80px]"
-                  className="font-mono text-muted-foreground text-xs-"
-                />
-                <div className="flex items-center gap-1">
-                  {COLUMN_ACTIONS.map((action) => (
-                    <PermissionDot
-                      key={action}
-                      action={action}
-                      size={8}
-                      state={getColumnPermissionState(
-                        metadataTable,
-                        role,
-                        action,
-                        column.name,
-                      )}
-                    />
-                  ))}
                 </div>
-              </div>
-            </li>
-          ))}
-          {computedFields.map((field) => (
-            <li
-              key={field.name}
-              className="relative flex items-center justify-between gap-2 px-3 py-1 text-xs hover:bg-accent/40"
-            >
-              <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                <Tooltip delayDuration={150}>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex shrink-0 cursor-help">
-                      <Parentheses
-                        aria-hidden
-                        className="h-3 w-3 text-muted-foreground"
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {field.returnType && (
+                    <TextWithTooltip
+                      text={field.returnType}
+                      containerClassName="max-w-[80px]"
+                      className="font-mono text-muted-foreground text-xs-"
+                    />
+                  )}
+                  <div className="flex items-center gap-1">
+                    {COLUMN_ACTIONS.map((action) => (
+                      <PermissionDot
+                        key={action}
+                        action={action}
+                        size={8}
+                        state={
+                          action === 'select'
+                            ? getComputedFieldPermissionState(
+                                metadataTable,
+                                role,
+                                field.name,
+                              )
+                            : 'none'
+                        }
                       />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[400px] text-xs">
-                    <ComputedFieldTooltipContent field={field} />
-                  </TooltipContent>
-                </Tooltip>
-                <TextWithTooltip
-                  text={field.name}
-                  containerClassName="min-w-0 flex-1"
-                  className="font-mono italic"
-                />
-              </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                {field.returnType && (
-                  <TextWithTooltip
-                    text={field.returnType}
-                    containerClassName="max-w-[80px]"
-                    className="font-mono text-muted-foreground text-xs-"
-                  />
-                )}
-                <div className="flex items-center gap-1">
-                  {COLUMN_ACTIONS.map((action) => (
-                    <PermissionDot
-                      key={action}
-                      action={action}
-                      size={8}
-                      state={
-                        action === 'select'
-                          ? getComputedFieldPermissionState(
-                              metadataTable,
-                              role,
-                              field.name,
-                            )
-                          : 'none'
-                      }
-                    />
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            ))}
         </ul>
       )}
     </div>

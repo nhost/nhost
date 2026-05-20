@@ -12,8 +12,11 @@ import type {
   SchemaDiagramFunctionReturnType,
 } from './useAllTableColumns';
 
+export type NamingMode = 'postgres' | 'graphql';
+
 export interface TableNodeColumn {
   name: string;
+  graphqlName: string | undefined;
   dataType: string;
   isNullable: boolean;
   isPrimary: boolean;
@@ -31,10 +34,12 @@ export interface TableNodeComputedField {
 export interface TableNodeData extends Record<string, unknown> {
   schema: string;
   table: string;
+  tableGraphqlName: string | undefined;
   columns: TableNodeColumn[];
   computedFields: TableNodeComputedField[];
   metadataTable: HasuraMetadataTable | undefined;
   role: string;
+  namingMode: NamingMode;
 }
 
 export type TableNode = Node<TableNodeData, 'tableNode'>;
@@ -47,6 +52,7 @@ export interface UseSchemaGraphInput {
   role: string;
   visibleSchemas: Set<string>;
   hideTablesWithoutPermissions: boolean;
+  namingMode: NamingMode;
 }
 
 export interface UseSchemaGraphResult {
@@ -116,6 +122,41 @@ function relMatchesFk(
   return manual.column_mapping[fk.toColumn] === fk.fromColumn;
 }
 
+interface TableConfiguration {
+  custom_name?: unknown;
+  column_config?: Record<string, { custom_name?: unknown } | undefined>;
+  custom_column_names?: Record<string, unknown>;
+}
+
+function readTableGraphqlName(
+  metadataTable: HasuraMetadataTable | undefined,
+): string | undefined {
+  const config = metadataTable?.configuration as TableConfiguration | undefined;
+  const customName = config?.custom_name;
+  return typeof customName === 'string' && customName.length > 0
+    ? customName
+    : undefined;
+}
+
+function readColumnGraphqlName(
+  metadataTable: HasuraMetadataTable | undefined,
+  columnName: string,
+): string | undefined {
+  const config = metadataTable?.configuration as TableConfiguration | undefined;
+  const fromColumnConfig = config?.column_config?.[columnName]?.custom_name;
+  if (typeof fromColumnConfig === 'string' && fromColumnConfig.length > 0) {
+    return fromColumnConfig;
+  }
+  const fromCustomColumnNames = config?.custom_column_names?.[columnName];
+  if (
+    typeof fromCustomColumnNames === 'string' &&
+    fromCustomColumnNames.length > 0
+  ) {
+    return fromCustomColumnNames;
+  }
+  return undefined;
+}
+
 export default function useSchemaGraph({
   metadataTables,
   columns,
@@ -124,6 +165,7 @@ export default function useSchemaGraph({
   role,
   visibleSchemas,
   hideTablesWithoutPermissions,
+  namingMode,
 }: UseSchemaGraphInput): UseSchemaGraphResult {
   return useMemo(() => {
     const columnsByTable = new Map<string, SchemaDiagramColumn[]>();
@@ -203,23 +245,26 @@ export default function useSchemaGraph({
       const fkColumns = foreignKeyColumnsByTable.get(id) ?? new Set<string>();
       const tableColumns = columnsByTable.get(id) ?? [];
 
-      const computedFields: TableNodeComputedField[] = (
-        metadataTable?.computed_fields ?? []
-      ).map((cf) => {
-        const fnId = `${cf.definition.function.schema}.${cf.definition.function.name}`;
-        return {
-          name: cf.name,
-          returnType: returnTypeByFunctionId.get(fnId),
-          functionSchema: cf.definition.function.schema,
-          functionName: cf.definition.function.name,
-        };
-      });
+      const computedFields: TableNodeComputedField[] =
+        namingMode === 'postgres'
+          ? []
+          : (metadataTable?.computed_fields ?? []).map((cf) => {
+              const fnId = `${cf.definition.function.schema}.${cf.definition.function.name}`;
+              return {
+                name: cf.name,
+                returnType: returnTypeByFunctionId.get(fnId),
+                functionSchema: cf.definition.function.schema,
+                functionName: cf.definition.function.name,
+              };
+            });
 
       const data: TableNodeData = {
         schema,
         table,
+        tableGraphqlName: readTableGraphqlName(metadataTable),
         columns: tableColumns.map((c) => ({
           name: c.columnName,
+          graphqlName: readColumnGraphqlName(metadataTable, c.columnName),
           dataType: c.udtName || c.dataType,
           isNullable: c.isNullable,
           isPrimary: c.isPrimary,
@@ -229,6 +274,7 @@ export default function useSchemaGraph({
         computedFields,
         metadataTable,
         role,
+        namingMode,
       };
 
       nodes.push({
@@ -305,5 +351,6 @@ export default function useSchemaGraph({
     role,
     visibleSchemas,
     hideTablesWithoutPermissions,
+    namingMode,
   ]);
 }

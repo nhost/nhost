@@ -100,6 +100,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -124,6 +125,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -143,6 +145,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -166,6 +169,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -197,6 +201,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: true,
+        namingMode: 'graphql',
       }),
     );
 
@@ -217,6 +222,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -253,6 +259,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -281,6 +288,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -350,6 +358,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -404,6 +413,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -431,6 +441,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -463,6 +474,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -501,6 +513,7 @@ describe('useSchemaGraph', () => {
           functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
       return result.current.edges[0].data as FkEdgeData;
@@ -660,6 +673,7 @@ describe('useSchemaGraph', () => {
           functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
       const edge = result.current.edges[0];
@@ -688,6 +702,7 @@ describe('useSchemaGraph', () => {
           functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
       const edge = result.current.edges[0];
@@ -721,6 +736,7 @@ describe('useSchemaGraph', () => {
           functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
       const edge = result.current.edges[0];
@@ -738,6 +754,7 @@ describe('useSchemaGraph', () => {
           functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
       const edge = result.current.edges[0];
@@ -799,6 +816,7 @@ describe('useSchemaGraph', () => {
           ],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
 
@@ -843,6 +861,7 @@ describe('useSchemaGraph', () => {
           ],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
 
@@ -873,6 +892,7 @@ describe('useSchemaGraph', () => {
           functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
 
@@ -919,11 +939,121 @@ describe('useSchemaGraph', () => {
           functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
       expect(node.height).toBe(computeNodeHeight(4));
+    });
+
+    it('drops computed fields and sizes by columns only in postgres mode', () => {
+      const columns = [
+        buildColumn({ schema: 'public', table: 'users', columnName: 'id' }),
+      ];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'full_name',
+              definition: {
+                function: { schema: 'public', name: 'users_full_name' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'postgres',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.computedFields).toEqual([]);
+      expect(node.height).toBe(computeNodeHeight(1));
+    });
+  });
+
+  describe('graphql naming overrides', () => {
+    it('exposes table and column custom_name from configuration.column_config', () => {
+      const columns = [
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          isPrimary: false,
+        }),
+      ];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          configuration: {
+            custom_name: 'User',
+            column_config: { email: { custom_name: 'emailAddress' } },
+          },
+          // biome-ignore lint/suspicious/noExplicitAny: configuration uses loosely-typed Record in the metadata type
+        } as any),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.tableGraphqlName).toBe('User');
+      expect(node.data.columns[0].graphqlName).toBe('emailAddress');
+    });
+
+    it('falls back to deprecated custom_column_names', () => {
+      const columns = [
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          isPrimary: false,
+        }),
+      ];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          configuration: {
+            custom_column_names: { email: 'emailAddress' },
+          },
+          // biome-ignore lint/suspicious/noExplicitAny: configuration uses loosely-typed Record in the metadata type
+        } as any),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.columns[0].graphqlName).toBe('emailAddress');
     });
   });
 });

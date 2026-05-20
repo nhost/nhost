@@ -66,7 +66,9 @@ function renderNode(
 const baseData: TableNodeData = {
   schema: 'public',
   table: 'users',
+  tableGraphqlName: undefined,
   role: 'admin',
+  namingMode: 'graphql',
   metadataTable: {
     table: { schema: 'public', name: 'users' },
     configuration: {},
@@ -75,6 +77,7 @@ const baseData: TableNodeData = {
   columns: [
     {
       name: 'id',
+      graphqlName: undefined,
       dataType: 'uuid',
       isNullable: false,
       isPrimary: true,
@@ -83,6 +86,7 @@ const baseData: TableNodeData = {
     },
     {
       name: 'author_id',
+      graphqlName: undefined,
       dataType: 'uuid',
       isNullable: true,
       isPrimary: false,
@@ -91,6 +95,7 @@ const baseData: TableNodeData = {
     },
     {
       name: 'email',
+      graphqlName: undefined,
       dataType: 'text',
       isNullable: true,
       isPrimary: false,
@@ -134,7 +139,7 @@ describe('TableNode', () => {
     expect(screen.getByLabelText('Generated column')).toBeInTheDocument();
   });
 
-  it('renders a computed field row with its name and return type', () => {
+  it('renders a computed field row with its name, return type, and Sigma indicator', () => {
     renderNode({
       ...baseData,
       computedFields: [
@@ -149,6 +154,64 @@ describe('TableNode', () => {
 
     expect(screen.getByText('posts_count')).toBeInTheDocument();
     expect(screen.getByText('bigint')).toBeInTheDocument();
+    expect(screen.getByLabelText('Computed field')).toBeInTheDocument();
+  });
+
+  it('renders custom GraphQL names in purple when they differ from the postgres name', () => {
+    renderNode({
+      ...baseData,
+      tableGraphqlName: 'User',
+      columns: [
+        baseData.columns[0],
+        { ...baseData.columns[2], graphqlName: 'emailAddress' },
+      ],
+    });
+
+    const customColumn = screen.getByText('emailAddress');
+    expect(customColumn.className).toMatch(/text-purple-600/);
+    const customTable = screen.getByText('User');
+    expect(customTable.className).toMatch(/text-purple-600/);
+    expect(screen.queryByText('email')).toBeNull();
+  });
+
+  it('falls back to the postgres name when graphqlName matches it', () => {
+    renderNode({
+      ...baseData,
+      columns: [
+        baseData.columns[0],
+        { ...baseData.columns[2], graphqlName: 'email' },
+      ],
+    });
+
+    const column = screen.getByText('email');
+    expect(column.className).not.toMatch(/text-purple-600/);
+  });
+
+  it('hides computed fields and renders postgres column names in postgres mode', () => {
+    renderNode({
+      ...baseData,
+      namingMode: 'postgres',
+      tableGraphqlName: 'User',
+      computedFields: [
+        {
+          name: 'posts_count',
+          returnType: 'bigint',
+          functionSchema: 'public',
+          functionName: 'users_posts_count',
+        },
+      ],
+      columns: [
+        baseData.columns[0],
+        { ...baseData.columns[2], graphqlName: 'emailAddress' },
+      ],
+    });
+
+    expect(screen.queryByText('posts_count')).toBeNull();
+    expect(screen.queryByLabelText('Computed field')).toBeNull();
+    expect(screen.queryByText('emailAddress')).toBeNull();
+    expect(screen.getByText('email')).toBeInTheDocument();
+    expect(screen.getByText('users')).toBeInTheDocument();
+    expect(screen.queryByText('User')).toBeNull();
   });
 
   it('does not render the action menu when no TableActionsContext is provided', () => {
