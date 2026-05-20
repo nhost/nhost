@@ -214,4 +214,28 @@ describe('ColumnPresetsSection', () => {
     });
     expect(titleOptionInOwnRow).not.toHaveAttribute('data-disabled');
   });
+
+  it('renders a stale preset column as a disabled SelectItem', async () => {
+    render(
+      <TestWrapper columnPresets={[{ column: 'removed_column', value: 'foo' }]}>
+        <ColumnPresetsSection {...defaultProps} />
+      </TestWrapper>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('removed_column')).toBeInTheDocument();
+    });
+
+    const trigger = screen
+      .getByText('removed_column')
+      .closest('[role="combobox"]') as HTMLElement;
+
+    const user = new TestUserEvent();
+    await user.click(trigger);
+
+    const staleOption = await screen.findByRole('option', {
+      name: 'removed_column',
+    });
+    expect(staleOption).toHaveAttribute('data-disabled');
+  });
 });
