@@ -12,6 +12,7 @@ import {
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
 export interface ColumnPermissionsSectionProps {
@@ -36,10 +37,6 @@ export interface ColumnPermissionsSectionProps {
    * checkboxes for the `select` action only.
    */
   availableComputedFields?: string[];
-}
-
-function isGeneratedColumn(column: { is_generated?: string }): boolean {
-  return column.is_generated === 'ALWAYS';
 }
 
 export default function ColumnPermissionsSection({

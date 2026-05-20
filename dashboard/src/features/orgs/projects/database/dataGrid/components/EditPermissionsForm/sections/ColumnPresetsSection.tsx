@@ -16,6 +16,7 @@ import {
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
@@ -67,7 +68,7 @@ export default function ColumnPresetsSection({
 
   const allColumnNames: string[] =
     tableData?.columns
-      .filter((column) => column.is_generated !== 'ALWAYS')
+      .filter((column) => !isGeneratedColumn(column))
       .map((column) => column.column_name) || [];
   const selectedColumnsMap = columnPresets.reduce(
     (map, { column }) => map.set(column, true),
