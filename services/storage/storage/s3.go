@@ -58,12 +58,32 @@ func parseS3Error(resp *http.Response) *controller.APIError {
 	)
 }
 
+// ObjectAPI is the subset of *s3.Client used by S3. Defining it as an interface
+// lets ListFiles be unit-tested with a generated mock, without a live S3.
+//
+//go:generate mockgen -package mock -destination mock/object_api.go . ObjectAPI
+type ObjectAPI interface {
+	ListObjectsV2(
+		ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options),
+	) (*s3.ListObjectsV2Output, error)
+	PutObject(
+		ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options),
+	) (*s3.PutObjectOutput, error)
+	GetObject(
+		ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options),
+	) (*s3.GetObjectOutput, error)
+	DeleteObject(
+		ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options),
+	) (*s3.DeleteObjectOutput, error)
+}
+
 type S3 struct {
-	client     *s3.Client
-	bucket     *string
-	rootFolder string
-	url        string
-	logger     *slog.Logger
+	client        ObjectAPI
+	presignClient *s3.PresignClient
+	bucket        *string
+	rootFolder    string
+	url           string
+	logger        *slog.Logger
 }
 
 func NewS3(
@@ -74,11 +94,12 @@ func NewS3(
 	logger *slog.Logger,
 ) *S3 {
 	return &S3{
-		client:     client,
-		bucket:     aws.String(bucket),
-		rootFolder: rootFolder,
-		url:        url,
-		logger:     logger,
+		client:        client,
+		presignClient: s3.NewPresignClient(client),
+		bucket:        aws.String(bucket),
+		rootFolder:    rootFolder,
+		url:           url,
+		logger:        logger,
 	}
 }
 
@@ -171,9 +192,7 @@ func (s *S3) CreatePresignedURL(
 		return "", controller.InternalServerError(fmt.Errorf("problem joining path: %w", err))
 	}
 
-	presignClient := s3.NewPresignClient(s.client)
-
-	request, err := presignClient.PresignGetObject(ctx,
+	request, err := s.presignClient.PresignGetObject(ctx,
 		&s3.GetObjectInput{ //nolint:exhaustruct
 			Bucket: s.bucket,
 			Key:    aws.String(key),
