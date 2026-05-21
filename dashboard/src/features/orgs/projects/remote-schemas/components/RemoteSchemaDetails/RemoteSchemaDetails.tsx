@@ -1,9 +1,8 @@
-import { RefreshCw } from 'lucide-react';
+import { InfoIcon, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
@@ -90,7 +89,7 @@ export default function RemoteSchemaDetails() {
                 : 'GraphQL Service URL (from environment)'}
             </Text>
             <Tooltip title="The URL of the GraphQL service to be used as a remote schema.">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
             </Tooltip>
           </Box>
           <div className="flex flex-row items-center gap-3">
@@ -134,7 +133,7 @@ export default function RemoteSchemaDetails() {
               : 'Disabled'}
           </Text>
           <Tooltip title="Toggle forwarding headers sent by the client app in the request to your remote GraphQL server">
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
           </Tooltip>
         </div>
         <div className="flex flex-row items-center space-x-2">
@@ -143,7 +142,7 @@ export default function RemoteSchemaDetails() {
             {remoteSchema.definition.timeout_seconds} seconds
           </Text>
           <Tooltip title="Configure timeout for your remote GraphQL server. Defaults to 60 seconds.">
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
           </Tooltip>
         </div>
       </Box>
