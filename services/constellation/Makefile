@@ -10,7 +10,7 @@ _dev-env-up: dev-env-integration-up run-up
 
 
 .PHONY: _dev-env-down
-_dev-env-down: dev-env-integration-down
+_dev-env-down: dev-env-integration-down run-down
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml down --volumes
 
 
@@ -32,19 +32,21 @@ dev-env-integration-up:
 dev-env-integration-down:
 	cd integration && nhost down --volumes
 
-PACKAGE?=./...
 
+PACKAGE?=./...
 .PHONY: coverage
 coverage:  ## Run test coverage for PACKAGE (default: ./...). Usage: make coverage PACKAGE=./connector/memconnector
 	go test $(PACKAGE) -coverprofile=coverage.out
 	go tool cover -func=coverage.out
 
+
 .PHONY: coverage-html
 coverage-html: coverage  ## Same as coverage but also opens an HTML report
 	go tool cover -html=coverage.out
 
+
 .PHONY: run-up
-run-up:
+run-up:  ## Run constellation in dev mode inside a container connected to the integration environment
 	docker run --rm -d \
 	  --network integration_default \
 	  -v $(shell pwd)/integration/nhost/metadata:/metadata \
@@ -63,3 +65,8 @@ run-up:
 	  -e NHOST_JWT_SECRET='{"key":"0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db","type":"HS256"}' \
 	  constellation:0.0.0-dev \
 	    serve
+
+
+.PHONY: run-down
+run-down:  ## Stop the constellation container
+	docker rm -f constellation || true
