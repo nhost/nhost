@@ -391,7 +391,7 @@ func executeFieldInfo(
 			}
 
 			result["args"] = args
-		case "type":
+		case "type": //nolint:goconst
 			result["type"] = executeTypeRefFragment(
 				field.Type, "", sel.SelectionSet, query, schema,
 			)

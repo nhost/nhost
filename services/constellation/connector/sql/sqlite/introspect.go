@@ -496,17 +496,17 @@ func mapSQLiteType(sqliteType string) string { //nolint:gocyclo,cyclop
 		return "int8"
 	case upper == "REAL" || upper == "FLOAT" || upper == "DOUBLE" ||
 		strings.HasPrefix(upper, "DOUBLE "):
-		return "float8"
+		return "float8" //nolint:goconst
 	case upper == "BOOLEAN" || upper == "BOOL":
 		return "bool"
 	case upper == "NUMERIC" || upper == "DECIMAL" ||
 		strings.HasPrefix(upper, "NUMERIC(") || strings.HasPrefix(upper, "DECIMAL("):
-		return "numeric"
+		return "numeric" //nolint:goconst
 	case upper == "TEXT" || upper == "CLOB" ||
 		strings.HasPrefix(upper, "VARCHAR") || strings.HasPrefix(upper, "CHAR") ||
 		strings.HasPrefix(upper, "VARYING") || strings.HasPrefix(upper, "NCHAR") ||
 		strings.HasPrefix(upper, "NVARCHAR") || strings.HasPrefix(upper, "NATIVE"):
-		return "text"
+		return "text" //nolint:goconst
 	case upper == "BLOB" || upper == "":
 		return "bytea"
 	case upper == "DATE":

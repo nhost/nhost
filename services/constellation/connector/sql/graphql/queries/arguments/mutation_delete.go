@@ -23,7 +23,7 @@ func ParseDelete(
 	)
 
 	for _, arg := range arguments {
-		if arg.Name == "where" {
+		if arg.Name == "where" { //nolint:goconst
 			whereClause, err = t.ParseWhere(
 				arg.Value, variables, role, sessionVariables, 0, where.QueryAliases,
 			)

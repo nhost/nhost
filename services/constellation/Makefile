@@ -1,54 +1,26 @@
+ROOT_DIR?=$(abspath ../..)
+include $(ROOT_DIR)/build/makefiles/general.makefile
+
 DOCKER_DEV_ENV_PATH=build/dev/docker
 
-NAME:=constellation
 
-ifdef VER
-VERSION=$(shell echo $(VER) | sed -e 's/^v//g' -e 's/\//_/g')
-else
-VERSION=$(shell grep -oP 'version\s*=\s*"\K[^"]+' flake.nix | head -n 1)
-endif
-
-ifeq ($(shell uname -m),x86_64)
-  ARCH?=x86_64
-else ifeq ($(shell uname -m),arm64)
-  ARCH?=aarch64
-else ifeq ($(shell uname -m),aarch64)
-   ARCH?=aarch64
-else
-   ARCH?=FIXME-$(shell uname -m)
-endif
-
-ifeq ($(shell uname -o),Darwin)
-  OS?=darwin
-else
-  OS?=linux
-endif
-
-
-.PHONY: build
-build:  ## Build application and places the binary under ./result/bin
-	nix build \
-		--print-build-logs \
-		.\#packages.$(ARCH)-$(OS).$(NAME)
-
-
-.PHONY: build-docker-image
-build-docker-image:  ## Build docker container for native architecture
-	nix build $(docker-build-options) --show-trace \
-		.\#packages.$(ARCH)-linux.$(NAME)-docker-image \
-		--print-build-logs
-	nix develop \#skopeo -c \
-		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
-
-
-.PHONY: dev-env-up
-dev-env-up:
+.PHONY: _dev-env-up
+_dev-env-up: dev-env-integration-up run-up
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
 
 
-.PHONY: dev-env-down
-dev-env-down:
+.PHONY: _dev-env-down
+_dev-env-down: dev-env-integration-down
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml down --volumes
+
+
+.PHONY: dev-env-up-short
+dev-env-up-short: _dev-env-up dev-env-integration-up
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
+
+
+.PHONY: _dev-env-build
+_dev-env-build: build-docker-image
 
 
 .PHONY: dev-env-integration-up
@@ -71,9 +43,9 @@ coverage:  ## Run test coverage for PACKAGE (default: ./...). Usage: make covera
 coverage-html: coverage  ## Same as coverage but also opens an HTML report
 	go tool cover -html=coverage.out
 
-.PHONY: run
-run:
-	docker run --rm \
+.PHONY: run-up
+run-up:
+	docker run --rm -d \
 	  --network integration_default \
 	  -v $(shell pwd)/integration/nhost/metadata:/metadata \
 	  -p 8000:8000 \

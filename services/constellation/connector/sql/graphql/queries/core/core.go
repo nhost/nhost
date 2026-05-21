@@ -85,7 +85,7 @@ const (
 func (d OrderDirection) SQL() string {
 	switch d {
 	case OrderAsc:
-		return "ASC"
+		return "ASC" //nolint:goconst
 	case OrderDesc:
 		return "DESC"
 	case OrderAscNullsFirst:
