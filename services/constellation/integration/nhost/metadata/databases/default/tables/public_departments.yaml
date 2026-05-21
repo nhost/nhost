@@ -1,0 +1,177 @@
+table:
+  name: departments
+  schema: public
+array_relationships:
+  - name: employees
+    using:
+      foreign_key_constraint_on:
+        column: department_id
+        table:
+          name: user_departments
+          schema: public
+  - name: files
+    using:
+      foreign_key_constraint_on:
+        column: department_id
+        table:
+          name: department_files
+          schema: public
+  - name: kb_entry_departments
+    using:
+      foreign_key_constraint_on:
+        column: department_id
+        table:
+          name: kb_entry_departments
+          schema: public
+    comment: KB entries available to this department
+remote_relationships:
+  - definition:
+      to_remote_schema:
+        lhs_fields:
+          - id
+        remote_field:
+          teamByDepartment:
+            arguments:
+              departmentId: $id
+        remote_schema: rs
+    name: team
+  - definition:
+      to_remote_schema:
+        lhs_fields:
+          - id
+        remote_field:
+          teamByDepartmentFiltered:
+            arguments:
+              departmentId: $id
+        remote_schema: rs
+    name: teamFiltered
+insert_permissions:
+  - role: generated_col_test
+    permission:
+      check:
+        has_high_budget:
+          _eq: true
+      columns:
+        - budget
+        - description
+        - name
+        - id
+    comment: ""
+  - role: queries_relationships
+    permission:
+      check: {}
+      columns:
+        - budget
+        - description
+        - name
+        - created_at
+        - updated_at
+        - id
+    comment: ""
+select_permissions:
+  - role: generated_col_test
+    permission:
+      columns:
+        - id
+        - name
+        - budget
+        - has_high_budget
+      filter: {}
+    comment: ""
+  - role: mixed_permissions
+    permission:
+      columns:
+        - budget
+        - description
+        - name
+        - created_at
+        - updated_at
+        - id
+      filter: {}
+    comment: ""
+  - role: queries_relationships
+    permission:
+      columns:
+        - budget
+        - description
+        - name
+        - created_at
+        - updated_at
+        - id
+      filter: {}
+    comment: ""
+  - role: queries_relationships_aggregation
+    permission:
+      columns:
+        - budget
+        - description
+        - name
+        - created_at
+        - updated_at
+        - id
+      filter: {}
+      allow_aggregations: true
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - budget
+        - created_at
+        - description
+        - id
+        - name
+      filter:
+        id:
+          _in: X-Hasura-departments
+      allow_aggregations: true
+    comment: ""
+update_permissions:
+  - role: mixed_permissions
+    permission:
+      columns:
+        - budget
+        - description
+        - name
+        - created_at
+        - updated_at
+        - id
+      filter: {}
+      check: {}
+    comment: ""
+  - role: queries_relationships
+    permission:
+      columns:
+        - budget
+        - description
+        - name
+        - created_at
+        - updated_at
+        - id
+      filter: {}
+      check: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - budget
+        - description
+        - name
+        - created_at
+        - updated_at
+        - id
+      filter:
+        id:
+          _in: X-Hasura-department-manager
+      check: null
+    comment: ""
+delete_permissions:
+  - role: queries_relationships
+    permission:
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      filter:
+        id:
+          _in: X-Hasura-department-manager
+    comment: ""

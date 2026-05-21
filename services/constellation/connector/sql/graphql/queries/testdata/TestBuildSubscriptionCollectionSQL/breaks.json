@@ -1,0 +1,20 @@
+[
+  {
+    "Name": "departments",
+    "QueryType": "subscription",
+    "SQL": "SELECT \"_subs\".\"result_id\", \"_fld_resp\".\"root\" AS \"result\" FROM UNNEST($1::text[], $2::json[]) AS \"_subs\"(\"result_id\", \"result_vars\") LEFT OUTER JOIN LATERAL (SELECT (SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"public\".\"departments\".\"id\" = ANY($3::uuid[])) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"name\" AS \"name\", \"_root.r.files\".\"files\" AS \"files\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (SELECT coalesce(json_agg(\"_root.r.files\"), '[]') AS \"files\" FROM (WITH \"_root.r.files.base\" AS (SELECT * FROM \"public\".\"department_files\" WHERE \"department_id\" = \"_root.base\".\"id\" AND (\"public\".\"department_files\".\"department_id\" = ANY($4::uuid[]) OR EXISTS (SELECT 1 FROM \"storage\".\"files\" f WHERE \"public\".\"department_files\".\"file_id\" = f.\"id\" AND f.\"uploaded_by_user_id\" = $5::uuid))) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.files.base\".\"file_id\" AS \"file_id\", \"_root.r.files.r.file\".\"file\" AS \"file\") AS \"_e\")) AS \"_root.r.files\" FROM \"_root.r.files.base\" LEFT OUTER JOIN LATERAL (WITH \"_root.r.files.r.file.base\" AS (SELECT * FROM \"storage\".\"files\" WHERE \"_root.r.files.base\".\"file_id\" = \"id\" AND (\"storage\".\"files\".\"uploaded_by_user_id\" = $6::uuid OR \"storage\".\"files\".\"bucket_id\" = $7) LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.files.r.file.base\".\"name\" AS \"name\") AS \"_e\")) AS \"file\" FROM \"_root.r.files.r.file.base\") AS \"_root.r.files.r.file\" ON ('true')) AS \"_root.r.files\") AS \"_root.r.files\" ON ('true')) AS \"_root\") AS \"root\") AS \"_fld_resp\" ON ('true')",
+    "Parameters": [
+      [
+        "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+        "fd1e6bba-c292-4b2f-872e-ae16146cdd82"
+      ],
+      [
+        "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+        "fd1e6bba-c292-4b2f-872e-ae16146cdd82"
+      ],
+      "550e8400-e29b-41d4-a716-446655440002",
+      "550e8400-e29b-41d4-a716-446655440002",
+      "profile_pics"
+    ]
+  }
+]

@@ -9,6 +9,8 @@ linters:
       lines: 65
     wsl_v5:
       allow-whole-block: true
+    cyclop:
+      max-complexity: 15
   disable:
     - canonicalheader
     - depguard
@@ -33,10 +35,12 @@ linters:
           - funlen
           - ireturn
           - goconst
+          - lll
+          - exhaustruct
         path: _test\.go
       - linters:
           - lll
-        source: '^//go:generate '
+        source: "^//go:generate "
       - linters:
           - gochecknoglobals
         text: Version is a global variable

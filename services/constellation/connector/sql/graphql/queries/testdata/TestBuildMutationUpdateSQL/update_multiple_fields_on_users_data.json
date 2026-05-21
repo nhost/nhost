@@ -1,0 +1,16 @@
+[
+  [
+    {
+      "returning": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "email": "sarah.martinez@company.com",
+          "locale": "fr",
+          "disabled": false,
+          "emailVerified": true
+        }
+      ],
+      "affected_rows": 1
+    }
+  ]
+]

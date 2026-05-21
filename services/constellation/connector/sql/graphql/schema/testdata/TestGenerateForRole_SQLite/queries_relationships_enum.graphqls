@@ -1,0 +1,1799 @@
+schema {
+  query: query_root
+  mutation: mutation_root
+  subscription: subscription_root
+}
+scalar json
+scalar timestamptz
+scalar uuid
+"""
+column ordering options
+"""
+enum order_by {
+  """
+  in ascending order, nulls last
+  """
+  asc
+  """
+  in ascending order, nulls first
+  """
+  asc_nulls_first
+  """
+  in ascending order, nulls last
+  """
+  asc_nulls_last
+  """
+  in descending order, nulls first
+  """
+  desc
+  """
+  in descending order, nulls first
+  """
+  desc_nulls_first
+  """
+  in descending order, nulls last
+  """
+  desc_nulls_last
+}
+"""
+ordering argument of a cursor
+"""
+enum cursor_ordering {
+  """
+  ascending ordering of the cursor
+  """
+  ASC
+  """
+  descending ordering of the cursor
+  """
+  DESC
+}
+"""
+unique or primary key constraints on table "refresh_token_types"
+"""
+enum authRefreshTokenTypes_constraint {
+  """
+  unique or primary key constraint on columns "value"
+  """
+  refresh_token_types_pkey
+  """
+  unique or primary key constraint on columns "value"
+  """
+  sqlite_autoindex_refresh_token_types_1
+}
+"""
+update columns of table "refresh_token_types"
+"""
+enum authRefreshTokenTypes_update_column {
+  """
+  column name
+  """
+  value
+  """
+  column name
+  """
+  comment
+}
+"""
+select columns of table "refresh_token_types"
+"""
+enum authRefreshTokenTypes_select_column {
+  """
+  column name
+  """
+  value
+  """
+  column name
+  """
+  comment
+}
+"""
+unique or primary key constraints on table "refresh_tokens"
+"""
+enum authRefreshTokens_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  refresh_tokens_pkey
+  """
+  unique or primary key constraint on columns "id"
+  """
+  sqlite_autoindex_refresh_tokens_1
+}
+"""
+update columns of table "refresh_tokens"
+"""
+enum authRefreshTokens_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  expiresAt
+  """
+  column name
+  """
+  userId
+  """
+  column name
+  """
+  metadata
+  """
+  column name
+  """
+  type
+  """
+  column name
+  """
+  refreshTokenHash
+}
+"""
+select columns of table "refresh_tokens"
+"""
+enum authRefreshTokens_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  expiresAt
+  """
+  column name
+  """
+  userId
+  """
+  column name
+  """
+  metadata
+  """
+  column name
+  """
+  type
+  """
+  column name
+  """
+  refreshTokenHash
+}
+"""
+unique or primary key constraints on table "users"
+"""
+enum users_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  users_pkey
+  """
+  unique or primary key constraint on columns "phone_number"
+  """
+  users_phone_number_key
+  """
+  unique or primary key constraint on columns "email"
+  """
+  users_email_key
+  """
+  unique or primary key constraint on columns "id"
+  """
+  sqlite_autoindex_users_1
+}
+"""
+update columns of table "users"
+"""
+enum users_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  updatedAt
+  """
+  column name
+  """
+  lastSeen
+  """
+  column name
+  """
+  disabled
+  """
+  column name
+  """
+  displayName
+  """
+  column name
+  """
+  avatarUrl
+  """
+  column name
+  """
+  locale
+  """
+  column name
+  """
+  email
+  """
+  column name
+  """
+  phoneNumber
+  """
+  column name
+  """
+  passwordHash
+  """
+  column name
+  """
+  emailVerified
+  """
+  column name
+  """
+  phoneNumberVerified
+  """
+  column name
+  """
+  newEmail
+  """
+  column name
+  """
+  otpMethodLastUsed
+  """
+  column name
+  """
+  otpHash
+  """
+  column name
+  """
+  otpHashExpiresAt
+  """
+  column name
+  """
+  defaultRole
+  """
+  column name
+  """
+  isAnonymous
+  """
+  column name
+  """
+  totpSecret
+  """
+  column name
+  """
+  activeMfaType
+  """
+  column name
+  """
+  ticket
+  """
+  column name
+  """
+  ticketExpiresAt
+  """
+  column name
+  """
+  metadata
+  """
+  column name
+  """
+  currentChallenge
+}
+"""
+select columns of table "users"
+"""
+enum users_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  updatedAt
+  """
+  column name
+  """
+  lastSeen
+  """
+  column name
+  """
+  disabled
+  """
+  column name
+  """
+  displayName
+  """
+  column name
+  """
+  avatarUrl
+  """
+  column name
+  """
+  locale
+  """
+  column name
+  """
+  email
+  """
+  column name
+  """
+  phoneNumber
+  """
+  column name
+  """
+  passwordHash
+  """
+  column name
+  """
+  emailVerified
+  """
+  column name
+  """
+  phoneNumberVerified
+  """
+  column name
+  """
+  newEmail
+  """
+  column name
+  """
+  otpMethodLastUsed
+  """
+  column name
+  """
+  otpHash
+  """
+  column name
+  """
+  otpHashExpiresAt
+  """
+  column name
+  """
+  defaultRole
+  """
+  column name
+  """
+  isAnonymous
+  """
+  column name
+  """
+  totpSecret
+  """
+  column name
+  """
+  activeMfaType
+  """
+  column name
+  """
+  ticket
+  """
+  column name
+  """
+  ticketExpiresAt
+  """
+  column name
+  """
+  metadata
+  """
+  column name
+  """
+  currentChallenge
+}
+enum authRefreshTokenTypes_enum {
+  """
+  Personal access token
+  """
+  pat
+  """
+  Regular refresh token
+  """
+  regular
+}
+"""
+columns and relationships of "refresh_token_types"
+"""
+type authRefreshTokenTypes {
+  value: String!
+  comment: String
+  """
+  An array relationship
+  """
+  refreshTokens(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): [authRefreshTokens!]!
+  """
+  An aggregate relationship
+  """
+  refreshTokens_aggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): authRefreshTokens_aggregate!
+}
+"""
+response of any mutation on the table "refresh_token_types"
+"""
+type authRefreshTokenTypes_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [authRefreshTokenTypes!]!
+}
+"""
+columns and relationships of "refresh_tokens"
+"""
+type authRefreshTokens {
+  id: uuid!
+  createdAt: timestamptz!
+  expiresAt: timestamptz!
+  userId: uuid!
+  metadata(
+    """
+    JSON select path
+    """
+    path: String
+  ): json
+  type: authRefreshTokenTypes_enum!
+  refreshTokenHash: String
+  """
+  An object relationship
+  """
+  user: users!
+}
+"""
+aggregated selection of "refresh_tokens"
+"""
+type authRefreshTokens_aggregate {
+  aggregate: authRefreshTokens_aggregate_fields
+  nodes: [authRefreshTokens!]!
+}
+"""
+aggregate max on columns
+"""
+type authRefreshTokens_max_fields {
+  id: uuid
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  userId: uuid
+  refreshTokenHash: String
+}
+"""
+aggregate min on columns
+"""
+type authRefreshTokens_min_fields {
+  id: uuid
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  userId: uuid
+  refreshTokenHash: String
+}
+"""
+aggregate fields of "refresh_tokens"
+"""
+type authRefreshTokens_aggregate_fields {
+  count(columns: [authRefreshTokens_select_column!], distinct: Boolean): Int!
+  max: authRefreshTokens_max_fields
+  min: authRefreshTokens_min_fields
+}
+"""
+response of any mutation on the table "refresh_tokens"
+"""
+type authRefreshTokens_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [authRefreshTokens!]!
+}
+"""
+columns and relationships of "users"
+"""
+type users {
+  id: uuid!
+  createdAt: timestamptz!
+  updatedAt: timestamptz!
+  lastSeen: timestamptz
+  disabled: Boolean!
+  displayName: String!
+  avatarUrl: String!
+  locale: String!
+  email: String
+  phoneNumber: String
+  passwordHash: String
+  emailVerified: Boolean!
+  phoneNumberVerified: Boolean!
+  newEmail: String
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz!
+  defaultRole: String!
+  isAnonymous: Boolean!
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz!
+  metadata(
+    """
+    JSON select path
+    """
+    path: String
+  ): json
+  currentChallenge: String
+  """
+  An array relationship
+  """
+  refreshTokens(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): [authRefreshTokens!]!
+  """
+  An aggregate relationship
+  """
+  refreshTokens_aggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): authRefreshTokens_aggregate!
+}
+"""
+aggregated selection of "users"
+"""
+type users_aggregate {
+  aggregate: users_aggregate_fields
+  nodes: [users!]!
+}
+"""
+aggregate max on columns
+"""
+type users_max_fields {
+  id: uuid
+  createdAt: timestamptz
+  updatedAt: timestamptz
+  lastSeen: timestamptz
+  displayName: String
+  avatarUrl: String
+  locale: String
+  email: String
+  phoneNumber: String
+  passwordHash: String
+  newEmail: String
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  defaultRole: String
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  currentChallenge: String
+}
+"""
+aggregate min on columns
+"""
+type users_min_fields {
+  id: uuid
+  createdAt: timestamptz
+  updatedAt: timestamptz
+  lastSeen: timestamptz
+  displayName: String
+  avatarUrl: String
+  locale: String
+  email: String
+  phoneNumber: String
+  passwordHash: String
+  newEmail: String
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  defaultRole: String
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  currentChallenge: String
+}
+"""
+aggregate fields of "users"
+"""
+type users_aggregate_fields {
+  count(columns: [users_select_column!], distinct: Boolean): Int!
+  max: users_max_fields
+  min: users_min_fields
+}
+"""
+response of any mutation on the table "users"
+"""
+type users_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [users!]!
+}
+type query_root {
+  """
+  fetch data from the table: "refresh_token_types"
+  """
+  authRefreshTokenTypes(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokenTypes_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokenTypes_bool_exp
+  ): [authRefreshTokenTypes!]!
+  """
+  fetch data from the table: "refresh_token_types" using primary key columns
+  """
+  authRefreshTokenType(value: String!): authRefreshTokenTypes
+  """
+  fetch data from the table: "refresh_tokens"
+  """
+  authRefreshTokens(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): [authRefreshTokens!]!
+  """
+  fetch data from the table: "refresh_tokens" using primary key columns
+  """
+  authRefreshToken(id: uuid!): authRefreshTokens
+  """
+  fetch aggregated fields from the table: "refresh_tokens"
+  """
+  authRefreshTokensAggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): authRefreshTokens_aggregate!
+  """
+  fetch data from the table: "users"
+  """
+  users(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): [users!]!
+  """
+  fetch data from the table: "users" using primary key columns
+  """
+  user(id: uuid!): users
+  """
+  fetch aggregated fields from the table: "users"
+  """
+  usersAggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): users_aggregate!
+}
+"""
+mutation root
+"""
+type mutation_root {
+  """
+  delete single row from the table: "refresh_token_types"
+  """
+  deleteAuthRefreshTokenType(value: String!): authRefreshTokenTypes
+  """
+  delete data from the table: "refresh_token_types"
+  """
+  deleteAuthRefreshTokenTypes(
+    """
+    filter the rows which have to be deleted
+    """
+    where: authRefreshTokenTypes_bool_exp!
+  ): authRefreshTokenTypes_mutation_response
+  """
+  insert a single row into the table: "refresh_token_types"
+  """
+  insertAuthRefreshTokenType(
+    """
+    the row to be inserted
+    """
+    object: authRefreshTokenTypes_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: authRefreshTokenTypes_on_conflict
+  ): authRefreshTokenTypes
+  """
+  insert data into the table: "refresh_token_types"
+  """
+  insertAuthRefreshTokenTypes(
+    """
+    the rows to be inserted
+    """
+    objects: [authRefreshTokenTypes_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: authRefreshTokenTypes_on_conflict
+  ): authRefreshTokenTypes_mutation_response
+  """
+  update single row of the table: "refresh_token_types"
+  """
+  updateAuthRefreshTokenType(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: authRefreshTokenTypes_set_input
+  pk_columns: authRefreshTokenTypes_pk_columns_input!): authRefreshTokenTypes
+  """
+  update data of the table: "refresh_token_types"
+  """
+  updateAuthRefreshTokenTypes(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: authRefreshTokenTypes_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: authRefreshTokenTypes_bool_exp!
+  ): authRefreshTokenTypes_mutation_response
+  """
+  update multiples rows of table: "refresh_token_types"
+  """
+  update_authRefreshTokenTypes_many(
+    """
+    updates to execute, in order
+    """
+    updates: [authRefreshTokenTypes_updates!]!
+  ): [authRefreshTokenTypes_mutation_response]
+  """
+  delete single row from the table: "refresh_tokens"
+  """
+  deleteAuthRefreshToken(id: uuid!): authRefreshTokens
+  """
+  delete data from the table: "refresh_tokens"
+  """
+  deleteAuthRefreshTokens(
+    """
+    filter the rows which have to be deleted
+    """
+    where: authRefreshTokens_bool_exp!
+  ): authRefreshTokens_mutation_response
+  """
+  insert a single row into the table: "refresh_tokens"
+  """
+  insertAuthRefreshToken(
+    """
+    the row to be inserted
+    """
+    object: authRefreshTokens_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: authRefreshTokens_on_conflict
+  ): authRefreshTokens
+  """
+  insert data into the table: "refresh_tokens"
+  """
+  insertAuthRefreshTokens(
+    """
+    the rows to be inserted
+    """
+    objects: [authRefreshTokens_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: authRefreshTokens_on_conflict
+  ): authRefreshTokens_mutation_response
+  """
+  update single row of the table: "refresh_tokens"
+  """
+  updateAuthRefreshToken(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: authRefreshTokens_set_input
+  pk_columns: authRefreshTokens_pk_columns_input!): authRefreshTokens
+  """
+  update data of the table: "refresh_tokens"
+  """
+  updateAuthRefreshTokens(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: authRefreshTokens_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: authRefreshTokens_bool_exp!
+  ): authRefreshTokens_mutation_response
+  """
+  update multiples rows of table: "refresh_tokens"
+  """
+  update_authRefreshTokens_many(
+    """
+    updates to execute, in order
+    """
+    updates: [authRefreshTokens_updates!]!
+  ): [authRefreshTokens_mutation_response]
+  """
+  delete single row from the table: "users"
+  """
+  deleteUser(id: uuid!): users
+  """
+  delete data from the table: "users"
+  """
+  deleteUsers(
+    """
+    filter the rows which have to be deleted
+    """
+    where: users_bool_exp!
+  ): users_mutation_response
+  """
+  insert a single row into the table: "users"
+  """
+  insertUser(
+    """
+    the row to be inserted
+    """
+    object: users_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: users_on_conflict
+  ): users
+  """
+  insert data into the table: "users"
+  """
+  insertUsers(
+    """
+    the rows to be inserted
+    """
+    objects: [users_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: users_on_conflict
+  ): users_mutation_response
+  """
+  update single row of the table: "users"
+  """
+  updateUser(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: users_set_input
+  pk_columns: users_pk_columns_input!): users
+  """
+  update data of the table: "users"
+  """
+  updateUsers(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: users_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: users_bool_exp!
+  ): users_mutation_response
+  """
+  update multiples rows of table: "users"
+  """
+  update_users_many(
+    """
+    updates to execute, in order
+    """
+    updates: [users_updates!]!
+  ): [users_mutation_response]
+}
+type subscription_root {
+  """
+  fetch data from the table: "refresh_token_types"
+  """
+  authRefreshTokenTypes(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokenTypes_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokenTypes_bool_exp
+  ): [authRefreshTokenTypes!]!
+  """
+  fetch data from the table: "refresh_token_types" using primary key columns
+  """
+  authRefreshTokenType(value: String!): authRefreshTokenTypes
+  """
+  fetch data from the table in a streaming manner: "refresh_token_types"
+  """
+  authRefreshTokenTypes_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [authRefreshTokenTypes_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokenTypes_bool_exp
+  ): [authRefreshTokenTypes!]!
+  """
+  fetch data from the table: "refresh_tokens"
+  """
+  authRefreshTokens(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): [authRefreshTokens!]!
+  """
+  fetch data from the table: "refresh_tokens" using primary key columns
+  """
+  authRefreshToken(id: uuid!): authRefreshTokens
+  """
+  fetch aggregated fields from the table: "refresh_tokens"
+  """
+  authRefreshTokensAggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): authRefreshTokens_aggregate!
+  """
+  fetch data from the table in a streaming manner: "refresh_tokens"
+  """
+  authRefreshTokens_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [authRefreshTokens_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): [authRefreshTokens!]!
+  """
+  fetch data from the table: "users"
+  """
+  users(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): [users!]!
+  """
+  fetch data from the table: "users" using primary key columns
+  """
+  user(id: uuid!): users
+  """
+  fetch aggregated fields from the table: "users"
+  """
+  usersAggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): users_aggregate!
+  """
+  fetch data from the table in a streaming manner: "users"
+  """
+  users_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [users_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): [users!]!
+}
+"""
+order by max() on columns of table "refresh_tokens"
+"""
+input authRefreshTokens_max_order_by {
+  id: order_by
+  createdAt: order_by
+  expiresAt: order_by
+  userId: order_by
+  refreshTokenHash: order_by
+}
+"""
+order by min() on columns of table "refresh_tokens"
+"""
+input authRefreshTokens_min_order_by {
+  id: order_by
+  createdAt: order_by
+  expiresAt: order_by
+  userId: order_by
+  refreshTokenHash: order_by
+}
+"""
+order by aggregate values of table "refresh_tokens"
+"""
+input authRefreshTokens_aggregate_order_by {
+  count: order_by
+  max: authRefreshTokens_max_order_by
+  min: authRefreshTokens_min_order_by
+}
+input authRefreshTokens_aggregate_bool_exp_count {
+  arguments: [authRefreshTokens_select_column!]
+  distinct: Boolean
+  filter: authRefreshTokens_bool_exp
+  predicate: Int_sqlite_comparison_exp!
+}
+input authRefreshTokens_aggregate_bool_exp {
+  count: authRefreshTokens_aggregate_bool_exp_count
+}
+"""
+Boolean expression to filter rows from the table "refresh_token_types". All fields are combined with a logical 'AND'.
+"""
+input authRefreshTokenTypes_bool_exp {
+  _and: [authRefreshTokenTypes_bool_exp!]
+  _not: authRefreshTokenTypes_bool_exp
+  _or: [authRefreshTokenTypes_bool_exp!]
+  value: String_sqlite_comparison_exp
+  comment: String_sqlite_comparison_exp
+  refreshTokens: authRefreshTokens_bool_exp
+  refreshTokens_aggregate: authRefreshTokens_aggregate_bool_exp
+}
+"""
+Ordering options when selecting data from "refresh_token_types".
+"""
+input authRefreshTokenTypes_order_by {
+  value: order_by
+  comment: order_by
+  refreshTokens_aggregate: authRefreshTokens_aggregate_order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input authRefreshTokenTypes_stream_cursor_value_input {
+  value: String
+  comment: String
+}
+"""
+Streaming cursor of the table "authRefreshTokenTypes"
+"""
+input authRefreshTokenTypes_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: authRefreshTokenTypes_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "refresh_token_types"
+"""
+input authRefreshTokenTypes_insert_input {
+  value: String
+  comment: String
+  refreshTokens: authRefreshTokens_arr_rel_insert_input
+}
+"""
+on_conflict condition type for table "refresh_token_types"
+"""
+input authRefreshTokenTypes_on_conflict {
+  constraint: authRefreshTokenTypes_constraint!
+  update_columns: [authRefreshTokenTypes_update_column!]! = []
+  where: authRefreshTokenTypes_bool_exp
+}
+"""
+primary key columns input for table: refresh_token_types
+"""
+input authRefreshTokenTypes_pk_columns_input {
+  value: String!
+}
+"""
+input type for updating data in table "refresh_token_types"
+"""
+input authRefreshTokenTypes_set_input {
+  value: String
+  comment: String
+}
+input authRefreshTokenTypes_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: authRefreshTokenTypes_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: authRefreshTokenTypes_bool_exp!
+}
+"""
+Boolean expression to filter rows from the table "refresh_tokens". All fields are combined with a logical 'AND'.
+"""
+input authRefreshTokens_bool_exp {
+  _and: [authRefreshTokens_bool_exp!]
+  _not: authRefreshTokens_bool_exp
+  _or: [authRefreshTokens_bool_exp!]
+  id: uuid_sqlite_comparison_exp
+  createdAt: timestamptz_sqlite_comparison_exp
+  expiresAt: timestamptz_sqlite_comparison_exp
+  userId: uuid_sqlite_comparison_exp
+  metadata: json_sqlite_comparison_exp
+  type: authRefreshTokenTypes_enum_comparison_exp
+  refreshTokenHash: String_sqlite_comparison_exp
+  user: users_bool_exp
+}
+"""
+Ordering options when selecting data from "refresh_tokens".
+"""
+input authRefreshTokens_order_by {
+  id: order_by
+  createdAt: order_by
+  expiresAt: order_by
+  userId: order_by
+  metadata: order_by
+  type: order_by
+  refreshTokenHash: order_by
+  user: users_order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input authRefreshTokens_stream_cursor_value_input {
+  id: uuid
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  userId: uuid
+  metadata: json
+  type: authRefreshTokenTypes_enum
+  refreshTokenHash: String
+}
+"""
+Streaming cursor of the table "authRefreshTokens"
+"""
+input authRefreshTokens_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: authRefreshTokens_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "refresh_tokens"
+"""
+input authRefreshTokens_insert_input {
+  id: uuid
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  userId: uuid
+  metadata: json
+  type: authRefreshTokenTypes_enum
+  refreshTokenHash: String
+  user: users_obj_rel_insert_input
+}
+"""
+on_conflict condition type for table "refresh_tokens"
+"""
+input authRefreshTokens_on_conflict {
+  constraint: authRefreshTokens_constraint!
+  update_columns: [authRefreshTokens_update_column!]! = []
+  where: authRefreshTokens_bool_exp
+}
+"""
+primary key columns input for table: refresh_tokens
+"""
+input authRefreshTokens_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "refresh_tokens"
+"""
+input authRefreshTokens_set_input {
+  id: uuid
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  userId: uuid
+  metadata: json
+  type: authRefreshTokenTypes_enum
+  refreshTokenHash: String
+}
+input authRefreshTokens_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: authRefreshTokens_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: authRefreshTokens_bool_exp!
+}
+"""
+input type for inserting array relation for remote table "refresh_tokens"
+"""
+input authRefreshTokens_arr_rel_insert_input {
+  data: [authRefreshTokens_insert_input!]!
+  """
+  upsert condition
+  """
+  on_conflict: authRefreshTokens_on_conflict
+}
+"""
+Boolean expression to filter rows from the table "users". All fields are combined with a logical 'AND'.
+"""
+input users_bool_exp {
+  _and: [users_bool_exp!]
+  _not: users_bool_exp
+  _or: [users_bool_exp!]
+  id: uuid_sqlite_comparison_exp
+  createdAt: timestamptz_sqlite_comparison_exp
+  updatedAt: timestamptz_sqlite_comparison_exp
+  lastSeen: timestamptz_sqlite_comparison_exp
+  disabled: Boolean_sqlite_comparison_exp
+  displayName: String_sqlite_comparison_exp
+  avatarUrl: String_sqlite_comparison_exp
+  locale: String_sqlite_comparison_exp
+  email: String_sqlite_comparison_exp
+  phoneNumber: String_sqlite_comparison_exp
+  passwordHash: String_sqlite_comparison_exp
+  emailVerified: Boolean_sqlite_comparison_exp
+  phoneNumberVerified: Boolean_sqlite_comparison_exp
+  newEmail: String_sqlite_comparison_exp
+  otpMethodLastUsed: String_sqlite_comparison_exp
+  otpHash: String_sqlite_comparison_exp
+  otpHashExpiresAt: timestamptz_sqlite_comparison_exp
+  defaultRole: String_sqlite_comparison_exp
+  isAnonymous: Boolean_sqlite_comparison_exp
+  totpSecret: String_sqlite_comparison_exp
+  activeMfaType: String_sqlite_comparison_exp
+  ticket: String_sqlite_comparison_exp
+  ticketExpiresAt: timestamptz_sqlite_comparison_exp
+  metadata: json_sqlite_comparison_exp
+  currentChallenge: String_sqlite_comparison_exp
+  refreshTokens: authRefreshTokens_bool_exp
+  refreshTokens_aggregate: authRefreshTokens_aggregate_bool_exp
+}
+"""
+Ordering options when selecting data from "users".
+"""
+input users_order_by {
+  id: order_by
+  createdAt: order_by
+  updatedAt: order_by
+  lastSeen: order_by
+  disabled: order_by
+  displayName: order_by
+  avatarUrl: order_by
+  locale: order_by
+  email: order_by
+  phoneNumber: order_by
+  passwordHash: order_by
+  emailVerified: order_by
+  phoneNumberVerified: order_by
+  newEmail: order_by
+  otpMethodLastUsed: order_by
+  otpHash: order_by
+  otpHashExpiresAt: order_by
+  defaultRole: order_by
+  isAnonymous: order_by
+  totpSecret: order_by
+  activeMfaType: order_by
+  ticket: order_by
+  ticketExpiresAt: order_by
+  metadata: order_by
+  currentChallenge: order_by
+  refreshTokens_aggregate: authRefreshTokens_aggregate_order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input users_stream_cursor_value_input {
+  id: uuid
+  createdAt: timestamptz
+  updatedAt: timestamptz
+  lastSeen: timestamptz
+  disabled: Boolean
+  displayName: String
+  avatarUrl: String
+  locale: String
+  email: String
+  phoneNumber: String
+  passwordHash: String
+  emailVerified: Boolean
+  phoneNumberVerified: Boolean
+  newEmail: String
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  defaultRole: String
+  isAnonymous: Boolean
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  metadata: json
+  currentChallenge: String
+}
+"""
+Streaming cursor of the table "users"
+"""
+input users_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: users_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "users"
+"""
+input users_insert_input {
+  id: uuid
+  createdAt: timestamptz
+  updatedAt: timestamptz
+  lastSeen: timestamptz
+  disabled: Boolean
+  displayName: String
+  avatarUrl: String
+  locale: String
+  email: String
+  phoneNumber: String
+  passwordHash: String
+  emailVerified: Boolean
+  phoneNumberVerified: Boolean
+  newEmail: String
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  defaultRole: String
+  isAnonymous: Boolean
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  metadata: json
+  currentChallenge: String
+  refreshTokens: authRefreshTokens_arr_rel_insert_input
+}
+"""
+on_conflict condition type for table "users"
+"""
+input users_on_conflict {
+  constraint: users_constraint!
+  update_columns: [users_update_column!]! = []
+  where: users_bool_exp
+}
+"""
+primary key columns input for table: users
+"""
+input users_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "users"
+"""
+input users_set_input {
+  id: uuid
+  createdAt: timestamptz
+  updatedAt: timestamptz
+  lastSeen: timestamptz
+  disabled: Boolean
+  displayName: String
+  avatarUrl: String
+  locale: String
+  email: String
+  phoneNumber: String
+  passwordHash: String
+  emailVerified: Boolean
+  phoneNumberVerified: Boolean
+  newEmail: String
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  defaultRole: String
+  isAnonymous: Boolean
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  metadata: json
+  currentChallenge: String
+}
+input users_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: users_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: users_bool_exp!
+}
+"""
+input type for inserting object relation for remote table "users"
+"""
+input users_obj_rel_insert_input {
+  data: users_insert_input!
+  """
+  upsert condition
+  """
+  on_conflict: users_on_conflict
+}
+"""
+Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
+"""
+input Boolean_sqlite_comparison_exp {
+  _eq: Boolean
+  _gt: Boolean
+  _gte: Boolean
+  _in: [Boolean!]
+  _is_null: Boolean
+  _lt: Boolean
+  _lte: Boolean
+  _neq: Boolean
+  _nin: [Boolean!]
+}
+"""
+Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
+"""
+input Int_sqlite_comparison_exp {
+  _eq: Int
+  _gt: Int
+  _gte: Int
+  _in: [Int!]
+  _is_null: Boolean
+  _lt: Int
+  _lte: Int
+  _neq: Int
+  _nin: [Int!]
+}
+"""
+Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
+"""
+input String_sqlite_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+  """
+  does the column match the given case-insensitive pattern
+  """
+  _ilike: String
+  _in: [String!]
+  _is_null: Boolean
+  """
+  does the column match the given pattern
+  """
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+  """
+  does the column NOT match the given case-insensitive pattern
+  """
+  _nilike: String
+  _nin: [String!]
+  """
+  does the column NOT match the given pattern
+  """
+  _nlike: String
+}
+"""
+Boolean expression to compare columns of type "json". All fields are combined with logical 'AND'.
+"""
+input json_sqlite_comparison_exp {
+  _eq: json
+  _gt: json
+  _gte: json
+  _in: [json!]
+  _is_null: Boolean
+  _lt: json
+  _lte: json
+  _neq: json
+  _nin: [json!]
+}
+"""
+Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.
+"""
+input timestamptz_sqlite_comparison_exp {
+  _eq: timestamptz
+  _gt: timestamptz
+  _gte: timestamptz
+  _in: [timestamptz!]
+  _is_null: Boolean
+  _lt: timestamptz
+  _lte: timestamptz
+  _neq: timestamptz
+  _nin: [timestamptz!]
+}
+"""
+Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.
+"""
+input uuid_sqlite_comparison_exp {
+  _eq: uuid
+  _gt: uuid
+  _gte: uuid
+  _in: [uuid!]
+  _is_null: Boolean
+  _lt: uuid
+  _lte: uuid
+  _neq: uuid
+  _nin: [uuid!]
+}
+"""
+Boolean expression to compare columns of type "authRefreshTokenTypes_enum". All fields are combined with logical 'AND'.
+"""
+input authRefreshTokenTypes_enum_comparison_exp {
+  _eq: authRefreshTokenTypes_enum
+  _in: [authRefreshTokenTypes_enum!]
+  _is_null: Boolean
+  _neq: authRefreshTokenTypes_enum
+  _nin: [authRefreshTokenTypes_enum!]
+}

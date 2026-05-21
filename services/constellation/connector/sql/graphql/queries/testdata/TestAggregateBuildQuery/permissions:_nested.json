@@ -1,0 +1,12 @@
+[
+  {
+    "Name": "departments",
+    "QueryType": "select",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"public\".\"departments\".\"id\" = ANY($1::uuid[])) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.files_aggregate\".\"files_aggregate\" AS \"files_aggregate\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"department_files\" WHERE \"department_id\" = \"_root.base\".\"id\" AND (\"public\".\"department_files\".\"department_id\" = ANY($2::uuid[]) OR EXISTS (SELECT 1 FROM \"storage\".\"files\" g WHERE \"public\".\"department_files\".\"file_id\" = g.\"id\" AND g.\"uploaded_by_user_id\" = $3::uuid))) SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*)) FROM \"_root.base\")) AS \"files_aggregate\") AS \"_root.r.files_aggregate\" ON ('true')) AS \"_root\"",
+    "Parameters": [
+      "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+      "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+      "550e8400-e29b-41d4-a716-446655440001"
+    ]
+  }
+]

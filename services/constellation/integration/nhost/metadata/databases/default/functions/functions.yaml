@@ -1,0 +1,6 @@
+- "!include public_deactivate_department.yaml"
+- "!include public_get_department_manager.yaml"
+- "!include public_search_news.yaml"
+- "!include public_search_news_2.yaml"
+- "!include public_search_news_3.yaml"
+- "!include public_set_department_manager.yaml"
