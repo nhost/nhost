@@ -267,6 +267,7 @@
               # others
               postgresql_18-client
               bun
+              pi-agent
 
               # docs
               vale
@@ -382,6 +383,7 @@
           mcp-docker-image = mcpf.dockerImage;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
+          pi-agent = pkgs.pi-agent;
           postgres-pg16 = postgresf.packages.pg16-package;
           postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
           postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
