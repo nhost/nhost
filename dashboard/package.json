@@ -14,6 +14,7 @@
     "test:watch": "vitest",
     "test:broken-links": "lychee --config .lychee.toml \"src/**/*.tsx\" \"src/**/*.ts\"",
     "test:typecheck": "tsc --noEmit --pretty -p tsconfig.json",
+    "test:typecheck:clean": "rm -f tsconfig.tsbuildinfo && pnpm test:typecheck",
     "generate": "pnpm codegen-hasura-api",
     "codegen": "DOTENV_CONFIG_PATH=./.env.local graphql-codegen -r dotenv/config --config graphql.config.yaml --errors-only",
     "codegen-graphite": "graphql-codegen --config graphite.graphql.config.yaml --errors-only",
