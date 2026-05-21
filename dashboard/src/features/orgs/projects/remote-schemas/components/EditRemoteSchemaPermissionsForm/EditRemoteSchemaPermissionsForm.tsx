@@ -96,9 +96,18 @@ export default function EditRemoteSchemaPermissionsForm({
   });
 
   if (
-    !remoteSchemaPermissionsEnabled &&
-    !remoteSchemaPermissionsEnabledLoading
+    rolesLoading ||
+    introspectionLoading ||
+    remoteSchemaPermissionsEnabledLoading
   ) {
+    return (
+      <div className="p-6">
+        <ActivityIndicator label="Loading available roles..." />
+      </div>
+    );
+  }
+
+  if (!remoteSchemaPermissionsEnabled) {
     return (
       <Box className="p-4">
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
@@ -117,14 +126,6 @@ export default function EditRemoteSchemaPermissionsForm({
           </Text>
         </Alert>
       </Box>
-    );
-  }
-
-  if (rolesLoading || introspectionLoading) {
-    return (
-      <div className="p-6">
-        <ActivityIndicator label="Loading available roles..." />
-      </div>
     );
   }
 
