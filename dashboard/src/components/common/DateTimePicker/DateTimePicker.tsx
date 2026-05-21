@@ -3,7 +3,7 @@
 import { TZDate } from '@date-fns/tz';
 import { add, format, parseISO } from 'date-fns-v4';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TimePicker } from '@/components/common/TimePicker';
 import { Button } from '@/components/ui/v3/button';
 import { Calendar } from '@/components/ui/v3/calendar';
@@ -49,6 +49,18 @@ function DateTimePicker({
   const [timezone, setTimezone] = useState(
     () => defaultTimezone || guessTimezone(),
   );
+
+  // Keep internal date state in sync when the dateTime prop changes externally
+  // (e.g. when a parent component drives the value, like a quick-range preset).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: defaultTimezone is captured once via useState; sync on dateTime/withTimezone only
+  useEffect(() => {
+    if (withTimezone) {
+      const tz = defaultTimezone || guessTimezone();
+      setDate(new TZDate(dateTime, tz));
+    } else {
+      setDate(parseISO(dateTime));
+    }
+  }, [dateTime, withTimezone]);
 
   function emitNewDateTime() {
     onDateTimeChange(new Date(date.getTime()).toISOString());

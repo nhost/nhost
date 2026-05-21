@@ -116,6 +116,7 @@
     "react-intersection-observer": "^9.8.1",
     "react-merge-refs": "^3.0.2",
     "react-resizable-layout": "^0.7.2",
+    "recharts": "^3.8.1",
     "slugify": "^1.6.6",
     "stripe": "^10.17.0",
     "tailwind-merge": "^1.14.0",

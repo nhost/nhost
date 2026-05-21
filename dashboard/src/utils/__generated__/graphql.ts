@@ -31503,6 +31503,16 @@ export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any,
 
 export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
+export type GetFunctionsMetricsDashboardQueryVariables = Exact<{
+  appID: Scalars['String'];
+  route: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+}>;
+
+
+export type GetFunctionsMetricsDashboardQuery = { __typename?: 'query_root', totalInvocations: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalBytesSent: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalDuration: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalErrors: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, invocations: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, responseStatus: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, averageResponseSize: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, averageResponseTime: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, errorRate: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationP75: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationP95: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationMax: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }> };
+
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
 export type GetGithubRepositoriesQueryVariables = Exact<{ [key: string]: never; }>;
@@ -35956,6 +35966,193 @@ export function useUpdateBucketMutation(baseOptions?: Apollo.MutationHookOptions
 export type UpdateBucketMutationHookResult = ReturnType<typeof useUpdateBucketMutation>;
 export type UpdateBucketMutationResult = Apollo.MutationResult<UpdateBucketMutation>;
 export type UpdateBucketMutationOptions = Apollo.BaseMutationOptions<UpdateBucketMutation, UpdateBucketMutationVariables>;
+export const GetFunctionsMetricsDashboardDocument = gql`
+    query getFunctionsMetricsDashboard($appID: String!, $route: String!, $from: Timestamp, $to: Timestamp) {
+  totalInvocations: getFunctionsInstantMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalBytesSent: getFunctionsInstantMetric(
+    metric: BYTES_SENT
+    aggregate: SUM
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalDuration: getFunctionsInstantMetric(
+    metric: DURATION
+    aggregate: SUM
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalErrors: getFunctionsInstantMetric(
+    metric: ERRORS
+    aggregate: SUM
+    groupBy: [METHOD, STATUS]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  invocations: getFunctionsRangeMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  responseStatus: getFunctionsRangeMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [STATUS]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  averageResponseSize: getFunctionsRangeMetric(
+    metric: BYTES_SENT
+    aggregate: AVG
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  averageResponseTime: getFunctionsRangeMetric(
+    metric: DURATION
+    aggregate: AVG
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  errorRate: getFunctionsRangeMetric(
+    metric: ERRORS
+    aggregate: AVG
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  durationP75: getFunctionsHistogramMetric(
+    metric: DURATION
+    percentile: 0.75
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  durationP95: getFunctionsHistogramMetric(
+    metric: DURATION
+    percentile: 0.95
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  durationMax: getFunctionsHistogramMetric(
+    metric: DURATION
+    percentile: 1.0
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+}
+    `;
+
+/**
+ * __useGetFunctionsMetricsDashboardQuery__
+ *
+ * To run a query within a React component, call `useGetFunctionsMetricsDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFunctionsMetricsDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFunctionsMetricsDashboardQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      route: // value for 'route'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetFunctionsMetricsDashboardQuery(baseOptions: Apollo.QueryHookOptions<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>(GetFunctionsMetricsDashboardDocument, options);
+      }
+export function useGetFunctionsMetricsDashboardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>(GetFunctionsMetricsDashboardDocument, options);
+        }
+export type GetFunctionsMetricsDashboardQueryHookResult = ReturnType<typeof useGetFunctionsMetricsDashboardQuery>;
+export type GetFunctionsMetricsDashboardLazyQueryHookResult = ReturnType<typeof useGetFunctionsMetricsDashboardLazyQuery>;
+export type GetFunctionsMetricsDashboardQueryResult = Apollo.QueryResult<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>;
+export function refetchGetFunctionsMetricsDashboardQuery(variables: GetFunctionsMetricsDashboardQueryVariables) {
+      return { query: GetFunctionsMetricsDashboardDocument, variables: variables }
+    }
 export const GetGithubRepositoriesDocument = gql`
     query getGithubRepositories {
   githubRepositories {

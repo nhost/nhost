@@ -1,6 +1,8 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Clock, Code, FileCode, History } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { Container } from '@/components/layout/Container';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
 import {
   Tooltip,
@@ -9,10 +11,12 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ExecuteTab } from '@/features/orgs/projects/serverless-functions/components/ExecuteTab';
 import { FunctionLogsTab } from '@/features/orgs/projects/serverless-functions/components/FunctionLogsTab';
+import { MetricsTab } from '@/features/orgs/projects/serverless-functions/components/MetricsTab';
 import { OverviewTab } from '@/features/orgs/projects/serverless-functions/components/OverviewTab';
 import {
   type FunctionTab,
@@ -53,10 +57,13 @@ export default function FunctionDetailsPanel({
   };
 
   const isPlatform = useIsPlatform();
+  const { org } = useCurrentOrg();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
   const appClient = useAppClient();
   const defaultEndpointUrl = `${appClient.functions.baseURL}${fn.route}`;
+
+  const showMetricsPaywall = isPlatform && org?.plan?.isFree;
 
   const { data: customDomainData } = useGetServerlessFunctionsSettingsQuery({
     variables: {
@@ -135,6 +142,9 @@ export default function FunctionDetailsPanel({
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="execute">Execute</TabsTrigger>
             <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="metrics" disabled={!isPlatform}>
+              Metrics
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -158,6 +168,23 @@ export default function FunctionDetailsPanel({
               customDomainFqdn ? defaultEndpointUrl : undefined
             }
           />
+        </div>
+      )}
+      {activeTab === 'metrics' && (
+        <div className="flex-1 overflow-auto">
+          {showMetricsPaywall ? (
+            <Container
+              className="grid grid-flow-row gap-6 bg-transparent"
+              rootClassName="bg-transparent"
+            >
+              <UpgradeToProBanner
+                title="To unlock Function Metrics, transfer this project to a Pro or Team organization."
+                description=""
+              />
+            </Container>
+          ) : (
+            <MetricsTab fn={fn} />
+          )}
         </div>
       )}
     </div>
