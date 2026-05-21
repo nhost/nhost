@@ -276,20 +276,38 @@ func (s *S3) DeleteFile(ctx context.Context, filepath string) *controller.APIErr
 }
 
 func (s *S3) ListFiles(ctx context.Context) ([]string, *controller.APIError) {
-	objects, err := s.client.ListObjects(ctx,
-		&s3.ListObjectsInput{ //nolint:exhaustruct
-			Bucket: s.bucket,
-			Prefix: aws.String(s.rootFolder + "/"),
-		})
-	if err != nil {
-		return nil, controller.InternalServerError(
-			fmt.Errorf("problem listing objects in s3: %w", err),
-		)
+	// An empty rootFolder must not become a "/" prefix: objects are stored
+	// without a leading slash, so a "/" prefix would match nothing.
+	prefix := ""
+	if s.rootFolder != "" {
+		prefix = s.rootFolder + "/"
 	}
 
-	res := make([]string, len(objects.Contents))
-	for i, c := range objects.Contents {
-		res[i] = strings.TrimPrefix(*c.Key, s.rootFolder+"/")
+	// ListObjectsV2 returns at most 1000 keys per call. Without pagination any
+	// bucket with more than 1000 objects would be silently truncated, which
+	// makes reconciliation (e.g. broken metadata detection) report files that
+	// do exist as missing.
+	paginator := s3.NewListObjectsV2Paginator(
+		s.client,
+		&s3.ListObjectsV2Input{ //nolint:exhaustruct
+			Bucket: s.bucket,
+			Prefix: aws.String(prefix),
+		},
+	)
+
+	res := make([]string, 0)
+
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, controller.InternalServerError(
+				fmt.Errorf("problem listing objects in s3: %w", err),
+			)
+		}
+
+		for _, c := range page.Contents {
+			res = append(res, strings.TrimPrefix(*c.Key, prefix))
+		}
 	}
 
 	return res, nil
