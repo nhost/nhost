@@ -24,7 +24,6 @@ type relationship struct {
 	parentColumns  []string
 	targetColumns  []string
 	joinIsReversed bool
-	joinCondition  string
 
 	// Cross-database relationship fields. joinColumns maps the local column
 	// name to its counterpart on the remote table; the controller resolves
@@ -73,7 +72,7 @@ func newLocalRelationship(
 	objects *introspection.Objects,
 	tables []*table,
 ) (*relationship, error) {
-	joinCondition, fkColumn, parentColumns, targetColumns, isReverse, err := buildJoinCondition(
+	fkColumn, parentColumns, targetColumns, isReverse, err := buildJoinCondition(
 		using,
 		isArray,
 		parentTableObj,
@@ -110,7 +109,6 @@ func newLocalRelationship(
 		parentColumns:     parentColumns,
 		targetColumns:     targetColumns,
 		joinIsReversed:    isReverse,
-		joinCondition:     joinCondition,
 		isRemote:          false,
 		remoteSource:      "",
 		remoteTableName:   "",
@@ -155,7 +153,6 @@ func newRemoteRelationship(
 		parentColumns:     parentColumns,
 		targetColumns:     nil,
 		joinIsReversed:    false,
-		joinCondition:     "", // No SQL join condition for remote relationships
 		isRemote:          true,
 		remoteSource:      using.ManualConfiguration.Source,
 		remoteTableName:   using.ManualConfiguration.RemoteTable.Name,
@@ -198,7 +195,6 @@ func newRemoteSchemaRelationship(
 		parentColumns:     nil,
 		targetColumns:     nil,
 		joinIsReversed:    false,
-		joinCondition:     "", // No SQL join condition for remote schema relationships
 		isRemote:          false,
 		remoteSource:      "",
 		remoteTableName:   "",
@@ -234,6 +230,46 @@ func (r *relationship) writeJoinConditionAliased(
 	}
 }
 
+// buildJoinConditionForSelection returns the SQL join predicate used inside
+// a relationship sub-select, qualifying the parent side with parentAlias and
+// leaving the target columns unqualified (they refer to the FROM clause of
+// the enclosing sub-select). parentAlias is supplied unquoted and is double-
+// quoted here. Returns "TRUE" when no columns are configured.
+//
+// This replaces an earlier fmt.Sprintf-based templating approach: column
+// names are written directly through core.WriteQualifiedColumn /
+// core.WriteQuotedIdentifier, so a `%` embedded in a DDL-defined column name
+// can no longer be interpreted as a format verb downstream.
+func (r *relationship) buildJoinConditionForSelection(parentAlias string) string {
+	if len(r.parentColumns) == 0 {
+		return "TRUE"
+	}
+
+	var b strings.Builder
+
+	quotedParent := core.QuoteIdentifier(parentAlias)
+
+	for i := range r.parentColumns {
+		if i > 0 {
+			b.WriteString(" AND ")
+		}
+
+		if r.joinIsReversed {
+			// target.fk (unqualified) = parent.pk
+			core.WriteQuotedIdentifier(&b, r.targetColumns[i])
+			b.WriteString(" = ")
+			core.WriteQualifiedColumn(&b, quotedParent, r.parentColumns[i])
+		} else {
+			// parent.fk = target.pk (unqualified)
+			core.WriteQualifiedColumn(&b, quotedParent, r.parentColumns[i])
+			b.WriteString(" = ")
+			core.WriteQuotedIdentifier(&b, r.targetColumns[i])
+		}
+	}
+
+	return b.String()
+}
+
 // buildSelectionSQL emits SQL for a nested relationship selection — aggregate,
 // array, or object — by dispatching to the target table's build* methods with a
 // join-condition modifier. Returns errRemoteRelationship if the relationship is
@@ -255,7 +291,7 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 		return nil, 0, errRemoteRelationship
 	}
 
-	joinCondition := fmt.Sprintf(r.joinCondition, `"`+parentTableAlias+`"`)
+	joinCondition := r.buildJoinConditionForSelection(parentTableAlias)
 
 	outputName := relationshipAlias
 	if idx := strings.LastIndex(relationshipAlias, "."); idx >= 0 {
@@ -359,16 +395,17 @@ func getRelationshipPk(
 	return fkColumn, isReverse
 }
 
-// buildManualJoinCondition builds the join condition for manually configured relationships.
-// Manual configurations specify explicit local->remote column mappings.
-// Supports multi-column mappings by AND-joining each column pair.
-// Returns: (joinCondition template, fkColumn, parentColumns, targetColumns, isReversed).
+// buildManualJoinCondition builds the join column structure for manually
+// configured relationships. Manual configurations specify explicit
+// local->remote column mappings; multi-column mappings are supported and the
+// downstream renderer AND-joins each column pair.
+// Returns: (fkColumn, parentColumns, targetColumns, isReversed).
 func buildManualJoinCondition(
 	mapping map[string]string,
 	isArray bool,
-) (string, string, []string, []string, bool) {
+) (string, []string, []string, bool) {
 	if len(mapping) == 0 {
-		return "TRUE", "", nil, nil, false
+		return "", nil, nil, false
 	}
 
 	// Sort keys for deterministic output (Go map iteration is random).
@@ -384,69 +421,40 @@ func buildManualJoinCondition(
 		remoteCols = append(remoteCols, mapping[src])
 	}
 
-	// Build compound join condition template. %[1]s is the parent alias placeholder.
-	parts := make([]string, 0, len(localCols))
-
-	for i, localCol := range localCols {
-		remoteCol := remoteCols[i]
-
-		if isArray {
-			// Array: unqualified remoteCol refers to target table, %[1]s is parent
-			parts = append(
-				parts,
-				core.QuoteIdentifier(remoteCol)+` = %[1]s.`+core.QuoteIdentifier(localCol),
-			)
-		} else {
-			// Object: %[1]s is parent, unqualified remoteCol refers to target table
-			parts = append(
-				parts,
-				`%[1]s.`+core.QuoteIdentifier(localCol)+` = `+core.QuoteIdentifier(remoteCol),
-			)
-		}
-	}
-
-	joinCondition := strings.Join(parts, " AND ")
-
-	return joinCondition, localCols[0], localCols, remoteCols, isArray
+	return localCols[0], localCols, remoteCols, isArray
 }
 
-// buildJoinCondition builds the join condition and returns structured join info.
-// Returns: (joinCondition template, fkColumn, parentColumns, targetColumns, isReversed).
+// buildJoinCondition resolves the join column structure for a local
+// relationship and returns the structured join info consumed by the
+// relationship renderer.
+// Returns: (fkColumn, parentColumns, targetColumns, isReversed).
 func buildJoinCondition(
 	using metadata.RelationshipUsing,
 	isArray bool,
 	parentTable *introspection.Table,
 	objects *introspection.Objects,
-) (string, string, []string, []string, bool, error) {
+) (string, []string, []string, bool, error) {
 	if using.ManualConfiguration != nil {
-		jc, fk, pc, tc, rev := buildManualJoinCondition(
+		fk, pc, tc, rev := buildManualJoinCondition(
 			using.ManualConfiguration.ColumnMapping,
 			isArray,
 		)
 
-		return jc, fk, pc, tc, rev, nil
+		return fk, pc, tc, rev, nil
 	}
 
 	// Determine foreign key columns and join direction
 	fkColumn, isReverse := getRelationshipPk(using)
 
-	var joinCondition string
-
 	switch {
 	case isArray, isReverse:
 		// Array/reverse relationship: target.fk = parent.pk
 		if fkColumn != "" && len(parentTable.PrimaryKeys) > 0 {
-			joinCondition = core.QuoteIdentifier(
-				fkColumn,
-			) + ` = %s.` + core.QuoteIdentifier(
-				parentTable.PrimaryKeys[0],
-			)
-
-			return joinCondition, fkColumn,
+			return fkColumn,
 				[]string{parentTable.PrimaryKeys[0]}, []string{fkColumn}, true, nil
 		}
 
-		return "TRUE", fkColumn, nil, nil, true, nil
+		return fkColumn, nil, nil, true, nil
 	default:
 		// Forward relationship: parent.fk = target.pk
 		targetSchema, targetTableName := getRelationshipTarget(using, parentTable)
@@ -458,7 +466,7 @@ func buildJoinCondition(
 					targetPK = targetTable.PrimaryKeys[0]
 				}
 			} else {
-				return "", "", nil, nil, false,
+				return "", nil, nil, false,
 					fmt.Errorf(
 						"target table %s.%s not found in introspection",
 						targetSchema,
@@ -468,17 +476,11 @@ func buildJoinCondition(
 		}
 
 		if fkColumn != "" {
-			joinCondition = `%s.` + core.QuoteIdentifier(
-				fkColumn,
-			) + ` = ` + core.QuoteIdentifier(
-				targetPK,
-			)
-
-			return joinCondition, fkColumn,
+			return fkColumn,
 				[]string{fkColumn}, []string{targetPK}, false, nil
 		}
 
-		return "TRUE", fkColumn, nil, nil, false, nil
+		return fkColumn, nil, nil, false, nil
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
 
@@ -64,6 +65,39 @@ func sanitizeConnectorError(
 	}
 
 	return "internal server error (trace id: " + traceID + ")"
+}
+
+// classifyConnectorError converts an error returned by a connector (either
+// during primary execution or during remote-relationship resolution) into the
+// slice of GraphQL error maps that should be reported to the client.
+//
+// Structured *remoteschema.GraphQLError values originate inside a trusted
+// remote schema that has already shaped its own GraphQL errors (path,
+// locations, extensions). They pass through verbatim via RemoteError.AsMap.
+//
+// Any other error is treated as a raw connector/driver failure and routed
+// through sanitizeConnectorError so SQLSTATE codes, table/column names, and
+// offending values never reach an unauthenticated caller.
+//
+// Centralising the trust-boundary decision here keeps the primary-path and
+// remote-relationship branches from drifting if the rule evolves (e.g. a
+// stricter "is this remote schema trusted" check or an extension-stripping
+// step).
+func (c *Controller) classifyConnectorError(
+	ctx context.Context, logger *slog.Logger, err error,
+) []map[string]any {
+	if gqlErrs, ok := errors.AsType[*remoteschema.GraphQLError](err); ok {
+		out := make([]map[string]any, len(gqlErrs.Errors))
+		for i, re := range gqlErrs.Errors {
+			out[i] = re.AsMap()
+		}
+
+		return out
+	}
+
+	return []map[string]any{{
+		"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
+	}}
 }
 
 // Pre-allocated error responses for common cases. Treating them as package

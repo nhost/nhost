@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"strings"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -578,13 +578,13 @@ func getEnumTable(
 	var query string
 
 	if descCol != "" {
-		query = `SELECT ` + quoteIdentifier(valueCol) + `, ` + quoteIdentifier(descCol) +
-			` FROM ` + quoteIdentifier(schemaName) + `.` + quoteIdentifier(tableName) +
-			` ORDER BY ` + quoteIdentifier(valueCol)
+		query = `SELECT ` + core.QuoteIdentifier(valueCol) + `, ` + core.QuoteIdentifier(descCol) +
+			` FROM ` + core.QuoteIdentifier(schemaName) + `.` + core.QuoteIdentifier(tableName) +
+			` ORDER BY ` + core.QuoteIdentifier(valueCol)
 	} else {
-		query = `SELECT ` + quoteIdentifier(valueCol) +
-			` FROM ` + quoteIdentifier(schemaName) + `.` + quoteIdentifier(tableName) +
-			` ORDER BY ` + quoteIdentifier(valueCol)
+		query = `SELECT ` + core.QuoteIdentifier(valueCol) +
+			` FROM ` + core.QuoteIdentifier(schemaName) + `.` + core.QuoteIdentifier(tableName) +
+			` ORDER BY ` + core.QuoteIdentifier(valueCol)
 	}
 
 	rows, err := q.Query(ctx, query)
@@ -627,9 +627,4 @@ func getEnumTable(
 	}
 
 	return enumValues, nil
-}
-
-// quoteIdentifier quotes a PostgreSQL identifier, escaping any embedded double quotes.
-func quoteIdentifier(name string) string {
-	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -145,7 +146,7 @@ func introspectTable(
 func getColumnsAndPKs(
 	ctx context.Context, q Querier, tableName string,
 ) ([]introspection.Column, []string, error) {
-	query := "PRAGMA table_xinfo(" + quoteIdentifier(tableName) + ")"
+	query := "PRAGMA table_xinfo(" + core.QuoteIdentifier(tableName) + ")"
 
 	rows, err := q.QueryContext(ctx, query)
 	if err != nil {
@@ -218,7 +219,7 @@ func getColumnsAndPKs(
 func getForeignKeys(
 	ctx context.Context, q Querier, tableName string,
 ) ([]introspection.ForeignKey, error) {
-	query := "PRAGMA foreign_key_list(" + quoteIdentifier(tableName) + ")"
+	query := "PRAGMA foreign_key_list(" + core.QuoteIdentifier(tableName) + ")"
 
 	rows, err := q.QueryContext(ctx, query)
 	if err != nil {
@@ -277,7 +278,7 @@ func getForeignKeys(
 func getUniqueConstraints(
 	ctx context.Context, q Querier, tableName string,
 ) ([]introspection.UniqueConstraint, error) {
-	query := "PRAGMA index_list(" + quoteIdentifier(tableName) + ")"
+	query := "PRAGMA index_list(" + core.QuoteIdentifier(tableName) + ")"
 
 	rows, err := q.QueryContext(ctx, query)
 	if err != nil {
@@ -330,7 +331,7 @@ func getUniqueConstraints(
 // order. PRAGMA index_info returns rows of (seqno, cid, name); the Scan call
 // below tracks that order, and only the name is retained.
 func getIndexColumns(ctx context.Context, q Querier, indexName string) ([]string, error) {
-	query := "PRAGMA index_info(" + quoteIdentifier(indexName) + ")"
+	query := "PRAGMA index_info(" + core.QuoteIdentifier(indexName) + ")"
 
 	rows, err := q.QueryContext(ctx, query)
 	if err != nil {
@@ -422,16 +423,16 @@ func introspectEnumValues(
 func getEnumTable(
 	ctx context.Context, q Querier, tableName, valueCol, descCol string,
 ) ([]introspection.EnumValue, error) {
-	selectCols := quoteIdentifier(valueCol)
+	selectCols := core.QuoteIdentifier(valueCol)
 	if descCol != "" {
-		selectCols += ", " + quoteIdentifier(descCol)
+		selectCols += ", " + core.QuoteIdentifier(descCol)
 	}
 
 	query := fmt.Sprintf(
 		"SELECT %s FROM %s ORDER BY %s",
 		selectCols,
-		quoteIdentifier(tableName),
-		quoteIdentifier(valueCol),
+		core.QuoteIdentifier(tableName),
+		core.QuoteIdentifier(valueCol),
 	)
 
 	rows, err := q.QueryContext(ctx, query)
@@ -473,11 +474,6 @@ func getEnumTable(
 	}
 
 	return enumValues, nil
-}
-
-// quoteIdentifier quotes a SQLite identifier, escaping any embedded double quotes.
-func quoteIdentifier(name string) string {
-	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
 }
 
 // mapSQLiteType maps a SQLite column type declaration to a normalized type

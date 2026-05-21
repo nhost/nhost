@@ -46,7 +46,7 @@ func TestBuildManualJoinCondition(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			joinCondition, _, parentColumns, targetColumns, isReversed := buildManualJoinCondition(
+			_, parentColumns, targetColumns, isReversed := buildManualJoinCondition(
 				tc.columnMapping,
 				tc.isArray,
 			)
@@ -93,12 +93,12 @@ func TestBuildManualJoinCondition(t *testing.T) {
 				t.Errorf("isReversed = %v, want %v", isReversed, tc.wantReversed)
 			}
 
-			// Verify the join condition template produces correct SQL via writeJoinConditionAliased
+			// Verify writeJoinConditionAliased renders the join correctly from
+			// the structured columns.
 			rel := &relationship{
 				parentColumns:  parentColumns,
 				targetColumns:  targetColumns,
 				joinIsReversed: isReversed,
-				joinCondition:  joinCondition,
 			}
 
 			var b strings.Builder
@@ -129,10 +129,17 @@ func TestBuildManualJoinConditionMultiColumn(t *testing.T) {
 		"org_id":  "org_id",
 	}
 
-	joinCondition, _, _, _, _ := buildManualJoinCondition(mapping, false) //nolint:dogsled
+	_, parentColumns, targetColumns, isReversed := buildManualJoinCondition(mapping, false)
+
+	rel := &relationship{
+		parentColumns:  parentColumns,
+		targetColumns:  targetColumns,
+		joinIsReversed: isReversed,
+	}
+
+	joinCondition := rel.buildJoinConditionForSelection("p")
 
 	// The join condition must reference BOTH columns.
-	// With the current bug, only one column is included.
 	if !strings.Contains(joinCondition, "user_id") || !strings.Contains(joinCondition, "org_id") {
 		t.Errorf(
 			"multi-column join condition should reference all columns, got %q",
@@ -152,7 +159,7 @@ func TestWriteJoinConditionAliasedMultiColumn(t *testing.T) {
 		"org_id":  "org_id",
 	}
 
-	joinCondition, _, parentColumns, targetColumns, isReversed := buildManualJoinCondition(
+	_, parentColumns, targetColumns, isReversed := buildManualJoinCondition(
 		mapping, false,
 	)
 
@@ -160,7 +167,6 @@ func TestWriteJoinConditionAliasedMultiColumn(t *testing.T) {
 		parentColumns:  parentColumns,
 		targetColumns:  targetColumns,
 		joinIsReversed: isReversed,
-		joinCondition:  joinCondition,
 	}
 
 	var b strings.Builder
@@ -190,7 +196,7 @@ func TestWriteJoinConditionAliasedMultiColumnArray(t *testing.T) {
 		"org_id":  "oid",
 	}
 
-	joinCondition, _, parentColumns, targetColumns, isReversed := buildManualJoinCondition(
+	_, parentColumns, targetColumns, isReversed := buildManualJoinCondition(
 		mapping, true,
 	)
 
@@ -198,7 +204,6 @@ func TestWriteJoinConditionAliasedMultiColumnArray(t *testing.T) {
 		parentColumns:  parentColumns,
 		targetColumns:  targetColumns,
 		joinIsReversed: isReversed,
-		joinCondition:  joinCondition,
 	}
 
 	var b strings.Builder
@@ -209,5 +214,100 @@ func TestWriteJoinConditionAliasedMultiColumnArray(t *testing.T) {
 	want := `t."oid" = p."org_id" AND t."uid" = p."user_id"`
 	if got != want {
 		t.Errorf("writeJoinConditionAliased = %q, want %q", got, want)
+	}
+}
+
+// TestBuildJoinConditionForSelection_PercentInColumnName is a regression test
+// for a templated-Sprintf hazard that existed when the join condition was
+// stored as a fmt.Sprintf template on the relationship. A column name
+// containing a `%` (legal inside a double-quoted SQL identifier — e.g.
+// `CREATE TABLE t ("a%b" int)`) would have been interpreted as a format verb
+// by the downstream Sprintf step, producing `%!s(MISSING)` artefacts or
+// misaligned positional arguments. The current renderer writes columns
+// directly into a strings.Builder so a `%` survives verbatim.
+func TestBuildJoinConditionForSelection_PercentInColumnName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		parentColumns  []string
+		targetColumns  []string
+		joinIsReversed bool
+		parentAlias    string
+		want           string
+	}{
+		{
+			name:           "forward join, parent column with %",
+			parentColumns:  []string{"a%b"},
+			targetColumns:  []string{"id"},
+			joinIsReversed: false,
+			parentAlias:    "parent",
+			want:           `"parent"."a%b" = "id"`,
+		},
+		{
+			name:           "forward join, target column with %",
+			parentColumns:  []string{"fk"},
+			targetColumns:  []string{"x%y"},
+			joinIsReversed: false,
+			parentAlias:    "parent",
+			want:           `"parent"."fk" = "x%y"`,
+		},
+		{
+			name:           "array/reverse join, target column with %",
+			parentColumns:  []string{"pk"},
+			targetColumns:  []string{"a%b"},
+			joinIsReversed: true,
+			parentAlias:    "parent",
+			want:           `"a%b" = "parent"."pk"`,
+		},
+		{
+			name: "multi-column, both sides contain %",
+			parentColumns: []string{
+				"first%col",
+				"second%col",
+			},
+			targetColumns: []string{
+				"tgt%1",
+				"tgt%2",
+			},
+			joinIsReversed: false,
+			parentAlias:    "p",
+			want:           `"p"."first%col" = "tgt%1" AND "p"."second%col" = "tgt%2"`,
+		},
+		{
+			name:           "no columns yields TRUE",
+			parentColumns:  nil,
+			targetColumns:  nil,
+			joinIsReversed: false,
+			parentAlias:    "p",
+			want:           "TRUE",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rel := &relationship{
+				parentColumns:  tc.parentColumns,
+				targetColumns:  tc.targetColumns,
+				joinIsReversed: tc.joinIsReversed,
+			}
+
+			got := rel.buildJoinConditionForSelection(tc.parentAlias)
+
+			if got != tc.want {
+				t.Errorf("buildJoinConditionForSelection = %q, want %q", got, tc.want)
+			}
+
+			// Belt-and-braces: no fmt.Sprintf MISSING/verb artefacts must
+			// appear, regardless of column content.
+			if strings.Contains(got, "%!") {
+				t.Errorf(
+					"buildJoinConditionForSelection produced fmt.Sprintf artefact: %q",
+					got,
+				)
+			}
+		})
 	}
 }

@@ -170,30 +170,3 @@ func TestTypeSupportsAgg(t *testing.T) {
 		})
 	}
 }
-
-func TestQuoteIdentifier(t *testing.T) {
-	t.Parallel()
-
-	cases := []struct {
-		name     string
-		input    string
-		expected string
-	}{
-		{"simple", "users", `"users"`},
-		{"with space", "my table", `"my table"`},
-		{"with double quote", `my"table`, `"my""table"`},
-		{"empty string", "", `""`},
-		{"multiple quotes", `a"b"c`, `"a""b""c"`},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := quoteIdentifier(tc.input)
-			if got != tc.expected {
-				t.Errorf("quoteIdentifier(%q) = %q, want %q", tc.input, got, tc.expected)
-			}
-		})
-	}
-}

@@ -160,53 +160,6 @@ func TestExecSQLInit_ContextCancelled(t *testing.T) { //nolint:paralleltest
 	}
 }
 
-func TestQuoteIdentifier(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name  string
-		input string
-		want  string
-	}{
-		{
-			name:  "simple name",
-			input: "users",
-			want:  `"users"`,
-		},
-		{
-			name:  "name with space",
-			input: "my table",
-			want:  `"my table"`,
-		},
-		{
-			name:  "name with double quote",
-			input: `table"name`,
-			want:  `"table""name"`,
-		},
-		{
-			name:  "empty string",
-			input: "",
-			want:  `""`,
-		},
-		{
-			name:  "schema qualified",
-			input: "public",
-			want:  `"public"`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := quoteIdentifier(tt.input)
-			if got != tt.want {
-				t.Errorf("quoteIdentifier(%q) = %q, want %q", tt.input, got, tt.want)
-			}
-		})
-	}
-}
-
 func TestBuildFunctionArguments(t *testing.T) {
 	t.Parallel()
 

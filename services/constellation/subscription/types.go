@@ -27,6 +27,13 @@ import (
 // (or another error) until one of the close triggers documented on
 // Handler.Start fires.
 //
+// An Error returned this way may also carry ErrInvalidSubscription when a plan
+// failure is only detected after Start has returned (live-query connectors
+// build SQL lazily inside their polling goroutine and discover unplannable
+// queries on the first poll). Callers should classify with errors.Is on
+// Error and surface ErrInvalidSubscription-wrapped errors verbatim — only
+// unwrapped driver/runtime faults must be sanitized.
+//
 // Construct an Update via NewUpdateData or NewUpdateError so the one-of
 // invariant is established at the call site; the fields stay exported only so
 // the consumer (controller/websocket) can read them.
@@ -149,7 +156,10 @@ type Handler interface {
 	// cannot be planned or yields no executable operation) must be returned
 	// wrapped with ErrInvalidSubscription so the caller can surface the
 	// actionable message; driver/runtime faults must be returned unwrapped so
-	// the caller can sanitize them.
+	// the caller can sanitize them. Implementations that defer planning to a
+	// background poll (e.g. SQL live-query cohorts) must wrap the same
+	// failures the same way when they reach Update.Error — see Update for
+	// the channel-side classification contract.
 	Start(ctx context.Context, req Request, logger *slog.Logger) (<-chan Update, error)
 
 	// Stop terminates a subscription by ID.

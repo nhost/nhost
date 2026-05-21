@@ -2,7 +2,6 @@ package subscription
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -366,11 +365,24 @@ func (m *cohortManager) getOrBuildSQL(
 		templateSessionVars,
 	)
 	if err != nil {
-		return core.SQLOperation{}, fmt.Errorf("failed to build subscription SQL: %w", err)
+		// Wrap with ErrInvalidSubscription so the protocol layer can surface the
+		// actionable plan-failure verbatim instead of collapsing it into an
+		// opaque "internal server error". Live-query plan failures only surface
+		// here (the build is lazy and runs inside the polling goroutine), so
+		// the wrap is the only signal forwardUpdates has to distinguish a
+		// client-actionable error from a driver/runtime fault.
+		return core.SQLOperation{}, fmt.Errorf(
+			"%w: failed to build subscription SQL: %w",
+			sub.ErrInvalidSubscription,
+			err,
+		)
 	}
 
 	if len(operations) == 0 {
-		return core.SQLOperation{}, errors.New("no operations generated from subscription")
+		return core.SQLOperation{}, fmt.Errorf(
+			"%w: no operations generated from subscription",
+			sub.ErrInvalidSubscription,
+		)
 	}
 
 	op := operations[0]

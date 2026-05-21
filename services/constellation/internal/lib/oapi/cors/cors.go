@@ -92,6 +92,103 @@ func (o Options) Validate() error {
 	return nil
 }
 
+// headerStrategy selects how Access-Control-Allow-Headers is computed at
+// request time. Encoding the three branches as a typed enum (rather than bare
+// strings) lets the compiler catch typos in either the assignment or the
+// consuming switch.
+type headerStrategy uint8
+
+const (
+	// headerReflect mirrors the client's Access-Control-Request-Headers back
+	// to it. Selected when Options.AllowedHeaders is nil.
+	headerReflect headerStrategy = iota
+	// headerSpecific emits a fixed Access-Control-Allow-Headers list.
+	// Selected when Options.AllowedHeaders is non-empty.
+	headerSpecific
+	// headerDeny omits Access-Control-Allow-Headers entirely. Selected when
+	// Options.AllowedHeaders is an empty (non-nil) slice.
+	headerDeny
+)
+
+// corsConfig holds the values precomputed once at middleware construction
+// time so the per-request closure can be a straight read of the same shape
+// regardless of Options.
+type corsConfig struct {
+	originAllowed    func(origin string) bool
+	allowedMethods   string
+	exposedHeaders   string
+	allowedHeaders   string
+	allowCredentials string
+	maxAge           string
+	strategy         headerStrategy
+}
+
+// newCORSConfig precomputes the constant pieces of the response (origin
+// decision, joined header lists, header-strategy enum) so that CORS can stay
+// small enough to read without needing a funlen suppression.
+func newCORSConfig(opts Options) corsConfig {
+	allowCredentials := "false"
+	if opts.AllowCredentials {
+		allowCredentials = "true"
+	}
+
+	var (
+		strategy       headerStrategy
+		allowedHeaders string
+	)
+
+	switch {
+	case opts.AllowedHeaders == nil:
+		strategy = headerReflect
+	case len(opts.AllowedHeaders) == 0:
+		strategy = headerDeny
+	default:
+		strategy = headerSpecific
+		allowedHeaders = strings.Join(opts.AllowedHeaders, ", ")
+	}
+
+	return corsConfig{
+		originAllowed:    allowOriginFunc(opts),
+		allowedMethods:   strings.Join(opts.AllowedMethods, ", "),
+		exposedHeaders:   strings.Join(opts.ExposedHeaders, ", "),
+		allowedHeaders:   allowedHeaders,
+		allowCredentials: allowCredentials,
+		maxAge:           opts.MaxAge,
+		strategy:         strategy,
+	}
+}
+
+// applyHeaders writes the CORS response headers for a single request whose
+// Origin was already determined to be allowed.
+func (cfg corsConfig) applyHeaders(c *gin.Context, origin string) {
+	c.Header("Access-Control-Allow-Origin", origin)
+	c.Header("Access-Control-Allow-Methods", cfg.allowedMethods)
+
+	switch cfg.strategy {
+	case headerSpecific:
+		c.Header("Access-Control-Allow-Headers", cfg.allowedHeaders)
+	case headerReflect:
+		headers := c.Request.Header.Get("Access-Control-Request-Headers")
+		if headers != "" {
+			c.Header("Access-Control-Allow-Headers", headers)
+		}
+	case headerDeny:
+		// Don't set the header at all.
+	}
+
+	if cfg.exposedHeaders != "" {
+		c.Header("Access-Control-Expose-Headers", cfg.exposedHeaders)
+	}
+
+	c.Header("Access-Control-Allow-Credentials", cfg.allowCredentials)
+
+	if cfg.maxAge != "" {
+		c.Header("Access-Control-Max-Age", cfg.maxAge)
+	}
+
+	c.Writer.Header().Add("Vary", "Origin, Access-Control-Request-Method")
+}
+
 // CORS returns a Gin middleware handler that implements Cross-Origin Resource Sharing (CORS).
 //
 // CORS is fail-closed: it calls opts.Validate() and returns the resulting error
@@ -123,73 +220,20 @@ func (o Options) Validate() error {
 //		return err
 //	}
 //	router.Use(handler)
-func CORS(opts Options) (gin.HandlerFunc, error) { //nolint:funlen
+func CORS(opts Options) (gin.HandlerFunc, error) {
 	if err := opts.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid CORS options: %w", err)
 	}
 
-	allowedMethods := strings.Join(opts.AllowedMethods, ", ")
-	exposedHeaders := strings.Join(opts.ExposedHeaders, ", ")
-
-	allowCredentials := "false"
-	if opts.AllowCredentials {
-		allowCredentials = "true"
-	}
-
-	var (
-		headerStrategy string // "reflect", "specific", or "deny"
-		allowedHeaders string
-	)
-	switch {
-	case opts.AllowedHeaders == nil:
-		headerStrategy = "reflect"
-	case len(opts.AllowedHeaders) == 0:
-		headerStrategy = "deny"
-	default:
-		headerStrategy = "specific"
-		allowedHeaders = strings.Join(opts.AllowedHeaders, ", ")
-	}
-
-	originAllowed := allowOriginFunc(opts)
-
-	f := func(c *gin.Context, origin string) {
-		if !originAllowed(origin) {
-			return
-		}
-
-		c.Header("Access-Control-Allow-Origin", origin)
-		c.Header("Access-Control-Allow-Methods", allowedMethods)
-
-		// Handle allowed headers based on strategy
-		switch headerStrategy {
-		case "specific":
-			c.Header("Access-Control-Allow-Headers", allowedHeaders)
-		case "reflect":
-			headers := c.Request.Header.Get("Access-Control-Request-Headers")
-			if headers != "" {
-				c.Header("Access-Control-Allow-Headers", headers)
-			}
-		case "deny":
-			// Don't set the header at all
-		}
-
-		if exposedHeaders != "" {
-			c.Header("Access-Control-Expose-Headers", exposedHeaders)
-		}
-
-		c.Header("Access-Control-Allow-Credentials", allowCredentials)
-
-		if opts.MaxAge != "" {
-			c.Header("Access-Control-Max-Age", opts.MaxAge)
-		}
-
-		c.Writer.Header().Add("Vary", "Origin, Access-Control-Request-Method")
-	}
+	cfg := newCORSConfig(opts)
 
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
+
 		if c.Request.Method == http.MethodOptions {
-			f(c, origin)
+			if cfg.originAllowed(origin) {
+				cfg.applyHeaders(c, origin)
+			}
 
 			c.Header("Content-Length", "0")
 			c.AbortWithStatus(http.StatusNoContent)
@@ -197,8 +241,8 @@ func CORS(opts Options) (gin.HandlerFunc, error) { //nolint:funlen
 			return
 		}
 
-		if origin != "" {
-			f(c, origin)
+		if origin != "" && cfg.originAllowed(origin) {
+			cfg.applyHeaders(c, origin)
 		}
 
 		c.Next()

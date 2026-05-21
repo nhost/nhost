@@ -46,13 +46,13 @@ const (
 
 func generalFlags() []cli.Flag {
 	return []cli.Flag{
-		&cli.BoolFlag{ //nolint: exhaustruct
+		&cli.BoolFlag{ //nolint:exhaustruct
 			Name:     flagDebug,
 			Usage:    "enable debug logging",
 			Category: "general",
 			Sources:  cli.EnvVars("DEBUG"),
 		},
-		&cli.BoolFlag{ //nolint: exhaustruct
+		&cli.BoolFlag{ //nolint:exhaustruct
 			Name:     flagLogFormatTEXT,
 			Usage:    "format logs in plain text",
 			Category: "general",
@@ -63,33 +63,33 @@ func generalFlags() []cli.Flag {
 
 func serverFlags() []cli.Flag {
 	return []cli.Flag{
-		&cli.BoolFlag{ //nolint: exhaustruct
+		&cli.BoolFlag{ //nolint:exhaustruct
 			Name:     flagEnablePlayground,
 			Usage:    "enable graphql playground (under /v1)",
 			Category: "server",
 			Sources:  cli.EnvVars("ENABLE_PLAYGROUND"),
 		},
-		&cli.StringFlag{ //nolint: exhaustruct
+		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagBindAddress,
 			Usage:    "bind address for the server",
 			Value:    ":8000",
 			Category: "server",
 			Sources:  cli.EnvVars("BIND_ADDRESS"),
 		},
-		&cli.DurationFlag{ //nolint: exhaustruct
+		&cli.DurationFlag{ //nolint:exhaustruct
 			Name:     flagSubscriptionPollInterval,
 			Usage:    "Polling interval for subscriptions",
 			Category: "server",
 			Value:    time.Second,
 			Sources:  cli.EnvVars("SUBSCRIPTION_POLL_INTERVAL"),
 		},
-		&cli.StringFlag{ //nolint: exhaustruct
+		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagProfileAddress,
 			Usage:    "Enable CPU/memory profiling server on this address (e.g. :6060)",
 			Category: "server",
 			Sources:  cli.EnvVars("PROFILE_ADDRESS"),
 		},
-		&cli.StringSliceFlag{ //nolint: exhaustruct
+		&cli.StringSliceFlag{ //nolint:exhaustruct
 			Name: flagCORSAllowedOrigins,
 			Usage: "Origins permitted to make credentialed cross-origin requests. " +
 				"When empty, cross-origin requests are not granted access. " +
@@ -97,7 +97,7 @@ func serverFlags() []cli.Flag {
 			Category: "server",
 			Sources:  cli.EnvVars("CORS_ALLOWED_ORIGINS"),
 		},
-		&cli.BoolFlag{ //nolint: exhaustruct
+		&cli.BoolFlag{ //nolint:exhaustruct
 			Name: flagDevMode,
 			Usage: "return raw connector/database error detail to clients instead " +
 				"of the sanitized generic message. For development only — never " +
@@ -110,21 +110,21 @@ func serverFlags() []cli.Flag {
 
 func dataFlags() []cli.Flag {
 	return []cli.Flag{
-		&cli.StringFlag{ //nolint: exhaustruct
+		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagDatabaseURL,
 			Usage:    "PostgreSQL database connection URL",
 			Value:    "postgres://postgres:postgres@localhost:5432/postgres",
 			Category: "database",
 			Sources:  cli.EnvVars("DATABASE_URL"),
 		},
-		&cli.StringFlag{ //nolint: exhaustruct
+		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagMetadataPath,
 			Usage:    "Path to metadata.yaml file",
 			Value:    "./metadata/metadata.yaml",
 			Category: "metadata",
 			Sources:  cli.EnvVars("METADATA_PATH"),
 		},
-		&cli.StringFlag{ //nolint: exhaustruct
+		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagMetadataDatabaseURL,
 			Usage:    "PostgreSQL URL for reading Hasura metadata from hdb_catalog.hdb_metadata",
 			Category: "metadata",
@@ -135,7 +135,7 @@ func dataFlags() []cli.Flag {
 
 func securityFlags() []cli.Flag {
 	return []cli.Flag{
-		&cli.StringFlag{ //nolint: exhaustruct
+		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagAdminSecret,
 			Usage:    "Admin secret for securing the GraphQL API",
 			Category: "security",
@@ -146,7 +146,7 @@ func securityFlags() []cli.Flag {
 				"HASURA_GRAPHQL_ADMIN_SECRET",
 			),
 		},
-		&cli.StringFlag{ //nolint: exhaustruct
+		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagJWTSecret,
 			Usage:    "JWT secret configuration (JSON string or JSON array of secrets)",
 			Category: "security",
@@ -171,7 +171,7 @@ func serveFlags() []cli.Flag {
 // CommandServe returns the "serve" CLI command, which starts the
 // constellation HTTP server.
 func CommandServe() *cli.Command {
-	return &cli.Command{ //nolint: exhaustruct
+	return &cli.Command{ //nolint:exhaustruct
 		Name:   "serve",
 		Usage:  "Serve the application",
 		Flags:  serveFlags(),

@@ -153,6 +153,10 @@ func TestHandler_Start_RequestError(t *testing.T) {
 // surfaces the routing failure as an error update on the channel during the
 // first poll. The detection path no longer eagerly builds the SQL, so
 // route-not-found errors arrive asynchronously like any other poll failure.
+//
+// The async error must carry sub.ErrInvalidSubscription so the WebSocket layer
+// can surface the actionable message verbatim instead of sanitizing it into an
+// opaque trace id — see Update godoc on subscription/types.go.
 func TestHandler_Start_UnknownRoute_ErrorsViaChannel(t *testing.T) {
 	t.Parallel()
 
@@ -180,6 +184,13 @@ func TestHandler_Start_UnknownRoute_ErrorsViaChannel(t *testing.T) {
 	update := receiveUpdate(t, ch)
 	if update.Error == nil {
 		t.Fatal("expected error update for missing route, got nil")
+	}
+
+	if !errors.Is(update.Error, sub.ErrInvalidSubscription) {
+		t.Errorf(
+			"async plan failure must wrap sub.ErrInvalidSubscription, got %v",
+			update.Error,
+		)
 	}
 }
 

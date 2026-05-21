@@ -3,7 +3,6 @@ package subscription
 import (
 	"context"
 	json "encoding/json/v2"
-	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -463,11 +462,24 @@ func (m *streamCohortManager) getOrBuildSQL(
 		templateSessionVars,
 	)
 	if err != nil {
-		return core.SQLOperation{}, fmt.Errorf("failed to build stream SQL: %w", err)
+		// Stream subscriptions are validated synchronously by
+		// Handler.detectStreamSubscription before reaching the polling loop,
+		// so this branch is normally unreachable. Wrap with
+		// ErrInvalidSubscription for symmetry with cohortManager.getOrBuildSQL
+		// and as defence-in-depth against future paths (e.g. metadata reload)
+		// that might land an unplannable query in an already-running cohort.
+		return core.SQLOperation{}, fmt.Errorf(
+			"%w: failed to build stream SQL: %w",
+			sub.ErrInvalidSubscription,
+			err,
+		)
 	}
 
 	if len(operations) == 0 {
-		return core.SQLOperation{}, errors.New("no operations generated from stream subscription")
+		return core.SQLOperation{}, fmt.Errorf(
+			"%w: no operations generated from stream subscription",
+			sub.ErrInvalidSubscription,
+		)
 	}
 
 	op := operations[0]

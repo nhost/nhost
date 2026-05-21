@@ -206,7 +206,15 @@ func (h *webSocketHandler) startSubscription(
 		SessionVariables: h.session.Variables,
 	})
 	if err != nil {
-		h.sendError(id, sanitizeConnectorError(ctx, logger, h.devMode, err))
+		// A missing-field error from NewRequest names the offending field
+		// (no PII) and is more actionable than a generic trace id, so surface
+		// it verbatim; only driver/runtime faults get sanitized.
+		if errors.Is(err, subscription.ErrInvalidRequest) {
+			h.sendError(id, err.Error())
+		} else {
+			h.sendError(id, sanitizeConnectorError(ctx, logger, h.devMode, err))
+		}
+
 		h.removeSubscription(id)
 
 		return
@@ -401,10 +409,21 @@ func (h *webSocketHandler) forwardUpdates(
 			}
 
 			if update.Error != nil {
-				h.sendError(
-					update.SubscriptionID,
-					sanitizeConnectorError(ctx, logger, h.devMode, update.Error),
-				)
+				// Mirror startSubscription's classification: a plan failure
+				// (wrapped with subscription.ErrInvalidSubscription) is a
+				// client-actionable error and is surfaced verbatim; only
+				// driver/runtime faults are sanitized into a trace id. Live
+				// query subscriptions only build SQL inside the polling
+				// goroutine, so this is the sole place the sentinel reaches
+				// the protocol layer for them.
+				if errors.Is(update.Error, subscription.ErrInvalidSubscription) {
+					h.sendError(update.SubscriptionID, update.Error.Error())
+				} else {
+					h.sendError(
+						update.SubscriptionID,
+						sanitizeConnectorError(ctx, logger, h.devMode, update.Error),
+					)
+				}
 
 				continue
 			}

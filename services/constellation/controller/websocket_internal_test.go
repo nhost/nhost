@@ -213,6 +213,167 @@ func TestStartSubscriptionStartErrorClassification(t *testing.T) {
 	}
 }
 
+// TestStartSubscriptionNewRequestErrorClassification ensures that an
+// ErrInvalidRequest from subscription.NewRequest (e.g. an empty session role)
+// is surfaced verbatim to the client rather than collapsed into an opaque
+// internal-error trace id. The missing-field message names the offending field
+// (no PII), so it is safe to surface and more actionable than a sanitized
+// generic message.
+func TestStartSubscriptionNewRequestErrorClassification(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+
+	// Start is never called when NewRequest fails first.
+	mockHandler := subscriptionmock.NewMockHandler(ctrl)
+
+	sendCh := make(chan *websocket.Message, 1)
+
+	h := &webSocketHandler{
+		state:           &controllerState{},
+		adminSecret:     "",
+		jwtAuth:         nil,
+		pollingInterval: defaultPollingInterval,
+		devMode:         false,
+		logger:          slog.New(slog.DiscardHandler),
+		// Empty role makes subscription.NewRequest return ErrInvalidRequest.
+		session: &middleware.SessionVariables{Role: "", Variables: nil},
+		sendCh:  sendCh,
+		subs:    syncmap.New[string, *subscriptionState](),
+	}
+
+	op := &ast.OperationDefinition{
+		Operation:           ast.Subscription,
+		Name:                "",
+		VariableDefinitions: nil,
+		Directives:          nil,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "users"},
+		},
+		Position: nil,
+		Comment:  nil,
+	}
+
+	h.startSubscription(
+		context.Background(),
+		"sub-1",
+		websocket.SubscribePayload{
+			OperationName: "",
+			Query:         "subscription { users { id } }",
+			Variables:     nil,
+			Extensions:    nil,
+		},
+		mockHandler,
+		op,
+		nil,
+		nil,
+		h.logger,
+	)
+
+	got := firstErrorMessage(t, sendCh)
+	if !strings.Contains(got, "invalid subscription request: Role is required") {
+		t.Errorf(
+			"message %q does not contain the verbatim ErrInvalidRequest reason",
+			got,
+		)
+	}
+
+	if strings.Contains(got, "trace id") {
+		t.Errorf(
+			"message %q must not be sanitized into a trace id; ErrInvalidRequest should be surfaced verbatim",
+			got,
+		)
+	}
+
+	if _, exists := h.subs.Load("sub-1"); exists {
+		t.Error("subscription should have been removed after a NewRequest failure")
+	}
+}
+
+// --- forwardUpdates classification tests ----------------------------------
+
+// TestForwardUpdatesErrorClassification ensures that a plan failure surfaced
+// asynchronously via Update.Error reaches the client verbatim (mirroring the
+// startSubscription path) while driver/runtime faults remain sanitized into a
+// trace id. Live-query subscriptions only build SQL inside their polling
+// goroutine, so this is the sole place where ErrInvalidSubscription crosses
+// the protocol boundary for them.
+func TestForwardUpdatesErrorClassification(t *testing.T) {
+	t.Parallel()
+
+	planErr := fmt.Errorf(
+		"%w: failed to build subscription SQL: column does not exist",
+		subscription.ErrInvalidSubscription,
+	)
+	runtimeErr := errors.New("Key (email)=(alice@example.com) already exists")
+
+	cases := []struct {
+		name           string
+		updateErr      error
+		wantSubstr     string
+		forbiddenSubst string
+	}{
+		{
+			name:           "invalid subscription surfaces verbatim",
+			updateErr:      planErr,
+			wantSubstr:     "failed to build subscription SQL: column does not exist",
+			forbiddenSubst: "trace id",
+		},
+		{
+			name:           "runtime error is sanitized",
+			updateErr:      runtimeErr,
+			wantSubstr:     "internal server error (trace id:",
+			forbiddenSubst: "alice@example.com",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			sendCh := make(chan *websocket.Message, 1)
+
+			h := &webSocketHandler{
+				state:           &controllerState{},
+				adminSecret:     "",
+				jwtAuth:         nil,
+				pollingInterval: defaultPollingInterval,
+				devMode:         false,
+				logger:          slog.New(slog.DiscardHandler),
+				session:         &middleware.SessionVariables{Role: "user", Variables: nil},
+				sendCh:          sendCh,
+				subs:            syncmap.New[string, *subscriptionState](),
+			}
+
+			sub := &subscriptionState{
+				id:            "sub-1",
+				handler:       nil,
+				query:         "subscription { users { id } }",
+				operationName: "",
+				variables:     nil,
+				lastHash:      "",
+				stopCh:        make(chan struct{}),
+			}
+
+			updateCh := make(chan subscription.Update, 1)
+			updateCh <- subscription.NewUpdateError("sub-1", tc.updateErr)
+
+			close(updateCh)
+
+			h.forwardUpdates(context.Background(), sub, updateCh, h.logger)
+
+			got := firstErrorMessage(t, sendCh)
+			if !strings.Contains(got, tc.wantSubstr) {
+				t.Errorf("message %q does not contain %q", got, tc.wantSubstr)
+			}
+
+			if tc.forbiddenSubst != "" && strings.Contains(got, tc.forbiddenSubst) {
+				t.Errorf("message %q must not contain %q", got, tc.forbiddenSubst)
+			}
+		})
+	}
+}
+
 // --- extractHeadersFromPayload tests --------------------------------------
 
 func TestExtractHeadersFromPayload(t *testing.T) {

@@ -11,6 +11,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+
+	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
 
 func TestFormatGQLErrors_MessageOnly(t *testing.T) {
@@ -344,5 +346,40 @@ func TestSanitizeConnectorError_NilLoggerSafe(t *testing.T) {
 
 	if !strings.Contains(msg, "trace id:") {
 		t.Fatalf("client message %q missing trace id", msg)
+	}
+}
+
+// TestSanitizeConnectorError_UsesTraceFromContext pins the product invariant
+// that the client-facing message and the server-side log share one trace id,
+// sourced from tracing.FromContext(ctx) — not the uuid.NewString() fallback.
+// A refactor that strips the tracing-bearing context anywhere on the resolve
+// path would silently break the correlation; this test guards against that.
+func TestSanitizeConnectorError_UsesTraceFromContext(t *testing.T) {
+	t.Parallel()
+
+	const wantTraceID = "test-trace-123"
+
+	ctx := tracing.ToContext(context.Background(), tracing.Trace{
+		TraceID:      wantTraceID,
+		ParentSpanID: "",
+		SpanID:       "",
+	})
+
+	var buf bytes.Buffer
+
+	logger := slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{
+		AddSource:   false,
+		Level:       slog.LevelDebug,
+		ReplaceAttr: nil,
+	}))
+
+	msg := sanitizeConnectorError(ctx, logger, false, errors.New("driver detail"))
+
+	if !strings.Contains(msg, wantTraceID) {
+		t.Fatalf("client message %q did not carry the trace id from ctx", msg)
+	}
+
+	if !strings.Contains(buf.String(), wantTraceID) {
+		t.Fatalf("server log %q did not carry the trace id from ctx", buf.String())
 	}
 }

@@ -9,7 +9,6 @@ import (
 	"maps"
 	"sync"
 
-	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/controller/introspection"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
@@ -306,18 +305,7 @@ func (c *Controller) executeConnectors(
 			ctx, execOp, execFragments, variables, role, sessionVariables, logger,
 		)
 		if err != nil {
-			if gqlErrs, ok := errors.AsType[*remoteschema.GraphQLError](err); ok {
-				// Structured errors from a trusted remote schema are intentional
-				// GraphQL errors (path/locations/extensions); pass them through.
-				for _, re := range gqlErrs.Errors {
-					allErrors = append(allErrors, re.AsMap())
-				}
-			} else {
-				// Raw connector/DB driver error — sanitize before exposing it.
-				allErrors = append(allErrors, map[string]any{
-					"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
-				})
-			}
+			allErrors = append(allErrors, c.classifyConnectorError(ctx, logger, err)...)
 
 			// Merge partial data even when there are errors (e.g. remote
 			// schema returned data + errors for a partial response).
@@ -397,26 +385,11 @@ func (c *Controller) resolveRemoteRelationships(
 		ctx, results, pendingQueries,
 		fragments, variables, role, sessionVariables, logger,
 	); err != nil {
-		if gqlErrs, ok := errors.AsType[*remoteschema.GraphQLError](err); ok {
-			// Structured errors from a trusted remote schema are intentional
-			// GraphQL errors (path/locations/extensions); pass them through,
-			// matching executeConnectors.
-			errs := make([]map[string]any, len(gqlErrs.Errors))
-			for i, re := range gqlErrs.Errors {
-				errs[i] = re.AsMap()
-			}
-
-			return &GraphQLResponse{
-				Data:        nil,
-				Errors:      errs,
-				rawResponse: nil,
-			}
+		return &GraphQLResponse{
+			Data:        nil,
+			Errors:      c.classifyConnectorError(ctx, logger, err),
+			rawResponse: nil,
 		}
-
-		// Raw connector/DB driver error reached via the remote-relationship
-		// resolver path — sanitize before exposing it, just as
-		// executeConnectors does for the primary execution path.
-		return errorResponse(sanitizeConnectorError(ctx, logger, c.devMode, err))
 	}
 
 	return nil
