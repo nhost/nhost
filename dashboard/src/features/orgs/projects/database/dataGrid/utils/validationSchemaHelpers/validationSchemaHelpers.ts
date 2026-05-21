@@ -109,10 +109,14 @@ export function createDynamicValidationSchema(
         [column.id]: createUUIDValidationSchema(details),
       };
     }
-    if (
-      column.type === 'date' &&
-      ['time', 'timetz', 'interval'].includes(column.specificType)
-    ) {
+    const isTimeOrIntervalType =
+      column.specificType &&
+      (['time', 'timetz', 'interval'].includes(column.specificType) ||
+        (column.specificType.includes('time') &&
+          !column.specificType.includes('timestamp')) ||
+        column.specificType.includes('interval'));
+
+    if (column.type === 'date' && isTimeOrIntervalType) {
       return {
         ...currentSchema,
         [column.id]: createTextValidationSchema(details).matches(
