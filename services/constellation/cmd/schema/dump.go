@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -28,7 +29,7 @@ const (
 
 	defaultTimeoutSeconds = 30
 	defaultRole           = "user"
-	outputFileMode        = 0o644
+	outputFileMode        = 0o600
 )
 
 func commandDump() *cli.Command {
@@ -147,6 +148,8 @@ func dumpFromMetadata(
 		for r := range built.SchemaDocs {
 			availableRoles = append(availableRoles, r)
 		}
+
+		sort.Strings(availableRoles)
 
 		return nil, cli.Exit(
 			fmt.Sprintf("role %q not found. Available roles: %v", role, availableRoles), 1,
