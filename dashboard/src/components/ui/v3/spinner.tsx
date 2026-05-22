@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
-import type React from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const spinnerVariants = cva('flex-col items-center justify-center', {
@@ -15,9 +15,10 @@ const spinnerVariants = cva('flex-col items-center justify-center', {
   },
 });
 
-const loaderVariants = cva('animate-spin text-primary', {
+const loaderVariants = cva('animate-spin text-primary stroke-current', {
   variants: {
     size: {
+      xs: 'size-3',
       small: 'size-6',
       medium: 'size-8',
       large: 'size-12',
@@ -32,28 +33,44 @@ interface SpinnerContentProps
   extends VariantProps<typeof spinnerVariants>,
     VariantProps<typeof loaderVariants> {
   className?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
   wrapperClassName?: string;
+  delay?: number;
 }
 
 export function Spinner({
   size,
-  show,
+  show = true,
   children,
   className,
   wrapperClassName,
+  delay = 0,
 }: SpinnerContentProps) {
+  const [isDelayed, setIsDelayed] = useState(delay > 0);
+
+  useEffect(() => {
+    if (delay <= 0) {
+      setIsDelayed(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setIsDelayed(false);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  const shouldShow = show && !isDelayed;
+
   return (
-    <span className={cn(spinnerVariants({ show }), wrapperClassName)}>
+    <span className={cn(spinnerVariants({ show: shouldShow }), wrapperClassName)}>
       <Loader2
         role="progressbar"
-        className={cn(
-          loaderVariants({ size }),
-          className,
-          'stroke-[#1e324b] dark:stroke-[#dfecf5]',
-        )}
+        className={cn(loaderVariants({ size }), className)}
       />
       {children}
     </span>
   );
 }
+
