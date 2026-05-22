@@ -2,6 +2,8 @@
 
 **Important**: Always load the root `CLAUDE.md` at the repository root for general monorepo conventions before working on this project.
 
+**Design rules**: Repo-wide Go rules live in `.claude/docs/go-design-rules.md` — load that first. Only MCP-specific patterns (tool annotations, OAuth2/PKCE auth flow, JWT forwarding to upstream GraphQL, query allowlists) are documented below.
+
 This document contains patterns, conventions, and workflows for implementing new tools and features in the Nhost MCP service. The service exposes a Hasura GraphQL endpoint as an MCP (Model Context Protocol) server, allowing AI assistants to query and mutate data.
 
 ## Core Principles
@@ -161,13 +163,4 @@ func TestMiddleware(t *testing.T) {
 2. **Implement**: Write tool registration and handler in `tools/`
 3. **Wire up**: Register in `server/server.go` `BuildServer()`
 4. **Test**: Write tests for tool registration and handler logic
-5. **Format**: Run `golines -w --base-formatter=gofumpt .`
-6. **Lint**: Run `golangci-lint run --fix`
-7. **Test**: Run `go test -v ./...`
-
-## Lint and Tests
-
-- **Formatter**: `golines -w --base-formatter=gofumpt .`
-- **Linter**: `golangci-lint run --fix`
-- **Tests**: `go test -v ./...`
-- **Coverage**: `go test -v -cover ./...`
+5. Run the mandatory post-change checks from `.claude/docs/go-design-rules.md`.
