@@ -138,13 +138,13 @@ type txAdapter struct {
 	tx *sql.Tx
 }
 
-func (a *txAdapter) QueryContext( //nolint:ireturn // see package-level interface seam note
+func (a *txAdapter) QueryContext( //nolint:ireturn,nolintlint
 	ctx context.Context, query string, args ...any,
 ) (Rows, error) {
 	return a.tx.QueryContext(ctx, query, args...) //nolint:wrapcheck,rowserrcheck
 }
 
-func (a *txAdapter) QueryRowContext( //nolint:ireturn // see package-level interface seam note
+func (a *txAdapter) QueryRowContext( //nolint:ireturn,nolintlint
 	ctx context.Context, query string, args ...any,
 ) Row {
 	return a.tx.QueryRowContext(ctx, query, args...)
@@ -192,8 +192,8 @@ func NewClient(db DB) *Client {
 // error via [errors.Join]. Callers therefore must not Close the returned DB on
 // error — it is already closed. On success, the caller owns [DB.Close].
 //
-//nolint:ireturn // see package-level interface seam note
-func Open(ctx context.Context, connStr string) (DB, error) {
+// see package-level interface seam note.
+func Open(ctx context.Context, connStr string) (DB, error) { //nolint:ireturn,nolintlint
 	rawDB, err := sql.Open("sqlite3", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("opening sqlite database: %w", err)
@@ -239,7 +239,7 @@ func New(
 }
 
 // Dialect returns the SQLite SQL dialect.
-func (c *Client) Dialect() dialect.Dialect { //nolint:ireturn // see package-level interface seam note
+func (c *Client) Dialect() dialect.Dialect { //nolint:ireturn,nolintlint
 	return dialect.NewSQLiteDialect()
 }
 

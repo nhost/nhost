@@ -47,13 +47,13 @@ func applyPresets(
 func getRootTypeName(op ast.Operation) string {
 	switch op {
 	case ast.Query:
-		return "Query"
+		return "Query" //nolint:goconst,nolintlint
 	case ast.Mutation:
-		return "Mutation"
+		return "Mutation" //nolint:goconst,nolintlint
 	case ast.Subscription:
-		return "Subscription"
+		return "Subscription" //nolint:goconst,nolintlint
 	default:
-		return "Query"
+		return "Query" //nolint:goconst,nolintlint
 	}
 }
 

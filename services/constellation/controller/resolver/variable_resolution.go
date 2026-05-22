@@ -47,9 +47,9 @@ func toLiteralValue(v any) *ast.Value {
 
 	switch val := v.(type) {
 	case bool:
-		raw := "false"
+		raw := "false" //nolint:goconst,nolintlint
 		if val {
-			raw = "true"
+			raw = "true" //nolint:goconst,nolintlint
 		}
 
 		return &ast.Value{ //nolint:exhaustruct
