@@ -142,6 +142,12 @@ func dumpFromMetadata(
 		)
 	}
 
+	defer func() {
+		for _, c := range built.Connectors {
+			c.Close()
+		}
+	}()
+
 	schema, exists := built.SchemaDocs[role]
 	if !exists {
 		availableRoles := make([]string, 0, len(built.SchemaDocs))
