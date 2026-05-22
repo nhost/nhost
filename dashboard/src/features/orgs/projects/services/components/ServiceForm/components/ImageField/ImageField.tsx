@@ -1,11 +1,10 @@
 import { inputBaseClasses } from '@mui/material';
 import { useTheme } from '@mui/system';
+import { ExternalLink as ArrowSquareOutIcon, InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -90,10 +89,10 @@ export default function ImageField({
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"
-              className="font-medium"
+              className="inline-flex items-center justify-center gap-2 font-medium"
             >
               using Nhost registry for images
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+              <ArrowSquareOutIcon className="h-4 w-4" />
             </Link>
           </Text>
         </div>
@@ -136,11 +135,7 @@ export default function ImageField({
                   </span>
                 }
               >
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
+                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
               </Tooltip>
             </Box>
           }
@@ -160,10 +155,10 @@ export default function ImageField({
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"
-              className="font-medium"
+              className="inline-flex items-center justify-center gap-2 font-medium"
             >
               using your own private registry for images
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+              <ArrowSquareOutIcon className="h-4 w-4" />
             </Link>
           </Text>
         </div>

@@ -1,4 +1,5 @@
-import { BoxIcon } from 'lucide-react';
+import { SiDocker as ServicesIcon } from '@icons-pack/react-simple-icons';
+import { BoxIcon, PlusIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -8,8 +9,6 @@ import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
