@@ -64,7 +64,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("newEmail@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().UpdateUserChangeEmail(
 					gomock.Any(),
@@ -74,7 +74,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						NewEmail:        sql.Text("newEmail@acme.com"),
 					}),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb"),
 					Locale:      "en",
 					DisplayName: "Jane Doe",
@@ -86,7 +86,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
+				Body: &api.UserEmailChangeRequest{
 					NewEmail: "newEmail@acme.com",
 					Options:  nil,
 				},
@@ -104,7 +104,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameEmailConfirmChange,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=emailConfirmChange%3A9bd37c9c-8f5b-4c19-af01-a729922c1952&type=emailConfirmChange", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=emailConfirmChange%3A9bd37c9c-8f5b-4c19-af01-a729922c1952&type=emailConfirmChange",
 								DisplayName: "Jane Doe",
 								Email:       "oldEmail@acme.com",
 								NewEmail:    "newEmail@acme.com",
@@ -140,7 +140,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("newEmail@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().UpdateUserChangeEmail(
 					gomock.Any(),
@@ -150,7 +150,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						NewEmail:        sql.Text("newEmail@acme.com"),
 					}),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb"),
 					Locale:      "en",
 					DisplayName: "Jane Doe",
@@ -181,7 +181,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameEmailConfirmChange,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=emailConfirmChange%3A9bd37c9c-8f5b-4c19-af01-a729922c1952&type=emailConfirmChange", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=emailConfirmChange%3A9bd37c9c-8f5b-4c19-af01-a729922c1952&type=emailConfirmChange",
 								DisplayName: "Jane Doe",
 								Email:       "oldEmail@acme.com",
 								NewEmail:    "newEmail@acme.com",
@@ -217,7 +217,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("newEmail@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					Email: sql.Text("newEmail@acme.com"),
 				}, nil)
 
@@ -226,7 +226,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
+				Body: &api.UserEmailChangeRequest{
 					NewEmail: "newEmail@acme.com",
 					Options:  nil,
 				},
@@ -254,13 +254,13 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("newEmail@acme.com"),
-				).Return(sql.AuthUser{}, errors.New("some error")) //nolint:exhaustruct,err113
+				).Return(sql.AuthUser{}, errors.New("some error")) //nolint:err113
 
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
+				Body: &api.UserEmailChangeRequest{
 					NewEmail: "newEmail@acme.com",
 					Options:  nil,
 				},
@@ -293,7 +293,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("newEmail@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().UpdateUserChangeEmail(
 					gomock.Any(),
@@ -303,7 +303,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						NewEmail:        sql.Text("newEmail@acme.com"),
 					}),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb"),
 					Locale:      "en",
 					DisplayName: "Jane Doe",
@@ -315,7 +315,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
+				Body: &api.UserEmailChangeRequest{
 					NewEmail: "newEmail@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp/redirect"),
@@ -335,7 +335,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameEmailConfirmChange,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp%2Fredirect&ticket=emailConfirmChange%3A4c84b833-d330-49a6-b509-6c090959e249&type=emailConfirmChange", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp%2Fredirect&ticket=emailConfirmChange%3A4c84b833-d330-49a6-b509-6c090959e249&type=emailConfirmChange",
 								DisplayName: "Jane Doe",
 								Email:       "oldEmail@acme.com",
 								NewEmail:    "newEmail@acme.com",
@@ -366,7 +366,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.ChangeUserEmailRequestObject{
-				Body: &api.UserEmailChangeRequest{ //nolint:exhaustruct
+				Body: &api.UserEmailChangeRequest{
 					NewEmail: "newEmail@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp/redirect"),

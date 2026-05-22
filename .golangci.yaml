@@ -35,11 +35,9 @@ linters:
           - funlen
           - ireturn
           - goconst
-        path: _test\.go
-      - linters:
           - lll
           - exhaustruct
-        path: services/.*/_test\.go
+        path: .*_test\.go
       - linters:
           - lll
         source: "^//go:generate "
@@ -56,14 +54,6 @@ linters:
           - gochecknoglobals
           - gochecknoinits
         path: services/storage/cmd/
-      - linters:
-          - gochecknoglobals
-        path: services/storage/cmd/controller/version.go
-      - linters:
-          - funlen
-          - ireturn
-          - exhaustruct
-        path: services/storage/.*_test\.go
 
     paths:
       - third_party$

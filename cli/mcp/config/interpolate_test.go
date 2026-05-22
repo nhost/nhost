@@ -236,10 +236,10 @@ allow_queries = ["*"]
 	if diff := cmp.Diff(cfg, &Config{
 		Cloud: nil,
 		Projects: ProjectList{
-			{ //nolint:exhaustruct
+			{
 				AdminSecret: new("local-secret"),
 			},
-			{ //nolint:exhaustruct
+			{
 				Subdomain:    "myapp",
 				Region:       "us-east-1",
 				AdminSecret:  new("project-secret"),

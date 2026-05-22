@@ -278,6 +278,11 @@
               # nix
               nixfmt
 
+              # storate
+              clang
+              pkg-config
+              storagef.vips
+
               # internal packages
               self.packages.${system}.codegen
               self.packages.${system}.govulncheck-wrapper

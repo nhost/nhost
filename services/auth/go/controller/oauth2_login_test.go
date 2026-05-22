@@ -36,11 +36,11 @@ func TestOauth2LoginGet(t *testing.T) {
 		CodeChallenge:       pgtype.Text{String: "", Valid: false},
 		CodeChallengeMethod: pgtype.Text{String: "", Valid: false},
 		Resource:            pgtype.Text{String: "", Valid: false},
-		UserID:              pgtype.UUID{Valid: false}, //nolint:exhaustruct
+		UserID:              pgtype.UUID{Valid: false},
 		Done:                false,
-		AuthTime:            pgtype.Timestamptz{Valid: false},                  //nolint:exhaustruct
-		CreatedAt:           pgtype.Timestamptz{Time: time.Now(), Valid: true}, //nolint:exhaustruct
-		ExpiresAt: pgtype.Timestamptz{ //nolint:exhaustruct
+		AuthTime:            pgtype.Timestamptz{Valid: false},
+		CreatedAt:           pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		ExpiresAt: pgtype.Timestamptz{
 			Time:  time.Now().Add(10 * time.Minute),
 			Valid: true,
 		},
@@ -52,7 +52,7 @@ func TestOauth2LoginGet(t *testing.T) {
 	scopes := []string{"openid", "profile"}
 
 	cases := []testRequest[api.Oauth2LoginGetRequestObject, api.Oauth2LoginGetResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -72,13 +72,13 @@ func TestOauth2LoginGet(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "request not found",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
-					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -96,7 +96,7 @@ func TestOauth2LoginGet(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -170,7 +170,7 @@ func TestOauth2LoginPost(t *testing.T) {
 	}
 
 	cases := []testRequest[api.Oauth2LoginPostRequestObject, api.Oauth2LoginPostResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -190,7 +190,7 @@ func TestOauth2LoginPost(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "missing body",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -208,7 +208,7 @@ func TestOauth2LoginPost(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "unauthenticated",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -225,7 +225,7 @@ func TestOauth2LoginPost(t *testing.T) {
 				Message: "The request payload is incorrect",
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "complete login request not found",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -233,7 +233,7 @@ func TestOauth2LoginPost(t *testing.T) {
 				mock.EXPECT().GetUser(gomock.Any(), userID).
 					Return(getSigninUser(userID), nil)
 				mock.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
-					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -252,7 +252,7 @@ func TestOauth2LoginPost(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -267,16 +267,16 @@ func TestOauth2LoginPost(t *testing.T) {
 					CodeChallenge:       pgtype.Text{String: "", Valid: false},
 					CodeChallengeMethod: pgtype.Text{String: "", Valid: false},
 					Resource:            pgtype.Text{String: "", Valid: false},
-					UserID:              pgtype.UUID{Valid: false}, //nolint:exhaustruct
+					UserID:              pgtype.UUID{Valid: false},
 					Done:                false,
-					AuthTime: pgtype.Timestamptz{ //nolint:exhaustruct
+					AuthTime: pgtype.Timestamptz{
 						Valid: false,
 					},
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+					CreatedAt: pgtype.Timestamptz{
 						Time:  time.Now(),
 						Valid: true,
 					},
-					ExpiresAt: pgtype.Timestamptz{ //nolint:exhaustruct
+					ExpiresAt: pgtype.Timestamptz{
 						Time:  time.Now().Add(10 * time.Minute),
 						Valid: true,
 					},
@@ -288,7 +288,7 @@ func TestOauth2LoginPost(t *testing.T) {
 				mock.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
 					Return(authReq, nil)
 				mock.EXPECT().CompleteOAuth2LoginAndInsertCode(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2AuthorizationCode{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthorizationCode{}, nil)
 
 				return mock
 			},
@@ -323,7 +323,7 @@ func TestOauth2LoginPost(t *testing.T) {
 				ctx, t, c.Oauth2LoginPost,
 				tc.request, tc.expectedResponse,
 				cmpopts.IgnoreFields(
-					api.Oauth2LoginPost200JSONResponse{}, "RedirectUri", //nolint:exhaustruct
+					api.Oauth2LoginPost200JSONResponse{}, "RedirectUri",
 				),
 				cmp.FilterPath(
 					func(p cmp.Path) bool {

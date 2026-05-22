@@ -204,7 +204,7 @@ func TestEncryptDecrypt(t *testing.T) {
 		{
 			name: "long text",
 			plaintext: []byte(
-				"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", //nolint:lll
+				"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 			),
 		},
 		{

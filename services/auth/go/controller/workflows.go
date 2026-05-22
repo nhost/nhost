@@ -115,7 +115,7 @@ func (wf *Workflows) ValidatePassword(
 	return nil
 }
 
-func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
+func (wf *Workflows) ValidateSignUpOptions(
 	ctx context.Context, options *api.SignUpOptions, defaultName string, logger *slog.Logger,
 ) (*api.SignUpOptions, *APIError) {
 	if options == nil {
