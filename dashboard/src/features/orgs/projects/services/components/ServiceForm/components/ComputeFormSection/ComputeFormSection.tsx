@@ -1,9 +1,7 @@
+import { ArrowLeftIcon, ArrowRightIcon, InfoIcon } from 'lucide-react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowLeftIcon } from '@/components/ui/v2/icons/ArrowLeftIcon';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -86,7 +84,7 @@ export default function ComputeFormSection({
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
           </Tooltip>
         )}
       </Box>
