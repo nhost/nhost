@@ -8,7 +8,7 @@ description: >
   "/address-review <glob>", or asks you to act on findings under `.review/`.
 disable-model-invocation: false
 argument-hint: <glob> (e.g. PR_4327_COMMENT_*.md, PR_*_COMMENT_*.md, single-file.md)
-allowed-tools: Bash, Read, Write, Grep, Glob, Task
+allowed-tools: Bash, Read, Write, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList
 ---
 
 # Address Review Skill
@@ -285,7 +285,14 @@ else.
 
 `generic-developer` handles mixed-language findings end-to-end and may
 delegate language-specific slices to `go-developer` / `javascript-developer`
-via the Task tool if needed — that's its design.
+via the Agent tool if needed — that's its design.
+
+> Note: nested agent delegation (subagent → subagent) is supported in this
+> harness. The developer agents' frontmatter already grants the `Agent` tool
+> (see `.claude/agents/{generic,go,javascript}-developer.md`), so
+> `generic-developer` may invoke `go-developer` or `javascript-developer`
+> via the Agent tool when a mixed-language finding has a clearly
+> language-bounded slice.
 
 ---
 
@@ -348,8 +355,11 @@ prompt is **self-contained** — the agent has not seen this conversation.
 
 The agent already knows: its language rules (from its loaded rules
 doc), the project's CLAUDE.md, mandatory post-change checks
-(`golines` + `golangci-lint` for Go; `pnpm lint` + `pnpm test` for
-JS/TS), and the startup protocol it must run before touching files.
+(`golines` + `golangci-lint` for Go; Turbo-routed `lint` / `test` —
+e.g. `pnpm turbo run lint --filter=...<workspace>` — falling back to
+whichever scripts the touched workspace's `package.json` actually
+defines for JS/TS), and the startup protocol it must run before
+touching files.
 Your prompt therefore focuses on the **address-review policy**:
 
 1. The absolute path to the review file.
@@ -542,7 +552,14 @@ appropriate type — `go-developer` if any Go was touched,
 `javascript-developer` if any JS/TS was touched, both if both):
 
 - Go: `golines -w --base-formatter=gofumpt .` then `golangci-lint run --fix ./...`
-- JS/TS: `pnpm lint` then `pnpm test` on touched workspaces
+- JS/TS: route through Turbo so each workspace's own task config is
+  respected — `pnpm turbo run lint --filter=...<touched-workspace>` then
+  `pnpm turbo run test --filter=...<touched-workspace>`. If a touched
+  workspace is not wired into Turbo, read its `package.json` and run
+  whichever of `lint` / `format` / `typecheck` / `test` it actually
+  defines (skip the ones it does not). Do not blindly run bare
+  `pnpm lint` / `pnpm test` — those scripts do not exist in every
+  workspace and will either error or silently no-op.
 - Tests on touched packages (or the integration suite if the changes
   affect query/SQL generation).
 

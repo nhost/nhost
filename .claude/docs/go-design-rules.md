@@ -2,7 +2,9 @@
 
 Authoritative Go design rules for the entire `github.com/nhost/nhost` monorepo. These rules apply to every Go file in `services/*`, `cli/`, `internal/lib/`, `tools/`, and any future Go code. They are deliberately stricter than what `golangci-lint` can see, because they target design and architecture concerns a linter cannot.
 
-Skip `vendor/` and generated files (`*_gen.go`, `*.gen.go`, `generated.go`, `models_gen.go`, `client_gen.go`, `schema.resolvers.go`). Do not re-flag mechanical issues a strict `golangci-lint --fix ./...` run would catch on its own (formatting, unused vars, basic struct exhaustiveness) — those are the author's responsibility before merge.
+**Module-wide constraints.** Go 1.26.0. Single `go.mod` at the repo root with module path `github.com/nhost/nhost` — never add a per-project `go.mod` or per-project `vendor/`. After dependency changes, run `go mod vendor` from the root. After changes that affect code generation, run `go generate ./...`. Lint config lives in `.golangci.yaml`.
+
+Skip `vendor/` and generated files (`*_gen.go`, `*.gen.go`, `generated.go`, `schema.resolvers.go`). Do not re-flag mechanical issues a strict `golangci-lint --fix ./...` run would catch on its own (formatting, unused vars, basic struct exhaustiveness) — those are the author's responsibility before merge.
 
 ---
 
