@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { RefreshCwIcon } from 'lucide-react';
+import { CopyIcon, InfoIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
@@ -9,9 +9,6 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
@@ -249,11 +246,7 @@ export default function ServiceForm({
             <Box className="flex flex-row items-center space-x-2">
               <Text>Name</Text>
               <Tooltip title="Name of the service, must be unique per project.">
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
+                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
               </Tooltip>
             </Box>
           }
@@ -334,9 +327,9 @@ export default function ServiceForm({
               disabled={isSubmitting}
               startIcon={
                 serviceID ? (
-                  <RefreshCwIcon width={16} height={16} />
+                  <RefreshCwIcon className="h-4 w-4" />
                 ) : (
-                  <PlusIcon />
+                  <PlusIcon className="h-4 w-4" />
                 )
               }
             >
@@ -347,7 +340,7 @@ export default function ServiceForm({
               variant="outlined"
               disabled={isSubmitting}
               onClick={copyConfig}
-              startIcon={<CopyIcon />}
+              startIcon={<CopyIcon className="h-4 w-4" />}
             >
               Copy one-click install link
             </Button>

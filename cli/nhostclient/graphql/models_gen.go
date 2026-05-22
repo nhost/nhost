@@ -5991,9 +5991,8 @@ func (e CheckoutStatus) MarshalJSON() ([]byte, error) {
 //
 // Not every combination is meaningful:
 //   - `INVOCATIONS + AVG` is rejected at runtime (the ratio is always 1).
-//   - `MAX` and `MIN` are only supported by `getFunctionsInstantMetric`. They
-//     evaluate over the whole `from`/`to` window. The range resolver rejects them
-//     because the lookback window is not yet configurable.
+//   - `MAX`/`MIN` use `[$__range:]` as the outer subquery window in both
+//     resolvers, so the peak/trough is taken over the full selected range.
 type FunctionsAggregate string
 
 const (
