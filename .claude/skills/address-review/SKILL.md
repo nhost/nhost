@@ -285,13 +285,13 @@ else.
 
 `generic-developer` handles mixed-language findings end-to-end and may
 delegate language-specific slices to `go-developer` / `javascript-developer`
-via the Task tool if needed — that's its design.
+via the Agent tool if needed — that's its design.
 
 > Note: nested agent delegation (subagent → subagent) is supported in this
-> harness. The developer agents' frontmatter already grants the `Task` tool
+> harness. The developer agents' frontmatter already grants the `Agent` tool
 > (see `.claude/agents/{generic,go,javascript}-developer.md`), so
 > `generic-developer` may invoke `go-developer` or `javascript-developer`
-> via the Task tool when a mixed-language finding has a clearly
+> via the Agent tool when a mixed-language finding has a clearly
 > language-bounded slice.
 
 ---
