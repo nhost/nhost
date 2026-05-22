@@ -4,6 +4,7 @@ import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
+import { InfoIcon, PlayIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -11,8 +12,6 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Table } from '@/components/ui/v2/Table';
 import { TableBody } from '@/components/ui/v2/TableBody';
@@ -74,11 +73,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
                 onChange={(event) => setTrack(event.currentTarget.checked)}
               />
               <Tooltip title="If you are creating tables, views or functions, checking this will also expose them over the GraphQL API as top level fields. Functions only intended to be used as computed fields should not be tracked.">
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
+                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
               </Tooltip>
             </Box>
 
@@ -94,11 +89,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
               />
 
               <Tooltip title="Cascade actions on all dependent metadata references, like relationships and permissions">
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
+                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
               </Tooltip>
             </Box>
 
@@ -114,11 +105,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
               />
 
               <Tooltip title="When set to true, the request will be run in READ ONLY transaction access mode which means only select queries will be successful. This flag ensures that the GraphQL schema is not modified and is hence highly performant.">
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
+                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
               </Tooltip>
             </Box>
 
@@ -137,8 +124,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
                   <Tooltip title="Create a migration file with the SQL statement">
                     <InfoIcon
                       aria-label="Info"
-                      className="h-4 w-4"
-                      color="primary"
+                      className="h-4 w-4 text-primary"
                     />
                   </Tooltip>
                 </Box>
@@ -161,7 +147,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
             disabled={loading || !sqlCode.trim()}
             variant="contained"
             className="self-start"
-            startIcon={<PlayIcon />}
+            startIcon={<PlayIcon className="h-4 w-4" />}
             onClick={runSQL}
           >
             Run
