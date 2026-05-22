@@ -214,6 +214,16 @@ CREATE VIEW public.published_news AS
   FROM public.news
   WHERE is_public = true;
 
+-- Non-updatable view (UNION ALL) used to verify view introspection
+-- reports IsView=true, IsInsertable=false, IsUpdatable=false.
+CREATE VIEW public.content_feed AS
+  SELECT n.id, 'news'::text AS source, n.title, n.content, n.created_at
+  FROM public.news n
+  WHERE n.is_public = true
+  UNION ALL
+  SELECT k.id, 'kb_entry'::text AS source, k.title, k.content, k.created_at
+  FROM public.kb_entries k;
+
 -- ── Table Comments (Nhost auth standard) ────────────────────────────────────
 
 COMMENT ON TABLE auth.users IS 'User account information. Don''t modify its structure as Hasura Auth relies on it to function properly.';

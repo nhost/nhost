@@ -51,17 +51,17 @@ func (c *Client) Introspect(
 // by [getTableNames] in lexicographic order so the resulting slice is stable
 // across runs.
 func introspectTables(ctx context.Context, q Querier) ([]introspection.Table, error) {
-	tableNames, err := getTableNames(ctx, q)
+	entries, err := getTableNames(ctx, q)
 	if err != nil {
 		return nil, fmt.Errorf("listing tables: %w", err)
 	}
 
-	tables := make([]introspection.Table, 0, len(tableNames))
+	tables := make([]introspection.Table, 0, len(entries))
 
-	for _, name := range tableNames {
-		t, err := introspectTable(ctx, q, name)
+	for _, entry := range entries {
+		t, err := introspectTable(ctx, q, entry.name, entry.isView)
 		if err != nil {
-			return nil, fmt.Errorf("failed to introspect table %s: %w", name, err)
+			return nil, fmt.Errorf("failed to introspect table %s: %w", entry.name, err)
 		}
 
 		tables = append(tables, *t)
@@ -70,12 +70,20 @@ func introspectTables(ctx context.Context, q Querier) ([]introspection.Table, er
 	return tables, nil
 }
 
+// relationEntry pairs a relation name with whether it is a view; the kind is
+// needed at construction time so we can populate IsView / IsInsertable /
+// IsUpdatable directly on the introspected Table.
+type relationEntry struct {
+	name   string
+	isView bool
+}
+
 // getTableNames returns user-defined table and view names from sqlite_master,
 // excluding the internal sqlite_* objects. Ordering is by name so the rest of
 // introspection sees a stable slice.
-func getTableNames(ctx context.Context, q Querier) ([]string, error) {
+func getTableNames(ctx context.Context, q Querier) ([]relationEntry, error) {
 	rows, err := q.QueryContext(ctx,
-		`SELECT name FROM sqlite_master
+		`SELECT name, type FROM sqlite_master
 		 WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'
 		 ORDER BY name`,
 	)
@@ -84,21 +92,25 @@ func getTableNames(ctx context.Context, q Querier) ([]string, error) {
 	}
 	defer rows.Close()
 
-	var names []string
+	var entries []relationEntry
+
 	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
+		var (
+			name    string
+			relKind string
+		)
+		if err := rows.Scan(&name, &relKind); err != nil {
 			return nil, fmt.Errorf("failed to scan table name: %w", err)
 		}
 
-		names = append(names, name)
+		entries = append(entries, relationEntry{name: name, isView: relKind == "view"})
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating table names: %w", err)
 	}
 
-	return names, nil
+	return entries, nil
 }
 
 // introspectTable builds a complete [introspection.Table] for one SQLite table
@@ -106,10 +118,17 @@ func getTableNames(ctx context.Context, q Querier) ([]string, error) {
 // foreign_key_list (FKs), and PRAGMA index_list / index_info (unique
 // constraints) in turn. SQLite has no per-table or per-column comment system,
 // so the corresponding fields are always nil.
+//
+// SQLite views are read-only unless backed by an INSTEAD OF trigger; we do
+// not introspect those today, so any view conservatively defaults to
+// IsInsertable=false, IsUpdatable=false. Adding instead-of-trigger detection
+// would let updatable SQLite views regain mutations, but no current consumer
+// needs that.
 func introspectTable(
 	ctx context.Context,
 	q Querier,
 	tableName string,
+	isView bool,
 ) (*introspection.Table, error) {
 	columns, pks, err := getColumnsAndPKs(ctx, q, tableName)
 	if err != nil {
@@ -135,6 +154,9 @@ func introspectTable(
 		PrimaryKeyConstraintName: "",
 		ForeignKeys:              fks,
 		UniqueConstraints:        ucs,
+		IsView:                   isView,
+		IsInsertable:             !isView,
+		IsUpdatable:              !isView,
 	}, nil
 }
 

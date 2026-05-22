@@ -125,10 +125,11 @@ func generateForTable( //nolint:funlen,cyclop
 		caps,
 	)
 
-	if role == roleAdmin ||
-		getInsertPermission(tableMeta, role) != nil ||
-		getUpdatePermission(tableMeta, role) != nil ||
-		getDeletePermission(tableMeta, role) != nil {
+	if (tableInfo.IsInsertable || tableInfo.IsUpdatable) &&
+		(role == roleAdmin ||
+			getInsertPermission(tableMeta, role) != nil ||
+			getUpdatePermission(tableMeta, role) != nil ||
+			getDeletePermission(tableMeta, role) != nil) {
 		generateTableMutationInputTypes(
 			schema, tableMeta, tableInfo, customTableName, qualifiedName, md, role,
 			tablesWithObjRelInsert, tablesWithArrRelInsert,

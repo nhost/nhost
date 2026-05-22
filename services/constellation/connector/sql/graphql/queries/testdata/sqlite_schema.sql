@@ -324,6 +324,13 @@ CREATE VIEW published_news AS
     FROM news
     WHERE is_public = 1;
 
+CREATE VIEW content_feed AS
+    SELECT id, 'news' AS source, title, content, created_at
+    FROM news WHERE is_public = 1
+    UNION ALL
+    SELECT id, 'kb_entry' AS source, title, content, created_at
+    FROM kb_entries;
+
 -- ===========================================================================
 -- Seed data for enum tables (tables marked is_enum: true in metadata).
 -- The SQLite introspector reads rows from these tables to populate
