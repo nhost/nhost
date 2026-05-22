@@ -70,12 +70,12 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
 					gomock.Any(),
@@ -98,7 +98,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderUserID:        "106964149809169421082",
 					},
 						cmpopts.IgnoreFields(
-							sql.InsertUserWithUserProviderAndRefreshTokenParams{}, //nolint:exhaustruct
+							sql.InsertUserWithUserProviderAndRefreshTokenParams{},
 							"ID",
 						),
 					),
@@ -178,12 +178,12 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
 					gomock.Any(),
@@ -206,7 +206,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderUserID:        "106964149809169421082",
 					},
 						cmpopts.IgnoreFields(
-							sql.InsertUserWithUserProviderAndRefreshTokenParams{}, //nolint:exhaustruct
+							sql.InsertUserWithUserProviderAndRefreshTokenParams{},
 							"ID",
 						),
 					),
@@ -300,12 +300,12 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -346,12 +346,12 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -393,12 +393,12 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUserWithUserProvider(
 					gomock.Any(),
@@ -419,7 +419,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderUserID:  "106964149809169421082",
 					},
 						cmpopts.IgnoreFields(
-							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
+							sql.InsertUserWithUserProviderParams{},
 							"ID",
 						),
 					),
@@ -493,7 +493,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(
-					//nolint:exhaustruct
+
 					sql.AuthUser{
 						ID: userID,
 						CreatedAt: pgtype.Timestamptz{
@@ -529,15 +529,15 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return([]sql.AuthUserRole{
-					{UserID: userID, Role: "user"}, //nolint:exhaustruct
-					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
 				}, nil)
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -622,13 +622,13 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().GetUserByEmail( //nolint:dupl
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
 				).Return(
-					//nolint:exhaustruct
+
 					sql.AuthUser{
 						ID: userID,
 						CreatedAt: pgtype.Timestamptz{
@@ -671,11 +671,11 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 				).Return(
 					sql.AuthUserProvider{
 						ID:             userID,
-						CreatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
-						UpdatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
+						CreatedAt:      pgtype.Timestamptz{},
+						UpdatedAt:      pgtype.Timestamptz{},
 						UserID:         userID,
 						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{}, //nolint:exhaustruct
+						RefreshToken:   pgtype.Text{},
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					}, nil,
@@ -684,15 +684,15 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return([]sql.AuthUserRole{
-					{UserID: userID, Role: "user"}, //nolint:exhaustruct
-					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
 				}, nil)
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -778,7 +778,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(
-					//nolint:exhaustruct
+
 					sql.AuthUser{
 						ID: userID,
 						CreatedAt: pgtype.Timestamptz{
@@ -845,13 +845,13 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
 				).Return(
-					//nolint:exhaustruct
+
 					sql.AuthUser{
 						ID: userID,
 						CreatedAt: pgtype.Timestamptz{

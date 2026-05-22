@@ -62,7 +62,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -131,7 +131,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -251,7 +251,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				Challenge: protocol.URLEncodedBase64("ignoreme"),
 				Timeout:   60000,
 				CredentialExcludeList: []protocol.CredentialDescriptor{
-					{ //nolint:exhaustruct
+					{
 						Type:         "public-key",
 						CredentialID: credentialID,
 						Transport:    []protocol.AuthenticatorTransport{},
@@ -337,7 +337,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -361,7 +361,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -390,7 +390,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text(""),
 					DisplayName: "Anonymous",
@@ -425,7 +425,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("jane@acme.com"),
 					DisplayName:   "Jane Doe",
@@ -467,7 +467,7 @@ func TestAddSecurityKey(t *testing.T) { //nolint:maintidx
 				tc.request,
 				tc.expectedResponse,
 				cmpopts.IgnoreFields(
-					api.AddSecurityKey200JSONResponse{}, //nolint:exhaustruct
+					api.AddSecurityKey200JSONResponse{},
 					"Challenge",
 				),
 			)

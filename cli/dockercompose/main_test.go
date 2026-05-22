@@ -405,8 +405,8 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			Grafana: &model.ConfigGrafana{
 				AdminPassword: "grafanaAdminPassword",
 				Smtp:          nil,
-				Alerting:      &model.ConfigGrafanaAlerting{}, //nolint:exhaustruct
-				Contacts:      &model.ConfigGrafanaContacts{}, //nolint:exhaustruct
+				Alerting:      &model.ConfigGrafanaAlerting{},
+				Contacts:      &model.ConfigGrafanaContacts{},
 			},
 		},
 	}
