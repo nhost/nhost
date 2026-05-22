@@ -52,6 +52,10 @@ rec {
       nativeBuildInputs
       checkDeps
       ;
+
+    preCheck = ''
+      export GOEXPERIMENT=jsonv2;
+    '';
   };
 
   devShell = nixops-lib.go.devShell {

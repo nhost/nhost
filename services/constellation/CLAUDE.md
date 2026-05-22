@@ -1,39 +1,53 @@
 # Project Overview
 
+**Important**: Always load the root `CLAUDE.md` at the repository root for general monorepo conventions before working on this project.
+
 Constellation is a GraphQL backend server for Nhost that replaces Hasura. It introspects databases, generates role-based GraphQL schemas with permissions, and executes queries, mutations, and subscriptions. Supports PostgreSQL and SQLite as database backends, plus remote GraphQL schemas.
+
+The Go module lives at the repo root (`github.com/nhost/nhost`) with a single shared `vendor/` directory — do not add per-project `go.mod` or `vendor/` here.
 
 ## Structure
 
-- `vendor/` - Vendored Go dependencies (do not modify manually)
 - `build/` - Docker Compose and dev environment configs
 - `cmd/` - CLI commands: `serve` (main server), `debug` (schema inspection), `metadata` (metadata utilities)
-- `connector/` - Data source abstraction layer. `Connector` interface for introspecting schemas and executing operations. `SchemaComposer` merges per-role schemas from all connectors
-- `connector/sql/` - Shared SQL connector. `Driver` interface abstracts database-specific operations (introspect, execute, dialect). Subpackages:
-  - `graphql/queries/` - SQL query builders. Translates GraphQL operations into parameterized SQL. `Dialect` interface abstracts PostgreSQL vs SQLite syntax. Largest package (~75 files). Golden file tests in `testdata/`
-  - `graphql/schema/` - GraphQL schema generation from introspected objects. `Capabilities` struct gates features by database type. Golden file tests in `testdata/`
-  - `postgres/` - PostgreSQL driver (pgx pool)
-  - `sqlite/` - SQLite driver (go-sqlite3, requires CGO). WAL mode, foreign keys enforced
-  - `introspection/` - Database introspection types (`Objects`, `Function`)
-  - `subscription/` - Subscription polling with multiplexed queries and cohort management
-- `connector/remoteschema/` - Remote GraphQL schema connector. Introspects remote endpoints, applies permissions, forwards operations
+- `connector/` - Data source abstraction layer. `connector.Connector` interface for executing operations and exposing role-specific schemas. Subpackages:
+  - `composer/` - `Composer` merges per-role schemas from multiple `SchemaProvider`s into one composed schema graph and a routing map (field/type -> owning connector)
+  - `customization/` - Applies metadata customizations (root-field rename, type-name prefix/suffix) to schemas and operations
+  - `groupedaggregate/` - Shared dispatcher and SQL helpers for grouped aggregate queries (`*_aggregate { group_by }`)
+  - `memconnector/` - In-memory connector for fixed query/value mappings (used by tests and as a thin building block)
+  - `relationships/` - Cross-connector relationship metadata: parses, validates, and applies remote relationships at the connector layer
+  - `remoteschema/` - Remote GraphQL schema connector. Introspects remote endpoints, applies permissions, forwards operations
+  - `schemamerge/` - Helpers to merge schemas (types, fields, directives) while detecting conflicts
+  - `sql/` - Shared SQL connector. `Driver` interface abstracts database-specific operations (introspect, execute, dialect). Subpackages:
+    - `graphql/queries/` - SQL query builders. Translates GraphQL operations into parameterized SQL. `dialect.Dialect` interface abstracts PostgreSQL vs SQLite syntax. Largest package (~75 files). Golden file tests in `testdata/`
+    - `graphql/schema/` - GraphQL schema generation from introspected objects. `Capabilities` struct gates features by database type. Golden file tests in `testdata/`
+    - `postgres/` - PostgreSQL driver (pgx pool)
+    - `sqlite/` - SQLite driver (go-sqlite3, requires CGO). WAL mode, foreign keys enforced
+    - `introspection/` - Database introspection types (`Objects`, `Function`)
+    - `subscription/` - Subscription polling with multiplexed queries and cohort management
 - `controller/` - HTTP request handling and GraphQL execution orchestration. Parses requests, selects role-specific schemas, plans queries across connectors, resolves remote relationships. Subpackages:
-  - `planner/` - Analyzes GraphQL operations to detect remote relationships, determines phantom fields (join columns) to inject, transforms ASTs per connector (stripping relationship fields, filtering fragments)
-  - `resolver/` - Executes cross-connector relationship queries after primary execution and stitches results back. Two strategies: `DatabaseResolver` (WHERE IN batching) and `SchemaResolver` (aliased field batching)
+  - `introspection/` - GraphQL `__schema` / `__type` introspection responses for the composed schema
   - `middleware/` - Session extraction from HTTP requests. Three-tier auth: admin secret -> JWT -> public role fallback. `X-Hasura-*` headers become session variables
+  - `planner/` - Analyzes GraphQL operations to detect remote relationships, determines phantom fields (join columns) to inject, transforms ASTs per connector (stripping relationship fields, filtering fragments)
+  - `relationships/` - Controller-side helpers for resolving relationship configuration against the composed schema
+  - `resolver/` - Executes cross-connector relationship queries after primary execution and stitches results back. Two strategies: `DatabaseResolver` (WHERE IN batching) and `SchemaResolver` (aliased field batching)
   - `websocket/` - `graphql-transport-ws` protocol handler. Pure protocol layer (read/write pumps, message routing, ping/pong). Business logic delegated to `MessageHandler` interface
 - `graph/` - Intermediate GraphQL schema representation (`Schema`, `ObjectType`, `Field`, etc.) with `ToAST()` conversion to gqlparser types
-- `metadata/` - Configuration parsing. Reads Hasura-compatible YAML or TOML metadata defining databases, tables, permissions, relationships, remote schemas, and functions
+- `metadata/` - Configuration parsing. Reads Hasura-compatible YAML or TOML metadata defining databases, tables, permissions, relationships, remote schemas, and functions. `metadata/source/` holds the `FileMetadataSource` (one-time file load) and `DatabaseMetadataSource` (polls `hdb_catalog`) implementations of `MetadataSource`
 - `subscription/` - Subscription handler interface and types (`Request`, `Update`, `Handler`)
 - `integration/` - Integration tests against real PostgreSQL and Nhost environments
 - `internal/` - Internal utilities:
   - `jwt/` - JWT validation (HMAC/RSA, static keys, JWKS URLs). Multiple secrets with fallthrough. Extracts Hasura claims and builds session variables
   - `jsonpath/` - Dot-separated JSON path navigation with array flattening. Used by planner/resolver for phantom field injection and result manipulation
   - `requestcontext/` - Context value storage for HTTP headers and logger propagation through middleware chain
+  - `schemadiff/` - GraphQL schema diffing used by tests and the `cmd/debug` schema comparison flow
   - `lib/lru/` - Thread-safe generic LRU cache (used by controller query cache)
   - `lib/syncmap/` - Thread-safe generic map with RWMutex
   - `lib/oapi/{cors,logger,tracing}/` - Gin middleware split by concern: CORS, request logging (slog), B3 distributed tracing
+  - `lib/testdb/` - Spins up a PostgreSQL test database (per-test schemas) for connector and integration tests
   - `lib/testhelpers/` - Golden file testing helpers (JSON and GraphQL schema comparison)
-- `docs/` - Developer documentation (query execution pipeline, remote relationships)
+- `docs/developers/` - Architecture, query execution pipeline, customization, remote relationships, remote schemas, subscriptions
+- `docs/user/` - User-facing documentation: Hasura metadata support matrix, PostgreSQL features, remote schema configuration
 
 ## Development Environment
 
@@ -161,7 +175,7 @@ These rules guide both new code and reviews of existing packages. They are delib
 
 ## Key Interfaces
 
-- **`connector.Connector`** (4 methods): `GetSchema()`, `Execute()`, `GetTypeName()`, `Close()`. Implemented by `sql.Connector`, `remoteschema.Connector`, `memconnector.Connector`.
+- **`connector.Connector`** (4 methods): `GetSchema()`, `Execute()`, `GetTypeName()`, `Close()`. Implemented by `sql.Connector`, `remoteschema.Connector`, and the unexported `memconnector` type returned by `memconnector.New`.
 - **`connector/sql.Driver`** (5 methods): `Introspect()`, `ExecuteOperations()`, `ExecuteMultiplexedOperation()`, `Dialect()`, `Close()`. Implemented by `postgres.Client`, `sqlite.Client`.
 - **`Dialect`** (29 methods): Abstracts all SQL syntax differences. Implementations: `PostgresDialect`, `SQLiteDialect`.
 - **`subscription.Handler`** (3 methods): `Start()`, `Stop()`, `Shutdown()`. Implemented by `sql/subscription.Handler`.
@@ -174,11 +188,11 @@ These rules guide both new code and reviews of existing packages. They are delib
 - **Dialect pattern**: `Dialect` interface (`connector/sql/graphql/queries/dialect/`) abstracts all SQL syntax differences between PostgreSQL and SQLite. New SQL generation should go through `dialect.Dialect` (the `queries.Dialect` alias also still works) -- never hardcode database-specific syntax. Concrete implementations live in `dialect/postgres.go` and `dialect/sqlite.go`. Construct dialect values via `dialect.NewPostgresDialect()` / `dialect.NewSQLiteDialect()`. Note: `JSONAggQuotedAlias(alias)` quotes the alias for use as an identifier key; `JSONAggRawExpr(expr)` takes a raw SQL expression -- the name tells you which one to use.
 - **Capabilities**: `Capabilities` struct (`connector/sql/graphql/schema/schema.go`) controls which GraphQL features are exposed based on what the database supports (regex, JSONB, DISTINCT ON, functions). Gate new database-specific features behind a capability flag.
 - **Role-based schemas**: Each role gets its own GraphQL schema based on permission metadata. The admin role has unrestricted access.
-- **Multi-connector composition**: `SchemaComposer` merges schemas from all connectors (databases + remote schemas). The controller routes each root field to its owning connector via `fieldToConnector` and `typeToConnector` maps.
+- **Multi-connector composition**: `composer.Composer` (in `connector/composer/`) merges per-role schemas from all connectors (databases + remote schemas) into a composed schema graph. The controller routes each root field to its owning connector via `fieldToConnector` and `typeToConnector` maps built during composition.
 - **Remote relationships**: Cross-connector relationships are resolved by `controller/resolver/` after initial connector execution. Join keys are collected during the first pass, then used to fetch related data from the remote connector.
-- **VariableTracker**: All user-provided values in SQL go through `VariableTracker.Add()` which returns a placeholder (`$1` for Postgres, `?` for SQLite). Never build SQL by string concatenation with user values.
-- **Permission injection**: `ApplySelectPermissions` wraps queries with additional WHERE clauses and column restrictions. Permissions can reference session variables (`X-Hasura-User-Id`, etc.).
-- **Subscriptions**: SQL subscriptions use multiplexed polling -- `CohortManager` groups subscriptions with identical queries into cohorts sharing a single SQL poll. `StreamCohortManager` handles cursor-based `subscription_stream`.
+- **Parameterized SQL only**: User-provided values flow into a `params []any` slice paired with a `paramIndex` counter. Builders call `dialect.Placeholder(paramIndex)` to emit `$N` (Postgres) or `?` (SQLite). Never build SQL by string-concatenating user values; always thread values through the params slice. See `connector/sql/graphql/queries/values/` for the AST-to-Go conversion helpers feeding this pipeline.
+- **Permission injection**: The permissions package (`connector/sql/graphql/queries/permissions/`) exposes a `Store` that resolves per-role select/insert/update/delete rules, wraps queries with additional WHERE clauses, and restricts visible columns. Permissions can reference session variables (`X-Hasura-User-Id`, etc.) which are substituted at execution time.
+- **Subscriptions**: SQL subscriptions use multiplexed polling (`connector/sql/subscription/`). The `cohortManager` groups subscriptions with identical queries into cohorts sharing a single SQL poll; the `streamCohortManager` handles cursor-based `subscription_stream`. Both are unexported and constructed through `subscription.Handler`.
 - **Atomic state swaps**: `Controller` uses `atomic.Pointer[controllerState]` for lock-free metadata hot-reload. In-flight requests complete against old state; new requests use updated state. Old connectors and subscription handlers are shut down in a background goroutine. When modifying controller state, always work through `buildState()` -- never mutate `controllerState` fields directly.
 - **Authentication flow**: `controller/middleware` extracts session from requests in priority order: (1) admin secret header grants admin role, (2) JWT token validated against configured secrets with Hasura claims extraction, (3) fallback to public role. Session variables from `X-Hasura-*` headers are injected into SQL permission WHERE clauses.
 - **Remote schema presets**: `connector/remoteschema/` uses `@preset(value: "...")` directives in SDL to hide arguments from non-admin roles and inject values (literals or session variables like `x-hasura-user-id`). Admin role always gets the live introspected schema; other roles use SDL from metadata.
@@ -189,6 +203,6 @@ When reviewing PRs:
 - Check for proper error handling and propagation.
 - Ensure new SQL generation goes through the `Dialect` interface, not hardcoded syntax.
 - Verify golden file tests are updated when SQL or schema output changes.
-- Watch for security issues: SQL injection (use parameterized queries via `VariableTracker`), credential leaks.
+- Watch for security issues: SQL injection (always thread user values through the `params []any` / `paramIndex` pipeline and emit placeholders via `dialect.Placeholder`, never via string concatenation), credential leaks.
 - Check that new database features are gated behind `Capabilities` flags.
 - Ensure tests are included for new functionality.
