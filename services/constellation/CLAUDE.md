@@ -11,7 +11,7 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
 ## Structure
 
 - `build/` - Docker Compose and dev environment configs
-- `cmd/` - CLI commands: `serve` (main server), `debug` (schema inspection), `metadata` (metadata utilities)
+- `cmd/` - CLI commands: `serve` (main server), `schema` (SDL dump/diff utilities), `metadata` (metadata utilities)
 - `connector/` - Data source abstraction layer. `connector.Connector` interface for executing operations and exposing role-specific schemas. Subpackages:
   - `composer/` - `Composer` merges per-role schemas from multiple `SchemaProvider`s into one composed schema graph and a routing map (field/type -> owning connector)
   - `customization/` - Applies metadata customizations (root-field rename, type-name prefix/suffix) to schemas and operations
@@ -42,7 +42,7 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
   - `jwt/` - JWT validation (HMAC/RSA, static keys, JWKS URLs). Multiple secrets with fallthrough. Extracts Hasura claims and builds session variables
   - `jsonpath/` - Dot-separated JSON path navigation with array flattening. Used by planner/resolver for phantom field injection and result manipulation
   - `requestcontext/` - Context value storage for HTTP headers and logger propagation through middleware chain
-  - `schemadiff/` - GraphQL schema diffing used by tests and the `cmd/debug` schema comparison flow
+  - `schemadiff/` - GraphQL schema diffing used by tests and the `cmd/schema` `diff` subcommand
   - `lib/lru/` - Thread-safe generic LRU cache (used by controller query cache)
   - `lib/syncmap/` - Thread-safe generic map with RWMutex
   - `lib/oapi/{cors,logger,tracing}/` - Gin middleware split by concern: CORS, request logging (slog), B3 distributed tracing
