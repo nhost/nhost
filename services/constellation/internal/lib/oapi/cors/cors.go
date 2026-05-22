@@ -34,10 +34,14 @@ var ErrWildcardWithCredentials = errors.New(
 //   - AllowedOrigins non-empty: only listed origins allowed.
 //   - AllowedOrigins empty slice: all origins denied.
 //
-// And three strategies for handling Access-Control-Allow-Headers:
-//   - nil (default): Reflects the Access-Control-Request-Headers from the client
-//   - empty slice: Denies all headers (no Access-Control-Allow-Headers header is set)
-//   - non-empty slice: Uses the specified headers
+// And four strategies for handling Access-Control-Allow-Headers:
+//   - AllowHeadersFunc non-nil: per-header predicate; the response reflects
+//     only the entries of Access-Control-Request-Headers the function approves
+//   - AllowedHeaders nil (default): Reflects the Access-Control-Request-Headers
+//     from the client
+//   - AllowedHeaders empty slice: Denies all headers (no
+//     Access-Control-Allow-Headers header is set)
+//   - AllowedHeaders non-empty: Uses the specified headers
 type Options struct {
 	// AllowOriginFunc, when non-nil, is consulted to decide whether an origin
 	// is allowed. It takes precedence over AllowedOrigins. Use this when the
@@ -60,10 +64,24 @@ type Options struct {
 	// Common values: GET, POST, PUT, DELETE, PATCH, OPTIONS.
 	AllowedMethods []string
 
+	// AllowHeadersFunc, when non-nil, is consulted per header name listed in
+	// the client's Access-Control-Request-Headers. The response's
+	// Access-Control-Allow-Headers will list exactly the requested entries the
+	// function approved, preserving the client's casing and order. Use this
+	// for open-ended header families like "X-Hasura-*" or "X-Nhost-*" whose
+	// full set isn't known up front. Takes precedence over AllowedHeaders.
+	//
+	// The function receives the header name as the client sent it (trimmed of
+	// surrounding whitespace); callers that want a case-insensitive match
+	// should lower-case the input themselves.
+	AllowHeadersFunc func(name string) bool
+
 	// AllowedHeaders controls which headers clients can use in requests.
 	// - nil: reflects client's Access-Control-Request-Headers (permissive)
 	// - empty slice: denies all headers
 	// - non-empty: allows only specified headers
+	//
+	// Ignored when AllowHeadersFunc is set.
 	AllowedHeaders []string
 
 	// ExposedHeaders lists headers that browsers are allowed to access.
@@ -108,6 +126,11 @@ const (
 	// headerDeny omits Access-Control-Allow-Headers entirely. Selected when
 	// Options.AllowedHeaders is an empty (non-nil) slice.
 	headerDeny
+	// headerFiltered reflects the subset of the client's
+	// Access-Control-Request-Headers approved by Options.AllowHeadersFunc.
+	// Selected whenever AllowHeadersFunc is non-nil; takes precedence over
+	// the AllowedHeaders nil/empty/non-empty distinction.
+	headerFiltered
 )
 
 // corsConfig holds the values precomputed once at middleware construction
@@ -115,6 +138,7 @@ const (
 // regardless of Options.
 type corsConfig struct {
 	originAllowed    func(origin string) bool
+	headerAllowed    func(name string) bool // non-nil only when strategy == headerFiltered
 	allowedMethods   string
 	exposedHeaders   string
 	allowedHeaders   string
@@ -135,9 +159,13 @@ func newCORSConfig(opts Options) corsConfig {
 	var (
 		strategy       headerStrategy
 		allowedHeaders string
+		headerAllowed  func(name string) bool
 	)
 
 	switch {
+	case opts.AllowHeadersFunc != nil:
+		strategy = headerFiltered
+		headerAllowed = opts.AllowHeadersFunc
 	case opts.AllowedHeaders == nil:
 		strategy = headerReflect
 	case len(opts.AllowedHeaders) == 0:
@@ -149,6 +177,7 @@ func newCORSConfig(opts Options) corsConfig {
 
 	return corsConfig{
 		originAllowed:    allowOriginFunc(opts),
+		headerAllowed:    headerAllowed,
 		allowedMethods:   strings.Join(opts.AllowedMethods, ", "),
 		exposedHeaders:   strings.Join(opts.ExposedHeaders, ", "),
 		allowedHeaders:   allowedHeaders,
@@ -156,6 +185,32 @@ func newCORSConfig(opts Options) corsConfig {
 		maxAge:           opts.MaxAge,
 		strategy:         strategy,
 	}
+}
+
+// filterRequestHeaders returns the subset of the comma-separated requested
+// header list (in Access-Control-Request-Headers wire format) for which allow
+// returns true. The returned list preserves the client's casing and original
+// join order.
+func filterRequestHeaders(requested string, allow func(name string) bool) string {
+	if requested == "" {
+		return ""
+	}
+
+	parts := strings.Split(requested, ",")
+	allowed := make([]string, 0, len(parts))
+
+	for _, raw := range parts {
+		name := strings.TrimSpace(raw)
+		if name == "" {
+			continue
+		}
+
+		if allow(name) {
+			allowed = append(allowed, name)
+		}
+	}
+
+	return strings.Join(allowed, ", ")
 }
 
 // applyHeaders writes the CORS response headers for a single request whose
@@ -171,6 +226,11 @@ func (cfg corsConfig) applyHeaders(c *gin.Context, origin string) {
 		headers := c.Request.Header.Get("Access-Control-Request-Headers")
 		if headers != "" {
 			c.Header("Access-Control-Allow-Headers", headers)
+		}
+	case headerFiltered:
+		requested := c.Request.Header.Get("Access-Control-Request-Headers")
+		if filtered := filterRequestHeaders(requested, cfg.headerAllowed); filtered != "" {
+			c.Header("Access-Control-Allow-Headers", filtered)
 		}
 	case headerDeny:
 		// Don't set the header at all.

@@ -112,6 +112,46 @@ func TestGetCorsOptions(t *testing.T) {
 	}
 }
 
+func TestGetCorsOptionsAllowHeadersFunc(t *testing.T) {
+	t.Parallel()
+
+	opts, _, err := runGetCorsOptions(
+		t,
+		[]string{"--" + flagCORSAllowedOrigins, "https://app.example.com"},
+	)
+	if err != nil {
+		t.Fatalf("getCorsOptions unexpected error: %v", err)
+	}
+
+	if opts.AllowHeadersFunc == nil {
+		t.Fatal("AllowHeadersFunc is nil; want non-nil so X-Hasura-*/X-Nhost-* pass CORS")
+	}
+
+	cases := []struct {
+		name   string
+		header string
+		want   bool
+	}{
+		{name: "authorization", header: "Authorization", want: true},
+		{name: "content_type", header: "Content-Type", want: true},
+		{name: "hasura_session_var", header: "X-Hasura-User-Id", want: true},
+		{name: "hasura_lowercase", header: "x-hasura-role", want: true},
+		{name: "nhost_webhook_secret", header: "X-Nhost-Webhook-Secret", want: true},
+		{name: "unrelated_header", header: "X-Random", want: false},
+		{name: "prefix_only_no_dash", header: "X-Hasura", want: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := opts.AllowHeadersFunc(tc.header); got != tc.want {
+				t.Errorf("AllowHeadersFunc(%q) = %v; want %v", tc.header, got, tc.want)
+			}
+		})
+	}
+}
+
 // assertWildcardError checks the validation-error path: the returned error must
 // wrap the expected sentinel and name the flag so operators know what to fix.
 func assertWildcardError(t *testing.T, err, want error) {

@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec // pprof is gated behind a CLI flag
+	"strings"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -179,6 +180,21 @@ func CommandServe() *cli.Command {
 	}
 }
 
+// allowRequestHeader is the AllowHeadersFunc used by the CORS middleware. It
+// approves the small fixed set of standard request headers a browser sends
+// on a GraphQL call plus the open-ended X-Hasura-* and X-Nhost-* families
+// (Hasura session variables and Nhost internal headers like
+// x-nhost-webhook-secret). The match is case-insensitive because browsers
+// may send Access-Control-Request-Headers entries in any casing.
+func allowRequestHeader(name string) bool {
+	switch lower := strings.ToLower(name); lower {
+	case "origin", "content-type", "accept", "authorization":
+		return true
+	default:
+		return strings.HasPrefix(lower, "x-hasura-") || strings.HasPrefix(lower, "x-nhost-")
+	}
+}
+
 // getCorsOptions builds the CORS configuration from the configured
 // allowed-origins flag. An empty allow-list is the safe default: no origin
 // matches, so no Access-Control-Allow-Origin is emitted and credentialed
@@ -201,7 +217,8 @@ func getCorsOptions(
 		AllowOriginFunc:  nil,
 		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
-		AllowedHeaders:   []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowHeadersFunc: allowRequestHeader,
+		AllowedHeaders:   nil,
 		ExposedHeaders:   nil,
 		AllowCredentials: true,
 		MaxAge:           "86400",
@@ -306,7 +323,7 @@ func initJWTAuth(
 	return jwtAuth, nil
 }
 
-func newMetadataSource( //nolint:ireturn
+func newMetadataSource( //nolint:ireturn,nolintlint
 	ctx context.Context, cmd *cli.Command, logger *slog.Logger,
 ) (metadata.Source, error) {
 	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {

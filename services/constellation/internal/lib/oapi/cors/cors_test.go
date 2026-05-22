@@ -285,6 +285,94 @@ func TestCORSHeaderStrategies(t *testing.T) {
 	}
 }
 
+func TestCORSAllowHeadersFunc(t *testing.T) {
+	t.Parallel()
+
+	hasuraOrNhostOrAuth := func(name string) bool {
+		lower := strings.ToLower(name)
+
+		return lower == "authorization" ||
+			strings.HasPrefix(lower, "x-hasura-") ||
+			strings.HasPrefix(lower, "x-nhost-")
+	}
+
+	cases := []struct {
+		name          string
+		allowFunc     func(name string) bool
+		requestHeader string
+		wantACAH      string
+		wantPresent   bool
+	}{
+		{
+			name:          "reflects_only_approved_headers",
+			allowFunc:     hasuraOrNhostOrAuth,
+			requestHeader: "Authorization, X-Hasura-User-Id, X-Random, X-Nhost-Webhook-Secret",
+			wantACAH:      "Authorization, X-Hasura-User-Id, X-Nhost-Webhook-Secret",
+			wantPresent:   true,
+		},
+		{
+			name:          "case_insensitive_match_preserves_client_casing",
+			allowFunc:     hasuraOrNhostOrAuth,
+			requestHeader: "x-HASURA-Role, authorization",
+			wantACAH:      "x-HASURA-Role, authorization",
+			wantPresent:   true,
+		},
+		{
+			name:          "all_denied_omits_header",
+			allowFunc:     func(string) bool { return false },
+			requestHeader: "X-Foo, X-Bar",
+			wantACAH:      "",
+			wantPresent:   false,
+		},
+		{
+			name:          "empty_request_headers_omits_header",
+			allowFunc:     hasuraOrNhostOrAuth,
+			requestHeader: "",
+			wantACAH:      "",
+			wantPresent:   false,
+		},
+		{
+			name:          "skips_empty_entries_between_commas",
+			allowFunc:     hasuraOrNhostOrAuth,
+			requestHeader: "Authorization,, X-Hasura-Role",
+			wantACAH:      "Authorization, X-Hasura-Role",
+			wantPresent:   true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			opts := cors.Options{
+				AllowOriginFunc:  nil,
+				AllowedOrigins:   []string{"https://example.com"},
+				AllowedMethods:   []string{"GET"},
+				AllowHeadersFunc: tc.allowFunc,
+				// AllowedHeaders should be ignored when AllowHeadersFunc is set;
+				// a non-nil value here proves precedence.
+				AllowedHeaders:   []string{"Should-Be-Ignored"},
+				ExposedHeaders:   nil,
+				AllowCredentials: false,
+				MaxAge:           "",
+			}
+
+			rec, _ := runCORS(t, opts, http.MethodOptions, "https://example.com", tc.requestHeader)
+
+			got := rec.Header().Get("Access-Control-Allow-Headers")
+
+			_, present := rec.Header()["Access-Control-Allow-Headers"]
+			if present != tc.wantPresent {
+				t.Errorf("ACAH presence: got %v, want %v (value %q)", present, tc.wantPresent, got)
+			}
+
+			if got != tc.wantACAH {
+				t.Errorf("ACAH: got %q, want %q", got, tc.wantACAH)
+			}
+		})
+	}
+}
+
 func TestCORSAllowCredentials(t *testing.T) {
 	t.Parallel()
 
