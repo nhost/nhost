@@ -1,14 +1,16 @@
 import { formatDistanceToNow } from 'date-fns';
-import { BoxIcon } from 'lucide-react';
+import {
+  BoxIcon,
+  CopyIcon,
+  Ellipsis as DotsHorizontalIcon,
+  EyeIcon,
+  Trash2 as TrashIcon,
+} from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DeleteServiceModal } from '@/features/orgs/projects/common/components/DeleteServiceModal';
@@ -183,7 +185,7 @@ export default function ServicesList({
                 onClick={() => viewService(service)}
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
               >
-                <UserIcon className="h-4 w-4" />
+                <EyeIcon className="h-4 w-4" />
                 <Text className="font-medium">View Service</Text>
               </Dropdown.Item>
               <Divider component="li" />
