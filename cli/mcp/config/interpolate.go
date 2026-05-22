@@ -4,7 +4,7 @@ import "strings"
 
 // interpolateEnv replaces environment variables in the format $VAR.
 // Supports escaping $ with $$ or \$.
-func interpolateEnv(s string, getenv func(string) string) string { //nolint:cyclop
+func interpolateEnv(s string, getenv func(string) string) string {
 	var result strings.Builder
 	result.Grow(len(s))
 

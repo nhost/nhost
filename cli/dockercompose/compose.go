@@ -571,7 +571,7 @@ func sanitizeBranch(name string) string {
 	return strings.ToLower(re.ReplaceAllString(name, ""))
 }
 
-func IsJWTSecretCompatibleWithHasuraAuth( //nolint:cyclop
+func IsJWTSecretCompatibleWithHasuraAuth(
 	jwtSecret *model.ConfigJWTSecret,
 ) bool {
 	if jwtSecret != nil && jwtSecret.Type != nil && *jwtSecret.Type != "" && jwtSecret.Key != nil &&

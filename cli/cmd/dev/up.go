@@ -400,7 +400,7 @@ func processRunServices(
 	return r, nil
 }
 
-func up( //nolint:funlen,cyclop
+func up( //nolint:funlen
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	appVersion string,
