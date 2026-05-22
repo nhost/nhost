@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "departments_aggregate",
+    "QueryType": "select_aggregate",
+    "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"departments\") SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*), 'sum', json_build_object('budget', SUM(\"budget\")), 'avg', json_build_object('budget', AVG(\"budget\")), 'max', json_build_object('budget', MAX(\"budget\")), 'min', json_build_object('budget', MIN(\"budget\")), 'stddev', json_build_object('budget', STDDEV(\"budget\")), 'stddev_pop', json_build_object('budget', STDDEV_POP(\"budget\")), 'stddev_samp', json_build_object('budget', STDDEV_SAMP(\"budget\")), 'variance', json_build_object('budget', VARIANCE(\"budget\")), 'var_pop', json_build_object('budget', VAR_POP(\"budget\")), 'var_samp', json_build_object('budget', VAR_SAMP(\"budget\"))) FROM \"_root.base\")) AS \"departments_aggregate\"",
+    "Parameters": []
+  }
+]

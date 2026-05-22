@@ -1,0 +1,8 @@
+function:
+  name: set_department_manager
+  schema: public
+configuration:
+  custom_root_fields: {}
+  session_argument: session
+permissions:
+  - role: user
