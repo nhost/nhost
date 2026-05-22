@@ -90,3 +90,4 @@ minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
   - turbo@2.9.14
   - js-cookie@3.0.6
+  - '@sveltejs/kit@2.60.1'
