@@ -27,6 +27,12 @@ func generateTableMutationFields(
 	qualifiedName string,
 	role string,
 ) {
+	// DELETE is intentionally gated on IsUpdatable. Postgres exposes
+	// is_trigger_deletable independently of is_updatable, so an INSTEAD OF
+	// trigger view can in principle be delete-only — but those are rare and
+	// would need a dedicated introspection signal to surface here. Until we
+	// add one, treat updatable-implies-deletable as the safe approximation:
+	// it correctly covers ordinary tables and simple (non-trigger) views.
 	if tableInfo.IsUpdatable &&
 		(role == roleAdmin || getDeletePermission(tableMeta, role) != nil) {
 		appendDeleteFields(mutationFields, tableMeta, tableInfo, customTableName, qualifiedName)

@@ -119,11 +119,12 @@ func getTableNames(ctx context.Context, q Querier) ([]relationEntry, error) {
 // constraints) in turn. SQLite has no per-table or per-column comment system,
 // so the corresponding fields are always nil.
 //
-// SQLite views are read-only unless backed by an INSTEAD OF trigger; we do
-// not introspect those today, so any view conservatively defaults to
-// IsInsertable=false, IsUpdatable=false. Adding instead-of-trigger detection
-// would let updatable SQLite views regain mutations, but no current consumer
-// needs that.
+// SQLite views are read-only by default. A view becomes writable when it is
+// backed by INSTEAD OF triggers — INSTEAD OF INSERT makes the view
+// insertable, INSTEAD OF UPDATE or DELETE makes it "updatable" in the sense
+// the introspection model uses (IsUpdatable gates both UPDATE and DELETE,
+// matching Postgres' information_schema.views.is_updatable). For base tables
+// we always report (true, true).
 func introspectTable(
 	ctx context.Context,
 	q Querier,
@@ -145,6 +146,19 @@ func introspectTable(
 		return nil, fmt.Errorf("reading unique constraints: %w", err)
 	}
 
+	isInsertable := !isView
+	isUpdatable := !isView
+
+	if isView {
+		insertable, updatable, terr := getViewMutability(ctx, q, tableName)
+		if terr != nil {
+			return nil, fmt.Errorf("reading view mutability: %w", terr)
+		}
+
+		isInsertable = insertable
+		isUpdatable = updatable
+	}
+
 	return &introspection.Table{
 		Schema:                   "",
 		Name:                     tableName,
@@ -155,9 +169,140 @@ func introspectTable(
 		ForeignKeys:              fks,
 		UniqueConstraints:        ucs,
 		IsView:                   isView,
-		IsInsertable:             !isView,
-		IsUpdatable:              !isView,
+		IsInsertable:             isInsertable,
+		IsUpdatable:              isUpdatable,
 	}, nil
+}
+
+// getViewMutability inspects sqlite_master for INSTEAD OF triggers attached
+// to viewName and returns (insertable, updatable). A view is "insertable" if
+// it has an INSTEAD OF INSERT trigger, and "updatable" if it has an
+// INSTEAD OF UPDATE or INSTEAD OF DELETE trigger — matching how Postgres'
+// information_schema.views.is_updatable conflates UPDATE and DELETE.
+//
+// The match is done by scanning each trigger's stored CREATE TRIGGER text
+// for the INSTEAD OF clause and the operation keyword. SQLite stores the
+// original SQL verbatim (modulo case-folding by the parser is not applied),
+// so the comparison normalises to upper case before substring matching.
+// Only the header (everything before the trigger body's BEGIN keyword) is
+// searched, so trigger bodies containing the literal phrase "INSTEAD OF
+// <op>" inside a string literal or comment cannot create false positives —
+// SQLite's CREATE TRIGGER grammar always places the INSTEAD OF clause
+// between CREATE TRIGGER <name> and ON <table>, both of which precede BEGIN.
+func getViewMutability(
+	ctx context.Context, q Querier, viewName string,
+) (bool, bool, error) {
+	rows, err := q.QueryContext(
+		ctx,
+		`SELECT sql FROM sqlite_master
+		 WHERE type = 'trigger' AND tbl_name = ? AND sql IS NOT NULL`,
+		viewName,
+	)
+	if err != nil {
+		return false, false, fmt.Errorf("failed to query triggers: %w", err)
+	}
+	defer rows.Close()
+
+	var insertable, updatable bool
+
+	for rows.Next() {
+		var sql string
+		if err := rows.Scan(&sql); err != nil {
+			return false, false, fmt.Errorf("failed to scan trigger sql: %w", err)
+		}
+
+		// Restrict the search to the trigger header (the text before the
+		// standalone BEGIN keyword) so phrases inside the trigger body
+		// (string literals, comments, nested statements) cannot be mistaken
+		// for the header's INSTEAD OF <op> marker. The boundary check is
+		// required because the trigger or target relation may itself be
+		// named with a "BEGIN" substring (e.g. `begin_audit`,
+		// `v_begin`), and a plain `strings.Index` would otherwise truncate
+		// the header before the real INSTEAD OF clause and regress the
+		// detection into a false negative.
+		upper := strings.ToUpper(sql)
+		if idx := indexBeginKeyword(upper); idx >= 0 {
+			upper = upper[:idx]
+		}
+
+		if !strings.Contains(upper, "INSTEAD OF") {
+			continue
+		}
+
+		switch {
+		case strings.Contains(upper, "INSTEAD OF INSERT"):
+			insertable = true
+		case strings.Contains(upper, "INSTEAD OF UPDATE"),
+			strings.Contains(upper, "INSTEAD OF DELETE"):
+			updatable = true
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return false, false, fmt.Errorf("error iterating triggers: %w", err)
+	}
+
+	return insertable, updatable, nil
+}
+
+// indexBeginKeyword returns the byte offset of the first standalone BEGIN
+// keyword in upper (which the caller has already upper-cased), or -1 if there
+// is none. A match must be flanked on both sides by characters that are not
+// part of a SQLite identifier — letters, digits, underscore and `$` — so that
+// identifiers such as `begin_audit` or `v_begin` are not mistaken for the
+// trigger body's opening keyword.
+func indexBeginKeyword(upper string) int {
+	const keyword = "BEGIN"
+
+	start := 0
+	for {
+		rel := strings.Index(upper[start:], keyword)
+		if rel < 0 {
+			return -1
+		}
+
+		idx := start + rel
+		if isStandaloneKeyword(upper, idx, len(keyword)) {
+			return idx
+		}
+
+		start = idx + 1
+	}
+}
+
+// isStandaloneKeyword reports whether the keyword of length keywordLen
+// starting at idx in s is bounded by non-identifier characters on both sides.
+// SQLite identifiers can contain letters, digits, underscore and `$`; any
+// other byte (whitespace, punctuation, start/end of string) is treated as a
+// boundary.
+func isStandaloneKeyword(s string, idx, keywordLen int) bool {
+	if idx > 0 && isIdentByte(s[idx-1]) {
+		return false
+	}
+
+	end := idx + keywordLen
+	if end < len(s) && isIdentByte(s[end]) {
+		return false
+	}
+
+	return true
+}
+
+// isIdentByte reports whether b can appear inside an unquoted SQLite
+// identifier. SQLite accepts ASCII letters, digits, underscore, and `$` in
+// identifier name characters; the caller has already upper-cased the input so
+// lower-case letters never reach this check.
+func isIdentByte(b byte) bool {
+	switch {
+	case b >= 'A' && b <= 'Z':
+		return true
+	case b >= '0' && b <= '9':
+		return true
+	case b == '_' || b == '$':
+		return true
+	default:
+		return false
+	}
 }
 
 // getColumnsAndPKs returns the column metadata and primary-key column list

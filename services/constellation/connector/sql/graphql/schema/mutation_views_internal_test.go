@@ -137,3 +137,58 @@ func TestGenerateTableMutationFields_BaseTableGetsMutations(t *testing.T) {
 		t.Fatal("expected mutation fields for base table, got none")
 	}
 }
+
+// TestGenerateTableMutationFields_NonAdminRoleSkipsReadOnlyView locks in the
+// AND-semantics of the mutation gate for non-admin roles: even when the role
+// has explicit insert/update/delete permissions configured in metadata, a
+// view introspected as IsInsertable=false / IsUpdatable=false must still
+// emit no mutation fields. The role-permission branch of the gate must not
+// override the database's read-only verdict. The admin subtest above covers
+// the role==admin half of the OR; this covers the permission-bearing half.
+func TestGenerateTableMutationFields_NonAdminRoleSkipsReadOnlyView(t *testing.T) {
+	t.Parallel()
+
+	tableMeta := &metadata.TableMetadata{
+		Table: metadata.TableSource{Schema: "public", Name: "content_feed"},
+		Configuration: metadata.TableConfiguration{
+			CustomName: "contentFeed",
+		},
+		InsertPermissions: []metadata.InsertPermission{
+			{Role: "user", Permission: metadata.InsertPermissionConfig{Columns: []string{"id"}}},
+		},
+		UpdatePermissions: []metadata.UpdatePermission{
+			{Role: "user", Permission: metadata.UpdatePermissionConfig{Columns: []string{"id"}}},
+		},
+		DeletePermissions: []metadata.DeletePermission{
+			{Role: "user", Permission: metadata.DeletePermissionConfig{}},
+		},
+	}
+	tableInfo := &introspection.Table{
+		Schema:       "public",
+		Name:         "content_feed",
+		IsView:       true,
+		IsInsertable: false,
+		IsUpdatable:  false,
+		Columns: []introspection.Column{
+			{Name: "id", Type: "uuid"},
+			{Name: "title", Type: "text"},
+		},
+	}
+
+	var fields []*graph.Field
+	generateTableMutationFields(
+		&fields, tableMeta, tableInfo, "contentFeed", "public.content_feed", "user",
+	)
+
+	if len(fields) != 0 {
+		names := make([]string, 0, len(fields))
+		for _, f := range fields {
+			names = append(names, f.Name)
+		}
+
+		t.Fatalf(
+			"expected no mutation fields for read-only view despite role permissions, got %v",
+			names,
+		)
+	}
+}
