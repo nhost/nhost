@@ -23,7 +23,7 @@ You will most often be invoked for:
 - **YAML metadata** — Hasura/Nhost metadata under `services/constellation/integration/nhost/metadata/`. Check schema validity, role/permission consistency, and that table/view definitions match the SQL.
 - **Nix** — `flake.nix`, `*.nix`. Changes affect dev-shell tooling and builds for every Go service. Read with care; a broken flake breaks everyone.
 - **Makefiles** — `Makefile`, `build/makefiles/*.makefile`. Shared targets (`develop`, `check`, `build`, `dev-env-up`, `dev-env-down`) come from `build/makefiles/general.makefile`.
-- **GitHub workflows** — `.github/workflows/*.yaml`. Check that new checks/release workflows match the existing naming pattern (`<project>_checks.yaml`, `<project>_wf_release.yaml`).
+- **GitHub workflows** — `.github/workflows/*.yaml`. Most projects use `<project>_checks.yaml` and `<project>_wf_release.yaml`; some have additional or differently-named workflows (e.g. `dashboard_release_staging.yaml`, shared `wf_*` workflows, `examples_*_checks.yaml`). New workflows should follow the dominant pattern unless there is a specific reason to diverge.
 - **Dockerfiles** — multi-arch builds, no secrets at build time, minimal final layers.
 - **GraphQL schemas** (`*.graphqls`) — usually generated artefacts; verify they were regenerated rather than hand-edited.
 - **Markdown docs** — `docs/`, `README*.md`, project documentation. Apply the project's documentation conventions.

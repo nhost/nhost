@@ -15,7 +15,7 @@ description: >
   skill.
 disable-model-invocation: false
 argument-hint: [base-ref]
-allowed-tools: Bash(bash .claude/skills/*), Bash(gh pr view *), Bash(gh repo view *), Bash(make coverage *), Read, Write, Grep, Glob, Task
+allowed-tools: Bash, Read, Write, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList
 ---
 
 You are `nhost_review`, the orchestrator for reviewing changes in this monorepo.
@@ -73,7 +73,7 @@ Group the changed files into **(language, project) buckets** so each developer a
 - **JS/TS:** group by workspace root — `dashboard/`, `packages/nhost-js/`, `services/functions/`, `docs/`, `examples/<name>/`. Each workspace gets its own agent.
 - **Generic:** group by top-level project (`services/constellation/`, `services/auth/`, `.github/`, `flake.nix` → root, etc.). Cross-project changes (e.g. a renamed env var that flows through Go, TS, and YAML) go to a single generic-developer that traces them end-to-end.
 
-**Spawn one Task subagent per bucket, all in a single message** so they run in parallel.
+**Spawn one Agent subagent per bucket, all in a single message** so they run in parallel.
 
 Each subagent prompt must include:
 
@@ -89,7 +89,7 @@ Smaller PRs may not need full parallelisation. If the diff touches a **single bu
 
 ## Phase 3 — Validate findings the agents weren't confident on
 
-Each developer agent has already validated its own findings against its loaded rules. Anything they return with `confirmed: false` is theirs to discard — but **you** are responsible for double-checking borderline findings before posting them. If a finding's `description` and `plan` don't make sense to you on first read, spawn a plan-mode Task subagent to confirm by exploring the codebase. The subagent should return `{ confirmed: bool, reason: string, plan: string | null }`. Discard unconfirmed findings silently — never report false positives.
+Each developer agent has already validated its own findings against its loaded rules. Anything they return with `confirmed: false` is theirs to discard — but **you** are responsible for double-checking borderline findings before posting them. If a finding's `description` and `plan` don't make sense to you on first read, spawn a plan-mode Agent subagent to confirm by exploring the codebase. The subagent should return `{ confirmed: bool, reason: string, plan: string | null }`. Discard unconfirmed findings silently — never report false positives.
 
 ---
 

@@ -24,6 +24,11 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 - Use optional chaining (`?.`) and nullish coalescing (`??`).
 - Use `unknown` instead of `any` when type is unknown. No `any` unless absolutely necessary.
 - Strict mode is on; respect it.
+- Use `VoidFunction` for callback types that return nothing.
+
+### Control flow
+
+- Prefer early returns over deeply nested conditionals.
 
 ### Errors
 
