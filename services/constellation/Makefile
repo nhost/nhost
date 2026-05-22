@@ -25,6 +25,7 @@ _dev-env-build: build-docker-image
 
 .PHONY: dev-env-integration-up
 dev-env-integration-up:
+	cd integration && [ -f .secrets ] || cp .secrets.example .secrets
 	cd integration && nhost up --apply-seeds
 
 
