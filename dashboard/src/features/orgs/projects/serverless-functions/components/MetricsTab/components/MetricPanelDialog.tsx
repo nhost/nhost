@@ -10,17 +10,12 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import MetricChart from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricChart';
-import MetricPanelFilterBar from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricPanelFilterBar';
 import {
   colorForMethod,
   colorForStatus,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/constants';
 import { METRIC_PANELS } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
-import type {
-  MetricPanelFilter,
-  MetricPanelSlug,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/types';
-import { applyMetricFilter } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/applyMetricFilter';
+import type { MetricPanelSlug } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/types';
 import {
   formatBytes,
   formatInteger,
@@ -34,22 +29,22 @@ import type {
 
 export interface MetricPanelDialogProps {
   openPanel: MetricPanelSlug | null;
-  filter: MetricPanelFilter;
+  hiddenKeys: string[];
   metrics: FunctionMetricsResponse | undefined;
   xDomain: [number, number];
   onClose: VoidFunction;
-  onFilterChange: (filter: MetricPanelFilter) => void;
+  onHiddenKeysChange: (next: string[]) => void;
   onZoomRange?: (fromMs: number, toMs: number) => void;
   onZoomOut?: () => void;
 }
 
 export default function MetricPanelDialog({
   openPanel,
-  filter,
+  hiddenKeys,
   metrics,
   xDomain,
   onClose,
-  onFilterChange,
+  onHiddenKeysChange,
   onZoomRange,
   onZoomOut,
 }: MetricPanelDialogProps) {
@@ -60,11 +55,6 @@ export default function MetricPanelDialog({
     }
     return seriesForSlug(openPanel, metrics);
   }, [openPanel, metrics]);
-
-  const filteredData = useMemo(
-    () => applyMetricFilter(sourceData, filter),
-    [sourceData, filter],
-  );
 
   const valueFormatter = useMemo(() => {
     if (!config) {
@@ -134,18 +124,9 @@ export default function MetricPanelDialog({
           </div>
         </DialogHeader>
 
-        {config ? (
-          <MetricPanelFilterBar
-            labelDimensions={config.labelDimensions}
-            data={sourceData}
-            filter={filter}
-            onChange={onFilterChange}
-          />
-        ) : null}
-
         <MetricChart
           kind="line"
-          data={filteredData}
+          data={sourceData}
           height={520}
           seriesKeyFor={
             keyKind === 'status'
@@ -166,6 +147,8 @@ export default function MetricPanelDialog({
           xDomain={xDomain}
           onZoomRange={onZoomRange}
           onZoomOut={onZoomOut}
+          hiddenKeys={hiddenKeys}
+          onHiddenKeysChange={onHiddenKeysChange}
         />
       </DialogContent>
     </Dialog>

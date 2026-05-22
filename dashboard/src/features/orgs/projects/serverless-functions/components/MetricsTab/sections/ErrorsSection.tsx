@@ -85,6 +85,7 @@ export default function ErrorsSection({
             {
               key: 'status',
               label: 'Status',
+              alignRight: true,
               render: (row) => (
                 <span
                   className="font-mono text-xs"

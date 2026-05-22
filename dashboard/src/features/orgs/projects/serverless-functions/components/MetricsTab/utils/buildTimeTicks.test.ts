@@ -1,4 +1,7 @@
-import { buildTimeTicks } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/buildTimeTicks';
+import {
+  buildTimeTicks,
+  computeTickStep,
+} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/buildTimeTicks';
 
 const ts = (iso: string) => new Date(iso).getTime();
 
@@ -48,5 +51,32 @@ describe('buildTimeTicks', () => {
     const ticks = buildTimeTicks([from, to]);
     expect(ticks.length).toBeGreaterThan(1);
     expect(ticks[1] - ticks[0]).toBe(2 * 24 * 60 * 60_000);
+  });
+
+  it('builds 5-second ticks across a 30-second window', () => {
+    const from = ts('2026-05-16T12:00:00Z');
+    const to = ts('2026-05-16T12:00:30Z');
+    const ticks = buildTimeTicks([from, to]);
+    expect(ticks[0]).toBe(from);
+    expect(ticks[ticks.length - 1]).toBe(to);
+    expect(ticks[1] - ticks[0]).toBe(5_000);
+  });
+});
+
+describe('computeTickStep', () => {
+  it('returns sub-minute steps for short windows', () => {
+    expect(computeTickStep([0, 30_000])).toBe(5_000);
+    expect(computeTickStep([0, 60_000])).toBe(10_000);
+    expect(computeTickStep([0, 180_000])).toBe(30_000);
+  });
+
+  it('returns minute-or-larger steps for longer windows', () => {
+    expect(computeTickStep([0, 6 * 60_000])).toBe(60_000);
+    expect(computeTickStep([0, 60 * 60_000])).toBe(10 * 60_000);
+  });
+
+  it('returns 0 for invalid ranges', () => {
+    expect(computeTickStep([1000, 1000])).toBe(0);
+    expect(computeTickStep([0, 60_000], 1)).toBe(0);
   });
 });

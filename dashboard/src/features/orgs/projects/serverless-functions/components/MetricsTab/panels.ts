@@ -59,10 +59,3 @@ export const METRIC_PANELS: Record<MetricPanelSlug, MetricPanelConfig> = {
     valueFormatterKind: 'percent-unit',
   },
 };
-
-export function humanizeLabelDimension(dim: string): string {
-  if (!dim) {
-    return '';
-  }
-  return dim.charAt(0).toUpperCase() + dim.slice(1);
-}

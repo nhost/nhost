@@ -1,7 +1,14 @@
 import { format } from 'date-fns';
 
 export function formatInteger(v: number): string {
-  return Math.round(v).toLocaleString('en-US');
+  if (!Number.isFinite(v)) {
+    return '—';
+  }
+  const rounded = Math.round(v);
+  if (Math.abs(v - rounded) < 1e-9) {
+    return rounded.toLocaleString('en-US');
+  }
+  return v.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
 export function formatBytes(bytes: number): string {
@@ -87,6 +94,18 @@ export function formatTimestampTick(ts: unknown): string {
   return format(d, 'HH:mm');
 }
 
+export function formatTimestampSecondsTick(ts: unknown): string {
+  const n = typeof ts === 'number' ? ts : Number(ts);
+  if (!Number.isFinite(n)) {
+    return '';
+  }
+  const d = new Date(n);
+  if (Number.isNaN(d.getTime())) {
+    return '';
+  }
+  return format(d, 'HH:mm:ss');
+}
+
 export function formatTimestampDateTick(ts: unknown): string {
   const n = typeof ts === 'number' ? ts : Number(ts);
   if (!Number.isFinite(n)) {
@@ -96,7 +115,7 @@ export function formatTimestampDateTick(ts: unknown): string {
   if (Number.isNaN(d.getTime())) {
     return '';
   }
-  return format(d, 'MM-dd');
+  return format(d, 'MM-dd HH:mm');
 }
 
 export function formatTimestampFull(ts: unknown): string {

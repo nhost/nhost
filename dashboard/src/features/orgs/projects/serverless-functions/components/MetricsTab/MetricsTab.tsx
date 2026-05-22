@@ -57,7 +57,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
     route: fn.route,
     range,
   });
-  const { openPanel, filter, open, close, setFilter } =
+  const { openPanel, hiddenKeys, open, close, setHiddenKeys } =
     useMetricsPanelUrlState();
 
   const handleZoomRange = useCallback(
@@ -178,11 +178,11 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
 
           <MetricPanelDialog
             openPanel={openPanel}
-            filter={filter}
+            hiddenKeys={hiddenKeys}
             metrics={data}
             xDomain={xDomain}
             onClose={close}
-            onFilterChange={setFilter}
+            onHiddenKeysChange={setHiddenKeys}
             onZoomRange={handleZoomRange}
             onZoomOut={handleZoomOut}
           />

@@ -1,20 +1,18 @@
 import { useRouter } from 'next/router';
 import { useCallback, useMemo } from 'react';
-import { METRIC_PANELS } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
 import {
   isMetricPanelSlug,
-  type MetricPanelFilter,
   type MetricPanelSlug,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/types';
 
-const FILTER_PREFIX = 'metricFilter.';
+const HIDDEN_KEYS_PARAM = 'metricHidden';
 
 export interface MetricsPanelUrlState {
   openPanel: MetricPanelSlug | null;
-  filter: MetricPanelFilter;
+  hiddenKeys: string[];
   open: (slug: MetricPanelSlug) => void;
   close: () => void;
-  setFilter: (filter: MetricPanelFilter) => void;
+  setHiddenKeys: (next: string[]) => void;
 }
 
 export default function useMetricsPanelUrlState(): MetricsPanelUrlState {
@@ -26,30 +24,16 @@ export default function useMetricsPanelUrlState(): MetricsPanelUrlState {
     return isMetricPanelSlug(value) ? value : null;
   }, [router.query.metricPanel]);
 
-  const filter = useMemo<MetricPanelFilter>(() => {
+  const hiddenKeys = useMemo<string[]>(() => {
     if (!openPanel) {
-      return {};
+      return [];
     }
-    const allowedDims = new Set(METRIC_PANELS[openPanel].labelDimensions);
-    const result: MetricPanelFilter = {};
-    Object.entries(router.query).forEach(([key, value]) => {
-      if (!key.startsWith(FILTER_PREFIX)) {
-        return;
-      }
-      const dim = key.slice(FILTER_PREFIX.length);
-      if (!allowedDims.has(dim)) {
-        return;
-      }
-      const raw = Array.isArray(value) ? value.join(',') : (value ?? '');
-      const values = raw
-        .split(',')
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
-      if (values.length > 0) {
-        result[dim] = values;
-      }
-    });
-    return result;
+    const raw = router.query[HIDDEN_KEYS_PARAM];
+    const value = Array.isArray(raw) ? raw.join(',') : (raw ?? '');
+    return value
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
   }, [openPanel, router.query]);
 
   const pushQuery = useCallback(
@@ -65,7 +49,7 @@ export default function useMetricsPanelUrlState(): MetricsPanelUrlState {
 
   const open = useCallback(
     (slug: MetricPanelSlug) => {
-      const next = stripFilterKeys(router.query);
+      const next = stripDialogKeys(router.query);
       next.metricPanel = slug;
       pushQuery(next);
     },
@@ -73,39 +57,35 @@ export default function useMetricsPanelUrlState(): MetricsPanelUrlState {
   );
 
   const close = useCallback(() => {
-    const next = stripFilterKeys(router.query);
+    const next = stripDialogKeys(router.query);
     delete next.metricPanel;
     pushQuery(next);
   }, [router.query, pushQuery]);
 
-  const setFilter = useCallback(
-    (nextFilter: MetricPanelFilter) => {
+  const setHiddenKeys = useCallback(
+    (nextHidden: string[]) => {
       if (!openPanel) {
         return;
       }
-      const allowedDims = new Set(METRIC_PANELS[openPanel].labelDimensions);
-      const next = stripFilterKeys(router.query);
+      const next = stripDialogKeys(router.query);
       next.metricPanel = openPanel;
-      Object.entries(nextFilter).forEach(([dim, values]) => {
-        if (!allowedDims.has(dim) || !values || values.length === 0) {
-          return;
-        }
-        next[`${FILTER_PREFIX}${dim}`] = values.join(',');
-      });
+      if (nextHidden.length > 0) {
+        next[HIDDEN_KEYS_PARAM] = nextHidden.join(',');
+      }
       pushQuery(next);
     },
     [openPanel, router.query, pushQuery],
   );
 
-  return { openPanel, filter, open, close, setFilter };
+  return { openPanel, hiddenKeys, open, close, setHiddenKeys };
 }
 
-function stripFilterKeys(
+function stripDialogKeys(
   query: Record<string, string | string[] | undefined>,
 ): Record<string, string | string[] | undefined> {
   const next: Record<string, string | string[] | undefined> = {};
   Object.entries(query).forEach(([key, value]) => {
-    if (key.startsWith(FILTER_PREFIX)) {
+    if (key === HIDDEN_KEYS_PARAM) {
       return;
     }
     next[key] = value;

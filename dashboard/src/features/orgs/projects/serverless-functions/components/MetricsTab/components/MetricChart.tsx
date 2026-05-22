@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -6,6 +6,9 @@ import {
   Line,
   LineChart,
   ReferenceArea,
+  type ScaleFunction,
+  useXAxisScale,
+  useYAxisScale,
   XAxis,
   YAxis,
 } from 'recharts';
@@ -13,14 +16,17 @@ import {
   type ChartConfig,
   ChartContainer,
   ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
 } from '@/components/ui/v3/chart';
 import { buildChartConfig } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/buildChartConfig';
-import { buildTimeTicks } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/buildTimeTicks';
+import {
+  buildTimeTicks,
+  computeTickStep,
+} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/buildTimeTicks';
 import {
   formatTimestampDateTick,
   formatTimestampFull,
+  formatTimestampSecondsTick,
   formatTimestampTick,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
 import { mergeSeries } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/mergeSeries';
@@ -45,6 +51,10 @@ export interface MetricChartProps {
   xDomain?: [number, number];
   onZoomRange?: (fromMs: number, toMs: number) => void;
   onZoomOut?: () => void;
+  // Optional controlled visibility. When omitted, the chart self-manages hidden
+  // series via internal state (resets on unmount).
+  hiddenKeys?: string[];
+  onHiddenKeysChange?: (next: string[]) => void;
 }
 
 interface PinnedState {
@@ -59,6 +69,7 @@ interface ChartMouseEvent {
   activeLabel?: string | number;
   activeTooltipIndex?: number | string | null;
   activePayload?: PinnedPayloadEntry[];
+  activeCoordinate?: { x?: number; y?: number };
   chartX?: number;
   chartY?: number;
 }
@@ -91,6 +102,8 @@ export default function MetricChart({
   xDomain,
   onZoomRange,
   onZoomOut,
+  hiddenKeys,
+  onHiddenKeysChange,
 }: MetricChartProps) {
   const { keys, rows } = useMemo(
     () => mergeSeries(data, seriesKeyFor),
@@ -116,16 +129,111 @@ export default function MetricChart({
     if (!xDomain) {
       return formatTimestampTick;
     }
-    return xDomain[1] - xDomain[0] > DAY_MS
-      ? formatTimestampDateTick
+    if (xDomain[1] - xDomain[0] > DAY_MS) {
+      return formatTimestampDateTick;
+    }
+    return computeTickStep(xDomain) < 60_000
+      ? formatTimestampSecondsTick
       : formatTimestampTick;
   }, [xDomain]);
 
+  const [internalHidden, setInternalHidden] = useState<string[]>([]);
+  const hidden = hiddenKeys ?? internalHidden;
+  const setHidden = useCallback(
+    (next: string[]) => {
+      if (onHiddenKeysChange) {
+        onHiddenKeysChange(next);
+      }
+      if (hiddenKeys === undefined) {
+        setInternalHidden(next);
+      }
+    },
+    [onHiddenKeysChange, hiddenKeys],
+  );
+  const hiddenSet = useMemo(() => new Set(hidden), [hidden]);
+
+  const handleLegendClick = useCallback(
+    (
+      key: string,
+      opts: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
+    ) => {
+      if (opts.metaKey || opts.ctrlKey || opts.shiftKey) {
+        const next = hiddenSet.has(key)
+          ? hidden.filter((k) => k !== key)
+          : [...hidden, key];
+        const nextSet = new Set(next);
+        const visibleAfter = keys.filter((k) => !nextSet.has(k));
+        setHidden(visibleAfter.length === 0 ? [] : next);
+        return;
+      }
+      const visible = keys.filter((k) => !hiddenSet.has(k));
+      if (visible.length === 1 && visible[0] === key) {
+        setHidden([]);
+        return;
+      }
+      setHidden(keys.filter((k) => k !== key));
+    },
+    [hidden, hiddenSet, keys, setHidden],
+  );
+
   const [refAreaLeft, setRefAreaLeft] = useState<number | ''>('');
   const [refAreaRight, setRefAreaRight] = useState<number | ''>('');
+  const justDraggedRef = useRef(false);
 
   const [pinned, setPinned] = useState<PinnedState | null>(null);
   const chartWrapperRef = useRef<HTMLDivElement | null>(null);
+
+  const [focusedKey, setFocusedKey] = useState<string | null>(null);
+  const xScaleRef = useRef<ScaleFunction | null>(null);
+  const yScaleRef = useRef<ScaleFunction | null>(null);
+  const legendHoverRef = useRef<string | null>(null);
+
+  const setLegendHover = useCallback((key: string | null) => {
+    legendHoverRef.current = key;
+    setFocusedKey((prev) => (prev === key ? prev : key));
+  }, []);
+
+  const updateFocusedKey = useCallback(
+    (e: ChartMouseEvent) => {
+      // Legend hover takes priority — the recharts-wrapper catches mouse
+      // moves over the legend area too (legend is portaled inside it), so
+      // without this guard the chart's mouse-move would constantly clear
+      // the focus that the legend just set.
+      if (legendHoverRef.current !== null) {
+        return;
+      }
+      const cursorX = e?.activeCoordinate?.x;
+      const cursorY = e?.activeCoordinate?.y;
+      const xScale = xScaleRef.current;
+      const yScale = yScaleRef.current;
+      if (cursorX == null || cursorY == null || !xScale || !yScale) {
+        setFocusedKey((prev) => (prev === null ? prev : null));
+        return;
+      }
+      let bestKey: string | null = null;
+      let bestDistSq = Number.POSITIVE_INFINITY;
+      for (const key of keys) {
+        if (hiddenSet.has(key)) {
+          continue;
+        }
+        const distSq = distanceSqToSeries(
+          key,
+          cursorX,
+          cursorY,
+          rows,
+          xScale,
+          yScale,
+          connectNulls,
+        );
+        if (distSq < bestDistSq) {
+          bestDistSq = distSq;
+          bestKey = key;
+        }
+      }
+      setFocusedKey((prev) => (prev === bestKey ? prev : bestKey));
+    },
+    [keys, rows, hiddenSet, connectNulls],
+  );
 
   useEffect(() => {
     if (!pinned) {
@@ -149,9 +257,11 @@ export default function MetricChart({
     }
     setRefAreaLeft(v);
     setRefAreaRight('');
+    justDraggedRef.current = false;
   };
 
   const handleMouseMove = (e: ChartMouseEvent) => {
+    updateFocusedKey(e);
     if (refAreaLeft === '') {
       return;
     }
@@ -159,7 +269,14 @@ export default function MetricChart({
     if (v === null) {
       return;
     }
+    if (v !== refAreaLeft) {
+      justDraggedRef.current = true;
+    }
     setRefAreaRight(v);
+  };
+
+  const handleMouseLeave = () => {
+    setFocusedKey(null);
   };
 
   const handleMouseUp = () => {
@@ -178,10 +295,11 @@ export default function MetricChart({
     onZoomRange?.(from, to);
   };
 
-  const handleClick = (
-    e: ChartMouseEvent,
-    nativeEvent?: React.MouseEvent<Element>,
-  ) => {
+  const handleClick = (e: ChartMouseEvent) => {
+    if (justDraggedRef.current) {
+      justDraggedRef.current = false;
+      return;
+    }
     const label = toNumber(e?.activeLabel);
     const rawIndex = e?.activeTooltipIndex;
     const idx =
@@ -194,22 +312,19 @@ export default function MetricChart({
     const row =
       label !== null ? rows.find((r) => r.timestamp === label) : undefined;
 
-    const rect = chartWrapperRef.current?.getBoundingClientRect();
-    const relX = rect && nativeEvent ? nativeEvent.clientX - rect.left : null;
-    const relY = rect && nativeEvent ? nativeEvent.clientY - rect.top : null;
+    if (idx === null || label === null || !row) {
+      setPinned(null);
+      return;
+    }
 
-    if (
-      idx === null ||
-      label === null ||
-      !row ||
-      relX === null ||
-      relY === null
-    ) {
+    const { x, y } = resolveTooltipPosition(chartWrapperRef.current, e);
+    if (x == null || y == null) {
       setPinned(null);
       return;
     }
 
     const payload: PinnedPayloadEntry[] = keys
+      .filter((key) => !hiddenSet.has(key))
       .map((key) => ({
         dataKey: key,
         name: key,
@@ -218,11 +333,7 @@ export default function MetricChart({
       }))
       .filter((p) => p.value !== undefined);
 
-    setPinned((prev) =>
-      prev && prev.index === idx
-        ? null
-        : { index: idx, x: relX, y: relY, label, payload },
-    );
+    setPinned((prev) => (prev ? null : { index: idx, x, y, label, payload }));
   };
 
   const handleDoubleClick = () => {
@@ -235,6 +346,7 @@ export default function MetricChart({
     onMouseDown: handleMouseDown,
     onMouseMove: handleMouseMove,
     onMouseUp: handleMouseUp,
+    onMouseLeave: handleMouseLeave,
     onClick: handleClick,
     onDoubleClick: handleDoubleClick,
     margin: { top: 8, right: 12, left: 12, bottom: 8 },
@@ -251,7 +363,10 @@ export default function MetricChart({
           <p className="text-muted-foreground text-sm">No data available.</p>
         </div>
       ) : (
-        <div className="relative" ref={chartWrapperRef}>
+        <div
+          className="relative [&_.recharts-wrapper:focus-visible]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-wrapper]:outline-none"
+          ref={chartWrapperRef}
+        >
           <ChartContainer
             config={config}
             className="aspect-auto w-full select-none"
@@ -274,7 +389,7 @@ export default function MetricChart({
                 <YAxis
                   tickLine={false}
                   axisLine={false}
-                  width={48}
+                  width="auto"
                   tickFormatter={
                     valueFormatter
                       ? (v) => valueFormatter(Number(v))
@@ -286,7 +401,15 @@ export default function MetricChart({
                   active={pinned ? false : undefined}
                   content={tooltipContent}
                 />
-                <ChartLegend content={<ChartLegendContent />} />
+                <ChartLegend
+                  content={
+                    <InteractiveChartLegend
+                      config={config}
+                      hiddenSet={hiddenSet}
+                      onItemClick={handleLegendClick}
+                    />
+                  }
+                />
                 {keys.map((key) => (
                   <Area
                     key={key}
@@ -299,6 +422,7 @@ export default function MetricChart({
                     strokeWidth={1.5}
                     isAnimationActive={false}
                     connectNulls={connectNulls}
+                    hide={hiddenSet.has(key)}
                   />
                 ))}
                 {refAreaLeft !== '' && refAreaRight !== '' ? (
@@ -327,7 +451,7 @@ export default function MetricChart({
                 <YAxis
                   tickLine={false}
                   axisLine={false}
-                  width={48}
+                  width="auto"
                   tickFormatter={
                     valueFormatter
                       ? (v) => valueFormatter(Number(v))
@@ -339,7 +463,17 @@ export default function MetricChart({
                   active={pinned ? false : undefined}
                   content={tooltipContent}
                 />
-                <ChartLegend content={<ChartLegendContent />} />
+                <ChartLegend
+                  content={
+                    <InteractiveChartLegend
+                      config={config}
+                      hiddenSet={hiddenSet}
+                      onItemClick={handleLegendClick}
+                      onItemHover={setLegendHover}
+                    />
+                  }
+                />
+                <ScaleCapture xScaleRef={xScaleRef} yScaleRef={yScaleRef} />
                 {keys.map((key) => (
                   <Line
                     key={key}
@@ -350,6 +484,8 @@ export default function MetricChart({
                     dot={false}
                     isAnimationActive={false}
                     connectNulls={connectNulls}
+                    hide={hiddenSet.has(key)}
+                    zIndex={focusedKey === key ? 500 : undefined}
                   />
                 ))}
                 {refAreaLeft !== '' && refAreaRight !== '' ? (
@@ -438,16 +574,19 @@ function TooltipCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="font-medium">{formatTimestampFull(label)}</div>
-        {onClose ? (
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 text-muted-foreground hover:text-foreground"
-            aria-label="Close pinned tooltip"
-          >
-            ×
-          </button>
-        ) : null}
+        <button
+          type="button"
+          onClick={onClose}
+          className={cn(
+            'shrink-0 text-muted-foreground hover:text-foreground',
+            !onClose && 'pointer-events-none invisible',
+          )}
+          aria-label="Close pinned tooltip"
+          aria-hidden={!onClose}
+          tabIndex={onClose ? 0 : -1}
+        >
+          ×
+        </button>
       </div>
       <div className="grid gap-1.5">
         {entries.map((entry) => {
@@ -530,12 +669,41 @@ function PinnedTooltip({
       style={{
         left: pinned.x,
         top: pinned.y,
-        transform: 'translate(8px, -100%)',
       }}
       testId="pinned-tooltip"
       ariaLabel="Pinned data point"
     />
   );
+}
+
+// Mirror the hover tooltip's placement (including recharts' edge-flipping) by
+// reading the live transform recharts set on its tooltip wrapper. Falls back
+// to activeCoordinate + default offset if the wrapper hasn't been positioned
+// yet (e.g., click without a prior hover).
+function resolveTooltipPosition(
+  wrapperEl: HTMLDivElement | null,
+  e: ChartMouseEvent,
+): { x: number | null; y: number | null } {
+  const tooltipEl = wrapperEl?.querySelector(
+    '.recharts-tooltip-wrapper',
+  ) as HTMLElement | null;
+  if (tooltipEl && tooltipEl.style.visibility !== 'hidden') {
+    const match = tooltipEl.style.transform.match(
+      /translate\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px\s*\)/,
+    );
+    if (match) {
+      return {
+        x: Number.parseFloat(match[1]),
+        y: Number.parseFloat(match[2]),
+      };
+    }
+  }
+  const fallbackX = e.activeCoordinate?.x ?? e.chartX;
+  const fallbackY = e.activeCoordinate?.y ?? e.chartY;
+  return {
+    x: fallbackX != null ? fallbackX + 10 : null,
+    y: fallbackY != null ? fallbackY + 10 : null,
+  };
 }
 
 function toNumber(input: unknown): number | null {
@@ -544,4 +712,197 @@ function toNumber(input: unknown): number | null {
   }
   const n = typeof input === 'number' ? input : Number(input);
   return Number.isFinite(n) ? n : null;
+}
+
+interface LegendPayloadItem {
+  dataKey?: string | number;
+  color?: string;
+  type?: string;
+}
+
+interface InteractiveChartLegendProps {
+  config: ChartConfig;
+  hiddenSet: Set<string>;
+  onItemClick: (
+    key: string,
+    opts: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
+  ) => void;
+  onItemHover?: (key: string | null) => void;
+  payload?: LegendPayloadItem[];
+}
+
+function InteractiveChartLegend({
+  config,
+  hiddenSet,
+  onItemClick,
+  onItemHover,
+  payload,
+}: InteractiveChartLegendProps) {
+  if (!payload?.length) {
+    return null;
+  }
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
+      {payload
+        .filter((item) => item.type !== 'none')
+        .map((item) => {
+          const key = String(item.dataKey ?? '');
+          const isHidden = hiddenSet.has(key);
+          const label = config[key]?.label ?? key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={(e) =>
+                onItemClick(key, {
+                  metaKey: e.metaKey,
+                  ctrlKey: e.ctrlKey,
+                  shiftKey: e.shiftKey,
+                })
+              }
+              onDoubleClick={(e) => e.stopPropagation()}
+              onMouseEnter={() => onItemHover?.(key)}
+              onMouseLeave={() => onItemHover?.(null)}
+              className={cn(
+                'flex cursor-pointer items-center gap-1.5 text-xs leading-none transition-colors hover:text-foreground',
+                isHidden ? 'text-muted-foreground/60' : 'text-foreground',
+              )}
+              aria-pressed={!isHidden}
+              title="Click to isolate, click again to restore. Hold ⌘/Ctrl/Shift to toggle individually."
+            >
+              <div
+                className={cn(
+                  'h-2 w-2 shrink-0 rounded-[2px] transition-opacity',
+                  isHidden && 'opacity-40',
+                )}
+                style={{ backgroundColor: item.color }}
+              />
+              <span>{label}</span>
+            </button>
+          );
+        })}
+    </div>
+  );
+}
+
+function ScaleCapture({
+  xScaleRef,
+  yScaleRef,
+}: {
+  xScaleRef: React.MutableRefObject<ScaleFunction | null>;
+  yScaleRef: React.MutableRefObject<ScaleFunction | null>;
+}) {
+  const xScale = useXAxisScale();
+  const yScale = useYAxisScale();
+  xScaleRef.current = xScale ?? null;
+  yScaleRef.current = yScale ?? null;
+  return null;
+}
+
+type Row = Record<string, number | null> & { timestamp: number };
+
+function distanceSqPointToSegment(
+  cx: number,
+  cy: number,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+): number {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lengthSq = dx * dx + dy * dy;
+  let t = 0;
+  if (lengthSq > 0) {
+    t = ((cx - ax) * dx + (cy - ay) * dy) / lengthSq;
+    if (t < 0) {
+      t = 0;
+    } else if (t > 1) {
+      t = 1;
+    }
+  }
+  const projX = ax + t * dx;
+  const projY = ay + t * dy;
+  const px = cx - projX;
+  const py = cy - projY;
+  return px * px + py * py;
+}
+
+function pixelAt(
+  row: Row,
+  key: string,
+  xScale: ScaleFunction,
+  yScale: ScaleFunction,
+): { x: number; y: number } | null {
+  const v = row[key];
+  if (typeof v !== 'number') {
+    return null;
+  }
+  const x = xScale(row.timestamp);
+  const y = yScale(v);
+  if (
+    typeof x !== 'number' ||
+    typeof y !== 'number' ||
+    !Number.isFinite(x) ||
+    !Number.isFinite(y)
+  ) {
+    return null;
+  }
+  return { x, y };
+}
+
+function distanceSqToSeries(
+  key: string,
+  cursorX: number,
+  cursorY: number,
+  rows: ReadonlyArray<Row>,
+  xScale: ScaleFunction,
+  yScale: ScaleFunction,
+  connectNulls: boolean,
+): number {
+  let minDistSq = Number.POSITIVE_INFINITY;
+  if (connectNulls) {
+    let prev: { x: number; y: number } | null = null;
+    for (const row of rows) {
+      const point = pixelAt(row, key, xScale, yScale);
+      if (!point) {
+        continue;
+      }
+      if (prev) {
+        const d = distanceSqPointToSegment(
+          cursorX,
+          cursorY,
+          prev.x,
+          prev.y,
+          point.x,
+          point.y,
+        );
+        if (d < minDistSq) {
+          minDistSq = d;
+        }
+      } else {
+        const dx = cursorX - point.x;
+        const dy = cursorY - point.y;
+        const d = dx * dx + dy * dy;
+        if (d < minDistSq) {
+          minDistSq = d;
+        }
+      }
+      prev = point;
+    }
+    return minDistSq;
+  }
+  // connectNulls=false: only adjacent non-null pairs form line segments.
+  for (let i = 0; i < rows.length - 1; i += 1) {
+    const a = pixelAt(rows[i], key, xScale, yScale);
+    const b = pixelAt(rows[i + 1], key, xScale, yScale);
+    if (!a || !b) {
+      continue;
+    }
+    const d = distanceSqPointToSegment(cursorX, cursorY, a.x, a.y, b.x, b.y);
+    if (d < minDistSq) {
+      minDistSq = d;
+    }
+  }
+  return minDistSq;
 }

@@ -13,7 +13,7 @@ export interface SummarySectionProps {
 
 export default function SummarySection({ summary }: SummarySectionProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <StatCard
         icon={Activity}
         label="Total Number of Invocations"

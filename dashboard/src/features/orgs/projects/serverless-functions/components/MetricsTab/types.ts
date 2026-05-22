@@ -18,8 +18,6 @@ export function isMetricPanelSlug(value: unknown): value is MetricPanelSlug {
   );
 }
 
-export type MetricPanelFilter = Record<string, string[]>;
-
 export interface MetricPanelConfig {
   slug: MetricPanelSlug;
   title: string;
