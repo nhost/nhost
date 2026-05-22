@@ -68,6 +68,11 @@ func getConfig() *controller.Config {
 		OAuth2ProviderRefreshTokenTTL:            2592000,
 		OAuth2ProviderCIMDEnabled:                false,
 		OAuth2ProviderCIMDAllowInsecureTransport: false,
+		SMSGenericURL:                            "",
+		SMSGenericContentType:                    "",
+		SMSGenericHeaders:                        "",
+		SMSGenericTimeout:                        0,
+		SMSGenericBodyTemplate:                   "",
 	}
 }
 

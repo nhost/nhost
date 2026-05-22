@@ -104,6 +104,11 @@ const (
 	flagSMSTwilioMessagingServiceID              = "sms-twilio-messaging-service-id"
 	flagSMSModicaUsername                        = "sms-modica-username"
 	flagSMSModicaPassword                        = "sms-modica-password" //nolint:gosec
+	flagSMSGenericURL                            = "sms-generic-url"
+	flagSMSGenericContentType                    = "sms-generic-content-type"
+	flagSMSGenericHeaders                        = "sms-generic-headers"
+	flagSMSGenericTimeout                        = "sms-generic-timeout"
+	flagSMSGenericBodyTemplate                   = "sms-generic-body-template"
 	flagAnonymousUsersEnabled                    = "enable-anonymous-users"
 	flagMfaEnabled                               = "mfa-enabled"
 	flagMfaTotpIssuer                            = "mfa-totp-issuer"
@@ -188,6 +193,8 @@ const (
 	flagOAuth2ProviderCIMDEnabled                = "oauth2-provider-cimd-enabled"
 	flagOAuth2ProviderCIMDAllowInsecureTransport = "oauth2-provider-cimd-allow-insecure-transport"
 )
+
+const defaultSMSGenericTimeout = 10 * time.Second
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
 	return &cli.Command{ //nolint: exhaustruct
@@ -701,7 +708,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagSMSProvider,
-				Usage:    "SMS provider (twilio or modica)",
+				Usage:    "SMS provider (twilio, modica, generic, or dev)",
 				Category: "sms",
 				Value:    "twilio",
 				Sources:  cli.EnvVars("AUTH_SMS_PROVIDER"),
@@ -735,6 +742,51 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Modica password for SMS",
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_MODICA_PASSWORD"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSGenericURL,
+				Usage:    "Webhook URL the generic SMS provider POSTs each request to",
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_URL"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name: flagSMSGenericContentType,
+				Usage: "Content-Type header for the generic SMS request. For " +
+					"application/x-www-form-urlencoded the body template must " +
+					"render to a JSON object whose top-level fields are flattened " +
+					"into form values; any other content type sends the rendered " +
+					"template bytes verbatim. Charset parameters are preserved.",
+				Category: "sms",
+				Value:    "application/json",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_CONTENT_TYPE"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name: flagSMSGenericHeaders,
+				Usage: "Additional HTTP headers for the generic SMS request as a " +
+					`JSON object of string-to-string, e.g. ` +
+					`{"Authorization":"Bearer ..."}`,
+				Category: "sms",
+				Value:    "{}",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_HEADERS"),
+			},
+			&cli.DurationFlag{ //nolint: exhaustruct
+				Name:     flagSMSGenericTimeout,
+				Usage:    "Timeout for the generic SMS provider HTTP request",
+				Category: "sms",
+				Value:    defaultSMSGenericTimeout,
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_TIMEOUT"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name: flagSMSGenericBodyTemplate,
+				Usage: "Body template for the generic SMS request. Reference " +
+					"${to} (destination phone) and ${body} (rendered SMS " +
+					"message); whitespace inside ${...} is ignored. Unknown " +
+					"variables cause render-time errors. Values are JSON-escaped " +
+					"when the content type is application/json or " +
+					`application/x-www-form-urlencoded. Example: ` +
+					`{"to":"${to}","message":"${body}"}`,
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_BODY_TEMPLATE"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagAnonymousUsersEnabled,
