@@ -21,6 +21,13 @@ let
       "govulncheck.yaml"
       isDirectory
       (and (inDirectory submodule) (matchExt "go"))
+      (inDirectory "${submodule}/connector/testdata")
+      (inDirectory "${submodule}/connector/sql/postgres/testdata")
+      (inDirectory "${submodule}/connector/sql/sqlite/testdata")
+      (inDirectory "${submodule}/connector/sql/graphql/queries/testdata")
+      (inDirectory "${submodule}/connector/sql/graphql/schema/testdata")
+      (inDirectory "${submodule}/metadata/internal/hasura/testdata")
+      (inDirectory "${submodule}/integration/nhost")
     ];
   };
 
@@ -39,7 +46,9 @@ let
 
   buildInputs = [ ];
 
-  nativeBuildInputs = [ ];
+  nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
+    pkgs.apple-sdk_14
+  ];
 in
 rec {
   check = nixops-lib.go.check {
