@@ -35,9 +35,11 @@ linters:
           - funlen
           - ireturn
           - goconst
+        path: _test\.go
+      - linters:
           - lll
           - exhaustruct
-        path: _test\.go
+        path: services/.*/_test\.go
       - linters:
           - lll
         source: "^//go:generate "
