@@ -1,8 +1,8 @@
+import { CircleHelp as QuestionMarkCircleIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { QuestionMarkCircleIcon } from '@/components/ui/v2/icons/QuestionMarkCircleIcon';
 import { Link } from '@/components/ui/v2/Link';
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 
@@ -61,7 +61,7 @@ export default function EditRepositoryAndBranchSettings({
                   underline="none"
                   aria-label="Base Directory Documentation"
                 >
-                  <QuestionMarkCircleIcon />
+                  <QuestionMarkCircleIcon className="h-4 w-4" />
                 </Link>
               </InputLabel>
             }
