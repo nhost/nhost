@@ -12,7 +12,7 @@ import {
   MetadataRow,
 } from '@/features/orgs/projects/serverless-functions/components/MetadataCard';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
-import { isNotEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useGetUnifiedDeploymentByCommitShaQuery } from '@/utils/__generated__/graphql';
 
 export interface OverviewTabProps {
@@ -39,7 +39,7 @@ export default function OverviewTab({
       commitSHA: fn.createdWithCommitSha ?? '',
     },
     skip:
-      !isPlatform || !project?.id || !isNotEmptyValue(fn.createdWithCommitSha),
+      !isPlatform || !project?.id || isEmptyValue(fn.createdWithCommitSha),
   });
 
   const deploymentId = deploymentData?.unifiedDeployments[0]?.id;

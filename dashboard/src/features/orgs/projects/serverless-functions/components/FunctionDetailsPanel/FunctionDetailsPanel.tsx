@@ -79,13 +79,13 @@ export default function FunctionDetailsPanel({
         <div className="pb-4">
           <div className="flex items-start gap-3">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
-              <Code className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              <Code className="h-6 w-6 text-foreground" />
             </div>
             <div className="min-w-0">
-              <h1 className="mb-1 font-semibold text-gray-900 text-xl dark:text-gray-100">
+              <h1 className="mb-1 font-semibold text-foreground text-xl">
                 {fn.route}
               </h1>
-              <p className="flex items-center gap-1.5 text-gray-600 text-sm dark:text-gray-400">
+              <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
                 <FileCode className="h-3.5 w-3.5" />
                 {fn.path}
               </p>
@@ -93,7 +93,7 @@ export default function FunctionDetailsPanel({
           </div>
           {(!isPlaceholderDate(fn.createdAt) ||
             !isPlaceholderDate(fn.updatedAt)) && (
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-gray-600 text-sm dark:text-gray-400">
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground text-sm">
               {!isPlaceholderDate(fn.createdAt) && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -105,6 +105,12 @@ export default function FunctionDetailsPanel({
                   <TooltipContent>{fn.createdAt}</TooltipContent>
                 </Tooltip>
               )}
+              {!isPlaceholderDate(fn.createdAt) &&
+                !isPlaceholderDate(fn.updatedAt) && (
+                  <span aria-hidden="true" className="text-muted-foreground/50">
+                    |
+                  </span>
+                )}
               {!isPlaceholderDate(fn.updatedAt) && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -123,7 +129,7 @@ export default function FunctionDetailsPanel({
         <Tabs
           value={activeTab}
           onValueChange={(v) => handleTabChange(v as FunctionTab)}
-          className="my-4"
+          className="my-6"
         >
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
