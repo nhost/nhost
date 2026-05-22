@@ -1158,7 +1158,7 @@ func TestInitialize_GoValueToASTErrorsAreWrappedPerKind(t *testing.T) {
 func TestInitialize_ParseWhereErrorsAreWrappedPerKind(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("boom")
+	sentinel := errors.New("boom") //nolint:err113 // test sentinel
 
 	for _, kind := range []string{"select", "insert", "update", "delete"} {
 		t.Run(kind, func(t *testing.T) {
@@ -1405,7 +1405,7 @@ func TestStoreWriteUpdateCheck_MissingSessionVariableErrors(t *testing.T) {
 func TestStoreWriteUpdateCheck_ClauseError(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("boom")
+	sentinel := errors.New("boom") //nolint:err113 // test sentinel
 
 	s := NewStore()
 	s.UpdateCheck["user"] = where.Clause{errStatement(sentinel)}
@@ -1430,7 +1430,7 @@ func TestStoreWriteUpdateCheck_ClauseError(t *testing.T) {
 func TestStoreWriteRowLevel_ClauseError(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("boom")
+	sentinel := errors.New("boom") //nolint:err113 // test sentinel
 
 	s := NewStore()
 	s.Select["user"] = where.Clause{errStatement(sentinel)}
@@ -1510,7 +1510,7 @@ func TestStoreWriteRowLevel_WithPermission(t *testing.T) {
 func TestStoreWriteUpdateFilter_ClauseError(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("boom")
+	sentinel := errors.New("boom") //nolint:err113 // test sentinel
 
 	s := NewStore()
 	s.Update["user"] = where.Clause{errStatement(sentinel)}
@@ -1596,7 +1596,7 @@ func TestStoreWriteUpdateFilter_WithPermission(t *testing.T) {
 func TestStoreWriteDeleteFilter_ClauseError(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("boom")
+	sentinel := errors.New("boom") //nolint:err113 // test sentinel
 
 	s := NewStore()
 	s.Delete["user"] = where.Clause{errStatement(sentinel)}
@@ -1650,7 +1650,7 @@ func TestStoreWriteDeleteFilter_MissingSessionVariableErrors(t *testing.T) {
 func TestStoreWriteInsertCheck_ClauseError(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("boom")
+	sentinel := errors.New("boom") //nolint:err113 // test sentinel
 
 	s := NewStore()
 	s.Insert["user"] = where.Clause{errStatement(sentinel)}

@@ -16,6 +16,33 @@ import (
 	"strings"
 )
 
+// Sentinel errors for [Secret.Validate] and related configuration parsing.
+var (
+	ErrSecretMissingKeyOrJWKURL = errors.New(
+		"jwt secret must have either type+key or jwk_url",
+	)
+	ErrSecretBothKeyAndJWKURL = errors.New(
+		"jwt secret cannot have both type+key and jwk_url",
+	)
+	ErrClaimsNamespaceConflict = errors.New(
+		"jwt secret cannot have both claims_namespace and claims_namespace_path",
+	)
+	ErrClaimsMapNamespaceConflict = errors.New(
+		"jwt secret cannot have both claims_map and claims_namespace",
+	)
+	ErrClaimsMapNamespacePathConflict = errors.New(
+		"jwt secret cannot have both claims_map and claims_namespace_path",
+	)
+	ErrClaimsMapFormatConflict = errors.New(
+		"jwt secret cannot have both claims_map and claims_format",
+	)
+	ErrInvalidClaimsFormat      = errors.New("invalid claims_format")
+	ErrUnsupportedAlgorithm     = errors.New("unsupported algorithm")
+	ErrCookieHeaderRequiresName = errors.New("cookie header type requires a name")
+	ErrCustomHeaderRequiresName = errors.New("custom header type requires a name")
+	ErrUnsupportedHeaderType    = errors.New("unsupported header type")
+)
+
 // Algorithm represents a JWT signing algorithm. The supported set is defined
 // by the Algorithm* constants; any other value is rejected by [Secret.Validate].
 type Algorithm string
@@ -274,11 +301,11 @@ func (s *Secret) Validate() error {
 	hasJWKURL := s.JWKURL != ""
 
 	if !hasTypeAndKey && !hasJWKURL {
-		return errors.New("jwt secret must have either type+key or jwk_url")
+		return ErrSecretMissingKeyOrJWKURL
 	}
 
 	if hasTypeAndKey && hasJWKURL {
-		return errors.New("jwt secret cannot have both type+key and jwk_url")
+		return ErrSecretBothKeyAndJWKURL
 	}
 
 	if hasTypeAndKey {
@@ -302,26 +329,26 @@ func (s *Secret) Validate() error {
 
 func (s *Secret) validateClaimsConfig() error {
 	if s.ClaimsNamespace != "" && s.ClaimsNamespacePath != "" {
-		return errors.New("jwt secret cannot have both claims_namespace and claims_namespace_path")
+		return ErrClaimsNamespaceConflict
 	}
 
 	if len(s.ClaimsMap) > 0 {
 		if s.ClaimsNamespace != "" {
-			return errors.New("jwt secret cannot have both claims_map and claims_namespace")
+			return ErrClaimsMapNamespaceConflict
 		}
 
 		if s.ClaimsNamespacePath != "" {
-			return errors.New("jwt secret cannot have both claims_map and claims_namespace_path")
+			return ErrClaimsMapNamespacePathConflict
 		}
 
 		if s.ClaimsFormat != "" {
-			return errors.New("jwt secret cannot have both claims_map and claims_format")
+			return ErrClaimsMapFormatConflict
 		}
 	}
 
 	if s.ClaimsFormat != "" && s.ClaimsFormat != ClaimsFormatJSON &&
 		s.ClaimsFormat != ClaimsFormatStringifiedJSON {
-		return fmt.Errorf("invalid claims_format: %s", s.ClaimsFormat)
+		return fmt.Errorf("%w: %s", ErrInvalidClaimsFormat, s.ClaimsFormat)
 	}
 
 	return nil
@@ -333,7 +360,7 @@ func validateAlgorithm(alg Algorithm) error {
 		AlgorithmRS256, AlgorithmRS384, AlgorithmRS512:
 		return nil
 	default:
-		return fmt.Errorf("unsupported algorithm: %s", alg)
+		return fmt.Errorf("%w: %s", ErrUnsupportedAlgorithm, alg)
 	}
 }
 
@@ -343,18 +370,18 @@ func validateHeaderConfig(h HeaderConfig) error {
 		return nil
 	case HeaderTypeCookie:
 		if h.Name == "" {
-			return errors.New("cookie header type requires a name")
+			return ErrCookieHeaderRequiresName
 		}
 
 		return nil
 	case HeaderTypeCustomHeader:
 		if h.Name == "" {
-			return errors.New("custom header type requires a name")
+			return ErrCustomHeaderRequiresName
 		}
 
 		return nil
 	default:
-		return fmt.Errorf("unsupported header type: %s", h.Type)
+		return fmt.Errorf("%w: %s", ErrUnsupportedHeaderType, h.Type)
 	}
 }
 

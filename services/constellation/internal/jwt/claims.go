@@ -16,6 +16,24 @@ import (
 // prefix, so unprefixed claims are intentionally dropped.
 const sessionVariablePrefix = "x-hasura-"
 
+// Sentinel errors for claims extraction and Hasura session-variable validation.
+var (
+	ErrClaimsNamespaceNotFound = errors.New("claims namespace not found in token")
+	ErrClaimsPathSegment       = errors.New("invalid path segment")
+	ErrClaimsKeyNotFound       = errors.New("key not found")
+	ErrClaimsStringifiedJSON   = errors.New(
+		"claims_format is stringified_json but claims value is not a string",
+	)
+	ErrClaimsExpectedObject    = errors.New("expected object for claims")
+	ErrClaimsUnsupportedFormat = errors.New("unsupported claims format")
+	ErrAllowedRolesRequired    = errors.New("x-hasura-allowed-roles claim is required")
+	ErrDefaultRoleRequired     = errors.New("x-hasura-default-role claim is required")
+	ErrDefaultRoleMustBeString = errors.New("x-hasura-default-role must be a string")
+	ErrRoleNotAllowed          = errors.New("role is not in x-hasura-allowed-roles")
+	ErrClaimsMustBeArray       = errors.New("must be an array")
+	ErrClaimsElementNotString  = errors.New("element is not a string")
+)
+
 // claimsExtractor extracts Hasura claims from JWT claims.
 type claimsExtractor struct {
 	namespace     string
@@ -61,7 +79,7 @@ func (ce claimsExtractor) extractClaims(claims map[string]any) (map[string]any, 
 
 		raw, ok = claims[ns]
 		if !ok {
-			return nil, fmt.Errorf("claims namespace %q not found in token", ns)
+			return nil, fmt.Errorf("%w: %q", ErrClaimsNamespaceNotFound, ns)
 		}
 	}
 
@@ -119,12 +137,15 @@ func navigatePath(data map[string]any, path string) (any, error) {
 
 		m, ok := current.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("expected object at path segment %q, got %T", seg, current)
+			return nil, fmt.Errorf(
+				"%w: expected object at path segment %q, got %T",
+				ErrClaimsPathSegment, seg, current,
+			)
 		}
 
 		current, ok = m[seg]
 		if !ok {
-			return nil, fmt.Errorf("key %q not found", seg)
+			return nil, fmt.Errorf("%w: %q", ErrClaimsKeyNotFound, seg)
 		}
 	}
 
@@ -137,10 +158,7 @@ func parseClaims(raw any, format jwtconfig.ClaimsFormat) (map[string]any, error)
 	case jwtconfig.ClaimsFormatStringifiedJSON:
 		str, ok := raw.(string)
 		if !ok {
-			return nil, fmt.Errorf(
-				"claims_format is stringified_json but claims value is %T, not string",
-				raw,
-			)
+			return nil, fmt.Errorf("%w: got %T", ErrClaimsStringifiedJSON, raw)
 		}
 
 		var result map[string]any
@@ -153,13 +171,13 @@ func parseClaims(raw any, format jwtconfig.ClaimsFormat) (map[string]any, error)
 	case jwtconfig.ClaimsFormatJSON, "":
 		m, ok := raw.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("expected object for claims, got %T", raw)
+			return nil, fmt.Errorf("%w: got %T", ErrClaimsExpectedObject, raw)
 		}
 
 		return m, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported claims format: %s", format)
+		return nil, fmt.Errorf("%w: %s", ErrClaimsUnsupportedFormat, format)
 	}
 }
 
@@ -171,7 +189,7 @@ func buildSessionVariables(
 ) (string, map[string]any, error) {
 	allowedRolesRaw, ok := claims["x-hasura-allowed-roles"]
 	if !ok {
-		return "", nil, errors.New("x-hasura-allowed-roles claim is required")
+		return "", nil, ErrAllowedRolesRequired
 	}
 
 	allowedRoles, err := toStringSlice(allowedRolesRaw)
@@ -181,20 +199,20 @@ func buildSessionVariables(
 
 	defaultRoleRaw, ok := claims["x-hasura-default-role"]
 	if !ok {
-		return "", nil, errors.New("x-hasura-default-role claim is required")
+		return "", nil, ErrDefaultRoleRequired
 	}
 
 	defaultRole, ok := defaultRoleRaw.(string)
 	if !ok {
-		return "", nil, errors.New("x-hasura-default-role must be a string")
+		return "", nil, ErrDefaultRoleMustBeString
 	}
 
 	role := defaultRole
 	if roleOverride != "" {
 		if !slices.Contains(allowedRoles, roleOverride) {
 			return "", nil, fmt.Errorf(
-				"role %q is not in x-hasura-allowed-roles %v",
-				roleOverride, allowedRoles,
+				"%w: role %q not in %v",
+				ErrRoleNotAllowed, roleOverride, allowedRoles,
 			)
 		}
 
@@ -227,7 +245,7 @@ func buildSessionVariables(
 func toStringSlice(v any) ([]string, error) {
 	arr, ok := v.([]any)
 	if !ok {
-		return nil, errors.New("must be an array")
+		return nil, ErrClaimsMustBeArray
 	}
 
 	result := make([]string, len(arr))
@@ -235,7 +253,7 @@ func toStringSlice(v any) ([]string, error) {
 	for i, item := range arr {
 		s, ok := item.(string)
 		if !ok {
-			return nil, fmt.Errorf("element %d is not a string", i)
+			return nil, fmt.Errorf("%w: element %d", ErrClaimsElementNotString, i)
 		}
 
 		result[i] = s

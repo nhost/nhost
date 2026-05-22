@@ -8,6 +8,10 @@ import (
 	"testing"
 )
 
+// errPermissionDenied is a test sentinel used to verify that
+// remote_schemas.yaml read errors are surfaced.
+var errPermissionDenied = errors.New("permission denied")
+
 func TestFromYAML_MissingDatabasesFile(t *testing.T) {
 	t.Parallel()
 
@@ -102,11 +106,9 @@ func TestFromYAML_RemoteSchemasMissingIsNotAnError(t *testing.T) {
 func TestFromYAML_RemoteSchemasReadErrorIsSurfaced(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("permission denied")
-
 	ctx := withReadFile(context.Background(), func(path string) ([]byte, error) {
 		if strings.HasSuffix(path, "remote_schemas.yaml") {
-			return nil, &fs.PathError{Op: "open", Path: path, Err: sentinel}
+			return nil, &fs.PathError{Op: "open", Path: path, Err: errPermissionDenied}
 		}
 
 		return []byte("[]"), nil
@@ -121,7 +123,7 @@ func TestFromYAML_RemoteSchemasReadErrorIsSurfaced(t *testing.T) {
 		t.Errorf("expected non-NotExist error, got wrapped fs.ErrNotExist: %v", err)
 	}
 
-	if !errors.Is(err, sentinel) {
+	if !errors.Is(err, errPermissionDenied) {
 		t.Errorf("expected wrapped sentinel error, got %v", err)
 	}
 

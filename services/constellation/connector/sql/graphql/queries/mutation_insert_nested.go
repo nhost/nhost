@@ -42,7 +42,8 @@ func buildNestedInsertCTE(
 	target, ok := ni.TargetTable.(*table)
 	if !ok {
 		return nil, 0, fmt.Errorf(
-			"nested insert %s: target table is %T, expected *table",
+			"%w: nested insert %s: target table is %T, expected *table",
+			errNestedInsertTargetTableType,
 			ni.RelationshipName, ni.TargetTable,
 		)
 	}

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -10,6 +11,10 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
+
+// ErrEnumTableNotIntrospected reports that an enum table referenced by
+// metadata was not found in the introspected database objects.
+var ErrEnumTableNotIntrospected = errors.New("enum table not found in introspected objects")
 
 // Introspect returns the database objects (schemas, tables, columns, primary keys, functions).
 // If no schemaNames are specified, all schemas in the database are discovered and introspected.
@@ -67,7 +72,8 @@ func (c *Client) introspectEnumValues(
 		table, ok := objs.GetTable(schemaName, tableName)
 		if !ok {
 			return nil, fmt.Errorf(
-				"enum table %s.%s not found in introspected objects",
+				"%w: %s.%s",
+				ErrEnumTableNotIntrospected,
 				schemaName,
 				tableName,
 			)

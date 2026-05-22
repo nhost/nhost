@@ -38,7 +38,7 @@ func newAggregateFunctionSelection(
 		if f, ok := colField.(*ast.Field); ok {
 			col := t.columnFromGraphqlName(f.Name)
 			if col == nil {
-				return nil, fmt.Errorf("unknown column: %s", f.Name)
+				return nil, fmt.Errorf("%w: %s", errUnknownAggregateColumn, f.Name)
 			}
 
 			columns[j] = col

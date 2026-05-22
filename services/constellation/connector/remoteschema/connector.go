@@ -44,11 +44,11 @@ func validateRemoteURL(raw string) error {
 	}
 
 	if parsed.Scheme != "http" && parsed.Scheme != "https" {
-		return fmt.Errorf("unsupported URL scheme %q (want http or https)", parsed.Scheme)
+		return fmt.Errorf("%w %q (want http or https)", ErrUnsupportedURLScheme, parsed.Scheme)
 	}
 
 	if parsed.Host == "" {
-		return fmt.Errorf("URL %q has no host", raw)
+		return fmt.Errorf("%w: %q", ErrURLMissingHost, raw)
 	}
 
 	return nil

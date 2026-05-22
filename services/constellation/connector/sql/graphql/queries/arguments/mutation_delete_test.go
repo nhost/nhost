@@ -84,7 +84,7 @@ func TestParseDelete(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		tbl := mock.NewMockTable(ctrl)
 
-		sentinel := errors.New("boom")
+		sentinel := errors.New("boom") //nolint:err113 // test sentinel
 		tbl.EXPECT().ParseWhere(
 			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any(),

@@ -107,7 +107,8 @@ func BuildRoots( //nolint:funlen
 
 		baseTable, ok := tablesByKey[tableSchema+"."+tableName]
 		if !ok {
-			return Roots{}, nil, fmt.Errorf("base table %s.%s for function %s.%s not found",
+			return Roots{}, nil, fmt.Errorf("%w: base table %s.%s for function %s.%s",
+				errBaseTableForFunctionNotFound,
 				tableSchema, tableName, fnMeta.Function.Schema, fnMeta.Function.Name)
 		}
 
@@ -178,7 +179,9 @@ func (r Roots) BuildQuery(
 		// Find the corresponding operation for this field
 		opFn, exists := rootMap[field.Name]
 		if !exists {
-			return nil, fmt.Errorf("no operation found for field %q in role %q", field.Name, role)
+			return nil, fmt.Errorf(
+				"%w: field %q in role %q", errNoOperationForFieldInRole, field.Name, role,
+			)
 		}
 
 		// Build the SQL query for this field

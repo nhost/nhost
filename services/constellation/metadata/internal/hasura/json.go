@@ -2,8 +2,14 @@ package hasura
 
 import (
 	json "encoding/json/v2"
+	"errors"
 	"fmt"
 )
+
+// ErrUnsupportedMetadataVersion is returned by [FromJSON] when the Hasura
+// metadata JSON envelope reports a version other than the one this package
+// understands.
+var ErrUnsupportedMetadataVersion = errors.New("unsupported metadata version")
 
 // v3Metadata is the Hasura v3 JSON envelope stored in hdb_catalog.hdb_metadata.
 // It is separate from the canonical [Metadata] because the JSON blob keys its
@@ -26,7 +32,8 @@ func FromJSON(data []byte) (*Metadata, error) {
 	const expectedVersion = 3
 	if v3.Version != expectedVersion {
 		return nil, fmt.Errorf(
-			"unsupported metadata version %d, expected %d",
+			"%w: got %d, expected %d",
+			ErrUnsupportedMetadataVersion,
 			v3.Version,
 			expectedVersion,
 		)

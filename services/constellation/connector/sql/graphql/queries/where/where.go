@@ -1,7 +1,6 @@
 package where
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -54,7 +53,7 @@ func parseWhereResolveVariable(
 	}
 
 	if whereArg.Kind != ast.ObjectValue {
-		return nil, fmt.Errorf("expected object value, got %v", whereArg.Kind)
+		return nil, fmt.Errorf("%w: got %v", errExpectedObjectValue, whereArg.Kind)
 	}
 
 	return whereArg, nil
@@ -201,7 +200,7 @@ func parseFieldOrRelationship(
 		return rf, nil
 	}
 
-	return nil, fmt.Errorf("unknown field in where clause: %s", fieldName)
+	return nil, fmt.Errorf("%w: %s", errUnknownFieldInWhereClause, fieldName)
 }
 
 // parseRelationshipField builds a relationshipFilter by recursively parsing
@@ -260,7 +259,7 @@ func parseLogicalAnd(
 	}
 
 	if value.Kind != ast.ListValue {
-		return nil, errors.New("_and must be a list or an object")
+		return nil, errAndMustBeListOrObject
 	}
 
 	conditions := make(Clause, 0, len(value.Children))
@@ -300,7 +299,7 @@ func parseLogicalOr(
 	}
 
 	if value.Kind != ast.ListValue {
-		return nil, errors.New("_or must be a list or an object")
+		return nil, errOrMustBeListOrObject
 	}
 
 	orConditions := make([]Statement, 0, len(value.Children))
@@ -398,7 +397,7 @@ func ParseFieldComparison(
 	variables map[string]any,
 ) (Statement, error) {
 	if value.Kind != ast.ObjectValue {
-		return nil, errors.New("field comparison must be an object")
+		return nil, errFieldComparisonMustBeObject
 	}
 
 	d := t.Dialect()
@@ -408,7 +407,7 @@ func ParseFieldComparison(
 	for _, child := range value.Children {
 		parser, ok := operatorParsers[child.Name]
 		if !ok {
-			return nil, fmt.Errorf("unknown operator: %s", child.Name)
+			return nil, fmt.Errorf("%w: %s", errUnknownWhereOperator, child.Name)
 		}
 
 		cond, err := parser(column, child.Value, variables, d)

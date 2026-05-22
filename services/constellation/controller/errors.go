@@ -15,6 +15,9 @@ var (
 	errContentTypeNotJSON  = errors.New("Content-Type must be application/json")
 	errInvalidRequestBody  = errors.New("invalid request body")
 	errInternalServerError = errors.New("internal server error")
+	errNoSchemaForRole     = errors.New("no schema available for role")
+	errMultipleOperations  = errors.New("multiple operations found, operationName is required")
+	errOperationNotFound   = errors.New("operation not found")
 )
 
 // sanitizeConnectorError converts a raw connector/database execution error into

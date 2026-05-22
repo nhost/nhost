@@ -1,7 +1,6 @@
 package where
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -104,7 +103,7 @@ func buildRegex(negated, caseInsensitive bool) operatorParser {
 		c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
 	) (Statement, error) {
 		if !d.SupportsRegex() {
-			return nil, errors.New("regex operators are not supported by the current dialect")
+			return nil, errRegexUnsupportedByDialect
 		}
 
 		val, err := resolveScalarValue(v, vars)

@@ -173,8 +173,8 @@ func New( //nolint:ireturn,nolintlint
 	for _, q := range queries {
 		if _, dup := entries[q.Name]; dup {
 			return nil, fmt.Errorf(
-				"memconnector: duplicate QueryDef name %q",
-				q.Name,
+				"%w: %q",
+				ErrDuplicateQueryDef, q.Name,
 			)
 		}
 
@@ -249,16 +249,16 @@ func (c *connector) Execute(
 		field, ok := sel.(*ast.Field)
 		if !ok {
 			return nil, fmt.Errorf(
-				"memconnector: operation %q: non-Field selection at root (pos %v): %T",
-				operation.Name, sel.GetPosition(), sel,
+				"%w: operation %q (pos %v): %T",
+				ErrNonFieldSelection, operation.Name, sel.GetPosition(), sel,
 			)
 		}
 
 		entry, ok := c.queries[field.Name]
 		if !ok {
 			return nil, fmt.Errorf(
-				"memconnector: operation %q: no canned response registered for field %q",
-				operation.Name, field.Name,
+				"%w: operation %q field %q",
+				ErrUnknownField, operation.Name, field.Name,
 			)
 		}
 

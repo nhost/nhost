@@ -242,7 +242,7 @@ func TestRelationshipFilter_InnerConditionError(t *testing.T) {
 	target := &stubTable{tableFromClause: `"public"."t"`}
 	rel := &stubRelationship{target: target, joinWriter: defaultJoinWriter}
 
-	boom := errors.New("boom")
+	boom := errors.New("boom") //nolint:err113 // test sentinel
 
 	f := &relationshipFilter{
 		relationship: rel,

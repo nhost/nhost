@@ -20,6 +20,13 @@ import (
 	sub "github.com/nhost/nhost/services/constellation/subscription"
 )
 
+// Package-level sentinels so err113 doesn't flag inline dynamic errors.
+var (
+	errConnectionRefused = errors.New("connection refused")
+	errSchemaChanged     = errors.New("schema changed")
+	errStreamQueryFailed = errors.New("stream query failed")
+)
+
 func integrationLogger() *slog.Logger {
 	return slog.Default()
 }
@@ -246,9 +253,9 @@ func TestHandler_LifecycleNoPanic(t *testing.T) {
 func TestHandler_Start_FirstUpdate(t *testing.T) {
 	t.Parallel()
 
-	dbErr := errors.New("connection refused")
-	buildErr := errors.New("schema changed")
-	streamErr := errors.New("stream query failed")
+	dbErr := errConnectionRefused
+	buildErr := errSchemaChanged
+	streamErr := errStreamQueryFailed
 
 	tests := []struct {
 		name       string

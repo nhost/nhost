@@ -2,7 +2,6 @@ package queries
 
 import (
 	json "encoding/json/v2"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -100,7 +99,8 @@ func (f *function) Initialize(
 	}
 
 	if !fnInfo.ReturnType.IsTableType() {
-		return "", "", fmt.Errorf("function %s.%s does not return a table type",
+		return "", "", fmt.Errorf("%w: %s.%s",
+			errFunctionDoesNotReturnTableType,
 			fnMeta.Function.Schema, fnMeta.Function.Name)
 	}
 
@@ -148,7 +148,7 @@ func (f *function) parseFunctionArguments(
 
 	argsMap, ok := argsValue.(map[string]any)
 	if !ok {
-		return nil, errors.New("args must be an object")
+		return nil, errArgsMustBeObject
 	}
 
 	return argsMap, nil

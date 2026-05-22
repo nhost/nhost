@@ -311,6 +311,7 @@ func TestExtractSessionWithMockJWT(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		auth := mock.NewMockJWTAuthenticator(ctrl)
 
+		//nolint:err113 // test sentinel error used to verify error propagation
 		sentinel := errors.New("token signature invalid")
 		auth.EXPECT().
 			Authenticate(gomock.Any(), "").

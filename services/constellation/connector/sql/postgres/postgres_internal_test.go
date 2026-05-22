@@ -7,6 +7,16 @@ import (
 	"time"
 )
 
+// Package-level sentinels used by the white-box tests so err113 doesn't flag
+// inline dynamic errors. Each one names the failure mode it represents.
+var (
+	errStubQueryNotConfigured = errors.New("stubQuerier.Query not configured")
+	errTransient1             = errors.New("transient 1")
+	errTransient2             = errors.New("transient 2")
+	errPermanentFailure       = errors.New("permanent failure")
+	errFirstCallFails         = errors.New("first call fails")
+)
+
 // stubQuerier implements the Querier interface for white-box tests that need
 // to drive execSQLInit without importing the mock subpackage (which would
 // create an import cycle with this package).
@@ -44,7 +54,7 @@ func (s *stubQuerier) Query(
 		return s.queryRows(ctx, sql, args...)
 	}
 
-	return nil, errors.New("stubQuerier.Query not configured")
+	return nil, errStubQueryNotConfigured
 }
 
 func (s *stubQuerier) QueryRow(
@@ -92,8 +102,8 @@ func TestExecSQLInit_RetriesThenSucceeds(t *testing.T) { //nolint:paralleltest
 
 	q := &stubQuerier{
 		execErrors: []error{
-			errors.New("transient 1"),
-			errors.New("transient 2"),
+			errTransient1,
+			errTransient2,
 			nil, // third call succeeds
 		},
 	}
@@ -110,7 +120,7 @@ func TestExecSQLInit_RetriesThenSucceeds(t *testing.T) { //nolint:paralleltest
 func TestExecSQLInit_AllRetriesFail(t *testing.T) { //nolint:paralleltest
 	withFastRetries(t, 3, time.Millisecond)
 
-	terminal := errors.New("permanent failure")
+	terminal := errPermanentFailure
 	q := &stubQuerier{
 		execErrors: []error{terminal},
 	}
@@ -141,7 +151,7 @@ func TestExecSQLInit_ContextCancelled(t *testing.T) { //nolint:paralleltest
 			// Cancel after the first failed Exec so the next select hits the
 			// ctx.Done arm of the retry-delay switch.
 			cancel()
-			return errors.New("first call fails")
+			return errFirstCallFails
 		},
 	}
 

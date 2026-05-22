@@ -256,6 +256,7 @@ func TestWritePump_MarshalFailureReturnsError(t *testing.T) {
 func TestWritePump_WriteMessageFailureReturnsError(t *testing.T) {
 	withTimingOverrides(t, time.Hour, time.Hour)
 
+	//nolint:err113 // test sentinel error used to verify error propagation
 	writeErr := errors.New("simulated write failure")
 	fake := &fakeWSConn{
 		readFn: nil,

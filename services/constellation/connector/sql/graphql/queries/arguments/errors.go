@@ -8,3 +8,7 @@ import "errors"
 // use errors.Is to distinguish a 4xx "bad request" from a 5xx server-side
 // failure.
 var ErrInvalidArgument = errors.New("invalid argument")
+
+// argNameWhere is the GraphQL argument name for the WHERE clause shared by
+// delete / insert (on_conflict) / update mutations.
+const argNameWhere = "where"

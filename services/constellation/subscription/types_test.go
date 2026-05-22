@@ -185,10 +185,13 @@ func TestNewUpdateData(t *testing.T) {
 	}
 }
 
+// errBoom is a test sentinel used to verify error propagation through Update.
+var errBoom = errors.New("boom")
+
 func TestNewUpdateError(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("boom")
+	sentinel := errBoom
 
 	tests := []struct {
 		name           string

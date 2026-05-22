@@ -1,12 +1,17 @@
 package schema
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
+
+// ErrEnumValuesNotFound reports that an enum table marked as enum in metadata
+// had no introspected values available when generating its GraphQL enum type.
+var ErrEnumValuesNotFound = errors.New("enum values not found for enum table")
 
 // isEnumColumn checks if a column references an enum table via foreign key.
 func isEnumColumn(
@@ -96,8 +101,8 @@ func generateEnumTypes( //nolint:funlen
 
 		enumVals, ok := enumValues[key]
 		if !ok {
-			return fmt.Errorf("enum values not found for enum table %s.%s",
-				tableMeta.Table.Schema, tableMeta.Table.Name)
+			return fmt.Errorf("%w: %s.%s",
+				ErrEnumValuesNotFound, tableMeta.Table.Schema, tableMeta.Table.Name)
 		}
 
 		evs := make([]*graph.EnumValue, 0, len(enumVals))

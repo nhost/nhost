@@ -130,7 +130,7 @@ func (c *Connector) introspectRemoteSchema(ctx context.Context) (*graph.Schema, 
 			messages[i] = e.Message
 		}
 
-		return nil, fmt.Errorf("introspection returned errors: %s", strings.Join(messages, "; "))
+		return nil, fmt.Errorf("%w: %s", ErrIntrospectionResponse, strings.Join(messages, "; "))
 	}
 
 	schema := introspectionToGraphSchema(&result.Data.Schema)

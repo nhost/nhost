@@ -99,25 +99,25 @@ Then open <http://localhost:8000/> for the GraphQL playground or POST to <http:/
 
 Two ways to load metadata:
 
-- **File mode** — point `--metadata-path` (or `METADATA_PATH`) at a Hasura-style metadata directory. The file is watched; changes reload state atomically. Best for static deployments and CI.
-- **Database mode** — set `--metadata-database-url` (or `METADATA_DATABASE_URL`) to Hasura's metadata database. Constellation polls `hdb_catalog.hdb_metadata` and reloads when it changes. Best for deployments where Hasura still owns metadata authoring.
+- **File mode** — point `--metadata-path` (or `METADATA_PATH`) at a single `.toml` file or any path inside a Hasura YAML metadata directory (the file is not opened; only the parent directory is read per the Hasura v3 layout). Metadata is loaded once at startup; restart to pick up changes. Best for static deployments and CI.
+- **Database mode** — set `--metadata-database-url` (or `METADATA_DATABASE_URL`) to Hasura's metadata database. Constellation polls `hdb_catalog.hdb_metadata` and reloads when the version changes. Best for deployments where Hasura still owns metadata authoring.
 
-In both cases, reloads are atomic: in-flight requests complete against the old state while new requests use the new one.
+In database mode, reloads are atomic: in-flight requests complete against the old state while new requests use the new one.
 
 ### Local development environment
 
-Spin up the dev database with Docker Compose:
+For end-to-end testing against a real Nhost stack (Hasura + auth + storage + PostgreSQL), spin up the integration environment via the Nhost CLI:
 
 ```bash
-make dev-env-up      # PostgreSQL on localhost:5432
-make dev-env-down    # tear down (volumes deleted)
+make dev-env-integration-up   # `nhost up --apply-seeds` inside ./integration
+make dev-env-integration-down
 ```
 
-For full end-to-end testing against a real Nhost stack (Hasura + auth + storage):
+To also build a constellation Docker image and run it alongside the integration stack (binds `:8000`, plus a side PostgreSQL 18 container on `:5433` for ad-hoc experimentation):
 
 ```bash
-make dev-env-integration-up
-make dev-env-integration-down
+make dev-env-up      # build image + integration stack + constellation container
+make dev-env-down    # tear everything down (volumes deleted)
 ```
 
 ### Configuration reference
@@ -132,9 +132,12 @@ All flags are also available as environment variables. The most common:
 | `--metadata-database-url` | `METADATA_DATABASE_URL` | *(unset → file mode)* |
 | `--admin-secret` | `ADMIN_SECRET`, `NHOST_ADMIN_SECRET`, `HASURA_GRAPHQL_ADMIN_SECRET` | *(required)* |
 | `--jwt-secret` | `HASURA_GRAPHQL_JWT_SECRET`, `NHOST_JWT_SECRET` | *(required)* |
+| `--cors-allowed-origins` | `CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)* |
 | `--subscription-poll-interval` | `SUBSCRIPTION_POLL_INTERVAL` | `1s` |
 | `--enable-playground` | `ENABLE_PLAYGROUND` | `false` |
 | `--debug` | `DEBUG` | `false` |
+| `--log-format-text` | `LOG_FORMAT_TEXT` | `false` — JSON logs by default |
+| `--dev-mode` | `NHOST_DEV_MODE` | `false` — returns raw connector errors; never enable in production |
 | `--profile-address` | `PROFILE_ADDRESS` | *(unset)* — enables `net/http/pprof` |
 
 The admin-secret and JWT envs are the same as Hasura's, so existing deployments can switch over without touching their auth wiring.
@@ -163,6 +166,7 @@ Developer / contributor:
 - [`docs/developers/remote-relationships.md`](./docs/developers/remote-relationships.md) — planner/resolver mechanics.
 - [`docs/developers/subscriptions.md`](./docs/developers/subscriptions.md) — WebSocket protocol, cohort multiplexing, stream cursors.
 - [`docs/developers/remote-schemas.md`](./docs/developers/remote-schemas.md) — introspection, SDL parsing, HTTP forwarding.
+- [`docs/developers/customization.md`](./docs/developers/customization.md) — schema customization (namespaces, prefixes/suffixes, type renames) as a connector decorator.
 - [`docs/developers/architecture.md`](./docs/developers/architecture.md) — atomic state swap, auth precedence, fast paths, concurrency model.
 - [`CLAUDE.md`](./CLAUDE.md) — project conventions and code-review guidelines.
 
@@ -222,4 +226,4 @@ Patches welcome. Before opening a PR:
 
 ## License
 
-See [`LICENSE`](./LICENSE).
+See [`LICENSE`](../../LICENSE) at the repository root.

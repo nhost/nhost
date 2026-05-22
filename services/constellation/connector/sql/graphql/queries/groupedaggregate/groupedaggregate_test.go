@@ -32,7 +32,7 @@ func sampleInput() groupedaggregate.BuildInput {
 func TestOps_BuildGroupedAggregateSQL(t *testing.T) {
 	t.Parallel()
 
-	stubErr := errors.New("builder failed")
+	stubErr := errors.New("builder failed") //nolint:err113 // test sentinel
 	wantOp := core.SQLOperation{Name: "users_aggregate", SQL: "SELECT 1"}
 
 	missingTable := sampleInput()

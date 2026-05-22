@@ -145,7 +145,7 @@ func (h *httpClient) do(
 			slog.String("body", string(respBody)),
 		)
 
-		return nil, fmt.Errorf("remote schema returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("%w %d", ErrRemoteStatus, resp.StatusCode)
 	}
 
 	return respBody, nil

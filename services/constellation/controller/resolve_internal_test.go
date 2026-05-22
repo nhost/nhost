@@ -197,6 +197,7 @@ func TestGqlValidationError_NilForEmpty(t *testing.T) {
 func TestGqlValidationError_PlainErrorDoesNotMatch(t *testing.T) {
 	t.Parallel()
 
+	//nolint:err113 // test sentinel error used to verify error propagation
 	err := errors.New("plain error")
 
 	var valErr *gqlValidationError
@@ -215,7 +216,7 @@ func TestSanitizeConnectorError_SuppressesRawDetail(t *testing.T) {
 	}{
 		{
 			name: "constraint violation with data value",
-			err: errors.New(
+			err: errors.New( //nolint:err113 // test sentinel error used to verify error propagation
 				"failed to execute operations: ERROR: duplicate key value " +
 					"violates unique constraint \"users_email_key\" (SQLSTATE 23505): " +
 					"Key (email)=(alice@example.com) already exists",
@@ -230,7 +231,9 @@ func TestSanitizeConnectorError_SuppressesRawDetail(t *testing.T) {
 		},
 		{
 			name: "sqlite no such column",
-			err:  errors.New("failed to execute operations: no such column: secret_col"),
+			err: errors.New( //nolint:err113 // test sentinel error used to verify error propagation
+				"failed to execute operations: no such column: secret_col",
+			),
 			secretParts: []string{
 				"secret_col",
 				"no such column",
@@ -312,7 +315,12 @@ func TestSanitizeConnectorError_DevModeReturnsRaw(t *testing.T) {
 		ReplaceAttr: nil,
 	}))
 
-	msg := sanitizeConnectorError(context.Background(), logger, true, errors.New(raw))
+	msg := sanitizeConnectorError(
+		context.Background(),
+		logger,
+		true,
+		errors.New(raw), //nolint:err113 // test sentinel error used to verify error propagation
+	)
 
 	// Dev mode surfaces the raw error verbatim (Hasura DEV_MODE parity); the
 	// generic trace-id message must NOT be used.
@@ -337,7 +345,9 @@ func TestSanitizeConnectorError_NilLoggerSafe(t *testing.T) {
 		context.Background(),
 		nil,
 		false,
-		errors.New("Key (email)=(alice@example.com) already exists"),
+		errors.New( //nolint:err113 // test sentinel error used to verify error propagation
+			"Key (email)=(alice@example.com) already exists",
+		),
 	)
 
 	if strings.Contains(msg, "alice@example.com") {
@@ -373,7 +383,14 @@ func TestSanitizeConnectorError_UsesTraceFromContext(t *testing.T) {
 		ReplaceAttr: nil,
 	}))
 
-	msg := sanitizeConnectorError(ctx, logger, false, errors.New("driver detail"))
+	msg := sanitizeConnectorError(
+		ctx,
+		logger,
+		false,
+		errors.New( //nolint:err113 // test sentinel error used to verify error propagation
+			"driver detail",
+		),
+	)
 
 	if !strings.Contains(msg, wantTraceID) {
 		t.Fatalf("client message %q did not carry the trace id from ctx", msg)

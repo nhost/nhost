@@ -18,12 +18,15 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-// errScanFailed / errCommitFailed are package-level sentinels so the
-// table-driven ExecuteOperations cases can use errors.Is without sharing
-// closure state.
+// Package-level sentinels so the table-driven cases can use errors.Is without
+// sharing closure state, and so err113 doesn't flag inline dynamic errors.
 var (
-	errScanFailed   = errors.New("scan failed")
-	errCommitFailed = errors.New("commit failed")
+	errScanFailed        = errors.New("scan failed")
+	errCommitFailed      = errors.New("commit failed")
+	errConnectionRefused = errors.New("connection refused")
+	errRollbackFailed    = errors.New("rollback failed")
+	errQueryFailed       = errors.New("query failed")
+	errIteration         = errors.New("iteration error")
 )
 
 func discardLogger() *slog.Logger {
@@ -490,7 +493,7 @@ func TestExecuteOperationsMocked(t *testing.T) {
 			setupMocks: func(_ *testing.T, db *mock.MockDB, _ *mock.MockTx, _ *mock.MockRow) {
 				db.EXPECT().
 					BeginTx(gomock.Any()).
-					Return(nil, errors.New("connection refused"))
+					Return(nil, errConnectionRefused)
 			},
 			wantErrSubstring: "failed to begin transaction: connection refused",
 			wantErrIs:        nil,
@@ -514,7 +517,7 @@ func TestExecuteOperationsMocked(t *testing.T) {
 				db.EXPECT().BeginTx(gomock.Any()).Return(tx, nil)
 				row.EXPECT().Scan(gomock.Any()).Return(errScanFailed)
 				tx.EXPECT().QueryRowContext(gomock.Any(), "SELECT 1", gomock.Any()).Return(row)
-				tx.EXPECT().Rollback().Return(errors.New("rollback failed"))
+				tx.EXPECT().Rollback().Return(errRollbackFailed)
 			},
 			wantErrSubstring: "",
 			wantErrIs:        errScanFailed,
@@ -686,7 +689,7 @@ func TestExecuteMultiplexedOperationMocked(t *testing.T) {
 			setupMocks: func(_ *testing.T, db *mock.MockDB, _ *mock.MockRows) {
 				db.EXPECT().
 					QueryContext(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil, errors.New("query failed"))
+					Return(nil, errQueryFailed)
 			},
 			wantErrSubstring: "failed to execute multiplexed query: query failed",
 			wantErrIs:        nil,
@@ -700,7 +703,7 @@ func TestExecuteMultiplexedOperationMocked(t *testing.T) {
 					QueryContext(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(rows, nil)
 				rows.EXPECT().Next().Return(false)
-				rows.EXPECT().Err().Return(errors.New("iteration error"))
+				rows.EXPECT().Err().Return(errIteration)
 				rows.EXPECT().Close().Return(nil)
 			},
 			wantErrSubstring: "error iterating multiplexed results: iteration error",

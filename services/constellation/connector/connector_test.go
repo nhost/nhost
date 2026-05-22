@@ -23,6 +23,13 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// errFactoryBoom and errFactoryBang are test sentinel errors used to verify
+// error propagation from factory failures.
+var (
+	errFactoryBoom = errors.New("boom")
+	errFactoryBang = errors.New("bang")
+)
+
 var update = flag.Bool("update", false, "update golden files") //nolint:gochecknoglobals
 
 func TestBuildConnectorsFromMetadata(t *testing.T) {
@@ -437,7 +444,7 @@ func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
 			opts: []connector.Option{
 				connector.WithDBFactories(map[string]connector.DBFactory{
 					"postgres": func(_ context.Context, _ *metadata.DatabaseMetadata) (connector.Connector, error) {
-						return nil, errors.New("boom")
+						return nil, errFactoryBoom
 					},
 				}),
 			},
@@ -460,7 +467,7 @@ func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
 			opts: []connector.Option{
 				connector.WithRemoteSchemaFactory(
 					func(_ context.Context, _ *metadata.RemoteSchemaMetadata) (connector.Connector, error) {
-						return nil, errors.New("bang")
+						return nil, errFactoryBang
 					},
 				),
 			},

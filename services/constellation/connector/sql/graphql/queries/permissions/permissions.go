@@ -39,6 +39,25 @@ import (
 // provide. Callers wrap it for context.
 var ErrSessionVariableNotFound = errors.New("session variable not found")
 
+var (
+	errColumnOrRelationshipNotFound   = errors.New("column or relationship not found in table")
+	errExpectedListForLogicalOp       = errors.New("expected list for logical operator")
+	errExpectedMapInListForLogicalOp  = errors.New("expected map in list for logical operator")
+	errExpectedMapForNotOp            = errors.New("expected map for _not operator")
+	errExpectedMapForRelationshipPerm = errors.New("expected map for relationship permission")
+	errRelationshipNoLocalTargetTable = errors.New("has no local target table")
+	errExpectedMapForExistsOp         = errors.New("expected map for _exists operator")
+	errExpectedTableMapInExistsOp     = errors.New("expected _table map in _exists operator")
+	errExpectedSchemaStringInExistsOp = errors.New(
+		"expected string for _table.schema in _exists operator",
+	)
+	errExpectedNameStringInExistsOp = errors.New(
+		"expected string for _table.name in _exists operator",
+	)
+	errExpectedWhereMapInExistsOp = errors.New("expected _where map in _exists operator")
+	errTableNotFoundForExistsOp   = errors.New("table not found for _exists operator")
+)
+
 //go:generate mockgen -package mock -destination mock/permissions.go . Table,Relationship
 
 // Table is the contract the permissions package needs from a parent-package
@@ -349,7 +368,7 @@ func fixEntry(t Table, key string, value any) (fixedEntry, error) {
 	}
 
 	return fixedEntry{}, fmt.Errorf(
-		"column or relationship %s not found in table %s", key, t.Name(),
+		"%w: %s not found in table %s", errColumnOrRelationshipNotFound, key, t.Name(),
 	)
 }
 
@@ -358,7 +377,7 @@ func fixEntry(t Table, key string, value any) (fixedEntry, error) {
 func fixLogical(t Table, key string, value any) (fixedEntry, error) {
 	list, ok := value.([]any)
 	if !ok {
-		return fixedEntry{}, fmt.Errorf("expected list for logical operator %s", key)
+		return fixedEntry{}, fmt.Errorf("%w: %s", errExpectedListForLogicalOp, key)
 	}
 
 	fixedList := make([]any, len(list))
@@ -367,7 +386,7 @@ func fixLogical(t Table, key string, value any) (fixedEntry, error) {
 		itemMap, ok := item.(map[string]any)
 		if !ok {
 			return fixedEntry{}, fmt.Errorf(
-				"expected map in list for logical operator %s", key,
+				"%w: %s", errExpectedMapInListForLogicalOp, key,
 			)
 		}
 
@@ -387,7 +406,7 @@ func fixLogical(t Table, key string, value any) (fixedEntry, error) {
 func fixNot(t Table, value any) (fixedEntry, error) {
 	notMap, ok := value.(map[string]any)
 	if !ok {
-		return fixedEntry{}, errors.New("expected map for _not operator")
+		return fixedEntry{}, errExpectedMapForNotOp
 	}
 
 	fixedNot, err := fixColumns(t, notMap)
@@ -421,14 +440,14 @@ func fixRelationship(rel Relationship, value any) (fixedEntry, error) {
 	relPerms, ok := value.(map[string]any)
 	if !ok {
 		return fixedEntry{}, fmt.Errorf(
-			"expected map for relationship permission %s", rel.Name(),
+			"%w %s", errExpectedMapForRelationshipPerm, rel.Name(),
 		)
 	}
 
 	target := rel.LookupTarget()
 	if target == nil {
 		return fixedEntry{}, fmt.Errorf(
-			"relationship %s has no local target table", rel.Name(),
+			"relationship %s %w", rel.Name(), errRelationshipNoLocalTargetTable,
 		)
 	}
 
@@ -470,32 +489,32 @@ func fixValue(value any) any {
 func fixExists(t Table, value any) (map[string]any, error) {
 	existsMap, ok := value.(map[string]any)
 	if !ok {
-		return nil, errors.New("expected map for _exists operator")
+		return nil, errExpectedMapForExistsOp
 	}
 
 	tableRef, ok := existsMap["_table"].(map[string]any)
 	if !ok {
-		return nil, errors.New("expected _table map in _exists operator")
+		return nil, errExpectedTableMapInExistsOp
 	}
 
 	schema, ok := tableRef["schema"].(string)
 	if !ok {
-		return nil, errors.New("expected string for _table.schema in _exists operator")
+		return nil, errExpectedSchemaStringInExistsOp
 	}
 
 	name, ok := tableRef["name"].(string)
 	if !ok {
-		return nil, errors.New("expected string for _table.name in _exists operator")
+		return nil, errExpectedNameStringInExistsOp
 	}
 
 	whereMap, ok := existsMap["_where"].(map[string]any)
 	if !ok {
-		return nil, errors.New("expected _where map in _exists operator")
+		return nil, errExpectedWhereMapInExistsOp
 	}
 
 	target := t.SiblingTable(schema, name)
 	if target == nil {
-		return nil, fmt.Errorf("table %s.%s not found for _exists operator", schema, name)
+		return nil, fmt.Errorf("%w: %s.%s", errTableNotFoundForExistsOp, schema, name)
 	}
 
 	fixedWhere, err := fixColumns(target, whereMap)

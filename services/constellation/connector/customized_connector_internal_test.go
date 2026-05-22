@@ -11,6 +11,10 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
+// errCustomizedExecBoom is a test sentinel error used to verify error
+// propagation from the inner connector's Execute call.
+var errCustomizedExecBoom = errors.New("boom")
+
 // namespacedQueryOp returns the customized (client-facing) operation
 // query { league { teams { __typename } } }. Under the primed customizer the
 // decorator must reverse it to native query { teams { __typename } } before
@@ -103,7 +107,7 @@ func assertWrappedError(t *testing.T, err, innerErr error) {
 func TestCustomizedConnectorExecute(t *testing.T) {
 	t.Parallel()
 
-	innerErr := errors.New("boom")
+	innerErr := errCustomizedExecBoom
 
 	tests := []struct {
 		name       string

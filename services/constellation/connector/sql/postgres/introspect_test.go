@@ -2,7 +2,6 @@ package postgres_test
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"os"
 	"path/filepath"
@@ -72,7 +71,7 @@ func TestIntrospect_SchemaQueryError(t *testing.T) {
 
 	pool.EXPECT().
 		Query(gomock.Any(), gomock.Any()).
-		Return(nil, errors.New("schema query failed"))
+		Return(nil, errSchemaQueryFailed)
 
 	client := postgres.NewClient(pool)
 
@@ -348,7 +347,7 @@ func singleStringRows(ctrl *gomock.Controller, value string) *mock.MockRows {
 	rows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...any) error {
 		ptr, ok := dest[0].(*string)
 		if !ok {
-			return errors.New("expected *string dest")
+			return errExpectedString
 		}
 
 		*ptr = value
@@ -455,12 +454,12 @@ func TestIntrospect_DownstreamErrors(t *testing.T) {
 								return singleStringRows(ctrl, "public"), nil
 							}
 
-							return nil, errors.New("table query exploded")
+							return nil, errTableQueryExplode
 						}).
 					AnyTimes()
 				pool.EXPECT().
 					Query(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil, errors.New("table query exploded")).
+					Return(nil, errTableQueryExplode).
 					AnyTimes()
 			},
 			dbMeta:  &metadata.DatabaseMetadata{Name: "default"},
@@ -539,7 +538,7 @@ func TestIntrospect_FunctionsError(t *testing.T) {
 		Times(1)
 
 	row := mock.NewMockRow(ctrl)
-	row.EXPECT().Scan(gomock.Any()).Return(errors.New("pg_proc unreachable"))
+	row.EXPECT().Scan(gomock.Any()).Return(errPgProcUnreachable)
 
 	pool.EXPECT().
 		QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).

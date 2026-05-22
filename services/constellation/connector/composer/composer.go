@@ -160,13 +160,13 @@ func composeRole(
 func (c *Composer) validateProviders() error {
 	for _, db := range c.meta.Databases {
 		if _, ok := c.providers[db.Name]; !ok {
-			return fmt.Errorf("missing connector for database %q", db.Name)
+			return fmt.Errorf("%w for database %q", ErrMissingConnector, db.Name)
 		}
 	}
 
 	for _, rs := range c.meta.RemoteSchemas {
 		if _, ok := c.providers[rs.Name]; !ok {
-			return fmt.Errorf("missing connector for remote schema %q", rs.Name)
+			return fmt.Errorf("%w for remote schema %q", ErrMissingConnector, rs.Name)
 		}
 	}
 

@@ -19,6 +19,16 @@ import (
 // resolve to a value in the provided variables map.
 var ErrVariableNotFound = errors.New("variable not found")
 
+var (
+	errVariableShouldBeResolved = errors.New(
+		"variable should have been resolved before calling ExtractGoValue",
+	)
+	errUnsupportedASTValueKind   = errors.New("unsupported AST value kind")
+	errExpectedListOrKind        = errors.New("expected list or value kind")
+	errUnsupportedValueKindJSONB = errors.New("unsupported value kind for JSONB")
+	errUnsupportedValueType      = errors.New("unsupported value type")
+)
+
 // ResolveVariable resolves a variable reference to its AST value.
 // If the value is not a variable, it returns the value unchanged.
 // This is useful when you need to process the AST value further (e.g., iterate over object fields).
@@ -137,9 +147,9 @@ func ExtractGoValue(v *ast.Value) (any, error) { //nolint:cyclop
 
 		return result, nil
 	case ast.Variable:
-		return nil, errors.New("variable should have been resolved before calling ExtractGoValue")
+		return nil, errVariableShouldBeResolved
 	default:
-		return nil, fmt.Errorf("unsupported AST value kind: %v", v.Kind)
+		return nil, fmt.Errorf("%w: %v", errUnsupportedASTValueKind, v.Kind)
 	}
 }
 
@@ -232,7 +242,12 @@ func CoerceToChildValueList(
 		return []*ast.ChildValue{{Value: value}}, nil
 
 	default:
-		return nil, fmt.Errorf("expected list or %v, got %v", expectedKind, value.Kind)
+		return nil, fmt.Errorf(
+			"%w: expected list or %v, got %v",
+			errExpectedListOrKind,
+			expectedKind,
+			value.Kind,
+		)
 	}
 }
 
@@ -294,7 +309,7 @@ func ExtractJSONBValue(value *ast.Value) (any, error) {
 		return nil, nil //nolint:nilnil
 
 	default:
-		return nil, fmt.Errorf("unsupported value kind for JSONB: %v", value.Kind)
+		return nil, fmt.Errorf("%w: %v", errUnsupportedValueKindJSONB, value.Kind)
 	}
 }
 
@@ -389,7 +404,7 @@ func GoValueToAST(value any) (*ast.Value, error) { //nolint:cyclop,funlen
 		}, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported value type %T", v)
+		return nil, fmt.Errorf("%w: %T", errUnsupportedValueType, v)
 	}
 }
 

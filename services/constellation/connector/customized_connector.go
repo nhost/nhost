@@ -83,9 +83,9 @@ func newCustomizedConnector(
 ) (*customizedConnector, error) {
 	if len(cfg.FieldNames) > 0 {
 		return nil, fmt.Errorf(
-			"customizing connector %s: per-type field_names customization is not supported "+
+			"%w: customizing connector %s: per-type field_names customization is not supported "+
 				"(the schema would advertise renamed fields that execution cannot reverse)",
-			name,
+			ErrUnsupportedCustomization, name,
 		)
 	}
 

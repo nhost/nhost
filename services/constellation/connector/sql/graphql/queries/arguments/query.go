@@ -1,7 +1,6 @@
 package arguments
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -107,12 +106,12 @@ func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) 
 		}
 
 		if floatVal != float64(int(floatVal)) {
-			return nil, errors.New("limit must be a whole number")
+			return nil, fmt.Errorf("%w: limit must be a whole number", ErrInvalidArgument)
 		}
 
 		intVal = int(floatVal)
 	default:
-		return nil, errors.New("limit must be an integer")
+		return nil, fmt.Errorf("%w: limit must be an integer", ErrInvalidArgument)
 	}
 
 	return &intVal, nil
@@ -134,13 +133,13 @@ func ParseOrderBy(
 	}
 
 	if value.Kind != ast.ListValue {
-		return nil, errors.New("order_by must be a list or an object")
+		return nil, fmt.Errorf("%w: order_by must be a list or an object", ErrInvalidArgument)
 	}
 
 	var orderBy []OrderByItem
 	for _, child := range value.Children {
 		if child.Value.Kind != ast.ObjectValue {
-			return nil, errors.New("order_by items must be objects")
+			return nil, fmt.Errorf("%w: order_by items must be objects", ErrInvalidArgument)
 		}
 
 		orderBy, err = appendOrderByObject(t, orderBy, child.Value)
@@ -163,12 +162,15 @@ func appendOrderByObject(
 		column := t.ColumnFromGraphqlName(field.Name)
 		if column == nil {
 			return nil, fmt.Errorf(
-				"column %s not found in table %s", field.Name, t.TableName(),
+				"%w: column %s not found in table %s",
+				ErrInvalidArgument, field.Name, t.TableName(),
 			)
 		}
 
 		if field.Value.Kind != ast.EnumValue {
-			return nil, errors.New("order_by direction must be an enum value")
+			return nil, fmt.Errorf(
+				"%w: order_by direction must be an enum value", ErrInvalidArgument,
+			)
 		}
 
 		direction, err := convertOrderByDirection(field.Value.Raw)
@@ -204,7 +206,9 @@ func convertOrderByDirection(direction string) (core.OrderDirection, error) {
 	case "desc_nulls_last":
 		return core.OrderDescNullsLast, nil
 	default:
-		return core.OrderAsc, fmt.Errorf("unknown order_by direction %q", direction)
+		return core.OrderAsc, fmt.Errorf(
+			"%w: unknown order_by direction %q", ErrInvalidArgument, direction,
+		)
 	}
 }
 
@@ -226,27 +230,37 @@ func ParseDistinctOn(
 
 		column := t.ColumnFromGraphqlName(customColName)
 		if column == nil {
-			return nil, fmt.Errorf("column %s not found in table %s", customColName, t.TableName())
+			return nil, fmt.Errorf(
+				"%w: column %s not found in table %s",
+				ErrInvalidArgument, customColName, t.TableName(),
+			)
 		}
 
 		return []string{column.SQLName}, nil
 	}
 
 	if value.Kind != ast.ListValue {
-		return nil, errors.New("distinct_on must be a list or an enum value")
+		return nil, fmt.Errorf(
+			"%w: distinct_on must be a list or an enum value", ErrInvalidArgument,
+		)
 	}
 
 	distinctOn := make([]string, 0, len(value.Children))
 	for _, child := range value.Children {
 		if child.Value.Kind != ast.EnumValue {
-			return nil, errors.New("distinct_on column names must be enum values")
+			return nil, fmt.Errorf(
+				"%w: distinct_on column names must be enum values", ErrInvalidArgument,
+			)
 		}
 
 		customColName := child.Value.Raw
 
 		column := t.ColumnFromGraphqlName(customColName)
 		if column == nil {
-			return nil, fmt.Errorf("column %s not found in table %s", customColName, t.TableName())
+			return nil, fmt.Errorf(
+				"%w: column %s not found in table %s",
+				ErrInvalidArgument, customColName, t.TableName(),
+			)
 		}
 
 		distinctOn = append(distinctOn, column.SQLName)
@@ -282,7 +296,9 @@ func parsePkArguments(
 		arg := arguments.ForName(col.GraphqlName)
 		if arg == nil {
 			return nil, fmt.Errorf(
-				"missing required primary key argument: %s", col.GraphqlName)
+				"%w: missing required primary key argument: %s",
+				ErrInvalidArgument, col.GraphqlName,
+			)
 		}
 
 		value, err := values.ResolveASTValue(arg.Value, variables)

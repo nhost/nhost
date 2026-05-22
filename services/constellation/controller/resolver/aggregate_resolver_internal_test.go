@@ -341,6 +341,7 @@ func TestExecuteAndStitchAggregate_MultiColumnMappingUnsupported(t *testing.T) {
 func TestExecuteAndStitchAggregate_ExecutorErrorWrapped(t *testing.T) {
 	t.Parallel()
 
+	//nolint:err113 // test sentinel error used to verify error propagation
 	sentinel := errors.New("boom")
 
 	mockExec := newMockAggregateExecutor(t)

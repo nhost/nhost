@@ -4,12 +4,27 @@ import (
 	"context"
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
+	"errors"
 	"fmt"
 	"log/slog"
 
 	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	groupedaggdispatch "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/groupedaggregate"
+)
+
+// Errors returned by grouped aggregate execution and result parsing.
+var (
+	// ErrGroupedAggregateResultMissing reports that a grouped aggregate
+	// operation completed but did not produce a result row for its named
+	// operation.
+	ErrGroupedAggregateResultMissing = errors.New("grouped aggregate result missing")
+	// ErrGroupedAggregateUnexpectedType reports that a grouped aggregate
+	// driver returned a value with a type other than jsontext.Value.
+	ErrGroupedAggregateUnexpectedType = errors.New("unexpected grouped aggregate result type")
+	// ErrGroupedAggregateMissingJoinKey reports that a grouped aggregate
+	// result row was missing the required _join_key field.
+	ErrGroupedAggregateMissingJoinKey = errors.New("grouped aggregate row missing _join_key")
 )
 
 // ExecuteGroupedAggregate runs a grouped aggregate query and returns the
@@ -52,7 +67,7 @@ func (c *Connector) ExecuteGroupedAggregate(
 
 	raw, ok := results[op.Name]
 	if !ok {
-		return nil, fmt.Errorf("grouped aggregate result missing for %q", op.Name)
+		return nil, fmt.Errorf("%w: %q", ErrGroupedAggregateResultMissing, op.Name)
 	}
 
 	return parseGroupedAggregateResult(raw)
@@ -68,7 +83,7 @@ func parseGroupedAggregateResult(raw any) (map[string]any, error) {
 	jsonBytes, ok := raw.(jsontext.Value)
 	if !ok {
 		return nil, fmt.Errorf(
-			"unexpected grouped aggregate result type %T (expected jsontext.Value)", raw,
+			"%w: %T (expected jsontext.Value)", ErrGroupedAggregateUnexpectedType, raw,
 		)
 	}
 
@@ -82,7 +97,7 @@ func parseGroupedAggregateResult(raw any) (map[string]any, error) {
 	for _, row := range rows {
 		key, hasKey := row["_join_key"]
 		if !hasKey {
-			return nil, fmt.Errorf("grouped aggregate row missing _join_key: %v", row)
+			return nil, fmt.Errorf("%w: %v", ErrGroupedAggregateMissingJoinKey, row)
 		}
 
 		entry := make(map[string]any, 2) //nolint:mnd

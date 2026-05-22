@@ -19,6 +19,10 @@ import (
 // taking a dependency on this package.
 type MultiplexedResult = core.MultiplexedResult
 
+// ErrOperationNotProvided reports that a subscription request was missing the
+// pre-parsed GraphQL operation that downstream stream detection requires.
+var ErrOperationNotProvided = errors.New("operation not provided in request")
+
 // QueryExecutor defines the interface for executing multiplexed subscription queries.
 //
 //go:generate mockgen -package mock -destination mock/query_executor.go . QueryExecutor
@@ -145,7 +149,7 @@ func (h *Handler) detectStreamSubscription(
 	req sub.Request,
 ) (bool, map[string]any, []string, error) {
 	if req.Operation == nil {
-		return false, nil, nil, errors.New("operation not provided in request")
+		return false, nil, nil, ErrOperationNotProvided
 	}
 
 	streamField := firstStreamField(req.Operation, h.roots)

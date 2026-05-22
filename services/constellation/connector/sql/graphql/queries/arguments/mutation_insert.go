@@ -149,7 +149,7 @@ func ParseOnConflict( //nolint:funlen
 				oc.UpdateColumns = append(oc.UpdateColumns, column.SQLName)
 			}
 
-		case "where":
+		case argNameWhere:
 			whereClause, err := t.ParseWhere(
 				field.Value, variables, role, sessionVariables, 0, where.QueryAliases,
 			)
@@ -378,7 +378,8 @@ func parseInsertObject(
 		column := t.ColumnFromGraphqlName(customFieldName)
 		if column == nil {
 			return InsertObject{}, fmt.Errorf(
-				"column %s not found in table %s",
+				"%w: column %s not found in table %s",
+				ErrInvalidArgument,
 				customFieldName,
 				t.TableName(),
 			)
@@ -439,7 +440,12 @@ func ApplyInsertPresets(
 
 		col := t.ColumnFromSQLName(colName)
 		if col == nil {
-			return fmt.Errorf("preset column %s not found in table %s", colName, t.TableName())
+			return fmt.Errorf(
+				"%w: preset column %s not found in table %s",
+				ErrInvalidArgument,
+				colName,
+				t.TableName(),
+			)
 		}
 
 		value, err := permissions.SubstituteSessionVariable(presetValue, sessionVariables)
@@ -482,13 +488,18 @@ func parseNestedInsert( //nolint:funlen
 
 	// Nested inserts have the format: {data: {...}, on_conflict: {...}}
 	if fieldValue.Kind != ast.ObjectValue {
-		return NestedInsert{}, fmt.Errorf("nested insert for %s must be an object", fieldName)
+		return NestedInsert{}, fmt.Errorf(
+			"%w: nested insert for %s must be an object",
+			ErrInvalidArgument,
+			fieldName,
+		)
 	}
 
 	nestedChild := fieldValue.Children.ForName("data")
 	if nestedChild == nil {
 		return NestedInsert{}, fmt.Errorf(
-			"missing data field for nested insert on relationship %s",
+			"%w: missing data field for nested insert on relationship %s",
+			ErrInvalidArgument,
 			fieldName,
 		)
 	}

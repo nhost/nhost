@@ -272,7 +272,7 @@ func parseAndValidateQuery(
 	// Get the validated schema for this role
 	validatedSchema, exists := validatedSchemas[role]
 	if !exists {
-		return nil, nil, nil, errors.New("no schema available for role: " + role)
+		return nil, nil, nil, fmt.Errorf("%w: %s", errNoSchemaForRole, role)
 	}
 
 	// Parse and validate the query (cached by query string + role)
@@ -296,10 +296,10 @@ func parseAndValidateQuery(
 
 	if operation == nil {
 		if len(parsedQuery.Operations) > 1 {
-			return nil, nil, nil, errors.New("multiple operations found, operationName is required")
+			return nil, nil, nil, errMultipleOperations
 		}
 
-		return nil, nil, nil, errors.New("operation not found")
+		return nil, nil, nil, errOperationNotFound
 	}
 
 	// Validate and coerce variables

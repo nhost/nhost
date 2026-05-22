@@ -1,11 +1,16 @@
 package metadata
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
 	"strings"
 )
+
+// ErrUnresolvedEnvVars is returned by [EnvString.Resolve] when one or more
+// referenced environment variables are not set.
+var ErrUnresolvedEnvVars = errors.New("unresolved environment variables")
 
 // envVarPattern matches {{VAR_NAME}} patterns in strings.
 var envVarPattern = regexp.MustCompile(`\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}`)
@@ -34,7 +39,7 @@ func (e EnvString) Resolve() (string, error) {
 	})
 
 	if len(missing) > 0 {
-		return out, fmt.Errorf("unresolved environment variables: %s", strings.Join(missing, ", "))
+		return out, fmt.Errorf("%w: %s", ErrUnresolvedEnvVars, strings.Join(missing, ", "))
 	}
 
 	return out, nil

@@ -15,6 +15,14 @@ import (
 
 const validV3JSON = `{"version":3,"sources":[]}`
 
+// Test sentinel errors used to verify error propagation through the
+// metadata source's polling and load paths.
+var (
+	errBoom            = errors.New("boom")
+	errConnectionReset = errors.New("connection reset")
+	errTableMissing    = errors.New("table missing")
+)
+
 func newTestSource(store metadataStore, pollInterval time.Duration) *DatabaseMetadataSource {
 	return newDatabaseMetadataSource(
 		store,
@@ -45,7 +53,9 @@ func TestDatabaseMetadataSource_InitialLoad(t *testing.T) {
 		{
 			name: "query error propagates",
 			store: &fakeStore{
-				metadataRows: []fakeRow{{err: errors.New("boom")}},
+				metadataRows: []fakeRow{
+					{err: errBoom},
+				},
 			},
 			wantErr: true,
 		},
@@ -153,7 +163,9 @@ func TestDatabaseMetadataSource_Poll_VersionFetchErrorLogsAndReturnsNil(t *testi
 	t.Parallel()
 
 	store := &fakeStore{
-		versionRows: []fakeRow{{err: errors.New("connection reset")}},
+		versionRows: []fakeRow{
+			{err: errConnectionReset},
+		},
 	}
 
 	src := newTestSource(store, time.Hour)
@@ -168,8 +180,10 @@ func TestDatabaseMetadataSource_Poll_LoadErrorReturnsUpdateWithErr(t *testing.T)
 	t.Parallel()
 
 	store := &fakeStore{
-		metadataRows: []fakeRow{{err: errors.New("table missing")}},
-		versionRows:  []fakeRow{{dest: []any{int64(99)}}},
+		metadataRows: []fakeRow{
+			{err: errTableMissing},
+		},
+		versionRows: []fakeRow{{dest: []any{int64(99)}}},
 	}
 
 	src := newTestSource(store, time.Hour)

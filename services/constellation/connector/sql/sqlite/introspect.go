@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -9,6 +10,10 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
+
+// ErrEnumTableNotIntrospected reports that an enum table referenced by
+// metadata was not found in the introspected database objects.
+var ErrEnumTableNotIntrospected = errors.New("enum table not found in introspected objects")
 
 // Introspect discovers tables, columns, primary keys, foreign keys and unique constraints
 // from a SQLite database using PRAGMA commands.
@@ -390,8 +395,8 @@ func introspectEnumValues(
 		table, ok := tables[tableName]
 		if !ok {
 			return nil, fmt.Errorf(
-				"enum table %s.%s not found in introspected objects",
-				schemaName, tableName,
+				"%w: %s.%s",
+				ErrEnumTableNotIntrospected, schemaName, tableName,
 			)
 		}
 
@@ -493,7 +498,7 @@ func mapSQLiteType(sqliteType string) string { //nolint:gocyclo,cyclop
 	switch {
 	case upper == "INTEGER" || upper == "INT" || upper == "BIGINT" ||
 		upper == "SMALLINT" || upper == "TINYINT" || upper == "MEDIUMINT":
-		return "int8"
+		return "int8" //nolint:goconst // matches sibling type cases that also nolint goconst
 	case upper == "REAL" || upper == "FLOAT" || upper == "DOUBLE" ||
 		strings.HasPrefix(upper, "DOUBLE "):
 		return "float8" //nolint:goconst

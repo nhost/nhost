@@ -87,7 +87,8 @@ func (t *table) Initialize(
 ) error {
 	tableObj, found := objects.GetTable(md.Table.Schema, md.Table.Name)
 	if !found {
-		return fmt.Errorf("unable to find table %s.%s in introspection objects",
+		return fmt.Errorf("%w: %s.%s",
+			errTableNotFoundInIntrospection,
 			md.Table.Schema, md.Table.Name)
 	}
 

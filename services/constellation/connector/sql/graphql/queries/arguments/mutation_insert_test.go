@@ -127,7 +127,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 func TestOnConflict_ToSQL_WhereWriteConditionError(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("boom")
+	sentinel := errors.New("boom") //nolint:err113 // test sentinel
 	oc := &arguments.OnConflict{
 		ConstraintName: "users_pkey",
 		UpdateColumns:  []string{"email"},
@@ -300,7 +300,7 @@ func TestParseOnConflict_WhereParseError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	tbl := mock.NewMockTable(ctrl)
 
-	sentinel := errors.New("where parse failed")
+	sentinel := errors.New("where parse failed") //nolint:err113 // test sentinel
 	tbl.EXPECT().ParseWhere(
 		gomock.Any(), gomock.Any(), "user", gomock.Any(), 0, where.QueryAliases,
 	).Return(nil, sentinel)

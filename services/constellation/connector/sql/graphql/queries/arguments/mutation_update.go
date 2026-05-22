@@ -230,7 +230,7 @@ func ParseUpdate( //nolint:cyclop,funlen,gocognit
 			if err != nil {
 				return Update{}, fmt.Errorf("failed to parse _delete_at_path: %w", err)
 			}
-		case "where":
+		case argNameWhere:
 			whereClause, err = t.ParseWhere(
 				arg.Value, variables, role, sessionVariables, 0, where.QueryAliases,
 			)
@@ -307,7 +307,12 @@ func ApplyUpdatePresets(
 
 		col := t.ColumnFromSQLName(colName)
 		if col == nil {
-			return fmt.Errorf("preset column %s not found in table %s", colName, t.TableName())
+			return fmt.Errorf(
+				"%w: preset column %s not found in table %s",
+				ErrInvalidArgument,
+				colName,
+				t.TableName(),
+			)
 		}
 
 		update.Set = append(update.Set, updateColumn{

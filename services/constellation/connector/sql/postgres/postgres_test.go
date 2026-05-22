@@ -20,12 +20,18 @@ func discardLogger() *slog.Logger {
 	return slog.New(slog.DiscardHandler)
 }
 
-// errScanFailed / errCommitFailed are package-level sentinels so the
-// table-driven ExecuteOperations cases can use errors.Is without sharing
-// closure state.
+// Package-level sentinels so the table-driven cases can use errors.Is without
+// sharing closure state, and so err113 doesn't flag inline dynamic errors.
 var (
-	errScanFailed   = errors.New("scan failed")
-	errCommitFailed = errors.New("commit failed")
+	errScanFailed        = errors.New("scan failed")
+	errCommitFailed      = errors.New("commit failed")
+	errConnectionRefused = errors.New("connection refused")
+	errQueryFailed       = errors.New("query failed")
+	errIteration         = errors.New("iteration error")
+	errSchemaQueryFailed = errors.New("schema query failed")
+	errExpectedString    = errors.New("expected *string dest")
+	errTableQueryExplode = errors.New("table query exploded")
+	errPgProcUnreachable = errors.New("pg_proc unreachable")
 )
 
 // scanJSONInto returns a Row.Scan stub that copies payload into the *[]byte
@@ -94,7 +100,7 @@ func TestExecuteOperations(t *testing.T) {
 			setupMocks: func(_ *testing.T, pool *mock.MockPool, _ *mock.MockTx, _ *mock.MockRow) {
 				pool.EXPECT().
 					BeginTx(gomock.Any()).
-					Return(nil, errors.New("connection refused"))
+					Return(nil, errConnectionRefused)
 			},
 			wantErrSubstring: "failed to begin transaction: connection refused",
 			wantErrIs:        nil,
@@ -278,7 +284,7 @@ func TestExecuteMultiplexedOperation(t *testing.T) {
 			setupMocks: func(_ *testing.T, pool *mock.MockPool, _ *mock.MockRows) {
 				pool.EXPECT().
 					Query(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil, errors.New("query failed"))
+					Return(nil, errQueryFailed)
 			},
 			wantErrSubstring: "failed to execute multiplexed query: query failed",
 			wantResults:      nil,
@@ -291,7 +297,7 @@ func TestExecuteMultiplexedOperation(t *testing.T) {
 					Query(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(rows, nil)
 				rows.EXPECT().Next().Return(false)
-				rows.EXPECT().Err().Return(errors.New("iteration error"))
+				rows.EXPECT().Err().Return(errIteration)
 				rows.EXPECT().Close()
 			},
 			wantErrSubstring: "error iterating multiplexed results: iteration error",

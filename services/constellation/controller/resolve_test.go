@@ -446,7 +446,7 @@ func TestResolve_RemoteRelationshipRawErrorIsSanitized(t *testing.T) {
 	// connector must reach the client only through sanitizeConnectorError: a
 	// generic message with a trace id, never the raw constraint/data
 	// detail.
-	rawErr := errors.New(
+	rawErr := errors.New( //nolint:err113 // test sentinel error used to verify error propagation
 		"ERROR: duplicate key value violates unique constraint " +
 			"\"orders_pkey\" (SQLSTATE 23505): Key (id)=(o1) already exists",
 	)

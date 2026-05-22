@@ -8,15 +8,16 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
+// errLoaderBoom is a test sentinel used to verify loader error propagation.
+var errLoaderBoom = errors.New("loader boom")
+
 func TestFileMetadataSource_InitialLoad_LoaderErrorPropagates(t *testing.T) {
 	t.Parallel()
-
-	sentinel := errors.New("loader boom")
 
 	src := newFileMetadataSource(
 		"/irrelevant",
 		func(_ context.Context, _ string) (*metadata.Metadata, error) {
-			return nil, sentinel
+			return nil, errLoaderBoom
 		},
 	)
 	defer src.Close()
@@ -26,7 +27,7 @@ func TestFileMetadataSource_InitialLoad_LoaderErrorPropagates(t *testing.T) {
 		t.Errorf("expected nil metadata on loader error, got %+v", meta)
 	}
 
-	if !errors.Is(err, sentinel) {
+	if !errors.Is(err, errLoaderBoom) {
 		t.Fatalf("expected wrapped sentinel error, got %v", err)
 	}
 }

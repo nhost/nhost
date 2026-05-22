@@ -7,12 +7,17 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 )
+
+// ErrUnknownOrderDirection is returned when unmarshalling an OrderDirection
+// JSON string that doesn't match any of the known SQL fragment forms.
+var ErrUnknownOrderDirection = errors.New("OrderDirection: unknown value")
 
 // SQLOperation is the parameterized SQL output produced by the query builders.
 // StreamCursors is populated only for stream-subscription operations; see
@@ -146,7 +151,7 @@ func (d *OrderDirection) UnmarshalJSON(data []byte) error {
 	case "DESC NULLS LAST":
 		*d = OrderDescNullsLast
 	default:
-		return fmt.Errorf("OrderDirection: unknown value %q", s)
+		return fmt.Errorf("%w: %q", ErrUnknownOrderDirection, s)
 	}
 
 	return nil

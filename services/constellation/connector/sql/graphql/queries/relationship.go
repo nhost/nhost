@@ -84,7 +84,7 @@ func newLocalRelationship(
 
 	tableObj, found := getRelationshipTable(using, objects, parentTableObj)
 	if !found {
-		return nil, fmt.Errorf("unable to find relationship target table for relationship %s", name)
+		return nil, fmt.Errorf("%w: %s", errRelationshipTargetTableNotFound, name)
 	}
 
 	var table *table
@@ -97,7 +97,7 @@ func newLocalRelationship(
 
 	if table == nil {
 		return nil, fmt.Errorf(
-			"unable to find relationship target table object for relationship %s", name)
+			"%w: %s", errRelationshipTargetTableObjectNotFound, name)
 	}
 
 	return &relationship{
@@ -131,7 +131,7 @@ func newRemoteRelationship(
 	_ *introspection.Table,
 ) (*relationship, error) {
 	if using.ManualConfiguration == nil {
-		return nil, fmt.Errorf("remote relationship %s requires manual_configuration", name)
+		return nil, fmt.Errorf("%w: %s", errRemoteRelationshipRequiresManualConfig, name)
 	}
 
 	joinColumns := make(map[string]string, len(using.ManualConfiguration.ColumnMapping))
@@ -174,11 +174,11 @@ func newRemoteSchemaRelationship(
 	isArray bool,
 ) (*relationship, error) {
 	if using.ManualConfiguration == nil {
-		return nil, fmt.Errorf("remote schema relationship %s requires manual_configuration", name)
+		return nil, fmt.Errorf("%w: %s", errRemoteSchemaRelationshipRequiresManualConfig, name)
 	}
 
 	if using.ManualConfiguration.RemoteSchema == "" {
-		return nil, fmt.Errorf("remote schema relationship %s requires remote_schema", name)
+		return nil, fmt.Errorf("%w: %s", errRemoteSchemaRelationshipRequiresRemoteSchema, name)
 	}
 
 	lhsFields := make([]string, 0, len(using.ManualConfiguration.ColumnMapping))
@@ -468,7 +468,8 @@ func buildJoinCondition(
 			} else {
 				return "", nil, nil, false,
 					fmt.Errorf(
-						"target table %s.%s not found in introspection",
+						"%w: %s.%s",
+						errRelationshipTargetTableIntrospectionNotFound,
 						targetSchema,
 						targetTableName,
 					)

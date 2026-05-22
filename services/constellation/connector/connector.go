@@ -223,7 +223,7 @@ func (cfg *buildConfig) buildDatabaseConnectors(
 
 		factory, ok := cfg.dbFactories[dbMeta.Kind]
 		if !ok {
-			return fmt.Errorf("unsupported database kind: %s", dbMeta.Kind)
+			return fmt.Errorf("%w: %s", ErrUnsupportedDatabaseKind, dbMeta.Kind)
 		}
 
 		backend, err := factory(ctx, dbMeta)
@@ -257,7 +257,7 @@ func resolveDBURL(dbMeta *metadata.DatabaseMetadata) (string, error) {
 	}
 
 	if dbURL == "" {
-		return "", fmt.Errorf("database URL is not set for database %s", dbMeta.Name)
+		return "", fmt.Errorf("%w for database %s", ErrDatabaseURLNotSet, dbMeta.Name)
 	}
 
 	return dbURL, nil

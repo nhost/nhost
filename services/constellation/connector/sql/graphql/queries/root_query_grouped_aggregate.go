@@ -55,7 +55,8 @@ func (t *table) BuildGroupedAggregateSQL(
 	joinCol := t.columnFromSQLName(in.JoinColumnSQLName)
 	if joinCol == nil {
 		return core.SQLOperation{}, fmt.Errorf(
-			"unknown join column %q on table %s.%s",
+			"%w: %q on table %s.%s",
+			errUnknownJoinColumn,
 			in.JoinColumnSQLName, t.schemaName, t.tableName,
 		)
 	}

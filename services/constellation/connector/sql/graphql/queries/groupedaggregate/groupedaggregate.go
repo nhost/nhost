@@ -6,6 +6,7 @@
 package groupedaggregate
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 
@@ -13,6 +14,10 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
+
+// ErrTableNotRegistered is returned by Ops.BuildGroupedAggregateSQL when the
+// requested schema.table has no registered Builder.
+var ErrTableNotRegistered = errors.New("table not registered for grouped aggregate builds")
 
 // BuildInput bundles the inputs to a grouped-aggregate SQL build. The
 // dispatcher and the per-table Builder both take this single value so callers
@@ -89,7 +94,8 @@ func (o *Ops) BuildGroupedAggregateSQL(in BuildInput) (core.SQLOperation, error)
 	b, ok := o.builders[in.TableSchema+"."+in.TableName]
 	if !ok {
 		return core.SQLOperation{}, fmt.Errorf(
-			"table %s.%s not registered for grouped aggregate builds",
+			"%w: %s.%s",
+			ErrTableNotRegistered,
 			in.TableSchema, in.TableName,
 		)
 	}

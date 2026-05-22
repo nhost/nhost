@@ -1,7 +1,6 @@
 package arguments
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -46,7 +45,9 @@ func ParseStream(
 
 	batchSizeArg := arguments.ForName("batch_size")
 	if batchSizeArg == nil {
-		return result, errors.New("batch_size is required for stream subscriptions")
+		return result, fmt.Errorf(
+			"%w: batch_size is required for stream subscriptions", ErrInvalidArgument,
+		)
 	}
 
 	batchSize, err := ParseLimitOffset(batchSizeArg.Value, variables)
@@ -55,14 +56,18 @@ func ParseStream(
 	}
 
 	if batchSize == nil || *batchSize <= 0 {
-		return result, errors.New("batch_size must be a positive integer")
+		return result, fmt.Errorf(
+			"%w: batch_size must be a positive integer", ErrInvalidArgument,
+		)
 	}
 
 	result.BatchSize = *batchSize
 
 	cursorArg := arguments.ForName("cursor")
 	if cursorArg == nil {
-		return result, errors.New("cursor is required for stream subscriptions")
+		return result, fmt.Errorf(
+			"%w: cursor is required for stream subscriptions", ErrInvalidArgument,
+		)
 	}
 
 	cursors, err := parseStreamCursors(t, cursorArg.Value, variables)
@@ -71,7 +76,10 @@ func ParseStream(
 	}
 
 	if len(cursors) == 0 {
-		return result, errors.New("at least one cursor is required for stream subscriptions")
+		return result, fmt.Errorf(
+			"%w: at least one cursor is required for stream subscriptions",
+			ErrInvalidArgument,
+		)
 	}
 
 	result.Cursors = cursors
@@ -130,7 +138,7 @@ func parseStreamCursors(
 		// a single-element list so the downstream loop is uniform.
 		cursorValues = []*ast.Value{value}
 	default:
-		return nil, errors.New("cursor must be an array or object")
+		return nil, fmt.Errorf("%w: cursor must be an array or object", ErrInvalidArgument)
 	}
 
 	var cursors []StreamCursor
@@ -142,12 +150,12 @@ func parseStreamCursors(
 		}
 
 		if childValue.Kind != ast.ObjectValue {
-			return nil, errors.New("each cursor must be an object")
+			return nil, fmt.Errorf("%w: each cursor must be an object", ErrInvalidArgument)
 		}
 
 		initialValueField := findChildField(childValue, "initial_value")
 		if initialValueField == nil {
-			return nil, errors.New("initial_value is required in cursor")
+			return nil, fmt.Errorf("%w: initial_value is required in cursor", ErrInvalidArgument)
 		}
 
 		initialValue, err := values.ResolveVariable(initialValueField, variables)
@@ -156,7 +164,7 @@ func parseStreamCursors(
 		}
 
 		if initialValue.Kind != ast.ObjectValue {
-			return nil, errors.New("initial_value must be an object")
+			return nil, fmt.Errorf("%w: initial_value must be an object", ErrInvalidArgument)
 		}
 
 		ordering := core.OrderAsc
@@ -168,7 +176,8 @@ func parseStreamCursors(
 
 			if orderingValue.Kind != ast.EnumValue && orderingValue.Kind != ast.StringValue {
 				return nil, fmt.Errorf(
-					"ordering must be an enum or string, got %v", orderingValue.Kind,
+					"%w: ordering must be an enum or string, got %v",
+					ErrInvalidArgument, orderingValue.Kind,
 				)
 			}
 
@@ -178,14 +187,19 @@ func parseStreamCursors(
 			case "DESC", "desc":
 				ordering = core.OrderDesc
 			default:
-				return nil, fmt.Errorf("invalid ordering value: %s", orderingValue.Raw)
+				return nil, fmt.Errorf(
+					"%w: invalid ordering value: %s",
+					ErrInvalidArgument, orderingValue.Raw,
+				)
 			}
 		}
 
 		for _, field := range initialValue.Children {
 			column := t.ColumnFromGraphqlName(field.Name)
 			if column == nil {
-				return nil, fmt.Errorf("unknown column in cursor: %s", field.Name)
+				return nil, fmt.Errorf(
+					"%w: unknown column in cursor: %s", ErrInvalidArgument, field.Name,
+				)
 			}
 
 			fieldValue, err := values.ResolveASTValue(field.Value, variables)

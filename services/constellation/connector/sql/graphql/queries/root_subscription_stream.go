@@ -240,7 +240,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 	// guard catches programmatic constructions that bypassed ParseStream.
 	if streamArgs.BatchSize <= 0 {
 		return nil, 0, fmt.Errorf(
-			"stream batch_size must be positive, got %d", streamArgs.BatchSize,
+			"%w, got %d", errStreamBatchSizeMustBePositive, streamArgs.BatchSize,
 		)
 	}
 

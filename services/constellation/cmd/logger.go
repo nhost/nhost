@@ -12,6 +12,8 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+const redactedSecret = "********"
+
 func getLogger(debug bool, formatTEXT bool) *slog.Logger {
 	var (
 		logLevel  slog.Level
@@ -71,7 +73,7 @@ func logFlags(ctx context.Context, logger *slog.Logger, cmd *cli.Command) {
 		value := cmd.Value(name)
 
 		if isSecret(name) {
-			value = "********"
+			value = redactedSecret
 		}
 
 		flags = append(flags, slog.Any(name, value))
@@ -89,7 +91,7 @@ func logFlags(ctx context.Context, logger *slog.Logger, cmd *cli.Command) {
 
 		logValue := value
 		if isSecret(name) {
-			logValue = "********"
+			logValue = redactedSecret
 		}
 
 		flags = append(flags, slog.Any(name, logValue))

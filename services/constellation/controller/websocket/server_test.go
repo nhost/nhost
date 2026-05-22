@@ -398,9 +398,11 @@ func TestProtocol_ConnectionInit_Rejected(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	handler := wsmock.NewMockMessageHandler(ctrl)
 
+	//nolint:err113 // test sentinel error used to verify error propagation
+	unauthorizedErr := errors.New("unauthorized")
 	handler.EXPECT().
 		OnConnectionInit(gomock.Any(), gomock.Any()).
-		Return(errors.New("unauthorized"))
+		Return(unauthorizedErr)
 	handler.EXPECT().OnClose(gomock.Any())
 
 	tc := dialTestServer(t, handler)

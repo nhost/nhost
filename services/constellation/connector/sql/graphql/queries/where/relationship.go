@@ -1,7 +1,6 @@
 package where
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -80,7 +79,7 @@ func parseExists(
 	aliases Aliases,
 ) (Statement, error) {
 	if value.Kind != ast.ObjectValue {
-		return nil, errors.New("_exists must be an object")
+		return nil, errExistsMustBeObject
 	}
 
 	var (
@@ -93,7 +92,7 @@ func parseExists(
 		switch child.Name {
 		case "_table":
 			if child.Value.Kind != ast.ObjectValue {
-				return nil, errors.New("_exists._table must be an object")
+				return nil, errExistsTableMustBeObject
 			}
 
 			for _, tableChild := range child.Value.Children {
@@ -110,7 +109,7 @@ func parseExists(
 	}
 
 	if tableName == "" {
-		return nil, errors.New("_exists._table.name is required")
+		return nil, errExistsTableNameRequired
 	}
 
 	// When _table.schema is omitted, default to the current table's schema.
@@ -122,7 +121,7 @@ func parseExists(
 
 	targetTable := t.TableBySchemaName(tableSchema, tableName)
 	if targetTable == nil {
-		return nil, fmt.Errorf("table %s.%s not found for _exists operator", tableSchema, tableName)
+		return nil, fmt.Errorf("%w: %s.%s", errExistsTableNotFound, tableSchema, tableName)
 	}
 
 	conditions, err := Parse(

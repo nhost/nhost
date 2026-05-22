@@ -16,6 +16,14 @@ import (
 	"github.com/nhost/nhost/services/constellation/internal/jwt/jwtconfig"
 )
 
+// Sentinel errors for token validation and key parsing.
+var (
+	ErrTokenKidMismatch     = errors.New("token kid does not match expected")
+	ErrUnexpectedClaimsType = errors.New("unexpected claims type")
+	ErrPEMDecode            = errors.New("failed to decode PEM block")
+	ErrNotRSAPublicKey      = errors.New("key is not an RSA public key")
+)
+
 // jwksProvider is the minimal contract this package needs from a JWKS-backed
 // key source: resolve a verification key for a parsed JWT. It is the
 // consumer-defined interface that hides the network I/O and background refresh
@@ -103,7 +111,10 @@ func (sv *secretValidator) initStatic(secret jwtconfig.Secret, logger *slog.Logg
 			if kid != "" {
 				tokenKid, _ := t.Header["kid"].(string)
 				if tokenKid != kid {
-					return nil, fmt.Errorf("token kid %q does not match expected %q", tokenKid, kid)
+					return nil, fmt.Errorf(
+						"%w: got %q, expected %q",
+						ErrTokenKidMismatch, tokenKid, kid,
+					)
 				}
 			}
 
@@ -111,7 +122,7 @@ func (sv *secretValidator) initStatic(secret jwtconfig.Secret, logger *slog.Logg
 		}
 
 	default:
-		return fmt.Errorf("unsupported algorithm: %s", secret.Type)
+		return fmt.Errorf("%w: %s", jwtconfig.ErrUnsupportedAlgorithm, secret.Type)
 	}
 
 	return nil
@@ -125,7 +136,7 @@ func (sv *secretValidator) parseAndValidate(tokenStr string) (map[string]any, er
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, errors.New("unexpected claims type")
+		return nil, ErrUnexpectedClaimsType
 	}
 
 	return claims, nil
@@ -173,7 +184,7 @@ func decodeHMACKey(key string, logger *slog.Logger) []byte {
 func parseRSAPublicKey(key string) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode([]byte(key))
 	if block == nil {
-		return nil, errors.New("failed to decode PEM block")
+		return nil, ErrPEMDecode
 	}
 
 	// Try PKIX first (most common for public keys).
@@ -181,7 +192,7 @@ func parseRSAPublicKey(key string) (*rsa.PublicKey, error) {
 	if err == nil {
 		rsaPub, ok := pub.(*rsa.PublicKey)
 		if !ok {
-			return nil, errors.New("key is not an RSA public key")
+			return nil, ErrNotRSAPublicKey
 		}
 
 		return rsaPub, nil

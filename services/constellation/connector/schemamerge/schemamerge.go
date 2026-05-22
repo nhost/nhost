@@ -296,8 +296,8 @@ func mergeEnums(
 		if existingEnum, ok := seen[e.Name]; ok {
 			if !enumsEqual(existingEnum, e) {
 				return nil, fmt.Errorf(
-					"enum %q has conflicting definitions",
-					e.Name,
+					"%w: %q",
+					ErrConflictingEnum, e.Name,
 				)
 			}
 
@@ -350,8 +350,8 @@ func mergeInputs(
 		if existingInput, ok := seen[i.Name]; ok {
 			if !inputsEqual(existingInput, i) {
 				return nil, fmt.Errorf(
-					"input %q has conflicting definitions",
-					i.Name,
+					"%w: %q",
+					ErrConflictingInput, i.Name,
 				)
 			}
 

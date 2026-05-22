@@ -13,6 +13,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// errSchemaConnection is a test sentinel error used to verify error
+// propagation from a failing connector schema fetch.
+var errSchemaConnection = errors.New("connection failed")
+
 // newMinimalSchema returns a graph.Schema with one query field and the required
 // scalar/enum/input boilerplate to pass GraphQL validation.
 func newMinimalSchema(fieldName, returnType string) *graph.Schema {
@@ -380,7 +384,9 @@ func TestComposer_Compose(t *testing.T) {
 		{
 			name: "get_schema_error",
 			providers: map[string]providerSpec{
-				"db": {schemaErr: errors.New("connection failed")},
+				"db": {
+					schemaErr: errSchemaConnection,
+				},
 			},
 			wantErrExact: "failed to get schema from connector db: connection failed",
 		},

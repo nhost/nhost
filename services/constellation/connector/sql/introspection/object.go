@@ -2,7 +2,16 @@
 // introspection: schemas, tables, columns, constraints, and functions.
 package introspection
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+// ErrInvalidEnumTable is the sentinel returned for any validation failure
+// against the enum-table shape expected by the GraphQL schema generator.
+// The wrapping fmt.Errorf carries the offending table identity and a
+// specific reason.
+var ErrInvalidEnumTable = errors.New("invalid enum table")
 
 // EnumValue represents a single value in an enum table.
 type EnumValue struct {
@@ -165,15 +174,15 @@ const maxEnumTableColumns = 2
 func (t *Table) EnumColumns() (string, string, error) {
 	if len(t.PrimaryKeys) != 1 {
 		return "", "", fmt.Errorf(
-			"enum table %s.%s must have exactly one primary key column, got %d",
-			t.Schema, t.Name, len(t.PrimaryKeys),
+			"%w %s.%s: must have exactly one primary key column, got %d",
+			ErrInvalidEnumTable, t.Schema, t.Name, len(t.PrimaryKeys),
 		)
 	}
 
 	if len(t.Columns) > maxEnumTableColumns {
 		return "", "", fmt.Errorf(
-			"enum table %s.%s must have at most %d columns (value + optional description), got %d",
-			t.Schema, t.Name, maxEnumTableColumns, len(t.Columns),
+			"%w %s.%s: must have at most %d columns (value + optional description), got %d",
+			ErrInvalidEnumTable, t.Schema, t.Name, maxEnumTableColumns, len(t.Columns),
 		)
 	}
 
@@ -195,8 +204,8 @@ func (t *Table) EnumColumns() (string, string, error) {
 
 	if !pkFound {
 		return "", "", fmt.Errorf(
-			"enum table %s.%s primary key column %q is not in the column list",
-			t.Schema, t.Name, valueCol,
+			"%w %s.%s: primary key column %q is not in the column list",
+			ErrInvalidEnumTable, t.Schema, t.Name, valueCol,
 		)
 	}
 

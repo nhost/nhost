@@ -115,12 +115,15 @@ func assertTraceGroup(t *testing.T, record map[string]any, want map[string]strin
 	}
 }
 
+// errBoom is a test sentinel used to verify that Gin's error path is logged.
+var errBoom = errors.New("boom")
+
 func TestLogger(t *testing.T) {
 	t.Parallel()
 
 	defaultHandler := func(c *gin.Context) { c.Status(http.StatusOK) }
 	errorHandler := func(c *gin.Context) {
-		_ = c.Error(errors.New("boom"))
+		_ = c.Error(errBoom)
 		c.Status(http.StatusInternalServerError)
 	}
 

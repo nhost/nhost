@@ -119,7 +119,9 @@ func TestStartSubscriptionStartErrorClassification(t *testing.T) {
 		"%w: failed to build query: column does not exist",
 		subscription.ErrInvalidSubscription,
 	)
-	runtimeErr := errors.New("Key (email)=(alice@example.com) already exists")
+	runtimeErr := errors.New( //nolint:err113 // test sentinel error used to verify error propagation
+		"Key (email)=(alice@example.com) already exists",
+	)
 
 	cases := []struct {
 		name           string
@@ -305,7 +307,9 @@ func TestForwardUpdatesErrorClassification(t *testing.T) {
 		"%w: failed to build subscription SQL: column does not exist",
 		subscription.ErrInvalidSubscription,
 	)
-	runtimeErr := errors.New("Key (email)=(alice@example.com) already exists")
+	runtimeErr := errors.New( //nolint:err113 // test sentinel error used to verify error propagation
+		"Key (email)=(alice@example.com) already exists",
+	)
 
 	cases := []struct {
 		name           string
