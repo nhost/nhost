@@ -333,6 +333,11 @@ export default function MetricChart({
       }))
       .filter((p) => p.value !== undefined);
 
+    if (payload.length === 0) {
+      setPinned(null);
+      return;
+    }
+
     setPinned((prev) => (prev ? null : { index: idx, x, y, label, payload }));
   };
 
@@ -526,7 +531,7 @@ function toEntries(
   config: ChartConfig,
 ): TooltipEntry[] {
   return payload
-    .filter((p) => p.type !== 'none')
+    .filter((p) => p.type !== 'none' && p.value != null)
     .map((p) => {
       const key = String(p.dataKey ?? p.name ?? 'value');
       return {
