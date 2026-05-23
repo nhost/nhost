@@ -168,15 +168,29 @@ func printVulnerability(
 	}
 }
 
+// isToolchainModule reports whether the given module name is a govulncheck
+// pseudo-module that cannot be bumped via `go get` and instead requires a
+// manual Go toolchain upgrade (handled outside this wrapper, e.g. by bumping
+// the nix overlay that installs Go).
+func isToolchainModule(mod string) bool {
+	return mod == "stdlib" || mod == "toolchain"
+}
+
 // collectFixes returns module@version pairs that, when fed to `go get`, raise
 // each vulnerable module to its OSV-reported fixed version. Only non-allowlisted
 // findings are considered; for modules referenced by multiple findings the
 // highest fixed version (by semver) wins so a later `go get` cannot downgrade
 // an earlier one.
+//
+// Findings whose module is a Go toolchain pseudo-module (`stdlib`, `toolchain`)
+// are returned in a separate slice: feeding `stdlib@vX.Y.Z` to `go get` would
+// abort the entire fix run, so the caller logs them as requiring a manual
+// toolchain upgrade and continues bumping the remaining modules.
 func collectFixes(
 	findingsMap map[string][]*finding, blocked []string,
-) []string {
+) ([]string, []string) {
 	maxFix := make(map[string]string)
+	maxToolchainFix := make(map[string]string)
 
 	for _, id := range blocked {
 		for _, f := range findingsMap[id] {
@@ -189,9 +203,14 @@ func collectFixes(
 				continue
 			}
 
-			cur, ok := maxFix[mod]
+			target := maxFix
+			if isToolchainModule(mod) {
+				target = maxToolchainFix
+			}
+
+			cur, ok := target[mod]
 			if !ok || semver.Compare(f.FixedVersion, cur) > 0 {
-				maxFix[mod] = f.FixedVersion
+				target[mod] = f.FixedVersion
 			}
 		}
 	}
@@ -203,8 +222,19 @@ func collectFixes(
 
 	sort.Strings(pairs)
 
-	return pairs
+	toolchainPairs := make([]string, 0, len(maxToolchainFix))
+	for mod, ver := range maxToolchainFix {
+		toolchainPairs = append(toolchainPairs, mod+"@"+ver)
+	}
+
+	sort.Strings(toolchainPairs)
+
+	return pairs, toolchainPairs
 }
+
+// cmdRunner runs an external command and returns an error if it fails. It is
+// abstracted so applyFixes can be unit-tested without shelling out.
+type cmdRunner func(name string, args ...string) error
 
 func runCmd(name string, args ...string) error {
 	cmd := exec.CommandContext(context.Background(), name, args...)
@@ -220,8 +250,18 @@ func runCmd(name string, args ...string) error {
 
 // applyFixes runs `go get` for each module@version pair, then `go mod tidy`
 // and `go mod vendor` so go.sum and vendor/ stay in sync. No-op when there
-// is nothing to bump.
-func applyFixes(pairs []string) error {
+// is nothing to bump. Toolchain pairs are logged but not passed to `go get`
+// because they cannot be bumped that way; they require a manual Go toolchain
+// upgrade (e.g. via the nix overlay).
+func applyFixes(pairs, toolchainPairs []string, run cmdRunner) error {
+	for _, pair := range toolchainPairs {
+		fmt.Fprintf(
+			os.Stdout,
+			"manual Go toolchain upgrade required for %s\n",
+			pair,
+		)
+	}
+
 	if len(pairs) == 0 {
 		fmt.Fprintln(os.Stdout, "No Go security updates needed.")
 
@@ -235,16 +275,16 @@ func applyFixes(pairs []string) error {
 	}
 
 	for _, pair := range pairs {
-		if err := runCmd("go", "get", pair); err != nil {
+		if err := run("go", "get", pair); err != nil {
 			return err
 		}
 	}
 
-	if err := runCmd("go", "mod", "tidy"); err != nil {
+	if err := run("go", "mod", "tidy"); err != nil {
 		return err
 	}
 
-	if err := runCmd("go", "mod", "vendor"); err != nil {
+	if err := run("go", "mod", "vendor"); err != nil {
 		return err
 	}
 
@@ -296,7 +336,8 @@ func main() {
 	allowed, blocked := classifyFindings(findingsMap, allow)
 
 	if *fix {
-		if err := applyFixes(collectFixes(findingsMap, blocked)); err != nil {
+		pairs, toolchainPairs := collectFixes(findingsMap, blocked)
+		if err := applyFixes(pairs, toolchainPairs, runCmd); err != nil {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(2) //nolint:mnd
 		}

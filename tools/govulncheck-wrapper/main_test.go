@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -172,10 +174,11 @@ func TestCollectFixes(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		findingsMap map[string][]*finding
-		blocked     []string
-		want        []string
+		name          string
+		findingsMap   map[string][]*finding
+		blocked       []string
+		want          []string
+		wantToolchain []string
 	}{
 		{
 			name:        "no findings",
@@ -292,16 +295,185 @@ func TestCollectFixes(t *testing.T) {
 				"example.com/z@v1.0.0",
 			},
 		},
+		{
+			name: "stdlib and toolchain findings are separated, not aborting the run",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.23.4",
+					Trace:        []frame{{Module: "stdlib"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v1.23.4",
+					Trace:        []frame{{Module: "toolchain"}},
+				}},
+				"GO-2023-0003": {{
+					OSV:          "GO-2023-0003",
+					FixedVersion: "v1.23.5",
+					Trace:        []frame{{Module: "stdlib"}},
+				}},
+				"GO-2023-0004": {{
+					OSV:          "GO-2023-0004",
+					FixedVersion: "v1.2.3",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+			},
+			blocked: []string{
+				"GO-2023-0001",
+				"GO-2023-0002",
+				"GO-2023-0003",
+				"GO-2023-0004",
+			},
+			want: []string{"example.com/mod@v1.2.3"},
+			wantToolchain: []string{
+				"stdlib@v1.23.5",
+				"toolchain@v1.23.4",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := collectFixes(tt.findingsMap, tt.blocked)
+			got, gotToolchain := collectFixes(tt.findingsMap, tt.blocked)
 
 			if !slices.Equal(got, tt.want) {
 				t.Errorf("got %v, want %v", got, tt.want)
+			}
+
+			wantToolchain := tt.wantToolchain
+			if wantToolchain == nil {
+				wantToolchain = []string{}
+			}
+
+			if !slices.Equal(gotToolchain, wantToolchain) {
+				t.Errorf("toolchain: got %v, want %v", gotToolchain, wantToolchain)
+			}
+		})
+	}
+}
+
+var errFakeRunner = errors.New("fake runner failure")
+
+func TestApplyFixes(t *testing.T) {
+	t.Parallel()
+
+	formatCall := func(name string, args ...string) string {
+		if len(args) == 0 {
+			return name
+		}
+
+		return name + " " + strings.Join(args, " ")
+	}
+
+	tests := []struct {
+		name           string
+		pairs          []string
+		toolchainPairs []string
+		failOn         string // command string that should fail; "" means none
+		wantCalls      []string
+		wantErr        bool
+	}{
+		{
+			name:           "empty pairs short-circuits before any command",
+			pairs:          nil,
+			toolchainPairs: nil,
+			wantCalls:      nil,
+			wantErr:        false,
+		},
+		{
+			name:           "toolchain-only still short-circuits go get/tidy/vendor",
+			pairs:          nil,
+			toolchainPairs: []string{"stdlib@v1.23.5"},
+			wantCalls:      nil,
+			wantErr:        false,
+		},
+		{
+			name:           "happy path runs go get per pair then tidy then vendor",
+			pairs:          []string{"example.com/a@v1.0.0", "example.com/b@v2.0.0"},
+			toolchainPairs: nil,
+			wantCalls: []string{
+				"go get example.com/a@v1.0.0",
+				"go get example.com/b@v2.0.0",
+				"go mod tidy",
+				"go mod vendor",
+			},
+			wantErr: false,
+		},
+		{
+			name:           "happy path with toolchain pairs runs same go commands",
+			pairs:          []string{"example.com/a@v1.0.0"},
+			toolchainPairs: []string{"stdlib@v1.23.5", "toolchain@v1.23.4"},
+			wantCalls: []string{
+				"go get example.com/a@v1.0.0",
+				"go mod tidy",
+				"go mod vendor",
+			},
+			wantErr: false,
+		},
+		{
+			name:           "first failing go get aborts before tidy/vendor",
+			pairs:          []string{"example.com/a@v1.0.0", "example.com/b@v2.0.0"},
+			toolchainPairs: nil,
+			failOn:         "go get example.com/a@v1.0.0",
+			wantCalls:      []string{"go get example.com/a@v1.0.0"},
+			wantErr:        true,
+		},
+		{
+			name:           "failing tidy aborts before vendor",
+			pairs:          []string{"example.com/a@v1.0.0"},
+			toolchainPairs: nil,
+			failOn:         "go mod tidy",
+			wantCalls: []string{
+				"go get example.com/a@v1.0.0",
+				"go mod tidy",
+			},
+			wantErr: true,
+		},
+		{
+			name:           "failing vendor surfaces error after tidy",
+			pairs:          []string{"example.com/a@v1.0.0"},
+			toolchainPairs: nil,
+			failOn:         "go mod vendor",
+			wantCalls: []string{
+				"go get example.com/a@v1.0.0",
+				"go mod tidy",
+				"go mod vendor",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var calls []string
+
+			run := func(name string, args ...string) error {
+				call := formatCall(name, args...)
+				calls = append(calls, call)
+
+				if tt.failOn != "" && call == tt.failOn {
+					return fmt.Errorf("%w: %s", errFakeRunner, call)
+				}
+
+				return nil
+			}
+
+			err := applyFixes(tt.pairs, tt.toolchainPairs, run)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error, got nil")
+				}
+			} else if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if !slices.Equal(calls, tt.wantCalls) {
+				t.Errorf("calls: got %v, want %v", calls, tt.wantCalls)
 			}
 		})
 	}
