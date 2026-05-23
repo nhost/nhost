@@ -24,8 +24,12 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.NHOST_BOT_APP_ID }}
+          client-id: ${{ secrets.NHOST_BOT_APP_ID }}
           private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
+          owner: nhost
+          repositories: |
+            nhost
+            be
 
       - name: Check out repository
         uses: actions/checkout@v6
@@ -46,22 +50,6 @@ jobs:
           NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Apply pnpm security fixes
-        # --fix=update bumps patched versions in each lockfile (introduced in
-        # pnpm 11.0) instead of adding pnpm.overrides entries. Iterates every
-        # workspace because sharedWorkspaceLockfile is false — each package
-        # has its own lockfile and pnpm audit only sees the cwd's. Non-zero
-        # exits are tolerated so partial fixes still land; remaining advisories
-        # surface on the normal audit-ci-recursive CI check.
-        run: |
-          nix develop .#security-updates -c bash -c '
-            set -u
-            pnpm -r --include-workspace-root --no-bail --workspace-concurrency=1 \
-              exec pnpm audit --fix=update || true
-            # pnpm -r --include-workspace-root \
-            #   exec pnpm dedupe || true
-          '
-
       - name: Apply Go security fixes
         # govulncheck-wrapper -fix bumps each non-allowlisted finding via
         # `go get module@fixed-version` then runs `go mod tidy && go mod vendor`
@@ -79,6 +67,22 @@ jobs:
             set -euo pipefail
             export GOPRIVATE=github.com/nhost/be
             govulncheck-wrapper -fix -- -scan=package ./...
+          '
+
+      - name: Apply pnpm security fixes
+        # --fix=update bumps patched versions in each lockfile (introduced in
+        # pnpm 11.0) instead of adding pnpm.overrides entries. Iterates every
+        # workspace because sharedWorkspaceLockfile is false — each package
+        # has its own lockfile and pnpm audit only sees the cwd's. Non-zero
+        # exits are tolerated so partial fixes still land; remaining advisories
+        # surface on the normal audit-ci-recursive CI check.
+        run: |
+          nix develop .#security-updates -c bash -c '
+            set -u
+            pnpm -r --include-workspace-root --no-bail --workspace-concurrency=1 \
+              exec pnpm audit --fix=update || true
+            pnpm -r --include-workspace-root \
+              exec pnpm dedupe || true
           '
 
       - name: Create Pull Request
