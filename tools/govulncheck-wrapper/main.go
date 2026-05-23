@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/mod/semver"
 	"gopkg.in/yaml.v3"
 )
 
@@ -167,6 +168,44 @@ func printVulnerability(
 	}
 }
 
+// collectFixes returns module@version pairs that, when fed to `go get`, raise
+// each vulnerable module to its OSV-reported fixed version. Only non-allowlisted
+// findings are considered; for modules referenced by multiple findings the
+// highest fixed version (by semver) wins so a later `go get` cannot downgrade
+// an earlier one.
+func collectFixes(
+	findingsMap map[string][]*finding, blocked []string,
+) []string {
+	maxFix := make(map[string]string)
+
+	for _, id := range blocked {
+		for _, f := range findingsMap[id] {
+			if f.FixedVersion == "" || len(f.Trace) == 0 {
+				continue
+			}
+
+			mod := f.Trace[0].Module
+			if mod == "" {
+				continue
+			}
+
+			cur, ok := maxFix[mod]
+			if !ok || semver.Compare(f.FixedVersion, cur) > 0 {
+				maxFix[mod] = f.FixedVersion
+			}
+		}
+	}
+
+	pairs := make([]string, 0, len(maxFix))
+	for mod, ver := range maxFix {
+		pairs = append(pairs, mod+"@"+ver)
+	}
+
+	sort.Strings(pairs)
+
+	return pairs
+}
+
 func classifyFindings(
 	findingsMap map[string][]*finding, allow map[string]bool,
 ) ([]string, []string) {
@@ -190,6 +229,10 @@ func main() {
 	configPath := flag.String(
 		"config", "govulncheck.yaml", "path to allowlist config file",
 	)
+	fix := flag.Bool(
+		"fix", false,
+		"print module@fixed-version pairs for non-allowlisted findings and exit 0",
+	)
 
 	flag.Parse()
 
@@ -206,6 +249,14 @@ func main() {
 	}
 
 	allowed, blocked := classifyFindings(findingsMap, allow)
+
+	if *fix {
+		for _, pair := range collectFixes(findingsMap, blocked) {
+			fmt.Fprintln(os.Stdout, pair)
+		}
+
+		return
+	}
 
 	if len(allowed) > 0 {
 		fmt.Fprintln(os.Stdout, "Allowed vulnerabilities (from allowlist):")

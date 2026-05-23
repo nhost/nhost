@@ -168,6 +168,145 @@ func TestParseMessages(t *testing.T) {
 	}
 }
 
+func TestCollectFixes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		findingsMap map[string][]*finding
+		blocked     []string
+		want        []string
+	}{
+		{
+			name:        "no findings",
+			findingsMap: map[string][]*finding{},
+			blocked:     nil,
+			want:        []string{},
+		},
+		{
+			name: "single finding",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.2.3",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+			},
+			blocked: []string{"GO-2023-0001"},
+			want:    []string{"example.com/mod@v1.2.3"},
+		},
+		{
+			name: "dedupes by module, keeps highest semver",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.2.3",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v1.10.0",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+				"GO-2023-0003": {{
+					OSV:          "GO-2023-0003",
+					FixedVersion: "v1.5.0",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+			},
+			blocked: []string{"GO-2023-0001", "GO-2023-0002", "GO-2023-0003"},
+			want:    []string{"example.com/mod@v1.10.0"},
+		},
+		{
+			name: "skips findings without fixed version or module",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "",
+					Trace:        []frame{{Module: "example.com/a"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v2.0.0",
+					Trace:        []frame{{Module: ""}},
+				}},
+				"GO-2023-0003": {{
+					OSV:          "GO-2023-0003",
+					FixedVersion: "v3.0.0",
+					Trace:        []frame{},
+				}},
+				"GO-2023-0004": {{
+					OSV:          "GO-2023-0004",
+					FixedVersion: "v4.0.0",
+					Trace:        []frame{{Module: "example.com/d"}},
+				}},
+			},
+			blocked: []string{
+				"GO-2023-0001",
+				"GO-2023-0002",
+				"GO-2023-0003",
+				"GO-2023-0004",
+			},
+			want: []string{"example.com/d@v4.0.0"},
+		},
+		{
+			name: "ignores findings not in blocked list",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.0.0",
+					Trace:        []frame{{Module: "example.com/allowed"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v2.0.0",
+					Trace:        []frame{{Module: "example.com/blocked"}},
+				}},
+			},
+			blocked: []string{"GO-2023-0002"},
+			want:    []string{"example.com/blocked@v2.0.0"},
+		},
+		{
+			name: "output is sorted",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.0.0",
+					Trace:        []frame{{Module: "example.com/z"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v1.0.0",
+					Trace:        []frame{{Module: "example.com/a"}},
+				}},
+				"GO-2023-0003": {{
+					OSV:          "GO-2023-0003",
+					FixedVersion: "v1.0.0",
+					Trace:        []frame{{Module: "example.com/m"}},
+				}},
+			},
+			blocked: []string{"GO-2023-0001", "GO-2023-0002", "GO-2023-0003"},
+			want: []string{
+				"example.com/a@v1.0.0",
+				"example.com/m@v1.0.0",
+				"example.com/z@v1.0.0",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := collectFixes(tt.findingsMap, tt.blocked)
+
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestClassifyFindings(t *testing.T) {
 	t.Parallel()
 
