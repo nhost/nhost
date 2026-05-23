@@ -6,6 +6,10 @@ on:
   workflow_dispatch:
   push:
 
+concurrency:
+  group: gen-security-updates
+  cancel-in-progress: false
+
 jobs:
   run:
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -55,7 +59,7 @@ jobs:
             pnpm -r --include-workspace-root --no-bail --workspace-concurrency=1 \
               exec pnpm audit --fix=update || true
             pnpm -r --include-workspace-root --workspace-concurrency=1 \
-              exec pnpm dedupe
+              exec pnpm dedupe || true
           '
 
       - name: Apply Go security fixes
