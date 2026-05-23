@@ -4,7 +4,6 @@ on:
   schedule:
     - cron: "0 4 * * *"
   workflow_dispatch:
-  push:
 
 concurrency:
   group: gen-security-updates
@@ -95,7 +94,7 @@ jobs:
           signoff: false
           branch: automated/security-updates
           delete-branch: true
-          title: "[Security] Daily dependency security updates"
+          title: "chore(deps): update vulnerable dependencies"
           body: |
             Daily security updates.
 
