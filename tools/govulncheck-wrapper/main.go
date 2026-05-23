@@ -206,6 +206,51 @@ func collectFixes(
 	return pairs
 }
 
+func runCmd(name string, args ...string) error {
+	cmd := exec.CommandContext(context.Background(), name, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("running %s %s: %w", name, strings.Join(args, " "), err)
+	}
+
+	return nil
+}
+
+// applyFixes runs `go get` for each module@version pair, then `go mod tidy`
+// and `go mod vendor` so go.sum and vendor/ stay in sync. No-op when there
+// is nothing to bump.
+func applyFixes(pairs []string) error {
+	if len(pairs) == 0 {
+		fmt.Fprintln(os.Stdout, "No Go security updates needed.")
+
+		return nil
+	}
+
+	fmt.Fprintln(os.Stdout, "Bumping:")
+
+	for _, pair := range pairs {
+		fmt.Fprintf(os.Stdout, "  %s\n", pair)
+	}
+
+	for _, pair := range pairs {
+		if err := runCmd("go", "get", pair); err != nil {
+			return err
+		}
+	}
+
+	if err := runCmd("go", "mod", "tidy"); err != nil {
+		return err
+	}
+
+	if err := runCmd("go", "mod", "vendor"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func classifyFindings(
 	findingsMap map[string][]*finding, allow map[string]bool,
 ) ([]string, []string) {
@@ -231,7 +276,7 @@ func main() {
 	)
 	fix := flag.Bool(
 		"fix", false,
-		"print module@fixed-version pairs for non-allowlisted findings and exit 0",
+		"bump non-allowlisted findings via `go get`, then run `go mod tidy` and `go mod vendor`",
 	)
 
 	flag.Parse()
@@ -251,8 +296,9 @@ func main() {
 	allowed, blocked := classifyFindings(findingsMap, allow)
 
 	if *fix {
-		for _, pair := range collectFixes(findingsMap, blocked) {
-			fmt.Fprintln(os.Stdout, pair)
+		if err := applyFixes(collectFixes(findingsMap, blocked)); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(2) //nolint:mnd
 		}
 
 		return

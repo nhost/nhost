@@ -60,24 +60,14 @@ jobs:
         '
 
     - name: Apply Go security fixes
-      # govulncheck-wrapper -fix emits "module@fixed-version" pairs for
-      # findings not present in govulncheck.yaml's allow_list. Feeding those
-      # to `go get` is the cheapest path: no overrides, no vendoring tricks,
-      # just standard module bumps. go mod tidy/vendor keep go.sum and
-      # vendor/ in sync. No-op when nothing is flagged.
+      # govulncheck-wrapper -fix bumps each non-allowlisted finding via
+      # `go get module@fixed-version` then runs `go mod tidy && go mod vendor`
+      # to keep go.sum and vendor/ in sync. No overrides, no vendoring tricks —
+      # just standard module bumps. No-op when nothing is flagged.
       run: |
         nix develop -c bash -c '
           set -euo pipefail
-          mods=$(govulncheck-wrapper -fix -- -scan=package ./...)
-          if [ -n "$mods" ]; then
-            echo "Bumping:"
-            echo "$mods"
-            echo "$mods" | xargs -n1 go get
-            go mod tidy
-            go mod vendor
-          else
-            echo "No Go security updates needed."
-          fi
+          govulncheck-wrapper -fix -- -scan=package ./...
         '
 
     - name: Create Pull Request
