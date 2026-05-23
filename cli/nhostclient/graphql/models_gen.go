@@ -1351,13 +1351,14 @@ type ConfigSmsUpdateInput struct {
 }
 
 type ConfigSMTP struct {
-	Host     string `json:"host"`
-	Method   string `json:"method"`
-	Password string `json:"password"`
-	Port     uint32 `json:"port"`
-	Secure   bool   `json:"secure"`
-	Sender   string `json:"sender"`
-	User     string `json:"user"`
+	Host     *string `json:"host,omitempty"`
+	Method   *string `json:"method,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Port     *uint32 `json:"port,omitempty"`
+	Secure   *bool   `json:"secure,omitempty"`
+	Sender   *string `json:"sender,omitempty"`
+	// these are needed for backwards compatibility, they're actually ignored
+	User *string `json:"user,omitempty"`
 }
 
 type ConfigSMTPUpdateInput struct {
