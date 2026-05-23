@@ -99,8 +99,8 @@ Then open <http://localhost:8000/> for the GraphQL playground or POST to <http:/
 
 Two ways to load metadata:
 
-- **File mode** — point `--metadata-path` (or `METADATA_PATH`) at a single `.toml` file or any path inside a Hasura YAML metadata directory (the file is not opened; only the parent directory is read per the Hasura v3 layout). Metadata is loaded once at startup; restart to pick up changes. Best for static deployments and CI.
-- **Database mode** — set `--metadata-database-url` (or `METADATA_DATABASE_URL`) to Hasura's metadata database. Constellation polls `hdb_catalog.hdb_metadata` and reloads when the version changes. Best for deployments where Hasura still owns metadata authoring.
+- **File mode** — point `--metadata-path` (or `CONSTELLATION_METADATA_PATH`) at a single `.toml` file or any path inside a Hasura YAML metadata directory (the file is not opened; only the parent directory is read per the Hasura v3 layout). Metadata is loaded once at startup; restart to pick up changes. Best for static deployments and CI.
+- **Database mode** — set `--metadata-database-url` (or `CONSTELLATION_METADATA_DATABASE_URL`) to Hasura's metadata database. Constellation polls `hdb_catalog.hdb_metadata` and reloads when the version changes. Best for deployments where Hasura still owns metadata authoring.
 
 In database mode, reloads are atomic: in-flight requests complete against the old state while new requests use the new one.
 
@@ -126,21 +126,18 @@ All flags are also available as environment variables. The most common:
 
 | Flag | Env | Default |
 |---|---|---|
-| `--bind-address` | `BIND_ADDRESS` | `:8000` |
-| `--database-url` | `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/postgres` |
-| `--metadata-path` | `METADATA_PATH` | `./metadata/metadata.yaml` |
-| `--metadata-database-url` | `METADATA_DATABASE_URL` | *(unset → file mode)* |
-| `--admin-secret` | `ADMIN_SECRET`, `NHOST_ADMIN_SECRET`, `HASURA_GRAPHQL_ADMIN_SECRET` | *(required)* |
-| `--jwt-secret` | `HASURA_GRAPHQL_JWT_SECRET`, `NHOST_JWT_SECRET` | *(required)* |
-| `--cors-allowed-origins` | `CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)* |
-| `--subscription-poll-interval` | `SUBSCRIPTION_POLL_INTERVAL` | `1s` |
-| `--enable-playground` | `ENABLE_PLAYGROUND` | `false` |
-| `--debug` | `DEBUG` | `false` |
-| `--log-format-text` | `LOG_FORMAT_TEXT` | `false` — JSON logs by default |
-| `--dev-mode` | `NHOST_DEV_MODE` | `false` — returns raw connector errors; never enable in production |
-| `--profile-address` | `PROFILE_ADDRESS` | *(unset)* — enables `net/http/pprof` |
-
-The admin-secret and JWT envs are the same as Hasura's, so existing deployments can switch over without touching their auth wiring.
+| `--bind-address` | `CONSTELLATION_BIND_ADDRESS` | `:8000` |
+| `--metadata-path` | `CONSTELLATION_METADATA_PATH` | `./metadata/metadata.yaml` |
+| `--metadata-database-url` | `CONSTELLATION_METADATA_DATABASE_URL` | *(unset → file mode)* |
+| `--admin-secret` | `CONSTELLATION_ADMIN_SECRET` | *(required)* |
+| `--jwt-secret` | `CONSTELLATION_JWT_SECRET` | *(required)* |
+| `--cors-allowed-origins` | `CONSTELLATION_CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)* |
+| `--subscription-poll-interval` | `CONSTELLATION_SUBSCRIPTION_POLL_INTERVAL` | `1s` |
+| `--enable-playground` | `CONSTELLATION_ENABLE_PLAYGROUND` | `false` |
+| `--debug` | `CONSTELLATION_DEBUG` | `false` |
+| `--log-format-text` | `CONSTELLATION_LOG_FORMAT_TEXT` | `false` — JSON logs by default |
+| `--dev-mode` | `CONSTELLATION_DEV_MODE` | `false` — returns raw connector errors; never enable in production |
+| `--profile-address` | `CONSTELLATION_PROFILE_ADDRESS` | *(unset)* — enables `net/http/pprof` |
 
 ## Compatibility
 

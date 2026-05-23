@@ -32,7 +32,6 @@ const (
 	flagLogFormatTEXT            = "log-format-text"
 	flagBindAddress              = "bind-address"
 	flagEnablePlayground         = "enable-playground"
-	flagDatabaseURL              = "database-url"
 	flagMetadataPath             = "metadata-path"
 	flagAdminSecret              = "admin-secret"
 	flagJWTSecret                = "jwt-secret"
@@ -51,13 +50,13 @@ func generalFlags() []cli.Flag {
 			Name:     flagDebug,
 			Usage:    "enable debug logging",
 			Category: "general",
-			Sources:  cli.EnvVars("DEBUG"),
+			Sources:  cli.EnvVars("CONSTELLATION_DEBUG"),
 		},
 		&cli.BoolFlag{ //nolint:exhaustruct
 			Name:     flagLogFormatTEXT,
 			Usage:    "format logs in plain text",
 			Category: "general",
-			Sources:  cli.EnvVars("LOG_FORMAT_TEXT"),
+			Sources:  cli.EnvVars("CONSTELLATION_LOG_FORMAT_TEXT"),
 		},
 	}
 }
@@ -68,27 +67,27 @@ func serverFlags() []cli.Flag {
 			Name:     flagEnablePlayground,
 			Usage:    "enable graphql playground (under /v1)",
 			Category: "server",
-			Sources:  cli.EnvVars("ENABLE_PLAYGROUND"),
+			Sources:  cli.EnvVars("CONSTELLATION_ENABLE_PLAYGROUND"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagBindAddress,
 			Usage:    "bind address for the server",
 			Value:    ":8000",
 			Category: "server",
-			Sources:  cli.EnvVars("BIND_ADDRESS"),
+			Sources:  cli.EnvVars("CONSTELLATION_BIND_ADDRESS"),
 		},
 		&cli.DurationFlag{ //nolint:exhaustruct
 			Name:     flagSubscriptionPollInterval,
 			Usage:    "Polling interval for subscriptions",
 			Category: "server",
 			Value:    time.Second,
-			Sources:  cli.EnvVars("SUBSCRIPTION_POLL_INTERVAL"),
+			Sources:  cli.EnvVars("CONSTELLATION_SUBSCRIPTION_POLL_INTERVAL"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagProfileAddress,
 			Usage:    "Enable CPU/memory profiling server on this address (e.g. :6060)",
 			Category: "server",
-			Sources:  cli.EnvVars("PROFILE_ADDRESS"),
+			Sources:  cli.EnvVars("CONSTELLATION_PROFILE_ADDRESS"),
 		},
 		&cli.StringSliceFlag{ //nolint:exhaustruct
 			Name: flagCORSAllowedOrigins,
@@ -96,7 +95,7 @@ func serverFlags() []cli.Flag {
 				"When empty, cross-origin requests are not granted access. " +
 				"\"*\" cannot be combined with credentials and is rejected at startup",
 			Category: "server",
-			Sources:  cli.EnvVars("CORS_ALLOWED_ORIGINS"),
+			Sources:  cli.EnvVars("CONSTELLATION_CORS_ALLOWED_ORIGINS"),
 		},
 		&cli.BoolFlag{ //nolint:exhaustruct
 			Name: flagDevMode,
@@ -104,7 +103,7 @@ func serverFlags() []cli.Flag {
 				"of the sanitized generic message. For development only — never " +
 				"enable in production, as it leaks internal schema and data values",
 			Category: "server",
-			Sources:  cli.EnvVars("NHOST_DEV_MODE"),
+			Sources:  cli.EnvVars("CONSTELLATION_DEV_MODE"),
 		},
 	}
 }
@@ -112,24 +111,17 @@ func serverFlags() []cli.Flag {
 func dataFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:     flagDatabaseURL,
-			Usage:    "PostgreSQL database connection URL",
-			Value:    "postgres://postgres:postgres@localhost:5432/postgres",
-			Category: "database",
-			Sources:  cli.EnvVars("DATABASE_URL"),
-		},
-		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagMetadataPath,
 			Usage:    "Path to metadata.yaml file",
 			Value:    "./metadata/metadata.yaml",
 			Category: "metadata",
-			Sources:  cli.EnvVars("METADATA_PATH"),
+			Sources:  cli.EnvVars("CONSTELLATION_METADATA_PATH"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagMetadataDatabaseURL,
 			Usage:    "PostgreSQL URL for reading Hasura metadata from hdb_catalog.hdb_metadata",
 			Category: "metadata",
-			Sources:  cli.EnvVars("METADATA_DATABASE_URL"),
+			Sources:  cli.EnvVars("CONSTELLATION_METADATA_DATABASE_URL"),
 		},
 	}
 }
@@ -141,21 +133,14 @@ func securityFlags() []cli.Flag {
 			Usage:    "Admin secret for securing the GraphQL API",
 			Category: "security",
 			Required: true,
-			Sources: cli.EnvVars(
-				"ADMIN_SECRET",
-				"NHOST_ADMIN_SECRET",
-				"HASURA_GRAPHQL_ADMIN_SECRET",
-			),
+			Sources:  cli.EnvVars("CONSTELLATION_ADMIN_SECRET"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagJWTSecret,
 			Usage:    "JWT secret configuration (JSON string or JSON array of secrets)",
 			Category: "security",
 			Required: true,
-			Sources: cli.EnvVars(
-				"HASURA_GRAPHQL_JWT_SECRET",
-				"NHOST_JWT_SECRET",
-			),
+			Sources:  cli.EnvVars("CONSTELLATION_JWT_SECRET"),
 		},
 	}
 }
@@ -243,7 +228,7 @@ func getCorsOptions(
 			ctx,
 			"CORS: no allowed origins configured; all cross-origin requests will be denied",
 			slog.String("flag", flagCORSAllowedOrigins),
-			slog.String("env", "CORS_ALLOWED_ORIGINS"),
+			slog.String("env", "CONSTELLATION_CORS_ALLOWED_ORIGINS"),
 		)
 	}
 
