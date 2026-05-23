@@ -58,7 +58,7 @@ jobs:
             set -u
             pnpm -r --include-workspace-root --no-bail --workspace-concurrency=1 \
               exec pnpm audit --fix=update || true
-            pnpm -r --include-workspace-root --workspace-concurrency=1 \
+            pnpm -r --include-workspace-root \
               exec pnpm dedupe || true
           '
 

@@ -320,6 +320,10 @@
               govulncheck
               self.packages.${system}.govulncheck-wrapper
             ];
+
+            shellHook = ''
+              export GOEXPERIMENT=jsonv2
+            '';
           };
 
           skopeo = pkgs.mkShell {
