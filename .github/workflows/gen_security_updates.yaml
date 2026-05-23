@@ -50,12 +50,12 @@ jobs:
         # exits are tolerated so partial fixes still land; remaining advisories
         # surface on the normal audit-ci-recursive CI check.
         run: |
-          nix develop -c bash -c '
+          nix develop .#security-updates -c bash -c '
             set -u
-            pnpm audit --fix=update || true
             pnpm -r --include-workspace-root --no-bail --workspace-concurrency=1 \
               exec pnpm audit --fix=update || true
-            pnpm dedupe
+            pnpm -r --include-workspace-root --workspace-concurrency=1 \
+              exec pnpm dedupe
           '
 
       - name: Apply Go security fixes
@@ -71,7 +71,7 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
-          nix develop -c bash -c '
+          nix develop .#security-updates -c bash -c '
             set -euo pipefail
             export GOPRIVATE=github.com/nhost/be
             govulncheck-wrapper -fix -- -scan=package ./...
