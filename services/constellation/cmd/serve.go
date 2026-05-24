@@ -283,6 +283,11 @@ func getRouter(
 	router.POST("/v1/graphql", ctrl.HandlerPost)
 	router.GET("/v1/graphql", ctrl.HandlerGet)
 
+	// legacy endpoints for backward compatibility with hasura deployment
+	// to be removed when we do the one binary thing
+	router.POST("/v1", ctrl.HandlerPost)
+	router.GET("/v1", ctrl.HandlerGet)
+
 	return router, nil
 }
 
