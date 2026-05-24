@@ -452,13 +452,13 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 		},
 		Provider: &model.ConfigProvider{
 			Smtp: &model.ConfigSmtp{
-				User:     "smtpUser",
-				Password: "smtpPassword",
-				Sender:   "smtpSender",
-				Host:     "smtpHost",
-				Port:     587, //nolint:mnd
-				Secure:   true,
-				Method:   "LOGIN",
+				User:     new("smtpUser"),
+				Password: new("smtpPassword"),
+				Sender:   new("smtpSender"),
+				Host:     new("smtpHost"),
+				Port:     new(uint16(587)), //nolint:mnd
+				Secure:   new(true),
+				Method:   new("LOGIN"),
 			},
 			Sms: &model.ConfigSms{
 				Provider:           new("twilio"),

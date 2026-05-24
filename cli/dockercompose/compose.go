@@ -681,6 +681,36 @@ func getServices( //nolint: funlen,cyclop
 		}
 	}
 
+	if cfg.GetExperimental().GetConstellation() != nil {
+		c, err := constellation(
+			cfg,
+			subdomain,
+			useTLS,
+			httpPort,
+			nhostFolder,
+			"nhost/constellation:"+deptr(cfg.GetExperimental().GetConstellation().GetVersion()),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		services["constellation"] = c
+
+		// Drop the graphql ingress on hasura so constellation owns
+		// local.graphql.local.nhost.run.
+		graphql.Labels = Ingresses{
+			{
+				Name: "hasura",
+				TLS:  useTLS,
+				Rule: traefikHostMatch(
+					"hasura",
+				) + "&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )", //nolint:lll
+				Port:    hasuraPort,
+				Rewrite: nil,
+			},
+		}.Labels()
+	}
+
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
 		IsJWTSecretCompatibleWithHasuraAuth(cfg.GetHasura().GetJwtSecrets()[0]) &&
 		cfg.GetHasura().GetAuthHook() == nil {

@@ -45,13 +45,13 @@ func auth( //nolint:funlen
 		"postgres://nhost_hasura@postgres:5432/local",
 		"postgres://nhost_auth_admin@postgres:5432/local",
 		&model.ConfigSmtp{
-			User:     "user",
-			Password: "password",
-			Sender:   "auth@example.com",
-			Host:     "mailhog",
-			Port:     1025, //nolint:mnd
-			Secure:   false,
-			Method:   "LOGIN",
+			User:     ptr("user"),
+			Password: ptr("password"),
+			Sender:   ptr("auth@example.com"),
+			Host:     ptr("mailhog"),
+			Port:     ptr(uint16(1025)), //nolint:mnd
+			Secure:   ptr(false),
+			Method:   ptr("LOGIN"),
 		},
 		false,
 		false,

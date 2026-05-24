@@ -15,6 +15,10 @@ func deptr[T any](t *T) T { //nolint:ireturn
 	return *t
 }
 
+func ptr[T any](t T) *T {
+	return &t
+}
+
 func storage( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
