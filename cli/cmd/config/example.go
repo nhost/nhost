@@ -550,6 +550,19 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				},
 			},
 		},
+		Experimental: &model.ConfigExperimental{
+			Constellation: &model.ConfigConstellation{
+				Version: new("0.1.0"),
+				Settings: &model.ConfigConstellationSettings{
+					CorsAllowedOrigins: []string{
+						"https://example.com",
+					},
+					Debug:                    new(false),
+					DevMode:                  new(false),
+					SubscriptionPollInterval: new("1s"),
+				},
+			},
+		},
 	}
 
 	b, err := toml.Marshal(cfg)

@@ -9,7 +9,7 @@ import (
 
 const constellationPort = 8000
 
-func constellation( //nolint:funlen
+func constellation(
 	cfg *model.ConfigConfig,
 	subdomain string,
 	useTLS bool,

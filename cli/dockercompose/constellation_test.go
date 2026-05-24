@@ -7,9 +7,8 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 )
 
-const constellationJWTSecret = `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}` //nolint:lll
+const constellationJWTSecret = `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}` //nolint:gosec
 
-//nolint:lll
 func expectedConstellation() *Service {
 	return &Service{
 		Image: "nhost/constellation:0.0.1",
@@ -26,20 +25,20 @@ func expectedConstellation() *Service {
 			"CONSTELLATION_JWT_SECRET":                 constellationJWTSecret,
 			"CONSTELLATION_METADATA_DATABASE_URL":      "postgres://postgres:postgres@postgres:5432/local",
 			"CONSTELLATION_SUBSCRIPTION_POLL_INTERVAL": "1s",
-			"ENV1":                                     "VALUE1",
-			"ENV2":                                     "VALUE2",
-			"GRAPHITE_WEBHOOK_SECRET":                  "webhookSecret",
-			"HASURA_GRAPHQL_DATABASE_URL":              "postgres://postgres:postgres@postgres:5432/local",
-			"NHOST_ADMIN_SECRET":                       "adminSecret",
-			"NHOST_AUTH_URL":                           "http://dev.auth.local.nhost.run:1337/v1",
-			"NHOST_FUNCTIONS_URL":                      "http://functions:3000",
-			"NHOST_GRAPHQL_DATABASE_URL":               "postgres://postgres:postgres@postgres:5432/local",
-			"NHOST_GRAPHQL_URL":                        "http://dev.graphql.local.nhost.run:1337/v1",
-			"NHOST_JWT_SECRET":                         constellationJWTSecret,
-			"NHOST_REGION":                             "local",
-			"NHOST_STORAGE_URL":                        "http://dev.storage.local.nhost.run:1337/v1",
-			"NHOST_SUBDOMAIN":                          "dev",
-			"NHOST_WEBHOOK_SECRET":                     "webhookSecret",
+			"ENV1":                        "VALUE1",
+			"ENV2":                        "VALUE2",
+			"GRAPHITE_WEBHOOK_SECRET":     "webhookSecret",
+			"HASURA_GRAPHQL_DATABASE_URL": "postgres://postgres:postgres@postgres:5432/local",
+			"NHOST_ADMIN_SECRET":          "adminSecret",
+			"NHOST_AUTH_URL":              "http://dev.auth.local.nhost.run:1337/v1",
+			"NHOST_FUNCTIONS_URL":         "http://functions:3000",
+			"NHOST_GRAPHQL_DATABASE_URL":  "postgres://postgres:postgres@postgres:5432/local",
+			"NHOST_GRAPHQL_URL":           "http://dev.graphql.local.nhost.run:1337/v1",
+			"NHOST_JWT_SECRET":            constellationJWTSecret,
+			"NHOST_REGION":                "local",
+			"NHOST_STORAGE_URL":           "http://dev.storage.local.nhost.run:1337/v1",
+			"NHOST_SUBDOMAIN":             "dev",
+			"NHOST_WEBHOOK_SECRET":        "webhookSecret",
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
@@ -104,9 +103,9 @@ func callGetServices(t *testing.T, withConstellation bool) map[string]*Service {
 		cfg,
 		"dev",
 		"nhost",
-		1337, //nolint:mnd
+		1337,
 		false,
-		5432, //nolint:mnd
+		5432,
 		tmp,
 		tmp,
 		tmp,
@@ -163,7 +162,7 @@ func TestGraphqlIngressWithConstellation(t *testing.T) {
 
 		labels := services["graphql"].Labels
 		if _, ok := labels["traefik.http.routers.graphql.rule"]; ok {
-			t.Error("graphql service must not register its `graphql` router when constellation is enabled — constellation owns local.graphql.local.nhost.run") //nolint:lll
+			t.Error("graphql service must not register its `graphql` router when constellation is enabled — constellation owns local.graphql.local.nhost.run")
 		}
 
 		if _, ok := labels["traefik.http.routers.hasura.rule"]; !ok {
