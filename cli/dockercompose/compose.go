@@ -619,7 +619,9 @@ func getServices( //nolint: funlen,cyclop
 		return nil, err
 	}
 
-	graphql, err := graphql(cfg, subdomain, useTLS, httpPort, ports.Graphql)
+	graphql, err := graphql(
+		cfg, subdomain, useTLS, httpPort, ports.Graphql, cfg.GetExperimental().GetConstellation() != nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -695,20 +697,6 @@ func getServices( //nolint: funlen,cyclop
 		}
 
 		services["constellation"] = c
-
-		// Drop the graphql ingress on hasura so constellation owns
-		// local.graphql.local.nhost.run.
-		graphql.Labels = Ingresses{
-			{
-				Name: "hasura",
-				TLS:  useTLS,
-				Rule: traefikHostMatch(
-					"hasura",
-				) + "&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )", //nolint:lll
-				Port:    hasuraPort,
-				Rewrite: nil,
-			},
-		}.Labels()
 	}
 
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&

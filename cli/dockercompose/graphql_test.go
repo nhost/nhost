@@ -125,7 +125,7 @@ func TestGraphql(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := graphql(tc.cfg(), "dev", tc.useTlS, 1337, 0)
+			got, err := graphql(tc.cfg(), "dev", tc.useTlS, 1337, 0, false)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}

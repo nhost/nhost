@@ -14,6 +14,7 @@ func graphql( //nolint:funlen
 	subdomain string,
 	useTLS bool,
 	httpPort, port uint,
+	constellationEnabled bool,
 ) (*Service, error) {
 	envars, err := appconfig.HasuraEnv(
 		cfg,
@@ -39,6 +40,32 @@ func graphql( //nolint:funlen
 		env[v.Name] = v.Value
 	}
 
+	labels := Ingresses{
+		{
+			Name: "hasura",
+			TLS:  useTLS,
+			Rule: traefikHostMatch(
+				"hasura",
+			) + "&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )", //nolint:lll
+			Port:    hasuraPort,
+			Rewrite: nil,
+		},
+	}
+
+	if !constellationEnabled {
+		labels = append(labels, Ingress{
+			Name: "graphql",
+			TLS:  useTLS,
+			Rule: traefikHostMatch("graphql") + "&& PathPrefix(`/v1`)",
+			Port: hasuraPort,
+			Rewrite: &Rewrite{
+				Regex:       "/v1(/|$$)(.*)",
+				Replacement: "/v1/graphql$$2",
+			},
+		},
+		)
+	}
+
 	return &Service{
 		Image: "nhost/graphql-engine:" + *cfg.GetHasura().GetVersion(),
 		DependsOn: map[string]DependsOn{
@@ -59,27 +86,7 @@ func graphql( //nolint:funlen
 			Interval:    "5s",
 			StartPeriod: "60s",
 		},
-		Labels: Ingresses{
-			{
-				Name: "graphql",
-				TLS:  useTLS,
-				Rule: traefikHostMatch("graphql") + "&& PathPrefix(`/v1`)",
-				Port: hasuraPort,
-				Rewrite: &Rewrite{
-					Regex:       "/v1(/|$$)(.*)",
-					Replacement: "/v1/graphql$$2",
-				},
-			},
-			{
-				Name: "hasura",
-				TLS:  useTLS,
-				Rule: traefikHostMatch(
-					"hasura",
-				) + "&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )", //nolint:lll
-				Port:    hasuraPort,
-				Rewrite: nil,
-			},
-		}.Labels(),
+		Labels:     labels.Labels(),
 		Networks:   networkAliases("hasura-service"),
 		Ports:      ports(port, hasuraPort),
 		Restart:    "always",
