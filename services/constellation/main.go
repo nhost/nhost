@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/nhost/nhost/services/constellation/cmd"
-	"github.com/nhost/nhost/services/constellation/cmd/debug"
 	metadatacmd "github.com/nhost/nhost/services/constellation/cmd/metadata"
+	schemacmd "github.com/nhost/nhost/services/constellation/cmd/schema"
 	docs "github.com/urfave/cli-docs/v3"
 	"github.com/urfave/cli/v3"
 )
@@ -65,8 +65,8 @@ func main() {
 		Commands: []*cli.Command{
 			markdownDocs(),
 			cmd.CommandServe(),
-			debug.CommandDebug(),
 			metadatacmd.CommandMetadata(),
+			schemacmd.CommandSchema(),
 		},
 	}
 

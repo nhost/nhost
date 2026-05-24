@@ -1,10 +1,10 @@
 // Package schemadiff provides utilities for parsing two GraphQL schemas,
 // normalising away semantically meaningless differences, and rendering them as
 // deterministic SDL for unified diffing. It is the engine behind the
-// `constellation debug schema-diff` command.
+// `constellation schema diff` command.
 //
 // The exported functions form an ordered pipeline, and the order matters. The
-// canonical sequence (see cmd/debug/schema_diff.go) is:
+// canonical sequence (see cmd/schema/diff.go) is:
 //
 //  1. Load each schema from disk.
 //  2. Normalise: NormalizeAggregateTypes, then StripNoopUpdateMutations,
