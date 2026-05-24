@@ -131,7 +131,7 @@ func generateForTable( //nolint:funlen,cyclop
 			getUpdatePermission(tableMeta, role) != nil ||
 			getDeletePermission(tableMeta, role) != nil) {
 		generateTableMutationInputTypes(
-			schema, tableMeta, tableInfo, customTableName, qualifiedName, md, role,
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, md, objects, role,
 			tablesWithObjRelInsert, tablesWithArrRelInsert,
 		)
 	}

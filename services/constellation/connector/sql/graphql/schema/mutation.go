@@ -138,6 +138,7 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 	customTableName string,
 	qualifiedName string,
 	md *metadata.DatabaseMetadata,
+	objects *introspection.Objects,
 	role string,
 	tablesWithObjRelInsert map[string]struct{},
 	tablesWithArrRelInsert map[string]struct{},
@@ -177,6 +178,7 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 			qualifiedName,
 			insertAllowedColumns,
 			md,
+			objects,
 			role,
 		)
 	}

@@ -191,6 +191,21 @@ END;
 CREATE VIEW v_begin AS SELECT id, name FROM base;
 CREATE TRIGGER begin_audit INSTEAD OF INSERT ON v_begin
 BEGIN INSERT INTO base(id, name) VALUES (NEW.id, NEW.name); END;
+
+-- v_header_comment_mismatch has a single trigger whose actual event is
+-- INSTEAD OF UPDATE, but the header carries a SQL line comment that
+-- mentions "INSTEAD OF INSERT". A switch-based detector would let the
+-- INSERT branch win for this trigger row and incorrectly flip
+-- IsInsertable while leaving IsUpdatable false — masking the real
+-- UPDATE event. With independent checks, IsUpdatable must be true; the
+-- comment-induced INSERT match is an accepted over-detection that is
+-- consistent with the rest of the header-parsing approach (errs toward
+-- exposing mutations).
+CREATE VIEW v_header_comment_mismatch AS SELECT id, name FROM base;
+CREATE TRIGGER v_header_comment_mismatch_upd
+    -- the next line says INSTEAD OF INSERT on purpose to bait a false positive
+    INSTEAD OF UPDATE ON v_header_comment_mismatch
+BEGIN UPDATE base SET name = NEW.name WHERE id = OLD.id; END;
 `
 
 	if _, err := db.ExecContext(t.Context(), schema); err != nil {
@@ -231,6 +246,7 @@ BEGIN INSERT INTO base(id, name) VALUES (NEW.id, NEW.name); END;
 		{"v_full", true, true, true},
 		{"v_body_false_positive", true, true, false},
 		{"v_begin", true, true, false},
+		{"v_header_comment_mismatch", true, true, true},
 	}
 
 	for _, tc := range cases {

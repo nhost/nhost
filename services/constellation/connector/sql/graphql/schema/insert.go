@@ -95,6 +95,7 @@ func generateInsertInput(
 	qualifiedName string,
 	allowedColumns map[string]struct{},
 	md *metadata.DatabaseMetadata,
+	objects *introspection.Objects,
 	role string,
 ) {
 	fields := []*graph.InputField{}
@@ -127,7 +128,7 @@ func generateInsertInput(
 	if role == roleAdmin || getInsertPermission(tableMeta, role) != nil {
 		for _, rel := range tableMeta.ObjectRelationships {
 			inputField := getRelationshipTargetInputField(
-				md, tableInfo, rel.Using, rel.Name, "_obj_rel_insert_input", role,
+				md, objects, tableInfo, rel.Using, rel.Name, "_obj_rel_insert_input", role,
 			)
 			if inputField != nil {
 				fields = append(fields, inputField)
@@ -136,7 +137,7 @@ func generateInsertInput(
 
 		for _, rel := range tableMeta.ArrayRelationships {
 			inputField := getRelationshipTargetInputField(
-				md, tableInfo, rel.Using, rel.Name, "_arr_rel_insert_input", role,
+				md, objects, tableInfo, rel.Using, rel.Name, "_arr_rel_insert_input", role,
 			)
 			if inputField != nil {
 				fields = append(fields, inputField)
@@ -156,6 +157,7 @@ func generateInsertInput(
 
 func getRelationshipTargetInputField(
 	md *metadata.DatabaseMetadata,
+	objects *introspection.Objects,
 	tableInfo *introspection.Table,
 	using metadata.RelationshipUsing,
 	relName string,
@@ -171,17 +173,31 @@ func getRelationshipTargetInputField(
 		return nil
 	}
 
-	// The target must permit insert: obj_rel_insert_input / arr_rel_insert_input
-	// are only generated for tables the role can insert into.
 	targetTable := getRelationshipTarget(tableInfo, md.Tables, using)
-	if targetTable != nil && (role == roleAdmin || getInsertPermission(targetTable, role) != nil) {
-		return &graph.InputField{ //nolint:exhaustruct
-			Name: relName,
-			Type: graph.NewNamedType(targetName + suffix),
-		}
+	if targetTable == nil {
+		return nil
 	}
 
-	return nil
+	// The target must permit insert: obj_rel_insert_input / arr_rel_insert_input
+	// are only generated for tables the role can insert into.
+	if role != roleAdmin && getInsertPermission(targetTable, role) == nil {
+		return nil
+	}
+
+	// The target's introspected IsInsertable must also be true. Otherwise
+	// the corresponding _obj_rel_insert_input / _arr_rel_insert_input type
+	// is not emitted by generateTableMutationInputTypes (which gates on
+	// tableInfo.IsInsertable) and we would leave a dangling type reference
+	// in the parent's _insert_input. This matters for admin specifically,
+	// where role-permission gating alone cannot exclude read-only views.
+	if !targetIsInsertable(objects, targetTable) {
+		return nil
+	}
+
+	return &graph.InputField{ //nolint:exhaustruct
+		Name: relName,
+		Type: graph.NewNamedType(targetName + suffix),
+	}
 }
 
 // generateObjRelInsertInput generates the obj_rel_insert_input type for object relationships.

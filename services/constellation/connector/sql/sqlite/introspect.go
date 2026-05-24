@@ -229,11 +229,19 @@ func getViewMutability(
 			continue
 		}
 
-		switch {
-		case strings.Contains(upper, "INSTEAD OF INSERT"):
+		// Evaluate the INSERT and UPDATE/DELETE markers independently rather
+		// than via a switch: SQLite restricts each trigger to a single event,
+		// but the header text can still mention a different INSTEAD OF
+		// operation inside a SQL comment. A switch would let the first
+		// branch win and silently mask the real event, mirroring the
+		// header-content false-positive concern handled elsewhere in this
+		// file.
+		if strings.Contains(upper, "INSTEAD OF INSERT") {
 			insertable = true
-		case strings.Contains(upper, "INSTEAD OF UPDATE"),
-			strings.Contains(upper, "INSTEAD OF DELETE"):
+		}
+
+		if strings.Contains(upper, "INSTEAD OF UPDATE") ||
+			strings.Contains(upper, "INSTEAD OF DELETE") {
 			updatable = true
 		}
 	}

@@ -211,8 +211,12 @@ func getTables(
 // back as (false, true, true). Views inherit insertable/updatable flags from
 // information_schema.views, which Postgres derives from the view definition
 // (UNION ALL, aggregates, set-returning functions, and INSTEAD OF triggers
-// all affect these). The schema generator uses these to suppress mutation
-// fields on relations the database itself will reject writes to.
+// all affect these). Foreign tables and partitioned tables do not appear in
+// information_schema.views; their writability falls back to
+// information_schema.tables.is_insertable_into, which is 'NO' for read-only
+// foreign tables and 'YES' otherwise. The schema generator uses these to
+// suppress mutation fields on relations the database itself will reject
+// writes to.
 func populateRelationKinds(
 	ctx context.Context,
 	q Querier,
@@ -224,15 +228,19 @@ func populateRelationKinds(
 	}
 
 	// LEFT JOIN: base tables won't appear in information_schema.views,
-	// so v.is_insertable_into / v.is_updatable come back NULL — coalesce
-	// those to 'YES' since base tables always accept writes (subject to
-	// per-role permissions, which the schema layer handles separately).
+	// so v.is_insertable_into / v.is_updatable come back NULL. Fall back
+	// to information_schema.tables.is_insertable_into (populated for base
+	// tables, partitioned tables, and foreign tables — 'NO' for read-only
+	// foreign tables, 'YES' otherwise) before defaulting to 'YES'. There
+	// is no is_updatable column on information_schema.tables, so we use
+	// t.is_insertable_into as the closest writability proxy for non-views
+	// (any per-role permissions are applied separately in the schema layer).
 	query := `
 		SELECT
 			t.table_name,
 			t.table_type = 'VIEW' AS is_view,
-			COALESCE(v.is_insertable_into, 'YES') = 'YES' AS is_insertable,
-			COALESCE(v.is_updatable, 'YES') = 'YES' AS is_updatable
+			COALESCE(v.is_insertable_into, t.is_insertable_into, 'YES') = 'YES' AS is_insertable,
+			COALESCE(v.is_updatable, t.is_insertable_into, 'YES') = 'YES' AS is_updatable
 		FROM information_schema.tables t
 		LEFT JOIN information_schema.views v
 			ON v.table_schema = t.table_schema AND v.table_name = t.table_name

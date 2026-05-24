@@ -265,9 +265,8 @@ CREATE VIEW public.published_news AS
   FROM public.news
   WHERE is_public = true;
 
--- Non-updatable view (UNION ALL) — Postgres reports
--- is_insertable_into = NO and is_updatable = NO. Used to exercise the
--- "no mutations on read-only views" behaviour.
+-- Non-updatable view (UNION ALL) used to verify view introspection
+-- reports IsView=true, IsInsertable=false, IsUpdatable=false.
 CREATE VIEW public.content_feed AS
   SELECT n.id, 'news'::text AS source, n.title, n.content, n.created_at
   FROM public.news n
