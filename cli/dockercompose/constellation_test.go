@@ -13,11 +13,9 @@ const constellationJWTSecret = `{"claims_map":{"x-hasura-allowed-roles":{"path":
 // These are referenced from TestGraphqlIngressWithConstellation so a regression
 // in the rule construction is caught by an exact-value comparison.
 const (
-	canonicalHasuraRule         = "(HostRegexp(`^.+\\.hasura\\.local\\.nhost\\.run$`) || Host(`local.hasura.nhost.run`))&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )"
-	canonicalGraphqlRule        = "(HostRegexp(`^.+\\.graphql\\.local\\.nhost\\.run$`) || Host(`local.graphql.nhost.run`))&& PathPrefix(`/v1`)"
-	canonicalConstellationRule  = "(HostRegexp(`^.+\\.graphql\\.local\\.nhost\\.run$`) || Host(`local.graphql.nhost.run`))&& PathPrefix(`/v1`)"
-	canonicalConstellationRegex = "/v1(/.*)?"
-	canonicalConstellationRepl  = "/v1/graphql"
+	canonicalHasuraRule        = "(HostRegexp(`^.+\\.hasura\\.local\\.nhost\\.run$`) || Host(`local.hasura.nhost.run`))&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )"
+	canonicalGraphqlRule       = "(HostRegexp(`^.+\\.graphql\\.local\\.nhost\\.run$`) || Host(`local.graphql.nhost.run`))&& PathPrefix(`/v1`)"
+	canonicalConstellationRule = "(HostRegexp(`^.+\\.graphql\\.local\\.nhost\\.run$`) || Host(`local.graphql.nhost.run`))"
 )
 
 func expectedConstellation(useTLS bool) *Service {
@@ -79,14 +77,11 @@ func expectedConstellation(useTLS bool) *Service {
 		HealthCheck: nil,
 		Labels: map[string]string{
 			"traefik.enable": "true",
-			"traefik.http.middlewares.replace-constellation.replacepathregex.regex":       canonicalConstellationRegex,
-			"traefik.http.middlewares.replace-constellation.replacepathregex.replacement": canonicalConstellationRepl,
-			"traefik.http.routers.constellation.entrypoints":                              "web",
-			"traefik.http.routers.constellation.middlewares":                              "replace-constellation",
-			"traefik.http.routers.constellation.rule":                                     canonicalConstellationRule,
-			"traefik.http.routers.constellation.service":                                  "constellation",
-			"traefik.http.routers.constellation.tls":                                      tlsLabel,
-			"traefik.http.services.constellation.loadbalancer.server.port":                "8000",
+			"traefik.http.routers.constellation.entrypoints":               "web",
+			"traefik.http.routers.constellation.rule":                      canonicalConstellationRule,
+			"traefik.http.routers.constellation.service":                   "constellation",
+			"traefik.http.routers.constellation.tls":                       tlsLabel,
+			"traefik.http.services.constellation.loadbalancer.server.port": "8000",
 		},
 		Networks: networkAliases("constellation-service"),
 		Ports:    nil,
@@ -193,20 +188,8 @@ func TestGraphqlIngressWithConstellation(t *testing.T) {
 			)
 		}
 
-		if got := c.Labels["traefik.http.middlewares.replace-constellation.replacepathregex.regex"]; got != canonicalConstellationRegex {
-			t.Errorf(
-				"constellation rewrite regex drifted:\n  got:  %q\n  want: %q",
-				got,
-				canonicalConstellationRegex,
-			)
-		}
-
-		if got := c.Labels["traefik.http.middlewares.replace-constellation.replacepathregex.replacement"]; got != canonicalConstellationRepl {
-			t.Errorf(
-				"constellation rewrite replacement drifted:\n  got:  %q\n  want: %q",
-				got,
-				canonicalConstellationRepl,
-			)
+		if _, ok := c.Labels["traefik.http.middlewares.replace-constellation.replacepathregex.regex"]; ok {
+			t.Error("constellation router should not register a rewrite middleware")
 		}
 
 		if got := c.Labels["traefik.http.services.constellation.loadbalancer.server.port"]; got != "8000" {

@@ -49,14 +49,11 @@ func constellation(
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
-				Name: "constellation",
-				TLS:  useTLS,
-				Rule: traefikHostMatch("graphql") + "&& PathPrefix(`/v1`)",
-				Port: constellationPort,
-				Rewrite: &Rewrite{
-					Regex:       "/v1(/.*)?",
-					Replacement: "/v1/graphql",
-				},
+				Name:    "constellation",
+				TLS:     useTLS,
+				Rule:    traefikHostMatch("graphql"),
+				Port:    constellationPort,
+				Rewrite: nil,
 			},
 		}.Labels(),
 		Networks: networkAliases("constellation-service"),
