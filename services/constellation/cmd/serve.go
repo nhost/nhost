@@ -277,11 +277,11 @@ func getRouter(
 	)
 
 	if cmd.Bool(flagEnablePlayground) {
-		router.GET("/", playgroundHandler("/graphql"))
+		router.GET("/", playgroundHandler("/v1/graphql"))
 	}
 
-	router.POST("/graphql", ctrl.HandlerPost)
-	router.GET("/graphql", ctrl.HandlerGet)
+	router.POST("/v1/graphql", ctrl.HandlerPost)
+	router.GET("/v1/graphql", ctrl.HandlerGet)
 
 	return router, nil
 }
