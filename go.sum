@@ -391,6 +391,8 @@ github.com/nhost/be v0.0.0-20260524093712-d9b0df7413fc h1:AfRi43jNdpV3IgIAN+yUT8
 github.com/nhost/be v0.0.0-20260524093712-d9b0df7413fc/go.mod h1:Iu++SAB+fVjBAt6LJ0Gv857Y7QFIiOIo3xHKRGmHYYw=
 github.com/nhost/be v0.0.0-20260524143021-181750234e6c h1:wMg9GH8lba8tHUGAlgHd9VTBc6BZj0YsnsXlLz2EA+w=
 github.com/nhost/be v0.0.0-20260524143021-181750234e6c/go.mod h1:Iu++SAB+fVjBAt6LJ0Gv857Y7QFIiOIo3xHKRGmHYYw=
+github.com/nhost/be v0.0.0-20260524143651-95274f2ff7f4 h1:4vYG+6KDglpqbjuwdV/ZR9noPXMw4hNJUF5tZ4Kutbg=
+github.com/nhost/be v0.0.0-20260524143651-95274f2ff7f4/go.mod h1:Iu++SAB+fVjBAt6LJ0Gv857Y7QFIiOIo3xHKRGmHYYw=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/oapi-codegen/runtime v1.1.1 h1:EXLHh0DXIJnWhdRPN2w4MXAzFyE4CskzhNLUmtpMYro=
 github.com/oapi-codegen/runtime v1.1.1/go.mod h1:SK9X900oXmPWilYR5/WKPzt3Kqxn/uS/+lbpREv+eCg=
