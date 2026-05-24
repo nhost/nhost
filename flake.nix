@@ -271,7 +271,6 @@
               # others
               postgresql_18-client
               bun
-              rover
 
               # docs
               vale
