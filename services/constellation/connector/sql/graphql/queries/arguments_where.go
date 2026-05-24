@@ -50,9 +50,9 @@ func (t *table) ColumnFromGraphqlName(name string) *core.Column {
 
 // RelationshipFromGraphqlName returns nil interface when no relationship matches,
 // avoiding the typed-nil-through-interface trap callers would hit otherwise.
-func (t *table) RelationshipFromGraphqlName(
+func (t *table) RelationshipFromGraphqlName( //nolint:ireturn,nolintlint
 	name string,
-) where.Relationship { //nolint:ireturn,nolintlint
+) where.Relationship {
 	r := t.relationshipFromGraphqlName(name)
 	if r == nil {
 		return nil
