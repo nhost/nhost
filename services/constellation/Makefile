@@ -15,7 +15,7 @@ _dev-env-down: dev-env-integration-down run-down
 
 
 .PHONY: dev-env-up-short
-dev-env-up-short: _dev-env-up dev-env-integration-up
+dev-env-up-short: dev-env-integration-up
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
 
 

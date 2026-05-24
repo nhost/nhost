@@ -1,4 +1,4 @@
-package debug //nolint:revive,nolintlint
+package schema //nolint:revive,nolintlint
 
 import (
 	"context"
@@ -14,32 +14,34 @@ const (
 	flagSchemaA = "a"
 	flagSchemaB = "b"
 	flagNoClean = "no-clean"
+
+	diffContextLines = 3
 )
 
-func commandSchemaDiff() *cli.Command {
-	return &cli.Command{ //nolint: exhaustruct
-		Name:  "schema-diff",
+func commandDiff() *cli.Command {
+	return &cli.Command{ //nolint:exhaustruct
+		Name:  "diff",
 		Usage: "Compare two GraphQL schema files",
 		Description: `Compare two GraphQL schema files and output the differences.
 This tool parses both schemas and performs a structural comparison,
 outputting a unified diff in GraphQL SDL format.`,
 		Flags: []cli.Flag{
-			&cli.StringFlag{ //nolint: exhaustruct
+			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagSchemaA,
 				Usage:    "Path to the first schema file",
 				Required: true,
 			},
-			&cli.StringFlag{ //nolint: exhaustruct
+			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagSchemaB,
 				Usage:    "Path to the second schema file",
 				Required: true,
 			},
-			&cli.BoolFlag{ //nolint: exhaustruct
+			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:  flagNoClean,
 				Usage: "Disable all normalization/cleaning of known-safe differences",
 			},
 		},
-		Action: schemaDiff,
+		Action: diff,
 	}
 }
 
@@ -56,7 +58,7 @@ func normalize(schemaA, schemaB *ast.Schema) {
 	schemadiff.NormalizeFuncArgNullability(schemaB)
 }
 
-func schemaDiff(_ context.Context, cmd *cli.Command) error {
+func diff(_ context.Context, cmd *cli.Command) error {
 	schemaAPath := cmd.String(flagSchemaA)
 	schemaBPath := cmd.String(flagSchemaB)
 	noClean := cmd.Bool(flagNoClean)
@@ -83,7 +85,7 @@ func schemaDiff(_ context.Context, cmd *cli.Command) error {
 	sdlB := schemadiff.ToSDL(schemaB, ignoreDescriptions)
 
 	if sdlA == sdlB {
-		fmt.Println("Schemas are identical") //nolint: forbidigo
+		fmt.Println("Schemas are identical") //nolint:forbidigo
 		return nil
 	}
 
@@ -94,7 +96,7 @@ func schemaDiff(_ context.Context, cmd *cli.Command) error {
 		B:        difflib.SplitLines(sdlB),
 		FromFile: schemaAPath,
 		ToFile:   schemaBPath,
-		Context:  3, //nolint:mnd
+		Context:  diffContextLines,
 	}
 
 	diffText, err := difflib.GetUnifiedDiffString(diff)
@@ -104,7 +106,7 @@ func schemaDiff(_ context.Context, cmd *cli.Command) error {
 
 	diffText = schemadiff.AddHunkContext(diffText, linesA)
 
-	fmt.Print(diffText) //nolint: forbidigo
+	fmt.Print(diffText) //nolint:forbidigo
 
 	return nil
 }

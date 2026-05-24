@@ -194,12 +194,93 @@ func getTables(
 		return nil, err
 	}
 
+	if err := populateRelationKinds(ctx, q, schemaName, tableMap); err != nil {
+		return nil, err
+	}
+
 	tables := make([]introspection.Table, 0, len(tableMap))
 	for _, table := range tableMap {
 		tables = append(tables, *table)
 	}
 
 	return tables, nil
+}
+
+// populateRelationKinds fills in IsView / IsInsertable / IsUpdatable on every
+// relation previously discovered by populateTableColumns. Base tables come
+// back as (false, true, true). Views inherit insertable/updatable flags from
+// information_schema.views, which Postgres derives from the view definition
+// (UNION ALL, aggregates, set-returning functions, and INSTEAD OF triggers
+// all affect these). Foreign tables and partitioned tables do not appear in
+// information_schema.views; their writability falls back to
+// information_schema.tables.is_insertable_into, which is 'NO' for read-only
+// foreign tables and 'YES' otherwise. The schema generator uses these to
+// suppress mutation fields on relations the database itself will reject
+// writes to.
+func populateRelationKinds(
+	ctx context.Context,
+	q Querier,
+	schemaName string,
+	tableMap map[string]*introspection.Table,
+) error {
+	if len(tableMap) == 0 {
+		return nil
+	}
+
+	// LEFT JOIN: base tables won't appear in information_schema.views,
+	// so v.is_insertable_into / v.is_updatable come back NULL. Fall back
+	// to information_schema.tables.is_insertable_into (populated for base
+	// tables, partitioned tables, and foreign tables — 'NO' for read-only
+	// foreign tables, 'YES' otherwise) before defaulting to 'YES'. There
+	// is no is_updatable column on information_schema.tables, so we use
+	// t.is_insertable_into as the closest writability proxy for non-views
+	// (any per-role permissions are applied separately in the schema layer).
+	query := `
+		SELECT
+			t.table_name,
+			t.table_type = 'VIEW' AS is_view,
+			COALESCE(v.is_insertable_into, t.is_insertable_into, 'YES') = 'YES' AS is_insertable,
+			COALESCE(v.is_updatable, t.is_insertable_into, 'YES') = 'YES' AS is_updatable
+		FROM information_schema.tables t
+		LEFT JOIN information_schema.views v
+			ON v.table_schema = t.table_schema AND v.table_name = t.table_name
+		WHERE t.table_schema = $1
+	`
+
+	rows, err := q.Query(ctx, query, schemaName)
+	if err != nil {
+		return fmt.Errorf("failed to query relation kinds: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			tableName    string
+			isView       bool
+			isInsertable bool
+			isUpdatable  bool
+		)
+		if err := rows.Scan(&tableName, &isView, &isInsertable, &isUpdatable); err != nil {
+			return fmt.Errorf("failed to scan relation kind row: %w", err)
+		}
+
+		table, ok := tableMap[tableName]
+		if !ok {
+			// Table was filtered out earlier (e.g. no columns) — skip it
+			// rather than synthesising an empty Table here.
+			continue
+		}
+
+		table.IsView = isView
+		table.IsInsertable = isInsertable
+		table.IsUpdatable = isUpdatable
+	}
+
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("error iterating relation kind rows: %w", err)
+	}
+
+	return nil
 }
 
 // populateTableColumns queries and populates column information for tables in a schema.
@@ -358,6 +439,9 @@ func populateTableColumns( //nolint:funlen
 				PrimaryKeyConstraintName: "",
 				ForeignKeys:              nil,
 				UniqueConstraints:        nil,
+				IsView:                   false,
+				IsInsertable:             true,
+				IsUpdatable:              true,
 			}
 			tableMap[tableName] = table
 		}

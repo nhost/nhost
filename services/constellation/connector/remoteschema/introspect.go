@@ -5,6 +5,7 @@ import (
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/graph"
@@ -98,10 +99,39 @@ fragment TypeRef on __Type {
 }
 `
 
+// Introspect fetches the schema from a GraphQL endpoint via the standard
+// introspection query and returns it as a graph.Schema. Headers are sent on the
+// request alongside Content-Type. Passing nil for doer falls back to
+// http.DefaultClient.
+//
+// This is the same wire dance used internally to bootstrap a Connector's admin
+// schema, exposed for callers (e.g. CLI tools) that want a one-shot SDL dump
+// without standing up a full remote-schema connector.
+func Introspect(
+	ctx context.Context,
+	url string,
+	headers map[string]string,
+	doer HTTPDoer,
+) (*graph.Schema, error) {
+	if doer == nil {
+		doer = http.DefaultClient
+	}
+
+	return introspectViaHTTP(ctx, &httpClient{
+		url:     url,
+		headers: headers,
+		client:  doer,
+	})
+}
+
 // introspectRemoteSchema fetches the schema from a remote GraphQL endpoint and returns a graph.Schema.
 func (c *Connector) introspectRemoteSchema(ctx context.Context) (*graph.Schema, error) {
-	// Introspection is done at init time with admin context, no session variables or client headers
-	body, err := c.httpClient.do(ctx, map[string]string{
+	return introspectViaHTTP(ctx, c.httpClient)
+}
+
+func introspectViaHTTP(ctx context.Context, client *httpClient) (*graph.Schema, error) {
+	// Introspection is done with admin context, no session variables or client headers
+	body, err := client.do(ctx, map[string]string{
 		"query": introspectionQuery,
 	}, nil, nil)
 	if err != nil {
