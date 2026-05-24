@@ -69,7 +69,7 @@ func (t *table) ParseWhere(
 // TargetTable returns a nil interface for remote/remote-schema relationships
 // that have no local target table, avoiding the typed-nil-through-interface
 // trap.
-func (r *relationship) TargetTable() arguments.Table {
+func (r *relationship) TargetTable() arguments.Table { //nolint:ireturn,nolintlint
 	if r.table == nil {
 		return nil
 	}

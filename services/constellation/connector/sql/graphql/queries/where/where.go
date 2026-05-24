@@ -170,7 +170,7 @@ func parseWhereChild(
 // table; anything else is an unknown field.
 //
 
-func parseFieldOrRelationship(
+func parseFieldOrRelationship( //nolint:ireturn,nolintlint
 	t Table,
 	fieldName string,
 	value *ast.Value,
@@ -390,7 +390,7 @@ func resolveStringArrayValue(operatorValue *ast.Value, variables map[string]any)
 // logic lives in the operatorParsers dispatch table in operators.go.
 //
 
-func ParseFieldComparison(
+func ParseFieldComparison( //nolint:ireturn,nolintlint
 	t Table,
 	column *core.Column,
 	value *ast.Value,
