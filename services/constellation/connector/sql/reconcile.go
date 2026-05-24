@@ -224,6 +224,11 @@ func reconcilePermissionColumns(
 	t *metadata.TableMetadata,
 	cols map[string]struct{},
 ) {
+	// The slice headers we received were value-copied from the caller's
+	// dbMeta, but they still alias the same backing array. Clone before
+	// taking &t.XxxPermissions[i] so writes through p don't leak into the
+	// caller's metadata. Mirrors reconcileRelationships.
+	t.SelectPermissions = slices.Clone(t.SelectPermissions)
 	for i := range t.SelectPermissions {
 		p := &t.SelectPermissions[i]
 		p.Permission.Columns = filterColumnList(
@@ -232,6 +237,7 @@ func reconcilePermissionColumns(
 		)
 	}
 
+	t.InsertPermissions = slices.Clone(t.InsertPermissions)
 	for i := range t.InsertPermissions {
 		p := &t.InsertPermissions[i]
 		p.Permission.Columns = filterColumnList(
@@ -244,6 +250,7 @@ func reconcilePermissionColumns(
 		)
 	}
 
+	t.UpdatePermissions = slices.Clone(t.UpdatePermissions)
 	for i := range t.UpdatePermissions {
 		p := &t.UpdatePermissions[i]
 		p.Permission.Columns = filterColumnList(

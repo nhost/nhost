@@ -22,8 +22,8 @@ inconsistency and the server keeps running with whatever did load.
 
 | Phase | Fatal? | Notes |
 |---|---|---|
-| Loading metadata bytes from file/db | **Yes** | Wraps with `initial metadata load` / `metadata reload failed`. Old state is kept on reload errors. |
-| Parsing metadata bytes into types | **Yes** | Same wrap. |
+| Loading metadata bytes from file/db | **Yes on initial load, No on reload** | Initial load wraps with `initial metadata load: …` and aborts startup. Reload errors are logged as `metadata reload failed, keeping current state` and the previous state continues serving. |
+| Parsing metadata bytes into types | **Yes on initial load, No on reload** | Same paths as above. |
 | Building a source connector (factory error, customization rejection) | No | Whole source dropped, recorded as `database` or `remote_schema`. |
 | Reconciling metadata against introspected source objects | No | Per-entity drops, recorded as `table` / `column` / `function` / `relationship` / `enum_values`. |
 | Composing per-role schemas | No | Whole role dropped on validation/merge failure, recorded as `role`. |
@@ -147,15 +147,6 @@ on *other* tables that point at the dropped enum table remain in the schema
 as plain scalars — they keep their underlying type but lose any `_enum`
 input type and the implicit value constraint that would have come with the
 enum.
-
-> _Implementer note (confidence MEDIUM):_
-> Verified against `connector/sql/reconcile.go`: dropping an enum table via
-> the `continue` in `reconcileTables` keeps it out of `survivingNames`, so
-> `reconcileRelationships` records the relationship cascade exactly as for
-> the `table` case. The FK-column statement reflects current behaviour —
-> nothing else in reconciliation rewrites column types when their referenced
-> enum table disappears. Trait: maintainability (readers no longer have to
-> cross-reference the `table` section to infer the cascade).
 
 > **Not in this bucket:** a missing-from-source enum table produces a
 > [`table`](#table-postgresql--sqlite-source) inconsistency instead — the

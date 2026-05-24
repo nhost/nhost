@@ -868,8 +868,8 @@ func wireEnumIntrospect(
 			if strings.Contains(sql, "pg_toast_temp_") {
 				return singleStringRows(ctrl, schemaName), nil
 			}
-			// getEnumTable's SELECT is no-args; route by the absence of the
-			// schemata table.
+			// getEnumTable's SELECT is no-args and does not contain the
+			// getSchemas pg_toast_temp_ marker; the else branch catches it.
 			return enumValueRows(t, ctrl, values, descColEmpty), nil
 		}).
 		AnyTimes()

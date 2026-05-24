@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -212,6 +213,71 @@ func TestReconcileMetadata_DropsMissingColumns(t *testing.T) {
 	for _, c := range expectedColumns {
 		mustHaveInconsistency(t, inc, metadata.InconsistencyKindColumn,
 			c, "")
+	}
+}
+
+// TestReconcileMetadata_DoesNotMutateInput verifies that reconcileMetadata
+// keeps its godoc contract — "returns a filtered copy" — even when filtering
+// rewrites permission column lists / set maps. The slice headers we receive
+// from the caller share their backing array with our value-copy of each
+// TableMetadata, so writing through &t.SelectPermissions[i] (etc.) would
+// silently leak into the caller's *metadata.DatabaseMetadata
+// (controllerState.metadata is held across hot-reloads). We snapshot the
+// input by constructing two structurally identical literals and diff the
+// "passed in" copy against the snapshot after the call returns.
+func TestReconcileMetadata_DoesNotMutateInput(t *testing.T) {
+	t.Parallel()
+
+	build := func() *metadata.DatabaseMetadata {
+		return &metadata.DatabaseMetadata{ //nolint:exhaustruct
+			Name: "default",
+			Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+				{
+					Table: metadata.TableSource{Schema: "public", Name: "users"},
+					Configuration: metadata.TableConfiguration{ //nolint:exhaustruct
+						ColumnConfig: map[string]metadata.ColumnConfig{
+							"id":      {CustomName: "userId"},
+							"missing": {CustomName: "x"},
+						},
+					},
+					SelectPermissions: []metadata.SelectPermission{
+						{
+							Role: "user",
+							Permission: metadata.SelectPermissionConfig{ //nolint:exhaustruct
+								Columns: []string{"id", "name", "ghost_col"},
+							},
+						},
+					},
+					InsertPermissions: []metadata.InsertPermission{
+						{
+							Role: "user",
+							Permission: metadata.InsertPermissionConfig{ //nolint:exhaustruct
+								Columns: []string{"name", "vanished"},
+								Set:     map[string]any{"id": "x", "phantom": "y"},
+							},
+						},
+					},
+					UpdatePermissions: []metadata.UpdatePermission{
+						{
+							Role: "user",
+							Permission: metadata.UpdatePermissionConfig{ //nolint:exhaustruct
+								Columns: []string{"name", "absent"},
+								Set:     map[string]any{"absent": "z"},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
+	input := build()
+	snapshot := build()
+
+	_ = reconcileMetadata(t.Context(), nil, metadata.NewInconsistencies(), input, makeObjects())
+
+	if diff := cmp.Diff(snapshot, input); diff != "" {
+		t.Fatalf("reconcileMetadata mutated its input (-want +got):\n%s", diff)
 	}
 }
 
