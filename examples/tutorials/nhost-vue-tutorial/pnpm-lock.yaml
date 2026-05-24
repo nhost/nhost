@@ -76,7 +76,7 @@ importers:
         specifier: workspace:^
         version: link:../../../packages/nhost-js
       vue:
-        specifier: ^3.5.18
+        specifier: ^3.5.21
         version: 3.5.21(typescript@5.8.3)
       vue-router:
         specifier: ^4.5.1
@@ -86,7 +86,7 @@ importers:
         specifier: ^22.0.2
         version: 22.0.2
       '@types/node':
-        specifier: ^22.16.5
+        specifier: ^22.18.3
         version: 22.18.3
       '@vitejs/plugin-vue':
         specifier: ^6.0.1
@@ -98,7 +98,7 @@ importers:
         specifier: ^8.0.4
         version: 8.0.4
       typescript:
-        specifier: ~5.8.0
+        specifier: ~5.8.3
         version: 5.8.3
       vite:
         specifier: ^8.0.10
@@ -107,7 +107,7 @@ importers:
         specifier: ^8.1.1
         version: 8.1.1(vite@8.0.10(@types/node@22.18.3))(vue@3.5.21(typescript@5.8.3))
       vue-tsc:
-        specifier: ^3.0.4
+        specifier: ^3.0.7
         version: 3.0.7(typescript@5.8.3)
 
 packages:
@@ -511,9 +511,6 @@ packages:
     resolution: {integrity: sha512-L+YvJwGAgwJBV1p6ffpSTa2KRc69EeeYGYjRVWKs0GKrK+LON0GC0gV+rKSNtALEDvMDqkvCFq9r1r94/Gjwxw==}
     hasBin: true
 
-  birpc@2.5.0:
-    resolution: {integrity: sha512-VSWO/W6nNQdyP520F1mhf+Lc2f8pjGQOtoHHm7Ze8Go1kX7akpVIrtTa0fn+HB0QJEDVacl6aO08YE0PgXfdnQ==}
-
   birpc@2.9.0:
     resolution: {integrity: sha512-KrayHS5pBi69Xi9JmvoqrIgYGDkD6mcSe/i6YKi3w5kekCLzrX4+nawcXqrj2tIp50Kw/mT/s3p+GVK0A0sKxw==}
 
@@ -777,9 +774,6 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
-
-  perfect-debounce@2.0.0:
-    resolution: {integrity: sha512-fkEH/OBiKrqqI/yIgjR92lMfs2K8105zt/VT6+7eTjNwisrsh47CeIED9z58zI7DfKdH3uHAn25ziRZn3kgAow==}
 
   perfect-debounce@2.1.0:
     resolution: {integrity: sha512-LjgdTytVFXeUgtHZr9WYViYSM/g8MkcTPYDlPa3cDqMirHjKiSZPYd6DoL7pK8AJQr+uWkQvCjHNdiMqsrJs+g==}
@@ -1431,8 +1425,6 @@ snapshots:
 
   baseline-browser-mapping@2.8.4: {}
 
-  birpc@2.5.0: {}
-
   birpc@2.9.0: {}
 
   browserslist@4.26.0:
@@ -1620,8 +1612,6 @@ snapshots:
 
   pathe@2.0.3: {}
 
-  perfect-debounce@2.0.0: {}
-
   perfect-debounce@2.1.0: {}
 
   picocolors@1.1.1: {}
@@ -1709,7 +1699,7 @@ snapshots:
 
   vite-dev-rpc@1.1.0(vite@8.0.10(@types/node@22.18.3)):
     dependencies:
-      birpc: 2.5.0
+      birpc: 2.9.0
       vite: 8.0.10(@types/node@22.18.3)
       vite-hot-client: 2.1.0(vite@8.0.10(@types/node@22.18.3))
 
@@ -1724,7 +1714,7 @@ snapshots:
       error-stack-parser-es: 1.0.5
       ohash: 2.0.11
       open: 10.2.0
-      perfect-debounce: 2.0.0
+      perfect-debounce: 2.1.0
       sirv: 3.0.2
       unplugin-utils: 0.3.0
       vite: 8.0.10(@types/node@22.18.3)
