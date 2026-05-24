@@ -411,8 +411,11 @@ func TestFromMetadata_MissingDatabaseConnectorSkipped(t *testing.T) {
 						Name: "would_have_been_cross_db",
 						Using: metadata.RelationshipUsing{
 							ManualConfiguration: &metadata.ManualConfiguration{
-								Source:        "alive",
-								RemoteTable:   metadata.TableSource{Schema: "public", Name: "orders"},
+								Source: "alive",
+								RemoteTable: metadata.TableSource{
+									Schema: "public",
+									Name:   "orders",
+								},
 								ColumnMapping: map[string]string{"id": "user_id"},
 							},
 						},
