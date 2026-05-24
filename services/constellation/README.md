@@ -87,7 +87,6 @@ The minimum to get an instance up:
 ```bash
 ./result/bin/constellation serve \
   --metadata-path /path/to/metadata/ \
-  --database-url 'postgres://user:pass@localhost:5432/mydb' \
   --admin-secret 'change-me' \
   --jwt-secret '{"type":"HS256","key":"..."}' \
   --enable-playground
@@ -97,12 +96,17 @@ Then open <http://localhost:8000/> for the GraphQL playground or POST to <http:/
 
 ### Runtime modes
 
-Two ways to load metadata:
+Two things are sourced separately and shouldn't be confused:
 
-- **File mode** — point `--metadata-path` (or `CONSTELLATION_METADATA_PATH`) at a single `.toml` file or any path inside a Hasura YAML metadata directory (the file is not opened; only the parent directory is read per the Hasura v3 layout). Metadata is loaded once at startup; restart to pick up changes. Best for static deployments and CI.
-- **Database mode** — set `--metadata-database-url` (or `CONSTELLATION_METADATA_DATABASE_URL`) to Hasura's metadata database. Constellation polls `hdb_catalog.hdb_metadata` and reloads when the version changes. Best for deployments where Hasura still owns metadata authoring.
+**Data sources** — the user-data PostgreSQL databases the GraphQL API serves over. They are *never* configured on the CLI; each one is declared inside the metadata under `sources[].configuration.connection_info` (Hasura's source format). Constellation opens a connection pool per source at startup and reuses it for every request.
 
-In database mode, reloads are atomic: in-flight requests complete against the old state while new requests use the new one.
+**Metadata** — the definitions of those sources, plus tables, permissions, relationships, and remote schemas. You pick exactly one of:
+
+- **File mode** — `--metadata-path` (or `CONSTELLATION_METADATA_PATH`) points at a single `.toml` file or at any path inside a Hasura v3 YAML metadata directory (for the YAML case the file you name is not opened; only its parent directory is read per the Hasura layout). Metadata is loaded **once at startup**. There is no file watcher, no polling, and no fallback sync from a database — restart constellation to pick up changes. Best for static deployments and CI.
+
+- **Database mode** — `--metadata-database-url` (or `CONSTELLATION_METADATA_DATABASE_URL`) points at the PostgreSQL database where Hasura stores its `hdb_catalog.hdb_metadata` row. Constellation polls that row's `resource_version` every second; when it changes, the blob is re-read and the live schema is hot-swapped atomically (in-flight requests complete against the old state; new requests see the new one). Best for deployments where Hasura still owns metadata authoring.
+
+The modes are mutually exclusive. File mode does not refresh from any database; database mode ignores `--metadata-path`. The metadata DB (`--metadata-database-url`) is also distinct from the data sources declared inside the metadata — pointing it at a data DB would only work if that DB happened to host Hasura's `hdb_catalog` schema.
 
 ### Local development environment
 
