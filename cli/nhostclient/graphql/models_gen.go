@@ -622,6 +622,8 @@ type ConfigConfig struct {
 	Ai *ConfigAi `json:"ai,omitempty"`
 	// Configuration for auth service
 	Auth *ConfigAuth `json:"auth,omitempty"`
+	// Experimental configuration for unreleased services. Subject to breaking changes.
+	Experimental *ConfigExperimental `json:"experimental,omitempty"`
 	// Configuration for functions service
 	Functions *ConfigFunctions `json:"functions,omitempty"`
 	// Global configuration that applies to all services
@@ -643,6 +645,7 @@ type ConfigConfig struct {
 type ConfigConfigUpdateInput struct {
 	Ai            *ConfigAIUpdateInput            `json:"ai,omitempty"`
 	Auth          *ConfigAuthUpdateInput          `json:"auth,omitempty"`
+	Experimental  *ConfigExperimentalUpdateInput  `json:"experimental,omitempty"`
 	Functions     *ConfigFunctionsUpdateInput     `json:"functions,omitempty"`
 	Global        *ConfigGlobalUpdateInput        `json:"global,omitempty"`
 	Graphql       *ConfigGraphqlUpdateInput       `json:"graphql,omitempty"`
@@ -651,6 +654,40 @@ type ConfigConfigUpdateInput struct {
 	Postgres      *ConfigPostgresUpdateInput      `json:"postgres,omitempty"`
 	Provider      *ConfigProviderUpdateInput      `json:"provider,omitempty"`
 	Storage       *ConfigStorageUpdateInput       `json:"storage,omitempty"`
+}
+
+type ConfigConstellation struct {
+	Settings *ConfigConstellationSettings `json:"settings,omitempty"`
+	// Version of constellation, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/constellation/tags
+	Version *string `json:"version,omitempty"`
+}
+
+type ConfigConstellationSettings struct {
+	// CORS allowed origins. If set, these are used as-is.
+	// If unset, origins are derived from auth.redirections.clientUrl and
+	// auth.redirections.allowedUrls (paths/queries/fragments stripped).
+	CorsAllowedOrigins []string `json:"corsAllowedOrigins,omitempty"`
+	// Enable debug logging.
+	Debug *bool `json:"debug,omitempty"`
+	// Return raw connector/database error detail to clients instead of
+	// the sanitized generic message. For development only — never enable
+	// in production, as it leaks internal schema and data values.
+	DevMode *bool `json:"devMode,omitempty"`
+	// Polling interval for GraphQL subscriptions.
+	SubscriptionPollInterval *string `json:"subscriptionPollInterval,omitempty"`
+}
+
+type ConfigConstellationSettingsUpdateInput struct {
+	CorsAllowedOrigins       []string `json:"corsAllowedOrigins,omitempty"`
+	Debug                    *bool    `json:"debug,omitempty"`
+	DevMode                  *bool    `json:"devMode,omitempty"`
+	SubscriptionPollInterval *string  `json:"subscriptionPollInterval,omitempty"`
+}
+
+type ConfigConstellationUpdateInput struct {
+	Settings *ConfigConstellationSettingsUpdateInput `json:"settings,omitempty"`
+	Version  *string                                 `json:"version,omitempty"`
 }
 
 type ConfigEnvironmentVariable struct {
@@ -667,6 +704,14 @@ type ConfigEnvironmentVariableInsertInput struct {
 type ConfigEnvironmentVariableUpdateInput struct {
 	Name  *string `json:"name,omitempty"`
 	Value *string `json:"value,omitempty"`
+}
+
+type ConfigExperimental struct {
+	Constellation *ConfigConstellation `json:"constellation,omitempty"`
+}
+
+type ConfigExperimentalUpdateInput struct {
+	Constellation *ConfigConstellationUpdateInput `json:"constellation,omitempty"`
 }
 
 // Configuration for functions service
@@ -1351,13 +1396,14 @@ type ConfigSmsUpdateInput struct {
 }
 
 type ConfigSMTP struct {
-	Host     string `json:"host"`
-	Method   string `json:"method"`
-	Password string `json:"password"`
-	Port     uint32 `json:"port"`
-	Secure   bool   `json:"secure"`
-	Sender   string `json:"sender"`
-	User     string `json:"user"`
+	Host     *string `json:"host,omitempty"`
+	Method   *string `json:"method,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Port     *uint32 `json:"port,omitempty"`
+	Secure   *bool   `json:"secure,omitempty"`
+	Sender   *string `json:"sender,omitempty"`
+	// these are needed for backwards compatibility, they're actually ignored
+	User *string `json:"user,omitempty"`
 }
 
 type ConfigSMTPUpdateInput struct {
@@ -1477,23 +1523,6 @@ type ConfigSystemConfigPostgresDisk struct {
 type ContainerError struct {
 	LastError *LastError `json:"lastError"`
 	Name      string     `json:"name"`
-}
-
-// A time series for a functions metric. `timestamps` and `datapoints` are
-// parallel arrays of the same length. `labels` carries the values of the
-// dimensions left intact by `groupBy`.
-type FunctionsMetricSeries struct {
-	Datapoints []string     `json:"datapoints"`
-	Labels     string       `json:"labels"`
-	Timestamps []*time.Time `json:"timestamps"`
-}
-
-// A single aggregated value for a functions metric, optionally tagged with the
-// labels left intact by `groupBy` (e.g. `{method: "GET"}`). When no `groupBy` is
-// provided exactly one item is returned with empty labels.
-type FunctionsMetricValue struct {
-	Labels string `json:"labels"`
-	Value  string `json:"value"`
 }
 
 type InsertRunServiceConfigResponse struct {
@@ -5978,246 +6007,6 @@ func (e *CheckoutStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e CheckoutStatus) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// How to aggregate the chosen `FunctionsMetric`.
-//
-// `AVG` is implemented as a per-request ratio: `sum(metric) / sum(invocations)`.
-// This means `AVG/BYTES_SENT` is the average response size, `AVG/DURATION` is
-// the average response time, and `AVG/ERRORS` is the error rate.
-//
-// Not every combination is meaningful:
-//   - `INVOCATIONS + AVG` is rejected at runtime (the ratio is always 1).
-//   - `MAX`/`MIN` use `[$__range:]` as the outer subquery window in both
-//     resolvers, so the peak/trough is taken over the full selected range.
-type FunctionsAggregate string
-
-const (
-	FunctionsAggregateAvg FunctionsAggregate = "AVG"
-	FunctionsAggregateMax FunctionsAggregate = "MAX"
-	FunctionsAggregateMin FunctionsAggregate = "MIN"
-	FunctionsAggregateSum FunctionsAggregate = "SUM"
-)
-
-var AllFunctionsAggregate = []FunctionsAggregate{
-	FunctionsAggregateAvg,
-	FunctionsAggregateMax,
-	FunctionsAggregateMin,
-	FunctionsAggregateSum,
-}
-
-func (e FunctionsAggregate) IsValid() bool {
-	switch e {
-	case FunctionsAggregateAvg, FunctionsAggregateMax, FunctionsAggregateMin, FunctionsAggregateSum:
-		return true
-	}
-	return false
-}
-
-func (e FunctionsAggregate) String() string {
-	return string(e)
-}
-
-func (e *FunctionsAggregate) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = FunctionsAggregate(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid FunctionsAggregate", str)
-	}
-	return nil
-}
-
-func (e FunctionsAggregate) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *FunctionsAggregate) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e FunctionsAggregate) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// The underlying quantity to query from the functions histogram backend.
-type FunctionsHistogramMetric string
-
-const (
-	FunctionsHistogramMetricDuration FunctionsHistogramMetric = "DURATION"
-)
-
-var AllFunctionsHistogramMetric = []FunctionsHistogramMetric{
-	FunctionsHistogramMetricDuration,
-}
-
-func (e FunctionsHistogramMetric) IsValid() bool {
-	switch e {
-	case FunctionsHistogramMetricDuration:
-		return true
-	}
-	return false
-}
-
-func (e FunctionsHistogramMetric) String() string {
-	return string(e)
-}
-
-func (e *FunctionsHistogramMetric) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = FunctionsHistogramMetric(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid FunctionsHistogramMetric", str)
-	}
-	return nil
-}
-
-func (e FunctionsHistogramMetric) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *FunctionsHistogramMetric) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e FunctionsHistogramMetric) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// Labels that may be passed to `groupBy` to split a metric into one series per
-// label value. Labels not listed here are summed across by default.
-type FunctionsLabel string
-
-const (
-	FunctionsLabelMethod FunctionsLabel = "METHOD"
-	FunctionsLabelStatus FunctionsLabel = "STATUS"
-)
-
-var AllFunctionsLabel = []FunctionsLabel{
-	FunctionsLabelMethod,
-	FunctionsLabelStatus,
-}
-
-func (e FunctionsLabel) IsValid() bool {
-	switch e {
-	case FunctionsLabelMethod, FunctionsLabelStatus:
-		return true
-	}
-	return false
-}
-
-func (e FunctionsLabel) String() string {
-	return string(e)
-}
-
-func (e *FunctionsLabel) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = FunctionsLabel(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid FunctionsLabel", str)
-	}
-	return nil
-}
-
-func (e FunctionsLabel) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *FunctionsLabel) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e FunctionsLabel) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// The underlying quantity to query from the functions metrics backend.
-type FunctionsMetric string
-
-const (
-	FunctionsMetricBytesSent   FunctionsMetric = "BYTES_SENT"
-	FunctionsMetricDuration    FunctionsMetric = "DURATION"
-	FunctionsMetricErrors      FunctionsMetric = "ERRORS"
-	FunctionsMetricInvocations FunctionsMetric = "INVOCATIONS"
-)
-
-var AllFunctionsMetric = []FunctionsMetric{
-	FunctionsMetricBytesSent,
-	FunctionsMetricDuration,
-	FunctionsMetricErrors,
-	FunctionsMetricInvocations,
-}
-
-func (e FunctionsMetric) IsValid() bool {
-	switch e {
-	case FunctionsMetricBytesSent, FunctionsMetricDuration, FunctionsMetricErrors, FunctionsMetricInvocations:
-		return true
-	}
-	return false
-}
-
-func (e FunctionsMetric) String() string {
-	return string(e)
-}
-
-func (e *FunctionsMetric) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = FunctionsMetric(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid FunctionsMetric", str)
-	}
-	return nil
-}
-
-func (e FunctionsMetric) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *FunctionsMetric) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e FunctionsMetric) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
