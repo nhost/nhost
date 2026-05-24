@@ -25,7 +25,9 @@ import (
 // used only in error messages.
 func (t *table) Name() string { return t.tableName }
 
-func (t *table) LookupRelationship(name string) permissions.Relationship { //nolint:ireturn,nolintlint
+func (t *table) LookupRelationship(
+	name string,
+) permissions.Relationship { //nolint:ireturn,nolintlint
 	r := t.relationshipFromGraphqlName(name)
 	if r == nil {
 		return nil
