@@ -30,7 +30,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	cases := []testRequest[api.SignUpPasswordlessEmailRequestObject, api.SignUpPasswordlessEmailResponseObject]{ //nolint:lll
+	cases := []testRequest[api.SignUpPasswordlessEmailRequestObject, api.SignUpPasswordlessEmailResponseObject]{
 		{
 			name:   "success - new user signup",
 			config: getConfig,
@@ -41,7 +41,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
@@ -51,7 +51,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DisplayName:       "jane@acme.com",
 						AvatarUrl:         "",
 						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{},
 						Ticket:            sql.Text("passwordlessEmail:xxx"),
 						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:     false,
@@ -59,12 +59,12 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:       "user",
 						Metadata:          []byte("null"),
 						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						PhoneNumber:       pgtype.Text{},
 						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+						OtpHashExpiresAt:  pgtype.Timestamptz{},
+						OtpMethodLastUsed: pgtype.Text{},
 					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
@@ -94,7 +94,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameSigninPasswordless,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -124,7 +124,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
@@ -134,7 +134,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DisplayName:       "jane@acme.com",
 						AvatarUrl:         "",
 						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{},
 						Ticket:            sql.Text("passwordlessEmail:xxx"),
 						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:     false,
@@ -142,12 +142,12 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:       "user",
 						Metadata:          []byte("null"),
 						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						PhoneNumber:       pgtype.Text{},
 						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+						OtpHashExpiresAt:  pgtype.Timestamptz{},
+						OtpMethodLastUsed: pgtype.Text{},
 					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
@@ -177,7 +177,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameSigninPasswordless,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -269,7 +269,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("jane@acme.com"),
 					EmailVerified: true,
@@ -300,7 +300,7 @@ func TestSignUpPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("jane@acme.com"),
 					EmailVerified: false,

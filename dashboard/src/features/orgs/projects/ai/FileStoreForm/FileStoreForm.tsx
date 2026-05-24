@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { RefreshCwIcon } from 'lucide-react';
+import { InfoIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -9,8 +9,6 @@ import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -163,8 +161,7 @@ export default function FileStoreForm({
                 <Tooltip title="Name of the file store">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
+                    className="h-4 w-4 text-primary"
                   />
                 </Tooltip>
               </Box>
@@ -187,8 +184,7 @@ export default function FileStoreForm({
                 <Tooltip title="One or more buckets from storage from which documents can be used by Assistants">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
+                    className="h-4 w-4 text-primary"
                   />
                 </Tooltip>
               </Box>
@@ -210,7 +206,11 @@ export default function FileStoreForm({
             type="submit"
             disabled={isSubmitting}
             startIcon={
-              id ? <RefreshCwIcon width={16} height={16} /> : <PlusIcon />
+              id ? (
+                <RefreshCwIcon className="h-4 w-4" />
+              ) : (
+                <PlusIcon className="h-4 w-4" />
+              )
             }
           >
             {id ? 'Update' : 'Create'}

@@ -1,0 +1,2477 @@
+[[databases]]
+    name = 'default'
+    kind = 'postgres'
+
+        [databases.configuration.connection_info]
+            database_url = '{{HASURA_GRAPHQL_DATABASE_URL}}'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'provider_requests'
+            schema = 'auth'
+
+        [databases.tables.configuration]
+            custom_name = 'authProviderRequests'
+
+                [databases.tables.configuration.column_config.id]
+                    custom_name = 'id'
+
+                [databases.tables.configuration.column_config.options]
+                    custom_name = 'options'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteAuthProviderRequests'
+                delete_by_pk = 'deleteAuthProviderRequest'
+                insert = 'insertAuthProviderRequests'
+                insert_one = 'insertAuthProviderRequest'
+                select = 'authProviderRequests'
+                select_aggregate = 'authProviderRequestsAggregate'
+                select_by_pk = 'authProviderRequest'
+                update = 'updateAuthProviderRequests'
+                update_by_pk = 'updateAuthProviderRequest'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'providers'
+            schema = 'auth'
+
+        [databases.tables.configuration]
+            custom_name = 'authProviders'
+
+                [databases.tables.configuration.column_config.id]
+                    custom_name = 'id'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteAuthProviders'
+                delete_by_pk = 'deleteAuthProvider'
+                insert = 'insertAuthProviders'
+                insert_one = 'insertAuthProvider'
+                select = 'authProviders'
+                select_aggregate = 'authProvidersAggregate'
+                select_by_pk = 'authProvider'
+                update = 'updateAuthProviders'
+                update_by_pk = 'updateAuthProvider'
+
+        [[databases.tables.array_relationships]]
+            name = 'userProviders'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'provider_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'user_providers'
+                        schema = 'auth'
+
+    [[databases.tables]]
+        is_enum = true
+
+        [databases.tables.table]
+            name = 'refresh_token_types'
+            schema = 'auth'
+
+        [databases.tables.configuration]
+            custom_name = 'authRefreshTokenTypes'
+
+                [databases.tables.configuration.column_config.comment]
+                    custom_name = 'comment'
+
+                [databases.tables.configuration.column_config.value]
+                    custom_name = 'value'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteAuthRefreshTokenTypes'
+                delete_by_pk = 'deleteAuthRefreshTokenType'
+                insert = 'insertAuthRefreshTokenTypes'
+                insert_one = 'insertAuthRefreshTokenType'
+                select = 'authRefreshTokenTypes'
+                select_aggregate = 'authRefreshTokenTypesAggregate'
+                select_by_pk = 'authRefreshTokenType'
+                update = 'updateAuthRefreshTokenTypes'
+                update_by_pk = 'updateAuthRefreshTokenType'
+
+        [[databases.tables.array_relationships]]
+            name = 'refreshTokens'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'type'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'refresh_tokens'
+                        schema = 'auth'
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships_enum'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'comment',
+                    'value'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships_enum'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'comment',
+                    'value'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships_enum'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'comment',
+                    'value'
+                ]
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships_enum'
+
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'refresh_tokens'
+            schema = 'auth'
+
+        [databases.tables.configuration]
+            custom_name = 'authRefreshTokens'
+
+                [databases.tables.configuration.column_config.created_at]
+                    custom_name = 'createdAt'
+
+                [databases.tables.configuration.column_config.expires_at]
+                    custom_name = 'expiresAt'
+
+                [databases.tables.configuration.column_config.refresh_token_hash]
+                    custom_name = 'refreshTokenHash'
+
+                [databases.tables.configuration.column_config.user_id]
+                    custom_name = 'userId'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteAuthRefreshTokens'
+                delete_by_pk = 'deleteAuthRefreshToken'
+                insert = 'insertAuthRefreshTokens'
+                insert_one = 'insertAuthRefreshToken'
+                select = 'authRefreshTokens'
+                select_aggregate = 'authRefreshTokensAggregate'
+                select_by_pk = 'authRefreshToken'
+                update = 'updateAuthRefreshTokens'
+                update_by_pk = 'updateAuthRefreshToken'
+
+        [[databases.tables.object_relationships]]
+            name = 'user'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'user_id'
+
+        [[databases.tables.select_permissions]]
+            role = 'mixed_permissions'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'created_at',
+                    'expires_at',
+                    'id',
+                    'metadata',
+                    'type',
+                    'user_id'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships_enum'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'refresh_token_hash',
+                    'metadata',
+                    'type',
+                    'created_at',
+                    'expires_at',
+                    'id',
+                    'user_id'
+                ]
+                allow_aggregations = true
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships_enum_no_perms'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'refresh_token_hash',
+                    'metadata',
+                    'type',
+                    'created_at',
+                    'expires_at',
+                    'id',
+                    'user_id'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'id',
+                    'created_at',
+                    'expires_at',
+                    'metadata',
+                    'type',
+                    'user_id'
+                ]
+
+                    [databases.tables.select_permissions.permission.filter.user_id]
+                        _eq = 'X-Hasura-User-Id'
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships_enum'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'refresh_token_hash',
+                    'metadata',
+                    'type',
+                    'created_at',
+                    'expires_at',
+                    'id',
+                    'user_id'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships_enum_no_perms'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'refresh_token_hash',
+                    'metadata',
+                    'type',
+                    'created_at',
+                    'expires_at',
+                    'id',
+                    'user_id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships_enum'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'refresh_token_hash',
+                    'metadata',
+                    'type',
+                    'created_at',
+                    'expires_at',
+                    'id',
+                    'user_id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships_enum_no_perms'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'refresh_token_hash',
+                    'metadata',
+                    'type',
+                    'created_at',
+                    'expires_at',
+                    'id',
+                    'user_id'
+                ]
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships_enum'
+
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships_enum_no_perms'
+
+
+        [[databases.tables.delete_permissions]]
+            role = 'user'
+
+                    [[databases.tables.delete_permissions.permission.filter._and]]
+                        [databases.tables.delete_permissions.permission.filter._and.user_id]
+                            _eq = 'X-Hasura-User-Id'
+
+                    [[databases.tables.delete_permissions.permission.filter._and]]
+                        [databases.tables.delete_permissions.permission.filter._and.type]
+                            _eq = 'pat'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'roles'
+            schema = 'auth'
+
+        [databases.tables.configuration]
+            custom_name = 'authRoles'
+
+                [databases.tables.configuration.column_config.role]
+                    custom_name = 'role'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteAuthRoles'
+                delete_by_pk = 'deleteAuthRole'
+                insert = 'insertAuthRoles'
+                insert_one = 'insertAuthRole'
+                select = 'authRoles'
+                select_aggregate = 'authRolesAggregate'
+                select_by_pk = 'authRole'
+                update = 'updateAuthRoles'
+                update_by_pk = 'updateAuthRole'
+
+        [[databases.tables.array_relationships]]
+            name = 'userRoles'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'role'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'user_roles'
+                        schema = 'auth'
+
+        [[databases.tables.array_relationships]]
+            name = 'usersByDefaultRole'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'default_role'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'users'
+                        schema = 'auth'
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'role'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'role'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'role'
+                ]
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships'
+
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'user_providers'
+            schema = 'auth'
+
+        [databases.tables.configuration]
+            custom_name = 'authUserProviders'
+
+                [databases.tables.configuration.column_config.access_token]
+                    custom_name = 'accessToken'
+
+                [databases.tables.configuration.column_config.created_at]
+                    custom_name = 'createdAt'
+
+                [databases.tables.configuration.column_config.id]
+                    custom_name = 'id'
+
+                [databases.tables.configuration.column_config.provider_id]
+                    custom_name = 'providerId'
+
+                [databases.tables.configuration.column_config.provider_user_id]
+                    custom_name = 'providerUserId'
+
+                [databases.tables.configuration.column_config.refresh_token]
+                    custom_name = 'refreshToken'
+
+                [databases.tables.configuration.column_config.updated_at]
+                    custom_name = 'updatedAt'
+
+                [databases.tables.configuration.column_config.user_id]
+                    custom_name = 'userId'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteAuthUserProviders'
+                delete_by_pk = 'deleteAuthUserProvider'
+                insert = 'insertAuthUserProviders'
+                insert_one = 'insertAuthUserProvider'
+                select = 'authUserProviders'
+                select_aggregate = 'authUserProvidersAggregate'
+                select_by_pk = 'authUserProvider'
+                update = 'updateAuthUserProviders'
+                update_by_pk = 'updateAuthUserProvider'
+
+        [[databases.tables.object_relationships]]
+            name = 'provider'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'provider_id'
+
+        [[databases.tables.object_relationships]]
+            name = 'user'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'user_id'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'user_roles'
+            schema = 'auth'
+
+        [databases.tables.configuration]
+            custom_name = 'authUserRoles'
+
+                [databases.tables.configuration.column_config.created_at]
+                    custom_name = 'createdAt'
+
+                [databases.tables.configuration.column_config.id]
+                    custom_name = 'id'
+
+                [databases.tables.configuration.column_config.role]
+                    custom_name = 'role'
+
+                [databases.tables.configuration.column_config.user_id]
+                    custom_name = 'userId'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteAuthUserRoles'
+                delete_by_pk = 'deleteAuthUserRole'
+                insert = 'insertAuthUserRoles'
+                insert_one = 'insertAuthUserRole'
+                select = 'authUserRoles'
+                select_aggregate = 'authUserRolesAggregate'
+                select_by_pk = 'authUserRole'
+                update = 'updateAuthUserRoles'
+                update_by_pk = 'updateAuthUserRole'
+
+        [[databases.tables.object_relationships]]
+            name = 'roleByRole'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'role'
+
+        [[databases.tables.object_relationships]]
+            name = 'user'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'user_id'
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'role',
+                    'created_at',
+                    'id',
+                    'user_id'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'role',
+                    'created_at',
+                    'id',
+                    'user_id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'role',
+                    'created_at',
+                    'id',
+                    'user_id'
+                ]
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships'
+
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'user_security_keys'
+            schema = 'auth'
+
+        [databases.tables.configuration]
+            custom_name = 'authUserSecurityKeys'
+
+                [databases.tables.configuration.column_config.credential_id]
+                    custom_name = 'credentialId'
+
+                [databases.tables.configuration.column_config.credential_public_key]
+                    custom_name = 'credentialPublicKey'
+
+                [databases.tables.configuration.column_config.id]
+                    custom_name = 'id'
+
+                [databases.tables.configuration.column_config.user_id]
+                    custom_name = 'userId'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteAuthUserSecurityKeys'
+                delete_by_pk = 'deleteAuthUserSecurityKey'
+                insert = 'insertAuthUserSecurityKeys'
+                insert_one = 'insertAuthUserSecurityKey'
+                select = 'authUserSecurityKeys'
+                select_aggregate = 'authUserSecurityKeysAggregate'
+                select_by_pk = 'authUserSecurityKey'
+                update = 'updateAuthUserSecurityKeys'
+                update_by_pk = 'updateAuthUserSecurityKey'
+
+        [[databases.tables.object_relationships]]
+            name = 'user'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'user_id'
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'counter',
+                    'credential_public_key',
+                    'transports',
+                    'credential_id',
+                    'nickname',
+                    'id',
+                    'user_id'
+                ]
+
+                    [databases.tables.select_permissions.permission.filter.user_id]
+                        _eq = 'X-Hasura-User-Id'
+
+        [[databases.tables.delete_permissions]]
+            role = 'user'
+
+                    [databases.tables.delete_permissions.permission.filter.user_id]
+                        _eq = 'X-Hasura-User-Id'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'users'
+            schema = 'auth'
+
+        [databases.tables.configuration]
+            custom_name = 'users'
+
+                [databases.tables.configuration.column_config.active_mfa_type]
+                    custom_name = 'activeMfaType'
+
+                [databases.tables.configuration.column_config.avatar_url]
+                    custom_name = 'avatarUrl'
+
+                [databases.tables.configuration.column_config.created_at]
+                    custom_name = 'createdAt'
+
+                [databases.tables.configuration.column_config.default_role]
+                    custom_name = 'defaultRole'
+
+                [databases.tables.configuration.column_config.disabled]
+                    custom_name = 'disabled'
+
+                [databases.tables.configuration.column_config.display_name]
+                    custom_name = 'displayName'
+
+                [databases.tables.configuration.column_config.email]
+                    custom_name = 'email'
+
+                [databases.tables.configuration.column_config.email_verified]
+                    custom_name = 'emailVerified'
+
+                [databases.tables.configuration.column_config.id]
+                    custom_name = 'id'
+
+                [databases.tables.configuration.column_config.is_anonymous]
+                    custom_name = 'isAnonymous'
+
+                [databases.tables.configuration.column_config.last_seen]
+                    custom_name = 'lastSeen'
+
+                [databases.tables.configuration.column_config.locale]
+                    custom_name = 'locale'
+
+                [databases.tables.configuration.column_config.new_email]
+                    custom_name = 'newEmail'
+
+                [databases.tables.configuration.column_config.otp_hash]
+                    custom_name = 'otpHash'
+
+                [databases.tables.configuration.column_config.otp_hash_expires_at]
+                    custom_name = 'otpHashExpiresAt'
+
+                [databases.tables.configuration.column_config.otp_method_last_used]
+                    custom_name = 'otpMethodLastUsed'
+
+                [databases.tables.configuration.column_config.password_hash]
+                    custom_name = 'passwordHash'
+
+                [databases.tables.configuration.column_config.phone_number]
+                    custom_name = 'phoneNumber'
+
+                [databases.tables.configuration.column_config.phone_number_verified]
+                    custom_name = 'phoneNumberVerified'
+
+                [databases.tables.configuration.column_config.ticket]
+                    custom_name = 'ticket'
+
+                [databases.tables.configuration.column_config.ticket_expires_at]
+                    custom_name = 'ticketExpiresAt'
+
+                [databases.tables.configuration.column_config.totp_secret]
+                    custom_name = 'totpSecret'
+
+                [databases.tables.configuration.column_config.updated_at]
+                    custom_name = 'updatedAt'
+
+                [databases.tables.configuration.column_config.webauthn_current_challenge]
+                    custom_name = 'currentChallenge'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteUsers'
+                delete_by_pk = 'deleteUser'
+                insert = 'insertUsers'
+                insert_one = 'insertUser'
+                select = 'users'
+                select_aggregate = 'usersAggregate'
+                select_by_pk = 'user'
+                update = 'updateUsers'
+                update_by_pk = 'updateUser'
+
+        [[databases.tables.object_relationships]]
+            name = 'defaultRoleByRole'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'default_role'
+
+        [[databases.tables.object_relationships]]
+            name = 'profile'
+
+                [databases.tables.object_relationships.using.manual_configuration]
+                    source = 'other'
+
+                    [databases.tables.object_relationships.using.manual_configuration.remote_table]
+                        name = 'user_profiles'
+                        schema = 'public'
+
+                    [databases.tables.object_relationships.using.manual_configuration.column_mapping]
+                        id = 'user_id'
+
+        [[databases.tables.array_relationships]]
+            name = 'departments'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'user_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'user_departments'
+                        schema = 'public'
+
+        [[databases.tables.array_relationships]]
+            name = 'kbEntries'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'uploader_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'kb_entries'
+                        schema = 'public'
+
+        [[databases.tables.array_relationships]]
+            name = 'refreshTokens'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'user_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'refresh_tokens'
+                        schema = 'auth'
+
+        [[databases.tables.array_relationships]]
+            name = 'roles'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'user_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'user_roles'
+                        schema = 'auth'
+
+        [[databases.tables.array_relationships]]
+            name = 'securityKeys'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'user_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'user_security_keys'
+                        schema = 'auth'
+
+        [[databases.tables.array_relationships]]
+            name = 'userProviders'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'user_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'user_providers'
+                        schema = 'auth'
+
+        [[databases.tables.remote_relationships]]
+            name = 'profile'
+
+                [databases.tables.remote_relationships.definition.to_source]
+                    relationship_type = 'object'
+                    source = 'other'
+
+                    [databases.tables.remote_relationships.definition.to_source.field_mapping]
+                        id = 'user_id'
+
+                    [databases.tables.remote_relationships.definition.to_source.table]
+                        name = 'user_profiles'
+                        schema = 'public'
+
+        [[databases.tables.select_permissions]]
+            role = 'mixed_permissions'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'avatar_url',
+                    'created_at',
+                    'display_name',
+                    'email',
+                    'email_verified',
+                    'id',
+                    'locale',
+                    'updated_at'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'public'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'display_name'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+                allow_aggregations = true
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships_aggregation'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+                allow_aggregations = true
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships_enum'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+                allow_aggregations = true
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships_enum_no_perms'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'simplequeries'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'simplequeries_aggregation'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+                allow_aggregations = true
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'avatar_url',
+                    'created_at',
+                    'display_name',
+                    'email',
+                    'email_verified',
+                    'id',
+                    'locale',
+                    'metadata',
+                    'updated_at'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships_enum'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships_enum_no_perms'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'simplequeries'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'simplequeries_aggregation'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'mixed_permissions'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'avatar_url',
+                    'display_name',
+                    'locale'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships_enum'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships_enum_no_perms'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'simplequeries'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'simplequeries_aggregation'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'disabled',
+                    'email_verified',
+                    'is_anonymous',
+                    'phone_number_verified',
+                    'locale',
+                    'metadata',
+                    'active_mfa_type',
+                    'avatar_url',
+                    'default_role',
+                    'display_name',
+                    'otp_hash',
+                    'otp_method_last_used',
+                    'password_hash',
+                    'phone_number',
+                    'ticket',
+                    'totp_secret',
+                    'webauthn_current_challenge',
+                    'created_at',
+                    'last_seen',
+                    'otp_hash_expires_at',
+                    'ticket_expires_at',
+                    'updated_at',
+                    'email',
+                    'new_email',
+                    'id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'user'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'avatar_url',
+                    'display_name',
+                    'locale',
+                    'metadata'
+                ]
+
+                    [databases.tables.update_permissions.permission.filter.id]
+                        _eq = 'X-Hasura-User-Id'
+
+                    [databases.tables.update_permissions.permission.check.id]
+                        _eq = 'X-Hasura-User-Id'
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships'
+
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships_enum'
+
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships_enum_no_perms'
+
+
+        [[databases.tables.delete_permissions]]
+            role = 'simplequeries'
+
+
+        [[databases.tables.delete_permissions]]
+            role = 'simplequeries_aggregation'
+
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'department_files'
+            schema = 'public'
+
+        [[databases.tables.object_relationships]]
+            name = 'department'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'department_id'
+
+        [[databases.tables.object_relationships]]
+            name = 'file'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'file_id'
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'id',
+                    'file_id',
+                    'department_id'
+                ]
+                allow_aggregations = true
+
+                    [[databases.tables.select_permissions.permission.filter._or]]
+                        [databases.tables.select_permissions.permission.filter._or.department_id]
+                            _in = 'X-Hasura-departments'
+
+                    [[databases.tables.select_permissions.permission.filter._or]]
+                            [databases.tables.select_permissions.permission.filter._or.file.uploaded_by_user_id]
+                                _eq = 'X-Hasura-User-Id'
+
+        [[databases.tables.insert_permissions]]
+            role = 'user'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'file_id',
+                    'department_id'
+                ]
+
+                    [databases.tables.insert_permissions.permission.check.department_id]
+                        _in = 'X-Hasura-departments'
+
+        [[databases.tables.delete_permissions]]
+            role = 'user'
+
+                    [[databases.tables.delete_permissions.permission.filter._or]]
+                        [databases.tables.delete_permissions.permission.filter._or.department_id]
+                            _in = 'X-Hasura-departments'
+
+                    [[databases.tables.delete_permissions.permission.filter._or]]
+                            [databases.tables.delete_permissions.permission.filter._or.file.uploaded_by_user_id]
+                                _eq = 'X-Hasura-User-Id'
+
+    [[databases.tables]]
+        is_enum = true
+
+        [databases.tables.table]
+            name = 'department_roles'
+            schema = 'public'
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'comment',
+                    'value'
+                ]
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'departments'
+            schema = 'public'
+
+        [[databases.tables.object_relationships]]
+            name = 'team'
+
+                [databases.tables.object_relationships.using.manual_configuration]
+                    remote_schema = 'rs'
+
+                    [databases.tables.object_relationships.using.manual_configuration.remote_table]
+                        name = ''
+                        schema = ''
+
+                    [databases.tables.object_relationships.using.manual_configuration.column_mapping]
+                        id = 'id'
+
+        [[databases.tables.array_relationships]]
+            name = 'employees'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'department_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'user_departments'
+                        schema = 'public'
+
+        [[databases.tables.array_relationships]]
+            name = 'files'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'department_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'department_files'
+                        schema = 'public'
+
+        [[databases.tables.array_relationships]]
+            name = 'kb_entry_departments'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'department_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'kb_entry_departments'
+                        schema = 'public'
+
+        [[databases.tables.remote_relationships]]
+            name = 'team'
+
+                [databases.tables.remote_relationships.definition.to_remote_schema]
+                    remote_schema = 'rs'
+                    lhs_fields = [
+                        'id'
+                    ]
+
+                            [databases.tables.remote_relationships.definition.to_remote_schema.remote_field.teamByDepartment.arguments]
+                                departmentId = '$id'
+
+        [[databases.tables.select_permissions]]
+            role = 'mixed_permissions'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'budget',
+                    'description',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'budget',
+                    'description',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships_aggregation'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'budget',
+                    'description',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id'
+                ]
+                allow_aggregations = true
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'budget',
+                    'created_at',
+                    'description',
+                    'id',
+                    'name'
+                ]
+                allow_aggregations = true
+
+                    [databases.tables.select_permissions.permission.filter.id]
+                        _in = 'X-Hasura-departments'
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'budget',
+                    'description',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'mixed_permissions'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'budget',
+                    'description',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'budget',
+                    'description',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'user'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'budget',
+                    'description',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id'
+                ]
+
+                    [databases.tables.update_permissions.permission.filter.id]
+                        _in = 'X-Hasura-department-manager'
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships'
+
+
+        [[databases.tables.delete_permissions]]
+            role = 'user'
+
+                    [databases.tables.delete_permissions.permission.filter.id]
+                        _in = 'X-Hasura-department-manager'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'kb_entries'
+            schema = 'public'
+
+        [[databases.tables.object_relationships]]
+            name = 'uploader'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'uploader_id'
+
+        [[databases.tables.array_relationships]]
+            name = 'kb_entry_departments'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'kb_entry_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'kb_entry_departments'
+                        schema = 'public'
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'id',
+                    'title',
+                    'summary',
+                    'content',
+                    'uploader_id',
+                    'created_at',
+                    'updated_at'
+                ]
+                allow_aggregations = true
+
+                        [databases.tables.select_permissions.permission.filter.kb_entry_departments.department_id]
+                            _in = 'X-Hasura-departments'
+
+        [[databases.tables.insert_permissions]]
+            role = 'user'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'title',
+                    'summary',
+                    'content'
+                ]
+
+                [databases.tables.insert_permissions.permission.set]
+                    uploader_id = 'X-Hasura-User-Id'
+
+        [[databases.tables.update_permissions]]
+            role = 'user'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'title',
+                    'summary',
+                    'content'
+                ]
+
+                    [[databases.tables.update_permissions.permission.filter._or]]
+                        [databases.tables.update_permissions.permission.filter._or.uploader_id]
+                            _eq = 'X-Hasura-User-Id'
+
+                    [[databases.tables.update_permissions.permission.filter._or]]
+                            [databases.tables.update_permissions.permission.filter._or.kb_entry_departments.department_id]
+                                _in = 'X-Hasura-Departments'
+
+                    [databases.tables.update_permissions.permission.check.uploader_id]
+                        _eq = 'X-Hasura-User-Id'
+
+        [[databases.tables.delete_permissions]]
+            role = 'user'
+
+                    [[databases.tables.delete_permissions.permission.filter._or]]
+                        [databases.tables.delete_permissions.permission.filter._or.uploader_id]
+                            _eq = 'X-Hasura-User-Id'
+
+                    [[databases.tables.delete_permissions.permission.filter._or]]
+                            [databases.tables.delete_permissions.permission.filter._or.kb_entry_departments.department_id]
+                                _in = 'X-Hasura-Departments'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'kb_entry_departments'
+            schema = 'public'
+
+        [[databases.tables.object_relationships]]
+            name = 'department'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'department_id'
+
+        [[databases.tables.object_relationships]]
+            name = 'kb_entry'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'kb_entry_id'
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'id',
+                    'kb_entry_id',
+                    'department_id'
+                ]
+                allow_aggregations = true
+
+                    [databases.tables.select_permissions.permission.filter.department_id]
+                        _in = 'X-Hasura-departments'
+
+        [[databases.tables.insert_permissions]]
+            role = 'user'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'kb_entry_id',
+                    'department_id'
+                ]
+
+                    [[databases.tables.insert_permissions.permission.check._and]]
+                            [databases.tables.insert_permissions.permission.check._and.kb_entry.uploader_id]
+                                _eq = 'X-Hasura-User-Id'
+
+                    [[databases.tables.insert_permissions.permission.check._and]]
+                        [databases.tables.insert_permissions.permission.check._and.department_id]
+                            _in = 'X-Hasura-departments'
+
+        [[databases.tables.delete_permissions]]
+            role = 'user'
+
+                    [[databases.tables.delete_permissions.permission.filter._or]]
+                            [databases.tables.delete_permissions.permission.filter._or.kb_entry.uploader_id]
+                                _eq = 'X-Hasura-User-Id'
+
+                    [[databases.tables.delete_permissions.permission.filter._or]]
+                        [databases.tables.delete_permissions.permission.filter._or.department_id]
+                            _in = 'X-Hasura-Departments'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'news'
+            schema = 'public'
+
+        [[databases.tables.object_relationships]]
+            name = 'author'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'author_id'
+
+        [[databases.tables.object_relationships]]
+            name = 'department'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'department_id'
+
+        [[databases.tables.select_permissions]]
+            role = 'public'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'content',
+                    'title',
+                    'created_at',
+                    'updated_at',
+                    'id'
+                ]
+
+                    [databases.tables.select_permissions.permission.filter.is_public]
+                        _eq = true
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'content',
+                    'created_at',
+                    'id',
+                    'is_public',
+                    'title',
+                    'updated_at'
+                ]
+                allow_aggregations = true
+
+        [[databases.tables.insert_permissions]]
+            role = 'user'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'content',
+                    'department_id',
+                    'is_public',
+                    'title'
+                ]
+
+                    [databases.tables.insert_permissions.permission.check.department_id]
+                        _in = 'X-Hasura-department-manager'
+
+                [databases.tables.insert_permissions.permission.set]
+                    author_id = 'x-hasura-user-id'
+
+        [[databases.tables.update_permissions]]
+            role = 'user'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'content',
+                    'is_public',
+                    'title'
+                ]
+
+        [[databases.tables.delete_permissions]]
+            role = 'user'
+
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'user_departments'
+            schema = 'public'
+
+        [[databases.tables.object_relationships]]
+            name = 'department'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'department_id'
+
+        [[databases.tables.object_relationships]]
+            name = 'user'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'user_id'
+
+        [[databases.tables.select_permissions]]
+            role = 'mixed_permissions'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'is_active',
+                    'role',
+                    'joined_at',
+                    'department_id',
+                    'user_id'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'is_active',
+                    'role',
+                    'joined_at',
+                    'department_id',
+                    'user_id'
+                ]
+
+        [[databases.tables.select_permissions]]
+            role = 'queries_relationships_aggregation'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'is_active',
+                    'role',
+                    'joined_at',
+                    'department_id',
+                    'user_id'
+                ]
+                allow_aggregations = true
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'is_active',
+                    'role',
+                    'joined_at',
+                    'department_id',
+                    'user_id'
+                ]
+                allow_aggregations = true
+
+                    [databases.tables.select_permissions.permission.filter.department_id]
+                        _in = 'X-Hasura-departments'
+
+        [[databases.tables.insert_permissions]]
+            role = 'mixed_permissions'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'is_active',
+                    'role',
+                    'joined_at',
+                    'department_id',
+                    'user_id'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'is_active',
+                    'role',
+                    'joined_at',
+                    'department_id',
+                    'user_id'
+                ]
+
+        [[databases.tables.insert_permissions]]
+            role = 'user'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'department_id',
+                    'is_active',
+                    'role',
+                    'user_id'
+                ]
+
+                    [databases.tables.insert_permissions.permission.check.department_id]
+                        _in = 'x-hasura-department-manager'
+
+        [[databases.tables.update_permissions]]
+            role = 'mixed_permissions'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'is_active',
+                    'role',
+                    'joined_at',
+                    'department_id',
+                    'user_id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'queries_relationships'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'is_active',
+                    'role',
+                    'joined_at',
+                    'department_id',
+                    'user_id'
+                ]
+
+        [[databases.tables.update_permissions]]
+            role = 'user'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'is_active',
+                    'role'
+                ]
+
+                    [databases.tables.update_permissions.permission.filter.department_id]
+                        _in = 'x-hasura-department-manager'
+
+        [[databases.tables.delete_permissions]]
+            role = 'mixed_permissions'
+
+
+        [[databases.tables.delete_permissions]]
+            role = 'queries_relationships'
+
+
+        [[databases.tables.delete_permissions]]
+            role = 'user'
+
+                    [databases.tables.delete_permissions.permission.filter.department_id]
+                        _in = 'x-hasura-department-manager'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'buckets'
+            schema = 'storage'
+
+        [databases.tables.configuration]
+            custom_name = 'buckets'
+
+                [databases.tables.configuration.column_config.cache_control]
+                    custom_name = 'cacheControl'
+
+                [databases.tables.configuration.column_config.created_at]
+                    custom_name = 'createdAt'
+
+                [databases.tables.configuration.column_config.download_expiration]
+                    custom_name = 'downloadExpiration'
+
+                [databases.tables.configuration.column_config.id]
+                    custom_name = 'id'
+
+                [databases.tables.configuration.column_config.max_upload_file_size]
+                    custom_name = 'maxUploadFileSize'
+
+                [databases.tables.configuration.column_config.min_upload_file_size]
+                    custom_name = 'minUploadFileSize'
+
+                [databases.tables.configuration.column_config.presigned_urls_enabled]
+                    custom_name = 'presignedUrlsEnabled'
+
+                [databases.tables.configuration.column_config.updated_at]
+                    custom_name = 'updatedAt'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteBuckets'
+                delete_by_pk = 'deleteBucket'
+                insert = 'insertBuckets'
+                insert_one = 'insertBucket'
+                select = 'buckets'
+                select_aggregate = 'bucketsAggregate'
+                select_by_pk = 'bucket'
+                update = 'updateBuckets'
+                update_by_pk = 'updateBucket'
+
+        [[databases.tables.array_relationships]]
+            name = 'files'
+
+                [databases.tables.array_relationships.using.foreign_key_constraint]
+                    column = 'bucket_id'
+
+                    [databases.tables.array_relationships.using.foreign_key_constraint.table]
+                        name = 'files'
+                        schema = 'storage'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'files'
+            schema = 'storage'
+
+        [databases.tables.configuration]
+            custom_name = 'files'
+
+                [databases.tables.configuration.column_config.bucket_id]
+                    custom_name = 'bucketId'
+
+                [databases.tables.configuration.column_config.created_at]
+                    custom_name = 'createdAt'
+
+                [databases.tables.configuration.column_config.etag]
+                    custom_name = 'etag'
+
+                [databases.tables.configuration.column_config.id]
+                    custom_name = 'id'
+
+                [databases.tables.configuration.column_config.is_uploaded]
+                    custom_name = 'isUploaded'
+
+                [databases.tables.configuration.column_config.metadata]
+                    custom_name = 'metadata'
+
+                [databases.tables.configuration.column_config.mime_type]
+                    custom_name = 'mimeType'
+
+                [databases.tables.configuration.column_config.name]
+                    custom_name = 'name'
+
+                [databases.tables.configuration.column_config.size]
+                    custom_name = 'size'
+
+                [databases.tables.configuration.column_config.updated_at]
+                    custom_name = 'updatedAt'
+
+                [databases.tables.configuration.column_config.uploaded_by_user_id]
+                    custom_name = 'uploadedByUserId'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteFiles'
+                delete_by_pk = 'deleteFile'
+                insert = 'insertFiles'
+                insert_one = 'insertFile'
+                select = 'files'
+                select_aggregate = 'filesAggregate'
+                select_by_pk = 'file'
+                update = 'updateFiles'
+                update_by_pk = 'updateFile'
+
+        [[databases.tables.object_relationships]]
+            name = 'bucket'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'bucket_id'
+
+        [[databases.tables.object_relationships]]
+            name = 'department_file'
+
+                [databases.tables.object_relationships.using.foreign_key_constraint]
+                    column = 'file_id'
+
+                    [databases.tables.object_relationships.using.foreign_key_constraint.table]
+                        name = 'department_files'
+                        schema = 'public'
+
+        [[databases.tables.select_permissions]]
+            role = 'public'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'is_uploaded',
+                    'size',
+                    'metadata',
+                    'bucket_id',
+                    'etag',
+                    'mime_type',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id',
+                    'uploaded_by_user_id'
+                ]
+
+                    [databases.tables.select_permissions.permission.filter.bucket_id]
+                        _eq = 'profile_pics'
+
+        [[databases.tables.select_permissions]]
+            role = 'user'
+
+            [databases.tables.select_permissions.permission]
+                columns = [
+                    'is_uploaded',
+                    'size',
+                    'metadata',
+                    'bucket_id',
+                    'etag',
+                    'mime_type',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id',
+                    'uploaded_by_user_id'
+                ]
+
+                    [[databases.tables.select_permissions.permission.filter._or]]
+                        [databases.tables.select_permissions.permission.filter._or.uploaded_by_user_id]
+                            _eq = 'X-Hasura-User-Id'
+
+                    [[databases.tables.select_permissions.permission.filter._or]]
+                        [databases.tables.select_permissions.permission.filter._or.bucket_id]
+                            _eq = 'profile_pics'
+
+        [[databases.tables.insert_permissions]]
+            role = 'user'
+
+            [databases.tables.insert_permissions.permission]
+                columns = [
+                    'is_uploaded',
+                    'size',
+                    'metadata',
+                    'bucket_id',
+                    'etag',
+                    'mime_type',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id',
+                    'uploaded_by_user_id'
+                ]
+
+                    [databases.tables.insert_permissions.permission.check.bucket_id]
+                        _in = [
+                            'profile_pics'
+                        ]
+
+                [databases.tables.insert_permissions.permission.set]
+                    uploaded_by_user_id = 'x-hasura-User-Id'
+
+        [[databases.tables.update_permissions]]
+            role = 'user'
+
+            [databases.tables.update_permissions.permission]
+                columns = [
+                    'is_uploaded',
+                    'size',
+                    'metadata',
+                    'bucket_id',
+                    'etag',
+                    'mime_type',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                    'id',
+                    'uploaded_by_user_id'
+                ]
+
+                                [[databases.tables.update_permissions.permission.filter.department_file.department.employees._and]]
+                                    [databases.tables.update_permissions.permission.filter.department_file.department.employees._and.role]
+                                        _eq = 'manager'
+
+                                [[databases.tables.update_permissions.permission.filter.department_file.department.employees._and]]
+                                    [databases.tables.update_permissions.permission.filter.department_file.department.employees._and.user_id]
+                                        _eq = 'X-Hasura-User-Id'
+
+                [databases.tables.update_permissions.permission.set]
+                    uploaded_by_user_id = 'x-hasura-user-id'
+
+        [[databases.tables.delete_permissions]]
+            role = 'user'
+
+                    [[databases.tables.delete_permissions.permission.filter._or]]
+                        [databases.tables.delete_permissions.permission.filter._or.uploaded_by_user_id]
+                            _eq = 'X-Hasura-User-Id'
+
+                    [[databases.tables.delete_permissions.permission.filter._or]]
+                                [databases.tables.delete_permissions.permission.filter._or.department_file.department.id]
+                                    _in = 'X-Hasura-Departments'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'virus'
+            schema = 'storage'
+
+        [databases.tables.configuration]
+            custom_name = 'virus'
+
+                [databases.tables.configuration.column_config.created_at]
+                    custom_name = 'createdAt'
+
+                [databases.tables.configuration.column_config.file_id]
+                    custom_name = 'fileId'
+
+                [databases.tables.configuration.column_config.filename]
+                    custom_name = 'filename'
+
+                [databases.tables.configuration.column_config.id]
+                    custom_name = 'id'
+
+                [databases.tables.configuration.column_config.updated_at]
+                    custom_name = 'updatedAt'
+
+                [databases.tables.configuration.column_config.user_session]
+                    custom_name = 'userSession'
+
+                [databases.tables.configuration.column_config.virus]
+                    custom_name = 'virus'
+
+            [databases.tables.configuration.custom_root_fields]
+                delete = 'deleteViruses'
+                delete_by_pk = 'deleteVirus'
+                insert = 'insertViruses'
+                insert_one = 'insertVirus'
+                select = 'viruses'
+                select_aggregate = 'virusesAggregate'
+                select_by_pk = 'virus'
+                update = 'updateViruses'
+                update_by_pk = 'updateVirus'
+
+        [[databases.tables.object_relationships]]
+            name = 'file'
+
+            [databases.tables.object_relationships.using]
+                foreign_key_column = 'file_id'
+
+    [[databases.functions]]
+        [databases.functions.function]
+            name = 'deactivate_department'
+            schema = 'public'
+
+        [databases.functions.configuration]
+            custom_name = 'deactivateDepartment'
+            session_argument = 'session'
+
+        [[databases.functions.permissions]]
+            role = 'user'
+
+    [[databases.functions]]
+        [databases.functions.function]
+            name = 'get_department_manager'
+            schema = 'public'
+
+        [[databases.functions.permissions]]
+            role = 'user'
+
+    [[databases.functions]]
+        [databases.functions.function]
+            name = 'search_news'
+            schema = 'public'
+
+        [[databases.functions.permissions]]
+            role = 'public'
+
+        [[databases.functions.permissions]]
+            role = 'user'
+
+    [[databases.functions]]
+        [databases.functions.function]
+            name = 'search_news_2'
+            schema = 'public'
+
+        [databases.functions.configuration]
+            custom_name = 'searchNews'
+
+        [[databases.functions.permissions]]
+            role = 'user'
+
+    [[databases.functions]]
+        [databases.functions.function]
+            name = 'search_news_3'
+            schema = 'public'
+
+            [databases.functions.configuration.custom_root_fields]
+                function = 'searchNewsCollection'
+                function_aggregate = 'searchNewsAggregate'
+
+        [[databases.functions.permissions]]
+            role = 'user'
+
+    [[databases.functions]]
+        [databases.functions.function]
+            name = 'set_department_manager'
+            schema = 'public'
+
+        [databases.functions.configuration]
+            session_argument = 'session'
+
+        [[databases.functions.permissions]]
+            role = 'user'
+
+[[databases]]
+    name = 'other'
+    kind = 'postgres'
+
+        [databases.configuration.connection_info]
+            database_url = '{{HASURA_GRAPHQL_DATABASE_URL}}'
+
+    [[databases.tables]]
+        [databases.tables.table]
+            name = 'user_profiles'
+            schema = 'public'
+
+        [databases.tables.configuration]
+            custom_name = 'userProfiles'
+
+        [[databases.tables.object_relationships]]
+            name = 'user'
+
+                [databases.tables.object_relationships.using.manual_configuration]
+                    source = 'default'
+
+                    [databases.tables.object_relationships.using.manual_configuration.remote_table]
+                        name = 'users'
+                        schema = 'auth'
+
+                    [databases.tables.object_relationships.using.manual_configuration.column_mapping]
+                        user_id = 'id'
+
+        [[databases.tables.array_relationships]]
+            name = 'departments'
+
+                [databases.tables.array_relationships.using.manual_configuration]
+                    source = 'default'
+
+                    [databases.tables.array_relationships.using.manual_configuration.remote_table]
+                        name = 'user_departments'
+                        schema = 'public'
+
+                    [databases.tables.array_relationships.using.manual_configuration.column_mapping]
+                        user_id = 'user_id'
+
+        [[databases.tables.remote_relationships]]
+            name = 'departments'
+
+                [databases.tables.remote_relationships.definition.to_source]
+                    relationship_type = 'array'
+                    source = 'default'
+
+                    [databases.tables.remote_relationships.definition.to_source.field_mapping]
+                        user_id = 'user_id'
+
+                    [databases.tables.remote_relationships.definition.to_source.table]
+                        name = 'user_departments'
+                        schema = 'public'
+
+        [[databases.tables.remote_relationships]]
+            name = 'user'
+
+                [databases.tables.remote_relationships.definition.to_source]
+                    relationship_type = 'object'
+                    source = 'default'
+
+                    [databases.tables.remote_relationships.definition.to_source.field_mapping]
+                        user_id = 'id'
+
+                    [databases.tables.remote_relationships.definition.to_source.table]
+                        name = 'users'
+                        schema = 'auth'
+
+[[remote_schemas]]
+    name = 'rs'
+
+    [remote_schemas.definition]
+        url = '{{NHOST_FUNCTIONS_URL}}/remote-schema'
+        timeout_seconds = 60
+        forward_client_headers = true
+
+        [[remote_schemas.definition.headers]]
+            name = 'x-nhost-webhook-secret'
+            value = '{{NHOST_WEBHOOK_SECRET}}'
+
+    [[remote_schemas.permissions]]
+        role = 'user'
+
+        [remote_schemas.permissions.definition]
+            schema = """
+schema {
+  query: Query
+  mutation: Mutation
+}
+type Game {
+  awayScore: Int!
+  awayTeam: Team!
+  homeScore: Int!
+  homeTeam: Team!
+  id: ID!
+  playedAt: String!
+  source: String!
+}
+type Mutation {
+  recordMyTeamGame(teamId: ID! @preset(value: \"x-hasura-team-id\"), opponentId: ID!, teamScore: Int!, opponentScore: Int!, isHome: Boolean!): Game!
+  reportGame(homeTeamId: ID! @preset(value: \"x-hasura-team-id\"), awayTeamId: ID!, homeScore: Int!, awayScore: Int!, source: String! @preset(value: \"user-reported\")): Game!
+}
+type Query {
+  game(id: ID!): Game
+  games: [Game!]!
+  leaderboard: [Team!]!
+  myTeam(teamId: ID! @preset(value: \"x-hasura-team-id\")): Team
+  team(id: ID!): Team
+  teamByDepartment(departmentId: ID!): Team
+  teamGames(teamId: ID! @preset(value: \"x-hasura-team-id\")): [Game!]!
+  teams: [Team!]!
+}
+type Team {
+  departmentId: ID!
+  departmentName: String!
+  draws: Int!
+  gamesPlayed: Int!
+  goalDifference: Int!
+  goalsAgainst: Int!
+  goalsFor: Int!
+  id: ID!
+  losses: Int!
+  name: String!
+  points: Int!
+  wins: Int!
+}
+"""
+
+    [[remote_schemas.remote_relationships]]
+        type_name = 'Team'
+
+        [[remote_schemas.remote_relationships.relationships]]
+            name = 'department'
+
+                [remote_schemas.remote_relationships.relationships.definition.to_source]
+                    relationship_type = 'object'
+                    source = 'default'
+
+                    [remote_schemas.remote_relationships.relationships.definition.to_source.field_mapping]
+                        departmentId = 'id'
+
+                    [remote_schemas.remote_relationships.relationships.definition.to_source.table]
+                        name = 'departments'
+                        schema = 'public'

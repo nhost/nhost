@@ -14,7 +14,7 @@ func NewController() *Controller {
 	return &Controller{}
 }
 
-func (c *Controller) SignInEmailPassword( //nolint:ireturn
+func (c *Controller) SignInEmailPassword( //nolint:ireturn,nolintlint
 	_ context.Context, req api.SignInEmailPasswordRequestObject,
 ) (api.SignInEmailPasswordResponseObject, error) {
 	switch req.Body.Email {
@@ -41,7 +41,7 @@ func (c *Controller) SignInEmailPassword( //nolint:ireturn
 	}, nil
 }
 
-func (c *Controller) ChangeUserEmail( //nolint:ireturn
+func (c *Controller) ChangeUserEmail( //nolint:ireturn,nolintlint
 	_ context.Context,
 	_ api.ChangeUserEmailRequestObject,
 ) (api.ChangeUserEmailResponseObject, error) {

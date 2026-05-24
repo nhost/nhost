@@ -30,14 +30,14 @@ func TestOauth2Authorize(t *testing.T) {
 	client.ClientID = clientID
 
 	cases := []testRequest[api.Oauth2AuthorizeRequestObject, api.Oauth2AuthorizeResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2AuthorizeRequestObject{
-				Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				Params: api.Oauth2AuthorizeParams{
 					ClientId:     clientID,
 					RedirectUri:  redirectURI,
 					ResponseType: responseType,
@@ -52,7 +52,7 @@ func TestOauth2Authorize(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -60,15 +60,15 @@ func TestOauth2Authorize(t *testing.T) {
 				db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(client, nil)
 				db.EXPECT().InsertOAuth2AuthRequest(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthRequest{
 						ID:          uuid.MustParse("22222222-2222-2222-2222-222222222222"),
 						ClientID:    clientID,
 						RedirectUri: redirectURI,
-						CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+						CreatedAt: pgtype.Timestamptz{
 							Time:  time.Now(),
 							Valid: true,
 						},
-						ExpiresAt: pgtype.Timestamptz{ //nolint:exhaustruct
+						ExpiresAt: pgtype.Timestamptz{
 							Time:  time.Now().Add(10 * time.Minute),
 							Valid: true,
 						},
@@ -77,7 +77,7 @@ func TestOauth2Authorize(t *testing.T) {
 				return db
 			},
 			request: api.Oauth2AuthorizeRequestObject{
-				Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				Params: api.Oauth2AuthorizeParams{
 					ClientId:            clientID,
 					RedirectUri:         redirectURI,
 					ResponseType:        responseType,
@@ -93,18 +93,18 @@ func TestOauth2Authorize(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "invalid client",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				db := mock.NewMockDBClient(ctrl)
 				db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), "unknown_client").
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return db
 			},
 			request: api.Oauth2AuthorizeRequestObject{
-				Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				Params: api.Oauth2AuthorizeParams{
 					ClientId:     "unknown_client",
 					RedirectUri:  redirectURI,
 					ResponseType: responseType,
@@ -119,7 +119,7 @@ func TestOauth2Authorize(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "empty response_type redirects",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -130,7 +130,7 @@ func TestOauth2Authorize(t *testing.T) {
 				return db
 			},
 			request: api.Oauth2AuthorizeRequestObject{
-				Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				Params: api.Oauth2AuthorizeParams{
 					ClientId:     clientID,
 					RedirectUri:  redirectURI,
 					ResponseType: "",
@@ -149,7 +149,7 @@ func TestOauth2Authorize(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "empty response_type without state",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -160,7 +160,7 @@ func TestOauth2Authorize(t *testing.T) {
 				return db
 			},
 			request: api.Oauth2AuthorizeRequestObject{
-				Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				Params: api.Oauth2AuthorizeParams{
 					ClientId:     clientID,
 					RedirectUri:  redirectURI,
 					ResponseType: "",
@@ -179,7 +179,7 @@ func TestOauth2Authorize(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "unsupported response_type redirects",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -190,7 +190,7 @@ func TestOauth2Authorize(t *testing.T) {
 				return db
 			},
 			request: api.Oauth2AuthorizeRequestObject{
-				Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				Params: api.Oauth2AuthorizeParams{
 					ClientId:     clientID,
 					RedirectUri:  redirectURI,
 					ResponseType: "token",
@@ -209,7 +209,7 @@ func TestOauth2Authorize(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "public client without PKCE redirects with error",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -220,7 +220,7 @@ func TestOauth2Authorize(t *testing.T) {
 				return db
 			},
 			request: api.Oauth2AuthorizeRequestObject{
-				Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				Params: api.Oauth2AuthorizeParams{
 					ClientId:     clientID,
 					RedirectUri:  redirectURI,
 					ResponseType: responseType,
@@ -239,7 +239,7 @@ func TestOauth2Authorize(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "invalid scope redirects",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -250,7 +250,7 @@ func TestOauth2Authorize(t *testing.T) {
 				return db
 			},
 			request: api.Oauth2AuthorizeRequestObject{
-				Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				Params: api.Oauth2AuthorizeParams{
 					ClientId:     clientID,
 					RedirectUri:  redirectURI,
 					ResponseType: responseType,
@@ -300,14 +300,14 @@ func TestOauth2AuthorizePost(t *testing.T) {
 	client.ClientID = clientID
 
 	cases := []testRequest[api.Oauth2AuthorizePostRequestObject, api.Oauth2AuthorizePostResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2AuthorizePostRequestObject{
-				Body: &api.Oauth2AuthorizePostFormdataRequestBody{ //nolint:exhaustruct
+				Body: &api.Oauth2AuthorizePostFormdataRequestBody{
 					ClientId:     clientID,
 					RedirectUri:  redirectURI,
 					ResponseType: "code",
@@ -322,7 +322,7 @@ func TestOauth2AuthorizePost(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "missing body",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -339,18 +339,18 @@ func TestOauth2AuthorizePost(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "invalid client",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				db := mock.NewMockDBClient(ctrl)
 				db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), "unknown_client").
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return db
 			},
 			request: api.Oauth2AuthorizePostRequestObject{
-				Body: &api.Oauth2AuthorizePostFormdataRequestBody{ //nolint:exhaustruct
+				Body: &api.Oauth2AuthorizePostFormdataRequestBody{
 					ClientId:     "unknown_client",
 					RedirectUri:  redirectURI,
 					ResponseType: "code",
@@ -365,7 +365,7 @@ func TestOauth2AuthorizePost(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "unsupported response_type redirects",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -376,7 +376,7 @@ func TestOauth2AuthorizePost(t *testing.T) {
 				return db
 			},
 			request: api.Oauth2AuthorizePostRequestObject{
-				Body: &api.Oauth2AuthorizePostFormdataRequestBody{ //nolint:exhaustruct
+				Body: &api.Oauth2AuthorizePostFormdataRequestBody{
 					ClientId:     clientID,
 					RedirectUri:  redirectURI,
 					ResponseType: "token",
@@ -395,7 +395,7 @@ func TestOauth2AuthorizePost(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -403,15 +403,15 @@ func TestOauth2AuthorizePost(t *testing.T) {
 				db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(client, nil)
 				db.EXPECT().InsertOAuth2AuthRequest(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthRequest{
 						ID:          uuid.MustParse("22222222-2222-2222-2222-222222222222"),
 						ClientID:    clientID,
 						RedirectUri: redirectURI,
-						CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+						CreatedAt: pgtype.Timestamptz{
 							Time:  time.Now(),
 							Valid: true,
 						},
-						ExpiresAt: pgtype.Timestamptz{ //nolint:exhaustruct
+						ExpiresAt: pgtype.Timestamptz{
 							Time:  time.Now().Add(10 * time.Minute),
 							Valid: true,
 						},
@@ -420,7 +420,7 @@ func TestOauth2AuthorizePost(t *testing.T) {
 				return db
 			},
 			request: api.Oauth2AuthorizePostRequestObject{
-				Body: &api.Oauth2AuthorizePostFormdataRequestBody{ //nolint:exhaustruct
+				Body: &api.Oauth2AuthorizePostFormdataRequestBody{
 					ClientId:            clientID,
 					RedirectUri:         redirectURI,
 					ResponseType:        "code",

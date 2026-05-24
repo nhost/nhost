@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "departments",
+    "QueryType": "select",
+    "SQL": "SELECT coalesce(json_group_array(json(\"_root\")), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"departments\") SELECT json_object('id', \"_root.base\".\"id\", 'name', \"_root.base\".\"name\", 'employees', (SELECT coalesce(json_group_array(json(\"_root.r.employees\")), '[]') AS \"employees\" FROM (WITH \"_root.r.employees.base\" AS (SELECT * FROM \"user_departments\" WHERE \"user_departments\".\"user_id\" = ? AND \"department_id\" = \"_root.base\".\"id\") SELECT json_object('user_id', \"_root.r.employees.base\".\"user_id\") AS \"_root.r.employees\" FROM \"_root.r.employees.base\") AS \"_root.r.employees\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      "123e4567-e89b-12d3-a456-426614174000"
+    ]
+  }
+]

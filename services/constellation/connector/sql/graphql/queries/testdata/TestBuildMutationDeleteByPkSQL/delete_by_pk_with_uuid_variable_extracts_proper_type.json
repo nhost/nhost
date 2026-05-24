@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "delete_departments_by_pk",
+    "QueryType": "delete_by_pk",
+    "SQL": "WITH mutation_result AS (DELETE FROM \"public\".\"departments\" WHERE departments.\"id\" = $1::uuid RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\") AS \"_e\")) FROM mutation_result",
+    "Parameters": [
+      "b2c3d4e5-f6a7-8901-bcde-f23456789012"
+    ]
+  }
+]

@@ -41,7 +41,7 @@ func TestSignUpOTPEmail(t *testing.T) {
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
@@ -51,7 +51,7 @@ func TestSignUpOTPEmail(t *testing.T) {
 						DisplayName:       "jane@acme.com",
 						AvatarUrl:         "",
 						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{},
 						Ticket:            sql.Text("xxx"),
 						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:     false,
@@ -59,12 +59,12 @@ func TestSignUpOTPEmail(t *testing.T) {
 						DefaultRole:       "user",
 						Metadata:          []byte("null"),
 						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						PhoneNumber:       pgtype.Text{},
 						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+						OtpHashExpiresAt:  pgtype.Timestamptz{},
+						OtpMethodLastUsed: pgtype.Text{},
 					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
@@ -181,7 +181,7 @@ func TestSignUpOTPEmail(t *testing.T) {
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("jane@acme.com"),
 					EmailVerified: true,
@@ -210,7 +210,7 @@ func TestSignUpOTPEmail(t *testing.T) {
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("jane@acme.com"),
 					EmailVerified: false,

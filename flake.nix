@@ -278,6 +278,11 @@
               # nix
               nixfmt
 
+              # storate
+              clang
+              pkg-config
+              storagef.vips
+
               # internal packages
               self.packages.${system}.codegen
               self.packages.${system}.govulncheck-wrapper
@@ -286,6 +291,8 @@
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+
+              export GOEXPERIMENT=jsonv2
             '';
           };
 
@@ -300,6 +307,23 @@
               nodejs
               pnpm
             ];
+          };
+
+          security-updates = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              # pnpm audit --fix=update
+              nodejs
+              pnpm
+
+              # govulncheck-wrapper -fix → go get / go mod tidy / go mod vendor
+              go
+              govulncheck
+              self.packages.${system}.govulncheck-wrapper
+            ];
+
+            shellHook = ''
+              export GOEXPERIMENT=jsonv2
+            '';
           };
 
           skopeo = pkgs.mkShell {

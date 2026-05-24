@@ -1,0 +1,13 @@
+[
+  [
+    {
+      "role": "manager",
+      "user": {
+        "displayName": "Sarah Martinez"
+      },
+      "department": {
+        "name": "Human Resources"
+      }
+    }
+  ]
+]

@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -15,7 +16,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -303,8 +303,7 @@ export default function AISettings() {
                     <Tooltip title="Version of the service to use.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
-                        color="primary"
+                        className="h-4 w-4 text-primary"
                       />
                     </Tooltip>
                   </Box>
@@ -340,8 +339,7 @@ export default function AISettings() {
                     <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
-                        color="primary"
+                        className="h-4 w-4 text-primary"
                       />
                     </Tooltip>
                   </Box>
@@ -364,8 +362,7 @@ export default function AISettings() {
                     <Tooltip title="Dedicated resources allocated for the service.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
-                        color="primary"
+                        className="h-4 w-4 text-primary"
                       />
                     </Tooltip>
                   </Box>
@@ -404,8 +401,7 @@ export default function AISettings() {
                         <Tooltip title="Key to use for authenticating API requests to OpenAI">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
-                            color="primary"
+                            className="h-4 w-4 text-primary"
                           />
                         </Tooltip>
                       </Box>
@@ -427,8 +423,7 @@ export default function AISettings() {
                         <Tooltip title="Optional. OpenAI organization to use.">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
-                            color="primary"
+                            className="h-4 w-4 text-primary"
                           />
                         </Tooltip>
                       </Box>
@@ -455,8 +450,7 @@ export default function AISettings() {
                         <Tooltip title="How often to run the job that keeps embeddings up to date.">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
-                            color="primary"
+                            className="h-4 w-4 text-primary"
                           />
                         </Tooltip>
                       </Box>

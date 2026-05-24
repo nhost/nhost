@@ -61,7 +61,7 @@ func TestRetryDoer_SuccessFirstTry(t *testing.T) {
 		calls:   0,
 		failFor: 0,
 		err:     nil,
-		response: &http.Response{ //nolint:exhaustruct
+		response: &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       http.NoBody,
 		},
@@ -70,7 +70,7 @@ func TestRetryDoer_SuccessFirstTry(t *testing.T) {
 
 	doer := nhostclient.NewRetryDoer(mock, nhostclient.WithBaseDelay(time.Millisecond))
 
-	resp, err := doer.Do(&http.Request{}) //nolint:exhaustruct
+	resp, err := doer.Do(&http.Request{})
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -93,7 +93,7 @@ func TestRetryDoer_SuccessAfterRetries(t *testing.T) {
 		calls:   0,
 		failFor: 2,
 		err:     errTransient,
-		response: &http.Response{ //nolint:exhaustruct
+		response: &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       http.NoBody,
 		},
@@ -106,7 +106,7 @@ func TestRetryDoer_SuccessAfterRetries(t *testing.T) {
 		nhostclient.WithBaseDelay(time.Millisecond),
 	)
 
-	resp, err := doer.Do(&http.Request{}) //nolint:exhaustruct
+	resp, err := doer.Do(&http.Request{})
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -139,7 +139,7 @@ func TestRetryDoer_ExhaustsRetries(t *testing.T) {
 		nhostclient.WithBaseDelay(time.Millisecond),
 	)
 
-	resp, err := doer.Do(&http.Request{}) //nolint:exhaustruct
+	resp, err := doer.Do(&http.Request{})
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
@@ -163,7 +163,7 @@ func TestRetryDoer_RetriesPreserveRequestBody(t *testing.T) {
 		calls:   0,
 		failFor: 2,
 		err:     errTransient,
-		response: &http.Response{ //nolint:exhaustruct
+		response: &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       http.NoBody,
 		},
@@ -216,7 +216,7 @@ func TestRetryDoer_RetriesPreserveRequestBodyBytesReader(t *testing.T) {
 		calls:   0,
 		failFor: 1,
 		err:     errTransient,
-		response: &http.Response{ //nolint:exhaustruct
+		response: &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       http.NoBody,
 		},
@@ -276,7 +276,7 @@ func TestRetryDoer_Post_SuccessFirstTry(t *testing.T) {
 		calls:   0,
 		failFor: 0,
 		err:     nil,
-		response: &http.Response{ //nolint:exhaustruct
+		response: &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       http.NoBody,
 		},
@@ -310,7 +310,7 @@ func TestRetryDoer_Post_SuccessAfterRetries(t *testing.T) {
 		calls:   0,
 		failFor: 2,
 		err:     errTransient,
-		response: &http.Response{ //nolint:exhaustruct
+		response: &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       http.NoBody,
 		},
@@ -380,7 +380,7 @@ func TestRetryDoer_Post_NilBody(t *testing.T) {
 		calls:   0,
 		failFor: 0,
 		err:     nil,
-		response: &http.Response{ //nolint:exhaustruct
+		response: &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       http.NoBody,
 		},
@@ -414,7 +414,7 @@ func TestRetryDoer_Post_BodyReplayedOnRetry(t *testing.T) {
 		calls:   0,
 		failFor: 2,
 		err:     errTransient,
-		response: &http.Response{ //nolint:exhaustruct
+		response: &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       http.NoBody,
 		},

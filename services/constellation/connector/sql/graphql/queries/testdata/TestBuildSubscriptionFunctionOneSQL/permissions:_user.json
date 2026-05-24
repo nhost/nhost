@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "get_department_manager",
+    "QueryType": "select",
+    "SQL": "SELECT \"_subs\".\"result_id\", \"_fld_resp\".\"root\" AS \"result\" FROM UNNEST($1::text[], $2::json[]) AS \"_subs\"(\"result_id\", \"result_vars\") LEFT OUTER JOIN LATERAL (SELECT json_build_object('get_department_manager', (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"get_department_manager\"($3) AS \"_fn_get_department_manager\" WHERE \"_fn_get_department_manager\".\"department_id\" = ANY($4::uuid[]) LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"department_id\" AS \"department_id\", \"_root.base\".\"role\" AS \"role\") AS \"_e\")) AS \"_root\" FROM \"_root.base\")) AS \"root\") AS \"_fld_resp\" ON ('true')",
+    "Parameters": [
+      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+      "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
+    ]
+  }
+]

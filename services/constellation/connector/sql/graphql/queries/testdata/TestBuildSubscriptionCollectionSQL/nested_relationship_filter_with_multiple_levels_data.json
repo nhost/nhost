@@ -1,0 +1,56 @@
+[
+  [
+    {
+      "departments": [
+        {
+          "name": "Human Resources",
+          "employees": []
+        },
+        {
+          "name": "Engineering",
+          "employees": []
+        },
+        {
+          "name": "Marketing",
+          "employees": []
+        },
+        {
+          "name": "Sales",
+          "employees": [
+            {
+              "user_id": "550e8400-e29b-41d4-a716-446655440034"
+            }
+          ]
+        },
+        {
+          "name": "Finance",
+          "employees": []
+        },
+        {
+          "name": "Operations",
+          "employees": [
+            {
+              "user_id": "550e8400-e29b-41d4-a716-446655440034"
+            }
+          ]
+        },
+        {
+          "name": "Temp",
+          "employees": []
+        },
+        {
+          "name": "Temp1",
+          "employees": []
+        },
+        {
+          "name": "Temp2",
+          "employees": []
+        },
+        {
+          "employees": [],
+          "name": "ToDelete"
+        }
+      ]
+    }
+  ]
+]

@@ -55,11 +55,11 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
 					TotpSecret:    sql.Text(encryptedTotpSecret),
-					ActiveMfaType: pgtype.Text{}, //nolint:exhaustruct
+					ActiveMfaType: pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().UpdateUserActiveMFAType(
@@ -98,7 +98,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
 					TotpSecret:    sql.Text(encryptedTotpSecret),
@@ -137,11 +137,11 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
 					TotpSecret:    sql.Text(encryptedTotpSecret),
-					ActiveMfaType: pgtype.Text{}, //nolint:exhaustruct
+					ActiveMfaType: pgtype.Text{},
 				}, nil)
 
 				return mock
@@ -176,7 +176,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
 					TotpSecret:    sql.Text(encryptedTotpSecret),
@@ -187,7 +187,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					sql.UpdateUserActiveMFATypeParams{
 						ID:            userID,
-						ActiveMfaType: pgtype.Text{}, //nolint:exhaustruct
+						ActiveMfaType: pgtype.Text{},
 					},
 				).Return(nil)
 
@@ -219,11 +219,11 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
-					TotpSecret:    pgtype.Text{}, //nolint:exhaustruct
-					ActiveMfaType: pgtype.Text{}, //nolint:exhaustruct
+					TotpSecret:    pgtype.Text{},
+					ActiveMfaType: pgtype.Text{},
 				}, nil)
 
 				return mock
@@ -258,7 +258,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
 					TotpSecret:    sql.Text(encryptedTotpSecret),
@@ -360,7 +360,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					IsAnonymous: true,
 				}, nil)
@@ -397,7 +397,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{}, //nolint:exhaustruct
+				).Return(sql.AuthUser{},
 					pgx.ErrNoRows)
 
 				return mock

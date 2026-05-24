@@ -2,6 +2,8 @@
 
 **Important**: Always load the root `CLAUDE.md` at the repository root for general monorepo conventions before working on this project.
 
+**Design rules**: Repo-wide JS/TS rules live in `.claude/docs/javascript-design-rules.md` (see the **SDK & Node** section) — load that first. Only functions-runtime-specific concepts (esbuild shared context, hot-reload, routing, container variants) are documented below.
+
 ## Overview
 
 This is a local development runtime for Nhost serverless functions. It runs an Express server that auto-discovers JS/TS files in a mounted `functions/` directory, bundles them with esbuild, and maps them to HTTP routes with hot-reload. It is **not a production service** -- it is used by the Nhost CLI for local development simulation.

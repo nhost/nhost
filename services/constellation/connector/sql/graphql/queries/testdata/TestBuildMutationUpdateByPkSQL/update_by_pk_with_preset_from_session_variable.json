@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "updateFile",
+    "QueryType": "update_by_pk",
+    "SQL": "WITH mutation_result AS (UPDATE \"storage\".\"files\" SET \"name\" = $1::text, \"uploaded_by_user_id\" = $2::uuid WHERE files.\"id\" = $3::uuid AND (EXISTS (SELECT 1 FROM \"public\".\"department_files\" g WHERE g.\"file_id\" = files.\"id\" AND EXISTS (SELECT 1 FROM \"public\".\"departments\" \"g1\" WHERE g.\"department_id\" = \"g1\".\"id\" AND EXISTS (SELECT 1 FROM \"public\".\"user_departments\" \"g2\" WHERE \"g2\".\"department_id\" = \"g1\".\"id\" AND \"g2\".\"role\" = $4::text AND \"g2\".\"user_id\" = $5::uuid)))) RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"uploaded_by_user_id\" AS \"uploadedByUserId\") AS \"_e\")) FROM mutation_result",
+    "Parameters": [
+      "renamed-by-pk.txt",
+      "550e8400-e29b-41d4-a716-446655440002",
+      "22222222-2222-2222-2222-222222222222",
+      "manager",
+      "550e8400-e29b-41d4-a716-446655440002"
+    ]
+  }
+]
