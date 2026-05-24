@@ -713,7 +713,7 @@ import (
 #Constellation: {
 	// Version of constellation, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/constellation/tags
-	version: string | *"0.0.2"
+	version: string | *"0.0.4"
 
 	settings?: {
 		// CORS allowed origins. If set, these are used as-is.

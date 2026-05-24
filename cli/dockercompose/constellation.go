@@ -26,6 +26,7 @@ func constellation( //nolint:funlen
 		"http://functions:3000",
 		subdomain,
 		"local",
+		URL(subdomain, "dashboard", httpPort, useTLS),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get constellation env vars: %w", err)

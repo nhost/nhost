@@ -124,8 +124,17 @@ func constellationSettings(cfg *model.ConfigConfig) constellationRuntimeSettings
 	return out
 }
 
-func constellationCORSOrigins(cfg *model.ConfigConfig) (string, error) {
+func constellationCORSOrigins(cfg *model.ConfigConfig, dashboardOrigin string) (string, error) {
 	collector := newCORSOriginCollector()
+
+	// The dashboard origin is added in every case so that the Nhost dashboard
+	// can issue requests to constellation regardless of what the user has
+	// configured in settings.corsAllowedOrigins or auth.redirections.
+	if dashboardOrigin != "" {
+		if err := collector.add(dashboardOrigin); err != nil {
+			return "", err
+		}
+	}
 
 	settings := cfg.GetExperimental().GetConstellation().GetSettings()
 	if settings != nil && settings.GetCorsAllowedOrigins() != nil {
@@ -138,7 +147,7 @@ func constellationCORSOrigins(cfg *model.ConfigConfig) (string, error) {
 
 	redirections := cfg.GetAuth().GetRedirections()
 	if redirections == nil {
-		return "", nil
+		return collector.join(), nil
 	}
 
 	if clientURL := redirections.GetClientUrl(); clientURL != nil && *clientURL != "" {
@@ -293,14 +302,15 @@ func ConstellationEnv(
 	nhostStorageURL,
 	nhostFunctionsURL,
 	subdomain,
-	region string,
+	region,
+	dashboardOrigin string,
 ) ([]EnvVar, error) {
 	jwtSecret, err := marshalJWT(cfg.GetHasura().GetJwtSecrets()[0], false)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
 	}
 
-	corsAllowedOrigins, err := constellationCORSOrigins(cfg)
+	corsAllowedOrigins, err := constellationCORSOrigins(cfg, dashboardOrigin)
 	if err != nil {
 		return nil, err
 	}

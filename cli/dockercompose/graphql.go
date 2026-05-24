@@ -21,6 +21,7 @@ func graphql( //nolint:funlen
 		"local",
 		"nhost.run",
 		"postgres://nhost_hasura@postgres:5432/local",
+		URL(subdomain, "dashboard", httpPort, useTLS),
 		useTLS,
 		httpPort,
 	)
@@ -113,6 +114,7 @@ func console( //nolint:funlen
 		"local",
 		"nhost.run",
 		"postgres://nhost_hasura@postgres:5432/local",
+		URL(subdomain, "dashboard", httpPort, useTLS),
 		useTLS,
 		httpPort,
 	)

@@ -20,7 +20,7 @@ func expectedConstellation() *Service {
 		Command:    []string{"serve"},
 		Environment: map[string]string{
 			"CONSTELLATION_ADMIN_SECRET":               "adminSecret",
-			"CONSTELLATION_CORS_ALLOWED_ORIGINS":       "http://localhost:3000",
+			"CONSTELLATION_CORS_ALLOWED_ORIGINS":       "http://dev.dashboard.local.nhost.run:1337,http://localhost:3000",
 			"CONSTELLATION_DEBUG":                      "false",
 			"CONSTELLATION_DEV_MODE":                   "false",
 			"CONSTELLATION_JWT_SECRET":                 constellationJWTSecret,
