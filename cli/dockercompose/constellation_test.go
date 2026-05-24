@@ -9,7 +9,28 @@ import (
 
 const constellationJWTSecret = `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}` //nolint:gosec
 
-func expectedConstellation() *Service {
+// Canonical traefik rule strings produced by graphql.go / constellation.go.
+// These are referenced from TestGraphqlIngressWithConstellation so a regression
+// in the rule construction is caught by an exact-value comparison.
+const (
+	canonicalHasuraRule         = "(HostRegexp(`^.+\\.hasura\\.local\\.nhost\\.run$`) || Host(`local.hasura.nhost.run`))&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )"
+	canonicalGraphqlRule        = "(HostRegexp(`^.+\\.graphql\\.local\\.nhost\\.run$`) || Host(`local.graphql.nhost.run`))&& PathPrefix(`/v1`)"
+	canonicalConstellationRule  = "(HostRegexp(`^.+\\.graphql\\.local\\.nhost\\.run$`) || Host(`local.graphql.nhost.run`))&& PathPrefix(`/v1`)"
+	canonicalConstellationRegex = "/v1(/.*)?"
+	canonicalConstellationRepl  = "/v1/graphql"
+)
+
+func expectedConstellation(useTLS bool) *Service {
+	scheme := "http"
+	if useTLS {
+		scheme = "https"
+	}
+
+	tlsLabel := "false"
+	if useTLS {
+		tlsLabel = "true"
+	}
+
 	return &Service{
 		Image: "nhost/constellation:0.0.1",
 		DependsOn: map[string]DependsOn{
@@ -19,7 +40,7 @@ func expectedConstellation() *Service {
 		Command:    []string{"serve"},
 		Environment: map[string]string{
 			"CONSTELLATION_ADMIN_SECRET":               "adminSecret",
-			"CONSTELLATION_CORS_ALLOWED_ORIGINS":       "http://dev.dashboard.local.nhost.run:1337,http://localhost:3000",
+			"CONSTELLATION_CORS_ALLOWED_ORIGINS":       scheme + "://dev.dashboard.local.nhost.run:1337,http://localhost:3000",
 			"CONSTELLATION_DEBUG":                      "false",
 			"CONSTELLATION_DEV_MODE":                   "false",
 			"CONSTELLATION_JWT_SECRET":                 constellationJWTSecret,
@@ -30,13 +51,13 @@ func expectedConstellation() *Service {
 			"GRAPHITE_WEBHOOK_SECRET":     "webhookSecret",
 			"HASURA_GRAPHQL_DATABASE_URL": "postgres://postgres:postgres@postgres:5432/local",
 			"NHOST_ADMIN_SECRET":          "adminSecret",
-			"NHOST_AUTH_URL":              "http://dev.auth.local.nhost.run:1337/v1",
+			"NHOST_AUTH_URL":              scheme + "://dev.auth.local.nhost.run:1337/v1",
 			"NHOST_FUNCTIONS_URL":         "http://functions:3000",
 			"NHOST_GRAPHQL_DATABASE_URL":  "postgres://postgres:postgres@postgres:5432/local",
-			"NHOST_GRAPHQL_URL":           "http://dev.graphql.local.nhost.run:1337/v1",
+			"NHOST_GRAPHQL_URL":           scheme + "://dev.graphql.local.nhost.run:1337/v1",
 			"NHOST_JWT_SECRET":            constellationJWTSecret,
 			"NHOST_REGION":                "local",
-			"NHOST_STORAGE_URL":           "http://dev.storage.local.nhost.run:1337/v1",
+			"NHOST_STORAGE_URL":           scheme + "://dev.storage.local.nhost.run:1337/v1",
 			"NHOST_SUBDOMAIN":             "dev",
 			"NHOST_WEBHOOK_SECRET":        "webhookSecret",
 		},
@@ -58,13 +79,13 @@ func expectedConstellation() *Service {
 		HealthCheck: nil,
 		Labels: map[string]string{
 			"traefik.enable": "true",
-			"traefik.http.middlewares.replace-constellation.replacepathregex.regex":       "/v1(/.*)?",
-			"traefik.http.middlewares.replace-constellation.replacepathregex.replacement": "/graphql",
+			"traefik.http.middlewares.replace-constellation.replacepathregex.regex":       canonicalConstellationRegex,
+			"traefik.http.middlewares.replace-constellation.replacepathregex.replacement": canonicalConstellationRepl,
 			"traefik.http.routers.constellation.entrypoints":                              "web",
 			"traefik.http.routers.constellation.middlewares":                              "replace-constellation",
-			"traefik.http.routers.constellation.rule":                                     "(HostRegexp(`^.+\\.graphql\\.local\\.nhost\\.run$`) || Host(`local.graphql.nhost.run`))&& PathPrefix(`/v1`)",
+			"traefik.http.routers.constellation.rule":                                     canonicalConstellationRule,
 			"traefik.http.routers.constellation.service":                                  "constellation",
-			"traefik.http.routers.constellation.tls":                                      "false",
+			"traefik.http.routers.constellation.tls":                                      tlsLabel,
 			"traefik.http.services.constellation.loadbalancer.server.port":                "8000",
 		},
 		Networks: networkAliases("constellation-service"),
@@ -137,12 +158,20 @@ func TestGraphqlIngressWithConstellation(t *testing.T) {
 		}
 
 		labels := services["graphql"].Labels
-		if _, ok := labels["traefik.http.routers.graphql.rule"]; !ok {
-			t.Error("expected graphql service to keep its `graphql` router when constellation is disabled")
+		if got := labels["traefik.http.routers.graphql.rule"]; got != canonicalGraphqlRule {
+			t.Errorf(
+				"graphql router rule drifted from canonical:\n  got:  %q\n  want: %q",
+				got,
+				canonicalGraphqlRule,
+			)
 		}
 
-		if _, ok := labels["traefik.http.routers.hasura.rule"]; !ok {
-			t.Error("expected graphql service to keep its `hasura` router")
+		if got := labels["traefik.http.routers.hasura.rule"]; got != canonicalHasuraRule {
+			t.Errorf(
+				"hasura router rule drifted from canonical:\n  got:  %q\n  want: %q",
+				got,
+				canonicalHasuraRule,
+			)
 		}
 	})
 
@@ -156,17 +185,54 @@ func TestGraphqlIngressWithConstellation(t *testing.T) {
 			t.Fatal("constellation service should be present when enabled")
 		}
 
-		if got := c.Labels["traefik.http.routers.constellation.rule"]; got == "" {
-			t.Error("expected constellation router rule to be set")
+		if got := c.Labels["traefik.http.routers.constellation.rule"]; got != canonicalConstellationRule {
+			t.Errorf(
+				"constellation router rule drifted from canonical:\n  got:  %q\n  want: %q",
+				got,
+				canonicalConstellationRule,
+			)
+		}
+
+		if got := c.Labels["traefik.http.middlewares.replace-constellation.replacepathregex.regex"]; got != canonicalConstellationRegex {
+			t.Errorf(
+				"constellation rewrite regex drifted:\n  got:  %q\n  want: %q",
+				got,
+				canonicalConstellationRegex,
+			)
+		}
+
+		if got := c.Labels["traefik.http.middlewares.replace-constellation.replacepathregex.replacement"]; got != canonicalConstellationRepl {
+			t.Errorf(
+				"constellation rewrite replacement drifted:\n  got:  %q\n  want: %q",
+				got,
+				canonicalConstellationRepl,
+			)
+		}
+
+		if got := c.Labels["traefik.http.services.constellation.loadbalancer.server.port"]; got != "8000" {
+			t.Errorf(
+				"constellation loadbalancer port drifted: got %q, want %q",
+				got,
+				"8000",
+			)
 		}
 
 		labels := services["graphql"].Labels
 		if _, ok := labels["traefik.http.routers.graphql.rule"]; ok {
-			t.Error("graphql service must not register its `graphql` router when constellation is enabled — constellation owns local.graphql.local.nhost.run")
+			t.Error(
+				"graphql service must not register its `graphql` router when constellation is enabled — constellation owns local.graphql.local.nhost.run",
+			)
 		}
 
-		if _, ok := labels["traefik.http.routers.hasura.rule"]; !ok {
-			t.Error("graphql service should still own the `hasura` router")
+		// The hand-rolled hasura ingress in compose.go's constellation branch
+		// must stay byte-for-byte identical to the canonical one produced by
+		// graphql.go; this assertion catches drift between the two paths.
+		if got := labels["traefik.http.routers.hasura.rule"]; got != canonicalHasuraRule {
+			t.Errorf(
+				"hasura router rule drifted from canonical when constellation is enabled:\n  got:  %q\n  want: %q",
+				got,
+				canonicalHasuraRule,
+			)
 		}
 	})
 }
@@ -178,12 +244,18 @@ func TestConstellation(t *testing.T) {
 		name     string
 		cfg      func() *model.ConfigConfig
 		useTLS   bool
-		expected func() *Service
+		expected func(useTLS bool) *Service
 	}{
 		{
 			name:     "success",
 			cfg:      getConfig,
 			useTLS:   false,
+			expected: expectedConstellation,
+		},
+		{
+			name:     "with TLS",
+			cfg:      getConfig,
+			useTLS:   true,
 			expected: expectedConstellation,
 		},
 	}
@@ -204,7 +276,7 @@ func TestConstellation(t *testing.T) {
 				t.Fatalf("got error: %v", err)
 			}
 
-			if diff := cmp.Diff(tc.expected(), got); diff != "" {
+			if diff := cmp.Diff(tc.expected(tc.useTLS), got); diff != "" {
 				t.Error(diff)
 			}
 		})

@@ -55,7 +55,7 @@ func constellation(
 				Port: constellationPort,
 				Rewrite: &Rewrite{
 					Regex:       "/v1(/.*)?",
-					Replacement: "/graphql",
+					Replacement: "/v1/graphql",
 				},
 			},
 		}.Labels(),
