@@ -169,7 +169,7 @@ func parseWhereChild(
 // matching relationship recurses into Parse with the relationship's target
 // table; anything else is an unknown field.
 //
-//nolint:ireturn // returns Statement to abstract over column-comparison and relationship results.
+
 func parseFieldOrRelationship(
 	t Table,
 	fieldName string,
@@ -389,7 +389,7 @@ func resolveStringArrayValue(operatorValue *ast.Value, variables map[string]any)
 // AND-ed together. An empty object returns a nil Statement. The per-operator
 // logic lives in the operatorParsers dispatch table in operators.go.
 //
-//nolint:ireturn // returns Statement to keep the concrete filter types unexported.
+
 func ParseFieldComparison(
 	t Table,
 	column *core.Column,

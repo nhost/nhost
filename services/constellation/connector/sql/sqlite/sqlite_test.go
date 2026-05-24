@@ -424,9 +424,12 @@ func TestIntrospectTableWithNoPKs(t *testing.T) {
 	}
 }
 
-func TestIntrospectEnumTableNotFound(t *testing.T) {
+func TestIntrospectEnumTableMissingIsElided(t *testing.T) {
 	t.Parallel()
 
+	// A missing enum table no longer fails Introspect — the entry is
+	// silently elided from EnumValues so the outer reconcile pass can
+	// record an inconsistency and demote the table.
 	client := newTestClient(t)
 
 	md := &metadata.DatabaseMetadata{
@@ -438,9 +441,13 @@ func TestIntrospectEnumTableNotFound(t *testing.T) {
 		},
 	}
 
-	_, err := client.Introspect(t.Context(), md)
-	if err == nil {
-		t.Fatal("expected error for missing enum table")
+	objs, err := client.Introspect(t.Context(), md)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if _, ok := objs.GetEnumValues("", "nonexistent_enum"); ok {
+		t.Error("expected the missing enum to be absent from EnumValues")
 	}
 }
 
@@ -452,7 +459,7 @@ func TestNew(t *testing.T) {
 
 		dbPath := filepath.Join(t.TempDir(), "test.db")
 
-		conn, err := sqlite.New(t.Context(), dbPath, &metadata.DatabaseMetadata{})
+		conn, err := sqlite.New(t.Context(), dbPath, &metadata.DatabaseMetadata{}, nil, nil)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -467,6 +474,8 @@ func TestNew(t *testing.T) {
 			t.Context(),
 			"/nonexistent/dir/that/does/not/exist/test.db",
 			&metadata.DatabaseMetadata{},
+			nil,
+			nil,
 		)
 		if err == nil {
 			t.Fatal("expected error for invalid path")

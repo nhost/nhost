@@ -19,6 +19,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/internal/lib/testdb"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testhelpers"
 	"github.com/nhost/nhost/services/constellation/metadata"
+	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
 	"go.uber.org/mock/gomock"
 )
@@ -31,6 +32,29 @@ var (
 )
 
 var update = flag.Bool("update", false, "update golden files") //nolint:gochecknoglobals
+
+// stubConnector is a no-op Connector used by the customization-failure tests
+// so applyCustomization is reached without needing a real factory. None of
+// its methods get called in those paths — applyCustomization rejects the
+// configuration before the connector is exercised.
+type stubConnector struct{}
+
+func (stubConnector) GetSchema() (map[string]*graph.Schema, error) { return nil, nil } //nolint:nilnil
+
+func (stubConnector) Execute(
+	context.Context,
+	*ast.OperationDefinition,
+	ast.FragmentDefinitionList,
+	map[string]any,
+	string,
+	map[string]any,
+	*slog.Logger,
+) (map[string]any, error) {
+	return nil, nil //nolint:nilnil
+}
+
+func (stubConnector) GetTypeName(string) string { return "" }
+func (stubConnector) Close()                    {}
 
 func TestBuildConnectorsFromMetadata(t *testing.T) {
 	ddl, err := os.ReadFile("testdata/pg_schema.sql")
@@ -288,7 +312,7 @@ func TestBuildConnectorsFromMetadata_InconsistencyBranches(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			snapshot := built.Inconsistencies.Snapshot()
+			snapshot := built.Inconsistencies
 			if len(snapshot) != 1 {
 				t.Fatalf(
 					"expected 1 inconsistency, got %d: %+v",
@@ -395,7 +419,12 @@ func TestBuildConnectorsFromMetadata_InjectedFactories(t *testing.T) {
 		gotDBKind string
 		gotDBName string
 		gotRSName string
-		dbFactory = func(_ context.Context, dbMeta *metadata.DatabaseMetadata) (connector.Connector, error) {
+		dbFactory = func(
+			_ context.Context,
+			dbMeta *metadata.DatabaseMetadata,
+			_ *metadata.Inconsistencies,
+			_ *slog.Logger,
+		) (connector.Connector, error) {
 			gotDBKind = dbMeta.Kind
 			gotDBName = dbMeta.Name
 
@@ -489,7 +518,12 @@ func TestBuildConnectorsFromMetadata_FactoryInconsistencies(t *testing.T) {
 			},
 			opts: []connector.Option{
 				connector.WithDBFactories(map[string]connector.DBFactory{
-					"postgres": func(_ context.Context, _ *metadata.DatabaseMetadata) (connector.Connector, error) {
+					"postgres": func(
+						_ context.Context,
+						_ *metadata.DatabaseMetadata,
+						_ *metadata.Inconsistencies,
+						_ *slog.Logger,
+					) (connector.Connector, error) {
 						return nil, errFactoryBoom
 					},
 				}),
@@ -523,6 +557,78 @@ func TestBuildConnectorsFromMetadata_FactoryInconsistencies(t *testing.T) {
 			wantName: "rs",
 			wantSub:  "failed to create remote schema connector",
 		},
+		{
+			// The database factory returns a usable Connector, but the
+			// source metadata declares a per-type FieldNames customization
+			// that newCustomizedConnector rejects. The whole source is
+			// recorded as an inconsistency and dropped.
+			name: "db_customization_error",
+			meta: &metadata.Metadata{
+				RemoteSchemas: nil,
+				Databases: []metadata.DatabaseMetadata{
+					{
+						Name: "default",
+						Kind: "postgres",
+						Customization: metadata.Customization{
+							FieldNames: []metadata.FieldNameCustomization{
+								{ParentType: "users", Prefix: "x_"},
+							},
+						},
+						Configuration: metadata.DatabaseConfiguration{},
+						Tables:        nil,
+						Functions:     nil,
+					},
+				},
+			},
+			opts: []connector.Option{
+				connector.WithDBFactories(map[string]connector.DBFactory{
+					"postgres": func(
+						_ context.Context,
+						_ *metadata.DatabaseMetadata,
+						_ *metadata.Inconsistencies,
+						_ *slog.Logger,
+					) (connector.Connector, error) {
+						return stubConnector{}, nil
+					},
+				}),
+			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
+			wantSub:  "per-type field_names customization is not supported",
+		},
+		{
+			// Same trick on the remote-schema side: the factory returns a
+			// usable Connector but the customization config is rejected.
+			name: "remote_schema_customization_error",
+			meta: &metadata.Metadata{
+				Databases: nil,
+				RemoteSchemas: []metadata.RemoteSchemaMetadata{
+					{
+						Name: "rs",
+						Definition: metadata.RemoteSchemaDefinition{
+							Customization: metadata.Customization{
+								FieldNames: []metadata.FieldNameCustomization{
+									{ParentType: "Query", Prefix: "x_"},
+								},
+							},
+						},
+						Comment:             "",
+						Permissions:         nil,
+						RemoteRelationships: nil,
+					},
+				},
+			},
+			opts: []connector.Option{
+				connector.WithRemoteSchemaFactory(
+					func(_ context.Context, _ *metadata.RemoteSchemaMetadata) (connector.Connector, error) {
+						return stubConnector{}, nil
+					},
+				),
+			},
+			wantKind: metadata.InconsistencyKindRemoteSchema,
+			wantName: "rs",
+			wantSub:  "per-type field_names customization is not supported",
+		},
 	}
 
 	for _, tc := range cases {
@@ -536,7 +642,7 @@ func TestBuildConnectorsFromMetadata_FactoryInconsistencies(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			snapshot := built.Inconsistencies.Snapshot()
+			snapshot := built.Inconsistencies
 			if len(snapshot) != 1 {
 				t.Fatalf(
 					"expected 1 inconsistency, got %d: %+v",

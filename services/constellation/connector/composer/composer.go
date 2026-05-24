@@ -83,7 +83,7 @@ type Result struct {
 func (c *Composer) Compose(
 	ctx context.Context,
 	logger *slog.Logger,
-) (Result, error) {
+) Result {
 	roleSchemas, allRoles := c.collectSchemas(ctx, logger)
 
 	relationships.Inject(roleSchemas, c.relationshipSpecs(), c.typeNameResolvers())
@@ -111,7 +111,7 @@ func (c *Composer) Compose(
 		c.composeRole(ctx, logger, role, connectorNames, roleSchemas, &result)
 	}
 
-	return result, nil
+	return result
 }
 
 // composeRole merges every connector's schema for a single role and stores the
@@ -147,7 +147,9 @@ func (c *Composer) composeRole(
 		); err != nil {
 			c.inconsistencies.Record(
 				ctx, logger,
-				metadata.InconsistencyKindRole, role,
+				metadata.InconsistencyKindRole,
+				"",
+				role,
 				fmt.Sprintf(
 					"failed to merge schema (incoming connector %q): %v",
 					connName, err,
@@ -167,7 +169,9 @@ func (c *Composer) composeRole(
 	if err != nil {
 		c.inconsistencies.Record(
 			ctx, logger,
-			metadata.InconsistencyKindRole, role,
+			metadata.InconsistencyKindRole,
+			"",
+			role,
 			fmt.Sprintf("building validated schema: %v", err),
 		)
 
@@ -195,7 +199,9 @@ func (c *Composer) collectSchemas(
 		if err != nil {
 			c.inconsistencies.Record(
 				ctx, logger,
-				kindForConnector(c.meta, connName), connName,
+				kindForConnector(c.meta, connName),
+				"",
+				connName,
 				fmt.Sprintf("failed to get schema from connector: %v", err),
 			)
 

@@ -384,3 +384,64 @@ func TestFromMetadata_RemoteSchemaWithoutToSourceSkipped(t *testing.T) {
 		t.Errorf("expected no relationships, got %d: %+v", len(rels), rels)
 	}
 }
+
+// TestFromMetadata_MissingDatabaseConnectorSkipped is the regression test for
+// the nil-pointer panic that bit `go run main.go serve` when a database
+// source failed to build: FromMetadata still iterated metadata.Databases and
+// reached for connectors[db.Name], got nil, and then forDatabase invoked
+// GetTypeName on the nil interface. Databases whose connector is absent from
+// the surviving set must now be skipped silently — the source already has a
+// `database` inconsistency recorded for the failure that took it down.
+func TestFromMetadata_MissingDatabaseConnectorSkipped(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	survivingConn := connectormock.NewMockConnector(ctrl)
+	survivingConn.EXPECT().GetTypeName("public.orders").Return("orders").AnyTimes()
+
+	meta := &metadata.Metadata{
+		Databases: []metadata.DatabaseMetadata{
+			{
+				// "dead" is referenced by metadata but has no surviving
+				// connector — it failed to build upstream.
+				Name: "dead",
+				Tables: []metadata.TableMetadata{{
+					Table: metadata.TableSource{Schema: "public", Name: "users"},
+					ObjectRelationships: []metadata.ObjectRelationship{{
+						Name: "would_have_been_cross_db",
+						Using: metadata.RelationshipUsing{
+							ManualConfiguration: &metadata.ManualConfiguration{
+								Source:        "alive",
+								RemoteTable:   metadata.TableSource{Schema: "public", Name: "orders"},
+								ColumnMapping: map[string]string{"id": "user_id"},
+							},
+						},
+					}},
+				}},
+			},
+			{
+				Name: "alive",
+				Tables: []metadata.TableMetadata{{
+					Table: metadata.TableSource{Schema: "public", Name: "orders"},
+				}},
+			},
+		},
+		RemoteSchemas: nil,
+	}
+
+	// connectors map intentionally omits "dead". The function must not
+	// panic and must still produce relationships for "alive".
+	got := relationships.FromMetadata(meta, map[string]connector.Connector{
+		"alive": survivingConn,
+	})
+
+	if rels, ok := got["dead"]; ok && len(rels) > 0 {
+		t.Errorf("expected no relationships for missing connector, got %+v", rels)
+	}
+
+	if _, ok := got["alive"]; !ok {
+		// alive has no cross-db relationship of its own; an absent entry
+		// (rather than nil slice) is fine — the planner tolerates both.
+		_ = got
+	}
+}

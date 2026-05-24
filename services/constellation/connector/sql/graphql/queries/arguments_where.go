@@ -38,7 +38,7 @@ func (t *table) ParseFieldComparison( //nolint:ireturn,nolintlint
 
 // Table interface satisfaction for where.Table.
 
-func (t *table) Dialect() dialect.Dialect { return t.dialect } //nolint:ireturn // satisfying interface
+func (t *table) Dialect() dialect.Dialect { return t.dialect }
 
 func (t *table) SchemaName() string { return t.schemaName }
 
@@ -50,7 +50,7 @@ func (t *table) ColumnFromGraphqlName(name string) *core.Column {
 
 // RelationshipFromGraphqlName returns nil interface when no relationship matches,
 // avoiding the typed-nil-through-interface trap callers would hit otherwise.
-func (t *table) RelationshipFromGraphqlName(name string) where.Relationship { //nolint:ireturn
+func (t *table) RelationshipFromGraphqlName(name string) where.Relationship {
 	r := t.relationshipFromGraphqlName(name)
 	if r == nil {
 		return nil
@@ -60,7 +60,7 @@ func (t *table) RelationshipFromGraphqlName(name string) where.Relationship { //
 }
 
 // TableBySchemaName returns nil interface when no sibling table matches.
-func (t *table) TableBySchemaName(schema, name string) where.Table { //nolint:ireturn
+func (t *table) TableBySchemaName(schema, name string) where.Table {
 	other := t.tableBySchemaName(schema, name)
 	if other == nil {
 		return nil
@@ -90,7 +90,7 @@ func (t *table) WriteRowLevelPermissions(
 
 // Target returns the target table interface; returns nil interface for
 // remote/remote-schema relationships that have no local target table.
-func (r *relationship) Target() where.Table { //nolint:ireturn
+func (r *relationship) Target() where.Table {
 	if r.table == nil {
 		return nil
 	}

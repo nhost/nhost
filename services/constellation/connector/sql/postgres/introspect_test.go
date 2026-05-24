@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
 	"go.uber.org/mock/gomock"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
@@ -428,10 +429,11 @@ func assignDest[T any](t *testing.T, dst any, v T) {
 	*ptr = v
 }
 
-// TestIntrospect_DownstreamErrors covers the three failure points past
-// schema discovery: the per-schema introspection, enum-value introspection,
-// and function introspection. Each case fails a different call in turn and
-// asserts the wrap-message context survives.
+// TestIntrospect_DownstreamErrors covers the failure points past schema
+// discovery. Per-schema introspection failures still propagate (they break
+// the source wholesale); per-enum-table failures used to live here too but
+// the driver now silently elides invalid enum tables (the outer reconcile
+// pass turns each absence into an enum_values inconsistency).
 func TestIntrospect_DownstreamErrors(t *testing.T) {
 	t.Parallel()
 
@@ -465,33 +467,6 @@ func TestIntrospect_DownstreamErrors(t *testing.T) {
 			dbMeta:  &metadata.DatabaseMetadata{Name: "default"},
 			wantSub: "failed to introspect schema public",
 		},
-		{
-			name: "enum-value introspection fails",
-			wireMocks: func(t *testing.T, ctrl *gomock.Controller, pool *mock.MockPool) {
-				t.Helper()
-
-				wireSchemaWithColumns(t, ctrl, pool, "public", []columnScan{
-					{
-						tableName:  "status",
-						columnName: "value",
-						typeName:   "text",
-						isNullable: "NO",
-					},
-				})
-			},
-			dbMeta: &metadata.DatabaseMetadata{
-				Name: "default",
-				Tables: []metadata.TableMetadata{
-					{
-						Table:  metadata.TableSource{Schema: "public", Name: "status"},
-						IsEnum: true,
-					},
-				},
-			},
-			// EnumColumns rejects the no-PK table — surfaced via the
-			// "introspecting enum values" wrap on line 38.
-			wantSub: "introspecting enum values",
-		},
 	}
 
 	for _, tt := range tests {
@@ -521,8 +496,11 @@ func TestIntrospect_DownstreamErrors(t *testing.T) {
 }
 
 // TestIntrospect_FunctionsError exercises the "introspecting functions" wrap
-// at introspect.go:43 by giving Introspect a function entry whose pg_proc
-// query returns an error.
+// by giving Introspect a function entry whose pg_proc query returns a real
+// query error (connection broken, scan failure, etc.). Those errors still
+// propagate — only "no rows in result set" is downgraded to a silent skip,
+// since that case is what the outer reconcile pass records as a
+// kind=function inconsistency.
 func TestIntrospect_FunctionsError(t *testing.T) {
 	t.Parallel()
 
@@ -561,6 +539,50 @@ func TestIntrospect_FunctionsError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "introspecting functions") {
 		t.Errorf("error %q does not contain 'introspecting functions'", err.Error())
+	}
+}
+
+// TestIntrospect_FunctionMissingIsElided is the parity test for the
+// "function not in pg_proc" case: the driver returns pgx.ErrNoRows on Scan,
+// which introspectFunctions must treat as "function does not exist" and
+// silently elide. Introspect succeeds; the surviving Objects.Functions map
+// is empty, so the outer reconcile pass can record a per-function
+// inconsistency for it without taking the whole source down.
+func TestIntrospect_FunctionMissingIsElided(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	pool := mock.NewMockPool(ctrl)
+
+	pool.EXPECT().
+		Query(gomock.Any(), gomock.Any()).
+		Return(emptyRows(ctrl), nil).
+		Times(1)
+
+	row := mock.NewMockRow(ctrl)
+	row.EXPECT().Scan(gomock.Any()).Return(pgx.ErrNoRows)
+
+	pool.EXPECT().
+		QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(row).
+		Times(1)
+
+	client := postgres.NewClient(pool)
+
+	objs, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Name: "default",
+		Functions: []metadata.FunctionMetadata{
+			{
+				Function: metadata.FunctionSource{Schema: "public", Name: "ghost_fn"},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if _, ok := objs.GetFunction("public", "ghost_fn"); ok {
+		t.Error("expected the missing function to be absent from Objects.Functions")
 	}
 }
 

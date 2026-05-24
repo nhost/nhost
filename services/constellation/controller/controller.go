@@ -59,10 +59,10 @@ type controllerState struct {
 	queryPlanner               *planner.QueryPlanner
 	subHandlers                map[string]subscription.Handler
 	queryCache                 *queryCache
-	// inconsistencies collects per-source / per-role build failures from
-	// the metadata reload that produced this state. Held immutably for the
-	// lifetime of the state; the next reload produces a fresh collector.
-	inconsistencies *metadata.Inconsistencies
+	// inconsistencies is the snapshot of per-source / per-role build failures
+	// recorded by the metadata reload that produced this state. Captured once
+	// at build time; the next reload produces a fresh snapshot.
+	inconsistencies []metadata.Inconsistency
 	// done is closed when this state is shut down (metadata reload or server stop).
 	// WebSocket connections select on this to close when the state becomes stale.
 	done chan struct{}
@@ -79,12 +79,8 @@ func newControllerState(
 	meta *metadata.Metadata,
 	queryPlanner *planner.QueryPlanner,
 	subHandlers map[string]subscription.Handler,
-	inconsistencies *metadata.Inconsistencies,
+	inconsistencies []metadata.Inconsistency,
 ) *controllerState {
-	if inconsistencies == nil {
-		inconsistencies = metadata.NewInconsistencies()
-	}
-
 	return &controllerState{
 		validatedSchemas:           validatedSchemas,
 		connectors:                 connectors,
@@ -178,30 +174,25 @@ func New(
 // it does not reflect later reloads.
 func (c *Controller) Inconsistencies() []metadata.Inconsistency {
 	state := c.state.Load()
-	if state == nil || state.inconsistencies == nil {
+	if state == nil {
 		return nil
 	}
 
-	return state.inconsistencies.Snapshot()
+	return state.inconsistencies
 }
 
 // logInconsistencySummary emits a single summary log line after a build so
 // operators see the count even when individual Record calls scrolled past.
 // No-op when there are no inconsistencies.
 func logInconsistencySummary(
-	ctx context.Context, logger *slog.Logger, inc *metadata.Inconsistencies,
+	ctx context.Context, logger *slog.Logger, inc []metadata.Inconsistency,
 ) {
-	if inc == nil {
-		return
-	}
-
-	count := inc.Len()
-	if count == 0 {
+	if len(inc) == 0 {
 		return
 	}
 
 	logger.WarnContext(ctx, "metadata loaded with inconsistencies",
-		slog.Int("count", count),
+		slog.Int("count", len(inc)),
 	)
 }
 
@@ -216,12 +207,7 @@ func buildState(
 	subscriptionPollInterval time.Duration,
 	logger *slog.Logger,
 ) (*controllerState, error) {
-	inconsistencies := metadata.NewInconsistencies()
-
-	built, err := connector.BuildConnectorsFromMetadata(
-		ctx, meta, logger,
-		connector.WithInconsistencies(inconsistencies),
-	)
+	built, err := connector.BuildConnectorsFromMetadata(ctx, meta, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build connectors from metadata: %w", err)
 	}
@@ -263,7 +249,7 @@ func buildState(
 		meta,
 		queryPlanner,
 		subHandlers,
-		inconsistencies,
+		built.Inconsistencies,
 	), nil
 }
 
@@ -342,13 +328,10 @@ func NewFromConnectors(
 		providers[name] = c
 	}
 
-	composed, err := composer.New(providers, &metadata.Metadata{
+	composed := composer.New(providers, &metadata.Metadata{
 		Databases:     nil,
 		RemoteSchemas: nil,
 	}, nil).Compose(context.Background(), logger)
-	if err != nil {
-		return nil, fmt.Errorf("composing schemas: %w", err)
-	}
 
 	queryPlanner := planner.New(
 		composed.ValidatedSchemas,

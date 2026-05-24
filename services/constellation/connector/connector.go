@@ -61,16 +61,24 @@ type BuildResult struct {
 	// from this map and recorded in Inconsistencies.
 	Connectors map[string]Connector
 
-	// Inconsistencies collects per-source / per-role failures encountered
-	// while turning the metadata document into runtime state. The server
-	// keeps running with whatever did load; callers expose this list.
-	Inconsistencies *metadata.Inconsistencies
+	// Inconsistencies is the snapshot of per-source / per-role failures
+	// recorded while turning the metadata document into runtime state. It is
+	// captured once, at the end of BuildConnectorsFromMetadata, so callers
+	// cannot mutate the build-time collector after the fact. The server keeps
+	// running with whatever did load; callers expose this list.
+	Inconsistencies []metadata.Inconsistency
 }
 
-// DBFactory builds a database-backed Connector from its metadata entry.
+// DBFactory builds a database-backed Connector from its metadata entry. The
+// supplied inconsistencies collector is used by the factory to record
+// per-table / per-column / per-function / per-relationship reconciliation
+// inconsistencies once introspection has run; pass through to
+// sql.NewConnector unchanged.
 type DBFactory func(
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
 ) (Connector, error)
 
 // RemoteSchemaFactory builds a remote-schema Connector from its metadata entry.
@@ -137,8 +145,9 @@ func WithHTTPDoer(doer remoteschema.HTTPDoer) Option {
 }
 
 // WithInconsistencies routes per-source / per-role build failures into the
-// supplied collector instead of an internally-allocated one. The collector is
-// also exposed on BuildResult.Inconsistencies regardless of this option.
+// supplied collector instead of an internally-allocated one. The collector
+// itself stays with the caller; BuildResult.Inconsistencies always exposes
+// only a snapshot taken once the build has finished.
 func WithInconsistencies(inc *metadata.Inconsistencies) Option {
 	return func(c *buildConfig) {
 		c.inconsistencies = inc
@@ -185,15 +194,12 @@ func BuildConnectorsFromMetadata(
 		providers[name] = c
 	}
 
-	result, err := composer.New(providers, meta, cfg.inconsistencies).Compose(ctx, logger)
-	if err != nil {
-		return nil, fmt.Errorf("composing schemas: %w", err)
-	}
+	result := composer.New(providers, meta, cfg.inconsistencies).Compose(ctx, logger)
 
 	return &BuildResult{
 		Result:          result,
 		Connectors:      connectors,
-		Inconsistencies: cfg.inconsistencies,
+		Inconsistencies: cfg.inconsistencies.Snapshot(),
 	}, nil
 }
 
@@ -209,28 +215,35 @@ func (cfg *buildConfig) buildRemoteSchemaConnectors(
 	for i := range meta.RemoteSchemas {
 		rsMeta := &meta.RemoteSchemas[i]
 
-		backend, err := cfg.remoteSchemaFactory(ctx, rsMeta)
+		raw, err := cfg.remoteSchemaFactory(ctx, rsMeta)
 		if err != nil {
 			cfg.inconsistencies.Record(
 				ctx, logger,
-				metadata.InconsistencyKindRemoteSchema, rsMeta.Name,
+				metadata.InconsistencyKindRemoteSchema,
+				"",
+				rsMeta.Name,
 				fmt.Sprintf("failed to create remote schema connector: %v", err),
 			)
 
 			continue
 		}
 
-		backend, err = applyCustomization(
+		backend, err := applyCustomization(
 			rsMeta.Name,
-			backend,
+			raw,
 			rsMeta.Definition.Customization,
 			customization.FlavorRemoteSchema,
 		)
 		if err != nil {
-			backend.Close()
+			// applyCustomization failed before the wrapper took ownership
+			// of raw, so we close the raw connector ourselves; otherwise
+			// it would leak the resources the factory just acquired.
+			raw.Close()
 			cfg.inconsistencies.Record(
 				ctx, logger,
-				metadata.InconsistencyKindRemoteSchema, rsMeta.Name,
+				metadata.InconsistencyKindRemoteSchema,
+				"",
+				rsMeta.Name,
 				err.Error(),
 			)
 
@@ -257,35 +270,44 @@ func (cfg *buildConfig) buildDatabaseConnectors(
 		if !ok {
 			cfg.inconsistencies.Record(
 				ctx, logger,
-				metadata.InconsistencyKindDatabase, dbMeta.Name,
+				metadata.InconsistencyKindDatabase,
+				"",
+				dbMeta.Name,
 				fmt.Sprintf("%s: %s", ErrUnsupportedDatabaseKind, dbMeta.Kind),
 			)
 
 			continue
 		}
 
-		backend, err := factory(ctx, dbMeta)
+		raw, err := factory(ctx, dbMeta, cfg.inconsistencies, logger)
 		if err != nil {
 			cfg.inconsistencies.Record(
 				ctx, logger,
-				metadata.InconsistencyKindDatabase, dbMeta.Name,
+				metadata.InconsistencyKindDatabase,
+				"",
+				dbMeta.Name,
 				fmt.Sprintf("building database connector: %v", err),
 			)
 
 			continue
 		}
 
-		backend, err = applyCustomization(
+		backend, err := applyCustomization(
 			dbMeta.Name,
-			backend,
+			raw,
 			dbMeta.Customization,
 			customization.FlavorDatabase,
 		)
 		if err != nil {
-			backend.Close()
+			// applyCustomization failed before the wrapper took ownership
+			// of raw, so we close the raw connector ourselves; otherwise
+			// it would leak the resources the factory just acquired.
+			raw.Close()
 			cfg.inconsistencies.Record(
 				ctx, logger,
-				metadata.InconsistencyKindDatabase, dbMeta.Name,
+				metadata.InconsistencyKindDatabase,
+				"",
+				dbMeta.Name,
 				err.Error(),
 			)
 
@@ -315,13 +337,15 @@ func resolveDBURL(dbMeta *metadata.DatabaseMetadata) (string, error) {
 func newPostgresConnector( //nolint:ireturn
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
 ) (Connector, error) {
 	dbURL, err := resolveDBURL(dbMeta)
 	if err != nil {
 		return nil, fmt.Errorf("creating postgres connector for %s: %w", dbMeta.Name, err)
 	}
 
-	backend, err := postgres.New(ctx, dbURL, dbMeta)
+	backend, err := postgres.New(ctx, dbURL, dbMeta, inconsistencies, logger)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to create postgres connector for %s: %w", dbMeta.Name, err,
@@ -334,13 +358,15 @@ func newPostgresConnector( //nolint:ireturn
 func newSQLiteConnector( //nolint:ireturn
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
 ) (Connector, error) {
 	dbURL, err := resolveDBURL(dbMeta)
 	if err != nil {
 		return nil, fmt.Errorf("creating sqlite connector for %s: %w", dbMeta.Name, err)
 	}
 
-	backend, err := sqlite.New(ctx, dbURL, dbMeta)
+	backend, err := sqlite.New(ctx, dbURL, dbMeta, inconsistencies, logger)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to create sqlite connector for %s: %w", dbMeta.Name, err,

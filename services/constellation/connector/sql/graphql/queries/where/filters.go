@@ -337,7 +337,7 @@ func (f *rawFilter) WriteCondition(
 // Returning the Statement interface (rather than *rawFilter) keeps the
 // concrete filter type unexported while still letting callers compose it
 // alongside other Statements.
-func NewRawFilter( //nolint:ireturn // returns Statement to keep rawFilter unexported.
+func NewRawFilter(
 	condition string,
 ) Statement {
 	return &rawFilter{condition: condition}
@@ -347,7 +347,7 @@ func NewRawFilter( //nolint:ireturn // returns Statement to keep rawFilter unexp
 // Used by callers that build primary-key equality predicates outside the
 // parser (e.g. update_by_pk / delete_by_pk). Returning the Statement
 // interface keeps the concrete filter type unexported.
-func NewEqualsFilter( //nolint:ireturn // returns Statement to keep equalsFilter unexported.
+func NewEqualsFilter(
 	column *core.Column, value any, d dialect.Dialect,
 ) Statement {
 	return &equalsFilter{column: column, value: value, dialect: d}
@@ -357,7 +357,7 @@ func NewEqualsFilter( //nolint:ireturn // returns Statement to keep equalsFilter
 // Used by callers (e.g. query_by_pk) that need to combine PK conditions
 // into a single statement. Returning the Statement interface keeps the
 // concrete filter type unexported.
-func NewAndFilter( //nolint:ireturn // returns Statement to keep andFilter unexported.
+func NewAndFilter(
 	conditions []Statement,
 ) Statement {
 	return &andFilter{conditions: conditions}

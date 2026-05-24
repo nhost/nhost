@@ -495,10 +495,7 @@ func TestComposer_Compose(t *testing.T) {
 				incs,
 			)
 
-			result, err := c.Compose(t.Context(), slog.Default())
-			if err != nil {
-				t.Fatalf("unexpected error from Compose: %v", err)
-			}
+			result := c.Compose(t.Context(), slog.Default())
 
 			if tt.wantInconsistencyKind != "" {
 				snapshot := incs.Snapshot()

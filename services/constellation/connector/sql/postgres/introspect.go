@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -11,10 +10,6 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
-
-// ErrEnumTableNotIntrospected reports that an enum table referenced by
-// metadata was not found in the introspected database objects.
-var ErrEnumTableNotIntrospected = errors.New("enum table not found in introspected objects")
 
 // Introspect returns the database objects (schemas, tables, columns, primary keys, functions).
 // If no schemaNames are specified, all schemas in the database are discovered and introspected.
@@ -38,10 +33,7 @@ func (c *Client) Introspect(
 		objs.Schemas[schemaName] = schema
 	}
 
-	objs.EnumValues, err = c.introspectEnumValues(ctx, dbMeta, objs)
-	if err != nil {
-		return nil, fmt.Errorf("introspecting enum values: %w", err)
-	}
+	objs.EnumValues = c.introspectEnumValues(ctx, dbMeta, objs)
 
 	objs.Functions, err = c.introspectFunctions(ctx, dbMeta)
 	if err != nil {
@@ -51,12 +43,16 @@ func (c *Client) Introspect(
 	return objs, nil
 }
 
-// introspectEnumValues populates enum values for all tables marked as enums in metadata.
+// introspectEnumValues populates enum values for all tables marked as enums
+// in metadata. Per-table failures (missing table in source, invalid enum
+// shape, query error, empty value set) are silently elided from the result
+// map; the outer reconcile pass turns each absence into an inconsistency and
+// clears the is_enum flag so the table is still served as a regular table.
 func (c *Client) introspectEnumValues(
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
 	objs *introspection.Objects,
-) (map[string][]introspection.EnumValue, error) {
+) map[string][]introspection.EnumValue {
 	result := make(map[string][]introspection.EnumValue)
 
 	for i := range dbMeta.Tables {
@@ -71,34 +67,24 @@ func (c *Client) introspectEnumValues(
 
 		table, ok := objs.GetTable(schemaName, tableName)
 		if !ok {
-			return nil, fmt.Errorf(
-				"%w: %s.%s",
-				ErrEnumTableNotIntrospected,
-				schemaName,
-				tableName,
-			)
+			continue
 		}
 
 		valueCol, descCol, err := table.EnumColumns()
 		if err != nil {
-			return nil, fmt.Errorf("invalid enum table %s.%s: %w", schemaName, tableName, err)
+			continue
 		}
 
 		enumValues, err := getEnumTable(ctx, c.pool, schemaName, tableName, valueCol, descCol)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"failed to introspect enum table %s.%s: %w",
-				schemaName,
-				tableName,
-				err,
-			)
+		if err != nil || len(enumValues) == 0 {
+			continue
 		}
 
 		key := schemaName + "." + tableName
 		result[key] = enumValues
 	}
 
-	return result, nil
+	return result
 }
 
 // getSchemas discovers all schemas in the database, excluding system schemas.
@@ -216,7 +202,8 @@ func getTables(
 // 'r') and partitioned tables ('p') are always insertable and updatable. Views
 // ('v') and foreign tables ('f') consult pg_relation_is_updatable(), which is
 // the same function information_schema.views uses internally: bit 8 (INSERT)
-// gates IsInsertable, and bits 4|16 (SELECT|UPDATE) gate IsUpdatable. The
+// gates IsInsertable, and bits 4|16 (UPDATE|DELETE) jointly gate IsUpdatable —
+// the same (& 20) = 20 check information_schema.views.is_updatable uses. The
 // schema generator uses these to suppress mutation fields on relations the
 // database itself will reject writes to.
 func populateRelationKinds(
@@ -230,10 +217,11 @@ func populateRelationKinds(
 	}
 
 	// pg_relation_is_updatable() returns an int bitmask whose bits mirror
-	// the SQL standard's IS_UPDATABLE semantics. information_schema.views
-	// uses the same `& 8 = 8` (INSERT) and `& 20 = 20` (SELECT|UPDATE)
-	// checks; we replicate them here against pg_class so the query works
-	// without privileges on the relation's owner role.
+	// the SQL standard's IS_UPDATABLE semantics (bit 4 = UPDATE, bit 8 =
+	// INSERT, bit 16 = DELETE). information_schema.views uses the same
+	// `& 8 = 8` (INSERT) and `& 20 = 20` (UPDATE|DELETE) checks; we
+	// replicate them here against pg_class so the query works without
+	// privileges on the relation's owner role.
 	query := `
 		SELECT
 			cls.relname AS table_name,
