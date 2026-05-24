@@ -291,7 +291,7 @@ func wireSchemaWithColumns(
 		Query(gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, sql string, _ ...any) (postgres.Rows, error) {
 			switch {
-			case strings.Contains(sql, "information_schema.schemata"):
+			case strings.Contains(sql, "pg_toast_temp_"):
 				return singleStringRows(ctrl, schemaName), nil
 			case strings.Contains(sql, "type_aggregates"):
 				return columnRowsMock(t, ctrl, columns), nil
@@ -450,7 +450,7 @@ func TestIntrospect_DownstreamErrors(t *testing.T) {
 					Query(gomock.Any(), gomock.Any()).
 					DoAndReturn(
 						func(_ context.Context, sql string, _ ...any) (postgres.Rows, error) {
-							if strings.Contains(sql, "information_schema.schemata") {
+							if strings.Contains(sql, "pg_toast_temp_") {
 								return singleStringRows(ctrl, "public"), nil
 							}
 
@@ -843,7 +843,7 @@ func wireEnumIntrospect(
 	pool.EXPECT().
 		Query(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, sql string, _ ...any) (postgres.Rows, error) {
-			if strings.Contains(sql, "information_schema.schemata") {
+			if strings.Contains(sql, "pg_toast_temp_") {
 				return singleStringRows(ctrl, schemaName), nil
 			}
 			// getEnumTable's SELECT is no-args; route by the absence of the

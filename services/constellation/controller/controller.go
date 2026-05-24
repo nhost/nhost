@@ -59,6 +59,10 @@ type controllerState struct {
 	queryPlanner               *planner.QueryPlanner
 	subHandlers                map[string]subscription.Handler
 	queryCache                 *queryCache
+	// inconsistencies collects per-source / per-role build failures from
+	// the metadata reload that produced this state. Held immutably for the
+	// lifetime of the state; the next reload produces a fresh collector.
+	inconsistencies *metadata.Inconsistencies
 	// done is closed when this state is shut down (metadata reload or server stop).
 	// WebSocket connections select on this to close when the state becomes stale.
 	done chan struct{}
@@ -75,7 +79,12 @@ func newControllerState(
 	meta *metadata.Metadata,
 	queryPlanner *planner.QueryPlanner,
 	subHandlers map[string]subscription.Handler,
+	inconsistencies *metadata.Inconsistencies,
 ) *controllerState {
+	if inconsistencies == nil {
+		inconsistencies = metadata.NewInconsistencies()
+	}
+
 	return &controllerState{
 		validatedSchemas:           validatedSchemas,
 		connectors:                 connectors,
@@ -85,6 +94,7 @@ func newControllerState(
 		queryPlanner:               queryPlanner,
 		subHandlers:                subHandlers,
 		queryCache:                 newQueryCache(),
+		inconsistencies:            inconsistencies,
 		done:                       make(chan struct{}),
 	}
 }
@@ -147,6 +157,8 @@ func New(
 		return nil, fmt.Errorf("building initial state: %w", err)
 	}
 
+	logInconsistencySummary(ctx, logger, state.inconsistencies)
+
 	ctrl := &Controller{
 		state:           atomic.Pointer[controllerState]{},
 		adminSecret:     adminSecret,
@@ -161,15 +173,55 @@ func New(
 	return ctrl, nil
 }
 
+// Inconsistencies returns the partial-failure entries recorded during the
+// most recent successful metadata build. The returned slice is a snapshot;
+// it does not reflect later reloads.
+func (c *Controller) Inconsistencies() []metadata.Inconsistency {
+	state := c.state.Load()
+	if state == nil || state.inconsistencies == nil {
+		return nil
+	}
+
+	return state.inconsistencies.Snapshot()
+}
+
+// logInconsistencySummary emits a single summary log line after a build so
+// operators see the count even when individual Record calls scrolled past.
+// No-op when there are no inconsistencies.
+func logInconsistencySummary(
+	ctx context.Context, logger *slog.Logger, inc *metadata.Inconsistencies,
+) {
+	if inc == nil {
+		return
+	}
+
+	count := inc.Len()
+	if count == 0 {
+		return
+	}
+
+	logger.WarnContext(ctx, "metadata loaded with inconsistencies",
+		slog.Int("count", count),
+	)
+}
+
 // buildState constructs a new controllerState from metadata. This is called
-// both at startup and on every metadata reload.
+// both at startup and on every metadata reload. Per-source and per-role
+// build failures are recorded as inconsistencies on the returned state rather
+// than aborting; the function only returns an error if the build cannot
+// produce any usable state at all.
 func buildState(
 	ctx context.Context,
 	meta *metadata.Metadata,
 	subscriptionPollInterval time.Duration,
 	logger *slog.Logger,
 ) (*controllerState, error) {
-	built, err := connector.BuildConnectorsFromMetadata(ctx, meta, logger)
+	inconsistencies := metadata.NewInconsistencies()
+
+	built, err := connector.BuildConnectorsFromMetadata(
+		ctx, meta, logger,
+		connector.WithInconsistencies(inconsistencies),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build connectors from metadata: %w", err)
 	}
@@ -211,6 +263,7 @@ func buildState(
 		meta,
 		queryPlanner,
 		subHandlers,
+		inconsistencies,
 	), nil
 }
 
@@ -239,6 +292,7 @@ func (c *Controller) Run(
 			continue
 		}
 
+		logInconsistencySummary(ctx, logger, newState.inconsistencies)
 		c.swapState(ctx, newState, logger)
 	}
 }
@@ -291,7 +345,7 @@ func NewFromConnectors(
 	composed, err := composer.New(providers, &metadata.Metadata{
 		Databases:     nil,
 		RemoteSchemas: nil,
-	}).Compose(context.Background(), logger)
+	}, nil).Compose(context.Background(), logger)
 	if err != nil {
 		return nil, fmt.Errorf("composing schemas: %w", err)
 	}
@@ -309,6 +363,7 @@ func NewFromConnectors(
 		composed.FieldToConnector,
 		&metadata.Metadata{Databases: nil, RemoteSchemas: nil},
 		queryPlanner,
+		nil,
 		nil,
 	)
 

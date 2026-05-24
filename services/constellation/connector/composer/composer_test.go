@@ -13,6 +13,20 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// containsInconsistency reports whether items has an entry with the given
+// kind and name whose Reason contains substr.
+func containsInconsistency(
+	items []metadata.Inconsistency, kind, name, substr string,
+) bool {
+	for _, it := range items {
+		if it.Kind == kind && it.Name == name && strings.Contains(it.Reason, substr) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // errSchemaConnection is a test sentinel error used to verify error
 // propagation from a failing connector schema fetch.
 var errSchemaConnection = errors.New("connection failed")
@@ -206,12 +220,12 @@ func TestComposer_Compose(t *testing.T) {
 	tests := []struct {
 		name      string
 		providers map[string]providerSpec
-		// wantErrSubstr, if non-empty, asserts the returned error message
-		// contains this substring. When empty, no error is expected.
-		wantErrSubstr string
-		// wantErrExact, if non-empty, asserts the returned error message is
-		// exactly this string. Mutually exclusive with wantErrSubstr.
-		wantErrExact string
+		// wantInconsistencyKind / Name / ReasonSubstr, if non-empty, assert
+		// that an inconsistency matching those fields was recorded. The
+		// surviving Result is still validated through verify if supplied.
+		wantInconsistencyKind         string
+		wantInconsistencyName         string
+		wantInconsistencyReasonSubstr string
 		// verify runs additional success-path assertions. Called only when no
 		// error is expected.
 		verify func(t *testing.T, result composer.Result)
@@ -388,7 +402,23 @@ func TestComposer_Compose(t *testing.T) {
 					schemaErr: errSchemaConnection,
 				},
 			},
-			wantErrExact: "failed to get schema from connector db: connection failed",
+			// Compose records the failing connector as a database
+			// inconsistency (the test metadata has no entries to look up
+			// against, so the default kind is "database") and returns a
+			// schema-less Result.
+			wantInconsistencyKind:         metadata.InconsistencyKindDatabase,
+			wantInconsistencyName:         "db",
+			wantInconsistencyReasonSubstr: "connection failed",
+			verify: func(t *testing.T, result composer.Result) {
+				t.Helper()
+
+				if len(result.ValidatedSchemas) != 0 {
+					t.Fatalf(
+						"expected no schemas after GetSchema failure, got %d",
+						len(result.ValidatedSchemas),
+					)
+				}
+			},
 		},
 		{
 			name: "conflicting_enums",
@@ -403,10 +433,19 @@ func TestComposer_Compose(t *testing.T) {
 					"db2": {schemas: map[string]*graph.Schema{"admin": schema2}},
 				}
 			}(),
-			// schemamerge surfaces the conflict; we just need to confirm
-			// Compose propagates an error rather than silently accepting
-			// divergent enums.
-			wantErrSubstr: `role "admin"`,
+			// schemamerge surfaces the conflict; the admin role is dropped
+			// and recorded as inconsistent so the rest of the server can
+			// keep serving (here, that leaves an empty schema set).
+			wantInconsistencyKind:         metadata.InconsistencyKindRole,
+			wantInconsistencyName:         "admin",
+			wantInconsistencyReasonSubstr: "failed to merge schema",
+			verify: func(t *testing.T, result composer.Result) {
+				t.Helper()
+
+				if _, ok := result.ValidatedSchemas["admin"]; ok {
+					t.Fatal("expected admin schema to be dropped on merge conflict")
+				}
+			},
 		},
 		{
 			name: "conflicting_comparison_exp_inputs",
@@ -421,7 +460,18 @@ func TestComposer_Compose(t *testing.T) {
 					"db2": {schemas: map[string]*graph.Schema{"admin": schema2}},
 				}
 			}(),
-			wantErrSubstr: `role "admin"`,
+			wantInconsistencyKind:         metadata.InconsistencyKindRole,
+			wantInconsistencyName:         "admin",
+			wantInconsistencyReasonSubstr: "failed to merge schema",
+			verify: func(t *testing.T, result composer.Result) {
+				t.Helper()
+
+				if _, ok := result.ValidatedSchemas["admin"]; ok {
+					t.Fatal(
+						"expected admin schema to be dropped on input conflict",
+					)
+				}
+			},
 		},
 	}
 
@@ -438,90 +488,41 @@ func TestComposer_Compose(t *testing.T) {
 				providers[name] = m
 			}
 
+			incs := metadata.NewInconsistencies()
 			c := composer.New(
 				providers,
 				&metadata.Metadata{Databases: nil, RemoteSchemas: nil},
+				incs,
 			)
 
 			result, err := c.Compose(t.Context(), slog.Default())
-
-			switch {
-			case tt.wantErrExact != "":
-				if err == nil {
-					t.Fatalf("expected error %q, got nil", tt.wantErrExact)
-				}
-
-				if got := err.Error(); got != tt.wantErrExact {
-					t.Fatalf("expected error %q, got %q", tt.wantErrExact, got)
-				}
-			case tt.wantErrSubstr != "":
-				if err == nil {
-					t.Fatalf(
-						"expected error containing %q, got nil", tt.wantErrSubstr,
-					)
-				}
-
-				if got := err.Error(); !strings.Contains(got, tt.wantErrSubstr) {
-					t.Fatalf(
-						"expected error containing %q, got %q",
-						tt.wantErrSubstr, got,
-					)
-				}
-			default:
-				if err != nil {
-					t.Fatalf("unexpected error: %v", err)
-				}
-
-				if tt.verify != nil {
-					tt.verify(t, result)
-				}
-			}
-		})
-	}
-}
-
-func TestComposer_MissingProvider(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name    string
-		meta    *metadata.Metadata
-		wantErr string
-	}{
-		{
-			name: "database",
-			meta: &metadata.Metadata{
-				Databases:     []metadata.DatabaseMetadata{{Name: "default"}},
-				RemoteSchemas: nil,
-			},
-			wantErr: `validating connectors: missing connector for database "default"`,
-		},
-		{
-			name: "remote_schema",
-			meta: &metadata.Metadata{
-				Databases:     nil,
-				RemoteSchemas: []metadata.RemoteSchemaMetadata{{Name: "rs"}},
-			},
-			wantErr: `validating connectors: missing connector for remote schema "rs"`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			c := composer.New(
-				map[string]composer.SchemaProvider{},
-				tt.meta,
-			)
-
-			_, err := c.Compose(t.Context(), slog.Default())
-			if err == nil {
-				t.Fatal("expected error for missing connector")
+			if err != nil {
+				t.Fatalf("unexpected error from Compose: %v", err)
 			}
 
-			if got := err.Error(); got != tt.wantErr {
-				t.Fatalf("expected error %q, got %q", tt.wantErr, got)
+			if tt.wantInconsistencyKind != "" {
+				snapshot := incs.Snapshot()
+				if !containsInconsistency(
+					snapshot,
+					tt.wantInconsistencyKind,
+					tt.wantInconsistencyName,
+					tt.wantInconsistencyReasonSubstr,
+				) {
+					t.Fatalf(
+						"expected inconsistency kind=%q name=%q reason~%q; got %+v",
+						tt.wantInconsistencyKind,
+						tt.wantInconsistencyName,
+						tt.wantInconsistencyReasonSubstr,
+						snapshot,
+					)
+				}
+			} else if got := incs.Len(); got != 0 {
+				t.Fatalf("expected no inconsistencies, got %d: %+v",
+					got, incs.Snapshot())
+			}
+
+			if tt.verify != nil {
+				tt.verify(t, result)
 			}
 		})
 	}

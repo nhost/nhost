@@ -109,6 +109,31 @@ enum authUserSecurityKeys_select_column {
   nickname
 }
 """
+select columns of table "content_feed"
+"""
+enum contentFeed_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  source
+  """
+  column name
+  """
+  title
+  """
+  column name
+  """
+  content
+  """
+  column name
+  """
+  created_at
+}
+"""
 ordering argument of a cursor
 """
 enum cursor_ordering {
@@ -923,6 +948,51 @@ type authUserSecurityKeys_mutation_response {
   data from the rows affected by the mutation
   """
   returning: [authUserSecurityKeys!]!
+}
+"""
+columns and relationships of "content_feed"
+"""
+type contentFeed {
+  id: uuid
+  source: String
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+aggregated selection of "content_feed"
+"""
+type contentFeed_aggregate {
+  aggregate: contentFeed_aggregate_fields
+  nodes: [contentFeed!]!
+}
+"""
+aggregate fields of "content_feed"
+"""
+type contentFeed_aggregate_fields {
+  count(columns: [contentFeed_select_column!], distinct: Boolean): Int!
+  max: contentFeed_max_fields
+  min: contentFeed_min_fields
+}
+"""
+aggregate max on columns
+"""
+type contentFeed_max_fields {
+  id: uuid
+  source: String
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+aggregate min on columns
+"""
+type contentFeed_min_fields {
+  id: uuid
+  source: String
+  title: String
+  content: String
+  created_at: timestamptz
 }
 """
 columns and relationships of "department_files"
@@ -2398,6 +2468,64 @@ type query_root {
   """
   user(id: uuid!): users
   """
+  fetch data from the table: "content_feed"
+  """
+  contentFeed(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
+  """
+  fetch aggregated fields from the table: "content_feed"
+  """
+  contentFeedAggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): contentFeed_aggregate!
+  """
   fetch data from the table: "department_files"
   """
   department_files(
@@ -3275,6 +3403,83 @@ type subscription_root {
     """
     where: users_bool_exp
   ): [users!]!
+  """
+  fetch data from the table: "content_feed"
+  """
+  contentFeed(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
+  """
+  fetch aggregated fields from the table: "content_feed"
+  """
+  contentFeedAggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): contentFeed_aggregate!
+  """
+  fetch data from the table in a streaming manner: "content_feed"
+  """
+  contentFeed_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [contentFeed_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
   """
   fetch data from the table: "department_files"
   """
@@ -4857,6 +5062,52 @@ input citext_comparison_exp {
   does the column match the given SQL regular expression
   """
   _similar: citext
+}
+"""
+Boolean expression to filter rows from the table "content_feed". All fields are combined with a logical 'AND'.
+"""
+input contentFeed_bool_exp {
+  _and: [contentFeed_bool_exp!]
+  _not: contentFeed_bool_exp
+  _or: [contentFeed_bool_exp!]
+  id: uuid_comparison_exp
+  source: String_comparison_exp
+  title: String_comparison_exp
+  content: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+}
+"""
+Ordering options when selecting data from "content_feed".
+"""
+input contentFeed_order_by {
+  id: order_by
+  source: order_by
+  title: order_by
+  content: order_by
+  created_at: order_by
+}
+"""
+Streaming cursor of the table "contentFeed"
+"""
+input contentFeed_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: contentFeed_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input contentFeed_stream_cursor_value_input {
+  id: uuid
+  source: String
+  title: String
+  content: String
+  created_at: timestamptz
 }
 input deactivateDepartment_args {
   p_department_id: uuid!

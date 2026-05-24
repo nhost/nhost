@@ -118,7 +118,7 @@ func TestBuildConnectorsFromMetadata(t *testing.T) {
 	}
 }
 
-func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
+func TestBuildConnectorsFromMetadata_InconsistencyBranches(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.Default()
@@ -126,6 +126,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 	cases := []struct {
 		name     string
 		meta     *metadata.Metadata
+		wantKind string
+		wantName string
 		wantSub  string
 		setupEnv map[string]string
 	}{
@@ -147,6 +149,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "weird",
 			wantSub:  "unsupported database kind: oracle",
 			setupEnv: nil,
 		},
@@ -168,6 +172,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
 			wantSub:  `database URL is not set for database default`,
 			setupEnv: nil,
 		},
@@ -189,6 +195,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
 			wantSub:  "resolving database URL for default",
 			setupEnv: nil,
 		},
@@ -210,6 +218,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
 			wantSub:  "database URL is not set for database default",
 			setupEnv: nil,
 		},
@@ -231,6 +241,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
 			wantSub:  "resolving database URL for default",
 			setupEnv: nil,
 		},
@@ -254,7 +266,9 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
-			wantSub:  "failed to create remote schema connector for rs",
+			wantKind: metadata.InconsistencyKindRemoteSchema,
+			wantName: "rs",
+			wantSub:  "failed to create remote schema connector",
 			setupEnv: nil,
 		},
 	}
@@ -267,13 +281,42 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 				t.Setenv(k, v)
 			}
 
-			_, err := connector.BuildConnectorsFromMetadata(t.Context(), tc.meta, logger)
-			if err == nil {
-				t.Fatalf("expected error, got nil")
+			built, err := connector.BuildConnectorsFromMetadata(
+				t.Context(), tc.meta, logger,
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
 
-			if !strings.Contains(err.Error(), tc.wantSub) {
-				t.Fatalf("error %q does not contain %q", err.Error(), tc.wantSub)
+			snapshot := built.Inconsistencies.Snapshot()
+			if len(snapshot) != 1 {
+				t.Fatalf(
+					"expected 1 inconsistency, got %d: %+v",
+					len(snapshot), snapshot,
+				)
+			}
+
+			got := snapshot[0]
+			if got.Kind != tc.wantKind {
+				t.Errorf("kind = %q, want %q", got.Kind, tc.wantKind)
+			}
+
+			if got.Name != tc.wantName {
+				t.Errorf("name = %q, want %q", got.Name, tc.wantName)
+			}
+
+			if !strings.Contains(got.Reason, tc.wantSub) {
+				t.Errorf(
+					"reason %q does not contain %q",
+					got.Reason, tc.wantSub,
+				)
+			}
+
+			if len(built.Connectors) != 0 {
+				t.Errorf(
+					"expected no surviving connectors, got %v",
+					built.Connectors,
+				)
 			}
 		})
 	}
@@ -416,16 +459,19 @@ func TestBuildConnectorsFromMetadata_InjectedFactories(t *testing.T) {
 	}
 }
 
-// TestBuildConnectorsFromMetadata_FactoryErrors exercises the error
-// propagation from both factory paths via injection.
-func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
+// TestBuildConnectorsFromMetadata_FactoryInconsistencies verifies that
+// factory failures from both paths are recorded as inconsistencies and skipped
+// rather than aborting the build.
+func TestBuildConnectorsFromMetadata_FactoryInconsistencies(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name    string
-		meta    *metadata.Metadata
-		opts    []connector.Option
-		wantSub string
+		name     string
+		meta     *metadata.Metadata
+		opts     []connector.Option
+		wantKind string
+		wantName string
+		wantSub  string
 	}{
 		{
 			name: "db_factory_error",
@@ -448,7 +494,9 @@ func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
 					},
 				}),
 			},
-			wantSub: "boom",
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
+			wantSub:  "boom",
 		},
 		{
 			name: "remote_schema_factory_error",
@@ -471,7 +519,9 @@ func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
 					},
 				),
 			},
-			wantSub: "failed to create remote schema connector for rs",
+			wantKind: metadata.InconsistencyKindRemoteSchema,
+			wantName: "rs",
+			wantSub:  "failed to create remote schema connector",
 		},
 	}
 
@@ -479,15 +529,38 @@ func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := connector.BuildConnectorsFromMetadata(
+			built, err := connector.BuildConnectorsFromMetadata(
 				t.Context(), tc.meta, slog.Default(), tc.opts...,
 			)
-			if err == nil {
-				t.Fatal("expected error")
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
 
-			if !strings.Contains(err.Error(), tc.wantSub) {
-				t.Fatalf("error %q does not contain %q", err.Error(), tc.wantSub)
+			snapshot := built.Inconsistencies.Snapshot()
+			if len(snapshot) != 1 {
+				t.Fatalf(
+					"expected 1 inconsistency, got %d: %+v",
+					len(snapshot), snapshot,
+				)
+			}
+
+			got := snapshot[0]
+			if got.Kind != tc.wantKind || got.Name != tc.wantName {
+				t.Errorf(
+					"kind/name = %q/%q, want %q/%q",
+					got.Kind, got.Name, tc.wantKind, tc.wantName,
+				)
+			}
+
+			if !strings.Contains(got.Reason, tc.wantSub) {
+				t.Errorf(
+					"reason %q does not contain %q",
+					got.Reason, tc.wantSub,
+				)
+			}
+
+			if len(built.Connectors) != 0 {
+				t.Errorf("expected no surviving connectors, got %v", built.Connectors)
 			}
 		})
 	}

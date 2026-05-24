@@ -546,11 +546,12 @@ func TestNew_InitialLoadErrorPropagated(t *testing.T) {
 	}
 }
 
-func TestNew_BuildStateFailurePropagated(t *testing.T) {
+func TestNew_BuildStateRecordsInconsistency(t *testing.T) {
 	t.Parallel()
 
 	// InitialLoad succeeds with metadata referencing an unsupported database
-	// kind, which causes buildState → BuildConnectorsFromMetadata to fail.
+	// kind. The build no longer aborts: the source is recorded as
+	// inconsistent and the controller starts with an empty schema set.
 	src := newFakeMetadataSource(&metadata.Metadata{
 		Databases: []metadata.DatabaseMetadata{
 			{
@@ -575,16 +576,26 @@ func TestNew_BuildStateFailurePropagated(t *testing.T) {
 		src,
 		logger,
 	)
-	if err == nil {
-		t.Fatal("expected error from buildState failure, got nil")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if ctrl != nil {
-		t.Errorf("expected nil controller on error, got %v", ctrl)
+	if ctrl == nil {
+		t.Fatal("expected non-nil controller despite unusable source")
 	}
 
-	if !strings.Contains(err.Error(), "building initial state") {
-		t.Errorf("expected error wrapped with 'building initial state', got %q", err.Error())
+	incs := ctrl.Inconsistencies()
+	if len(incs) != 1 {
+		t.Fatalf("expected one inconsistency, got %d: %+v", len(incs), incs)
+	}
+
+	got := incs[0]
+	if got.Kind != metadata.InconsistencyKindDatabase || got.Name != "db" {
+		t.Errorf("unexpected inconsistency kind/name: %+v", got)
+	}
+
+	if !strings.Contains(got.Reason, "unsupported database kind") {
+		t.Errorf("expected reason to mention unsupported kind, got %q", got.Reason)
 	}
 }
 

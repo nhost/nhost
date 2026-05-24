@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"maps"
 	"slices"
 
 	"github.com/nhost/nhost/services/constellation/connector/relationships"
@@ -29,15 +30,28 @@ type SchemaProvider interface {
 // can be invoked against them. Instances are immutable handles: they do not
 // retain state across calls and are safe to reuse for repeated compositions.
 type Composer struct {
-	providers map[string]SchemaProvider
-	meta      *metadata.Metadata
+	providers       map[string]SchemaProvider
+	meta            *metadata.Metadata
+	inconsistencies *metadata.Inconsistencies
 }
 
-// New creates a Composer over the given providers.
-func New(providers map[string]SchemaProvider, meta *metadata.Metadata) *Composer {
+// New creates a Composer over the given providers. Per-connector and per-role
+// composition failures are recorded in inconsistencies and the affected
+// connector or role is dropped from the result. Pass nil to have the composer
+// allocate its own collector internally.
+func New(
+	providers map[string]SchemaProvider,
+	meta *metadata.Metadata,
+	inconsistencies *metadata.Inconsistencies,
+) *Composer {
+	if inconsistencies == nil {
+		inconsistencies = metadata.NewInconsistencies()
+	}
+
 	return &Composer{
-		providers: providers,
-		meta:      meta,
+		providers:       providers,
+		meta:            meta,
+		inconsistencies: inconsistencies,
 	}
 }
 
@@ -62,19 +76,15 @@ type Result struct {
 }
 
 // Compose collects schemas from all providers, adds remote relationship
-// fields, merges them per role, and validates.
+// fields, merges them per role, and validates. Per-connector and per-role
+// failures are recorded as inconsistencies on the collector supplied to New
+// rather than aborting the build, so a partial failure still yields a usable
+// (if narrower) Result with the surviving roles and connectors.
 func (c *Composer) Compose(
 	ctx context.Context,
 	logger *slog.Logger,
 ) (Result, error) {
-	if err := c.validateProviders(); err != nil {
-		return Result{}, fmt.Errorf("validating connectors: %w", err)
-	}
-
-	roleSchemas, allRoles, err := c.collectSchemas()
-	if err != nil {
-		return Result{}, err
-	}
+	roleSchemas, allRoles := c.collectSchemas(ctx, logger)
 
 	relationships.Inject(roleSchemas, c.relationshipSpecs(), c.typeNameResolvers())
 
@@ -98,11 +108,7 @@ func (c *Composer) Compose(
 	slices.Sort(connectorNames)
 
 	for role := range allRoles {
-		if err := composeRole(
-			ctx, logger, role, connectorNames, roleSchemas, &result,
-		); err != nil {
-			return Result{}, err
-		}
+		c.composeRole(ctx, logger, role, connectorNames, roleSchemas, &result)
 	}
 
 	return result, nil
@@ -110,16 +116,23 @@ func (c *Composer) Compose(
 
 // composeRole merges every connector's schema for a single role and stores the
 // validated result in result. connectorNames must already be sorted so the
-// merge order is deterministic.
-func composeRole(
+// merge order is deterministic. A merge or validation failure drops the entire
+// role (it is recorded as an inconsistency and omitted from result); partial
+// per-role merges are not exposed because schemamerge can leave the combined
+// schema in an intermediate state on error.
+func (c *Composer) composeRole(
 	ctx context.Context,
 	logger *slog.Logger,
 	role string,
 	connectorNames []string,
 	roleSchemas map[string]map[string]*graph.Schema,
 	result *Result,
-) error {
-	var combinedSchema graph.Schema
+) {
+	var (
+		combinedSchema   graph.Schema
+		fieldToConnector = make(map[string]string)
+		typeToConnector  = make(map[string]string)
+	)
 
 	for _, connName := range connectorNames {
 		schemas := roleSchemas[connName]
@@ -130,12 +143,18 @@ func composeRole(
 		}
 
 		if err := schemamerge.MergeConnectorSchema(
-			schema, &combinedSchema, connName, result.FieldToConnector, result.TypeToConnector,
+			schema, &combinedSchema, connName, fieldToConnector, typeToConnector,
 		); err != nil {
-			return fmt.Errorf(
-				"failed to merge schema for role %q (incoming connector %q): %w",
-				role, connName, err,
+			c.inconsistencies.Record(
+				ctx, logger,
+				metadata.InconsistencyKindRole, role,
+				fmt.Sprintf(
+					"failed to merge schema (incoming connector %q): %v",
+					connName, err,
+				),
 			)
+
+			return
 		}
 
 		logger.InfoContext(ctx, "merged schema for role",
@@ -146,45 +165,41 @@ func composeRole(
 
 	schemaDoc, validatedSchema, err := schemamerge.BuildValidatedSchema(&combinedSchema, role)
 	if err != nil {
-		return fmt.Errorf("role %s: %w", role, err)
+		c.inconsistencies.Record(
+			ctx, logger,
+			metadata.InconsistencyKindRole, role,
+			fmt.Sprintf("building validated schema: %v", err),
+		)
+
+		return
 	}
 
 	result.SchemaDocs[role] = schemaDoc
 	result.ValidatedSchemas[role] = validatedSchema
 
+	maps.Copy(result.FieldToConnector, fieldToConnector)
+	maps.Copy(result.TypeToConnector, typeToConnector)
+
 	logger.InfoContext(ctx, "validated schema for role", slog.String("role", role))
-
-	return nil
 }
 
-func (c *Composer) validateProviders() error {
-	for _, db := range c.meta.Databases {
-		if _, ok := c.providers[db.Name]; !ok {
-			return fmt.Errorf("%w for database %q", ErrMissingConnector, db.Name)
-		}
-	}
-
-	for _, rs := range c.meta.RemoteSchemas {
-		if _, ok := c.providers[rs.Name]; !ok {
-			return fmt.Errorf("%w for remote schema %q", ErrMissingConnector, rs.Name)
-		}
-	}
-
-	return nil
-}
-
-func (c *Composer) collectSchemas() (
-	map[string]map[string]*graph.Schema, map[string]struct{}, error,
-) {
+func (c *Composer) collectSchemas(
+	ctx context.Context,
+	logger *slog.Logger,
+) (map[string]map[string]*graph.Schema, map[string]struct{}) {
 	roleSchemas := make(map[string]map[string]*graph.Schema)
 	allRoles := make(map[string]struct{})
 
 	for connName, conn := range c.providers {
 		schemas, err := conn.GetSchema()
 		if err != nil {
-			return nil, nil, fmt.Errorf(
-				"failed to get schema from connector %s: %w", connName, err,
+			c.inconsistencies.Record(
+				ctx, logger,
+				kindForConnector(c.meta, connName), connName,
+				fmt.Sprintf("failed to get schema from connector: %v", err),
 			)
+
+			continue
 		}
 
 		roleSchemas[connName] = schemas
@@ -194,7 +209,21 @@ func (c *Composer) collectSchemas() (
 		}
 	}
 
-	return roleSchemas, allRoles, nil
+	return roleSchemas, allRoles
+}
+
+// kindForConnector returns the inconsistency kind ("database" or
+// "remote_schema") for a connector name by looking it up in meta. It defaults
+// to "database" so the field is never empty even if the connector is
+// unregistered (which already implies a prior inconsistency was recorded).
+func kindForConnector(meta *metadata.Metadata, name string) string {
+	for _, rs := range meta.RemoteSchemas {
+		if rs.Name == name {
+			return metadata.InconsistencyKindRemoteSchema
+		}
+	}
+
+	return metadata.InconsistencyKindDatabase
 }
 
 func (c *Composer) typeNameResolvers() map[string]relationships.TypeNameResolver {

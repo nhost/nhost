@@ -102,14 +102,19 @@ func (c *Client) introspectEnumValues(
 }
 
 // getSchemas discovers all schemas in the database, excluding system schemas.
+// Reads pg_catalog.pg_namespace directly rather than information_schema.schemata
+// so the result is independent of whether the connecting role is a member of
+// each schema's owning role — information_schema views filter rows via
+// pg_has_role()/has_*_privilege(), which silently hides objects from roles that
+// only hold per-object grants. See populateForeignKeys for the same motivation.
 func getSchemas(ctx context.Context, q Querier) ([]string, error) {
 	query := `
-		SELECT schema_name
-		FROM information_schema.schemata
-		WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
-		AND schema_name NOT LIKE 'pg_temp_%'
-		AND schema_name NOT LIKE 'pg_toast_temp_%'
-		ORDER BY schema_name
+		SELECT n.nspname
+		FROM pg_catalog.pg_namespace n
+		WHERE n.nspname NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
+		AND n.nspname NOT LIKE 'pg_temp_%'
+		AND n.nspname NOT LIKE 'pg_toast_temp_%'
+		ORDER BY n.nspname
 	`
 
 	rows, err := q.Query(ctx, query)
@@ -207,16 +212,13 @@ func getTables(
 }
 
 // populateRelationKinds fills in IsView / IsInsertable / IsUpdatable on every
-// relation previously discovered by populateTableColumns. Base tables come
-// back as (false, true, true). Views inherit insertable/updatable flags from
-// information_schema.views, which Postgres derives from the view definition
-// (UNION ALL, aggregates, set-returning functions, and INSTEAD OF triggers
-// all affect these). Foreign tables and partitioned tables do not appear in
-// information_schema.views; their writability falls back to
-// information_schema.tables.is_insertable_into, which is 'NO' for read-only
-// foreign tables and 'YES' otherwise. The schema generator uses these to
-// suppress mutation fields on relations the database itself will reject
-// writes to.
+// relation previously discovered by populateTableColumns. Base tables (relkind
+// 'r') and partitioned tables ('p') are always insertable and updatable. Views
+// ('v') and foreign tables ('f') consult pg_relation_is_updatable(), which is
+// the same function information_schema.views uses internally: bit 8 (INSERT)
+// gates IsInsertable, and bits 4|16 (SELECT|UPDATE) gate IsUpdatable. The
+// schema generator uses these to suppress mutation fields on relations the
+// database itself will reject writes to.
 func populateRelationKinds(
 	ctx context.Context,
 	q Querier,
@@ -227,24 +229,31 @@ func populateRelationKinds(
 		return nil
 	}
 
-	// LEFT JOIN: base tables won't appear in information_schema.views,
-	// so v.is_insertable_into / v.is_updatable come back NULL. Fall back
-	// to information_schema.tables.is_insertable_into (populated for base
-	// tables, partitioned tables, and foreign tables — 'NO' for read-only
-	// foreign tables, 'YES' otherwise) before defaulting to 'YES'. There
-	// is no is_updatable column on information_schema.tables, so we use
-	// t.is_insertable_into as the closest writability proxy for non-views
-	// (any per-role permissions are applied separately in the schema layer).
+	// pg_relation_is_updatable() returns an int bitmask whose bits mirror
+	// the SQL standard's IS_UPDATABLE semantics. information_schema.views
+	// uses the same `& 8 = 8` (INSERT) and `& 20 = 20` (SELECT|UPDATE)
+	// checks; we replicate them here against pg_class so the query works
+	// without privileges on the relation's owner role.
 	query := `
 		SELECT
-			t.table_name,
-			t.table_type = 'VIEW' AS is_view,
-			COALESCE(v.is_insertable_into, t.is_insertable_into, 'YES') = 'YES' AS is_insertable,
-			COALESCE(v.is_updatable, t.is_insertable_into, 'YES') = 'YES' AS is_updatable
-		FROM information_schema.tables t
-		LEFT JOIN information_schema.views v
-			ON v.table_schema = t.table_schema AND v.table_name = t.table_name
-		WHERE t.table_schema = $1
+			cls.relname AS table_name,
+			cls.relkind = 'v' AS is_view,
+			CASE
+				WHEN cls.relkind IN ('r', 'p') THEN true
+				WHEN cls.relkind IN ('v', 'f') THEN
+					(pg_catalog.pg_relation_is_updatable(cls.oid, false) & 8) = 8
+				ELSE false
+			END AS is_insertable,
+			CASE
+				WHEN cls.relkind IN ('r', 'p') THEN true
+				WHEN cls.relkind IN ('v', 'f') THEN
+					(pg_catalog.pg_relation_is_updatable(cls.oid, false) & 20) = 20
+				ELSE false
+			END AS is_updatable
+		FROM pg_catalog.pg_class cls
+		JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
+		WHERE ns.nspname = $1
+			AND cls.relkind IN ('r', 'v', 'f', 'p')
 	`
 
 	rows, err := q.Query(ctx, query, schemaName)
@@ -359,36 +368,41 @@ func populateTableColumns( //nolint:funlen
 			) sub
 		)
 		SELECT
-			c.table_name,
-			c.column_name,
+			cls.relname AS table_name,
+			a.attname AS column_name,
 			CASE
 				WHEN t.typcategory = 'A' THEN COALESCE(elem_bt.typname, elem.typname)
 				ELSE COALESCE(bt.typname, t.typname)
 			END as typname,
-			c.is_nullable,
+			CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END as is_nullable,
 			a.attgenerated != '' as is_generated,
 			t.typcategory = 'A' as is_array,
 			COALESCE(ta.supports_min_max, false) as supports_min_max,
 			COALESCE(ta.supports_inc, false) as supports_inc,
 			COALESCE(ta.supports_numeric_agg, false) as supports_numeric_agg,
-			c.column_default,
-			pg_catalog.col_description(
-				('"' || c.table_schema || '"."' || c.table_name || '"')::regclass::oid,
-				c.ordinal_position
-			) as column_comment
-		FROM information_schema.columns c
-		JOIN pg_attribute a ON a.attrelid = ('"' || c.table_schema || '"."' || c.table_name || '"')::regclass
-			AND a.attname = c.column_name
-		JOIN pg_type t ON t.oid = a.atttypid
-		LEFT JOIN pg_type bt ON bt.oid = t.typbasetype
-		LEFT JOIN pg_type elem ON elem.oid = t.typelem AND t.typcategory = 'A'
-		LEFT JOIN pg_type elem_bt ON elem_bt.oid = elem.typbasetype
+			CASE
+			WHEN a.attgenerated = '' THEN pg_catalog.pg_get_expr(ad.adbin, ad.adrelid)
+		END AS column_default,
+			pg_catalog.col_description(cls.oid, a.attnum::int) as column_comment
+		FROM pg_catalog.pg_class cls
+		JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
+		JOIN pg_catalog.pg_attribute a ON a.attrelid = cls.oid
+		JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
+		LEFT JOIN pg_catalog.pg_attrdef ad
+			ON ad.adrelid = a.attrelid AND ad.adnum = a.attnum
+		LEFT JOIN pg_catalog.pg_type bt ON bt.oid = t.typbasetype
+		LEFT JOIN pg_catalog.pg_type elem
+			ON elem.oid = t.typelem AND t.typcategory = 'A'
+		LEFT JOIN pg_catalog.pg_type elem_bt ON elem_bt.oid = elem.typbasetype
 		LEFT JOIN type_with_aliases ta ON ta.typname = CASE
 			WHEN t.typcategory = 'A' THEN COALESCE(elem_bt.typname, elem.typname)
 			ELSE COALESCE(bt.typname, t.typname)
 		END
-		WHERE c.table_schema = $1
-		ORDER BY c.table_name, c.ordinal_position
+		WHERE ns.nspname = $1
+			AND cls.relkind IN ('r', 'v', 'f', 'p')
+			AND a.attnum > 0
+			AND NOT a.attisdropped
+		ORDER BY cls.relname, a.attnum
 	`
 
 	rows, err := q.Query(ctx, query, schemaName)
@@ -468,6 +482,14 @@ func populateTableColumns( //nolint:funlen
 }
 
 // populateForeignKeys queries and populates foreign key information for tables in a schema.
+// Reads pg_catalog.pg_constraint by OID instead of joining the
+// information_schema.{table_constraints,key_column_usage,constraint_column_usage}
+// views. The constraint_column_usage view in particular filters its output by
+// pg_has_role() on the *referenced* table's owner, so a role that has SELECT
+// grants but no membership in the owner role (e.g. nhost_hasura against
+// auth.* tables owned by nhost_auth_admin) cannot see foreign keys whose
+// targets it does not own. Catalog reads only require SELECT on pg_catalog
+// and return constraints regardless of role membership.
 func populateForeignKeys(
 	ctx context.Context,
 	q Querier,
@@ -476,20 +498,24 @@ func populateForeignKeys(
 ) error {
 	query := `
 		SELECT
-			tc.table_name,
-			kcu.column_name,
-			ccu.table_schema AS foreign_schema,
-			ccu.table_name AS foreign_table_name,
-			ccu.column_name AS foreign_column_name
-		FROM information_schema.table_constraints AS tc
-		JOIN information_schema.key_column_usage AS kcu
-			ON tc.constraint_name = kcu.constraint_name
-			AND tc.table_schema = kcu.table_schema
-		JOIN information_schema.constraint_column_usage AS ccu
-			ON ccu.constraint_name = tc.constraint_name
-		WHERE tc.constraint_type = 'FOREIGN KEY'
-			AND tc.table_schema = $1
-		ORDER BY tc.table_name, tc.constraint_name, kcu.ordinal_position
+			ct.relname AS table_name,
+			ac.attname AS column_name,
+			cftn.nspname AS foreign_schema,
+			cft.relname AS foreign_table_name,
+			afc.attname AS foreign_column_name
+		FROM pg_catalog.pg_constraint r
+		JOIN pg_catalog.pg_class ct ON ct.oid = r.conrelid
+		JOIN pg_catalog.pg_namespace ctn ON ctn.oid = ct.relnamespace
+		JOIN pg_catalog.pg_class cft ON cft.oid = r.confrelid
+		JOIN pg_catalog.pg_namespace cftn ON cftn.oid = cft.relnamespace
+		JOIN LATERAL unnest(r.conkey) WITH ORDINALITY AS k(col_id, ord) ON true
+		JOIN pg_catalog.pg_attribute ac
+			ON ac.attrelid = r.conrelid AND ac.attnum = k.col_id
+		JOIN pg_catalog.pg_attribute afc
+			ON afc.attrelid = r.confrelid AND afc.attnum = r.confkey[k.ord]
+		WHERE r.contype = 'f'
+			AND ctn.nspname = $1
+		ORDER BY ct.relname, r.conname, k.ord
 	`
 
 	rows, err := q.Query(ctx, query, schemaName)
@@ -532,6 +558,7 @@ func populateForeignKeys(
 }
 
 // populateUniqueConstraints queries and populates unique constraint information for tables in a schema.
+// Uses pg_catalog directly (see populateForeignKeys for rationale).
 func populateUniqueConstraints(
 	ctx context.Context,
 	q Querier,
@@ -540,17 +567,19 @@ func populateUniqueConstraints(
 ) error {
 	query := `
 		SELECT
-			tc.table_name,
-			tc.constraint_name,
-			array_agg(kcu.column_name ORDER BY kcu.ordinal_position) AS columns
-		FROM information_schema.table_constraints AS tc
-		JOIN information_schema.key_column_usage AS kcu
-			ON tc.constraint_name = kcu.constraint_name
-			AND tc.table_schema = kcu.table_schema
-		WHERE tc.constraint_type = 'UNIQUE'
-			AND tc.table_schema = $1
-		GROUP BY tc.table_name, tc.constraint_name
-		ORDER BY tc.table_name, tc.constraint_name
+			cls.relname AS table_name,
+			r.conname AS constraint_name,
+			array_agg(a.attname ORDER BY k.ord) AS columns
+		FROM pg_catalog.pg_constraint r
+		JOIN pg_catalog.pg_class cls ON cls.oid = r.conrelid
+		JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
+		JOIN LATERAL unnest(r.conkey) WITH ORDINALITY AS k(col_id, ord) ON true
+		JOIN pg_catalog.pg_attribute a
+			ON a.attrelid = r.conrelid AND a.attnum = k.col_id
+		WHERE r.contype = 'u'
+			AND ns.nspname = $1
+		GROUP BY cls.relname, r.conname
+		ORDER BY cls.relname, r.conname
 	`
 
 	rows, err := q.Query(ctx, query, schemaName)

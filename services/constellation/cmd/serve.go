@@ -261,6 +261,11 @@ func getRouter(
 	}
 
 	router := gin.New()
+
+	router.GET("/healthz", func(c *gin.Context) {
+		c.String(http.StatusOK, "ok")
+	})
+
 	router.Use(
 		gin.Recovery(),
 		oapitracing.Tracing(),
