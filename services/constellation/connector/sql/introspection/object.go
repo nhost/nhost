@@ -161,6 +161,18 @@ type Table struct {
 	// UniqueConstraints lists unique constraints (excluding the primary
 	// key) defined on this table.
 	UniqueConstraints []UniqueConstraint
+	// IsView is true if the relation is a view rather than a base table.
+	// Always false for SQL base tables.
+	IsView bool
+	// IsInsertable reports whether INSERTs are allowed against the
+	// relation. Always true for base tables; for views it mirrors
+	// PostgreSQL's information_schema.views.is_insertable_into.
+	IsInsertable bool
+	// IsUpdatable reports whether UPDATE and DELETE are allowed against
+	// the relation. Always true for base tables; for views it mirrors
+	// PostgreSQL's information_schema.views.is_updatable, which gates
+	// both UPDATE and DELETE per the SQL standard.
+	IsUpdatable bool
 }
 
 // maxEnumTableColumns is the upper bound for an enum table: the primary-key value
