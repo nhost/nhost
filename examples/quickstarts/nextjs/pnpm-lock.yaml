@@ -76,7 +76,7 @@ importers:
         specifier: workspace:^
         version: link:../../../packages/nhost-js
       next:
-        specifier: ^16.2.5
+        specifier: ^16.2.6
         version: 16.2.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react:
         specifier: 19.1.0
