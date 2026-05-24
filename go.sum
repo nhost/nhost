@@ -387,10 +387,6 @@ github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f/go.mod h1:ZdcZmHo+o7JKHSa8/e818NopupXU1YMK5fe1lsApnBw=
-github.com/nhost/be v0.0.0-20260524093712-d9b0df7413fc h1:AfRi43jNdpV3IgIAN+yUT8bFoe2izJBSFbgnw7MSDXQ=
-github.com/nhost/be v0.0.0-20260524093712-d9b0df7413fc/go.mod h1:Iu++SAB+fVjBAt6LJ0Gv857Y7QFIiOIo3xHKRGmHYYw=
-github.com/nhost/be v0.0.0-20260524143021-181750234e6c h1:wMg9GH8lba8tHUGAlgHd9VTBc6BZj0YsnsXlLz2EA+w=
-github.com/nhost/be v0.0.0-20260524143021-181750234e6c/go.mod h1:Iu++SAB+fVjBAt6LJ0Gv857Y7QFIiOIo3xHKRGmHYYw=
 github.com/nhost/be v0.0.0-20260524143651-95274f2ff7f4 h1:4vYG+6KDglpqbjuwdV/ZR9noPXMw4hNJUF5tZ4Kutbg=
 github.com/nhost/be v0.0.0-20260524143651-95274f2ff7f4/go.mod h1:Iu++SAB+fVjBAt6LJ0Gv857Y7QFIiOIo3xHKRGmHYYw=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
