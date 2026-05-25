@@ -21,17 +21,17 @@ import (
 func TestPkArgs_EnumFKResolvedToEnumType(t *testing.T) {
 	t.Parallel()
 
-	md := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+	md := &metadata.DatabaseMetadata{
 		Tables: []metadata.TableMetadata{
-			{ //nolint:exhaustruct
+			{
 				Table:  metadata.TableSource{Schema: "public", Name: "muscle_groups"},
 				IsEnum: true,
 			},
-			{ //nolint:exhaustruct
+			{
 				Table: metadata.TableSource{
 					Schema: "public", Name: "exercise_secondary_muscle_groups",
 				},
-				Configuration: metadata.TableConfiguration{ //nolint:exhaustruct
+				Configuration: metadata.TableConfiguration{
 					CustomName: "exerciseSecondaryMuscleGroups",
 				},
 			},
@@ -45,25 +45,25 @@ func TestPkArgs_EnumFKResolvedToEnumType(t *testing.T) {
 	}
 	objects.Schemas["public"] = &introspection.Schema{
 		Tables: map[string]*introspection.Table{
-			"muscle_groups": { //nolint:exhaustruct
+			"muscle_groups": {
 				Schema:       "public",
 				Name:         "muscle_groups",
 				IsInsertable: true,
 				IsUpdatable:  true,
 				PrimaryKeys:  []string{"value"},
 				Columns: []introspection.Column{
-					{Name: "value", Type: "text"}, //nolint:exhaustruct
+					{Name: "value", Type: "text"},
 				},
 			},
-			"exercise_secondary_muscle_groups": { //nolint:exhaustruct
+			"exercise_secondary_muscle_groups": {
 				Schema:       "public",
 				Name:         "exercise_secondary_muscle_groups",
 				IsInsertable: true,
 				IsUpdatable:  true,
 				PrimaryKeys:  []string{"exercise_id", "muscle_group"},
 				Columns: []introspection.Column{
-					{Name: "exercise_id", Type: "uuid"},   //nolint:exhaustruct
-					{Name: "muscle_group", Type: "text"}, //nolint:exhaustruct
+					{Name: "exercise_id", Type: "uuid"},
+					{Name: "muscle_group", Type: "text"},
 				},
 				ForeignKeys: []introspection.ForeignKey{
 					{
@@ -77,7 +77,7 @@ func TestPkArgs_EnumFKResolvedToEnumType(t *testing.T) {
 		},
 	}
 
-	sch, err := GenerateForRole(objects, roleAdmin, md, Capabilities{ //nolint:exhaustruct
+	sch, err := GenerateForRole(objects, roleAdmin, md, Capabilities{
 		Kind: KindPostgres,
 	})
 	if err != nil {
@@ -111,6 +111,230 @@ func TestPkArgs_EnumFKResolvedToEnumType(t *testing.T) {
 	t.Run("pk_columns_input field", func(t *testing.T) {
 		t.Parallel()
 		assertInputFieldType(t, sch, pkColsInput, argName, wantEnum)
+	})
+
+	t.Run("update_by_pk mutation pk_columns arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(
+			t,
+			findObject(sch, "mutation_root"),
+			"update_"+parent+"_by_pk",
+			"pk_columns",
+			pkColsInput,
+		)
+	})
+}
+
+// TestPkArgs_EnumFKResolvedToEnumType_NullableIntrospection combines the
+// composite-PK + enum-FK shape from TestPkArgs_EnumFKResolvedToEnumType with
+// the SQLite implicit-NOT-NULL-PK nullability shape from
+// TestPkArgs_NullableIntrospectedColumnStillNonNull: every PK column is
+// introspected with IsNullable=true, including the enum-FK PK column. All
+// four PK-arg paths must still emit NonNull(<named>) — NonNull(uuid) for the
+// scalar PK column and NonNull(muscle_groups_enum) for the enum-FK PK column.
+// Without the forceNonNull plumbing through the enum-FK resolution path,
+// this configuration silently demotes the enum-typed arg to a nullable type.
+func TestPkArgs_EnumFKResolvedToEnumType_NullableIntrospection(t *testing.T) {
+	t.Parallel()
+
+	md := &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{
+				Table:  metadata.TableSource{Schema: "public", Name: "muscle_groups"},
+				IsEnum: true,
+			},
+			{
+				Table: metadata.TableSource{
+					Schema: "public", Name: "exercise_secondary_muscle_groups",
+				},
+				Configuration: metadata.TableConfiguration{
+					CustomName: "exerciseSecondaryMuscleGroups",
+				},
+			},
+		},
+	}
+
+	objects := introspection.NewObjects()
+	objects.EnumValues["public.muscle_groups"] = []introspection.EnumValue{
+		{Value: "chest"},
+		{Value: "back"},
+	}
+	objects.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"muscle_groups": {
+				Schema:       "public",
+				Name:         "muscle_groups",
+				IsInsertable: true,
+				IsUpdatable:  true,
+				PrimaryKeys:  []string{"value"},
+				Columns: []introspection.Column{
+					{Name: "value", Type: "text"},
+				},
+			},
+			"exercise_secondary_muscle_groups": {
+				Schema:       "public",
+				Name:         "exercise_secondary_muscle_groups",
+				IsInsertable: true,
+				IsUpdatable:  true,
+				PrimaryKeys:  []string{"exercise_id", "muscle_group"},
+				Columns: []introspection.Column{
+					// Both PK columns introspected as nullable — mirrors the
+					// SQLite quirk applied to a composite PK whose second
+					// column is an enum FK.
+					{Name: "exercise_id", Type: "uuid", IsNullable: true},
+					{Name: "muscle_group", Type: "text", IsNullable: true},
+				},
+				ForeignKeys: []introspection.ForeignKey{
+					{
+						ColumnName:        "muscle_group",
+						ForeignSchema:     "public",
+						ForeignTable:      "muscle_groups",
+						ForeignColumnName: "value",
+					},
+				},
+			},
+		},
+	}
+
+	sch, err := GenerateForRole(objects, roleAdmin, md, Capabilities{
+		Kind: KindPostgres,
+	})
+	if err != nil {
+		t.Fatalf("GenerateForRole returned error: %v", err)
+	}
+
+	const (
+		wantEnum    = "muscle_groups_enum"
+		wantScalar  = "uuid"
+		parent      = "exerciseSecondaryMuscleGroups"
+		enumArg     = "muscle_group"
+		scalarArg   = "exercise_id"
+		queryByPk   = parent + "_by_pk"
+		deleteByPk  = "delete_" + parent + "_by_pk"
+		pkColsInput = parent + "_pk_columns_input"
+	)
+
+	t.Run("by_pk query enum-FK arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(t, findObject(sch, "query_root"), queryByPk, enumArg, wantEnum)
+	})
+
+	t.Run("by_pk query scalar arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(t, findObject(sch, "query_root"), queryByPk, scalarArg, wantScalar)
+	})
+
+	t.Run("by_pk subscription enum-FK arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(
+			t, findObject(sch, "subscription_root"), queryByPk, enumArg, wantEnum,
+		)
+	})
+
+	t.Run("by_pk subscription scalar arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(
+			t, findObject(sch, "subscription_root"), queryByPk, scalarArg, wantScalar,
+		)
+	})
+
+	t.Run("delete_by_pk mutation enum-FK arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(
+			t, findObject(sch, "mutation_root"), deleteByPk, enumArg, wantEnum,
+		)
+	})
+
+	t.Run("delete_by_pk mutation scalar arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(
+			t, findObject(sch, "mutation_root"), deleteByPk, scalarArg, wantScalar,
+		)
+	})
+
+	t.Run("pk_columns_input enum-FK field", func(t *testing.T) {
+		t.Parallel()
+		assertInputFieldType(t, sch, pkColsInput, enumArg, wantEnum)
+	})
+
+	t.Run("pk_columns_input scalar field", func(t *testing.T) {
+		t.Parallel()
+		assertInputFieldType(t, sch, pkColsInput, scalarArg, wantScalar)
+	})
+}
+
+// TestPkArgs_NullableIntrospectedColumnStillNonNull locks in that PK columns
+// introspected as IsNullable=true (the SQLite `TYPE PRIMARY KEY` quirk —
+// `PRAGMA table_xinfo.notnull` is 0 unless the column is declared with an
+// explicit `NOT NULL` or is `INTEGER PRIMARY KEY`) still resolve to NonNull
+// in every PK-arg path. Regression test for the `getColumnGraphQLType`
+// `forceNonNull` parameter: without it, PK args silently demoted from `T!`
+// to `T`, breaking the `_by_pk` / `delete_*_by_pk` / `*_pk_columns_input`
+// schema contract.
+func TestPkArgs_NullableIntrospectedColumnStillNonNull(t *testing.T) {
+	t.Parallel()
+
+	md := &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "items"},
+			},
+		},
+	}
+
+	objects := introspection.NewObjects()
+	objects.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"items": {
+				Schema:       "public",
+				Name:         "items",
+				IsInsertable: true,
+				IsUpdatable:  true,
+				PrimaryKeys:  []string{"id"},
+				Columns: []introspection.Column{
+					// SQLite reports IsNullable=true for a bare `id TEXT
+					// PRIMARY KEY` declaration. Hasura still expects `T!`
+					// on every PK-arg path.
+					{Name: "id", Type: "text", IsNullable: true},
+				},
+			},
+		},
+	}
+
+	sch, err := GenerateForRole(objects, roleAdmin, md, Capabilities{
+		Kind: KindPostgres,
+	})
+	if err != nil {
+		t.Fatalf("GenerateForRole returned error: %v", err)
+	}
+
+	const (
+		parent      = "items"
+		argName     = "id"
+		wantNamed   = "String"
+		queryByPk   = parent + "_by_pk"
+		deleteByPk  = "delete_" + parent + "_by_pk"
+		pkColsInput = parent + "_pk_columns_input"
+	)
+
+	t.Run("by_pk query arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(t, findObject(sch, "query_root"), queryByPk, argName, wantNamed)
+	})
+
+	t.Run("by_pk subscription arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(t, findObject(sch, "subscription_root"), queryByPk, argName, wantNamed)
+	})
+
+	t.Run("delete_by_pk mutation arg", func(t *testing.T) {
+		t.Parallel()
+		assertArgType(t, findObject(sch, "mutation_root"), deleteByPk, argName, wantNamed)
+	})
+
+	t.Run("pk_columns_input field", func(t *testing.T) {
+		t.Parallel()
+		assertInputFieldType(t, sch, pkColsInput, argName, wantNamed)
 	})
 }
 

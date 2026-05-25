@@ -133,10 +133,10 @@ func generateByPkField(
 
 		for i := range tableInfo.Columns {
 			if tableInfo.Columns[i].Name == pkColName {
-				// PK arguments are non-null. Primary-key columns are non-nullable
-				// in introspection, so getColumnGraphQLType emits the NonNull form
-				// for both the enum-FK and scalar-fallback branches.
-				colType = getColumnGraphQLType(&tableInfo.Columns[i], tableInfo, md)
+				// PK arguments are non-null. SQLite does not imply NOT NULL from
+				// a bare `PRIMARY KEY` declaration, so force the NonNull form
+				// regardless of the introspected IsNullable flag.
+				colType = getColumnGraphQLType(&tableInfo.Columns[i], tableInfo, md, true)
 				description = getColumnDescription(&tableInfo.Columns[i])
 
 				break

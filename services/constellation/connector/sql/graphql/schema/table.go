@@ -310,7 +310,7 @@ func generateTableObjectType(
 		field := &graph.Field{ //nolint:exhaustruct
 			Name:        getCustomColumnName(tableMeta, col.Name),
 			Description: getColumnDescription(&col),
-			Type:        getColumnGraphQLType(&col, tableInfo, md),
+			Type:        getColumnGraphQLType(&col, tableInfo, md, false),
 		}
 
 		// jsonb/json columns expose a `path` argument so callers can drill

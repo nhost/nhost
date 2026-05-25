@@ -287,7 +287,7 @@ func generateIncInput(
 		}
 
 		if col.SupportsInc {
-			colType := getColumnGraphQLType(&col, tableInfo, md)
+			colType := getColumnGraphQLType(&col, tableInfo, md, false)
 
 			// inc_input columns are always nullable -- a missing entry means
 			// "no increment", not "set to zero".
@@ -338,7 +338,7 @@ func generateSetInput(
 			continue
 		}
 
-		colType := getColumnGraphQLType(&col, tableInfo, md)
+		colType := getColumnGraphQLType(&col, tableInfo, md, false)
 
 		if colType.NonNull {
 			if colType.Elem != nil {
