@@ -108,7 +108,7 @@ func generateInsertInput(
 			continue
 		}
 
-		colType := getColumnGraphQLType(&col, tableInfo, md, false)
+		colType := getColumnGraphQLType(&col, tableInfo, md)
 
 		if colType.NonNull {
 			if colType.Elem != nil {

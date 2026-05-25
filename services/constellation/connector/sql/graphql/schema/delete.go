@@ -30,10 +30,7 @@ func generateDeleteByPkField(
 
 		for i := range tableInfo.Columns {
 			if tableInfo.Columns[i].Name == pkColName {
-				// PK args are non-null. SQLite does not imply NOT NULL from a
-				// bare `PRIMARY KEY` declaration, so force the NonNull form
-				// regardless of the introspected IsNullable flag.
-				colType = getColumnGraphQLType(&tableInfo.Columns[i], tableInfo, md, true)
+				colType = getColumnGraphQLTypePKArg(&tableInfo.Columns[i], tableInfo, md)
 				description = getColumnDescription(&tableInfo.Columns[i])
 
 				break

@@ -444,20 +444,33 @@ func isTargetTableAggregationAllowed(
 // getColumnGraphQLType returns the GraphQL type for a column.
 // If the column references an enum table via foreign key, it returns the enum type.
 // Otherwise, it returns the standard PostgreSQL type mapping.
-//
-// When forceNonNull is true, the returned type is always NonNull regardless of
-// col.IsNullable. PK-arg call sites must pass forceNonNull=true because SQLite
-// does not imply NOT NULL from a bare `PRIMARY KEY` declaration, so introspected
-// PK columns can carry IsNullable=true even though Hasura's contract requires
-// `T!` on every `_by_pk` arg and `_pk_columns_input` field.
 func getColumnGraphQLType(
 	col *introspection.Column,
 	tableInfo *introspection.Table,
 	md *metadata.DatabaseMetadata,
-	forceNonNull bool,
 ) *graph.Type {
-	nullable := col.IsNullable && !forceNonNull
+	return columnGraphQLType(col, tableInfo, md, col.IsNullable)
+}
 
+// getColumnGraphQLTypePKArg returns the GraphQL type for a PK-arg column,
+// always wrapped in NonNull. SQLite does not imply NOT NULL from a bare
+// `PRIMARY KEY` declaration, so introspected PK columns can carry
+// IsNullable=true even though Hasura's contract requires `T!` on every
+// `_by_pk` arg and `_pk_columns_input` field.
+func getColumnGraphQLTypePKArg(
+	col *introspection.Column,
+	tableInfo *introspection.Table,
+	md *metadata.DatabaseMetadata,
+) *graph.Type {
+	return columnGraphQLType(col, tableInfo, md, false)
+}
+
+func columnGraphQLType(
+	col *introspection.Column,
+	tableInfo *introspection.Table,
+	md *metadata.DatabaseMetadata,
+	nullable bool,
+) *graph.Type {
 	// Check if this column has a foreign key to an enum table
 	for _, fk := range tableInfo.ForeignKeys {
 		if fk.ColumnName == col.Name { //nolint:nestif
