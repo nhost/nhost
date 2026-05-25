@@ -618,6 +618,58 @@ Shows a list of commands or help for one command
 
 Shows a list of commands or help for one command
 
+## schema
+
+Schema utilities
+
+**--help, -h**: show help
+
+### diff
+
+Compare two GraphQL schema files
+
+**--help, -h**: show help
+
+**--no-clean**: Disable all normalization/cleaning of known-safe differences
+
+**-a**="": Path to the first schema file
+
+**-b**="": Path to the second schema file
+
+#### help, h
+
+Shows a list of commands or help for one command
+
+### dump
+
+Dump a GraphQL schema as SDL
+
+**--admin-secret**="": Admin secret (defaults: local subdomain → nhost-admin-secret; cloud → fetched from Nhost API). NHOST_ADMIN_SECRET is consulted only when --url is not set and never forwarded to --url.
+
+**--header, -H**="": Extra HTTP header to send, repeatable (e.g. "X-Hasura-Foo: bar")
+
+**--help, -h**: show help
+
+**--metadata, -m**="": Path to a Hasura metadata directory to generate the schema from
+
+**--output, -o**="": Output file (default: stdout)
+
+**--role, -r**="": Role to generate the schema for. Metadata mode defaults to "user"; URL mode sends X-Hasura-Role only when this flag is explicitly set. (default: "user")
+
+**--subdomain**="": Project subdomain (defaults to the linked project; use 'local' for the local dev stack) [$NHOST_SUBDOMAIN]
+
+**--timeout**="": HTTP timeout in seconds (URL mode only) (default: 30)
+
+**--url, -u**="": GraphQL endpoint URL to introspect
+
+#### help, h
+
+Shows a list of commands or help for one command
+
+### help, h
+
+Shows a list of commands or help for one command
+
 ## secrets
 
 Manage secrets
