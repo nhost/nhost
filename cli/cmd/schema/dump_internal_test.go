@@ -1,9 +1,140 @@
 package schema
 
 import (
+	"io"
 	"reflect"
 	"testing"
+
+	"github.com/nhost/nhost/cli/clienv"
 )
+
+// newLocalCliEnv returns a CliEnv wired with an unreachable graphql URL and
+// "local" as the local subdomain, so that ResolveProject("local") never hits
+// the network. Used by resolveURLAndSecret tests.
+func newLocalCliEnv() *clienv.CliEnv {
+	return clienv.New(
+		io.Discard, io.Discard,
+		clienv.NewPathStructure("", "", "", ""),
+		"", "https://unreachable.invalid/v1", "", "", "", "", "local",
+	)
+}
+
+func TestResolveURLAndSecret(t *testing.T) {
+	tests := []struct {
+		name            string
+		subdomain       string
+		url             string
+		adminSecret     string
+		explicitSecret  bool
+		envAdminSecret  string // set via t.Setenv when non-empty marker "" handled below
+		setEnv          bool   // whether to call t.Setenv at all
+		wantURL         string
+		wantAdminSecret string
+	}{
+		{
+			// --url + --admin-secret → both returned verbatim, no env consulted.
+			name:            "explicit url and explicit admin secret",
+			subdomain:       "",
+			url:             "https://third-party.example/v1/graphql",
+			adminSecret:     "user-supplied",
+			explicitSecret:  true,
+			setEnv:          false,
+			wantURL:         "https://third-party.example/v1/graphql",
+			wantAdminSecret: "user-supplied",
+		},
+		{
+			// Leak guard: NHOST_ADMIN_SECRET MUST NOT flow into a --url request.
+			// adminSecret is "" (flag not passed). The function must return ""
+			// and never consult the env var.
+			name:            "explicit url with env admin secret does not leak",
+			subdomain:       "",
+			url:             "https://third-party.example/v1/graphql",
+			adminSecret:     "",
+			explicitSecret:  false,
+			envAdminSecret:  "leaked-via-env",
+			setEnv:          true,
+			wantURL:         "https://third-party.example/v1/graphql",
+			wantAdminSecret: "",
+		},
+		{
+			// Explicit empty --admin-secret short-circuits BOTH the env-var
+			// fallback and the lazy AdminSecret fetch. For --subdomain local
+			// this is the line that prevents nil-deref on ep.App when the
+			// caller deliberately wants no secret.
+			name:            "explicit empty admin secret bypasses env and lazy fetch",
+			subdomain:       "local",
+			url:             "",
+			adminSecret:     "",
+			explicitSecret:  true,
+			envAdminSecret:  "should-be-ignored",
+			setEnv:          true,
+			wantURL:         clienv.NhostGraphqlURL("local", "local"),
+			wantAdminSecret: "",
+		},
+		{
+			// Without --url and without --admin-secret, NHOST_ADMIN_SECRET is a
+			// safe override against a resolved project. For --subdomain local
+			// the env var must beat DefaultLocalAdminSecret.
+			name:            "env admin secret seeds resolved local endpoint",
+			subdomain:       "local",
+			url:             "",
+			adminSecret:     "",
+			explicitSecret:  false,
+			envAdminSecret:  "env-override",
+			setEnv:          true,
+			wantURL:         clienv.NhostGraphqlURL("local", "local"),
+			wantAdminSecret: "env-override",
+		},
+		{
+			// No --url, no --admin-secret, no env: --subdomain local falls back
+			// to the pre-seeded DefaultLocalAdminSecret. Locks in that the
+			// local path never tries to hit the cloud API.
+			name:            "local subdomain with no overrides uses default local secret",
+			subdomain:       "local",
+			url:             "",
+			adminSecret:     "",
+			explicitSecret:  false,
+			setEnv:          false,
+			wantURL:         clienv.NhostGraphqlURL("local", "local"),
+			wantAdminSecret: clienv.DefaultLocalAdminSecret,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// NOT t.Parallel: t.Setenv forbids parallel subtests.
+			if tt.setEnv {
+				t.Setenv("NHOST_ADMIN_SECRET", tt.envAdminSecret)
+			} else {
+				// Make sure a stray env var in the developer's shell does not
+				// contaminate the "no env" cases.
+				t.Setenv("NHOST_ADMIN_SECRET", "")
+			}
+
+			ce := newLocalCliEnv()
+
+			gotURL, gotSecret, err := resolveURLAndSecret(
+				t.Context(),
+				ce,
+				tt.subdomain,
+				tt.url,
+				tt.adminSecret,
+				tt.explicitSecret,
+			)
+			if err != nil {
+				t.Fatalf("resolveURLAndSecret returned error: %v", err)
+			}
+
+			if gotURL != tt.wantURL {
+				t.Errorf("url = %q, want %q", gotURL, tt.wantURL)
+			}
+
+			if gotSecret != tt.wantAdminSecret {
+				t.Errorf("adminSecret = %q, want %q", gotSecret, tt.wantAdminSecret)
+			}
+		})
+	}
+}
 
 func TestBuildHeaders(t *testing.T) {
 	t.Parallel()

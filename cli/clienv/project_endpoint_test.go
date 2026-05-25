@@ -1,6 +1,7 @@
 package clienv //nolint:testpackage // white-box: pre-seed unexported nhclient seam.
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -108,6 +109,26 @@ func TestSetAdminSecretShortCircuits(t *testing.T) {
 
 	if secret != "preseeded-secret" {
 		t.Errorf("AdminSecret = %q, want %q", secret, "preseeded-secret")
+	}
+}
+
+func TestAdminSecretNoAppErrors(t *testing.T) {
+	t.Parallel()
+
+	ce := New(
+		io.Discard, io.Discard,
+		NewPathStructure("", "", "", ""),
+		"", "https://unreachable.invalid/v1", "", "", "", "", "local",
+	)
+
+	// Endpoint with no cached secret and no associated cloud app: the lazy
+	// fetch has nothing to call GetHasuraAdminSecret with. AdminSecret must
+	// return ErrEndpointHasNoApp instead of nil-derefing on p.App.ID.
+	ep := newEndpoint(ce, "myapp", "eu-central-1")
+
+	_, err := ep.AdminSecret(t.Context())
+	if !errors.Is(err, ErrEndpointHasNoApp) {
+		t.Fatalf("AdminSecret err = %v, want ErrEndpointHasNoApp", err)
 	}
 }
 

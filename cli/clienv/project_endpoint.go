@@ -2,9 +2,18 @@ package clienv
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
+)
+
+// ErrEndpointHasNoApp is returned by [ProjectEndpoint.AdminSecret] when the
+// endpoint has no cached secret and no associated cloud app to fetch one from
+// (i.e. a local endpoint whose pre-seeded [DefaultLocalAdminSecret] was
+// cleared via [ProjectEndpoint.SetAdminSecret]).
+var ErrEndpointHasNoApp = errors.New(
+	"cannot fetch admin secret: endpoint has no associated cloud app",
 )
 
 // DefaultLocalAdminSecret is the Hasura admin secret used by the local dev
@@ -78,11 +87,20 @@ func newEndpoint(ce *CliEnv, subdomain, region string) *ProjectEndpoint {
 }
 
 // AdminSecret returns the Hasura admin secret for this project. For the local
-// stack it's [DefaultLocalAdminSecret]. For a cloud project it is fetched
-// lazily via the Nhost API on first call and cached on the endpoint.
+// stack it's [DefaultLocalAdminSecret] (pre-seeded by [CliEnv.ResolveProject]).
+// For a cloud project it is fetched lazily via the Nhost API on first call
+// and cached on the endpoint.
+//
+// Precondition: either a secret has been cached (locally pre-seeded or set
+// via [ProjectEndpoint.SetAdminSecret]) or [ProjectEndpoint.App] is non-nil.
+// If neither holds, [ErrEndpointHasNoApp] is returned rather than panicking.
 func (p *ProjectEndpoint) AdminSecret(ctx context.Context) (string, error) {
 	if p.adminSecret != "" {
 		return p.adminSecret, nil
+	}
+
+	if p.App == nil {
+		return "", ErrEndpointHasNoApp
 	}
 
 	cl, err := p.ce.GetNhostClient(ctx)

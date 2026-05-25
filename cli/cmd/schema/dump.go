@@ -125,7 +125,14 @@ func dump(ctx context.Context, cmd *cli.Command) error {
 		return writeSDL(doc, cmd.String(flagOutput))
 	}
 
-	resolvedURL, adminSecret, err := resolveURLAndSecret(ctx, cmd, url)
+	resolvedURL, adminSecret, err := resolveURLAndSecret(
+		ctx,
+		clienv.FromCLI(cmd),
+		cmd.String(flagSubdomain),
+		url,
+		cmd.String(flagAdminSecret),
+		cmd.IsSet(flagAdminSecret),
+	)
 	if err != nil {
 		return err
 	}
@@ -153,12 +160,18 @@ func dump(ctx context.Context, cmd *cli.Command) error {
 // set (linked-project, --subdomain local, or --subdomain <cloud-project>) the
 // env var is honoured as an override unless the user explicitly passed
 // --admin-secret (including with an empty value).
+//
+// Parameters are passed explicitly (rather than via *cli.Command) so the
+// security-sensitive precedence policy can be exercised by table-driven tests
+// without standing up a urfave/cli command tree.
 func resolveURLAndSecret(
-	ctx context.Context, cmd *cli.Command, url string,
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	subdomain string,
+	url string,
+	adminSecret string,
+	explicitSecret bool,
 ) (string, string, error) {
-	adminSecret := cmd.String(flagAdminSecret)
-	explicitSecret := cmd.IsSet(flagAdminSecret)
-
 	if url != "" {
 		// Explicit --url: only forward the admin secret when the user typed it
 		// in via --admin-secret; never from NHOST_ADMIN_SECRET (which the flag
@@ -166,18 +179,14 @@ func resolveURLAndSecret(
 		return url, adminSecret, nil
 	}
 
-	ep, err := clienv.FromCLI(cmd).ResolveProject(ctx, cmd.String(flagSubdomain))
+	ep, err := ce.ResolveProject(ctx, subdomain)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to resolve project: %w", err)
 	}
 
 	// An explicit --admin-secret (including the empty string) wins outright:
 	// return immediately, bypassing both the NHOST_ADMIN_SECRET env-var
-	// fallback and the lazy cloud-API fetch in ep.AdminSecret. Touching
-	// ep.SetAdminSecret("") would defeat the intent — the lazy fetch keys off
-	// p.adminSecret == "" and would still run, and for --subdomain local it
-	// would also clobber the pre-seeded DefaultLocalAdminSecret and nil-deref
-	// on p.App.
+	// fallback and the lazy cloud-API fetch in ep.AdminSecret.
 	if explicitSecret {
 		return ep.GraphqlURL, adminSecret, nil
 	}
