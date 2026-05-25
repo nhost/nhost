@@ -124,7 +124,7 @@ func (p *Project) GetAuthURL() string {
 		return p.AuthURL
 	}
 
-	return fmt.Sprintf("https://%s.auth.%s.nhost.run/v1", p.Subdomain, p.Region)
+	return clienv.NhostAuthURL(p.Subdomain, p.Region)
 }
 
 func (p *Project) GetGraphqlURL() string {
@@ -132,7 +132,7 @@ func (p *Project) GetGraphqlURL() string {
 		return p.GraphqlURL
 	}
 
-	return fmt.Sprintf("https://%s.graphql.%s.nhost.run/v1", p.Subdomain, p.Region)
+	return clienv.NhostGraphqlURL(p.Subdomain, p.Region)
 }
 
 func (p *Project) GetHasuraURL() string {
@@ -140,7 +140,7 @@ func (p *Project) GetHasuraURL() string {
 		return p.HasuraURL
 	}
 
-	return fmt.Sprintf("https://%s.hasura.%s.nhost.run", p.Subdomain, p.Region)
+	return clienv.NhostHasuraURL(p.Subdomain, p.Region)
 }
 
 func (p *Project) GetAuthInterceptor() (func(ctx context.Context, req *http.Request) error, error) {

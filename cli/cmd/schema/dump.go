@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -33,7 +32,6 @@ const (
 
 	defaultTimeoutSeconds = 30
 	defaultRole           = "user"
-	defaultAdminSecret    = "nhost-admin-secret" //nolint:gosec
 	outputFileMode        = 0o600
 
 	headerHasuraRole        = "X-Hasura-Role"
@@ -46,9 +44,12 @@ func commandDump() *cli.Command {
 		Usage: "Dump a GraphQL schema as SDL",
 		Description: `Emit a GraphQL schema as SDL. Source modes:
 
-  (default)           Introspect the linked project's GraphQL endpoint.
-                      Defaults to the local dev stack; pass --subdomain to
-                      target a cloud project.
+  (default)           Introspect the linked project's GraphQL endpoint. With
+                      no --subdomain the linked project is used (links if
+                      needed). Pass --subdomain local for the local dev
+                      stack, or --subdomain <name> for a specific cloud
+                      project. For cloud projects the admin secret is fetched
+                      via the Nhost API unless --admin-secret is set.
 
   --url URL           Introspect an arbitrary live GraphQL endpoint. Bypasses
                       the linked-project lookup and --subdomain.
@@ -60,7 +61,7 @@ The flags --url and --metadata are mutually exclusive.`,
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagSubdomain,
-				Usage:   "Project subdomain (defaults to the local dev stack)",
+				Usage:   "Project subdomain (defaults to the linked project; use 'local' for the local dev stack)",
 				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -81,7 +82,7 @@ The flags --url and --metadata are mutually exclusive.`,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagAdminSecret,
-				Usage:   "Admin secret to authenticate with (defaults to local admin secret)",
+				Usage:   "Admin secret (defaults: local subdomain → nhost-admin-secret; cloud → fetched from Nhost API)",
 				Sources: cli.EnvVars("NHOST_ADMIN_SECRET"),
 			},
 			&cli.StringSliceFlag{ //nolint:exhaustruct
@@ -147,30 +148,21 @@ func resolveURLAndSecret(
 		return url, adminSecret, nil
 	}
 
-	ce := clienv.FromCLI(cmd)
-	subdomain := cmd.String(flagSubdomain)
-	local := ce.LocalSubdomain()
-
-	if subdomain == "" || subdomain == local {
-		if adminSecret == "" {
-			adminSecret = defaultAdminSecret
-		}
-
-		return fmt.Sprintf("https://%s.graphql.%s.nhost.run/v1", local, local), adminSecret, nil
-	}
-
-	proj, err := ce.GetAppInfo(ctx, subdomain)
+	ep, err := clienv.FromCLI(cmd).ResolveProject(ctx, cmd.String(flagSubdomain))
 	if err != nil {
-		return "", "", fmt.Errorf("failed to get app info: %w", err)
+		return "", "", fmt.Errorf("failed to resolve project: %w", err)
 	}
 
-	return projectGraphqlURL(proj), adminSecret, nil
-}
+	if adminSecret != "" {
+		ep.SetAdminSecret(adminSecret)
+	}
 
-func projectGraphqlURL(proj *graphql.AppSummaryFragment) string {
-	return fmt.Sprintf(
-		"https://%s.graphql.%s.nhost.run/v1", proj.Subdomain, proj.Region.Name,
-	)
+	adminSecret, err = ep.AdminSecret(ctx)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get admin secret: %w", err)
+	}
+
+	return ep.GraphqlURL, adminSecret, nil
 }
 
 // buildHeaders combines derived defaults (role, admin secret) with explicit
