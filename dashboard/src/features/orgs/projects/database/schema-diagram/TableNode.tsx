@@ -24,6 +24,7 @@ import {
   getComputedFieldPermissionState,
   getRelevantRules,
   getTablePermissionState,
+  isOperationAllowed,
   type PermissionDotState,
   type RuleKey,
 } from './permissionState';
@@ -86,13 +87,13 @@ function OperationsList({
   schema,
   table,
   action,
-  dimmed,
+  role,
 }: {
   metadataTable: HasuraMetadataTable | undefined;
   schema: string;
   table: string;
   action: DatabaseAction;
-  dimmed: boolean;
+  role: string;
 }): ReactNode {
   const operations = getOperationNamesForAction(
     metadataTable,
@@ -109,18 +110,27 @@ function OperationsList({
       <div className="text-muted-foreground text-xs uppercase tracking-wide">
         Operations
       </div>
-      <ul className={cn('space-y-0.5', dimmed && 'opacity-50')}>
-        {operations.map((op) => (
-          <li
-            key={op.label}
-            className={cn(
-              'font-mono text-xs',
-              op.isCustom && GRAPHQL_NAME_CLASS,
-            )}
-          >
-            {op.name}
-          </li>
-        ))}
+      <ul className="space-y-0.5">
+        {operations.map((op) => {
+          const allowed = isOperationAllowed(
+            metadataTable,
+            role,
+            action,
+            op.metadataKey,
+          );
+          return (
+            <li
+              key={op.label}
+              className={cn(
+                'font-mono text-xs',
+                op.isCustom && GRAPHQL_NAME_CLASS,
+                !allowed && 'opacity-50',
+              )}
+            >
+              {op.name}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -148,7 +158,7 @@ function TableDotTooltipContent({
       schema={schema}
       table={table}
       action={action}
-      dimmed={state === 'none'}
+      role={role}
     />
   );
 

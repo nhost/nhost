@@ -131,6 +131,47 @@ export function getComputedFieldPermissionState(
   return tableState;
 }
 
+export function isOperationAllowed(
+  table: HasuraMetadataTable | undefined,
+  role: string,
+  action: DatabaseAction,
+  operationKey: string,
+): boolean {
+  if (role === ADMIN_ROLE) {
+    return true;
+  }
+
+  const permission = findPermission(table, role, action);
+  if (!permission) {
+    return false;
+  }
+
+  // Hasura only restricts root fields for select; insert/update/delete are
+  // all-or-nothing at the action level.
+  if (action !== 'select') {
+    return true;
+  }
+
+  // select_aggregate also requires allow_aggregations to be true.
+  if (operationKey === 'select_aggregate' && !permission.allow_aggregations) {
+    return false;
+  }
+
+  const queryFields = permission.query_root_fields;
+  const subscriptionFields = permission.subscription_root_fields;
+
+  // select_stream is only a subscription root field; query_root_fields never
+  // exposes it.
+  const allowedAsQuery =
+    operationKey === 'select_stream'
+      ? false
+      : queryFields == null || queryFields.includes(operationKey);
+  const allowedAsSubscription =
+    subscriptionFields == null || subscriptionFields.includes(operationKey);
+
+  return allowedAsQuery || allowedAsSubscription;
+}
+
 export function tableHasAnyPermission(
   table: HasuraMetadataTable | undefined,
   role: string,

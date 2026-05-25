@@ -5,27 +5,30 @@ import type {
 import { isEmptyValue } from '@/lib/utils';
 import type { CustomRootField } from '@/utils/hasura-api/generated/schemas';
 
+export type OperationMetadataKey =
+  | 'select'
+  | 'select_by_pk'
+  | 'select_aggregate'
+  | 'select_stream'
+  | 'insert'
+  | 'insert_one'
+  | 'update'
+  | 'update_by_pk'
+  | 'update_many'
+  | 'delete'
+  | 'delete_by_pk';
+
 export interface OperationName {
   name: string;
   label: string;
   isCustom: boolean;
+  metadataKey: OperationMetadataKey;
 }
 
 type CustomRootFieldsValue = string | CustomRootField | null | undefined;
 
 interface OperationDef {
-  metadataKey:
-    | 'select'
-    | 'select_by_pk'
-    | 'select_aggregate'
-    | 'select_stream'
-    | 'insert'
-    | 'insert_one'
-    | 'update'
-    | 'update_by_pk'
-    | 'update_many'
-    | 'delete'
-    | 'delete_by_pk';
+  metadataKey: OperationMetadataKey;
   label: string;
   getDefault: (tableNameAlias: string) => string;
 }
@@ -158,6 +161,7 @@ export function getOperationNamesForAction(
       name: customName ?? def.getDefault(tableNameAlias),
       label: def.label,
       isCustom: customName !== undefined,
+      metadataKey: def.metadataKey,
     };
   });
 }

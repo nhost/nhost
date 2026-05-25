@@ -101,10 +101,30 @@ describe('getOperationNamesForAction', () => {
       'select',
     );
     expect(select).toEqual([
-      { name: 'users', label: 'Select', isCustom: false },
-      { name: 'userById', label: 'Select by PK', isCustom: true },
-      { name: 'users_aggregate', label: 'Select aggregate', isCustom: false },
-      { name: 'users_stream', label: 'Select stream', isCustom: false },
+      {
+        name: 'users',
+        label: 'Select',
+        isCustom: false,
+        metadataKey: 'select',
+      },
+      {
+        name: 'userById',
+        label: 'Select by PK',
+        isCustom: true,
+        metadataKey: 'select_by_pk',
+      },
+      {
+        name: 'users_aggregate',
+        label: 'Select aggregate',
+        isCustom: false,
+        metadataKey: 'select_aggregate',
+      },
+      {
+        name: 'users_stream',
+        label: 'Select stream',
+        isCustom: false,
+        metadataKey: 'select_stream',
+      },
     ]);
 
     const insert = getOperationNamesForAction(
@@ -114,8 +134,18 @@ describe('getOperationNamesForAction', () => {
       'insert',
     );
     expect(insert).toEqual([
-      { name: 'createUsers', label: 'Insert', isCustom: true },
-      { name: 'insert_users_one', label: 'Insert one', isCustom: false },
+      {
+        name: 'createUsers',
+        label: 'Insert',
+        isCustom: true,
+        metadataKey: 'insert',
+      },
+      {
+        name: 'insert_users_one',
+        label: 'Insert one',
+        isCustom: false,
+        metadataKey: 'insert_one',
+      },
     ]);
   });
 
@@ -130,8 +160,18 @@ describe('getOperationNamesForAction', () => {
     expect(
       getOperationNamesForAction(meta, 'public', 'users', 'delete'),
     ).toEqual([
-      { name: 'wipeUsers', label: 'Delete', isCustom: true },
-      { name: 'wipeUserById', label: 'Delete by PK', isCustom: true },
+      {
+        name: 'wipeUsers',
+        label: 'Delete',
+        isCustom: true,
+        metadataKey: 'delete',
+      },
+      {
+        name: 'wipeUserById',
+        label: 'Delete by PK',
+        isCustom: true,
+        metadataKey: 'delete_by_pk',
+      },
     ]);
   });
 
@@ -153,8 +193,18 @@ describe('getOperationNamesForAction', () => {
       'select',
     );
     expect(select.slice(0, 2)).toEqual([
-      { name: 'users', label: 'Select', isCustom: false },
-      { name: 'users_by_pk', label: 'Select by PK', isCustom: false },
+      {
+        name: 'users',
+        label: 'Select',
+        isCustom: false,
+        metadataKey: 'select',
+      },
+      {
+        name: 'users_by_pk',
+        label: 'Select by PK',
+        isCustom: false,
+        metadataKey: 'select_by_pk',
+      },
     ]);
 
     const insert = getOperationNamesForAction(
@@ -167,6 +217,7 @@ describe('getOperationNamesForAction', () => {
       name: 'insert_users',
       label: 'Insert',
       isCustom: false,
+      metadataKey: 'insert',
     });
 
     const update = getOperationNamesForAction(
@@ -179,6 +230,7 @@ describe('getOperationNamesForAction', () => {
       name: 'update_users',
       label: 'Update',
       isCustom: false,
+      metadataKey: 'update',
     });
   });
 
@@ -192,8 +244,18 @@ describe('getOperationNamesForAction', () => {
 
     const insert = getOperationNamesForAction(meta, 'auth', 'users', 'insert');
     expect(insert).toEqual([
-      { name: 'insert_User', label: 'Insert', isCustom: false },
-      { name: 'createOneUser', label: 'Insert one', isCustom: true },
+      {
+        name: 'insert_User',
+        label: 'Insert',
+        isCustom: false,
+        metadataKey: 'insert',
+      },
+      {
+        name: 'createOneUser',
+        label: 'Insert one',
+        isCustom: true,
+        metadataKey: 'insert_one',
+      },
     ]);
   });
 });
