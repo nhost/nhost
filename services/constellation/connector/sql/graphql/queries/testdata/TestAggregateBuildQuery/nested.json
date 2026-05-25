@@ -1,8 +1,8 @@
 [
   {
     "Name": "departments",
-    "QueryType": "select",
     "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"departments\") SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"name\" AS \"name\", \"_root.r.files_aggregate\".\"files_aggregate\" AS \"files_aggregate\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"department_files\" WHERE \"department_id\" = \"_root.base\".\"id\") SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*)) FROM \"_root.base\")) AS \"files_aggregate\") AS \"_root.r.files_aggregate\" ON ('true')) AS \"_root\"",
-    "Parameters": []
+    "Parameters": [],
+    "StreamCursors": null
   }
 ]
