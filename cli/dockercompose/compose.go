@@ -625,7 +625,6 @@ func getServices( //nolint: funlen,cyclop
 		useTLS,
 		httpPort,
 		ports.Graphql,
-		cfg.GetExperimental().GetConstellation() != nil,
 	)
 	if err != nil {
 		return nil, err

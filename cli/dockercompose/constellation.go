@@ -9,7 +9,7 @@ import (
 
 const constellationPort = 8000
 
-func constellation(
+func constellation( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	useTLS bool,
@@ -46,7 +46,18 @@ func constellation(
 		Command:     []string{"serve"},
 		Environment: env,
 		ExtraHosts:  extraHosts(subdomain),
-		HealthCheck: nil,
+		HealthCheck: &HealthCheck{
+			Test: []string{
+				"CMD-SHELL",
+				fmt.Sprintf(
+					"wget --spider -S http://localhost:%d/healthz > /dev/null 2>&1",
+					constellationPort,
+				),
+			},
+			Timeout:     "60s",
+			Interval:    "5s",
+			StartPeriod: "60s",
+		},
 		Labels: Ingresses{
 			{
 				Name:    "constellation",

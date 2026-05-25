@@ -104,6 +104,36 @@ func expectedGraphql() *Service {
 	}
 }
 
+func expectedGraphqlWithConstellation() *Service {
+	svc := expectedGraphql()
+	// When constellation is enabled, graphql() must not register the
+	// `graphql` router or its rewrite middleware — constellation owns
+	// local.graphql.local.nhost.run instead. The hasura router stays
+	// byte-for-byte identical.
+	delete(svc.Labels, "traefik.http.middlewares.replace-graphql.replacepathregex.regex")
+	delete(svc.Labels, "traefik.http.middlewares.replace-graphql.replacepathregex.replacement")
+	delete(svc.Labels, "traefik.http.routers.graphql.entrypoints")
+	delete(svc.Labels, "traefik.http.routers.graphql.middlewares")
+	delete(svc.Labels, "traefik.http.routers.graphql.rule")
+	delete(svc.Labels, "traefik.http.routers.graphql.service")
+	delete(svc.Labels, "traefik.http.routers.graphql.tls")
+	delete(svc.Labels, "traefik.http.services.graphql.loadbalancer.server.port")
+
+	return svc
+}
+
+func configWithConstellation() *model.ConfigConfig {
+	cfg := getConfig()
+	cfg.Experimental = &model.ConfigExperimental{
+		Constellation: &model.ConfigConstellation{
+			Version:  new("0.0.1"),
+			Settings: nil,
+		},
+	}
+
+	return cfg
+}
+
 func TestGraphql(t *testing.T) {
 	t.Parallel()
 
@@ -119,13 +149,19 @@ func TestGraphql(t *testing.T) {
 			useTlS:   false,
 			expected: expectedGraphql,
 		},
+		{
+			name:     "with constellation",
+			cfg:      configWithConstellation,
+			useTlS:   false,
+			expected: expectedGraphqlWithConstellation,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := graphql(tc.cfg(), "dev", tc.useTlS, 1337, 0, false)
+			got, err := graphql(tc.cfg(), "dev", tc.useTlS, 1337, 0)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}

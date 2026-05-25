@@ -30,7 +30,7 @@ func expectedConstellation(useTLS bool) *Service {
 	}
 
 	return &Service{
-		Image: "nhost/constellation:0.0.1",
+		Image: "nhost/constellation:0.1.0",
 		DependsOn: map[string]DependsOn{
 			"postgres": {Condition: "service_healthy"},
 		},
@@ -74,7 +74,15 @@ func expectedConstellation(useTLS bool) *Service {
 			"local.hasura.nhost.run:host-gateway",
 			"local.storage.nhost.run:host-gateway",
 		},
-		HealthCheck: nil,
+		HealthCheck: &HealthCheck{
+			Test: []string{
+				"CMD-SHELL",
+				"wget --spider -S http://localhost:8000/healthz > /dev/null 2>&1",
+			},
+			Timeout:     "60s",
+			Interval:    "5s",
+			StartPeriod: "60s",
+		},
 		Labels: map[string]string{
 			"traefik.enable": "true",
 			"traefik.http.routers.constellation.entrypoints":               "web",
@@ -98,7 +106,7 @@ func expectedConstellation(useTLS bool) *Service {
 	}
 }
 
-func callGetServices(t *testing.T, withConstellation bool) map[string]*Service {
+func callGetServices(t *testing.T, withConstellation, useTLS bool) map[string]*Service {
 	t.Helper()
 
 	tmp := t.TempDir()
@@ -109,7 +117,7 @@ func callGetServices(t *testing.T, withConstellation bool) map[string]*Service {
 	if withConstellation {
 		cfg.Experimental = &model.ConfigExperimental{
 			Constellation: &model.ConfigConstellation{
-				Version:  new("0.0.1"),
+				Version:  new("0.1.0"),
 				Settings: nil,
 			},
 		}
@@ -120,7 +128,7 @@ func callGetServices(t *testing.T, withConstellation bool) map[string]*Service {
 		"dev",
 		"nhost",
 		1337,
-		false,
+		useTLS,
 		5432,
 		tmp,
 		tmp,
@@ -146,7 +154,7 @@ func TestGraphqlIngressWithConstellation(t *testing.T) {
 	t.Run("graphql owns local.graphql when constellation disabled", func(t *testing.T) {
 		t.Parallel()
 
-		services := callGetServices(t, false)
+		services := callGetServices(t, false, false)
 
 		if _, ok := services["constellation"]; ok {
 			t.Fatal("constellation service should not be present when disabled")
@@ -172,52 +180,67 @@ func TestGraphqlIngressWithConstellation(t *testing.T) {
 
 	t.Run("constellation owns local.graphql when enabled", func(t *testing.T) {
 		t.Parallel()
-
-		services := callGetServices(t, true)
-
-		c, ok := services["constellation"]
-		if !ok {
-			t.Fatal("constellation service should be present when enabled")
-		}
-
-		if got := c.Labels["traefik.http.routers.constellation.rule"]; got != canonicalConstellationRule {
-			t.Errorf(
-				"constellation router rule drifted from canonical:\n  got:  %q\n  want: %q",
-				got,
-				canonicalConstellationRule,
-			)
-		}
-
-		if _, ok := c.Labels["traefik.http.middlewares.replace-constellation.replacepathregex.regex"]; ok {
-			t.Error("constellation router should not register a rewrite middleware")
-		}
-
-		if got := c.Labels["traefik.http.services.constellation.loadbalancer.server.port"]; got != "8000" {
-			t.Errorf(
-				"constellation loadbalancer port drifted: got %q, want %q",
-				got,
-				"8000",
-			)
-		}
-
-		labels := services["graphql"].Labels
-		if _, ok := labels["traefik.http.routers.graphql.rule"]; ok {
-			t.Error(
-				"graphql service must not register its `graphql` router when constellation is enabled — constellation owns local.graphql.local.nhost.run",
-			)
-		}
-
-		// The hand-rolled hasura ingress in compose.go's constellation branch
-		// must stay byte-for-byte identical to the canonical one produced by
-		// graphql.go; this assertion catches drift between the two paths.
-		if got := labels["traefik.http.routers.hasura.rule"]; got != canonicalHasuraRule {
-			t.Errorf(
-				"hasura router rule drifted from canonical when constellation is enabled:\n  got:  %q\n  want: %q",
-				got,
-				canonicalHasuraRule,
-			)
-		}
+		assertConstellationOwnsGraphql(t, false)
 	})
+
+	t.Run("constellation owns local.graphql when enabled under TLS", func(t *testing.T) {
+		t.Parallel()
+		assertConstellationOwnsGraphql(t, true)
+	})
+}
+
+// assertConstellationOwnsGraphql exercises the constellation-enabled
+// `getServices` path and re-asserts the four canonical traefik labels
+// (rule, tls, loadbalancer port, no rewrite middleware) plus the
+// graphql/hasura sibling invariants. Parameterised on useTLS so the TLS
+// integration path is covered without duplicating the assertion block.
+func assertConstellationOwnsGraphql(t *testing.T, useTLS bool) {
+	t.Helper()
+
+	services := callGetServices(t, true, useTLS)
+
+	c, ok := services["constellation"]
+	if !ok {
+		t.Fatal("constellation service should be present when enabled")
+	}
+
+	wantTLS := "false"
+	if useTLS {
+		wantTLS = "true"
+	}
+
+	wantLabels := map[string]string{
+		"traefik.http.routers.constellation.rule":                      canonicalConstellationRule,
+		"traefik.http.routers.constellation.tls":                       wantTLS,
+		"traefik.http.services.constellation.loadbalancer.server.port": "8000",
+	}
+	for k, want := range wantLabels {
+		if got := c.Labels[k]; got != want {
+			t.Errorf("constellation label %q drifted (useTLS=%v):\n  got:  %q\n  want: %q",
+				k, useTLS, got, want)
+		}
+	}
+
+	if _, ok := c.Labels["traefik.http.middlewares.replace-constellation.replacepathregex.regex"]; ok {
+		t.Error("constellation router should not register a rewrite middleware")
+	}
+
+	labels := services["graphql"].Labels
+	if _, ok := labels["traefik.http.routers.graphql.rule"]; ok {
+		t.Error(
+			"graphql service must not register its `graphql` router when constellation is enabled — constellation owns local.graphql.local.nhost.run",
+		)
+	}
+
+	// The hand-rolled hasura ingress in compose.go's constellation branch
+	// must stay byte-for-byte identical to the canonical one produced by
+	// graphql.go; this assertion catches drift between the two paths.
+	if got := labels["traefik.http.routers.hasura.rule"]; got != canonicalHasuraRule {
+		t.Errorf(
+			"hasura router rule drifted from canonical (useTLS=%v):\n  got:  %q\n  want: %q",
+			useTLS, got, canonicalHasuraRule,
+		)
+	}
 }
 
 func TestConstellation(t *testing.T) {
@@ -253,7 +276,7 @@ func TestConstellation(t *testing.T) {
 				tc.useTLS,
 				1337,
 				"/path/to/nhost",
-				"nhost/constellation:0.0.1",
+				"nhost/constellation:0.1.0",
 			)
 			if err != nil {
 				t.Fatalf("got error: %v", err)

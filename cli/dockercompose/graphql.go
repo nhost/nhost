@@ -14,8 +14,9 @@ func graphql( //nolint:funlen
 	subdomain string,
 	useTLS bool,
 	httpPort, port uint,
-	constellationEnabled bool,
 ) (*Service, error) {
+	constellationEnabled := cfg.GetExperimental().GetConstellation() != nil
+
 	envars, err := appconfig.HasuraEnv(
 		cfg,
 		subdomain,
