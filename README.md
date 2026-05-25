@@ -6,7 +6,7 @@
 
 <a href="https://docs.nhost.io/getting-started/">Quickstart</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="http://nhost.io/">Website</a>
+<a href="https://nhost.io/">Website</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://docs.nhost.io">Docs</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -47,7 +47,7 @@ Nhost consists of open source software:
   <br />
 </div>
 
-Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentation.
+Visit [https://docs.nhost.io](https://docs.nhost.io) for the complete documentation.
 
 # Get Started
 
@@ -97,10 +97,10 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 <div align="center">
   <a href="https://docs.nhost.io/getting-started/quickstart/nextjs"><img src="assets/nextjs.svg"/></a>
-  <a href="https://docs.nhost.io/reference/javascript/nhost-js/nhost-client"><img src="assets/nuxtjs.svg"/></a>
+  <a href="https://docs.nhost.io/reference/javascript/nhost-js/main"><img src="assets/nuxtjs.svg"/></a>
   <a href="https://docs.nhost.io/getting-started/quickstart/react"><img src="assets/react.svg"/></a>
   <a href="https://docs.nhost.io/getting-started/quickstart/reactnative"><img src="assets/react-native.svg"/></a>
-  <a href="https://docs.nhost.io/reference/javascript/nhost-js/nhost-client"><img src="assets/svelte.svg"/></a>
+  <a href="https://docs.nhost.io/getting-started/quickstart/sveltekit"><img src="assets/svelte.svg"/></a>
   <a href="https://docs.nhost.io/getting-started/quickstart/vue"><img src="assets/vuejs.svg"/></a>
 </div>
 
@@ -122,7 +122,7 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 First and foremost: **Star and watch this repository** to stay up-to-date.
 
-Also, follow Nhost on [GitHub Discussions](https://github.com/nhost/nhost/discussions), our [Blog](https://nhost.io/blog), and on [Twitter](https://twitter.com/nhostio). You can chat with the team and other members on [Discord](https://discord.com/invite/9V7Qb2U) and follow our tutorials and other video material at [YouTube](https://www.youtube.com/channel/UCJ7irtvV9Y0EQMxpabb6ntg?view_as=subscriber).
+Also, follow Nhost on [GitHub Discussions](https://github.com/nhost/nhost/discussions), our [Blog](https://nhost.io/blog), and on [X](https://x.com/nhost). You can chat with the team and other members on [Discord](https://nhost.io/discord) and follow our tutorials and other video material at [YouTube](https://www.youtube.com/channel/UCJ7irtvV9Y0EQMxpabb6ntg?view_as=subscriber).
 
 ### Nhost is Open Source
 
@@ -137,7 +137,7 @@ This repository, and most of our other open source projects, are licensed under 
 Here are some ways of contributing to making Nhost better:
 
 - **[Try out Nhost](https://docs.nhost.io)**, and think of ways to make the service better. Let us know here on GitHub.
-- Join our [Discord](https://discord.com/invite/9V7Qb2U) and connect with other members to share and learn from.
+- Join our [Discord](https://nhost.io/discord) and connect with other members to share and learn from.
 - Send a pull request to any of our [open source repositories](https://github.com/nhost) on Github. Check out our [contribution guide](https://github.com/nhost/nhost/blob/main/CONTRIBUTING.md) for more details about how to contribute. We're looking forward to your contribution!
 
 ### Contributors

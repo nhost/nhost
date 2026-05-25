@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "departments_by_pk",
+    "QueryType": "select",
+    "SQL": "WITH \"_root.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"public\".\"departments\".\"id\" = $1::uuid LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.base\".\"name\" AS \"name\", \"_root.base\".\"description\" AS \"description\", \"_root.base\".\"budget\" AS \"budget\", \"_root.base\".\"created_at\" AS \"created_at\", \"_root.base\".\"updated_at\" AS \"updated_at\") AS \"_e\")) AS \"_root\" FROM \"_root.base\"",
+    "Parameters": [
+      "123e4567-e89b-12d3-a456-426614174000"
+    ]
+  }
+]

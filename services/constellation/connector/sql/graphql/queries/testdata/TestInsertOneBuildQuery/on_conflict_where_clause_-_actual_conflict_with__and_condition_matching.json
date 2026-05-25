@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "insert_departments_one",
+    "QueryType": "insert_one",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::numeric AS \"budget\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"budget\") SELECT check_mutation_result.\"id\", check_mutation_result.\"name\", check_mutation_result.\"budget\" FROM check_mutation_result ON CONFLICT ON CONSTRAINT \"departments_pkey\" DO UPDATE SET \"name\" = EXCLUDED.\"name\", \"budget\" = EXCLUDED.\"budget\" WHERE EXCLUDED.\"name\" LIKE $4 AND EXCLUDED.\"budget\" >= $5::numeric RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"budget\" AS \"budget\") AS \"_e\")) FROM mutation_result",
+    "Parameters": [
+      "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
+      "Engineering Renamed",
+      999999,
+      "E%",
+      0
+    ]
+  }
+]

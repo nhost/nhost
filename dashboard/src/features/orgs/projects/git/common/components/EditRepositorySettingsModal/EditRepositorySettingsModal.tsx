@@ -1,8 +1,8 @@
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useFormContext } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { Switch } from '@/components/ui/v3/switch';

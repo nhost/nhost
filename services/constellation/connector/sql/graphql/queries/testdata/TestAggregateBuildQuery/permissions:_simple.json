@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "departments_aggregate",
+    "QueryType": "select_aggregate",
+    "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"departments\" WHERE \"public\".\"departments\".\"id\" = ANY($1::uuid[])) SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*)) FROM \"_root.base\"), 'nodes', (SELECT coalesce(json_agg(\"_root\"), '[]') FROM (SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.base\".\"name\" AS \"name\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\")) AS \"departments_aggregate\"",
+    "Parameters": [
+      "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
+    ]
+  }
+]

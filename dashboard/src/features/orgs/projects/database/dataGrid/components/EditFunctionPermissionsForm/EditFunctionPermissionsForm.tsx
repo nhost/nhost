@@ -2,9 +2,6 @@ import NavLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
-import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
-import { PartialPermissionIcon } from '@/components/ui/v2/icons/PartialPermissionIcon';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -12,6 +9,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
+import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
+import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
+import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';

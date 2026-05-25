@@ -1,0 +1,20 @@
+[
+  [
+    [
+      {
+        "returning": [
+          {
+            "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+            "name": "HR Department",
+            "budget": 250000
+          }
+        ],
+        "affected_rows": 1
+      },
+      {
+        "returning": [],
+        "affected_rows": 0
+      }
+    ]
+  ]
+]

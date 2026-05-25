@@ -1,12 +1,14 @@
 import { formatDistanceToNow } from 'date-fns';
+import {
+  Ellipsis as DotsHorizontalIcon,
+  Trash2 as TrashIcon,
+  UserIcon,
+} from 'lucide-react';
 import { Fragment } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';

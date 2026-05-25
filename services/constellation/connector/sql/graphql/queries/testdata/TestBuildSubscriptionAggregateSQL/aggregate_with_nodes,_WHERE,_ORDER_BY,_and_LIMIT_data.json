@@ -1,0 +1,41 @@
+[
+  [
+    {
+      "departments_aggregate": {
+        "nodes": [
+          {
+            "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+            "name": "Engineering",
+            "budget": 1200000
+          },
+          {
+            "budget": 750000,
+            "id": "ffd095c2-9745-43d9-b133-7e8d847e8371",
+            "name": "Sales"
+          },
+          {
+            "id": "dcd52518-58d0-4834-9683-ba6dee33833f",
+            "name": "Marketing",
+            "budget": 500000
+          },
+          {
+            "id": "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
+            "name": "Operations",
+            "budget": 400000
+          },
+          {
+            "name": "Finance",
+            "budget": 300000,
+            "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3"
+          }
+        ],
+        "aggregate": {
+          "count": 5,
+          "avg": {
+            "budget": 630000
+          }
+        }
+      }
+    }
+  ]
+]
