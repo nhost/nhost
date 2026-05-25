@@ -227,7 +227,7 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 			ctrl := gomock.NewController(t)
 			pool := mock.NewMockPool(ctrl)
 
-			wireSchemaWithColumns(t, ctrl, pool, "public", tt.columns)
+			wireSchemaWithColumns(t, ctrl, pool, tt.columns)
 
 			client := postgres.NewClient(pool)
 
@@ -268,7 +268,6 @@ func wireSchemaWithColumns(
 	t *testing.T,
 	ctrl *gomock.Controller,
 	pool *mock.MockPool,
-	_ string,
 	columns []columnScan,
 ) {
 	t.Helper()
@@ -764,7 +763,7 @@ func TestIntrospect_EnumTable(t *testing.T) {
 			pool := mock.NewMockPool(ctrl)
 
 			wireEnumIntrospect(
-				t, ctrl, pool, "public",
+				t, ctrl, pool,
 				tt.columns, tt.wantValues, tt.descColEmpty,
 			)
 
@@ -814,7 +813,6 @@ func wireEnumIntrospect(
 	t *testing.T,
 	ctrl *gomock.Controller,
 	pool *mock.MockPool,
-	_ string,
 	columns []columnScan,
 	values []introspection.EnumValue,
 	descColEmpty bool,
