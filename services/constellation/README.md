@@ -153,7 +153,7 @@ Constellation aims to be a drop-in replacement for Hasura on the GraphQL request
 
 ### Verifying compatibility against your Hasura instance
 
-If you run Hasura and Constellation side-by-side against the same database, you can confirm Constellation generates the schema you expect by introspecting both and diffing the SDL per role. The `schema dump` and `schema diff` subcommands do exactly that:
+If you run Hasura and Constellation side-by-side against the same database, you can confirm Constellation generates the schema you expect by introspecting both and diffing the SDL per role. The `nhost schema dump` and `nhost schema diff` subcommands (in the Nhost CLI) do exactly that:
 
 ```bash
 #!/bin/bash
@@ -165,19 +165,19 @@ NHOST_URL="http://your-constellation-endpoint/v1/graphql"
 ADMIN_SECRET="your-admin-secret"
 
 for role in "${ROLES[@]}"; do
-    constellation schema dump \
+    nhost schema dump \
         -H "X-Hasura-Role: ${role}" \
         -H "X-Hasura-Admin-Secret: ${ADMIN_SECRET}" \
         -o "./schema.hasura.${role}.graphqls" \
         -u "${HASURA_URL}"
 
-    constellation schema dump \
+    nhost schema dump \
         -H "X-Hasura-Role: ${role}" \
         -H "X-Hasura-Admin-Secret: ${ADMIN_SECRET}" \
         -o "./schema.nhost.${role}.graphqls" \
         -u "${NHOST_URL}"
 
-    constellation schema diff \
+    nhost schema diff \
         -a "schema.hasura.${role}.graphqls" \
         -b "schema.nhost.${role}.graphqls" > "schema.${role}.diff"
 done
