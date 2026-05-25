@@ -1,6 +1,7 @@
 package queries
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 
@@ -202,6 +203,13 @@ func (t *table) initializeRelationships(
 			tables,
 		)
 		if err != nil {
+			if isInconsistencyTolerantRelationshipError(err) {
+				// Reconcile is expected to have dropped this relationship
+				// from the effective metadata already; skipping here keeps
+				// the rest of the table alive against any reconcile gap.
+				continue
+			}
+
 			return fmt.Errorf("error initializing array relationship %s: %w", relMeta.Name, err)
 		}
 
@@ -218,6 +226,10 @@ func (t *table) initializeRelationships(
 			tables,
 		)
 		if err != nil {
+			if isInconsistencyTolerantRelationshipError(err) {
+				continue
+			}
+
 			return fmt.Errorf("error initializing object relationship %s: %w", relMeta.Name, err)
 		}
 
@@ -225,6 +237,17 @@ func (t *table) initializeRelationships(
 	}
 
 	return nil
+}
+
+// isInconsistencyTolerantRelationshipError reports whether err names one of
+// the per-relationship build failures that reconcile is expected to have
+// already dropped (target table missing from introspection, reverse-FK
+// column unmatched). Treating these as drop-and-continue at the queries
+// layer matches the package contract that a single malformed relationship
+// must never take down the whole source.
+func isInconsistencyTolerantRelationshipError(err error) bool {
+	return errors.Is(err, errRelationshipTargetTableIntrospectionNotFound) ||
+		errors.Is(err, errRelationshipReverseFKColumnUnmatched)
 }
 
 func (t *table) columnFromGraphqlName(name string) *core.Column {

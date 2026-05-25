@@ -83,10 +83,14 @@ func TestBuildRoots_FunctionMissingFromIntrospectionIsSkipped(t *testing.T) {
 	}
 }
 
-func TestBuildRoots_FunctionReturningUnknownTableErrors(t *testing.T) {
+// TestBuildRoots_FunctionReturningUnknownTableIsSkipped covers the
+// defense-in-depth path: reconcile is expected to drop a function whose
+// return-type table is not tracked (errBaseTableForFunctionNotFound is no
+// longer fatal), but if one slips into BuildRoots the function is silently
+// skipped so the rest of the source keeps serving.
+func TestBuildRoots_FunctionReturningUnknownTableIsSkipped(t *testing.T) {
 	t.Parallel()
 
-	// Function exists in introspection but returns a table type that isn't tracked.
 	objects := introspection.NewObjects()
 	objects.Schemas["public"] = &introspection.Schema{
 		Tables: map[string]*introspection.Table{
@@ -115,13 +119,18 @@ func TestBuildRoots_FunctionReturningUnknownTableErrors(t *testing.T) {
 		},
 	}
 
-	_, _, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
-	if err == nil {
-		t.Fatal("expected error for function returning unknown table, got nil")
+	roots, _, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "public.orders") {
-		t.Errorf("error should mention the missing base table, got: %v", err)
+	// users root field should still be registered; search_orders should not exist.
+	for _, m := range roots.Operations {
+		for fieldName := range m {
+			if fieldName == "search_orders" {
+				t.Errorf("expected search_orders to be skipped, but found it in roots")
+			}
+		}
 	}
 }
 

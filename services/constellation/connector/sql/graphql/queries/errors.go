@@ -39,7 +39,6 @@ var (
 
 	errUnknownJoinColumn             = errors.New("unknown join column")
 	errStreamBatchSizeMustBePositive = errors.New("stream batch_size must be positive")
-	errBaseTableForFunctionNotFound  = errors.New("base table for function not found")
 	errNoOperationForFieldInRole     = errors.New("no operation found for field in role")
 	errUnknownAggregateColumn        = errors.New("unknown column")
 	errTableNotFoundInIntrospection  = errors.New(

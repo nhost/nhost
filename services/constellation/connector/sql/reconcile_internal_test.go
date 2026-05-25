@@ -539,6 +539,200 @@ func TestReconcileMetadata_PartialFailureKeepsRestServing(t *testing.T) {
 	}
 }
 
+// TestReconcileMetadata_DropsReverseFKWithUnmatchedColumn covers the
+// reverse-FK introspection mismatch: ForeignKeyConstraint.Columns names a
+// column the introspected target table has no foreign key for. queries-side
+// build raised errRelationshipReverseFKColumnUnmatched and aborted the whole
+// connector — reconcile must drop just the relationship and surface a
+// per-relationship inconsistency so the rest of the source keeps serving.
+func TestReconcileMetadata_DropsReverseFKWithUnmatchedColumn(t *testing.T) {
+	t.Parallel()
+
+	objs := introspection.NewObjects()
+	objs.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"users": { //nolint:exhaustruct
+				Schema: "public", Name: "users",
+				IsInsertable: true, IsUpdatable: true,
+				Columns: []introspection.Column{
+					{Name: "id", Type: "uuid"},
+				}, //nolint:exhaustruct
+				PrimaryKeys: []string{"id"},
+			},
+			"orders": { //nolint:exhaustruct
+				Schema: "public", Name: "orders",
+				IsInsertable: true, IsUpdatable: true,
+				Columns: []introspection.Column{ //nolint:exhaustruct
+					{Name: "id", Type: "uuid"},
+					{Name: "other_col", Type: "uuid"},
+				},
+				PrimaryKeys: []string{"id"},
+				// Deliberately: no FK for "user_id" — the metadata names
+				// that column on the constraint, but introspection
+				// disagrees.
+				ForeignKeys: []introspection.ForeignKey{
+					{
+						ColumnName:        "other_col",
+						ForeignSchema:     "public",
+						ForeignTable:      "users",
+						ForeignColumnName: "id",
+					},
+				},
+			},
+		},
+	}
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "users"},
+				ArrayRelationships: []metadata.ArrayRelationship{
+					{
+						Name: "orders",
+						Using: metadata.RelationshipUsing{ //nolint:exhaustruct
+							ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
+								Columns: []string{"user_id"},
+								Table: metadata.TableSource{
+									Schema: "public", Name: "orders",
+								},
+							},
+						},
+					},
+				},
+			},
+			{Table: metadata.TableSource{Schema: "public", Name: "orders"}},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, objs)
+
+	if len(out.Tables[0].ArrayRelationships) != 0 {
+		t.Errorf(
+			"expected the reverse-FK relationship to be dropped, got %+v",
+			out.Tables[0].ArrayRelationships,
+		)
+	}
+
+	if names := tableNames(out.Tables); !slices.Equal(names, []string{"users", "orders"}) {
+		t.Errorf("expected [users orders] to survive, got %v", names)
+	}
+
+	mustHaveInconsistency(t, inc, metadata.InconsistencyKindRelationship,
+		"public.users.orders", "user_id")
+}
+
+// TestReconcileMetadata_DropsForwardFKWithoutIntrospectedTarget covers the
+// forward `ForeignKeyColumns` shortcut whose target is resolved through
+// introspection. When the parent table has no FK for any of the listed
+// columns, queries-side build raised
+// errRelationshipTargetTableIntrospectionNotFound. Reconcile must drop the
+// relationship and record an inconsistency.
+func TestReconcileMetadata_DropsForwardFKWithoutIntrospectedTarget(t *testing.T) {
+	t.Parallel()
+
+	objs := introspection.NewObjects()
+	objs.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"orders": { //nolint:exhaustruct
+				Schema: "public", Name: "orders",
+				IsInsertable: true, IsUpdatable: true,
+				Columns: []introspection.Column{ //nolint:exhaustruct
+					{Name: "id", Type: "uuid"},
+					{Name: "user_id", Type: "uuid"},
+				},
+				PrimaryKeys: []string{"id"},
+				// No FK on user_id — the forward shortcut cannot resolve a
+				// target table from introspection.
+				ForeignKeys: nil,
+			},
+		},
+	}
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "orders"},
+				ObjectRelationships: []metadata.ObjectRelationship{
+					{
+						Name: "user",
+						Using: metadata.RelationshipUsing{ //nolint:exhaustruct
+							ForeignKeyColumns: []string{"user_id"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, objs)
+
+	if len(out.Tables[0].ObjectRelationships) != 0 {
+		t.Errorf(
+			"expected the forward-FK relationship to be dropped, got %+v",
+			out.Tables[0].ObjectRelationships,
+		)
+	}
+
+	mustHaveInconsistency(t, inc, metadata.InconsistencyKindRelationship,
+		"public.orders.user", "no matching foreign key")
+}
+
+// TestReconcileMetadata_DropsFunctionWithUntrackedBaseTable covers the
+// pre-existing errBaseTableForFunctionNotFound BuildRoots path: a function
+// whose declared return-table is not tracked in metadata used to abort the
+// connector. Reconcile must drop the function and surface a function
+// inconsistency instead.
+func TestReconcileMetadata_DropsFunctionWithUntrackedBaseTable(t *testing.T) {
+	t.Parallel()
+
+	objs := introspection.NewObjects()
+	objs.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"users": { //nolint:exhaustruct
+				Schema: "public", Name: "users",
+				IsInsertable: true, IsUpdatable: true,
+				Columns: []introspection.Column{
+					{Name: "id", Type: "uuid"},
+				}, //nolint:exhaustruct
+				PrimaryKeys: []string{"id"},
+			},
+		},
+	}
+	objs.Functions["public.search_orders"] = &introspection.Function{ //nolint:exhaustruct
+		ReturnType: introspection.FunctionReturnType{
+			Type:        "",
+			IsSetOf:     true,
+			TableSchema: "public",
+			TableName:   "orders", // not tracked
+		},
+		Volatility: introspection.VolatilityStable,
+	}
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+		},
+		Functions: []metadata.FunctionMetadata{ //nolint:exhaustruct
+			{Function: metadata.FunctionSource{Schema: "public", Name: "search_orders"}},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, objs)
+
+	if len(out.Functions) != 0 {
+		t.Errorf("expected the function to be dropped, got %+v", out.Functions)
+	}
+
+	mustHaveInconsistency(t, inc, metadata.InconsistencyKindFunction,
+		"public.search_orders", "base table")
+}
+
 // mustHaveInconsistency asserts that inc has at least one entry matching the
 // kind/name (always under source="default", which is what every test in this
 // file uses) and whose Reason contains reasonSubstr if non-empty.

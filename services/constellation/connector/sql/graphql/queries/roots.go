@@ -107,9 +107,10 @@ func BuildRoots( //nolint:funlen
 
 		baseTable, ok := tablesByKey[tableSchema+"."+tableName]
 		if !ok {
-			return Roots{}, nil, fmt.Errorf("%w: base table %s.%s for function %s.%s",
-				errBaseTableForFunctionNotFound,
-				tableSchema, tableName, fnMeta.Function.Schema, fnMeta.Function.Name)
+			// Defense-in-depth: reconcile drops functions whose base
+			// table is not tracked. If one slips through, skip just the
+			// function rather than aborting the whole connector.
+			continue
 		}
 
 		baseTable.AddFunction(fn)
