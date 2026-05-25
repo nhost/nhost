@@ -39,12 +39,11 @@ func TestInconsistencies_ConcurrentRecord(t *testing.T) {
 				_ = r
 				_ = g
 
-				inc.Record(
+				inc.RecordTable(
 					ctx,
 					logger,
-					metadata.InconsistencyKindTable,
 					"src",
-					"public.t",
+					"public", "t",
 					"boom",
 				)
 			}
@@ -80,7 +79,7 @@ func TestInconsistencies_SnapshotIndependence(t *testing.T) {
 	logger := discardLogger()
 	inc := metadata.NewInconsistencies()
 
-	inc.Record(ctx, logger, metadata.InconsistencyKindTable, "src", "public.a", "reason-a")
+	inc.RecordTable(ctx, logger, "src", "public", "a", "reason-a")
 
 	snap := inc.Snapshot()
 	if len(snap) != 1 {
@@ -88,7 +87,7 @@ func TestInconsistencies_SnapshotIndependence(t *testing.T) {
 	}
 
 	// Mutate the collector after taking the snapshot.
-	inc.Record(ctx, logger, metadata.InconsistencyKindTable, "src", "public.b", "reason-b")
+	inc.RecordTable(ctx, logger, "src", "public", "b", "reason-b")
 
 	if len(snap) != 1 {
 		t.Fatalf("snapshot grew after collector mutation: len=%d, want 1", len(snap))
@@ -119,7 +118,7 @@ func TestInconsistencies_NilLoggerTolerance(t *testing.T) {
 	inc := metadata.NewInconsistencies()
 
 	// Must not panic with a nil logger.
-	inc.Record(ctx, nil, metadata.InconsistencyKindRole, "", "admin", "merge conflict")
+	inc.RecordRole(ctx, nil, "admin", "merge conflict")
 
 	if got := inc.Len(); got != 1 {
 		t.Fatalf("Len() = %d, want 1", got)
@@ -144,7 +143,7 @@ func TestInconsistencies_NilReceiverTolerance(t *testing.T) {
 	var inc *metadata.Inconsistencies
 
 	// Must not panic and must be a no-op.
-	inc.Record(ctx, logger, metadata.InconsistencyKindDatabase, "", "src", "factory error")
+	inc.RecordDatabase(ctx, logger, "src", "factory error")
 }
 
 func TestInconsistencies_AtStampedByRecord(t *testing.T) {
@@ -156,8 +155,8 @@ func TestInconsistencies_AtStampedByRecord(t *testing.T) {
 
 	start := time.Now()
 
-	inc.Record(ctx, logger, metadata.InconsistencyKindColumn, "src", "public.t.c", "missing")
-	inc.Record(ctx, logger, metadata.InconsistencyKindFunction, "src", "public.f", "missing")
+	inc.RecordColumn(ctx, logger, "src", "public", "t", "c", "missing")
+	inc.RecordFunction(ctx, logger, "src", "public", "f", "missing")
 
 	end := time.Now()
 
@@ -202,12 +201,11 @@ func TestInconsistencies_LenMatchesSnapshot(t *testing.T) {
 	}
 
 	for i := range 5 {
-		inc.Record(
+		inc.RecordTable(
 			ctx,
 			logger,
-			metadata.InconsistencyKindTable,
 			"src",
-			"public.t",
+			"public", "t",
 			"reason",
 		)
 
@@ -219,5 +217,134 @@ func TestInconsistencies_LenMatchesSnapshot(t *testing.T) {
 		if got := len(inc.Snapshot()); got != wantLen {
 			t.Errorf("len(Snapshot()) = %d, want %d", got, wantLen)
 		}
+	}
+}
+
+// TestInconsistencies_PerKindHelpers locks in the per-kind helper API: each
+// helper must populate Kind with the matching constant, Source with the
+// owning source ("" for source-level / role kinds), and Name with the
+// per-kind qualified format. A swap between source and a sub-source name
+// would change the expected values here.
+func TestInconsistencies_PerKindHelpers(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+	logger := discardLogger()
+
+	tests := []struct {
+		name       string
+		record     func(*metadata.Inconsistencies)
+		wantKind   string
+		wantSource string
+		wantName   string
+	}{
+		{
+			name: "database",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordDatabase(ctx, logger, "main", "factory error")
+			},
+			wantKind:   metadata.InconsistencyKindDatabase,
+			wantSource: "",
+			wantName:   "main",
+		},
+		{
+			name: "remote_schema",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordRemoteSchema(ctx, logger, "rs", "introspection failed")
+			},
+			wantKind:   metadata.InconsistencyKindRemoteSchema,
+			wantSource: "",
+			wantName:   "rs",
+		},
+		{
+			name: "role",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordRole(ctx, logger, "user", "merge conflict")
+			},
+			wantKind:   metadata.InconsistencyKindRole,
+			wantSource: "",
+			wantName:   "user",
+		},
+		{
+			name: "table",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordTable(ctx, logger, "src", "public", "users", "missing")
+			},
+			wantKind:   metadata.InconsistencyKindTable,
+			wantSource: "src",
+			wantName:   "public.users",
+		},
+		{
+			name: "table_no_schema",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordTable(ctx, logger, "src", "", "users", "missing")
+			},
+			wantKind:   metadata.InconsistencyKindTable,
+			wantSource: "src",
+			wantName:   "users",
+		},
+		{
+			name: "enum_values",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordEnumValues(ctx, logger, "src", "public", "kind", "no rows")
+			},
+			wantKind:   metadata.InconsistencyKindEnumValues,
+			wantSource: "src",
+			wantName:   "public.kind",
+		},
+		{
+			name: "column",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordColumn(ctx, logger, "src", "public", "users", "email", "missing")
+			},
+			wantKind:   metadata.InconsistencyKindColumn,
+			wantSource: "src",
+			wantName:   "public.users.email",
+		},
+		{
+			name: "function",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordFunction(ctx, logger, "src", "public", "fn", "missing")
+			},
+			wantKind:   metadata.InconsistencyKindFunction,
+			wantSource: "src",
+			wantName:   "public.fn",
+		},
+		{
+			name: "relationship",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordRelationship(ctx, logger, "src", "public", "users", "posts", "missing")
+			},
+			wantKind:   metadata.InconsistencyKindRelationship,
+			wantSource: "src",
+			wantName:   "public.users.posts",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			inc := metadata.NewInconsistencies()
+			tt.record(inc)
+
+			snap := inc.Snapshot()
+			if len(snap) != 1 {
+				t.Fatalf("len(Snapshot()) = %d, want 1", len(snap))
+			}
+
+			got := snap[0]
+			if got.Kind != tt.wantKind {
+				t.Errorf("Kind = %q, want %q", got.Kind, tt.wantKind)
+			}
+
+			if got.Source != tt.wantSource {
+				t.Errorf("Source = %q, want %q", got.Source, tt.wantSource)
+			}
+
+			if got.Name != tt.wantName {
+				t.Errorf("Name = %q, want %q", got.Name, tt.wantName)
+			}
+		})
 	}
 }

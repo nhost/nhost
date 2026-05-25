@@ -91,6 +91,12 @@ func NewInconsistencies() *Inconsistencies {
 // non-nil) logs it at warn level. A nil receiver is a no-op so callers
 // threading an optional *Inconsistencies do not need a wrapper.
 //
+// Prefer the per-kind helpers (RecordDatabase, RecordTable, RecordColumn, ...)
+// over calling Record directly: they surface the per-kind Name format in the
+// parameter list so a source/name swap is a compile error rather than a
+// silently-wrong record. Record itself is reserved for the rare dynamic-kind
+// path where the kind is computed at call time.
+//
 // Source may be empty for source-level (database, remote_schema) and role
 // kinds; see the InconsistencyKind* constants for the per-kind Name format.
 func (i *Inconsistencies) Record(
@@ -122,6 +128,120 @@ func (i *Inconsistencies) Record(
 			slog.String("reason", inc.Reason),
 		)
 	}
+}
+
+// qualifyTable joins schema and table into the "schema.table" form used as the
+// Name for table/enum_values inconsistencies. An empty schema yields just the
+// table — matching how callers represent unqualified objects.
+func qualifyTable(schema, table string) string {
+	if schema == "" {
+		return table
+	}
+
+	return schema + "." + table
+}
+
+// RecordDatabase records a source-level database inconsistency. Use this when
+// a database source fails to build (factory error, customization error,
+// unsupported kind): the whole source is dropped. name is the source name.
+func (i *Inconsistencies) RecordDatabase(
+	ctx context.Context,
+	logger *slog.Logger,
+	name, reason string,
+) {
+	i.Record(ctx, logger, InconsistencyKindDatabase, "", name, reason)
+}
+
+// RecordRemoteSchema records a source-level remote-schema inconsistency. Use
+// this when a remote-schema source fails to build: the whole source is
+// dropped. name is the source name.
+func (i *Inconsistencies) RecordRemoteSchema(
+	ctx context.Context,
+	logger *slog.Logger,
+	name, reason string,
+) {
+	i.Record(ctx, logger, InconsistencyKindRemoteSchema, "", name, reason)
+}
+
+// RecordRole records a role-level inconsistency. Use this when schema
+// composition fails for a role (merge conflict, validation failure): the role
+// is dropped. name is the role name.
+func (i *Inconsistencies) RecordRole(
+	ctx context.Context,
+	logger *slog.Logger,
+	name, reason string,
+) {
+	i.Record(ctx, logger, InconsistencyKindRole, "", name, reason)
+}
+
+// RecordTable records a missing-table inconsistency on source. The table is
+// dropped from the source's schema; the rest of the source keeps serving.
+func (i *Inconsistencies) RecordTable(
+	ctx context.Context,
+	logger *slog.Logger,
+	source, schema, table, reason string,
+) {
+	i.Record(ctx, logger, InconsistencyKindTable, source, qualifyTable(schema, table), reason)
+}
+
+// RecordEnumValues records that a table flagged is_enum cannot be used as an
+// enum (no rows, invalid shape, query failure). The table is dropped entirely
+// — see InconsistencyKindEnumValues for why.
+func (i *Inconsistencies) RecordEnumValues(
+	ctx context.Context,
+	logger *slog.Logger,
+	source, schema, table, reason string,
+) {
+	i.Record(ctx, logger, InconsistencyKindEnumValues, source, qualifyTable(schema, table), reason)
+}
+
+// RecordColumn records a missing-column inconsistency. The column reference
+// is dropped (from column_config, permission column lists, or set maps); the
+// rest of the table keeps serving.
+func (i *Inconsistencies) RecordColumn(
+	ctx context.Context,
+	logger *slog.Logger,
+	source, schema, table, column, reason string,
+) {
+	i.Record(
+		ctx, logger,
+		InconsistencyKindColumn,
+		source,
+		qualifyTable(schema, table)+"."+column,
+		reason,
+	)
+}
+
+// RecordFunction records a missing-function inconsistency on source. The
+// function is dropped.
+func (i *Inconsistencies) RecordFunction(
+	ctx context.Context,
+	logger *slog.Logger,
+	source, schema, function, reason string,
+) {
+	i.Record(
+		ctx, logger,
+		InconsistencyKindFunction,
+		source,
+		qualifyTable(schema, function),
+		reason,
+	)
+}
+
+// RecordRelationship records that a relationship's target (or local column)
+// does not exist. The relationship is dropped.
+func (i *Inconsistencies) RecordRelationship(
+	ctx context.Context,
+	logger *slog.Logger,
+	source, schema, table, relationship, reason string,
+) {
+	i.Record(
+		ctx, logger,
+		InconsistencyKindRelationship,
+		source,
+		qualifyTable(schema, table)+"."+relationship,
+		reason,
+	)
 }
 
 // Snapshot returns a copy of the currently recorded inconsistencies. The

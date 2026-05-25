@@ -217,10 +217,8 @@ func (cfg *buildConfig) buildRemoteSchemaConnectors(
 
 		raw, err := cfg.remoteSchemaFactory(ctx, rsMeta)
 		if err != nil {
-			cfg.inconsistencies.Record(
+			cfg.inconsistencies.RecordRemoteSchema(
 				ctx, logger,
-				metadata.InconsistencyKindRemoteSchema,
-				"",
 				rsMeta.Name,
 				fmt.Sprintf("failed to create remote schema connector: %v", err),
 			)
@@ -239,10 +237,8 @@ func (cfg *buildConfig) buildRemoteSchemaConnectors(
 			// of raw, so we close the raw connector ourselves; otherwise
 			// it would leak the resources the factory just acquired.
 			raw.Close()
-			cfg.inconsistencies.Record(
+			cfg.inconsistencies.RecordRemoteSchema(
 				ctx, logger,
-				metadata.InconsistencyKindRemoteSchema,
-				"",
 				rsMeta.Name,
 				err.Error(),
 			)
@@ -268,10 +264,8 @@ func (cfg *buildConfig) buildDatabaseConnectors(
 
 		factory, ok := cfg.dbFactories[dbMeta.Kind]
 		if !ok {
-			cfg.inconsistencies.Record(
+			cfg.inconsistencies.RecordDatabase(
 				ctx, logger,
-				metadata.InconsistencyKindDatabase,
-				"",
 				dbMeta.Name,
 				fmt.Sprintf("%s: %s", ErrUnsupportedDatabaseKind, dbMeta.Kind),
 			)
@@ -281,10 +275,8 @@ func (cfg *buildConfig) buildDatabaseConnectors(
 
 		raw, err := factory(ctx, dbMeta, cfg.inconsistencies, logger)
 		if err != nil {
-			cfg.inconsistencies.Record(
+			cfg.inconsistencies.RecordDatabase(
 				ctx, logger,
-				metadata.InconsistencyKindDatabase,
-				"",
 				dbMeta.Name,
 				fmt.Sprintf("building database connector: %v", err),
 			)
@@ -303,10 +295,8 @@ func (cfg *buildConfig) buildDatabaseConnectors(
 			// of raw, so we close the raw connector ourselves; otherwise
 			// it would leak the resources the factory just acquired.
 			raw.Close()
-			cfg.inconsistencies.Record(
+			cfg.inconsistencies.RecordDatabase(
 				ctx, logger,
-				metadata.InconsistencyKindDatabase,
-				"",
 				dbMeta.Name,
 				err.Error(),
 			)

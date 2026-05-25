@@ -75,11 +75,10 @@ func reconcileTables(
 		t := tables[i]
 
 		if _, ok := objects.GetTable(t.Table.Schema, t.Table.Name); !ok {
-			inc.Record(
+			inc.RecordTable(
 				ctx, logger,
-				metadata.InconsistencyKindTable,
 				dbName,
-				qualifyTable(t.Table.Schema, t.Table.Name),
+				t.Table.Schema, t.Table.Name,
 				"table not found in source",
 			)
 
@@ -94,11 +93,10 @@ func reconcileTables(
 				// table would silently widen the input contract for
 				// every FK column pointing at it, which is the wrong
 				// shape of failure to absorb.
-				inc.Record(
+				inc.RecordEnumValues(
 					ctx, logger,
-					metadata.InconsistencyKindEnumValues,
 					dbName,
-					qualifyTable(t.Table.Schema, t.Table.Name),
+					t.Table.Schema, t.Table.Name,
 					"table cannot be used as an enum: "+
 						"no usable values found (missing rows, "+
 						"invalid shape, or query failure)",
@@ -141,20 +139,16 @@ func columnNameSet(t *introspection.Table) map[string]struct{} {
 	return out
 }
 
+// qualifyTable joins schema.table into the same form used by
+// metadata.RecordTable for the inconsistency Name. Used here for the
+// survivingNames set and for embedding the relationship target in a reason
+// string.
 func qualifyTable(schema, table string) string {
 	if schema == "" {
 		return table
 	}
 
 	return schema + "." + table
-}
-
-func qualifyColumn(schema, table, column string) string {
-	return qualifyTable(schema, table) + "." + column
-}
-
-func qualifyRelationship(schema, table, rel string) string {
-	return qualifyTable(schema, table) + "." + rel
 }
 
 // reconcileColumnConfig drops ColumnConfig entries whose key is not a column
@@ -190,11 +184,10 @@ func reconcileColumnConfig(
 
 	for col, cfg := range t.Configuration.ColumnConfig {
 		if _, ok := cols[col]; !ok {
-			inc.Record(
+			inc.RecordColumn(
 				ctx, logger,
-				metadata.InconsistencyKindColumn,
 				dbName,
-				qualifyColumn(t.Table.Schema, t.Table.Name, col),
+				t.Table.Schema, t.Table.Name, col,
 				"column referenced in column_config not found in source",
 			)
 
@@ -278,7 +271,21 @@ func filterColumnList(
 		return list
 	}
 
-	out := list[:0:0]
+	anyMissing := false
+
+	for _, col := range list {
+		if _, ok := cols[col]; !ok {
+			anyMissing = true
+
+			break
+		}
+	}
+
+	if !anyMissing {
+		return list
+	}
+
+	out := make([]string, 0, len(list))
 
 	for _, col := range list {
 		if _, ok := cols[col]; ok {
@@ -287,16 +294,19 @@ func filterColumnList(
 			continue
 		}
 
-		inc.Record(
+		inc.RecordColumn(
 			ctx, logger,
-			metadata.InconsistencyKindColumn,
 			dbName,
-			qualifyColumn(t.Table.Schema, t.Table.Name, col),
+			t.Table.Schema, t.Table.Name, col,
 			fmt.Sprintf(
 				"column referenced in %s for role %q not found in source",
 				where, role,
 			),
 		)
+	}
+
+	if len(out) == 0 {
+		return nil
 	}
 
 	return out
@@ -316,6 +326,20 @@ func filterColumnKeyMap(
 		return m
 	}
 
+	anyMissing := false
+
+	for k := range m {
+		if _, ok := cols[k]; !ok {
+			anyMissing = true
+
+			break
+		}
+	}
+
+	if !anyMissing {
+		return m
+	}
+
 	out := make(map[string]any, len(m))
 
 	for k, v := range m {
@@ -325,11 +349,10 @@ func filterColumnKeyMap(
 			continue
 		}
 
-		inc.Record(
+		inc.RecordColumn(
 			ctx, logger,
-			metadata.InconsistencyKindColumn,
 			dbName,
-			qualifyColumn(t.Table.Schema, t.Table.Name, k),
+			t.Table.Schema, t.Table.Name, k,
 			fmt.Sprintf(
 				"column referenced in %s for role %q not found in source",
 				where, role,
@@ -398,11 +421,10 @@ func shouldDropRelationship(
 		return false
 	}
 
-	inc.Record(
+	inc.RecordRelationship(
 		ctx, logger,
-		metadata.InconsistencyKindRelationship,
 		dbName,
-		qualifyRelationship(t.Table.Schema, t.Table.Name, relName),
+		t.Table.Schema, t.Table.Name, relName,
 		fmt.Sprintf(
 			"relationship target %q not tracked in source",
 			qualifyTable(target.Schema, target.Name),
@@ -453,11 +475,10 @@ func reconcileFunctions(
 			continue
 		}
 
-		inc.Record(
+		inc.RecordFunction(
 			ctx, logger,
-			metadata.InconsistencyKindFunction,
 			dbName,
-			qualifyTable(fn.Function.Schema, fn.Function.Name),
+			fn.Function.Schema, fn.Function.Name,
 			"function not found in source",
 		)
 	}

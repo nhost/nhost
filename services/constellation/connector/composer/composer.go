@@ -145,10 +145,8 @@ func (c *Composer) composeRole(
 		if err := schemamerge.MergeConnectorSchema(
 			schema, &combinedSchema, connName, fieldToConnector, typeToConnector,
 		); err != nil {
-			c.inconsistencies.Record(
+			c.inconsistencies.RecordRole(
 				ctx, logger,
-				metadata.InconsistencyKindRole,
-				"",
 				role,
 				fmt.Sprintf(
 					"failed to merge schema (incoming connector %q): %v",
@@ -167,10 +165,8 @@ func (c *Composer) composeRole(
 
 	schemaDoc, validatedSchema, err := schemamerge.BuildValidatedSchema(&combinedSchema, role)
 	if err != nil {
-		c.inconsistencies.Record(
+		c.inconsistencies.RecordRole(
 			ctx, logger,
-			metadata.InconsistencyKindRole,
-			"",
 			role,
 			fmt.Sprintf("building validated schema: %v", err),
 		)
