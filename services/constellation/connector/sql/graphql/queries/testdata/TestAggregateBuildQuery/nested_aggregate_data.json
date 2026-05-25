@@ -1,8 +1,39 @@
 [
   [
     {
+      "aggregate": {
+        "count": 10
+      },
       "nodes": [
         {
+          "name": "Human Resources",
+          "files_aggregate": {
+            "aggregate": {
+              "count": 4
+            },
+            "nodes": [
+              {
+                "file": {
+                  "name": "employee-handbook-2025.pdf"
+                }
+              },
+              {
+                "file": {
+                  "name": "benefits-overview.pdf"
+                }
+              },
+              {
+                "file": {
+                  "name": "onboarding-checklist.xlsx"
+                }
+              },
+              {
+                "file": {
+                  "name": "hr-team-photo.jpg"
+                }
+              }
+            ]
+          },
           "employees_aggregate": {
             "aggregate": {
               "count": 8
@@ -46,34 +77,6 @@
               {
                 "user": {
                   "displayName": "Christopher Bell"
-                }
-              }
-            ]
-          },
-          "name": "Human Resources",
-          "files_aggregate": {
-            "aggregate": {
-              "count": 4
-            },
-            "nodes": [
-              {
-                "file": {
-                  "name": "employee-handbook-2025.pdf"
-                }
-              },
-              {
-                "file": {
-                  "name": "benefits-overview.pdf"
-                }
-              },
-              {
-                "file": {
-                  "name": "onboarding-checklist.xlsx"
-                }
-              },
-              {
-                "file": {
-                  "name": "hr-team-photo.jpg"
                 }
               }
             ]
@@ -311,11 +314,7 @@
           }
         },
         {
-          "name": "Finance",
           "files_aggregate": {
-            "aggregate": {
-              "count": 4
-            },
             "nodes": [
               {
                 "file": {
@@ -337,12 +336,12 @@
                   "name": "finance-team-photo.jpg"
                 }
               }
-            ]
+            ],
+            "aggregate": {
+              "count": 4
+            }
           },
           "employees_aggregate": {
-            "aggregate": {
-              "count": 8
-            },
             "nodes": [
               {
                 "user": {
@@ -384,8 +383,12 @@
                   "displayName": "Amanda Johnson"
                 }
               }
-            ]
-          }
+            ],
+            "aggregate": {
+              "count": 8
+            }
+          },
+          "name": "Finance"
         },
         {
           "name": "Operations",
@@ -470,19 +473,19 @@
           }
         },
         {
-          "files_aggregate": {
-            "aggregate": {
-              "count": 0
-            },
-            "nodes": []
-          },
           "employees_aggregate": {
             "aggregate": {
               "count": 0
             },
             "nodes": []
           },
-          "name": "Temp"
+          "name": "Temp",
+          "files_aggregate": {
+            "aggregate": {
+              "count": 0
+            },
+            "nodes": []
+          }
         },
         {
           "name": "Temp1",
@@ -493,34 +496,34 @@
             "nodes": []
           },
           "employees_aggregate": {
-            "nodes": [],
             "aggregate": {
               "count": 0
-            }
+            },
+            "nodes": []
           }
         },
         {
           "name": "Temp2",
           "files_aggregate": {
+            "nodes": [],
             "aggregate": {
               "count": 0
-            },
-            "nodes": []
+            }
           },
           "employees_aggregate": {
+            "nodes": [],
             "aggregate": {
               "count": 0
-            },
-            "nodes": []
+            }
           }
         },
         {
           "name": "ToDelete",
           "files_aggregate": {
-            "nodes": [],
             "aggregate": {
               "count": 0
-            }
+            },
+            "nodes": []
           },
           "employees_aggregate": {
             "aggregate": {
@@ -529,10 +532,7 @@
             "nodes": []
           }
         }
-      ],
-      "aggregate": {
-        "count": 10
-      }
+      ]
     }
   ]
 ]

@@ -762,6 +762,37 @@ func TestAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// Fragments inside an aggregate-function scope (sum / max) must be
+		// expanded the same way they are at the outer and aggregate-fields
+		// scopes. Without recursion, __typename and column selections nested
+		// inside ...Frag or inline fragments would be silently dropped.
+		{
+			name: "aggregate with fragments inside function scope",
+			query: query{
+				Query: `
+					fragment SumFields on departments_sum_fields {
+						__typename
+						budget
+					}
+
+					query {
+						departments_aggregate {
+							aggregate {
+								sum {
+									...SumFields
+								}
+								max {
+									... {
+										__typename
+										budget
+									}
+								}
+							}
+						}
+					}`,
+			},
+		},
+
 		{
 			name: "aggregate with duplicate fields via fragments (merging)",
 			query: query{

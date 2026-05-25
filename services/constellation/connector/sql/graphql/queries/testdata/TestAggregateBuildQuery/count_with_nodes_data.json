@@ -1,6 +1,9 @@
 [
   [
     {
+      "aggregate": {
+        "count": 5
+      },
       "nodes": [
         {
           "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
@@ -15,17 +18,14 @@
           "name": "Marketing"
         },
         {
-          "id": "ffd095c2-9745-43d9-b133-7e8d847e8371",
-          "name": "Sales"
+          "name": "Sales",
+          "id": "ffd095c2-9745-43d9-b133-7e8d847e8371"
         },
         {
-          "name": "Finance",
-          "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3"
+          "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3",
+          "name": "Finance"
         }
-      ],
-      "aggregate": {
-        "count": 5
-      }
+      ]
     }
   ]
 ]

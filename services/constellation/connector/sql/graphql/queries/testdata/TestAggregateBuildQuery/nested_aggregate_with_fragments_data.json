@@ -83,6 +83,7 @@
           }
         },
         {
+          "name": "Engineering",
           "files_aggregate": {
             "aggregate": {
               "count": 5
@@ -161,8 +162,7 @@
                 }
               }
             ]
-          },
-          "name": "Engineering"
+          }
         },
         {
           "name": "Marketing",
@@ -242,6 +242,34 @@
           }
         },
         {
+          "name": "Sales",
+          "files_aggregate": {
+            "aggregate": {
+              "count": 4
+            },
+            "nodes": [
+              {
+                "file": {
+                  "name": "sales-playbook.pdf"
+                }
+              },
+              {
+                "file": {
+                  "name": "pricing-guide.xlsx"
+                }
+              },
+              {
+                "file": {
+                  "name": "customer-success-stories.pdf"
+                }
+              },
+              {
+                "file": {
+                  "name": "sales-team-photo.jpg"
+                }
+              }
+            ]
+          },
           "employees_aggregate": {
             "aggregate": {
               "count": 7
@@ -283,42 +311,11 @@
                 }
               }
             ]
-          },
-          "name": "Sales",
-          "files_aggregate": {
-            "nodes": [
-              {
-                "file": {
-                  "name": "sales-playbook.pdf"
-                }
-              },
-              {
-                "file": {
-                  "name": "pricing-guide.xlsx"
-                }
-              },
-              {
-                "file": {
-                  "name": "customer-success-stories.pdf"
-                }
-              },
-              {
-                "file": {
-                  "name": "sales-team-photo.jpg"
-                }
-              }
-            ],
-            "aggregate": {
-              "count": 4
-            }
           }
         },
         {
           "name": "Finance",
           "files_aggregate": {
-            "aggregate": {
-              "count": 4
-            },
             "nodes": [
               {
                 "file": {
@@ -340,7 +337,10 @@
                   "name": "finance-team-photo.jpg"
                 }
               }
-            ]
+            ],
+            "aggregate": {
+              "count": 4
+            }
           },
           "employees_aggregate": {
             "aggregate": {
@@ -503,6 +503,7 @@
           }
         },
         {
+          "name": "Temp2",
           "files_aggregate": {
             "aggregate": {
               "count": 0
@@ -514,8 +515,7 @@
               "count": 0
             },
             "nodes": []
-          },
-          "name": "Temp2"
+          }
         },
         {
           "name": "ToDelete",

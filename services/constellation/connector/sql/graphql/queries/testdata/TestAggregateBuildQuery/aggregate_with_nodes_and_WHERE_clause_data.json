@@ -19,9 +19,9 @@
           "budget": 1200000
         },
         {
-          "budget": 500000,
           "id": "dcd52518-58d0-4834-9683-ba6dee33833f",
-          "name": "Marketing"
+          "name": "Marketing",
+          "budget": 500000
         },
         {
           "id": "ffd095c2-9745-43d9-b133-7e8d847e8371",
@@ -29,19 +29,19 @@
           "budget": 750000
         },
         {
-          "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3",
           "name": "Finance",
-          "budget": 300000
+          "budget": 300000,
+          "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3"
         },
         {
-          "budget": 400000,
           "id": "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
-          "name": "Operations"
+          "name": "Operations",
+          "budget": 400000
         },
         {
-          "budget": 2000,
           "id": "00000000-0000-0000-0000-000000000002",
-          "name": "Temp1"
+          "name": "Temp1",
+          "budget": 2000
         },
         {
           "id": "00000000-0000-0000-0000-000000000003",
@@ -49,9 +49,9 @@
           "budget": 3000
         },
         {
+          "budget": 25000,
           "id": "00000000-0000-0000-0000-000000000004",
-          "name": "ToDelete",
-          "budget": 25000
+          "name": "ToDelete"
         }
       ]
     }

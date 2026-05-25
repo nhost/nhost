@@ -53,6 +53,7 @@ func newAggregateFunctionSelection(
 	funcName string,
 	t *table,
 	selectionSet ast.SelectionSet,
+	fragments ast.FragmentDefinitionList,
 ) (*aggregateFunctionSelection, error) {
 	columns := make([]*core.Column, 0, len(selectionSet))
 
@@ -60,24 +61,51 @@ func newAggregateFunctionSelection(
 
 	fieldsTypeName := t.graphqlTypeName + "_" + alias + "_fields"
 
-	for _, colField := range selectionSet {
-		f, ok := colField.(*ast.Field)
-		if !ok {
-			continue
+	var (
+		collectErr    error
+		collectFields func(ss ast.SelectionSet)
+	)
+
+	collectFields = func(ss ast.SelectionSet) {
+		if collectErr != nil {
+			return
 		}
 
-		if f.Name == typenameField {
-			typenames = appendTypename(typenames, f, fieldsTypeName)
+		for _, sel := range ss {
+			switch s := sel.(type) {
+			case *ast.Field:
+				if s.Name == typenameField {
+					typenames = appendTypename(typenames, s, fieldsTypeName)
+					continue
+				}
 
-			continue
+				col := t.columnFromGraphqlName(s.Name)
+				if col == nil {
+					collectErr = fmt.Errorf("%w: %s", errUnknownAggregateColumn, s.Name)
+					return
+				}
+
+				columns = append(columns, col)
+
+			case *ast.InlineFragment:
+				collectFields(s.SelectionSet)
+
+			case *ast.FragmentSpread:
+				fragment := findFragment(fragments, s.Name)
+				if fragment == nil {
+					collectErr = fmt.Errorf("fragment %q is not defined", s.Name) //nolint:err113
+					return
+				}
+
+				collectFields(fragment.SelectionSet)
+			}
 		}
+	}
 
-		col := t.columnFromGraphqlName(f.Name)
-		if col == nil {
-			return nil, fmt.Errorf("%w: %s", errUnknownAggregateColumn, f.Name)
-		}
+	collectFields(selectionSet)
 
-		columns = append(columns, col)
+	if collectErr != nil {
+		return nil, collectErr
 	}
 
 	return &aggregateFunctionSelection{
@@ -280,6 +308,7 @@ func (t *table) appendAggregateField(
 	sel []aggregateQuerySelection,
 	f *ast.Field,
 	aggregateFieldsTypeName string,
+	fragments ast.FragmentDefinitionList,
 ) ([]aggregateQuerySelection, error) {
 	switch f.Name {
 	case typenameField:
@@ -301,7 +330,7 @@ func (t *table) appendAggregateField(
 	case "sum", "avg", "max", "min", "stddev", "stddev_pop",
 		"stddev_samp", "var_pop", "var_samp", "variance":
 		a, err := newAggregateFunctionSelection(
-			f.Name, strings.ToUpper(f.Name), t, f.SelectionSet,
+			f.Name, strings.ToUpper(f.Name), t, f.SelectionSet, fragments,
 		)
 		if err != nil {
 			return nil, err
@@ -334,7 +363,7 @@ func (t *table) parseAggregateFields(
 		for _, selection := range selectionSet {
 			switch s := selection.(type) {
 			case *ast.Field:
-				next, err := t.appendAggregateField(sel, s, aggregateFieldsTypeName)
+				next, err := t.appendAggregateField(sel, s, aggregateFieldsTypeName, fragments)
 				if err != nil {
 					collectErr = err
 					return

@@ -3,16 +3,16 @@
     [
       {
         "files_aggregate": {
-          "aggregate": {
-            "count": 1
-          },
           "nodes": [
             {
               "file": {
                 "id": "f1e9b8db-1111-439f-9d63-7f83de523fb1"
               }
             }
-          ]
+          ],
+          "aggregate": {
+            "count": 1
+          }
         }
       },
       {
