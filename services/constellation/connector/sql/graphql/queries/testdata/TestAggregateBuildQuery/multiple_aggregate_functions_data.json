@@ -2,14 +2,9 @@
   [
     {
       "aggregate": {
-        "variance": {
-          "budget": 154273655555.55554
-        },
-        "var_pop": {
-          "budget": 138846290000
-        },
-        "var_samp": {
-          "budget": 154273655555.55554
+        "count": 10,
+        "sum": {
+          "budget": 3431000
         },
         "avg": {
           "budget": 343100
@@ -23,15 +18,20 @@
         "stddev_pop": {
           "budget": 372620.83946017
         },
-        "stddev_samp": {
-          "budget": 392776.85211269
+        "var_pop": {
+          "budget": 138846290000
         },
-        "count": 10,
-        "sum": {
-          "budget": 3431000
+        "var_samp": {
+          "budget": 154273655555.55554
         },
         "max": {
           "budget": 1200000
+        },
+        "stddev_samp": {
+          "budget": 392776.85211269
+        },
+        "variance": {
+          "budget": 154273655555.55554
         }
       }
     }

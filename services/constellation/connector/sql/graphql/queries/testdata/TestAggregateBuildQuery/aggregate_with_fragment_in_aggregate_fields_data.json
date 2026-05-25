@@ -2,18 +2,18 @@
   [
     {
       "aggregate": {
-        "count": 10,
         "sum": {
           "budget": 3431000
         },
         "avg": {
           "budget": 343100
-        }
+        },
+        "count": 10
       },
       "nodes": [
         {
-          "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
-          "name": "Human Resources"
+          "name": "Human Resources",
+          "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
         },
         {
           "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
@@ -28,16 +28,16 @@
           "name": "Sales"
         },
         {
-          "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3",
-          "name": "Finance"
+          "name": "Finance",
+          "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3"
         },
         {
           "id": "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
           "name": "Operations"
         },
         {
-          "id": "00000000-0000-0000-0000-000000000001",
-          "name": "Temp"
+          "name": "Temp",
+          "id": "00000000-0000-0000-0000-000000000001"
         },
         {
           "id": "00000000-0000-0000-0000-000000000002",
@@ -48,8 +48,8 @@
           "name": "Temp2"
         },
         {
-          "id": "00000000-0000-0000-0000-000000000004",
-          "name": "ToDelete"
+          "name": "ToDelete",
+          "id": "00000000-0000-0000-0000-000000000004"
         }
       ]
     }

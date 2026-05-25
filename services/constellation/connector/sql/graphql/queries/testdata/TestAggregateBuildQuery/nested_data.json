@@ -10,12 +10,12 @@
         }
       },
       {
-        "name": "Engineering",
         "files_aggregate": {
           "aggregate": {
             "count": 5
           }
-        }
+        },
+        "name": "Engineering"
       },
       {
         "name": "Marketing",
@@ -42,12 +42,12 @@
         }
       },
       {
-        "name": "Operations",
         "files_aggregate": {
           "aggregate": {
             "count": 4
           }
-        }
+        },
+        "name": "Operations"
       },
       {
         "name": "Temp",
