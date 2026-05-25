@@ -1,6 +1,6 @@
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import type { Row } from '@tanstack/react-table';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -35,6 +35,18 @@ export interface DataBrowserGridControlsProps {
    * Function to be called when the button to add a new row is clicked.
    */
   onInsertRowClick?: () => void;
+  /**
+   * Whether to show a button for refreshing the current materialized view.
+   */
+  showRefreshMaterializedViewButton?: boolean;
+  /**
+   * Function to be called when refreshing the current materialized view.
+   */
+  onRefreshMaterializedViewClick?: () => Promise<unknown>;
+  /**
+   * Whether the current materialized view is being refreshed.
+   */
+  isRefreshingMaterializedView?: boolean;
 }
 
 // TODO: Get rid of Data Browser related code from here. This component should
@@ -43,6 +55,9 @@ export default function DataBrowserGridControls({
   paginationProps,
   refetchData,
   onInsertRowClick,
+  showRefreshMaterializedViewButton,
+  onRefreshMaterializedViewClick,
+  isRefreshingMaterializedView,
 }: DataBrowserGridControlsProps) {
   const tablePath = useTablePath();
   const { appliedFilters, currentOffset, sortBy } = useDataGridQueryParams();
@@ -200,6 +215,19 @@ export default function DataBrowserGridControls({
                 isFetching={isFetching}
               />
               <DataGridTableViewConfigurationPopover />
+              {showRefreshMaterializedViewButton && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  loading={isRefreshingMaterializedView}
+                  onClick={onRefreshMaterializedViewClick}
+                >
+                  {!isRefreshingMaterializedView && (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  <span>Refresh</span>
+                </Button>
+              )}
               {onInsertRowClick && (
                 <Button onClick={onInsertRowClick} size="sm">
                   <Plus className="h-4 w-4" />

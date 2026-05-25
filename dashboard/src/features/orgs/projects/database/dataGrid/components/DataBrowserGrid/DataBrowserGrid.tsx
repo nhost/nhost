@@ -17,6 +17,8 @@ import {
   createTableQueryKey,
   useTableQuery,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
+import { useRefreshMaterializedView } from '@/features/orgs/projects/database/dataGrid/hooks/useRefreshMaterializedView';
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import type {
@@ -218,6 +220,22 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
         typeof dataSourceSlug === 'string',
     },
   });
+  
+  const { tableType } = useTableType({
+    dataSource: dataSourceSlug as string,
+    schema: schemaSlug as string,
+    name: tableSlug as string,
+    queryOptions: {
+      enabled:
+        typeof schemaSlug === 'string' &&
+        typeof tableSlug === 'string' &&
+        typeof dataSourceSlug === 'string',
+    },
+  });
+  const isMaterializedView = tableType === 'MATERIALIZED VIEW';
+
+  const { handleRefresh: handleRefreshMaterializedViewClick, isRefreshing: isRefreshingMaterializedView } =
+  useRefreshMaterializedView({ currentTablePath });
 
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
@@ -414,6 +432,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       controls={
         <DataBrowserGridControls
           onInsertRowClick={isReadOnlyObject ? undefined : handleInsertRowClick}
+          showRefreshMaterializedViewButton={isMaterializedView}
+          onRefreshMaterializedViewClick={handleRefreshMaterializedViewClick}
+          isRefreshingMaterializedView={isRefreshingMaterializedView}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
             totalPages: Math.max(numberOfPages, 1),
