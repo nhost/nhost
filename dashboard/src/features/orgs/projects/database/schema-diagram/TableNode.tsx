@@ -15,6 +15,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { cn } from '@/lib/utils';
+import { getOperationNamesForAction } from './operationNames';
 import PermissionDot from './PermissionDot';
 import {
   ADMIN_ROLE,
@@ -80,38 +81,102 @@ function describeState(state: PermissionDotState): string {
   }
 }
 
+function OperationsList({
+  metadataTable,
+  schema,
+  table,
+  action,
+  dimmed,
+}: {
+  metadataTable: HasuraMetadataTable | undefined;
+  schema: string;
+  table: string;
+  action: DatabaseAction;
+  dimmed: boolean;
+}): ReactNode {
+  const operations = getOperationNamesForAction(
+    metadataTable,
+    schema,
+    table,
+    action,
+  );
+  if (operations.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-1 border-border border-t pt-2">
+      <div className="text-muted-foreground text-xs uppercase tracking-wide">
+        Operations
+      </div>
+      <ul className={cn('space-y-0.5', dimmed && 'opacity-50')}>
+        {operations.map((op) => (
+          <li
+            key={op.label}
+            className={cn(
+              'font-mono text-xs',
+              op.isCustom && GRAPHQL_NAME_CLASS,
+            )}
+          >
+            {op.name}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function TableDotTooltipContent({
   action,
   state,
   metadataTable,
   role,
+  schema,
+  table,
 }: {
   action: DatabaseAction;
   state: PermissionDotState;
   metadataTable: HasuraMetadataTable | undefined;
   role: string;
+  schema: string;
+  table: string;
 }): ReactNode {
   const label = `${ACTION_LABELS[action]} — ${describeState(state)}`;
+  const operations = (
+    <OperationsList
+      metadataTable={metadataTable}
+      schema={schema}
+      table={table}
+      action={action}
+      dimmed={state === 'none'}
+    />
+  );
 
   if (role === ADMIN_ROLE) {
     return (
-      <div className="space-y-1">
-        <div className="font-semibold">{label}</div>
-        <div className="text-muted-foreground text-xs">
-          Admin role — full access.
+      <div className="space-y-2">
+        <div>
+          <div className="font-semibold">{label}</div>
+          <div className="text-muted-foreground text-xs">
+            Admin role — full access.
+          </div>
         </div>
+        {operations}
       </div>
     );
   }
 
   if (state === 'none') {
     return (
-      <div className="space-y-1">
-        <div className="font-semibold">{label}</div>
-        <div className="text-muted-foreground text-xs">
-          Role <span className="font-mono">{role}</span> has no {action}{' '}
-          permission on this table.
+      <div className="space-y-2">
+        <div>
+          <div className="font-semibold">{label}</div>
+          <div className="text-muted-foreground text-xs">
+            Role <span className="font-mono">{role}</span> has no {action}{' '}
+            permission on this table.
+          </div>
         </div>
+        {operations}
       </div>
     );
   }
@@ -120,24 +185,27 @@ function TableDotTooltipContent({
   const rules = getRelevantRules(permission, action);
 
   return (
-    <div className="space-y-1">
-      <div className="font-semibold">{label}</div>
-      {rules.length === 0 ? (
-        <div className="text-muted-foreground text-xs">
-          No row rule — applies to all rows.
-        </div>
-      ) : (
-        rules.map(({ key, value }) => (
-          <div key={key} className="space-y-1">
-            <div className="text-muted-foreground text-xs">
-              {RULE_LABELS[key]}:
-            </div>
-            <pre className="max-w-[360px] overflow-x-auto rounded bg-muted p-2 font-mono text-[11px] leading-tight">
-              {JSON.stringify(value, null, 2)}
-            </pre>
+    <div className="space-y-2">
+      <div className="space-y-1">
+        <div className="font-semibold">{label}</div>
+        {rules.length === 0 ? (
+          <div className="text-muted-foreground text-xs">
+            No row rule — applies to all rows.
           </div>
-        ))
-      )}
+        ) : (
+          rules.map(({ key, value }) => (
+            <div key={key} className="space-y-1">
+              <div className="text-muted-foreground text-xs">
+                {RULE_LABELS[key]}:
+              </div>
+              <pre className="max-w-[360px] overflow-x-auto rounded bg-muted p-2 font-mono text-[11px] leading-tight">
+                {JSON.stringify(value, null, 2)}
+              </pre>
+            </div>
+          ))
+        )}
+      </div>
+      {operations}
     </div>
   );
 }
@@ -220,6 +288,8 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                     state={state}
                     metadataTable={metadataTable}
                     role={role}
+                    schema={schema}
+                    table={table}
                   />
                 </TooltipContent>
               </Tooltip>
