@@ -11,15 +11,15 @@ import (
 // relationshipUsingCase is one input/output expectation pair used by both the
 // YAML and JSON test tables for RelationshipUsing.
 type relationshipUsingCase struct {
-	name                    string
-	input                   string
-	wantForeignKeyColumn    string
-	wantForeignKeyTableName string
-	wantForeignKeySchema    string
-	wantForeignKeyConstrCol string
-	wantManualSource        string
-	wantErr                 bool
-	wantWrapContext         string
+	name                     string
+	input                    string
+	wantForeignKeyColumns    []string
+	wantForeignKeyTableName  string
+	wantForeignKeySchema     string
+	wantForeignKeyConstrCols []string
+	wantManualSource         string
+	wantErr                  bool
+	wantWrapContext          string
 }
 
 func runRelationshipUsingTest(
@@ -44,16 +44,32 @@ func runRelationshipUsingTest(
 		return
 	}
 
-	if ru.ForeignKeyColumn != tc.wantForeignKeyColumn {
+	if !equalStringSlices(ru.ForeignKeyColumns, tc.wantForeignKeyColumns) {
 		t.Errorf(
-			"ForeignKeyColumn = %q, want %q",
-			ru.ForeignKeyColumn,
-			tc.wantForeignKeyColumn,
+			"ForeignKeyColumns = %v, want %v",
+			ru.ForeignKeyColumns,
+			tc.wantForeignKeyColumns,
 		)
 	}
 
 	assertForeignKeyConstraint(t, ru.ForeignKeyConstraint, tc)
 	assertManualConfiguration(t, ru.ManualConfiguration, tc.wantManualSource)
+}
+
+// equalStringSlices treats nil and empty as equal, which matches how the
+// unmarshalers leave the slice when the source carries no FK columns.
+func equalStringSlices(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 func assertForeignKeyConstraint(
@@ -63,7 +79,7 @@ func assertForeignKeyConstraint(
 ) {
 	t.Helper()
 
-	if tc.wantForeignKeyConstrCol == "" {
+	if len(tc.wantForeignKeyConstrCols) == 0 {
 		if got != nil {
 			t.Errorf("expected nil ForeignKeyConstraint, got %+v", got)
 		}
@@ -75,11 +91,11 @@ func assertForeignKeyConstraint(
 		t.Fatalf("expected ForeignKeyConstraint, got nil")
 	}
 
-	if got.Column != tc.wantForeignKeyConstrCol {
+	if !equalStringSlices(got.Columns, tc.wantForeignKeyConstrCols) {
 		t.Errorf(
-			"ForeignKeyConstraint.Column = %q, want %q",
-			got.Column,
-			tc.wantForeignKeyConstrCol,
+			"ForeignKeyConstraint.Columns = %v, want %v",
+			got.Columns,
+			tc.wantForeignKeyConstrCols,
 		)
 	}
 
@@ -129,37 +145,64 @@ func assertManualConfiguration(
 }
 
 // TestRelationshipUsing_UnmarshalYAML exercises every shape variant
-// (column string, constraint mapping, manual_configuration mapping) as well as
-// a malformed-input case that surfaces the outer wrap context.
+// (column string, list of columns, constraint mapping with column or columns,
+// manual_configuration mapping) plus a malformed-input case that surfaces the
+// outer wrap context.
 func TestRelationshipUsing_UnmarshalYAML(t *testing.T) {
 	t.Parallel()
 
 	tests := []relationshipUsingCase{
 		{
-			name:                    "string column",
-			input:                   "foreign_key_constraint_on: profile_id",
-			wantForeignKeyColumn:    "profile_id",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 false,
-			wantWrapContext:         "",
+			name:                     "string column",
+			input:                    "foreign_key_constraint_on: profile_id",
+			wantForeignKeyColumns:    []string{"profile_id"},
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
 		},
 		{
-			name: "constraint mapping",
+			name:                     "list of columns",
+			input:                    "foreign_key_constraint_on: [exercise_id, kind]",
+			wantForeignKeyColumns:    []string{"exercise_id", "kind"},
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
+		},
+		{
+			name: "constraint mapping single column",
 			input: "foreign_key_constraint_on:\n" +
 				"  column: author_id\n" +
 				"  table:\n" +
 				"    name: posts\n" +
 				"    schema: public",
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "posts",
-			wantForeignKeySchema:    "public",
-			wantForeignKeyConstrCol: "author_id",
-			wantManualSource:        "",
-			wantErr:                 false,
-			wantWrapContext:         "",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "posts",
+			wantForeignKeySchema:     "public",
+			wantForeignKeyConstrCols: []string{"author_id"},
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
+		},
+		{
+			name: "constraint mapping composite columns",
+			input: "foreign_key_constraint_on:\n" +
+				"  columns: [exercise_id, kind]\n" +
+				"  table:\n" +
+				"    name: workouts\n" +
+				"    schema: public",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "workouts",
+			wantForeignKeySchema:     "public",
+			wantForeignKeyConstrCols: []string{"exercise_id", "kind"},
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
 		},
 		{
 			name: "manual configuration",
@@ -170,49 +213,49 @@ func TestRelationshipUsing_UnmarshalYAML(t *testing.T) {
 				"  column_mapping:\n" +
 				"    user_id: id\n" +
 				"  source: default",
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "default",
-			wantErr:                 false,
-			wantWrapContext:         "",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "default",
+			wantErr:                  false,
+			wantWrapContext:          "",
 		},
 		{
 			name: "constraint mapping ignored unknown shape",
-			// integer for foreign_key_constraint_on falls through both the
-			// string and map[string]any switch arms in UnmarshalYAML, leaving
-			// the destination zero-valued without error.
-			input:                   "foreign_key_constraint_on: 42",
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 false,
-			wantWrapContext:         "",
+			// integer for foreign_key_constraint_on falls through every
+			// recognised type arm in UnmarshalYAML, leaving the destination
+			// zero-valued without error.
+			input:                    "foreign_key_constraint_on: 42",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
 		},
 		{
-			name:                    "malformed yaml not a mapping",
-			input:                   "[not a map]",
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 true,
-			wantWrapContext:         "unmarshaling relationship using",
+			name:                     "malformed yaml not a mapping",
+			input:                    "[not a map]",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  true,
+			wantWrapContext:          "unmarshaling relationship using",
 		},
 		{
-			name:                    "malformed yaml plain string",
-			input:                   "just a plain string",
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 true,
-			wantWrapContext:         "unmarshaling relationship using",
+			name:                     "malformed yaml plain string",
+			input:                    "just a plain string",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  true,
+			wantWrapContext:          "unmarshaling relationship using",
 		},
 	}
 
@@ -233,95 +276,107 @@ func TestRelationshipUsing_UnmarshalJSON(t *testing.T) {
 
 	tests := []relationshipUsingCase{
 		{
-			name:                    "string column",
-			input:                   `{"foreign_key_constraint_on":"profile_id"}`,
-			wantForeignKeyColumn:    "profile_id",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 false,
-			wantWrapContext:         "",
+			name:                     "string column",
+			input:                    `{"foreign_key_constraint_on":"profile_id"}`,
+			wantForeignKeyColumns:    []string{"profile_id"},
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
 		},
 		{
-			name: "constraint object",
+			name:                     "array of columns",
+			input:                    `{"foreign_key_constraint_on":["exercise_id","kind"]}`,
+			wantForeignKeyColumns:    []string{"exercise_id", "kind"},
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
+		},
+		{
+			name: "constraint object single column",
 			input: `{"foreign_key_constraint_on":{"column":"author_id",` +
 				`"table":{"name":"posts","schema":"public"}}}`,
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "posts",
-			wantForeignKeySchema:    "public",
-			wantForeignKeyConstrCol: "author_id",
-			wantManualSource:        "",
-			wantErr:                 false,
-			wantWrapContext:         "",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "posts",
+			wantForeignKeySchema:     "public",
+			wantForeignKeyConstrCols: []string{"author_id"},
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
+		},
+		{
+			name: "constraint object composite columns",
+			input: `{"foreign_key_constraint_on":{"columns":["a","b"],` +
+				`"table":{"name":"t","schema":"public"}}}`,
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "t",
+			wantForeignKeySchema:     "public",
+			wantForeignKeyConstrCols: []string{"a", "b"},
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
 		},
 		{
 			name: "manual configuration",
 			input: `{"manual_configuration":{"remote_table":{"name":"profiles",` +
 				`"schema":"public"},"column_mapping":{"user_id":"id"},` +
 				`"source":"default"}}`,
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "default",
-			wantErr:                 false,
-			wantWrapContext:         "",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "default",
+			wantErr:                  false,
+			wantWrapContext:          "",
 		},
 		{
-			name:                    "empty object",
-			input:                   `{}`,
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 false,
-			wantWrapContext:         "",
+			name:                     "empty object",
+			input:                    `{}`,
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  false,
+			wantWrapContext:          "",
 		},
 		{
-			name:                    "outer unmarshal failure not an object",
-			input:                   `[1,2,3]`,
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 true,
-			wantWrapContext:         "unmarshaling relationship using",
+			name:                     "outer unmarshal failure not an object",
+			input:                    `[1,2,3]`,
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  true,
+			wantWrapContext:          "unmarshaling relationship using",
 		},
 		{
-			name:                    "inner constraint failure number value",
-			input:                   `{"foreign_key_constraint_on":42}`,
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 true,
-			wantWrapContext:         "unmarshaling foreign key constraint",
+			name:                     "inner constraint failure number value",
+			input:                    `{"foreign_key_constraint_on":42}`,
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  true,
+			wantWrapContext:          "unmarshaling foreign key constraint",
 		},
 		{
-			name:                    "inner constraint failure array value",
-			input:                   `{"foreign_key_constraint_on":["x"]}`,
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 true,
-			wantWrapContext:         "unmarshaling foreign key constraint",
-		},
-		{
-			name:                    "inner constraint failure wrong field type",
-			input:                   `{"foreign_key_constraint_on":{"column":42}}`,
-			wantForeignKeyColumn:    "",
-			wantForeignKeyTableName: "",
-			wantForeignKeySchema:    "",
-			wantForeignKeyConstrCol: "",
-			wantManualSource:        "",
-			wantErr:                 true,
-			wantWrapContext:         "unmarshaling foreign key constraint",
+			name:                     "inner constraint failure wrong field type",
+			input:                    `{"foreign_key_constraint_on":{"columns":[42]}}`,
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  true,
+			wantWrapContext:          "unmarshaling foreign key constraint",
 		},
 	}
 
@@ -338,19 +393,21 @@ func TestRelationshipUsing_UnmarshalJSON(t *testing.T) {
 
 // TestMapToForeignKeyConstraint covers the type-assertion fallthroughs in
 // mapToForeignKeyConstraint: missing column, non-string column, missing
-// table, non-mapping table, and partial table identification.
+// table, non-mapping table, and partial table identification. The single
+// "column" key is promoted to a one-element Columns slice; the plural
+// "columns" key is taken verbatim and wins when both are present.
 func TestMapToForeignKeyConstraint(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		input      map[string]any
-		wantColumn string
-		wantName   string
-		wantSchema string
+		name        string
+		input       map[string]any
+		wantColumns []string
+		wantName    string
+		wantSchema  string
 	}{
 		{
-			name: "all fields present",
+			name: "single column promoted to slice",
 			input: map[string]any{
 				"column": "author_id",
 				"table": map[string]any{
@@ -358,16 +415,43 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": "public",
 				},
 			},
-			wantColumn: "author_id",
-			wantName:   "posts",
-			wantSchema: "public",
+			wantColumns: []string{"author_id"},
+			wantName:    "posts",
+			wantSchema:  "public",
 		},
 		{
-			name:       "empty map yields zero constraint",
-			input:      map[string]any{},
-			wantColumn: "",
-			wantName:   "",
-			wantSchema: "",
+			name: "composite columns",
+			input: map[string]any{
+				"columns": []any{"a", "b"},
+				"table": map[string]any{
+					"name":   "t",
+					"schema": "public",
+				},
+			},
+			wantColumns: []string{"a", "b"},
+			wantName:    "t",
+			wantSchema:  "public",
+		},
+		{
+			name: "columns key wins over column key",
+			input: map[string]any{
+				"columns": []any{"a"},
+				"column":  "ignored",
+				"table": map[string]any{
+					"name":   "t",
+					"schema": "public",
+				},
+			},
+			wantColumns: []string{"a"},
+			wantName:    "t",
+			wantSchema:  "public",
+		},
+		{
+			name:        "empty map yields zero constraint",
+			input:       map[string]any{},
+			wantColumns: nil,
+			wantName:    "",
+			wantSchema:  "",
 		},
 		{
 			name: "column wrong type drops column",
@@ -378,9 +462,22 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": "public",
 				},
 			},
-			wantColumn: "",
-			wantName:   "posts",
-			wantSchema: "public",
+			wantColumns: nil,
+			wantName:    "posts",
+			wantSchema:  "public",
+		},
+		{
+			name: "non-string list entries are filtered out",
+			input: map[string]any{
+				"columns": []any{"a", 42, "b"},
+				"table": map[string]any{
+					"name":   "t",
+					"schema": "public",
+				},
+			},
+			wantColumns: []string{"a", "b"},
+			wantName:    "t",
+			wantSchema:  "public",
 		},
 		{
 			name: "table wrong type drops table",
@@ -388,9 +485,9 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 				"column": "author_id",
 				"table":  "not a map",
 			},
-			wantColumn: "author_id",
-			wantName:   "",
-			wantSchema: "",
+			wantColumns: []string{"author_id"},
+			wantName:    "",
+			wantSchema:  "",
 		},
 		{
 			name: "table name wrong type drops name only",
@@ -401,9 +498,9 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": "public",
 				},
 			},
-			wantColumn: "author_id",
-			wantName:   "",
-			wantSchema: "public",
+			wantColumns: []string{"author_id"},
+			wantName:    "",
+			wantSchema:  "public",
 		},
 		{
 			name: "table schema wrong type drops schema only",
@@ -414,9 +511,9 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": false,
 				},
 			},
-			wantColumn: "author_id",
-			wantName:   "posts",
-			wantSchema: "",
+			wantColumns: []string{"author_id"},
+			wantName:    "posts",
+			wantSchema:  "",
 		},
 	}
 
@@ -429,8 +526,8 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 				t.Fatal("expected non-nil constraint, got nil")
 			}
 
-			if got.Column != tt.wantColumn {
-				t.Errorf("Column = %q, want %q", got.Column, tt.wantColumn)
+			if !equalStringSlices(got.Columns, tt.wantColumns) {
+				t.Errorf("Columns = %v, want %v", got.Columns, tt.wantColumns)
 			}
 
 			if got.Table.Name != tt.wantName {

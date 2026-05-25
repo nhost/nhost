@@ -66,7 +66,9 @@
               "name": "userProviders",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "provider_id",
+                  "columns": [
+            "provider_id"
+          ],
                   "table": {
                     "name": "user_providers",
                     "schema": "auth"
@@ -109,7 +111,9 @@
               "name": "refreshTokens",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "type",
+                  "columns": [
+            "type"
+          ],
                   "table": {
                     "name": "refresh_tokens",
                     "schema": "auth"
@@ -195,7 +199,9 @@
             {
               "name": "user",
               "using": {
-                "foreign_key_column": "user_id"
+                "foreign_key_columns": [
+            "user_id"
+          ]
               }
             }
           ],
@@ -380,7 +386,9 @@
               "name": "userRoles",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "role",
+                  "columns": [
+            "role"
+          ],
                   "table": {
                     "name": "user_roles",
                     "schema": "auth"
@@ -392,7 +400,9 @@
               "name": "usersByDefaultRole",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "default_role",
+                  "columns": [
+            "default_role"
+          ],
                   "table": {
                     "name": "users",
                     "schema": "auth"
@@ -487,13 +497,17 @@
             {
               "name": "provider",
               "using": {
-                "foreign_key_column": "provider_id"
+                "foreign_key_columns": [
+            "provider_id"
+          ]
               }
             },
             {
               "name": "user",
               "using": {
-                "foreign_key_column": "user_id"
+                "foreign_key_columns": [
+            "user_id"
+          ]
               }
             }
           ]
@@ -535,13 +549,17 @@
             {
               "name": "roleByRole",
               "using": {
-                "foreign_key_column": "role"
+                "foreign_key_columns": [
+            "role"
+          ]
               }
             },
             {
               "name": "user",
               "using": {
-                "foreign_key_column": "user_id"
+                "foreign_key_columns": [
+            "user_id"
+          ]
               }
             }
           ],
@@ -628,7 +646,9 @@
             {
               "name": "user",
               "using": {
-                "foreign_key_column": "user_id"
+                "foreign_key_columns": [
+            "user_id"
+          ]
               }
             }
           ],
@@ -763,7 +783,9 @@
             {
               "name": "defaultRoleByRole",
               "using": {
-                "foreign_key_column": "default_role"
+                "foreign_key_columns": [
+            "default_role"
+          ]
               }
             },
             {
@@ -787,7 +809,9 @@
               "name": "departments",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+            "user_id"
+          ],
                   "table": {
                     "name": "user_departments",
                     "schema": "public"
@@ -799,7 +823,9 @@
               "name": "kbEntries",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "uploader_id",
+                  "columns": [
+            "uploader_id"
+          ],
                   "table": {
                     "name": "kb_entries",
                     "schema": "public"
@@ -811,7 +837,9 @@
               "name": "refreshTokens",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+            "user_id"
+          ],
                   "table": {
                     "name": "refresh_tokens",
                     "schema": "auth"
@@ -823,7 +851,9 @@
               "name": "roles",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+            "user_id"
+          ],
                   "table": {
                     "name": "user_roles",
                     "schema": "auth"
@@ -835,7 +865,9 @@
               "name": "securityKeys",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+            "user_id"
+          ],
                   "table": {
                     "name": "user_security_keys",
                     "schema": "auth"
@@ -847,7 +879,9 @@
               "name": "userProviders",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+            "user_id"
+          ],
                   "table": {
                     "name": "user_providers",
                     "schema": "auth"
@@ -1498,13 +1532,17 @@
             {
               "name": "department",
               "using": {
-                "foreign_key_column": "department_id"
+                "foreign_key_columns": [
+            "department_id"
+          ]
               }
             },
             {
               "name": "file",
               "using": {
-                "foreign_key_column": "file_id"
+                "foreign_key_columns": [
+            "file_id"
+          ]
               }
             }
           ],
@@ -1622,7 +1660,9 @@
               "name": "employees",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "department_id",
+                  "columns": [
+            "department_id"
+          ],
                   "table": {
                     "name": "user_departments",
                     "schema": "public"
@@ -1634,7 +1674,9 @@
               "name": "files",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "department_id",
+                  "columns": [
+            "department_id"
+          ],
                   "table": {
                     "name": "department_files",
                     "schema": "public"
@@ -1646,7 +1688,9 @@
               "name": "kb_entry_departments",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "department_id",
+                  "columns": [
+            "department_id"
+          ],
                   "table": {
                     "name": "kb_entry_departments",
                     "schema": "public"
@@ -1822,7 +1866,9 @@
             {
               "name": "uploader",
               "using": {
-                "foreign_key_column": "uploader_id"
+                "foreign_key_columns": [
+            "uploader_id"
+          ]
               }
             }
           ],
@@ -1831,7 +1877,9 @@
               "name": "kb_entry_departments",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "kb_entry_id",
+                  "columns": [
+            "kb_entry_id"
+          ],
                   "table": {
                     "name": "kb_entry_departments",
                     "schema": "public"
@@ -1945,13 +1993,17 @@
             {
               "name": "department",
               "using": {
-                "foreign_key_column": "department_id"
+                "foreign_key_columns": [
+            "department_id"
+          ]
               }
             },
             {
               "name": "kb_entry",
               "using": {
-                "foreign_key_column": "kb_entry_id"
+                "foreign_key_columns": [
+            "kb_entry_id"
+          ]
               }
             }
           ],
@@ -2033,13 +2085,17 @@
             {
               "name": "author",
               "using": {
-                "foreign_key_column": "author_id"
+                "foreign_key_columns": [
+            "author_id"
+          ]
               }
             },
             {
               "name": "department",
               "using": {
-                "foreign_key_column": "department_id"
+                "foreign_key_columns": [
+            "department_id"
+          ]
               }
             }
           ],
@@ -2125,13 +2181,17 @@
             {
               "name": "department",
               "using": {
-                "foreign_key_column": "department_id"
+                "foreign_key_columns": [
+            "department_id"
+          ]
               }
             },
             {
               "name": "user",
               "using": {
-                "foreign_key_column": "user_id"
+                "foreign_key_columns": [
+            "user_id"
+          ]
               }
             }
           ],
@@ -2345,7 +2405,9 @@
               "name": "files",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "bucket_id",
+                  "columns": [
+            "bucket_id"
+          ],
                   "table": {
                     "name": "files",
                     "schema": "storage"
@@ -2413,14 +2475,18 @@
             {
               "name": "bucket",
               "using": {
-                "foreign_key_column": "bucket_id"
+                "foreign_key_columns": [
+            "bucket_id"
+          ]
               }
             },
             {
               "name": "department_file",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "file_id",
+                  "columns": [
+            "file_id"
+          ],
                   "table": {
                     "name": "department_files",
                     "schema": "public"
@@ -2631,7 +2697,9 @@
             {
               "name": "file",
               "using": {
-                "foreign_key_column": "file_id"
+                "foreign_key_columns": [
+            "file_id"
+          ]
               }
             }
           ]

@@ -144,16 +144,23 @@ type ArrayRelationship struct {
 }
 
 // RelationshipUsing describes how a relationship is defined.
+//
+// ForeignKeyColumns lists the parent-table columns that anchor a forward
+// relationship; a single-column FK is a one-element slice. ForeignKeyConstraint
+// is set for a reverse relationship whose FK columns live on the target table.
 type RelationshipUsing struct {
-	ForeignKeyColumn     string                `json:"foreign_key_column,omitempty"     toml:"foreign_key_column,omitempty"`     //nolint:lll
+	ForeignKeyColumns    []string              `json:"foreign_key_columns,omitempty"    toml:"foreign_key_columns,omitempty"`    //nolint:lll
 	ForeignKeyConstraint *ForeignKeyConstraint `json:"foreign_key_constraint,omitempty" toml:"foreign_key_constraint,omitempty"` //nolint:lll
 	ManualConfiguration  *ManualConfiguration  `json:"manual_configuration,omitempty"   toml:"manual_configuration,omitempty"`   //nolint:lll
 }
 
-// ForeignKeyConstraint identifies a foreign key relationship.
+// ForeignKeyConstraint identifies a (possibly composite) foreign key
+// relationship anchored on the target table. Columns is the ordered list of
+// columns on Table that point back at the parent table; a single-column FK is
+// represented as a one-element slice.
 type ForeignKeyConstraint struct {
-	Column string      `json:"column" toml:"column"`
-	Table  TableSource `json:"table"  toml:"table"`
+	Columns []string    `json:"columns" toml:"columns"`
+	Table   TableSource `json:"table"   toml:"table"`
 }
 
 // ManualConfiguration defines a manually configured relationship.

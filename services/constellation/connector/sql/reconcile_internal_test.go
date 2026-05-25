@@ -368,7 +368,7 @@ func TestReconcileMetadata_DropsRelationshipsWithMissingTarget(t *testing.T) {
 						Name: "ghost_owner",
 						Using: metadata.RelationshipUsing{ //nolint:exhaustruct
 							ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-								Column: "owner_id",
+								Columns: []string{"owner_id"},
 								Table: metadata.TableSource{
 									Schema: "public", Name: "ghost_table",
 								},

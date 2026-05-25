@@ -334,7 +334,7 @@ func TestNewConnector_KitchenSinkInconsistencies(t *testing.T) {
 						Name: "ghost_rel",
 						Using: metadata.RelationshipUsing{
 							ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-								Column: "id",
+								Columns: []string{"id"},
 								Table: metadata.TableSource{
 									Schema: "public", Name: "ghost_table",
 								},

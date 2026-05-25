@@ -20,7 +20,7 @@ type relationship struct {
 	aggregateName  string
 	table          *table
 	isArray        bool
-	fkColumn       string
+	fkColumns      []string
 	parentColumns  []string
 	targetColumns  []string
 	joinIsReversed bool
@@ -72,7 +72,7 @@ func newLocalRelationship(
 	objects *introspection.Objects,
 	tables []*table,
 ) (*relationship, error) {
-	fkColumn, parentColumns, targetColumns, isReverse, err := buildJoinCondition(
+	fkColumns, parentColumns, targetColumns, isReverse, err := buildJoinCondition(
 		using,
 		isArray,
 		parentTableObj,
@@ -105,7 +105,7 @@ func newLocalRelationship(
 		aggregateName:     name + "_aggregate",
 		table:             table,
 		isArray:           isArray,
-		fkColumn:          fkColumn,
+		fkColumns:         fkColumns,
 		parentColumns:     parentColumns,
 		targetColumns:     targetColumns,
 		joinIsReversed:    isReverse,
@@ -149,7 +149,7 @@ func newRemoteRelationship(
 		aggregateName:     name + "_aggregate",
 		table:             nil, // No local table for remote relationships
 		isArray:           isArray,
-		fkColumn:          "",
+		fkColumns:         nil,
 		parentColumns:     parentColumns,
 		targetColumns:     nil,
 		joinIsReversed:    false,
@@ -191,7 +191,7 @@ func newRemoteSchemaRelationship(
 		aggregateName:     name + "_aggregate",
 		table:             nil, // No local table for remote schema relationships
 		isArray:           isArray,
-		fkColumn:          "",
+		fkColumns:         nil,
 		parentColumns:     nil,
 		targetColumns:     nil,
 		joinIsReversed:    false,
@@ -363,49 +363,53 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 	return params, paramIndex, nil
 }
 
+// getRelationshipPk reports the FK columns named by the Using clause and
+// whether the join direction is reversed (FK lives on the target table).
+//
+// Forward case (ForeignKeyColumns set): returns the parent-side column list.
+// Reverse case (ForeignKeyConstraint set): returns the target-side column
+// list (the columns that live on the target table). Manual configuration:
+// returns the local columns in deterministic sorted order.
 func getRelationshipPk(
 	using metadata.RelationshipUsing,
-) (string, bool) {
-	var (
-		fkColumn  string
-		isReverse bool
-	)
-
+) ([]string, bool) {
 	switch {
-	case using.ForeignKeyColumn != "":
+	case len(using.ForeignKeyColumns) > 0:
 		// Simple: FK in parent table
-		fkColumn = using.ForeignKeyColumn
-		isReverse = false
+		return append([]string(nil), using.ForeignKeyColumns...), false
 	case using.ForeignKeyConstraint != nil:
 		// Complex: FK in target table
-		fkColumn = using.ForeignKeyConstraint.Column
-		isReverse = true
+		return append([]string(nil), using.ForeignKeyConstraint.Columns...), true
 	case using.ManualConfiguration != nil:
-		// Manual configuration
-		if len(using.ManualConfiguration.ColumnMapping) > 0 {
-			for _, targetCol := range using.ManualConfiguration.ColumnMapping {
-				fkColumn = targetCol
-				isReverse = false
-
-				break
-			}
+		if len(using.ManualConfiguration.ColumnMapping) == 0 {
+			return nil, false
 		}
+
+		// Sort keys so the resulting column order is deterministic.
+		localCols := make([]string, 0, len(using.ManualConfiguration.ColumnMapping))
+		for src := range using.ManualConfiguration.ColumnMapping {
+			localCols = append(localCols, src)
+		}
+
+		sort.Strings(localCols)
+
+		return localCols, false
 	}
 
-	return fkColumn, isReverse
+	return nil, false
 }
 
 // buildManualJoinCondition builds the join column structure for manually
 // configured relationships. Manual configurations specify explicit
 // local->remote column mappings; multi-column mappings are supported and the
 // downstream renderer AND-joins each column pair.
-// Returns: (fkColumn, parentColumns, targetColumns, isReversed).
+// Returns: (fkColumns, parentColumns, targetColumns, isReversed).
 func buildManualJoinCondition(
 	mapping map[string]string,
 	isArray bool,
-) (string, []string, []string, bool) {
+) ([]string, []string, []string, bool) {
 	if len(mapping) == 0 {
-		return "", nil, nil, false
+		return nil, nil, nil, false
 	}
 
 	// Sort keys for deterministic output (Go map iteration is random).
@@ -421,19 +425,22 @@ func buildManualJoinCondition(
 		remoteCols = append(remoteCols, mapping[src])
 	}
 
-	return localCols[0], localCols, remoteCols, isArray
+	return localCols, localCols, remoteCols, isArray
 }
 
 // buildJoinCondition resolves the join column structure for a local
 // relationship and returns the structured join info consumed by the
-// relationship renderer.
-// Returns: (fkColumn, parentColumns, targetColumns, isReversed).
+// relationship renderer. Composite FKs (multiple columns per relationship)
+// are supported; each parent column is paired to its target column in the
+// order the metadata listed them, and the downstream emitter AND-joins the
+// pairs.
+// Returns: (fkColumns, parentColumns, targetColumns, isReversed).
 func buildJoinCondition(
 	using metadata.RelationshipUsing,
 	isArray bool,
 	parentTable *introspection.Table,
 	objects *introspection.Objects,
-) (string, []string, []string, bool, error) {
+) ([]string, []string, []string, bool, error) {
 	if using.ManualConfiguration != nil {
 		fk, pc, tc, rev := buildManualJoinCondition(
 			using.ManualConfiguration.ColumnMapping,
@@ -443,30 +450,29 @@ func buildJoinCondition(
 		return fk, pc, tc, rev, nil
 	}
 
-	// Determine foreign key columns and join direction
-	fkColumn, isReverse := getRelationshipPk(using)
+	fkColumns, isReverse := getRelationshipPk(using)
 
 	switch {
-	case isArray, isReverse:
-		// Array/reverse relationship: target.fk = parent.pk
-		if fkColumn != "" && len(parentTable.PrimaryKeys) > 0 {
-			return fkColumn,
-				[]string{parentTable.PrimaryKeys[0]}, []string{fkColumn}, true, nil
-		}
+	case isReverse:
+		// Reverse: FK lives on the target table. Pair each FK column on the
+		// target with the matching column on the parent via the introspected
+		// FK metadata of the target table.
+		return buildReverseJoin(using, fkColumns, objects)
+	case isArray:
+		// Array forward (rare): treat each FK column as pointing at the
+		// parent's matching primary key column. The introspection emitter
+		// produces one ForeignKey entry per column pair, so look those up.
+		parentCols, targetCols := pairForwardColumns(fkColumns, parentTable)
 
-		return fkColumn, nil, nil, true, nil
+		return fkColumns, parentCols, targetCols, true, nil
 	default:
-		// Forward relationship: parent.fk = target.pk
+		// Forward: parent.fk = target.column. Pair each parent FK column
+		// with its target column via parentTable.ForeignKeys.
 		targetSchema, targetTableName := getRelationshipTarget(using, parentTable)
 
-		var targetPK string
 		if targetTableName != "" {
-			if targetTable, ok := objects.GetTable(targetSchema, targetTableName); ok {
-				if len(targetTable.PrimaryKeys) > 0 {
-					targetPK = targetTable.PrimaryKeys[0]
-				}
-			} else {
-				return "", nil, nil, false,
+			if _, ok := objects.GetTable(targetSchema, targetTableName); !ok {
+				return nil, nil, nil, false,
 					fmt.Errorf(
 						"%w: %s.%s",
 						errRelationshipTargetTableIntrospectionNotFound,
@@ -476,43 +482,157 @@ func buildJoinCondition(
 			}
 		}
 
-		if fkColumn != "" {
-			return fkColumn,
-				[]string{fkColumn}, []string{targetPK}, false, nil
-		}
+		parentCols, targetCols := pairForwardColumns(fkColumns, parentTable)
 
-		return fkColumn, nil, nil, false, nil
+		return fkColumns, parentCols, targetCols, false, nil
 	}
 }
 
+// pairForwardColumns returns the parent-side and target-side column lists for
+// a forward FK relationship. Each entry in fkColumns is matched against the
+// parent table's introspected ForeignKeys; the target column is read off the
+// matching entry. Columns that have no matching introspection FK contribute a
+// pair of (parentCol, "") so the caller can still build a deterministic join,
+// though downstream emitters will likely drop the relationship as misconfigured.
+func pairForwardColumns(
+	fkColumns []string,
+	parentTable *introspection.Table,
+) ([]string, []string) {
+	if len(fkColumns) == 0 {
+		return nil, nil
+	}
+
+	parentCols := make([]string, 0, len(fkColumns))
+	targetCols := make([]string, 0, len(fkColumns))
+
+	for _, col := range fkColumns {
+		parentCols = append(parentCols, col)
+
+		var matched string
+
+		for _, fk := range parentTable.ForeignKeys {
+			if fk.ColumnName == col {
+				matched = fk.ForeignColumnName
+				break
+			}
+		}
+
+		targetCols = append(targetCols, matched)
+	}
+
+	return parentCols, targetCols
+}
+
+// buildReverseJoin pairs reverse-FK columns: the columns named in
+// ForeignKeyConstraint.Columns live on the target table; their counterparts
+// on the parent are read from the target table's introspected ForeignKeys
+// (those whose ForeignTable/ForeignSchema point back at the parent).
+func buildReverseJoin(
+	using metadata.RelationshipUsing,
+	fkColumns []string,
+	objects *introspection.Objects,
+) ([]string, []string, []string, bool, error) {
+	if using.ForeignKeyConstraint == nil || len(fkColumns) == 0 {
+		return fkColumns, nil, nil, true, nil
+	}
+
+	targetSchema := using.ForeignKeyConstraint.Table.Schema
+	targetTableName := using.ForeignKeyConstraint.Table.Name
+
+	targetTable, ok := objects.GetTable(targetSchema, targetTableName)
+	if !ok {
+		return nil, nil, nil, true,
+			fmt.Errorf(
+				"%w: %s.%s",
+				errRelationshipTargetTableIntrospectionNotFound,
+				targetSchema,
+				targetTableName,
+			)
+	}
+
+	parentCols := make([]string, 0, len(fkColumns))
+	targetCols := make([]string, 0, len(fkColumns))
+
+	for _, col := range fkColumns {
+		var matched string
+
+		for _, fk := range targetTable.ForeignKeys {
+			if fk.ColumnName == col {
+				matched = fk.ForeignColumnName
+				break
+			}
+		}
+
+		parentCols = append(parentCols, matched)
+		targetCols = append(targetCols, col)
+	}
+
+	return fkColumns, parentCols, targetCols, true, nil
+}
+
+// getRelationshipTarget resolves the schema-qualified name of the relationship
+// target table. For the forward-FK shortcut (ForeignKeyColumns) the target is
+// derived from the first matching introspected FK on the parent table; all
+// listed columns must agree on the same target, otherwise the function returns
+// empty strings and the caller treats the relationship as misconfigured.
 func getRelationshipTarget(
 	using metadata.RelationshipUsing,
 	parentTable *introspection.Table,
 ) (string, string) {
-	// FK in parent: parent.fk = target.pk
-	// Determine target table from relationship configuration
-	var targetSchema, targetTableName string
-
 	switch {
-	case using.ForeignKeyColumn != "":
-		// Simple case: need to look up FK to find target table
-		for _, fk := range parentTable.ForeignKeys {
-			if fk.ColumnName == using.ForeignKeyColumn {
-				targetSchema = fk.ForeignSchema
-				targetTableName = fk.ForeignTable
-
-				break
-			}
-		}
+	case len(using.ForeignKeyColumns) > 0:
+		return lookupForwardTarget(using.ForeignKeyColumns, parentTable)
 	case using.ForeignKeyConstraint != nil:
-		targetSchema = using.ForeignKeyConstraint.Table.Schema
-		targetTableName = using.ForeignKeyConstraint.Table.Name
+		return using.ForeignKeyConstraint.Table.Schema,
+			using.ForeignKeyConstraint.Table.Name
 	case using.ManualConfiguration != nil:
-		targetSchema = using.ManualConfiguration.RemoteTable.Schema
-		targetTableName = using.ManualConfiguration.RemoteTable.Name
+		return using.ManualConfiguration.RemoteTable.Schema,
+			using.ManualConfiguration.RemoteTable.Name
 	}
 
-	return targetSchema, targetTableName
+	return "", ""
+}
+
+// lookupForwardTarget walks fkColumns against parentTable.ForeignKeys, looking
+// for a single ForeignSchema/ForeignTable that all listed columns reference.
+// Returns empty strings when any column has no matching FK or when the listed
+// columns disagree on the target — both indicate a metadata/introspection
+// mismatch that should drop the relationship rather than emit broken SQL.
+func lookupForwardTarget(
+	fkColumns []string,
+	parentTable *introspection.Table,
+) (string, string) {
+	var (
+		schema string
+		name   string
+	)
+
+	for _, col := range fkColumns {
+		matched := false
+
+		for _, fk := range parentTable.ForeignKeys {
+			if fk.ColumnName != col {
+				continue
+			}
+
+			if schema == "" && name == "" {
+				schema = fk.ForeignSchema
+				name = fk.ForeignTable
+			} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
+				return "", ""
+			}
+
+			matched = true
+
+			break
+		}
+
+		if !matched {
+			return "", ""
+		}
+	}
+
+	return schema, name
 }
 
 func getRelationshipTable(

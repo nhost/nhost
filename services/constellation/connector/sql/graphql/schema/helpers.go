@@ -330,32 +330,68 @@ func getRelationshipTarget(
 	return nil
 }
 
+// getRelationshipTargetSchemaAndTable resolves the schema-qualified target
+// table referenced by a relationship's Using clause. For the forward-FK
+// shortcut (ForeignKeyColumns) the target is read off the first matching
+// introspection FK; all listed columns must agree on the same target schema
+// and name, otherwise the function returns empty strings so the caller drops
+// the relationship as misconfigured.
 func getRelationshipTargetSchemaAndTable(
 	tableInfo *introspection.Table,
 	using metadata.RelationshipUsing,
 ) (string, string) {
-	// Determine target table schema and name for aggregate order_by generation
-	var targetSchema, targetTable string
 	switch {
 	case using.ForeignKeyConstraint != nil:
-		targetSchema = using.ForeignKeyConstraint.Table.Schema
-		targetTable = using.ForeignKeyConstraint.Table.Name
+		return using.ForeignKeyConstraint.Table.Schema,
+			using.ForeignKeyConstraint.Table.Name
 	case using.ManualConfiguration != nil:
-		targetSchema = using.ManualConfiguration.RemoteTable.Schema
-		targetTable = using.ManualConfiguration.RemoteTable.Name
-	case using.ForeignKeyColumn != "":
-		// Look up foreign key in introspection data
-		for _, fk := range tableInfo.ForeignKeys {
-			if fk.ColumnName == using.ForeignKeyColumn {
-				targetSchema = fk.ForeignSchema
-				targetTable = fk.ForeignTable
+		return using.ManualConfiguration.RemoteTable.Schema,
+			using.ManualConfiguration.RemoteTable.Name
+	case len(using.ForeignKeyColumns) > 0:
+		return lookupForwardTargetFromFKs(using.ForeignKeyColumns, tableInfo)
+	}
 
-				break
+	return "", ""
+}
+
+// lookupForwardTargetFromFKs walks fkColumns against tableInfo.ForeignKeys
+// and returns the shared target table they point at, or empty strings when
+// any column has no match or when columns disagree on the target.
+func lookupForwardTargetFromFKs(
+	fkColumns []string,
+	tableInfo *introspection.Table,
+) (string, string) {
+	var (
+		schema string
+		name   string
+	)
+
+	for _, col := range fkColumns {
+		matched := false
+
+		for _, fk := range tableInfo.ForeignKeys {
+			if fk.ColumnName != col {
+				continue
 			}
+
+			if schema == "" && name == "" {
+				schema = fk.ForeignSchema
+				name = fk.ForeignTable
+			} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
+				return "", ""
+			}
+
+			matched = true
+
+			break
+		}
+
+		if !matched {
+			return "", ""
 		}
 	}
 
-	return targetSchema, targetTable
+	return schema, name
 }
 
 // isRemoteRelationship checks if a relationship crosses connector boundaries.
