@@ -380,3 +380,114 @@ func TestIsTableType(t *testing.T) {
 		})
 	}
 }
+
+func TestTableLookupForwardFKTarget(t *testing.T) {
+	t.Parallel()
+
+	table := &introspection.Table{
+		Schema: "public",
+		Name:   "posts",
+		ForeignKeys: []introspection.ForeignKey{
+			{
+				ColumnName:        "author_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "users",
+				ForeignColumnName: "id",
+			},
+			{
+				ColumnName:        "tenant_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "users",
+				ForeignColumnName: "tenant_id",
+			},
+			{
+				ColumnName:        "category_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "categories",
+				ForeignColumnName: "id",
+			},
+		},
+	}
+
+	tests := []struct {
+		name       string
+		table      *introspection.Table
+		fkColumns  []string
+		wantSchema string
+		wantName   string
+	}{
+		{
+			name:       "single column match",
+			table:      table,
+			fkColumns:  []string{"author_id"},
+			wantSchema: "public",
+			wantName:   "users",
+		},
+		{
+			name:       "composite agreement on same target",
+			table:      table,
+			fkColumns:  []string{"author_id", "tenant_id"},
+			wantSchema: "public",
+			wantName:   "users",
+		},
+		{
+			name:       "composite mismatch returns empty",
+			table:      table,
+			fkColumns:  []string{"author_id", "category_id"},
+			wantSchema: "",
+			wantName:   "",
+		},
+		{
+			name:       "missing column returns empty",
+			table:      table,
+			fkColumns:  []string{"author_id", "nonexistent_id"},
+			wantSchema: "",
+			wantName:   "",
+		},
+		{
+			name:       "single missing column returns empty",
+			table:      table,
+			fkColumns:  []string{"nonexistent_id"},
+			wantSchema: "",
+			wantName:   "",
+		},
+		{
+			name:       "empty fkColumns returns empty",
+			table:      table,
+			fkColumns:  nil,
+			wantSchema: "",
+			wantName:   "",
+		},
+		{
+			name: "table with no FKs returns empty",
+			table: &introspection.Table{
+				Schema: "public",
+				Name:   "posts",
+			},
+			fkColumns:  []string{"author_id"},
+			wantSchema: "",
+			wantName:   "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			gotSchema, gotName := tt.table.LookupForwardFKTarget(tt.fkColumns)
+			if gotSchema != tt.wantSchema {
+				t.Errorf(
+					"LookupForwardFKTarget() schema = %q, want %q",
+					gotSchema, tt.wantSchema,
+				)
+			}
+
+			if gotName != tt.wantName {
+				t.Errorf(
+					"LookupForwardFKTarget() name = %q, want %q",
+					gotName, tt.wantName,
+				)
+			}
+		})
+	}
+}

@@ -478,6 +478,44 @@ func TestIsObjectRelationshipNullable(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "composite FK with one nullable column",
+			using: metadata.RelationshipUsing{
+				ForeignKeyColumns: []string{"a", "b"},
+			},
+			tableInfo: &introspection.Table{
+				Columns: []introspection.Column{
+					{Name: "a", IsNullable: false},
+					{Name: "b", IsNullable: true},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "composite FK with all non-nullable columns",
+			using: metadata.RelationshipUsing{
+				ForeignKeyColumns: []string{"a", "b"},
+			},
+			tableInfo: &introspection.Table{
+				Columns: []introspection.Column{
+					{Name: "a", IsNullable: false},
+					{Name: "b", IsNullable: false},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "composite FK with missing column falls back to nullable",
+			using: metadata.RelationshipUsing{
+				ForeignKeyColumns: []string{"a", "b"},
+			},
+			tableInfo: &introspection.Table{
+				Columns: []introspection.Column{
+					{Name: "a", IsNullable: false},
+				},
+			},
+			want: true,
+		},
 	}
 
 	for _, tt := range tests {

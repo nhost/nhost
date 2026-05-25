@@ -348,50 +348,10 @@ func getRelationshipTargetSchemaAndTable(
 		return using.ManualConfiguration.RemoteTable.Schema,
 			using.ManualConfiguration.RemoteTable.Name
 	case len(using.ForeignKeyColumns) > 0:
-		return lookupForwardTargetFromFKs(using.ForeignKeyColumns, tableInfo)
+		return tableInfo.LookupForwardFKTarget(using.ForeignKeyColumns)
 	}
 
 	return "", ""
-}
-
-// lookupForwardTargetFromFKs walks fkColumns against tableInfo.ForeignKeys
-// and returns the shared target table they point at, or empty strings when
-// any column has no match or when columns disagree on the target.
-func lookupForwardTargetFromFKs(
-	fkColumns []string,
-	tableInfo *introspection.Table,
-) (string, string) {
-	var (
-		schema string
-		name   string
-	)
-
-	for _, col := range fkColumns {
-		matched := false
-
-		for _, fk := range tableInfo.ForeignKeys {
-			if fk.ColumnName != col {
-				continue
-			}
-
-			if schema == "" && name == "" {
-				schema = fk.ForeignSchema
-				name = fk.ForeignTable
-			} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
-				return "", ""
-			}
-
-			matched = true
-
-			break
-		}
-
-		if !matched {
-			return "", ""
-		}
-	}
-
-	return schema, name
 }
 
 // isRemoteRelationship checks if a relationship crosses connector boundaries.

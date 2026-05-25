@@ -15,6 +15,14 @@ var errUnexpectedForeignKeyToken = errors.New(
 	"foreign_key_constraint_on: expected string, array, or object",
 )
 
+// errForeignKeyListEntryNotString signals that one of the entries inside the
+// array form of foreign_key_constraint_on was not a string. The YAML and JSON
+// paths both surface this — a permissive "drop non-strings" policy would mask
+// typos in real-world metadata.
+var errForeignKeyListEntryNotString = errors.New(
+	"foreign_key_constraint_on: list entry is not a string",
+)
+
 // TableMetadata is the Hasura representation of a tracked table.
 type TableMetadata struct {
 	Table               TableSource          `json:"table"                          yaml:"table"`
@@ -207,7 +215,9 @@ func mapToForeignKeyConstraint(m map[string]any) *ForeignKeyConstraint {
 
 // UnmarshalYAML accepts foreign_key_constraint_on as any of:
 // a bare column name (string), a list of column names ([]string), or a full
-// constraint object (mapping) carrying either "column" or "columns".
+// constraint object (mapping) carrying either "column" or "columns". A list
+// containing a non-string entry is rejected so the YAML path matches the JSON
+// path (which fails the same input via its strict []string decode).
 func (r *RelationshipUsing) UnmarshalYAML(unmarshal func(any) error) error {
 	type rawUsing struct {
 		ForeignKeyConstraintOn any                  `yaml:"foreign_key_constraint_on,omitempty"`
@@ -226,10 +236,16 @@ func (r *RelationshipUsing) UnmarshalYAML(unmarshal func(any) error) error {
 		r.ForeignKeyColumns = []string{v}
 	case []any:
 		cols := make([]string, 0, len(v))
-		for _, item := range v {
-			if s, ok := item.(string); ok {
-				cols = append(cols, s)
+		for i, item := range v {
+			s, ok := item.(string)
+			if !ok {
+				return fmt.Errorf(
+					"unmarshaling relationship using: %w (index %d, type %T)",
+					errForeignKeyListEntryNotString, i, item,
+				)
 			}
+
+			cols = append(cols, s)
 		}
 
 		r.ForeignKeyColumns = cols
@@ -244,6 +260,9 @@ func (r *RelationshipUsing) UnmarshalYAML(unmarshal func(any) error) error {
 // array-of-strings, and object forms of foreign_key_constraint_on. The shape
 // is selected by peeking the first non-whitespace byte of the raw value so the
 // decoder never has to swallow a parse error to fall through to the next case.
+// An omitted field decodes to a nil raw value and is treated as a no-op; an
+// explicit null is rejected via the default arm so malformed input fails
+// loudly instead of silently producing a zero RelationshipUsing.
 func (r *RelationshipUsing) UnmarshalJSON(data []byte) error {
 	var raw struct {
 		ForeignKeyConstraintOn jsontext.Value       `json:"foreign_key_constraint_on,omitempty"`

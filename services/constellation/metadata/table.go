@@ -143,11 +143,15 @@ type ArrayRelationship struct {
 	Using RelationshipUsing `json:"using" toml:"using"`
 }
 
-// RelationshipUsing describes how a relationship is defined.
+// RelationshipUsing describes how a relationship is defined. Exactly one of
+// the three fields is populated, making this a tagged union over the three
+// mutually exclusive shapes a relationship can take.
 //
 // ForeignKeyColumns lists the parent-table columns that anchor a forward
 // relationship; a single-column FK is a one-element slice. ForeignKeyConstraint
 // is set for a reverse relationship whose FK columns live on the target table.
+// ManualConfiguration carries to_source and to_remote_schema joins that have
+// no backing foreign key.
 type RelationshipUsing struct {
 	ForeignKeyColumns    []string              `json:"foreign_key_columns,omitempty"    toml:"foreign_key_columns,omitempty"`    //nolint:lll
 	ForeignKeyConstraint *ForeignKeyConstraint `json:"foreign_key_constraint,omitempty" toml:"foreign_key_constraint,omitempty"` //nolint:lll

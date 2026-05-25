@@ -236,6 +236,20 @@ func TestRelationshipUsing_UnmarshalYAML(t *testing.T) {
 			wantWrapContext:          "",
 		},
 		{
+			name: "list with non-string entry rejected",
+			// A mixed list must fail loudly so the YAML path matches the
+			// JSON path (which fails the same input via []string decode).
+			// Silent filtering would mask typos in real-world metadata.
+			input:                    "foreign_key_constraint_on: [exercise_id, 42, kind]",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  true,
+			wantWrapContext:          "list entry is not a string",
+		},
+		{
 			name:                     "malformed yaml not a mapping",
 			input:                    "[not a map]",
 			wantForeignKeyColumns:    nil,
@@ -370,6 +384,35 @@ func TestRelationshipUsing_UnmarshalJSON(t *testing.T) {
 		{
 			name:                     "inner constraint failure wrong field type",
 			input:                    `{"foreign_key_constraint_on":{"columns":[42]}}`,
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  true,
+			wantWrapContext:          "unmarshaling foreign key constraint",
+		},
+		{
+			name: "explicit null rejected",
+			// Explicit null is treated as malformed input (the default arm
+			// in UnmarshalJSON wraps the sentinel error). An omitted field
+			// is still a no-op; this case pins down the difference between
+			// "not present" and "present but null".
+			input:                    `{"foreign_key_constraint_on":null}`,
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  true,
+			wantWrapContext:          "unmarshaling foreign key constraint",
+		},
+		{
+			name: "list with non-string entry rejected",
+			// The strict []string decode rejects the same input the YAML
+			// path now rejects in its array arm, so both serialisation
+			// formats agree on what counts as malformed metadata.
+			input:                    `{"foreign_key_constraint_on":["exercise_id",42,"kind"]}`,
 			wantForeignKeyColumns:    nil,
 			wantForeignKeyTableName:  "",
 			wantForeignKeySchema:     "",

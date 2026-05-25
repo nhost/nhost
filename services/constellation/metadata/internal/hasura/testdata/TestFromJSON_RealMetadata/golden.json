@@ -14,13 +14,14 @@
             "name": "provider_requests",
             "schema": "auth"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
-              "id": {
-                "custom_name": "id"
-              },
               "options": {
                 "custom_name": "options"
+              },
+              "id": {
+                "custom_name": "id"
               }
             },
             "custom_name": "authProviderRequests",
@@ -42,6 +43,7 @@
             "name": "providers",
             "schema": "auth"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
               "id": {
@@ -67,8 +69,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "provider_id"
-          ],
+                    "provider_id"
+                  ],
                   "table": {
                     "name": "user_providers",
                     "schema": "auth"
@@ -112,8 +114,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "type"
-          ],
+                    "type"
+                  ],
                   "table": {
                     "name": "refresh_tokens",
                     "schema": "auth"
@@ -129,7 +131,8 @@
                 "columns": [
                   "comment",
                   "value"
-                ]
+                ],
+                "allow_aggregations": false
               }
             }
           ],
@@ -167,11 +170,9 @@
             "name": "refresh_tokens",
             "schema": "auth"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
-              "created_at": {
-                "custom_name": "createdAt"
-              },
               "expires_at": {
                 "custom_name": "expiresAt"
               },
@@ -180,6 +181,9 @@
               },
               "user_id": {
                 "custom_name": "userId"
+              },
+              "created_at": {
+                "custom_name": "createdAt"
               }
             },
             "custom_name": "authRefreshTokens",
@@ -200,8 +204,8 @@
               "name": "user",
               "using": {
                 "foreign_key_columns": [
-            "user_id"
-          ]
+                  "user_id"
+                ]
               }
             }
           ],
@@ -216,7 +220,8 @@
                   "metadata",
                   "type",
                   "user_id"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -245,7 +250,8 @@
                   "expires_at",
                   "id",
                   "user_id"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -263,7 +269,8 @@
                   "user_id": {
                     "_eq": "X-Hasura-User-Id"
                   }
-                }
+                },
+                "allow_aggregations": false
               }
             }
           ],
@@ -362,6 +369,7 @@
             "name": "roles",
             "schema": "auth"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
               "role": {
@@ -387,8 +395,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "role"
-          ],
+                    "role"
+                  ],
                   "table": {
                     "name": "user_roles",
                     "schema": "auth"
@@ -401,8 +409,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "default_role"
-          ],
+                    "default_role"
+                  ],
                   "table": {
                     "name": "users",
                     "schema": "auth"
@@ -417,7 +425,8 @@
               "permission": {
                 "columns": [
                   "role"
-                ]
+                ],
+                "allow_aggregations": false
               }
             }
           ],
@@ -453,17 +462,9 @@
             "name": "user_providers",
             "schema": "auth"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
-              "access_token": {
-                "custom_name": "accessToken"
-              },
-              "created_at": {
-                "custom_name": "createdAt"
-              },
-              "id": {
-                "custom_name": "id"
-              },
               "provider_id": {
                 "custom_name": "providerId"
               },
@@ -478,6 +479,15 @@
               },
               "user_id": {
                 "custom_name": "userId"
+              },
+              "access_token": {
+                "custom_name": "accessToken"
+              },
+              "created_at": {
+                "custom_name": "createdAt"
+              },
+              "id": {
+                "custom_name": "id"
               }
             },
             "custom_name": "authUserProviders",
@@ -498,16 +508,16 @@
               "name": "provider",
               "using": {
                 "foreign_key_columns": [
-            "provider_id"
-          ]
+                  "provider_id"
+                ]
               }
             },
             {
               "name": "user",
               "using": {
                 "foreign_key_columns": [
-            "user_id"
-          ]
+                  "user_id"
+                ]
               }
             }
           ]
@@ -517,6 +527,7 @@
             "name": "user_roles",
             "schema": "auth"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
               "created_at": {
@@ -550,16 +561,16 @@
               "name": "roleByRole",
               "using": {
                 "foreign_key_columns": [
-            "role"
-          ]
+                  "role"
+                ]
               }
             },
             {
               "name": "user",
               "using": {
                 "foreign_key_columns": [
-            "user_id"
-          ]
+                  "user_id"
+                ]
               }
             }
           ],
@@ -572,7 +583,8 @@
                   "created_at",
                   "id",
                   "user_id"
-                ]
+                ],
+                "allow_aggregations": false
               }
             }
           ],
@@ -614,11 +626,9 @@
             "name": "user_security_keys",
             "schema": "auth"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
-              "credential_id": {
-                "custom_name": "credentialId"
-              },
               "credential_public_key": {
                 "custom_name": "credentialPublicKey"
               },
@@ -627,6 +637,9 @@
               },
               "user_id": {
                 "custom_name": "userId"
+              },
+              "credential_id": {
+                "custom_name": "credentialId"
               }
             },
             "custom_name": "authUserSecurityKeys",
@@ -647,8 +660,8 @@
               "name": "user",
               "using": {
                 "foreign_key_columns": [
-            "user_id"
-          ]
+                  "user_id"
+                ]
               }
             }
           ],
@@ -669,7 +682,8 @@
                   "user_id": {
                     "_eq": "X-Hasura-User-Id"
                   }
-                }
+                },
+                "allow_aggregations": false
               }
             }
           ],
@@ -691,61 +705,56 @@
             "name": "users",
             "schema": "auth"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
+              "otp_method_last_used": {
+                "custom_name": "otpMethodLastUsed"
+              },
+              "webauthn_current_challenge": {
+                "custom_name": "currentChallenge"
+              },
               "active_mfa_type": {
                 "custom_name": "activeMfaType"
-              },
-              "avatar_url": {
-                "custom_name": "avatarUrl"
-              },
-              "created_at": {
-                "custom_name": "createdAt"
-              },
-              "default_role": {
-                "custom_name": "defaultRole"
-              },
-              "disabled": {
-                "custom_name": "disabled"
-              },
-              "display_name": {
-                "custom_name": "displayName"
               },
               "email": {
                 "custom_name": "email"
               },
-              "email_verified": {
-                "custom_name": "emailVerified"
+              "otp_hash_expires_at": {
+                "custom_name": "otpHashExpiresAt"
               },
-              "id": {
-                "custom_name": "id"
+              "phone_number": {
+                "custom_name": "phoneNumber"
+              },
+              "created_at": {
+                "custom_name": "createdAt"
               },
               "is_anonymous": {
                 "custom_name": "isAnonymous"
               },
-              "last_seen": {
-                "custom_name": "lastSeen"
+              "updated_at": {
+                "custom_name": "updatedAt"
+              },
+              "ticket_expires_at": {
+                "custom_name": "ticketExpiresAt"
               },
               "locale": {
                 "custom_name": "locale"
               },
-              "new_email": {
-                "custom_name": "newEmail"
+              "default_role": {
+                "custom_name": "defaultRole"
               },
-              "otp_hash": {
-                "custom_name": "otpHash"
-              },
-              "otp_hash_expires_at": {
-                "custom_name": "otpHashExpiresAt"
-              },
-              "otp_method_last_used": {
-                "custom_name": "otpMethodLastUsed"
+              "email_verified": {
+                "custom_name": "emailVerified"
               },
               "password_hash": {
                 "custom_name": "passwordHash"
               },
-              "phone_number": {
-                "custom_name": "phoneNumber"
+              "avatar_url": {
+                "custom_name": "avatarUrl"
+              },
+              "disabled": {
+                "custom_name": "disabled"
               },
               "phone_number_verified": {
                 "custom_name": "phoneNumberVerified"
@@ -753,17 +762,23 @@
               "ticket": {
                 "custom_name": "ticket"
               },
-              "ticket_expires_at": {
-                "custom_name": "ticketExpiresAt"
-              },
               "totp_secret": {
                 "custom_name": "totpSecret"
               },
-              "updated_at": {
-                "custom_name": "updatedAt"
+              "id": {
+                "custom_name": "id"
               },
-              "webauthn_current_challenge": {
-                "custom_name": "currentChallenge"
+              "new_email": {
+                "custom_name": "newEmail"
+              },
+              "otp_hash": {
+                "custom_name": "otpHash"
+              },
+              "display_name": {
+                "custom_name": "displayName"
+              },
+              "last_seen": {
+                "custom_name": "lastSeen"
               }
             },
             "custom_name": "users",
@@ -784,8 +799,8 @@
               "name": "defaultRoleByRole",
               "using": {
                 "foreign_key_columns": [
-            "default_role"
-          ]
+                  "default_role"
+                ]
               }
             },
             {
@@ -810,8 +825,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "user_id"
-          ],
+                    "user_id"
+                  ],
                   "table": {
                     "name": "user_departments",
                     "schema": "public"
@@ -824,8 +839,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "uploader_id"
-          ],
+                    "uploader_id"
+                  ],
                   "table": {
                     "name": "kb_entries",
                     "schema": "public"
@@ -838,8 +853,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "user_id"
-          ],
+                    "user_id"
+                  ],
                   "table": {
                     "name": "refresh_tokens",
                     "schema": "auth"
@@ -852,8 +867,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "user_id"
-          ],
+                    "user_id"
+                  ],
                   "table": {
                     "name": "user_roles",
                     "schema": "auth"
@@ -866,8 +881,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "user_id"
-          ],
+                    "user_id"
+                  ],
                   "table": {
                     "name": "user_security_keys",
                     "schema": "auth"
@@ -880,8 +895,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "user_id"
-          ],
+                    "user_id"
+                  ],
                   "table": {
                     "name": "user_providers",
                     "schema": "auth"
@@ -921,7 +936,8 @@
                   "id",
                   "locale",
                   "updated_at"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -929,7 +945,8 @@
               "permission": {
                 "columns": [
                   "display_name"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -1060,7 +1077,8 @@
                   "email",
                   "new_email",
                   "id"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -1092,7 +1110,8 @@
                   "email",
                   "new_email",
                   "id"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -1141,7 +1160,8 @@
                   "locale",
                   "metadata",
                   "updated_at"
-                ]
+                ],
+                "allow_aggregations": false
               }
             }
           ],
@@ -1528,21 +1548,22 @@
             "name": "department_files",
             "schema": "public"
           },
+          "is_enum": false,
           "object_relationships": [
             {
               "name": "department",
               "using": {
                 "foreign_key_columns": [
-            "department_id"
-          ]
+                  "department_id"
+                ]
               }
             },
             {
               "name": "file",
               "using": {
                 "foreign_key_columns": [
-            "file_id"
-          ]
+                  "file_id"
+                ]
               }
             }
           ],
@@ -1628,7 +1649,8 @@
                 "columns": [
                   "comment",
                   "value"
-                ]
+                ],
+                "allow_aggregations": false
               }
             }
           ]
@@ -1638,6 +1660,7 @@
             "name": "departments",
             "schema": "public"
           },
+          "is_enum": false,
           "object_relationships": [
             {
               "name": "team",
@@ -1661,8 +1684,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "department_id"
-          ],
+                    "department_id"
+                  ],
                   "table": {
                     "name": "user_departments",
                     "schema": "public"
@@ -1675,8 +1698,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "department_id"
-          ],
+                    "department_id"
+                  ],
                   "table": {
                     "name": "department_files",
                     "schema": "public"
@@ -1689,8 +1712,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "department_id"
-          ],
+                    "department_id"
+                  ],
                   "table": {
                     "name": "kb_entry_departments",
                     "schema": "public"
@@ -1730,7 +1753,8 @@
                   "created_at",
                   "updated_at",
                   "id"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -1743,7 +1767,8 @@
                   "created_at",
                   "updated_at",
                   "id"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -1862,13 +1887,14 @@
             "name": "kb_entries",
             "schema": "public"
           },
+          "is_enum": false,
           "object_relationships": [
             {
               "name": "uploader",
               "using": {
                 "foreign_key_columns": [
-            "uploader_id"
-          ]
+                  "uploader_id"
+                ]
               }
             }
           ],
@@ -1878,8 +1904,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "kb_entry_id"
-          ],
+                    "kb_entry_id"
+                  ],
                   "table": {
                     "name": "kb_entry_departments",
                     "schema": "public"
@@ -1989,21 +2015,22 @@
             "name": "kb_entry_departments",
             "schema": "public"
           },
+          "is_enum": false,
           "object_relationships": [
             {
               "name": "department",
               "using": {
                 "foreign_key_columns": [
-            "department_id"
-          ]
+                  "department_id"
+                ]
               }
             },
             {
               "name": "kb_entry",
               "using": {
                 "foreign_key_columns": [
-            "kb_entry_id"
-          ]
+                  "kb_entry_id"
+                ]
               }
             }
           ],
@@ -2081,21 +2108,22 @@
             "name": "news",
             "schema": "public"
           },
+          "is_enum": false,
           "object_relationships": [
             {
               "name": "author",
               "using": {
                 "foreign_key_columns": [
-            "author_id"
-          ]
+                  "author_id"
+                ]
               }
             },
             {
               "name": "department",
               "using": {
                 "foreign_key_columns": [
-            "department_id"
-          ]
+                  "department_id"
+                ]
               }
             }
           ],
@@ -2114,7 +2142,8 @@
                   "is_public": {
                     "_eq": true
                   }
-                }
+                },
+                "allow_aggregations": false
               }
             },
             {
@@ -2177,21 +2206,22 @@
             "name": "user_departments",
             "schema": "public"
           },
+          "is_enum": false,
           "object_relationships": [
             {
               "name": "department",
               "using": {
                 "foreign_key_columns": [
-            "department_id"
-          ]
+                  "department_id"
+                ]
               }
             },
             {
               "name": "user",
               "using": {
                 "foreign_key_columns": [
-            "user_id"
-          ]
+                  "user_id"
+                ]
               }
             }
           ],
@@ -2205,7 +2235,8 @@
                   "joined_at",
                   "department_id",
                   "user_id"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -2217,7 +2248,8 @@
                   "joined_at",
                   "department_id",
                   "user_id"
-                ]
+                ],
+                "allow_aggregations": false
               }
             },
             {
@@ -2360,20 +2392,9 @@
             "name": "buckets",
             "schema": "storage"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
-              "cache_control": {
-                "custom_name": "cacheControl"
-              },
-              "created_at": {
-                "custom_name": "createdAt"
-              },
-              "download_expiration": {
-                "custom_name": "downloadExpiration"
-              },
-              "id": {
-                "custom_name": "id"
-              },
               "max_upload_file_size": {
                 "custom_name": "maxUploadFileSize"
               },
@@ -2385,6 +2406,18 @@
               },
               "updated_at": {
                 "custom_name": "updatedAt"
+              },
+              "cache_control": {
+                "custom_name": "cacheControl"
+              },
+              "created_at": {
+                "custom_name": "createdAt"
+              },
+              "download_expiration": {
+                "custom_name": "downloadExpiration"
+              },
+              "id": {
+                "custom_name": "id"
               }
             },
             "custom_name": "buckets",
@@ -2406,8 +2439,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "bucket_id"
-          ],
+                    "bucket_id"
+                  ],
                   "table": {
                     "name": "files",
                     "schema": "storage"
@@ -2422,8 +2455,27 @@
             "name": "files",
             "schema": "storage"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
+              "uploaded_by_user_id": {
+                "custom_name": "uploadedByUserId"
+              },
+              "is_uploaded": {
+                "custom_name": "isUploaded"
+              },
+              "mime_type": {
+                "custom_name": "mimeType"
+              },
+              "id": {
+                "custom_name": "id"
+              },
+              "metadata": {
+                "custom_name": "metadata"
+              },
+              "name": {
+                "custom_name": "name"
+              },
               "bucket_id": {
                 "custom_name": "bucketId"
               },
@@ -2433,29 +2485,11 @@
               "etag": {
                 "custom_name": "etag"
               },
-              "id": {
-                "custom_name": "id"
-              },
-              "is_uploaded": {
-                "custom_name": "isUploaded"
-              },
-              "metadata": {
-                "custom_name": "metadata"
-              },
-              "mime_type": {
-                "custom_name": "mimeType"
-              },
-              "name": {
-                "custom_name": "name"
-              },
               "size": {
                 "custom_name": "size"
               },
               "updated_at": {
                 "custom_name": "updatedAt"
-              },
-              "uploaded_by_user_id": {
-                "custom_name": "uploadedByUserId"
               }
             },
             "custom_name": "files",
@@ -2476,8 +2510,8 @@
               "name": "bucket",
               "using": {
                 "foreign_key_columns": [
-            "bucket_id"
-          ]
+                  "bucket_id"
+                ]
               }
             },
             {
@@ -2485,8 +2519,8 @@
               "using": {
                 "foreign_key_constraint": {
                   "columns": [
-            "file_id"
-          ],
+                    "file_id"
+                  ],
                   "table": {
                     "name": "department_files",
                     "schema": "public"
@@ -2516,7 +2550,8 @@
                   "bucket_id": {
                     "_eq": "profile_pics"
                   }
-                }
+                },
+                "allow_aggregations": false
               }
             },
             {
@@ -2548,7 +2583,8 @@
                       }
                     }
                   ]
-                }
+                },
+                "allow_aggregations": false
               }
             }
           ],
@@ -2656,8 +2692,12 @@
             "name": "virus",
             "schema": "storage"
           },
+          "is_enum": false,
           "configuration": {
             "column_config": {
+              "virus": {
+                "custom_name": "virus"
+              },
               "created_at": {
                 "custom_name": "createdAt"
               },
@@ -2675,9 +2715,6 @@
               },
               "user_session": {
                 "custom_name": "userSession"
-              },
-              "virus": {
-                "custom_name": "virus"
               }
             },
             "custom_name": "virus",
@@ -2698,8 +2735,8 @@
               "name": "file",
               "using": {
                 "foreign_key_columns": [
-            "file_id"
-          ]
+                  "file_id"
+                ]
               }
             }
           ]
@@ -2807,6 +2844,7 @@
             "name": "user_profiles",
             "schema": "public"
           },
+          "is_enum": false,
           "configuration": {
             "custom_name": "userProfiles"
           },

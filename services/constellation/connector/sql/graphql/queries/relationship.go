@@ -365,11 +365,13 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 
 // getRelationshipPk reports the FK columns named by the Using clause and
 // whether the join direction is reversed (FK lives on the target table).
+// Only the introspected-FK shapes are handled here: manual configuration is
+// dispatched to buildManualJoinCondition by the sole caller (buildJoinCondition)
+// before this function is reached.
 //
 // Forward case (ForeignKeyColumns set): returns the parent-side column list.
 // Reverse case (ForeignKeyConstraint set): returns the target-side column
-// list (the columns that live on the target table). Manual configuration:
-// returns the local columns in deterministic sorted order.
+// list (the columns that live on the target table).
 func getRelationshipPk(
 	using metadata.RelationshipUsing,
 ) ([]string, bool) {
@@ -380,20 +382,6 @@ func getRelationshipPk(
 	case using.ForeignKeyConstraint != nil:
 		// Complex: FK in target table
 		return append([]string(nil), using.ForeignKeyConstraint.Columns...), true
-	case using.ManualConfiguration != nil:
-		if len(using.ManualConfiguration.ColumnMapping) == 0 {
-			return nil, false
-		}
-
-		// Sort keys so the resulting column order is deterministic.
-		localCols := make([]string, 0, len(using.ManualConfiguration.ColumnMapping))
-		for src := range using.ManualConfiguration.ColumnMapping {
-			localCols = append(localCols, src)
-		}
-
-		sort.Strings(localCols)
-
-		return localCols, false
 	}
 
 	return nil, false
@@ -491,9 +479,17 @@ func buildJoinCondition(
 // pairForwardColumns returns the parent-side and target-side column lists for
 // a forward FK relationship. Each entry in fkColumns is matched against the
 // parent table's introspected ForeignKeys; the target column is read off the
-// matching entry. Columns that have no matching introspection FK contribute a
-// pair of (parentCol, "") so the caller can still build a deterministic join,
-// though downstream emitters will likely drop the relationship as misconfigured.
+// matching entry.
+//
+// Callers are expected to validate the target table's existence (and, in the
+// forward branch, that every fkColumn agrees on the same target) before
+// invoking this function — typically via getRelationshipTarget /
+// (*introspection.Table).LookupForwardFKTarget. An unmatched fkColumn would
+// emit a pair of (parentCol, "") whose downstream rendering through
+// core.WriteQualifiedColumn / core.WriteQuotedIdentifier is malformed SQL
+// (an empty quoted identifier `""`), so reaching that state indicates a
+// metadata/introspection invariant violation rather than a graceful
+// degradation path.
 func pairForwardColumns(
 	fkColumns []string,
 	parentTable *introspection.Table,
@@ -526,7 +522,12 @@ func pairForwardColumns(
 // buildReverseJoin pairs reverse-FK columns: the columns named in
 // ForeignKeyConstraint.Columns live on the target table; their counterparts
 // on the parent are read from the target table's introspected ForeignKeys
-// (those whose ForeignTable/ForeignSchema point back at the parent).
+// (those whose ForeignTable/ForeignSchema point back at the parent). Returns
+// errRelationshipReverseFKColumnUnmatched when a configured FK column has no
+// corresponding introspection entry — emitting an empty parent column there
+// would render as `"alias".""` and fail at execution time, so the caller
+// surfaces the inconsistency at construction time and reconcile drops the
+// relationship.
 func buildReverseJoin(
 	using metadata.RelationshipUsing,
 	fkColumns []string,
@@ -563,6 +564,17 @@ func buildReverseJoin(
 			}
 		}
 
+		if matched == "" {
+			return nil, nil, nil, true,
+				fmt.Errorf(
+					"%w: %s.%s.%s",
+					errRelationshipReverseFKColumnUnmatched,
+					targetSchema,
+					targetTableName,
+					col,
+				)
+		}
+
 		parentCols = append(parentCols, matched)
 		targetCols = append(targetCols, col)
 	}
@@ -581,7 +593,7 @@ func getRelationshipTarget(
 ) (string, string) {
 	switch {
 	case len(using.ForeignKeyColumns) > 0:
-		return lookupForwardTarget(using.ForeignKeyColumns, parentTable)
+		return parentTable.LookupForwardFKTarget(using.ForeignKeyColumns)
 	case using.ForeignKeyConstraint != nil:
 		return using.ForeignKeyConstraint.Table.Schema,
 			using.ForeignKeyConstraint.Table.Name
@@ -591,48 +603,6 @@ func getRelationshipTarget(
 	}
 
 	return "", ""
-}
-
-// lookupForwardTarget walks fkColumns against parentTable.ForeignKeys, looking
-// for a single ForeignSchema/ForeignTable that all listed columns reference.
-// Returns empty strings when any column has no matching FK or when the listed
-// columns disagree on the target — both indicate a metadata/introspection
-// mismatch that should drop the relationship rather than emit broken SQL.
-func lookupForwardTarget(
-	fkColumns []string,
-	parentTable *introspection.Table,
-) (string, string) {
-	var (
-		schema string
-		name   string
-	)
-
-	for _, col := range fkColumns {
-		matched := false
-
-		for _, fk := range parentTable.ForeignKeys {
-			if fk.ColumnName != col {
-				continue
-			}
-
-			if schema == "" && name == "" {
-				schema = fk.ForeignSchema
-				name = fk.ForeignTable
-			} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
-				return "", ""
-			}
-
-			matched = true
-
-			break
-		}
-
-		if !matched {
-			return "", ""
-		}
-	}
-
-	return schema, name
 }
 
 func getRelationshipTable(

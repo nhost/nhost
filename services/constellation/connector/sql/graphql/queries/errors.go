@@ -33,6 +33,9 @@ var (
 	errRelationshipTargetTableIntrospectionNotFound = errors.New(
 		"target table not found in introspection",
 	)
+	errRelationshipReverseFKColumnUnmatched = errors.New(
+		"reverse-FK column has no matching foreign key on the target table",
+	)
 
 	errUnknownJoinColumn             = errors.New("unknown join column")
 	errStreamBatchSizeMustBePositive = errors.New("stream batch_size must be positive")
