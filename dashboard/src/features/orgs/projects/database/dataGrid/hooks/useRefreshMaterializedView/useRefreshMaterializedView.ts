@@ -1,19 +1,17 @@
 import { triggerToast } from '@/utils/toast';
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useRefreshMaterializedViewMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRefreshMaterializedViewMutation';
 
 export interface UseRefreshMaterializedViewOptions {
-  currentTablePath: string;
+  refetch: () => Promise<unknown>;
 }
 
 export default function useRefreshMaterializedView({
-  currentTablePath,
+  refetch,
 }: UseRefreshMaterializedViewOptions) {
   const {
     query: { schemaSlug, tableSlug },
   } = useRouter();
-  const queryClient = useQueryClient();
 
   const { mutateAsync, status } = useRefreshMaterializedViewMutation();
 
@@ -24,11 +22,7 @@ export default function useRefreshMaterializedView({
 
     try {
       await mutateAsync({ schema: schemaSlug, table: tableSlug });
-      await queryClient.invalidateQueries({
-        queryKey: [currentTablePath],
-        refetchType: 'inactive',
-      });
-
+      await refetch();
       triggerToast('The materialized view has been refreshed successfully.');
     } catch (error) {
       triggerToast(

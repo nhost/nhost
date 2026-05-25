@@ -234,9 +234,6 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
   });
   const isMaterializedView = tableType === 'MATERIALIZED VIEW';
 
-  const { handleRefresh: handleRefreshMaterializedViewClick, isRefreshing: isRefreshingMaterializedView } =
-  useRefreshMaterializedView({ currentTablePath });
-
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
       currentTablePath,
@@ -255,6 +252,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       filters: appliedFilters,
     },
   );
+
+  const { handleRefresh: handleRefreshMaterializedViewClick, isRefreshing: isRefreshingMaterializedView } =
+  useRefreshMaterializedView({ refetch });
 
   const {
     columns,
