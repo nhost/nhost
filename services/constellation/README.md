@@ -92,7 +92,7 @@ The minimum to get an instance up:
   --enable-playground
 ```
 
-Then open <http://localhost:8000/> for the GraphQL playground or POST to <http://localhost:8000/graphql>. Subscriptions are served over WebSocket on the same endpoint (`graphql-transport-ws` protocol).
+Then open <http://localhost:8000/> for the GraphQL playground or POST to <http://localhost:8000/v1/graphql>. Subscriptions are served over WebSocket on the same endpoint (`graphql-transport-ws` protocol).
 
 ### Runtime modes
 
@@ -161,7 +161,7 @@ set -euo pipefail
 
 ROLES=(admin user public)
 HASURA_URL="https://your-hasura-endpoint/v1"
-NHOST_URL="http://your-constellation-endpoint/graphql"
+NHOST_URL="http://your-constellation-endpoint/v1/graphql"
 ADMIN_SECRET="your-admin-secret"
 
 for role in "${ROLES[@]}"; do

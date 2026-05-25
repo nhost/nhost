@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -10,10 +9,6 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
-
-// ErrEnumTableNotIntrospected reports that an enum table referenced by
-// metadata was not found in the introspected database objects.
-var ErrEnumTableNotIntrospected = errors.New("enum table not found in introspected objects")
 
 // Introspect discovers tables, columns, primary keys, foreign keys and unique constraints
 // from a SQLite database using PRAGMA commands.
@@ -33,14 +28,9 @@ func (c *Client) Introspect(
 		schema.Tables[tables[i].Name] = &tables[i]
 	}
 
-	enumValues, err := introspectEnumValues(ctx, c.db, dbMeta, schema.Tables)
-	if err != nil {
-		return nil, fmt.Errorf("failed to introspect enum values: %w", err)
-	}
-
 	objs := introspection.NewObjects()
 	objs.Schemas[""] = schema
-	objs.EnumValues = enumValues
+	objs.EnumValues = introspectEnumValues(ctx, c.db, dbMeta, schema.Tables)
 
 	return objs, nil
 }
@@ -547,13 +537,16 @@ func getIndexColumns(ctx context.Context, q Querier, indexName string) ([]string
 // uses [introspection.Table.EnumColumns] to find the value column (the single
 // PK column) and the optional description column, then delegates to
 // [getEnumTable]. Returns a map keyed by "schema.table" — schema is always
-// empty on SQLite since there is no schema namespace.
+// empty on SQLite since there is no schema namespace. Per-table failures
+// (missing table, invalid enum shape, query error, empty value set) are
+// silently elided; the outer reconcile pass records an inconsistency and
+// clears the is_enum flag so the table still serves as a regular table.
 func introspectEnumValues(
 	ctx context.Context,
 	q Querier,
 	dbMeta *metadata.DatabaseMetadata,
 	tables map[string]*introspection.Table,
-) (map[string][]introspection.EnumValue, error) {
+) map[string][]introspection.EnumValue {
 	result := make(map[string][]introspection.EnumValue)
 
 	for i := range dbMeta.Tables {
@@ -569,30 +562,24 @@ func introspectEnumValues(
 		// Look up introspected table to determine actual column names
 		table, ok := tables[tableName]
 		if !ok {
-			return nil, fmt.Errorf(
-				"%w: %s.%s",
-				ErrEnumTableNotIntrospected, schemaName, tableName,
-			)
+			continue
 		}
 
 		valueCol, descCol, err := table.EnumColumns()
 		if err != nil {
-			return nil, fmt.Errorf("invalid enum table %s.%s: %w", schemaName, tableName, err)
+			continue
 		}
 
 		enumValues, err := getEnumTable(ctx, q, tableName, valueCol, descCol)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"failed to introspect enum table %s.%s: %w",
-				schemaName, tableName, err,
-			)
+		if err != nil || len(enumValues) == 0 {
+			continue
 		}
 
 		key := schemaName + "." + tableName
 		result[key] = enumValues
 	}
 
-	return result, nil
+	return result
 }
 
 // getEnumTable queries an enum table for its values and (optionally) per-row

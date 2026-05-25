@@ -261,6 +261,7 @@ func getRouter(
 	}
 
 	router := gin.New()
+
 	router.Use(
 		gin.Recovery(),
 		oapitracing.Tracing(),
@@ -271,12 +272,28 @@ func getRouter(
 		middleware.Session(cmd.String(flagAdminSecret), jwtAuth),
 	)
 
+	router.GET("/healthz", func(c *gin.Context) {
+		c.String(http.StatusOK, "ok")
+	})
+	router.HEAD("/healthz", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
+	router.GET("/v1/version", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"version": cmd.Root().Version})
+	})
+
 	if cmd.Bool(flagEnablePlayground) {
-		router.GET("/", playgroundHandler("/graphql"))
+		router.GET("/", playgroundHandler("/v1/graphql"))
 	}
 
-	router.POST("/graphql", ctrl.HandlerPost)
-	router.GET("/graphql", ctrl.HandlerGet)
+	router.POST("/v1/graphql", ctrl.HandlerPost)
+	router.GET("/v1/graphql", ctrl.HandlerGet)
+
+	// legacy endpoints for backward compatibility with hasura deployment
+	// to be removed when we do the one binary thing
+	router.POST("/v1", ctrl.HandlerPost)
+	router.GET("/v1", ctrl.HandlerGet)
 
 	return router, nil
 }
