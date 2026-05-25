@@ -716,6 +716,52 @@ func TestAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// Nested aggregate relationship reached via relationship.go (which also
+		// calls writeQueryAggregateSQL). Verifies __typename emission on the
+		// inner aggregate's outer scope, aggregate_fields scope, and
+		// max_fields scope — all generated relative to the *related* table's
+		// graphqlTypeName (department_files / user_departments), not the
+		// parent's. count_only is used for files because department_files has
+		// no numeric columns.
+		{
+			name: "nested aggregate with __typename at every scope",
+			query: query{
+				Query: `{
+					  departments_aggregate {
+						aggregate {
+						  count
+						}
+						nodes {
+						  __typename
+						  files_aggregate {
+							__typename
+							aggregate {
+							  __typename
+							  count
+							}
+						  }
+						  employees_aggregate {
+							__typename
+							aggregate {
+							  __typename
+							  count
+							  max {
+								__typename
+								role
+							  }
+							}
+							nodes {
+							  __typename
+							  role
+							}
+						  }
+						}
+					  }
+					}`,
+				Role: "admin",
+			},
+		},
+
 		{
 			name: "aggregate with duplicate fields via fragments (merging)",
 			query: query{

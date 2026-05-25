@@ -150,6 +150,10 @@ func (c *aggregateSelectionCollector) collectFields(selectionSet ast.SelectionSe
 	}
 
 	for _, selection := range selectionSet {
+		if c.err != nil {
+			return
+		}
+
 		switch s := selection.(type) {
 		case *ast.Field:
 			c.collectField(s)
