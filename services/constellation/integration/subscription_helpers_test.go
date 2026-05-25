@@ -13,7 +13,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/integration/subtest"
 )
 
-const wsURL = "ws://localhost:8000/graphql"
+const wsURL = "ws://localhost:8000/v1/graphql"
 
 // sendMutation returns a function that sends a GraphQL mutation via HTTP
 // using admin credentials. Intended for use with subtest.Client.Do().

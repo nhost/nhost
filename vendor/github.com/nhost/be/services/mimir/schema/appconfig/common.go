@@ -8,6 +8,11 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 )
 
+const (
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
+)
+
 func unptr[T any](t *T) T {
 	if t == nil {
 		return *new(T)
@@ -40,9 +45,9 @@ func GetFQDNURL(subdomain, service, region, domain string, useTLS bool, port uin
 		return "http://" + FQDN
 	}
 
-	protocol := "http"
+	protocol := schemeHTTP
 	if useTLS {
-		protocol = "https"
+		protocol = schemeHTTPS
 	}
 
 	return fmt.Sprintf("%s://%s:%d", protocol, FQDN, port)
@@ -59,9 +64,9 @@ func GetFQDNOldURL(subdomain, domain string, useTLS bool, port uint) string {
 		return "http://" + GetFQDNOld(subdomain, domain)
 	}
 
-	protocol := "http"
+	protocol := schemeHTTP
 	if useTLS {
-		protocol = "https"
+		protocol = schemeHTTPS
 	}
 
 	return fmt.Sprintf("%s://%s:%d", protocol, GetFQDNOld(subdomain, domain), port)

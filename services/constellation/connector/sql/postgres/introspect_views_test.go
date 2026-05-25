@@ -58,7 +58,15 @@ CREATE VIEW public.content_feed AS
 	pg := postgres.NewClient(pgPool)
 	t.Cleanup(func() { pg.Close() })
 
-	objs, err := pg.Introspect(t.Context(), &metadata.DatabaseMetadata{Name: "default"})
+	objs, err := pg.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Name: "default",
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Schema: "public", Name: "news"}},
+			{Table: metadata.TableSource{Schema: "public", Name: "kb_entries"}},
+			{Table: metadata.TableSource{Schema: "public", Name: "published_news"}},
+			{Table: metadata.TableSource{Schema: "public", Name: "content_feed"}},
+		},
+	})
 	if err != nil {
 		t.Fatalf("introspect: %v", err)
 	}

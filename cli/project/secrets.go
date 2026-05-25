@@ -2,6 +2,7 @@ package project
 
 import (
 	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/nhost/cli/clienv"
 )
 
 const (
@@ -51,7 +52,7 @@ func DefaultSecrets() model.Secrets {
 	return model.Secrets{
 		{
 			Name:  "HASURA_GRAPHQL_ADMIN_SECRET",
-			Value: "nhost-admin-secret",
+			Value: clienv.DefaultLocalAdminSecret,
 		},
 		{
 			Name:  "NHOST_JWT_PUBLIC_KEY",
