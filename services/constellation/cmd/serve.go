@@ -262,14 +262,6 @@ func getRouter(
 
 	router := gin.New()
 
-	router.GET("/healthz", func(c *gin.Context) {
-		c.String(http.StatusOK, "ok")
-	})
-
-	router.GET("/v1/version", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"version": cmd.Root().Version})
-	})
-
 	router.Use(
 		gin.Recovery(),
 		oapitracing.Tracing(),
@@ -279,6 +271,14 @@ func getRouter(
 		// own context; the startup ctx must not be propagated here.
 		middleware.Session(cmd.String(flagAdminSecret), jwtAuth),
 	)
+
+	router.GET("/healthz", func(c *gin.Context) {
+		c.String(http.StatusOK, "ok")
+	})
+
+	router.GET("/v1/version", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"version": cmd.Root().Version})
+	})
 
 	if cmd.Bool(flagEnablePlayground) {
 		router.GET("/", playgroundHandler("/v1/graphql"))

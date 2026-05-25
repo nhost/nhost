@@ -168,8 +168,6 @@ func parseWhereChild(
 // table: a matching column dispatches to ParseFieldComparison; otherwise a
 // matching relationship recurses into Parse with the relationship's target
 // table; anything else is an unknown field.
-//
-
 func parseFieldOrRelationship( //nolint:ireturn,nolintlint
 	t Table,
 	fieldName string,
@@ -388,8 +386,6 @@ func resolveStringArrayValue(operatorValue *ast.Value, variables map[string]any)
 // single column into a Statement. Multiple operators in the same object are
 // AND-ed together. An empty object returns a nil Statement. The per-operator
 // logic lives in the operatorParsers dispatch table in operators.go.
-//
-
 func ParseFieldComparison( //nolint:ireturn,nolintlint
 	t Table,
 	column *core.Column,

@@ -1,22 +1,22 @@
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { ApolloClient, InMemoryCache, gql } from "@apollo/client/core";
-import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
-import { createClient } from "graphql-ws";
-import WebSocket from "ws";
+import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
+import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient } from 'graphql-ws';
+import WebSocket from 'ws';
 
-const GRAPHQL_WS_URL = "ws://localhost:8000/graphql";
-const GRAPHQL_HTTP_URL = "http://localhost:8000/graphql";
-const ADMIN_SECRET = "nhost-admin-secret";
-const DB_URL = "postgresql://postgres:postgres@localhost:5432/local";
+const GRAPHQL_WS_URL = 'ws://localhost:8000/v1/graphql';
+const GRAPHQL_HTTP_URL = 'http://localhost:8000/v1/graphql';
+const ADMIN_SECRET = 'nhost-admin-secret';
+const DB_URL = 'postgresql://postgres:postgres@localhost:5432/local';
 
 // Helper to make HTTP mutations
 async function mutate(query: string, variables?: Record<string, unknown>) {
   const response = await fetch(GRAPHQL_HTTP_URL, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "x-hasura-admin-secret": ADMIN_SECRET,
-      "x-hasura-role": "admin",
+      'Content-Type': 'application/json',
+      'x-hasura-admin-secret': ADMIN_SECRET,
+      'x-hasura-role': 'admin',
     },
     body: JSON.stringify({ query, variables }),
   });
@@ -53,7 +53,7 @@ async function cleanupTestData() {
   `);
 }
 
-describe("GraphQL Subscriptions", () => {
+describe('GraphQL Subscriptions', () => {
   let client: ApolloClient;
   let wsClient: ReturnType<typeof createClient>;
 
@@ -67,8 +67,8 @@ describe("GraphQL Subscriptions", () => {
       webSocketImpl: WebSocket,
       connectionParams: {
         headers: {
-          "x-hasura-admin-secret": ADMIN_SECRET,
-          "x-hasura-role": "admin",
+          'x-hasura-admin-secret': ADMIN_SECRET,
+          'x-hasura-role': 'admin',
         },
       },
     });
@@ -92,7 +92,7 @@ describe("GraphQL Subscriptions", () => {
   });
 
   test(
-    "news subscription receives inserted data",
+    'news subscription receives inserted data',
     async () => {
       const receivedData: Array<{ title: string; content: string }[]> = [];
 
@@ -106,7 +106,7 @@ describe("GraphQL Subscriptions", () => {
       `;
 
       // Start subscription
-      console.log("Starting subscription...");
+      console.log('Starting subscription...');
       const observable = client.subscribe({
         query: NEWS_SUBSCRIPTION,
       });
@@ -114,18 +114,21 @@ describe("GraphQL Subscriptions", () => {
       // Wait for initial subscription data before inserting
       const initialDataPromise = new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
-          reject(new Error("Timeout waiting for initial subscription data"));
+          reject(new Error('Timeout waiting for initial subscription data'));
         }, 5000);
 
         const sub = observable.subscribe({
           next: (result) => {
-            console.log("Received initial result:", JSON.stringify(result, null, 2));
+            console.log(
+              'Received initial result:',
+              JSON.stringify(result, null, 2),
+            );
             clearTimeout(timeout);
             sub.unsubscribe();
             resolve();
           },
           error: (err) => {
-            console.error("Initial subscription error:", err);
+            console.error('Initial subscription error:', err);
             clearTimeout(timeout);
             reject(err);
           },
@@ -133,7 +136,7 @@ describe("GraphQL Subscriptions", () => {
       });
 
       await initialDataPromise;
-      console.log("Subscription established, inserting test data...");
+      console.log('Subscription established, inserting test data...');
 
       // Insert test data
       const insertResult = await mutate(`
@@ -152,28 +155,36 @@ describe("GraphQL Subscriptions", () => {
       `);
 
       expect(insertResult.errors).toBeUndefined();
-      expect(insertResult.data?.insert_news_one?.title).toBe("TEST_SUBSCRIPTION_NEWS_1");
-      console.log("Insert successful, waiting for subscription update...");
+      expect(insertResult.data?.insert_news_one?.title).toBe(
+        'TEST_SUBSCRIPTION_NEWS_1',
+      );
+      console.log('Insert successful, waiting for subscription update...');
 
       // Now subscribe again and wait for the inserted data
-      const subscriptionPromise = new Promise<{ title: string; content: string }[]>(
-        (resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error("Subscription timeout - did not receive expected data"));
-          }, 10000);
+      const subscriptionPromise = new Promise<
+        { title: string; content: string }[]
+      >((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(
+            new Error('Subscription timeout - did not receive expected data'),
+          );
+        }, 10000);
 
-          const subscription = client.subscribe({ query: NEWS_SUBSCRIPTION }).subscribe({
+        const subscription = client
+          .subscribe({ query: NEWS_SUBSCRIPTION })
+          .subscribe({
             next: (result) => {
-              console.log("Received update:", JSON.stringify(result, null, 2));
+              console.log('Received update:', JSON.stringify(result, null, 2));
               if (result.data?.news) {
                 receivedData.push(result.data.news);
 
                 const hasTestData = result.data.news.some(
-                  (n: { title: string }) => n.title === "TEST_SUBSCRIPTION_NEWS_1"
+                  (n: { title: string }) =>
+                    n.title === 'TEST_SUBSCRIPTION_NEWS_1',
                 );
 
                 if (hasTestData) {
-                  console.log("Found test data in subscription!");
+                  console.log('Found test data in subscription!');
                   clearTimeout(timeout);
                   subscription.unsubscribe();
                   resolve(result.data.news);
@@ -181,27 +192,28 @@ describe("GraphQL Subscriptions", () => {
               }
             },
             error: (err) => {
-              console.error("Subscription error:", err);
+              console.error('Subscription error:', err);
               clearTimeout(timeout);
               reject(err);
             },
           });
-        }
-      );
+      });
 
       // Wait for subscription to receive the data
       const newsData = await subscriptionPromise;
 
       // Verify we received the data
-      const testNews = newsData.find((n) => n.title === "TEST_SUBSCRIPTION_NEWS_1");
+      const testNews = newsData.find(
+        (n) => n.title === 'TEST_SUBSCRIPTION_NEWS_1',
+      );
       expect(testNews).toBeDefined();
-      expect(testNews?.content).toBe("Test content for subscription");
+      expect(testNews?.content).toBe('Test content for subscription');
     },
-    { timeout: 20000 }
+    { timeout: 20000 },
   );
 
   test(
-    "kb_entries subscription with nested departments receives inserted data",
+    'kb_entries subscription with nested departments receives inserted data',
     async () => {
       const KB_ENTRIES_SUBSCRIPTION = gql`
         subscription {
@@ -217,28 +229,33 @@ describe("GraphQL Subscriptions", () => {
       `;
 
       // Wait for initial subscription to establish
-      console.log("Starting kb_entries subscription...");
+      console.log('Starting kb_entries subscription...');
       const initialDataPromise = new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
-          reject(new Error("Timeout waiting for initial kb_entries data"));
+          reject(new Error('Timeout waiting for initial kb_entries data'));
         }, 5000);
 
-        const sub = client.subscribe({ query: KB_ENTRIES_SUBSCRIPTION }).subscribe({
-          next: (result) => {
-            console.log("Received initial kb_entries data:", JSON.stringify(result, null, 2));
-            clearTimeout(timeout);
-            sub.unsubscribe();
-            resolve();
-          },
-          error: (err) => {
-            clearTimeout(timeout);
-            reject(err);
-          },
-        });
+        const sub = client
+          .subscribe({ query: KB_ENTRIES_SUBSCRIPTION })
+          .subscribe({
+            next: (result) => {
+              console.log(
+                'Received initial kb_entries data:',
+                JSON.stringify(result, null, 2),
+              );
+              clearTimeout(timeout);
+              sub.unsubscribe();
+              resolve();
+            },
+            error: (err) => {
+              clearTimeout(timeout);
+              reject(err);
+            },
+          });
       });
 
       await initialDataPromise;
-      console.log("Subscription established, inserting test kb_entry...");
+      console.log('Subscription established, inserting test kb_entry...');
 
       // Insert test kb_entry
       const insertKbResult = await mutate(`
@@ -258,7 +275,7 @@ describe("GraphQL Subscriptions", () => {
       expect(insertKbResult.errors).toBeUndefined();
       const kbEntryId = insertKbResult.data?.insert_kb_entries_one?.id;
       expect(kbEntryId).toBeDefined();
-      console.log("KB entry inserted:", kbEntryId);
+      console.log('KB entry inserted:', kbEntryId);
 
       // Insert kb_entry_department relationship
       const insertRelResult = await mutate(
@@ -272,11 +289,11 @@ describe("GraphQL Subscriptions", () => {
           }
         }
       `,
-        { kb_entry_id: kbEntryId }
+        { kb_entry_id: kbEntryId },
       );
 
       expect(insertRelResult.errors).toBeUndefined();
-      console.log("KB entry department relationship inserted");
+      console.log('KB entry department relationship inserted');
 
       // Now subscribe and wait for the inserted data
       type KbEntry = {
@@ -286,43 +303,57 @@ describe("GraphQL Subscriptions", () => {
 
       const subscriptionPromise = new Promise<KbEntry[]>((resolve, reject) => {
         const timeout = setTimeout(() => {
-          reject(new Error("Subscription timeout - did not receive expected kb_entries data"));
+          reject(
+            new Error(
+              'Subscription timeout - did not receive expected kb_entries data',
+            ),
+          );
         }, 10000);
 
-        const subscription = client.subscribe({ query: KB_ENTRIES_SUBSCRIPTION }).subscribe({
-          next: (result) => {
-            console.log("Received kb_entries update:", JSON.stringify(result, null, 2));
-            if (result.data?.kb_entries) {
-              const hasTestData = result.data.kb_entries.some(
-                (e: { title: string }) => e.title === "TEST_SUBSCRIPTION_KB_ENTRY_1"
+        const subscription = client
+          .subscribe({ query: KB_ENTRIES_SUBSCRIPTION })
+          .subscribe({
+            next: (result) => {
+              console.log(
+                'Received kb_entries update:',
+                JSON.stringify(result, null, 2),
               );
+              if (result.data?.kb_entries) {
+                const hasTestData = result.data.kb_entries.some(
+                  (e: { title: string }) =>
+                    e.title === 'TEST_SUBSCRIPTION_KB_ENTRY_1',
+                );
 
-              if (hasTestData) {
-                console.log("Found test kb_entry in subscription!");
-                clearTimeout(timeout);
-                subscription.unsubscribe();
-                resolve(result.data.kb_entries);
+                if (hasTestData) {
+                  console.log('Found test kb_entry in subscription!');
+                  clearTimeout(timeout);
+                  subscription.unsubscribe();
+                  resolve(result.data.kb_entries);
+                }
               }
-            }
-          },
-          error: (err) => {
-            console.error("Subscription error:", err);
-            clearTimeout(timeout);
-            reject(err);
-          },
-        });
+            },
+            error: (err) => {
+              console.error('Subscription error:', err);
+              clearTimeout(timeout);
+              reject(err);
+            },
+          });
       });
 
       // Wait for subscription to receive the data
       const kbData = await subscriptionPromise;
 
       // Verify we received the data with nested department
-      const testEntry = kbData.find((e) => e.title === "TEST_SUBSCRIPTION_KB_ENTRY_1");
+      const testEntry = kbData.find(
+        (e) => e.title === 'TEST_SUBSCRIPTION_KB_ENTRY_1',
+      );
       expect(testEntry).toBeDefined();
       expect(testEntry?.kb_entry_departments).toBeDefined();
       expect(testEntry?.kb_entry_departments.length).toBeGreaterThan(0);
-      expect(testEntry?.kb_entry_departments[0].department.name).toBe("Human Resources");
+      expect(testEntry?.kb_entry_departments[0].department.name).toBe(
+        'Human Resources',
+      );
     },
-    { timeout: 20000 }
+    { timeout: 20000 },
   );
 });
