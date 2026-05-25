@@ -166,22 +166,20 @@ ADMIN_SECRET="your-admin-secret"
 
 for role in "${ROLES[@]}"; do
     nhost schema dump \
-        -H "X-Hasura-Role: ${role}" \
-        -H "X-Hasura-Admin-Secret: ${ADMIN_SECRET}" \
-        -o "./schema.hasura.${role}.graphqls" \
-        -u "${HASURA_URL}"
+        --role "${role}" --admin-secret "${ADMIN_SECRET}" \
+        -u "${HASURA_URL}" -o "./schema.hasura.${role}.graphqls"
 
     nhost schema dump \
-        -H "X-Hasura-Role: ${role}" \
-        -H "X-Hasura-Admin-Secret: ${ADMIN_SECRET}" \
-        -o "./schema.nhost.${role}.graphqls" \
-        -u "${NHOST_URL}"
+        --role "${role}" --admin-secret "${ADMIN_SECRET}" \
+        -u "${NHOST_URL}" -o "./schema.nhost.${role}.graphqls"
 
     nhost schema diff \
         -a "schema.hasura.${role}.graphqls" \
         -b "schema.nhost.${role}.graphqls" > "schema.${role}.diff"
 done
 ```
+
+If you've linked a project with `nhost link`, you can drop `--url` / `--admin-secret` entirely and just pass `--role` (and optionally `--subdomain` to target a cloud project instead of the local stack).
 
 An empty `schema.<role>.diff` means Constellation generated a byte-equivalent schema for that role. If a diff is non-empty, every hunk should map to one of the categories in [`KNOWN_DIFFERENCES.md`](./KNOWN_DIFFERENCES.md). If you find a divergence that isn't covered there, please [open an issue](https://github.com/nhost/nhost/issues/new) with the affected diff hunk and a minimal metadata snippet — that's how new categories get documented (or fixed).
 

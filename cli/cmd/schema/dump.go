@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -26,27 +28,41 @@ const (
 	flagHeader       = "header"
 	flagOutput       = "output"
 	flagTimeout      = "timeout"
+	flagSubdomain    = "subdomain"
+	flagAdminSecret  = "admin-secret"
 
 	defaultTimeoutSeconds = 30
 	defaultRole           = "user"
+	defaultAdminSecret    = "nhost-admin-secret" //nolint:gosec
 	outputFileMode        = 0o600
+
+	headerHasuraRole        = "X-Hasura-Role"
+	headerHasuraAdminSecret = "X-Hasura-Admin-Secret" //nolint:gosec
 )
 
 func commandDump() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:  "dump",
-		Usage: "Dump a GraphQL schema as SDL from a live endpoint or metadata",
-		Description: `Emit a GraphQL schema as SDL. Two source modes:
+		Usage: "Dump a GraphQL schema as SDL",
+		Description: `Emit a GraphQL schema as SDL. Source modes:
 
-  --url URL           Introspect a live GraphQL endpoint. Drop-in replacement
-                      for "rover graph introspect" (pass the role via
-                      -H "X-Hasura-Role: ...").
+  (default)           Introspect the linked project's GraphQL endpoint.
+                      Defaults to the local dev stack; pass --subdomain to
+                      target a cloud project.
 
-  --metadata PATH     Load metadata from a directory and generate the schema
-                      locally for the given --role (default: user).
+  --url URL           Introspect an arbitrary live GraphQL endpoint. Bypasses
+                      the linked-project lookup and --subdomain.
 
-Exactly one of --url or --metadata must be set.`,
+  --metadata PATH     Load Hasura metadata from a directory and generate the
+                      schema locally for --role.
+
+The flags --url and --metadata are mutually exclusive.`,
 		Flags: []cli.Flag{
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagSubdomain,
+				Usage:   "Project subdomain (defaults to the local dev stack)",
+				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
+			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagURL,
 				Usage:   "GraphQL endpoint URL to introspect",
@@ -54,18 +70,23 @@ Exactly one of --url or --metadata must be set.`,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagMetadataPath,
-				Usage:   "Path to a metadata directory to generate the schema from",
+				Usage:   "Path to a Hasura metadata directory to generate the schema from",
 				Aliases: []string{"m"},
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagRole,
-				Usage:   "Role to generate schema for (metadata mode only)",
+				Usage:   "Role to generate the schema for",
 				Value:   defaultRole,
 				Aliases: []string{"r"},
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagAdminSecret,
+				Usage:   "Admin secret to authenticate with (defaults to local admin secret)",
+				Sources: cli.EnvVars("NHOST_ADMIN_SECRET"),
+			},
 			&cli.StringSliceFlag{ //nolint:exhaustruct
 				Name:    flagHeader,
-				Usage:   `Extra HTTP header to send, repeatable (e.g. "X-Hasura-Role: admin"). URL mode only`,
+				Usage:   `Extra HTTP header to send, repeatable (e.g. "X-Hasura-Foo: bar")`,
 				Aliases: []string{"H"},
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -84,24 +105,32 @@ Exactly one of --url or --metadata must be set.`,
 }
 
 func dump(ctx context.Context, cmd *cli.Command) error {
-	url := cmd.String(flagURL)
 	metadataPath := cmd.String(flagMetadataPath)
+	url := cmd.String(flagURL)
 
-	if (url == "") == (metadataPath == "") {
-		return cli.Exit("exactly one of --url or --metadata must be set", 1)
+	if metadataPath != "" && url != "" {
+		return cli.Exit("--url and --metadata are mutually exclusive", 1)
 	}
 
-	var (
-		doc *ast.SchemaDocument
-		err error
+	if metadataPath != "" {
+		doc, err := dumpFromMetadata(ctx, metadataPath, cmd.String(flagRole))
+		if err != nil {
+			return err
+		}
+
+		return writeSDL(doc, cmd.String(flagOutput))
+	}
+
+	resolvedURL, adminSecret, err := resolveURLAndSecret(ctx, cmd, url)
+	if err != nil {
+		return err
+	}
+
+	headers := buildHeaders(
+		cmd.StringSlice(flagHeader), cmd.String(flagRole), adminSecret,
 	)
 
-	if url != "" {
-		doc, err = dumpFromURL(ctx, cmd, url)
-	} else {
-		doc, err = dumpFromMetadata(ctx, metadataPath, cmd.String(flagRole))
-	}
-
+	doc, err := dumpFromURL(ctx, cmd, resolvedURL, headers)
 	if err != nil {
 		return err
 	}
@@ -109,8 +138,61 @@ func dump(ctx context.Context, cmd *cli.Command) error {
 	return writeSDL(doc, cmd.String(flagOutput))
 }
 
-func dumpFromURL(ctx context.Context, cmd *cli.Command, url string) (*ast.SchemaDocument, error) {
-	headers, err := parseHeaders(cmd.StringSlice(flagHeader))
+func resolveURLAndSecret(
+	ctx context.Context, cmd *cli.Command, url string,
+) (string, string, error) {
+	adminSecret := cmd.String(flagAdminSecret)
+
+	if url != "" {
+		return url, adminSecret, nil
+	}
+
+	ce := clienv.FromCLI(cmd)
+	subdomain := cmd.String(flagSubdomain)
+	local := ce.LocalSubdomain()
+
+	if subdomain == "" || subdomain == local {
+		if adminSecret == "" {
+			adminSecret = defaultAdminSecret
+		}
+
+		return fmt.Sprintf("https://%s.graphql.%s.nhost.run/v1", local, local), adminSecret, nil
+	}
+
+	proj, err := ce.GetAppInfo(ctx, subdomain)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get app info: %w", err)
+	}
+
+	return projectGraphqlURL(proj), adminSecret, nil
+}
+
+func projectGraphqlURL(proj *graphql.AppSummaryFragment) string {
+	return fmt.Sprintf(
+		"https://%s.graphql.%s.nhost.run/v1", proj.Subdomain, proj.Region.Name,
+	)
+}
+
+// buildHeaders combines derived defaults (role, admin secret) with explicit
+// -H entries. Explicit -H entries come last so they win on duplicate keys.
+func buildHeaders(extra []string, role, adminSecret string) []string {
+	headers := make([]string, 0, len(extra)+2) //nolint:mnd
+
+	if role != "" {
+		headers = append(headers, headerHasuraRole+": "+role)
+	}
+
+	if adminSecret != "" {
+		headers = append(headers, headerHasuraAdminSecret+": "+adminSecret)
+	}
+
+	return append(headers, extra...)
+}
+
+func dumpFromURL(
+	ctx context.Context, cmd *cli.Command, url string, rawHeaders []string,
+) (*ast.SchemaDocument, error) {
+	headers, err := parseHeaders(rawHeaders)
 	if err != nil {
 		return nil, cli.Exit(fmt.Sprintf("invalid header: %v", err), 1)
 	}
