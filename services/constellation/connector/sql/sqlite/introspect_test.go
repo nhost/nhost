@@ -114,6 +114,10 @@ func TestIntrospect(t *testing.T) {
 				Table:  metadata.TableSource{Schema: "", Name: "department_roles"},
 				IsEnum: true,
 			},
+			{Table: metadata.TableSource{Schema: "", Name: "departments"}},
+			{Table: metadata.TableSource{Schema: "", Name: "users"}},
+			{Table: metadata.TableSource{Schema: "", Name: "user_departments"}},
+			{Table: metadata.TableSource{Schema: "", Name: "items"}},
 		},
 	}
 
@@ -222,7 +226,19 @@ BEGIN UPDATE base SET name = NEW.name WHERE id = OLD.id; END;
 	client := sqlite.NewClient(sqlDB)
 	t.Cleanup(func() { client.Close() })
 
-	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{})
+	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "base"}},
+			{Table: metadata.TableSource{Name: "v_readonly"}},
+			{Table: metadata.TableSource{Name: "v_insert_only"}},
+			{Table: metadata.TableSource{Name: "v_update_only"}},
+			{Table: metadata.TableSource{Name: "v_delete_only"}},
+			{Table: metadata.TableSource{Name: "v_full"}},
+			{Table: metadata.TableSource{Name: "v_body_false_positive"}},
+			{Table: metadata.TableSource{Name: "v_begin"}},
+			{Table: metadata.TableSource{Name: "v_header_comment_mismatch"}},
+		},
+	})
 	if err != nil {
 		t.Fatalf("failed to introspect: %v", err)
 	}
