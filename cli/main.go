@@ -16,6 +16,7 @@ import (
 	"github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/project"
 	"github.com/nhost/nhost/cli/cmd/run"
+	"github.com/nhost/nhost/cli/cmd/schema"
 	"github.com/nhost/nhost/cli/cmd/secrets"
 	"github.com/nhost/nhost/cli/cmd/software"
 	"github.com/nhost/nhost/cli/cmd/user"
@@ -51,6 +52,7 @@ func main() {
 			project.CommandLink(),
 			nhostdocs.Command(),
 			run.Command(),
+			schema.Command(),
 			secrets.Command(),
 			software.Command(),
 			user.CommandLogin(),

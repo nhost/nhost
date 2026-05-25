@@ -1,49 +1,23 @@
 #!/bin/bash
+set -euo pipefail
 
-time go run ../main.go schema dump \
-    -H "X-Hasura-Role: admin" \
-    -H "X-Hasura-Admin-Secret: nhost-admin-secret" \
-    -o ./schema.hasura.admin.graphqls \
-    -u https://local.graphql.local.nhost.run/v1
+CLI=(go run ../../../cli/main.go)
 
-time go run ../main.go schema dump \
-    -H "X-Hasura-Role: user" \
-    -H "X-Hasura-Admin-Secret: nhost-admin-secret" \
-    -o ./schema.hasura.user.graphqls \
-    -u https://local.graphql.local.nhost.run/v1
+ROLES=(admin user public)
+HASURA_URL="https://local.hasura.local.nhost.run/v1/graphql"
+NHOST_URL="http://localhost:8000/v1/graphql"
+ADMIN_SECRET="nhost-admin-secret"
 
-time go run ../main.go schema dump \
-    -H "X-Hasura-Role: public" \
-    -H "X-Hasura-Admin-Secret: nhost-admin-secret" \
-    -o ./schema.hasura.public.graphqls \
-    -u https://local.graphql.local.nhost.run/v1
+for role in "${ROLES[@]}"; do
+    time "${CLI[@]}" schema dump \
+        --role "${role}" --admin-secret "${ADMIN_SECRET}" \
+        -u "${HASURA_URL}" -o "./schema.hasura.${role}.graphqls"
 
-time go run ../main.go schema dump \
-    -H "X-Hasura-Role: admin" \
-    -H "X-Hasura-Admin-Secret: nhost-admin-secret" \
-    -o ./schema.nhost.admin.graphqls \
-    -u http://localhost:8000/graphql
+    time "${CLI[@]}" schema dump \
+        --role "${role}" --admin-secret "${ADMIN_SECRET}" \
+        -u "${NHOST_URL}" -o "./schema.nhost.${role}.graphqls"
 
-time go run ../main.go schema dump \
-    -H "X-Hasura-Role: user" \
-    -H "X-Hasura-Admin-Secret: nhost-admin-secret" \
-    -o ./schema.nhost.user.graphqls \
-    -u http://localhost:8000/graphql
-
-time go run ../main.go schema dump \
-    -H "X-Hasura-Role: public" \
-    -H "X-Hasura-Admin-Secret: nhost-admin-secret" \
-    -o ./schema.nhost.public.graphqls \
-    -u http://localhost:8000/graphql
-
-go run ../main.go schema diff \
-    -a schema.hasura.admin.graphqls \
-    -b schema.nhost.admin.graphqls > schema.admin.diff
-
-go run ../main.go schema diff \
-    -a schema.hasura.user.graphqls \
-    -b schema.nhost.user.graphqls > schema.user.diff
-
-go run ../main.go schema diff \
-    -a schema.hasura.public.graphqls \
-    -b schema.nhost.public.graphqls > schema.public.diff
+    "${CLI[@]}" schema diff \
+        -a "schema.hasura.${role}.graphqls" \
+        -b "schema.nhost.${role}.graphqls" > "schema.${role}.diff"
+done

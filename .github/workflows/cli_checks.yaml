@@ -29,6 +29,9 @@ on:
       - "internal/lib/nhostclient/**"
       - "internal/lib/oapi/**"
 
+      # constellation (imported by `nhost schema` for SDL dump/diff)
+      - "services/constellation/**"
+
       # auth email templates (embedded into the CLI by `nhost init`)
       - "services/auth/email-templates/**"
 
@@ -62,6 +65,7 @@ jobs:
         internal/lib/clidocs/**
         internal/lib/nhostclient/**
         internal/lib/oapi/**
+        services/constellation/**
         services/auth/email-templates/**
         docs/**
 

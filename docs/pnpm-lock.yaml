@@ -73,7 +73,7 @@ importers:
   .:
     dependencies:
       '@astrojs/markdown-remark':
-        specifier: ^7.1.0
+        specifier: ^7.1.1
         version: 7.1.1
       '@astrojs/starlight':
         specifier: ^0.38.4

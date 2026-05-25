@@ -68,7 +68,7 @@ func (t *table) astToQuerySelectionWithPath( //nolint:funlen,cyclop,gocognit
 			switch sel := selection.(type) {
 			case *ast.Field:
 				// Handle __typename introspection field
-				if sel.Name == "__typename" {
+				if sel.Name == typenameField {
 					alias := sel.Alias
 					if alias == "" {
 						alias = sel.Name

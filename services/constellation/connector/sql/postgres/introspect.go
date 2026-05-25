@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -12,25 +11,27 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-// ErrEnumTableNotIntrospected reports that an enum table referenced by
-// metadata was not found in the introspected database objects.
-var ErrEnumTableNotIntrospected = errors.New("enum table not found in introspected objects")
-
-// Introspect returns the database objects (schemas, tables, columns, primary keys, functions).
-// If no schemaNames are specified, all schemas in the database are discovered and introspected.
+// Introspect returns the database objects (schemas, tables, columns, primary keys, functions)
+// for the entities listed in dbMeta. Introspection is metadata-scoped: schemas
+// and tables not referenced by tracked tables (or functions) are never visited.
+//
+// This avoids 42501 "permission denied for schema" errors against schemas the
+// connecting role can see in pg_namespace but lacks USAGE on (e.g. pg_cron's
+// "cron" schema, or any extension schema not granted to the application role).
+// A tracked entity in such a schema still has to be reachable — that is the
+// user's responsibility — but the mere existence of an inaccessible schema in
+// the cluster no longer fails the whole source build.
 func (c *Client) Introspect(
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
 ) (*introspection.Objects, error) {
 	objs := introspection.NewObjects()
 
-	schemaNames, err := getSchemas(ctx, c.pool)
-	if err != nil {
-		return nil, fmt.Errorf("failed to discover schemas: %w", err)
-	}
-
-	for _, schemaName := range schemaNames {
-		schema, err := introspectSchemaObjects(ctx, c.pool, schemaName)
+	schemaTables := trackedSchemaTables(dbMeta)
+	for _, schemaName := range slices.Sorted(maps.Keys(schemaTables)) {
+		schema, err := introspectSchemaObjects(
+			ctx, c.pool, schemaName, schemaTables[schemaName],
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to introspect schema %s: %w", schemaName, err)
 		}
@@ -38,25 +39,44 @@ func (c *Client) Introspect(
 		objs.Schemas[schemaName] = schema
 	}
 
-	objs.EnumValues, err = c.introspectEnumValues(ctx, dbMeta, objs)
-	if err != nil {
-		return nil, fmt.Errorf("introspecting enum values: %w", err)
-	}
+	objs.EnumValues = c.introspectEnumValues(ctx, dbMeta, objs)
 
-	objs.Functions, err = c.introspectFunctions(ctx, dbMeta)
+	funcs, err := c.introspectFunctions(ctx, dbMeta)
 	if err != nil {
 		return nil, fmt.Errorf("introspecting functions: %w", err)
 	}
 
+	objs.Functions = funcs
+
 	return objs, nil
 }
 
-// introspectEnumValues populates enum values for all tables marked as enums in metadata.
+// trackedSchemaTables groups every tracked table in dbMeta by its schema. The
+// result is keyed by schema name; each value is the list of table names that
+// schema contributes. Schemas referenced only by tracked functions are
+// deliberately omitted: introspectFunctions takes its own (schema, name) list
+// from dbMeta and does not consult the per-schema table walk.
+func trackedSchemaTables(dbMeta *metadata.DatabaseMetadata) map[string][]string {
+	result := make(map[string][]string)
+
+	for i := range dbMeta.Tables {
+		t := &dbMeta.Tables[i].Table
+		result[t.Schema] = append(result[t.Schema], t.Name)
+	}
+
+	return result
+}
+
+// introspectEnumValues populates enum values for all tables marked as enums
+// in metadata. Per-table failures (missing table in source, invalid enum
+// shape, query error, empty value set) are silently elided from the result
+// map; the outer reconcile pass turns each absence into an inconsistency and
+// clears the is_enum flag so the table is still served as a regular table.
 func (c *Client) introspectEnumValues(
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
 	objs *introspection.Objects,
-) (map[string][]introspection.EnumValue, error) {
+) map[string][]introspection.EnumValue {
 	result := make(map[string][]introspection.EnumValue)
 
 	for i := range dbMeta.Tables {
@@ -71,81 +91,43 @@ func (c *Client) introspectEnumValues(
 
 		table, ok := objs.GetTable(schemaName, tableName)
 		if !ok {
-			return nil, fmt.Errorf(
-				"%w: %s.%s",
-				ErrEnumTableNotIntrospected,
-				schemaName,
-				tableName,
-			)
+			continue
 		}
 
 		valueCol, descCol, err := table.EnumColumns()
 		if err != nil {
-			return nil, fmt.Errorf("invalid enum table %s.%s: %w", schemaName, tableName, err)
+			continue
 		}
 
 		enumValues, err := getEnumTable(ctx, c.pool, schemaName, tableName, valueCol, descCol)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"failed to introspect enum table %s.%s: %w",
-				schemaName,
-				tableName,
-				err,
-			)
+		if err != nil || len(enumValues) == 0 {
+			continue
 		}
 
 		key := schemaName + "." + tableName
 		result[key] = enumValues
 	}
 
-	return result, nil
+	return result
 }
 
-// getSchemas discovers all schemas in the database, excluding system schemas.
-func getSchemas(ctx context.Context, q Querier) ([]string, error) {
-	query := `
-		SELECT schema_name
-		FROM information_schema.schemata
-		WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
-		AND schema_name NOT LIKE 'pg_temp_%'
-		AND schema_name NOT LIKE 'pg_toast_temp_%'
-		ORDER BY schema_name
-	`
-
-	rows, err := q.Query(ctx, query)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query schemas: %w", err)
-	}
-	defer rows.Close()
-
-	var schemas []string
-	for rows.Next() {
-		var schemaName string
-		if err := rows.Scan(&schemaName); err != nil {
-			return nil, fmt.Errorf("failed to scan schema name: %w", err)
-		}
-
-		schemas = append(schemas, schemaName)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating schema rows: %w", err)
-	}
-
-	return schemas, nil
-}
-
-// introspectSchemaObjects retrieves all objects (tables, columns, primary keys) for a schema.
+// introspectSchemaObjects retrieves the tracked-tables subset of a schema.
+// tableNames is the list of tables the caller has asked to introspect — any
+// relation in the schema outside that set is not visited. An entry in
+// tableNames that does not exist in the database is silently elided (the
+// per-table queries simply return no rows), so reconcile can record a
+// kind=table inconsistency rather than aborting the whole source.
 func introspectSchemaObjects(
 	ctx context.Context,
 	q Querier,
 	schemaName string,
+	tableNames []string,
 ) (*introspection.Schema, error) {
 	schema := &introspection.Schema{
 		Tables: make(map[string]*introspection.Table),
 	}
 
-	tables, err := getTables(ctx, q, schemaName)
+	tables, err := getTables(ctx, q, schemaName, tableNames)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tables: %w", err)
 	}
@@ -174,27 +156,32 @@ func introspectSchemaObjects(
 	return schema, nil
 }
 
-// getTables queries the information_schema to get all tables and columns for a schema.
+// getTables introspects the relations named in tableNames from schemaName,
+// returning a fully-populated [introspection.Table] for each one that exists
+// in the database. Tracked names with no matching pg_class row simply do not
+// appear in the result, leaving the outer reconcile pass to record a
+// kind=table inconsistency.
 func getTables(
 	ctx context.Context,
 	q Querier,
 	schemaName string,
+	tableNames []string,
 ) ([]introspection.Table, error) {
 	tableMap := make(map[string]*introspection.Table)
 
-	if err := populateTableColumns(ctx, q, schemaName, tableMap); err != nil {
+	if err := populateTableColumns(ctx, q, schemaName, tableNames, tableMap); err != nil {
 		return nil, err
 	}
 
-	if err := populateForeignKeys(ctx, q, schemaName, tableMap); err != nil {
+	if err := populateForeignKeys(ctx, q, schemaName, tableNames, tableMap); err != nil {
 		return nil, err
 	}
 
-	if err := populateUniqueConstraints(ctx, q, schemaName, tableMap); err != nil {
+	if err := populateUniqueConstraints(ctx, q, schemaName, tableNames, tableMap); err != nil {
 		return nil, err
 	}
 
-	if err := populateRelationKinds(ctx, q, schemaName, tableMap); err != nil {
+	if err := populateRelationKinds(ctx, q, schemaName, tableNames, tableMap); err != nil {
 		return nil, err
 	}
 
@@ -207,47 +194,55 @@ func getTables(
 }
 
 // populateRelationKinds fills in IsView / IsInsertable / IsUpdatable on every
-// relation previously discovered by populateTableColumns. Base tables come
-// back as (false, true, true). Views inherit insertable/updatable flags from
-// information_schema.views, which Postgres derives from the view definition
-// (UNION ALL, aggregates, set-returning functions, and INSTEAD OF triggers
-// all affect these). Foreign tables and partitioned tables do not appear in
-// information_schema.views; their writability falls back to
-// information_schema.tables.is_insertable_into, which is 'NO' for read-only
-// foreign tables and 'YES' otherwise. The schema generator uses these to
-// suppress mutation fields on relations the database itself will reject
-// writes to.
+// relation previously discovered by populateTableColumns. Base tables (relkind
+// 'r') and partitioned tables ('p') are always insertable and updatable. Views
+// ('v') and foreign tables ('f') consult pg_relation_is_updatable(), which is
+// the same function information_schema.views uses internally: bit 8 (INSERT)
+// gates IsInsertable, and bits 4|16 (UPDATE|DELETE) jointly gate IsUpdatable —
+// the same (& 20) = 20 check information_schema.views.is_updatable uses. The
+// schema generator uses these to suppress mutation fields on relations the
+// database itself will reject writes to.
 func populateRelationKinds(
 	ctx context.Context,
 	q Querier,
 	schemaName string,
+	tableNames []string,
 	tableMap map[string]*introspection.Table,
 ) error {
 	if len(tableMap) == 0 {
 		return nil
 	}
 
-	// LEFT JOIN: base tables won't appear in information_schema.views,
-	// so v.is_insertable_into / v.is_updatable come back NULL. Fall back
-	// to information_schema.tables.is_insertable_into (populated for base
-	// tables, partitioned tables, and foreign tables — 'NO' for read-only
-	// foreign tables, 'YES' otherwise) before defaulting to 'YES'. There
-	// is no is_updatable column on information_schema.tables, so we use
-	// t.is_insertable_into as the closest writability proxy for non-views
-	// (any per-role permissions are applied separately in the schema layer).
+	// pg_relation_is_updatable() returns an int bitmask whose bits mirror
+	// the SQL standard's IS_UPDATABLE semantics (bit 4 = UPDATE, bit 8 =
+	// INSERT, bit 16 = DELETE). information_schema.views uses the same
+	// `& 8 = 8` (INSERT) and `& 20 = 20` (UPDATE|DELETE) checks; we
+	// replicate them here against pg_class so the query works without
+	// privileges on the relation's owner role.
 	query := `
 		SELECT
-			t.table_name,
-			t.table_type = 'VIEW' AS is_view,
-			COALESCE(v.is_insertable_into, t.is_insertable_into, 'YES') = 'YES' AS is_insertable,
-			COALESCE(v.is_updatable, t.is_insertable_into, 'YES') = 'YES' AS is_updatable
-		FROM information_schema.tables t
-		LEFT JOIN information_schema.views v
-			ON v.table_schema = t.table_schema AND v.table_name = t.table_name
-		WHERE t.table_schema = $1
+			cls.relname AS table_name,
+			cls.relkind = 'v' AS is_view,
+			CASE
+				WHEN cls.relkind IN ('r', 'p') THEN true
+				WHEN cls.relkind IN ('v', 'f') THEN
+					(pg_catalog.pg_relation_is_updatable(cls.oid, false) & 8) = 8
+				ELSE false
+			END AS is_insertable,
+			CASE
+				WHEN cls.relkind IN ('r', 'p') THEN true
+				WHEN cls.relkind IN ('v', 'f') THEN
+					(pg_catalog.pg_relation_is_updatable(cls.oid, false) & 20) = 20
+				ELSE false
+			END AS is_updatable
+		FROM pg_catalog.pg_class cls
+		JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
+		WHERE ns.nspname = $1
+			AND cls.relname = ANY($2)
+			AND cls.relkind IN ('r', 'v', 'f', 'p')
 	`
 
-	rows, err := q.Query(ctx, query, schemaName)
+	rows, err := q.Query(ctx, query, schemaName, tableNames)
 	if err != nil {
 		return fmt.Errorf("failed to query relation kinds: %w", err)
 	}
@@ -288,6 +283,7 @@ func populateTableColumns( //nolint:funlen
 	ctx context.Context,
 	q Querier,
 	schemaName string,
+	tableNames []string,
 	tableMap map[string]*introspection.Table,
 ) error {
 	// A type is considered "fully numeric" only when it implements the entire
@@ -359,39 +355,45 @@ func populateTableColumns( //nolint:funlen
 			) sub
 		)
 		SELECT
-			c.table_name,
-			c.column_name,
+			cls.relname AS table_name,
+			a.attname AS column_name,
 			CASE
 				WHEN t.typcategory = 'A' THEN COALESCE(elem_bt.typname, elem.typname)
 				ELSE COALESCE(bt.typname, t.typname)
 			END as typname,
-			c.is_nullable,
+			CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END as is_nullable,
 			a.attgenerated != '' as is_generated,
 			t.typcategory = 'A' as is_array,
 			COALESCE(ta.supports_min_max, false) as supports_min_max,
 			COALESCE(ta.supports_inc, false) as supports_inc,
 			COALESCE(ta.supports_numeric_agg, false) as supports_numeric_agg,
-			c.column_default,
-			pg_catalog.col_description(
-				('"' || c.table_schema || '"."' || c.table_name || '"')::regclass::oid,
-				c.ordinal_position
-			) as column_comment
-		FROM information_schema.columns c
-		JOIN pg_attribute a ON a.attrelid = ('"' || c.table_schema || '"."' || c.table_name || '"')::regclass
-			AND a.attname = c.column_name
-		JOIN pg_type t ON t.oid = a.atttypid
-		LEFT JOIN pg_type bt ON bt.oid = t.typbasetype
-		LEFT JOIN pg_type elem ON elem.oid = t.typelem AND t.typcategory = 'A'
-		LEFT JOIN pg_type elem_bt ON elem_bt.oid = elem.typbasetype
+			CASE
+			WHEN a.attgenerated = '' THEN pg_catalog.pg_get_expr(ad.adbin, ad.adrelid)
+		END AS column_default,
+			pg_catalog.col_description(cls.oid, a.attnum::int) as column_comment
+		FROM pg_catalog.pg_class cls
+		JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
+		JOIN pg_catalog.pg_attribute a ON a.attrelid = cls.oid
+		JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
+		LEFT JOIN pg_catalog.pg_attrdef ad
+			ON ad.adrelid = a.attrelid AND ad.adnum = a.attnum
+		LEFT JOIN pg_catalog.pg_type bt ON bt.oid = t.typbasetype
+		LEFT JOIN pg_catalog.pg_type elem
+			ON elem.oid = t.typelem AND t.typcategory = 'A'
+		LEFT JOIN pg_catalog.pg_type elem_bt ON elem_bt.oid = elem.typbasetype
 		LEFT JOIN type_with_aliases ta ON ta.typname = CASE
 			WHEN t.typcategory = 'A' THEN COALESCE(elem_bt.typname, elem.typname)
 			ELSE COALESCE(bt.typname, t.typname)
 		END
-		WHERE c.table_schema = $1
-		ORDER BY c.table_name, c.ordinal_position
+		WHERE ns.nspname = $1
+			AND cls.relname = ANY($2)
+			AND cls.relkind IN ('r', 'v', 'f', 'p')
+			AND a.attnum > 0
+			AND NOT a.attisdropped
+		ORDER BY cls.relname, a.attnum
 	`
 
-	rows, err := q.Query(ctx, query, schemaName)
+	rows, err := q.Query(ctx, query, schemaName, tableNames)
 	if err != nil {
 		return fmt.Errorf("failed to query tables: %w", err)
 	}
@@ -468,31 +470,45 @@ func populateTableColumns( //nolint:funlen
 }
 
 // populateForeignKeys queries and populates foreign key information for tables in a schema.
-func populateForeignKeys(
+// Reads pg_catalog.pg_constraint by OID instead of joining the
+// information_schema.{table_constraints,key_column_usage,constraint_column_usage}
+// views. The constraint_column_usage view in particular filters its output by
+// pg_has_role() on the *referenced* table's owner, so a role that has SELECT
+// grants but no membership in the owner role (e.g. nhost_hasura against
+// auth.* tables owned by nhost_auth_admin) cannot see foreign keys whose
+// targets it does not own. Catalog reads only require SELECT on pg_catalog
+// and return constraints regardless of role membership.
+func populateForeignKeys( //nolint:funlen
 	ctx context.Context,
 	q Querier,
 	schemaName string,
+	tableNames []string,
 	tableMap map[string]*introspection.Table,
 ) error {
 	query := `
 		SELECT
-			tc.table_name,
-			kcu.column_name,
-			ccu.table_schema AS foreign_schema,
-			ccu.table_name AS foreign_table_name,
-			ccu.column_name AS foreign_column_name
-		FROM information_schema.table_constraints AS tc
-		JOIN information_schema.key_column_usage AS kcu
-			ON tc.constraint_name = kcu.constraint_name
-			AND tc.table_schema = kcu.table_schema
-		JOIN information_schema.constraint_column_usage AS ccu
-			ON ccu.constraint_name = tc.constraint_name
-		WHERE tc.constraint_type = 'FOREIGN KEY'
-			AND tc.table_schema = $1
-		ORDER BY tc.table_name, tc.constraint_name, kcu.ordinal_position
+			ct.relname AS table_name,
+			ac.attname AS column_name,
+			cftn.nspname AS foreign_schema,
+			cft.relname AS foreign_table_name,
+			afc.attname AS foreign_column_name
+		FROM pg_catalog.pg_constraint r
+		JOIN pg_catalog.pg_class ct ON ct.oid = r.conrelid
+		JOIN pg_catalog.pg_namespace ctn ON ctn.oid = ct.relnamespace
+		JOIN pg_catalog.pg_class cft ON cft.oid = r.confrelid
+		JOIN pg_catalog.pg_namespace cftn ON cftn.oid = cft.relnamespace
+		JOIN LATERAL unnest(r.conkey) WITH ORDINALITY AS k(col_id, ord) ON true
+		JOIN pg_catalog.pg_attribute ac
+			ON ac.attrelid = r.conrelid AND ac.attnum = k.col_id
+		JOIN pg_catalog.pg_attribute afc
+			ON afc.attrelid = r.confrelid AND afc.attnum = r.confkey[k.ord]
+		WHERE r.contype = 'f'
+			AND ctn.nspname = $1
+			AND ct.relname = ANY($2)
+		ORDER BY ct.relname, r.conname, k.ord
 	`
 
-	rows, err := q.Query(ctx, query, schemaName)
+	rows, err := q.Query(ctx, query, schemaName, tableNames)
 	if err != nil {
 		return fmt.Errorf("failed to query foreign keys: %w", err)
 	}
@@ -532,28 +548,33 @@ func populateForeignKeys(
 }
 
 // populateUniqueConstraints queries and populates unique constraint information for tables in a schema.
+// Uses pg_catalog directly (see populateForeignKeys for rationale).
 func populateUniqueConstraints(
 	ctx context.Context,
 	q Querier,
 	schemaName string,
+	tableNames []string,
 	tableMap map[string]*introspection.Table,
 ) error {
 	query := `
 		SELECT
-			tc.table_name,
-			tc.constraint_name,
-			array_agg(kcu.column_name ORDER BY kcu.ordinal_position) AS columns
-		FROM information_schema.table_constraints AS tc
-		JOIN information_schema.key_column_usage AS kcu
-			ON tc.constraint_name = kcu.constraint_name
-			AND tc.table_schema = kcu.table_schema
-		WHERE tc.constraint_type = 'UNIQUE'
-			AND tc.table_schema = $1
-		GROUP BY tc.table_name, tc.constraint_name
-		ORDER BY tc.table_name, tc.constraint_name
+			cls.relname AS table_name,
+			r.conname AS constraint_name,
+			array_agg(a.attname ORDER BY k.ord) AS columns
+		FROM pg_catalog.pg_constraint r
+		JOIN pg_catalog.pg_class cls ON cls.oid = r.conrelid
+		JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
+		JOIN LATERAL unnest(r.conkey) WITH ORDINALITY AS k(col_id, ord) ON true
+		JOIN pg_catalog.pg_attribute a
+			ON a.attrelid = r.conrelid AND a.attnum = k.col_id
+		WHERE r.contype = 'u'
+			AND ns.nspname = $1
+			AND cls.relname = ANY($2)
+		GROUP BY cls.relname, r.conname
+		ORDER BY cls.relname, r.conname
 	`
 
-	rows, err := q.Query(ctx, query, schemaName)
+	rows, err := q.Query(ctx, query, schemaName, tableNames)
 	if err != nil {
 		return fmt.Errorf("failed to query unique constraints: %w", err)
 	}

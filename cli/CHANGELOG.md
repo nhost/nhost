@@ -1,3 +1,22 @@
+## [cli@1.47.0] - 2026-05-25
+
+### 🚀 Features
+
+- *(cli)* Added support for constellation (#4345)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.46.0
+- *(ci)* Minor changes to go linter to reduce noise (#4329)
+- *(ci)* Automate fixing dependencies (#4337)
+
+
+### Chore
+
+- *(deps)* Update various packages due to CVEs (#4328)
+- *(deps)* Bump x/net due to vulns (#4336)
+
 ## [cli@1.46.0] - 2026-05-19
 
 ### 🚀 Features

@@ -1,0 +1,25 @@
+[
+  [
+    {
+      "_join_key": "550e8400-e29b-41d4-a716-446655440002",
+      "__typename": "user_departments_aggregate",
+      "aggregate": {
+        "count": 2
+      }
+    },
+    {
+      "_join_key": "00000000-0000-0000-0000-000000000099",
+      "__typename": "user_departments_aggregate",
+      "aggregate": {
+        "count": 0
+      }
+    },
+    {
+      "_join_key": "550e8400-e29b-41d4-a716-446655440001",
+      "__typename": "user_departments_aggregate",
+      "aggregate": {
+        "count": 2
+      }
+    }
+  ]
+]
