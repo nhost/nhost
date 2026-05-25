@@ -275,6 +275,9 @@ func getRouter(
 	router.GET("/healthz", func(c *gin.Context) {
 		c.String(http.StatusOK, "ok")
 	})
+	router.HEAD("/healthz", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
 
 	router.GET("/v1/version", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"version": cmd.Root().Version})
