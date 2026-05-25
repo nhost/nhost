@@ -779,7 +779,6 @@ func TestRun_ReloadReplacesInconsistencies(t *testing.T) {
 
 	deadline := time.Now().Add(2 * time.Second)
 	for len(ctrl.Inconsistencies()) != 0 {
-
 		if time.Now().After(deadline) {
 			t.Fatalf(
 				"inconsistencies not cleared after clean reload: %+v",
