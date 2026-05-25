@@ -10,12 +10,24 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-// Introspect discovers tables, columns, primary keys, foreign keys and unique constraints
-// from a SQLite database using PRAGMA commands.
+// Introspect returns the database objects (tables, columns, primary keys,
+// foreign keys, unique constraints) for the relations listed in dbMeta.
+// Introspection is metadata-scoped: untracked tables and views in
+// sqlite_master are never visited. This mirrors the PostgreSQL driver so the
+// two backends produce comparable Objects, and so reconcile's "table not
+// found" branch is the single place that handles tracked entities the
+// database does not actually expose.
 func (c *Client) Introspect(
 	ctx context.Context, dbMeta *metadata.DatabaseMetadata,
 ) (*introspection.Objects, error) {
-	tables, err := introspectTables(ctx, c.db)
+	objs := introspection.NewObjects()
+
+	tableNames := trackedTableNames(dbMeta)
+	if len(tableNames) == 0 {
+		return objs, nil
+	}
+
+	tables, err := introspectTables(ctx, c.db, tableNames)
 	if err != nil {
 		return nil, fmt.Errorf("failed to introspect tables: %w", err)
 	}
@@ -28,20 +40,49 @@ func (c *Client) Introspect(
 		schema.Tables[tables[i].Name] = &tables[i]
 	}
 
-	objs := introspection.NewObjects()
 	objs.Schemas[""] = schema
 	objs.EnumValues = introspectEnumValues(ctx, c.db, dbMeta, schema.Tables)
 
 	return objs, nil
 }
 
-// introspectTables discovers all user tables and views in the database and
-// returns a fully-populated [introspection.Table] for each one (columns,
-// primary keys, foreign keys, unique constraints). It walks the names emitted
-// by [getTableNames] in lexicographic order so the resulting slice is stable
-// across runs.
-func introspectTables(ctx context.Context, q Querier) ([]introspection.Table, error) {
-	entries, err := getTableNames(ctx, q)
+// trackedTableNames returns the set of table names dbMeta references. SQLite
+// has no schema namespace, so the schema component of each TableSource is
+// ignored and a duplicate-collapsing set semantics are used: if two
+// TableMetadata entries point to the same name (which would itself be a
+// metadata error caught elsewhere) the table is still introspected exactly
+// once.
+func trackedTableNames(dbMeta *metadata.DatabaseMetadata) []string {
+	if len(dbMeta.Tables) == 0 {
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(dbMeta.Tables))
+	names := make([]string, 0, len(dbMeta.Tables))
+
+	for i := range dbMeta.Tables {
+		name := dbMeta.Tables[i].Table.Name
+		if _, ok := seen[name]; ok {
+			continue
+		}
+
+		seen[name] = struct{}{}
+
+		names = append(names, name)
+	}
+
+	return names
+}
+
+// introspectTables returns a fully-populated [introspection.Table] for each
+// tracked name that exists in sqlite_master (columns, primary keys, foreign
+// keys, unique constraints). Tracked names with no matching sqlite_master
+// row are silently elided so the outer reconcile pass can record a
+// kind=table inconsistency instead of failing the source.
+func introspectTables(
+	ctx context.Context, q Querier, tableNames []string,
+) ([]introspection.Table, error) {
+	entries, err := getTableNames(ctx, q, tableNames)
 	if err != nil {
 		return nil, fmt.Errorf("listing tables: %w", err)
 	}
@@ -68,15 +109,31 @@ type relationEntry struct {
 	isView bool
 }
 
-// getTableNames returns user-defined table and view names from sqlite_master,
-// excluding the internal sqlite_* objects. Ordering is by name so the rest of
-// introspection sees a stable slice.
-func getTableNames(ctx context.Context, q Querier) ([]relationEntry, error) {
-	rows, err := q.QueryContext(ctx,
-		`SELECT name, type FROM sqlite_master
-		 WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'
-		 ORDER BY name`,
-	)
+// getTableNames returns the subset of `tableNames` that exists in
+// sqlite_master as either a table or a view (excluding the internal sqlite_*
+// objects), paired with whether each one is a view. The result is ordered by
+// name so the rest of introspection sees a stable slice. Tracked names with
+// no matching sqlite_master row are silently dropped.
+func getTableNames(
+	ctx context.Context, q Querier, tableNames []string,
+) ([]relationEntry, error) {
+	if len(tableNames) == 0 {
+		return nil, nil
+	}
+
+	placeholders := strings.Repeat("?,", len(tableNames)-1) + "?"
+	query := `SELECT name, type FROM sqlite_master
+		 WHERE type IN ('table', 'view')
+		 AND name NOT LIKE 'sqlite_%'
+		 AND name IN (` + placeholders + `)
+		 ORDER BY name`
+
+	args := make([]any, len(tableNames))
+	for i, name := range tableNames {
+		args[i] = name
+	}
+
+	rows, err := q.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sqlite_master: %w", err)
 	}
