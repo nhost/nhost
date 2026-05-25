@@ -10,11 +10,14 @@ import (
 // DefaultLocalAdminSecret is the Hasura admin secret used by the local dev
 // stack started with `nhost dev`. It matches the value baked into the local
 // docker-compose setup.
-const DefaultLocalAdminSecret = "nhost-admin-secret" //nolint:gosec
+const DefaultLocalAdminSecret = "nhost-admin-secret" //nolint:gosec // local dev default, not a real credential
 
 // ProjectEndpoint is a resolved Nhost project (the local dev stack or a cloud
 // project) with everything needed to talk to its services: subdomain/region,
 // per-service URLs, and an admin secret. Build one with [CliEnv.ResolveProject].
+//
+// Not safe for concurrent use: [ProjectEndpoint.AdminSecret] caches the
+// fetched secret without synchronisation.
 type ProjectEndpoint struct {
 	// App is the underlying linked or looked-up cloud app summary. nil when
 	// the endpoint points at the local dev stack.

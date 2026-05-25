@@ -35,7 +35,7 @@ const (
 	outputFileMode        = 0o600
 
 	headerHasuraRole        = "X-Hasura-Role"
-	headerHasuraAdminSecret = "X-Hasura-Admin-Secret" //nolint:gosec
+	headerHasuraAdminSecret = "X-Hasura-Admin-Secret" //nolint:gosec // HTTP header name, not a credential
 )
 
 func commandDump() *cli.Command {
@@ -81,9 +81,10 @@ The flags --url and --metadata are mutually exclusive.`,
 				Aliases: []string{"r"},
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagAdminSecret,
-				Usage:   "Admin secret (defaults: local subdomain → nhost-admin-secret; cloud → fetched from Nhost API)",
-				Sources: cli.EnvVars("NHOST_ADMIN_SECRET"),
+				Name: flagAdminSecret,
+				Usage: "Admin secret (defaults: local subdomain → nhost-admin-secret;" +
+					" cloud → fetched from Nhost API). NHOST_ADMIN_SECRET is consulted" +
+					" only in linked-project mode and never forwarded to --url.",
 			},
 			&cli.StringSliceFlag{ //nolint:exhaustruct
 				Name:    flagHeader,
@@ -127,9 +128,12 @@ func dump(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	headers := buildHeaders(
-		cmd.StringSlice(flagHeader), cmd.String(flagRole), adminSecret,
-	)
+	role := ""
+	if cmd.IsSet(flagRole) {
+		role = cmd.String(flagRole)
+	}
+
+	headers := buildHeaders(cmd.StringSlice(flagHeader), role, adminSecret)
 
 	doc, err := dumpFromURL(ctx, cmd, resolvedURL, headers)
 	if err != nil {
@@ -139,18 +143,33 @@ func dump(ctx context.Context, cmd *cli.Command) error {
 	return writeSDL(doc, cmd.String(flagOutput))
 }
 
+// resolveURLAndSecret returns the GraphQL endpoint URL and the admin secret to
+// attach to it. When the user passes --url, only the explicit --admin-secret
+// flag is forwarded — NHOST_ADMIN_SECRET is intentionally not auto-applied so
+// that a developer with the env var exported for their own project does not
+// silently leak it to an arbitrary third-party endpoint. In linked-project
+// mode the env var is honoured as an override.
 func resolveURLAndSecret(
 	ctx context.Context, cmd *cli.Command, url string,
 ) (string, string, error) {
 	adminSecret := cmd.String(flagAdminSecret)
 
 	if url != "" {
+		// Explicit --url: only forward the admin secret when the user typed it
+		// in via --admin-secret; never from NHOST_ADMIN_SECRET (which the flag
+		// no longer auto-reads).
 		return url, adminSecret, nil
 	}
 
 	ep, err := clienv.FromCLI(cmd).ResolveProject(ctx, cmd.String(flagSubdomain))
 	if err != nil {
 		return "", "", fmt.Errorf("failed to resolve project: %w", err)
+	}
+
+	// In linked-project mode it is safe to consult the env var: we are talking
+	// to the project the user is currently linked to.
+	if adminSecret == "" {
+		adminSecret = os.Getenv("NHOST_ADMIN_SECRET")
 	}
 
 	if adminSecret != "" {
