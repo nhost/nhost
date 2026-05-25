@@ -87,11 +87,12 @@ func generateForTable( //nolint:funlen,cyclop
 		qualifiedName,
 		allowedColumns,
 		role,
+		md,
 		caps,
 	)
 
 	generateTableMutationFields(
-		mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, role,
+		mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, role, md,
 	)
 
 	generateTableSubscriptionFields(
@@ -102,6 +103,7 @@ func generateForTable( //nolint:funlen,cyclop
 		qualifiedName,
 		allowedColumns,
 		role,
+		md,
 		caps,
 	)
 

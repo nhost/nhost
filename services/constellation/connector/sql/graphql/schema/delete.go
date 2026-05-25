@@ -14,6 +14,7 @@ func generateDeleteByPkField(
 	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
+	md *metadata.DatabaseMetadata,
 ) *graph.Field {
 	deleteName := "delete_" + customTableName + "_by_pk"
 	if tableMeta.Configuration.CustomRootFields.DeleteByPk != "" {
@@ -29,8 +30,10 @@ func generateDeleteByPkField(
 
 		for i := range tableInfo.Columns {
 			if tableInfo.Columns[i].Name == pkColName {
-				// PK args are non-null.
-				colType = postgresTypeToGraphQL(tableInfo.Columns[i].Type, false)
+				// PK args are non-null. Primary-key columns are non-nullable in
+				// introspection, so getColumnGraphQLType emits the NonNull form
+				// for both the enum-FK and scalar-fallback branches.
+				colType = getColumnGraphQLType(&tableInfo.Columns[i], tableInfo, md)
 				description = getColumnDescription(&tableInfo.Columns[i])
 
 				break

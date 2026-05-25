@@ -26,6 +26,7 @@ func generateTableMutationFields(
 	customTableName string,
 	qualifiedName string,
 	role string,
+	md *metadata.DatabaseMetadata,
 ) {
 	// DELETE is intentionally gated on IsUpdatable. Postgres exposes
 	// is_trigger_deletable independently of is_updatable, so an INSTEAD OF
@@ -35,7 +36,7 @@ func generateTableMutationFields(
 	// it correctly covers ordinary tables and simple (non-trigger) views.
 	if tableInfo.IsUpdatable &&
 		(role == roleAdmin || getDeletePermission(tableMeta, role) != nil) {
-		appendDeleteFields(mutationFields, tableMeta, tableInfo, customTableName, qualifiedName)
+		appendDeleteFields(mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, md)
 	}
 
 	if tableInfo.IsInsertable &&
@@ -62,11 +63,12 @@ func appendDeleteFields(
 	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
+	md *metadata.DatabaseMetadata,
 ) {
 	if len(tableInfo.PrimaryKeys) > 0 {
 		*mutationFields = append(
 			*mutationFields,
-			generateDeleteByPkField(tableMeta, tableInfo, customTableName, qualifiedName),
+			generateDeleteByPkField(tableMeta, tableInfo, customTableName, qualifiedName, md),
 		)
 	}
 
@@ -205,7 +207,7 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 		hasIncrement := hasIncrementColumns(tableInfo, updateAllowedColumns)
 
 		if len(tableInfo.PrimaryKeys) > 0 {
-			generatePkColumnsInput(schema, tableMeta, tableInfo, customTableName, qualifiedName)
+			generatePkColumnsInput(schema, tableMeta, tableInfo, customTableName, qualifiedName, md)
 		}
 
 		generateSetInput(
@@ -334,14 +336,17 @@ func generatePkColumnsInput(
 	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
+	md *metadata.DatabaseMetadata,
 ) {
 	fields := []*graph.InputField{}
 
 	for _, pkColName := range tableInfo.PrimaryKeys {
 		for _, col := range tableInfo.Columns {
 			if col.Name == pkColName {
-				// PK columns are non-null.
-				colType := postgresTypeToGraphQL(col.Type, false)
+				// PK columns are non-null. Primary-key columns are non-nullable in
+				// introspection, so getColumnGraphQLType emits the NonNull form
+				// for both the enum-FK and scalar-fallback branches.
+				colType := getColumnGraphQLType(&col, tableInfo, md)
 
 				fields = append(fields, &graph.InputField{ //nolint:exhaustruct
 					Name:        getCustomColumnName(tableMeta, pkColName),
