@@ -302,6 +302,15 @@ func TestInconsistencies_PerKindHelpers(t *testing.T) {
 			wantName:   "public.users.email",
 		},
 		{
+			name: "column_no_schema",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordColumn(ctx, logger, "src", "", "users", "email", "missing")
+			},
+			wantKind:   metadata.InconsistencyKindColumn,
+			wantSource: "src",
+			wantName:   "users.email",
+		},
+		{
 			name: "function",
 			record: func(i *metadata.Inconsistencies) {
 				i.RecordFunction(ctx, logger, "src", "public", "fn", "missing")
@@ -311,6 +320,15 @@ func TestInconsistencies_PerKindHelpers(t *testing.T) {
 			wantName:   "public.fn",
 		},
 		{
+			name: "function_no_schema",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordFunction(ctx, logger, "src", "", "fn", "missing")
+			},
+			wantKind:   metadata.InconsistencyKindFunction,
+			wantSource: "src",
+			wantName:   "fn",
+		},
+		{
 			name: "relationship",
 			record: func(i *metadata.Inconsistencies) {
 				i.RecordRelationship(ctx, logger, "src", "public", "users", "posts", "missing")
@@ -318,6 +336,15 @@ func TestInconsistencies_PerKindHelpers(t *testing.T) {
 			wantKind:   metadata.InconsistencyKindRelationship,
 			wantSource: "src",
 			wantName:   "public.users.posts",
+		},
+		{
+			name: "relationship_no_schema",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordRelationship(ctx, logger, "src", "", "users", "posts", "missing")
+			},
+			wantKind:   metadata.InconsistencyKindRelationship,
+			wantSource: "src",
+			wantName:   "users.posts",
 		},
 	}
 

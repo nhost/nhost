@@ -266,6 +266,10 @@ func getRouter(
 		c.String(http.StatusOK, "ok")
 	})
 
+	router.GET("/v1/version", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"version": cmd.Root().Version})
+	})
+
 	router.Use(
 		gin.Recovery(),
 		oapitracing.Tracing(),

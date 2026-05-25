@@ -92,10 +92,11 @@ func NewInconsistencies() *Inconsistencies {
 // threading an optional *Inconsistencies do not need a wrapper.
 //
 // Prefer the per-kind helpers (RecordDatabase, RecordTable, RecordColumn, ...)
-// over calling Record directly: they surface the per-kind Name format in the
-// parameter list so a source/name swap is a compile error rather than a
-// silently-wrong record. Record itself is reserved for the rare dynamic-kind
-// path where the kind is computed at call time.
+// over calling Record directly: their named parameters surface the per-kind
+// Name format at the call site, making the intended order clear (helpers still
+// take multiple string parameters, so a same-type swap is not prevented by the
+// compiler — it just becomes obvious in review). Record itself is reserved for
+// the rare dynamic-kind path where the kind is computed at call time.
 //
 // Source may be empty for source-level (database, remote_schema) and role
 // kinds; see the InconsistencyKind* constants for the per-kind Name format.
