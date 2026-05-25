@@ -19,14 +19,16 @@ func constellation( //nolint:funlen
 ) (*Service, error) {
 	envars, err := appconfig.ConstellationEnv(
 		cfg,
-		"postgres://postgres:postgres@postgres:5432/local",
-		URL(subdomain, "auth", httpPort, useTLS)+"/v1",
-		URL(subdomain, "graphql", httpPort, useTLS)+"/v1",
-		URL(subdomain, "storage", httpPort, useTLS)+"/v1",
-		"http://functions:3000",
-		subdomain,
-		"local",
-		URL(subdomain, "dashboard", httpPort, useTLS),
+		appconfig.ConstellationEnvInput{
+			PostgresConnection: "postgres://postgres:postgres@postgres:5432/local",
+			NhostAuthURL:       URL(subdomain, "auth", httpPort, useTLS) + "/v1",
+			NhostGraphqlURL:    URL(subdomain, "graphql", httpPort, useTLS) + "/v1",
+			NhostStorageURL:    URL(subdomain, "storage", httpPort, useTLS) + "/v1",
+			NhostFunctionsURL:  "http://functions:3000",
+			Subdomain:          subdomain,
+			Region:             "local",
+			DashboardOrigin:    URL(subdomain, "dashboard", httpPort, useTLS),
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get constellation env vars: %w", err)
@@ -48,11 +50,11 @@ func constellation( //nolint:funlen
 		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: &HealthCheck{
 			Test: []string{
-				"CMD-SHELL",
-				fmt.Sprintf(
-					"wget --spider -S http://localhost:%d/healthz > /dev/null 2>&1",
-					constellationPort,
-				),
+				"CMD",
+				"wget",
+				"--spider",
+				"-S",
+				fmt.Sprintf("http://localhost:%d/healthz", constellationPort),
 			},
 			Timeout:     "60s",
 			Interval:    "5s",

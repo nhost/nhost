@@ -76,8 +76,11 @@ func expectedConstellation(useTLS bool) *Service {
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
-				"CMD-SHELL",
-				"wget --spider -S http://localhost:8000/healthz > /dev/null 2>&1",
+				"CMD",
+				"wget",
+				"--spider",
+				"-S",
+				"http://localhost:8000/healthz",
 			},
 			Timeout:     "60s",
 			Interval:    "5s",

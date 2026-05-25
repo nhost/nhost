@@ -18,7 +18,10 @@ const (
 	secretConstellationGraphiteSecret = "graphiteWebhookSecret"
 )
 
-var errURLMissingSchemeOrHost = errors.New("url is missing scheme or host")
+// ErrURLMissingSchemeOrHost is returned (wrapped) by CORS-origin extraction
+// when a configured URL parses without a scheme or host. Callers that need to
+// distinguish this case from other errors should match it with errors.Is.
+var ErrURLMissingSchemeOrHost = errors.New("url is missing scheme or host")
 
 // corsOriginFromURL extracts the scheme+host CORS origin from rawURL. It
 // returns ("", nil) when the URL uses a scheme other than http/https (e.g.
@@ -32,7 +35,7 @@ func corsOriginFromURL(rawURL string) (string, error) {
 	}
 
 	if u.Scheme == "" || u.Host == "" {
-		return "", fmt.Errorf("%w: %q", errURLMissingSchemeOrHost, rawURL)
+		return "", fmt.Errorf("%w: %q", ErrURLMissingSchemeOrHost, rawURL)
 	}
 
 	if u.Scheme != schemeHTTP && u.Scheme != schemeHTTPS {
@@ -124,7 +127,9 @@ func constellationSettings(cfg *model.ConfigConfig) constellationRuntimeSettings
 	return out
 }
 
-func constellationCORSOrigins(cfg *model.ConfigConfig, dashboardOrigin string) (string, error) {
+func constellationCORSOrigins( //nolint:cyclop
+	cfg *model.ConfigConfig, dashboardOrigin string,
+) (string, error) {
 	collector := newCORSOriginCollector()
 
 	// The dashboard origin is added in every case so that the Nhost dashboard
@@ -294,23 +299,31 @@ func constellationBaseEnv( //nolint:funlen
 	}
 }
 
+// ConstellationEnvInput collects the runtime URLs and tenant identity values
+// that ConstellationEnv needs in addition to the user's config. Bundling the
+// adjacent string parameters into a named struct prevents accidental argument
+// swaps at the call site that the compiler cannot catch.
+type ConstellationEnvInput struct {
+	PostgresConnection string
+	NhostAuthURL       string
+	NhostGraphqlURL    string
+	NhostStorageURL    string
+	NhostFunctionsURL  string
+	Subdomain          string
+	Region             string
+	DashboardOrigin    string
+}
+
 func ConstellationEnv(
 	cfg *model.ConfigConfig,
-	postgresConnection,
-	nhostAuthURL,
-	nhostGraphqlURL,
-	nhostStorageURL,
-	nhostFunctionsURL,
-	subdomain,
-	region,
-	dashboardOrigin string,
+	input ConstellationEnvInput,
 ) ([]EnvVar, error) {
 	jwtSecret, err := marshalJWT(cfg.GetHasura().GetJwtSecrets()[0], false)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
 	}
 
-	corsAllowedOrigins, err := constellationCORSOrigins(cfg, dashboardOrigin)
+	corsAllowedOrigins, err := constellationCORSOrigins(cfg, input.DashboardOrigin)
 	if err != nil {
 		return nil, err
 	}
@@ -318,13 +331,13 @@ func ConstellationEnv(
 	env := constellationBaseEnv(
 		cfg,
 		jwtSecret,
-		postgresConnection,
-		nhostAuthURL,
-		nhostGraphqlURL,
-		nhostStorageURL,
-		nhostFunctionsURL,
-		subdomain,
-		region,
+		input.PostgresConnection,
+		input.NhostAuthURL,
+		input.NhostGraphqlURL,
+		input.NhostStorageURL,
+		input.NhostFunctionsURL,
+		input.Subdomain,
+		input.Region,
 		corsAllowedOrigins,
 		constellationSettings(cfg),
 	)
