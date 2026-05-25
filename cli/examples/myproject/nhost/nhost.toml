@@ -12,7 +12,7 @@ name = 'STRIPE_SECRET_KEY'
 value = '{{ secrets.STRIPE_SECRET_KEY }}'
 
 [hasura]
-version = 'v2.46.0-ce'
+version = 'v2.48.10-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -23,7 +23,7 @@ signingKey = '{{ secrets.JWT_PRIVATE_KEY }}'
 kid = 'bskhwtelkajsd'
 
 [hasura.settings]
-corsDomain = ['https://local.dashboard.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
+corsDomain = ['https://local.dashboard.local.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
 enableRemoteSchemaPermissions = false
 liveQueriesMultiplexedRefetchInterval = 3000
 
@@ -32,7 +32,7 @@ liveQueriesMultiplexedRefetchInterval = 3000
 version = 22
 
 [auth]
-version = '0.44.2'
+version = '0.50.1'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
@@ -63,15 +63,14 @@ rating = 'g'
 expiresIn = 900
 
 [[auth.session.accessToken.customClaims]]
-key = "spirit-animal"
-value = "animals[0].id"
-default = "00000000-0000-0000-0000-000000000000"
+key = 'spirit-animal'
+value = 'animals[0].id'
+default = '00000000-0000-0000-0000-000000000000'
 
 [auth.session.refreshToken]
 expiresIn = 2592000
 
 [auth.method]
-
 [auth.method.emailPassword]
 hibpEnabled = false
 emailVerificationRequired = false
@@ -139,14 +138,34 @@ enabled = false
 [postgres]
 version = '14.20-20251217-1'
 
+[postgres.resources]
 [postgres.resources.storage]
 capacity = 1
 
 [provider]
 
 [storage]
-version = '0.9.1'
+version = '0.14.0'
+
+[ai]
+version = '0.8.1'
+webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
+
+[ai.resources]
+[ai.resources.compute]
+cpu = 125
+memory = 256
+
+[ai.openai]
+organization = ''
+apiKey = '{{ secrets.OPENAI_API_KEY }}'
+
+[ai.autoEmbeddings]
+synchPeriodMinutes = 5
 
 [observability]
 [observability.grafana]
 adminPassword = '{{ secrets.GRAFANA_ADMIN_PASSWORD }}'
+
+[experimental.constellation]
+version = "0.1.0"

@@ -619,7 +619,13 @@ func getServices( //nolint: funlen,cyclop
 		return nil, err
 	}
 
-	graphql, err := graphql(cfg, subdomain, useTLS, httpPort, ports.Graphql)
+	graphql, err := graphql(
+		cfg,
+		subdomain,
+		useTLS,
+		httpPort,
+		ports.Graphql,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -679,6 +685,22 @@ func getServices( //nolint: funlen,cyclop
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if cfg.GetExperimental().GetConstellation() != nil {
+		c, err := constellation(
+			cfg,
+			subdomain,
+			useTLS,
+			httpPort,
+			nhostFolder,
+			"nhost/constellation:"+*cfg.GetExperimental().GetConstellation().GetVersion(),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		services["constellation"] = c
 	}
 
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&

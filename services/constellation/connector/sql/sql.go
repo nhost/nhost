@@ -68,10 +68,19 @@ type Connector struct {
 	dbMeta       *metadata.DatabaseMetadata
 }
 
-// NewConnector creates a Connector by introspecting the database, building query
-// roots, and generating per-role GraphQL schemas.
+// NewConnector creates a Connector by introspecting the database, reconciling
+// metadata against the introspected objects, building query roots, and
+// generating per-role GraphQL schemas. Per-entity reconciliation gaps (tables
+// / columns / functions / relationships / enum tables that exist in metadata
+// but not in the source) are recorded on inconsistencies and dropped from
+// the effective metadata so the rest of the source keeps serving. Pass nil
+// for inconsistencies to drop those records on the floor.
 func NewConnector(
-	ctx context.Context, driver Driver, dbMeta *metadata.DatabaseMetadata,
+	ctx context.Context,
+	driver Driver,
+	dbMeta *metadata.DatabaseMetadata,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
 ) (*Connector, error) {
 	dial := driver.Dialect()
 
@@ -80,12 +89,14 @@ func NewConnector(
 		return nil, fmt.Errorf("failed to introspect database: %w", err)
 	}
 
-	roots, groupedAggOp, err := queries.BuildRoots(objects, dbMeta, dial)
+	effectiveMeta := reconcileMetadata(ctx, logger, inconsistencies, dbMeta, objects)
+
+	roots, groupedAggOp, err := queries.BuildRoots(objects, effectiveMeta, dial)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build GraphQL roots: %w", err)
 	}
 
-	schemas, err := reloadSchema(objects, dbMeta, dial)
+	schemas, err := reloadSchema(objects, effectiveMeta, dial)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load schema: %w", err)
 	}
@@ -95,7 +106,7 @@ func NewConnector(
 		schemas:      schemas,
 		roots:        roots,
 		groupedAggOp: groupedAggOp,
-		dbMeta:       dbMeta,
+		dbMeta:       effectiveMeta,
 	}, nil
 }
 
