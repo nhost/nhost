@@ -178,7 +178,7 @@ func GetConfigPath(cmd *cli.Command) string {
 // It configures a local project with the same defaults the wizard uses.
 // Cloud access is not included as it requires authentication via `nhost login`.
 func DefaultConfig() *Config {
-	adminSecret := "nhost-admin-secret" //nolint:gosec
+	adminSecret := clienv.DefaultLocalAdminSecret
 
 	return &Config{
 		Cloud: nil,

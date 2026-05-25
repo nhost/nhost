@@ -32,8 +32,8 @@ func dashboardCloud(
 	dashboard.Environment["NEXT_PUBLIC_NHOST_GRAPHQL_URL"] = clienv.NhostGraphqlURL(
 		cloudSubdomain, cloudRegion,
 	)
-	dashboard.Environment["NEXT_PUBLIC_NHOST_STORAGE_URL"] = fmt.Sprintf(
-		"https://%s.storage.%s.nhost.run/v1", cloudSubdomain, cloudRegion,
+	dashboard.Environment["NEXT_PUBLIC_NHOST_STORAGE_URL"] = clienv.NhostStorageURL(
+		cloudSubdomain, cloudRegion,
 	)
 	dashboard.Environment["NEXT_PUBLIC_NHOST_HASURA_API_URL"] = clienv.NhostHasuraURL(
 		cloudSubdomain, cloudRegion,

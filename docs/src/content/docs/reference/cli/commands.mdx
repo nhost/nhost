@@ -644,7 +644,7 @@ Shows a list of commands or help for one command
 
 Dump a GraphQL schema as SDL
 
-**--admin-secret**="": Admin secret (defaults: local subdomain → nhost-admin-secret; cloud → fetched from Nhost API). NHOST_ADMIN_SECRET is consulted only in linked-project mode and never forwarded to --url.
+**--admin-secret**="": Admin secret (defaults: local subdomain → nhost-admin-secret; cloud → fetched from Nhost API). NHOST_ADMIN_SECRET is consulted only when --url is not set and never forwarded to --url.
 
 **--header, -H**="": Extra HTTP header to send, repeatable (e.g. "X-Hasura-Foo: bar")
 
@@ -654,7 +654,7 @@ Dump a GraphQL schema as SDL
 
 **--output, -o**="": Output file (default: stdout)
 
-**--role, -r**="": Role to generate the schema for (default: "user")
+**--role, -r**="": Role to generate the schema for. Metadata mode defaults to "user"; URL mode sends X-Hasura-Role only when this flag is explicitly set. (default: "user")
 
 **--subdomain**="": Project subdomain (defaults to the linked project; use 'local' for the local dev stack) [$NHOST_SUBDOMAIN]
 

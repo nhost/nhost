@@ -75,8 +75,10 @@ The flags --url and --metadata are mutually exclusive.`,
 				Aliases: []string{"m"},
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagRole,
-				Usage:   "Role to generate the schema for",
+				Name: flagRole,
+				Usage: "Role to generate the schema for. Metadata mode defaults to " +
+					"\"user\"; URL mode sends X-Hasura-Role only when this flag is " +
+					"explicitly set.",
 				Value:   defaultRole,
 				Aliases: []string{"r"},
 			},
@@ -84,7 +86,7 @@ The flags --url and --metadata are mutually exclusive.`,
 				Name: flagAdminSecret,
 				Usage: "Admin secret (defaults: local subdomain → nhost-admin-secret;" +
 					" cloud → fetched from Nhost API). NHOST_ADMIN_SECRET is consulted" +
-					" only in linked-project mode and never forwarded to --url.",
+					" only when --url is not set and never forwarded to --url.",
 			},
 			&cli.StringSliceFlag{ //nolint:exhaustruct
 				Name:    flagHeader,
@@ -147,12 +149,15 @@ func dump(ctx context.Context, cmd *cli.Command) error {
 // attach to it. When the user passes --url, only the explicit --admin-secret
 // flag is forwarded — NHOST_ADMIN_SECRET is intentionally not auto-applied so
 // that a developer with the env var exported for their own project does not
-// silently leak it to an arbitrary third-party endpoint. In linked-project
-// mode the env var is honoured as an override.
+// silently leak it to an arbitrary third-party endpoint. When --url is not
+// set (linked-project, --subdomain local, or --subdomain <cloud-project>) the
+// env var is honoured as an override unless the user explicitly passed
+// --admin-secret (including with an empty value).
 func resolveURLAndSecret(
 	ctx context.Context, cmd *cli.Command, url string,
 ) (string, string, error) {
 	adminSecret := cmd.String(flagAdminSecret)
+	explicitSecret := cmd.IsSet(flagAdminSecret)
 
 	if url != "" {
 		// Explicit --url: only forward the admin secret when the user typed it
@@ -166,12 +171,21 @@ func resolveURLAndSecret(
 		return "", "", fmt.Errorf("failed to resolve project: %w", err)
 	}
 
-	// In linked-project mode it is safe to consult the env var: we are talking
-	// to the project the user is currently linked to.
-	if adminSecret == "" {
-		adminSecret = os.Getenv("NHOST_ADMIN_SECRET")
+	// An explicit --admin-secret (including the empty string) wins outright:
+	// return immediately, bypassing both the NHOST_ADMIN_SECRET env-var
+	// fallback and the lazy cloud-API fetch in ep.AdminSecret. Touching
+	// ep.SetAdminSecret("") would defeat the intent — the lazy fetch keys off
+	// p.adminSecret == "" and would still run, and for --subdomain local it
+	// would also clobber the pre-seeded DefaultLocalAdminSecret and nil-deref
+	// on p.App.
+	if explicitSecret {
+		return ep.GraphqlURL, adminSecret, nil
 	}
 
+	// When --url is not set the env var is a safe override: we are talking to
+	// a project resolved via --subdomain (the linked project, the local stack,
+	// or a named cloud project), not an arbitrary third-party endpoint.
+	adminSecret = os.Getenv("NHOST_ADMIN_SECRET")
 	if adminSecret != "" {
 		ep.SetAdminSecret(adminSecret)
 	}

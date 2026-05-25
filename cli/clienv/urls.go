@@ -20,3 +20,9 @@ func NhostHasuraURL(subdomain, region string) string {
 func NhostAuthURL(subdomain, region string) string {
 	return fmt.Sprintf("https://%s.auth.%s.nhost.run/v1", subdomain, region)
 }
+
+// NhostStorageURL returns the canonical Storage endpoint URL for an Nhost
+// project: `https://<subdomain>.storage.<region>.nhost.run/v1`.
+func NhostStorageURL(subdomain, region string) string {
+	return fmt.Sprintf("https://%s.storage.%s.nhost.run/v1", subdomain, region)
+}
