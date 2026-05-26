@@ -2,6 +2,7 @@
   "name": "landing",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.1.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,17 +16,17 @@
     "@mapbox/rehype-prism": "^0.9.0",
     "@mdx-js/loader": "^2.3.0",
     "@mdx-js/react": "^2.3.0",
-    "@next/mdx": "14.2.32",
+    "@next/mdx": "15.5.18",
     "@segment/analytics-next": "^1.78.0",
     "@types/react": "18.0.27",
     "@types/react-dom": "18.0.10",
     "cobe": "^0.6.3",
     "date-fns": "^2.30.0",
     "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.32",
+    "eslint-config-next": "15.5.18",
     "fast-glob": "^3.3.3",
     "lucide-react": "^0.475.0",
-    "next": "14.2.33",
+    "next": "15.5.18",
     "next-plausible": "^3.12.4",
     "next-seo": "^5.15.0",
     "next-sitemap": "^3.1.55",
@@ -37,7 +38,7 @@
     "react-medium-image-zoom": "^5.2.14",
     "react-syntax-highlighter": "^15.5.0",
     "react-twitter-embed": "^4.0.4",
-    "sharp": "^0.33.4",
+    "sharp": "^0.34.4",
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
@@ -52,10 +53,5 @@
     "remark-gfm": "^3.0.1",
     "tailwindcss": "^3.2.4",
     "typescript": "4.9.5"
-  },
-  "pnpm": {
-    "overrides": {
-      "prismjs": "^1.30.0"
-    }
   }
 }
