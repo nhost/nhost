@@ -38,8 +38,7 @@ export default function OverviewTab({
       appId: project?.id,
       commitSHA: fn.createdWithCommitSha ?? '',
     },
-    skip:
-      !isPlatform || !project?.id || isEmptyValue(fn.createdWithCommitSha),
+    skip: !isPlatform || !project?.id || isEmptyValue(fn.createdWithCommitSha),
   });
 
   const deploymentId = deploymentData?.unifiedDeployments[0]?.id;
