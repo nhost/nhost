@@ -74,10 +74,21 @@ func withTable(schema, table string, columns ...string) func(*introspection.Obje
 	}
 }
 
+// withFunction registers a function that returns the canonical
+// "public.users" table from makeObjects. Use this helper when the test only
+// cares that the function is present in introspection; tests that need a
+// non-table return type or a different base table should construct the
+// introspection.Function inline.
 func withFunction(schema, name string) func(*introspection.Objects) {
 	return func(objs *introspection.Objects) {
 		objs.Functions[schema+"."+name] = &introspection.Function{ //nolint:exhaustruct
 			Arguments: nil,
+			ReturnType: introspection.FunctionReturnType{
+				Type:        "",
+				IsSetOf:     true,
+				TableSchema: "public",
+				TableName:   "users",
+			},
 		}
 	}
 }
@@ -455,8 +466,14 @@ func TestReconcileMetadata_KeepsCrossSourceRelationships(t *testing.T) {
 func TestReconcileMetadata_DropsMissingFunctions(t *testing.T) {
 	t.Parallel()
 
+	// Track the public.users base table that withFunction's default
+	// FunctionReturnType points at, so the surviving function passes the
+	// "base table is tracked" check.
 	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
 		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+		},
 		Functions: []metadata.FunctionMetadata{ //nolint:exhaustruct
 			{Function: metadata.FunctionSource{Schema: "public", Name: "do_thing"}},
 			{Function: metadata.FunctionSource{Schema: "public", Name: "vanished"}},
@@ -681,6 +698,75 @@ func TestReconcileMetadata_DropsForwardFKWithoutIntrospectedTarget(t *testing.T)
 		"public.orders.user", "no matching foreign key")
 }
 
+// TestReconcileMetadata_DropsForwardFKWithResolvedButUntrackedTarget covers
+// the second failure branch of dropIfForwardFKBroken: the parent table's
+// introspected ForeignKeys resolve the forward shortcut to a target
+// (schema, table) pair, but that target is absent from the introspected
+// Objects (e.g. the table was dropped between the FK catalogue read and the
+// table introspection, or lives in a schema the connector does not surface).
+// Without the second guard, objects.GetTable would later be called on a
+// missing entry downstream; reconcile must drop the relationship and record
+// an inconsistency naming the missing target.
+func TestReconcileMetadata_DropsForwardFKWithResolvedButUntrackedTarget(t *testing.T) {
+	t.Parallel()
+
+	objs := introspection.NewObjects()
+	objs.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"orders": { //nolint:exhaustruct
+				Schema: "public", Name: "orders",
+				IsInsertable: true, IsUpdatable: true,
+				Columns: []introspection.Column{ //nolint:exhaustruct
+					{Name: "id", Type: "uuid"},
+					{Name: "user_id", Type: "uuid"},
+				},
+				PrimaryKeys: []string{"id"},
+				// LookupForwardFKTarget resolves user_id -> public.users,
+				// but public.users is deliberately absent from objs.Schemas
+				// so objects.GetTable("public", "users") returns false.
+				ForeignKeys: []introspection.ForeignKey{
+					{
+						ColumnName:        "user_id",
+						ForeignSchema:     "public",
+						ForeignTable:      "users",
+						ForeignColumnName: "id",
+					},
+				},
+			},
+		},
+	}
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "orders"},
+				ObjectRelationships: []metadata.ObjectRelationship{
+					{
+						Name: "user",
+						Using: metadata.RelationshipUsing{ //nolint:exhaustruct
+							ForeignKeyColumns: []string{"user_id"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, objs)
+
+	if len(out.Tables[0].ObjectRelationships) != 0 {
+		t.Errorf(
+			"expected the forward-FK relationship to be dropped, got %+v",
+			out.Tables[0].ObjectRelationships,
+		)
+	}
+
+	mustHaveInconsistency(t, inc, metadata.InconsistencyKindRelationship,
+		"public.orders.user", "not found in source introspection")
+}
+
 // TestReconcileMetadata_DropsFunctionWithUntrackedBaseTable covers the
 // pre-existing errBaseTableForFunctionNotFound BuildRoots path: a function
 // whose declared return-table is not tracked in metadata used to abort the
@@ -731,6 +817,64 @@ func TestReconcileMetadata_DropsFunctionWithUntrackedBaseTable(t *testing.T) {
 
 	mustHaveInconsistency(t, inc, metadata.InconsistencyKindFunction,
 		"public.search_orders", "base table")
+}
+
+// TestReconcileMetadata_DropsFunctionWithNonTableReturnType covers the
+// errFunctionDoesNotReturnTableType BuildRoots path: a function whose
+// introspected return type is not a table type (scalar, RECORD, etc.) used
+// to abort the connector. Reconcile must drop the function and surface a
+// function inconsistency instead.
+func TestReconcileMetadata_DropsFunctionWithNonTableReturnType(t *testing.T) {
+	t.Parallel()
+
+	objs := introspection.NewObjects()
+	objs.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"users": { //nolint:exhaustruct
+				Schema: "public", Name: "users",
+				IsInsertable: true, IsUpdatable: true,
+				Columns: []introspection.Column{
+					{Name: "id", Type: "uuid"},
+				}, //nolint:exhaustruct
+				PrimaryKeys: []string{"id"},
+			},
+		},
+	}
+	// Scalar-returning function: TableSchema and TableName are empty so
+	// IsTableType() returns false.
+	objs.Functions["public.scalar_fn"] = &introspection.Function{ //nolint:exhaustruct
+		ReturnType: introspection.FunctionReturnType{
+			Type:        "integer",
+			IsSetOf:     false,
+			TableSchema: "",
+			TableName:   "",
+		},
+		Volatility: introspection.VolatilityStable,
+	}
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+		},
+		Functions: []metadata.FunctionMetadata{ //nolint:exhaustruct
+			{Function: metadata.FunctionSource{Schema: "public", Name: "scalar_fn"}},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, objs)
+
+	if len(out.Functions) != 0 {
+		t.Errorf("expected the function to be dropped, got %+v", out.Functions)
+	}
+
+	if names := tableNames(out.Tables); !slices.Equal(names, []string{"users"}) {
+		t.Errorf("expected sibling users table to survive, got %v", names)
+	}
+
+	mustHaveInconsistency(t, inc, metadata.InconsistencyKindFunction,
+		"public.scalar_fn", "does not return a table type")
 }
 
 // mustHaveInconsistency asserts that inc has at least one entry matching the

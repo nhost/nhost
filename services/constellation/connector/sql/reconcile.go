@@ -483,7 +483,7 @@ func reconcileRelationshipFKIntrospection(
 		func(rel metadata.ObjectRelationship) bool {
 			return shouldDropOnFKIntrospection(
 				ctx, logger, inc, dbName, t, rel.Name, rel.Using,
-				false, parentIntrospected, objects,
+				parentIntrospected, objects,
 			)
 		},
 	)
@@ -493,7 +493,7 @@ func reconcileRelationshipFKIntrospection(
 		func(rel metadata.ArrayRelationship) bool {
 			return shouldDropOnFKIntrospection(
 				ctx, logger, inc, dbName, t, rel.Name, rel.Using,
-				true, parentIntrospected, objects,
+				parentIntrospected, objects,
 			)
 		},
 	)
@@ -512,7 +512,6 @@ func shouldDropOnFKIntrospection(
 	t *metadata.TableMetadata,
 	relName string,
 	using metadata.RelationshipUsing,
-	isArray bool,
 	parentIntrospected *introspection.Table,
 	objects *introspection.Objects,
 ) bool {
@@ -529,7 +528,7 @@ func shouldDropOnFKIntrospection(
 	case len(using.ForeignKeyColumns) > 0:
 		return dropIfForwardFKBroken(
 			ctx, logger, inc, dbName, t, relName,
-			using.ForeignKeyColumns, isArray, parentIntrospected, objects,
+			using.ForeignKeyColumns, parentIntrospected, objects,
 		)
 	case using.ForeignKeyConstraint != nil:
 		return dropIfReverseFKBroken(
@@ -546,11 +545,6 @@ func shouldDropOnFKIntrospection(
 // If every listed column has a matching FK and all listed columns agree on
 // the same target, the relationship is kept. Otherwise the relationship is
 // dropped and recorded.
-//
-// The `isArray` flag controls the failure-mode name only — array forward
-// relationships and object forward relationships share the same introspection
-// shape and would both raise `errRelationshipTargetTableIntrospectionNotFound`
-// when broken.
 func dropIfForwardFKBroken(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -559,12 +553,9 @@ func dropIfForwardFKBroken(
 	t *metadata.TableMetadata,
 	relName string,
 	fkColumns []string,
-	isArray bool,
 	parentIntrospected *introspection.Table,
 	objects *introspection.Objects,
 ) bool {
-	_ = isArray // accepted for symmetry with the queries-side dispatch
-
 	targetSchema, targetTable := parentIntrospected.LookupForwardFKTarget(fkColumns)
 	if targetSchema == "" || targetTable == "" {
 		inc.RecordRelationship(
@@ -675,14 +666,19 @@ func relationshipTarget(using metadata.RelationshipUsing) (metadata.TableSource,
 }
 
 // reconcileFunctions drops functions whose source schema.name does not exist
-// in the introspected objects, or whose declared return-table is not a
-// surviving tracked table. The second check closes the BuildRoots-time gap
-// formerly surfaced as errBaseTableForFunctionNotFound: a function whose
-// return type names a table that no longer survives (table missing from
-// source, or never tracked) cannot register a root field, so the queries
-// package would otherwise abort the whole connector. Recording the failure
-// here drops just the offending function and lets the rest of the source
-// keep serving.
+// in the introspected objects, whose return type is not a table type, or
+// whose declared return-table is not a surviving tracked table. The latter
+// two checks close BuildRoots-time gaps that would otherwise abort the whole
+// connector:
+//
+//   - A function whose return type is not a table type (scalar, RECORD, etc.)
+//     is rejected by the queries package with errFunctionDoesNotReturnTableType.
+//   - A function whose return type names a table that no longer survives
+//     (table missing from source, or never tracked) was formerly surfaced as
+//     errBaseTableForFunctionNotFound.
+//
+// Recording the failure here drops just the offending function and lets the
+// rest of the source keep serving.
 func reconcileFunctions(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -713,28 +709,36 @@ func reconcileFunctions(
 			continue
 		}
 
-		// Functions that don't return a table type are rejected later by
-		// the queries package (errFunctionDoesNotReturnTableType); we don't
-		// pre-validate that here because the resulting root field would
-		// have no shape to register against — it's a metadata-shape error,
-		// not a per-entity inconsistency drop.
-		if fnInfo.ReturnType.IsTableType() {
-			baseKey := qualifyTable(
-				fnInfo.ReturnType.TableSchema, fnInfo.ReturnType.TableName,
+		// Functions that don't return a table type cannot register a root
+		// field (the queries package raises
+		// errFunctionDoesNotReturnTableType). Drop here so the rest of the
+		// source keeps serving.
+		if !fnInfo.ReturnType.IsTableType() {
+			inc.RecordFunction(
+				ctx, logger,
+				dbName,
+				fn.Function.Schema, fn.Function.Name,
+				"function does not return a table type",
 			)
-			if _, tracked := survivingTables[baseKey]; !tracked {
-				inc.RecordFunction(
-					ctx, logger,
-					dbName,
-					fn.Function.Schema, fn.Function.Name,
-					fmt.Sprintf(
-						"function base table %q is not tracked in source",
-						baseKey,
-					),
-				)
 
-				continue
-			}
+			continue
+		}
+
+		baseKey := qualifyTable(
+			fnInfo.ReturnType.TableSchema, fnInfo.ReturnType.TableName,
+		)
+		if _, tracked := survivingTables[baseKey]; !tracked {
+			inc.RecordFunction(
+				ctx, logger,
+				dbName,
+				fn.Function.Schema, fn.Function.Name,
+				fmt.Sprintf(
+					"function base table %q is not tracked in source",
+					baseKey,
+				),
+			)
+
+			continue
 		}
 
 		out = append(out, fn)
