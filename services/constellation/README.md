@@ -51,7 +51,7 @@ Hasura owns metadata authoring; Constellation owns request serving. Both speak t
 
 ### With an Nhost project (recommended)
 
-The lowest-friction way to try Constellation is to enable it on an Nhost project — local or cloud — via the `nhost-toml`. Add to `nhost/nhost.toml` either locally or in your cloud project's configuration editor:
+The lowest-friction way to try Constellation is to enable it on an Nhost project — local or cloud — via the `nhost.toml`. Add to `nhost/nhost.toml` either locally or in your cloud project's configuration editor:
 
 ```toml
 [experimental.constellation]
