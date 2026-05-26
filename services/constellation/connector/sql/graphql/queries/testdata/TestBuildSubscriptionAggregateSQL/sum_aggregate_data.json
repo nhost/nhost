@@ -1,0 +1,13 @@
+[
+  [
+    {
+      "departments_aggregate": {
+        "aggregate": {
+          "sum": {
+            "budget": 3431000
+          }
+        }
+      }
+    }
+  ]
+]

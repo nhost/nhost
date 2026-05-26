@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "myUpdates",
+    "QueryType": "update_many",
+    "SQL": "WITH mutation_result_0 AS (UPDATE \"public\".\"departments\" SET \"budget\" = $1::numeric WHERE departments.\"name\" = $2::text RETURNING *) SELECT jsonb_build_array((SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result_0))))",
+    "Parameters": [
+      500000,
+      "Engineering"
+    ]
+  }
+]

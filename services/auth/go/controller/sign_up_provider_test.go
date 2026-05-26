@@ -23,12 +23,12 @@ func TestSignUpProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignUpProviderRequestObject{
-				Params:   api.SignUpProviderParams{}, //nolint:exhaustruct
+				Params:   api.SignUpProviderParams{},
 				Provider: "fake",
 			},
 			expectedResponse: api.SignUpProvider302Response{
 				Headers: api.SignUpProvider302ResponseHeaders{
-					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -45,7 +45,7 @@ func TestSignUpProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignUpProviderRequestObject{
-				Params: api.SignUpProviderParams{ //nolint:exhaustruct
+				Params: api.SignUpProviderParams{
 					AllowedRoles:           &[]string{"admin", "user"},
 					DefaultRole:            new("admin"),
 					DisplayName:            new("Test User"),
@@ -59,7 +59,7 @@ func TestSignUpProvider(t *testing.T) {
 			},
 			expectedResponse: api.SignUpProvider302Response{
 				Headers: api.SignUpProvider302ResponseHeaders{
-					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -76,14 +76,14 @@ func TestSignUpProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignUpProviderRequestObject{
-				Params: api.SignUpProviderParams{ //nolint:exhaustruct
+				Params: api.SignUpProviderParams{
 					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 				},
 				Provider: "fake",
 			},
 			expectedResponse: api.SignUpProvider302Response{
 				Headers: api.SignUpProvider302ResponseHeaders{
-					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -100,7 +100,7 @@ func TestSignUpProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignUpProviderRequestObject{
-				Params: api.SignUpProviderParams{ //nolint:exhaustruct
+				Params: api.SignUpProviderParams{
 					CodeChallenge: ptr("too-short"),
 				},
 				Provider: "fake",
@@ -124,7 +124,7 @@ func TestSignUpProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignUpProviderRequestObject{
-				Params: api.SignUpProviderParams{ //nolint:exhaustruct
+				Params: api.SignUpProviderParams{
 					RedirectTo: new("http://not.allowed.com"),
 				},
 				Provider: "not-enabled",
@@ -148,7 +148,7 @@ func TestSignUpProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignUpProviderRequestObject{
-				Params:   api.SignUpProviderParams{}, //nolint:exhaustruct
+				Params:   api.SignUpProviderParams{},
 				Provider: "not-enabled",
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
@@ -177,7 +177,7 @@ func TestSignUpProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignUpProviderRequestObject{
-				Params:   api.SignUpProviderParams{}, //nolint:exhaustruct
+				Params:   api.SignUpProviderParams{},
 				Provider: "fake",
 			},
 			expectedResponse: controller.ErrorResponse{

@@ -45,18 +45,18 @@ func TestGetUser(t *testing.T) {
 					PhoneNumber:              pgtype.Text{String: "+1234567890", Valid: true},
 					PhoneNumberVerified:      true,
 					ActiveMfaType:            pgtype.Text{String: "totp", Valid: true},
-					UpdatedAt:                pgtype.Timestamptz{}, //nolint:exhaustruct
-					LastSeen:                 pgtype.Timestamptz{}, //nolint:exhaustruct
+					UpdatedAt:                pgtype.Timestamptz{},
+					LastSeen:                 pgtype.Timestamptz{},
 					Disabled:                 false,
-					PasswordHash:             pgtype.Text{},        //nolint:exhaustruct
-					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
-					OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
-					OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
-					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
-					WebauthnCurrentChallenge: pgtype.Text{},        //nolint:exhaustruct
+					PasswordHash:             pgtype.Text{},
+					NewEmail:                 pgtype.Text{},
+					OtpMethodLastUsed:        pgtype.Text{},
+					OtpHash:                  pgtype.Text{},
+					OtpHashExpiresAt:         pgtype.Timestamptz{},
+					TotpSecret:               pgtype.Text{},
+					Ticket:                   pgtype.Text{},
+					TicketExpiresAt:          pgtype.Timestamptz{},
+					WebauthnCurrentChallenge: pgtype.Text{},
 				}, nil)
 
 				// Mock GetUserRoles call
@@ -64,8 +64,8 @@ func TestGetUser(t *testing.T) {
 					gomock.Any(),
 					userID,
 				).Return([]sql.AuthUserRole{
-					{Role: "user"},  //nolint:exhaustruct
-					{Role: "admin"}, //nolint:exhaustruct
+					{Role: "user"},
+					{Role: "admin"},
 				}, nil)
 
 				return mock

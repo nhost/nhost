@@ -376,13 +376,13 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				Provider:           new("twilio"),
 			},
 			Smtp: &model.ConfigSmtp{
-				Host:     "smtpHost",
-				Method:   "smtpMethod",
-				Password: "smtpPassword",
-				Port:     125,
-				Secure:   true,
-				Sender:   "smtpSender",
-				User:     "smtpUser",
+				Host:     new("smtpHost"),
+				Method:   new("smtpMethod"),
+				Password: new("smtpPassword"),
+				Port:     new(uint16(125)),
+				Secure:   new(true),
+				Sender:   new("smtpSender"),
+				User:     new("smtpUser"),
 			},
 		},
 		Storage: &model.ConfigStorage{
@@ -405,8 +405,8 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			Grafana: &model.ConfigGrafana{
 				AdminPassword: "grafanaAdminPassword",
 				Smtp:          nil,
-				Alerting:      &model.ConfigGrafanaAlerting{}, //nolint:exhaustruct
-				Contacts:      &model.ConfigGrafanaContacts{}, //nolint:exhaustruct
+				Alerting:      &model.ConfigGrafanaAlerting{},
+				Contacts:      &model.ConfigGrafanaContacts{},
 			},
 		},
 	}

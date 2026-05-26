@@ -65,6 +65,15 @@
             ;
         };
 
+        constellationf = import ./services/constellation/project.nix {
+          inherit
+            self
+            pkgs
+            nix-filter
+            nixops-lib
+            ;
+        };
+
         govulncheck-wrapperf = import ./tools/govulncheck-wrapper/project.nix {
           inherit
             self
@@ -204,6 +213,7 @@
           auth = authf.check;
           cli = clif.check;
           codegen = codegenf.check;
+          constellation = constellationf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
@@ -268,6 +278,11 @@
               # nix
               nixfmt
 
+              # storate
+              clang
+              pkg-config
+              storagef.vips
+
               # internal packages
               self.packages.${system}.codegen
               self.packages.${system}.govulncheck-wrapper
@@ -276,6 +291,8 @@
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+
+              export GOEXPERIMENT=jsonv2
             '';
           };
 
@@ -290,6 +307,23 @@
               nodejs
               pnpm
             ];
+          };
+
+          security-updates = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              # pnpm audit --fix=update
+              nodejs
+              pnpm
+
+              # govulncheck-wrapper -fix → go get / go mod tidy / go mod vendor
+              go
+              govulncheck
+              self.packages.${system}.govulncheck-wrapper
+            ];
+
+            shellHook = ''
+              export GOEXPERIMENT=jsonv2
+            '';
           };
 
           skopeo = pkgs.mkShell {
@@ -309,6 +343,7 @@
           auth = authf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
+          constellation = constellationf.devShell;
           govulncheck-wrapper = govulncheck-wrapperf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
@@ -332,6 +367,8 @@
           cli-multiplatform = clif.cli-multiplatform;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          constellation = constellationf.package;
+          constellation-docker-image = constellationf.dockerImage;
           govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;

@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "departments",
+    "QueryType": "subscription",
+    "SQL": "SELECT \"_subs\".\"result_id\", \"_fld_resp\".\"root\" AS \"result\" FROM UNNEST($1::text[], $2::json[]) AS \"_subs\"(\"result_id\", \"result_vars\") LEFT OUTER JOIN LATERAL (SELECT json_build_object('departments', (SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"departments\") SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.base\".\"name\" AS \"name\", \"_root.base\".\"budget\" AS \"budget\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\")) AS \"root\") AS \"_fld_resp\" ON ('true')",
+    "Parameters": null
+  }
+]

@@ -1,0 +1,610 @@
+[
+  [
+    {
+      "users": [
+        {
+          "metadata": {
+            "tags": [
+              "manager",
+              "hr",
+              "leadership"
+            ],
+            "skills": [
+              "recruitment",
+              "compliance",
+              "training"
+            ],
+            "profile": {
+              "level": 5,
+              "title": "HR Manager",
+              "certifications": [
+                "PHR",
+                "SHRM-CP"
+              ]
+            },
+            "preferences": {
+              "theme": "dark",
+              "notifications": {
+                "sms": false,
+                "email": true
+              }
+            }
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "displayName": "Sarah Martinez"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440002",
+          "displayName": "David Chen",
+          "metadata": {
+            "preferences": {
+              "theme": "light"
+            },
+            "recentProjects": [
+              {
+                "id": 1,
+                "name": "Onboarding"
+              },
+              {
+                "name": "Benefits Review",
+                "id": 2
+              }
+            ],
+            "tags": [
+              "specialist",
+              "hr"
+            ],
+            "profile": {
+              "level": 3,
+              "title": "HR Specialist"
+            }
+          }
+        },
+        {
+          "displayName": "Alex Kim",
+          "metadata": {
+            "profile": {
+              "yearsExperience": 12,
+              "level": 6,
+              "title": "Engineering Manager"
+            },
+            "projects": [
+              {
+                "id": 101,
+                "name": "Platform"
+              },
+              {
+                "id": 102,
+                "name": "API Gateway"
+              }
+            ],
+            "languages": [
+              "go",
+              "python",
+              "typescript"
+            ],
+            "preferences": {
+              "theme": "dark",
+              "editor": "vscode",
+              "notifications": {
+                "email": false,
+                "slack": true
+              }
+            }
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440011"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440012",
+          "displayName": "Emma Wilson",
+          "metadata": {
+            "profile": {
+              "level": 5,
+              "title": "Senior Engineer",
+              "specialization": "backend"
+            },
+            "settings": {
+              "shell": "zsh",
+              "terminal": "iterm2"
+            },
+            "certifications": [
+              "AWS Solutions Architect",
+              "CKA"
+            ],
+            "skills": [
+              "rust",
+              "go",
+              "kubernetes"
+            ]
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440013",
+          "displayName": "James Brown",
+          "metadata": {
+            "tags": [
+              "frontend",
+              "react",
+              "typescript"
+            ],
+            "profile": {
+              "level": 3,
+              "title": "Software Engineer"
+            },
+            "preferences": {
+              "fontSize": 14,
+              "theme": "light"
+            },
+            "achievements": [
+              "hackathon-winner",
+              "bug-hunter"
+            ]
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440014",
+          "displayName": "Priya Patel",
+          "metadata": {
+            "learning": {
+              "currentCourse": "Advanced Go",
+              "completedCourses": [
+                "Intro to Go",
+                "Git Basics"
+              ]
+            },
+            "interests": [
+              "ml",
+              "data-engineering"
+            ],
+            "profile": {
+              "level": 1,
+              "title": "Junior Engineer",
+              "mentor": "alex.kim"
+            }
+          }
+        },
+        {
+          "metadata": {
+            "profile": {
+              "level": 6,
+              "title": "Marketing Director"
+            },
+            "channels": [
+              "social",
+              "email",
+              "seo"
+            ],
+            "campaigns": [
+              {
+                "id": "c1",
+                "name": "Summer Launch"
+              },
+              {
+                "id": "c2",
+                "name": "Holiday Promo"
+              }
+            ],
+            "metrics": {
+              "followers": 15000,
+              "engagement": 4.5
+            }
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440021",
+          "displayName": "Jessica Garcia"
+        },
+        {
+          "displayName": "Ryan Lee",
+          "metadata": {
+            "preferences": {
+              "tools": [
+                "figma",
+                "canva"
+              ]
+            },
+            "tags": [
+              "content",
+              "storytelling"
+            ],
+            "content": {
+              "blog": true,
+              "video": true,
+              "podcast": false
+            },
+            "profile": {
+              "level": 4,
+              "title": "Content Manager"
+            }
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440022"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440023",
+          "displayName": "Sofia Andersson",
+          "metadata": {
+            "tools": [
+              "ahrefs",
+              "semrush",
+              "google-analytics"
+            ],
+            "profile": {
+              "level": 3,
+              "title": "SEO Specialist"
+            },
+            "reports": [
+              {
+                "traffic": 50000,
+                "month": "Jan"
+              },
+              {
+                "month": "Feb",
+                "traffic": 55000
+              }
+            ],
+            "keywords": [
+              "saas",
+              "devtools",
+              "cloud"
+            ]
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440024",
+          "displayName": "Carlos Santos",
+          "metadata": {
+            "profile": {
+              "level": 2,
+              "title": "Social Media Manager"
+            },
+            "hashtags": [
+              "tech",
+              "startup",
+              "innovation"
+            ],
+            "schedule": {
+              "analytics": "weekly",
+              "posting": "daily"
+            },
+            "platforms": [
+              "twitter",
+              "linkedin",
+              "instagram"
+            ]
+          }
+        },
+        {
+          "displayName": "Amanda Johnson",
+          "metadata": {
+            "quota": {
+              "target": 500000,
+              "achieved": 450000
+            },
+            "clients": [
+              "acme-corp",
+              "globex",
+              "initech"
+            ],
+            "profile": {
+              "level": 6,
+              "title": "Sales Director",
+              "region": "North America"
+            },
+            "deals": [
+              {
+                "id": "d1",
+                "value": 50000
+              },
+              {
+                "id": "d2",
+                "value": 75000
+              }
+            ]
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440031"
+        },
+        {
+          "metadata": {
+            "tags": [
+              "enterprise",
+              "saas"
+            ],
+            "profile": {
+              "level": 4,
+              "title": "Account Executive"
+            },
+            "pipeline": [
+              {
+                "count": 5,
+                "stage": "qualified"
+              },
+              {
+                "count": 3,
+                "stage": "proposal"
+              }
+            ],
+            "territory": {
+              "region": "West",
+              "states": [
+                "CA",
+                "WA",
+                "OR"
+              ]
+            }
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440032",
+          "displayName": "Kevin Wong"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440033",
+          "displayName": "Natalie Davis",
+          "metadata": {
+            "leads": [
+              "lead-001",
+              "lead-002",
+              "lead-003"
+            ],
+            "profile": {
+              "level": 2,
+              "title": "Sales Representative"
+            },
+            "activities": {
+              "calls": 25,
+              "emails": 50,
+              "meetings": 10
+            },
+            "preferences": {
+              "crm": "salesforce",
+              "calendar": "google"
+            }
+          }
+        },
+        {
+          "displayName": "Robert Taylor",
+          "metadata": {
+            "goals": [
+              "hit-quota",
+              "get-promoted"
+            ],
+            "metrics": {
+              "callsPerDay": 50,
+              "meetingsBooked": 8
+            },
+            "profile": {
+              "level": 1,
+              "title": "SDR"
+            },
+            "training": {
+              "completed": [
+                "cold-calling",
+                "objection-handling"
+              ],
+              "inProgress": "demo-skills"
+            }
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440034"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440041",
+          "displayName": "Rachel Moore",
+          "metadata": {
+            "budgets": [
+              {
+                "dept": "engineering",
+                "amount": 500000
+              },
+              {
+                "dept": "marketing",
+                "amount": 200000
+              }
+            ],
+            "profile": {
+              "level": 7,
+              "title": "CFO",
+              "certifications": [
+                "CPA",
+                "CFA"
+              ]
+            },
+            "reports": {
+              "monthly": true,
+              "quarterly": true
+            },
+            "systems": [
+              "sap",
+              "quickbooks",
+              "excel"
+            ]
+          }
+        },
+        {
+          "displayName": "Daniel Clark",
+          "metadata": {
+            "focus": {
+              "models": [
+                "dcf",
+                "monte-carlo"
+              ],
+              "area": "forecasting"
+            },
+            "tools": [
+              "tableau",
+              "power-bi"
+            ],
+            "profile": {
+              "level": 4,
+              "title": "Financial Analyst"
+            },
+            "watchlist": [
+              "revenue",
+              "churn",
+              "cac"
+            ]
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440042"
+        },
+        {
+          "metadata": {
+            "responsibilities": [
+              "payroll",
+              "ap",
+              "ar"
+            ],
+            "profile": {
+              "level": 3,
+              "title": "Accountant"
+            },
+            "software": {
+              "backup": "xero",
+              "primary": "quickbooks"
+            },
+            "compliance": [
+              "gaap",
+              "sox"
+            ]
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440043",
+          "displayName": "Michelle White"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440044",
+          "displayName": "Thomas Hall",
+          "metadata": {
+            "tasks": [
+              "data-entry",
+              "reconciliation"
+            ],
+            "mentors": [
+              "rachel.moore",
+              "daniel.clark"
+            ],
+            "profile": {
+              "level": 1,
+              "title": "Finance Associate"
+            },
+            "learning": {
+              "path": "financial-modeling",
+              "courses": [
+                "excel-basics",
+                "financial-statements"
+              ]
+            }
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440051",
+          "displayName": "Jennifer Adams",
+          "metadata": {
+            "departments": [
+              "engineering",
+              "operations",
+              "support"
+            ],
+            "initiatives": [
+              "automation",
+              "cost-reduction",
+              "quality"
+            ],
+            "kpis": [
+              {
+                "name": "uptime",
+                "target": 99.9
+              },
+              {
+                "name": "response-time",
+                "target": 24
+              }
+            ],
+            "profile": {
+              "level": 7,
+              "title": "COO"
+            }
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440052",
+          "displayName": "Matthew Turner",
+          "metadata": {
+            "tools": [
+              "terraform",
+              "kubernetes",
+              "docker"
+            ],
+            "oncall": {
+              "schedule": "weekly",
+              "escalation": [
+                "jennifer.adams"
+              ]
+            },
+            "profile": {
+              "level": 5,
+              "title": "DevOps Lead"
+            },
+            "infrastructure": {
+              "cloud": "aws",
+              "regions": [
+                "us-east-1",
+                "eu-west-1"
+              ]
+            }
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440053",
+          "displayName": "Stephanie Cooper",
+          "metadata": {
+            "documentation": {
+              "status": "in-progress",
+              "coverage": 75
+            },
+            "profile": {
+              "level": 3,
+              "title": "Process Manager"
+            },
+            "processes": [
+              "onboarding",
+              "offboarding",
+              "procurement"
+            ],
+            "stakeholders": [
+              "hr",
+              "finance",
+              "it"
+            ]
+          }
+        },
+        {
+          "displayName": "Christopher Bell",
+          "metadata": {
+            "focus": [
+              "efficiency",
+              "automation"
+            ],
+            "profile": {
+              "level": 2,
+              "title": "Operations Analyst"
+            },
+            "reports": [
+              {
+                "type": "weekly",
+                "recipients": [
+                  "jennifer.adams"
+                ]
+              },
+              {
+                "type": "monthly",
+                "recipients": [
+                  "all-managers"
+                ]
+              }
+            ],
+            "dashboards": [
+              "metrics",
+              "alerts",
+              "costs"
+            ]
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440054"
+        }
+      ]
+    }
+  ]
+]

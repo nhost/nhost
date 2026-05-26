@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/nhost/cli/clienv"
 )
 
 const (
@@ -20,21 +21,21 @@ func dashboardCloud(
 	httpPort uint,
 	useTLS bool,
 	dashboardVersion string,
+	appID string,
 ) *Service {
-	dashboard := dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS)
+	dashboard := dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID)
 
 	dashboard.Environment["NEXT_PUBLIC_NHOST_ADMIN_SECRET"] = cloudAdminSecret
-	dashboard.Environment["NEXT_PUBLIC_NHOST_AUTH_URL"] = fmt.Sprintf(
-		"https://%s.auth.%s.nhost.run/v1", cloudSubdomain, cloudRegion,
+	dashboard.Environment["NEXT_PUBLIC_NHOST_AUTH_URL"] = clienv.NhostAuthURL(
+		cloudSubdomain, cloudRegion,
 	)
-	dashboard.Environment["NEXT_PUBLIC_NHOST_GRAPHQL_URL"] = fmt.Sprintf(
-		"https://%s.graphql.%s.nhost.run/v1", cloudSubdomain, cloudRegion,
+	dashboard.Environment["NEXT_PUBLIC_NHOST_GRAPHQL_URL"] = clienv.NhostGraphqlURL(
+		cloudSubdomain, cloudRegion,
 	)
-	dashboard.Environment["NEXT_PUBLIC_NHOST_STORAGE_URL"] = fmt.Sprintf(
-		"https://%s.storage.%s.nhost.run/v1", cloudSubdomain, cloudRegion,
+	dashboard.Environment["NEXT_PUBLIC_NHOST_STORAGE_URL"] = clienv.NhostStorageURL(
+		cloudSubdomain, cloudRegion,
 	)
-	dashboard.Environment["NEXT_PUBLIC_NHOST_HASURA_API_URL"] = fmt.Sprintf(
-		"https://%s.hasura.%s.nhost.run",
+	dashboard.Environment["NEXT_PUBLIC_NHOST_HASURA_API_URL"] = clienv.NhostHasuraURL(
 		cloudSubdomain, cloudRegion,
 	)
 
@@ -63,6 +64,8 @@ func consoleCloud(
 		scheme = schemeHTTPS
 	}
 
+	cloudHasuraURL := clienv.NhostHasuraURL(cloudSubdomain, cloudRegion)
+
 	console.DependsOn = nil
 	console.Command = []string{
 		"bash", "-c",
@@ -70,13 +73,13 @@ func consoleCloud(
             hasura-cli \
               console \
               --no-browser \
-              --endpoint https://%s.hasura.%s.nhost.run \
+              --endpoint %s \
               --address 0.0.0.0 \
               --console-port 9695 \
               --api-port %d \
               --api-host %s://%s.hasura.local.nhost.run \
-              --console-hge-endpoint https://%s.hasura.%s.nhost.run`,
-			cloudSubdomain, cloudRegion, httpPort, scheme, subdomain, cloudSubdomain, cloudRegion),
+              --console-hge-endpoint %s`,
+			cloudHasuraURL, httpPort, scheme, subdomain, cloudHasuraURL),
 	}
 
 	console.Environment["HASURA_GRAPHQL_ADMIN_SECRET"] = cloudAdminSecret
@@ -85,7 +88,7 @@ func consoleCloud(
 	return console, nil
 }
 
-func getServicesCloud(
+func getServicesCloud( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	cloudSubdomain string,
@@ -101,6 +104,7 @@ func getServicesCloud(
 	ports ExposePorts,
 	dashboardVersion string,
 	configserviceImage string,
+	appID string,
 ) (map[string]*Service, error) {
 	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder)
 	if err != nil {
@@ -128,6 +132,7 @@ func getServicesCloud(
 		rootFolder,
 		nhostFolder,
 		projectName,
+		appID,
 		useTLS,
 	)
 	if err != nil {
@@ -145,6 +150,7 @@ func getServicesCloud(
 			httpPort,
 			useTLS,
 			dashboardVersion,
+			appID,
 		),
 		"traefik":      traefik,
 		"configserver": cs,
@@ -169,6 +175,7 @@ func CloudComposeFileFromConfig(
 	ports ExposePorts,
 	dashboardVersion string,
 	configserverImage string,
+	appID string,
 	caCertificatesPath string,
 ) (*ComposeFile, error) {
 	services, err := getServicesCloud(
@@ -187,6 +194,7 @@ func CloudComposeFileFromConfig(
 		ports,
 		dashboardVersion,
 		configserverImage,
+		appID,
 	)
 	if err != nil {
 		return nil, err

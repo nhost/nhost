@@ -1,0 +1,15 @@
+[
+  [
+    {
+      "__typename": "departments_aggregate",
+      "aggregate": {
+        "sum": {
+          "budget": 3431000,
+          "__typename": "departments_sum_fields"
+        },
+        "__typename": "departments_aggregate_fields",
+        "count": 10
+      }
+    }
+  ]
+]

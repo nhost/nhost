@@ -56,7 +56,7 @@ func CommandCloud() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:2.61.1",
+				Value:   "nhost/dashboard:2.63.1",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -204,6 +204,7 @@ func cloud( //nolint:funlen
 		ports,
 		dashboardVersion,
 		configserverImage,
+		proj.GetID(),
 		caCertificatesPath,
 	)
 	if err != nil {
@@ -226,10 +227,7 @@ func cloud( //nolint:funlen
 		return fmt.Errorf("failed to apply configuration: %w", err)
 	}
 
-	endpoint := fmt.Sprintf(
-		"https://%s.hasura.%s.nhost.run",
-		proj.GetSubdomain(), proj.GetRegion().GetName(),
-	)
+	endpoint := clienv.NhostHasuraURL(proj.GetSubdomain(), proj.GetRegion().GetName())
 
 	if err := migrations(ctx, ce, dc, endpoint, applySeeds); err != nil {
 		return err

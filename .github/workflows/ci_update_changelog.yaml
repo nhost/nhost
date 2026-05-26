@@ -13,7 +13,18 @@ jobs:
 
     strategy:
       matrix:
-        project: [cli, dashboard, packages/nhost-js, packages/stripe-graphql-js, services/auth, services/functions, services/mcp, services/storage]
+        project:
+          [
+            cli,
+            dashboard,
+            packages/nhost-js,
+            packages/stripe-graphql-js,
+            services/auth,
+            services/constellation,
+            services/functions,
+            services/mcp,
+            services/storage,
+          ]
 
     permissions:
       id-token: write
@@ -26,7 +37,7 @@ jobs:
       id: app-token
       uses: actions/create-github-app-token@v3
       with:
-        app-id: ${{ secrets.NHOST_BOT_APP_ID }}
+        client-id: ${{ secrets.NHOST_BOT_APP_ID }}
         private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
 
     - name: "Check out repository"

@@ -1,0 +1,20 @@
+[
+  [
+    [
+      {
+        "files_aggregate": {
+          "aggregate": {
+            "count": 4
+          }
+        }
+      },
+      {
+        "files_aggregate": {
+          "aggregate": {
+            "count": 4
+          }
+        }
+      }
+    ]
+  ]
+]

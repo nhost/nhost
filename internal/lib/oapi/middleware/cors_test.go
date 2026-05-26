@@ -3,6 +3,7 @@ package middleware_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 	}{
 		{
 			name: "OPTIONS request with allowed origin",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"GET", "POST"},
 				AllowedHeaders: []string{"Content-Type", "Authorization"},
@@ -50,7 +51,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "OPTIONS request with wildcard origin",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"*"},
 				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
 			},
@@ -66,7 +67,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "OPTIONS request with disallowed origin",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"GET", "POST"},
 			},
@@ -79,7 +80,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "OPTIONS request with reflected headers (nil)",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"POST"},
 				AllowedHeaders: nil,
@@ -97,7 +98,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "OPTIONS request with denied headers (empty slice)",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"POST"},
 				AllowedHeaders: []string{},
@@ -113,7 +114,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "OPTIONS request with nil headers and no request headers",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"GET"},
 				AllowedHeaders: nil,
@@ -127,7 +128,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "OPTIONS request with credentials enabled",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins:   []string{"https://example.com"},
 				AllowedMethods:   []string{"GET"},
 				AllowCredentials: true,
@@ -143,7 +144,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "OPTIONS request with MaxAge",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"GET"},
 				MaxAge:         "3600",
@@ -159,7 +160,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "OPTIONS request with exposed headers",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"GET"},
 				ExposedHeaders: []string{"X-Custom-Response", "X-Total-Count"},
@@ -175,7 +176,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "GET request with allowed origin",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"GET", "POST"},
 				AllowedHeaders: []string{"Content-Type"},
@@ -193,7 +194,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "POST request with disallowed origin",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"GET", "POST"},
 			},
@@ -206,7 +207,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "GET request without origin header",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{"https://example.com"},
 				AllowedMethods: []string{"GET"},
 			},
@@ -219,7 +220,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "GET request with empty allowed origins (denies all)",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{},
 				AllowedMethods: []string{"GET"},
 			},
@@ -232,7 +233,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "GET request with nil allowed origins (allows all)",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: nil,
 				AllowedMethods: []string{"GET"},
 			},
@@ -247,7 +248,7 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "GET request with multiple allowed origins",
-			opts: middleware.CORSOptions{ //nolint:exhaustruct
+			opts: middleware.CORSOptions{
 				AllowedOrigins: []string{
 					"https://example.com",
 					"https://another-example.com",
@@ -261,6 +262,55 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 			wantStatus:     http.StatusOK,
 			wantHeaders: http.Header{
 				"Access-Control-Allow-Origin": []string{"https://another-example.com"},
+			},
+			expectNext: true,
+		},
+		{
+			name: "AllowOriginFunc accepts matching origin",
+			opts: middleware.CORSOptions{
+				AllowOriginFunc: func(origin string) bool {
+					return strings.HasSuffix(origin, ".example.com")
+				},
+				AllowedMethods: []string{"GET"},
+			},
+			requestMethod:  "GET",
+			requestOrigin:  "https://app.example.com",
+			requestHeaders: map[string]string{},
+			wantStatus:     http.StatusOK,
+			wantHeaders: http.Header{
+				"Access-Control-Allow-Origin": []string{"https://app.example.com"},
+			},
+			expectNext: true,
+		},
+		{
+			name: "AllowOriginFunc rejects non-matching origin",
+			opts: middleware.CORSOptions{
+				AllowOriginFunc: func(origin string) bool {
+					return strings.HasSuffix(origin, ".example.com")
+				},
+				AllowedMethods: []string{"GET"},
+			},
+			requestMethod:  "GET",
+			requestOrigin:  "https://malicious.com",
+			requestHeaders: map[string]string{},
+			wantStatus:     http.StatusOK,
+			wantHeaders:    http.Header{},
+			expectNext:     true,
+		},
+		{
+			name: "AllowOriginFunc takes precedence over AllowedOrigins",
+			opts: middleware.CORSOptions{
+				// AllowedOrigins would deny everything, but AllowOriginFunc accepts.
+				AllowedOrigins:  []string{"https://different.com"},
+				AllowOriginFunc: func(_ string) bool { return true },
+				AllowedMethods:  []string{"GET"},
+			},
+			requestMethod:  "GET",
+			requestOrigin:  "https://anything.com",
+			requestHeaders: map[string]string{},
+			wantStatus:     http.StatusOK,
+			wantHeaders: http.Header{
+				"Access-Control-Allow-Origin": []string{"https://anything.com"},
 			},
 			expectNext: true,
 		},

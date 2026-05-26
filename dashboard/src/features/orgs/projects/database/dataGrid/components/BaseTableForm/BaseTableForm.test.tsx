@@ -28,6 +28,7 @@ Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
 
 const mocks = vi.hoisted(() => ({
   onSubmit: vi.fn(),
+  onCancel: vi.fn(),
 }));
 
 const defaultFormValues = {
@@ -60,7 +61,11 @@ function TestTableFormWrapper({ defaultValues = defaultFormValues }: any) {
 
   return (
     <FormProvider {...form}>
-      <BaseTableForm onSubmit={mocks.onSubmit} submitButtonText="Save" />
+      <BaseTableForm
+        onSubmit={mocks.onSubmit}
+        onCancel={mocks.onCancel}
+        submitButtonText="Save"
+      />
     </FormProvider>
   );
 }
@@ -125,6 +130,7 @@ async function fillColumnForm(
 describe('BaseTableForm', () => {
   beforeEach(() => {
     mocks.onSubmit.mockClear();
+    mocks.onCancel.mockClear();
   });
 
   it('should not disable the nullable and unique checkboxes after setting the column name', async () => {
@@ -522,6 +528,53 @@ describe('BaseTableForm', () => {
         type: 'int2',
       },
     ]);
+  });
+
+  it('should not call onSubmit when the Cancel button is clicked, even with a valid form', async () => {
+    render(<TestTableFormWrapper />);
+
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'test_table');
+
+    await fillColumnForm(
+      {
+        columnName: 'id',
+        optionName: /^uuid.*uuid/,
+        typeValue: 'uuid',
+        defaultValue: 'gen_random_uuid()',
+        defaultValueKind: 'function',
+      },
+      0,
+      user,
+    );
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    // Without type="button", the button defaults to type="submit" inside the
+    // <form> and clicking Cancel would submit the form.
+    expect(cancelButton).toHaveAttribute('type', 'button');
+
+    await TestUserEvent.fireClickEvent(cancelButton);
+
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+    expect(mocks.onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onCancel without triggering form submission on an untouched form', async () => {
+    render(<TestTableFormWrapper />);
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    // Without type="button", the button defaults to type="submit" inside the
+    // <form> and clicking Cancel would submit the form.
+    expect(cancelButton).toHaveAttribute('type', 'button');
+
+    await TestUserEvent.fireClickEvent(cancelButton);
+
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+    expect(mocks.onCancel).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByText('This field is required.'),
+    ).not.toBeInTheDocument();
   });
 
   it('should submit a colliding default as a literal when the user picks the create item', async () => {

@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -208,6 +209,131 @@ func TestReplaceFile(t *testing.T) {
 			}, resp,
 				cmpopts.IgnoreFields(api.FileMetadata{}, "Id", "CreatedAt", "UpdatedAt"),
 			)
+		})
+	}
+}
+
+func TestReplaceFile_FileSize(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name            string
+		contents        string
+		minUploadFile   int
+		maxUploadFile   int
+		expectedMessage string
+		expectedData    map[string]any
+	}{
+		{
+			name:            "file too big",
+			contents:        strings.Repeat("a", 100),
+			minUploadFile:   0,
+			maxUploadFile:   10,
+			expectedMessage: "file too big",
+			expectedData: map[string]any{
+				"filename": "big.txt",
+				"size":     100,
+				"maxSize":  10,
+			},
+		},
+		{
+			name:            "file too small",
+			contents:        "tiny",
+			minUploadFile:   100,
+			maxUploadFile:   1 << 20,
+			expectedMessage: "file too small",
+			expectedData: map[string]any{
+				"filename": "big.txt",
+				"size":     4,
+				"minSize":  100,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			logger := slog.New(
+				slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}),
+			)
+
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			metadataStorage := mock.NewMockMetadataStorage(c)
+			contentStorage := mock.NewMockContentStorage(c)
+			av := mock.NewMockAntivirus(c)
+
+			file := fakeFile{
+				contents:    tc.contents,
+				contentType: "",
+				md: fakeFileMetadata{
+					Name:     "big.txt",
+					ID:       uuid.New().String(),
+					Metadata: map[string]any{},
+				},
+			}
+
+			metadataStorage.EXPECT().GetFileByID(
+				gomock.Any(), file.md.ID, gomock.Any(),
+			).Return(
+				api.FileMetadata{
+					Id:         file.md.ID,
+					Name:       file.md.Name,
+					BucketId:   "blah",
+					IsUploaded: true,
+				},
+				nil,
+			)
+			metadataStorage.EXPECT().GetBucketByID(
+				gomock.Any(), "blah", gomock.Any(),
+			).Return(
+				controller.BucketMetadata{
+					ID:                   "blah",
+					MinUploadFile:        tc.minUploadFile,
+					MaxUploadFile:        tc.maxUploadFile,
+					PresignedURLsEnabled: false,
+					DownloadExpiration:   30,
+					CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
+					UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
+				},
+				nil,
+			)
+
+			ctrl := controller.New(
+				"http://asd",
+				"/v1",
+				"asdasd",
+				metadataStorage,
+				contentStorage,
+				nil,
+				av,
+				logger,
+			)
+
+			resp, err := ctrl.ReplaceFile(
+				t.Context(),
+				api.ReplaceFileRequestObject{
+					Id:   file.md.ID,
+					Body: createReplaceMultiForm(t, file),
+				},
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			apiErr, ok := resp.(*controller.APIError)
+			if !ok {
+				t.Fatalf("expected *controller.APIError, got %T", resp)
+			}
+
+			assert(t, apiErr.StatusCode(), http.StatusBadRequest)
+			assert(t, apiErr.PublicMessage(), tc.expectedMessage)
+			assert(t, apiErr.PublicResponse(), &controller.ErrorResponse{
+				Message: tc.expectedMessage,
+				Data:    tc.expectedData,
+			})
 		})
 	}
 }

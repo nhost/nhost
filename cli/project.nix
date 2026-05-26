@@ -32,6 +32,8 @@ let
 
       (and (inDirectory "internal/lib/nhostclient") (matchExt "go"))
 
+      (and (inDirectory "internal/lib/oapi") (matchExt "go"))
+
       "${submodule}/cmd/configserver/logsapi/gqlgen.yml"
       "${submodule}/cmd/configserver/logsapi/schema.graphqls"
 
@@ -42,6 +44,9 @@ let
       "${submodule}/mcp/resources/nhost_toml_schema.cue"
       (inDirectory "${submodule}/cmd/mcp/testdata")
       (inDirectory "${submodule}/mcp/graphql/testdata")
+
+      # constellation (used by `nhost schema` for SDL dump/diff)
+      (and (inDirectory "services/constellation") (matchExt "go"))
 
       # auth email templates (embedded into the CLI binary by `nhost init`)
       (inDirectory "services/auth/email-templates")
@@ -87,6 +92,8 @@ rec {
     };
 
     preCheck = ''
+      export GOEXPERIMENT=jsonv2;
+
       if [ -z "''${NHOST_PAT:-}" ]; then
         echo "ERROR: NHOST_PAT environment variable is not set"
         exit 1
@@ -114,6 +121,8 @@ rec {
       ++ checkDeps
       ++ buildInputs
       ++ nativeBuildInputs;
+
+    shellHook = "export GOEXPERIMENT=jsonv2";
   };
 
   package =
@@ -135,6 +144,7 @@ rec {
         // {
           env = {
             CGO_ENABLED = "0";
+            GOEXPERIMENT = "jsonv2";
           };
         }
       );
@@ -170,6 +180,7 @@ rec {
             GOOS = "darwin";
             GOARCH = "arm64";
             CGO_ENABLED = "0";
+            GOEXPERIMENT = "jsonv2";
           };
         }
       );
@@ -195,6 +206,7 @@ rec {
             GOOS = "darwin";
             GOARCH = "amd64";
             CGO_ENABLED = "0";
+            GOEXPERIMENT = "jsonv2";
           };
         }
       );
@@ -220,6 +232,7 @@ rec {
             GOOS = "linux";
             GOARCH = "arm64";
             CGO_ENABLED = "0";
+            GOEXPERIMENT = "jsonv2";
           };
         }
       );
@@ -245,6 +258,7 @@ rec {
             GOOS = "linux";
             GOARCH = "amd64";
             CGO_ENABLED = "0";
+            GOEXPERIMENT = "jsonv2";
           };
         }
       );

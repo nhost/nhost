@@ -238,4 +238,6 @@ rec {
       ];
     };
   };
+
+  inherit vips;
 }

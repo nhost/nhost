@@ -2,6 +2,7 @@
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
+import { CopyIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -14,7 +15,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';

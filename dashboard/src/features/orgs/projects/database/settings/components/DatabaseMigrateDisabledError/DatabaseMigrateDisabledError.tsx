@@ -1,5 +1,5 @@
+import { XIcon } from 'lucide-react';
 import { Alert } from '@/components/ui/v2/Alert';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { ApplicationStatus } from '@/types/application';

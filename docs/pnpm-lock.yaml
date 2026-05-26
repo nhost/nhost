@@ -63,6 +63,8 @@ overrides:
   postcss@<8.5.10: '>=8.5.10'
   fast-uri@<=3.1.1: '>=3.1.2'
   path-to-regexp@>=4.0.0 <6.3.0: ^6.3.0
+  ws@>=8.0.0 <8.20.1: '>=8.20.1'
+  js-cookie@<=3.0.5: '>=3.0.6'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -71,8 +73,8 @@ importers:
   .:
     dependencies:
       '@astrojs/markdown-remark':
-        specifier: ^7.1.0
-        version: 7.1.0
+        specifier: ^7.1.1
+        version: 7.1.1
       '@astrojs/starlight':
         specifier: ^0.38.4
         version: 0.38.4(astro@6.3.1(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(yaml@2.8.3))
@@ -86,7 +88,7 @@ importers:
         specifier: ^0.41.7
         version: 0.41.7
       '@readme/openapi-parser':
-        specifier: ^6.0.0
+        specifier: ^6.0.1
         version: 6.0.1(openapi-types@12.1.3)
       '@resvg/resvg-js':
         specifier: ^2.6.2
@@ -1105,8 +1107,8 @@ packages:
   boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
 
-  brace-expansion@5.0.5:
-    resolution: {integrity: sha512-VZznLgtwhn+Mact9tfiwx64fA9erHH/MCXEUfB/0bX/6Fz6ny5EGTXYltMocqg4xFAQZtnO3DHWWXi8RiuN7cQ==}
+  brace-expansion@5.0.6:
+    resolution: {integrity: sha512-kLpxurY4Z4r9sgMsyG0Z9uzsBlgiU/EFKhj/h91/8yHu0edo7XuixOIH3VcJ8kkxs6/jPzoI6U9Vj3WqbMQ94g==}
     engines: {node: 18 || 20 || >=22}
 
   camelize@1.0.1:
@@ -2553,7 +2555,7 @@ snapshots:
 
   '@astrojs/starlight@0.38.4(astro@6.3.1(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
-      '@astrojs/markdown-remark': 7.1.0
+      '@astrojs/markdown-remark': 7.1.1
       '@astrojs/mdx': 5.0.3(astro@6.3.1(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.60.1)(tsx@4.21.0)(yaml@2.8.3))
       '@astrojs/sitemap': 3.7.2
       '@pagefind/default-ui': 1.5.0
@@ -3423,7 +3425,7 @@ snapshots:
 
   boolbase@1.0.0: {}
 
-  brace-expansion@5.0.5:
+  brace-expansion@5.0.6:
     dependencies:
       balanced-match: 4.0.4
 
@@ -4538,7 +4540,7 @@ snapshots:
 
   minimatch@10.2.5:
     dependencies:
-      brace-expansion: 5.0.5
+      brace-expansion: 5.0.6
 
   minipass@7.1.3: {}
 

@@ -98,14 +98,13 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	if apiErr = checkFileSize(
 		file.header, bucketMetadata.MinUploadFile, bucketMetadata.MaxUploadFile,
 	); apiErr != nil {
-		wrappedErr := fmt.Errorf("problem checking file size %s: %w", file.Name, apiErr)
 		logger.ErrorContext(
 			ctx, "problem checking file size",
-			slog.String("error", wrappedErr.Error()),
+			slog.String("error", apiErr.Error()),
 			slog.String("fileName", file.Name),
 		)
 
-		return InternalServerError(wrappedErr), nil
+		return apiErr, nil
 	}
 
 	fileContent, contentType, apiErr := ctrl.getMultipartFile(file)

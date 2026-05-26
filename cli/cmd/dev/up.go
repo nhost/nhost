@@ -114,7 +114,7 @@ func CommandUp() *cli.Command { //nolint:funlen
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:2.61.1",
+				Value:   "nhost/dashboard:2.63.1",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -400,7 +400,7 @@ func processRunServices(
 	return r, nil
 }
 
-func up( //nolint:funlen,cyclop
+func up( //nolint:funlen
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	appVersion string,
@@ -440,6 +440,15 @@ func up( //nolint:funlen,cyclop
 		return fmt.Errorf("failed to validate config: %w", err)
 	}
 
+	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:mnd
+		return fmt.Errorf("failed to create .nhost folder: %w", err)
+	}
+
+	appID, err := clienv.GetOrCreateAppID(ce.Path.AppID())
+	if err != nil {
+		return fmt.Errorf("failed to get app id: %w", err)
+	}
+
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:mnd
 	defer cancel()
 
@@ -473,6 +482,7 @@ func up( //nolint:funlen,cyclop
 		dashboardVersion,
 		functionsVersion,
 		configserverImage,
+		appID,
 		clienv.PathExists(ce.Path.Functions()),
 		caCertificatesPath,
 		runServicesCfg...,

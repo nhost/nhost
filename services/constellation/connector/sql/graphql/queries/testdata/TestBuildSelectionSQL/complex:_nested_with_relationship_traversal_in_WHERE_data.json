@@ -1,0 +1,131 @@
+[
+  [
+    [
+      {
+        "bucket": {
+          "id": "default"
+        },
+        "department_file": {
+          "id": "d1e9b8db-7777-439f-9d63-7f83de523fb7",
+          "department": {
+            "name": "Engineering",
+            "files": [
+              {
+                "id": "d1e9b8db-4444-439f-9d63-7f83de523fb4"
+              },
+              {
+                "id": "d1e9b8db-5555-439f-9d63-7f83de523fb5"
+              },
+              {
+                "id": "d1e9b8db-6666-439f-9d63-7f83de523fb6"
+              }
+            ],
+            "id": "023d4410-715e-4675-96a5-a58fd50ef33c"
+          }
+        },
+        "id": "f1e9b8db-7777-439f-9d63-7f83de523fb7",
+        "name": "deployment-guide.pdf"
+      },
+      {
+        "id": "f1e9b8db-5555-439f-9d63-7f83de523fb5",
+        "name": "api-documentation.pdf",
+        "bucket": {
+          "id": "default"
+        },
+        "department_file": {
+          "id": "d1e9b8db-5555-439f-9d63-7f83de523fb5",
+          "department": {
+            "name": "Engineering",
+            "files": [
+              {
+                "id": "d1e9b8db-4444-439f-9d63-7f83de523fb4"
+              },
+              {
+                "id": "d1e9b8db-5555-439f-9d63-7f83de523fb5"
+              },
+              {
+                "id": "d1e9b8db-6666-439f-9d63-7f83de523fb6"
+              }
+            ],
+            "id": "023d4410-715e-4675-96a5-a58fd50ef33c"
+          }
+        }
+      },
+      {
+        "id": "f1e9b8db-4444-439f-9d63-7f83de523fb4",
+        "name": "architecture-diagram.png",
+        "bucket": {
+          "id": "default"
+        },
+        "department_file": {
+          "id": "d1e9b8db-4444-439f-9d63-7f83de523fb4",
+          "department": {
+            "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+            "name": "Engineering",
+            "files": [
+              {
+                "id": "d1e9b8db-4444-439f-9d63-7f83de523fb4"
+              },
+              {
+                "id": "d1e9b8db-5555-439f-9d63-7f83de523fb5"
+              },
+              {
+                "id": "d1e9b8db-6666-439f-9d63-7f83de523fb6"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "f1e9b8db-6060-439f-9d63-7f83de523fc5",
+        "name": "engineering-team-photo.jpg",
+        "bucket": {
+          "id": "profile_pics"
+        },
+        "department_file": {
+          "id": "d1e9b8db-6060-439f-9d63-7f83de523fc5",
+          "department": {
+            "files": [
+              {
+                "id": "d1e9b8db-4444-439f-9d63-7f83de523fb4"
+              },
+              {
+                "id": "d1e9b8db-5555-439f-9d63-7f83de523fb5"
+              },
+              {
+                "id": "d1e9b8db-6666-439f-9d63-7f83de523fb6"
+              }
+            ],
+            "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+            "name": "Engineering"
+          }
+        }
+      },
+      {
+        "bucket": {
+          "id": "default"
+        },
+        "department_file": {
+          "department": {
+            "files": [
+              {
+                "id": "d1e9b8db-4444-439f-9d63-7f83de523fb4"
+              },
+              {
+                "id": "d1e9b8db-5555-439f-9d63-7f83de523fb5"
+              },
+              {
+                "id": "d1e9b8db-6666-439f-9d63-7f83de523fb6"
+              }
+            ],
+            "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+            "name": "Engineering"
+          },
+          "id": "d1e9b8db-6666-439f-9d63-7f83de523fb6"
+        },
+        "id": "f1e9b8db-6666-439f-9d63-7f83de523fb6",
+        "name": "coding-standards.md"
+      }
+    ]
+  ]
+]

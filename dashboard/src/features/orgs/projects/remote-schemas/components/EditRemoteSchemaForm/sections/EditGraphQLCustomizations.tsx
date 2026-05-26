@@ -1,4 +1,11 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
+import {
+  Check,
+  ChevronsUpDown,
+  InfoIcon,
+  SquarePen as PencilIcon,
+  PlusIcon,
+  Trash2 as TrashIcon,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Controller,
@@ -9,10 +16,6 @@ import {
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button as ButtonV3 } from '@/components/ui/v3/button';
@@ -200,7 +203,7 @@ export default function EditGraphQLCustomizations({
           variant="outlined"
           color="primary"
           size="small"
-          startIcon={<PencilIcon />}
+          startIcon={<PencilIcon className="h-4 w-4" />}
           onClick={() => setIsOpen(true)}
           className="mt-2 px-2"
         >
@@ -231,7 +234,7 @@ export default function EditGraphQLCustomizations({
           <Box className="flex flex-row items-center space-x-2">
             <Text className="font-medium">Root Field Namespace</Text>
             <Tooltip title="Root field type names will be prefixed by this name.">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
             </Tooltip>
           </Box>
           <Input
@@ -255,7 +258,7 @@ export default function EditGraphQLCustomizations({
               Types
             </Text>
             <Tooltip title="Add a prefix / suffix to all types of the remote schema">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
             </Tooltip>
           </Box>
 
@@ -302,7 +305,7 @@ export default function EditGraphQLCustomizations({
               Rename Type Names
             </Text>
             <Tooltip title="Type remapping takes precedence to prefixes and suffixes.">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
             </Tooltip>
           </Box>
           <Button
@@ -365,7 +368,7 @@ export default function EditGraphQLCustomizations({
               Field Names
             </Text>
             <Tooltip title="Add mappings for fields of a selected parent type. You can also set a prefix/suffix for those fields.">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
             </Tooltip>
           </Box>
           <Button

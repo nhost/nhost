@@ -20,14 +20,14 @@ func TestOauth2Revoke(t *testing.T) {
 	client := testOAuth2Client()
 
 	cases := []testRequest[api.Oauth2RevokeRequestObject, api.Oauth2RevokeResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2RevokeRequestObject{
-				Body: &api.OAuth2RevokeRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2RevokeRequest{
 					Token: "some-token",
 				},
 			},
@@ -39,7 +39,7 @@ func TestOauth2Revoke(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "missing body",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -56,14 +56,14 @@ func TestOauth2Revoke(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "missing client_id",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2RevokeRequestObject{
-				Body: &api.OAuth2RevokeRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2RevokeRequest{
 					Token: "some-token",
 				},
 			},
@@ -75,7 +75,7 @@ func TestOauth2Revoke(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -89,7 +89,7 @@ func TestOauth2Revoke(t *testing.T) {
 				return mock
 			},
 			request: api.Oauth2RevokeRequestObject{
-				Body: &api.OAuth2RevokeRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2RevokeRequest{
 					Token:    "some-token",
 					ClientId: &clientID,
 				},
@@ -139,7 +139,7 @@ func TestOauth2Revoke(t *testing.T) {
 		assertRequest[api.Oauth2RevokeRequestObject, api.Oauth2RevokeResponseObject](
 			ginCtx, t, c.Oauth2Revoke,
 			api.Oauth2RevokeRequestObject{
-				Body: &api.OAuth2RevokeRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2RevokeRequest{
 					Token:    "some-token",
 					ClientId: &bodyClientID,
 				},

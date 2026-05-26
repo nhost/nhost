@@ -1,3 +1,78 @@
+## [@nhost/dashboard@2.63.1] - 2026-05-25
+
+### 🐛 Bug Fixes
+
+- *(deps)* Fix ws advisory (GHSA-58qx-3vcg-4xpx) (#4307)
+- *(dashboard)* Do not call onSubmit on cancel in create/edit table forms (#4296)
+- *(dashboard)* Migrate overview and storage page icons (#4281)
+- *(dashboard)* Align serverless function HTTP method colors with schema diagram (#4322)
+- *(dashboard)* Resolve incorrect date/time picker & cell rendering w… (#4310)
+- *(dashboard)* Hide remote schema permissions table until enabled state loads (#4318)
+- *(dashboard)* Migrate authentication page icons (#4283)
+- *(dashboard)* Migrate remote-schemas page icons (#4284)
+- *(dashboard)* Migrate database page icons (#4285)
+- *(dashboard)* Migrate services page icons (#4286)
+- *(dashboard)* Migrate AI page icons (#4287)
+- *(dashboard)* Migrate metrics page icons (#4289)
+- *(dashboard)* Migrate git page icons (#4291)
+- *(dashboard)* Remove irrelevant role public header from Apollo Client (#4351)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add script to remove tsconfig.tsbuildinfo (#4325)
+- *(ci)* Follow-up skill improvements (#4332)
+
+
+### Chore
+
+- *(deps)* Update various packages due to CVEs (#4328)
+- *(deps)* Update vulnerable dependencies (#4338)
+- *(deps)* Dedupe lockfiles and tighten direct-dep ranges to resolved versions (#4344)
+
+## [@nhost/dashboard@2.63.0] - 2026-05-18
+
+### 🚀 Features
+
+- *(dashboard)* Added database schema navigator (#4268)
+- *(dashboard)* Re-do completely compute resources interface (#4276)
+- *(cli)* Harden local configserver against cross-origin and exfil access (#4302)
+
+
+### 🐛 Bug Fixes
+
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(dashboard)* Fix column ordering on the database table (#4198)
+- *(dashboard)* Add support for generated columns (#4186)
+- *(dashboard)* Update create user e2e test (#4251)
+- *(dashboard)* Display boolean values in CustomCheckEditor (#4228)
+- *(dashboard)* Show discard changes dialog for GraphQL settings drawer (#4235)
+- *(dashboard)* Show computed fields in table permissions (#4248)
+- *(deps)* Fix fast-uri advisory (GHSA-v39h-62p7-jpjc) (#4265)
+- *(dashboard)* Drop redundant NEXT_PUBLIC_ENV admin-secret branc (#4259)
+- *(deps)* Update biome to 2.4.15 (#4270)
+- *(dashboard)* Migrate custom product icons to v3 (#4249)
+- *(dashboard)* Migrate BaseTableForm to v3 (#4212)
+- *(dashboard)* Unify toast background color in light theme (#4269)
+- *(dashboard)* Fixed mobile responsive smtp layout (#4274)
+- *(dashboard)* Serialize remote schema permission presets as GraphQL literals (#4257)
+- *(dashboard)* Remove useEffect URL→state sync in header comboboxes (#4290)
+- *(dashboard)* Route useGetRolesPermissionsQuery through localMimirClient in ColumnPresetsSection (#4280)
+- *(dashboard)* Hide non-trackable functions from the data browser (#4294)
+- *(dashboard)* Prevent SQL editor from shrinking data browser sidebar (#4295)
+- *(deps)* Update brace-expansion due to CVE (#4306)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Update CLAUDE.md with the use of lsp (#4299)
+
+
+### Chore
+
+- *(deps)* Upgrade Next.js to 16.2.5 (#4271)
+- *(deps)* Update pnpm to v11 (#4275)
+
 ## [@nhost/dashboard@2.62.0] - 2026-05-05
 
 ### 🚀 Features

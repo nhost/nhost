@@ -1,3 +1,4 @@
+import { PlusIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -8,7 +9,6 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';

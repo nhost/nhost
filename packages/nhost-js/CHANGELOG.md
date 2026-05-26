@@ -1,3 +1,25 @@
+## [@nhost/nhost-js@4.7.1] - 2026-05-18
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up uuid, Astro and xmldom due to CVEs (#4187)
+- *(deps)* Fix postcss XSS advisory (GHSA-qx2v-qp2m-jg93) (#4197)
+- *(nhost-js)* Rename session.Session to StoredSession to disambiguate from auth.Session (#4194)
+- *(auth)* Revoke all sessions on password change  (#4192)
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(deps)* Fix fast-uri advisory (GHSA-v39h-62p7-jpjc) (#4265)
+- *(deps)* Update biome to 2.4.15 (#4270)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump nhost cli (#4173)
+
+
+### Chore
+
+- *(deps)* Update pnpm to v11 (#4275)
+
 ## [@nhost/nhost-js@4.7.0] - 2026-04-20
 
 ### 🚀 Features
