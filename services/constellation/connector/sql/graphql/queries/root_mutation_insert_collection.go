@@ -307,6 +307,20 @@ func (t *table) buildInsertMutationCTE(
 		return "", nil, 0, nil, err
 	}
 
+	// Array-relationship nested CTEs reference mutation_result.<pk>, so they
+	// have to be emitted after the parent INSERT CTE.
+	arrayNestedSQL, params, paramIndex, err := t.buildArrayNestedInsertCTEs(
+		insertObjs, role, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return "", nil, 0, nil, err
+	}
+
+	if arrayNestedSQL != "" {
+		b.WriteString(", ")
+		b.WriteString(arrayNestedSQL)
+	}
+
 	nestedCTEs := t.buildNestedCTEsMap(insertObjs)
 
 	return b.String(), params, paramIndex, nestedCTEs, nil
