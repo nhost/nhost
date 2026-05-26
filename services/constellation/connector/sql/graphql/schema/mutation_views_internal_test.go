@@ -42,6 +42,7 @@ func TestGenerateTableMutationFields_SkipsReadOnlyViews(t *testing.T) {
 	var fields []*graph.Field
 	generateTableMutationFields(
 		&fields, tableMeta, tableInfo, "contentFeed", "public.content_feed", roleAdmin,
+		&metadata.DatabaseMetadata{},
 	)
 
 	if len(fields) != 0 {
@@ -82,6 +83,7 @@ func TestGenerateTableMutationFields_UpdatableViewGetsMutations(t *testing.T) {
 	var fields []*graph.Field
 	generateTableMutationFields(
 		&fields, tableMeta, tableInfo, "publishedNews", "public.published_news", roleAdmin,
+		&metadata.DatabaseMetadata{},
 	)
 
 	names := make([]string, 0, len(fields))
@@ -132,6 +134,7 @@ func TestGenerateTableMutationFields_BaseTableGetsMutations(t *testing.T) {
 	var fields []*graph.Field
 	generateTableMutationFields(
 		&fields, tableMeta, tableInfo, "news", "public.news", roleAdmin,
+		&metadata.DatabaseMetadata{},
 	)
 
 	if len(fields) == 0 {
@@ -179,6 +182,7 @@ func TestGenerateTableMutationFields_NonAdminRoleSkipsReadOnlyView(t *testing.T)
 	var fields []*graph.Field
 	generateTableMutationFields(
 		&fields, tableMeta, tableInfo, "contentFeed", "public.content_feed", "user",
+		&metadata.DatabaseMetadata{},
 	)
 
 	if len(fields) != 0 {
