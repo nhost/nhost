@@ -1,4 +1,10 @@
 import {
+  SiGraphql as GraphQLIcon,
+  SiHasura as HasuraIcon,
+  SiDocker as ServicesIcon,
+} from '@icons-pack/react-simple-icons';
+import {
+  Sparkles as AIIcon,
   Check,
   ChevronsUpDown,
   CloudIcon,
@@ -9,17 +15,12 @@ import {
   GaugeIcon,
   HomeIcon,
   RocketIcon,
+  HardDrive as StorageIcon,
   UserIcon,
   Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useMemo, useState } from 'react';
-
-import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
-import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
-import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
-import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,

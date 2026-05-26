@@ -1,4 +1,25 @@
-import { Box, ChevronDown, ChevronRight, Code, Plus, Zap } from 'lucide-react';
+import {
+  SiGraphql as GraphQLIcon,
+  SiHasura as HasuraIcon,
+  SiDocker as ServicesIcon,
+} from '@icons-pack/react-simple-icons';
+import {
+  Sparkles as AIIcon,
+  Box,
+  ChevronDown,
+  ChevronRight,
+  CloudIcon,
+  Code,
+  DatabaseIcon,
+  FileTextIcon,
+  GaugeIcon,
+  HomeIcon,
+  Plus,
+  RocketIcon,
+  HardDrive as StorageIcon,
+  UserIcon,
+  Zap,
+} from 'lucide-react';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 import {
@@ -7,18 +28,6 @@ import {
   type TreeItem,
   type TreeItemIndex,
 } from 'react-complex-tree';
-import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
-import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
-import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
-import { GaugeIcon } from '@/components/ui/v2/icons/GaugeIcon';
-import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
-import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
-import { HomeIcon } from '@/components/ui/v2/icons/HomeIcon';
-import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
-import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
-import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
