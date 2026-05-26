@@ -445,6 +445,28 @@ func getColumnGraphQLType(
 	tableInfo *introspection.Table,
 	md *metadata.DatabaseMetadata,
 ) *graph.Type {
+	return columnGraphQLType(col, tableInfo, md, col.IsNullable)
+}
+
+// getColumnGraphQLTypePKArg returns the GraphQL type for a PK-arg column,
+// always wrapped in NonNull. SQLite does not imply NOT NULL from a bare
+// `PRIMARY KEY` declaration, so introspected PK columns can carry
+// IsNullable=true even though Hasura's contract requires `T!` on every
+// `_by_pk` arg and `_pk_columns_input` field.
+func getColumnGraphQLTypePKArg(
+	col *introspection.Column,
+	tableInfo *introspection.Table,
+	md *metadata.DatabaseMetadata,
+) *graph.Type {
+	return columnGraphQLType(col, tableInfo, md, false)
+}
+
+func columnGraphQLType(
+	col *introspection.Column,
+	tableInfo *introspection.Table,
+	md *metadata.DatabaseMetadata,
+	nullable bool,
+) *graph.Type {
 	// Check if this column has a foreign key to an enum table
 	for _, fk := range tableInfo.ForeignKeys {
 		if fk.ColumnName == col.Name { //nolint:nestif
@@ -459,7 +481,7 @@ func getColumnGraphQLType(
 						customTableName := getCustomOrDefaultTypeName(targetTable)
 
 						// Return enum type
-						if col.IsNullable {
+						if nullable {
 							return graph.NewNamedType(customTableName + "_enum")
 						}
 
@@ -474,7 +496,7 @@ func getColumnGraphQLType(
 	if col.IsArray {
 		elemType := normalizePostgresTypeToGraphQL(col.Type)
 		// Hasura convention: [ElemType!] for nullable, [ElemType!]! for non-null
-		if col.IsNullable {
+		if nullable {
 			return graph.NewListType(graph.NewNonNullType(elemType))
 		}
 
@@ -482,7 +504,7 @@ func getColumnGraphQLType(
 	}
 
 	// Fall back to standard type mapping
-	return postgresTypeToGraphQL(col.Type, col.IsNullable)
+	return postgresTypeToGraphQL(col.Type, nullable)
 }
 
 // hasJSONBColumns returns true if the table has any JSONB columns in allowedColumns.
