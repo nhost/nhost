@@ -55,7 +55,7 @@ The lowest-friction way to try Constellation is to enable it on an Nhost project
 
 ```toml
 [experimental.constellation]
-version = "0.3.0"
+version = "0.2.1"
 ```
 
 Pick the latest tag from [`CHANGELOG.md`](./CHANGELOG.md) — we recommend always running the latest. With this in place, an Nhost project runs Hasura and Constellation side by side:
@@ -71,7 +71,7 @@ All available settings under `[experimental.constellation]`:
 [experimental.constellation]
 # Constellation image tag. Available versions:
 # https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md
-version = "0.2.0"
+version = "0.2.1"
 
 [experimental.constellation.settings]
 # CORS allowed origins. If set, used as-is.
