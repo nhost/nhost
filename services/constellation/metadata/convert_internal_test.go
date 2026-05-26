@@ -173,7 +173,7 @@ func TestConvertTable(t *testing.T) {
 			{
 				Name: "author",
 				Using: hasura.RelationshipUsing{
-					ForeignKeyColumn: "author_id",
+					ForeignKeyColumns: []string{"author_id"},
 				},
 			},
 		},
@@ -182,8 +182,8 @@ func TestConvertTable(t *testing.T) {
 				Name: "comments",
 				Using: hasura.RelationshipUsing{
 					ForeignKeyConstraint: &hasura.ForeignKeyConstraint{
-						Column: "post_id",
-						Table:  hasura.TableSource{Name: "comments", Schema: "public"},
+						Columns: []string{"post_id"},
+						Table:   hasura.TableSource{Name: "comments", Schema: "public"},
 					},
 				},
 			},
@@ -244,7 +244,7 @@ func TestConvertTable(t *testing.T) {
 			{
 				Name: "author",
 				Using: RelationshipUsing{
-					ForeignKeyColumn: "author_id",
+					ForeignKeyColumns: []string{"author_id"},
 				},
 			},
 		},
@@ -253,8 +253,8 @@ func TestConvertTable(t *testing.T) {
 				Name: "comments",
 				Using: RelationshipUsing{
 					ForeignKeyConstraint: &ForeignKeyConstraint{
-						Column: "post_id",
-						Table:  TableSource{Name: "comments", Schema: "public"},
+						Columns: []string{"post_id"},
+						Table:   TableSource{Name: "comments", Schema: "public"},
 					},
 				},
 			},
@@ -322,12 +322,12 @@ func TestApplyRemoteSchemaColumnRenames(t *testing.T) {
 		{
 			name: "nil manual configuration is a no-op",
 			in: &RelationshipUsing{
-				ForeignKeyColumn:     "author_id",
+				ForeignKeyColumns:    []string{"author_id"},
 				ForeignKeyConstraint: nil,
 				ManualConfiguration:  nil,
 			},
 			want: &RelationshipUsing{
-				ForeignKeyColumn:     "author_id",
+				ForeignKeyColumns:    []string{"author_id"},
 				ForeignKeyConstraint: nil,
 				ManualConfiguration:  nil,
 			},
@@ -335,7 +335,7 @@ func TestApplyRemoteSchemaColumnRenames(t *testing.T) {
 		{
 			name: "empty remote schema leaves column mapping untouched",
 			in: &RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable:     TableSource{Name: "comments", Schema: "public"},
@@ -346,7 +346,7 @@ func TestApplyRemoteSchemaColumnRenames(t *testing.T) {
 				},
 			},
 			want: &RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable:     TableSource{Name: "comments", Schema: "public"},
@@ -360,7 +360,7 @@ func TestApplyRemoteSchemaColumnRenames(t *testing.T) {
 		{
 			name: "column mapping keys and values get renamed",
 			in: &RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable:     TableSource{},
@@ -371,7 +371,7 @@ func TestApplyRemoteSchemaColumnRenames(t *testing.T) {
 				},
 			},
 			want: &RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable:     TableSource{},
@@ -385,7 +385,7 @@ func TestApplyRemoteSchemaColumnRenames(t *testing.T) {
 		{
 			name: "$column argument is rewritten when column has a custom name",
 			in: &RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable:   TableSource{},
@@ -404,7 +404,7 @@ func TestApplyRemoteSchemaColumnRenames(t *testing.T) {
 				},
 			},
 			want: &RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable:   TableSource{},
@@ -426,7 +426,7 @@ func TestApplyRemoteSchemaColumnRenames(t *testing.T) {
 		{
 			name: "$column argument is left alone when rename is a no-op",
 			in: &RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable:   TableSource{},
@@ -444,7 +444,7 @@ func TestApplyRemoteSchemaColumnRenames(t *testing.T) {
 				},
 			},
 			want: &RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable:   TableSource{},
@@ -488,18 +488,18 @@ func TestConvertRelationshipUsing(t *testing.T) {
 		{
 			name: "foreign key constraint branch",
 			in: hasura.RelationshipUsing{
-				ForeignKeyColumn: "",
+				ForeignKeyColumns: nil,
 				ForeignKeyConstraint: &hasura.ForeignKeyConstraint{
-					Column: "post_id",
-					Table:  hasura.TableSource{Name: "comments", Schema: "public"},
+					Columns: []string{"post_id"},
+					Table:   hasura.TableSource{Name: "comments", Schema: "public"},
 				},
 				ManualConfiguration: nil,
 			},
 			want: RelationshipUsing{
-				ForeignKeyColumn: "",
+				ForeignKeyColumns: nil,
 				ForeignKeyConstraint: &ForeignKeyConstraint{
-					Column: "post_id",
-					Table:  TableSource{Name: "comments", Schema: "public"},
+					Columns: []string{"post_id"},
+					Table:   TableSource{Name: "comments", Schema: "public"},
 				},
 				ManualConfiguration: nil,
 			},
@@ -507,7 +507,7 @@ func TestConvertRelationshipUsing(t *testing.T) {
 		{
 			name: "manual configuration branch with column mapping",
 			in: hasura.RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &hasura.ManualConfiguration{
 					RemoteTable:   hasura.TableSource{Name: "orders", Schema: "public"},
@@ -519,7 +519,7 @@ func TestConvertRelationshipUsing(t *testing.T) {
 				},
 			},
 			want: RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable:     TableSource{Name: "orders", Schema: "public"},
@@ -533,7 +533,7 @@ func TestConvertRelationshipUsing(t *testing.T) {
 		{
 			name: "manual configuration branch with lhs fields seeds column mapping",
 			in: hasura.RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &hasura.ManualConfiguration{
 					RemoteTable:   hasura.TableSource{},
@@ -550,7 +550,7 @@ func TestConvertRelationshipUsing(t *testing.T) {
 				},
 			},
 			want: RelationshipUsing{
-				ForeignKeyColumn:     "",
+				ForeignKeyColumns:    nil,
 				ForeignKeyConstraint: nil,
 				ManualConfiguration: &ManualConfiguration{
 					RemoteTable: TableSource{},
@@ -572,14 +572,46 @@ func TestConvertRelationshipUsing(t *testing.T) {
 		{
 			name: "no constraint or manual config keeps only foreign key column",
 			in: hasura.RelationshipUsing{
-				ForeignKeyColumn:     "author_id",
+				ForeignKeyColumns:    []string{"author_id"},
 				ForeignKeyConstraint: nil,
 				ManualConfiguration:  nil,
 			},
 			want: RelationshipUsing{
-				ForeignKeyColumn:     "author_id",
+				ForeignKeyColumns:    []string{"author_id"},
 				ForeignKeyConstraint: nil,
 				ManualConfiguration:  nil,
+			},
+		},
+		{
+			name: "composite foreign key columns in parent",
+			in: hasura.RelationshipUsing{
+				ForeignKeyColumns:    []string{"exercise_id", "kind"},
+				ForeignKeyConstraint: nil,
+				ManualConfiguration:  nil,
+			},
+			want: RelationshipUsing{
+				ForeignKeyColumns:    []string{"exercise_id", "kind"},
+				ForeignKeyConstraint: nil,
+				ManualConfiguration:  nil,
+			},
+		},
+		{
+			name: "composite foreign key constraint in target",
+			in: hasura.RelationshipUsing{
+				ForeignKeyColumns: nil,
+				ForeignKeyConstraint: &hasura.ForeignKeyConstraint{
+					Columns: []string{"a", "b"},
+					Table:   hasura.TableSource{Name: "t", Schema: "public"},
+				},
+				ManualConfiguration: nil,
+			},
+			want: RelationshipUsing{
+				ForeignKeyColumns: nil,
+				ForeignKeyConstraint: &ForeignKeyConstraint{
+					Columns: []string{"a", "b"},
+					Table:   TableSource{Name: "t", Schema: "public"},
+				},
+				ManualConfiguration: nil,
 			},
 		},
 	}
