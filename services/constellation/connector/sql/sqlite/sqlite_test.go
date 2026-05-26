@@ -388,13 +388,11 @@ func TestIntrospectEmptyDatabase(t *testing.T) {
 		t.Fatalf("failed to introspect empty database: %v", err)
 	}
 
-	schema, ok := got.Schemas[""]
-	if !ok {
-		t.Fatal("expected default schema")
-	}
-
-	if len(schema.Tables) != 0 {
-		t.Fatalf("expected 0 tables, got %d", len(schema.Tables))
+	// With no tracked tables the per-schema walk is skipped entirely — the
+	// driver does not synthesise an empty "" schema entry, matching the
+	// PostgreSQL backend.
+	if len(got.Schemas) != 0 {
+		t.Fatalf("expected 0 schemas, got %d", len(got.Schemas))
 	}
 }
 
@@ -405,7 +403,11 @@ func TestIntrospectTableWithNoPKs(t *testing.T) {
 
 	client := newTestClientWithSchema(t, ddl)
 
-	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{})
+	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "no_pk"}},
+		},
+	})
 	if err != nil {
 		t.Fatalf("failed to introspect: %v", err)
 	}

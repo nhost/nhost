@@ -1,8 +1,8 @@
 [
   {
     "Name": "departments_aggregate",
-    "QueryType": "select_aggregate",
     "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"departments\") SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*)) FROM \"_root.base\")) AS \"departments_aggregate\"",
-    "Parameters": []
+    "Parameters": [],
+    "StreamCursors": null
   }
 ]

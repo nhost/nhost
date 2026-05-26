@@ -227,10 +227,7 @@ func cloud( //nolint:funlen
 		return fmt.Errorf("failed to apply configuration: %w", err)
 	}
 
-	endpoint := fmt.Sprintf(
-		"https://%s.hasura.%s.nhost.run",
-		proj.GetSubdomain(), proj.GetRegion().GetName(),
-	)
+	endpoint := clienv.NhostHasuraURL(proj.GetSubdomain(), proj.GetRegion().GetName())
 
 	if err := migrations(ctx, ce, dc, endpoint, applySeeds); err != nil {
 		return err

@@ -460,6 +460,49 @@ func TestReconcileMetadata_KeepsCrossSourceRelationships(t *testing.T) {
 	}
 }
 
+// TestReconcileMetadata_KeepsRemoteSchemaRelationships verifies that
+// relationships whose ManualConfiguration targets a remote GraphQL schema
+// (RemoteSchema != "") are not dropped by the SQL reconciler — they have an
+// empty RemoteTable by design and resolve through the remote-schema
+// connector, not against this source's table set.
+func TestReconcileMetadata_KeepsRemoteSchemaRelationships(t *testing.T) {
+	t.Parallel()
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "users"},
+				ObjectRelationships: []metadata.ObjectRelationship{
+					{
+						Name: "appSecrets",
+						Using: metadata.RelationshipUsing{ //nolint:exhaustruct
+							ManualConfiguration: &metadata.ManualConfiguration{ //nolint:exhaustruct
+								RemoteSchema:  "mimir",
+								ColumnMapping: map[string]string{"id": "id"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, makeObjects())
+
+	if len(out.Tables[0].ObjectRelationships) != 1 {
+		t.Errorf(
+			"expected remote-schema relationship to be preserved, got %d",
+			len(out.Tables[0].ObjectRelationships),
+		)
+	}
+
+	if inc.Len() != 0 {
+		t.Errorf("expected no inconsistencies, got %+v", inc.Snapshot())
+	}
+}
+
 // TestReconcileMetadata_DropsMissingFunctions verifies the function case:
 // metadata entries whose function does not exist in the source are dropped
 // and recorded.

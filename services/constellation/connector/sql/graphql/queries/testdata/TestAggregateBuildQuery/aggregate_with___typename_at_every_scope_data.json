@@ -1,0 +1,61 @@
+[
+  [
+    {
+      "nodes": [
+        {
+          "__typename": "departments",
+          "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+        },
+        {
+          "__typename": "departments",
+          "id": "023d4410-715e-4675-96a5-a58fd50ef33c"
+        },
+        {
+          "__typename": "departments",
+          "id": "dcd52518-58d0-4834-9683-ba6dee33833f"
+        },
+        {
+          "__typename": "departments",
+          "id": "ffd095c2-9745-43d9-b133-7e8d847e8371"
+        },
+        {
+          "__typename": "departments",
+          "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3"
+        },
+        {
+          "__typename": "departments",
+          "id": "fd1e6bba-c292-4b2f-872e-ae16146cdd82"
+        },
+        {
+          "__typename": "departments",
+          "id": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+          "__typename": "departments",
+          "id": "00000000-0000-0000-0000-000000000002"
+        },
+        {
+          "__typename": "departments",
+          "id": "00000000-0000-0000-0000-000000000003"
+        },
+        {
+          "__typename": "departments",
+          "id": "00000000-0000-0000-0000-000000000004"
+        }
+      ],
+      "__typename": "departments_aggregate",
+      "aggregate": {
+        "count": 10,
+        "sum": {
+          "budget": 3431000,
+          "__typename": "departments_sum_fields"
+        },
+        "max": {
+          "budget": 1200000,
+          "__typename": "departments_max_fields"
+        },
+        "__typename": "departments_aggregate_fields"
+      }
+    }
+  ]
+]

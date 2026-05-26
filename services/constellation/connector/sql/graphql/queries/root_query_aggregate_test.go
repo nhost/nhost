@@ -557,6 +557,243 @@ func TestAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		},
 
 		{
+			name: "aggregate with __typename at every scope",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							__typename
+							aggregate {
+								__typename
+								count
+								sum {
+									__typename
+									budget
+								}
+								max {
+									__typename
+									budget
+								}
+							}
+							nodes {
+								__typename
+								id
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with __typename only",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							__typename
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with __typename and aliased",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							kind: __typename
+							aggregate {
+								innerKind: __typename
+								count
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with __typename via fragment spread",
+			query: query{
+				Query: `
+					fragment AggTypename on departments_aggregate_fields {
+						__typename
+					}
+
+					query {
+						departments_aggregate {
+							aggregate {
+								count
+								...AggTypename
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with __typename via inline fragment",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								count
+								... {
+									__typename
+								}
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with aliased __typename inside function scope",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								sum {
+									kind: __typename
+									budget
+								}
+								max {
+									kind: __typename
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with duplicate __typename at every scope",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							__typename
+							__typename
+							aggregate {
+								__typename
+								__typename
+								count
+								sum {
+									__typename
+									__typename
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with duplicate __typename via fragments",
+			query: query{
+				Query: `
+					fragment AggTypename1 on departments_aggregate_fields {
+						__typename
+					}
+
+					fragment AggTypename2 on departments_aggregate_fields {
+						__typename
+					}
+
+					query {
+						departments_aggregate {
+							aggregate {
+								...AggTypename1
+								...AggTypename2
+								count
+							}
+						}
+					}`,
+			},
+		},
+
+		// Nested aggregate relationship reached via relationship.go (which also
+		// calls writeQueryAggregateSQL). Verifies __typename emission on the
+		// inner aggregate's outer scope, aggregate_fields scope, and
+		// max_fields scope — all generated relative to the *related* table's
+		// graphqlTypeName (department_files / user_departments), not the
+		// parent's. count_only is used for files because department_files has
+		// no numeric columns.
+		{
+			name: "nested aggregate with __typename at every scope",
+			query: query{
+				Query: `{
+					  departments_aggregate {
+						aggregate {
+						  count
+						}
+						nodes {
+						  __typename
+						  files_aggregate {
+							__typename
+							aggregate {
+							  __typename
+							  count
+							}
+						  }
+						  employees_aggregate {
+							__typename
+							aggregate {
+							  __typename
+							  count
+							  max {
+								__typename
+								role
+							  }
+							}
+							nodes {
+							  __typename
+							  role
+							}
+						  }
+						}
+					  }
+					}`,
+				Role: "admin",
+			},
+		},
+
+		// Fragments inside an aggregate-function scope (sum / max) must be
+		// expanded the same way they are at the outer and aggregate-fields
+		// scopes. Without recursion, __typename and column selections nested
+		// inside ...Frag or inline fragments would be silently dropped.
+		{
+			name: "aggregate with fragments inside function scope",
+			query: query{
+				Query: `
+					fragment SumFields on departments_sum_fields {
+						__typename
+						budget
+					}
+
+					query {
+						departments_aggregate {
+							aggregate {
+								sum {
+									...SumFields
+								}
+								max {
+									... {
+										__typename
+										budget
+									}
+								}
+							}
+						}
+					}`,
+			},
+		},
+
+		{
 			name: "aggregate with duplicate fields via fragments (merging)",
 			query: query{
 				Query: `

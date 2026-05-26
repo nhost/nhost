@@ -153,7 +153,7 @@ Constellation aims to be a drop-in replacement for Hasura on the GraphQL request
 
 ### Verifying compatibility against your Hasura instance
 
-If you run Hasura and Constellation side-by-side against the same database, you can confirm Constellation generates the schema you expect by introspecting both and diffing the SDL per role. The `schema dump` and `schema diff` subcommands do exactly that:
+If you run Hasura and Constellation side-by-side against the same database, you can confirm Constellation generates the schema you expect by introspecting both and diffing the SDL per role. The `nhost schema dump` and `nhost schema diff` subcommands (in the Nhost CLI) do exactly that:
 
 ```bash
 #!/bin/bash
@@ -165,23 +165,21 @@ NHOST_URL="http://your-constellation-endpoint/v1/graphql"
 ADMIN_SECRET="your-admin-secret"
 
 for role in "${ROLES[@]}"; do
-    constellation schema dump \
-        -H "X-Hasura-Role: ${role}" \
-        -H "X-Hasura-Admin-Secret: ${ADMIN_SECRET}" \
-        -o "./schema.hasura.${role}.graphqls" \
-        -u "${HASURA_URL}"
+    nhost schema dump \
+        --role "${role}" --admin-secret "${ADMIN_SECRET}" \
+        -u "${HASURA_URL}" -o "./schema.hasura.${role}.graphqls"
 
-    constellation schema dump \
-        -H "X-Hasura-Role: ${role}" \
-        -H "X-Hasura-Admin-Secret: ${ADMIN_SECRET}" \
-        -o "./schema.nhost.${role}.graphqls" \
-        -u "${NHOST_URL}"
+    nhost schema dump \
+        --role "${role}" --admin-secret "${ADMIN_SECRET}" \
+        -u "${NHOST_URL}" -o "./schema.nhost.${role}.graphqls"
 
-    constellation schema diff \
+    nhost schema diff \
         -a "schema.hasura.${role}.graphqls" \
         -b "schema.nhost.${role}.graphqls" > "schema.${role}.diff"
 done
 ```
+
+If you've linked a project with `nhost link`, you can drop `--url` / `--admin-secret` entirely and just pass `--role` (and optionally `--subdomain` to target a cloud project instead of the local stack).
 
 An empty `schema.<role>.diff` means Constellation generated a byte-equivalent schema for that role. If a diff is non-empty, every hunk should map to one of the categories in [`KNOWN_DIFFERENCES.md`](./KNOWN_DIFFERENCES.md). If you find a divergence that isn't covered there, please [open an issue](https://github.com/nhost/nhost/issues/new) with the affected diff hunk and a minimal metadata snippet — that's how new categories get documented (or fixed).
 

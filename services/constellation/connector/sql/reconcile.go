@@ -649,14 +649,21 @@ func dropIfReverseFKBroken(
 }
 
 // relationshipTarget extracts the target table reference from a Using clause.
-// Returns ok=false when the Using has no explicit target (foreign-key-column
-// shorthand resolves through introspection elsewhere).
+// Returns ok=false when the Using has no explicit SQL-table target:
+//   - foreign-key-column shorthand resolves through introspection elsewhere
+//   - to_remote_schema relationships (ManualConfiguration.RemoteSchema != "")
+//     have an empty RemoteTable by design and resolve through the
+//     remote-schema connector, not against this source's table set
 func relationshipTarget(using metadata.RelationshipUsing) (metadata.TableSource, string, bool) {
 	if using.ForeignKeyConstraint != nil {
 		return using.ForeignKeyConstraint.Table, "", true
 	}
 
 	if using.ManualConfiguration != nil {
+		if using.ManualConfiguration.RemoteSchema != "" {
+			return metadata.TableSource{}, "", false //nolint:exhaustruct
+		}
+
 		return using.ManualConfiguration.RemoteTable,
 			using.ManualConfiguration.Source,
 			true
