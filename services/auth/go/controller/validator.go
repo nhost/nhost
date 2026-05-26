@@ -10,7 +10,7 @@ import (
 	"github.com/gobwas/glob"
 )
 
-func ValidateRedirectTo( //nolint:cyclop
+func ValidateRedirectTo(
 	allowedRedirectURLs []string,
 ) (
 	func(redirectTo string) bool,

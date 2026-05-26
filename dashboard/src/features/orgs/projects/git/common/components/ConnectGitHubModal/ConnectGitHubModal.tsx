@@ -1,5 +1,10 @@
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
+import {
+  ExternalLink as ArrowSquareOutIcon,
+  CirclePlus as PlusCircleIcon,
+} from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -10,9 +15,6 @@ import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
-import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
@@ -277,7 +279,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             className="flex w-72 max-w-72 gap-2"
             onClick={handleConnectGitHub}
           >
-            <GitHubIcon />
+            <GitHubIcon className="h-4 w-4" />
             Connect to GitHub
           </Button>
         </div>

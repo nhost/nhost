@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "insert_user_departments",
+    "QueryType": "insert",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"user_id\", $2::uuid AS \"department_id\", $3::text AS \"role\" UNION ALL SELECT $4::uuid AS \"user_id\", $5::uuid AS \"department_id\", $6::text AS \"role\") AS data WHERE data.\"department_id\" = ANY($7::uuid[])), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 2 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"department_id\", \"role\") SELECT check_mutation_result.\"user_id\", check_mutation_result.\"department_id\", check_mutation_result.\"role\" FROM check_mutation_result WHERE (SELECT status FROM check_count) = 1 RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"user_id\" AS \"user_id\", mutation_result.\"department_id\" AS \"department_id\", mutation_result.\"role\" AS \"role\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "550e8400-e29b-41d4-a716-446655440021",
+      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+      "member",
+      "550e8400-e29b-41d4-a716-446655440032",
+      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+      "member",
+      "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
+    ]
+  }
+]

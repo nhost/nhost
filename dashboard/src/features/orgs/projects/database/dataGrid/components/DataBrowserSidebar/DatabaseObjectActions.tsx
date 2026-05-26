@@ -1,6 +1,6 @@
+import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
 import { Anchor, Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,

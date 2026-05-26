@@ -1,0 +1,120 @@
+[
+  [
+    {
+      "users": [
+        {
+          "displayName": "Sarah Martinez",
+          "departments": [
+            {
+              "department": {
+                "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+                "name": "Human Resources",
+                "files": [
+                  {
+                    "id": "d1e9b8db-1111-439f-9d63-7f83de523fb1",
+                    "description": "Comprehensive employee handbook covering all company policies and procedures"
+                  },
+                  {
+                    "id": "d1e9b8db-2222-439f-9d63-7f83de523fb2",
+                    "description": "Overview of employee benefits including health insurance, retirement plans, and perks"
+                  },
+                  {
+                    "id": "d1e9b8db-3333-439f-9d63-7f83de523fb3",
+                    "description": "New hire onboarding checklist and timeline"
+                  },
+                  {
+                    "id": "d1e9b8db-5050-439f-9d63-7f83de523fc4",
+                    "description": "Human Resources team photo"
+                  }
+                ]
+              }
+            },
+            {
+              "department": {
+                "files": [
+                  {
+                    "id": "d1e9b8db-2020-439f-9d63-7f83de523fc1",
+                    "description": "Complete operations manual covering all standard operating procedures"
+                  },
+                  {
+                    "id": "d1e9b8db-3030-439f-9d63-7f83de523fc2",
+                    "description": "Archive of vendor contracts and service agreements"
+                  },
+                  {
+                    "id": "d1e9b8db-4040-439f-9d63-7f83de523fc3",
+                    "description": "Process flowcharts for key operational workflows"
+                  },
+                  {
+                    "id": "d1e9b8db-a0a0-439f-9d63-7f83de523fc9",
+                    "description": "Operations team photo"
+                  }
+                ],
+                "id": "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
+                "name": "Operations"
+              }
+            }
+          ],
+          "id": "550e8400-e29b-41d4-a716-446655440001"
+        },
+        {
+          "departments": [
+            {
+              "department": {
+                "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+                "name": "Human Resources",
+                "files": [
+                  {
+                    "id": "d1e9b8db-1111-439f-9d63-7f83de523fb1",
+                    "description": "Comprehensive employee handbook covering all company policies and procedures"
+                  },
+                  {
+                    "description": "Overview of employee benefits including health insurance, retirement plans, and perks",
+                    "id": "d1e9b8db-2222-439f-9d63-7f83de523fb2"
+                  },
+                  {
+                    "description": "New hire onboarding checklist and timeline",
+                    "id": "d1e9b8db-3333-439f-9d63-7f83de523fb3"
+                  },
+                  {
+                    "id": "d1e9b8db-5050-439f-9d63-7f83de523fc4",
+                    "description": "Human Resources team photo"
+                  }
+                ]
+              }
+            },
+            {
+              "department": {
+                "name": "Engineering",
+                "files": [
+                  {
+                    "id": "d1e9b8db-4444-439f-9d63-7f83de523fb4",
+                    "description": "System architecture diagram showing microservices and infrastructure"
+                  },
+                  {
+                    "id": "d1e9b8db-5555-439f-9d63-7f83de523fb5",
+                    "description": "Complete API documentation with endpoints, authentication, and examples"
+                  },
+                  {
+                    "id": "d1e9b8db-6666-439f-9d63-7f83de523fb6",
+                    "description": "Engineering team coding standards and best practices"
+                  },
+                  {
+                    "id": "d1e9b8db-7777-439f-9d63-7f83de523fb7",
+                    "description": "Step-by-step deployment guide for production environments"
+                  },
+                  {
+                    "id": "d1e9b8db-6060-439f-9d63-7f83de523fc5",
+                    "description": "Engineering team photo"
+                  }
+                ],
+                "id": "023d4410-715e-4675-96a5-a58fd50ef33c"
+              }
+            }
+          ],
+          "id": "550e8400-e29b-41d4-a716-446655440002",
+          "displayName": "David Chen"
+        }
+      ]
+    }
+  ]
+]

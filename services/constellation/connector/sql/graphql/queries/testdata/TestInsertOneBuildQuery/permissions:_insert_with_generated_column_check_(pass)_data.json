@@ -1,0 +1,10 @@
+[
+  [
+    {
+      "id": "00000000-0000-0000-0000-000000000201",
+      "name": "High Budget Dept",
+      "budget": 600000,
+      "has_high_budget": true
+    }
+  ]
+]

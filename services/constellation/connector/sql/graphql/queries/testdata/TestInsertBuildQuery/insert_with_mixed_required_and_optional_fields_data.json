@@ -1,0 +1,19 @@
+[
+  [
+    {
+      "affected_rows": 2,
+      "returning": [
+        {
+          "id": "00000000-0000-0000-0000-000000000023",
+          "name": "With Budget",
+          "budget": 500000
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000024",
+          "name": "Without Budget",
+          "budget": null
+        }
+      ]
+    }
+  ]
+]

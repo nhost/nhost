@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { CopyIcon } from 'lucide-react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
@@ -11,7 +12,6 @@ import { Button } from '@/components/ui/v2/Button';
 import type { InputProps } from '@/components/ui/v2/Input';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';

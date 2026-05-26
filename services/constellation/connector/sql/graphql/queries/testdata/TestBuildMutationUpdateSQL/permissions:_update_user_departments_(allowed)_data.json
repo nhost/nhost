@@ -1,0 +1,49 @@
+[
+  [
+    {
+      "affected_rows": 8,
+      "returning": [
+        {
+          "user_id": "550e8400-e29b-41d4-a716-446655440001",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "role": "manager"
+        },
+        {
+          "user_id": "550e8400-e29b-41d4-a716-446655440002",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "role": "manager"
+        },
+        {
+          "role": "manager",
+          "user_id": "550e8400-e29b-41d4-a716-446655440003",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+        },
+        {
+          "user_id": "550e8400-e29b-41d4-a716-446655440004",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "role": "manager"
+        },
+        {
+          "role": "manager",
+          "user_id": "550e8400-e29b-41d4-a716-446655440022",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+        },
+        {
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "role": "manager",
+          "user_id": "550e8400-e29b-41d4-a716-446655440033"
+        },
+        {
+          "user_id": "550e8400-e29b-41d4-a716-446655440043",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "role": "manager"
+        },
+        {
+          "user_id": "550e8400-e29b-41d4-a716-446655440054",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "role": "manager"
+        }
+      ]
+    }
+  ]
+]

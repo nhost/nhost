@@ -37,7 +37,7 @@ func newApp() *graph.App {
 		Config: &model.ConfigConfig{
 			Global:  nil,
 			Graphql: nil,
-			Hasura: &model.ConfigHasura{ //nolint:exhaustruct
+			Hasura: &model.ConfigHasura{
 				AdminSecret:   "hasuraAdminSecret",
 				WebhookSecret: "webhookSecret",
 				JwtSecrets: []*model.ConfigJWTSecret{
@@ -62,8 +62,8 @@ func newApp() *graph.App {
 				},
 			},
 		},
-		SystemConfig: &model.ConfigSystemConfig{ //nolint:exhaustruct
-			Postgres: &model.ConfigSystemConfigPostgres{ //nolint:exhaustruct
+		SystemConfig: &model.ConfigSystemConfig{
+			Postgres: &model.ConfigSystemConfigPostgres{
 				MajorVersion: new("14"),
 				Database:     "local",
 				ConnectionString: &model.ConfigSystemConfigPostgresConnectionString{
@@ -138,7 +138,7 @@ func TestLocalGetApps(t *testing.T) {
 				t.Errorf("GetApps() got error: %v", err)
 			}
 
-			cmpOpts := cmpopts.IgnoreUnexported(graph.App{}) //nolint:exhaustruct
+			cmpOpts := cmpopts.IgnoreUnexported(graph.App{})
 
 			if diff := cmp.Diff(tc.expected, got, cmpOpts); diff != "" {
 				t.Errorf("GetApps() mismatch (-want +got):\n%s", diff)
@@ -219,7 +219,7 @@ func TestLocalUpdateConfig(t *testing.T) {
 }
 
 func secretsApp(secrets ...*model.ConfigEnvironmentVariable) *graph.App {
-	return &graph.App{ //nolint:exhaustruct
+	return &graph.App{
 		Secrets: secrets,
 	}
 }

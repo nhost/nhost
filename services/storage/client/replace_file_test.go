@@ -15,7 +15,7 @@ import (
 	"github.com/nhost/nhost/services/storage/client"
 )
 
-func TestReplaceFile(t *testing.T) { //nolint:cyclop,maintidx,gocognit
+func TestReplaceFile(t *testing.T) { //nolint:maintidx,gocognit
 	t.Parallel()
 
 	cl, err := client.NewClientWithResponses(testBaseURL)

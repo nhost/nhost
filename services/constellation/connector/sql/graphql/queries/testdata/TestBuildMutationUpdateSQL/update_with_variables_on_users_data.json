@@ -1,0 +1,129 @@
+[
+  [
+    {
+      "affected_rows": 24,
+      "returning": [
+        {
+          "locale": "es",
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "displayName": "Sarah Martinez"
+        },
+        {
+          "locale": "es",
+          "id": "550e8400-e29b-41d4-a716-446655440002",
+          "displayName": "David Chen"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440003",
+          "displayName": "Lisa Thompson",
+          "locale": "es"
+        },
+        {
+          "locale": "es",
+          "id": "550e8400-e29b-41d4-a716-446655440004",
+          "displayName": "Michael Rodriguez"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440011",
+          "displayName": "Alex Kim",
+          "locale": "es"
+        },
+        {
+          "displayName": "Emma Wilson",
+          "locale": "es",
+          "id": "550e8400-e29b-41d4-a716-446655440012"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440013",
+          "displayName": "James Brown",
+          "locale": "es"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440014",
+          "displayName": "Priya Patel",
+          "locale": "es"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440021",
+          "displayName": "Jessica Garcia",
+          "locale": "es"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440022",
+          "displayName": "Ryan Lee",
+          "locale": "es"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440023",
+          "displayName": "Sofia Andersson",
+          "locale": "es"
+        },
+        {
+          "locale": "es",
+          "id": "550e8400-e29b-41d4-a716-446655440024",
+          "displayName": "Carlos Santos"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440031",
+          "displayName": "Amanda Johnson",
+          "locale": "es"
+        },
+        {
+          "displayName": "Kevin Wong",
+          "locale": "es",
+          "id": "550e8400-e29b-41d4-a716-446655440032"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440033",
+          "displayName": "Natalie Davis",
+          "locale": "es"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440034",
+          "displayName": "Robert Taylor",
+          "locale": "es"
+        },
+        {
+          "displayName": "Rachel Moore",
+          "locale": "es",
+          "id": "550e8400-e29b-41d4-a716-446655440041"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440042",
+          "displayName": "Daniel Clark",
+          "locale": "es"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440043",
+          "displayName": "Michelle White",
+          "locale": "es"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440044",
+          "displayName": "Thomas Hall",
+          "locale": "es"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440051",
+          "displayName": "Jennifer Adams",
+          "locale": "es"
+        },
+        {
+          "locale": "es",
+          "id": "550e8400-e29b-41d4-a716-446655440052",
+          "displayName": "Matthew Turner"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440053",
+          "displayName": "Stephanie Cooper",
+          "locale": "es"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440054",
+          "displayName": "Christopher Bell",
+          "locale": "es"
+        }
+      ]
+    }
+  ]
+]

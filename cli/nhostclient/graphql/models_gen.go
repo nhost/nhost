@@ -622,6 +622,8 @@ type ConfigConfig struct {
 	Ai *ConfigAi `json:"ai,omitempty"`
 	// Configuration for auth service
 	Auth *ConfigAuth `json:"auth,omitempty"`
+	// Experimental configuration for unreleased services. Subject to breaking changes.
+	Experimental *ConfigExperimental `json:"experimental,omitempty"`
 	// Configuration for functions service
 	Functions *ConfigFunctions `json:"functions,omitempty"`
 	// Global configuration that applies to all services
@@ -643,6 +645,7 @@ type ConfigConfig struct {
 type ConfigConfigUpdateInput struct {
 	Ai            *ConfigAIUpdateInput            `json:"ai,omitempty"`
 	Auth          *ConfigAuthUpdateInput          `json:"auth,omitempty"`
+	Experimental  *ConfigExperimentalUpdateInput  `json:"experimental,omitempty"`
 	Functions     *ConfigFunctionsUpdateInput     `json:"functions,omitempty"`
 	Global        *ConfigGlobalUpdateInput        `json:"global,omitempty"`
 	Graphql       *ConfigGraphqlUpdateInput       `json:"graphql,omitempty"`
@@ -651,6 +654,40 @@ type ConfigConfigUpdateInput struct {
 	Postgres      *ConfigPostgresUpdateInput      `json:"postgres,omitempty"`
 	Provider      *ConfigProviderUpdateInput      `json:"provider,omitempty"`
 	Storage       *ConfigStorageUpdateInput       `json:"storage,omitempty"`
+}
+
+type ConfigConstellation struct {
+	Settings *ConfigConstellationSettings `json:"settings,omitempty"`
+	// Version of constellation, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/constellation/tags
+	Version *string `json:"version,omitempty"`
+}
+
+type ConfigConstellationSettings struct {
+	// CORS allowed origins. If set, these are used as-is.
+	// If unset, origins are derived from auth.redirections.clientUrl and
+	// auth.redirections.allowedUrls (paths/queries/fragments stripped).
+	CorsAllowedOrigins []string `json:"corsAllowedOrigins,omitempty"`
+	// Enable debug logging.
+	Debug *bool `json:"debug,omitempty"`
+	// Return raw connector/database error detail to clients instead of
+	// the sanitized generic message. For development only — never enable
+	// in production, as it leaks internal schema and data values.
+	DevMode *bool `json:"devMode,omitempty"`
+	// Polling interval for GraphQL subscriptions.
+	SubscriptionPollInterval *string `json:"subscriptionPollInterval,omitempty"`
+}
+
+type ConfigConstellationSettingsUpdateInput struct {
+	CorsAllowedOrigins       []string `json:"corsAllowedOrigins,omitempty"`
+	Debug                    *bool    `json:"debug,omitempty"`
+	DevMode                  *bool    `json:"devMode,omitempty"`
+	SubscriptionPollInterval *string  `json:"subscriptionPollInterval,omitempty"`
+}
+
+type ConfigConstellationUpdateInput struct {
+	Settings *ConfigConstellationSettingsUpdateInput `json:"settings,omitempty"`
+	Version  *string                                 `json:"version,omitempty"`
 }
 
 type ConfigEnvironmentVariable struct {
@@ -667,6 +704,14 @@ type ConfigEnvironmentVariableInsertInput struct {
 type ConfigEnvironmentVariableUpdateInput struct {
 	Name  *string `json:"name,omitempty"`
 	Value *string `json:"value,omitempty"`
+}
+
+type ConfigExperimental struct {
+	Constellation *ConfigConstellation `json:"constellation,omitempty"`
+}
+
+type ConfigExperimentalUpdateInput struct {
+	Constellation *ConfigConstellationUpdateInput `json:"constellation,omitempty"`
 }
 
 // Configuration for functions service
@@ -1351,13 +1396,14 @@ type ConfigSmsUpdateInput struct {
 }
 
 type ConfigSMTP struct {
-	Host     string `json:"host"`
-	Method   string `json:"method"`
-	Password string `json:"password"`
-	Port     uint32 `json:"port"`
-	Secure   bool   `json:"secure"`
-	Sender   string `json:"sender"`
-	User     string `json:"user"`
+	Host     *string `json:"host,omitempty"`
+	Method   *string `json:"method,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Port     *uint32 `json:"port,omitempty"`
+	Secure   *bool   `json:"secure,omitempty"`
+	Sender   *string `json:"sender,omitempty"`
+	// these are needed for backwards compatibility, they're actually ignored
+	User *string `json:"user,omitempty"`
 }
 
 type ConfigSMTPUpdateInput struct {
@@ -5991,9 +6037,8 @@ func (e CheckoutStatus) MarshalJSON() ([]byte, error) {
 //
 // Not every combination is meaningful:
 //   - `INVOCATIONS + AVG` is rejected at runtime (the ratio is always 1).
-//   - `MAX` and `MIN` are only supported by `getFunctionsInstantMetric`. They
-//     evaluate over the whole `from`/`to` window. The range resolver rejects them
-//     because the lookback window is not yet configurable.
+//   - `MAX`/`MIN` use `[$__range:]` as the outer subquery window in both
+//     resolvers, so the peak/trough is taken over the full selected range.
 type FunctionsAggregate string
 
 const (

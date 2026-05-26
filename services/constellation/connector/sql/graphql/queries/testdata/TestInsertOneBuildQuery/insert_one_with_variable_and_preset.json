@@ -1,0 +1,20 @@
+[
+  {
+    "Name": "insertFile",
+    "QueryType": "insert_one",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::text AS \"bucket_id\", $2::text AS \"etag\", $3::uuid AS \"id\", $4::bool AS \"is_uploaded\", $5::text AS \"mime_type\", $6::text AS \"name\", $7::int4 AS \"size\", $8::uuid AS \"uploaded_by_user_id\") AS data WHERE data.\"bucket_id\" = ANY($9::text[])), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (INSERT INTO \"storage\".\"files\" (\"bucket_id\", \"etag\", \"id\", \"is_uploaded\", \"mime_type\", \"name\", \"size\", \"uploaded_by_user_id\") SELECT check_mutation_result.\"bucket_id\", check_mutation_result.\"etag\", check_mutation_result.\"id\", check_mutation_result.\"is_uploaded\", check_mutation_result.\"mime_type\", check_mutation_result.\"name\", check_mutation_result.\"size\", check_mutation_result.\"uploaded_by_user_id\" FROM check_mutation_result WHERE (SELECT status FROM check_count) = 1 RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"bucket_id\" AS \"bucketId\", mutation_result.\"name\" AS \"name\", mutation_result.\"uploaded_by_user_id\" AS \"uploadedByUserId\") AS \"_e\")) FROM mutation_result",
+    "Parameters": [
+      "profile_pics",
+      "jkl012",
+      "44444444-4444-4444-4444-444444444444",
+      true,
+      "text/plain",
+      "variable-file.txt",
+      256,
+      "550e8400-e29b-41d4-a716-446655440003",
+      [
+        "profile_pics"
+      ]
+    ]
+  }
+]
