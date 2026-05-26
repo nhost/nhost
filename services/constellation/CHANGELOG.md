@@ -1,3 +1,9 @@
+## [constellation@0.3.1] - 2026-05-26
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Nested array inserts with parent-referencing perms (#4370)
+
 ## [constellation@0.3.0] - 2026-05-26
 
 ### 🚀 Features
