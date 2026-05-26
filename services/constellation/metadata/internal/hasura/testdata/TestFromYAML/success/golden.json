@@ -66,7 +66,9 @@
               "name": "userProviders",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "provider_id",
+                  "columns": [
+                    "provider_id"
+                  ],
                   "table": {
                     "name": "user_providers",
                     "schema": "auth"
@@ -109,7 +111,9 @@
               "name": "refreshTokens",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "type",
+                  "columns": [
+                    "type"
+                  ],
                   "table": {
                     "name": "refresh_tokens",
                     "schema": "auth"
@@ -156,7 +160,9 @@
             {
               "name": "user",
               "using": {
-                "foreign_key_column": "user_id"
+                "foreign_key_columns": [
+                  "user_id"
+                ]
               }
             }
           ],
@@ -231,7 +237,9 @@
               "name": "userRoles",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "role",
+                  "columns": [
+                    "role"
+                  ],
                   "table": {
                     "name": "user_roles",
                     "schema": "auth"
@@ -243,7 +251,9 @@
               "name": "usersByDefaultRole",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "default_role",
+                  "columns": [
+                    "default_role"
+                  ],
                   "table": {
                     "name": "users",
                     "schema": "auth"
@@ -302,13 +312,17 @@
             {
               "name": "provider",
               "using": {
-                "foreign_key_column": "provider_id"
+                "foreign_key_columns": [
+                  "provider_id"
+                ]
               }
             },
             {
               "name": "user",
               "using": {
-                "foreign_key_column": "user_id"
+                "foreign_key_columns": [
+                  "user_id"
+                ]
               }
             }
           ],
@@ -366,13 +380,17 @@
             {
               "name": "roleByRole",
               "using": {
-                "foreign_key_column": "role"
+                "foreign_key_columns": [
+                  "role"
+                ]
               }
             },
             {
               "name": "user",
               "using": {
-                "foreign_key_column": "user_id"
+                "foreign_key_columns": [
+                  "user_id"
+                ]
               }
             }
           ]
@@ -414,7 +432,9 @@
             {
               "name": "user",
               "using": {
-                "foreign_key_column": "user_id"
+                "foreign_key_columns": [
+                  "user_id"
+                ]
               }
             }
           ],
@@ -545,13 +565,17 @@
             {
               "name": "defaultRoleByRole",
               "using": {
-                "foreign_key_column": "default_role"
+                "foreign_key_columns": [
+                  "default_role"
+                ]
               }
             },
             {
               "name": "role",
               "using": {
-                "foreign_key_column": "default_role"
+                "foreign_key_columns": [
+                  "default_role"
+                ]
               }
             }
           ],
@@ -560,7 +584,9 @@
               "name": "apps",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "creator_user_id",
+                  "columns": [
+                    "creator_user_id"
+                  ],
                   "table": {
                     "name": "apps",
                     "schema": "public"
@@ -600,7 +626,9 @@
               "name": "github_app_installations",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+                    "user_id"
+                  ],
                   "table": {
                     "name": "github_app_installations",
                     "schema": "public"
@@ -612,7 +640,9 @@
               "name": "organizationMembership",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+                    "user_id"
+                  ],
                   "table": {
                     "name": "organization_members",
                     "schema": "public"
@@ -624,7 +654,9 @@
               "name": "payment_methods",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "added_by_user_id",
+                  "columns": [
+                    "added_by_user_id"
+                  ],
                   "table": {
                     "name": "payment_methods",
                     "schema": "public"
@@ -636,7 +668,9 @@
               "name": "refreshTokens",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+                    "user_id"
+                  ],
                   "table": {
                     "name": "refresh_tokens",
                     "schema": "auth"
@@ -648,7 +682,9 @@
               "name": "roles",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+                    "user_id"
+                  ],
                   "table": {
                     "name": "user_roles",
                     "schema": "auth"
@@ -660,7 +696,9 @@
               "name": "securityKeys",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+                    "user_id"
+                  ],
                   "table": {
                     "name": "user_security_keys",
                     "schema": "auth"
@@ -672,7 +710,9 @@
               "name": "userProviders",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "user_id",
+                  "columns": [
+                    "user_id"
+                  ],
                   "table": {
                     "name": "user_providers",
                     "schema": "auth"
@@ -684,7 +724,9 @@
               "name": "workspaceMemberInvitesByInvitedByUserId",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "invited_by_user_id",
+                  "columns": [
+                    "invited_by_user_id"
+                  ],
                   "table": {
                     "name": "workspace_member_invites",
                     "schema": "public"
@@ -710,7 +752,9 @@
               "name": "workspace_member_invites",
               "using": {
                 "foreign_key_constraint": {
-                  "column": "email",
+                  "columns": [
+                    "email"
+                  ],
                   "table": {
                     "name": "workspace_member_invites",
                     "schema": "public"

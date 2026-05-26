@@ -16,7 +16,7 @@ import (
 // arguments.Table.Relationship has a different name from
 // where.Table.RelationshipFromGraphqlName specifically so a single *table can
 // satisfy both interfaces (Go does not allow covariant return types).
-// arguments.Relationship's methods (Name, TargetTable, FKColumn, IsArray)
+// arguments.Relationship's methods (Name, TargetTable, FKColumns, IsArray)
 // don't collide with where.Relationship (Target, ParentColumns,
 // WriteJoinConditionAliased), so *relationship satisfies both directly.
 
@@ -69,7 +69,7 @@ func (t *table) ParseWhere(
 // TargetTable returns a nil interface for remote/remote-schema relationships
 // that have no local target table, avoiding the typed-nil-through-interface
 // trap.
-func (r *relationship) TargetTable() arguments.Table { //nolint:ireturn
+func (r *relationship) TargetTable() arguments.Table { //nolint:ireturn,nolintlint
 	if r.table == nil {
 		return nil
 	}
@@ -77,6 +77,6 @@ func (r *relationship) TargetTable() arguments.Table { //nolint:ireturn
 	return r.table
 }
 
-func (r *relationship) FKColumn() string { return r.fkColumn }
+func (r *relationship) FKColumns() []string { return r.fkColumns }
 
 func (r *relationship) IsArray() bool { return r.isArray }

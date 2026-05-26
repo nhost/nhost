@@ -67,9 +67,7 @@ func (r *relationshipFilter) WriteCondition(
 // parseExists parses an _exists operator value into an existsFilter.
 // _exists targets a sibling table by (schema, name) and applies a where clause
 // against it. When _table.schema is omitted, t's schema is used.
-//
-//nolint:funlen,ireturn // ireturn: returns Statement to keep existsFilter unexported.
-func parseExists(
+func parseExists( //nolint:funlen,ireturn,nolintlint
 	t Table,
 	value *ast.Value,
 	variables map[string]any,

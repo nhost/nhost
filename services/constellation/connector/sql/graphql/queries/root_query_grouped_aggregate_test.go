@@ -108,6 +108,65 @@ func TestGroupedAggregateBuildQuery(t *testing.T) { //nolint:paralleltest
 					}
 				}`,
 		},
+		// __typename at the outer grouped-aggregate scope. Exercises the
+		// writeGroupedAggregateOuter emission of outer typenames into the
+		// per-group json_build_object.
+		{
+			name:              "typename_outer",
+			tableSchema:       "public",
+			tableName:         "user_departments",
+			joinColumnSQLName: "user_id",
+			joinValues:        []any{testUser1, testUser2, testUserMissing},
+			query: `
+				query {
+					_root {
+						__typename
+						aggregate { count }
+					}
+				}`,
+		},
+		// __typename inside aggregate { ... } scope. Exercises the same
+		// aggregate-fields collector reached via the grouped path.
+		{
+			name:              "typename_in_aggregate_fields",
+			tableSchema:       "public",
+			tableName:         "user_departments",
+			joinColumnSQLName: "user_id",
+			joinValues:        []any{testUser1, testUser2, testUserMissing},
+			query: `
+				query {
+					_root {
+						aggregate {
+							__typename
+							count
+						}
+					}
+				}`,
+		},
+		// __typename inside an aggregate function scope (max). user_departments
+		// has no numeric columns suitable for sum/avg, so we use max over the
+		// text "role" column.
+		{
+			name:              "typename_in_function_scope",
+			tableSchema:       "public",
+			tableName:         "user_departments",
+			joinColumnSQLName: "user_id",
+			joinValues:        []any{testUser1, testUser2, testUserMissing},
+			query: `
+				query {
+					_root {
+						__typename
+						aggregate {
+							__typename
+							count
+							max {
+								__typename
+								role
+							}
+						}
+					}
+				}`,
+		},
 		{
 			name:              "limit_rejected",
 			tableSchema:       "public",

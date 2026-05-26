@@ -74,7 +74,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	sourceRef string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
-	aggregateSel, nodesField, err := t.astToAggregateSelection(field, fragments)
+	outerTypenames, aggregateSel, nodesField, err := t.astToAggregateSelection(field, fragments)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -151,8 +151,26 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	b.WriteString(t.dialect.JSONBuildObject())
 	b.WriteByte('(')
 
+	firstOuter := true
+
+	for i := range outerTypenames {
+		if !firstOuter {
+			b.WriteString(", ")
+		}
+
+		outerTypenames[i].Write(b)
+
+		firstOuter = false
+	}
+
 	// Add aggregate functions if requested
 	if len(aggregateSel) > 0 {
+		if !firstOuter {
+			b.WriteString(", ")
+		}
+
+		firstOuter = false
+
 		b.WriteString("'aggregate', (SELECT ")
 		b.WriteString(t.dialect.JSONBuildObject())
 		b.WriteByte('(')
@@ -180,10 +198,10 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 			roots,
 			params,
 			paramIndex,
-			aggregateSel,
 			distinctOn,
 			nodesField,
 			baseAlias,
+			!firstOuter,
 		)
 		if err != nil {
 			return nil, 0, err
@@ -206,12 +224,12 @@ func (t *table) writeAggregateNodes(
 	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
-	aggregateSel []aggregateQuerySelection,
 	distinctOn *arguments.DistinctOn,
 	nodesField *ast.Field,
 	baseAlias string,
+	hasPrecedingFields bool,
 ) ([]any, int, error) {
-	if len(aggregateSel) > 0 {
+	if hasPrecedingFields {
 		b.WriteString(", ")
 	}
 

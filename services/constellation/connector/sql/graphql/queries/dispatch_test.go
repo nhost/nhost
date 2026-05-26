@@ -301,7 +301,7 @@ func TestBuildGroupedAggregate_NestedRelationshipsRejected(t *testing.T) {
 					{
 						Name: "user",
 						Using: metadata.RelationshipUsing{
-							ForeignKeyColumn: "user_id",
+							ForeignKeyColumns: []string{"user_id"},
 						},
 					},
 				},

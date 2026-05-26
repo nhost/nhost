@@ -20,6 +20,12 @@ import (
 // referenced by meta. Each connector name maps to the cross-connector
 // relationships it exposes; local same-database relationships are filtered
 // out because the planner only cares about cross-connector traversals.
+//
+// Databases without a surviving connector are silently skipped: their source
+// is already recorded as inconsistent, and forDatabase would otherwise
+// dereference the missing connector for GetTypeName and panic. The
+// remote-schema branch never reaches into its connector, so it does not
+// need the same guard.
 func FromMetadata(
 	meta *metadata.Metadata,
 	connectors map[string]connector.Connector,
@@ -27,7 +33,12 @@ func FromMetadata(
 	result := make(map[string][]*planner.RelationshipMetadata)
 
 	for _, db := range meta.Databases {
-		result[db.Name] = append(result[db.Name], forDatabase(db, connectors[db.Name])...)
+		dbConn, ok := connectors[db.Name]
+		if !ok || dbConn == nil {
+			continue
+		}
+
+		result[db.Name] = append(result[db.Name], forDatabase(db, dbConn)...)
 	}
 
 	for _, rs := range meta.RemoteSchemas {

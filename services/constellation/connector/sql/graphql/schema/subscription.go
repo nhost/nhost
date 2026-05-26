@@ -17,6 +17,7 @@ func generateTableSubscriptionFields(
 	qualifiedName string,
 	allowedColumns map[string]struct{},
 	role string,
+	md *metadata.DatabaseMetadata,
 	caps Capabilities,
 ) {
 	// Collection subscription
@@ -30,7 +31,7 @@ func generateTableSubscriptionFields(
 		allPKColumnsAllowed(tableInfo.PrimaryKeys, allowedColumns) {
 		*subscriptionFields = append(
 			*subscriptionFields,
-			generateByPkField(tableMeta, tableInfo, customTableName, qualifiedName),
+			generateByPkField(tableMeta, tableInfo, customTableName, qualifiedName, md),
 		)
 	}
 

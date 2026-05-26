@@ -218,16 +218,22 @@ func Open(ctx context.Context, connStr string) (DB, error) { //nolint:ireturn,no
 
 // New creates a SQLite-backed sql.Connector — convenience for
 // Open + NewClient + csql.NewConnector for callers who just want the full
-// connector wired up from a connection string.
+// connector wired up from a connection string. inconsistencies receives per-
+// table / per-column / per-function reconciliation entries (pass nil to drop
+// them on the floor).
 func New(
-	ctx context.Context, connStr string, dbMeta *metadata.DatabaseMetadata,
+	ctx context.Context,
+	connStr string,
+	dbMeta *metadata.DatabaseMetadata,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
 ) (*csql.Connector, error) {
 	db, err := Open(ctx, connStr)
 	if err != nil {
 		return nil, fmt.Errorf("creating sqlite client: %w", err)
 	}
 
-	c, err := csql.NewConnector(ctx, NewClient(db), dbMeta)
+	c, err := csql.NewConnector(ctx, NewClient(db), dbMeta, inconsistencies, logger)
 	if err != nil {
 		return nil, errors.Join(
 			fmt.Errorf("creating sql connector: %w", err),

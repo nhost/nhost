@@ -19,6 +19,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/internal/lib/testdb"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testhelpers"
 	"github.com/nhost/nhost/services/constellation/metadata"
+	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
 	"go.uber.org/mock/gomock"
 )
@@ -31,6 +32,29 @@ var (
 )
 
 var update = flag.Bool("update", false, "update golden files") //nolint:gochecknoglobals
+
+// stubConnector is a no-op Connector used by the customization-failure tests
+// so applyCustomization is reached without needing a real factory. None of
+// its methods get called in those paths — applyCustomization rejects the
+// configuration before the connector is exercised.
+type stubConnector struct{}
+
+func (stubConnector) GetSchema() (map[string]*graph.Schema, error) { return nil, nil } //nolint:nilnil
+
+func (stubConnector) Execute(
+	context.Context,
+	*ast.OperationDefinition,
+	ast.FragmentDefinitionList,
+	map[string]any,
+	string,
+	map[string]any,
+	*slog.Logger,
+) (map[string]any, error) {
+	return nil, nil //nolint:nilnil
+}
+
+func (stubConnector) GetTypeName(string) string { return "" }
+func (stubConnector) Close()                    {}
 
 func TestBuildConnectorsFromMetadata(t *testing.T) {
 	ddl, err := os.ReadFile("testdata/pg_schema.sql")
@@ -118,7 +142,7 @@ func TestBuildConnectorsFromMetadata(t *testing.T) {
 	}
 }
 
-func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
+func TestBuildConnectorsFromMetadata_InconsistencyBranches(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.Default()
@@ -126,6 +150,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 	cases := []struct {
 		name     string
 		meta     *metadata.Metadata
+		wantKind string
+		wantName string
 		wantSub  string
 		setupEnv map[string]string
 	}{
@@ -147,6 +173,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "weird",
 			wantSub:  "unsupported database kind: oracle",
 			setupEnv: nil,
 		},
@@ -168,6 +196,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
 			wantSub:  `database URL is not set for database default`,
 			setupEnv: nil,
 		},
@@ -189,6 +219,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
 			wantSub:  "resolving database URL for default",
 			setupEnv: nil,
 		},
@@ -210,6 +242,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
 			wantSub:  "database URL is not set for database default",
 			setupEnv: nil,
 		},
@@ -231,6 +265,8 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
 			wantSub:  "resolving database URL for default",
 			setupEnv: nil,
 		},
@@ -254,7 +290,9 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 					},
 				},
 			},
-			wantSub:  "failed to create remote schema connector for rs",
+			wantKind: metadata.InconsistencyKindRemoteSchema,
+			wantName: "rs",
+			wantSub:  "failed to create remote schema connector",
 			setupEnv: nil,
 		},
 	}
@@ -267,13 +305,42 @@ func TestBuildConnectorsFromMetadata_ErrorBranches(t *testing.T) {
 				t.Setenv(k, v)
 			}
 
-			_, err := connector.BuildConnectorsFromMetadata(t.Context(), tc.meta, logger)
-			if err == nil {
-				t.Fatalf("expected error, got nil")
+			built, err := connector.BuildConnectorsFromMetadata(
+				t.Context(), tc.meta, logger,
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
 
-			if !strings.Contains(err.Error(), tc.wantSub) {
-				t.Fatalf("error %q does not contain %q", err.Error(), tc.wantSub)
+			snapshot := built.Inconsistencies
+			if len(snapshot) != 1 {
+				t.Fatalf(
+					"expected 1 inconsistency, got %d: %+v",
+					len(snapshot), snapshot,
+				)
+			}
+
+			got := snapshot[0]
+			if got.Kind != tc.wantKind {
+				t.Errorf("kind = %q, want %q", got.Kind, tc.wantKind)
+			}
+
+			if got.Name != tc.wantName {
+				t.Errorf("name = %q, want %q", got.Name, tc.wantName)
+			}
+
+			if !strings.Contains(got.Reason, tc.wantSub) {
+				t.Errorf(
+					"reason %q does not contain %q",
+					got.Reason, tc.wantSub,
+				)
+			}
+
+			if len(built.Connectors) != 0 {
+				t.Errorf(
+					"expected no surviving connectors, got %v",
+					built.Connectors,
+				)
 			}
 		})
 	}
@@ -352,7 +419,12 @@ func TestBuildConnectorsFromMetadata_InjectedFactories(t *testing.T) {
 		gotDBKind string
 		gotDBName string
 		gotRSName string
-		dbFactory = func(_ context.Context, dbMeta *metadata.DatabaseMetadata) (connector.Connector, error) {
+		dbFactory = func(
+			_ context.Context,
+			dbMeta *metadata.DatabaseMetadata,
+			_ *metadata.Inconsistencies,
+			_ *slog.Logger,
+		) (connector.Connector, error) {
 			gotDBKind = dbMeta.Kind
 			gotDBName = dbMeta.Name
 
@@ -416,16 +488,19 @@ func TestBuildConnectorsFromMetadata_InjectedFactories(t *testing.T) {
 	}
 }
 
-// TestBuildConnectorsFromMetadata_FactoryErrors exercises the error
-// propagation from both factory paths via injection.
-func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
+// TestBuildConnectorsFromMetadata_FactoryInconsistencies verifies that
+// factory failures from both paths are recorded as inconsistencies and skipped
+// rather than aborting the build.
+func TestBuildConnectorsFromMetadata_FactoryInconsistencies(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name    string
-		meta    *metadata.Metadata
-		opts    []connector.Option
-		wantSub string
+		name     string
+		meta     *metadata.Metadata
+		opts     []connector.Option
+		wantKind string
+		wantName string
+		wantSub  string
 	}{
 		{
 			name: "db_factory_error",
@@ -443,12 +518,19 @@ func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
 			},
 			opts: []connector.Option{
 				connector.WithDBFactories(map[string]connector.DBFactory{
-					"postgres": func(_ context.Context, _ *metadata.DatabaseMetadata) (connector.Connector, error) {
+					"postgres": func(
+						_ context.Context,
+						_ *metadata.DatabaseMetadata,
+						_ *metadata.Inconsistencies,
+						_ *slog.Logger,
+					) (connector.Connector, error) {
 						return nil, errFactoryBoom
 					},
 				}),
 			},
-			wantSub: "boom",
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
+			wantSub:  "boom",
 		},
 		{
 			name: "remote_schema_factory_error",
@@ -471,7 +553,81 @@ func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
 					},
 				),
 			},
-			wantSub: "failed to create remote schema connector for rs",
+			wantKind: metadata.InconsistencyKindRemoteSchema,
+			wantName: "rs",
+			wantSub:  "failed to create remote schema connector",
+		},
+		{
+			// The database factory returns a usable Connector, but the
+			// source metadata declares a per-type FieldNames customization
+			// that newCustomizedConnector rejects. The whole source is
+			// recorded as an inconsistency and dropped.
+			name: "db_customization_error",
+			meta: &metadata.Metadata{
+				RemoteSchemas: nil,
+				Databases: []metadata.DatabaseMetadata{
+					{
+						Name: "default",
+						Kind: "postgres",
+						Customization: metadata.Customization{
+							FieldNames: []metadata.FieldNameCustomization{
+								{ParentType: "users", Prefix: "x_"},
+							},
+						},
+						Configuration: metadata.DatabaseConfiguration{},
+						Tables:        nil,
+						Functions:     nil,
+					},
+				},
+			},
+			opts: []connector.Option{
+				connector.WithDBFactories(map[string]connector.DBFactory{
+					"postgres": func(
+						_ context.Context,
+						_ *metadata.DatabaseMetadata,
+						_ *metadata.Inconsistencies,
+						_ *slog.Logger,
+					) (connector.Connector, error) {
+						return stubConnector{}, nil
+					},
+				}),
+			},
+			wantKind: metadata.InconsistencyKindDatabase,
+			wantName: "default",
+			wantSub:  "per-type field_names customization is not supported",
+		},
+		{
+			// Same trick on the remote-schema side: the factory returns a
+			// usable Connector but the customization config is rejected.
+			name: "remote_schema_customization_error",
+			meta: &metadata.Metadata{
+				Databases: nil,
+				RemoteSchemas: []metadata.RemoteSchemaMetadata{
+					{
+						Name: "rs",
+						Definition: metadata.RemoteSchemaDefinition{
+							Customization: metadata.Customization{
+								FieldNames: []metadata.FieldNameCustomization{
+									{ParentType: "Query", Prefix: "x_"},
+								},
+							},
+						},
+						Comment:             "",
+						Permissions:         nil,
+						RemoteRelationships: nil,
+					},
+				},
+			},
+			opts: []connector.Option{
+				connector.WithRemoteSchemaFactory(
+					func(_ context.Context, _ *metadata.RemoteSchemaMetadata) (connector.Connector, error) {
+						return stubConnector{}, nil
+					},
+				),
+			},
+			wantKind: metadata.InconsistencyKindRemoteSchema,
+			wantName: "rs",
+			wantSub:  "per-type field_names customization is not supported",
 		},
 	}
 
@@ -479,15 +635,38 @@ func TestBuildConnectorsFromMetadata_FactoryErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := connector.BuildConnectorsFromMetadata(
+			built, err := connector.BuildConnectorsFromMetadata(
 				t.Context(), tc.meta, slog.Default(), tc.opts...,
 			)
-			if err == nil {
-				t.Fatal("expected error")
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
 
-			if !strings.Contains(err.Error(), tc.wantSub) {
-				t.Fatalf("error %q does not contain %q", err.Error(), tc.wantSub)
+			snapshot := built.Inconsistencies
+			if len(snapshot) != 1 {
+				t.Fatalf(
+					"expected 1 inconsistency, got %d: %+v",
+					len(snapshot), snapshot,
+				)
+			}
+
+			got := snapshot[0]
+			if got.Kind != tc.wantKind || got.Name != tc.wantName {
+				t.Errorf(
+					"kind/name = %q/%q, want %q/%q",
+					got.Kind, got.Name, tc.wantKind, tc.wantName,
+				)
+			}
+
+			if !strings.Contains(got.Reason, tc.wantSub) {
+				t.Errorf(
+					"reason %q does not contain %q",
+					got.Reason, tc.wantSub,
+				)
+			}
+
+			if len(built.Connectors) != 0 {
+				t.Errorf("expected no surviving connectors, got %v", built.Connectors)
 			}
 		})
 	}

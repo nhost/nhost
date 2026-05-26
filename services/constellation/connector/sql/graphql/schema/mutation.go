@@ -10,6 +10,15 @@ import (
 )
 
 // generateTableMutationFields generates mutation fields for a table.
+//
+// Views participate in the schema as read-or-write relations depending on
+// what the database itself allows. Postgres exposes that decision via
+// information_schema.views.is_insertable_into / is_updatable; SQLite views
+// are read-only unless an INSTEAD OF trigger exists (we conservatively treat
+// every SQLite view as read-only). The IsInsertable / IsUpdatable flags on
+// tableInfo capture those decisions and gate the corresponding mutations —
+// even for admin, since admin's "unconditional CRUD" is itself conditional
+// on the database accepting the write.
 func generateTableMutationFields(
 	mutationFields *[]*graph.Field,
 	tableMeta *metadata.TableMetadata,
@@ -17,65 +26,110 @@ func generateTableMutationFields(
 	customTableName string,
 	qualifiedName string,
 	role string,
+	md *metadata.DatabaseMetadata,
 ) {
-	if role == roleAdmin || getDeletePermission(tableMeta, role) != nil {
-		if len(tableInfo.PrimaryKeys) > 0 {
-			*mutationFields = append(
-				*mutationFields,
-				generateDeleteByPkField(tableMeta, tableInfo, customTableName, qualifiedName),
-			)
-		}
+	// DELETE is intentionally gated on IsUpdatable. Postgres exposes
+	// is_trigger_deletable independently of is_updatable, so an INSTEAD OF
+	// trigger view can in principle be delete-only — but those are rare and
+	// would need a dedicated introspection signal to surface here. Until we
+	// add one, treat updatable-implies-deletable as the safe approximation:
+	// it correctly covers ordinary tables and simple (non-trigger) views.
+	if tableInfo.IsUpdatable &&
+		(role == roleAdmin || getDeletePermission(tableMeta, role) != nil) {
+		appendDeleteFields(mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, md)
+	}
 
+	if tableInfo.IsInsertable &&
+		(role == roleAdmin || getInsertPermission(tableMeta, role) != nil) {
+		appendInsertFields(mutationFields, tableMeta, tableInfo, customTableName, qualifiedName)
+	}
+
+	if tableInfo.IsUpdatable &&
+		(role == roleAdmin || getUpdatePermission(tableMeta, role) != nil) {
+		appendUpdateFields(
+			mutationFields,
+			tableMeta,
+			tableInfo,
+			customTableName,
+			qualifiedName,
+			role,
+		)
+	}
+}
+
+func appendDeleteFields(
+	mutationFields *[]*graph.Field,
+	tableMeta *metadata.TableMetadata,
+	tableInfo *introspection.Table,
+	customTableName string,
+	qualifiedName string,
+	md *metadata.DatabaseMetadata,
+) {
+	if len(tableInfo.PrimaryKeys) > 0 {
 		*mutationFields = append(
 			*mutationFields,
-			generateDeleteManyField(tableMeta, customTableName, qualifiedName),
+			generateDeleteByPkField(tableMeta, tableInfo, customTableName, qualifiedName, md),
 		)
 	}
 
-	if role == roleAdmin || getInsertPermission(tableMeta, role) != nil {
-		hasConstraints := len(tableInfo.PrimaryKeys) > 0 || len(tableInfo.UniqueConstraints) > 0
+	*mutationFields = append(
+		*mutationFields,
+		generateDeleteManyField(tableMeta, customTableName, qualifiedName),
+	)
+}
 
+func appendInsertFields(
+	mutationFields *[]*graph.Field,
+	tableMeta *metadata.TableMetadata,
+	tableInfo *introspection.Table,
+	customTableName string,
+	qualifiedName string,
+) {
+	hasConstraints := len(tableInfo.PrimaryKeys) > 0 || len(tableInfo.UniqueConstraints) > 0
+
+	*mutationFields = append(
+		*mutationFields,
+		generateInsertOneField(tableMeta, customTableName, qualifiedName, hasConstraints),
+		generateInsertManyField(tableMeta, customTableName, qualifiedName, hasConstraints),
+	)
+}
+
+// appendUpdateFields skips emission entirely when the role's update permission
+// restricts every column away — an empty allowed-columns set leaves the role
+// without any updatable fields, so emitting the update root field would
+// produce an unusable mutation.
+func appendUpdateFields(
+	mutationFields *[]*graph.Field,
+	tableMeta *metadata.TableMetadata,
+	tableInfo *introspection.Table,
+	customTableName string,
+	qualifiedName string,
+	role string,
+) {
+	updateAllowedColumns := getUpdateAllowedColumns(tableMeta, tableInfo, role)
+	if len(updateAllowedColumns) == 0 {
+		return
+	}
+
+	hasJSONB := hasJSONBColumns(tableInfo, updateAllowedColumns)
+	hasIncrement := hasIncrementColumns(tableInfo, updateAllowedColumns)
+
+	if len(tableInfo.PrimaryKeys) > 0 {
 		*mutationFields = append(
 			*mutationFields,
-			generateInsertOneField(tableMeta, customTableName, qualifiedName, hasConstraints),
-		)
-
-		*mutationFields = append(
-			*mutationFields,
-			generateInsertManyField(tableMeta, customTableName, qualifiedName, hasConstraints),
+			generateUpdateByPkField(
+				tableMeta, customTableName, qualifiedName, hasJSONB, hasIncrement,
+			),
 		)
 	}
 
-	if role == roleAdmin || getUpdatePermission(tableMeta, role) != nil {
-		updateAllowedColumns := getUpdateAllowedColumns(tableMeta, tableInfo, role)
-
-		// An update permission with empty columns: leave the role with no update fields.
-		if len(updateAllowedColumns) > 0 {
-			hasJSONB := hasJSONBColumns(tableInfo, updateAllowedColumns)
-			hasIncrement := hasIncrementColumns(tableInfo, updateAllowedColumns)
-
-			if len(tableInfo.PrimaryKeys) > 0 {
-				*mutationFields = append(
-					*mutationFields,
-					generateUpdateByPkField(
-						tableMeta, customTableName, qualifiedName, hasJSONB, hasIncrement,
-					),
-				)
-			}
-
-			*mutationFields = append(
-				*mutationFields,
-				generateUpdateManyField(
-					tableMeta, customTableName, qualifiedName, hasJSONB, hasIncrement,
-				),
-			)
-
-			*mutationFields = append(
-				*mutationFields,
-				generateUpdateManyBatchField(tableMeta, customTableName, qualifiedName),
-			)
-		}
-	}
+	*mutationFields = append(
+		*mutationFields,
+		generateUpdateManyField(
+			tableMeta, customTableName, qualifiedName, hasJSONB, hasIncrement,
+		),
+		generateUpdateManyBatchField(tableMeta, customTableName, qualifiedName),
+	)
 }
 
 // generateTableMutationInputTypes generates all mutation input types for a table.
@@ -86,6 +140,7 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 	customTableName string,
 	qualifiedName string,
 	md *metadata.DatabaseMetadata,
+	objects *introspection.Objects,
 	role string,
 	tablesWithObjRelInsert map[string]struct{},
 	tablesWithArrRelInsert map[string]struct{},
@@ -114,7 +169,9 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 	_, hasArrRel := tablesWithArrRelInsert[customTableName]
 
 	insertAllowedColumns := getInsertAllowedColumns(tableMeta, tableInfo, role)
-	if role == roleAdmin || getInsertPermission(tableMeta, role) != nil || hasObjRel || hasArrRel {
+	if tableInfo.IsInsertable &&
+		(role == roleAdmin || getInsertPermission(tableMeta, role) != nil ||
+			hasObjRel || hasArrRel) {
 		generateInsertInput(
 			schema,
 			tableMeta,
@@ -123,29 +180,34 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 			qualifiedName,
 			insertAllowedColumns,
 			md,
+			objects,
 			role,
 		)
 	}
 
 	updateAllowedColumns := getUpdateAllowedColumns(tableMeta, tableInfo, role)
-	generateJSONBInputTypes(schema, tableMeta, tableInfo, customTableName, updateAllowedColumns)
-	generateIncInput(
-		schema, tableMeta, tableInfo, customTableName, qualifiedName, updateAllowedColumns, md,
-	)
+	if tableInfo.IsUpdatable {
+		generateJSONBInputTypes(schema, tableMeta, tableInfo, customTableName, updateAllowedColumns)
+		generateIncInput(
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, updateAllowedColumns, md,
+		)
+	}
 
-	if role == roleAdmin || getInsertPermission(tableMeta, role) != nil {
+	if tableInfo.IsInsertable &&
+		(role == roleAdmin || getInsertPermission(tableMeta, role) != nil) {
 		generateOnConflictTypes(
 			schema, tableInfo, customTableName, qualifiedName,
 		)
 	}
 
-	if (role == roleAdmin || getUpdatePermission(tableMeta, role) != nil) &&
+	if tableInfo.IsUpdatable &&
+		(role == roleAdmin || getUpdatePermission(tableMeta, role) != nil) &&
 		len(updateAllowedColumns) > 0 {
 		hasJSONB := hasJSONBColumns(tableInfo, updateAllowedColumns)
 		hasIncrement := hasIncrementColumns(tableInfo, updateAllowedColumns)
 
 		if len(tableInfo.PrimaryKeys) > 0 {
-			generatePkColumnsInput(schema, tableMeta, tableInfo, customTableName, qualifiedName)
+			generatePkColumnsInput(schema, tableMeta, tableInfo, customTableName, qualifiedName, md)
 		}
 
 		generateSetInput(
@@ -155,7 +217,8 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 		generateUpdatesInput(schema, customTableName, hasJSONB, hasIncrement)
 	}
 
-	if role == roleAdmin || getInsertPermission(tableMeta, role) != nil {
+	if tableInfo.IsInsertable &&
+		(role == roleAdmin || getInsertPermission(tableMeta, role) != nil) {
 		hasConstraints := len(tableInfo.PrimaryKeys) > 0 || len(tableInfo.UniqueConstraints) > 0
 
 		// _update_column enum is only referenced by _on_conflict.update_columns,
@@ -273,18 +336,18 @@ func generatePkColumnsInput(
 	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
+	md *metadata.DatabaseMetadata,
 ) {
 	fields := []*graph.InputField{}
 
 	for _, pkColName := range tableInfo.PrimaryKeys {
-		for _, col := range tableInfo.Columns {
-			if col.Name == pkColName {
-				// PK columns are non-null.
-				colType := postgresTypeToGraphQL(col.Type, false)
+		for i := range tableInfo.Columns {
+			if tableInfo.Columns[i].Name == pkColName {
+				colType := getColumnGraphQLTypePKArg(&tableInfo.Columns[i], tableInfo, md)
 
 				fields = append(fields, &graph.InputField{ //nolint:exhaustruct
 					Name:        getCustomColumnName(tableMeta, pkColName),
-					Description: getColumnDescription(&col),
+					Description: getColumnDescription(&tableInfo.Columns[i]),
 					Type:        colType,
 				})
 
