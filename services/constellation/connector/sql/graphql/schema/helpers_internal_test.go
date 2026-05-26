@@ -447,8 +447,8 @@ func TestIsObjectRelationshipNullable(t *testing.T) {
 			name: "reverse FK is always nullable",
 			using: metadata.RelationshipUsing{
 				ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-					Table:  metadata.TableSource{Schema: "public", Name: "posts"},
-					Column: "",
+					Table:   metadata.TableSource{Schema: "public", Name: "posts"},
+					Columns: nil,
 				},
 			},
 			tableInfo: &introspection.Table{},
@@ -457,7 +457,7 @@ func TestIsObjectRelationshipNullable(t *testing.T) {
 		{
 			name: "forward FK nullable column",
 			using: metadata.RelationshipUsing{
-				ForeignKeyColumn: "org_id",
+				ForeignKeyColumns: []string{"org_id"},
 			},
 			tableInfo: &introspection.Table{
 				Columns: []introspection.Column{
@@ -469,7 +469,7 @@ func TestIsObjectRelationshipNullable(t *testing.T) {
 		{
 			name: "forward FK non-nullable column",
 			using: metadata.RelationshipUsing{
-				ForeignKeyColumn: "org_id",
+				ForeignKeyColumns: []string{"org_id"},
 			},
 			tableInfo: &introspection.Table{
 				Columns: []introspection.Column{
@@ -477,6 +477,44 @@ func TestIsObjectRelationshipNullable(t *testing.T) {
 				},
 			},
 			want: false,
+		},
+		{
+			name: "composite FK with one nullable column",
+			using: metadata.RelationshipUsing{
+				ForeignKeyColumns: []string{"a", "b"},
+			},
+			tableInfo: &introspection.Table{
+				Columns: []introspection.Column{
+					{Name: "a", IsNullable: false},
+					{Name: "b", IsNullable: true},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "composite FK with all non-nullable columns",
+			using: metadata.RelationshipUsing{
+				ForeignKeyColumns: []string{"a", "b"},
+			},
+			tableInfo: &introspection.Table{
+				Columns: []introspection.Column{
+					{Name: "a", IsNullable: false},
+					{Name: "b", IsNullable: false},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "composite FK with missing column falls back to nullable",
+			using: metadata.RelationshipUsing{
+				ForeignKeyColumns: []string{"a", "b"},
+			},
+			tableInfo: &introspection.Table{
+				Columns: []introspection.Column{
+					{Name: "a", IsNullable: false},
+				},
+			},
+			want: true,
 		},
 	}
 

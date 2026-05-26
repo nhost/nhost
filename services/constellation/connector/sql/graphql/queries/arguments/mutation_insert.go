@@ -178,39 +178,43 @@ type NestedInsert struct {
 	TargetTable         Table
 	NestedObject        InsertObject
 	OnConflict          *OnConflict
-	ForeignKeyColumn    string
+	ForeignKeyColumns   []string
 	IsArrayRelationship bool
 }
 
-// ApplyArrayFKColumn appends the FK column to the nested object (so it appears
-// in the INSERT column list) and registers it against the parent CTE. Only
-// array relationships need this; for object relationships the parent owns the
-// FK.
+// ApplyArrayFKColumn appends the FK columns to the nested object (so they
+// appear in the INSERT column list) and registers each one against the parent
+// CTE. Only array relationships need this; for object relationships the parent
+// owns the FK. Composite FKs are handled by iterating every column in
+// ForeignKeyColumns.
 //
 // The FK-index entry is added unconditionally for array relationships, even
-// when ColumnFromSQLName can't resolve the FK column on the child table. The
-// asymmetry is deliberate: downstream consumers (buildInsertFromClause in the
-// parent queries package) iterate the returned map to add the parent CTE to
-// the FROM clause so that Postgres actually executes it. Skipping the map
-// entry when the column resolution fails would drop the parent CTE from FROM
-// and silently break the nested-insert chain. The buildInsertSelectClause
-// iterates the column list (not the FK index) so a missing FK column there
-// simply produces a SELECT that does not reference the parent — which is the
-// correct outcome when the schema says no such FK column exists.
+// when ColumnFromSQLName can't resolve a given FK column on the child table.
+// The asymmetry is deliberate, per column: downstream consumers
+// (buildInsertFromClause in the parent queries package) iterate the returned
+// map to add the parent CTE to the FROM clause so that Postgres actually
+// executes it. Skipping the map entry when the column resolution fails would
+// drop the parent CTE from FROM and silently break the nested-insert chain.
+// The buildInsertSelectClause iterates the column list (not the FK index) so
+// a missing FK column there simply produces a SELECT that does not reference
+// the parent — which is the correct outcome when the schema says no such FK
+// column exists.
 func (n *NestedInsert) ApplyArrayFKColumn(parentCTEName string) map[string]string {
 	nestedFKIndex := make(map[string]string)
 	if !n.IsArrayRelationship {
 		return nestedFKIndex
 	}
 
-	if fkColumn := n.TargetTable.ColumnFromSQLName(n.ForeignKeyColumn); fkColumn != nil {
-		n.NestedObject.Columns = append(n.NestedObject.Columns, InsertColumn{
-			Column: fkColumn,
-			Value:  nil,
-		})
-	}
+	for _, fkName := range n.ForeignKeyColumns {
+		if fkColumn := n.TargetTable.ColumnFromSQLName(fkName); fkColumn != nil {
+			n.NestedObject.Columns = append(n.NestedObject.Columns, InsertColumn{
+				Column: fkColumn,
+				Value:  nil,
+			})
+		}
 
-	nestedFKIndex[n.ForeignKeyColumn] = parentCTEName
+		nestedFKIndex[fkName] = parentCTEName
+	}
 
 	return nestedFKIndex
 }
@@ -541,7 +545,7 @@ func parseNestedInsert( //nolint:funlen
 		TargetTable:         target,
 		NestedObject:        nestedInsertObj,
 		OnConflict:          onConflict,
-		ForeignKeyColumn:    relationship.FKColumn(),
+		ForeignKeyColumns:   relationship.FKColumns(),
 		IsArrayRelationship: relationship.IsArray(),
 	}, nil
 }

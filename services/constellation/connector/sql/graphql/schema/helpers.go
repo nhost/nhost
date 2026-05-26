@@ -330,32 +330,28 @@ func getRelationshipTarget(
 	return nil
 }
 
+// getRelationshipTargetSchemaAndTable resolves the schema-qualified target
+// table referenced by a relationship's Using clause. For the forward-FK
+// shortcut (ForeignKeyColumns) the target is read off the first matching
+// introspection FK; all listed columns must agree on the same target schema
+// and name, otherwise the function returns empty strings so the caller drops
+// the relationship as misconfigured.
 func getRelationshipTargetSchemaAndTable(
 	tableInfo *introspection.Table,
 	using metadata.RelationshipUsing,
 ) (string, string) {
-	// Determine target table schema and name for aggregate order_by generation
-	var targetSchema, targetTable string
 	switch {
 	case using.ForeignKeyConstraint != nil:
-		targetSchema = using.ForeignKeyConstraint.Table.Schema
-		targetTable = using.ForeignKeyConstraint.Table.Name
+		return using.ForeignKeyConstraint.Table.Schema,
+			using.ForeignKeyConstraint.Table.Name
 	case using.ManualConfiguration != nil:
-		targetSchema = using.ManualConfiguration.RemoteTable.Schema
-		targetTable = using.ManualConfiguration.RemoteTable.Name
-	case using.ForeignKeyColumn != "":
-		// Look up foreign key in introspection data
-		for _, fk := range tableInfo.ForeignKeys {
-			if fk.ColumnName == using.ForeignKeyColumn {
-				targetSchema = fk.ForeignSchema
-				targetTable = fk.ForeignTable
-
-				break
-			}
-		}
+		return using.ManualConfiguration.RemoteTable.Schema,
+			using.ManualConfiguration.RemoteTable.Name
+	case len(using.ForeignKeyColumns) > 0:
+		return tableInfo.LookupForwardFKTarget(using.ForeignKeyColumns)
 	}
 
-	return targetSchema, targetTable
+	return "", ""
 }
 
 // isRemoteRelationship checks if a relationship crosses connector boundaries.

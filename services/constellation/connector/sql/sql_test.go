@@ -90,9 +90,8 @@ func TestNewConnector_IntrospectError(t *testing.T) {
 
 // objectsWithUntrackedFunctionTarget builds an introspection.Objects with a
 // SETOF function whose return-type table is not tracked in metadata. This is
-// the same shape exercised by queries.BuildRoots'
-// TestBuildRoots_FunctionReturningUnknownTableErrors path and forces
-// queries.BuildRoots to fail with a missing-base-table error.
+// the shape used to verify the inconsistency-tolerant drop path for
+// functions whose base table is missing.
 func objectsWithUntrackedFunctionTarget() *introspection.Objects {
 	objs := introspection.NewObjects()
 	objs.Schemas["public"] = &introspection.Schema{
@@ -119,7 +118,13 @@ func objectsWithUntrackedFunctionTarget() *introspection.Objects {
 	return objs
 }
 
-func TestNewConnector_BuildRootsError(t *testing.T) {
+// TestNewConnector_FunctionWithUntrackedBaseTableDropped is the
+// inconsistency-tolerant counterpart to the old TestNewConnector_BuildRootsError:
+// a function whose return-type table is not tracked in metadata used to abort
+// NewConnector via errBaseTableForFunctionNotFound. The reconcile pass now
+// drops the function and records a function inconsistency, so the connector
+// must come up cleanly with the surviving table still serving.
+func TestNewConnector_FunctionWithUntrackedBaseTableDropped(t *testing.T) {
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
@@ -129,11 +134,10 @@ func TestNewConnector_BuildRootsError(t *testing.T) {
 	driver.EXPECT().
 		Introspect(gomock.Any(), gomock.Any()).
 		Return(objectsWithUntrackedFunctionTarget(), nil)
+	driver.EXPECT().Close().AnyTimes()
 
-	// Metadata tracks public.users (matching introspection) and
-	// public.search_orders. BuildRoots will fail because the function's
-	// return-type table (public.orders) is not tracked.
 	md := &metadata.DatabaseMetadata{
+		Name: "default",
 		Kind: "postgres",
 		Tables: []metadata.TableMetadata{
 			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
@@ -143,13 +147,36 @@ func TestNewConnector_BuildRootsError(t *testing.T) {
 		},
 	}
 
-	_, err := csql.NewConnector(context.Background(), driver, md, nil, nil)
-	if err == nil {
-		t.Fatal("expected error, got nil")
+	inc := metadata.NewInconsistencies()
+
+	conn, err := csql.NewConnector(context.Background(), driver, md, inc, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "failed to build GraphQL roots") {
-		t.Errorf("expected wrapping prefix %q, got: %v", "failed to build GraphQL roots", err)
+	t.Cleanup(func() { conn.Close() })
+
+	snap := inc.Snapshot()
+	if len(snap) != 1 {
+		t.Fatalf("expected one inconsistency, got %d: %+v", len(snap), snap)
+	}
+
+	if snap[0].Kind != metadata.InconsistencyKindFunction {
+		t.Errorf(
+			"expected kind=%q, got %q",
+			metadata.InconsistencyKindFunction, snap[0].Kind,
+		)
+	}
+
+	if snap[0].Name != "public.search_orders" {
+		t.Errorf("expected name=public.search_orders, got %q", snap[0].Name)
+	}
+
+	if !strings.Contains(snap[0].Reason, "base table") {
+		t.Errorf(
+			"expected reason to mention base table, got %q",
+			snap[0].Reason,
+		)
 	}
 }
 
@@ -334,7 +361,7 @@ func TestNewConnector_KitchenSinkInconsistencies(t *testing.T) {
 						Name: "ghost_rel",
 						Using: metadata.RelationshipUsing{
 							ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-								Column: "id",
+								Columns: []string{"id"},
 								Table: metadata.TableSource{
 									Schema: "public", Name: "ghost_table",
 								},
