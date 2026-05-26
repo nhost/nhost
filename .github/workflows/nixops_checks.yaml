@@ -71,6 +71,24 @@ jobs:
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
+  build_artifacts_macos:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
+    with:
+      NAME: nixops
+      PATH: nixops
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
+      DOCKER: false
+      OS_MATRIX: '["blacksmith-6vcpu-macos-latest"]'
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
   remove_label:
     runs-on: ubuntu-latest
     needs:

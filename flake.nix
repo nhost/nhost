@@ -394,6 +394,7 @@
           postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
+          storage-vips = storagef.vips;
           clamav-docker-image = storagef.clamav-docker-image;
           tutorials = tutorialsf.package;
         };

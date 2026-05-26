@@ -23,30 +23,53 @@ let
 
   checkDeps = [ ];
 
-  # we use this to just build and cache the packages
-  buildInputs = with pkgs; [
-    biome
-    go
-    golangci-lint
-    mockgen
-    golines
-    govulncheck
-    gqlgen
-    gqlgenc
-    oapi-codegen
-    nhost-cli
-    gofumpt
-    golines
-    skopeo
-    postgresql_18-client
-    sqlc
-    vacuum-go
-    bun
-    clang
-    pkg-config
-    nodejs
-    nodePackages.vercel
-  ];
+  # we use this to just build and cache the packages.
+  # this list is the union of all `buildInputs`, `checkDeps`, and
+  # `nativeBuildInputs` referenced by every `project.nix` in the repo so a
+  # single `nix build .#nixops` warms the cache for every project's
+  # dev-shell and `make check`.
+  buildInputs =
+    (with pkgs; [
+      biome
+      bun
+      cacert
+      clang
+      curl
+      diffutils
+      docker-client
+      go
+      gofumpt
+      golangci-lint
+      golines
+      govulncheck
+      gqlgen
+      gqlgenc
+      jq
+      lychee
+      mockgen
+      nhost-cli
+      nodejs
+      nodePackages.vercel
+      oapi-codegen
+      pkg-config
+      playwright-driver
+      pnpm
+      postgresql_18
+      postgresql_18-client
+      skopeo
+      sqlc
+      vacuum-go
+      vale
+      wal-g
+    ])
+    ++ [
+      self.packages.${pkgs.stdenv.hostPlatform.system}.codegen
+      self.packages.${pkgs.stdenv.hostPlatform.system}.govulncheck-wrapper
+      self.packages.${pkgs.stdenv.hostPlatform.system}.storage-vips
+    ]
+    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+      pkgs.apple-sdk_14
+    ];
 
   nativeBuildInputs = [ ];
 
