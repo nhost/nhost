@@ -867,7 +867,6 @@ func (s *Store) ReferencesGeneratedColumns(role string, lookup columnLookup) boo
 	return false
 }
 
-
 // MissingInsertColumns lists the columns the insert-check filter for role
 // references that aren't in present and aren't generated. Generated columns
 // are skipped — they require a post-mutation check (see

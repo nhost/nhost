@@ -9,6 +9,32 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
+// extendSubsForArrayChild returns the table-substitution map a nested-insert
+// child should use for its own insert-permission check. For array
+// relationships the FK lives on the child and points at the parent; a
+// permission predicate that reaches the parent via a relationship would
+// otherwise EXISTS-query the parent's underlying table and miss the in-flight
+// INSERT (Postgres WITH snapshot semantics). Mapping the parent's
+// TableFromClause to the parent CTE name redirects those EXISTS subqueries to
+// the CTE instead. Object relationships and top-level callers pass through
+// the parent's tableSubs unchanged.
+func extendSubsForArrayChild(
+	parentSubs where.TableSubstitutions,
+	parentTableFromClause string,
+	parentCTEName string,
+	ni *arguments.NestedInsert,
+) where.TableSubstitutions {
+	if !ni.IsArrayRelationship || parentTableFromClause == "" {
+		return parentSubs
+	}
+
+	childSubs := make(where.TableSubstitutions, len(parentSubs)+1)
+	maps.Copy(childSubs, parentSubs)
+	childSubs[parentTableFromClause] = parentCTEName
+
+	return childSubs
+}
+
 // buildNestedInsertCTE renders the CTE for a single nested insert, recursing
 // into deeper nested inserts. It replaces the (*nestedInsert).buildCTE method
 // from before the arguments extraction: arguments.NestedInsert is pure data,
@@ -37,18 +63,7 @@ func buildNestedInsertCTE(
 	}
 
 	nestedFKIndex := ni.ApplyArrayFKColumn(parentCTEName)
-
-	// For array relationships the FK lives on the child and points at the
-	// parent; permission predicates that reach the parent via a relationship
-	// would otherwise EXISTS-query the parent's underlying table and miss the
-	// in-flight INSERT (Postgres WITH snapshot semantics). Extend tableSubs so
-	// the relationship-EXISTS reads the parent CTE instead.
-	childSubs := tableSubs
-	if ni.IsArrayRelationship && parentTableFromClause != "" {
-		childSubs = make(where.TableSubstitutions, len(tableSubs)+1)
-		maps.Copy(childSubs, tableSubs)
-		childSubs[parentTableFromClause] = parentCTEName
-	}
+	childSubs := extendSubsForArrayChild(tableSubs, parentTableFromClause, parentCTEName, ni)
 
 	// ni.TargetTable always arrives as a *table — that's the only thing the
 	// parser stores there (see arguments_adapter.go's TargetTable method on

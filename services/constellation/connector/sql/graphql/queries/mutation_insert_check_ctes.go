@@ -104,15 +104,7 @@ func (t *table) buildCheckConstraintCTE(
 		b, insertObj, nestedFKColumns, nestedFKIndex, role,
 	)
 
-	for i, cte := range fromCTEs {
-		if i == 0 {
-			b.WriteString(" FROM ")
-		} else {
-			b.WriteString(", ")
-		}
-
-		b.WriteString(cte)
-	}
+	writeFromCTEs(b, fromCTEs)
 
 	b.WriteString(") AS data WHERE ")
 
@@ -482,64 +474,113 @@ func (t *table) buildUnionAllSelect(
 
 		b.WriteString("SELECT ")
 
-		for j, col := range allColumns {
-			if j > 0 {
-				b.WriteString(", ")
-			}
+		params, paramIndex = t.writeUnionAllRow(
+			b, allColumns, columnToValue[i], nestedFKIndex, params, paramIndex,
+		)
 
-			if cte, isFK := nestedFKIndex[col]; isFK {
-				b.WriteString(cte)
-				b.WriteString(".\"id\" AS ")
-				core.WriteQuotedIdentifier(b, col)
+		writeFromCTEs(b, fromCTEs)
+	}
 
-				continue
-			}
+	return params, paramIndex
+}
 
-			var colType string
-			for _, tableCol := range t.columns {
-				if tableCol.SQLName == col {
-					colType = tableCol.SQLType
-					break
-				}
-			}
-
-			if value, hasValue := columnToValue[i][col]; hasValue { //nolint:nestif
-				ph := t.dialect.Placeholder(paramIndex)
-				if colType != "" {
-					b.WriteString(t.dialect.TypeCast(ph, colType))
-				} else {
-					b.WriteString(ph)
-				}
-
-				b.WriteString(" AS ")
-				core.WriteQuotedIdentifier(b, col)
-
-				params = append(params, value)
-				paramIndex++
-			} else {
-				if colType != "" {
-					b.WriteString(t.dialect.TypeCast("NULL", colType))
-				} else {
-					b.WriteString("NULL")
-				}
-
-				b.WriteString(" AS ")
-				core.WriteQuotedIdentifier(b, col)
-			}
+// writeUnionAllRow emits the column list for a single UNION-ALL branch.
+// Columns mapped in nestedFKIndex select the parent CTE's id; columns present
+// in rowValues emit a typed placeholder; remaining columns emit a typed NULL.
+func (t *table) writeUnionAllRow(
+	b *strings.Builder,
+	allColumns []string,
+	rowValues map[string]any,
+	nestedFKIndex map[string]string,
+	params []any,
+	paramIndex int,
+) ([]any, int) {
+	for j, col := range allColumns {
+		if j > 0 {
+			b.WriteString(", ")
 		}
 
-		for k, cte := range fromCTEs {
-			if k == 0 {
-				b.WriteString(" FROM ")
-			} else {
-				b.WriteString(", ")
-			}
-
+		if cte, isFK := nestedFKIndex[col]; isFK {
 			b.WriteString(cte)
+			b.WriteString(".\"id\" AS ")
+			core.WriteQuotedIdentifier(b, col)
+
+			continue
+		}
+
+		colType := t.columnSQLType(col)
+
+		value, hasValue := rowValues[col]
+		if hasValue {
+			params, paramIndex = t.writeTypedPlaceholder(b, col, colType, value, params, paramIndex)
+		} else {
+			t.writeTypedNull(b, col, colType)
 		}
 	}
 
 	return params, paramIndex
+}
+
+// columnSQLType returns the SQL type registered for col on t, or "" if the
+// column isn't in t.columns. "" signals to callers that no type-cast should
+// be emitted.
+func (t *table) columnSQLType(col string) string {
+	for _, tableCol := range t.columns {
+		if tableCol.SQLName == col {
+			return tableCol.SQLType
+		}
+	}
+
+	return ""
+}
+
+// writeTypedPlaceholder emits a parameter placeholder for value, type-cast
+// when colType is set, aliased as col, and appends value to params.
+func (t *table) writeTypedPlaceholder(
+	b *strings.Builder,
+	col, colType string,
+	value any,
+	params []any,
+	paramIndex int,
+) ([]any, int) {
+	ph := t.dialect.Placeholder(paramIndex)
+	if colType != "" {
+		b.WriteString(t.dialect.TypeCast(ph, colType))
+	} else {
+		b.WriteString(ph)
+	}
+
+	b.WriteString(" AS ")
+	core.WriteQuotedIdentifier(b, col)
+
+	return append(params, value), paramIndex + 1
+}
+
+// writeTypedNull emits a NULL literal, type-cast when colType is set, aliased
+// as col.
+func (t *table) writeTypedNull(b *strings.Builder, col, colType string) {
+	if colType != "" {
+		b.WriteString(t.dialect.TypeCast("NULL", colType))
+	} else {
+		b.WriteString("NULL")
+	}
+
+	b.WriteString(" AS ")
+	core.WriteQuotedIdentifier(b, col)
+}
+
+// writeFromCTEs appends a `FROM cte1, cte2, ...` clause to b. No-op when ctes
+// is empty.
+func writeFromCTEs(b *strings.Builder, ctes []string) {
+	for k, cte := range ctes {
+		if k == 0 {
+			b.WriteString(" FROM ")
+		} else {
+			b.WriteString(", ")
+		}
+
+		b.WriteString(cte)
+	}
 }
 
 // collectFKSourceCTEs returns the unique source CTEs (in stable order of
@@ -587,7 +628,6 @@ func (t *table) buildCheckMutationResultCTE(
 	params []any,
 	paramIndex int,
 ) ([]any, int, bool, error) {
-	var tableSubs where.TableSubstitutions //nolint:wsl // grouped with related vars below
 	checkCTEName := "check_mutation_result"
 	b.WriteString(checkCTEName)
 	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
@@ -607,7 +647,7 @@ func (t *table) buildCheckMutationResultCTE(
 		b,
 		role,
 		sessionVariables,
-		tableSubs,
+		nil,
 		params,
 		paramIndex,
 	)
