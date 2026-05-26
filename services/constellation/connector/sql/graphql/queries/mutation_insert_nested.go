@@ -47,14 +47,6 @@ func buildNestedInsertCTE(
 		)
 	}
 
-	if len(ni.NestedObjects) == 0 {
-		return nil, 0, fmt.Errorf(
-			"%w: nested insert %s has no data rows",
-			errNestedInsertTargetTableType,
-			ni.RelationshipName,
-		)
-	}
-
 	var err error
 	if len(ni.NestedObjects) == 1 {
 		params, paramIndex, err = buildSingleNestedInsertCTE(
