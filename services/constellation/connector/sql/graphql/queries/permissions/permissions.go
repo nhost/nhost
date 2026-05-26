@@ -702,13 +702,40 @@ func (s *Store) WriteInsertCheck(
 	paramIndex int,
 	sourceRef string,
 ) ([]any, int, bool, error) {
+	return s.WriteInsertCheckSubstituted(
+		b, role, sessionVariables, params, paramIndex, sourceRef, nil,
+	)
+}
+
+// WriteInsertCheckSubstituted is the table-substitution-aware variant of
+// WriteInsertCheck used by nested-insert builders. When the role's insert
+// permission references the parent via a relationship, the relationship's
+// EXISTS subquery normally targets the parent table — but Postgres CTE
+// snapshot semantics mean a sibling CTE doesn't see the in-flight parent
+// INSERT, so the EXISTS reads stale state and rejects every nested row.
+//
+// Passing TableSubstitutions like {`"public"."workout_sessions"`: `mutation_result`}
+// redirects those EXISTS subqueries to the parent CTE that holds the freshly
+// inserted rows. With a nil/empty map, behaviour is identical to the
+// non-substituted path.
+func (s *Store) WriteInsertCheckSubstituted(
+	b *strings.Builder,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+	sourceRef string,
+	subs where.TableSubstitutions,
+) ([]any, int, bool, error) {
 	clause, found := s.Insert[role]
-	if !found {
+	if !found || len(clause) == 0 {
 		b.WriteString("true")
 		return params, paramIndex, false, nil
 	}
 
-	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
+	params, paramIndex, err := where.WriteConditionSubstituted(
+		clause, b, sourceRef, params, paramIndex, subs,
+	)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("failed to apply insert permission check: %w", err)
 	}
@@ -839,6 +866,7 @@ func (s *Store) ReferencesGeneratedColumns(role string, lookup columnLookup) boo
 
 	return false
 }
+
 
 // MissingInsertColumns lists the columns the insert-check filter for role
 // references that aren't in present and aren't generated. Generated columns

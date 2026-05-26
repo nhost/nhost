@@ -2,9 +2,11 @@ package queries
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
 // buildNestedInsertCTE renders the CTE for a single nested insert, recursing
@@ -21,6 +23,8 @@ func buildNestedInsertCTE(
 	b *strings.Builder,
 	ni *arguments.NestedInsert,
 	parentCTEName string,
+	parentTableFromClause string,
+	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
 	role string,
@@ -33,6 +37,18 @@ func buildNestedInsertCTE(
 	}
 
 	nestedFKIndex := ni.ApplyArrayFKColumn(parentCTEName)
+
+	// For array relationships the FK lives on the child and points at the
+	// parent; permission predicates that reach the parent via a relationship
+	// would otherwise EXISTS-query the parent's underlying table and miss the
+	// in-flight INSERT (Postgres WITH snapshot semantics). Extend tableSubs so
+	// the relationship-EXISTS reads the parent CTE instead.
+	childSubs := tableSubs
+	if ni.IsArrayRelationship && parentTableFromClause != "" {
+		childSubs = make(where.TableSubstitutions, len(tableSubs)+1)
+		maps.Copy(childSubs, tableSubs)
+		childSubs[parentTableFromClause] = parentCTEName
+	}
 
 	// ni.TargetTable always arrives as a *table — that's the only thing the
 	// parser stores there (see arguments_adapter.go's TargetTable method on
@@ -50,11 +66,12 @@ func buildNestedInsertCTE(
 	var err error
 	if len(ni.NestedObjects) == 1 {
 		params, paramIndex, err = buildSingleNestedInsertCTE(
-			b, target, cteName, ni, nestedFKIndex, params, paramIndex, role, sessionVariables,
+			b, target, cteName, ni, nestedFKIndex, childSubs,
+			params, paramIndex, role, sessionVariables,
 		)
 	} else {
 		params, paramIndex, err = target.buildMultiNestedInsertCTE(
-			b, cteName, ni.NestedObjects, ni.OnConflict, nestedFKIndex,
+			b, cteName, ni.NestedObjects, ni.OnConflict, nestedFKIndex, childSubs,
 			params, paramIndex, role, sessionVariables,
 		)
 	}
@@ -65,12 +82,14 @@ func buildNestedInsertCTE(
 
 	// Recurse into deeper nested inserts on the first row (top-level inserts
 	// have the same constraint — deeper nesting is only walked from the first
-	// row of a multi-row insert).
+	// row of a multi-row insert). The cteName/target.tableFromClause() becomes
+	// the next level's parent.
 	for i := range ni.NestedObjects[0].NestedInserts {
 		nested := &ni.NestedObjects[0].NestedInserts[i]
 
 		params, paramIndex, err = buildNestedInsertCTE(
-			b, nested, cteName, params, paramIndex, role, sessionVariables,
+			b, nested, cteName, target.tableFromClause(), childSubs,
+			params, paramIndex, role, sessionVariables,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf(
@@ -90,6 +109,7 @@ func buildSingleNestedInsertCTE(
 	cteName string,
 	ni *arguments.NestedInsert,
 	nestedFKIndex map[string]string,
+	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
 	role string,
@@ -102,7 +122,7 @@ func buildSingleNestedInsertCTE(
 	}
 
 	return target.buildSingleInsertCTE(
-		b, cteName, ni.NestedObjects[0], ni.OnConflict, nestedFKIndex,
+		b, cteName, ni.NestedObjects[0], ni.OnConflict, nestedFKIndex, tableSubs,
 		params, paramIndex, role, sessionVariables,
 	)
 }
@@ -119,6 +139,7 @@ func (t *table) buildMultiNestedInsertCTE(
 	insertObjs []arguments.InsertObject,
 	onConflict *arguments.OnConflict,
 	nestedFKIndex map[string]string,
+	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
 	role string,
@@ -141,7 +162,7 @@ func (t *table) buildMultiNestedInsertCTE(
 
 	return t.buildMultiNestedInsertCTEPreCheck(
 		b, cteName, insertObjs, allColumns, columnToValue,
-		nestedFKIndex, onConflict, role, sessionVariables,
+		nestedFKIndex, tableSubs, onConflict, role, sessionVariables,
 		params, paramIndex,
 	)
 }
@@ -153,6 +174,7 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 	allColumns []string,
 	columnToValue []map[string]any,
 	nestedFKIndex map[string]string,
+	tableSubs where.TableSubstitutions,
 	onConflict *arguments.OnConflict,
 	role string,
 	sessionVariables map[string]any,
@@ -167,13 +189,13 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
 
 	params, paramIndex = t.buildUnionAllSelect(
-		b, insertObjs, dataColumns, columnToValue, params, paramIndex,
+		b, insertObjs, dataColumns, columnToValue, nestedFKIndex, params, paramIndex,
 	)
 
 	b.WriteString(") AS data WHERE ")
 
 	params, paramIndex, hasCheckPermissions, err := t.buildCheckConstraintWhereClause(
-		b, role, sessionVariables, params, paramIndex,
+		b, role, sessionVariables, tableSubs, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -232,7 +254,7 @@ func (t *table) buildMultiNestedInsertCTEPostCheck(
 	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
 
 	params, paramIndex = t.buildUnionAllSelect(
-		b, insertObjs, allColumns, columnToValue, params, paramIndex,
+		b, insertObjs, allColumns, columnToValue, nestedFKIndex, params, paramIndex,
 	)
 
 	b.WriteString(") AS data), ")
@@ -307,7 +329,8 @@ func (t *table) buildNestedInsertCTEs(
 		var err error
 
 		params, paramIndex, err = buildNestedInsertCTE(
-			&cteSQL, nested, "mutation_result", params, paramIndex, role, sessionVariables,
+			&cteSQL, nested, "mutation_result", t.tableFromClause(), nil,
+			params, paramIndex, role, sessionVariables,
 		)
 		if err != nil {
 			return "", nil, 0, fmt.Errorf(
@@ -345,7 +368,8 @@ func (t *table) buildArrayNestedInsertCTEs(
 		var err error
 
 		params, paramIndex, err = buildNestedInsertCTE(
-			&cteSQL, nested, "mutation_result", params, paramIndex, role, sessionVariables,
+			&cteSQL, nested, "mutation_result", t.tableFromClause(), nil,
+			params, paramIndex, role, sessionVariables,
 		)
 		if err != nil {
 			return "", nil, 0, fmt.Errorf(
