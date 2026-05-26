@@ -77,10 +77,6 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
     hasNoNextPage,
   } = useSQLEditorPagination({ rows, resetKey: sqlCode });
 
-  const handleRunSQL = useCallback(() => {
-    runSQL();
-  }, [runSQL]);
-
   return (
     <Box className="flex flex-1 flex-col justify-center overflow-hidden">
       <Box className="flex flex-col space-y-2 border-b p-4">
@@ -172,7 +168,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
             variant="contained"
             className="self-start"
             startIcon={<PlayIcon className="h-4 w-4" />}
-            onClick={handleRunSQL}
+            onClick={runSQL}
           >
             Run
           </Button>
