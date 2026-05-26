@@ -14,14 +14,13 @@
             "name": "provider_requests",
             "schema": "auth"
           },
-          "is_enum": false,
           "configuration": {
             "column_config": {
-              "options": {
-                "custom_name": "options"
-              },
               "id": {
                 "custom_name": "id"
+              },
+              "options": {
+                "custom_name": "options"
               }
             },
             "custom_name": "authProviderRequests",
@@ -43,7 +42,6 @@
             "name": "providers",
             "schema": "auth"
           },
-          "is_enum": false,
           "configuration": {
             "column_config": {
               "id": {
@@ -130,7 +128,6 @@
             "name": "refresh_tokens",
             "schema": "auth"
           },
-          "is_enum": false,
           "configuration": {
             "column_config": {
               "created_at": {
@@ -185,8 +182,7 @@
                   "user_id": {
                     "_eq": "X-Hasura-User-Id"
                   }
-                },
-                "allow_aggregations": false
+                }
               }
             }
           ],
@@ -217,7 +213,6 @@
             "name": "roles",
             "schema": "auth"
           },
-          "is_enum": false,
           "configuration": {
             "column_config": {
               "role": {
@@ -273,9 +268,17 @@
             "name": "user_providers",
             "schema": "auth"
           },
-          "is_enum": false,
           "configuration": {
             "column_config": {
+              "access_token": {
+                "custom_name": "accessToken"
+              },
+              "created_at": {
+                "custom_name": "createdAt"
+              },
+              "id": {
+                "custom_name": "id"
+              },
               "provider_id": {
                 "custom_name": "providerId"
               },
@@ -290,15 +293,6 @@
               },
               "user_id": {
                 "custom_name": "userId"
-              },
-              "access_token": {
-                "custom_name": "accessToken"
-              },
-              "created_at": {
-                "custom_name": "createdAt"
-              },
-              "id": {
-                "custom_name": "id"
               }
             },
             "custom_name": "authUserProviders",
@@ -344,8 +338,7 @@
                   "user_id": {
                     "_eq": "X-Hasura-User-Id"
                   }
-                },
-                "allow_aggregations": false
+                }
               }
             }
           ]
@@ -355,12 +348,8 @@
             "name": "user_roles",
             "schema": "auth"
           },
-          "is_enum": false,
           "configuration": {
             "column_config": {
-              "user_id": {
-                "custom_name": "userId"
-              },
               "created_at": {
                 "custom_name": "createdAt"
               },
@@ -369,6 +358,9 @@
               },
               "role": {
                 "custom_name": "role"
+              },
+              "user_id": {
+                "custom_name": "userId"
               }
             },
             "custom_name": "authUserRoles",
@@ -408,20 +400,19 @@
             "name": "user_security_keys",
             "schema": "auth"
           },
-          "is_enum": false,
           "configuration": {
             "column_config": {
-              "id": {
-                "custom_name": "id"
-              },
-              "user_id": {
-                "custom_name": "userId"
-              },
               "credential_id": {
                 "custom_name": "credentialId"
               },
               "credential_public_key": {
                 "custom_name": "credentialPublicKey"
+              },
+              "id": {
+                "custom_name": "id"
+              },
+              "user_id": {
+                "custom_name": "userId"
               }
             },
             "custom_name": "authUserSecurityKeys",
@@ -460,8 +451,7 @@
                   "user_id": {
                     "_eq": "X-Hasura-User-Id"
                   }
-                },
-                "allow_aggregations": false
+                }
               }
             }
           ],
@@ -483,11 +473,31 @@
             "name": "users",
             "schema": "auth"
           },
-          "is_enum": false,
           "configuration": {
             "column_config": {
-              "ticket": {
-                "custom_name": "ticket"
+              "active_mfa_type": {
+                "custom_name": "activeMfaType"
+              },
+              "avatar_url": {
+                "custom_name": "avatarUrl"
+              },
+              "created_at": {
+                "custom_name": "createdAt"
+              },
+              "default_role": {
+                "custom_name": "defaultRole"
+              },
+              "disabled": {
+                "custom_name": "disabled"
+              },
+              "display_name": {
+                "custom_name": "displayName"
+              },
+              "email": {
+                "custom_name": "email"
+              },
+              "email_verified": {
+                "custom_name": "emailVerified"
               },
               "id": {
                 "custom_name": "id"
@@ -495,14 +505,8 @@
               "is_anonymous": {
                 "custom_name": "isAnonymous"
               },
-              "otp_hash": {
-                "custom_name": "otpHash"
-              },
-              "totp_secret": {
-                "custom_name": "totpSecret"
-              },
-              "email_verified": {
-                "custom_name": "emailVerified"
+              "last_seen": {
+                "custom_name": "lastSeen"
               },
               "locale": {
                 "custom_name": "locale"
@@ -510,35 +514,14 @@
               "new_email": {
                 "custom_name": "newEmail"
               },
-              "phone_number_verified": {
-                "custom_name": "phoneNumberVerified"
+              "otp_hash": {
+                "custom_name": "otpHash"
               },
-              "avatar_url": {
-                "custom_name": "avatarUrl"
-              },
-              "last_seen": {
-                "custom_name": "lastSeen"
-              },
-              "display_name": {
-                "custom_name": "displayName"
-              },
-              "ticket_expires_at": {
-                "custom_name": "ticketExpiresAt"
-              },
-              "updated_at": {
-                "custom_name": "updatedAt"
+              "otp_hash_expires_at": {
+                "custom_name": "otpHashExpiresAt"
               },
               "otp_method_last_used": {
                 "custom_name": "otpMethodLastUsed"
-              },
-              "webauthn_current_challenge": {
-                "custom_name": "currentChallenge"
-              },
-              "disabled": {
-                "custom_name": "disabled"
-              },
-              "email": {
-                "custom_name": "email"
               },
               "password_hash": {
                 "custom_name": "passwordHash"
@@ -546,17 +529,23 @@
               "phone_number": {
                 "custom_name": "phoneNumber"
               },
-              "active_mfa_type": {
-                "custom_name": "activeMfaType"
+              "phone_number_verified": {
+                "custom_name": "phoneNumberVerified"
               },
-              "created_at": {
-                "custom_name": "createdAt"
+              "ticket": {
+                "custom_name": "ticket"
               },
-              "otp_hash_expires_at": {
-                "custom_name": "otpHashExpiresAt"
+              "ticket_expires_at": {
+                "custom_name": "ticketExpiresAt"
               },
-              "default_role": {
-                "custom_name": "defaultRole"
+              "totp_secret": {
+                "custom_name": "totpSecret"
+              },
+              "updated_at": {
+                "custom_name": "updatedAt"
+              },
+              "webauthn_current_challenge": {
+                "custom_name": "currentChallenge"
               }
             },
             "custom_name": "users",
@@ -780,8 +769,7 @@
               "permission": {
                 "columns": [
                   "email"
-                ],
-                "allow_aggregations": false
+                ]
               }
             },
             {
@@ -813,8 +801,7 @@
                       }
                     }
                   ]
-                },
-                "allow_aggregations": false
+                }
               }
             }
           ],

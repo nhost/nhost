@@ -206,7 +206,9 @@ func (t *table) initializeRelationships(
 			if isInconsistencyTolerantRelationshipError(err) {
 				// Reconcile is expected to have dropped this relationship
 				// from the effective metadata already; skipping here keeps
-				// the rest of the table alive against any reconcile gap.
+				// the rest of the table alive against a reconcile gap for
+				// the specific sentinels listed on
+				// isInconsistencyTolerantRelationshipError.
 				continue
 			}
 
@@ -241,13 +243,27 @@ func (t *table) initializeRelationships(
 
 // isInconsistencyTolerantRelationshipError reports whether err names one of
 // the per-relationship build failures that reconcile is expected to have
-// already dropped (target table missing from introspection, reverse-FK
-// column unmatched). Treating these as drop-and-continue at the queries
-// layer matches the package contract that a single malformed relationship
-// must never take down the whole source.
+// already dropped:
+//
+//   - errRelationshipTargetTableIntrospectionNotFound — forward FK whose
+//     parent.ForeignKeys entry points at a table missing from introspection,
+//     or reverse FK whose ForeignKeyConstraint.Table is missing.
+//   - errRelationshipReverseFKColumnUnmatched — reverse FK whose
+//     ForeignKeyConstraint.Columns names a column the target table has no
+//     introspected ForeignKey for.
+//   - errRelationshipTargetTableNotFound — forward FK whose
+//     ForeignKeyColumns resolve to an empty target via
+//     LookupForwardFKTarget (no matching FK on the parent, or listed
+//     columns disagree on the target table); reconcile's
+//     dropIfForwardFKBroken catches the same shape.
+//
+// Treating these as drop-and-continue at the queries layer matches the
+// package contract that a single malformed relationship must never take
+// down the whole source.
 func isInconsistencyTolerantRelationshipError(err error) bool {
 	return errors.Is(err, errRelationshipTargetTableIntrospectionNotFound) ||
-		errors.Is(err, errRelationshipReverseFKColumnUnmatched)
+		errors.Is(err, errRelationshipReverseFKColumnUnmatched) ||
+		errors.Is(err, errRelationshipTargetTableNotFound)
 }
 
 func (t *table) columnFromGraphqlName(name string) *core.Column {

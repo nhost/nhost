@@ -26,7 +26,7 @@ var errForeignKeyListEntryNotString = errors.New(
 // TableMetadata is the Hasura representation of a tracked table.
 type TableMetadata struct {
 	Table               TableSource          `json:"table"                          yaml:"table"`
-	IsEnum              bool                 `json:"is_enum,omitempty"              yaml:"is_enum,omitempty"`
+	IsEnum              bool                 `json:"is_enum,omitzero"               yaml:"is_enum,omitempty"`
 	Configuration       TableConfiguration   `json:"configuration"                  yaml:"configuration,omitempty"`
 	ObjectRelationships []ObjectRelationship `json:"object_relationships,omitempty" yaml:"object_relationships,omitempty"`
 	ArrayRelationships  []ArrayRelationship  `json:"array_relationships,omitempty"  yaml:"array_relationships,omitempty"`
@@ -125,9 +125,9 @@ type DeletePermission struct {
 // SelectPermissionConfig captures the columns, row filter, and aggregation
 // access a select permission grants.
 type SelectPermissionConfig struct {
-	Columns           []string       `json:"columns,omitempty"            yaml:"columns,omitempty"`
-	Filter            map[string]any `json:"filter,omitempty"             yaml:"filter,omitempty"`
-	AllowAggregations bool           `json:"allow_aggregations,omitempty" yaml:"allow_aggregations,omitempty"`
+	Columns           []string       `json:"columns,omitempty"           yaml:"columns,omitempty"`
+	Filter            map[string]any `json:"filter,omitempty"            yaml:"filter,omitempty"`
+	AllowAggregations bool           `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
 }
 
 // InsertPermissionConfig captures the columns, row-level check, and presets an
@@ -181,7 +181,7 @@ type RelationshipUsing struct {
 	ManualConfiguration  *ManualConfiguration  `json:"manual_configuration,omitempty" yaml:"manual_configuration,omitempty"` //nolint:lll
 }
 
-func mapToForeignKeyConstraint(m map[string]any) *ForeignKeyConstraint {
+func mapToForeignKeyConstraint(m map[string]any) (*ForeignKeyConstraint, error) {
 	var (
 		columns []string
 		ts      TableSource
@@ -191,10 +191,16 @@ func mapToForeignKeyConstraint(m map[string]any) *ForeignKeyConstraint {
 	// the plural form when both are present.
 	if v, ok := m["columns"].([]any); ok {
 		columns = make([]string, 0, len(v))
-		for _, item := range v {
-			if s, ok := item.(string); ok {
-				columns = append(columns, s)
+		for i, item := range v {
+			s, ok := item.(string)
+			if !ok {
+				return nil, fmt.Errorf(
+					"%w (index %d, type %T)",
+					errForeignKeyListEntryNotString, i, item,
+				)
 			}
+
+			columns = append(columns, s)
 		}
 	} else if v, ok := m["column"].(string); ok {
 		columns = []string{v}
@@ -210,7 +216,7 @@ func mapToForeignKeyConstraint(m map[string]any) *ForeignKeyConstraint {
 		}
 	}
 
-	return &ForeignKeyConstraint{Columns: columns, Table: ts}
+	return &ForeignKeyConstraint{Columns: columns, Table: ts}, nil
 }
 
 // UnmarshalYAML accepts foreign_key_constraint_on as any of:
@@ -231,6 +237,10 @@ func (r *RelationshipUsing) UnmarshalYAML(unmarshal func(any) error) error {
 
 	r.ManualConfiguration = raw.ManualConfiguration
 
+	if raw.ForeignKeyConstraintOn == nil {
+		return nil
+	}
+
 	switch v := raw.ForeignKeyConstraintOn.(type) {
 	case string:
 		r.ForeignKeyColumns = []string{v}
@@ -250,7 +260,17 @@ func (r *RelationshipUsing) UnmarshalYAML(unmarshal func(any) error) error {
 
 		r.ForeignKeyColumns = cols
 	case map[string]any:
-		r.ForeignKeyConstraint = mapToForeignKeyConstraint(v)
+		constraint, err := mapToForeignKeyConstraint(v)
+		if err != nil {
+			return fmt.Errorf("unmarshaling relationship using: %w", err)
+		}
+
+		r.ForeignKeyConstraint = constraint
+	default:
+		return fmt.Errorf(
+			"unmarshaling relationship using: %w (type %T)",
+			errUnexpectedForeignKeyToken, v,
+		)
 	}
 
 	return nil

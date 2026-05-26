@@ -222,18 +222,36 @@ func TestRelationshipUsing_UnmarshalYAML(t *testing.T) {
 			wantWrapContext:          "",
 		},
 		{
-			name: "constraint mapping ignored unknown shape",
-			// integer for foreign_key_constraint_on falls through every
-			// recognised type arm in UnmarshalYAML, leaving the destination
-			// zero-valued without error.
+			name: "constraint mapping unknown shape rejected",
+			// An integer for foreign_key_constraint_on matches no recognised
+			// type arm; the default arm rejects it so the YAML path agrees
+			// with the JSON "inner constraint failure number value" case.
 			input:                    "foreign_key_constraint_on: 42",
 			wantForeignKeyColumns:    nil,
 			wantForeignKeyTableName:  "",
 			wantForeignKeySchema:     "",
 			wantForeignKeyConstrCols: nil,
 			wantManualSource:         "",
-			wantErr:                  false,
-			wantWrapContext:          "",
+			wantErr:                  true,
+			wantWrapContext:          "expected string, array, or object",
+		},
+		{
+			name: "constraint mapping composite non-string entry rejected",
+			// The map-form columns list must reject non-string entries too,
+			// so the composite YAML object form agrees with the top-level
+			// YAML array form and both JSON paths.
+			input: "foreign_key_constraint_on:\n" +
+				"  columns: [a, 42, b]\n" +
+				"  table:\n" +
+				"    name: t\n" +
+				"    schema: public",
+			wantForeignKeyColumns:    nil,
+			wantForeignKeyTableName:  "",
+			wantForeignKeySchema:     "",
+			wantForeignKeyConstrCols: nil,
+			wantManualSource:         "",
+			wantErr:                  true,
+			wantWrapContext:          "list entry is not a string",
 		},
 		{
 			name: "list with non-string entry rejected",
@@ -443,11 +461,13 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		input       map[string]any
-		wantColumns []string
-		wantName    string
-		wantSchema  string
+		name            string
+		input           map[string]any
+		wantColumns     []string
+		wantName        string
+		wantSchema      string
+		wantErr         bool
+		wantWrapContext string
 	}{
 		{
 			name: "single column promoted to slice",
@@ -458,9 +478,11 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": "public",
 				},
 			},
-			wantColumns: []string{"author_id"},
-			wantName:    "posts",
-			wantSchema:  "public",
+			wantColumns:     []string{"author_id"},
+			wantName:        "posts",
+			wantSchema:      "public",
+			wantErr:         false,
+			wantWrapContext: "",
 		},
 		{
 			name: "composite columns",
@@ -471,9 +493,11 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": "public",
 				},
 			},
-			wantColumns: []string{"a", "b"},
-			wantName:    "t",
-			wantSchema:  "public",
+			wantColumns:     []string{"a", "b"},
+			wantName:        "t",
+			wantSchema:      "public",
+			wantErr:         false,
+			wantWrapContext: "",
 		},
 		{
 			name: "columns key wins over column key",
@@ -485,16 +509,20 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": "public",
 				},
 			},
-			wantColumns: []string{"a"},
-			wantName:    "t",
-			wantSchema:  "public",
+			wantColumns:     []string{"a"},
+			wantName:        "t",
+			wantSchema:      "public",
+			wantErr:         false,
+			wantWrapContext: "",
 		},
 		{
-			name:        "empty map yields zero constraint",
-			input:       map[string]any{},
-			wantColumns: nil,
-			wantName:    "",
-			wantSchema:  "",
+			name:            "empty map yields zero constraint",
+			input:           map[string]any{},
+			wantColumns:     nil,
+			wantName:        "",
+			wantSchema:      "",
+			wantErr:         false,
+			wantWrapContext: "",
 		},
 		{
 			name: "column wrong type drops column",
@@ -505,12 +533,17 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": "public",
 				},
 			},
-			wantColumns: nil,
-			wantName:    "posts",
-			wantSchema:  "public",
+			wantColumns:     nil,
+			wantName:        "posts",
+			wantSchema:      "public",
+			wantErr:         false,
+			wantWrapContext: "",
 		},
 		{
-			name: "non-string list entries are filtered out",
+			name: "non-string list entry rejected",
+			// Silent filtering of non-string entries would mask typos in
+			// real-world metadata. The error wrap matches the top-level
+			// YAML array form and the JSON []string decode.
 			input: map[string]any{
 				"columns": []any{"a", 42, "b"},
 				"table": map[string]any{
@@ -518,9 +551,11 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": "public",
 				},
 			},
-			wantColumns: []string{"a", "b"},
-			wantName:    "t",
-			wantSchema:  "public",
+			wantColumns:     nil,
+			wantName:        "",
+			wantSchema:      "",
+			wantErr:         true,
+			wantWrapContext: "list entry is not a string",
 		},
 		{
 			name: "table wrong type drops table",
@@ -528,9 +563,11 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 				"column": "author_id",
 				"table":  "not a map",
 			},
-			wantColumns: []string{"author_id"},
-			wantName:    "",
-			wantSchema:  "",
+			wantColumns:     []string{"author_id"},
+			wantName:        "",
+			wantSchema:      "",
+			wantErr:         false,
+			wantWrapContext: "",
 		},
 		{
 			name: "table name wrong type drops name only",
@@ -541,9 +578,11 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": "public",
 				},
 			},
-			wantColumns: []string{"author_id"},
-			wantName:    "",
-			wantSchema:  "public",
+			wantColumns:     []string{"author_id"},
+			wantName:        "",
+			wantSchema:      "public",
+			wantErr:         false,
+			wantWrapContext: "",
 		},
 		{
 			name: "table schema wrong type drops schema only",
@@ -554,9 +593,11 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 					"schema": false,
 				},
 			},
-			wantColumns: []string{"author_id"},
-			wantName:    "posts",
-			wantSchema:  "",
+			wantColumns:     []string{"author_id"},
+			wantName:        "posts",
+			wantSchema:      "",
+			wantErr:         false,
+			wantWrapContext: "",
 		},
 	}
 
@@ -564,7 +605,19 @@ func TestMapToForeignKeyConstraint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mapToForeignKeyConstraint(tt.input)
+			got, err := mapToForeignKeyConstraint(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("mapToForeignKeyConstraint err = %v, wantErr=%v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				if err != nil && !strings.Contains(err.Error(), tt.wantWrapContext) {
+					t.Errorf("expected wrap context %q, got %v", tt.wantWrapContext, err)
+				}
+
+				return
+			}
+
 			if got == nil {
 				t.Fatal("expected non-nil constraint, got nil")
 			}

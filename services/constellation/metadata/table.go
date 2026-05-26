@@ -5,7 +5,7 @@ import "slices"
 // TableMetadata contains the metadata for a single tracked table.
 type TableMetadata struct {
 	Table               TableSource          `json:"table"                          toml:"table"`
-	IsEnum              bool                 `json:"is_enum,omitempty"              toml:"is_enum,omitempty"`
+	IsEnum              bool                 `json:"is_enum,omitzero"               toml:"is_enum,omitempty"`
 	Configuration       TableConfiguration   `json:"configuration,omitzero"         toml:"configuration,omitempty"`
 	ObjectRelationships []ObjectRelationship `json:"object_relationships,omitempty" toml:"object_relationships,omitempty"`
 	ArrayRelationships  []ArrayRelationship  `json:"array_relationships,omitempty"  toml:"array_relationships,omitempty"`
@@ -91,7 +91,7 @@ type SelectPermissionConfig struct {
 	Filter map[string]any `json:"filter,omitempty" toml:"filter,omitempty"`
 	// AllowAggregations enables the table's aggregate root field for this
 	// role when true; aggregates are forbidden when false.
-	AllowAggregations bool `json:"allow_aggregations,omitempty" toml:"allow_aggregations,omitempty"`
+	AllowAggregations bool `json:"allow_aggregations,omitzero" toml:"allow_aggregations,omitempty"`
 }
 
 // InsertPermissionConfig contains the insert permission configuration.
