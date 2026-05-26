@@ -117,7 +117,7 @@ jobs:
           sudo mkdir -p "/run/containers/$(id -u runner)"
           sudo chown runner: "/run/containers/$(id -u runner)"
           make build-docker-image
-        if: ${{ ( inputs.DOCKER ) }}
+        if: ${{ inputs.DOCKER && runner.os != 'macOS' }}
 
       - name: "Push docker image to artifact repository"
         uses: actions/upload-artifact@v7
@@ -125,7 +125,7 @@ jobs:
           name: ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
           path: ${{ inputs.PATH }}/result
           retention-days: 7
-        if: ${{ ( inputs.DOCKER ) }}
+        if: ${{ inputs.DOCKER && runner.os != 'macOS' }}
 
       - name: "Store Nix cache"
         uses: ./.github/actions/cache-nix

@@ -1,24 +1,23 @@
-name: 'Setup Nix'
-description: 'Install Nix and setup caching for Nhost projects'
+name: "Setup Nix"
+description: "Install Nix and setup caching for Nhost projects"
 inputs:
   NAME:
-    description: 'Project name for cache key'
+    description: "Project name for cache key"
     required: true
   NIX_CACHE_PUB_KEY:
-    description: 'Nix cache public key'
+    description: "Nix cache public key"
     required: true
   GITHUB_TOKEN:
-    description: 'GitHub token for Nix access'
+    description: "GitHub token for Nix access"
     required: true
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install Nix
       uses: cachix/install-nix-action@v31
       with:
         install_url: "https://releases.nixos.org/nix/nix-2.28.5/install"
-        install_options: "--no-daemon"
         extra_nix_config: |
           download-buffer-size = 500000000
           experimental-features = nix-command flakes
@@ -41,4 +40,3 @@ runs:
           echo "::error::nixops needs to be rebuilt — build and cache nixops first"
           exit 1
         fi
-
