@@ -63,7 +63,8 @@ runs:
       shell: bash
       run: |
         ARCH=$([ "$(uname -m)" = "x86_64" ] && echo "x86_64" || echo "aarch64")
-        output=$(nix build --dry-run .\#packages.$ARCH-linux.nixops 2>&1)
+        SYSTEM=$([ "$RUNNER_OS" = "macOS" ] && echo "$ARCH-darwin" || echo "$ARCH-linux")
+        output=$(nix build --dry-run .\#packages.$SYSTEM.nixops 2>&1)
         if echo "$output" | grep -q "will be built"; then
           echo "$output"
           echo "::error::nixops needs to be rebuilt — build and cache nixops first"

@@ -25,19 +25,26 @@ let
 
   # we use this to just build and cache the packages.
   # this list is the union of all `buildInputs`, `checkDeps`, and
-  # `nativeBuildInputs` referenced by every `project.nix` in the repo so a
-  # single `nix build .#nixops` warms the cache for every project's
-  # dev-shell and `make check`.
+  # `nativeBuildInputs` referenced by every `project.nix` in the repo,
+  # plus the per-devShell extras (e.g. `go-migrate` from auth, `certbot-*`
+  # from cli) and the root `flake.nix` devShell extras (`gh`, `git-cliff`,
+  # `gnused`, `nixfmt`), so a single `nix build .#nixops` warms the cache
+  # for every project's dev-shell and `make check`.
   buildInputs =
     (with pkgs; [
       biome
       bun
       cacert
+      certbot-full
       clang
       curl
       diffutils
       docker-client
+      gh
+      git-cliff
+      gnused
       go
+      go-migrate
       gofumpt
       golangci-lint
       golines
@@ -48,6 +55,7 @@ let
       lychee
       mockgen
       nhost-cli
+      nixfmt
       nodejs
       nodePackages.vercel
       oapi-codegen
@@ -56,6 +64,7 @@ let
       pnpm
       postgresql_18
       postgresql_18-client
+      python312Packages.certbot-dns-route53
       skopeo
       sqlc
       vacuum-go
@@ -66,6 +75,8 @@ let
       self.packages.${pkgs.stdenv.hostPlatform.system}.codegen
       self.packages.${pkgs.stdenv.hostPlatform.system}.govulncheck-wrapper
       self.packages.${pkgs.stdenv.hostPlatform.system}.storage-vips
+    ]
+    ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
     ]
     ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
       pkgs.apple-sdk_14

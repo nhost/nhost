@@ -91,7 +91,11 @@ jobs:
           # path-info --recursive` only sees the runtime closure, which
           # misses build-time intermediates.
           stderr_log=$(mktemp)
-          make build-dry-run 2>"$stderr_log" >/dev/null
+          if ! make build-dry-run 2>"$stderr_log" >/dev/null; then
+            cat "$stderr_log" >&2
+            rm -f "$stderr_log"
+            exit 1
+          fi
           if grep -q "will be built" "$stderr_log"; then
             export BUILD_NEEDED=yes
           else
