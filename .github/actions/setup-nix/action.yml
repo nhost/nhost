@@ -29,6 +29,35 @@ runs:
           keep-outputs = true
           accept-flake-config = true
 
+    - name: "Forward AWS credentials to the Nix daemon"
+      # The Nix daemon runs as root and doesn't inherit AWS_* env vars
+      # from the shell, so the S3 substituter fails with "Access Denied"
+      # and every job rebuilds paths that are already cached. Drop the
+      # short-lived OIDC credentials into root's ~/.aws/credentials so
+      # the AWS SDK picks them up via its standard provider chain, then
+      # bounce the daemon so any cached credential state is reset.
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          root_home=/var/root
+        else
+          root_home=/root
+        fi
+        sudo mkdir -p "$root_home/.aws"
+        sudo tee "$root_home/.aws/credentials" > /dev/null <<EOF
+        [default]
+        aws_access_key_id = $AWS_ACCESS_KEY_ID
+        aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+        aws_session_token = $AWS_SESSION_TOKEN
+        region = $AWS_REGION
+        EOF
+        sudo chmod 600 "$root_home/.aws/credentials"
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          sudo launchctl kickstart -k system/org.nixos.nix-daemon
+        else
+          sudo systemctl restart nix-daemon
+        fi
+
     - name: "Verify nixops is cached"
       if: ${{ inputs.NAME != 'nixops' }}
       shell: bash
