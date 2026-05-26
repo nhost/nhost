@@ -173,16 +173,21 @@ func ParseOnConflict( //nolint:funlen
 // the parent queries package because it needs queries-internal table state
 // (buildSingleInsertCTE) — NestedInsert itself is pure data plus the
 // FK-application helper.
+//
+// NestedObjects holds one element for object relationships and one-or-more
+// elements for array relationships (Hasura accepts both `data: {...}` and
+// `data: [{...}, ...]` for array relationships via GraphQL list-input
+// coercion).
 type NestedInsert struct {
 	RelationshipName    string
 	TargetTable         Table
-	NestedObject        InsertObject
+	NestedObjects       []InsertObject
 	OnConflict          *OnConflict
 	ForeignKeyColumns   []string
 	IsArrayRelationship bool
 }
 
-// ApplyArrayFKColumn appends the FK columns to the nested object (so they
+// ApplyArrayFKColumn appends the FK columns to every nested object (so they
 // appear in the INSERT column list) and registers each one against the parent
 // CTE. Only array relationships need this; for object relationships the parent
 // owns the FK. Composite FKs are handled by iterating every column in
@@ -206,11 +211,14 @@ func (n *NestedInsert) ApplyArrayFKColumn(parentCTEName string) map[string]strin
 	}
 
 	for _, fkName := range n.ForeignKeyColumns {
-		if fkColumn := n.TargetTable.ColumnFromSQLName(fkName); fkColumn != nil {
-			n.NestedObject.Columns = append(n.NestedObject.Columns, InsertColumn{
-				Column: fkColumn,
-				Value:  nil,
-			})
+		fkColumn := n.TargetTable.ColumnFromSQLName(fkName)
+		if fkColumn != nil {
+			for i := range n.NestedObjects {
+				n.NestedObjects[i].Columns = append(n.NestedObjects[i].Columns, InsertColumn{
+					Column: fkColumn,
+					Value:  nil,
+				})
+			}
 		}
 
 		nestedFKIndex[fkName] = parentCTEName
@@ -490,7 +498,7 @@ func parseNestedInsert( //nolint:funlen
 		)
 	}
 
-	// Nested inserts have the format: {data: {...}, on_conflict: {...}}
+	// Nested inserts have the format: {data: {...} | [{...}, ...], on_conflict: {...}}
 	if fieldValue.Kind != ast.ObjectValue {
 		return NestedInsert{}, fmt.Errorf(
 			"%w: nested insert for %s must be an object",
@@ -499,8 +507,8 @@ func parseNestedInsert( //nolint:funlen
 		)
 	}
 
-	nestedChild := fieldValue.Children.ForName("data")
-	if nestedChild == nil {
+	dataChild := fieldValue.Children.ForName("data")
+	if dataChild == nil {
 		return NestedInsert{}, fmt.Errorf(
 			"%w: missing data field for nested insert on relationship %s",
 			ErrInvalidArgument,
@@ -508,44 +516,110 @@ func parseNestedInsert( //nolint:funlen
 		)
 	}
 
-	nestedArguments := ast.ArgumentList{
-		&ast.Argument{ //nolint:exhaustruct
-			Name:  "object",
-			Value: nestedChild,
-		},
-	}
-
-	onConflictChild := fieldValue.Children.ForName("on_conflict")
-	if onConflictChild != nil {
-		nestedArguments = append(nestedArguments, &ast.Argument{ //nolint:exhaustruct
-			Name:  "on_conflict",
-			Value: onConflictChild,
-		})
+	dataValue, err := values.ResolveVariable(dataChild, variables)
+	if err != nil {
+		return NestedInsert{}, fmt.Errorf(
+			"failed to resolve nested data for %s: %w", fieldName, err,
+		)
 	}
 
 	target := relationship.TargetTable()
+	isArray := relationship.IsArray()
 
-	nestedInsertObj, onConflict, err := ParseInsert(
-		target,
-		nestedArguments,
-		variables,
-		role,
-		sessionVariables,
+	nestedObjects, err := parseNestedDataObjects(
+		target, dataValue, fieldName, isArray, variables, role, sessionVariables,
 	)
 	if err != nil {
-		return NestedInsert{}, fmt.Errorf(
-			"failed to parse nested insert for %s: %w",
-			fieldName,
-			err,
+		return NestedInsert{}, err
+	}
+
+	var onConflict *OnConflict
+
+	if onConflictChild := fieldValue.Children.ForName("on_conflict"); onConflictChild != nil {
+		onConflict, err = ParseOnConflict(
+			target, &ast.Argument{ //nolint:exhaustruct
+				Name:  "on_conflict",
+				Value: onConflictChild,
+			}, variables, role, sessionVariables,
 		)
+		if err != nil {
+			return NestedInsert{}, fmt.Errorf(
+				"failed to parse on_conflict for nested insert %s: %w", fieldName, err,
+			)
+		}
 	}
 
 	return NestedInsert{
 		RelationshipName:    fieldName,
 		TargetTable:         target,
-		NestedObject:        nestedInsertObj,
+		NestedObjects:       nestedObjects,
 		OnConflict:          onConflict,
 		ForeignKeyColumns:   relationship.FKColumns(),
-		IsArrayRelationship: relationship.IsArray(),
+		IsArrayRelationship: isArray,
 	}, nil
+}
+
+// parseNestedDataObjects parses the `data` field of a nested insert into a
+// slice of InsertObjects. For object relationships exactly one element is
+// produced; array relationships accept a list (GraphQL input coercion lets a
+// single object stand in for a singleton list).
+func parseNestedDataObjects(
+	target Table,
+	dataValue *ast.Value,
+	fieldName string,
+	isArray bool,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+) ([]InsertObject, error) {
+	if !isArray {
+		if dataValue.Kind != ast.ObjectValue {
+			return nil, fmt.Errorf(
+				"%w: data for object relationship %s must be an object",
+				ErrInvalidArgument, fieldName,
+			)
+		}
+
+		obj, err := parseInsertObject(target, dataValue, variables, role, sessionVariables)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse nested insert for %s: %w", fieldName, err)
+		}
+
+		return []InsertObject{obj}, nil
+	}
+
+	children, err := values.CoerceToChildValueList(dataValue, ast.ObjectValue)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"%w: data for array relationship %s must be a list of objects",
+			ErrInvalidArgument, fieldName,
+		)
+	}
+
+	if len(children) == 0 {
+		return nil, fmt.Errorf(
+			"%w: data for array relationship %s cannot be empty",
+			ErrInvalidArgument, fieldName,
+		)
+	}
+
+	objects := make([]InsertObject, 0, len(children))
+
+	for _, c := range children {
+		if c.Value.Kind != ast.ObjectValue {
+			return nil, fmt.Errorf(
+				"%w: each element of data for array relationship %s must be an object",
+				ErrInvalidArgument, fieldName,
+			)
+		}
+
+		obj, err := parseInsertObject(target, c.Value, variables, role, sessionVariables)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse nested insert for %s: %w", fieldName, err)
+		}
+
+		objects = append(objects, obj)
+	}
+
+	return objects, nil
 }

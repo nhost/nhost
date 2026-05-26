@@ -399,6 +399,38 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		},
 
 		{
+			name: "nested insert with array relationship (multiple rows)",
+			query: query{
+				Query: `mutation InsertDeptWithEmployees($obj: departments_insert_input!) {
+					  insert_departments_one(object: $obj) {
+						id
+					  }
+					}`,
+				Variables: map[string]any{
+					"obj": map[string]any{
+						"id":          "00000000-0000-0000-0000-000000000789",
+						"name":        "Array Insert Dept",
+						"description": "department with many employees",
+						"budget":      300000,
+						"employees": map[string]any{
+							"data": []any{
+								map[string]any{
+									"user_id": "550e8400-e29b-41d4-a716-446655440002",
+									"role":    "member",
+								},
+								map[string]any{
+									"user_id": "550e8400-e29b-41d4-a716-446655440001",
+									"role":    "manager",
+								},
+							},
+						},
+					},
+				},
+				Role: "admin",
+			},
+		},
+
+		{
 			name: "nested insert with multiple levels and specified IDs",
 			query: query{
 				Query: `mutation {
