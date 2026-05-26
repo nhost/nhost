@@ -264,7 +264,11 @@ func TestBuildUnionAllSelectFKFromParentCTE(t *testing.T) {
 		`UNION ALL SELECT $3::uuid AS "exercise_id", $4::int AS "position", ` +
 		`mutation_result."id" AS "workout_session_id" FROM mutation_result`
 	if got != want {
-		t.Errorf("buildUnionAllSelect with FK from parent CTE mismatch\n got: %s\nwant: %s", got, want)
+		t.Errorf(
+			"buildUnionAllSelect with FK from parent CTE mismatch\n got: %s\nwant: %s",
+			got,
+			want,
+		)
 	}
 
 	wantParams := []any{"ex1", 1, "ex2", 2}
