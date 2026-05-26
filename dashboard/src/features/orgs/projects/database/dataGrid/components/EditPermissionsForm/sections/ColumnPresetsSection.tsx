@@ -74,6 +74,9 @@ export default function ColumnPresetsSection({
     (map, { column }) => map.set(column, true),
     new Map<string, boolean>(),
   );
+  const isAddColumnDisabled = allColumnNames.every((column) =>
+    selectedColumnsMap.has(column),
+  );
 
   if (tableError) {
     throw tableError;
@@ -194,7 +197,7 @@ export default function ColumnPresetsSection({
           size="sm"
           type="button"
           onClick={() => append({ column: '', value: '' })}
-          disabled={fields.length === allColumnNames.length}
+          disabled={isAddColumnDisabled}
           className="justify-self-start text-primary hover:text-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
