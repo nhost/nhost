@@ -23,7 +23,7 @@ export interface ColumnPermissionsSectionProps {
   /**
    * The action that is being edited.
    */
-  action: DatabaseAction;
+  action: Exclude<DatabaseAction, 'delete'>;
   /**
    * The schema that is being edited.
    */
@@ -63,14 +63,15 @@ export default function ColumnPermissionsSection({
     throw tableError;
   }
 
+  const isSelectAction = action === 'select';
   const showComputedFields =
-    action === 'select' && availableComputedFields.length > 0;
-  const isWriteAction = action === 'insert' || action === 'update';
+    isSelectAction && availableComputedFields.length > 0;
 
   const selectableColumns =
-    tableData?.columns?.filter(
-      (column) => !(isWriteAction && isGeneratedColumn(column)),
-    ) ?? [];
+    (isSelectAction
+      ? tableData?.columns
+      : tableData?.columns?.filter((column) => !isGeneratedColumn(column))) ??
+    [];
 
   const isAllSelected =
     selectableColumns.length > 0 &&
@@ -121,40 +122,40 @@ export default function ColumnPermissionsSection({
       {tableStatus === 'success' && (
         <div className="flex flex-row flex-wrap items-center justify-start gap-6">
           {tableData?.columns?.map((column) => {
-            const disabledForGenerated =
-              isWriteAction && isGeneratedColumn(column);
+            const isDisabledGeneratedColumn =
+              !isSelectAction && isGeneratedColumn(column);
 
-            if (!disabledForGenerated) {
+            if (isDisabledGeneratedColumn) {
               return (
-                <Checkbox
-                  key={column.column_name}
-                  value={column.column_name}
-                  label={column.column_name}
-                  checked={selectedColumns.includes(column.column_name)}
-                  {...register('columns')}
-                />
+                <Tooltip key={column.column_name}>
+                  <TooltipTrigger asChild>
+                    <span className="inline-block cursor-not-allowed">
+                      <Checkbox
+                        className="pointer-events-none"
+                        value={column.column_name}
+                        label={column.column_name}
+                        checked={selectedColumns.includes(column.column_name)}
+                        disabled
+                        {...register('columns')}
+                      />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Generated column — value is computed by Postgres, can't be{' '}
+                    {action === 'insert' ? 'inserted' : 'updated'}.
+                  </TooltipContent>
+                </Tooltip>
               );
             }
 
             return (
-              <Tooltip key={column.column_name}>
-                <TooltipTrigger asChild>
-                  <span className="inline-block cursor-not-allowed">
-                    <Checkbox
-                      className="pointer-events-none"
-                      value={column.column_name}
-                      label={column.column_name}
-                      checked={selectedColumns.includes(column.column_name)}
-                      disabled
-                      {...register('columns')}
-                    />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Generated column — value is computed by Postgres, can't be{' '}
-                  {action === 'insert' ? 'inserted' : 'updated'}.
-                </TooltipContent>
-              </Tooltip>
+              <Checkbox
+                key={column.column_name}
+                value={column.column_name}
+                label={column.column_name}
+                checked={selectedColumns.includes(column.column_name)}
+                {...register('columns')}
+              />
             );
           })}
           {showComputedFields &&
