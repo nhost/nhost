@@ -11,7 +11,7 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
 ## Structure
 
 - `build/` - Docker Compose and dev environment configs
-- `cmd/` - CLI commands: `serve` (main server), `schema` (SDL dump/diff utilities), `metadata` (metadata utilities)
+- `cmd/` - CLI commands: `serve` (main server), `metadata` (metadata utilities). The `schema` (SDL dump/diff) subcommand lives in the Nhost CLI (`cli/cmd/schema/`)
 - `connector/` - Data source abstraction layer. `connector.Connector` interface for executing operations and exposing role-specific schemas. Subpackages:
   - `composer/` - `Composer` merges per-role schemas from multiple `SchemaProvider`s into one composed schema graph and a routing map (field/type -> owning connector)
   - `customization/` - Applies metadata customizations (root-field rename, type-name prefix/suffix) to schemas and operations
@@ -42,7 +42,6 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
   - `jwt/` - JWT validation (HMAC/RSA, static keys, JWKS URLs). Multiple secrets with fallthrough. Extracts Hasura claims and builds session variables
   - `jsonpath/` - Dot-separated JSON path navigation with array flattening. Used by planner/resolver for phantom field injection and result manipulation
   - `requestcontext/` - Context value storage for HTTP headers and logger propagation through middleware chain
-  - `schemadiff/` - GraphQL schema diffing used by tests and the `cmd/schema` `diff` subcommand
   - `lib/lru/` - Thread-safe generic LRU cache (used by controller query cache)
   - `lib/syncmap/` - Thread-safe generic map with RWMutex
   - `lib/oapi/{cors,logger,tracing}/` - Gin middleware split by concern: CORS, request logging (slog), B3 distributed tracing
@@ -116,7 +115,7 @@ go test ./connector/sql/graphql/schema/... -update
 
 Golden file tests live in `testdata/` directories. Update them with the `-update` flag when making intentional changes to generated SQL or schemas.
 
-**Golden file ordering pitfall.** A subset of goldens are JSON-marshalled via `encoding/json/v2` from Go maps (e.g. `*_data.json` query result fixtures, `TestIntrospect/success.golden.json`, and aggregate result data). JSON v2 emits map keys in Go map iteration order, which is **deliberately randomized** — so re-running `-update` against an unchanged codebase produces a byte-different file even though the content is semantically identical. Treat noisy reorderings as nondeterminism artefacts, not real changes: revert them with `git checkout --` instead of committing. If a test passes against the existing golden, the golden is correct; don't run `-update` on it without a real reason. The same applies to `integration/schema.nhost.*.graphqls` produced by `cmd/schema dump` (invoked from `integration/gen.sh`) — those are byproducts of `integration/gen.sh` runs, not goldens proper. Only the GraphQL SDL goldens under `connector/.../testdata/*.graphqls` are deterministically ordered (via sorted scalar/type emission in `connector/sql/graphql/schema/scalars.go`) and safe to commit verbatim.
+**Golden file ordering pitfall.** A subset of goldens are JSON-marshalled via `encoding/json/v2` from Go maps (e.g. `*_data.json` query result fixtures, `TestIntrospect/success.golden.json`, and aggregate result data). JSON v2 emits map keys in Go map iteration order, which is **deliberately randomized** — so re-running `-update` against an unchanged codebase produces a byte-different file even though the content is semantically identical. Treat noisy reorderings as nondeterminism artefacts, not real changes: revert them with `git checkout --` instead of committing. If a test passes against the existing golden, the golden is correct; don't run `-update` on it without a real reason. The same applies to `integration/schema.nhost.*.graphqls` produced by `nhost schema dump` (invoked from `integration/gen.sh`, which now shells out to the Nhost CLI in `cli/`) — those are byproducts of `integration/gen.sh` runs, not goldens proper. Only the GraphQL SDL goldens under `connector/.../testdata/*.graphqls` are deterministically ordered (via sorted scalar/type emission in `connector/sql/graphql/schema/scalars.go`) and safe to commit verbatim.
 
 ## Key Interfaces
 

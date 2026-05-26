@@ -155,9 +155,9 @@ func assertTableRelationships(t *testing.T, table hasura.TableMetadata) {
 		t.Fatalf("expected 1 object relationship, got %d", len(table.ObjectRelationships))
 	}
 
-	if table.ObjectRelationships[0].Using.ForeignKeyColumn != "profile_id" {
-		t.Errorf("expected foreign key column 'profile_id', got %q",
-			table.ObjectRelationships[0].Using.ForeignKeyColumn)
+	objCols := table.ObjectRelationships[0].Using.ForeignKeyColumns
+	if len(objCols) != 1 || objCols[0] != "profile_id" {
+		t.Errorf("expected foreign key columns [profile_id], got %v", objCols)
 	}
 
 	if len(table.ArrayRelationships) != 1 {
@@ -169,8 +169,8 @@ func assertTableRelationships(t *testing.T, table hasura.TableMetadata) {
 		t.Fatal("expected foreign key constraint, got nil")
 	}
 
-	if fkc.Column != "author_id" {
-		t.Errorf("expected constraint column 'author_id', got %q", fkc.Column)
+	if len(fkc.Columns) != 1 || fkc.Columns[0] != "author_id" {
+		t.Errorf("expected constraint columns [author_id], got %v", fkc.Columns)
 	}
 
 	if fkc.Table.Name != "posts" || fkc.Table.Schema != "public" {

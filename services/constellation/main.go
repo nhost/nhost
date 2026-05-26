@@ -7,7 +7,6 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/cmd"
 	metadatacmd "github.com/nhost/nhost/services/constellation/cmd/metadata"
-	schemacmd "github.com/nhost/nhost/services/constellation/cmd/schema"
 	docs "github.com/urfave/cli-docs/v3"
 	"github.com/urfave/cli/v3"
 )
@@ -66,7 +65,6 @@ func main() {
 			markdownDocs(),
 			cmd.CommandServe(),
 			metadatacmd.CommandMetadata(),
-			schemacmd.CommandSchema(),
 		},
 	}
 

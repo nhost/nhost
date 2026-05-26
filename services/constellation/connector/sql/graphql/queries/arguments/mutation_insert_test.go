@@ -659,7 +659,7 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 			TargetTable:         nil,
 			NestedObject:        arguments.InsertObject{Columns: nil, NestedInserts: nil},
 			OnConflict:          nil,
-			ForeignKeyColumn:    "fk",
+			ForeignKeyColumns:   []string{"fk"},
 			IsArrayRelationship: false,
 		}
 
@@ -683,7 +683,7 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 			TargetTable:         target,
 			NestedObject:        arguments.InsertObject{Columns: nil, NestedInserts: nil},
 			OnConflict:          nil,
-			ForeignKeyColumn:    "fk",
+			ForeignKeyColumns:   []string{"fk"},
 			IsArrayRelationship: true,
 		}
 
@@ -709,7 +709,7 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 			TargetTable:         target,
 			NestedObject:        arguments.InsertObject{Columns: nil, NestedInserts: nil},
 			OnConflict:          nil,
-			ForeignKeyColumn:    "fk",
+			ForeignKeyColumns:   []string{"fk"},
 			IsArrayRelationship: true,
 		}
 
@@ -740,7 +740,7 @@ func TestParseInsert_NestedRelationship(t *testing.T) {
 
 	// Relationship metadata used to construct NestedInsert.
 	rel.EXPECT().TargetTable().Return(target)
-	rel.EXPECT().FKColumn().Return("author_id")
+	rel.EXPECT().FKColumns().Return([]string{"author_id"})
 	rel.EXPECT().IsArray().Return(true)
 
 	// Target table parses its own object as a normal insert.
@@ -767,7 +767,8 @@ func TestParseInsert_NestedRelationship(t *testing.T) {
 	}
 
 	if got := obj.NestedInserts[0]; got.RelationshipName != "posts" ||
-		got.ForeignKeyColumn != "author_id" || !got.IsArrayRelationship {
+		len(got.ForeignKeyColumns) != 1 || got.ForeignKeyColumns[0] != "author_id" ||
+		!got.IsArrayRelationship {
 		t.Errorf("unexpected nested insert: %+v", got)
 	}
 }

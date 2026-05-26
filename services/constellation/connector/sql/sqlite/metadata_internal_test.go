@@ -211,8 +211,8 @@ func TestFlattenRelationshipUsing(t *testing.T) {
 	}{
 		{
 			name: "no config: nothing to flatten",
-			in:   metadata.RelationshipUsing{ForeignKeyColumn: "user_id"},
-			want: metadata.RelationshipUsing{ForeignKeyColumn: "user_id"},
+			in:   metadata.RelationshipUsing{ForeignKeyColumns: []string{"user_id"}},
+			want: metadata.RelationshipUsing{ForeignKeyColumns: []string{"user_id"}},
 		},
 		{
 			name: "manual configuration with qualified remote_table",
@@ -248,14 +248,14 @@ func TestFlattenRelationshipUsing(t *testing.T) {
 			name: "foreign key constraint with qualified table",
 			in: metadata.RelationshipUsing{
 				ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-					Column: "user_id",
-					Table:  metadata.TableSource{Name: "users", Schema: "auth"},
+					Columns: []string{"user_id"},
+					Table:   metadata.TableSource{Name: "users", Schema: "auth"},
 				},
 			},
 			want: metadata.RelationshipUsing{
 				ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-					Column: "user_id",
-					Table:  metadata.TableSource{Name: "users", Schema: ""},
+					Columns: []string{"user_id"},
+					Table:   metadata.TableSource{Name: "users", Schema: ""},
 				},
 			},
 		},
@@ -263,14 +263,14 @@ func TestFlattenRelationshipUsing(t *testing.T) {
 			name: "foreign key constraint with unqualified table is unchanged",
 			in: metadata.RelationshipUsing{
 				ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-					Column: "user_id",
-					Table:  metadata.TableSource{Name: "users", Schema: ""},
+					Columns: []string{"user_id"},
+					Table:   metadata.TableSource{Name: "users", Schema: ""},
 				},
 			},
 			want: metadata.RelationshipUsing{
 				ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-					Column: "user_id",
-					Table:  metadata.TableSource{Name: "users", Schema: ""},
+					Columns: []string{"user_id"},
+					Table:   metadata.TableSource{Name: "users", Schema: ""},
 				},
 			},
 		},
@@ -278,8 +278,8 @@ func TestFlattenRelationshipUsing(t *testing.T) {
 			name: "both manual and foreign key configurations are flattened",
 			in: metadata.RelationshipUsing{
 				ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-					Column: "user_id",
-					Table:  metadata.TableSource{Name: "users", Schema: "auth"},
+					Columns: []string{"user_id"},
+					Table:   metadata.TableSource{Name: "users", Schema: "auth"},
 				},
 				ManualConfiguration: &metadata.ManualConfiguration{
 					RemoteTable:   metadata.TableSource{Name: "files", Schema: "storage"},
@@ -288,8 +288,8 @@ func TestFlattenRelationshipUsing(t *testing.T) {
 			},
 			want: metadata.RelationshipUsing{
 				ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-					Column: "user_id",
-					Table:  metadata.TableSource{Name: "users", Schema: ""},
+					Columns: []string{"user_id"},
+					Table:   metadata.TableSource{Name: "users", Schema: ""},
 				},
 				ManualConfiguration: &metadata.ManualConfiguration{
 					RemoteTable:   metadata.TableSource{Name: "files", Schema: ""},
