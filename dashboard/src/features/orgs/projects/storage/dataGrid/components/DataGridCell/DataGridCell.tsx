@@ -344,17 +344,27 @@ function DataGridCellContent<
     </div>
   );
 
+  if (
+    id === 'preview-column' ||
+    type === 'boolean' ||
+    !isNotEmptyValue(optimisticValue)
+  ) {
+    return content;
+  }
+
   const cellPreview =
-    optimisticValue !== null && optimisticValue !== undefined
-      ? typeof optimisticValue === 'object'
-        ? JSON.stringify(optimisticValue)
-        : String(optimisticValue)
-      : 'null';
+    typeof optimisticValue === 'object'
+      ? JSON.stringify(optimisticValue)
+      : String(optimisticValue);
 
   return (
-    <Tooltip delayDuration={100}>
+    <Tooltip delayDuration={1000}>
       <TooltipTrigger asChild>{content}</TooltipTrigger>
-      <TooltipContent side="bottom" align="center" className="max-w-sm break-words">
+      <TooltipContent
+        side="bottom"
+        align="center"
+        className="max-w-sm break-words"
+      >
         {cellPreview}
       </TooltipContent>
     </Tooltip>
