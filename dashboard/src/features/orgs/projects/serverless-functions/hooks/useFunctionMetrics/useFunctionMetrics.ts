@@ -4,6 +4,7 @@ import {
   type MetricsTimeRange,
   resolveTimeRange,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/timeRange';
+import { computeQueryStep } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/stepResolution';
 import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
 import { transformFunctionMetrics } from '@/features/orgs/projects/serverless-functions/utils/transformFunctionMetrics';
 import { useGetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/graphql';
@@ -36,6 +37,11 @@ export default function useFunctionMetrics({
     [range, refetchKey],
   );
 
+  const { intervalMs, maxDataPoints } = useMemo(
+    () => computeQueryStep(from, to),
+    [from, to],
+  );
+
   // Function paths like `/api/users.ts` contain regex metacharacters, so escape them for literal match.
   const escapedRoute = route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -50,6 +56,8 @@ export default function useFunctionMetrics({
       route: escapedRoute,
       from: from.toISOString(),
       to: to.toISOString(),
+      intervalMs,
+      maxDataPoints,
     },
     fetchPolicy: 'cache-and-network',
     notifyOnNetworkStatusChange: true,

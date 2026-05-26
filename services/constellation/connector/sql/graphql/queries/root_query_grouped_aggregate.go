@@ -66,25 +66,17 @@ func (t *table) BuildGroupedAggregateSQL(
 		alias = in.Field.Name
 	}
 
-	aggregateSel, nodesField, err := t.astToAggregateSelection(in.Field, in.Fragments)
+	outerTypenames, aggregateSel, nodesField, err := t.astToAggregateSelection(
+		in.Field,
+		in.Fragments,
+	)
 	if err != nil {
 		return core.SQLOperation{}, err
 	}
 
-	whereClause, modifiers, _, err := arguments.ParseQuery(
-		t, in.Field.Arguments, in.Variables, in.Role, in.SessionVariables,
-	)
+	whereClause, err := t.parseGroupedAggregateArguments(in)
 	if err != nil {
-		return core.SQLOperation{}, fmt.Errorf(
-			"parsing query arguments for %s.%s: %w", t.schemaName, t.tableName, err,
-		)
-	}
-
-	for _, m := range modifiers {
-		switch m.(type) {
-		case *arguments.Limit, *arguments.Offset:
-			return core.SQLOperation{}, ErrGroupedAggregateLimitOffsetUnsupported
-		}
+		return core.SQLOperation{}, err
 	}
 
 	b := getBuilder()
@@ -103,7 +95,7 @@ func (t *table) BuildGroupedAggregateSQL(
 	}
 
 	if err = t.writeGroupedAggregateOuter(
-		b, in.Fragments, aggregateSel, nodesField, joinCol, alias,
+		b, in.Fragments, outerTypenames, aggregateSel, nodesField, joinCol, alias,
 	); err != nil {
 		return core.SQLOperation{}, err
 	}
@@ -114,6 +106,34 @@ func (t *table) BuildGroupedAggregateSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 	}, nil
+}
+
+// parseGroupedAggregateArguments parses the GraphQL query arguments for a
+// grouped-aggregate selection and rejects limit/offset modifiers, which are
+// ambiguous (per-group vs. global) on cross-database aggregate relationships
+// and not yet supported. Returns the WHERE clause for use in the base CTE;
+// distinct_on and order_by modifiers are intentionally discarded — they are
+// not meaningful at the grouped-aggregate level.
+func (t *table) parseGroupedAggregateArguments(
+	in groupedaggdispatch.BuildInput,
+) (where.Clause, error) {
+	whereClause, modifiers, _, err := arguments.ParseQuery(
+		t, in.Field.Arguments, in.Variables, in.Role, in.SessionVariables,
+	)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"parsing query arguments for %s.%s: %w", t.schemaName, t.tableName, err,
+		)
+	}
+
+	for _, m := range modifiers {
+		switch m.(type) {
+		case *arguments.Limit, *arguments.Offset:
+			return nil, ErrGroupedAggregateLimitOffsetUnsupported
+		}
+	}
+
+	return whereClause, nil
 }
 
 // writeGroupedAggregateCTE writes the base CTE that LEFT JOINs the target
@@ -205,6 +225,7 @@ func (t *table) writeGroupedAggregateCTE( //nolint:funlen
 func (t *table) writeGroupedAggregateOuter(
 	b *strings.Builder,
 	fragments ast.FragmentDefinitionList,
+	outerTypenames []typenameSelection,
 	aggregateSel []aggregateQuerySelection,
 	nodesField *ast.Field,
 	joinCol *core.Column,
@@ -224,6 +245,11 @@ func (t *table) writeGroupedAggregateOuter(
 	b.WriteString(`', "`)
 	b.WriteString(groupedAggregateJoinKeyAlias)
 	b.WriteByte('"')
+
+	for i := range outerTypenames {
+		b.WriteString(", ")
+		outerTypenames[i].Write(b)
+	}
 
 	if len(aggregateSel) > 0 {
 		b.WriteString(", 'aggregate', ")

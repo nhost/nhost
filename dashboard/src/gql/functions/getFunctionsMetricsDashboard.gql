@@ -3,6 +3,8 @@ query getFunctionsMetricsDashboard(
   $route: String!
   $from: Timestamp
   $to: Timestamp
+  $intervalMs: Int
+  $maxDataPoints: Int
 ) {
   totalInvocations: getFunctionsInstantMetric(
     metric: INVOCATIONS
@@ -57,6 +59,8 @@ query getFunctionsMetricsDashboard(
     route: $route
     from: $from
     to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
   ) {
     labels
     timestamps
@@ -70,6 +74,8 @@ query getFunctionsMetricsDashboard(
     route: $route
     from: $from
     to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
   ) {
     labels
     timestamps
@@ -83,6 +89,8 @@ query getFunctionsMetricsDashboard(
     route: $route
     from: $from
     to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
   ) {
     labels
     timestamps
@@ -96,6 +104,8 @@ query getFunctionsMetricsDashboard(
     route: $route
     from: $from
     to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
   ) {
     labels
     timestamps
@@ -109,6 +119,8 @@ query getFunctionsMetricsDashboard(
     route: $route
     from: $from
     to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
   ) {
     labels
     timestamps
@@ -122,6 +134,8 @@ query getFunctionsMetricsDashboard(
     route: $route
     from: $from
     to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
   ) {
     labels
     timestamps
@@ -135,6 +149,8 @@ query getFunctionsMetricsDashboard(
     route: $route
     from: $from
     to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
   ) {
     labels
     timestamps
@@ -148,6 +164,8 @@ query getFunctionsMetricsDashboard(
     route: $route
     from: $from
     to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
   ) {
     labels
     timestamps

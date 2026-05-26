@@ -75,8 +75,10 @@ type Relationship interface {
 	// target.
 	TargetTable() Table
 
-	// FKColumn returns the foreign-key column SQL name for the relationship.
-	FKColumn() string
+	// FKColumns returns the foreign-key column SQL names for the relationship,
+	// in the order the metadata declared them. A single-column FK is returned
+	// as a one-element slice.
+	FKColumns() []string
 
 	// IsArray reports whether this is an array relationship (vs an object
 	// relationship). Array relationships place the FK on the child row;

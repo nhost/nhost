@@ -4,6 +4,11 @@ Reproduce this structure exactly between the reviewer markers.
 
 ```
 <!-- nhost-reviewer:start -->
+### **What this PR solves**
+One to three sentences describing the problem and the outcome.
+
+___
+
 ### **PR Type**
 Enhancement
 

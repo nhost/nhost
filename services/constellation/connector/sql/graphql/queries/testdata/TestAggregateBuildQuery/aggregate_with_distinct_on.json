@@ -1,8 +1,8 @@
 [
   {
     "Name": "usersAggregate",
-    "QueryType": "select_aggregate",
     "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT DISTINCT ON (\"default_role\") * FROM \"auth\".\"users\" ORDER BY \"default_role\" ASC LIMIT 10) SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*)) FROM \"_root.base\"), 'nodes', (SELECT coalesce(json_agg(\"_root\" ORDER BY \"_root.pg.default_role\" ASC NULLS LAST), '[]') FROM (SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.base\".\"display_name\" AS \"displayName\", \"_root.base\".\"default_role\" AS \"defaultRole\") AS \"_e\")) AS \"_root\", \"_root.base\".\"default_role\" AS \"_root.pg.default_role\" FROM \"_root.base\") AS \"_root\")) AS \"usersAggregate\"",
-    "Parameters": []
+    "Parameters": [],
+    "StreamCursors": null
   }
 ]

@@ -309,6 +309,23 @@
             ];
           };
 
+          security-updates = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              # pnpm audit --fix=update
+              nodejs
+              pnpm
+
+              # govulncheck-wrapper -fix → go get / go mod tidy / go mod vendor
+              go
+              govulncheck
+              self.packages.${system}.govulncheck-wrapper
+            ];
+
+            shellHook = ''
+              export GOEXPERIMENT=jsonv2
+            '';
+          };
+
           skopeo = pkgs.mkShell {
             buildInputs = with pkgs; [
               skopeo

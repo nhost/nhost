@@ -10,6 +10,7 @@ package introspection
 
 import (
 	"maps"
+	"slices"
 
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -133,10 +134,11 @@ func executeTypesField(
 	field *ast.Field,
 	query *ast.QueryDocument,
 ) []map[string]any {
-	types := make([]map[string]any, 0, len(schema.Types))
+	names := slices.Sorted(maps.Keys(schema.Types))
+	types := make([]map[string]any, 0, len(names))
 
-	for _, typeDef := range schema.Types {
-		typeInfo := executeFullTypeFragment(typeDef, field.SelectionSet, query, schema)
+	for _, name := range names {
+		typeInfo := executeFullTypeFragment(schema.Types[name], field.SelectionSet, query, schema)
 		types = append(types, typeInfo)
 	}
 
@@ -148,10 +150,13 @@ func executeDirectivesField(
 	field *ast.Field,
 	query *ast.QueryDocument,
 ) []map[string]any {
-	directives := make([]map[string]any, 0, len(schema.Directives))
+	names := slices.Sorted(maps.Keys(schema.Directives))
+	directives := make([]map[string]any, 0, len(names))
 
-	for _, directive := range schema.Directives {
-		directiveInfo := executeDirectiveFields(directive, field.SelectionSet, query, schema)
+	for _, name := range names {
+		directiveInfo := executeDirectiveFields(
+			schema.Directives[name], field.SelectionSet, query, schema,
+		)
 		directives = append(directives, directiveInfo)
 	}
 

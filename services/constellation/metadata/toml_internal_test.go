@@ -44,7 +44,7 @@ func TestMarshalunmarshalTOML_Roundtrip(t *testing.T) {
 							{
 								Name: "role",
 								Using: RelationshipUsing{
-									ForeignKeyColumn: "default_role",
+									ForeignKeyColumns: []string{"default_role"},
 								},
 							},
 						},
@@ -53,8 +53,8 @@ func TestMarshalunmarshalTOML_Roundtrip(t *testing.T) {
 								Name: "posts",
 								Using: RelationshipUsing{
 									ForeignKeyConstraint: &ForeignKeyConstraint{
-										Column: "author_id",
-										Table:  TableSource{Name: "posts", Schema: "public"},
+										Columns: []string{"author_id"},
+										Table:   TableSource{Name: "posts", Schema: "public"},
 									},
 								},
 							},

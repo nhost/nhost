@@ -128,9 +128,7 @@ func buildRegex(negated, caseInsensitive bool) operatorParser {
 
 // parseIsNull handles _is_null: the value is read as a raw boolean, no
 // variable resolution is needed.
-//
-//nolint:ireturn // operatorParser signature requires the Statement interface.
-func parseIsNull(
+func parseIsNull( //nolint:ireturn,nolintlint
 	column *core.Column, value *ast.Value, _ map[string]any, _ dialect.Dialect,
 ) (Statement, error) {
 	return &isNullFilter{column: column.SQLName, isNull: value.Raw == "true"}, nil

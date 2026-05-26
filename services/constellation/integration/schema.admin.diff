@@ -1,6 +1,6 @@
 --- schema.hasura.admin.graphqls
 +++ schema.nhost.admin.graphqls
-@@ -3625,7 +3625,7 @@ type mutation_root {
+@@ -3690,7 +3690,7 @@ type mutation_root {
    recordMyTeamGame(isHome: Boolean!, opponentId: ID!, opponentScore: Int!, teamId: ID!, teamScore: Int!): Game!
    reportGame(awayScore: Int!, awayTeamId: ID!, homeScore: Int!, homeTeamId: ID!, source: String!): Game!
    resetLeague: Boolean!
@@ -9,7 +9,7 @@
    updateAuthOauth2AuthRequest(_set: authOauth2AuthRequests_set_input pk_columns: authOauth2AuthRequests_pk_columns_input!): authOauth2AuthRequests
    updateAuthOauth2AuthRequests(_set: authOauth2AuthRequests_set_input where: authOauth2AuthRequests_bool_exp!): authOauth2AuthRequests_mutation_response
    updateAuthOauth2AuthorizationCode(_set: authOauth2AuthorizationCodes_set_input pk_columns: authOauth2AuthorizationCodes_pk_columns_input!): authOauth2AuthorizationCodes
-@@ -4031,8 +4031,7 @@ type query_root {
+@@ -4098,8 +4098,7 @@ type query_root {
    filesAggregate(distinct_on: [files_select_column!] limit: Int offset: Int order_by: [files_order_by!] where: files_bool_exp): files_aggregate!
    game(id: ID!): Game
    games: [Game!]!
@@ -19,7 +19,7 @@
    kb_entries(distinct_on: [kb_entries_select_column!] limit: Int offset: Int order_by: [kb_entries_order_by!] where: kb_entries_bool_exp): [kb_entries!]!
    kb_entries_aggregate(distinct_on: [kb_entries_select_column!] limit: Int offset: Int order_by: [kb_entries_order_by!] where: kb_entries_bool_exp): kb_entries_aggregate!
    kb_entries_by_pk(id: uuid!): kb_entries
-@@ -4154,8 +4153,7 @@ type subscription_root {
+@@ -4224,8 +4223,7 @@ type subscription_root {
    files(distinct_on: [files_select_column!] limit: Int offset: Int order_by: [files_order_by!] where: files_bool_exp): [files!]!
    filesAggregate(distinct_on: [files_select_column!] limit: Int offset: Int order_by: [files_order_by!] where: files_bool_exp): files_aggregate!
    files_stream(batch_size: Int! cursor: [files_stream_cursor_input]! where: files_bool_exp): [files!]!

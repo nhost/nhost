@@ -1053,14 +1053,14 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 	env = append(env, []EnvVar{
 		{
 			Name:       "AUTH_SMTP_HOST",
-			Value:      smtpSettings.GetHost(),
+			Value:      unptr(smtpSettings.GetHost()),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name: "AUTH_SMTP_SECURE",
 			Value: Stringify(
-				smtpSettings.GetSecure(),
+				unptr(smtpSettings.GetSecure()),
 			),
 			IsSecret:   false,
 			SecretName: "",
@@ -1068,33 +1068,33 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		{
 			Name: "AUTH_SMTP_PORT",
 			Value: Stringify(
-				smtpSettings.GetPort(),
+				unptr(smtpSettings.GetPort()),
 			),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "AUTH_SMTP_USER",
-			Value:      smtpSettings.GetUser(),
+			Value:      unptr(smtpSettings.GetUser()),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "AUTH_SMTP_SENDER",
-			Value:      smtpSettings.GetSender(),
+			Value:      unptr(smtpSettings.GetSender()),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "AUTH_SMTP_AUTH_METHOD",
-			Value:      smtpSettings.GetMethod(),
+			Value:      unptr(smtpSettings.GetMethod()),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "AUTH_SMTP_PASS",
 			SecretName: secretHasuraAuthSMTPPassword,
-			Value:      smtpSettings.GetPassword(),
+			Value:      unptr(smtpSettings.GetPassword()),
 			IsSecret:   true,
 		},
 		{

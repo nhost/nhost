@@ -76,7 +76,7 @@ importers:
         specifier: workspace:^
         version: link:../../../packages/nhost-js
       vue:
-        specifier: ^3.5.18
+        specifier: ^3.5.21
         version: 3.5.21
     devDependencies:
       '@vitejs/plugin-vue':

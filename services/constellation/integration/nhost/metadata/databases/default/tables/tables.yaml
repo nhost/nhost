@@ -11,6 +11,7 @@
 - "!include auth_user_roles.yaml"
 - "!include auth_user_security_keys.yaml"
 - "!include auth_users.yaml"
+- "!include public_content_feed.yaml"
 - "!include public_department_files.yaml"
 - "!include public_department_roles.yaml"
 - "!include public_departments.yaml"

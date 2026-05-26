@@ -87,22 +87,26 @@ The minimum to get an instance up:
 ```bash
 ./result/bin/constellation serve \
   --metadata-path /path/to/metadata/ \
-  --database-url 'postgres://user:pass@localhost:5432/mydb' \
   --admin-secret 'change-me' \
   --jwt-secret '{"type":"HS256","key":"..."}' \
   --enable-playground
 ```
 
-Then open <http://localhost:8000/> for the GraphQL playground or POST to <http://localhost:8000/graphql>. Subscriptions are served over WebSocket on the same endpoint (`graphql-transport-ws` protocol).
+Then open <http://localhost:8000/> for the GraphQL playground or POST to <http://localhost:8000/v1/graphql>. Subscriptions are served over WebSocket on the same endpoint (`graphql-transport-ws` protocol).
 
 ### Runtime modes
 
-Two ways to load metadata:
+Two things are sourced separately and shouldn't be confused:
 
-- **File mode** — point `--metadata-path` (or `METADATA_PATH`) at a single `.toml` file or any path inside a Hasura YAML metadata directory (the file is not opened; only the parent directory is read per the Hasura v3 layout). Metadata is loaded once at startup; restart to pick up changes. Best for static deployments and CI.
-- **Database mode** — set `--metadata-database-url` (or `METADATA_DATABASE_URL`) to Hasura's metadata database. Constellation polls `hdb_catalog.hdb_metadata` and reloads when the version changes. Best for deployments where Hasura still owns metadata authoring.
+**Data sources** — the user-data PostgreSQL databases the GraphQL API serves over. They are *never* configured on the CLI; each one is declared inside the metadata under `sources[].configuration.connection_info` (Hasura's source format). Constellation opens a connection pool per source at startup and reuses it for every request.
 
-In database mode, reloads are atomic: in-flight requests complete against the old state while new requests use the new one.
+**Metadata** — the definitions of those sources, plus tables, permissions, relationships, and remote schemas. You pick exactly one of:
+
+- **File mode** — `--metadata-path` (or `CONSTELLATION_METADATA_PATH`) points at a single `.toml` file or at any path inside a Hasura v3 YAML metadata directory (for the YAML case the file you name is not opened; only its parent directory is read per the Hasura layout). Metadata is loaded **once at startup**. There is no file watcher, no polling, and no fallback sync from a database — restart constellation to pick up changes. Best for static deployments and CI.
+
+- **Database mode** — `--metadata-database-url` (or `CONSTELLATION_METADATA_DATABASE_URL`) points at the PostgreSQL database where Hasura stores its `hdb_catalog.hdb_metadata` row. Constellation polls that row's `resource_version` every second; when it changes, the blob is re-read and the live schema is hot-swapped atomically (in-flight requests complete against the old state; new requests see the new one). Best for deployments where Hasura still owns metadata authoring.
+
+The modes are mutually exclusive. File mode does not refresh from any database; database mode ignores `--metadata-path`. The metadata DB (`--metadata-database-url`) is also distinct from the data sources declared inside the metadata — pointing it at a data DB would only work if that DB happened to host Hasura's `hdb_catalog` schema.
 
 ### Local development environment
 
@@ -126,21 +130,18 @@ All flags are also available as environment variables. The most common:
 
 | Flag | Env | Default |
 |---|---|---|
-| `--bind-address` | `BIND_ADDRESS` | `:8000` |
-| `--database-url` | `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/postgres` |
-| `--metadata-path` | `METADATA_PATH` | `./metadata/metadata.yaml` |
-| `--metadata-database-url` | `METADATA_DATABASE_URL` | *(unset → file mode)* |
-| `--admin-secret` | `ADMIN_SECRET`, `NHOST_ADMIN_SECRET`, `HASURA_GRAPHQL_ADMIN_SECRET` | *(required)* |
-| `--jwt-secret` | `HASURA_GRAPHQL_JWT_SECRET`, `NHOST_JWT_SECRET` | *(required)* |
-| `--cors-allowed-origins` | `CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)* |
-| `--subscription-poll-interval` | `SUBSCRIPTION_POLL_INTERVAL` | `1s` |
-| `--enable-playground` | `ENABLE_PLAYGROUND` | `false` |
-| `--debug` | `DEBUG` | `false` |
-| `--log-format-text` | `LOG_FORMAT_TEXT` | `false` — JSON logs by default |
-| `--dev-mode` | `NHOST_DEV_MODE` | `false` — returns raw connector errors; never enable in production |
-| `--profile-address` | `PROFILE_ADDRESS` | *(unset)* — enables `net/http/pprof` |
-
-The admin-secret and JWT envs are the same as Hasura's, so existing deployments can switch over without touching their auth wiring.
+| `--bind-address` | `CONSTELLATION_BIND_ADDRESS` | `:8000` |
+| `--metadata-path` | `CONSTELLATION_METADATA_PATH` | `./metadata/metadata.yaml` |
+| `--metadata-database-url` | `CONSTELLATION_METADATA_DATABASE_URL` | *(unset → file mode)* |
+| `--admin-secret` | `CONSTELLATION_ADMIN_SECRET` | *(required)* |
+| `--jwt-secret` | `CONSTELLATION_JWT_SECRET` | *(required)* |
+| `--cors-allowed-origins` | `CONSTELLATION_CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)* |
+| `--subscription-poll-interval` | `CONSTELLATION_SUBSCRIPTION_POLL_INTERVAL` | `1s` |
+| `--enable-playground` | `CONSTELLATION_ENABLE_PLAYGROUND` | `false` |
+| `--debug` | `CONSTELLATION_DEBUG` | `false` |
+| `--log-format-text` | `CONSTELLATION_LOG_FORMAT_TEXT` | `false` — JSON logs by default |
+| `--dev-mode` | `CONSTELLATION_DEV_MODE` | `false` — returns raw connector errors; never enable in production |
+| `--profile-address` | `CONSTELLATION_PROFILE_ADDRESS` | *(unset)* — enables `net/http/pprof` |
 
 ## Compatibility
 
@@ -149,6 +150,38 @@ Constellation aims to be a drop-in replacement for Hasura on the GraphQL request
 - Aggregation support is discovered from PostgreSQL rather than hardcoded — types Hasura excludes (e.g. `bool`, `jsonb`, `bytea`, `vector`) may now appear in `_min`/`_max` aggregates if the database supports them.
 - Update mutations are not generated for tables where the role has no update column permissions (Hasura emits no-op mutations).
 - Functions returning a single row don't expose `where`/`order_by`/`limit` or an `_aggregate` field (aggregating over exactly one row is meaningless).
+
+### Verifying compatibility against your Hasura instance
+
+If you run Hasura and Constellation side-by-side against the same database, you can confirm Constellation generates the schema you expect by introspecting both and diffing the SDL per role. The `nhost schema dump` and `nhost schema diff` subcommands (in the Nhost CLI) do exactly that:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+ROLES=(admin user public)
+HASURA_URL="https://your-hasura-endpoint/v1"
+NHOST_URL="http://your-constellation-endpoint/v1/graphql"
+ADMIN_SECRET="your-admin-secret"
+
+for role in "${ROLES[@]}"; do
+    nhost schema dump \
+        --role "${role}" --admin-secret "${ADMIN_SECRET}" \
+        -u "${HASURA_URL}" -o "./schema.hasura.${role}.graphqls"
+
+    nhost schema dump \
+        --role "${role}" --admin-secret "${ADMIN_SECRET}" \
+        -u "${NHOST_URL}" -o "./schema.nhost.${role}.graphqls"
+
+    nhost schema diff \
+        -a "schema.hasura.${role}.graphqls" \
+        -b "schema.nhost.${role}.graphqls" > "schema.${role}.diff"
+done
+```
+
+If you've linked a project with `nhost link`, you can drop `--url` / `--admin-secret` entirely and just pass `--role` (and optionally `--subdomain` to target a cloud project instead of the local stack).
+
+An empty `schema.<role>.diff` means Constellation generated a byte-equivalent schema for that role. If a diff is non-empty, every hunk should map to one of the categories in [`KNOWN_DIFFERENCES.md`](./KNOWN_DIFFERENCES.md). If you find a divergence that isn't covered there, please [open an issue](https://github.com/nhost/nhost/issues/new) with the affected diff hunk and a minimal metadata snippet — that's how new categories get documented (or fixed).
 
 For the full picture of what Hasura metadata Constellation supports, see [`docs/user/hasura-metadata-support.md`](./docs/user/hasura-metadata-support.md).
 

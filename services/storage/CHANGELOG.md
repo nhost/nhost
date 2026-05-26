@@ -1,3 +1,21 @@
+## [storage@0.14.0] - 2026-05-23
+
+### 🚀 Features
+
+- *(cli)* Harden local configserver against cross-origin and exfil access (#4302)
+
+
+### 🐛 Bug Fixes
+
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(storage)* Include file details in batch upload error responses (#4298)
+- *(storage)* Paginate S3 listing and correct broken-metadata detection (#4324)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Minor changes to go linter to reduce noise (#4329)
+
 ## [storage@0.13.0] - 2026-04-17
 
 ### 🚀 Features

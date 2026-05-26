@@ -120,17 +120,24 @@ func (t *table) buildNestedFKIndex(
 
 	for _, nested := range insertObjs[0].NestedInserts {
 		cteName := "nested_" + nested.RelationshipName
-		nestedFKIndex[nested.ForeignKeyColumn] = cteName
 
-		if !nested.IsArrayRelationship {
-			fkColumn := t.columnFromSQLName(nested.ForeignKeyColumn)
-			if fkColumn != nil {
-				for _, obj := range insertObjs {
-					obj.Columns = append(obj.Columns, arguments.InsertColumn{
-						Column: fkColumn,
-						Value:  nil,
-					})
-				}
+		for _, fkName := range nested.ForeignKeyColumns {
+			nestedFKIndex[fkName] = cteName
+
+			if nested.IsArrayRelationship {
+				continue
+			}
+
+			fkColumn := t.columnFromSQLName(fkName)
+			if fkColumn == nil {
+				continue
+			}
+
+			for _, obj := range insertObjs {
+				obj.Columns = append(obj.Columns, arguments.InsertColumn{
+					Column: fkColumn,
+					Value:  nil,
+				})
 			}
 		}
 	}

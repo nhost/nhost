@@ -161,6 +161,18 @@ type Table struct {
 	// UniqueConstraints lists unique constraints (excluding the primary
 	// key) defined on this table.
 	UniqueConstraints []UniqueConstraint
+	// IsView is true if the relation is a view rather than a base table.
+	// Always false for SQL base tables.
+	IsView bool
+	// IsInsertable reports whether INSERTs are allowed against the
+	// relation. Always true for base tables; for views it mirrors
+	// PostgreSQL's information_schema.views.is_insertable_into.
+	IsInsertable bool
+	// IsUpdatable reports whether UPDATE and DELETE are allowed against
+	// the relation. Always true for base tables; for views it mirrors
+	// PostgreSQL's information_schema.views.is_updatable, which gates
+	// both UPDATE and DELETE per the SQL standard.
+	IsUpdatable bool
 }
 
 // maxEnumTableColumns is the upper bound for an enum table: the primary-key value
@@ -210,4 +222,43 @@ func (t *Table) EnumColumns() (string, string, error) {
 	}
 
 	return valueCol, descCol, nil
+}
+
+// LookupForwardFKTarget walks fkColumns against t.ForeignKeys and returns the
+// shared (ForeignSchema, ForeignTable) all listed columns reference. It returns
+// empty strings when any column has no matching foreign key or when the listed
+// columns disagree on the target — both indicate a metadata/introspection
+// mismatch that callers treat as a misconfigured relationship.
+func (t *Table) LookupForwardFKTarget(fkColumns []string) (string, string) {
+	var (
+		schema string
+		name   string
+	)
+
+	for _, col := range fkColumns {
+		matched := false
+
+		for _, fk := range t.ForeignKeys {
+			if fk.ColumnName != col {
+				continue
+			}
+
+			if schema == "" && name == "" {
+				schema = fk.ForeignSchema
+				name = fk.ForeignTable
+			} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
+				return "", ""
+			}
+
+			matched = true
+
+			break
+		}
+
+		if !matched {
+			return "", ""
+		}
+	}
+
+	return schema, name
 }
