@@ -360,19 +360,15 @@ func CORS(opts Options) (gin.HandlerFunc, error) {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 
-		if c.Request.Method == http.MethodOptions {
-			if cfg.originAllowed(origin) {
-				cfg.applyHeaders(c, origin)
-			}
+		if origin != "" && cfg.originAllowed(origin) {
+			cfg.applyHeaders(c, origin)
+		}
 
+		if c.Request.Method == http.MethodOptions {
 			c.Header("Content-Length", "0")
 			c.AbortWithStatus(http.StatusNoContent)
 
 			return
-		}
-
-		if origin != "" && cfg.originAllowed(origin) {
-			cfg.applyHeaders(c, origin)
 		}
 
 		c.Next()

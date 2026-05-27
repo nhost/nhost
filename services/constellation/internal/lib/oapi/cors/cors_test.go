@@ -179,6 +179,26 @@ func TestCORS(t *testing.T) {
 			},
 			wantVaryContains: "",
 		},
+		{
+			name: "preflight_without_origin_gets_no_cors_headers",
+			opts: cors.Options{
+				AllowedOrigins:   []string{"https://example.com"},
+				AllowedMethods:   []string{"GET"},
+				AllowedHeaders:   nil,
+				ExposedHeaders:   nil,
+				AllowCredentials: false,
+				MaxAge:           "",
+			},
+			method:      http.MethodOptions,
+			origin:      "",
+			wantCalled:  false,
+			wantStatus:  http.StatusNoContent,
+			wantHeaders: nil,
+			wantHeadersEmpty: []string{
+				"Access-Control-Allow-Origin",
+			},
+			wantVaryContains: "",
+		},
 	}
 
 	for _, tc := range tests {
