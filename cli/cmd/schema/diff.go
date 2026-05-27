@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/nhost/nhost/services/constellation/internal/schemadiff"
+	"github.com/nhost/nhost/cli/internal/schemadiff"
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/urfave/cli/v3"
 	"github.com/vektah/gqlparser/v2/ast"

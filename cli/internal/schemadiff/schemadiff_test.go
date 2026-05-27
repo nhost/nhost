@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nhost/nhost/services/constellation/internal/schemadiff"
+	"github.com/nhost/nhost/cli/internal/schemadiff"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )

@@ -25,7 +25,9 @@ import (
 // used only in error messages.
 func (t *table) Name() string { return t.tableName }
 
-func (t *table) LookupRelationship(name string) permissions.Relationship { //nolint:ireturn
+func (t *table) LookupRelationship( //nolint:ireturn,nolintlint
+	name string,
+) permissions.Relationship {
 	r := t.relationshipFromGraphqlName(name)
 	if r == nil {
 		return nil
@@ -34,7 +36,7 @@ func (t *table) LookupRelationship(name string) permissions.Relationship { //nol
 	return r
 }
 
-func (t *table) SiblingTable(schema, name string) permissions.Table { //nolint:ireturn
+func (t *table) SiblingTable(schema, name string) permissions.Table { //nolint:ireturn,nolintlint
 	other := t.tableBySchemaName(schema, name)
 	if other == nil {
 		return nil
@@ -49,7 +51,7 @@ func (r *relationship) Name() string { return r.name }
 
 // LookupTarget satisfies permissions.Relationship. Returns a nil interface
 // for remote/remote-schema relationships with no local target.
-func (r *relationship) LookupTarget() permissions.Table { //nolint:ireturn
+func (r *relationship) LookupTarget() permissions.Table { //nolint:ireturn,nolintlint
 	if r.table == nil {
 		return nil
 	}

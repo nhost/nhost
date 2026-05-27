@@ -340,8 +340,8 @@ func convertRelationshipUsing(h hasura.RelationshipUsing) RelationshipUsing {
 	var fk *ForeignKeyConstraint
 	if h.ForeignKeyConstraint != nil {
 		fk = &ForeignKeyConstraint{
-			Column: h.ForeignKeyConstraint.Column,
-			Table:  convertTableSource(h.ForeignKeyConstraint.Table),
+			Columns: append([]string(nil), h.ForeignKeyConstraint.Columns...),
+			Table:   convertTableSource(h.ForeignKeyConstraint.Table),
 		}
 	}
 
@@ -368,7 +368,7 @@ func convertRelationshipUsing(h hasura.RelationshipUsing) RelationshipUsing {
 	}
 
 	return RelationshipUsing{
-		ForeignKeyColumn:     h.ForeignKeyColumn,
+		ForeignKeyColumns:    append([]string(nil), h.ForeignKeyColumns...),
 		ForeignKeyConstraint: fk,
 		ManualConfiguration:  manual,
 	}

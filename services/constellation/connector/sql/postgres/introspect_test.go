@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
 	"go.uber.org/mock/gomock"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
@@ -63,35 +64,16 @@ func TestIntrospect(t *testing.T) { //nolint:paralleltest
 	}
 }
 
-func TestIntrospect_SchemaQueryError(t *testing.T) {
+func TestIntrospect_NoTrackedTables(t *testing.T) {
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	pool := mock.NewMockPool(ctrl)
 
-	pool.EXPECT().
-		Query(gomock.Any(), gomock.Any()).
-		Return(nil, errSchemaQueryFailed)
-
-	client := postgres.NewClient(pool)
-
-	_, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
-		Name: "default",
-	})
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-}
-
-func TestIntrospect_EmptyDatabase(t *testing.T) {
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	pool := mock.NewMockPool(ctrl)
-	rows := emptyRows(ctrl)
-
-	pool.EXPECT().Query(gomock.Any(), gomock.Any()).Return(rows, nil)
-
+	// With no tracked tables and no tracked functions, Introspect must not
+	// issue any SQL — gomock will fail the test if it does. This is the
+	// metadata-scoped guarantee: schemas the role cannot USAGE are never
+	// touched as long as the user hasn't asked us to track anything in them.
 	client := postgres.NewClient(pool)
 
 	objs, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
@@ -245,13 +227,16 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 			ctrl := gomock.NewController(t)
 			pool := mock.NewMockPool(ctrl)
 
-			wireSchemaWithColumns(t, ctrl, pool, "public", tt.columns)
+			wireSchemaWithColumns(t, ctrl, pool, tt.columns)
 
 			client := postgres.NewClient(pool)
 
 			objs, err := client.Introspect(
 				t.Context(),
-				&metadata.DatabaseMetadata{Name: "default"},
+				&metadata.DatabaseMetadata{
+					Name:   "default",
+					Tables: trackedTablesForColumns("public", tt.columns),
+				},
 			)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -269,18 +254,20 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 
 // wireSchemaWithColumns programs `pool` so a call to Introspect issues:
 //
-//  1. one getSchemas query that returns {schemaName},
-//  2. one populateTableColumns query that returns `columns`,
-//  3. empty foreign-keys / unique-constraints queries,
-//  4. per-table empty primary-keys query and null table-comment row.
+//  1. one populateTableColumns query that returns `columns`,
+//  2. empty foreign-keys / unique-constraints / relation-kinds queries,
+//  3. per-table primary-keys query (empty rows) and null table-comment row.
 //
-// Subsequent dispatching is by SQL substring, which is good enough to route
-// each helper to the right canned response.
+// There is no longer a schema-discovery query — Introspect derives the schema
+// list from dbMeta — so callers must pass matching tracked tables in metadata
+// (see [trackedTablesForColumns]).
+//
+// Dispatching is by SQL substring, which is good enough to route each helper
+// to the right canned response.
 func wireSchemaWithColumns(
 	t *testing.T,
 	ctrl *gomock.Controller,
 	pool *mock.MockPool,
-	schemaName string,
 	columns []columnScan,
 ) {
 	t.Helper()
@@ -288,15 +275,11 @@ func wireSchemaWithColumns(
 	tables := tableNames(columns)
 
 	pool.EXPECT().
-		Query(gomock.Any(), gomock.Any(), gomock.Any()).
+		Query(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, sql string, _ ...any) (postgres.Rows, error) {
 			switch {
-			case strings.Contains(sql, "information_schema.schemata"):
-				return singleStringRows(ctrl, schemaName), nil
 			case strings.Contains(sql, "type_aggregates"):
 				return columnRowsMock(t, ctrl, columns), nil
-			case strings.Contains(sql, "pg_index"):
-				return emptyRows(ctrl), nil
 			default:
 				return emptyRows(ctrl), nil
 			}
@@ -309,6 +292,24 @@ func wireSchemaWithColumns(
 			return nullRow(ctrl)
 		}).
 		Times(len(tables))
+}
+
+// trackedTablesForColumns builds the minimal metadata.TableMetadata list that
+// matches the table names referenced by `columns`, so the metadata-scoped
+// Introspect path visits exactly those tables.
+func trackedTablesForColumns(
+	schemaName string, columns []columnScan,
+) []metadata.TableMetadata {
+	names := tableNames(columns)
+	out := make([]metadata.TableMetadata, 0, len(names))
+
+	for _, name := range names {
+		out = append(out, metadata.TableMetadata{
+			Table: metadata.TableSource{Schema: schemaName, Name: name},
+		})
+	}
+
+	return out
 }
 
 func tableNames(columns []columnScan) []string {
@@ -331,29 +332,6 @@ func tableNames(columns []columnScan) []string {
 func emptyRows(ctrl *gomock.Controller) *mock.MockRows {
 	rows := mock.NewMockRows(ctrl)
 	rows.EXPECT().Next().Return(false)
-	rows.EXPECT().Err().Return(nil)
-	rows.EXPECT().Close()
-
-	return rows
-}
-
-func singleStringRows(ctrl *gomock.Controller, value string) *mock.MockRows {
-	rows := mock.NewMockRows(ctrl)
-	call := 0
-	rows.EXPECT().Next().DoAndReturn(func() bool {
-		call++
-		return call == 1
-	}).Times(2)
-	rows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...any) error {
-		ptr, ok := dest[0].(*string)
-		if !ok {
-			return errExpectedString
-		}
-
-		*ptr = value
-
-		return nil
-	})
 	rows.EXPECT().Err().Return(nil)
 	rows.EXPECT().Close()
 
@@ -428,10 +406,11 @@ func assignDest[T any](t *testing.T, dst any, v T) {
 	*ptr = v
 }
 
-// TestIntrospect_DownstreamErrors covers the three failure points past
-// schema discovery: the per-schema introspection, enum-value introspection,
-// and function introspection. Each case fails a different call in turn and
-// asserts the wrap-message context survives.
+// TestIntrospect_DownstreamErrors covers the failure points past schema
+// derivation. Per-schema introspection failures still propagate (they break
+// the source wholesale); per-enum-table failures used to live here too but
+// the driver now silently elides invalid enum tables (the outer reconcile
+// pass turns each absence into an enum_values inconsistency).
 func TestIntrospect_DownstreamErrors(t *testing.T) {
 	t.Parallel()
 
@@ -442,55 +421,22 @@ func TestIntrospect_DownstreamErrors(t *testing.T) {
 		wantSub   string
 	}{
 		{
-			name: "per-schema introspection fails after schema discovery",
-			wireMocks: func(t *testing.T, ctrl *gomock.Controller, pool *mock.MockPool) {
+			name: "per-schema introspection fails on the column query",
+			wireMocks: func(t *testing.T, _ *gomock.Controller, pool *mock.MockPool) {
 				t.Helper()
 
 				pool.EXPECT().
-					Query(gomock.Any(), gomock.Any()).
-					DoAndReturn(
-						func(_ context.Context, sql string, _ ...any) (postgres.Rows, error) {
-							if strings.Contains(sql, "information_schema.schemata") {
-								return singleStringRows(ctrl, "public"), nil
-							}
-
-							return nil, errTableQueryExplode
-						}).
-					AnyTimes()
-				pool.EXPECT().
-					Query(gomock.Any(), gomock.Any(), gomock.Any()).
+					Query(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil, errTableQueryExplode).
 					AnyTimes()
-			},
-			dbMeta:  &metadata.DatabaseMetadata{Name: "default"},
-			wantSub: "failed to introspect schema public",
-		},
-		{
-			name: "enum-value introspection fails",
-			wireMocks: func(t *testing.T, ctrl *gomock.Controller, pool *mock.MockPool) {
-				t.Helper()
-
-				wireSchemaWithColumns(t, ctrl, pool, "public", []columnScan{
-					{
-						tableName:  "status",
-						columnName: "value",
-						typeName:   "text",
-						isNullable: "NO",
-					},
-				})
 			},
 			dbMeta: &metadata.DatabaseMetadata{
 				Name: "default",
 				Tables: []metadata.TableMetadata{
-					{
-						Table:  metadata.TableSource{Schema: "public", Name: "status"},
-						IsEnum: true,
-					},
+					{Table: metadata.TableSource{Schema: "public", Name: "users"}},
 				},
 			},
-			// EnumColumns rejects the no-PK table — surfaced via the
-			// "introspecting enum values" wrap on line 38.
-			wantSub: "introspecting enum values",
+			wantSub: "failed to introspect schema public",
 		},
 	}
 
@@ -521,22 +467,20 @@ func TestIntrospect_DownstreamErrors(t *testing.T) {
 }
 
 // TestIntrospect_FunctionsError exercises the "introspecting functions" wrap
-// at introspect.go:43 by giving Introspect a function entry whose pg_proc
-// query returns an error.
+// by giving Introspect a function entry whose pg_proc query returns a real
+// query error (connection broken, scan failure, etc.). Those errors still
+// propagate — only "no rows in result set" is downgraded to a silent skip,
+// since that case is what the outer reconcile pass records as a
+// kind=function inconsistency.
 func TestIntrospect_FunctionsError(t *testing.T) {
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	pool := mock.NewMockPool(ctrl)
 
-	// Schema discovery returns no schemas (so no per-schema work), but the
-	// function entry triggers introspectFunctions which calls QueryRow on
-	// pg_proc. Returning a failing row drives the wrap.
-	pool.EXPECT().
-		Query(gomock.Any(), gomock.Any()).
-		Return(emptyRows(ctrl), nil).
-		Times(1)
-
+	// No tracked tables, so the per-schema walk issues no Query. The function
+	// entry triggers introspectFunctions which calls QueryRow on pg_proc;
+	// returning a failing row drives the wrap.
 	row := mock.NewMockRow(ctrl)
 	row.EXPECT().Scan(gomock.Any()).Return(errPgProcUnreachable)
 
@@ -561,6 +505,45 @@ func TestIntrospect_FunctionsError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "introspecting functions") {
 		t.Errorf("error %q does not contain 'introspecting functions'", err.Error())
+	}
+}
+
+// TestIntrospect_FunctionMissingIsElided is the parity test for the
+// "function not in pg_proc" case: the driver returns pgx.ErrNoRows on Scan,
+// which introspectFunctions must treat as "function does not exist" and
+// silently elide. Introspect succeeds; the surviving Objects.Functions map
+// is empty, so the outer reconcile pass can record a per-function
+// inconsistency for it without taking the whole source down.
+func TestIntrospect_FunctionMissingIsElided(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	pool := mock.NewMockPool(ctrl)
+
+	row := mock.NewMockRow(ctrl)
+	row.EXPECT().Scan(gomock.Any()).Return(pgx.ErrNoRows)
+
+	pool.EXPECT().
+		QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(row).
+		Times(1)
+
+	client := postgres.NewClient(pool)
+
+	objs, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Name: "default",
+		Functions: []metadata.FunctionMetadata{
+			{
+				Function: metadata.FunctionSource{Schema: "public", Name: "ghost_fn"},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if _, ok := objs.GetFunction("public", "ghost_fn"); ok {
+		t.Error("expected the missing function to be absent from Objects.Functions")
 	}
 }
 
@@ -678,12 +661,7 @@ func TestIntrospect_FunctionVolatility(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			pool := mock.NewMockPool(ctrl)
 
-			// No schemas, so per-schema work is skipped.
-			pool.EXPECT().
-				Query(gomock.Any(), gomock.Any()).
-				Return(emptyRows(ctrl), nil).
-				Times(1)
-
+			// No tracked tables, so per-schema work is skipped entirely.
 			row := functionRow(t, ctrl, tt.input)
 
 			pool.EXPECT().
@@ -785,7 +763,7 @@ func TestIntrospect_EnumTable(t *testing.T) {
 			pool := mock.NewMockPool(ctrl)
 
 			wireEnumIntrospect(
-				t, ctrl, pool, "public",
+				t, ctrl, pool,
 				tt.columns, tt.wantValues, tt.descColEmpty,
 			)
 
@@ -826,34 +804,30 @@ func TestIntrospect_EnumTable(t *testing.T) {
 }
 
 // wireEnumIntrospect configures `pool` for the full enum-table Introspect
-// flow: schema discovery + populateTableColumns + primary-key discovery +
-// the getEnumTable Query that returns the canned values. The first column
-// in `columns` must be the PK column.
+// flow: populateTableColumns + primary-key discovery + the getEnumTable
+// Query that returns the canned values. The first column in `columns` must
+// be the PK column. There is no schema-discovery query — Introspect derives
+// the schema list from dbMeta — so callers must pass a tracked enum table
+// in metadata.
 func wireEnumIntrospect(
 	t *testing.T,
 	ctrl *gomock.Controller,
 	pool *mock.MockPool,
-	schemaName string,
 	columns []columnScan,
 	values []introspection.EnumValue,
 	descColEmpty bool,
 ) {
 	t.Helper()
 
+	// getEnumTable issues a no-parameter SELECT; everything else inside the
+	// per-schema walk threads (schemaName, tableNames) as the two args.
 	pool.EXPECT().
 		Query(gomock.Any(), gomock.Any()).
-		DoAndReturn(func(_ context.Context, sql string, _ ...any) (postgres.Rows, error) {
-			if strings.Contains(sql, "information_schema.schemata") {
-				return singleStringRows(ctrl, schemaName), nil
-			}
-			// getEnumTable's SELECT is no-args; route by the absence of the
-			// schemata table.
-			return enumValueRows(t, ctrl, values, descColEmpty), nil
-		}).
+		Return(enumValueRows(t, ctrl, values, descColEmpty), nil).
 		AnyTimes()
 
 	pool.EXPECT().
-		Query(gomock.Any(), gomock.Any(), gomock.Any()).
+		Query(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, sql string, _ ...any) (postgres.Rows, error) {
 			switch {
 			case strings.Contains(sql, "type_aggregates"):

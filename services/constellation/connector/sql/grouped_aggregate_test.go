@@ -55,7 +55,7 @@ func newUsersConnector(t *testing.T, driver *mock.MockDriver) *csql.Connector {
 	driver.EXPECT().Dialect().Return(&dialect.PostgresDialect{}).AnyTimes()
 	driver.EXPECT().Introspect(gomock.Any(), gomock.Any()).Return(usersObjects(), nil)
 
-	c, err := csql.NewConnector(context.Background(), driver, usersMetadata())
+	c, err := csql.NewConnector(context.Background(), driver, usersMetadata(), nil, nil)
 	if err != nil {
 		t.Fatalf("NewConnector() unexpected error: %v", err)
 	}

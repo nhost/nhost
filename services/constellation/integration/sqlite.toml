@@ -56,7 +56,7 @@
             name = 'userProviders'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'provider_id'
+                    columns = ['provider_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'user_providers'
@@ -93,7 +93,7 @@
             name = 'refreshTokens'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'type'
+                    columns = ['type']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'refresh_tokens'
@@ -165,7 +165,7 @@
             name = 'user'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'user_id'
+                foreign_key_columns = ['user_id']
 
         [[databases.tables.select_permissions]]
             role = 'mixed_permissions'
@@ -326,7 +326,7 @@
             name = 'userRoles'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'role'
+                    columns = ['role']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'user_roles'
@@ -336,7 +336,7 @@
             name = 'usersByDefaultRole'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'default_role'
+                    columns = ['default_role']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'users'
@@ -417,13 +417,13 @@
             name = 'provider'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'provider_id'
+                foreign_key_columns = ['provider_id']
 
         [[databases.tables.object_relationships]]
             name = 'user'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'user_id'
+                foreign_key_columns = ['user_id']
 
     [[databases.tables]]
         [databases.tables.table]
@@ -460,13 +460,13 @@
             name = 'roleByRole'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'role'
+                foreign_key_columns = ['role']
 
         [[databases.tables.object_relationships]]
             name = 'user'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'user_id'
+                foreign_key_columns = ['user_id']
 
         [[databases.tables.select_permissions]]
             role = 'queries_relationships'
@@ -540,7 +540,7 @@
             name = 'user'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'user_id'
+                foreign_key_columns = ['user_id']
 
         [[databases.tables.select_permissions]]
             role = 'user'
@@ -660,7 +660,7 @@
             name = 'defaultRoleByRole'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'default_role'
+                foreign_key_columns = ['default_role']
 
         [[databases.tables.object_relationships]]
             name = 'profile'
@@ -679,7 +679,7 @@
             name = 'departments'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'user_id'
+                    columns = ['user_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'user_departments'
@@ -689,7 +689,7 @@
             name = 'kbEntries'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'uploader_id'
+                    columns = ['uploader_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'kb_entries'
@@ -699,7 +699,7 @@
             name = 'refreshTokens'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'user_id'
+                    columns = ['user_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'refresh_tokens'
@@ -709,7 +709,7 @@
             name = 'roles'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'user_id'
+                    columns = ['user_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'user_roles'
@@ -719,7 +719,7 @@
             name = 'securityKeys'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'user_id'
+                    columns = ['user_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'user_security_keys'
@@ -729,7 +729,7 @@
             name = 'userProviders'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'user_id'
+                    columns = ['user_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'user_providers'
@@ -1360,13 +1360,13 @@
             name = 'department'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'department_id'
+                foreign_key_columns = ['department_id']
 
         [[databases.tables.object_relationships]]
             name = 'file'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'file_id'
+                foreign_key_columns = ['file_id']
 
         [[databases.tables.select_permissions]]
             role = 'user'
@@ -1448,7 +1448,7 @@
             name = 'employees'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'department_id'
+                    columns = ['department_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'user_departments'
@@ -1458,7 +1458,7 @@
             name = 'files'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'department_id'
+                    columns = ['department_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'department_files'
@@ -1468,7 +1468,7 @@
             name = 'kb_entry_departments'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'department_id'
+                    columns = ['department_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'kb_entry_departments'
@@ -1616,13 +1616,13 @@
             name = 'uploader'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'uploader_id'
+                foreign_key_columns = ['uploader_id']
 
         [[databases.tables.array_relationships]]
             name = 'kb_entry_departments'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'kb_entry_id'
+                    columns = ['kb_entry_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'kb_entry_departments'
@@ -1700,13 +1700,13 @@
             name = 'department'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'department_id'
+                foreign_key_columns = ['department_id']
 
         [[databases.tables.object_relationships]]
             name = 'kb_entry'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'kb_entry_id'
+                foreign_key_columns = ['kb_entry_id']
 
         [[databases.tables.select_permissions]]
             role = 'user'
@@ -1759,13 +1759,13 @@
             name = 'author'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'author_id'
+                foreign_key_columns = ['author_id']
 
         [[databases.tables.object_relationships]]
             name = 'department'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'department_id'
+                foreign_key_columns = ['department_id']
 
         [[databases.tables.select_permissions]]
             role = 'public'
@@ -1836,13 +1836,13 @@
             name = 'department'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'department_id'
+                foreign_key_columns = ['department_id']
 
         [[databases.tables.object_relationships]]
             name = 'user'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'user_id'
+                foreign_key_columns = ['user_id']
 
         [[databases.tables.select_permissions]]
             role = 'mixed_permissions'
@@ -2032,7 +2032,7 @@
             name = 'files'
 
                 [databases.tables.array_relationships.using.foreign_key_constraint]
-                    column = 'bucket_id'
+                    columns = ['bucket_id']
 
                     [databases.tables.array_relationships.using.foreign_key_constraint.table]
                         name = 'files'
@@ -2094,13 +2094,13 @@
             name = 'bucket'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'bucket_id'
+                foreign_key_columns = ['bucket_id']
 
         [[databases.tables.object_relationships]]
             name = 'department_file'
 
                 [databases.tables.object_relationships.using.foreign_key_constraint]
-                    column = 'file_id'
+                    columns = ['file_id']
 
                     [databases.tables.object_relationships.using.foreign_key_constraint.table]
                         name = 'department_files'
@@ -2263,7 +2263,7 @@
             name = 'file'
 
             [databases.tables.object_relationships.using]
-                foreign_key_column = 'file_id'
+                foreign_key_columns = ['file_id']
 
     [[databases.functions]]
         [databases.functions.function]

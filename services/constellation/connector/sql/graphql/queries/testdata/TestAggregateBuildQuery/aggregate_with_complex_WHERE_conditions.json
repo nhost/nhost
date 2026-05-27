@@ -1,11 +1,11 @@
 [
   {
     "Name": "departments_aggregate",
-    "QueryType": "select_aggregate",
     "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"departments\" WHERE \"public\".\"departments\".\"budget\" >= $1::numeric AND \"public\".\"departments\".\"budget\" <= $2::numeric) SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*), 'avg', json_build_object('budget', AVG(\"budget\"))) FROM \"_root.base\")) AS \"departments_aggregate\"",
     "Parameters": [
       500,
       5000
-    ]
+    ],
+    "StreamCursors": null
   }
 ]

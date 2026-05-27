@@ -14,6 +14,7 @@ func generateDeleteByPkField(
 	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
+	md *metadata.DatabaseMetadata,
 ) *graph.Field {
 	deleteName := "delete_" + customTableName + "_by_pk"
 	if tableMeta.Configuration.CustomRootFields.DeleteByPk != "" {
@@ -29,8 +30,7 @@ func generateDeleteByPkField(
 
 		for i := range tableInfo.Columns {
 			if tableInfo.Columns[i].Name == pkColName {
-				// PK args are non-null.
-				colType = postgresTypeToGraphQL(tableInfo.Columns[i].Type, false)
+				colType = getColumnGraphQLTypePKArg(&tableInfo.Columns[i], tableInfo, md)
 				description = getColumnDescription(&tableInfo.Columns[i])
 
 				break
