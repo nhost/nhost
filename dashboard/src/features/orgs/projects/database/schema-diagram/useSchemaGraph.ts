@@ -170,7 +170,6 @@ function buildGraphqlEdges(
 ): Edge[] {
   const specByKey = new Map<string, EdgeSpec>();
 
-  // Pass 1: FK-backed edges. Keep only those tracked by at least one rel.
   for (const fk of foreignKeys) {
     const fromId = nodeIdFor(fk.fromSchema, fk.fromTable);
     const toId = nodeIdFor(fk.toSchema, fk.toTable);
@@ -202,8 +201,8 @@ function buildGraphqlEdges(
     });
   }
 
-  // Pass 2 & 3: manual_configuration rels. For object rels the canonical
-  // direction is local→remote; for array rels it's remote→local.
+  // For object rels the canonical direction is local→remote; for array rels
+  // it's remote→local.
   for (const meta of metadataTables) {
     const localId = nodeIdFor(meta.table.schema, meta.table.name);
     if (!visibleNodeIds.has(localId)) {
