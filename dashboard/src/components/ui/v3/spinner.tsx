@@ -15,7 +15,7 @@ const spinnerVariants = cva('flex-col items-center justify-center', {
   },
 });
 
-const loaderVariants = cva('animate-spin text-primary stroke-current', {
+const loaderVariants = cva('animate-spin', {
   variants: {
     size: {
       xs: 'size-3',
@@ -67,7 +67,11 @@ export function Spinner({
     <span className={cn(spinnerVariants({ show: shouldShow }), wrapperClassName)}>
       <Loader2
         role="progressbar"
-        className={cn(loaderVariants({ size }), className)}
+        className={cn(
+          loaderVariants({ size }),
+          className,
+          'stroke-[#1e324b] dark:stroke-[#dfecf5]',
+        )}
       />
       {children}
     </span>
