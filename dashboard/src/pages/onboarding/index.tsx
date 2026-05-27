@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
@@ -166,7 +166,7 @@ export default function OnboardingPage() {
   if (loadingOrgs || loadingPlans || loadingInvites) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <ActivityIndicator />
+        <Spinner />
       </div>
     );
   }
@@ -418,7 +418,7 @@ export default function OnboardingPage() {
                 >
                   {form.formState.isSubmitting ? (
                     <>
-                      <ActivityIndicator className="mr-2 h-4 w-4" />
+                      <Spinner className="mr-2" size="xs" />
                       Creating Organization...
                     </>
                   ) : (
