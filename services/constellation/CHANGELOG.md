@@ -1,3 +1,14 @@
+## [constellation@0.4.0] - 2026-05-27
+
+### 🚀 Features
+
+- *(constellation)* Support wildcard origins in CORS allow-list (#4373)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Accept Content-Type variants on POST /graphql and default to application/json (#4374)
+
 ## [constellation@0.3.1] - 2026-05-26
 
 ### 🐛 Bug Fixes
