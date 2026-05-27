@@ -1872,6 +1872,103 @@ func TestParse_VariableNotObject(t *testing.T) {
 	}
 }
 
+// TestParse_NullArg covers a literal `where: null`. An explicit null filter is
+// equivalent to omitting the argument: it must yield a nil clause, not an
+// "expected object value" error.
+func TestParse_NullArg(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{Kind: ast.NullValue}
+
+	clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if clause != nil {
+		t.Errorf("Parse(null) = %v, want nil clause", clause)
+	}
+}
+
+// TestParse_NullVariable covers `where: $where` with $where = null, an
+// explicitly-null bool_exp variable present in the variables map. It must be
+// treated as no filter rather than rejected.
+func TestParse_NullVariable(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{Kind: ast.Variable, Raw: "where"}
+
+	clause, err := where.Parse(
+		tbl, value, map[string]any{"where": nil}, "", nil, 0, where.QueryAliases,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if clause != nil {
+		t.Errorf("Parse(null variable) = %v, want nil clause", clause)
+	}
+}
+
+// TestParse_NullNestedRelationship covers `where: {<relationship>: null}`. A
+// null nested under a relationship routes through parseRelationshipField into a
+// recursive Parse(null), which must yield a nil inner clause exactly like the
+// top-level cases. The relationship still renders its EXISTS join with no inner
+// predicate and no params, exercising the recursive path of the null guard.
+func TestParse_NullNestedRelationship(t *testing.T) {
+	t.Parallel()
+
+	target := &parseTestTable{
+		fromClause: `"public"."authors"`,
+	}
+
+	rel := &parseTestRelationship{
+		target: target,
+		joinWriter: func(b *strings.Builder, parent, target string) {
+			b.WriteString(parent)
+			b.WriteString(".author_id = ")
+			b.WriteString(target)
+			b.WriteString(".id")
+		},
+	}
+
+	tbl := &parseTestTable{
+		relationship: map[string]where.Relationship{"author": rel},
+	}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "author", Value: &ast.Value{Kind: ast.NullValue}},
+		},
+	}
+
+	clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	sql, params := renderClause(t, clause)
+	if !strings.Contains(
+		sql,
+		`EXISTS (SELECT 1 FROM "public"."authors" f WHERE "t".author_id = f.id)`,
+	) {
+		t.Errorf("expected EXISTS with join only and no inner predicate, got: %s", sql)
+	}
+
+	if strings.Contains(sql, " AND ") {
+		t.Errorf("expected no inner predicate for null relationship, got: %s", sql)
+	}
+
+	if len(params) != 0 {
+		t.Errorf("params = %v, want none", params)
+	}
+}
+
 // TestParseFieldComparison_Regex_Supported exercises the SupportsRegex=true
 // happy path through the operator dispatch table: the regex operator parser
 // emits a Postgres regex predicate and the placeholder is taken from the

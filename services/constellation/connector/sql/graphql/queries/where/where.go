@@ -43,20 +43,33 @@ func (w Clause) WriteCondition(
 	return params, paramIndex, nil
 }
 
+// parseWhereResolveVariable resolves a where argument that may be a variable
+// reference to its concrete AST value. The boolean result reports whether the
+// argument imposes a filter at all: a where argument that resolves to null (an
+// explicitly-null variable, `where: $where` with $where = null, or a literal
+// `where: null`) imposes no filter, exactly like leaving the argument out, and
+// is reported with ok == false so the caller can skip it instead of erroring.
+// A genuinely omitted variable is not handled here: values.ResolveVariable
+// returns ErrVariableNotFound for a key absent from the variables map, so it
+// errors rather than being treated as no-filter.
 func parseWhereResolveVariable(
 	whereArg *ast.Value,
 	variables map[string]any,
-) (*ast.Value, error) {
+) (*ast.Value, bool, error) {
 	whereArg, err := values.ResolveVariable(whereArg, variables)
 	if err != nil {
-		return nil, fmt.Errorf("resolving where variable: %w", err)
+		return nil, false, fmt.Errorf("resolving where variable: %w", err)
+	}
+
+	if whereArg.Kind == ast.NullValue {
+		return nil, false, nil
 	}
 
 	if whereArg.Kind != ast.ObjectValue {
-		return nil, fmt.Errorf("%w: got %v", errExpectedObjectValue, whereArg.Kind)
+		return nil, false, fmt.Errorf("%w: got %v", errExpectedObjectValue, whereArg.Kind)
 	}
 
-	return whereArg, nil
+	return whereArg, true, nil
 }
 
 // Parse parses a GraphQL where-clause argument value into a Clause.
@@ -77,9 +90,13 @@ func Parse(
 		return nil, nil
 	}
 
-	whereArg, err := parseWhereResolveVariable(whereArg, variables)
+	whereArg, ok, err := parseWhereResolveVariable(whereArg, variables)
 	if err != nil {
 		return nil, err
+	}
+
+	if !ok {
+		return nil, nil
 	}
 
 	conditions := make(Clause, 0, len(whereArg.Children))
