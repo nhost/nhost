@@ -296,6 +296,10 @@ func findRelationships( //nolint:cyclop,gocognit
 					rel.Using,
 				); targetMeta != nil {
 					if role == roleAdmin || getInsertPermission(targetMeta, role) != nil {
+						if !targetIsInsertable(objects, targetMeta) {
+							continue
+						}
+
 						targetName := getRelationshipTargetName(md, tableInfo, rel.Using)
 						if targetName != "" {
 							tablesWithObjRelInsert[targetName] = struct{}{}
@@ -313,6 +317,10 @@ func findRelationships( //nolint:cyclop,gocognit
 					rel.Using,
 				); targetMeta != nil {
 					if role == roleAdmin || getInsertPermission(targetMeta, role) != nil {
+						if !targetIsInsertable(objects, targetMeta) {
+							continue
+						}
+
 						targetName := getRelationshipTargetName(md, tableInfo, rel.Using)
 						if targetName != "" {
 							tablesWithArrRelInsert[targetName] = struct{}{}

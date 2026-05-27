@@ -2,14 +2,21 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-// introspectFunctions populates function metadata for all tracked functions in metadata.
+// introspectFunctions populates function metadata for all tracked functions
+// in metadata. Functions that have no matching pg_proc row are silently
+// elided from the result; the outer reconcile pass turns each absence into a
+// per-function inconsistency and drops the function from the effective
+// metadata so the rest of the source keeps serving. Other introspection
+// failures (connection errors, scan errors, etc.) still propagate.
 func (c *Client) introspectFunctions(
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
@@ -23,7 +30,13 @@ func (c *Client) introspectFunctions(
 		funcName := fnMeta.Function.Name
 
 		fn, err := introspectFunction(ctx, c.pool, schemaName, funcName)
-		if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			// Function not present in pg_proc — drop silently so the
+			// reconciler records a kind=function inconsistency without
+			// taking the whole source down.
+			continue
+		case err != nil:
 			return nil, fmt.Errorf(
 				"failed to introspect function %s.%s: %w",
 				schemaName,

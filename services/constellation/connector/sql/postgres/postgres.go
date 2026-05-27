@@ -258,16 +258,22 @@ func Open(ctx context.Context, connStr string) (Pool, error) { //nolint:ireturn,
 
 // New creates a PostgreSQL-backed sql.Connector — convenience for
 // Open + NewClient + csql.NewConnector for callers who just want the full
-// connector wired up from a connection string.
+// connector wired up from a connection string. inconsistencies receives per-
+// table / per-column / per-function reconciliation entries (pass nil to drop
+// them on the floor).
 func New(
-	ctx context.Context, connStr string, dbMeta *metadata.DatabaseMetadata,
+	ctx context.Context,
+	connStr string,
+	dbMeta *metadata.DatabaseMetadata,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
 ) (*csql.Connector, error) {
 	pool, err := Open(ctx, connStr)
 	if err != nil {
 		return nil, err
 	}
 
-	c, err := csql.NewConnector(ctx, NewClient(pool), dbMeta)
+	c, err := csql.NewConnector(ctx, NewClient(pool), dbMeta, inconsistencies, logger)
 	if err != nil {
 		pool.Close()
 		return nil, fmt.Errorf("failed to create sql connector: %w", err)

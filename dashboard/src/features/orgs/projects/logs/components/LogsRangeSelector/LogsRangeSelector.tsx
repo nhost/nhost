@@ -1,7 +1,7 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
-import { ClockIcon } from '@/components/ui/v2/icons/ClockIcon';
+import { ClockIcon } from 'lucide-react';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { LogsDatePicker } from '@/features/orgs/projects/logs/components/LogsDatePicker';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';

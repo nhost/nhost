@@ -22,7 +22,7 @@ func expectedGraphql() *Service {
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
-			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,https://app.nhost.io,http://*.hasura.local.nhost.run:1337,http://*.dashboard.local.nhost.run:1337",
+			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,http://dev.dashboard.local.nhost.run:1337,http://*.hasura.local.nhost.run:1337,http://*.dashboard.local.nhost.run:1337",
 			"HASURA_GRAPHQL_DATABASE_URL":                              "postgres://nhost_hasura@postgres:5432/local",
 			"HASURA_GRAPHQL_DEV_MODE":                                  "false",
 			"HASURA_GRAPHQL_DISABLE_CORS":                              "false",
@@ -104,6 +104,36 @@ func expectedGraphql() *Service {
 	}
 }
 
+func expectedGraphqlWithConstellation() *Service {
+	svc := expectedGraphql()
+	// When constellation is enabled, graphql() must not register the
+	// `graphql` router or its rewrite middleware — constellation owns
+	// local.graphql.local.nhost.run instead. The hasura router stays
+	// byte-for-byte identical.
+	delete(svc.Labels, "traefik.http.middlewares.replace-graphql.replacepathregex.regex")
+	delete(svc.Labels, "traefik.http.middlewares.replace-graphql.replacepathregex.replacement")
+	delete(svc.Labels, "traefik.http.routers.graphql.entrypoints")
+	delete(svc.Labels, "traefik.http.routers.graphql.middlewares")
+	delete(svc.Labels, "traefik.http.routers.graphql.rule")
+	delete(svc.Labels, "traefik.http.routers.graphql.service")
+	delete(svc.Labels, "traefik.http.routers.graphql.tls")
+	delete(svc.Labels, "traefik.http.services.graphql.loadbalancer.server.port")
+
+	return svc
+}
+
+func configWithConstellation() *model.ConfigConfig {
+	cfg := getConfig()
+	cfg.Experimental = &model.ConfigExperimental{
+		Constellation: &model.ConfigConstellation{
+			Version:  new("0.0.1"),
+			Settings: nil,
+		},
+	}
+
+	return cfg
+}
+
 func TestGraphql(t *testing.T) {
 	t.Parallel()
 
@@ -118,6 +148,12 @@ func TestGraphql(t *testing.T) {
 			cfg:      getConfig,
 			useTlS:   false,
 			expected: expectedGraphql,
+		},
+		{
+			name:     "with constellation",
+			cfg:      configWithConstellation,
+			useTlS:   false,
+			expected: expectedGraphqlWithConstellation,
 		},
 	}
 
@@ -162,7 +198,7 @@ func expectedConsole() *Service {
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
-			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,https://app.nhost.io,http://*.hasura.local.nhost.run:1337",
+			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,http://dev.dashboard.local.nhost.run:1337,http://*.hasura.local.nhost.run:1337",
 			"HASURA_GRAPHQL_DATABASE_URL":                              "postgres://nhost_hasura@postgres:5432/local",
 			"HASURA_GRAPHQL_DEV_MODE":                                  "false",
 			"HASURA_GRAPHQL_DISABLE_CORS":                              "false",

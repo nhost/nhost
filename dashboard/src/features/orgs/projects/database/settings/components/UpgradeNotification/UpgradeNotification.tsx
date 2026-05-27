@@ -43,13 +43,13 @@ function UpgradeNotification({ description }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           underline="hover"
-          className="whitespace-nowrap text-center font-medium"
+          className="inline-flex items-center justify-center gap-2 font-medium"
           sx={{
             color: 'text.secondary',
           }}
         >
           See all features
-          <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+          <ArrowSquareOutIcon className="h-4 w-4" />
         </Link>
         <OpenTransferDialogButton onClick={handleTransferDialogOpen} />
       </Text>

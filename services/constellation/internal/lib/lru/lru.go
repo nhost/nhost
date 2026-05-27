@@ -55,9 +55,7 @@ func New[K comparable, V any](maxSize int) *Cache[K, V] {
 
 // Get retrieves a value from the cache. If found, the entry is promoted
 // to the most recently used position.
-//
-//nolint:ireturn // V is the cache's value type parameter, not an interface return.
-func (c *Cache[K, V]) Get(key K) (V, bool) {
+func (c *Cache[K, V]) Get(key K) (V, bool) { //nolint:ireturn,nolintlint
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

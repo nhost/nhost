@@ -104,22 +104,73 @@ func readJSONBody(t *testing.T, w *httptest.ResponseRecorder) map[string]any {
 func TestHandlerPost_RejectsNonJSONContentType(t *testing.T) {
 	t.Parallel()
 
-	router := newTestRouter(t, newTestController(t))
+	for _, contentType := range []string{
+		"text/plain",
+		"application/graphql",
+		"multipart/form-data; boundary=x",
+		"not a media type",
+	} {
+		t.Run(contentType, func(t *testing.T) {
+			t.Parallel()
 
-	req := httptest.NewRequest(http.MethodPost, "/graphql", strings.NewReader("{}"))
-	req.Header.Set("Content-Type", "text/plain")
-	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+			router := newTestRouter(t, newTestController(t))
 
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+			req := httptest.NewRequest(http.MethodPost, "/graphql", strings.NewReader("{}"))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
 
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusBadRequest {
+				t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+			}
+
+			body := readJSONBody(t, w)
+			if _, ok := body["errors"]; !ok {
+				t.Errorf("expected 'errors' in response, got %v", body)
+			}
+		})
 	}
+}
 
-	body := readJSONBody(t, w)
-	if _, ok := body["errors"]; !ok {
-		t.Errorf("expected 'errors' in response, got %v", body)
+// TestHandlerPost_AcceptsJSONContentTypeVariants covers Content-Type values
+// that must be treated as JSON: a charset parameter, mixed case, and an absent
+// header (assumed to be application/json for Hasura-client compatibility).
+func TestHandlerPost_AcceptsJSONContentTypeVariants(t *testing.T) {
+	t.Parallel()
+
+	for name, contentType := range map[string]string{
+		"charset":   "application/json; charset=utf-8",
+		"mixedCase": "Application/JSON",
+		"absent":    "",
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			router := newTestRouter(t, newTestController(t))
+
+			body := []byte(`{"query":"{ users { id name } }"}`)
+
+			req := httptest.NewRequest(http.MethodPost, "/graphql", bytes.NewReader(body))
+			if contentType != "" {
+				req.Header.Set("Content-Type", contentType)
+			}
+
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusOK {
+				t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+			}
+
+			const wantPrefix = `{"data":{"users":[`
+			if got := w.Body.String(); !strings.HasPrefix(got, wantPrefix) {
+				t.Errorf("expected body to start with %q, got %q", wantPrefix, got)
+			}
+		})
 	}
 }
 
@@ -546,11 +597,12 @@ func TestNew_InitialLoadErrorPropagated(t *testing.T) {
 	}
 }
 
-func TestNew_BuildStateFailurePropagated(t *testing.T) {
+func TestNew_BuildStateRecordsInconsistency(t *testing.T) {
 	t.Parallel()
 
 	// InitialLoad succeeds with metadata referencing an unsupported database
-	// kind, which causes buildState → BuildConnectorsFromMetadata to fail.
+	// kind. The build no longer aborts: the source is recorded as
+	// inconsistent and the controller starts with an empty schema set.
 	src := newFakeMetadataSource(&metadata.Metadata{
 		Databases: []metadata.DatabaseMetadata{
 			{
@@ -575,16 +627,26 @@ func TestNew_BuildStateFailurePropagated(t *testing.T) {
 		src,
 		logger,
 	)
-	if err == nil {
-		t.Fatal("expected error from buildState failure, got nil")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if ctrl != nil {
-		t.Errorf("expected nil controller on error, got %v", ctrl)
+	if ctrl == nil {
+		t.Fatal("expected non-nil controller despite unusable source")
 	}
 
-	if !strings.Contains(err.Error(), "building initial state") {
-		t.Errorf("expected error wrapped with 'building initial state', got %q", err.Error())
+	incs := ctrl.Inconsistencies()
+	if len(incs) != 1 {
+		t.Fatalf("expected one inconsistency, got %d: %+v", len(incs), incs)
+	}
+
+	got := incs[0]
+	if got.Kind != metadata.InconsistencyKindDatabase || got.Name != "db" {
+		t.Errorf("unexpected inconsistency kind/name: %+v", got)
+	}
+
+	if !strings.Contains(got.Reason, "unsupported database kind") {
+		t.Errorf("expected reason to mention unsupported kind, got %q", got.Reason)
 	}
 }
 
@@ -699,6 +761,85 @@ func TestRun_ReloadErrorKeepsCurrentState(t *testing.T) {
 	}
 
 	// Cancel and confirm clean exit.
+	cancel()
+	src.Close()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Run did not exit after context cancel")
+	}
+}
+
+// TestRun_ReloadReplacesInconsistencies pins the per-build snapshot contract:
+// each buildState call must allocate a fresh metadata.Inconsistencies and the
+// swap must replace (not append to) the prior state's entries. A regression
+// that reused a long-lived collector across reloads would cause the inconsistent
+// startup entry to persist into the clean reload's snapshot.
+func TestRun_ReloadReplacesInconsistencies(t *testing.T) {
+	t.Parallel()
+
+	// Start inconsistent: one source with an unsupported kind.
+	src := newFakeMetadataSource(&metadata.Metadata{
+		Databases: []metadata.DatabaseMetadata{
+			{
+				Name:          "db",
+				Kind:          "this-kind-does-not-exist",
+				Configuration: metadata.DatabaseConfiguration{},
+				Tables:        nil,
+				Functions:     nil,
+			},
+		},
+		RemoteSchemas: nil,
+	})
+
+	logger := slog.New(slog.DiscardHandler)
+
+	ctrl, err := controller.New(
+		context.Background(),
+		0,
+		testAdminSecret,
+		false,
+		middleware.NewNoOpJWTAuthenticator(),
+		src,
+		logger,
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if got := len(ctrl.Inconsistencies()); got != 1 {
+		t.Fatalf("expected 1 inconsistency after initial load, got %d", got)
+	}
+
+	runCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(runCtx, logger)
+		close(done)
+	}()
+
+	// Push a clean reload. The new state must overwrite the prior snapshot,
+	// not extend it.
+	src.updates <- metadata.Update{
+		Metadata: &metadata.Metadata{Databases: nil, RemoteSchemas: nil},
+		Err:      nil,
+	}
+
+	deadline := time.Now().Add(2 * time.Second)
+	for len(ctrl.Inconsistencies()) != 0 {
+		if time.Now().After(deadline) {
+			t.Fatalf(
+				"inconsistencies not cleared after clean reload: %+v",
+				ctrl.Inconsistencies(),
+			)
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
 	cancel()
 	src.Close()
 

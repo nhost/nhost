@@ -53,9 +53,6 @@ export const createApolloClient = ({
     const token = session?.accessToken;
     if (token) {
       resHeaders.authorization = `Bearer ${token}`;
-    } else {
-      // ? Not sure it changes anything for Hasura
-      resHeaders.role = 'public';
     }
 
     return resHeaders;

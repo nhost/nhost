@@ -1554,6 +1554,31 @@ enum kb_entry_departments_select_column {
   department_id
 }
 """
+select columns of table "content_feed"
+"""
+enum contentFeed_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  source
+  """
+  column name
+  """
+  title
+  """
+  column name
+  """
+  content
+  """
+  column name
+  """
+  created_at
+}
+"""
 unique or primary key constraints on table "news"
 """
 enum news_constraint {
@@ -4330,6 +4355,49 @@ type kb_entry_departments_mutation_response {
   returning: [kb_entry_departments!]!
 }
 """
+columns and relationships of "content_feed"
+"""
+type contentFeed {
+  id: uuid
+  source: bytea
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+aggregated selection of "content_feed"
+"""
+type contentFeed_aggregate {
+  aggregate: contentFeed_aggregate_fields
+  nodes: [contentFeed!]!
+}
+"""
+aggregate max on columns
+"""
+type contentFeed_max_fields {
+  id: uuid
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+aggregate min on columns
+"""
+type contentFeed_min_fields {
+  id: uuid
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+aggregate fields of "content_feed"
+"""
+type contentFeed_aggregate_fields {
+  count(columns: [contentFeed_select_column!], distinct: Boolean): Int!
+  max: contentFeed_max_fields
+  min: contentFeed_min_fields
+}
+"""
 columns and relationships of "news"
 """
 type news {
@@ -4460,19 +4528,6 @@ type publishedNews_aggregate_fields {
   count(columns: [publishedNews_select_column!], distinct: Boolean): Int!
   max: publishedNews_max_fields
   min: publishedNews_min_fields
-}
-"""
-response of any mutation on the table "published_news"
-"""
-type publishedNews_mutation_response {
-  """
-  number of rows affected by the mutation
-  """
-  affected_rows: Int!
-  """
-  data from the rows affected by the mutation
-  """
-  returning: [publishedNews!]!
 }
 """
 columns and relationships of "user_departments"
@@ -5870,6 +5925,54 @@ type query_root {
     """
     where: kb_entry_departments_bool_exp
   ): kb_entry_departments_aggregate!
+  """
+  fetch data from the table: "content_feed"
+  """
+  contentFeed(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
+  """
+  fetch aggregated fields from the table: "content_feed"
+  """
+  contentFeedAggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): contentFeed_aggregate!
   """
   fetch data from the table: "news"
   """
@@ -7591,56 +7694,6 @@ type mutation_root {
     updates: [news_updates!]!
   ): [news_mutation_response]
   """
-  delete data from the table: "published_news"
-  """
-  delete_publishedNews(
-    """
-    filter the rows which have to be deleted
-    """
-    where: publishedNews_bool_exp!
-  ): publishedNews_mutation_response
-  """
-  insert a single row into the table: "published_news"
-  """
-  insert_publishedNews_one(
-    """
-    the row to be inserted
-    """
-    object: publishedNews_insert_input!
-  ): publishedNews
-  """
-  insert data into the table: "published_news"
-  """
-  insert_publishedNews(
-    """
-    the rows to be inserted
-    """
-    objects: [publishedNews_insert_input!]!
-  ): publishedNews_mutation_response
-  """
-  update data of the table: "published_news"
-  """
-  update_publishedNews(
-    """
-    sets the columns of the filtered rows to the given values
-    """
-    _set: publishedNews_set_input
-
-    """
-    filter the rows which have to be updated
-    """
-    where: publishedNews_bool_exp!
-  ): publishedNews_mutation_response
-  """
-  update multiples rows of table: "published_news"
-  """
-  update_publishedNews_many(
-    """
-    updates to execute, in order
-    """
-    updates: [publishedNews_updates!]!
-  ): [publishedNews_mutation_response]
-  """
   delete single row from the table: "user_departments"
   """
   delete_user_departments_by_pk(user_id: uuid!, department_id: uuid!): user_departments
@@ -9232,6 +9285,73 @@ type subscription_root {
     """
     where: kb_entry_departments_bool_exp
   ): [kb_entry_departments!]!
+  """
+  fetch data from the table: "content_feed"
+  """
+  contentFeed(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
+  """
+  fetch aggregated fields from the table: "content_feed"
+  """
+  contentFeedAggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): contentFeed_aggregate!
+  """
+  fetch data from the table in a streaming manner: "content_feed"
+  """
+  contentFeed_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [contentFeed_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
   """
   fetch data from the table: "news"
   """
@@ -12381,6 +12501,52 @@ input kb_entry_departments_arr_rel_insert_input {
   on_conflict: kb_entry_departments_on_conflict
 }
 """
+Boolean expression to filter rows from the table "content_feed". All fields are combined with a logical 'AND'.
+"""
+input contentFeed_bool_exp {
+  _and: [contentFeed_bool_exp!]
+  _not: contentFeed_bool_exp
+  _or: [contentFeed_bool_exp!]
+  id: uuid_sqlite_comparison_exp
+  source: bytea_sqlite_comparison_exp
+  title: String_sqlite_comparison_exp
+  content: String_sqlite_comparison_exp
+  created_at: timestamptz_sqlite_comparison_exp
+}
+"""
+Ordering options when selecting data from "content_feed".
+"""
+input contentFeed_order_by {
+  id: order_by
+  source: order_by
+  title: order_by
+  content: order_by
+  created_at: order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input contentFeed_stream_cursor_value_input {
+  id: uuid
+  source: bytea
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+Streaming cursor of the table "contentFeed"
+"""
+input contentFeed_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: contentFeed_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
 Boolean expression to filter rows from the table "news". All fields are combined with a logical 'AND'.
 """
 input news_bool_exp {
@@ -12546,42 +12712,6 @@ input publishedNews_stream_cursor_input {
   cursor ordering
   """
   ordering: cursor_ordering
-}
-"""
-input type for inserting data into table "published_news"
-"""
-input publishedNews_insert_input {
-  id: uuid
-  created_at: timestamptz
-  updated_at: timestamptz
-  title: String
-  content: String
-  department_id: uuid
-  author_id: uuid
-  author: users_obj_rel_insert_input
-  department: departments_obj_rel_insert_input
-}
-"""
-input type for updating data in table "published_news"
-"""
-input publishedNews_set_input {
-  id: uuid
-  created_at: timestamptz
-  updated_at: timestamptz
-  title: String
-  content: String
-  department_id: uuid
-  author_id: uuid
-}
-input publishedNews_updates {
-  """
-  sets the columns of the filtered rows to the given values
-  """
-  _set: publishedNews_set_input
-  """
-  filter the rows which have to be updated
-  """
-  where: publishedNews_bool_exp!
 }
 """
 Boolean expression to filter rows from the table "user_departments". All fields are combined with a logical 'AND'.

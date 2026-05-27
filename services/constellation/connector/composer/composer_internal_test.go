@@ -55,6 +55,7 @@ func TestComposer_typeNameResolvers(t *testing.T) {
 			c := New(
 				tt.providers,
 				&metadata.Metadata{Databases: nil, RemoteSchemas: nil},
+				nil,
 			)
 
 			resolvers := c.typeNameResolvers()
@@ -418,7 +419,8 @@ func TestRelationshipSpecs_SkipsEnumAndMissingConnector(t *testing.T) {
 			"db1": stubSchemaProvider{typeName: "db1"},
 			// db2_missing_provider is intentionally absent.
 		},
-		meta: md,
+		meta:            md,
+		inconsistencies: metadata.NewInconsistencies(),
 	}
 
 	specs := c.relationshipSpecs()

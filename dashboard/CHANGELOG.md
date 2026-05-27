@@ -1,3 +1,35 @@
+## [@nhost/dashboard@2.63.1] - 2026-05-25
+
+### 🐛 Bug Fixes
+
+- *(deps)* Fix ws advisory (GHSA-58qx-3vcg-4xpx) (#4307)
+- *(dashboard)* Do not call onSubmit on cancel in create/edit table forms (#4296)
+- *(dashboard)* Migrate overview and storage page icons (#4281)
+- *(dashboard)* Align serverless function HTTP method colors with schema diagram (#4322)
+- *(dashboard)* Resolve incorrect date/time picker & cell rendering w… (#4310)
+- *(dashboard)* Hide remote schema permissions table until enabled state loads (#4318)
+- *(dashboard)* Migrate authentication page icons (#4283)
+- *(dashboard)* Migrate remote-schemas page icons (#4284)
+- *(dashboard)* Migrate database page icons (#4285)
+- *(dashboard)* Migrate services page icons (#4286)
+- *(dashboard)* Migrate AI page icons (#4287)
+- *(dashboard)* Migrate metrics page icons (#4289)
+- *(dashboard)* Migrate git page icons (#4291)
+- *(dashboard)* Remove irrelevant role public header from Apollo Client (#4351)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add script to remove tsconfig.tsbuildinfo (#4325)
+- *(ci)* Follow-up skill improvements (#4332)
+
+
+### Chore
+
+- *(deps)* Update various packages due to CVEs (#4328)
+- *(deps)* Update vulnerable dependencies (#4338)
+- *(deps)* Dedupe lockfiles and tighten direct-dep ranges to resolved versions (#4344)
+
 ## [@nhost/dashboard@2.63.0] - 2026-05-18
 
 ### 🚀 Features

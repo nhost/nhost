@@ -28,8 +28,6 @@ var (
 	errConnectionRefused = errors.New("connection refused")
 	errQueryFailed       = errors.New("query failed")
 	errIteration         = errors.New("iteration error")
-	errSchemaQueryFailed = errors.New("schema query failed")
-	errExpectedString    = errors.New("expected *string dest")
 	errTableQueryExplode = errors.New("table query exploded")
 	errPgProcUnreachable = errors.New("pg_proc unreachable")
 )

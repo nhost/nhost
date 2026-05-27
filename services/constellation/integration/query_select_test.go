@@ -11,7 +11,7 @@ var (
 		"HASURA_URL",
 		"https://local.hasura.local.nhost.run/v1/graphql",
 	)
-	constellationURL = getEnvOrDefault("CONSTELLATION_URL", "http://localhost:8000/graphql")
+	constellationURL = getEnvOrDefault("CONSTELLATION_URL", "http://localhost:8000/v1/graphql")
 	adminSecret      = getEnvOrDefault("ADMIN_SECRET", "nhost-admin-secret")
 )
 

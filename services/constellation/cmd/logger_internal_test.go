@@ -32,7 +32,6 @@ func TestIsSecret(t *testing.T) {
 		{"postgres-url", true},
 		{"client-id", true},
 		{"client-secret", true},
-		{"database-url", true},
 		{"metadata-database-url", true},
 		{"bind-address", false},
 		{"debug", false},

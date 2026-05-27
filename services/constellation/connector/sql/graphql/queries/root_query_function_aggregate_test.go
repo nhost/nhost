@@ -147,6 +147,40 @@ func TestBuildQueryFunctionAggregateSQL(t *testing.T) { //nolint:paralleltest
 				Role: "admin",
 			},
 		},
+
+		// __typename across every aggregate scope. Exercises the same builder
+		// (writeQueryAggregateSQL) that root_query_aggregate uses, but reached
+		// via root_query_function_aggregate. The function-returning aggregate
+		// must produce the same per-scope literal type names as the root path.
+		// news has no numeric columns to SUM/AVG, so we use max/min over text.
+		{
+			name: "aggregate with __typename at every scope",
+			query: query{
+				Query: `
+					query {
+						search_news_aggregate(args: {search: "a"}) {
+							__typename
+							aggregate {
+								__typename
+								count
+								max {
+									__typename
+									title
+								}
+								min {
+									__typename
+									title
+								}
+							}
+							nodes {
+								__typename
+								id
+							}
+						}
+					}`,
+				Role: "admin",
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, false)

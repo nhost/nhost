@@ -6,6 +6,234 @@ scalar jsonb
 scalar timestamptz
 scalar uuid
 """
+select columns of table "content_feed"
+"""
+enum contentFeed_select_column {
+  """
+  column name
+  """
+  content
+  """
+  column name
+  """
+  created_at
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  source
+  """
+  column name
+  """
+  title
+}
+"""
+ordering argument of a cursor
+"""
+enum cursor_ordering {
+  """
+  ascending ordering of the cursor
+  """
+  ASC
+  """
+  descending ordering of the cursor
+  """
+  DESC
+}
+"""
+select columns of table "storage.files"
+"""
+enum files_select_column {
+  """
+  column name
+  """
+  bucketId
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  etag
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  isUploaded
+  """
+  column name
+  """
+  metadata
+  """
+  column name
+  """
+  mimeType
+  """
+  column name
+  """
+  name
+  """
+  column name
+  """
+  size
+  """
+  column name
+  """
+  updatedAt
+  """
+  column name
+  """
+  uploadedByUserId
+}
+"""
+select columns of table "news"
+"""
+enum news_select_column {
+  """
+  column name
+  """
+  content
+  """
+  column name
+  """
+  created_at
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  title
+  """
+  column name
+  """
+  updated_at
+}
+"""
+column ordering options
+"""
+enum order_by {
+  """
+  in ascending order, nulls last
+  """
+  asc
+  """
+  in ascending order, nulls first
+  """
+  asc_nulls_first
+  """
+  in ascending order, nulls last
+  """
+  asc_nulls_last
+  """
+  in descending order, nulls first
+  """
+  desc
+  """
+  in descending order, nulls first
+  """
+  desc_nulls_first
+  """
+  in descending order, nulls last
+  """
+  desc_nulls_last
+}
+"""
+select columns of table "published_news"
+"""
+enum publishedNews_select_column {
+  """
+  column name
+  """
+  author_id
+  """
+  column name
+  """
+  content
+  """
+  column name
+  """
+  created_at
+  """
+  column name
+  """
+  department_id
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  title
+  """
+  column name
+  """
+  updated_at
+}
+"""
+select columns of table "auth.users"
+"""
+enum users_select_column {
+  """
+  column name
+  """
+  displayName
+}
+"""
+columns and relationships of "content_feed"
+"""
+type contentFeed {
+  content: String
+  created_at: timestamptz
+  id: uuid
+  source: String
+  title: String
+}
+"""
+aggregated selection of "content_feed"
+"""
+type contentFeed_aggregate {
+  aggregate: contentFeed_aggregate_fields
+  nodes: [contentFeed!]!
+}
+"""
+aggregate fields of "content_feed"
+"""
+type contentFeed_aggregate_fields {
+  count(columns: [contentFeed_select_column!], distinct: Boolean): Int!
+  max: contentFeed_max_fields
+  min: contentFeed_min_fields
+}
+"""
+aggregate max on columns
+"""
+type contentFeed_max_fields {
+  content: String
+  created_at: timestamptz
+  id: uuid
+  source: String
+  title: String
+}
+"""
+aggregate min on columns
+"""
+type contentFeed_min_fields {
+  content: String
+  created_at: timestamptz
+  id: uuid
+  source: String
+  title: String
+}
+"""
 columns and relationships of "storage.files"
 """
 type files {
@@ -15,7 +243,9 @@ type files {
   id: uuid!
   isUploaded: Boolean
   metadata(
-    "JSON select path"
+    """
+    JSON select path
+    """
     path: String
   ): jsonb
   mimeType: String
@@ -28,7 +258,9 @@ type files {
 columns and relationships of "news"
 """
 type news {
-  "An object relationship"
+  """
+  An object relationship
+  """
   author: users!
   content: String!
   created_at: timestamptz!
@@ -40,7 +272,9 @@ type news {
 columns and relationships of "published_news"
 """
 type publishedNews {
-  "An object relationship"
+  """
+  An object relationship
+  """
   author: users
   author_id: uuid
   content: String
@@ -65,7 +299,9 @@ type publishedNews_aggregate_fields {
   max: publishedNews_max_fields
   min: publishedNews_min_fields
 }
-"aggregate max on columns"
+"""
+aggregate max on columns
+"""
 type publishedNews_max_fields {
   author_id: uuid
   content: String
@@ -75,7 +311,9 @@ type publishedNews_max_fields {
   title: String
   updated_at: timestamptz
 }
-"aggregate min on columns"
+"""
+aggregate min on columns
+"""
 type publishedNews_min_fields {
   author_id: uuid
   content: String
@@ -87,6 +325,64 @@ type publishedNews_min_fields {
 }
 type query_root {
   """
+  fetch data from the table: "content_feed"
+  """
+  contentFeed(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
+  """
+  fetch aggregated fields from the table: "content_feed"
+  """
+  contentFeedAggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): contentFeed_aggregate!
+  """
   fetch data from the table: "storage.files" using primary key columns
   """
   file(id: uuid!): files
@@ -94,30 +390,58 @@ type query_root {
   fetch data from the table: "storage.files"
   """
   files(
-    "distinct select on columns"
-    distinct_on: [files_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [files_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [files_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [files_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: files_bool_exp
   ): [files!]!
   """
   fetch data from the table: "news"
   """
   news(
-    "distinct select on columns"
-    distinct_on: [news_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [news_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: news_bool_exp
   ): [news!]!
   """
@@ -128,30 +452,58 @@ type query_root {
   fetch aggregated fields from the table: "published_news"
   """
   publishedNewAggregate(
-    "distinct select on columns"
-    distinct_on: [publishedNews_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [publishedNews_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [publishedNews_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [publishedNews_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: publishedNews_bool_exp
   ): publishedNews_aggregate!
   """
   fetch data from the table: "published_news"
   """
   publishedNews(
-    "distinct select on columns"
-    distinct_on: [publishedNews_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [publishedNews_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [publishedNews_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [publishedNews_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: publishedNews_bool_exp
   ): [publishedNews!]!
   """
@@ -161,35 +513,141 @@ type query_root {
     """
     input parameters for function "search_news"
     """
-    args: search_news_args!,
-    "distinct select on columns"
-    distinct_on: [news_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [news_order_by!],
-    "filter the rows returned"
+    args: search_news_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: news_bool_exp
   ): [news!]!
   """
   fetch data from the table: "auth.users"
   """
   users(
-    "distinct select on columns"
-    distinct_on: [users_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [users_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [users_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: users_bool_exp
   ): [users!]!
 }
 type subscription_root {
+  """
+  fetch data from the table: "content_feed"
+  """
+  contentFeed(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
+  """
+  fetch aggregated fields from the table: "content_feed"
+  """
+  contentFeedAggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): contentFeed_aggregate!
+  """
+  fetch data from the table in a streaming manner: "content_feed"
+  """
+  contentFeed_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [contentFeed_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
   """
   fetch data from the table: "storage.files" using primary key columns
   """
@@ -198,41 +656,77 @@ type subscription_root {
   fetch data from the table: "storage.files"
   """
   files(
-    "distinct select on columns"
-    distinct_on: [files_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [files_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [files_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [files_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: files_bool_exp
   ): [files!]!
   """
   fetch data from the table in a streaming manner: "storage.files"
   """
   files_stream(
-    "maximum number of rows returned in a single batch"
-    batch_size: Int!,
-    "cursor to stream the results returned by the query"
-    cursor: [files_stream_cursor_input]!,
-    "filter the rows returned"
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [files_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
     where: files_bool_exp
   ): [files!]!
   """
   fetch data from the table: "news"
   """
   news(
-    "distinct select on columns"
-    distinct_on: [news_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [news_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: news_bool_exp
   ): [news!]!
   """
@@ -243,52 +737,96 @@ type subscription_root {
   fetch data from the table in a streaming manner: "news"
   """
   news_stream(
-    "maximum number of rows returned in a single batch"
-    batch_size: Int!,
-    "cursor to stream the results returned by the query"
-    cursor: [news_stream_cursor_input]!,
-    "filter the rows returned"
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [news_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
     where: news_bool_exp
   ): [news!]!
   """
   fetch aggregated fields from the table: "published_news"
   """
   publishedNewAggregate(
-    "distinct select on columns"
-    distinct_on: [publishedNews_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [publishedNews_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [publishedNews_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [publishedNews_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: publishedNews_bool_exp
   ): publishedNews_aggregate!
   """
   fetch data from the table: "published_news"
   """
   publishedNews(
-    "distinct select on columns"
-    distinct_on: [publishedNews_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [publishedNews_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [publishedNews_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [publishedNews_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: publishedNews_bool_exp
   ): [publishedNews!]!
   """
   fetch data from the table in a streaming manner: "published_news"
   """
   publishedNews_stream(
-    "maximum number of rows returned in a single batch"
-    batch_size: Int!,
-    "cursor to stream the results returned by the query"
-    cursor: [publishedNews_stream_cursor_input]!,
-    "filter the rows returned"
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [publishedNews_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
     where: publishedNews_bool_exp
   ): [publishedNews!]!
   """
@@ -298,138 +836,87 @@ type subscription_root {
     """
     input parameters for function "search_news"
     """
-    args: search_news_args!,
-    "distinct select on columns"
-    distinct_on: [news_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [news_order_by!],
-    "filter the rows returned"
+    args: search_news_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: news_bool_exp
   ): [news!]!
   """
   fetch data from the table: "auth.users"
   """
   users(
-    "distinct select on columns"
-    distinct_on: [users_select_column!],
-    "limit the number of rows returned"
-    limit: Int,
-    "skip the first n rows. Use only with order_by"
-    offset: Int,
-    "sort the rows by one or more columns"
-    order_by: [users_order_by!],
-    "filter the rows returned"
+    """
+    distinct select on columns
+    """
+    distinct_on: [users_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
     where: users_bool_exp
   ): [users!]!
   """
   fetch data from the table in a streaming manner: "auth.users"
   """
   users_stream(
-    "maximum number of rows returned in a single batch"
-    batch_size: Int!,
-    "cursor to stream the results returned by the query"
-    cursor: [users_stream_cursor_input]!,
-    "filter the rows returned"
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [users_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
     where: users_bool_exp
   ): [users!]!
 }
-"User account information. Don't modify its structure as Hasura Auth relies on it to function properly."
+"""
+User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+"""
 type users {
   displayName: String!
-}
-"ordering argument of a cursor"
-enum cursor_ordering {
-  "ascending ordering of the cursor"
-  ASC
-  "descending ordering of the cursor"
-  DESC
-}
-"""
-select columns of table "storage.files"
-"""
-enum files_select_column {
-  "column name"
-  bucketId
-  "column name"
-  createdAt
-  "column name"
-  etag
-  "column name"
-  id
-  "column name"
-  isUploaded
-  "column name"
-  metadata
-  "column name"
-  mimeType
-  "column name"
-  name
-  "column name"
-  size
-  "column name"
-  updatedAt
-  "column name"
-  uploadedByUserId
-}
-"""
-select columns of table "news"
-"""
-enum news_select_column {
-  "column name"
-  content
-  "column name"
-  created_at
-  "column name"
-  id
-  "column name"
-  title
-  "column name"
-  updated_at
-}
-"column ordering options"
-enum order_by {
-  "in ascending order, nulls last"
-  asc
-  "in ascending order, nulls first"
-  asc_nulls_first
-  "in ascending order, nulls last"
-  asc_nulls_last
-  "in descending order, nulls first"
-  desc
-  "in descending order, nulls first"
-  desc_nulls_first
-  "in descending order, nulls last"
-  desc_nulls_last
-}
-"""
-select columns of table "published_news"
-"""
-enum publishedNews_select_column {
-  "column name"
-  author_id
-  "column name"
-  content
-  "column name"
-  created_at
-  "column name"
-  department_id
-  "column name"
-  id
-  "column name"
-  title
-  "column name"
-  updated_at
-}
-"""
-select columns of table "auth.users"
-"""
-enum users_select_column {
-  "column name"
-  displayName
 }
 """
 Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
@@ -466,32 +953,98 @@ input String_comparison_exp {
   _eq: String
   _gt: String
   _gte: String
-  "does the column match the given case-insensitive pattern"
+  """
+  does the column match the given case-insensitive pattern
+  """
   _ilike: String
   _in: [String!]
-  "does the column match the given POSIX regular expression, case insensitive"
+  """
+  does the column match the given POSIX regular expression, case insensitive
+  """
   _iregex: String
   _is_null: Boolean
-  "does the column match the given pattern"
+  """
+  does the column match the given pattern
+  """
   _like: String
   _lt: String
   _lte: String
   _neq: String
-  "does the column NOT match the given case-insensitive pattern"
+  """
+  does the column NOT match the given case-insensitive pattern
+  """
   _nilike: String
   _nin: [String!]
-  "does the column NOT match the given POSIX regular expression, case insensitive"
+  """
+  does the column NOT match the given POSIX regular expression, case insensitive
+  """
   _niregex: String
-  "does the column NOT match the given pattern"
+  """
+  does the column NOT match the given pattern
+  """
   _nlike: String
-  "does the column NOT match the given POSIX regular expression, case sensitive"
+  """
+  does the column NOT match the given POSIX regular expression, case sensitive
+  """
   _nregex: String
-  "does the column NOT match the given SQL regular expression"
+  """
+  does the column NOT match the given SQL regular expression
+  """
   _nsimilar: String
-  "does the column match the given POSIX regular expression, case sensitive"
+  """
+  does the column match the given POSIX regular expression, case sensitive
+  """
   _regex: String
-  "does the column match the given SQL regular expression"
+  """
+  does the column match the given SQL regular expression
+  """
   _similar: String
+}
+"""
+Boolean expression to filter rows from the table "content_feed". All fields are combined with a logical 'AND'.
+"""
+input contentFeed_bool_exp {
+  _and: [contentFeed_bool_exp!]
+  _not: contentFeed_bool_exp
+  _or: [contentFeed_bool_exp!]
+  content: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  source: String_comparison_exp
+  title: String_comparison_exp
+}
+"""
+Ordering options when selecting data from "content_feed".
+"""
+input contentFeed_order_by {
+  content: order_by
+  created_at: order_by
+  id: order_by
+  source: order_by
+  title: order_by
+}
+"""
+Streaming cursor of the table "contentFeed"
+"""
+input contentFeed_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: contentFeed_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input contentFeed_stream_cursor_value_input {
+  content: String
+  created_at: timestamptz
+  id: uuid
+  source: String
+  title: String
 }
 """
 Boolean expression to filter rows from the table "storage.files". All fields are combined with a logical 'AND'.
@@ -532,12 +1085,18 @@ input files_order_by {
 Streaming cursor of the table "files"
 """
 input files_stream_cursor_input {
-  "Stream column input with initial value"
+  """
+  Stream column input with initial value
+  """
   initial_value: files_stream_cursor_value_input!
-  "cursor ordering"
+  """
+  cursor ordering
+  """
   ordering: cursor_ordering
 }
-"Initial value of the column from where the streaming should start"
+"""
+Initial value of the column from where the streaming should start
+"""
 input files_stream_cursor_value_input {
   bucketId: String
   createdAt: timestamptz
@@ -559,18 +1118,28 @@ Boolean expression to compare columns of type "jsonb". All fields are combined w
 """
 input jsonb_comparison_exp {
   _cast: jsonb_cast_exp
-  "is the column contained in the given json value"
+  """
+  is the column contained in the given json value
+  """
   _contained_in: jsonb
-  "does the column contain the given json value at the top level"
+  """
+  does the column contain the given json value at the top level
+  """
   _contains: jsonb
   _eq: jsonb
   _gt: jsonb
   _gte: jsonb
-  "does the string exist as a top-level key in the column"
+  """
+  does the string exist as a top-level key in the column
+  """
   _has_key: String
-  "do all of these strings exist as top-level keys in the column"
+  """
+  do all of these strings exist as top-level keys in the column
+  """
   _has_keys_all: [String!]
-  "do any of these strings exist as top-level keys in the column"
+  """
+  do any of these strings exist as top-level keys in the column
+  """
   _has_keys_any: [String!]
   _in: [jsonb!]
   _is_null: Boolean
@@ -608,12 +1177,18 @@ input news_order_by {
 Streaming cursor of the table "news"
 """
 input news_stream_cursor_input {
-  "Stream column input with initial value"
+  """
+  Stream column input with initial value
+  """
   initial_value: news_stream_cursor_value_input!
-  "cursor ordering"
+  """
+  cursor ordering
+  """
   ordering: cursor_ordering
 }
-"Initial value of the column from where the streaming should start"
+"""
+Initial value of the column from where the streaming should start
+"""
 input news_stream_cursor_value_input {
   content: String
   created_at: timestamptz
@@ -654,12 +1229,18 @@ input publishedNews_order_by {
 Streaming cursor of the table "publishedNews"
 """
 input publishedNews_stream_cursor_input {
-  "Stream column input with initial value"
+  """
+  Stream column input with initial value
+  """
   initial_value: publishedNews_stream_cursor_value_input!
-  "cursor ordering"
+  """
+  cursor ordering
+  """
   ordering: cursor_ordering
 }
-"Initial value of the column from where the streaming should start"
+"""
+Initial value of the column from where the streaming should start
+"""
 input publishedNews_stream_cursor_value_input {
   author_id: uuid
   content: String
@@ -705,12 +1286,18 @@ input users_order_by {
 Streaming cursor of the table "users"
 """
 input users_stream_cursor_input {
-  "Stream column input with initial value"
+  """
+  Stream column input with initial value
+  """
   initial_value: users_stream_cursor_value_input!
-  "cursor ordering"
+  """
+  cursor ordering
+  """
   ordering: cursor_ordering
 }
-"Initial value of the column from where the streaming should start"
+"""
+Initial value of the column from where the streaming should start
+"""
 input users_stream_cursor_value_input {
   displayName: String
 }
@@ -728,10 +1315,3 @@ input uuid_comparison_exp {
   _neq: uuid
   _nin: [uuid!]
 }
-"whether this query should be cached (Hasura Cloud only)"
-directive @cached(
-    "measured in seconds"
-    ttl: Int! = 60,
-    "refresh the cache entry"
-    refresh: Boolean! = false
-  ) on QUERY

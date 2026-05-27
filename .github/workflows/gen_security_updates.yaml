@@ -1,0 +1,115 @@
+---
+name: "gen: security updates"
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: gen-security-updates
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: "Generate App token"
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.NHOST_BOT_APP_ID }}
+          private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
+          owner: nhost
+          repositories: |
+            nhost
+            be
+
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
+
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: ${{ inputs.NAME }}
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply Go security fixes
+        # govulncheck-wrapper -fix bumps each non-allowlisted finding via
+        # `go mod edit -require=module@fixed-version` then runs
+        # `go mod tidy && go mod vendor` to keep go.sum and vendor/ in sync. No
+        # overrides, no vendoring tricks — just standard module bumps. No-op when
+        # nothing is flagged.
+        #
+        # `go mod tidy` resolves the full module graph, which includes the private
+        # github.com/nhost/be dep — so we wire the app token into git and set
+        # GOPRIVATE to bypass the public proxy/sumdb for nhost org modules.
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          nix develop .#security-updates -c bash -c '
+            set -euo pipefail
+            export GOPRIVATE=github.com/nhost/be
+            govulncheck-wrapper -fix -- -scan=package ./...
+          '
+
+      - name: Apply pnpm security fixes
+        # --fix=update bumps patched versions in each lockfile (introduced in
+        # pnpm 11.0) instead of adding pnpm.overrides entries. Iterates every
+        # workspace because sharedWorkspaceLockfile is false — each package
+        # has its own lockfile and pnpm audit only sees the cwd's. Non-zero
+        # exits are tolerated so partial fixes still land; remaining advisories
+        # surface on the normal audit-ci-recursive CI check.
+        run: |
+          nix develop .#security-updates -c bash -c '
+            set -u
+            pnpm -r --include-workspace-root --no-bail --workspace-concurrency=1 \
+              exec pnpm audit --fix=update || true
+            pnpm -r --include-workspace-root \
+              exec pnpm dedupe || true
+          '
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "chore(deps): apply security updates"
+          committer: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
+          author: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
+          signoff: false
+          branch: automated/security-updates
+          delete-branch: true
+          title: "chore(deps): update vulnerable dependencies"
+          body: |
+            Daily security updates.
+
+            * **pnpm**: `pnpm audit --fix=update` per workspace lockfile (no overrides added).
+            * **Go**: `go mod edit -require` for modules flagged by `govulncheck`, then `go mod tidy && go mod vendor`.
+
+            Anything still flagged after this PR will fail the regular CI checks (`govulncheck`, `audit-ci-recursive`) — fix manually.
+          labels: |
+            dependencies
+            security
+          draft: false
+
+      - name: "Cache nix store on s3"
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+        if: always()

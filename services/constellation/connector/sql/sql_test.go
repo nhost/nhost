@@ -39,7 +39,7 @@ func newTestConnector(t *testing.T, driver *mock.MockDriver) *csql.Connector {
 	driver.EXPECT().Dialect().Return(&dialect.PostgresDialect{}).AnyTimes()
 	driver.EXPECT().Introspect(gomock.Any(), gomock.Any()).Return(emptyObjects(), nil)
 
-	c, err := csql.NewConnector(context.Background(), driver, minimalMetadata())
+	c, err := csql.NewConnector(context.Background(), driver, minimalMetadata(), nil, nil)
 	if err != nil {
 		t.Fatalf("NewConnector() unexpected error: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestNewConnector_IntrospectError(t *testing.T) {
 	driver.EXPECT().Dialect().Return(&dialect.PostgresDialect{}).AnyTimes()
 	driver.EXPECT().Introspect(gomock.Any(), gomock.Any()).Return(nil, errTest)
 
-	_, err := csql.NewConnector(context.Background(), driver, minimalMetadata())
+	_, err := csql.NewConnector(context.Background(), driver, minimalMetadata(), nil, nil)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -90,9 +90,8 @@ func TestNewConnector_IntrospectError(t *testing.T) {
 
 // objectsWithUntrackedFunctionTarget builds an introspection.Objects with a
 // SETOF function whose return-type table is not tracked in metadata. This is
-// the same shape exercised by queries.BuildRoots'
-// TestBuildRoots_FunctionReturningUnknownTableErrors path and forces
-// queries.BuildRoots to fail with a missing-base-table error.
+// the shape used to verify the inconsistency-tolerant drop path for
+// functions whose base table is missing.
 func objectsWithUntrackedFunctionTarget() *introspection.Objects {
 	objs := introspection.NewObjects()
 	objs.Schemas["public"] = &introspection.Schema{
@@ -119,7 +118,13 @@ func objectsWithUntrackedFunctionTarget() *introspection.Objects {
 	return objs
 }
 
-func TestNewConnector_BuildRootsError(t *testing.T) {
+// TestNewConnector_FunctionWithUntrackedBaseTableDropped is the
+// inconsistency-tolerant counterpart to the old TestNewConnector_BuildRootsError:
+// a function whose return-type table is not tracked in metadata used to abort
+// NewConnector via errBaseTableForFunctionNotFound. The reconcile pass now
+// drops the function and records a function inconsistency, so the connector
+// must come up cleanly with the surviving table still serving.
+func TestNewConnector_FunctionWithUntrackedBaseTableDropped(t *testing.T) {
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
@@ -129,11 +134,10 @@ func TestNewConnector_BuildRootsError(t *testing.T) {
 	driver.EXPECT().
 		Introspect(gomock.Any(), gomock.Any()).
 		Return(objectsWithUntrackedFunctionTarget(), nil)
+	driver.EXPECT().Close().AnyTimes()
 
-	// Metadata tracks public.users (matching introspection) and
-	// public.search_orders. BuildRoots will fail because the function's
-	// return-type table (public.orders) is not tracked.
 	md := &metadata.DatabaseMetadata{
+		Name: "default",
 		Kind: "postgres",
 		Tables: []metadata.TableMetadata{
 			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
@@ -143,13 +147,70 @@ func TestNewConnector_BuildRootsError(t *testing.T) {
 		},
 	}
 
-	_, err := csql.NewConnector(context.Background(), driver, md)
+	inc := metadata.NewInconsistencies()
+
+	conn, err := csql.NewConnector(context.Background(), driver, md, inc, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	t.Cleanup(func() { conn.Close() })
+
+	snap := inc.Snapshot()
+	if len(snap) != 1 {
+		t.Fatalf("expected one inconsistency, got %d: %+v", len(snap), snap)
+	}
+
+	if snap[0].Kind != metadata.InconsistencyKindFunction {
+		t.Errorf(
+			"expected kind=%q, got %q",
+			metadata.InconsistencyKindFunction, snap[0].Kind,
+		)
+	}
+
+	if snap[0].Name != "public.search_orders" {
+		t.Errorf("expected name=public.search_orders, got %q", snap[0].Name)
+	}
+
+	if !strings.Contains(snap[0].Reason, "base table") {
+		t.Errorf(
+			"expected reason to mention base table, got %q",
+			snap[0].Reason,
+		)
+	}
+}
+
+// TestNewConnector_ReloadSchemaError covers the "failed to load schema" wrap
+// at sql.go:101 — the only error site exercised by neither
+// TestNewConnector_IntrospectError nor TestNewConnector_BuildRootsError.
+// reloadSchema calls schema.ParseDBKind(dbMeta.Kind); an unknown kind survives
+// reconcileMetadata (which does not validate Kind) and BuildRoots (which only
+// consults the dialect), then trips ParseDBKind and surfaces the wrap.
+func TestNewConnector_ReloadSchemaError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	driver := mock.NewMockDriver(ctrl)
+
+	driver.EXPECT().Dialect().Return(&dialect.PostgresDialect{}).AnyTimes()
+	driver.EXPECT().Introspect(gomock.Any(), gomock.Any()).Return(emptyObjects(), nil)
+
+	// An unrecognised Kind is the simplest seam into reloadSchema's error
+	// return: introspect and BuildRoots both succeed against an empty
+	// metadata, but ParseDBKind rejects the string and propagates an
+	// ErrUnknownDBKind up through reloadSchema.
+	md := &metadata.DatabaseMetadata{
+		Name: "default",
+		Kind: "unknown",
+	}
+
+	_, err := csql.NewConnector(context.Background(), driver, md, nil, nil)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
 
-	if !strings.Contains(err.Error(), "failed to build GraphQL roots") {
-		t.Errorf("expected wrapping prefix %q, got: %v", "failed to build GraphQL roots", err)
+	if !strings.Contains(err.Error(), "failed to load schema") {
+		t.Errorf("expected wrapping prefix %q, got: %v", "failed to load schema", err)
 	}
 }
 
@@ -191,9 +252,13 @@ func objectsWithEnumFKMissingValues() *introspection.Objects {
 	return objs
 }
 
-func TestNewConnector_ReloadSchemaError(t *testing.T) {
+func TestNewConnector_EnumWithoutValuesIsDropped(t *testing.T) {
 	t.Parallel()
 
+	// An is_enum table whose driver did not surface any rows (missing,
+	// invalid shape, empty) is no longer fatal: reconcileMetadata drops
+	// the table entirely — matching Hasura — and records an enum_values
+	// inconsistency.
 	ctrl := gomock.NewController(t)
 	driver := mock.NewMockDriver(ctrl)
 
@@ -201,8 +266,10 @@ func TestNewConnector_ReloadSchemaError(t *testing.T) {
 	driver.EXPECT().
 		Introspect(gomock.Any(), gomock.Any()).
 		Return(objectsWithEnumFKMissingValues(), nil)
+	driver.EXPECT().Close().AnyTimes()
 
 	md := &metadata.DatabaseMetadata{
+		Name: "default",
 		Kind: "postgres",
 		Tables: []metadata.TableMetadata{
 			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
@@ -210,13 +277,177 @@ func TestNewConnector_ReloadSchemaError(t *testing.T) {
 		},
 	}
 
-	_, err := csql.NewConnector(context.Background(), driver, md)
-	if err == nil {
-		t.Fatal("expected error, got nil")
+	inc := metadata.NewInconsistencies()
+
+	conn, err := csql.NewConnector(context.Background(), driver, md, inc, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "failed to load schema") {
-		t.Errorf("expected wrapping prefix %q, got: %v", "failed to load schema", err)
+	t.Cleanup(func() { conn.Close() })
+
+	snap := inc.Snapshot()
+	if len(snap) != 1 {
+		t.Fatalf("expected one inconsistency, got %d: %+v", len(snap), snap)
+	}
+
+	if snap[0].Kind != metadata.InconsistencyKindEnumValues {
+		t.Errorf(
+			"expected kind=%q, got %q",
+			metadata.InconsistencyKindEnumValues, snap[0].Kind,
+		)
+	}
+
+	if snap[0].Name != "public.user_status" {
+		t.Errorf("expected name=public.user_status, got %q", snap[0].Name)
+	}
+}
+
+// TestNewConnector_KitchenSinkInconsistencies feeds NewConnector a metadata
+// document deliberately full of references that don't exist in the source —
+// a missing table, a missing column on a surviving table, a missing
+// function, an enum table with no values, and a local relationship pointing
+// at a dropped target. The connector must come up cleanly, each problem
+// must produce its specific inconsistency kind, and the surviving table
+// must still serve a non-empty schema.
+func TestNewConnector_KitchenSinkInconsistencies(t *testing.T) {
+	t.Parallel()
+
+	objs := introspection.NewObjects()
+	objs.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"users": {
+				Schema:       "public",
+				Name:         "users",
+				IsInsertable: true,
+				IsUpdatable:  true,
+				Columns: []introspection.Column{
+					{Name: "id", Type: "uuid"},
+					{Name: "name", Type: "text"},
+				},
+				PrimaryKeys: []string{"id"},
+			},
+			"user_status": {
+				Schema:       "public",
+				Name:         "user_status",
+				IsInsertable: true,
+				IsUpdatable:  true,
+				Columns:      []introspection.Column{{Name: "value", Type: "text"}},
+				PrimaryKeys:  []string{"value"},
+			},
+		},
+	}
+	// user_status exists in the source but has no rows — drives enum_values.
+
+	ctrl := gomock.NewController(t)
+	driver := mock.NewMockDriver(ctrl)
+	driver.EXPECT().Dialect().Return(&dialect.PostgresDialect{}).AnyTimes()
+	driver.EXPECT().Introspect(gomock.Any(), gomock.Any()).Return(objs, nil)
+	driver.EXPECT().Close().AnyTimes()
+
+	md := &metadata.DatabaseMetadata{
+		Name: "default",
+		Kind: "postgres",
+		Tables: []metadata.TableMetadata{
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "users"},
+				Configuration: metadata.TableConfiguration{
+					ColumnConfig: map[string]metadata.ColumnConfig{
+						"missing_col": {CustomName: "x"},
+					},
+				},
+				ObjectRelationships: []metadata.ObjectRelationship{
+					{
+						Name: "ghost_rel",
+						Using: metadata.RelationshipUsing{
+							ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
+								Columns: []string{"id"},
+								Table: metadata.TableSource{
+									Schema: "public", Name: "ghost_table",
+								},
+							},
+						},
+					},
+				},
+			},
+			{
+				Table:  metadata.TableSource{Schema: "public", Name: "user_status"},
+				IsEnum: true,
+			},
+			{Table: metadata.TableSource{Schema: "public", Name: "ghost_table"}},
+		},
+		Functions: []metadata.FunctionMetadata{
+			{Function: metadata.FunctionSource{Schema: "public", Name: "ghost_fn"}},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+
+	conn, err := csql.NewConnector(t.Context(), driver, md, inc, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	t.Cleanup(func() { conn.Close() })
+
+	// Pin the exact (kind, name) multiset: a regression that records the
+	// same drop twice, mis-qualifies a name, or cascades an enum drop into
+	// an unintended relationship inconsistency must trip this assertion.
+	// Source is pinned (every kitchen-sink entry comes from the "default"
+	// source); Reason and At are deliberately ignored — Reason contains
+	// stable substrings already covered by reconcile_internal_test.go, and
+	// At is wall-clock noise.
+	type kindName struct {
+		kind string
+		name string
+	}
+
+	want := map[kindName]int{
+		{metadata.InconsistencyKindColumn, "public.users.missing_col"}:     1,
+		{metadata.InconsistencyKindRelationship, "public.users.ghost_rel"}: 1,
+		{metadata.InconsistencyKindEnumValues, "public.user_status"}:       1,
+		{metadata.InconsistencyKindTable, "public.ghost_table"}:            1,
+		{metadata.InconsistencyKindFunction, "public.ghost_fn"}:            1,
+	}
+
+	snap := inc.Snapshot()
+	if len(snap) != len(want) {
+		t.Fatalf("expected %d inconsistencies, got %d: %+v", len(want), len(snap), snap)
+	}
+
+	got := make(map[kindName]int, len(snap))
+
+	for _, it := range snap {
+		if it.Source != "default" {
+			t.Errorf("expected source=default, got %q for %+v", it.Source, it)
+		}
+
+		got[kindName{it.Kind, it.Name}]++
+	}
+
+	for k, n := range want {
+		if got[k] != n {
+			t.Errorf("expected %d inconsistencies for %+v, got %d (full snapshot: %+v)",
+				n, k, got[k], snap)
+		}
+	}
+
+	for k, n := range got {
+		if _, expected := want[k]; !expected {
+			t.Errorf("unexpected inconsistency %+v (count=%d, full snapshot: %+v)",
+				k, n, snap)
+		}
+	}
+
+	// The surviving users table must still produce a non-empty schema for
+	// the admin role.
+	schemas, err := conn.GetSchema()
+	if err != nil {
+		t.Fatalf("GetSchema: %v", err)
+	}
+
+	if schemas["admin"] == nil {
+		t.Fatalf("expected admin schema, got roles %v", schemas)
 	}
 }
 
