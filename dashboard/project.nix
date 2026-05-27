@@ -2,7 +2,6 @@
   self,
   pkgs,
   nix2containerPkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -11,19 +10,21 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
 
+  fs = pkgs.lib.fileset;
+
   node_modules = nixops-lib.js.mkNodeModules {
     name = "node-modules-${name}";
     version = "0.0.0-dev";
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ./..;
-      include = [
-        ".npmrc"
-        "package.json"
-        "pnpm-workspace.yaml"
-        "pnpm-lock.yaml"
-        "${submodule}/package.json"
-        "${submodule}/pnpm-lock.yaml"
+      fileset = fs.unions [
+        ../.npmrc
+        ../package.json
+        ../pnpm-workspace.yaml
+        ../pnpm-lock.yaml
+        ./package.json
+        ./pnpm-lock.yaml
       ];
     };
 
@@ -35,47 +36,40 @@ let
     '';
   };
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../.;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".npmrc"
-      ".prettierignore"
-      ".prettierrc.js"
-      "audit-ci.jsonc"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "turbo.json"
-      "biome.json"
-      ".gitignore"
-      (inDirectory "build/configs")
-      "${submodule}/.env.test"
-      "${submodule}/.env.example"
-      "${submodule}/.lintstagedrc.json"
-      "${submodule}/biome.json"
-      "${submodule}/.npmrc"
-      "${submodule}/.prettierignore"
-      "${submodule}/.lychee.toml"
-      "${submodule}/components.json"
-      "${submodule}/graphite.graphql.config.yaml"
-      "${submodule}/graphql.config.yaml"
-      "${submodule}/next-env.d.ts"
-      "${submodule}/next.config.js"
-      "${submodule}/package.json"
-      "${submodule}/pnpm-lock.yaml"
-      "${submodule}/playwright.config.ts"
-      "${submodule}/postcss.config.js"
-      "${submodule}/prettier.config.js"
-      "${submodule}/react-table-config.d.ts"
-      "${submodule}/tailwind.config.js"
-      "${submodule}/tsconfig.json"
-      "${submodule}/tsconfig.test.json"
-      "${submodule}/vitest.config.mts"
-      "${submodule}/vitest.global-setup.ts"
-      (inDirectory "${submodule}/e2e")
-      (inDirectory "${submodule}/public")
-      (inDirectory "${submodule}/src")
+    fileset = fs.unions [
+      ../.npmrc
+      ../.prettierignore
+      ../.prettierrc.js
+      ../audit-ci.jsonc
+      ../package.json
+      ../pnpm-workspace.yaml
+      ../pnpm-lock.yaml
+      ../turbo.json
+      ../biome.json
+      ../.gitignore
+      ../build/configs
+      ./.env.example
+      ./.lintstagedrc.json
+      ./biome.json
+      ./.lychee.toml
+      ./components.json
+      ./graphite.graphql.config.yaml
+      ./graphql.config.yaml
+      ./next.config.js
+      ./package.json
+      ./pnpm-lock.yaml
+      ./playwright.config.ts
+      ./postcss.config.js
+      ./tailwind.config.js
+      ./tsconfig.json
+      ./tsconfig.test.json
+      ./vitest.config.mts
+      ./vitest.global-setup.ts
+      ./e2e
+      ./public
+      ./src
     ];
   };
 
@@ -125,6 +119,7 @@ rec {
       ;
 
     preCheck = ''
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
     '';
@@ -142,6 +137,7 @@ rec {
         cp -r ${node_modules}/node_modules/ node_modules
         cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
 
+        mkdir -p packages
         rm -rf packages/nhost-js
         cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 
@@ -189,6 +185,7 @@ rec {
       cp -r ${node_modules}/node_modules/ node_modules
       cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
 
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 
