@@ -16,6 +16,7 @@ import {
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
@@ -66,10 +67,15 @@ export default function ColumnPresetsSection({
   }) as ColumnPreset[];
 
   const allColumnNames: string[] =
-    tableData?.columns.map((column) => column.column_name) || [];
+    tableData?.columns
+      .filter((column) => !isGeneratedColumn(column))
+      .map((column) => column.column_name) || [];
   const selectedColumnsMap = columnPresets.reduce(
     (map, { column }) => map.set(column, true),
     new Map<string, boolean>(),
+  );
+  const isAddColumnDisabled = allColumnNames.every((column) =>
+    selectedColumnsMap.has(column),
   );
 
   if (tableError) {
@@ -111,35 +117,52 @@ export default function ColumnPresetsSection({
                 <Controller
                   name={`columnPresets.${index}.column`}
                   control={control}
-                  render={({ field: columnField }) => (
-                    <Select
-                      value={columnField.value || undefined}
-                      onValueChange={columnField.onChange}
-                    >
-                      <SelectTrigger
-                        className={cn(
-                          Boolean(columnError) &&
-                            'border-destructive text-destructive',
-                        )}
+                  render={({ field: columnField }) => {
+                    const staleValue =
+                      columnField.value &&
+                      !allColumnNames.includes(columnField.value)
+                        ? columnField.value
+                        : null;
+
+                    return (
+                      <Select
+                        value={columnField.value || undefined}
+                        onValueChange={columnField.onChange}
                       >
-                        <SelectValue placeholder="Select column" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allColumnNames.map((column) => (
-                          <SelectItem
-                            key={column}
-                            value={column}
-                            disabled={
-                              selectedColumnsMap.has(column) &&
-                              columnField.value !== column
-                            }
-                          >
-                            {column}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                        <SelectTrigger
+                          className={cn(
+                            Boolean(columnError) &&
+                              'border-destructive text-destructive',
+                          )}
+                        >
+                          <SelectValue placeholder="Select column" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allColumnNames.map((column) => (
+                            <SelectItem
+                              key={column}
+                              value={column}
+                              disabled={
+                                selectedColumnsMap.has(column) &&
+                                columnField.value !== column
+                              }
+                            >
+                              {column}
+                            </SelectItem>
+                          ))}
+                          {staleValue && (
+                            <SelectItem
+                              key={staleValue}
+                              value={staleValue}
+                              disabled
+                            >
+                              {staleValue}
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    );
+                  }}
                 />
 
                 <ColumnPresetValueCombobox
@@ -174,7 +197,7 @@ export default function ColumnPresetsSection({
           size="sm"
           type="button"
           onClick={() => append({ column: '', value: '' })}
-          disabled={fields.length === allColumnNames.length}
+          disabled={isAddColumnDisabled}
           className="justify-self-start text-primary hover:text-primary"
         >
           <Plus className="mr-2 h-4 w-4" />

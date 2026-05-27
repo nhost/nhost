@@ -44,6 +44,7 @@ type Props = {
   isUntracked: boolean;
   open: boolean;
   className?: string;
+  triggerClassName?: string;
   triggerIcon?: ReactNode;
   onOpen: () => void;
   onClose: () => void;
@@ -62,6 +63,7 @@ function DatabaseObjectActions({
   isUntracked,
   open,
   className,
+  triggerClassName,
   triggerIcon,
   onClose,
   onOpen,
@@ -98,7 +100,10 @@ function DatabaseObjectActions({
           id={`${idPrefix}-management-menu-${objectName}`}
           variant="outline"
           size="icon"
-          className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent"
+          className={cn(
+            'h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent',
+            triggerClassName,
+          )}
         >
           {triggerIcon ?? <Ellipsis />}
         </Button>

@@ -26,6 +26,7 @@ import type {
   DataBrowserGridColumnDef,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import {
   POSTGRESQL_CHARACTER_TYPES,
@@ -64,15 +65,15 @@ export function extractColumnMetadata(
   const { normalizedDefaultValue, custom: isDefaultValueCustom } =
     normalizeDefaultValue(column.column_default);
 
-  const isGeneratedColumn = column.is_generated === 'ALWAYS';
+  const isGenerated = isGeneratedColumn(column);
 
   const metadata: DataBrowserColumnMetadata = {
     id: column.column_name,
-    isEditable: isGeneratedColumn ? false : isEditable,
+    isEditable: isGenerated ? false : isEditable,
     isPrimary: column.is_primary,
     isNullable: column.is_nullable !== 'NO',
     isIdentity: column.is_identity === 'YES',
-    isGenerated: isGeneratedColumn,
+    isGenerated,
     generationExpression: column.generation_expression ?? null,
     defaultValue: normalizedDefaultValue,
     isDefaultValueCustom,
