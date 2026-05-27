@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -151,20 +152,75 @@ func startLogStream(
 	p *tea.Program,
 	dc *dockercompose.DockerCompose,
 ) {
-	reader, err := dc.LogStream(ctx, logStreamTail)
+	reader, err := dc.LogStream(ctx, "")
 	if err != nil {
 		return
 	}
 	defer reader.Close()
 
+	lines := make(chan LogEntry, logBatchMax*4) //nolint:mnd
+
+	go scanLogs(ctx, reader, lines)
+
+	flushBatch(ctx, p, lines)
+}
+
+func scanLogs(ctx context.Context, reader io.Reader, out chan<- LogEntry) {
+	defer close(out)
+
 	scanner := bufio.NewScanner(reader)
+	scanner.Buffer(make([]byte, 64*1024), 1024*1024) //nolint:mnd
+
 	for scanner.Scan() {
 		if ctx.Err() != nil {
 			return
 		}
 
 		service, text := parseLogLine(scanner.Text())
-		p.Send(logLineMsg{service: service, text: text})
+
+		select {
+		case <-ctx.Done():
+			return
+		case out <- LogEntry{Service: service, Text: text}: //nolint:exhaustruct
+		}
+	}
+}
+
+func flushBatch(ctx context.Context, p *tea.Program, lines <-chan LogEntry) {
+	ticker := time.NewTicker(logBatchEvery)
+	defer ticker.Stop()
+
+	batch := make([]LogEntry, 0, logBatchMax)
+
+	send := func() {
+		if len(batch) == 0 {
+			return
+		}
+
+		p.Send(logBatchMsg{entries: batch})
+		batch = make([]LogEntry, 0, logBatchMax)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			send()
+
+			return
+		case entry, ok := <-lines:
+			if !ok {
+				send()
+
+				return
+			}
+
+			batch = append(batch, entry)
+			if len(batch) >= logBatchMax {
+				send()
+			}
+		case <-ticker.C:
+			send()
+		}
 	}
 }
 

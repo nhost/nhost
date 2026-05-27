@@ -44,6 +44,8 @@ func (m Model) viewDashboard() string {
 	var b strings.Builder
 
 	b.WriteString(m.viewHeader(""))
+	b.WriteString("\n\n")
+	b.WriteString(m.viewSDK())
 	b.WriteString("\n")
 	b.WriteString(m.viewServices())
 	b.WriteString("\n")
@@ -63,6 +65,8 @@ func (m Model) viewRestarting() string {
 	var b strings.Builder
 
 	b.WriteString(m.viewHeader("restarting"))
+	b.WriteString("\n\n")
+	b.WriteString(m.viewSDK())
 	b.WriteString("\n")
 	b.WriteString(m.viewServices())
 	b.WriteString("\n  " + m.spinner.View() + " Restarting services...\n")
@@ -173,13 +177,13 @@ func (m Model) viewServices() string {
 		b.WriteString("\n")
 	}
 
-	b.WriteString(m.viewSDK())
-
 	if m.config.MCP.Configured {
+		b.WriteString("\n")
 		b.WriteString(m.viewMCP())
 	}
 
 	if len(infra) > 0 {
+		b.WriteString("\n")
 		b.WriteString(subsectionTitle.Render("  Infrastructure") + "\n")
 
 		for _, svc := range infra {
@@ -370,42 +374,118 @@ func (m Model) viewLogs() string {
 		return b.String()
 	}
 
-	rendered := m.renderLogLines(filtered)
-
-	start, end := logWindow(len(rendered), available, m.logOffset)
-
-	for i := start; i < end; i++ {
-		b.WriteString(rendered[i] + "\n")
+	for _, line := range emitLogWindow(filtered, available, m.logOffset) {
+		b.WriteString(line + "\n")
 	}
 
 	return b.String()
 }
 
-func (m Model) renderLogLines(entries []LogEntry) []string {
-	return renderLogLinesAt(m.width, entries)
+func (m Model) maxLogOffset() int {
+	filtered := m.filteredLogs()
+	total := countLines(filtered)
+	visible := m.logViewHeight()
+
+	if total <= visible {
+		return 0
+	}
+
+	return total - visible
 }
 
-func renderLogLinesAt(termWidth int, entries []LogEntry) []string {
+// renderEntryLines wraps and prefixes a single entry's text into one or more
+// display lines for the given terminal width.
+func renderEntryLines(termWidth int, service, text string) []string {
 	prefixWidth := 4 + colName + 1 + 1 + 1 // "    " + svc + " " + sep + " "
 	wrapWidth := termWidth - prefixWidth
 	if wrapWidth < 20 { //nolint:mnd
 		wrapWidth = 20
 	}
 
-	out := make([]string, 0, len(entries))
+	svc := logService.Render(service)
+	wrapped := wrapText(text, wrapWidth)
+	out := make([]string, 0, len(wrapped))
 
-	for _, entry := range entries {
-		svc := logService.Render(entry.Service)
-		text := wrapText(entry.Text, wrapWidth)
-
-		for j, line := range text {
-			if j == 0 {
-				out = append(out, "    "+svc+" "+logSep+" "+line)
-			} else {
-				out = append(out,
-					"    "+padRight("", colName)+" "+logSep+" "+line)
-			}
+	for j, line := range wrapped {
+		if j == 0 {
+			out = append(out, "    "+svc+" "+logSep+" "+line)
+		} else {
+			out = append(out,
+				"    "+padRight("", colName)+" "+logSep+" "+line)
 		}
+	}
+
+	return out
+}
+
+// ensureRendered fills in the entry's cached lines for the given width.
+// No-op if the cache is already valid.
+func (e *LogEntry) ensureRendered(termWidth int) {
+	if e.width == termWidth && e.lines != nil {
+		return
+	}
+
+	e.width = termWidth
+	e.lines = renderEntryLines(termWidth, e.Service, e.Text)
+}
+
+// invalidateRender drops the cached lines so the next ensureRendered re-wraps.
+func (e *LogEntry) invalidateRender() {
+	e.lines = nil
+	e.width = 0
+}
+
+// countLines sums cached line counts across entries.
+func countLines(entries []LogEntry) int {
+	total := 0
+	for i := range entries {
+		total += len(entries[i].lines)
+	}
+
+	return total
+}
+
+// emitLogWindow returns the rendered lines for the visible window only.
+// Walks entries in order, accumulating line counts, and only copies lines
+// whose flat index falls in [start, end), where the window is determined
+// by total line count and the user's scroll offset.
+func emitLogWindow(entries []LogEntry, available, offset int) []string {
+	total := countLines(entries)
+	if total == 0 || available < 1 {
+		return nil
+	}
+
+	start, end := logWindow(total, available, offset)
+
+	out := make([]string, 0, end-start)
+
+	cumulative := 0
+	for i := range entries {
+		entryLen := len(entries[i].lines)
+		entryEnd := cumulative + entryLen
+
+		if entryEnd <= start {
+			cumulative = entryEnd
+
+			continue
+		}
+
+		if cumulative >= end {
+			break
+		}
+
+		from := 0
+		if cumulative < start {
+			from = start - cumulative
+		}
+
+		to := entryLen
+		if entryEnd > end {
+			to = end - cumulative
+		}
+
+		out = append(out, entries[i].lines[from:to]...)
+		cumulative = entryEnd
 	}
 
 	return out
@@ -422,21 +502,27 @@ func wrapText(s string, width int) []string {
 }
 
 func (m Model) filteredLogs() []LogEntry {
-	if m.logFilter == "" && m.logSearch == "" {
-		return m.logs
+	return filterLogs(m.logs, m.logFilter, m.logSearch)
+}
+
+// filterLogs returns the subset of logs matching the given service filter
+// and free-text search. An empty filter or search disables that check.
+func filterLogs(logs []LogEntry, filter, search string) []LogEntry {
+	if filter == "" && search == "" {
+		return logs
 	}
 
-	filtered := make([]LogEntry, 0, len(m.logs))
-	search := strings.ToLower(m.logSearch)
+	filtered := make([]LogEntry, 0, len(logs))
+	lowerSearch := strings.ToLower(search)
 
-	for _, entry := range m.logs {
-		if m.logFilter != "" && entry.Service != m.logFilter {
+	for _, entry := range logs {
+		if filter != "" && entry.Service != filter {
 			continue
 		}
 
-		if search != "" &&
-			!strings.Contains(strings.ToLower(entry.Text), search) &&
-			!strings.Contains(strings.ToLower(entry.Service), search) {
+		if lowerSearch != "" &&
+			!strings.Contains(strings.ToLower(entry.Text), lowerSearch) &&
+			!strings.Contains(strings.ToLower(entry.Service), lowerSearch) {
 			continue
 		}
 
@@ -444,6 +530,42 @@ func (m Model) filteredLogs() []LogEntry {
 	}
 
 	return filtered
+}
+
+// logServiceNames extracts unique service names from log entries in arrival
+// order.
+func logServiceNames(logs []LogEntry) []string {
+	seen := make(map[string]bool)
+	names := make([]string, 0)
+
+	for _, entry := range logs {
+		if !seen[entry.Service] {
+			seen[entry.Service] = true
+			names = append(names, entry.Service)
+		}
+	}
+
+	return names
+}
+
+// nextLogFilter cycles to the next service in `names`. An empty current
+// jumps to the first; an exhausted list returns "" (no filter).
+func nextLogFilter(names []string, current string) string {
+	if len(names) == 0 {
+		return ""
+	}
+
+	if current == "" {
+		return names[0]
+	}
+
+	for i, name := range names {
+		if name == current && i+1 < len(names) {
+			return names[i+1]
+		}
+	}
+
+	return ""
 }
 
 func (m Model) logViewHeight() int {

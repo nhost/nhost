@@ -13,9 +13,10 @@ import (
 
 const (
 	maxLogLines    = 1000
-	logStreamTail  = 100
 	pollInterval   = 2 * time.Second
 	uptimeInterval = 1 * time.Second
+	logBatchEvery  = 50 * time.Millisecond
+	logBatchMax    = 200
 )
 
 type appState int
@@ -36,7 +37,7 @@ type (
 	completeMsg      struct{ info string }
 	errMsg           struct{ err error }
 	serviceStatusMsg struct{ services []dockercompose.ServiceStatus }
-	logLineMsg       struct{ service, text string }
+	logBatchMsg      struct{ entries []LogEntry }
 	tickMsg          time.Time
 	stoppedMsg       struct{ err error }
 	restartDoneMsg   struct{ err error }
@@ -67,6 +68,10 @@ type AppConfig struct {
 type LogEntry struct {
 	Service string
 	Text    string
+
+	// cached rendering for the current terminal width; invalidated on resize
+	lines []string
+	width int
 }
 
 type Model struct {

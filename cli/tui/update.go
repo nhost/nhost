@@ -20,6 +20,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 		m.width = msg.Width
 		m.height = msg.Height
 
+		for i := range m.logs {
+			m.logs[i].invalidateRender()
+			m.logs[i].ensureRendered(m.width)
+		}
+
 		return m, nil
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -56,8 +61,14 @@ func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 		})
 	case serviceStatusMsg:
 		m.services = msg.services
-	case logLineMsg:
-		m.logs = appendLog(m.logs, msg)
+	case logBatchMsg:
+		before := countLines(m.filteredLogs())
+		m.logs = appendLogBatch(m.logs, msg.entries, m.width)
+
+		if m.logOffset > 0 {
+			after := countLines(m.filteredLogs())
+			m.logOffset = min(m.logOffset+(after-before), m.maxLogOffset())
+		}
 	case completeMsg:
 		m.state = stateDashboard
 	case restartDoneMsg:
@@ -104,7 +115,9 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 		return m, m.stopCmd()
 
 	case msg.String() == "up" || msg.String() == "k":
-		m.logOffset++
+		if m.logOffset < m.maxLogOffset() {
+			m.logOffset++
+		}
 
 		return m, nil
 
@@ -112,6 +125,26 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 		if m.logOffset > 0 {
 			m.logOffset--
 		}
+
+		return m, nil
+
+	case msg.String() == "pgup":
+		m.logOffset = min(m.logOffset+m.logViewHeight(), m.maxLogOffset())
+
+		return m, nil
+
+	case msg.String() == "pgdown":
+		m.logOffset = max(m.logOffset-m.logViewHeight(), 0)
+
+		return m, nil
+
+	case msg.String() == "g":
+		m.logOffset = m.maxLogOffset()
+
+		return m, nil
+
+	case msg.String() == "G":
+		m.logOffset = 0
 
 		return m, nil
 
@@ -170,11 +203,12 @@ func (m Model) handleSearchKey( //nolint:ireturn
 	}
 }
 
-func appendLog(logs []LogEntry, msg logLineMsg) []LogEntry {
-	logs = append(logs, LogEntry{
-		Service: msg.service,
-		Text:    msg.text,
-	})
+func appendLogBatch(logs []LogEntry, entries []LogEntry, width int) []LogEntry {
+	for _, e := range entries {
+		logs = append(logs, e)
+		logs[len(logs)-1].ensureRendered(width)
+	}
+
 	if len(logs) > maxLogLines {
 		logs = logs[len(logs)-maxLogLines:]
 	}
@@ -183,22 +217,7 @@ func appendLog(logs []LogEntry, msg logLineMsg) []LogEntry {
 }
 
 func (m Model) nextFilter() string {
-	names := m.serviceNames()
-	if len(names) == 0 {
-		return ""
-	}
-
-	if m.logFilter == "" {
-		return names[0]
-	}
-
-	for i, name := range names {
-		if name == m.logFilter && i+1 < len(names) {
-			return names[i+1]
-		}
-	}
-
-	return ""
+	return nextLogFilter(m.serviceNames(), m.logFilter)
 }
 
 func (m Model) serviceNames() []string {

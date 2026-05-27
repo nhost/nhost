@@ -11,7 +11,6 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/creack/pty"
@@ -365,29 +364,48 @@ func parseServiceStatus(data []byte) ([]ServiceStatus, error) {
 	return services, nil
 }
 
+type logStreamReader struct {
+	pty io.ReadCloser
+	cmd *exec.Cmd
+}
+
+func (r *logStreamReader) Read(p []byte) (int, error) {
+	return r.pty.Read(p) //nolint:wrapcheck
+}
+
+func (r *logStreamReader) Close() error {
+	_ = r.pty.Close()
+	if r.cmd.Process != nil {
+		_ = r.cmd.Process.Kill()
+	}
+	_ = r.cmd.Wait()
+
+	return nil
+}
+
 func (dc *DockerCompose) LogStream(
 	ctx context.Context,
-	tail int,
+	since string,
 ) (io.ReadCloser, error) {
-	cmd := exec.CommandContext( //nolint:gosec
-		ctx,
-		"docker", "compose",
+	args := []string{
+		"compose",
 		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"logs", "-f",
-		"--tail", strconv.Itoa(tail),
 		"--no-color",
-	)
+	}
 
-	stdout, err := cmd.StdoutPipe()
+	if since != "" {
+		args = append(args, "--since", since)
+	}
+
+	cmd := exec.CommandContext(ctx, "docker", args...) //nolint:gosec
+
+	f, err := pty.Start(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create log pipe: %w", err)
+		return nil, fmt.Errorf("failed to start log stream pty: %w", err)
 	}
 
-	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start log stream: %w", err)
-	}
-
-	return stdout, nil
+	return &logStreamReader{pty: f, cmd: cmd}, nil
 }
