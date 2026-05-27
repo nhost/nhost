@@ -220,10 +220,11 @@ export default function DataBrowserGridControls({
                   variant="outline"
                   size="sm"
                   loading={isRefreshingMaterializedView}
+                  loaderClassName="h-4 w-4"
                   onClick={onRefreshMaterializedViewClick}
                 >
                   {!isRefreshingMaterializedView && (
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <RefreshCw className="mr-2 h-4 w-4" />
                   )}
                   <span>Refresh</span>
                 </Button>

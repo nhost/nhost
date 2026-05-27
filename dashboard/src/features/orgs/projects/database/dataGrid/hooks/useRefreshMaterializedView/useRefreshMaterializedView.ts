@@ -1,6 +1,6 @@
-import { triggerToast } from '@/utils/toast';
 import { useRouter } from 'next/router';
 import { useRefreshMaterializedViewMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRefreshMaterializedViewMutation';
+import { triggerToast } from '@/utils/toast';
 
 export interface UseRefreshMaterializedViewOptions {
   refetch: () => Promise<unknown>;
