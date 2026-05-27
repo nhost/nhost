@@ -1,0 +1,31 @@
+--- schema.hasura.user.graphqls
++++ schema.nhost.user.graphqls
+@@ -1241,7 +1241,7 @@ type mutation_root {
+   league: leagueMutation
+   recordMyTeamGame(isHome: Boolean!, opponentId: ID!, opponentScore: Int!, teamScore: Int!): Game!
+   reportGame(awayScore: Int!, awayTeamId: ID!, homeScore: Int!): Game!
+-  set_department_manager(args: set_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments
++  set_department_manager(args: set_department_manager_args!): user_departments
+   updateFile(_append: files_append_input _delete_at_path: files_delete_at_path_input _delete_elem: files_delete_elem_input _delete_key: files_delete_key_input _inc: files_inc_input _prepend: files_prepend_input _set: files_set_input pk_columns: files_pk_columns_input!): files
+   updateFiles(_append: files_append_input _delete_at_path: files_delete_at_path_input _delete_elem: files_delete_elem_input _delete_key: files_delete_key_input _inc: files_inc_input _prepend: files_prepend_input _set: files_set_input where: files_bool_exp!): files_mutation_response
+   updateUser(_append: users_append_input _delete_at_path: users_delete_at_path_input _delete_elem: users_delete_elem_input _delete_key: users_delete_key_input _prepend: users_prepend_input _set: users_set_input pk_columns: users_pk_columns_input!): users
+@@ -1498,8 +1498,7 @@ type query_root {
+   files(distinct_on: [files_select_column!] limit: Int offset: Int order_by: [files_order_by!] where: files_bool_exp): [files!]!
+   game(id: ID!): Game
+   games: [Game!]!
+-  get_department_manager(args: get_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments
+-  get_department_manager_aggregate(args: get_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments_aggregate!
++  get_department_manager(args: get_department_manager_args!): user_departments
+   kb_entries(distinct_on: [kb_entries_select_column!] limit: Int offset: Int order_by: [kb_entries_order_by!] where: kb_entries_bool_exp): [kb_entries!]!
+   kb_entries_aggregate(distinct_on: [kb_entries_select_column!] limit: Int offset: Int order_by: [kb_entries_order_by!] where: kb_entries_bool_exp): kb_entries_aggregate!
+   kb_entries_by_pk(id: uuid!): kb_entries
+@@ -1569,8 +1568,7 @@ type subscription_root {
+   file(id: uuid!): files
+   files(distinct_on: [files_select_column!] limit: Int offset: Int order_by: [files_order_by!] where: files_bool_exp): [files!]!
+   files_stream(batch_size: Int! cursor: [files_stream_cursor_input]! where: files_bool_exp): [files!]!
+-  get_department_manager(args: get_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments
+-  get_department_manager_aggregate(args: get_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments_aggregate!
++  get_department_manager(args: get_department_manager_args!): user_departments
+   kb_entries(distinct_on: [kb_entries_select_column!] limit: Int offset: Int order_by: [kb_entries_order_by!] where: kb_entries_bool_exp): [kb_entries!]!
+   kb_entries_aggregate(distinct_on: [kb_entries_select_column!] limit: Int offset: Int order_by: [kb_entries_order_by!] where: kb_entries_bool_exp): kb_entries_aggregate!
+   kb_entries_by_pk(id: uuid!): kb_entries

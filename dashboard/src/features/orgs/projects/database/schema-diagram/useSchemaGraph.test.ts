@@ -296,7 +296,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
-        namingMode: 'graphql',
+        namingMode: 'postgres',
       }),
     );
 
@@ -367,7 +367,7 @@ describe('useSchemaGraph', () => {
         functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
-        namingMode: 'graphql',
+        namingMode: 'postgres',
       }),
     );
 
@@ -515,6 +515,8 @@ describe('useSchemaGraph', () => {
     ];
     const fk = buildForeignKey();
 
+    // Postgres mode emits an FK edge regardless of relationship state, so the
+    // edge's data is the cleanest probe for relMatchesFk's classification.
     function getEdgeData(metadataTables: HasuraMetadataTable[]): FkEdgeData {
       const { result } = renderHook(() =>
         useSchemaGraph({
@@ -526,7 +528,7 @@ describe('useSchemaGraph', () => {
           functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
-          namingMode: 'graphql',
+          namingMode: 'postgres',
         }),
       );
       return result.current.edges[0].data as FkEdgeData;
@@ -760,7 +762,7 @@ describe('useSchemaGraph', () => {
       expect(edge.markerEnd).toBe(EDGE_MARKER_IDS.arrowFilled);
     });
 
-    it('uses hollow markers on both ends when no metadata exists', () => {
+    it('uses hollow markers on both ends when no metadata exists (postgres mode)', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables: [],
@@ -771,7 +773,7 @@ describe('useSchemaGraph', () => {
           functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
-          namingMode: 'graphql',
+          namingMode: 'postgres',
         }),
       );
       const edge = result.current.edges[0];
@@ -798,6 +800,205 @@ describe('useSchemaGraph', () => {
       ]);
 
       expect(data.hasArrayRel).toBe(false);
+    });
+  });
+
+  describe('GraphQL-mode edges', () => {
+    const fkColumns: SchemaDiagramColumn[] = [
+      buildColumn({
+        schema: 'public',
+        table: 'posts',
+        columnName: 'author_id',
+        ordinalPosition: 1,
+        isPrimary: false,
+      }),
+      buildColumn({
+        schema: 'public',
+        table: 'users',
+        columnName: 'id',
+      }),
+    ];
+
+    function renderGraphqlGraph(
+      metadataTables: HasuraMetadataTable[],
+      foreignKeys: SchemaDiagramForeignKey[] = [buildForeignKey()],
+      extraColumns: SchemaDiagramColumn[] = [],
+    ) {
+      return renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns: [...fkColumns, ...extraColumns],
+          foreignKeys,
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+    }
+
+    it('hides FK edges that have no tracked relationship', () => {
+      const { result } = renderGraphqlGraph([
+        buildMetadataTable('public', 'posts'),
+        buildMetadataTable('public', 'users'),
+      ]);
+
+      expect(result.current.edges).toEqual([]);
+    });
+
+    it('keeps FK edges that have at least one tracked relationship', () => {
+      const { result } = renderGraphqlGraph([
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            {
+              name: 'author',
+              using: { foreign_key_constraint_on: 'author_id' },
+            },
+          ],
+        }),
+        buildMetadataTable('public', 'users'),
+      ]);
+
+      expect(result.current.edges).toHaveLength(1);
+      const data = result.current.edges[0].data as FkEdgeData;
+      expect(data.hasObjectRel).toBe(true);
+      expect(data.hasArrayRel).toBe(false);
+    });
+
+    it('emits a synthetic edge for a manual object relationship not backed by an FK', () => {
+      const extraColumns: SchemaDiagramColumn[] = [
+        buildColumn({
+          schema: 'public',
+          table: 'comments',
+          columnName: 'commenter_email',
+          ordinalPosition: 1,
+          isPrimary: false,
+        }),
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+      ];
+      const { result } = renderGraphqlGraph(
+        [
+          buildMetadataTable('public', 'comments', {
+            object_relationships: [
+              {
+                name: 'commenter',
+                using: {
+                  manual_configuration: {
+                    remote_table: { schema: 'public', name: 'users' },
+                    column_mapping: { commenter_email: 'email' },
+                  },
+                },
+              },
+            ],
+          }),
+          buildMetadataTable('public', 'users'),
+        ],
+        [],
+        extraColumns,
+      );
+
+      const manualEdge = result.current.edges.find(
+        (e) => e.source === nodeIdFor('public', 'comments'),
+      );
+      expect(manualEdge).toBeDefined();
+      expect(manualEdge?.sourceHandle).toBe(
+        columnHandleId('source', 'commenter_email'),
+      );
+      expect(manualEdge?.targetHandle).toBe(columnHandleId('target', 'email'));
+      const data = manualEdge?.data as FkEdgeData;
+      expect(data.hasObjectRel).toBe(true);
+      expect(data.hasArrayRel).toBe(false);
+    });
+
+    it('emits a synthetic edge for a manual array relationship and maps direction from remote→local', () => {
+      const extraColumns: SchemaDiagramColumn[] = [
+        buildColumn({
+          schema: 'public',
+          table: 'sessions',
+          columnName: 'owner_email',
+          ordinalPosition: 1,
+          isPrimary: false,
+        }),
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+      ];
+      const { result } = renderGraphqlGraph(
+        [
+          buildMetadataTable('public', 'users', {
+            array_relationships: [
+              {
+                name: 'sessions',
+                using: {
+                  manual_configuration: {
+                    remote_table: { schema: 'public', name: 'sessions' },
+                    column_mapping: { email: 'owner_email' },
+                  },
+                },
+              },
+            ],
+          }),
+          buildMetadataTable('public', 'sessions'),
+        ],
+        [],
+        extraColumns,
+      );
+
+      const arrayEdge = result.current.edges.find(
+        (e) => e.source === nodeIdFor('public', 'sessions'),
+      );
+      expect(arrayEdge).toBeDefined();
+      expect(arrayEdge?.target).toBe(nodeIdFor('public', 'users'));
+      expect(arrayEdge?.sourceHandle).toBe(
+        columnHandleId('source', 'owner_email'),
+      );
+      expect(arrayEdge?.targetHandle).toBe(columnHandleId('target', 'email'));
+      const data = arrayEdge?.data as FkEdgeData;
+      expect(data.hasObjectRel).toBe(false);
+      expect(data.hasArrayRel).toBe(true);
+    });
+
+    it('does not duplicate when a manual rel matches an existing FK-tracked edge', () => {
+      const { result } = renderGraphqlGraph([
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            {
+              name: 'author',
+              using: { foreign_key_constraint_on: 'author_id' },
+            },
+          ],
+        }),
+        buildMetadataTable('public', 'users', {
+          array_relationships: [
+            {
+              name: 'posts_manual',
+              using: {
+                manual_configuration: {
+                  remote_table: { schema: 'public', name: 'posts' },
+                  column_mapping: { id: 'author_id' },
+                },
+              },
+            },
+          ],
+        }),
+      ]);
+
+      expect(result.current.edges).toHaveLength(1);
+      const data = result.current.edges[0].data as FkEdgeData;
+      expect(data.hasObjectRel).toBe(true);
+      expect(data.hasArrayRel).toBe(true);
     });
   });
 

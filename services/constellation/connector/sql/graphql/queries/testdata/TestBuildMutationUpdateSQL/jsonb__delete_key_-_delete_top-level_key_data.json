@@ -1,0 +1,34 @@
+[
+  [
+    {
+      "affected_rows": 1,
+      "returning": [
+        {
+          "metadata": {
+            "skills": [
+              "recruitment",
+              "compliance",
+              "training"
+            ],
+            "profile": {
+              "level": 5,
+              "title": "HR Manager",
+              "certifications": [
+                "PHR",
+                "SHRM-CP"
+              ]
+            },
+            "preferences": {
+              "theme": "dark",
+              "notifications": {
+                "sms": false,
+                "email": true
+              }
+            }
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440001"
+        }
+      ]
+    }
+  ]
+]

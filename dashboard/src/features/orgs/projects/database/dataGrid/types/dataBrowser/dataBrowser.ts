@@ -311,7 +311,11 @@ export type DateColumnType =
   | 'timestamptz'
   | 'time'
   | 'timetz'
-  | 'interval';
+  | 'interval'
+  | 'timestamp without time zone'
+  | 'timestamp with time zone'
+  | 'time without time zone'
+  | 'time with time zone';
 
 /**
  * User defined column type of a numeric field in PostgreSQL.

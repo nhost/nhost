@@ -10,7 +10,7 @@ type Ingresses []Ingress
 
 func (i Ingresses) Labels() map[string]string {
 	labels := make(map[string]string)
-	labels["traefik.enable"] = "true"
+	labels["traefik.enable"] = "true" //nolint:goconst,nolintlint
 
 	for _, ingress := range i {
 		maps.Copy(labels, ingress.Labels())

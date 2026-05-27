@@ -13,6 +13,8 @@ configuration:
       custom_name: id
     is_uploaded:
       custom_name: isUploaded
+    metadata:
+      custom_name: metadata
     mime_type:
       custom_name: mimeType
     name:
@@ -29,6 +31,7 @@ configuration:
     etag: etag
     id: id
     is_uploaded: isUploaded
+    metadata: metadata
     mime_type: mimeType
     name: name
     size: size

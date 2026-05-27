@@ -3,6 +3,7 @@ import type {
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 
 export interface SchemaDiagramColumn {
   schema: string;
@@ -221,7 +222,7 @@ export default async function fetchSchemaDiagramData({
       isNullable: row.is_nullable === 'YES',
       ordinalPosition: row.ordinal_position,
       isPrimary: row.is_primary,
-      isGenerated: row.is_generated === 'ALWAYS',
+      isGenerated: isGeneratedColumn(row),
     };
   });
 

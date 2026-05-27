@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "departments",
+    "QueryType": "select",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"departments\") SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"name\" AS \"name\", \"_root.r.files\".\"files\" AS \"files\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (SELECT coalesce(json_agg(\"_root.r.files\"), '[]') AS \"files\" FROM (WITH \"_root.r.files.base\" AS (SELECT * FROM \"public\".\"department_files\" WHERE EXISTS (SELECT 1 FROM \"storage\".\"files\" f WHERE \"public\".\"department_files\".\"file_id\" = f.\"id\" AND f.\"bucket_id\" = $1::text) AND \"department_id\" = \"_root.base\".\"id\") SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.files.r.file\".\"file\" AS \"file\", \"_root.r.files.r.department\".\"department\" AS \"department\") AS \"_e\")) AS \"_root.r.files\" FROM \"_root.r.files.base\" LEFT OUTER JOIN LATERAL (WITH \"_root.r.files.r.file.base\" AS (SELECT * FROM \"storage\".\"files\" WHERE \"_root.r.files.base\".\"file_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.files.r.file.base\".\"name\" AS \"name\") AS \"_e\")) AS \"file\" FROM \"_root.r.files.r.file.base\") AS \"_root.r.files.r.file\" ON ('true') LEFT OUTER JOIN LATERAL (WITH \"_root.r.files.r.department.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"_root.r.files.base\".\"department_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.files.r.department.base\".\"name\" AS \"name\") AS \"_e\")) AS \"department\" FROM \"_root.r.files.r.department.base\") AS \"_root.r.files.r.department\" ON ('true')) AS \"_root.r.files\") AS \"_root.r.files\" ON ('true')) AS \"_root\"",
+    "Parameters": [
+      "default"
+    ]
+  }
+]

@@ -3,10 +3,10 @@ package controller
 import (
 	"context"
 	"log/slog"
+	"net/http"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
-	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 func (ctrl *Controller) deleteBrokenMetadata(
@@ -17,10 +17,12 @@ func (ctrl *Controller) deleteBrokenMetadata(
 		return nil, apiErr
 	}
 
-	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
+	// Deletion runs as admin to match the admin-only listing above; the
+	// endpoint is already gated by the admin secret in AuthenticationFunc.
+	adminHeaders := http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}}
 
 	for _, m := range missing {
-		if apiErr := ctrl.metadataStorage.DeleteFileByID(ctx, m.ID, sessionHeaders); apiErr != nil {
+		if apiErr := ctrl.metadataStorage.DeleteFileByID(ctx, m.ID, adminHeaders); apiErr != nil {
 			return nil, apiErr
 		}
 	}

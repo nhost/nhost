@@ -1,4 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  Ellipsis as DotsHorizontalIcon,
+  LinkIcon,
+  SquarePen as PencilIcon,
+  PlusIcon,
+  Trash2 as TrashIcon,
+  UsersIcon,
+} from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -13,12 +21,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
-import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UsersIcon } from '@/components/ui/v2/icons/UsersIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -257,10 +259,7 @@ function RemoteSchemaBrowserSidebarContent({
                             })
                           }
                         >
-                          <PencilIcon
-                            className="h-4 w-4"
-                            sx={{ color: 'text.secondary' }}
-                          />
+                          <PencilIcon className="h-4 w-4 text-muted-foreground" />
                           <span>Edit Remote Schema</span>
                         </Dropdown.Item>
                         <Divider component="li" />
@@ -271,10 +270,7 @@ function RemoteSchemaBrowserSidebarContent({
                             handleEditPermissionClick(remoteSchema.name)
                           }
                         >
-                          <UsersIcon
-                            className="h-4 w-4"
-                            sx={{ color: 'text.secondary' }}
-                          />
+                          <UsersIcon className="h-4 w-4 text-muted-foreground" />
                           <span>Edit Permissions</span>
                         </Dropdown.Item>
                         <Divider component="li" />
@@ -285,10 +281,7 @@ function RemoteSchemaBrowserSidebarContent({
                             handleEditRelationshipsClick(remoteSchema.name)
                           }
                         >
-                          <LinkIcon
-                            className="h-4 w-4"
-                            sx={{ color: 'text.secondary' }}
-                          />
+                          <LinkIcon className="h-4 w-4 text-muted-foreground" />
                           <span>Edit Relationships</span>
                         </Dropdown.Item>
                         <Divider component="li" />
@@ -300,10 +293,7 @@ function RemoteSchemaBrowserSidebarContent({
                             handleDeleteRemoteSchemaClick(remoteSchema)
                           }
                         >
-                          <TrashIcon
-                            className="h-4 w-4"
-                            sx={{ color: 'error.main' }}
-                          />
+                          <TrashIcon className="h-4 w-4" />
                           <span>Delete Remote Schema</span>
                         </Dropdown.Item>
                       </Dropdown.Content>

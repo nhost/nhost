@@ -1,0 +1,394 @@
+package remoteschema
+
+import (
+	"strings"
+	"testing"
+
+	"github.com/nhost/nhost/services/constellation/graph"
+)
+
+func TestPruneUnreachableTypes_DirectiveArgumentTypes(t *testing.T) {
+	t.Parallel()
+
+	queryType := "Query"
+	schema := &graph.Schema{
+		Types: []*graph.ObjectType{
+			{
+				Name: "Query",
+				Fields: []*graph.Field{
+					{
+						Name: "hello",
+						Type: graph.NewNamedType("String"),
+					},
+				},
+			},
+		},
+		Enums: []*graph.EnumType{
+			{
+				Name: "PolicyEnum",
+				Values: []*graph.EnumValue{
+					{Name: "ALLOW"},
+					{Name: "DENY"},
+				},
+			},
+			{
+				Name: "UnusedEnum",
+				Values: []*graph.EnumValue{
+					{Name: "A"},
+				},
+			},
+		},
+		Directives: []*graph.DirectiveDefinition{
+			{
+				Name: "auth",
+				Arguments: []*graph.Argument{
+					{
+						Name: "policy",
+						Type: graph.NewNonNullType("PolicyEnum"),
+					},
+				},
+				Locations: []graph.DirectiveLocation{graph.LocationField},
+			},
+		},
+		QueryType: &queryType,
+	}
+
+	pruneUnreachableTypes(schema)
+
+	// PolicyEnum should be retained because it's referenced by @auth directive argument
+	foundPolicy := false
+	foundUnused := false
+
+	for _, e := range schema.Enums {
+		switch e.Name {
+		case "PolicyEnum":
+			foundPolicy = true
+		case "UnusedEnum":
+			foundUnused = true
+		}
+	}
+
+	if !foundPolicy {
+		t.Error("PolicyEnum was pruned but should be reachable via directive argument")
+	}
+
+	if foundUnused {
+		t.Error("UnusedEnum should have been pruned")
+	}
+}
+
+func TestParseSDL(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
+	t.Parallel()
+
+	t.Run("basic schema", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				users: [User!]!
+			}
+			type User {
+				id: ID!
+				name: String!
+			}
+		`
+
+		schema, presets, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		if schema.QueryType == nil || *schema.QueryType != "Query" {
+			t.Error("expected QueryType to be 'Query'")
+		}
+
+		if len(presets) != 0 {
+			t.Errorf("expected no presets, got %d", len(presets))
+		}
+
+		// Should have Query and User types
+		typeNames := make(map[string]struct{})
+		for _, typ := range schema.Types {
+			typeNames[typ.Name] = struct{}{}
+		}
+
+		if _, ok := typeNames["Query"]; !ok {
+			t.Error("expected Query type")
+		}
+
+		if _, ok := typeNames["User"]; !ok {
+			t.Error("expected User type")
+		}
+	})
+
+	t.Run("extracts presets", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				user(id: ID! @preset(value: "x-hasura-user-id")): User
+			}
+			type User {
+				id: ID!
+				name: String!
+			}
+		`
+
+		schema, presets, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		if schema == nil {
+			t.Fatal("expected non-nil schema")
+		}
+
+		// Should have a preset for Query.user
+		queryUserPresets, ok := presets["Query.user"]
+		if !ok {
+			t.Fatal("expected preset for Query.user")
+		}
+
+		if len(queryUserPresets) != 1 {
+			t.Fatalf("expected 1 preset, got %d", len(queryUserPresets))
+		}
+
+		if queryUserPresets[0].ArgumentName != "id" {
+			t.Errorf("expected argument name 'id', got %s", queryUserPresets[0].ArgumentName)
+		}
+
+		if queryUserPresets[0].Value != "x-hasura-user-id" {
+			t.Errorf("expected value 'x-hasura-user-id', got %s", queryUserPresets[0].Value)
+		}
+
+		// Preset argument should be hidden from the schema
+		for _, typ := range schema.Types {
+			if typ.Name == "Query" {
+				for _, f := range typ.Fields {
+					if f.Name == "user" {
+						if len(f.Arguments) != 0 {
+							t.Errorf(
+								"preset argument should be hidden, got %d args",
+								len(f.Arguments),
+							)
+						}
+					}
+				}
+			}
+		}
+	})
+
+	t.Run("prunes unreachable types", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				hello: String
+			}
+			type Orphan {
+				id: ID!
+			}
+		`
+
+		schema, _, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		for _, typ := range schema.Types {
+			if typ.Name == "Orphan" {
+				t.Error("Orphan type should have been pruned")
+			}
+		}
+	})
+
+	t.Run("invalid SDL returns error", func(t *testing.T) {
+		t.Parallel()
+
+		_, _, err := parseSDL("this is not valid { graphql }")
+		if err == nil {
+			t.Fatal("expected error for invalid SDL")
+		}
+	})
+
+	t.Run("handles enums and input types", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				users(filter: UserFilter): [User!]!
+			}
+			type User {
+				id: ID!
+				status: Status!
+			}
+			enum Status {
+				ACTIVE
+				INACTIVE
+			}
+			input UserFilter {
+				status: Status
+			}
+		`
+
+		schema, _, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		if len(schema.Enums) == 0 {
+			t.Error("expected at least one enum")
+		}
+
+		if len(schema.Inputs) == 0 {
+			t.Error("expected at least one input type")
+		}
+
+		var foundStatus bool
+		for _, e := range schema.Enums {
+			if e.Name == "Status" {
+				foundStatus = true
+
+				if len(e.Values) != 2 {
+					t.Errorf("expected 2 enum values, got %d", len(e.Values))
+				}
+			}
+		}
+
+		if !foundStatus {
+			t.Error("expected Status enum")
+		}
+	})
+
+	t.Run("handles mutation and subscription", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				users: [User!]!
+			}
+			type Mutation {
+				createUser(name: String!): User!
+			}
+			type Subscription {
+				userCreated: User!
+			}
+			type User {
+				id: ID!
+				name: String!
+			}
+		`
+
+		schema, _, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		if schema.MutationType == nil || *schema.MutationType != "Mutation" {
+			t.Error("expected MutationType to be 'Mutation'")
+		}
+
+		if schema.SubscriptionType == nil || *schema.SubscriptionType != "Subscription" {
+			t.Error("expected SubscriptionType to be 'Subscription'")
+		}
+	})
+
+	t.Run("handles interfaces and unions", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				node(id: ID!): Node
+				search: [SearchResult!]!
+			}
+			interface Node {
+				id: ID!
+			}
+			type User implements Node {
+				id: ID!
+				name: String!
+			}
+			type Post implements Node {
+				id: ID!
+				title: String!
+			}
+			union SearchResult = User | Post
+		`
+
+		schema, _, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		if len(schema.Interfaces) == 0 {
+			t.Error("expected at least one interface")
+		}
+
+		if len(schema.Unions) == 0 {
+			t.Error("expected at least one union")
+		}
+
+		var foundUnion bool
+		for _, u := range schema.Unions {
+			if u.Name == "SearchResult" {
+				foundUnion = true
+
+				if len(u.Types) != 2 {
+					t.Errorf("expected 2 union members, got %d", len(u.Types))
+				}
+			}
+		}
+
+		if !foundUnion {
+			t.Error("expected SearchResult union")
+		}
+	})
+
+	t.Run("handles custom scalars", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			scalar DateTime
+			type Query {
+				now: DateTime!
+			}
+		`
+
+		schema, _, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		var foundScalar bool
+		for _, s := range schema.Scalars {
+			if s.Name == "DateTime" {
+				foundScalar = true
+			}
+		}
+
+		if !foundScalar {
+			t.Error("expected DateTime scalar")
+		}
+	})
+
+	t.Run("filters builtin types", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				hello: String
+			}
+		`
+
+		schema, _, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		for _, typ := range schema.Types {
+			if strings.HasPrefix(typ.Name, "__") || typ.Name == "String" {
+				t.Errorf("builtin type %s should be filtered", typ.Name)
+			}
+		}
+	})
+}

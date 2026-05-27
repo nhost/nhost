@@ -99,7 +99,7 @@ func TestIsCIMDClientIDInsecure(t *testing.T) {
 	}
 }
 
-func TestValidateCIMDURL(t *testing.T) { //nolint:cyclop
+func TestValidateCIMDURL(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
@@ -564,7 +564,7 @@ func newTestClientWithRewrite(
 ) *http.Client {
 	base := server.Client()
 
-	return &http.Client{ //nolint:exhaustruct
+	return &http.Client{
 		Transport: &rewriteTransport{
 			inner:     base.Transport,
 			targetURL: server.URL,
@@ -582,12 +582,12 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 	const fakeHost = "https://cimd-test.example.com"
 
 	newTestClient := func(clientID string) sql.AuthOauth2Client {
-		return sql.AuthOauth2Client{ //nolint:exhaustruct
+		return sql.AuthOauth2Client{
 			ClientID:     clientID,
 			RedirectUris: []string{fakeHost + "/callback"},
 			Scopes:       []string{"openid"},
 			Type:         sql.OAuth2ClientTypeCIMD,
-			MetadataDocumentFetchedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+			MetadataDocumentFetchedAt: pgtype.Timestamptz{
 				Time:  time.Now(),
 				Valid: true,
 			},
@@ -637,7 +637,7 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 				m := mock.NewMockDBClient(ctrl)
 
 				staleClient := newTestClient(fakeHost + "/client.json")
-				staleClient.MetadataDocumentFetchedAt = pgtype.Timestamptz{ //nolint:exhaustruct
+				staleClient.MetadataDocumentFetchedAt = pgtype.Timestamptz{
 					Time:  time.Now().Add(-2 * time.Hour),
 					Valid: true,
 				}
@@ -658,7 +658,7 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 			db: func(_ *testing.T, ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), fakeHost+"/client.json").
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 				m.EXPECT().UpsertOAuth2CIMDClient(gomock.Any(), gomock.Any()).
 					Return(newTestClient(fakeHost+"/client.json"), nil)
 
@@ -676,7 +676,7 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 				clientID := fakeHost + "/no-scope.json"
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 				m.EXPECT().UpsertOAuth2CIMDClient(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(
 						_ context.Context, params sql.UpsertOAuth2CIMDClientParams,
@@ -705,7 +705,7 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 				clientID := fakeHost + "/custom-scope.json"
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 				m.EXPECT().UpsertOAuth2CIMDClient(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(
 						_ context.Context, params sql.UpsertOAuth2CIMDClientParams,
@@ -734,7 +734,7 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 			db: func(_ *testing.T, ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), fakeHost+"/bad-scope.json").
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -760,7 +760,7 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), fakeHost+"/client.json").
 					Return(
-						sql.AuthOauth2Client{},           //nolint:exhaustruct
+						sql.AuthOauth2Client{},
 						errors.New("connection refused"), //nolint:err113
 					)
 
@@ -775,10 +775,10 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 			db: func(_ *testing.T, ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), fakeHost+"/client.json").
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 				m.EXPECT().UpsertOAuth2CIMDClient(gomock.Any(), gomock.Any()).
 					Return(
-						sql.AuthOauth2Client{},         //nolint:exhaustruct
+						sql.AuthOauth2Client{},
 						errors.New("connection reset"), //nolint:err113
 					)
 
@@ -795,7 +795,7 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 			db: func(_ *testing.T, ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), fakeHost+"/client.json").
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -819,14 +819,14 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 
 				httpClient = newTestClientWithRewrite(server)
 			} else {
-				httpClient = &http.Client{} //nolint:exhaustruct
+				httpClient = &http.Client{}
 			}
 
 			mockDB := tc.db(t, ctrl)
 
 			provider := oauth2.NewProvider(
 				mockDB, nil, nil, nil,
-				oauth2.Config{CIMDEnabled: true}, //nolint:exhaustruct
+				oauth2.Config{CIMDEnabled: true},
 				httpClient,
 			)
 

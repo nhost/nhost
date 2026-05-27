@@ -1,6 +1,11 @@
 import { useTheme } from '@mui/material';
 import { formatDistance } from 'date-fns';
 import kebabCase from 'just-kebab-case';
+import {
+  Ellipsis as DotsHorizontalIcon,
+  Trash2 as TrashIcon,
+  UserIcon,
+} from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Fragment } from 'react';
@@ -12,9 +17,6 @@ import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';

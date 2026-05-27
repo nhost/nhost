@@ -66,9 +66,9 @@ func TestGetLogs(t *testing.T) {
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:00Z line one\n"))
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:01Z line two\n"))
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ //nolint:exhaustruct
+			{
 				ID: "container-1",
 				Labels: map[string]string{
 					composeServiceLabel: "postgres",
@@ -146,9 +146,9 @@ func TestGetLogsFiltering(t *testing.T) {
 				logBuf.Write(stdcopyFrame(stdcopy.Stdout, line))
 			}
 
-			mock := &mockContainerClient{ //nolint:exhaustruct
+			mock := &mockContainerClient{
 				containers: []container.Summary{
-					{ //nolint:exhaustruct
+					{
 						ID:     "c1",
 						Labels: map[string]string{composeServiceLabel: "svc"},
 					},
@@ -182,10 +182,10 @@ func TestGetLogsChronologicalOrder(t *testing.T) {
 	logBuf2.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:00Z first\n"))
 	logBuf2.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:03Z third\n"))
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc1"}}, //nolint:exhaustruct
-			{ID: "c2", Labels: map[string]string{composeServiceLabel: "svc2"}}, //nolint:exhaustruct
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc1"}},
+			{ID: "c2", Labels: map[string]string{composeServiceLabel: "svc2"}},
 		},
 		logData: map[string]*bytes.Buffer{
 			"c1": logBuf1,
@@ -215,21 +215,21 @@ func TestGetLogsChronologicalOrder(t *testing.T) {
 func TestGetServiceLabelValues(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ //nolint:exhaustruct
+			{
 				ID:     "c1",
 				Labels: map[string]string{composeServiceLabel: "postgres"},
 			},
-			{ //nolint:exhaustruct
+			{
 				ID:     "c2",
 				Labels: map[string]string{composeServiceLabel: "auth"},
 			},
-			{ //nolint:exhaustruct
+			{
 				ID:     "c3",
 				Labels: map[string]string{composeServiceLabel: "postgres"},
 			},
-			{ //nolint:exhaustruct
+			{
 				ID:     "c4",
 				Labels: map[string]string{composeServiceLabel: "storage"},
 			},
@@ -270,9 +270,9 @@ func TestGetFunctionsLogs(t *testing.T) {
 	)
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:02Z plain text\n"))
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ //nolint:exhaustruct
+			{
 				ID:     "fn1",
 				Labels: map[string]string{composeServiceLabel: "functions"},
 			},
@@ -327,9 +327,9 @@ func TestGetFunctionsLogsRegexFilter(t *testing.T) {
 		),
 	)
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ //nolint:exhaustruct
+			{
 				ID:     "fn1",
 				Labels: map[string]string{composeServiceLabel: "functions"},
 			},
@@ -362,9 +362,9 @@ func TestGetFunctionsLogsInvalidRegex(t *testing.T) {
 		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:00Z {"path":"/api/hello"}`+"\n"),
 	)
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ //nolint:exhaustruct
+			{
 				ID:     "fn1",
 				Labels: map[string]string{composeServiceLabel: "functions"},
 			},
@@ -400,9 +400,9 @@ func TestTailLogsClosesChannelAndDeliversBacklog(t *testing.T) {
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:01Z line two\n"))
 	logBuf.Write(stdcopyFrame(stdcopy.Stderr, "2024-01-15T10:00:02Z line three\n"))
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}}, //nolint:exhaustruct
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}},
 		},
 		logData: map[string]*bytes.Buffer{"c1": logBuf},
 	}
@@ -444,9 +444,9 @@ func TestTailLogsRegexFilter(t *testing.T) {
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:01Z INFO nope\n"))
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:02Z ERROR again\n"))
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}}, //nolint:exhaustruct
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}},
 		},
 		logData: map[string]*bytes.Buffer{"c1": logBuf},
 	}
@@ -471,9 +471,9 @@ func TestTailLogsCtxCancel(t *testing.T) {
 	logBuf := &bytes.Buffer{}
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:00Z one\n"))
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}}, //nolint:exhaustruct
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}},
 		},
 		logData: map[string]*bytes.Buffer{"c1": logBuf},
 	}
@@ -514,9 +514,9 @@ func TestTailFunctionsLogsFiltersByPath(t *testing.T) {
 		stdcopyFrame(stdcopy.Stdout, `2024-01-15T10:00:02Z {"path":"/api/hello","msg":"two"}`+"\n"),
 	)
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ //nolint:exhaustruct
+			{
 				ID:     "fn1",
 				Labels: map[string]string{composeServiceLabel: "functions"},
 			},
@@ -579,9 +579,9 @@ func TestTailFunctionsLogsRegexFilter(t *testing.T) {
 		),
 	)
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ //nolint:exhaustruct
+			{
 				ID:     "fn1",
 				Labels: map[string]string{composeServiceLabel: "functions"},
 			},
@@ -608,9 +608,9 @@ func TestTailFunctionsLogsRegexFilter(t *testing.T) {
 func TestTailFunctionsLogsInvalidRegex(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ //nolint:exhaustruct
+			{
 				ID:     "fn1",
 				Labels: map[string]string{composeServiceLabel: "functions"},
 			},
@@ -638,9 +638,9 @@ func TestGetLogsStderrAndStdout(t *testing.T) {
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:00Z from stdout\n"))
 	logBuf.Write(stdcopyFrame(stdcopy.Stderr, "2024-01-15T10:00:01Z from stderr\n"))
 
-	mock := &mockContainerClient{ //nolint:exhaustruct
+	mock := &mockContainerClient{
 		containers: []container.Summary{
-			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}}, //nolint:exhaustruct
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "svc"}},
 		},
 		logData: map[string]*bytes.Buffer{"c1": logBuf},
 	}
@@ -701,10 +701,10 @@ func TestTailLogsPartialContainerLogsFailure(t *testing.T) {
 	logBuf := &bytes.Buffer{}
 	logBuf.Write(stdcopyFrame(stdcopy.Stdout, "2024-01-15T10:00:00Z ok\n"))
 
-	mock := &flakyContainerClient{ //nolint:exhaustruct
+	mock := &flakyContainerClient{
 		containers: []container.Summary{
-			{ID: "c1", Labels: map[string]string{composeServiceLabel: "a"}}, //nolint:exhaustruct
-			{ID: "c2", Labels: map[string]string{composeServiceLabel: "b"}}, //nolint:exhaustruct
+			{ID: "c1", Labels: map[string]string{composeServiceLabel: "a"}},
+			{ID: "c2", Labels: map[string]string{composeServiceLabel: "b"}},
 		},
 		logData:  map[string]*bytes.Buffer{"c1": logBuf},
 		failOnID: "c2",

@@ -34,6 +34,15 @@ describe('getInputType', () => {
     expect(getInputType({ type: 'date', specificType: 'timestamptz' })).toBe(
       'datetime-local',
     );
+    expect(
+      getInputType({
+        type: 'date',
+        specificType: 'timestamp without time zone',
+      }),
+    ).toBe('datetime-local');
+    expect(
+      getInputType({ type: 'date', specificType: 'timestamp with time zone' }),
+    ).toBe('datetime-local');
     expect(getInputType({ type: 'date', specificType: 'time' })).not.toBe(
       'date',
     );
@@ -42,5 +51,11 @@ describe('getInputType', () => {
   test('should return "time" if the column has a "time" type', () => {
     expect(getInputType({ type: 'date', specificType: 'time' })).toBe('time');
     expect(getInputType({ type: 'date', specificType: 'timetz' })).toBe('time');
+    expect(
+      getInputType({ type: 'date', specificType: 'time without time zone' }),
+    ).toBe('time');
+    expect(
+      getInputType({ type: 'date', specificType: 'time with time zone' }),
+    ).toBe('time');
   });
 });

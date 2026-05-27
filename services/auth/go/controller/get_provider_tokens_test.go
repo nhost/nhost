@@ -58,7 +58,7 @@ func TestGetProviderTokens(t *testing.T) {
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -71,7 +71,7 @@ func TestGetProviderTokens(t *testing.T) {
 						UserID:     sql.UUID(userID),
 						ProviderID: sql.Text("fake"),
 					},
-				).Return("1c6d0df04134afec1c9a3e95b4bdc48cf62780df72b537b8158845b6b71400c225f7d686cf2ca656553f7e4f771d29f6ba53b12f700d34ddab0386b92a541cdebdb15a294bcb00bbafd5cfb0072aeca0792b81a3be3a2316090b814ac3d04ef6b19eb4246ef89b461ce62abb165c5553a5a1766b1cf3bd19a3ada61abf1347fcaef1b43c134c21d8a6597aa7f2349ae3795ee7edff31ee44933b28e273bd53c768b7a5d8b5e898", nil) //nolint:lll
+				).Return("1c6d0df04134afec1c9a3e95b4bdc48cf62780df72b537b8158845b6b71400c225f7d686cf2ca656553f7e4f771d29f6ba53b12f700d34ddab0386b92a541cdebdb15a294bcb00bbafd5cfb0072aeca0792b81a3be3a2316090b814ac3d04ef6b19eb4246ef89b461ce62abb165c5553a5a1766b1cf3bd19a3ada61abf1347fcaef1b43c134c21d8a6597aa7f2349ae3795ee7edff31ee44933b28e273bd53c768b7a5d8b5e898", nil)
 
 				return mock
 			},
@@ -98,7 +98,7 @@ func TestGetProviderTokens(t *testing.T) {
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -129,7 +129,7 @@ func TestGetProviderTokens(t *testing.T) {
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -169,7 +169,7 @@ func TestGetProviderTokens(t *testing.T) {
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",

@@ -1,6 +1,6 @@
-import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
-import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
-import { PartialPermissionIcon } from '@/components/ui/v2/icons/PartialPermissionIcon';
+import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
+import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
+import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
 
 export default function PermissionsLegend() {
   return (

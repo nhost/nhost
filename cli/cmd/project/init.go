@@ -161,12 +161,12 @@ func InitRemote(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 ) error {
-	proj, err := ce.GetAppInfo(ctx, "")
+	ep, err := ce.ResolveProject(ctx, "")
 	if err != nil {
-		return fmt.Errorf("failed to get app info: %w", err)
+		return fmt.Errorf("failed to resolve project: %w", err)
 	}
 
-	cfg, err := config.Pull(ctx, ce, proj, true)
+	cfg, err := config.Pull(ctx, ce, ep.App, true)
 	if err != nil {
 		return fmt.Errorf("failed to pull config: %w", err)
 	}
@@ -175,23 +175,12 @@ func InitRemote(
 		return err
 	}
 
-	cl, err := ce.GetNhostClient(ctx)
+	adminSecret, err := ep.AdminSecret(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get nhost client: %w", err)
+		return fmt.Errorf("failed to get admin secret: %w", err)
 	}
 
-	hasuraAdminSecret, err := cl.GetHasuraAdminSecret(ctx, proj.ID)
-	if err != nil {
-		return fmt.Errorf("failed to get hasura admin secret: %w", err)
-	}
-
-	hasuraEndpoint := fmt.Sprintf(
-		"https://%s.hasura.%s.nhost.run", proj.Subdomain, proj.Region.Name,
-	)
-
-	if err := deploy(
-		ctx, ce, cfg, hasuraEndpoint, hasuraAdminSecret.App.Config.Hasura.AdminSecret,
-	); err != nil {
+	if err := deploy(ctx, ce, cfg, ep.HasuraURL, adminSecret); err != nil {
 		return fmt.Errorf("failed to deploy: %w", err)
 	}
 

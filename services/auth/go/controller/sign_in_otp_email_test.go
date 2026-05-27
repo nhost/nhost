@@ -33,7 +33,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
@@ -43,7 +43,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 						DisplayName:       "jane@acme.com",
 						AvatarUrl:         "",
 						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{},
 						Ticket:            sql.Text("xxx"),
 						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:     false,
@@ -51,12 +51,12 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:       "user",
 						Metadata:          []byte("null"),
 						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						PhoneNumber:       pgtype.Text{},
 						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+						OtpHashExpiresAt:  pgtype.Timestamptz{},
+						OtpMethodLastUsed: pgtype.Text{},
 					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
@@ -207,7 +207,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
@@ -217,7 +217,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 						DisplayName:       "jane@acme.com",
 						AvatarUrl:         "",
 						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{},
 						Ticket:            sql.Text("xxx"),
 						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:     false,
@@ -225,12 +225,12 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:       "user",
 						Metadata:          []byte("null"),
 						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						PhoneNumber:       pgtype.Text{},
 						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+						OtpHashExpiresAt:  pgtype.Timestamptz{},
+						OtpMethodLastUsed: pgtype.Text{},
 					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
@@ -333,7 +333,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
@@ -343,7 +343,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 						DisplayName:       "Jane Doe",
 						AvatarUrl:         "",
 						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{},
 						Ticket:            sql.Text("xxx"),
 						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:     false,
@@ -351,12 +351,12 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:       "user",
 						Metadata:          []byte(`{"asd":"asd"}`),
 						Roles:             []string{"user"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						PhoneNumber:       pgtype.Text{},
 						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+						OtpHashExpiresAt:  pgtype.Timestamptz{},
+						OtpMethodLastUsed: pgtype.Text{},
 					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
@@ -428,7 +428,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -462,7 +462,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -490,30 +490,30 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 					sql.Text("jane@acme.com"),
 				).Return(sql.AuthUser{
 					ID:                       userID,
-					CreatedAt:                pgtype.Timestamptz{}, //nolint:exhaustruct
-					UpdatedAt:                pgtype.Timestamptz{}, //nolint:exhaustruct
-					LastSeen:                 pgtype.Timestamptz{}, //nolint:exhaustruct
+					CreatedAt:                pgtype.Timestamptz{},
+					UpdatedAt:                pgtype.Timestamptz{},
+					LastSeen:                 pgtype.Timestamptz{},
 					Disabled:                 false,
 					DisplayName:              "jane@acme.com",
 					AvatarUrl:                "",
 					Locale:                   "en",
 					Email:                    sql.Text("jane@acme.com"),
-					PhoneNumber:              pgtype.Text{}, //nolint:exhaustruct
-					PasswordHash:             pgtype.Text{}, //nolint:exhaustruct
+					PhoneNumber:              pgtype.Text{},
+					PasswordHash:             pgtype.Text{},
 					EmailVerified:            false,
 					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
-					OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
-					OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
-					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+					NewEmail:                 pgtype.Text{},
+					OtpMethodLastUsed:        pgtype.Text{},
+					OtpHash:                  pgtype.Text{},
+					OtpHashExpiresAt:         pgtype.Timestamptz{},
 					DefaultRole:              "",
 					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{},
+					ActiveMfaType:            pgtype.Text{},
+					Ticket:                   pgtype.Text{},
+					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+					WebauthnCurrentChallenge: pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().UpdateUserTicket(
@@ -580,30 +580,30 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 					sql.Text("jane@acme.com"),
 				).Return(sql.AuthUser{
 					ID:                       userID,
-					CreatedAt:                pgtype.Timestamptz{}, //nolint:exhaustruct
-					UpdatedAt:                pgtype.Timestamptz{}, //nolint:exhaustruct
-					LastSeen:                 pgtype.Timestamptz{}, //nolint:exhaustruct
+					CreatedAt:                pgtype.Timestamptz{},
+					UpdatedAt:                pgtype.Timestamptz{},
+					LastSeen:                 pgtype.Timestamptz{},
 					Disabled:                 true,
 					DisplayName:              "jane@acme.com",
 					AvatarUrl:                "",
 					Locale:                   "en",
 					Email:                    sql.Text("jane@acme.com"),
-					PhoneNumber:              pgtype.Text{}, //nolint:exhaustruct
-					PasswordHash:             pgtype.Text{}, //nolint:exhaustruct
+					PhoneNumber:              pgtype.Text{},
+					PasswordHash:             pgtype.Text{},
 					EmailVerified:            false,
 					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
-					OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
-					OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
-					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+					NewEmail:                 pgtype.Text{},
+					OtpMethodLastUsed:        pgtype.Text{},
+					OtpHash:                  pgtype.Text{},
+					OtpHashExpiresAt:         pgtype.Timestamptz{},
 					DefaultRole:              "",
 					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{},
+					ActiveMfaType:            pgtype.Text{},
+					Ticket:                   pgtype.Text{},
+					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+					WebauthnCurrentChallenge: pgtype.Text{},
 				}, nil)
 
 				return mock

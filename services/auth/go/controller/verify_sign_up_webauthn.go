@@ -16,7 +16,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
-func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest( //nolint:cyclop
+func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest(
 	ctx context.Context,
 	request api.VerifySignUpWebauthnRequestObject,
 	logger *slog.Logger,
