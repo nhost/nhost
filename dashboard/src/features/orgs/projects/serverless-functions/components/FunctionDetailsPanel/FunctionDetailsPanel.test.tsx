@@ -136,6 +136,39 @@ describe('FunctionDetailsPanel', () => {
     });
   });
 
+  it('renders Created and Last Updated relative times in the header when dates are real', () => {
+    render(<FunctionDetailsPanel fn={fn} />);
+
+    expect(screen.getByText(/Created .* ago/)).toBeInTheDocument();
+    expect(screen.getByText(/Last Updated .* ago/)).toBeInTheDocument();
+  });
+
+  it('hides the timestamps row when both dates are Go zero values', () => {
+    render(
+      <FunctionDetailsPanel
+        fn={{
+          ...fn,
+          createdAt: '0001-01-01T00:00:00Z',
+          updatedAt: '0001-01-01T00:00:00Z',
+        }}
+      />,
+    );
+
+    expect(screen.queryByText(/Created .* ago/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Last Updated .* ago/)).not.toBeInTheDocument();
+  });
+
+  it('shows only Last Updated when createdAt is a Go zero value', () => {
+    render(
+      <FunctionDetailsPanel
+        fn={{ ...fn, createdAt: '0001-01-01T00:00:00Z' }}
+      />,
+    );
+
+    expect(screen.queryByText(/Created .* ago/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Last Updated .* ago/)).toBeInTheDocument();
+  });
+
   it('uses the custom-domain endpoint URL when GraphQL returns an FQDN', async () => {
     server.use(
       settingsHandler({
