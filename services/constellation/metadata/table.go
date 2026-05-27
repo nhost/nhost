@@ -5,7 +5,7 @@ import "slices"
 // TableMetadata contains the metadata for a single tracked table.
 type TableMetadata struct {
 	Table               TableSource          `json:"table"                          toml:"table"`
-	IsEnum              bool                 `json:"is_enum,omitempty"              toml:"is_enum,omitempty"`
+	IsEnum              bool                 `json:"is_enum,omitzero"               toml:"is_enum,omitempty"`
 	Configuration       TableConfiguration   `json:"configuration,omitzero"         toml:"configuration,omitempty"`
 	ObjectRelationships []ObjectRelationship `json:"object_relationships,omitempty" toml:"object_relationships,omitempty"`
 	ArrayRelationships  []ArrayRelationship  `json:"array_relationships,omitempty"  toml:"array_relationships,omitempty"`
@@ -91,7 +91,7 @@ type SelectPermissionConfig struct {
 	Filter map[string]any `json:"filter,omitempty" toml:"filter,omitempty"`
 	// AllowAggregations enables the table's aggregate root field for this
 	// role when true; aggregates are forbidden when false.
-	AllowAggregations bool `json:"allow_aggregations,omitempty" toml:"allow_aggregations,omitempty"`
+	AllowAggregations bool `json:"allow_aggregations,omitzero" toml:"allow_aggregations,omitempty"`
 }
 
 // InsertPermissionConfig contains the insert permission configuration.
@@ -143,17 +143,28 @@ type ArrayRelationship struct {
 	Using RelationshipUsing `json:"using" toml:"using"`
 }
 
-// RelationshipUsing describes how a relationship is defined.
+// RelationshipUsing describes how a relationship is defined. Exactly one of
+// the three fields is populated, making this a tagged union over the three
+// mutually exclusive shapes a relationship can take.
+//
+// ForeignKeyColumns lists the parent-table columns that anchor a forward
+// relationship; a single-column FK is a one-element slice. ForeignKeyConstraint
+// is set for a reverse relationship whose FK columns live on the target table.
+// ManualConfiguration carries to_source and to_remote_schema joins that have
+// no backing foreign key.
 type RelationshipUsing struct {
-	ForeignKeyColumn     string                `json:"foreign_key_column,omitempty"     toml:"foreign_key_column,omitempty"`     //nolint:lll
+	ForeignKeyColumns    []string              `json:"foreign_key_columns,omitempty"    toml:"foreign_key_columns,omitempty"`    //nolint:lll
 	ForeignKeyConstraint *ForeignKeyConstraint `json:"foreign_key_constraint,omitempty" toml:"foreign_key_constraint,omitempty"` //nolint:lll
 	ManualConfiguration  *ManualConfiguration  `json:"manual_configuration,omitempty"   toml:"manual_configuration,omitempty"`   //nolint:lll
 }
 
-// ForeignKeyConstraint identifies a foreign key relationship.
+// ForeignKeyConstraint identifies a (possibly composite) foreign key
+// relationship anchored on the target table. Columns is the ordered list of
+// columns on Table that point back at the parent table; a single-column FK is
+// represented as a one-element slice.
 type ForeignKeyConstraint struct {
-	Column string      `json:"column" toml:"column"`
-	Table  TableSource `json:"table"  toml:"table"`
+	Columns []string    `json:"columns" toml:"columns"`
+	Table   TableSource `json:"table"   toml:"table"`
 }
 
 // ManualConfiguration defines a manually configured relationship.

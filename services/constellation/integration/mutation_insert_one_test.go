@@ -541,6 +541,99 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		{
+			name: "permissions: nested array insert with parent-FK check (multi-row)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_kb_entries_one(
+						object: {
+						  title: "Nested array, multi-row, FK-checked"
+						  summary: "summary"
+						  content: "content"
+						  kb_entry_departments: {
+							data: [
+							  { department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3" },
+							  { department_id: "fd1e6bba-c292-4b2f-872e-ae16146cdd82" }
+							]
+						  }
+						}) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"departments": `{"2db9de0a-b9ba-416e-8619-783a399ae2b3","fd1e6bba-c292-4b2f-872e-ae16146cdd82"}`,
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested array insert with parent-FK check (single row)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_kb_entries_one(
+						object: {
+						  title: "Nested array, single-row, FK-checked"
+						  summary: "summary"
+						  content: "content"
+						  kb_entry_departments: {
+							data: [
+							  { department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3" }
+							]
+						  }
+						}) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"departments": `{"2db9de0a-b9ba-416e-8619-783a399ae2b3","fd1e6bba-c292-4b2f-872e-ae16146cdd82"}`,
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested array insert with parent-FK check (denied)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_kb_entries_one(
+						object: {
+						  title: "Nested array, denied"
+						  summary: "summary"
+						  content: "content"
+						  kb_entry_departments: {
+							data: [
+							  { department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3" },
+							  { department_id: "fd1e6bba-c292-4b2f-872e-ae16146cdd82" }
+							]
+						  }
+						}) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"departments": `{"fd1e6bba-c292-4b2f-872e-ae16146cdd82"}`,
+				},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_kb_entries_one: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
+					},
+				},
+			},
+		},
+
 		// on_conflict with where clause
 		{
 			name: "insert_one with on_conflict where clause - simple condition",

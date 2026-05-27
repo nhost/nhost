@@ -1,3 +1,4 @@
+import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
 import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
@@ -6,8 +7,6 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';

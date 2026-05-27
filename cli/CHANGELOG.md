@@ -1,3 +1,20 @@
+## [cli@1.48.0] - 2026-05-26
+
+### 🚀 Features
+
+- *(cli)* Port schema tooling to the CLI from constellation (#4348)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Support composite keys on relationships (#4355)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.47.0
+- *(dashboard)* Bump references to 2.63.1
+
 ## [cli@1.47.0] - 2026-05-25
 
 ### 🚀 Features

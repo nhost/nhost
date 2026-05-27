@@ -62,7 +62,7 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-4 py-2.5 lg:grid-flow-col">
+      <div className="grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-6 py-4 lg:grid-flow-col">
         <FormProvider {...form}>
           <Form
             onSubmit={handleSubmit}
@@ -83,7 +83,7 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
           </Form>
         </FormProvider>
       </div>
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 p-6">
         <LogsBody
           logsData={logsData}
           loading={loading}

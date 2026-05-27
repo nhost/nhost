@@ -5,6 +5,7 @@ import (
 	json "encoding/json/v2"
 	"errors"
 	"fmt"
+	"mime"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,11 +25,17 @@ var errMetadataReloaded = errors.New("metadata reloaded")
 // GraphQLRequest, dispatches it through Resolve, and writes the response —
 // taking the raw-bytes fast path when the connector returned pre-built JSON.
 func (c *Controller) HandlerPost(g *gin.Context) {
-	if g.Request.Header.Get("Content-Type") != "application/json" {
-		_ = g.Error(errContentTypeNotJSON)
-		g.JSON(http.StatusBadRequest, errorResponse(errContentTypeNotJSON.Error()))
+	// A missing Content-Type is treated as application/json. Otherwise the
+	// media type is parsed so that parameters such as "; charset=utf-8" and
+	// differing case are tolerated, matching what most GraphQL clients send.
+	if ct := g.Request.Header.Get("Content-Type"); ct != "" {
+		mediaType, _, err := mime.ParseMediaType(ct)
+		if err != nil || mediaType != "application/json" {
+			_ = g.Error(errContentTypeNotJSON)
+			g.JSON(http.StatusBadRequest, errorResponse(errContentTypeNotJSON.Error()))
 
-		return
+			return
+		}
 	}
 
 	var reqBody GraphQLRequest

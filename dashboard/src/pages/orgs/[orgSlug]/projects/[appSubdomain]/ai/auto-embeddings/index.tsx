@@ -12,13 +12,13 @@ import { Button } from '@/components/ui/v2/Button';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
@@ -41,7 +41,7 @@ export default function AutoEmbeddingsPage() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
 
   const [currentPage, setCurrentPage] = useState(
@@ -52,7 +52,7 @@ export default function AutoEmbeddingsPage() {
 
   const { data, loading, error, refetch } =
     useGetGraphiteAutoEmbeddingsConfigurationsQuery({
-      client: adminClient,
+      client: remoteProjectGQLClient,
       variables: {
         limit: limit.current,
         offset,

@@ -404,7 +404,11 @@ export function useDataBrowserActions({
             functionOID={oid}
           />
         ) : (
-          <EditGraphQLSettingsForm schema={schema} tableName={name} />
+          <EditGraphQLSettingsForm
+            objectType={objectType}
+            schema={schema}
+            tableName={name}
+          />
         ),
       props: {
         PaperProps: {

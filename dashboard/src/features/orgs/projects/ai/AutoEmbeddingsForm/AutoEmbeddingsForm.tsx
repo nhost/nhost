@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import {
@@ -72,16 +72,16 @@ export default function AutoEmbeddingsForm({
 }: AutoEmbeddingsFormProps) {
   const { onDirtyStateChange } = useDialog();
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const [insertGraphiteAutoEmbeddingsConfiguration] =
     useInsertGraphiteAutoEmbeddingsConfigurationMutation({
-      client: adminClient,
+      client: remoteProjectGQLClient,
     });
 
   const [updateGraphiteAutoEmbeddingsConfiguration] =
     useUpdateGraphiteAutoEmbeddingsConfigurationMutation({
-      client: adminClient,
+      client: remoteProjectGQLClient,
     });
 
   const form = useForm<AutoEmbeddingsFormValues>({

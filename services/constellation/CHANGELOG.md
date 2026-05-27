@@ -1,3 +1,45 @@
+## [constellation@0.4.0] - 2026-05-27
+
+### 🚀 Features
+
+- *(constellation)* Support wildcard origins in CORS allow-list (#4373)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Accept Content-Type variants on POST /graphql and default to application/json (#4374)
+
+## [constellation@0.3.1] - 2026-05-26
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Nested array inserts with parent-referencing perms (#4370)
+
+## [constellation@0.3.0] - 2026-05-26
+
+### 🚀 Features
+
+- *(constellation)* Support multi-row nested array-relationship inserts (#4362)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(constellation)* Update README.md instructions (#4363)
+
+## [constellation@0.2.0] - 2026-05-26
+
+### 🚀 Features
+
+- *(cli)* Port schema tooling to the CLI from constellation (#4348)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Only introspect what's needed to avoid permission errors (#4349)
+- *(constellation)* Resolve __typename correctly on aggregate queries (#4354)
+- *(constellation)* Support composite keys on relationships (#4355)
+- *(constellation)* Emit enum type for PK args referencing enum tables (#4357)
+
 ## [constellation@0.1.0] - 2026-05-25
 
 ### 🚀 Features
