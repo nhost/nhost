@@ -552,6 +552,187 @@ func TestCORSAllowOriginFunc(t *testing.T) {
 	}
 }
 
+// TestCORSWildcardOrigins exercises glob matching of AllowedOrigins entries. It
+// covers both legitimate matches and the security-critical property that a glob
+// is anchored at BOTH ends (and that "*" never spans a "/"), so an attacker
+// cannot satisfy it by appending, prepending, or path-smuggling a host they
+// control — the canonical bypass being "*.acme.com" admitting
+// "www.acme.com.evil.com". Each row supplies its own allow-list and a single
+// origin; wantOrigin is the expected Access-Control-Allow-Origin, where "" means
+// the origin must be denied and a non-empty value must equal the reflected
+// origin. AllowCredentials stays on throughout to prove anchored globs are valid
+// alongside credentials.
+func TestCORSWildcardOrigins(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name    string
+		allowed []string
+		origin  string
+		// wantOrigin is the expected Access-Control-Allow-Origin: "" denies,
+		// otherwise the origin is reflected verbatim.
+		wantOrigin string
+	}{
+		// Legitimate matches against a realistic mixed allow-list.
+		{
+			name:       "exact_literal_match",
+			allowed:    []string{"http://localhost:3000"},
+			origin:     "http://localhost:3000",
+			wantOrigin: "http://localhost:3000",
+		},
+		{
+			name:       "exact_with_port_match",
+			allowed:    []string{"https://local.dashboard.local.nhost.run:8099"},
+			origin:     "https://local.dashboard.local.nhost.run:8099",
+			wantOrigin: "https://local.dashboard.local.nhost.run:8099",
+		},
+		{
+			name:       "interior_wildcard_match",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://dashboard-staging-pr42-nhost.vercel.app",
+			wantOrigin: "https://dashboard-staging-pr42-nhost.vercel.app",
+		},
+		{
+			name:       "interior_wildcard_empty_run_match",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://dashboard-staging--nhost.vercel.app",
+			wantOrigin: "https://dashboard-staging--nhost.vercel.app",
+		},
+		{
+			name:       "leading_subdomain_wildcard_match",
+			allowed:    []string{"https://*.preview.example.com"},
+			origin:     "https://app.preview.example.com",
+			wantOrigin: "https://app.preview.example.com",
+		},
+		{
+			name:       "host_wildcard_matches_multi_label_subdomain",
+			allowed:    []string{"*.acme.com"},
+			origin:     "a.b.acme.com",
+			wantOrigin: "a.b.acme.com",
+		},
+		{
+			name:       "host_wildcard_matches_empty_run",
+			allowed:    []string{"*.acme.com"},
+			origin:     ".acme.com",
+			wantOrigin: ".acme.com",
+		},
+		// Bypass attempts: appending an attacker-controlled host past the
+		// anchored suffix.
+		{
+			name:       "append_after_suffix_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "www.acme.com.evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "suffix_not_at_end_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "acme.com.evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "append_with_port_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "www.acme.com.evil.com:443",
+			wantOrigin: "",
+		},
+		{
+			name:       "missing_separator_dot_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "evilacme.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "unrelated_host_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "newline_smuggling_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "www.acme.com\n.evil.com",
+			wantOrigin: "",
+		},
+		// Bypass attempts against a scheme-anchored host pattern.
+		{
+			name:       "scheme_anchored_append_denied",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "https://www.acme.com.evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "scheme_mismatch_denied",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "http://www.acme.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "path_smuggled_suffix_denied",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "https://evil.com/https://www.acme.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "truncated_scheme_prefix_denied",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "ttps://www.acme.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "scheme_anchored_legit_match",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "https://staging.app.acme.com",
+			wantOrigin: "https://staging.app.acme.com",
+		},
+		// Bypass attempts against the interior-wildcard pattern.
+		{
+			name:       "interior_append_denied",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://dashboard-staging-x-nhost.vercel.app.evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "interior_prepend_denied",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://evil.com-dashboard-staging-x-nhost.vercel.app",
+			wantOrigin: "",
+		},
+		{
+			name:       "interior_trailing_junk_denied",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://dashboard-staging-x-nhost.vercel.app/../evil",
+			wantOrigin: "",
+		},
+		{
+			name:       "prefix_is_case_sensitive_denied",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://DASHBOARD-staging-x-nhost.vercel.app",
+			wantOrigin: "",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			opts := cors.Options{
+				AllowOriginFunc:  nil,
+				AllowedOrigins:   tc.allowed,
+				AllowedMethods:   []string{"GET"},
+				AllowHeadersFunc: nil,
+				AllowedHeaders:   nil,
+				ExposedHeaders:   nil,
+				AllowCredentials: true,
+				MaxAge:           "",
+			}
+
+			rec, _ := runCORS(t, opts, http.MethodGet, tc.origin, "")
+			if got := rec.Header().Get("Access-Control-Allow-Origin"); got != tc.wantOrigin {
+				t.Errorf("Access-Control-Allow-Origin: got %q, want %q", got, tc.wantOrigin)
+			}
+		})
+	}
+}
+
 func TestCORSOptionsValidate(t *testing.T) {
 	t.Parallel()
 
@@ -607,6 +788,30 @@ func TestCORSOptionsValidate(t *testing.T) {
 				MaxAge:           "",
 			},
 			wantErr: nil,
+		},
+		{
+			name: "anchored_wildcard_with_credentials_ok",
+			opts: cors.Options{
+				AllowedOrigins:   []string{"https://dashboard-staging-*-nhost.vercel.app"},
+				AllowedMethods:   []string{"GET"},
+				AllowedHeaders:   nil,
+				ExposedHeaders:   nil,
+				AllowCredentials: true,
+				MaxAge:           "",
+			},
+			wantErr: nil,
+		},
+		{
+			name: "allow_all_glob_with_credentials_rejected",
+			opts: cors.Options{
+				AllowedOrigins:   []string{"https://example.com", "**"},
+				AllowedMethods:   []string{"GET"},
+				AllowedHeaders:   nil,
+				ExposedHeaders:   nil,
+				AllowCredentials: true,
+				MaxAge:           "",
+			},
+			wantErr: cors.ErrWildcardWithCredentials,
 		},
 		{
 			name: "empty_origins_with_credentials_ok",
