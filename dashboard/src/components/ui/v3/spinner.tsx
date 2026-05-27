@@ -64,7 +64,9 @@ export function Spinner({
   const shouldShow = show && !isDelayed;
 
   return (
-    <span className={cn(spinnerVariants({ show: shouldShow }), wrapperClassName)}>
+    <span
+      className={cn(spinnerVariants({ show: shouldShow }), wrapperClassName)}
+    >
       <Loader2
         role="progressbar"
         className={cn(
@@ -77,4 +79,3 @@ export function Spinner({
     </span>
   );
 }
-
