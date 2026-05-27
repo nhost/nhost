@@ -2,7 +2,6 @@
   self,
   pkgs,
   nix2containerPkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -10,23 +9,25 @@ let
   version = "0.0.0-dev";
   submodule = "examples/${name}";
 
+  fs = pkgs.lib.fileset;
+
   node_modules = nixops-lib.js.mkNodeModules {
     name = "node-modules-${name}";
     version = "0.0.0-dev";
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ../..;
-      include = [
-        ".npmrc"
-        "package.json"
-        "pnpm-workspace.yaml"
-        "pnpm-lock.yaml"
-        "${submodule}/package.json"
-        "${submodule}/pnpm-lock.yaml"
-        "${submodule}/express/package.json"
-        "${submodule}/express/pnpm-lock.yaml"
-        "${submodule}/react-demo/package.json"
-        "${submodule}/react-demo/pnpm-lock.yaml"
+      fileset = fs.unions [
+        ../../.npmrc
+        ../../package.json
+        ../../pnpm-workspace.yaml
+        ../../pnpm-lock.yaml
+        ./package.json
+        ./pnpm-lock.yaml
+        ./express/package.json
+        ./express/pnpm-lock.yaml
+        ./react-demo/package.json
+        ./react-demo/pnpm-lock.yaml
       ];
     };
 
@@ -38,20 +39,19 @@ let
     '';
   };
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../../.;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".gitignore"
-      ".npmrc"
-      "audit-ci.jsonc"
-      "biome.json"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "turbo.json"
-      (inDirectory "./build")
-      (inDirectory "${submodule}")
+    fileset = fs.unions [
+      ../../.gitignore
+      ../../.npmrc
+      ../../audit-ci.jsonc
+      ../../biome.json
+      ../../package.json
+      ../../pnpm-workspace.yaml
+      ../../pnpm-lock.yaml
+      ../../turbo.json
+      ../../build
+      ./.
     ];
   };
 

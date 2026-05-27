@@ -2,22 +2,21 @@
   self,
   pkgs,
   nix2containerPkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
   name = "nixops";
   version = "0.0.0-dev";
   created = "1970-01-01T00:00:00Z";
-  submodule = "${name}";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ../.;
-    include = with nix-filter.lib; [
-      "./flake.lock"
-      "./flake.nix"
-      (and (inDirectory submodule) isDirectory)
-      (and (inDirectory submodule) (matchExt "nix"))
+    fileset = fs.unions [
+      ../flake.lock
+      ../flake.nix
+      (fs.fileFilter (f: f.hasExt "nix") ./.)
     ];
   };
 
@@ -71,11 +70,6 @@ let
       vale
       wal-g
     ])
-    ++ [
-      self.packages.${pkgs.stdenv.hostPlatform.system}.codegen
-      self.packages.${pkgs.stdenv.hostPlatform.system}.govulncheck-wrapper
-      self.packages.${pkgs.stdenv.hostPlatform.system}.storage-vips
-    ]
     ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
     ]
     ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [

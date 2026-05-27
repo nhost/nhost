@@ -2,7 +2,6 @@
   self,
   pkgs,
   nix2containerPkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -10,27 +9,29 @@ let
   version = "0.0.0-dev";
   submodule = "examples/${name}";
 
+  fs = pkgs.lib.fileset;
+
   node_modules = nixops-lib.js.mkNodeModules {
     name = "node-modules-${name}";
     version = "0.0.0-dev";
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ../..;
-      include = [
-        ".npmrc"
-        "package.json"
-        "pnpm-workspace.yaml"
-        "pnpm-lock.yaml"
-        "${submodule}/package.json"
-        "${submodule}/pnpm-lock.yaml"
-        "${submodule}/codegen-nhost/package.json"
-        "${submodule}/codegen-nhost/pnpm-lock.yaml"
-        "${submodule}/react-apollo/package.json"
-        "${submodule}/react-apollo/pnpm-lock.yaml"
-        "${submodule}/react-query/package.json"
-        "${submodule}/react-query/pnpm-lock.yaml"
-        "${submodule}/react-urql/package.json"
-        "${submodule}/react-urql/pnpm-lock.yaml"
+      fileset = fs.unions [
+        ../../.npmrc
+        ../../package.json
+        ../../pnpm-workspace.yaml
+        ../../pnpm-lock.yaml
+        ./package.json
+        ./pnpm-lock.yaml
+        ./codegen-nhost/package.json
+        ./codegen-nhost/pnpm-lock.yaml
+        ./react-apollo/package.json
+        ./react-apollo/pnpm-lock.yaml
+        ./react-query/package.json
+        ./react-query/pnpm-lock.yaml
+        ./react-urql/package.json
+        ./react-urql/pnpm-lock.yaml
       ];
     };
 
@@ -42,20 +43,19 @@ let
     '';
   };
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../../.;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".gitignore"
-      ".npmrc"
-      "audit-ci.jsonc"
-      "biome.json"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "turbo.json"
-      (inDirectory "./build")
-      (inDirectory "${submodule}")
+    fileset = fs.unions [
+      ../../.gitignore
+      ../../.npmrc
+      ../../audit-ci.jsonc
+      ../../biome.json
+      ../../package.json
+      ../../pnpm-workspace.yaml
+      ../../pnpm-lock.yaml
+      ../../turbo.json
+      ../../build
+      ./.
     ];
   };
 
