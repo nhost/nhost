@@ -3,6 +3,11 @@ import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
+import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
+import {
+  getCapitalizedTableLikeObjectTypeLabel,
+  getTableLikeObjectTypeLabel,
+} from '@/features/orgs/projects/database/dataGrid/utils/getTableLikeObjectTypeLabel/getTableLikeObjectTypeLabel';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function TrackTableButton() {
@@ -22,6 +27,20 @@ export default function TrackTableButton() {
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const { mutateAsync: setTableTracking, isPending: isMutatingTracking } =
     useSetTableTrackingMutation();
+  const { tableType, isLoading: isTableTypeLoading } = useTableType({
+    dataSource: dataSourceSlug as string,
+    schema: schemaSlug as string,
+    name: tableSlug as string,
+    queryOptions: {
+      enabled:
+        typeof dataSourceSlug === 'string' &&
+        typeof schemaSlug === 'string' &&
+        typeof tableSlug === 'string',
+    },
+  });
+  const objectLabel = getTableLikeObjectTypeLabel(tableType);
+  const capitalizedObjectLabel =
+    getCapitalizedTableLikeObjectTypeLabel(tableType);
 
   const handleTrack = async () => {
     await execPromiseWithErrorToast(
@@ -39,14 +58,14 @@ export default function TrackTableButton() {
         });
       },
       {
-        successMessage: 'Table tracked successfully.',
-        loadingMessage: 'Tracking table...',
-        errorMessage: 'Failed to track table.',
+        successMessage: `${capitalizedObjectLabel} tracked successfully.`,
+        loadingMessage: `Tracking ${objectLabel}...`,
+        errorMessage: `Failed to track ${objectLabel}.`,
       },
     );
   };
 
-  if (isTrackedLoading || isTracked) {
+  if (isTrackedLoading || isTableTypeLoading || isTracked) {
     return null;
   }
 

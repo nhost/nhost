@@ -12,7 +12,6 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import {
@@ -53,17 +52,16 @@ export default function FileStoreForm({
 }: FileStoreFormProps) {
   const { onDirtyStateChange } = useDialog();
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const [insertFileStore] = useInsertFileStoreMutation({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
   const [updateFileStore] = useUpdateFileStoreMutation({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
-  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const { data: buckets } = useGetBucketsQuery({
     client: remoteProjectGQLClient,
   });

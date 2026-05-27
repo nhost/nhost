@@ -1,7 +1,6 @@
 {
   self,
   pkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -11,49 +10,49 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ./..;
-    include = with nix-filter.lib; [
-      "go.mod"
-      "go.sum"
-      (inDirectory "vendor")
-      ".golangci.yaml"
-      "govulncheck.yaml"
-      isDirectory
-      (and (inDirectory submodule) (matchExt "go"))
-      "${submodule}/get_access_token.sh"
-      "${submodule}/gqlgenc.yaml"
-      (inDirectory "${submodule}/ssl/.ssl")
-      (inDirectory "${submodule}/cmd/config/testdata")
-      (inDirectory "${submodule}/cmd/project/templates")
-      (inDirectory "${submodule}/nhostclient/graphql/query/")
+    fileset = fs.unions [
+      ../go.mod
+      ../go.sum
+      ../vendor
+      ../.golangci.yaml
+      ../govulncheck.yaml
+      (fs.fileFilter (f: f.hasExt "go") ./.)
+      ./get_access_token.sh
+      ./gqlgenc.yaml
+      ./ssl/.ssl
+      ./cmd/config/testdata
+      ./cmd/project/templates
+      ./nhostclient/graphql/query
 
-      (and (inDirectory "internal/lib/clidocs") (matchExt "go"))
+      (fs.fileFilter (f: f.hasExt "go") ../internal/lib/clidocs)
 
-      (and (inDirectory "internal/lib/nhostclient") (matchExt "go"))
+      (fs.fileFilter (f: f.hasExt "go") ../internal/lib/nhostclient)
 
-      (and (inDirectory "internal/lib/oapi") (matchExt "go"))
+      (fs.fileFilter (f: f.hasExt "go") ../internal/lib/oapi)
 
-      "${submodule}/cmd/configserver/logsapi/gqlgen.yml"
-      "${submodule}/cmd/configserver/logsapi/schema.graphqls"
+      ./cmd/configserver/logsapi/gqlgen.yml
+      ./cmd/configserver/logsapi/schema.graphqls
 
-      "${submodule}/mcp/nhost/auth/openapi.yaml"
-      "${submodule}/mcp/nhost/graphql/openapi.yaml"
-      "${submodule}/mcp/resources/cloud_schema.graphql"
-      "${submodule}/mcp/resources/cloud_schema-with-mutations.graphql"
-      "${submodule}/mcp/resources/nhost_toml_schema.cue"
-      (inDirectory "${submodule}/cmd/mcp/testdata")
-      (inDirectory "${submodule}/mcp/graphql/testdata")
+      ./mcp/nhost/graphql/openapi.yaml
+      ./mcp/resources/cloud_schema.graphql
+      ./mcp/resources/cloud_schema-with-mutations.graphql
+      ./mcp/resources/nhost_toml_schema.cue
+      ./cmd/mcp/testdata
+      ./mcp/graphql/testdata
 
       # constellation (used by `nhost schema` for SDL dump/diff)
-      (and (inDirectory "services/constellation") (matchExt "go"))
+      (fs.fileFilter (f: f.hasExt "go") ../services/constellation)
 
       # auth email templates (embedded into the CLI binary by `nhost init`)
-      (inDirectory "services/auth/email-templates")
+      ../services/auth/email-templates
 
       # docs
       ../docs/embed.go
-      (and (inDirectory ../docs/src/content/docs) (matchExt "mdx"))
+      (fs.fileFilter (f: f.hasExt "mdx") ../docs/src/content/docs)
     ];
   };
 

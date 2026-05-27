@@ -1,7 +1,6 @@
 {
   self,
   pkgs,
-  nix-filter,
   nixops-lib,
   nix2containerPkgs,
 }:
@@ -9,14 +8,16 @@ let
   name = "nhost/postgres";
   version = "0.0.0-dev";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ./.;
-    include = with nix-filter.lib; [
-      (inDirectory "postgres")
-      (inDirectory "extensions")
-      (inDirectory "tests")
-      (matchExt "nix")
-      "plugins.md"
+    fileset = fs.unions [
+      ./postgres
+      ./extensions
+      ./tests
+      (fs.fileFilter (f: f.hasExt "nix") ./.)
+      ./plugins.md
     ];
   };
 

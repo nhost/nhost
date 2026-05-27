@@ -92,8 +92,10 @@ func serverFlags() []cli.Flag {
 		&cli.StringSliceFlag{ //nolint:exhaustruct
 			Name: flagCORSAllowedOrigins,
 			Usage: "Origins permitted to make credentialed cross-origin requests. " +
+				"Entries may use \"*\" as a wildcard matching any run of " +
+				"characters (e.g. \"https://my-app-*-org.vercel.app\"). " +
 				"When empty, cross-origin requests are not granted access. " +
-				"\"*\" cannot be combined with credentials and is rejected at startup",
+				"A bare \"*\" cannot be combined with credentials and is rejected at startup",
 			Category: "server",
 			Sources:  cli.EnvVars("CONSTELLATION_CORS_ALLOWED_ORIGINS"),
 		},

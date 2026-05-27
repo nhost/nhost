@@ -1,9 +1,8 @@
 {
   inputs = {
-    nixops.url = "./../../../";
+    nixops.url = "./../../../../";
     nixpkgs.follows = "nixops/nixpkgs";
     flake-utils.follows = "nixops/flake-utils";
-    nix-filter.follows = "nixops/nix-filter";
     nix2container.follows = "nixops/nix2container";
   };
 
@@ -13,7 +12,6 @@
       nixops,
       nixpkgs,
       flake-utils,
-      nix-filter,
       nix2container,
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -27,10 +25,10 @@
 
         nixops-lib = nixops.lib { inherit pkgs nix2containerPkgs; };
 
-        src = nix-filter.lib.filter {
+        src = pkgs.lib.fileset.toSource {
           root = ./.;
-          include = with nix-filter.lib; [
-            (nix-filter.lib.matchExt "go")
+          fileset = pkgs.lib.fileset.unions [
+            (pkgs.lib.fileset.fileFilter (f: f.hasExt "go") ./.)
             ./go.mod
           ];
         };
