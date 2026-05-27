@@ -2,7 +2,6 @@
   self,
   pkgs,
   nix2containerPkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -12,20 +11,22 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
+  fs = pkgs.lib.fileset;
+
   mkNodeModules =
     pnpmOpts:
     nixops-lib.js.mkNodeModules {
       name = "node-modules-${name}";
       version = "0.0.0-dev";
-      src = nix-filter.lib.filter {
+      src = fs.toSource {
         root = ../..;
-        include = [
-          ".npmrc"
-          "package.json"
-          "pnpm-workspace.yaml"
-          "pnpm-lock.yaml"
-          "${submodule}/package.json"
-          "${submodule}/pnpm-lock.yaml"
+        fileset = fs.unions [
+          ../../.npmrc
+          ../../package.json
+          ../../pnpm-workspace.yaml
+          ../../pnpm-lock.yaml
+          ./package.json
+          ./pnpm-lock.yaml
         ];
       };
       inherit pnpmOpts;
@@ -37,25 +38,24 @@ let
   # Slim node_modules with only runtime deps for the Docker image
   node_modules_runtime = mkNodeModules "--filter './${submodule}/**'";
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../..;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".gitignore"
-      ".npmrc"
-      "biome.json"
-      "audit-ci.jsonc"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "${submodule}/server.js"
-      "${submodule}/local-wrapper.js"
-      "${submodule}/start.sh"
-      "${submodule}/tsconfig.json"
-      "${submodule}/package.json"
-      "${submodule}/pnpm-lock.yaml"
-      "${submodule}/jest.config.cjs"
-      (nix-filter.lib.inDirectory "${submodule}/test")
+    fileset = fs.unions [
+      ../../.gitignore
+      ../../.npmrc
+      ../../biome.json
+      ../../audit-ci.jsonc
+      ../../package.json
+      ../../pnpm-workspace.yaml
+      ../../pnpm-lock.yaml
+      ./server.js
+      ./local-wrapper.js
+      ./start.sh
+      ./tsconfig.json
+      ./package.json
+      ./pnpm-lock.yaml
+      ./jest.config.cjs
+      ./test
     ];
   };
 
@@ -63,13 +63,13 @@ let
     pname = "${name}-server";
     inherit version;
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ./.;
-      include = [
-        "server.js"
-        "local-wrapper.js"
-        "start.sh"
-        "tsconfig.json"
+      fileset = fs.unions [
+        ./server.js
+        ./local-wrapper.js
+        ./start.sh
+        ./tsconfig.json
       ];
     };
 
