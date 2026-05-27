@@ -1,4 +1,5 @@
 import { NetworkStatus } from '@apollo/client';
+import { EllipsisVertical as DotsVerticalIcon, PlusIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -13,8 +14,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';

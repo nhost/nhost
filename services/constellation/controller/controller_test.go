@@ -104,22 +104,73 @@ func readJSONBody(t *testing.T, w *httptest.ResponseRecorder) map[string]any {
 func TestHandlerPost_RejectsNonJSONContentType(t *testing.T) {
 	t.Parallel()
 
-	router := newTestRouter(t, newTestController(t))
+	for _, contentType := range []string{
+		"text/plain",
+		"application/graphql",
+		"multipart/form-data; boundary=x",
+		"not a media type",
+	} {
+		t.Run(contentType, func(t *testing.T) {
+			t.Parallel()
 
-	req := httptest.NewRequest(http.MethodPost, "/graphql", strings.NewReader("{}"))
-	req.Header.Set("Content-Type", "text/plain")
-	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+			router := newTestRouter(t, newTestController(t))
 
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+			req := httptest.NewRequest(http.MethodPost, "/graphql", strings.NewReader("{}"))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
 
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusBadRequest {
+				t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+			}
+
+			body := readJSONBody(t, w)
+			if _, ok := body["errors"]; !ok {
+				t.Errorf("expected 'errors' in response, got %v", body)
+			}
+		})
 	}
+}
 
-	body := readJSONBody(t, w)
-	if _, ok := body["errors"]; !ok {
-		t.Errorf("expected 'errors' in response, got %v", body)
+// TestHandlerPost_AcceptsJSONContentTypeVariants covers Content-Type values
+// that must be treated as JSON: a charset parameter, mixed case, and an absent
+// header (assumed to be application/json for Hasura-client compatibility).
+func TestHandlerPost_AcceptsJSONContentTypeVariants(t *testing.T) {
+	t.Parallel()
+
+	for name, contentType := range map[string]string{
+		"charset":   "application/json; charset=utf-8",
+		"mixedCase": "Application/JSON",
+		"absent":    "",
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			router := newTestRouter(t, newTestController(t))
+
+			body := []byte(`{"query":"{ users { id name } }"}`)
+
+			req := httptest.NewRequest(http.MethodPost, "/graphql", bytes.NewReader(body))
+			if contentType != "" {
+				req.Header.Set("Content-Type", contentType)
+			}
+
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusOK {
+				t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+			}
+
+			const wantPrefix = `{"data":{"users":[`
+			if got := w.Body.String(); !strings.HasPrefix(got, wantPrefix) {
+				t.Errorf("expected body to start with %q, got %q", wantPrefix, got)
+			}
+		})
 	}
 }
 
