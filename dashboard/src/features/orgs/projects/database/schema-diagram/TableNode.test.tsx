@@ -66,6 +66,7 @@ function renderNode(
 const baseData: TableNodeData = {
   schema: 'public',
   table: 'users',
+  objectType: 'ORDINARY TABLE',
   tableGraphqlName: undefined,
   role: 'admin',
   namingMode: 'graphql',
@@ -277,5 +278,73 @@ describe('TableNode', () => {
 
     expect(permsItem).toHaveAttribute('data-disabled');
     expect(relsItem).toHaveAttribute('data-disabled');
+  });
+
+  it('shows "Edit View" / "Delete View" for a view and routes edit to openEditViewDrawer', async () => {
+    const openEditViewDrawer = vi.fn();
+    const openEditTableDrawer = vi.fn();
+    const handleDeleteDatabaseObject = vi.fn();
+
+    renderNode(
+      { ...baseData, table: 'active_users', objectType: 'VIEW' },
+      {
+        actions: makeActions({
+          sidebarMenuObject: 'VIEW.public.active_users',
+          openEditViewDrawer,
+          openEditTableDrawer,
+          handleDeleteDatabaseObject,
+        }),
+        trackedTablesSet: new Set(['public.active_users']),
+      },
+    );
+
+    const user = new TestUserEvent();
+
+    const editItem = await screen.findByRole('menuitem', {
+      name: /Edit View/i,
+    });
+    await user.click(editItem);
+    expect(openEditViewDrawer).toHaveBeenCalledWith(
+      'public',
+      'active_users',
+      'VIEW',
+    );
+    expect(openEditTableDrawer).not.toHaveBeenCalled();
+
+    const deleteItem = await screen.findByRole('menuitem', {
+      name: /Delete View/i,
+    });
+    await user.click(deleteItem);
+    expect(handleDeleteDatabaseObject).toHaveBeenCalledWith(
+      'public',
+      'active_users',
+      'VIEW',
+    );
+  });
+
+  it('routes a materialized-view edit to openEditViewDrawer with MATERIALIZED VIEW', async () => {
+    const openEditViewDrawer = vi.fn();
+
+    renderNode(
+      { ...baseData, table: 'daily_metrics', objectType: 'MATERIALIZED VIEW' },
+      {
+        actions: makeActions({
+          sidebarMenuObject: 'MATERIALIZED VIEW.public.daily_metrics',
+          openEditViewDrawer,
+        }),
+        trackedTablesSet: new Set(['public.daily_metrics']),
+      },
+    );
+
+    const user = new TestUserEvent();
+    const editItem = await screen.findByRole('menuitem', {
+      name: /Edit Materialized View/i,
+    });
+    await user.click(editItem);
+    expect(openEditViewDrawer).toHaveBeenCalledWith(
+      'public',
+      'daily_metrics',
+      'MATERIALIZED VIEW',
+    );
   });
 });

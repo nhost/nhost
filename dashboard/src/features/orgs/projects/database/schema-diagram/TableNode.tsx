@@ -12,6 +12,7 @@ import DatabaseObjectActions from '@/features/orgs/projects/database/dataGrid/co
 import type {
   DatabaseAction,
   HasuraMetadataTable,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { cn } from '@/lib/utils';
@@ -37,6 +38,11 @@ import {
 } from './useSchemaGraph';
 
 const GRAPHQL_NAME_CLASS = 'text-purple-600 dark:text-purple-400';
+
+const VIEW_OBJECT_TYPES: ReadonlySet<TableLikeObjectType> = new Set([
+  'VIEW',
+  'MATERIALIZED VIEW',
+]);
 
 function resolveDisplayName(
   postgresName: string,
@@ -240,6 +246,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
   const {
     schema,
     table,
+    objectType,
     tableGraphqlName,
     columns,
     computedFields,
@@ -248,12 +255,13 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
     namingMode,
   } = data;
   const tableActions = useTableActionsContext();
-  const objectKey = `ORDINARY TABLE.${schema}.${table}`;
+  const objectKey = `${objectType}.${schema}.${table}`;
   const tablePath = `${schema}.${table}`;
   const isUntracked = !tableActions?.trackedTablesSet?.has(tablePath);
   const isLocked = isSchemaLocked(schema);
   const isMenuOpen = tableActions?.actions.sidebarMenuObject === objectKey;
   const isRemoving = tableActions?.actions.removableObject === objectKey;
+  const isView = VIEW_OBJECT_TYPES.has(objectType);
 
   const displayTable = resolveDisplayName(table, tableGraphqlName, namingMode);
 
@@ -314,7 +322,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
             >
               <DatabaseObjectActions
                 objectName={table}
-                objectType="ORDINARY TABLE"
+                objectType={objectType}
                 isUntracked={isUntracked}
                 disabled={isRemoving}
                 open={isMenuOpen}
@@ -329,7 +337,13 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                 triggerClassName="hover:bg-accent hover:text-accent-foreground"
                 isSelectedNotSchemaLocked={!isLocked}
                 onEdit={() =>
-                  tableActions.actions.openEditTableDrawer(schema, table)
+                  isView
+                    ? tableActions.actions.openEditViewDrawer(
+                        schema,
+                        table,
+                        objectType,
+                      )
+                    : tableActions.actions.openEditTableDrawer(schema, table)
                 }
                 onEditPermissions={
                   isUntracked
@@ -338,7 +352,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                         tableActions.actions.handleEditPermission(
                           schema,
                           table,
-                          'ORDINARY TABLE',
+                          objectType,
                         )
                 }
                 onEditRelationships={
@@ -354,14 +368,14 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                   tableActions.actions.handleEditGraphQLSettings(
                     schema,
                     table,
-                    'ORDINARY TABLE',
+                    objectType,
                   )
                 }
                 onDelete={() =>
                   tableActions.actions.handleDeleteDatabaseObject(
                     schema,
                     table,
-                    'ORDINARY TABLE',
+                    objectType,
                   )
                 }
               />

@@ -237,6 +237,7 @@ function SchemaDiagramContent() {
 
   const { nodes, edges, totalTableCount } = useSchemaGraph({
     metadataTables: metadataTables ?? [],
+    tableLikeObjects: databaseData?.tableLikeObjects ?? [],
     columns: schemaData?.columns ?? [],
     foreignKeys: schemaData?.foreignKeys ?? [],
     functionReturnTypes: schemaData?.functionReturnTypes ?? [],
