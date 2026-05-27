@@ -1,4 +1,5 @@
 import debounce from 'lodash.debounce';
+import { PlusIcon, SearchIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -10,8 +11,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -246,10 +245,7 @@ function OAuth2ClientsPageContent() {
             className="rounded-sm"
             placeholder="Search clients"
             startAdornment={
-              <SearchIcon
-                className="-mr-1 ml-2 h-4 w-4 shrink-0"
-                sx={{ color: 'text.disabled' }}
-              />
+              <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
             }
             onChange={handleSearchStringChange}
           />
@@ -282,10 +278,7 @@ function OAuth2ClientsPageContent() {
           className="rounded-sm"
           placeholder="Search clients"
           startAdornment={
-            <SearchIcon
-              className="-mr-1 ml-2 h-4 w-4 shrink-0"
-              sx={{ color: 'text.disabled' }}
-            />
+            <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
           }
           onChange={handleSearchStringChange}
         />

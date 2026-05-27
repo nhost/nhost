@@ -1411,6 +1411,17 @@ type ContainerError struct {
 	Name      string     `json:"name"`
 }
 
+type FunctionsMetricSeries struct {
+	Datapoints []string     `json:"datapoints"`
+	Labels     string       `json:"labels"`
+	Timestamps []*time.Time `json:"timestamps"`
+}
+
+type FunctionsMetricValue struct {
+	Labels string `json:"labels"`
+	Value  string `json:"value"`
+}
+
 type InsertRunServiceConfigResponse struct {
 	Config    *ConfigRunServiceConfig `json:"config"`
 	ServiceID string                  `json:"serviceID"`
@@ -5928,6 +5939,232 @@ func (e *CheckoutStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e CheckoutStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type FunctionsAggregate string
+
+const (
+	FunctionsAggregateAvg FunctionsAggregate = "AVG"
+	FunctionsAggregateMax FunctionsAggregate = "MAX"
+	FunctionsAggregateMin FunctionsAggregate = "MIN"
+	FunctionsAggregateSum FunctionsAggregate = "SUM"
+)
+
+var AllFunctionsAggregate = []FunctionsAggregate{
+	FunctionsAggregateAvg,
+	FunctionsAggregateMax,
+	FunctionsAggregateMin,
+	FunctionsAggregateSum,
+}
+
+func (e FunctionsAggregate) IsValid() bool {
+	switch e {
+	case FunctionsAggregateAvg, FunctionsAggregateMax, FunctionsAggregateMin, FunctionsAggregateSum:
+		return true
+	}
+	return false
+}
+
+func (e FunctionsAggregate) String() string {
+	return string(e)
+}
+
+func (e *FunctionsAggregate) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FunctionsAggregate(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FunctionsAggregate", str)
+	}
+	return nil
+}
+
+func (e FunctionsAggregate) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FunctionsAggregate) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FunctionsAggregate) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type FunctionsHistogramMetric string
+
+const (
+	FunctionsHistogramMetricDuration FunctionsHistogramMetric = "DURATION"
+)
+
+var AllFunctionsHistogramMetric = []FunctionsHistogramMetric{
+	FunctionsHistogramMetricDuration,
+}
+
+func (e FunctionsHistogramMetric) IsValid() bool {
+	switch e {
+	case FunctionsHistogramMetricDuration:
+		return true
+	}
+	return false
+}
+
+func (e FunctionsHistogramMetric) String() string {
+	return string(e)
+}
+
+func (e *FunctionsHistogramMetric) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FunctionsHistogramMetric(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FunctionsHistogramMetric", str)
+	}
+	return nil
+}
+
+func (e FunctionsHistogramMetric) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FunctionsHistogramMetric) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FunctionsHistogramMetric) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type FunctionsLabel string
+
+const (
+	FunctionsLabelMethod FunctionsLabel = "METHOD"
+	FunctionsLabelStatus FunctionsLabel = "STATUS"
+)
+
+var AllFunctionsLabel = []FunctionsLabel{
+	FunctionsLabelMethod,
+	FunctionsLabelStatus,
+}
+
+func (e FunctionsLabel) IsValid() bool {
+	switch e {
+	case FunctionsLabelMethod, FunctionsLabelStatus:
+		return true
+	}
+	return false
+}
+
+func (e FunctionsLabel) String() string {
+	return string(e)
+}
+
+func (e *FunctionsLabel) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FunctionsLabel(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FunctionsLabel", str)
+	}
+	return nil
+}
+
+func (e FunctionsLabel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FunctionsLabel) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FunctionsLabel) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type FunctionsMetric string
+
+const (
+	FunctionsMetricBytesSent   FunctionsMetric = "BYTES_SENT"
+	FunctionsMetricDuration    FunctionsMetric = "DURATION"
+	FunctionsMetricErrors      FunctionsMetric = "ERRORS"
+	FunctionsMetricInvocations FunctionsMetric = "INVOCATIONS"
+)
+
+var AllFunctionsMetric = []FunctionsMetric{
+	FunctionsMetricBytesSent,
+	FunctionsMetricDuration,
+	FunctionsMetricErrors,
+	FunctionsMetricInvocations,
+}
+
+func (e FunctionsMetric) IsValid() bool {
+	switch e {
+	case FunctionsMetricBytesSent, FunctionsMetricDuration, FunctionsMetricErrors, FunctionsMetricInvocations:
+		return true
+	}
+	return false
+}
+
+func (e FunctionsMetric) String() string {
+	return string(e)
+}
+
+func (e *FunctionsMetric) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FunctionsMetric(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FunctionsMetric", str)
+	}
+	return nil
+}
+
+func (e FunctionsMetric) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FunctionsMetric) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FunctionsMetric) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

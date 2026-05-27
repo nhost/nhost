@@ -1,6 +1,14 @@
 {
   nixConfig = {
     sandbox = "relaxed";
+    extra-substituters = [
+      "s3://nhost-nix-cache?region=eu-central-1&profile=nhost-nix-cache"
+      "https://cache.nixos.org"
+    ];
+    extra-trusted-public-keys = [
+      "nhost-nix-cache:6bHlSIHLl5ubPXXS0EGgrvEQTyQnc+L05/6vShe/B6g="
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+    ];
   };
 
   inputs = {
@@ -394,6 +402,7 @@
           postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
+          storage-vips = storagef.vips;
           clamav-docker-image = storagef.clamav-docker-image;
           tutorials = tutorialsf.package;
         };

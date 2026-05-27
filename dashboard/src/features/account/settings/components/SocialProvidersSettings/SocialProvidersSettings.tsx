@@ -1,6 +1,6 @@
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useState } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {

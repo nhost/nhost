@@ -8,6 +8,7 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
 func (t *table) buildMutationInsertCollectionSQL(
@@ -227,13 +228,16 @@ func (t *table) buildInsertCTE(
 // This is used for both top-level inserts and nested inserts to ensure consistent permissions handling.
 // Dispatches to the pre-check or post-check path depending on whether insert
 // permissions reference generated columns (whose values are only available
-// after the INSERT runs).
+// after the INSERT runs). tableSubs redirects relationship-EXISTS subqueries
+// that target a table being inserted into in the same statement to its
+// parent CTE — nil for top-level inserts, populated for nested ones.
 func (t *table) buildSingleInsertCTE(
 	b *strings.Builder,
 	cteName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
 	nestedFKIndex map[string]string, // column -> CTE name mapping for foreign keys
+	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
 	role string,
@@ -247,7 +251,7 @@ func (t *table) buildSingleInsertCTE(
 	}
 
 	return t.buildSingleInsertCTEPreCheck(
-		b, cteName, insertObj, onConflict, nestedFKIndex,
+		b, cteName, insertObj, onConflict, nestedFKIndex, tableSubs,
 		params, paramIndex, role, sessionVariables,
 	)
 }

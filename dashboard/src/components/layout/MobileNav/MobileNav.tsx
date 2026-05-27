@@ -1,4 +1,5 @@
 import { useApolloClient } from '@apollo/client';
+import { MenuIcon, XIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -8,8 +9,6 @@ import type { ButtonProps } from '@/components/ui/v2/Button';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Drawer } from '@/components/ui/v2/Drawer';
-import { MenuIcon } from '@/components/ui/v2/icons/MenuIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -43,7 +42,11 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         onClick={() => setMenuOpen((current) => !current)}
         {...props}
       >
-        {menuOpen ? <XIcon fontSize="small" /> : <MenuIcon fontSize="small" />}
+        {menuOpen ? (
+          <XIcon className="h-5 w-5" />
+        ) : (
+          <MenuIcon className="h-5 w-5" />
+        )}
       </Button>
 
       <Drawer
