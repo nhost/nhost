@@ -199,6 +199,37 @@ func TestCORS(t *testing.T) {
 			},
 			wantVaryContains: "",
 		},
+		{
+			// Allow-all config (AllowedOrigins nil) reflects any origin, so
+			// originAllowed("") returns true and the only thing stopping a
+			// preflight with no Origin header from emitting CORS response
+			// headers is the origin != "" guard in CORS. (The empty origin
+			// would not surface as Access-Control-Allow-Origin because Gin's
+			// c.Header deletes a header set to an empty value, so this row
+			// pins Allow-Methods and Allow-Credentials, which are non-empty
+			// and therefore actually leak when the guard regresses.) This row
+			// fails if that guard is removed and passes with it.
+			name: "preflight_without_origin_allow_all_gets_no_cors_headers",
+			opts: cors.Options{
+				AllowedOrigins:   nil,
+				AllowedMethods:   []string{"GET"},
+				AllowedHeaders:   nil,
+				ExposedHeaders:   nil,
+				AllowCredentials: false,
+				MaxAge:           "",
+			},
+			method:      http.MethodOptions,
+			origin:      "",
+			wantCalled:  false,
+			wantStatus:  http.StatusNoContent,
+			wantHeaders: nil,
+			wantHeadersEmpty: []string{
+				"Access-Control-Allow-Origin",
+				"Access-Control-Allow-Methods",
+				"Access-Control-Allow-Credentials",
+			},
+			wantVaryContains: "",
+		},
 	}
 
 	for _, tc := range tests {

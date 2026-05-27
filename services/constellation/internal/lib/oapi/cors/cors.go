@@ -138,9 +138,12 @@ func isAllowAllOrigin(origin string) bool {
 
 // matchWildcardOrigin reports whether origin matches pattern, where each "*"
 // in pattern stands for any (possibly empty) run of characters and every other
-// byte must match literally. The pattern is anchored at both ends. It is the
-// standard two-pointer glob algorithm: linear in len(origin), with no
-// backtracking blow-up and no regular-expression compilation.
+// byte must match literally. The pattern is anchored at both ends. It is a
+// two-pointer glob with single-saved-star backtracking — worst case
+// O(len(pattern)·len(origin)), and no regular-expression compilation. It stays
+// effectively linear in len(origin) here because the configured patterns are
+// short, fixed operator-supplied strings and browsers cap the Origin header
+// length.
 //
 // A "*" never matches "/". A serialized Origin is scheme://host[:port] with no
 // path, so refusing to span a "/" stops a pattern like "https://*.acme.com"
