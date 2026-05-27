@@ -16,13 +16,6 @@ What this means in practice:
 
 Even without a dedicated optimisation pass, production workloads show Constellation is **slightly faster than Hasura at a fraction of the resources** — we're seeing **90–95% reduction in memory usage** in real production deployments while serving the same traffic. CPU is comparable to marginally lower. This is before any of the performance-focused work on the roadmap.
 
-The headline numbers come mostly from architectural choices that fall out of writing this in Go from scratch:
-
-- A raw-bytes response fast path that skips JSON re-serialisation when SQL connectors return raw JSON.
-- An LRU cache of parsed/validated GraphQL queries, keyed per role.
-- Multiplexed subscription polling that batches subscribers with identical queries into single SQL polls (cohort model).
-- Lock-free atomic state swap on metadata reload, so request handlers never block on configuration changes.
-
 ## Goals
 
 1. **Drop-in compatibility with Hasura** for everything that runs on the GraphQL request path. Same metadata format, same generated schema, same query/mutation/subscription semantics. A handful of small concessions exist for correctness — see [`KNOWN_DIFFERENCES.md`](./KNOWN_DIFFERENCES.md).
@@ -55,6 +48,53 @@ The headline numbers come mostly from architectural choices that fall out of wri
 Hasura owns metadata authoring; Constellation owns request serving. Both speak to the same database. Once Constellation supports metadata mutations on its own, the Hasura half can be dropped.
 
 ## Quick start
+
+### With an Nhost project (recommended)
+
+The lowest-friction way to try Constellation is to enable it on an Nhost project — local or cloud — via the `nhost.toml`. Add to `nhost/nhost.toml` either locally or in your cloud project's configuration editor:
+
+```toml
+[experimental.constellation]
+version = "0.2.1"
+```
+
+Pick the latest tag from [`CHANGELOG.md`](./CHANGELOG.md) — we recommend always running the latest. With this in place, an Nhost project runs Hasura and Constellation side by side:
+
+- `https://<subdomain>.hasura.<region>.nhost.run` — routed to Hasura (metadata authoring, plus anything Constellation doesn't serve yet).
+- `https://<subdomain>.graphql.<region>.nhost.run` — routed to Constellation.
+
+Because both engines share the same database and metadata, you can flip Constellation on to try it, run real traffic through it, and remove the block to fall back to Hasura at any time. While it's running, the schema-diff workflow in [Compatibility](#verifying-compatibility-against-your-hasura-instance) lets you confirm the two endpoints produce equivalent schemas per role.
+
+All available settings under `[experimental.constellation]`:
+
+```toml
+[experimental.constellation]
+# Constellation image tag. Available versions:
+# https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md
+version = "0.2.1"
+
+[experimental.constellation.settings]
+# CORS allowed origins. If set, used as-is.
+# If unset, origins are derived from auth.redirections.clientUrl and
+# auth.redirections.allowedUrls (paths/queries/fragments stripped).
+# Entries may use "*" as a wildcard matching any run of characters
+# (e.g. "https://my-app-*-org.vercel.app"). A bare "*" cannot be combined
+# with credentials and is rejected at startup.
+corsAllowedOrigins = []
+
+# Enable debug logging.
+debug = false
+
+# Return raw connector/database error detail to clients instead of the
+# sanitized generic message. For development only — never enable in
+# production, as it leaks internal schema and data values.
+devMode = false
+
+# Polling interval for GraphQL subscriptions.
+subscriptionPollInterval = "1s"
+```
+
+If you'd rather run Constellation standalone (no Nhost project), keep reading.
 
 ### Prerequisites
 
@@ -135,7 +175,7 @@ All flags are also available as environment variables. The most common:
 | `--metadata-database-url` | `CONSTELLATION_METADATA_DATABASE_URL` | *(unset → file mode)* |
 | `--admin-secret` | `CONSTELLATION_ADMIN_SECRET` | *(required)* |
 | `--jwt-secret` | `CONSTELLATION_JWT_SECRET` | *(required)* |
-| `--cors-allowed-origins` | `CONSTELLATION_CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)* |
+| `--cors-allowed-origins` | `CONSTELLATION_CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)*; entries may use `*` as a wildcard (e.g. `https://my-app-*-org.vercel.app`); a bare `*` cannot be combined with credentials and is rejected at startup |
 | `--subscription-poll-interval` | `CONSTELLATION_SUBSCRIPTION_POLL_INTERVAL` | `1s` |
 | `--enable-playground` | `CONSTELLATION_ENABLE_PLAYGROUND` | `false` |
 | `--debug` | `CONSTELLATION_DEBUG` | `false` |
@@ -153,29 +193,37 @@ Constellation aims to be a drop-in replacement for Hasura on the GraphQL request
 
 ### Verifying compatibility against your Hasura instance
 
-If you run Hasura and Constellation side-by-side against the same database, you can confirm Constellation generates the schema you expect by introspecting both and diffing the SDL per role. The `nhost schema dump` and `nhost schema diff` subcommands (in the Nhost CLI) do exactly that:
+If you run Hasura and Constellation side-by-side against the same database, you can confirm Constellation generates the schema you expect by introspecting both and diffing the SDL per role. The `nhost schema dump` and `nhost schema diff` subcommands (in the Nhost CLI) do exactly that (make sure you are running latest nhost cli version):
 
 ```bash
 #!/bin/bash
 set -euo pipefail
 
+DST_PATH="./schemas"
+
+mkdir -p "$DST_PATH"
+
+SUBDOMAIN="local"
+REGION="local"
+ADMIN_SECRET="nhost-admin-secret"
+
 ROLES=(admin user public)
-HASURA_URL="https://your-hasura-endpoint/v1"
-NHOST_URL="http://your-constellation-endpoint/v1/graphql"
-ADMIN_SECRET="your-admin-secret"
+
+HASURA_URL="https://${SUBDOMAIN}.hasura.${REGION}.nhost.run/v1/graphql"
+CONSTELLATION_URL="https://${SUBDOMAIN}.graphql.${REGION}.nhost.run/v1/graphql"
 
 for role in "${ROLES[@]}"; do
     nhost schema dump \
         --role "${role}" --admin-secret "${ADMIN_SECRET}" \
-        -u "${HASURA_URL}" -o "./schema.hasura.${role}.graphqls"
+        -u "${HASURA_URL}" -o "${DST_PATH}/schema.hasura.${role}.graphqls"
 
     nhost schema dump \
         --role "${role}" --admin-secret "${ADMIN_SECRET}" \
-        -u "${NHOST_URL}" -o "./schema.nhost.${role}.graphqls"
+        -u "${CONSTELLATION_URL}" -o "${DST_PATH}/schema.nhost.${role}.graphqls"
 
     nhost schema diff \
-        -a "schema.hasura.${role}.graphqls" \
-        -b "schema.nhost.${role}.graphqls" > "schema.${role}.diff"
+        -a "${DST_PATH}/schema.hasura.${role}.graphqls" \
+        -b "${DST_PATH}/schema.nhost.${role}.graphqls" > "${DST_PATH}/schema.${role}.diff"
 done
 ```
 
@@ -228,34 +276,6 @@ Patches welcome. Before opening a PR:
 2. Add tests — public symbols need black-box coverage; complex unexported logic gets white-box tests.
 3. Update goldens with `-update` if you intentionally changed generated output.
 4. See [`CLAUDE.md`](./CLAUDE.md) for the full project conventions and Go package design rules.
-
-## Roadmap
-
-### Shipped
-
-- GraphQL generation from database schema
-- CRUD operations, row permissions and presets, role-based access
-- Relationships, aggregations, custom scalars, enum types
-- PostgreSQL functions
-- Subscriptions, including `_stream`
-- Multi-database (independent queries and cross-database remote relationships)
-- Remote schemas with cross-source remote relationships
-- JWT auth (symmetric, asymmetric, JWKS, `claims_map`) and admin secret
-- Metadata loading from file or polled from `hdb_catalog.hdb_metadata`
-
-### Pre-1.0
-
-- Test coverage and benchmark comparisons against Hasura
-- Metrics and structured logging surface
-- Computed fields
-- Views (read fully supported today; first-class metadata configuration is open)
-- Database events / triggers
-- Pre / post-mutation checks beyond the SQL `check` clause
-- Persistent queries / allowlists
-- Metadata Management HTTP API (to drop the Hasura dependency)
-- Subscription revisit (correctness + performance pass)
-- Removing the admin-secret path from the WebSocket handler in favour of JWT-only
-- MySQL support (under consideration)
 
 ## License
 
