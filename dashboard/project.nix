@@ -119,6 +119,7 @@ rec {
       ;
 
     preCheck = ''
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
     '';
@@ -136,6 +137,7 @@ rec {
         cp -r ${node_modules}/node_modules/ node_modules
         cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
 
+        mkdir -p packages
         rm -rf packages/nhost-js
         cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 
@@ -183,6 +185,7 @@ rec {
       cp -r ${node_modules}/node_modules/ node_modules
       cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
 
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 

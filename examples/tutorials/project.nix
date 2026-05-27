@@ -95,6 +95,7 @@ in
       ;
 
     preCheck = ''
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
     '';
@@ -122,6 +123,7 @@ in
         cp -r ${node_modules}/$dir/node_modules $dir/node_modules
       done
 
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 

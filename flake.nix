@@ -154,7 +154,6 @@
 
         nixopsf = import ./nixops/project.nix {
           inherit
-            self
             pkgs
             nix2containerPkgs
             nixops-lib

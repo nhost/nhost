@@ -1,5 +1,4 @@
 {
-  self,
   pkgs,
   nix2containerPkgs,
   nixops-lib,
