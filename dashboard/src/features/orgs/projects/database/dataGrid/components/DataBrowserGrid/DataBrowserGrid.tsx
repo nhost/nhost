@@ -13,10 +13,12 @@ import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGri
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import { useIsReadOnlyDatabaseObject } from '@/features/orgs/projects/database/dataGrid/hooks/useIsReadOnlyDatabaseObject';
+import { useRefreshMaterializedView } from '@/features/orgs/projects/database/dataGrid/hooks/useRefreshMaterializedView';
 import {
   createTableQueryKey,
   useTableQuery,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import type {
@@ -219,6 +221,19 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     },
   });
 
+  const { tableType } = useTableType({
+    dataSource: dataSourceSlug as string,
+    schema: schemaSlug as string,
+    name: tableSlug as string,
+    queryOptions: {
+      enabled:
+        typeof schemaSlug === 'string' &&
+        typeof tableSlug === 'string' &&
+        typeof dataSourceSlug === 'string',
+    },
+  });
+  const isMaterializedView = tableType === 'MATERIALIZED VIEW';
+
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
       currentTablePath,
@@ -237,6 +252,11 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       filters: appliedFilters,
     },
   );
+
+  const {
+    handleRefresh: handleRefreshMaterializedViewClick,
+    isRefreshing: isRefreshingMaterializedView,
+  } = useRefreshMaterializedView({ refetch });
 
   const {
     columns,
@@ -414,6 +434,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       controls={
         <DataBrowserGridControls
           onInsertRowClick={isReadOnlyObject ? undefined : handleInsertRowClick}
+          showRefreshMaterializedViewButton={isMaterializedView}
+          onRefreshMaterializedViewClick={handleRefreshMaterializedViewClick}
+          isRefreshingMaterializedView={isRefreshingMaterializedView}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
             totalPages: Math.max(numberOfPages, 1),
