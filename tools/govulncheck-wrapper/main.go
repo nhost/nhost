@@ -327,7 +327,8 @@ func main() {
 		"config", "govulncheck.yaml", "path to allowlist config file",
 	)
 	fix := flag.Bool(
-		"fix", false,
+		"fix",
+		false,
 		"bump non-allowlisted findings via `go mod edit -require`, then run `go mod tidy` and `go mod vendor`",
 	)
 
