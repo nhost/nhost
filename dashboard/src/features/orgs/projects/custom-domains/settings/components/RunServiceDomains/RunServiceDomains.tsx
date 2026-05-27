@@ -1,6 +1,6 @@
+import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
