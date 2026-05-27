@@ -15,6 +15,7 @@ import type {
   HasuraMetadataPermission,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getAllowedActions } from '@/features/orgs/projects/database/dataGrid/utils/getAllowedActions';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import { areStrArraysEqual } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
@@ -131,6 +132,11 @@ export default function EditPermissionsForm({
   const availableColumns =
     tableData?.columns.map((column) => column.column_name) || [];
 
+  const availableWritableColumns =
+    tableData?.columns
+      .filter((column) => !isGeneratedColumn(column))
+      .map((column) => column.column_name) || [];
+
   const availableComputedFields =
     metadataForTable?.computed_fields?.map(({ name }) => name) || [];
 
@@ -165,7 +171,7 @@ export default function EditPermissionsForm({
     }
 
     const isAllColumnsSelected = areStrArraysEqual(
-      availableColumns,
+      isSelect ? availableColumns : availableWritableColumns,
       permission.columns ?? [],
     );
 

@@ -2,6 +2,7 @@ import type {
   DatabaseColumn,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import { normalizeColumnType } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumnType';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 /**
@@ -23,7 +24,7 @@ export default function normalizeDatabaseColumn(
     type: normalizeColumnType(rawColumn),
     isPrimary: rawColumn.is_primary,
     isIdentity: rawColumn.is_identity === 'YES',
-    isGenerated: rawColumn.is_generated === 'ALWAYS',
+    isGenerated: isGeneratedColumn(rawColumn),
     generationExpression: rawColumn.generation_expression ?? null,
     isNullable: rawColumn.is_nullable === 'YES',
     isUnique: rawColumn.is_unique,
