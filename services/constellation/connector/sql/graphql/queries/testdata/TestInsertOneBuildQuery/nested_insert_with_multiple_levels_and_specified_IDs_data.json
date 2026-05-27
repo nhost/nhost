@@ -1,0 +1,17 @@
+[
+  [
+    {
+      "user": {
+        "displayName": "Sarah Martinez"
+      },
+      "department": {
+        "id": "00000000-0000-0000-0000-000000000123",
+        "name": "New Department",
+        "description": "This is a new department",
+        "budget": 200000
+      },
+      "user_id": "550e8400-e29b-41d4-a716-446655440001",
+      "department_id": "00000000-0000-0000-0000-000000000123"
+    }
+  ]
+]

@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
+import { ArrowRightIcon } from 'lucide-react';
 import {
   isToRemoteSchemaRelationshipDefinition,
   isToSourceRelationshipDefinition,

@@ -10,7 +10,7 @@ import (
 	docsembed "github.com/nhost/nhost/docs"
 )
 
-func TestDocsFS_EmbedAllMDXFiles(t *testing.T) { //nolint:cyclop
+func TestDocsFS_EmbedAllMDXFiles(t *testing.T) {
 	t.Parallel()
 
 	// Walk the actual filesystem to find all .mdx files

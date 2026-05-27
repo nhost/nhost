@@ -56,7 +56,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByTicket(
 					gomock.Any(),
 					sql.Text("passwordReset:ticket"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:    userID,
 					Email: sql.Text("user@acme.local"),
 				}, nil)
@@ -69,7 +69,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 							PasswordHash: sql.Text("password"),
 						},
 						cmpopts.IgnoreFields(
-							sql.UpdateUserChangePasswordParams{}, //nolint:exhaustruct
+							sql.UpdateUserChangePasswordParams{},
 							"PasswordHash",
 						),
 					),
@@ -99,7 +99,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					sql.Text("passwordReset:ticket"),
 				).Return(
-					sql.AuthUser{}, //nolint:exhaustruct
+					sql.AuthUser{},
 					pgx.ErrNoRows)
 
 				return mock
@@ -129,7 +129,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByTicket(
 					gomock.Any(),
 					sql.Text("passwordReset:ticket"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:       userID,
 					Email:    sql.Text("user@acme.local"),
 					Disabled: true,
@@ -162,7 +162,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByTicket(
 					gomock.Any(),
 					sql.Text("passwordReset:ticket"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("user@acme.local"),
 					IsAnonymous: true,
@@ -195,7 +195,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByTicket(
 					gomock.Any(),
 					sql.Text("passwordReset:ticket"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:    userID,
 					Email: sql.Text("user@acme.local"),
 				}, nil)
@@ -227,7 +227,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:    userID,
 					Email: sql.Text("user@acme.local"),
 				}, nil)
@@ -240,7 +240,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 							PasswordHash: sql.Text("password"),
 						},
 						cmpopts.IgnoreFields(
-							sql.UpdateUserChangePasswordParams{}, //nolint:exhaustruct
+							sql.UpdateUserChangePasswordParams{},
 							"PasswordHash",
 						),
 					),
@@ -293,7 +293,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{}, //nolint:exhaustruct
+				).Return(sql.AuthUser{},
 					pgx.ErrNoRows,
 				)
 
@@ -324,7 +324,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:       userID,
 					Email:    sql.Text("user@acme.local"),
 					Disabled: true,
@@ -357,7 +357,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("user@acme.local"),
 					IsAnonymous: true,
@@ -390,7 +390,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:    userID,
 					Email: sql.Text("user@acme.local"),
 				}, nil)
@@ -422,7 +422,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByTicket(
 					gomock.Any(),
 					sql.Text("passwordReset:ticket"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:    userID,
 					Email: sql.Text("user@acme.local"),
 				}, nil)
@@ -435,7 +435,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 							PasswordHash: sql.Text("password"),
 						},
 						cmpopts.IgnoreFields(
-							sql.UpdateUserChangePasswordParams{}, //nolint:exhaustruct
+							sql.UpdateUserChangePasswordParams{},
 							"PasswordHash",
 						),
 					),
@@ -468,7 +468,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:    userID,
 					Email: sql.Text("user@acme.local"),
 				}, nil)
@@ -481,7 +481,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 							PasswordHash: sql.Text("password"),
 						},
 						cmpopts.IgnoreFields(
-							sql.UpdateUserChangePasswordParams{}, //nolint:exhaustruct
+							sql.UpdateUserChangePasswordParams{},
 							"PasswordHash",
 						),
 					),

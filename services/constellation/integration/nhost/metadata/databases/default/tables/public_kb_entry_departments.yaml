@@ -1,0 +1,49 @@
+table:
+  name: kb_entry_departments
+  schema: public
+object_relationships:
+  - name: department
+    using:
+      foreign_key_constraint_on: department_id
+    comment: The department this junction references
+  - name: kb_entry
+    using:
+      foreign_key_constraint_on: kb_entry_id
+    comment: The KB entry this junction references
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        _and:
+          - kb_entry:
+              uploader_id:
+                _eq: X-Hasura-User-Id
+          - department_id:
+              _in: X-Hasura-departments
+      columns:
+        - kb_entry_id
+        - department_id
+    comment: Users can associate their KB entries with departments they belong to
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - kb_entry_id
+        - department_id
+      filter:
+        department_id:
+          _in: X-Hasura-departments
+      allow_aggregations: true
+    comment: Users can view KB entry-department associations for their departments
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        _or:
+          - kb_entry:
+              uploader_id:
+                _eq: X-Hasura-User-Id
+          - department_id:
+              _in: X-Hasura-Departments
+    comment: Users can remove their KB entries from departments

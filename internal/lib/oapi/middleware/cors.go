@@ -74,7 +74,7 @@ type CORSOptions struct {
 //		AllowCredentials: true,
 //		MaxAge:           "3600",
 //	}))
-func CORS(opts CORSOptions) gin.HandlerFunc { //nolint:cyclop,funlen
+func CORS(opts CORSOptions) gin.HandlerFunc { //nolint:funlen
 	allowedMethods := strings.Join(opts.AllowedMethods, ", ")
 	exposedHeaders := strings.Join(opts.ExposedHeaders, ", ")
 

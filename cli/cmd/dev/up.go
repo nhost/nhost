@@ -114,7 +114,7 @@ func CommandUp() *cli.Command { //nolint:funlen
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:2.63.0",
+				Value:   "nhost/dashboard:2.63.1",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -400,7 +400,7 @@ func processRunServices(
 	return r, nil
 }
 
-func up( //nolint:funlen,cyclop
+func up( //nolint:funlen
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	appVersion string,

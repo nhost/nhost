@@ -229,6 +229,15 @@ body {
   justify-content: initial;
 }
 
+/* TODO: REMOVE — temporary fix for lucide icon alignment inside v2 Link.
+   Delete this block once @/components/ui/v2/Link is removed. */
+a svg.lucide {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 0.25rem;
+}
+/* END TODO */
+
 @layer base {
   :root {
     --background: 0 0% 100%;

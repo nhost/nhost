@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "insertUser",
+    "QueryType": "insert_one",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"display_name\", $3::citext AS \"email\", $4::bool AS \"disabled\", $5::text AS \"default_role\", $6::varchar AS \"locale\") AS data WHERE true), mutation_result AS (INSERT INTO \"auth\".\"users\" (\"id\", \"display_name\", \"email\", \"disabled\", \"default_role\", \"locale\") SELECT check_mutation_result.\"id\", check_mutation_result.\"display_name\", check_mutation_result.\"email\", check_mutation_result.\"disabled\", check_mutation_result.\"default_role\", check_mutation_result.\"locale\" FROM check_mutation_result RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"display_name\" AS \"displayName\", mutation_result.\"email\" AS \"email\", mutation_result.\"disabled\" AS \"disabled\", \"mutation_result.r.defaultRoleByRole\".\"defaultRoleByRole\" AS \"defaultRoleByRole\") AS \"_e\")) FROM mutation_result LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.defaultRoleByRole.base\" AS (SELECT * FROM \"auth\".\"roles\" WHERE \"mutation_result\".\"default_role\" = \"role\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.defaultRoleByRole.base\".\"role\" AS \"role\") AS \"_e\")) AS \"defaultRoleByRole\" FROM \"mutation_result.r.defaultRoleByRole.base\") AS \"mutation_result.r.defaultRoleByRole\" ON ('true')",
+    "Parameters": [
+      "00000000-0000-0000-0000-000000000099",
+      "Test User",
+      "testuser-insert-one@example.com",
+      false,
+      "user",
+      "en"
+    ]
+  }
+]

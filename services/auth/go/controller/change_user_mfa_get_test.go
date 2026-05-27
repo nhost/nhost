@@ -78,7 +78,7 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:    userID,
 					Email: sql.Text("user@acme.local"),
 				}, nil)
@@ -159,7 +159,7 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					IsAnonymous: true,
 				}, nil)

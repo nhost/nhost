@@ -63,7 +63,7 @@ func checkIfWeNeedToMigrate(
 	return highestVersion, nil
 }
 
-func ApplyPostgresMigration( //nolint:cyclop
+func ApplyPostgresMigration(
 	ctx context.Context, postgresURL string, logger *slog.Logger,
 ) error {
 	// for backward compatibility, we ensure that the postgresURL contains the sslmode parameter

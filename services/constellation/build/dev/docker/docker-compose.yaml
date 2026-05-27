@@ -1,0 +1,11 @@
+services:
+  postgres:
+    container_name: exp-postgres
+    image: postgres:18
+    restart: unless-stopped
+    volumes:
+      - ./initdb.d:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}

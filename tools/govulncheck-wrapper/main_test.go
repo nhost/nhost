@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -163,6 +165,315 @@ func TestParseMessages(t *testing.T) {
 				if len(findingsMap[id]) != wantCount {
 					t.Errorf("findings[%s]: got %d, want %d", id, len(findingsMap[id]), wantCount)
 				}
+			}
+		})
+	}
+}
+
+func TestCollectFixes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		findingsMap   map[string][]*finding
+		blocked       []string
+		want          []string
+		wantToolchain []string
+	}{
+		{
+			name:        "no findings",
+			findingsMap: map[string][]*finding{},
+			blocked:     nil,
+			want:        []string{},
+		},
+		{
+			name: "single finding",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.2.3",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+			},
+			blocked: []string{"GO-2023-0001"},
+			want:    []string{"example.com/mod@v1.2.3"},
+		},
+		{
+			name: "dedupes by module, keeps highest semver",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.2.3",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v1.10.0",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+				"GO-2023-0003": {{
+					OSV:          "GO-2023-0003",
+					FixedVersion: "v1.5.0",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+			},
+			blocked: []string{"GO-2023-0001", "GO-2023-0002", "GO-2023-0003"},
+			want:    []string{"example.com/mod@v1.10.0"},
+		},
+		{
+			name: "skips findings without fixed version or module",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "",
+					Trace:        []frame{{Module: "example.com/a"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v2.0.0",
+					Trace:        []frame{{Module: ""}},
+				}},
+				"GO-2023-0003": {{
+					OSV:          "GO-2023-0003",
+					FixedVersion: "v3.0.0",
+					Trace:        []frame{},
+				}},
+				"GO-2023-0004": {{
+					OSV:          "GO-2023-0004",
+					FixedVersion: "v4.0.0",
+					Trace:        []frame{{Module: "example.com/d"}},
+				}},
+			},
+			blocked: []string{
+				"GO-2023-0001",
+				"GO-2023-0002",
+				"GO-2023-0003",
+				"GO-2023-0004",
+			},
+			want: []string{"example.com/d@v4.0.0"},
+		},
+		{
+			name: "ignores findings not in blocked list",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.0.0",
+					Trace:        []frame{{Module: "example.com/allowed"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v2.0.0",
+					Trace:        []frame{{Module: "example.com/blocked"}},
+				}},
+			},
+			blocked: []string{"GO-2023-0002"},
+			want:    []string{"example.com/blocked@v2.0.0"},
+		},
+		{
+			name: "output is sorted",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.0.0",
+					Trace:        []frame{{Module: "example.com/z"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v1.0.0",
+					Trace:        []frame{{Module: "example.com/a"}},
+				}},
+				"GO-2023-0003": {{
+					OSV:          "GO-2023-0003",
+					FixedVersion: "v1.0.0",
+					Trace:        []frame{{Module: "example.com/m"}},
+				}},
+			},
+			blocked: []string{"GO-2023-0001", "GO-2023-0002", "GO-2023-0003"},
+			want: []string{
+				"example.com/a@v1.0.0",
+				"example.com/m@v1.0.0",
+				"example.com/z@v1.0.0",
+			},
+		},
+		{
+			name: "stdlib and toolchain findings are separated, not aborting the run",
+			findingsMap: map[string][]*finding{
+				"GO-2023-0001": {{
+					OSV:          "GO-2023-0001",
+					FixedVersion: "v1.23.4",
+					Trace:        []frame{{Module: "stdlib"}},
+				}},
+				"GO-2023-0002": {{
+					OSV:          "GO-2023-0002",
+					FixedVersion: "v1.23.4",
+					Trace:        []frame{{Module: "toolchain"}},
+				}},
+				"GO-2023-0003": {{
+					OSV:          "GO-2023-0003",
+					FixedVersion: "v1.23.5",
+					Trace:        []frame{{Module: "stdlib"}},
+				}},
+				"GO-2023-0004": {{
+					OSV:          "GO-2023-0004",
+					FixedVersion: "v1.2.3",
+					Trace:        []frame{{Module: "example.com/mod"}},
+				}},
+			},
+			blocked: []string{
+				"GO-2023-0001",
+				"GO-2023-0002",
+				"GO-2023-0003",
+				"GO-2023-0004",
+			},
+			want: []string{"example.com/mod@v1.2.3"},
+			wantToolchain: []string{
+				"stdlib@v1.23.5",
+				"toolchain@v1.23.4",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, gotToolchain := collectFixes(tt.findingsMap, tt.blocked)
+
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+
+			wantToolchain := tt.wantToolchain
+			if wantToolchain == nil {
+				wantToolchain = []string{}
+			}
+
+			if !slices.Equal(gotToolchain, wantToolchain) {
+				t.Errorf("toolchain: got %v, want %v", gotToolchain, wantToolchain)
+			}
+		})
+	}
+}
+
+var errFakeRunner = errors.New("fake runner failure")
+
+func TestApplyFixes(t *testing.T) {
+	t.Parallel()
+
+	formatCall := func(name string, args ...string) string {
+		if len(args) == 0 {
+			return name
+		}
+
+		return name + " " + strings.Join(args, " ")
+	}
+
+	tests := []struct {
+		name           string
+		pairs          []string
+		toolchainPairs []string
+		failOn         string // command string that should fail; "" means none
+		wantCalls      []string
+		wantErr        bool
+	}{
+		{
+			name:           "empty pairs short-circuits before any command",
+			pairs:          nil,
+			toolchainPairs: nil,
+			wantCalls:      nil,
+			wantErr:        false,
+		},
+		{
+			name:           "toolchain-only still short-circuits go get/tidy/vendor",
+			pairs:          nil,
+			toolchainPairs: []string{"stdlib@v1.23.5"},
+			wantCalls:      nil,
+			wantErr:        false,
+		},
+		{
+			name:           "happy path edits each require then tidy then vendor",
+			pairs:          []string{"example.com/a@v1.0.0", "example.com/b@v2.0.0"},
+			toolchainPairs: nil,
+			wantCalls: []string{
+				"go mod edit -require=example.com/a@v1.0.0",
+				"go mod edit -require=example.com/b@v2.0.0",
+				"go mod tidy",
+				"go mod vendor",
+			},
+			wantErr: false,
+		},
+		{
+			name:           "happy path with toolchain pairs runs same go commands",
+			pairs:          []string{"example.com/a@v1.0.0"},
+			toolchainPairs: []string{"stdlib@v1.23.5", "toolchain@v1.23.4"},
+			wantCalls: []string{
+				"go mod edit -require=example.com/a@v1.0.0",
+				"go mod tidy",
+				"go mod vendor",
+			},
+			wantErr: false,
+		},
+		{
+			name:           "first failing edit aborts before tidy/vendor",
+			pairs:          []string{"example.com/a@v1.0.0", "example.com/b@v2.0.0"},
+			toolchainPairs: nil,
+			failOn:         "go mod edit -require=example.com/a@v1.0.0",
+			wantCalls:      []string{"go mod edit -require=example.com/a@v1.0.0"},
+			wantErr:        true,
+		},
+		{
+			name:           "failing tidy aborts before vendor",
+			pairs:          []string{"example.com/a@v1.0.0"},
+			toolchainPairs: nil,
+			failOn:         "go mod tidy",
+			wantCalls: []string{
+				"go mod edit -require=example.com/a@v1.0.0",
+				"go mod tidy",
+			},
+			wantErr: true,
+		},
+		{
+			name:           "failing vendor surfaces error after tidy",
+			pairs:          []string{"example.com/a@v1.0.0"},
+			toolchainPairs: nil,
+			failOn:         "go mod vendor",
+			wantCalls: []string{
+				"go mod edit -require=example.com/a@v1.0.0",
+				"go mod tidy",
+				"go mod vendor",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var calls []string
+
+			run := func(name string, args ...string) error {
+				call := formatCall(name, args...)
+				calls = append(calls, call)
+
+				if tt.failOn != "" && call == tt.failOn {
+					return fmt.Errorf("%w: %s", errFakeRunner, call)
+				}
+
+				return nil
+			}
+
+			err := applyFixes(tt.pairs, tt.toolchainPairs, run)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error, got nil")
+				}
+			} else if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if !slices.Equal(calls, tt.wantCalls) {
+				t.Errorf("calls: got %v, want %v", calls, tt.wantCalls)
 			}
 		})
 	}

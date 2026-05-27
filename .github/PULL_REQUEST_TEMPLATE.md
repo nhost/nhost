@@ -34,9 +34,12 @@ Where `PKG` is:
 - `docs`: For changes to the documentation
 - `examples`: For changes to the examples
 - `functions`: For changes to the Nhost Functions service
+- `govulncheck-wrapper`: For changes to the govulncheck wrapper tool
 - `internal/lib`: For changes to Nhost's common libraries (internal)
+- `mcp`: For changes to the Nhost MCP server
 - `nhost-js`: For changes to the Nhost JavaScript SDK
 - `nixops`: For changes to the NixOps
+- `postgres`: For changes to the Nhost Postgres image
 - `storage`: For changes to the Nhost Storage service
 - `observability`: For changes to the Nhost Observability managed service
 - `stripe-graphql-js`: For changes to the Stripe GraphQL JS SDK

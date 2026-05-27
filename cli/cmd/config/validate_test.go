@@ -13,7 +13,6 @@ import (
 )
 
 func expectedConfig() *model.ConfigConfig {
-	//nolint:exhaustruct
 	return &model.ConfigConfig{
 		Global: &model.ConfigGlobal{
 			Environment: []*model.ConfigGlobalEnvironmentVariable{

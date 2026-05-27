@@ -48,7 +48,7 @@ export default function ProjectHealthBadge({
           horizontal: 'right',
         }}
         badgeContent={
-          <ProjectHealthExclamationIcon className="h-2.5 w-2.5 text-foreground" />
+          <ProjectHealthExclamationIcon className="h-2.5 w-2.5 text-muted-foreground dark:text-foreground" />
         }
       >
         <Badge

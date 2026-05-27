@@ -35,9 +35,9 @@ import { buildServerlessFunctionRequestUrl } from '@/features/orgs/projects/serv
 import { cn } from '@/lib/utils';
 
 const METHOD_COLORS: Record<HttpMethod, string> = {
-  GET: 'text-green-600 dark:text-green-400',
-  POST: 'text-blue-600 dark:text-blue-400',
-  PUT: 'text-orange-600 dark:text-orange-400',
+  GET: 'text-blue-600 dark:text-blue-400',
+  POST: 'text-green-600 dark:text-green-400',
+  PUT: 'text-amber-600 dark:text-amber-400',
   PATCH: 'text-pink-600 dark:text-pink-400',
   DELETE: 'text-red-600 dark:text-red-400',
   OPTIONS: 'text-purple-600 dark:text-purple-400',

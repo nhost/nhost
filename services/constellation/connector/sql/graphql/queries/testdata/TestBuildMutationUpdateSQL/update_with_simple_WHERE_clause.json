@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "update_departments",
+    "QueryType": "update",
+    "SQL": "WITH mutation_result AS (UPDATE \"public\".\"departments\" SET \"budget\" = $1::numeric WHERE departments.\"name\" = $2::text RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"budget\" AS \"budget\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      200000,
+      "Engineering"
+    ]
+  }
+]

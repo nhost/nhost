@@ -63,7 +63,7 @@ type ConditionalChecksGetter interface {
 	GetIfUnmodifiedSince() *api.Time
 }
 
-func checkConditionals( //nolint: cyclop
+func checkConditionals(
 	etag string,
 	updatedAt string,
 	params ConditionalChecksGetter,

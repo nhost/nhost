@@ -1,0 +1,510 @@
+{
+  "Schemas": {
+    "": {
+      "Tables": {
+        "department_roles": {
+          "Schema": "",
+          "Name": "department_roles",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "type",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "description",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "type"
+          ],
+          "PrimaryKeyConstraintName": "",
+          "ForeignKeys": null,
+          "UniqueConstraints": [
+            {
+              "Name": "sqlite_autoindex_department_roles_1",
+              "Columns": [
+                "type"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "departments": {
+          "Schema": "",
+          "Name": "departments",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "name",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "description",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "budget",
+              "Type": "numeric",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "is_active",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": false,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "1",
+              "Comment": null
+            },
+            {
+              "Name": "rating",
+              "Type": "float8",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "logo",
+              "Type": "bytea",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": false,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "metadata",
+              "Type": "json",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": false,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "founded_date",
+              "Type": "date",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "CURRENT_TIMESTAMP",
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "CURRENT_TIMESTAMP",
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "",
+          "ForeignKeys": null,
+          "UniqueConstraints": [
+            {
+              "Name": "departments_name_key",
+              "Columns": [
+                "name"
+              ]
+            },
+            {
+              "Name": "sqlite_autoindex_departments_1",
+              "Columns": [
+                "id"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "items": {
+          "Schema": "",
+          "Name": "items",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "int8",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "name",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "price",
+              "Type": "float8",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "quantity",
+              "Type": "int8",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": "0",
+              "Comment": null
+            },
+            {
+              "Name": "total",
+              "Type": "float8",
+              "IsNullable": true,
+              "IsGenerated": true,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "user_departments": {
+          "Schema": "",
+          "Name": "user_departments",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "user_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "department_id",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "role",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "joined_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "CURRENT_TIMESTAMP",
+              "Comment": null
+            },
+            {
+              "Name": "is_active",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": false,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "1",
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "user_id",
+            "department_id"
+          ],
+          "PrimaryKeyConstraintName": "",
+          "ForeignKeys": [
+            {
+              "ColumnName": "role",
+              "ForeignSchema": "",
+              "ForeignTable": "department_roles",
+              "ForeignColumnName": "type"
+            },
+            {
+              "ColumnName": "department_id",
+              "ForeignSchema": "",
+              "ForeignTable": "departments",
+              "ForeignColumnName": "id"
+            },
+            {
+              "ColumnName": "user_id",
+              "ForeignSchema": "",
+              "ForeignTable": "users",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": [
+            {
+              "Name": "sqlite_autoindex_user_departments_1",
+              "Columns": [
+                "user_id",
+                "department_id"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "users": {
+          "Schema": "",
+          "Name": "users",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "email",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "display_name",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "age",
+              "Type": "int8",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "score",
+              "Type": "float8",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": "0.0",
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "CURRENT_TIMESTAMP",
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "",
+          "ForeignKeys": null,
+          "UniqueConstraints": [
+            {
+              "Name": "users_email_key",
+              "Columns": [
+                "email"
+              ]
+            },
+            {
+              "Name": "sqlite_autoindex_users_1",
+              "Columns": [
+                "id"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        }
+      }
+    }
+  },
+  "EnumValues": {
+    ".department_roles": [
+      {
+        "Value": "manager",
+        "Comment": "Department manager"
+      },
+      {
+        "Value": "member",
+        "Comment": "Regular member"
+      }
+    ]
+  },
+  "Functions": {}
+}

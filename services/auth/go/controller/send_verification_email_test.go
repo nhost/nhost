@@ -38,7 +38,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					DisplayName:   "jane@acme.com",
 					EmailVerified: false,
@@ -58,7 +58,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -77,7 +77,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameEmailVerify,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -113,7 +113,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					DisplayName:   "jane@acme.com",
 					EmailVerified: false,
@@ -153,7 +153,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameEmailVerify,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -189,7 +189,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					DisplayName:   "jane@acme.com",
 					EmailVerified: false,
@@ -209,7 +209,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -228,7 +228,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameEmailVerify,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -264,7 +264,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					DisplayName:   "jane@acme.com",
 					EmailVerified: false,
@@ -284,7 +284,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp.com/verify"),
@@ -305,7 +305,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameEmailVerify,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp.com%2Fverify&ticket=verifyEmail%3Ad108332c-1f95-43b3-ade2-6206316c8985&type=emailVerify", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp.com%2Fverify&ticket=verifyEmail%3Ad108332c-1f95-43b3-ade2-6206316c8985&type=emailVerify",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -340,7 +340,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://evil.com/verify"),
@@ -366,12 +366,12 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -395,7 +395,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Disabled:      true,
 					DisplayName:   "jane@acme.com",
@@ -407,7 +407,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -431,7 +431,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					DisplayName:   "jane@acme.com",
 					EmailVerified: true,
@@ -442,7 +442,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -466,12 +466,12 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, errors.New("error")) //nolint:exhaustruct,err113
+				).Return(sql.AuthUser{}, errors.New("error")) //nolint:err113
 
 				return mock
 			},
 			request: api.SendVerificationEmailRequestObject{
-				Body: &api.SendVerificationEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},

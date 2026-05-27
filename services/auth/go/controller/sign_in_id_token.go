@@ -227,7 +227,7 @@ func (ctrl *Controller) providerResolveUser(
 // providerSignUpResolveOnly creates a new user from an OAuth provider profile
 // without creating a session. Returns uuid.Nil when the user needs email
 // verification before they can sign in.
-func (ctrl *Controller) providerSignUpResolveOnly( //nolint:cyclop,funlen
+func (ctrl *Controller) providerSignUpResolveOnly( //nolint:funlen
 	ctx context.Context,
 	provider string,
 	profile oidc.Profile,

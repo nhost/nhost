@@ -1,5 +1,8 @@
-{ self, nix-filter }:
-final: prev: rec {
+final: prev:
+let
+  fs = final.lib.fileset;
+in
+rec {
   go = prev.go_1_26.overrideAttrs (
     finalAttrs: previousAttrs: rec {
       version = "1.26.3";
@@ -102,14 +105,13 @@ final: prev: rec {
   govulncheck-wrapper = final.buildGoModule {
     pname = "govulncheck-wrapper";
     version = "0.0.0-dev";
-    src = nix-filter.lib.filter {
-      root = self;
-      include = with nix-filter.lib; [
-        "go.mod"
-        "go.sum"
-        (inDirectory "vendor")
-        isDirectory
-        (and (inDirectory "tools/govulncheck-wrapper") (matchExt "go"))
+    src = fs.toSource {
+      root = ../..;
+      fileset = fs.unions [
+        ../../go.mod
+        ../../go.sum
+        ../../vendor
+        (fs.fileFilter (f: f.hasExt "go") ../../tools/govulncheck-wrapper)
       ];
     };
     vendorHash = null;

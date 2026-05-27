@@ -4,9 +4,9 @@
 
 const KNOWN_SCHEMA_COLORS: Record<string, string> = {
   public: '59 130 246',
-  auth: '168 85 247',
+  auth: '234 88 12',
   storage: '16 185 129',
-  graphite: '236 72 153',
+  graphite: '6 182 212',
 };
 
 const PALETTE = [
@@ -16,7 +16,6 @@ const PALETTE = [
   '132 204 22',
   '34 211 238',
   '96 165 250',
-  '167 139 250',
   '45 212 191',
 ];
 

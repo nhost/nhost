@@ -1,7 +1,7 @@
+import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { Box } from '@/components/ui/v2/Box';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';

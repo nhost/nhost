@@ -1,9 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Anchor, ChevronsUpDown } from 'lucide-react';
+import { Anchor, ChevronsUpDown, InfoIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -142,8 +141,7 @@ export default function RemoteSchemaRelationshipForm({
                   <Tooltip title="This will be used as the field name in the source type.">
                     <InfoIcon
                       aria-label="Info"
-                      className="h-4 w-4"
-                      color="primary"
+                      className="h-4 w-4 text-primary"
                     />
                   </Tooltip>
                 </FormLabel>
