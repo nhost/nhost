@@ -1969,6 +1969,65 @@ func TestParse_NullNestedRelationship(t *testing.T) {
 	}
 }
 
+// TestParse_NullNot covers `where: {_not: null}`. The `_not` field is generated
+// as a nullable bool_exp, so an explicit null passes GraphQL validation. Hasura
+// treats it as a no-op (the `_not` contributes no constraint), so Parse must
+// yield an empty clause that renders to nothing -- never the invalid `NOT ()`
+// fragment.
+func TestParse_NullNot(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_not", Value: &ast.Value{Kind: ast.NullValue}},
+		},
+	}
+
+	clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	sql, params := renderClause(t, clause)
+	if strings.Contains(sql, "NOT") {
+		t.Errorf("expected no NOT fragment for null _not, got: %s", sql)
+	}
+
+	if sql != "" {
+		t.Errorf("expected empty SQL for null _not no-op, got: %q", sql)
+	}
+
+	if len(params) != 0 {
+		t.Errorf("params = %v, want none", params)
+	}
+}
+
+// TestParse_NullAnd covers `where: {_and: null}`. Unlike `_not`, the null
+// handling in the shared Parse never runs for `_and`: parseLogicalAnd inspects
+// the child value's Kind directly and rejects a NullValue, so `_and: null` is a
+// clean error (it is neither a list nor an object). This pins that pre-existing
+// behavior, which is unaffected by the `_not: null` fix.
+func TestParse_NullAnd(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_and", Value: &ast.Value{Kind: ast.NullValue}},
+		},
+	}
+
+	_, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err == nil {
+		t.Fatal("expected error for null _and, got nil")
+	}
+}
+
 // TestParseFieldComparison_Regex_Supported exercises the SupportsRegex=true
 // happy path through the operator dispatch table: the regex operator parser
 // emits a Postgres regex predicate and the placeholder is taken from the

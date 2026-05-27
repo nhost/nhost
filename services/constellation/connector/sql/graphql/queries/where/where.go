@@ -157,6 +157,14 @@ func parseWhereChild(
 			return nil, fmt.Errorf("failed to parse _not: %w", err)
 		}
 
+		// `_not: null` (and `_not: {}`) impose no constraint, matching Hasura's
+		// no-op semantics. parseLogicalNot returns a nil filter in that case;
+		// appending it would emit an invalid `NOT ()` fragment, so contribute
+		// zero statements instead.
+		if notCondition == nil {
+			return Clause{}, nil
+		}
+
 		return Clause{notCondition}, nil
 
 	case "_exists":
@@ -346,6 +354,14 @@ func parseLogicalNot(
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	// A nil/empty inner clause (e.g. `_not: null` or `_not: {}`) imposes no
+	// constraint. Return a nil filter so the caller can skip it rather than
+	// wrapping an empty clause in `NOT ()`, which is invalid SQL. This mirrors
+	// the nil-Clause guard in parseRelationshipField.
+	if len(conditions) == 0 {
+		return nil, nil //nolint:nilnil
 	}
 
 	return &notFilter{condition: conditions}, nil
