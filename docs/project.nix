@@ -2,7 +2,6 @@
   self,
   pkgs,
   nixops-lib,
-  nix-filter,
 }:
 let
   name = "docs";
@@ -10,40 +9,41 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
 
+  fs = pkgs.lib.fileset;
+
   node_modules = nixops-lib.js.mkNodeModules {
     name = "node-modules-${name}";
     version = "0.0.0-dev";
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ../.;
-      include = with nix-filter.lib; [
-        ".npmrc"
-        "package.json"
-        "pnpm-workspace.yaml"
-        "pnpm-lock.yaml"
-        "${submodule}/package.json"
-        "${submodule}/pnpm-lock.yaml"
+      fileset = fs.unions [
+        ../.npmrc
+        ../package.json
+        ../pnpm-workspace.yaml
+        ../pnpm-lock.yaml
+        ./package.json
+        ./pnpm-lock.yaml
       ];
     };
   };
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../.;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".npmrc"
-      ".prettierignore"
-      ".prettierrc.js"
-      ".gitignore"
-      "audit-ci.jsonc"
-      "biome.json"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "turbo.json"
-      (inDirectory "./build")
-      (inDirectory "${submodule}")
-      (and (inDirectory "packages/nhost-js/src") (matchExt "ts"))
+    fileset = fs.unions [
+      ../.npmrc
+      ../.prettierignore
+      ../.prettierrc.js
+      ../.gitignore
+      ../audit-ci.jsonc
+      ../biome.json
+      ../package.json
+      ../pnpm-workspace.yaml
+      ../pnpm-lock.yaml
+      ../turbo.json
+      ../build
+      ./.
+      (fs.fileFilter (f: f.hasExt "ts") ../packages/nhost-js/src)
       ../services/auth/docs/openapi.yaml
       ../services/storage/controller/openapi.yaml
       ../packages/nhost-js/tsconfig.json
