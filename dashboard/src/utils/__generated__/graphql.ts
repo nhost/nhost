@@ -31,6 +31,7 @@ export type Scalars = {
   citext: any;
   float64: any;
   jsonb: any;
+  labels: any;
   map: any;
   smallint: any;
   timestamptz: any;
@@ -3377,6 +3378,81 @@ export type ContainerError = {
   __typename?: 'ContainerError';
   lastError: LastError;
   name: Scalars['String'];
+};
+
+/**
+ * How to aggregate the chosen `FunctionsMetric`.
+ *
+ * `AVG` is implemented as a per-request ratio: `sum(metric) / sum(invocations)`.
+ * This means `AVG/BYTES_SENT` is the average response size, `AVG/DURATION` is
+ * the average response time, and `AVG/ERRORS` is the error rate.
+ *
+ * Not every combination is meaningful:
+ * - `INVOCATIONS + AVG` is rejected at runtime (the ratio is always 1).
+ * - `MAX`/`MIN` use `[$__range:]` as the outer subquery window in both
+ *   resolvers, so the peak/trough is taken over the full selected range.
+ */
+export enum FunctionsAggregate {
+  /** Per-request average: `sum(metric) / sum(invocations)`. Not valid for `metric: INVOCATIONS`. */
+  Avg = 'AVG',
+  /** Peak rate observed during the selected window. */
+  Max = 'MAX',
+  /** Trough rate observed during the selected window. */
+  Min = 'MIN',
+  /** Sum the metric over the selected window. */
+  Sum = 'SUM'
+}
+
+/** The underlying quantity to query from the functions histogram backend. */
+export enum FunctionsHistogramMetric {
+  /** Function execution time histogram, in seconds. */
+  Duration = 'DURATION'
+}
+
+/**
+ * Labels that may be passed to `groupBy` to split a metric into one series per
+ * label value. Labels not listed here are summed across by default.
+ */
+export enum FunctionsLabel {
+  /** HTTP method of the request (GET, POST, ...). */
+  Method = 'METHOD',
+  /** HTTP status code of the response. */
+  Status = 'STATUS'
+}
+
+/** The underlying quantity to query from the functions metrics backend. */
+export enum FunctionsMetric {
+  /** Total response bytes sent by functions. */
+  BytesSent = 'BYTES_SENT',
+  /** Cumulative function execution time, in seconds. */
+  Duration = 'DURATION',
+  /** Number of invocations that returned a 4xx or 5xx status. */
+  Errors = 'ERRORS',
+  /** Number of function invocations (request count). */
+  Invocations = 'INVOCATIONS'
+}
+
+/**
+ * A time series for a functions metric. `timestamps` and `datapoints` are
+ * parallel arrays of the same length. `labels` carries the values of the
+ * dimensions left intact by `groupBy`.
+ */
+export type FunctionsMetricSeries = {
+  __typename?: 'FunctionsMetricSeries';
+  datapoints: Array<Scalars['float64']>;
+  labels: Scalars['labels'];
+  timestamps: Array<Scalars['Timestamp']>;
+};
+
+/**
+ * A single aggregated value for a functions metric, optionally tagged with the
+ * labels left intact by `groupBy` (e.g. `{method: "GET"}`). When no `groupBy` is
+ * provided exactly one item is returned with empty labels.
+ */
+export type FunctionsMetricValue = {
+  __typename?: 'FunctionsMetricValue';
+  labels: Scalars['labels'];
+  value: Scalars['float64'];
 };
 
 export type InsertRunServiceConfigResponse = {
@@ -22130,12 +22206,39 @@ export type Query_Root = {
   getCPUSecondsUsage: Metrics;
   getEgressVolume: Metrics;
   getFunctionsDuration: Metrics;
+  /**
+   * Returns a time series of the given `percentile` of `metric` over the
+   * selected window. `percentile` must be in `[0, 1]`. `groupBy` returns one
+   * series per combination of label values (the `le` bucket label is always
+   * preserved internally — callers don't need to pass it). `route` is a
+   * regex matched against the function route.
+   */
+  getFunctionsHistogramMetric: Array<FunctionsMetricSeries>;
+  /**
+   * Returns a single aggregated value for `metric` over the selected window
+   * (`from`/`to`, defaulting to the last hour). `groupBy` returns one item per
+   * combination of label values; without it the result has exactly one item
+   * with empty labels. `route` is a regex matched against the function route.
+   *
+   * All four `FunctionsAggregate` values are supported. `INVOCATIONS + AVG`
+   * is rejected (always evaluates to 1).
+   */
+  getFunctionsInstantMetric: Array<FunctionsMetricValue>;
   getFunctionsInvocations: Metrics;
   /**
    * Returns functions logs for a given application, filtered by function path.
    * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
    */
   getFunctionsLogs: Array<Log>;
+  /**
+   * Returns a time series for `metric` over the selected window. `groupBy`
+   * returns one series per combination of label values. `route` is a regex
+   * matched against the function route.
+   *
+   * All four `FunctionsAggregate` values are supported. `INVOCATIONS + AVG`
+   * is rejected (always evaluates to 1).
+   */
+  getFunctionsRangeMetric: Array<FunctionsMetricSeries>;
   getLogsVolume: Metrics;
   getPiTRBaseBackups: Array<PiTrBaseBackup>;
   /**
@@ -23187,6 +23290,28 @@ export type Query_RootGetFunctionsDurationArgs = {
 };
 
 
+export type Query_RootGetFunctionsHistogramMetricArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  groupBy?: InputMaybe<Array<FunctionsLabel>>;
+  metric: FunctionsHistogramMetric;
+  percentile: Scalars['float64'];
+  route: Scalars['String'];
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetFunctionsInstantMetricArgs = {
+  aggregate: FunctionsAggregate;
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  groupBy?: InputMaybe<Array<FunctionsLabel>>;
+  metric: FunctionsMetric;
+  route: Scalars['String'];
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
 export type Query_RootGetFunctionsInvocationsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
@@ -23199,6 +23324,17 @@ export type Query_RootGetFunctionsLogsArgs = {
   from?: InputMaybe<Scalars['Timestamp']>;
   path: Scalars['String'];
   regexFilter?: InputMaybe<Scalars['String']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetFunctionsRangeMetricArgs = {
+  aggregate: FunctionsAggregate;
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  groupBy?: InputMaybe<Array<FunctionsLabel>>;
+  metric: FunctionsMetric;
+  route: Scalars['String'];
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
@@ -31285,6 +31421,14 @@ export type LatestLiveUnifiedDeploymentSubSubscriptionVariables = Exact<{
 
 export type LatestLiveUnifiedDeploymentSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
 
+export type GetUnifiedDeploymentByCommitShaQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+  commitSHA: Scalars['String'];
+}>;
+
+
+export type GetUnifiedDeploymentByCommitShaQuery = { __typename?: 'query_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null }> };
+
 export type GetPipelineRunLogsQueryVariables = Exact<{
   appID: Scalars['String'];
   pipelineRunID: Scalars['String'];
@@ -35410,6 +35554,49 @@ export function useLatestLiveUnifiedDeploymentSubSubscription(baseOptions: Apoll
       }
 export type LatestLiveUnifiedDeploymentSubSubscriptionHookResult = ReturnType<typeof useLatestLiveUnifiedDeploymentSubSubscription>;
 export type LatestLiveUnifiedDeploymentSubSubscriptionResult = Apollo.SubscriptionResult<LatestLiveUnifiedDeploymentSubSubscription>;
+export const GetUnifiedDeploymentByCommitShaDocument = gql`
+    query getUnifiedDeploymentByCommitSHA($appId: uuid!, $commitSHA: String!) {
+  unifiedDeployments(
+    where: {appId: {_eq: $appId}, commitSHA: {_eq: $commitSHA}}
+    order_by: {startedAt: desc}
+    limit: 1
+  ) {
+    id
+  }
+}
+    `;
+
+/**
+ * __useGetUnifiedDeploymentByCommitShaQuery__
+ *
+ * To run a query within a React component, call `useGetUnifiedDeploymentByCommitShaQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUnifiedDeploymentByCommitShaQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUnifiedDeploymentByCommitShaQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      commitSHA: // value for 'commitSHA'
+ *   },
+ * });
+ */
+export function useGetUnifiedDeploymentByCommitShaQuery(baseOptions: Apollo.QueryHookOptions<GetUnifiedDeploymentByCommitShaQuery, GetUnifiedDeploymentByCommitShaQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUnifiedDeploymentByCommitShaQuery, GetUnifiedDeploymentByCommitShaQueryVariables>(GetUnifiedDeploymentByCommitShaDocument, options);
+      }
+export function useGetUnifiedDeploymentByCommitShaLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUnifiedDeploymentByCommitShaQuery, GetUnifiedDeploymentByCommitShaQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUnifiedDeploymentByCommitShaQuery, GetUnifiedDeploymentByCommitShaQueryVariables>(GetUnifiedDeploymentByCommitShaDocument, options);
+        }
+export type GetUnifiedDeploymentByCommitShaQueryHookResult = ReturnType<typeof useGetUnifiedDeploymentByCommitShaQuery>;
+export type GetUnifiedDeploymentByCommitShaLazyQueryHookResult = ReturnType<typeof useGetUnifiedDeploymentByCommitShaLazyQuery>;
+export type GetUnifiedDeploymentByCommitShaQueryResult = Apollo.QueryResult<GetUnifiedDeploymentByCommitShaQuery, GetUnifiedDeploymentByCommitShaQueryVariables>;
+export function refetchGetUnifiedDeploymentByCommitShaQuery(variables: GetUnifiedDeploymentByCommitShaQueryVariables) {
+      return { query: GetUnifiedDeploymentByCommitShaDocument, variables: variables }
+    }
 export const GetPipelineRunLogsDocument = gql`
     query getPipelineRunLogs($appID: String!, $pipelineRunID: String!, $from: Timestamp, $to: Timestamp) {
   getPipelineRunLogs(
