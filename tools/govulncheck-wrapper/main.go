@@ -169,23 +169,26 @@ func printVulnerability(
 }
 
 // isToolchainModule reports whether the given module name is a govulncheck
-// pseudo-module that cannot be bumped via `go get` and instead requires a
-// manual Go toolchain upgrade (handled outside this wrapper, e.g. by bumping
-// the nix overlay that installs Go).
+// pseudo-module that cannot be expressed as a go.mod requirement and instead
+// requires a manual Go toolchain upgrade (handled outside this wrapper, e.g. by
+// bumping the nix overlay that installs Go).
 func isToolchainModule(mod string) bool {
 	return mod == "stdlib" || mod == "toolchain"
 }
 
-// collectFixes returns module@version pairs that, when fed to `go get`, raise
-// each vulnerable module to its OSV-reported fixed version. Only non-allowlisted
-// findings are considered; for modules referenced by multiple findings the
-// highest fixed version (by semver) wins so a later `go get` cannot downgrade
-// an earlier one.
+// collectFixes returns module@version pairs that, when applied via
+// `go mod edit -require`, raise each vulnerable module to its OSV-reported fixed
+// version. Only non-allowlisted findings are considered; for modules referenced
+// by multiple findings the highest fixed version (by semver) wins. Because
+// `go mod edit -require` overrides any existing requirement outright (rather
+// than taking the max the way `go get` would), keeping only the highest fix per
+// module is what prevents a later edit from overwriting an earlier one with a
+// lower version.
 //
 // Findings whose module is a Go toolchain pseudo-module (`stdlib`, `toolchain`)
-// are returned in a separate slice: feeding `stdlib@vX.Y.Z` to `go get` would
-// abort the entire fix run, so the caller logs them as requiring a manual
-// toolchain upgrade and continues bumping the remaining modules.
+// are returned in a separate slice: they cannot be expressed as a go.mod
+// requirement, so the caller logs them as requiring a manual toolchain upgrade
+// and continues bumping the remaining modules.
 func collectFixes(
 	findingsMap map[string][]*finding, blocked []string,
 ) ([]string, []string) {
@@ -248,11 +251,20 @@ func runCmd(name string, args ...string) error {
 	return nil
 }
 
-// applyFixes runs `go get` for each module@version pair, then `go mod tidy`
-// and `go mod vendor` so go.sum and vendor/ stay in sync. No-op when there
-// is nothing to bump. Toolchain pairs are logged but not passed to `go get`
-// because they cannot be bumped that way; they require a manual Go toolchain
-// upgrade (e.g. via the nix overlay).
+// applyFixes raises each module@version pair via `go mod edit -require`, then
+// runs `go mod tidy` and `go mod vendor` so go.sum and vendor/ stay in sync.
+// No-op when there is nothing to bump. Toolchain pairs are logged but not
+// edited into go.mod because they cannot be bumped that way; they require a
+// manual Go toolchain upgrade (e.g. via the nix overlay).
+//
+// `go mod edit -require` is used instead of `go get pkg@version` because
+// `go get` resolves its argument as a package path and walks up to the owning
+// module. For modules whose path has an intermediate module versioned on a
+// different major track (e.g. go.opentelemetry.io/otel/exporters/otlp/otlpmetric
+// is v0.x while its otlpmetrichttp submodule is v1.x), that walk-up overshoots
+// to the v1.x root module, which does not contain the package, and `go get`
+// fails. `go mod edit -require` sets the requirement on the exact module path
+// directly, and the subsequent `go mod tidy` resolves the rest of the graph.
 func applyFixes(pairs, toolchainPairs []string, run cmdRunner) error {
 	for _, pair := range toolchainPairs {
 		fmt.Fprintf(
@@ -275,7 +287,7 @@ func applyFixes(pairs, toolchainPairs []string, run cmdRunner) error {
 	}
 
 	for _, pair := range pairs {
-		if err := run("go", "get", pair); err != nil {
+		if err := run("go", "mod", "edit", "-require="+pair); err != nil {
 			return err
 		}
 	}
@@ -315,8 +327,9 @@ func main() {
 		"config", "govulncheck.yaml", "path to allowlist config file",
 	)
 	fix := flag.Bool(
-		"fix", false,
-		"bump non-allowlisted findings via `go get`, then run `go mod tidy` and `go mod vendor`",
+		"fix",
+		false,
+		"bump non-allowlisted findings via `go mod edit -require`, then run `go mod tidy` and `go mod vendor`",
 	)
 
 	flag.Parse()
