@@ -3,7 +3,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
+import { SearchIcon } from 'lucide-react';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
