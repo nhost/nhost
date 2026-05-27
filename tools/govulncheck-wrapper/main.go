@@ -248,11 +248,20 @@ func runCmd(name string, args ...string) error {
 	return nil
 }
 
-// applyFixes runs `go get` for each module@version pair, then `go mod tidy`
-// and `go mod vendor` so go.sum and vendor/ stay in sync. No-op when there
-// is nothing to bump. Toolchain pairs are logged but not passed to `go get`
-// because they cannot be bumped that way; they require a manual Go toolchain
-// upgrade (e.g. via the nix overlay).
+// applyFixes raises each module@version pair via `go mod edit -require`, then
+// runs `go mod tidy` and `go mod vendor` so go.sum and vendor/ stay in sync.
+// No-op when there is nothing to bump. Toolchain pairs are logged but not
+// edited into go.mod because they cannot be bumped that way; they require a
+// manual Go toolchain upgrade (e.g. via the nix overlay).
+//
+// `go mod edit -require` is used instead of `go get pkg@version` because
+// `go get` resolves its argument as a package path and walks up to the owning
+// module. For modules whose path has an intermediate module versioned on a
+// different major track (e.g. go.opentelemetry.io/otel/exporters/otlp/otlpmetric
+// is v0.x while its otlpmetrichttp submodule is v1.x), that walk-up overshoots
+// to the v1.x root module, which does not contain the package, and `go get`
+// fails. `go mod edit -require` sets the requirement on the exact module path
+// directly, and the subsequent `go mod tidy` resolves the rest of the graph.
 func applyFixes(pairs, toolchainPairs []string, run cmdRunner) error {
 	for _, pair := range toolchainPairs {
 		fmt.Fprintf(
@@ -275,7 +284,7 @@ func applyFixes(pairs, toolchainPairs []string, run cmdRunner) error {
 	}
 
 	for _, pair := range pairs {
-		if err := run("go", "get", pair); err != nil {
+		if err := run("go", "mod", "edit", "-require="+pair); err != nil {
 			return err
 		}
 	}
