@@ -51,11 +51,12 @@ jobs:
 
       - name: Apply Go security fixes
         # govulncheck-wrapper -fix bumps each non-allowlisted finding via
-        # `go get module@fixed-version` then runs `go mod tidy && go mod vendor`
-        # to keep go.sum and vendor/ in sync. No overrides, no vendoring tricks —
-        # just standard module bumps. No-op when nothing is flagged.
+        # `go mod edit -require=module@fixed-version` then runs
+        # `go mod tidy && go mod vendor` to keep go.sum and vendor/ in sync. No
+        # overrides, no vendoring tricks — just standard module bumps. No-op when
+        # nothing is flagged.
         #
-        # `go get` resolves the full module graph, which includes the private
+        # `go mod tidy` resolves the full module graph, which includes the private
         # github.com/nhost/be dep — so we wire the app token into git and set
         # GOPRIVATE to bypass the public proxy/sumdb for nhost org modules.
         env:
@@ -99,7 +100,7 @@ jobs:
             Daily security updates.
 
             * **pnpm**: `pnpm audit --fix=update` per workspace lockfile (no overrides added).
-            * **Go**: `go get` for modules flagged by `govulncheck`, then `go mod tidy && go mod vendor`.
+            * **Go**: `go mod edit -require` for modules flagged by `govulncheck`, then `go mod tidy && go mod vendor`.
 
             Anything still flagged after this PR will fail the regular CI checks (`govulncheck`, `audit-ci-recursive`) — fix manually.
           labels: |

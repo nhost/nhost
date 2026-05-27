@@ -34,6 +34,7 @@ Where `PKG` is:
 - `docs`: For changes to the documentation
 - `examples`: For changes to the examples
 - `functions`: For changes to the Nhost Functions service
+- `govulncheck-wrapper`: For changes to the govulncheck wrapper tool
 - `internal/lib`: For changes to Nhost's common libraries (internal)
 - `nhost-js`: For changes to the Nhost JavaScript SDK
 - `nixops`: For changes to the NixOps
