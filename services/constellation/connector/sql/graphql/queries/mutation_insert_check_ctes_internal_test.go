@@ -156,7 +156,7 @@ func TestBuildUnionAllSelectTypedNullForMissing(t *testing.T) {
 
 	var b strings.Builder
 
-	params, paramIndex := tbl.buildUnionAllSelect(&b, objs, allColumns, columnToValue, nil, 1)
+	params, paramIndex := tbl.buildUnionAllSelect(&b, objs, allColumns, columnToValue, nil, nil, 1)
 
 	got := b.String()
 
@@ -205,13 +205,75 @@ func TestBuildUnionAllSelectUntypedColumnUsesPlainNull(t *testing.T) {
 
 	var b strings.Builder
 
-	tbl.buildUnionAllSelect(&b, objs, allColumns, columnToValue, nil, 1)
+	tbl.buildUnionAllSelect(&b, objs, allColumns, columnToValue, nil, nil, 1)
 
 	got := b.String()
 
 	want := `SELECT $1 AS "id", NULL AS "name" UNION ALL SELECT NULL AS "id", $2 AS "name"`
 	if got != want {
 		t.Errorf("buildUnionAllSelect SQL mismatch\n got: %s\nwant: %s", got, want)
+	}
+}
+
+func TestBuildUnionAllSelectFKFromParentCTE(t *testing.T) {
+	t.Parallel()
+
+	// When a column is mapped in nestedFKIndex, buildUnionAllSelect must emit
+	// the CTE's id for that column (rather than a placeholder or NULL) and
+	// add the CTE to each UNION-ALL branch's FROM clause, so the surrounding
+	// permission predicate sees the real FK value pulled from the parent's
+	// RETURNING — not the NULL the data subquery would otherwise carry.
+	exerciseCol := col("exercise_id", "uuid", false)
+	positionCol := col("position", "int", false)
+	fkCol := col("workout_session_id", "uuid", false)
+
+	tbl := newTestTable(t, []*core.Column{exerciseCol, positionCol, fkCol}, nil)
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{
+			insertCol(exerciseCol, "ex1"),
+			insertCol(positionCol, 1),
+		}},
+		{Columns: []arguments.InsertColumn{
+			insertCol(exerciseCol, "ex2"),
+			insertCol(positionCol, 2),
+		}},
+	}
+
+	// dataColumns mirrors what buildMultiNestedInsertCTEPreCheck builds: the
+	// permission references the FK column, so the FK is added to the column
+	// list via extendWithPermissionColumns.
+	allColumns := []string{"exercise_id", "position", "workout_session_id"}
+	columnToValue := []map[string]any{
+		{"exercise_id": "ex1", "position": 1},
+		{"exercise_id": "ex2", "position": 2},
+	}
+
+	nestedFKIndex := map[string]string{"workout_session_id": "mutation_result"}
+
+	var b strings.Builder
+
+	params, _ := tbl.buildUnionAllSelect(
+		&b, objs, allColumns, columnToValue, nestedFKIndex, nil, 1,
+	)
+
+	got := b.String()
+
+	want := `SELECT $1::uuid AS "exercise_id", $2::int AS "position", ` +
+		`mutation_result."id" AS "workout_session_id" FROM mutation_result ` +
+		`UNION ALL SELECT $3::uuid AS "exercise_id", $4::int AS "position", ` +
+		`mutation_result."id" AS "workout_session_id" FROM mutation_result`
+	if got != want {
+		t.Errorf(
+			"buildUnionAllSelect with FK from parent CTE mismatch\n got: %s\nwant: %s",
+			got,
+			want,
+		)
+	}
+
+	wantParams := []any{"ex1", 1, "ex2", 2}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (params=%v)", len(params), len(wantParams), params)
 	}
 }
 
@@ -237,7 +299,7 @@ func TestBuildSingleInsertCTEPreCheckNoPermissions(t *testing.T) {
 	var b strings.Builder
 
 	params, paramIndex, err := tbl.buildSingleInsertCTEPreCheck(
-		&b, "mutation_result", obj, nil, nil, nil, 1, "user", nil,
+		&b, "mutation_result", obj, nil, nil, nil, nil, 1, "user", nil,
 	)
 	if err != nil {
 		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
@@ -292,7 +354,7 @@ func TestBuildSingleInsertCTEPreCheckWithPermissions(t *testing.T) {
 	var b strings.Builder
 
 	params, _, err := tbl.buildSingleInsertCTEPreCheck(
-		&b, "mutation_result", obj, nil, nil, nil, 1, "user", nil,
+		&b, "mutation_result", obj, nil, nil, nil, nil, 1, "user", nil,
 	)
 	if err != nil {
 		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
@@ -425,7 +487,7 @@ func TestPermissionReferencesGeneratedColumnsBranching(t *testing.T) {
 		var b strings.Builder
 
 		_, _, err := tbl.buildSingleInsertCTEPreCheck(
-			&b, "mutation_result", obj, nil, nil, nil, 1, "user", nil,
+			&b, "mutation_result", obj, nil, nil, nil, nil, 1, "user", nil,
 		)
 
 		return b.String(), err

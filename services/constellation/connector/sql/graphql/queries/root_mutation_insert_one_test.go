@@ -399,6 +399,38 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		},
 
 		{
+			name: "nested insert with array relationship (multiple rows)",
+			query: query{
+				Query: `mutation InsertDeptWithEmployees($obj: departments_insert_input!) {
+					  insert_departments_one(object: $obj) {
+						id
+					  }
+					}`,
+				Variables: map[string]any{
+					"obj": map[string]any{
+						"id":          "00000000-0000-0000-0000-000000000789",
+						"name":        "Array Insert Dept",
+						"description": "department with many employees",
+						"budget":      300000,
+						"employees": map[string]any{
+							"data": []any{
+								map[string]any{
+									"user_id": "550e8400-e29b-41d4-a716-446655440002",
+									"role":    "member",
+								},
+								map[string]any{
+									"user_id": "550e8400-e29b-41d4-a716-446655440001",
+									"role":    "manager",
+								},
+							},
+						},
+					},
+				},
+				Role: "admin",
+			},
+		},
+
+		{
 			name: "nested insert with multiple levels and specified IDs",
 			query: query{
 				Query: `mutation {
@@ -545,6 +577,107 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 					"x-hasura-user-id":            "550e8400-e29b-41d4-a716-446655440001",
 					"x-hasura-departments":        "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
 					"x-hasura-department-manager": "{fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+
+		// Nested array-relationship insert where the child's insert permission
+		// references the parent — either directly via the FK column
+		// (`kb_entry_id: _in: ...`) or indirectly via a relationship to the
+		// parent (`kb_entry: {uploader_id: _eq: ...}`).
+		//
+		// Two issues had to be fixed for this case:
+		//   1. The pre-check data subquery emitted NULL for the FK column
+		//      (because the parent INSERT hasn't produced its RETURNING yet),
+		//      so any predicate on that column rejected every row. The check
+		//      CTE now pulls the FK from the parent CTE.
+		//   2. A relationship-based predicate compiles to EXISTS against the
+		//      parent's underlying table — which doesn't see the in-flight
+		//      parent INSERT (Postgres WITH snapshot rule). The relationship's
+		//      EXISTS is now rewritten to query the parent CTE in nested
+		//      contexts so it sees the freshly-inserted row.
+		{
+			name: "permissions: nested array insert references FK (single row)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_kb_entries_one(
+						object: {
+						  title: "Single-row nested array test",
+						  summary: "summary",
+						  content: "content",
+						  kb_entry_departments: {
+							data: [
+							  { department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3" }
+							]
+						  }
+						}) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"x-hasura-departments": "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested array insert references FK (multiple rows)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_kb_entries_one(
+						object: {
+						  title: "Multi-row nested array test",
+						  summary: "summary",
+						  content: "content",
+						  kb_entry_departments: {
+							data: [
+							  { department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3" },
+							  { department_id: "fd1e6bba-c292-4b2f-872e-ae16146cdd82" }
+							]
+						  }
+						}) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"x-hasura-departments": "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested array insert references FK (denied)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_kb_entries_one(
+						object: {
+						  title: "Multi-row nested array denied",
+						  summary: "summary",
+						  content: "content",
+						  kb_entry_departments: {
+							data: [
+							  { department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3" },
+							  { department_id: "fd1e6bba-c292-4b2f-872e-ae16146cdd82" }
+							]
+						  }
+						}) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"x-hasura-departments": "{fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
 				},
 			},
 		},

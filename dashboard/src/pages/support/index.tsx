@@ -1,10 +1,8 @@
-import { UsersRoundIcon } from 'lucide-react';
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
+import { ArrowRightIcon, FileTextIcon, UsersRoundIcon } from 'lucide-react';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 
