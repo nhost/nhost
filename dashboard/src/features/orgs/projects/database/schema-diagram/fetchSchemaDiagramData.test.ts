@@ -324,4 +324,16 @@ describe('fetchSchemaDiagramData', () => {
       expect(arg.args.source).toBe('default');
     }
   });
+
+  it("includes materialized-view columns via a UNION on pg_class where relkind='m'", async () => {
+    fetchMock.mockResolvedValueOnce(bulkResponse([], []));
+
+    await fetchSchemaDiagramData(callArgs);
+
+    const [, init] = fetchMock.mock.calls[0];
+    const columnSql: string = JSON.parse(init.body).args[0].args.sql;
+    expect(columnSql).toMatch(/UNION ALL/i);
+    expect(columnSql).toMatch(/relkind\s*=\s*'m'/);
+    expect(columnSql).toMatch(/pg_attribute/);
+  });
 });
