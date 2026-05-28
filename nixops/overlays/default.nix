@@ -12,6 +12,8 @@ final: prev:
   });
 
   nhost-cli = final.callPackage ./nhost-cli.nix { inherit final; };
+
+  pi-agent = final.callPackage ./pi-agent.nix { inherit final; };
 }
 // import ./go.nix final prev
 // import ./js.nix final prev

@@ -114,6 +114,14 @@ Add any new findings discovered here as additional comments.
 
 ## Phase 5 — Write findings + summary
 
+Before writing any findings for the current run, clear stale per-finding comments for this PR only:
+
+```bash
+rm -f .review/PR_<PR_NUMBER>_COMMENT_*.md
+```
+
+Do this even when there are no confirmed findings, so old comments from earlier runs cannot be published with the fresh summary. Do not remove `DESCRIPTION`, `TITLES`, or `REVIEW` files; they are overwritten separately. Then number the current run's confirmed findings from 1.
+
 For each confirmed finding, write `.review/PR_<PR_NUMBER>_COMMENT_<N>.md` at the repo root (N increments from 1), containing:
 
 - `**File:**` — file path.
