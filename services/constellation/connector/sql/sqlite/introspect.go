@@ -371,6 +371,14 @@ func isIdentByte(b byte) bool {
 	}
 }
 
+// pkEntry pairs a primary-key column name with its ordinal position (1-based)
+// so PK columns scanned from PRAGMA table_xinfo in row order can be re-sorted
+// into the table's declared PK order.
+type pkEntry struct {
+	name  string
+	order int
+}
+
 // getColumnsAndPKs returns the column metadata and primary-key column list
 // for tableName by querying PRAGMA table_xinfo. The xinfo variant is used over
 // table_info so that hidden / generated columns are included.
@@ -389,14 +397,6 @@ func isIdentByte(b byte) bool {
 // DESC (the DESC form cannot alias the rowid), and PK declarations that
 // otherwise diverge from the integer-affinity-as-alias shortcut. Views
 // always pass false.
-// pkEntry pairs a primary-key column name with its ordinal position (1-based)
-// so PK columns scanned from PRAGMA table_xinfo in row order can be re-sorted
-// into the table's declared PK order.
-type pkEntry struct {
-	name  string
-	order int
-}
-
 func getColumnsAndPKs(
 	ctx context.Context, q Querier, tableName string, hasExplicitPKIndex bool,
 ) ([]introspection.Column, []string, error) {

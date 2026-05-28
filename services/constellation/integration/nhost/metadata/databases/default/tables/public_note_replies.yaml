@@ -8,17 +8,6 @@ object_relationships:
 insert_permissions:
   - role: user
     permission:
-      # The check both references a sibling relationship to the parent
-      # (note.author_id, walked via the note_id FK) and a DB-defaulted column
-      # on the child (visibility). When inserted as the nested side of an
-      # array relationship from notes, visibility is absent from the payload
-      # and parents are still in-flight in the same CTE chain. This forces
-      # the post-check path with tableSubs populated, exercising the
-      # post-check substitution fix. visibility is included in the column
-      # whitelist so payloads can also supply `visibility: "private"` to
-      # exercise direct denial through the substituted child post-check
-      # (the relationship-EXISTS half passes via tableSubs; the leaf
-      # `visibility _eq "public"` half fails on RETURNING *).
       check:
         _and:
           - note:
