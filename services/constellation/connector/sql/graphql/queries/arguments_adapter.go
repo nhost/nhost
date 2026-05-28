@@ -16,8 +16,8 @@ import (
 // arguments.Table.Relationship has a different name from
 // where.Table.RelationshipFromGraphqlName specifically so a single *table can
 // satisfy both interfaces (Go does not allow covariant return types).
-// arguments.Relationship's methods (Name, TargetTable, FKColumns, IsArray)
-// don't collide with where.Relationship (Target, ParentColumns,
+// arguments.Relationship's methods (Name, TargetTable, FKColumns,
+// FKSourceColumns, IsArray) don't collide with where.Relationship (Target, ParentColumns,
 // WriteJoinConditionAliased), so *relationship satisfies both directly.
 
 func (t *table) TableName() string { return t.tableName }
@@ -79,17 +79,30 @@ func (r *relationship) TargetTable() arguments.Table { //nolint:ireturn,nolintli
 
 func (r *relationship) FKColumns() []string { return r.fkColumns }
 
-// ReferencedColumns returns the column names on the sibling-CTE side of the
-// FK, paired by index with FKColumns. For object relationships the parent
-// owns the FK and the CTE holds nested-target rows, so the referenced cols
-// are r.targetColumns. For array relationships the child owns the FK and the
-// CTE holds parent rows, so the referenced cols are r.parentColumns.
-func (r *relationship) ReferencedColumns() []string {
+func (r *relationship) FKSourceColumns() map[string]string {
+	fkSources := make(map[string]string, len(r.parentColumns))
+
 	if r.isArray {
-		return r.parentColumns
+		for i, parentColumn := range r.parentColumns {
+			if i >= len(r.targetColumns) {
+				break
+			}
+
+			fkSources[r.targetColumns[i]] = parentColumn
+		}
+
+		return fkSources
 	}
 
-	return r.targetColumns
+	for i, parentColumn := range r.parentColumns {
+		if i >= len(r.targetColumns) {
+			break
+		}
+
+		fkSources[parentColumn] = r.targetColumns[i]
+	}
+
+	return fkSources
 }
 
 func (r *relationship) IsArray() bool { return r.isArray }

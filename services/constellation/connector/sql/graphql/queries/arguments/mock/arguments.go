@@ -209,18 +209,18 @@ func (mr *MockRelationshipMockRecorder) FKColumns() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FKColumns", reflect.TypeOf((*MockRelationship)(nil).FKColumns))
 }
 
-// ReferencedColumns mocks base method.
-func (m *MockRelationship) ReferencedColumns() []string {
+// FKSourceColumns mocks base method.
+func (m *MockRelationship) FKSourceColumns() map[string]string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReferencedColumns")
-	ret0, _ := ret[0].([]string)
+	ret := m.ctrl.Call(m, "FKSourceColumns")
+	ret0, _ := ret[0].(map[string]string)
 	return ret0
 }
 
-// ReferencedColumns indicates an expected call of ReferencedColumns.
-func (mr *MockRelationshipMockRecorder) ReferencedColumns() *gomock.Call {
+// FKSourceColumns indicates an expected call of FKSourceColumns.
+func (mr *MockRelationshipMockRecorder) FKSourceColumns() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReferencedColumns", reflect.TypeOf((*MockRelationship)(nil).ReferencedColumns))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FKSourceColumns", reflect.TypeOf((*MockRelationship)(nil).FKSourceColumns))
 }
 
 // IsArray mocks base method.

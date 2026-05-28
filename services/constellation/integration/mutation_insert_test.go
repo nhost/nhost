@@ -630,9 +630,6 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// DISABLED — pre-existing multi-parent nested-insert bug, not addressed
-		// in this PR. See [[multi-parent-nested-array-rel-bug]] below.
-		//
 		// Top-level multi-row parent insert with nested array-relationship
 		// children whose post-check (`note.author_id = X-Hasura-User-Id AND
 		// visibility = 'public'`) reaches the parent through note_id and
@@ -640,68 +637,48 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// payload. Exercises buildMultiNestedInsertCTEPostCheck threading
 		// tableSubs into permissions.Store.WriteInsertCheckSubstituted so the
 		// EXISTS subquery reads from each parent's in-flight mutation_result
-		// CTE instead of the empty public.notes table.
-		//
-		// TODO(multi-parent-nested-array-rel-bug): re-enable once nested-array
-		// children are correctly partitioned per parent row. Today
-		// `buildNestedCTEsMap` and the nested-CTE data builder only consume
-		// `insertObjs[0].NestedInserts`, so when this query is sent:
-		//   - Parent 2's reply ("reply 2a") is silently dropped during arg
-		//     parsing — only parent 1's two replies enter nested_replies_data.
-		//   - The INSERT into note_replies then does
-		//     `SELECT body, mutation_result.id FROM nested_replies_data,
-		//     mutation_result` — a cross join, so parent 1's two replies are
-		//     inserted twice (once per parent), producing 4 child rows total.
-		//   - affected_rows reports 2 (parents) + 4 (cross-joined children) =
-		//     6, where Hasura reports 5 (2 parents + 3 children correctly
-		//     attached: 2 to parent 1, 1 to parent 2).
-		// Fix sketch: tag each nested child with its parent row index during
-		// argument parsing, emit nested_<rel>_data with a per-row parent_idx
-		// column, and INNER JOIN nested_<rel>_data to mutation_result on that
-		// index instead of cross-joining. This also fixes the
-		// composite-FK-non-id case noted in
-		// [[project_constellation_nested_composite_fk_bug]].
-		/*
-			{
-				name: "permissions: multi-row parent insert with nested array replies through parent CTE",
-				query: query{
-					Query: `
-						mutation {
-						  insert_notes(objects: [
-							{
-							  id: "0199bbbb-0000-7000-8000-000000000020"
-							  author_id: "550e8400-e29b-41d4-a716-446655440001"
-							  title: "Parent one"
-							  replies: {
-								data: [
-								  { body: "reply 1a" }
-								  { body: "reply 1b" }
-								]
-							  }
-							}
-							{
-							  id: "0199bbbb-0000-7000-8000-000000000021"
-							  author_id: "550e8400-e29b-41d4-a716-446655440001"
-							  title: "Parent two"
-							  replies: {
-								data: [
-								  { body: "reply 2a" }
-								]
-							  }
-							}
-						  ]) {
-							affected_rows
-							returning { title }
+		// CTE instead of the empty public.notes table. Also exercises the
+		// multi-parent partitioning fix: each parent's children must be
+		// inserted only against that parent (no cross-join, no drops).
+		{
+			name: "permissions: multi-row parent insert with nested array replies through parent CTE",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000020"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent one"
+						  replies: {
+							data: [
+							  { body: "reply 1a" }
+							  { body: "reply 1b" }
+							]
 						  }
-						}`,
-					Variables: map[string]any{},
-					Role:      "user",
-					SessionVariables: map[string]string{
-						"user-id": "550e8400-e29b-41d4-a716-446655440001",
-					},
+						}
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000021"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent two"
+						  replies: {
+							data: [
+							  { body: "reply 2a" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+						returning { title }
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
 				},
 			},
-		*/
+		},
 
 		// Single-parent collection-insert with a nested array-rel child
 		// whose substituted post-check denies (visibility = "private" trips
@@ -784,78 +761,58 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// DISABLED — same pre-existing multi-parent nested-insert bug as
-		// above; in this shape it's a *silent permission bypass* rather than
-		// just a wrong count, so re-enabling without the fix would let a
-		// user-denied row land in the database.
-		//
-		// Multi-row sibling of the single-row denial: parent pre-check passes
-		// for every row, so each child runs through
-		// buildMultiNestedInsertCTEPostCheck with tableSubs pointing the
-		// note.author_id EXISTS at the parents' in-flight mutation_result CTE.
-		// One child supplies `visibility: "private"` to trip the leaf
-		// `visibility _eq "public"` half of the child's `_and`; the
-		// substituted relationship half still passes, so the denial
-		// demonstrably comes from the child post-check evaluated against
-		// RETURNING *.
-		//
-		// TODO(multi-parent-nested-array-rel-bug): re-enable once nested-array
-		// children are correctly partitioned per parent row. Today the
-		// `{ body: "private reply", visibility: "private" }` row is the second
-		// parent's child, but only `insertObjs[0].NestedInserts` enters the
-		// nested CTE data, so the offending row is dropped before SQL gen and
-		// only parent 1's "ok reply" survives. The cross-join then duplicates
-		// "ok reply" against both parents (visibility default = 'public'), the
-		// post-check trivially passes, and Constellation reports
-		// affected_rows: 4 instead of throwing — a silent permission bypass.
-		// Fix sketch: same as above (tag children with parent index, inner
-		// join on it).
-		/*
-			{
-				name: "permissions: multi-row parent insert denied at substituted child post-check (visibility private)",
-				query: query{
-					Query: `
-						mutation {
-						  insert_notes(objects: [
-							{
-							  id: "0199bbbb-0000-7000-8000-000000000023"
-							  author_id: "550e8400-e29b-41d4-a716-446655440001"
-							  title: "Parent passes A"
-							  replies: {
-								data: [
-								  { body: "ok reply" }
-								]
-							  }
-							}
-							{
-							  id: "0199bbbb-0000-7000-8000-000000000024"
-							  author_id: "550e8400-e29b-41d4-a716-446655440001"
-							  title: "Parent passes B"
-							  replies: {
-								data: [
-								  { body: "private reply", visibility: "private" }
-								]
-							  }
-							}
-						  ]) {
-							affected_rows
+		// Multi-parent nested array-rel insert where parent[1]'s child trips
+		// the child's `visibility _eq "public"` insert check via
+		// `visibility: "private"`. Because every child explicitly supplies
+		// visibility, the child insert stays on the pre-check path. With
+		// partitioning the offending row survives parse-time, reaches the
+		// pre-check with its matched parent FK, and the mutation errors out —
+		// matching Hasura. Pre-bug, parent[1]'s row was silently dropped and
+		// the check passed: a permission bypass.
+		{
+			name: "permissions: multi-parent nested array-rel insert with private child trips pre-check",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000023"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent passes A"
+						  replies: {
+							data: [
+							  { body: "ok reply", visibility: "public" }
+							]
 						  }
-						}`,
-					Variables: map[string]any{},
-					Role:      "user",
-					SessionVariables: map[string]string{
-						"user-id": "550e8400-e29b-41d4-a716-446655440001",
-					},
+						}
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000024"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent passes B"
+						  replies: {
+							data: [
+							  { body: "private reply", visibility: "private" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
 				},
-				expected: map[string]any{
-					"errors": []any{
-						map[string]any{
-							"message": `failed to execute operations: failed to execute operation insert_notes: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
-						},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_notes: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
 					},
 				},
 			},
-		*/
+		},
 
 		// Hasura-parity lock for affected_rows over an object-relationship
 		// nested insert. Hasura counts every row inserted by the mutation —
@@ -897,13 +854,12 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 
 		// The 2-row sibling (each row with its own nested file parent)
 		// would also be a useful Hasura-parity lock — Hasura reports
-		// affected_rows = 4 — but in the current code it is blocked by
-		// the same pre-existing multi-parent nested-insert bug noted in
-		// the array-rel TODO blocks above: buildNestedCTEsMap only walks
-		// insertObjs[0].NestedInserts, so the second row's nested file is
-		// dropped and Constellation diverges. Re-add when that bug is
-		// fixed; the 1-row case above is sufficient to lock the summing
-		// shape introduced by this PR.
+		// affected_rows = 4 — but Constellation still only emits object-rel
+		// nested CTEs/FK mappings from insertObjs[0].NestedInserts. Later
+		// parent rows therefore cannot attach their own nested object-rel
+		// parent yet. Re-add when multi-parent object-rel nested inserts are
+		// implemented; the 1-row case above is sufficient to lock the
+		// affected_rows summing shape introduced by this PR.
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

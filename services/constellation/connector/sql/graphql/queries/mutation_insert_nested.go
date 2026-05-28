@@ -3,9 +3,13 @@ package queries
 import (
 	"fmt"
 	"maps"
+	"reflect"
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
@@ -62,7 +66,11 @@ func buildNestedInsertCTE(
 		b.WriteString(", ")
 	}
 
-	nestedFKIndex := ni.ApplyArrayFKColumn(parentCTEName)
+	nestedFKIndex, err := ni.ApplyArrayFKColumn(parentCTEName)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to apply array FK columns: %w", err)
+	}
+
 	childSubs := extendSubsForArrayChild(tableSubs, parentTableFromClause, parentCTEName, ni)
 
 	// ni.TargetTable always arrives as a *table — that's the only thing the
@@ -78,7 +86,6 @@ func buildNestedInsertCTE(
 		)
 	}
 
-	var err error
 	if len(ni.NestedObjects) == 1 {
 		params, paramIndex, err = buildSingleNestedInsertCTE(
 			b, target, cteName, ni, nestedFKIndex, childSubs,
@@ -123,7 +130,7 @@ func buildSingleNestedInsertCTE(
 	target *table,
 	cteName string,
 	ni *arguments.NestedInsert,
-	nestedFKIndex map[string]arguments.NestedFKRef,
+	nestedFKIndex arguments.NestedFKSources,
 	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
@@ -153,17 +160,14 @@ func (t *table) buildMultiNestedInsertCTE(
 	cteName string,
 	insertObjs []arguments.InsertObject,
 	onConflict *arguments.OnConflict,
-	nestedFKIndex map[string]arguments.NestedFKRef,
+	nestedFKIndex arguments.NestedFKSources,
 	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
 	role string,
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
-	nestedFKColumns := make(map[string]struct{}, len(nestedFKIndex))
-	for col := range nestedFKIndex {
-		nestedFKColumns[col] = struct{}{}
-	}
+	nestedFKColumns := nestedFKColumnSet(nestedFKIndex)
 
 	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
 
@@ -189,7 +193,7 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]arguments.NestedFKRef,
+	nestedFKIndex arguments.NestedFKSources,
 	tableSubs where.TableSubstitutions,
 	onConflict *arguments.OnConflict,
 	role string,
@@ -223,10 +227,7 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 		t.buildCheckCountCTE(b, cteName, checkCTEName, len(insertObjs))
 	}
 
-	finalColumns := append([]string{}, allColumns...)
-	for col := range nestedFKIndex {
-		finalColumns = append(finalColumns, col)
-	}
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
 	b.WriteString(cteName)
 	b.WriteString(" AS (INSERT INTO ")
@@ -261,7 +262,7 @@ func (t *table) buildMultiNestedInsertCTEPostCheck(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]arguments.NestedFKRef,
+	nestedFKIndex arguments.NestedFKSources,
 	tableSubs where.TableSubstitutions,
 	onConflict *arguments.OnConflict,
 	role string,
@@ -282,10 +283,7 @@ func (t *table) buildMultiNestedInsertCTEPostCheck(
 
 	b.WriteString(") AS data), ")
 
-	finalColumns := append([]string{}, allColumns...)
-	for col := range nestedFKIndex {
-		finalColumns = append(finalColumns, col)
-	}
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
 	b.WriteString(rawCTEName)
 	b.WriteString(" AS (INSERT INTO ")
@@ -370,6 +368,21 @@ func (t *table) buildNestedInsertCTEs(
 // buildArrayNestedInsertCTEs builds CTEs for array-relationship nested
 // inserts, which must run AFTER the parent CTE (mutation_result) since the FK
 // column lives on the child and references the parent's PK.
+//
+// Two emission shapes:
+//
+//  1. Single-parent (len(insertObjs) == 1): each parent's children cross-join
+//     `mutation_result` (one row) and so attach correctly. The single/multi
+//     row distinction inside ni.NestedObjects is kept (single-row path emits a
+//     single INSERT, multi-row path emits a UNION-ALL data CTE) for historical
+//     SQL shape stability.
+//  2. Multi-parent (len(insertObjs) > 1): a cross-join would attach every
+//     child to every parent (and silently drop children belonging to
+//     parents other than the first). The parent INSERT is split into one CTE
+//     per input row, then children from every parent's NestedInserts are
+//     merged into one data CTE per relationship. Each child row sources FK
+//     values from the exact parent CTE that owns it, so the mapping is stable
+//     and does not depend on RETURNING row order.
 func (t *table) buildArrayNestedInsertCTEs(
 	insertObjs []arguments.InsertObject,
 	role string,
@@ -377,7 +390,17 @@ func (t *table) buildArrayNestedInsertCTEs(
 	params []any,
 	paramIndex int,
 ) (string, []any, int, error) {
-	if len(insertObjs) == 0 || len(insertObjs[0].NestedInserts) == 0 {
+	if len(insertObjs) == 0 {
+		return "", params, paramIndex, nil
+	}
+
+	if len(insertObjs) > 1 {
+		return t.buildPartitionedArrayNestedInsertCTEs(
+			insertObjs, role, sessionVariables, params, paramIndex,
+		)
+	}
+
+	if len(insertObjs[0].NestedInserts) == 0 {
 		return "", params, paramIndex, nil
 	}
 
@@ -406,23 +429,861 @@ func (t *table) buildArrayNestedInsertCTEs(
 	return cteSQL.String(), params, paramIndex, nil
 }
 
-// buildNestedFKIndex maps foreign-key columns to their nested CTE names for
-// object-relationship nested inserts only. For object relationships the FK
-// lives on the parent row, so we record the CTE that supplies each FK column's
-// value plus the column on that CTE the FK references — composite FKs need
-// the per-column referenced name (e.g. nested_author."kind") rather than a
-// hardcoded ."id". The referenced column comes from NestedInsert.ReferencedColumns
-// which the arguments parser populates from Relationship.ReferencedColumns.
+func hasArrayNestedInserts(insertObjs []arguments.InsertObject) bool {
+	for i := range insertObjs {
+		for j := range insertObjs[i].NestedInserts {
+			if insertObjs[i].NestedInserts[j].IsArrayRelationship {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func partitionedParentCTEName(parentIdx int) string {
+	return "mutation_result_" + strconv.Itoa(parentIdx)
+}
+
+func partitionedParentCTENames(count int) []string {
+	cteNames := make([]string, count)
+	for i := range cteNames {
+		cteNames[i] = partitionedParentCTEName(i)
+	}
+
+	return cteNames
+}
+
+// buildPartitionedParentInsertMutationCTEBody emits one parent INSERT CTE per
+// input row for multi-parent array-relationship inserts. Each child row can
+// then source its FK from the exact parent CTE that owns it, avoiding any
+// dependence on RETURNING row order.
+func (t *table) buildPartitionedParentInsertMutationCTEBody(
+	b *strings.Builder,
+	insertObjs []arguments.InsertObject,
+	nestedFKIndex arguments.NestedFKSources,
+	onConflict *arguments.OnConflict,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	for i := range insertObjs {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		for _, col := range insertObjs[i].Columns {
+			if _, isFK := nestedFKIndex[col.Column.SQLName]; !isFK {
+				params = append(params, col.Value)
+			}
+		}
+
+		var err error
+
+		params, paramIndex, err = t.buildSingleInsertCTE(
+			b, partitionedParentCTEName(i), insertObjs[i], onConflict, nestedFKIndex, nil,
+			params, paramIndex, role, sessionVariables,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to build parent CTE %d: %w", i, err)
+		}
+	}
+
+	b.WriteString(", mutation_result AS (")
+
+	for i := range insertObjs {
+		if i > 0 {
+			b.WriteString(" UNION ALL ")
+		}
+
+		t.writePartitionedParentProjection(b, partitionedParentCTEName(i))
+	}
+
+	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+
+func (t *table) writePartitionedParentProjection(b *strings.Builder, cteName string) {
+	b.WriteString("SELECT ")
+
+	for i, col := range t.columns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		b.WriteString(cteName)
+		b.WriteByte('.')
+		core.WriteQuotedIdentifier(b, col.SQLName)
+	}
+
+	b.WriteString(" FROM ")
+	b.WriteString(cteName)
+}
+
+// partitionedOnConflictKey is the canonical representation used to decide
+// whether two partitioned nested-array inserts can share one CTE. The SQL is
+// rendered with a fixed placeholder base and params are kept separately so
+// equal where clauses with equal values group together without stringifying
+// user values.
+type partitionedOnConflictKey struct {
+	sql    string
+	params []any
+}
+
+func newPartitionedOnConflictKey(
+	onConflict *arguments.OnConflict,
+) (partitionedOnConflictKey, error) {
+	var b strings.Builder
+
+	params, _, err := onConflict.ToSQL(&b, nil, 1)
+	if err != nil {
+		return partitionedOnConflictKey{}, fmt.Errorf("failed to render on_conflict: %w", err)
+	}
+
+	return partitionedOnConflictKey{sql: b.String(), params: params}, nil
+}
+
+func (k partitionedOnConflictKey) equal(other partitionedOnConflictKey) bool {
+	return k.sql == other.sql && reflect.DeepEqual(k.params, other.params)
+}
+
+// partitionedNestedGroup gathers, per array-relationship and compatible
+// on_conflict clause, every child row across all parents in a multi-parent
+// insert. parentCTENames is the row-aligned CTE used to source FK values;
+// parentIdxs keeps the original parent index for diagnostics and tests.
+type partitionedNestedGroup struct {
+	cteName        string
+	template       *arguments.NestedInsert
+	onConflictKey  partitionedOnConflictKey
+	objs           []arguments.InsertObject
+	parentIdxs     []int
+	parentCTENames []string
+}
+
+func reservedNestedCTENames(
+	insertObjs []arguments.InsertObject,
+	ctePrefix string,
+) map[string]struct{} {
+	reserved := make(map[string]struct{})
+
+	for i := range insertObjs {
+		for _, nested := range insertObjs[i].NestedInserts {
+			reserved[ctePrefix+"nested_"+nested.RelationshipName] = struct{}{}
+		}
+	}
+
+	return reserved
+}
+
+func uniquePartitionedNestedCTEName(
+	ctePrefix string,
+	relationshipName string,
+	conflictIdx int,
+	used map[string]struct{},
+	reserved map[string]struct{},
+) string {
+	base := ctePrefix + "nested_" + relationshipName
+
+	candidate := base
+	if conflictIdx > 0 {
+		candidate = base + "_" + strconv.Itoa(conflictIdx)
+	}
+
+	for suffix := conflictIdx + 1; ; suffix++ {
+		_, isUsed := used[candidate]
+
+		_, isReserved := reserved[candidate]
+		if !isUsed && (!isReserved || candidate == base) {
+			used[candidate] = struct{}{}
+
+			return candidate
+		}
+
+		candidate = base + "_" + strconv.Itoa(suffix)
+	}
+}
+
+func matchingPartitionedNestedGroup(
+	groups []*partitionedNestedGroup,
+	onConflictKey partitionedOnConflictKey,
+) *partitionedNestedGroup {
+	for _, g := range groups {
+		if g.onConflictKey.equal(onConflictKey) {
+			return g
+		}
+	}
+
+	return nil
+}
+
+// groupPartitionedArrayNestedInserts walks every parent's NestedInserts and
+// merges array-rel children into per-relationship/per-on_conflict groups,
+// recording each row's parent index. Order is first-encounter for both
+// relationships and rows so the resulting SQL is deterministic.
+func groupPartitionedArrayNestedInserts(
+	insertObjs []arguments.InsertObject,
+) ([]*partitionedNestedGroup, error) {
+	return groupPartitionedArrayNestedInsertsWithParents(
+		insertObjs, partitionedParentCTENames(len(insertObjs)), "",
+	)
+}
+
+func validateParentCTENameCount(
+	insertObjs []arguments.InsertObject,
+	parentCTENames []string,
+) error {
+	if len(insertObjs) == len(parentCTENames) {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"%w: got %d parent CTE names for %d insert objects",
+		errPartitionedParentCTECountMismatch,
+		len(parentCTENames),
+		len(insertObjs),
+	)
+}
+
+func groupPartitionedArrayNestedInsertsWithParents(
+	insertObjs []arguments.InsertObject,
+	parentCTENames []string,
+	ctePrefix string,
+) ([]*partitionedNestedGroup, error) {
+	if err := validateParentCTENameCount(insertObjs, parentCTENames); err != nil {
+		return nil, err
+	}
+
+	var groups []*partitionedNestedGroup
+
+	byName := make(map[string][]*partitionedNestedGroup)
+	usedCTENames := make(map[string]struct{})
+	reservedCTENames := reservedNestedCTENames(insertObjs, ctePrefix)
+
+	for parentIdx := range insertObjs {
+		for i := range insertObjs[parentIdx].NestedInserts {
+			nested := &insertObjs[parentIdx].NestedInserts[i]
+			if !nested.IsArrayRelationship {
+				continue
+			}
+
+			onConflictKey, err := newPartitionedOnConflictKey(nested.OnConflict)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed to group nested insert %s: %w", nested.RelationshipName, err,
+				)
+			}
+
+			relationshipGroups := byName[nested.RelationshipName]
+
+			g := matchingPartitionedNestedGroup(relationshipGroups, onConflictKey)
+			if g == nil {
+				g = &partitionedNestedGroup{
+					cteName: uniquePartitionedNestedCTEName(
+						ctePrefix,
+						nested.RelationshipName,
+						len(relationshipGroups),
+						usedCTENames,
+						reservedCTENames,
+					),
+					template:       nested,
+					onConflictKey:  onConflictKey,
+					objs:           nil,
+					parentIdxs:     nil,
+					parentCTENames: nil,
+				}
+				byName[nested.RelationshipName] = append(relationshipGroups, g)
+				groups = append(groups, g)
+			}
+
+			for _, obj := range nested.NestedObjects {
+				g.objs = append(g.objs, obj)
+				g.parentIdxs = append(g.parentIdxs, parentIdx)
+				g.parentCTENames = append(g.parentCTENames, parentCTENames[parentIdx])
+			}
+		}
+	}
+
+	return groups, nil
+}
+
+// buildPartitionedArrayNestedInsertCTEs handles the multi-parent array-rel
+// case: children from every parent are merged into one data CTE per
+// relationship, with each row carrying the CTE name it should source FK
+// values from. This is the fix for the silent-drop + cross-join bug
+// documented at the top of this file.
+func (t *table) buildPartitionedArrayNestedInsertCTEs(
+	insertObjs []arguments.InsertObject,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) (string, []any, int, error) {
+	var cteSQL strings.Builder
+
+	params, paramIndex, err := t.buildPartitionedArrayNestedInsertCTEsWithParents(
+		&cteSQL,
+		insertObjs,
+		partitionedParentCTENames(len(insertObjs)),
+		"mutation_result",
+		nil,
+		"",
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
+	)
+	if err != nil {
+		return "", nil, 0, err
+	}
+
+	return cteSQL.String(), params, paramIndex, nil
+}
+
+func (t *table) buildPartitionedArrayNestedInsertCTEsWithParents(
+	b *strings.Builder,
+	insertObjs []arguments.InsertObject,
+	parentCTENames []string,
+	parentUnionCTEName string,
+	tableSubs where.TableSubstitutions,
+	ctePrefix string,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	groups, err := groupPartitionedArrayNestedInsertsWithParents(
+		insertObjs, parentCTENames, ctePrefix,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for _, g := range groups {
+		params, paramIndex, err = t.buildPartitionedArrayNestedInsertGroup(
+			b, g, parentUnionCTEName, tableSubs, role, sessionVariables, params, paramIndex,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
+	return params, paramIndex, nil
+}
+
+func nestedInsertTargetTable(ni *arguments.NestedInsert) (*table, error) {
+	target, ok := ni.TargetTable.(*table)
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: nested insert %s: target table is %T, expected *table",
+			errNestedInsertTargetTableType,
+			ni.RelationshipName,
+			ni.TargetTable,
+		)
+	}
+
+	return target, nil
+}
+
+func (t *table) buildPartitionedArrayNestedInsertGroup(
+	b *strings.Builder,
+	g *partitionedNestedGroup,
+	parentUnionCTEName string,
+	tableSubs where.TableSubstitutions,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	target, err := nestedInsertTargetTable(g.template)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if b.Len() > 0 {
+		b.WriteString(", ")
+	}
+
+	childSubs := extendSubsForArrayChild(
+		tableSubs, t.tableFromClause(), parentUnionCTEName, g.template,
+	)
+
+	if hasArrayNestedInserts(g.objs) {
+		return target.buildPartitionedNestedArrayGroupWithNestedInserts(
+			b, g, childSubs, role, sessionVariables, params, paramIndex,
+		)
+	}
+
+	return target.buildFlatPartitionedNestedArrayGroup(
+		b, g, childSubs, role, sessionVariables, params, paramIndex,
+	)
+}
+
+func (t *table) buildPartitionedNestedArrayGroupWithNestedInserts(
+	b *strings.Builder,
+	g *partitionedNestedGroup,
+	childSubs where.TableSubstitutions,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	rowCTENames, params, paramIndex, err := t.buildPartitionedNestedArrayRowsCTE(
+		b, g.cteName, g.template, g.objs, g.parentCTENames, childSubs,
+		role, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf(
+			"failed to build CTE for %s: %w", g.template.RelationshipName, err,
+		)
+	}
+
+	params, paramIndex, err = t.buildPartitionedArrayNestedInsertCTEsWithParents(
+		b,
+		g.objs,
+		rowCTENames,
+		g.cteName,
+		childSubs,
+		g.cteName+"_",
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf(
+			"failed to build nested CTEs for %s: %w",
+			g.template.RelationshipName,
+			err,
+		)
+	}
+
+	return params, paramIndex, nil
+}
+
+func (t *table) buildFlatPartitionedNestedArrayGroup(
+	b *strings.Builder,
+	g *partitionedNestedGroup,
+	childSubs where.TableSubstitutions,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	// nestedFKIndex records which child columns are sourced from a parent
+	// CTE. The per-row source CTE is selected from g.parentCTENames when the
+	// partitioned data SELECT is written.
+	nestedFKIndex, err := g.template.ApplyArrayFKColumn("")
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to apply array FK columns: %w", err)
+	}
+
+	params, paramIndex, err = t.buildPartitionedNestedArrayCTE(
+		b, g.cteName, g.objs, g.parentCTENames, g.template.OnConflict,
+		nestedFKIndex, childSubs, role, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf(
+			"failed to build CTE for %s: %w", g.template.RelationshipName, err,
+		)
+	}
+
+	return params, paramIndex, nil
+}
+
+func partitionedNestedRowCTEName(cteName string, rowIdx int) string {
+	return cteName + "_row_" + strconv.Itoa(rowIdx)
+}
+
+func (t *table) buildPartitionedNestedArrayRowsCTE(
+	b *strings.Builder,
+	cteName string,
+	template *arguments.NestedInsert,
+	insertObjs []arguments.InsertObject,
+	parentCTENames []string,
+	tableSubs where.TableSubstitutions,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]string, []any, int, error) {
+	if err := validateParentCTENameCount(insertObjs, parentCTENames); err != nil {
+		return nil, nil, 0, err
+	}
+
+	rowCTENames := make([]string, len(insertObjs))
+	for i := range insertObjs {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		rowCTEName := partitionedNestedRowCTEName(cteName, i)
+		rowCTENames[i] = rowCTEName
+
+		rowNested := *template
+		rowNested.NestedObjects = []arguments.InsertObject{insertObjs[i]}
+
+		nestedFKIndex, err := rowNested.ApplyArrayFKColumn(parentCTENames[i])
+		if err != nil {
+			return nil, nil, 0, fmt.Errorf("failed to apply array FK columns: %w", err)
+		}
+
+		rowObj := rowNested.NestedObjects[0]
+		for _, col := range rowObj.Columns {
+			if _, isFK := nestedFKIndex[col.Column.SQLName]; !isFK {
+				params = append(params, col.Value)
+			}
+		}
+
+		params, paramIndex, err = t.buildSingleInsertCTE(
+			b, rowCTEName, rowObj, rowNested.OnConflict, nestedFKIndex, tableSubs,
+			params, paramIndex, role, sessionVariables,
+		)
+		if err != nil {
+			return nil, nil, 0, fmt.Errorf("failed to build nested row CTE %d: %w", i, err)
+		}
+	}
+
+	b.WriteString(", ")
+	b.WriteString(cteName)
+	b.WriteString(" AS (")
+
+	for i, rowCTEName := range rowCTENames {
+		if i > 0 {
+			b.WriteString(" UNION ALL ")
+		}
+
+		t.writePartitionedParentProjection(b, rowCTEName)
+	}
+
+	b.WriteByte(')')
+
+	return rowCTENames, params, paramIndex, nil
+}
+
+// buildPartitionedNestedArrayCTE dispatches the partitioned shape to the
+// pre-check or post-check sibling, mirroring buildMultiNestedInsertCTE.
+func (t *table) buildPartitionedNestedArrayCTE(
+	b *strings.Builder,
+	cteName string,
+	insertObjs []arguments.InsertObject,
+	parentCTENames []string,
+	onConflict *arguments.OnConflict,
+	nestedFKIndex arguments.NestedFKSources,
+	tableSubs where.TableSubstitutions,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	if err := validateParentCTENameCount(insertObjs, parentCTENames); err != nil {
+		return nil, 0, err
+	}
+
+	nestedFKColumns := nestedFKColumnSet(nestedFKIndex)
+
+	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
+
+	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
+	if t.requiresPostInsertCheck(role, presentCols) {
+		return t.buildPartitionedNestedArrayCTEPostCheck(
+			b, cteName, insertObjs, parentCTENames, allColumns, columnToValue,
+			nestedFKIndex, tableSubs, onConflict, role, sessionVariables,
+			params, paramIndex,
+		)
+	}
+
+	return t.buildPartitionedNestedArrayCTEPreCheck(
+		b, cteName, insertObjs, parentCTENames, allColumns, columnToValue,
+		nestedFKIndex, tableSubs, onConflict, role, sessionVariables,
+		params, paramIndex,
+	)
+}
+
+func nestedFKColumnSet(nestedFKIndex arguments.NestedFKSources) map[string]struct{} {
+	nestedFKColumns := make(map[string]struct{}, len(nestedFKIndex))
+	for col := range nestedFKIndex {
+		nestedFKColumns[col] = struct{}{}
+	}
+
+	return nestedFKColumns
+}
+
+func insertColumnsWithNestedFK(
+	allColumns []string,
+	nestedFKIndex arguments.NestedFKSources,
+) []string {
+	finalColumns := append([]string{}, allColumns...)
+	if len(nestedFKIndex) == 0 {
+		return finalColumns
+	}
+
+	seen := make(map[string]struct{}, len(finalColumns)+len(nestedFKIndex))
+	for _, col := range finalColumns {
+		seen[col] = struct{}{}
+	}
+
+	fkColumns := make([]string, 0, len(nestedFKIndex))
+	for col := range nestedFKIndex {
+		if _, ok := seen[col]; ok {
+			continue
+		}
+
+		fkColumns = append(fkColumns, col)
+	}
+
+	sort.Strings(fkColumns)
+
+	return append(finalColumns, fkColumns...)
+}
+
+// buildPartitionedNestedArrayCTEPreCheck emits the pre-check variant of the
+// multi-parent array-rel CTE. Shape mirrors buildMultiNestedInsertCTEPreCheck
+// but each UNION branch sources FK columns from its matching parent CTE
+// instead of cross-joining the whole mutation_result CTE.
+func (t *table) buildPartitionedNestedArrayCTEPreCheck(
+	b *strings.Builder,
+	cteName string,
+	insertObjs []arguments.InsertObject,
+	parentCTENames []string,
+	allColumns []string,
+	columnToValue []map[string]any,
+	nestedFKIndex arguments.NestedFKSources,
+	tableSubs where.TableSubstitutions,
+	onConflict *arguments.OnConflict,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	checkCTEName := "check_" + cteName
+
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+	dataColumns := t.extendWithPermissionColumns(finalColumns, role)
+
+	b.WriteString(checkCTEName)
+	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
+
+	params, paramIndex = t.buildPartitionedUnionAllSelect(
+		b, insertObjs, parentCTENames, dataColumns, columnToValue,
+		nestedFKIndex, params, paramIndex,
+	)
+
+	b.WriteString(") AS data WHERE ")
+
+	params, paramIndex, hasCheckPermissions, err := t.buildCheckConstraintWhereClause(
+		b, role, sessionVariables, tableSubs, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	b.WriteString("), ")
+
+	if hasCheckPermissions {
+		t.buildCheckCountCTE(b, cteName, checkCTEName, len(insertObjs))
+	}
+
+	b.WriteString(cteName)
+	b.WriteString(" AS (INSERT INTO ")
+	b.WriteString(t.tableFromClause())
+
+	t.buildInsertColumnsClause(b, finalColumns)
+	t.buildInsertSelectClause(b, finalColumns, checkCTEName, nil)
+	t.buildInsertFromClause(b, checkCTEName, nil)
+	t.buildInsertWhereClause(b, cteName, hasCheckPermissions)
+
+	if onConflict != nil {
+		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		if err != nil {
+			return nil, 0, err //nolint:wrapcheck
+		}
+	}
+
+	b.WriteString(" RETURNING *)")
+
+	return params, paramIndex, nil
+}
+
+// buildPartitionedNestedArrayCTEPostCheck emits the post-check variant of the
+// multi-parent array-rel CTE. Shape mirrors
+// buildMultiNestedInsertCTEPostCheck but with the same partitioning treatment
+// as the pre-check sibling.
+func (t *table) buildPartitionedNestedArrayCTEPostCheck(
+	b *strings.Builder,
+	cteName string,
+	insertObjs []arguments.InsertObject,
+	parentCTENames []string,
+	allColumns []string,
+	columnToValue []map[string]any,
+	nestedFKIndex arguments.NestedFKSources,
+	tableSubs where.TableSubstitutions,
+	onConflict *arguments.OnConflict,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	dataCTEName := cteName + "_data"
+	rawCTEName := "_" + cteName
+	postCheckName := cteName + "_post_check"
+
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+
+	b.WriteString(dataCTEName)
+	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
+
+	params, paramIndex = t.buildPartitionedUnionAllSelect(
+		b, insertObjs, parentCTENames, finalColumns, columnToValue,
+		nestedFKIndex, params, paramIndex,
+	)
+
+	b.WriteString(") AS data), ")
+
+	b.WriteString(rawCTEName)
+	b.WriteString(" AS (INSERT INTO ")
+	b.WriteString(t.tableFromClause())
+
+	t.buildInsertColumnsClause(b, finalColumns)
+	t.buildInsertSelectClause(b, finalColumns, dataCTEName, nil)
+	t.buildInsertFromClause(b, dataCTEName, nil)
+
+	if onConflict != nil {
+		var err error
+
+		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		if err != nil {
+			return nil, 0, err //nolint:wrapcheck
+		}
+	}
+
+	b.WriteString(" RETURNING *), ")
+
+	params, paramIndex, err := t.buildPostCheckCTEWithName(
+		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	b.WriteString(cteName)
+	b.WriteString(" AS (SELECT * FROM ") //nolint:unqueryvet
+	b.WriteString(rawCTEName)
+	b.WriteString(" WHERE (SELECT status FROM ")
+	b.WriteString(postCheckName)
+	b.WriteString(") = 1)")
+
+	return params, paramIndex, nil
+}
+
+// buildPartitionedUnionAllSelect emits the UNION ALL data subquery for a
+// partitioned nested-array insert. Like buildUnionAllSelect but each branch
+// sources FK columns from that row's dedicated parent CTE (mutation_result_N
+// at the top level, nested_<rel>_row_N for array grandchildren), so permission
+// checks see the real parent FK value and final INSERTs do not depend on
+// unordered RETURNING rows.
+func (t *table) buildPartitionedUnionAllSelect(
+	b *strings.Builder,
+	insertObjs []arguments.InsertObject,
+	parentCTENames []string,
+	allColumns []string,
+	columnToValue []map[string]any,
+	nestedFKIndex arguments.NestedFKSources,
+	params []any,
+	paramIndex int,
+) ([]any, int) {
+	for i := range insertObjs {
+		if i > 0 {
+			b.WriteString(" UNION ALL ")
+		}
+
+		parentCTEName := parentCTENames[i]
+		usesParentCTE := false
+
+		b.WriteString("SELECT ")
+
+		for j, col := range allColumns {
+			if j > 0 {
+				b.WriteString(", ")
+			}
+
+			if source, isFK := nestedFKIndex[col]; isFK {
+				writeFKSourceColumn(b, parentCTEName, source.ColumnName)
+				b.WriteString(" AS ")
+				core.WriteQuotedIdentifier(b, col)
+
+				usesParentCTE = true
+
+				continue
+			}
+
+			colType := t.columnSQLType(col)
+
+			value, hasValue := columnToValue[i][col]
+			if hasValue {
+				params, paramIndex = t.writeTypedPlaceholder(
+					b, col, colType, value, params, paramIndex,
+				)
+			} else {
+				t.writeTypedNull(b, col, colType)
+			}
+		}
+
+		if usesParentCTE {
+			b.WriteString(" FROM ")
+			b.WriteString(parentCTEName)
+		}
+	}
+
+	return params, paramIndex
+}
+
+func nestedForeignKeyColumns(nested *arguments.NestedInsert) []string {
+	if len(nested.ForeignKeySourceColumns) == 0 {
+		return append([]string{}, nested.ForeignKeyColumns...)
+	}
+
+	columns := make([]string, 0, len(nested.ForeignKeySourceColumns))
+	seen := make(map[string]struct{}, len(nested.ForeignKeySourceColumns))
+
+	for _, fkName := range nested.ForeignKeyColumns {
+		if _, ok := nested.ForeignKeySourceColumns[fkName]; !ok {
+			continue
+		}
+
+		columns = append(columns, fkName)
+		seen[fkName] = struct{}{}
+	}
+
+	extraColumns := make([]string, 0, len(nested.ForeignKeySourceColumns)-len(columns))
+	for fkName := range nested.ForeignKeySourceColumns {
+		if _, ok := seen[fkName]; ok {
+			continue
+		}
+
+		extraColumns = append(extraColumns, fkName)
+	}
+
+	sort.Strings(extraColumns)
+
+	return append(columns, extraColumns...)
+}
+
+// buildNestedFKIndex maps foreign-key columns to their nested CTE source
+// columns for object-relationship nested inserts only. For object relationships
+// the FK lives on the parent row, so we record the CTE column that supplies
+// each FK column's value and append a placeholder column to every parent insert object.
 //
 // Array-relationship nested inserts put the FK on the child; the parent INSERT
 // must not include those columns, so they are intentionally excluded from this
 // index (which drives the parent's INSERT column list).
 func (t *table) buildNestedFKIndex(
 	insertObjs []arguments.InsertObject,
-) map[string]arguments.NestedFKRef {
-	nestedFKIndex := make(map[string]arguments.NestedFKRef)
+) (arguments.NestedFKSources, error) {
+	nestedFKIndex := make(arguments.NestedFKSources) // column -> source CTE column
 	if len(insertObjs) == 0 {
-		return nestedFKIndex
+		return nestedFKIndex, nil
 	}
 
 	for _, nested := range insertObjs[0].NestedInserts {
@@ -432,17 +1293,29 @@ func (t *table) buildNestedFKIndex(
 
 		cteName := "nested_" + nested.RelationshipName
 
-		for i, fkName := range nested.ForeignKeyColumns {
-			parentCol := referencedColumnAt(nested.ReferencedColumns, i)
-			nestedFKIndex[fkName] = arguments.NestedFKRef{CTE: cteName, ParentCol: parentCol}
+		for _, fkName := range nestedForeignKeyColumns(&nested) {
+			sourceColumn, ok := nested.ForeignKeySourceColumns[fkName]
+			if !ok || sourceColumn == "" {
+				return nil, fmt.Errorf(
+					"%w: nested insert %s: missing source column for FK %s",
+					arguments.ErrInvalidArgument,
+					nested.RelationshipName,
+					fkName,
+				)
+			}
+
+			nestedFKIndex[fkName] = arguments.NestedFKSource{
+				CTEName:    cteName,
+				ColumnName: sourceColumn,
+			}
 
 			fkColumn := t.columnFromSQLName(fkName)
 			if fkColumn == nil {
 				continue
 			}
 
-			for j := range insertObjs {
-				insertObjs[j].Columns = append(insertObjs[j].Columns, arguments.InsertColumn{
+			for i := range insertObjs {
+				insertObjs[i].Columns = append(insertObjs[i].Columns, arguments.InsertColumn{
 					Column: fkColumn,
 					Value:  nil,
 				})
@@ -450,32 +1323,87 @@ func (t *table) buildNestedFKIndex(
 		}
 	}
 
-	return nestedFKIndex
+	return nestedFKIndex, nil
 }
 
-// referencedColumnAt returns referenced[i], falling back to "id" when the slice
-// is missing the entry or carries an empty string. Mirrors the arguments
-// package helper used by NestedInsert.ApplyArrayFKColumn; kept here because
-// buildNestedFKIndex (object-rel path) lives in the queries package.
-func referencedColumnAt(referenced []string, i int) string {
-	if i < len(referenced) && referenced[i] != "" {
-		return referenced[i]
+func nestedCTEMapKey(nestedCTEs map[string]string, relationshipName string) string {
+	if _, ok := nestedCTEs[relationshipName]; !ok {
+		return relationshipName
 	}
 
-	return "id"
+	for i := 1; ; i++ {
+		key := relationshipName + "#" + strconv.Itoa(i)
+		if _, ok := nestedCTEs[key]; !ok {
+			return key
+		}
+	}
 }
 
-// buildNestedCTEsMap builds a map of relationship names to CTE names for response building.
-func (t *table) buildNestedCTEsMap(insertObjs []arguments.InsertObject) map[string]string {
+func addPartitionedArrayNestedCTEsMap(
+	nestedCTEs map[string]string,
+	insertObjs []arguments.InsertObject,
+	ctePrefix string,
+) error {
+	groups, err := groupPartitionedArrayNestedInsertsWithParents(
+		insertObjs, partitionedParentCTENames(len(insertObjs)), ctePrefix,
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, g := range groups {
+		key := nestedCTEMapKey(nestedCTEs, g.template.RelationshipName)
+		nestedCTEs[key] = g.cteName
+
+		if !hasArrayNestedInserts(g.objs) {
+			continue
+		}
+
+		if err := addPartitionedArrayNestedCTEsMap(
+			nestedCTEs, g.objs, g.cteName+"_",
+		); err != nil {
+			return fmt.Errorf(
+				"failed to map nested CTEs for %s: %w", g.template.RelationshipName, err,
+			)
+		}
+	}
+
+	return nil
+}
+
+// buildNestedCTEsMap builds a map of response relationship keys to CTE names.
+// It must mirror the CTEs the insert builder actually emits:
+// array-relationship nested inserts are emitted from every parent row (and can
+// split into multiple CTEs for incompatible on_conflict clauses), while
+// object-relationship nested inserts are currently emitted only from the first
+// parent row by buildNestedInsertCTEs/buildNestedFKIndex. Split array-rel CTEs
+// use synthetic map keys so affected_rows and force-ref tracking include every
+// emitted CTE while single-CTE relationship lookups keep their relationship key.
+func (t *table) buildNestedCTEsMap(
+	insertObjs []arguments.InsertObject,
+) (map[string]string, error) {
 	nestedCTEs := make(map[string]string)
-	if len(insertObjs) == 0 {
-		return nestedCTEs
+
+	for parentIdx := range insertObjs {
+		for _, nested := range insertObjs[parentIdx].NestedInserts {
+			if nested.IsArrayRelationship && len(insertObjs) > 1 {
+				continue
+			}
+
+			if !nested.IsArrayRelationship && parentIdx > 0 {
+				continue
+			}
+
+			key := nestedCTEMapKey(nestedCTEs, nested.RelationshipName)
+			nestedCTEs[key] = "nested_" + nested.RelationshipName
+		}
 	}
 
-	for _, nested := range insertObjs[0].NestedInserts {
-		cteName := "nested_" + nested.RelationshipName
-		nestedCTEs[nested.RelationshipName] = cteName
+	if len(insertObjs) > 1 && hasArrayNestedInserts(insertObjs) {
+		if err := addPartitionedArrayNestedCTEsMap(nestedCTEs, insertObjs, ""); err != nil {
+			return nil, err
+		}
 	}
 
-	return nestedCTEs
+	return nestedCTEs, nil
 }
