@@ -1,0 +1,31 @@
+table:
+  name: notes
+  schema: public
+array_relationships:
+  - name: replies
+    using:
+      foreign_key_constraint_on:
+        column: note_id
+        table:
+          name: note_replies
+          schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        author_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - id
+        - author_id
+        - title
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - author_id
+        - title
+      filter:
+        author_id:
+          _eq: X-Hasura-User-Id

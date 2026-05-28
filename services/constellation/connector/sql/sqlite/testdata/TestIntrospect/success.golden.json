@@ -2,6 +2,113 @@
   "Schemas": {
     "": {
       "Tables": {
+        "users": {
+          "Schema": "",
+          "Name": "users",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "email",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "display_name",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "age",
+              "Type": "int8",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "score",
+              "Type": "float8",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": "0.0",
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "CURRENT_TIMESTAMP",
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "",
+          "ForeignKeys": null,
+          "UniqueConstraints": [
+            {
+              "Name": "users_email_key",
+              "Columns": [
+                "email"
+              ]
+            },
+            {
+              "Name": "sqlite_autoindex_users_1",
+              "Columns": [
+                "id"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
         "department_roles": {
           "Schema": "",
           "Name": "department_roles",
@@ -12,6 +119,7 @@
               "Type": "text",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -24,6 +132,7 @@
               "Type": "text",
               "IsNullable": true,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -59,6 +168,7 @@
               "Type": "text",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -71,6 +181,7 @@
               "Type": "text",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -83,6 +194,7 @@
               "Type": "text",
               "IsNullable": true,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -95,6 +207,7 @@
               "Type": "numeric",
               "IsNullable": true,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": true,
@@ -107,6 +220,7 @@
               "Type": "bool",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": false,
               "SupportsInc": false,
@@ -119,6 +233,7 @@
               "Type": "float8",
               "IsNullable": true,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": true,
@@ -131,6 +246,7 @@
               "Type": "bytea",
               "IsNullable": true,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": false,
               "SupportsInc": false,
@@ -143,6 +259,7 @@
               "Type": "json",
               "IsNullable": true,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": false,
               "SupportsInc": false,
@@ -155,6 +272,7 @@
               "Type": "date",
               "IsNullable": true,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -167,6 +285,7 @@
               "Type": "timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -179,6 +298,7 @@
               "Type": "timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -220,6 +340,7 @@
               "Type": "int8",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": true,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": true,
@@ -232,6 +353,7 @@
               "Type": "text",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -244,6 +366,7 @@
               "Type": "float8",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": true,
@@ -256,6 +379,7 @@
               "Type": "int8",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": true,
@@ -268,6 +392,7 @@
               "Type": "float8",
               "IsNullable": true,
               "IsGenerated": true,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": true,
@@ -296,6 +421,7 @@
               "Type": "uuid",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -308,6 +434,7 @@
               "Type": "text",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -320,6 +447,7 @@
               "Type": "text",
               "IsNullable": true,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -332,6 +460,7 @@
               "Type": "timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": true,
               "SupportsInc": false,
@@ -344,6 +473,7 @@
               "Type": "bool",
               "IsNullable": false,
               "IsGenerated": false,
+              "IsIdentity": false,
               "IsArray": false,
               "SupportsMinMax": false,
               "SupportsInc": false,
@@ -383,107 +513,6 @@
               "Columns": [
                 "user_id",
                 "department_id"
-              ]
-            }
-          ],
-          "IsView": false,
-          "IsInsertable": true,
-          "IsUpdatable": true
-        },
-        "users": {
-          "Schema": "",
-          "Name": "users",
-          "Comment": null,
-          "Columns": [
-            {
-              "Name": "id",
-              "Type": "uuid",
-              "IsNullable": false,
-              "IsGenerated": false,
-              "IsArray": false,
-              "SupportsMinMax": true,
-              "SupportsInc": false,
-              "SupportsAgg": false,
-              "Default": null,
-              "Comment": null
-            },
-            {
-              "Name": "email",
-              "Type": "text",
-              "IsNullable": false,
-              "IsGenerated": false,
-              "IsArray": false,
-              "SupportsMinMax": true,
-              "SupportsInc": false,
-              "SupportsAgg": false,
-              "Default": null,
-              "Comment": null
-            },
-            {
-              "Name": "display_name",
-              "Type": "text",
-              "IsNullable": true,
-              "IsGenerated": false,
-              "IsArray": false,
-              "SupportsMinMax": true,
-              "SupportsInc": false,
-              "SupportsAgg": false,
-              "Default": null,
-              "Comment": null
-            },
-            {
-              "Name": "age",
-              "Type": "int8",
-              "IsNullable": true,
-              "IsGenerated": false,
-              "IsArray": false,
-              "SupportsMinMax": true,
-              "SupportsInc": true,
-              "SupportsAgg": true,
-              "Default": null,
-              "Comment": null
-            },
-            {
-              "Name": "score",
-              "Type": "float8",
-              "IsNullable": false,
-              "IsGenerated": false,
-              "IsArray": false,
-              "SupportsMinMax": true,
-              "SupportsInc": true,
-              "SupportsAgg": true,
-              "Default": "0.0",
-              "Comment": null
-            },
-            {
-              "Name": "created_at",
-              "Type": "timestamptz",
-              "IsNullable": false,
-              "IsGenerated": false,
-              "IsArray": false,
-              "SupportsMinMax": true,
-              "SupportsInc": false,
-              "SupportsAgg": false,
-              "Default": "CURRENT_TIMESTAMP",
-              "Comment": null
-            }
-          ],
-          "PrimaryKeys": [
-            "id"
-          ],
-          "PrimaryKeyConstraintName": "",
-          "ForeignKeys": null,
-          "UniqueConstraints": [
-            {
-              "Name": "users_email_key",
-              "Columns": [
-                "email"
-              ]
-            },
-            {
-              "Name": "sqlite_autoindex_users_1",
-              "Columns": [
-                "id"
               ]
             }
           ],

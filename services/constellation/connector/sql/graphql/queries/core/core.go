@@ -170,6 +170,22 @@ type Column struct {
 	// (GENERATED ALWAYS / STORED / VIRTUAL); such columns are excluded from
 	// insert and update mutation input types.
 	IsGenerated bool
+	// IsIdentity is true when the column auto-populates from a database-managed
+	// source the insert payload cannot reliably precompute: PostgreSQL
+	// GENERATED ALWAYS / BY DEFAULT AS IDENTITY (pg_attribute.attidentity != '')
+	// and SQLite INTEGER PRIMARY KEY rowid aliases (with or without
+	// AUTOINCREMENT). These columns do not appear in pg_attrdef nor in
+	// PRAGMA table_xinfo's dflt_value, so HasDefault stays false; IsIdentity is
+	// the separate signal RequiresPostInsertCheck consults to force an
+	// insert-check predicate referencing such a column to run after the INSERT
+	// (against the row carrying the engine-assigned value) rather than against
+	// the payload (where the column would still be NULL).
+	IsIdentity bool
+	// HasDefault is true when the column has a database DEFAULT expression.
+	// When such a column is omitted from an insert, the row carries the
+	// default rather than NULL, so an insert-check that references it (directly
+	// or via a relationship join column) must be evaluated after the INSERT.
+	HasDefault bool
 }
 
 // Operation is the function signature for the per-field SQL builders
