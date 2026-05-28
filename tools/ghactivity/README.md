@@ -12,12 +12,10 @@ From a clone of this repo:
 
 ```sh
 cd tools/ghactivity
-mkdir -p gh-activity
-go build -o gh-activity/gh-activity .
-(cd gh-activity && gh extension install --force .)
+make install
 ```
 
-`gh extension install` derives the extension name from the basename of the **current** directory and requires that directory to start with `gh-`. The project lives at `tools/ghactivity` to keep Go import paths and CI path filters stable, so we build into a `gh-activity/` subdirectory and `cd` into it before installing (it's git-ignored). `gh` only accepts `.` as the local path — relative paths like `./gh-activity` don't work.
+That runs the Nix build (producing `result/bin/gh-activity`) and copies the binary to `~/.local/share/gh/extensions/gh-activity/gh-activity`, which is where `gh` discovers third-party extensions. Override the destination with `make install GH_EXTENSIONS_DIR=...` if your `gh` config lives elsewhere.
 
 Verify:
 
@@ -25,7 +23,7 @@ Verify:
 gh activity --help
 ```
 
-To uninstall: `gh extension remove activity`.
+To uninstall: `rm -rf ~/.local/share/gh/extensions/gh-activity` (or `gh extension remove activity`).
 
 ## Usage
 

@@ -77,13 +77,11 @@ The binary is named `gh-activity` (Go produces `ghactivity`; `project.nix` renam
 
 ```sh
 cd tools/ghactivity
-mkdir -p gh-activity
-go build -o gh-activity/gh-activity .
-(cd gh-activity && gh extension install --force .)
+make install
 gh activity --help
 ```
 
-`gh extension install` derives the extension name from the **current** directory's basename and only accepts `.` as a local path — relative paths like `./gh-activity` fail with "Could not find extension". So we build into a `gh-activity/` subdir (git-ignored) and `cd` into it before installing.
+`make install` runs `make build` (Nix → `result/bin/gh-activity`) and copies the binary into `~/.local/share/gh/extensions/gh-activity/gh-activity`, which is the directory `gh` scans for third-party extensions. We bypass `gh extension install`: it expects a git repo or directory whose basename starts with `gh-` and only accepts `.` as the local path, neither of which fits `tools/ghactivity/`. The destination is overridable with `make install GH_EXTENSIONS_DIR=...`.
 
 ## Development Workflow
 
