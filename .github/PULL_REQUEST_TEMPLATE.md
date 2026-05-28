@@ -34,6 +34,7 @@ Where `PKG` is:
 - `docs`: For changes to the documentation
 - `examples`: For changes to the examples
 - `functions`: For changes to the Nhost Functions service
+- `ghactivity`: For changes to the gh-activity CLI extension
 - `govulncheck-wrapper`: For changes to the govulncheck wrapper tool
 - `internal/lib`: For changes to Nhost's common libraries (internal)
 - `mcp`: For changes to the Nhost MCP server
